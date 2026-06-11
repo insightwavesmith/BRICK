@@ -14,7 +14,7 @@
 | BAL owner | Support residue with Brick documentation work, Agent/Main Codex index maintenance evidence, and Link Movement/status-pointer attribution. |
 | Module | none as axis module; support docs index only. |
 | Contract | Keep active spec and support-record pointers readable after FSR-0 without rewriting historical records as if they were born at new paths. |
-| Derives from | `AGENTS.md`, `project/brick-protocol/status/kernel/current-working-context.md`, and FSR-0 v4. |
+| Derives from | `AGENTS.md`, `current-working-context.md` (vessel #1 dogfood working context, now in the frozen HISTORY repo), and FSR-0 v4. |
 | Input | Existing support docs/spec index and moved FSR-0 root layout. |
 | Output | Active read order, support path policy, and current support evidence pointers. |
 | Allowed | Rebase active pointers to `support/docs/`, `project/brick-protocol/status/`, `support/checkers/`, and `project/brick-protocol/building-evidence/`; mark old wording as historical. |
@@ -51,7 +51,7 @@ automation slices, read in this order:
 
 ```text
 AGENTS.md
-project/brick-protocol/status/kernel/current-working-context.md
+current-working-context.md (frozen HISTORY repo)
 support/docs/spec/brick-protocol-coo-judgment-chain-sync-0-source-projection-alignment-0526.md
 support/docs/spec/brick-protocol-movement-binary-0-next-work-and-automation-queue-0526.md
 support/docs/spec/brick-protocol-building-automation-level-0-current-level-assessment-0526.md
@@ -204,7 +204,7 @@ Constitution
 
 The Phase 2 checker-first plan is recorded here as carried planning evidence.
 Current phase and Movement must be read from
-`../../status/kernel/current-working-context.md`, the current source-record index,
+`current-working-context.md` (frozen HISTORY repo), the current source-record index,
 and current support records. Movement vocabulary is currently superseded by
 `../../status/kernel/movement-vocabulary-migration-decision-support-record-0518.md`.
 

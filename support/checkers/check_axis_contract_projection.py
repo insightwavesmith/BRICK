@@ -312,10 +312,11 @@ TRANSFER_CARRY_CONTEXTS_ALLOWED_TO_NAME_FORBIDDEN = {
     "proof_limits",
 }
 
+# CLEAN-YARD v3 (Smith 0611, split-map §2-A): the SEQ-0 active-sequence oracle
+# re-pointed to AGENTS.md ONLY -- the CWC (vessel #1 dogfood working context)
+# and the archived 0522 spec row left for the frozen museum.
 ACTIVE_SEQUENCE_CONTROL_DOCS = (
     "AGENTS.md",
-    "project/brick-protocol/status/kernel/current-working-context.md",
-    "support/docs/spec/brick-protocol-seq-0-bal-sequence-constitution-closure-0522.md",
 )
 ACTIVE_SEQUENCE_FIXTURE_MARKER = "seq0_active_sequence"
 ACTIVE_SEQUENCE_REQUIRED_PATTERNS = (

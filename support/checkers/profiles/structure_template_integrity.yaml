@@ -16,9 +16,6 @@ kernel_checks:
 path_exists:
   - support/checkers/profiles/structure_template_integrity.yaml
   - AGENTS.md
-  - project/brick-protocol/buildings/brick-template-catalog-restructure-0-p9-dogfood-0601/work/preset-expansion.json
-  - project/brick-protocol/buildings/brick-template-catalog-restructure-0-p9-dogfood-0601/work/declared-building-plan.json
-  - project/brick-protocol/buildings/brick-template-catalog-restructure-0-p9-dogfood-0601/evidence/evidence-manifest.json
   - brick/templates/shapes/catalog.yaml
   - brick/templates/shapes/shapes.yaml
   - brick/templates/presets/fast-fix.md
@@ -44,11 +41,7 @@ path_exists:
   - support/operator/building_operation_common.py
   - support/checkers/check_brick_template_catalog_restructure.py
   - support/checkers/check_profile.py
-  - brick/building_plans/checker-strict-validation-0-compact.yaml
   - link/route_policies/basic_qa_repair.yaml
-  - project/brick-protocol/status/kernel/current-working-context.md
-  - brick/building_plans/current-context-prune-0-compact.yaml
-  - project/brick-protocol/buildings/current-context-prune-0-0527/work/building-map.json
 path_absent:
   - brick/templates/shapes/registry.yaml
   - support/checkers/check_current_context_prune0.py
@@ -95,12 +88,15 @@ text_contains:
       - brick_template_catalog_restructure
       - check_brick_template_catalog_restructure
       - p10-delete
-  - path: project/brick-protocol/buildings/brick-template-catalog-restructure-0-p9-dogfood-0601/work/preset-expansion.json
-    texts:
-      - '"chain_preset_catalog_source": "dogfood_chain_presets"'
-      - '"canonical_chain_preset_ref": "building-chain-preset:brick-protocol-engine-feature-hard"'
-      - '"common_basis_ref": "building-chain-preset:high-risk-change-inspected"'
-      - '"brick/templates/review/standard-evidence-integrity-return.yaml"'
+  # CLEAN-YARD v3 (Smith 0611): the standing p9-dogfood-0601 / prune-0527
+  # evidence left for the frozen museum. The declared preset-expansion values
+  # (catalog_source / canonical ref / common_basis_ref) are EXECUTED on a
+  # FRESH engine-feature-hard expansion by intake_evidence_projection_case
+  # (read_side_projection_boundary); the 4th retired needle (the archived 0526
+  # review-sheet path) was frozen-history content the CURRENT catalog no
+  # longer expands -- expanded-ref physicality is enforced by
+  # check_brick_template_catalog_restructure. The CWC structure block left
+  # with current-working-context.md (vessel #1 dogfood working context).
   - path: support/connection/mcp_projection.py
     texts:
       - '"shape_catalog_ref": "brick/templates/shapes/catalog.yaml"'
@@ -151,15 +147,6 @@ text_contains:
       - shape_refs intentionally NOT required
       - 'if files.get("shapes") is not None:'
       - if shapes_path.is_file()
-  - path: project/brick-protocol/status/kernel/current-working-context.md
-    texts:
-      - "## Current Goal"
-      - "## Active Next Sequence"
-      - "## Recently Closed / Baseline Records"
-      - "## Current Guardrails"
-      - PROJECTION-FRESHNESS-OBSERVATION-0
-      - TASK INTAKE RETURNED DOGFOOD 1
-      - REAL-ROUTE-REPAIR-DOGFOOD-1
   # BASELINE ANTI-REWRITE PIN (codex-review tightening A, 0611): the pin-estate
   # ratchet baseline can otherwise be rewritten IN-PLACE in the same change as
   # an estate drift (matching counts + any dated note satisfies the ratchet,
@@ -208,6 +195,13 @@ text_contains:
       - 'text_needles: 42'
       - 'total_blocks: 19'
       - 'note: "REPO-SPLIT seed 0611, operator; product repo BRICK seeded per checker-split-map-0611.md'
+      # latest entry (CLEAN-YARD v3 0611, operator; the whole history-doc pin
+      # estate left WITH its subjects -- project-0 ships no standing
+      # inspection specimens; properties now EXECUTED cases over check-time
+      # generated evidence):
+      - 'total_blocks: 0'
+      - 'text_needles: 0'
+      - 'note: "CLEAN-YARD v3 0611, operator per Smith ruling (project-0 ships no standing inspection specimens)'
   # ---------------------------------------------------------------------
   # SPLIT-PREP 0611 (checker-split-map-0611.md D-2): unique pins of the
   # retired phase-named profile post_d_surface_recompile_p7 folded here
@@ -266,47 +260,19 @@ text_absent:
   - path: support/operator/plan_rendering.py
     texts:
       - split catalog must declare shape_refs
-  # REPO-SPLIT seed 0611: the cascade_sweep anti-stale sweep (5 stale literals,
-  # rehomed verbatim from fc28657 cascade_sweep.yaml forbidden_active_texts)
-  # re-homed onto the two SHIPPED status/kernel history records. The ~15
-  # archived BAR-v2 0526 spec docs and the archived P7 record stayed in the
-  # history repo and their text_absent guards moved with the files (pin
-  # follows rehome); disposition recorded in
-  # support/checkers/pin_estate_baseline.yaml (REPO-SPLIT seed 0611 entry).
-  - path: project/brick-protocol/status/kernel/brick-protocol-three-axis-full-audit-0-worksource-0530.md
-    texts:
-      - support/run.py
-      - "movement: stop"
-      - "movement: return"
-      - "fact_class_admission: admitted"
-      - RoutePolicyFact is admitted
-  - path: project/brick-protocol/status/kernel/brick-protocol-reporter-notification-projection-0-support-record-0531.md
-    texts:
-      - support/run.py
-      - "movement: stop"
-      - "movement: return"
-      - "fact_class_admission: admitted"
-      - RoutePolicyFact is admitted
-json_required_paths:
-  - path: project/brick-protocol/buildings/current-context-prune-0-0527/work/building-map.json
-    required:
-      - kind
-      - brick_instances[].brick_instance_id
-      - agent_bindings[].step_output_ref
-      - link_edges[].link_edge_id
+  # CLEAN-YARD v3 (Smith 0611): the two 0530/0531 status/kernel history
+  # records left for the frozen museum with their cascade_sweep anti-stale
+  # text_absent guards (pin follows file); disposition recorded in
+  # support/checkers/pin_estate_baseline.yaml (CLEAN-YARD v3 entry).
+# CLEAN-YARD v3 (Smith 0611, ⚠ §1-2): the 12 per-plan strict rows pointed at
+# dogfood plans that left for the frozen museum. The strict no-retired-adapter
+# variant stays single-sourced on per-profile rows; re-pointed to the standing
+# fixtures + the bundled product example plan. The lenient core sweep
+# (building_plans_boundary_sweep) still validates every remaining linear plan.
 building_plan_boundary:
-  - path: brick/building_plans/objective-preservation-root-0-compact.yaml
-  - path: brick/building_plans/human-gate-tier-and-recovery-0-compact.yaml
-  - path: brick/building_plans/link-connection-route-0-compact.yaml
-  - path: brick/building_plans/development-worktree-convention-0-compact.yaml
-  - path: brick/building_plans/write-scope-default-exclude-0-compact.yaml
-  - path: brick/building_plans/step-output-and-route-request-0-compact.yaml
-  - path: brick/building_plans/taskshape-and-design-contract-0-compact.yaml
-  - path: brick/building_plans/design-toolkit-and-mcp-0-compact.yaml
-  - path: brick/building_plans/intake-skill-0-compact.yaml
-  - path: brick/building_plans/link-route-policy-resource-0-compact.yaml
-  - path: brick/building_plans/checker-strict-validation-0-compact.yaml
-  - path: brick/building_plans/current-context-prune-0-compact.yaml
+  - path: brick/building_plans/fixture-link-concern-replay-0.yaml
+  - path: brick/building_plans/fixture-link-route-replay-0.yaml
+  - path: brick/building_plans/onboarding-example-0.yaml
 route_policy_boundary:
   - path: link/route_policies/basic_qa_repair.yaml
 fail_fixture_rejects:

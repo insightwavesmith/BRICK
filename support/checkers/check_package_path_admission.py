@@ -480,14 +480,10 @@ BUILDING_LIFECYCLE_FORBIDDEN_SEGMENTS = {
     "dashboard",
 }
 
-# ARCHIVE MUSEUM (#24, 0610): retired session diaries, superseded spec history,
-# old review dispositions, and stale report packets live under a TOP-LEVEL
-# archive/ tree (NOT under project/, so the Building lifecycle path rules never
-# see them). CLOSED class like the other doc families: only md / yaml / json /
-# tar.gz records are admitted under archive/ -- anything else (code, binaries)
-# stays rejected; the museum holds records, not runnable surfaces.
-ARCHIVE_MUSEUM_ROOT = "archive"
-ARCHIVE_MUSEUM_FILE_SUFFIXES = (".md", ".yaml", ".json", ".tar.gz")
+# ARCHIVE MUSEUM class PRUNED (CLEAN-YARD v3, Smith 0611): the entire archive/
+# museum left for the frozen history repo (/Users/smith/projects/brick-protocol
+# preserves every original). The product repo admits NO archive/ root; a
+# resurrected archive/ path REJECTS loudly via the default-deny below.
 
 # USER-WORKSPACE class REMOVED (0611, Smith ruling TASK-BY-TEXT): humans SPEAK
 # tasks (run_building_intake task_statement); the machine records them as
@@ -550,18 +546,18 @@ AGENT_RESOURCE0_DIRS = {
 # predicates below — the former PROJECT_STATUS_DIRS literal set collapsed into
 # is_project_status_path(is_dir=True). Everything else stays closed; the
 # project_declaration kernel check rejects any vessel without charter+declaration.
-PROJECT_STATUS_ROOT_RECORDS = {
-    "preset-three-axis-contract-audit.json",
-    "project-orchestration-ledger.json",
-}
+# CLEAN-YARD v3 (Smith 0611): the two standing dogfood status exports left
+# for the frozen museum; their shapes are EXECUTED projections now
+# (intake_evidence_projection_case generates the ledger packet fresh). The
+# admitted set is EMPTY -- a standing status-root export must be re-admitted
+# deliberately, never inherited.
+PROJECT_STATUS_ROOT_RECORDS: set[str] = set()
+# CLEAN-YARD v3 (Smith 0611): the 3 standing dogfood inbox packets left for
+# the frozen museum; their shapes are EXECUTED by the reporter kernel check
+# over packets the REAL sinks write into a temp inbox each run. The shipped
+# inbox is the empty skeleton.
 PROJECT_STATUS_INBOX_RECORDS = {
     ".gitkeep",
-    # reporter-notification-projection-0-p6-dogfood-0531 frontier packet moved
-    # to archive/status-inbox/ (#24, 0610): no checker/case reads it; only the
-    # profile-pinned packets below stay live in the inbox.
-    "reporter-delivery-wake-bus-0-0531-building-frontier.json",
-    "reporter-delivery-wake-bus-0-0531-building-frontier-operator-wake.json",
-    "run-surface-authority-boundary-codex-multistep-0-0529-building-frontier.json",
 }
 PROJECT_PORTFOLIO_PROJECTION_SEGMENT = "_portfolio-projections"
 PROJECT_STATUS_SEGMENT = "status"
@@ -889,22 +885,6 @@ def is_project_portfolio_projection_path(path: str, *, is_dir: bool) -> bool:
         and slug_part(parts[0])
         and parts[1] == "portfolio-projection.json"
     )
-
-
-def is_archive_museum_path(path: str, *, is_dir: bool) -> bool:
-    """ARCHIVE MUSEUM (#24, 0610): top-level archive/ productization museum.
-
-    Admits the archive/ directory tree itself plus md / yaml / json / tar.gz
-    record files anywhere under it (closed suffix set; mirrors the other doc
-    families). archive/ is intentionally OUTSIDE project/ so the Building
-    lifecycle placement rules never apply to museum records.
-    """
-
-    if is_dir:
-        return path == ARCHIVE_MUSEUM_ROOT or path.startswith(ARCHIVE_MUSEUM_ROOT + "/")
-    if not path.startswith(ARCHIVE_MUSEUM_ROOT + "/"):
-        return False
-    return path.endswith(ARCHIVE_MUSEUM_FILE_SUFFIXES)
 
 
 def is_dashboard_surface_path(path: str, *, is_dir: bool) -> bool:
@@ -1551,7 +1531,6 @@ def allowed_path(path: str) -> bool:
             or is_prh_b_building_evidence_path(clean, is_dir=True)
             or is_project_building_lifecycle_path(clean, is_dir=True)
             or is_dashboard_surface_path(clean, is_dir=True)
-            or is_archive_museum_path(clean, is_dir=True)
         )
 
     if (
@@ -1697,9 +1676,6 @@ def allowed_path(path: str) -> bool:
         return True
     if clean.startswith("support/docs/projection/") and clean.endswith(".md"):
         return True
-    if is_archive_museum_path(clean, is_dir=False):
-        return True
-
     return False
 
 

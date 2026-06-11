@@ -8,47 +8,33 @@ kernel_checks:
   - building_map_graph
 path_exists:
   - support/checkers/profiles/link_routing_behavioral.yaml
+  # CLEAN-YARD v3 fixture plans (yaml test data; ⚠ §1-2 prescriptions)
+  - brick/building_plans/fixture-link-concern-replay-0.yaml
+  - brick/building_plans/fixture-link-route-replay-0.yaml
+  - brick/building_plans/fixture-retired-adapter-plan-0.yaml
   - AGENTS.md
-  - project/brick-protocol/status/kernel/current-working-context.md
   - brick/templates/bricks/transition-concern-return.yaml
-  - brick/building_plans/link-decision-disposition-0-dogfood.yaml
   - support/recording/step_outputs.py
   - support/operator/plan_validation.py
   - support/operator/building_operation.py
-  - project/brick-protocol/buildings/link-decision-disposition-0-dogfood-0527/work/step-outputs/link-decision-disposition-0-design-attempt-1/transition-concern.json
   - AGENTS.md
-  - brick/building_plans/link-owned-automation-0-dogfood.yaml
   - brick/templates/shapes/catalog.yaml
   - link/gate.yaml
   - link/gate.py
   - link/route_policies/basic_qa_repair.yaml
-  - project/brick-protocol/buildings/link-owned-automation-0-dogfood-0527/work/building-map.json
-  - project/brick-protocol/buildings/link-owned-automation-0-dogfood-0527/work/step-outputs/link-owned-automation-0-dev-attempt-2/step-output.json
-  - project/brick-protocol/buildings/link-owned-automation-0-dogfood-0527/work/step-outputs/link-owned-automation-0-qa-attempt-1/transition-concern.json
-  - project/brick-protocol/buildings/link-owned-automation-0-dogfood-0527/work/step-outputs/link-owned-automation-0-qa-attempt-2/step-output.json
-  - project/brick-protocol/buildings/link-owned-automation-0-dogfood-0527/raw/link.jsonl
-  - project/brick-protocol/buildings/link-owned-automation-0-dogfood-0527/evidence/claim_trace/agent/returned_claims.json
-  - project/brick-protocol/buildings/link-owned-automation-0-dogfood-0527/evidence/claim_trace/link/movement_trace.json
-  - project/brick-protocol/buildings/link-owned-automation-0-dogfood-0527/evidence/claim_trace/link/sufficiency_trace.json
   - support/operator/building_operation.py
   - support/operator/plan_validation.py
   - support/operator/route_materialization.py
   - support/operator/run.py
   - AGENTS.md
-  - project/brick-protocol/status/kernel/current-working-context.md
-  - brick/building_plans/step-output-and-route-request-0-compact.yaml
   - support/operator/run.py
   - support/recording/contracts.py
   - support/recording/step_outputs.py
-  - project/brick-protocol/buildings/step-output-and-route-request-0-0526/work/step-outputs/step-output-and-route-request-0-02-qa-attempt-1/step-output.json
-  - project/brick-protocol/buildings/step-output-and-route-request-0-0526/work/step-outputs/step-output-and-route-request-0-02-qa-attempt-1/route-request.json
   - support/operator/route_materialization.py
   - support/operator/auto_repair_replay.py
   - support/operator/plan_validation.py
   - support/recording/step_outputs.py
-  - brick/building_plans/building-automation-complete-0-scope-c-dogfood.yaml
   - link/route_policies/basic_qa_repair.yaml
-  - project/brick-protocol/buildings/building-automation-complete-0-scope-c-dogfood-0527/work/task.md
 path_absent:
   - link/route_templates
   - link/route_bindings
@@ -67,11 +53,6 @@ text_contains:
     texts:
       - LINK-DECISION-DISPOSITION-0
       - transition_concern_evidence
-  - path: project/brick-protocol/status/kernel/current-working-context.md
-    texts:
-      - LINK-DECISION-DISPOSITION-0
-      - transition_concern_evidence
-      - route_decision_basis
   - path: support/recording/step_outputs.py
     texts:
       - _transition_concern_from_returned
@@ -102,18 +83,23 @@ text_contains:
       - concern_kind
       - target_ref
       - not Movement authority
-  - path: brick/building_plans/link-decision-disposition-0-dogfood.yaml
+  # CLEAN-YARD v3: the declared route_decision_basis / route_replay_plan /
+  # transition_lifecycle grammar formerly pinned on the departed dogfood plans
+  # now pins on the standing strict-valid fixture plan (and is EXECUTED by
+  # link_route_evidence_case over the generated evidence).
+  - path: brick/building_plans/fixture-link-concern-replay-0.yaml
     texts:
       - adopted_transition_concern_refs
       - not_adopted_transition_concern_refs
       - override_refs
-      - "max_attempts: 3"
-  - path: project/brick-protocol/buildings/link-decision-disposition-0-dogfood-0527/raw/link.jsonl
-    texts:
-      - route_decision_adopted_transition_concern_refs
-      - route_decision_not_adopted_transition_concern_refs
-      - route_decision_override_refs
-      - transition_lifecycle_state
+      - route_replay_plan
+      - "max_attempts: 2"
+      - transition_lifecycle
+      - declared_gate_refs
+      - link-gate:default-transition
+      - transition-concern:link-owned-automation-0-implementation-gap
+      - Link-owned automatic disposition
+      - route_request
   - path: AGENTS.md
     texts:
       - LINK-OWNED-AUTOMATION-0
@@ -147,44 +133,12 @@ text_contains:
       - materialize_transition_concern_disposition
       - allowed_transition_concerns
       - disposition_required
-  - path: brick/building_plans/link-owned-automation-0-dogfood.yaml
-    texts:
-      - declared_gate_refs
-      - link-gate:default-transition
-      - transition-concern:link-owned-automation-0-implementation-gap
-      - "max_attempts: 2"
-  - path: project/brick-protocol/buildings/link-owned-automation-0-dogfood-0527/raw/link.jsonl
-    texts:
-      - declared_gate_refs
-      - route_decision_adopted_transition_concern_refs
-      - transition-concern:link-owned-automation-0-implementation-gap
-  - path: project/brick-protocol/buildings/link-owned-automation-0-dogfood-0527/evidence/claim_trace/link/movement_trace.json
-    texts:
-      - declared_gate_refs
-      - route_decision_adopted_transition_concern_refs
-      - movement_source
-  - path: project/brick-protocol/buildings/link-owned-automation-0-dogfood-0527/evidence/claim_trace/agent/returned_claims.json
-    texts:
-      - transition_concern_evidence
-      - binding
-      - implementation_gap
-  - path: project/brick-protocol/buildings/link-owned-automation-0-dogfood-0527/evidence/claim_trace/link/sufficiency_trace.json
-    texts:
-      - caller_or_declared
-      - declared Link gate evaluation
-  - path: brick/building_plans/link-owned-automation-0-dogfood.yaml
-    texts:
-      - Link-owned automatic disposition
   # W2 DOC-DECOUPLE (0611): support-role compact-authoring sentence rehomed from
   # the frozen admission-history snapshot to AGENTS.md (live constitution).
   - path: AGENTS.md
     texts:
       - support = expands declared compact authoring, records evidence, and walks
   - path: AGENTS.md
-    texts:
-      - STEP-OUTPUT-AND-ROUTE-REQUEST-0
-      - TASK-SHAPE-AND-DESIGN-CONTRACT-0
-  - path: project/brick-protocol/status/kernel/current-working-context.md
     texts:
       - STEP-OUTPUT-AND-ROUTE-REQUEST-0
       - TASK-SHAPE-AND-DESIGN-CONTRACT-0
@@ -202,11 +156,6 @@ text_contains:
     texts:
       - STEP_OUTPUT_RECORD_NAMES
       - step_output_tail_allowed
-  - path: brick/building_plans/step-output-and-route-request-0-compact.yaml
-    texts:
-      - "parent_goal_ref: goal:bar-v2-active-sequence"
-      - route_request
-      - parent_goal_delta_status
   - path: support/operator/route_materialization.py
     texts:
       - link_decision_packet
@@ -228,17 +177,12 @@ text_contains:
     texts:
       - _step_output_attempts
       - attempt_index
-  - path: brick/building_plans/building-automation-complete-0-scope-c-dogfood.yaml
+  - path: brick/building_plans/fixture-link-route-replay-0.yaml
     texts:
       - "max_attempts: 2"
       - "step_ref: building-automation-complete-0-dev"
       - "step_ref: building-automation-complete-0-qa"
       - "link-decision-packet:building-automation-complete-0-scope-c"
-  - path: project/brick-protocol/buildings/building-automation-complete-0-scope-c-dogfood-0527/work/task.md
-    texts:
-      - END-TO-END-AUTO-BUILDING-DOGFOOD-0
-      - route_replay_plan.max_attempts
-      - not Movement authority
 text_absent:
   - path: agent/skills/task_intake/SKILL.md
     texts:
@@ -265,88 +209,34 @@ text_absent:
       - os.system
       - eval(
       - exec(
-json_required_paths:
-  - path: project/brick-protocol/buildings/link-decision-disposition-0-dogfood-0527/work/step-outputs/link-decision-disposition-0-design-attempt-1/transition-concern.json
-    required:
-      - transition_concern_ref
-      - transition_concern_returned.concern_ref
-      - transition_concern_returned.concern_kind
-      - transition_concern_returned.binding
-      - transition_boundary
-  - path: project/brick-protocol/buildings/link-decision-disposition-0-dogfood-0527/work/step-outputs/link-decision-disposition-0-qa-attempt-1/transition-concern.json
-    required:
-      - transition_concern_ref
-      - transition_concern_returned.concern_ref
-      - transition_concern_returned.reason_refs
-      - transition_concern_returned.binding
-  - path: project/brick-protocol/buildings/link-owned-automation-0-dogfood-0527/work/building-map.json
-    required:
-      - kind
-      - brick_instances[].brick_instance_id
-      - agent_bindings[].step_output_ref
-      - link_edges[].link_edge_id
-  - path: project/brick-protocol/buildings/link-owned-automation-0-dogfood-0527/work/step-outputs/link-owned-automation-0-qa-attempt-1/step-output.json
-    required:
-      - attempt_index
-      - brick_instance_ref
-      - step_output_ref
-      - returned.observed_evidence[]
-      - returned.transition_concern_evidence.binding
-      - returned.transition_concern_evidence.concern_ref
-      - returned.transition_concern_evidence.concern_kind
-      - returned.transition_concern_evidence.reason_refs[]
-      - returned.transition_concern_evidence.related_boundary_refs[]
-      - evidence_refs.raw_stream_ref
-      - evidence_refs.claim_trace_ref
-  - path: project/brick-protocol/buildings/link-owned-automation-0-dogfood-0527/work/step-outputs/link-owned-automation-0-qa-attempt-1/transition-concern.json
-    required:
-      - binding
-      - transition_boundary
-      - transition_concern_returned.concern_ref
-      - transition_concern_returned.concern_kind
-      - transition_concern_returned.binding
-      - transition_concern_returned.reason_refs[]
-      - transition_concern_returned.related_boundary_refs[]
-  - path: project/brick-protocol/buildings/link-owned-automation-0-dogfood-0527/work/step-outputs/link-owned-automation-0-dev-attempt-2/step-output.json
-    required:
-      - attempt_index
-      - brick_instance_ref
-      - step_output_ref
-      - agent_fact_fields[]
-      - returned.observed_evidence[]
-      - returned.made_changes[]
-      - returned.not_proven[]
-      - evidence_refs.raw_stream_ref
-      - evidence_refs.claim_trace_ref
-  - path: project/brick-protocol/buildings/link-owned-automation-0-dogfood-0527/work/step-outputs/link-owned-automation-0-qa-attempt-2/step-output.json
-    required:
-      - attempt_index
-      - brick_instance_ref
-      - step_output_ref
-      - agent_fact_fields[]
-      - returned.observed_evidence[]
-      - returned.not_proven[]
-      - evidence_refs.raw_stream_ref
-      - evidence_refs.claim_trace_ref
-  - path: project/brick-protocol/buildings/step-output-and-route-request-0-0526/work/step-outputs/step-output-and-route-request-0-02-qa-attempt-1/step-output.json
-    required:
-      - step_output_ref
-      - returned
-      - route_request_ref
-      - evidence_refs.raw_stream_ref
-      - evidence_refs.claim_trace_ref
-      - evidence_refs.building_map_ref
-  - path: project/brick-protocol/buildings/step-output-and-route-request-0-0526/work/step-outputs/step-output-and-route-request-0-02-qa-attempt-1/route-request.json
-    required:
-      - route_request_ref
-      - route_request_returned
-      - route_request_returned.requested_route_scope
-      - route_request_returned.reason_refs
-      - route_phase_boundary
+# CLEAN-YARD v3 (Smith 0611): the standing 0526/0527 dogfood evidence this
+# profile used to pin (link-decision-disposition / link-owned-automation /
+# step-output-and-route-request / building-automation-complete-scope-c roots)
+# left for the frozen museum. The SAME properties are EXECUTED here: the case
+# below runs the strict-valid fixture plan (full declared Link grammar)
+# through the real walker on adapter:local into a temp root and asserts the
+# migrated property tables (transition-concern.json + route-request.json
+# persistence, concern/replay step-output shapes, raw-link route_decision_*
+# + declared resumed transition_lifecycle needles, movement/sufficiency/
+# returned-claims trace needles, building-map shape). The caller/COO-authored
+# resume DISPOSITION row twin lives in the tier-a generation harness.
+link_route_evidence_case:
+  - label: clean-yard-link-route-evidence
+    plan_path: brick/building_plans/fixture-link-concern-replay-0.yaml
+    concern_brick: brick-loa0-qa-attempt-1
+    dev_replay_brick: brick-loa0-dev-attempt-2
+    qa_replay_brick: brick-loa0-qa-attempt-2
+    concern_ref: transition-concern:link-owned-automation-0-implementation-gap
 building_plan_boundary:
-  - path: brick/building_plans/link-decision-disposition-0-dogfood.yaml
-  - path: brick/building_plans/link-owned-automation-0-dogfood.yaml
-  - path: brick/building_plans/building-automation-complete-0-scope-c-dogfood.yaml
+  # CLEAN-YARD v3 (⚠ §1-2): strict plan-boundary rows re-pointed from the
+  # departed dogfood plans to the standing fixtures (plan files are yaml test
+  # data, not building evidence).
+  - path: brick/building_plans/fixture-link-concern-replay-0.yaml
+  - path: brick/building_plans/fixture-link-route-replay-0.yaml
+# CLEAN-YARD v3 (⚠ §1-2): the strict no-retired-adapter invariant is EXECUTED
+# RED-first on the standing retired-adapter fixture (default allow_retired
+# False must reject; the lenient allow_retired row lives in
+# read_side_projection_boundary; the core sweep stays tolerant by design).
 route_policy_boundary:
   - path: link/route_policies/basic_qa_repair.yaml
 route_materialization_case:
@@ -508,7 +398,7 @@ auto_repair_replay_case:
       owner_axis: Link
       resource_kind: auto_repair_replay_case
       route_policy_path: link/route_policies/basic_qa_repair.yaml
-      repair_replay_plan_path: brick/building_plans/building-automation-complete-0-scope-c-dogfood.yaml
+      repair_replay_plan_path: brick/building_plans/fixture-link-route-replay-0.yaml
       route_request:
         request_ref: route-request:building-automation-complete-0-scope-c
         requested_route_scope: implementation_only
@@ -535,7 +425,7 @@ auto_repair_replay_case:
     expected:
       movement: reroute
       target_ref: brick-bac0-dev-attempt-2
-      repair_replay_building_id: building-automation-complete-0-scope-c-dogfood-0527
+      repair_replay_building_id: fixture-link-route-replay-0
   # REHOME (auto_repair_replay failure-path): the max_attempts_exhausted disposition
   # case is the SOLE positive exercise of _max_attempts_disposition_required; match the
   # case shape used in the existing auto_repair_replay.yaml reference case.
@@ -545,7 +435,7 @@ auto_repair_replay_case:
       owner_axis: Link
       resource_kind: auto_repair_replay_case
       route_policy_path: link/route_policies/basic_qa_repair.yaml
-      repair_replay_plan_path: brick/building_plans/building-automation-complete-0-scope-c-dogfood.yaml
+      repair_replay_plan_path: brick/building_plans/fixture-link-route-replay-0.yaml
       route_request:
         request_ref: route-request:building-automation-complete-0-scope-c-max-attempts
         requested_route_scope: implementation_only
@@ -580,6 +470,12 @@ auto_repair_replay_case:
         - movement
         - transition_lifecycle
 fail_fixture_rejects:
+  # CLEAN-YARD v3 (⚠ §1-2 second prescription): the retired-write-adapter
+  # fixture plan must be REJECTED by the STRICT validator (no allow_retired);
+  # this is the executed RED leg of the strict no-retired-adapter invariant.
+  - kind: building_plan_boundary
+    label: fixture-retired-adapter-strict-red
+    path: brick/building_plans/fixture-retired-adapter-plan-0.yaml
   - kind: building_plan_boundary
     label: bad-agent-concern-target-ref-smuggled
     document:

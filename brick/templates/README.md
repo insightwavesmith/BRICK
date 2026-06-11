@@ -18,7 +18,7 @@
   Building-level by design, so deliberately NOT a brick sheet under `bricks/`.
 - Historical note: the pre-TRANSITION-CONCERN route-request form (the concern
   form's predecessor) is retired to
-  `archive/brick-templates/review/standard-route-request-return.yaml`; old
-  packets resolve via the archive mirror fallback. The former `design/` and
+  `the frozen HISTORY repo (`brick-protocol`)`; the product repo ships no
+  archive mirror and no standing packets that would need one (CLEAN-YARD v3). The former `design/` and
   `review/` folders are emptied and removed (T-FLATTEN 0611).
 - `projects/` arrives with PROJECT-0 (not yet present).

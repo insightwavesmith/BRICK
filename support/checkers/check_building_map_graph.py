@@ -23,21 +23,10 @@ ADMITTED_PROFILES = {"planning-v0"}
 # REPO-SPLIT seed 0611: the cap-boot historical grandfather entries moved to
 # the history repo with their buildings; the product vessel ships none of them.
 HISTORICAL_BUILDING_IDS: set[str] = set()
-# REPO-SPLIT seed 0611: pre-roundtrip grandfather rows pruned to the 10
-# load-bearing keep-set buildings that shipped; the other rows moved to
-# the history repo with their buildings (map: product = pruned list).
-PRE_ROUNDTRIP_BUILDING_IDS = {
-    "building-automation-complete-0-scope-c-dogfood-0527",
-    "building-automation-final-completion-audit-0-0526",
-    "coo-operating-chain-0-0527",
-    "current-context-prune-0-0527",
-    "design-toolkit-and-mcp-0-0526",
-    "link-decision-disposition-0-dogfood-0527",
-    "link-owned-automation-0-dogfood-0527",
-    "preset-three-axis-contract-repair-0-0528",
-    "project-orchestration-ledger-0-0528",
-    "step-output-and-route-request-0-0526",
-}
+# CLEAN-YARD v3 (Smith 0611): every grandfathered pre-roundtrip building left
+# for the frozen museum with its root; the product vessel ships none, so the
+# grandfather set is EMPTY (a new map claiming pre-roundtrip leniency REDs).
+PRE_ROUNDTRIP_BUILDING_IDS: set[str] = set()
 
 BINDING_ROLES = {"primary", "support", "review"}
 EDGE_ROLES = {

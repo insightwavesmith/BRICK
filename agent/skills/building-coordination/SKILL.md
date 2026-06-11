@@ -196,7 +196,7 @@ content, but `task_intake` must not write files.
 Use this coordination order:
 
 ```text
-1. Read AGENTS.md, current-working-context.md, and the active slice spec.
+1. Read AGENTS.md, the project PROGRESS.md projection, and the active slice spec.
 2. Run `task_intake` as the first active work step for the user's trigger.
 3. Confirm `task_source_draft`, missing fields, not_proven, and remaining gaps.
 4. Let caller / COO declaration confirm `task_source_ref` only after that

@@ -27,6 +27,7 @@ from typing import Any
 from support.checkers.lib.yaml_subset import (
     ProfileError,
     _profile_case_document,
+    json_path_exists,
     load_yaml_subset_file,
     require_mapping,
     require_string,
@@ -1122,7 +1123,7 @@ def run_adapter_gate_shape_union_case(repo: Path, profile: Mapping[str, Any]) ->
     Pins the NEW correct behavior of run._adapter_required_return_shape over a
     REAL walk: a stored plan row whose Brick required_return_shape LACKS a
     default-gate-required field (the legacy under-ask, repro shape of
-    brick/building_plans/building-automation-complete-0-scope-c-dogfood.yaml)
+    brick/building_plans/fixture-link-route-replay-0.yaml)
     must still be ASKED for the gate-implied union through the adapter prompt.
     The observation is the OUTWARD surface (the CLI prompt's
     required_return_labels actually sent by the adapter), not the helper's own
@@ -4383,8 +4384,162 @@ def run_native_dispatch_close_case(repo: Path, profile: Mapping[str, Any]) -> in
                     f"validator: {integrity_violations}"
                 )
 
+            # (8) posA EVIDENCE-SHAPE BACKSTOP FOLD (CLEAN-YARD v3, Smith 0611):
+            # the NATIVE-DISPATCH-BRICK-BACKSTOP-0 profile used to pin the
+            # standing posA-native-complete dogfood root (path_exists +
+            # json_required_paths + text_contains/text_absent). The product
+            # repo ships no standing dogfood evidence, so the SAME properties
+            # are asserted here over the FRESHLY generated standalone close
+            # tree (ok_return, forward) -- the close-case seam IS the
+            # generator. Property list migrated 1:1 from the retired pins; see
+            # _assert_native_dispatch_pos_a_shape.
+            _assert_native_dispatch_pos_a_shape(
+                label, Path(standalone_result["building_root"])
+            )
+
         count += 1
     return count
+
+
+# posA evidence-shape property set, migrated 1:1 from the retired standing-root
+# pins of native_dispatch_brick_backstop.yaml (json_required_paths blocks).
+_POS_A_JSON_REQUIRED: tuple[tuple[tuple[str, ...], tuple[str, ...]], ...] = (
+    (
+        ("work", "building-work.json"),
+        ("execution_path", "building_id", "step_refs[]", "required_return_shape"),
+    ),
+    (
+        ("work", "building-map.json"),
+        (
+            "execution_path",
+            "kind",
+            "agent_bindings[].agent_performer_ref",
+            "agent_bindings[].brick_instance_ref",
+            "agent_bindings[].produced_public_fact_refs[]",
+            "link_edges[].movement_fact_ref",
+            "link_edges[].transition_fact_ref",
+        ),
+    ),
+    (("evidence", "evidence-manifest.json"), ("execution_path",)),
+    (
+        ("evidence", "claim_trace", "brick", "work_contract.json"),
+        (
+            "facts[].fact.observed_match_kind",
+            "facts[].fact.required_return_shape_evidence",
+            "facts[].fact.comparison_evidence",
+            "facts[].fact.forbidden_shortcut_evidence",
+            "facts[].fact.work_statement",
+        ),
+    ),
+    (
+        ("evidence", "claim_trace", "link", "sufficiency_trace.json"),
+        (
+            "facts[].fact.stage",
+            "facts[].fact.sufficiency",
+            "facts[].fact.required_public_facts[]",
+            "facts[].fact.checked_public_fact",
+            "facts[].fact.reason",
+        ),
+    ),
+    (
+        ("evidence", "claim_trace", "link", "movement_trace.json"),
+        (
+            "facts[].fact.movement",
+            "facts[].fact.declared_gate_refs[]",
+            "facts[].fact.public_fact_refs[]",
+        ),
+    ),
+    (
+        ("evidence", "claim_trace", "agent", "returned_claims.json"),
+        (
+            "facts[].fact.agent_object_ref",
+            "facts[].fact.received_work",
+            "facts[].fact.returned",
+        ),
+    ),
+)
+# text_contains pins migrated 1:1 (execution_path literal value, open-capture
+# events recorded before the subagent return, COMPUTED-gate honesty notes).
+_POS_A_TEXT_CONTAINS: tuple[tuple[tuple[str, ...], tuple[str, ...]], ...] = (
+    (("work", "building-work.json"), ('"execution_path": "native-dispatch"',)),
+    (("work", "building-map.json"), ('"execution_path": "native-dispatch"',)),
+    (("evidence", "evidence-manifest.json"), ('"execution_path": "native-dispatch"',)),
+    (
+        ("capture", "events.jsonl"),
+        (
+            '"event_type":"building_opened"',
+            '"event_type":"brick_opened"',
+            '"event_type":"brick_compared"',
+            '"event_type":"link_movement"',
+        ),
+    ),
+    (
+        ("evidence", "claim_trace", "link", "sufficiency_trace.json"),
+        ('"stage": "movement"',),
+    ),
+    (
+        ("evidence", "claim_trace", "brick", "work_contract.json"),
+        (
+            "support/run did not classify Agent return",
+            "support/run did not judge success or quality",
+        ),
+    ),
+)
+# text_absent pins migrated 1:1 (the gate must be COMPUTED, never hardcoded).
+_POS_A_TEXT_ABSENT: tuple[tuple[tuple[str, ...], tuple[str, ...]], ...] = (
+    (
+        ("evidence", "claim_trace", "link", "sufficiency_trace.json"),
+        ("hardcoded_pass", "default_gatefact", "forced_sufficient"),
+    ),
+)
+
+
+def _assert_native_dispatch_pos_a_shape(label: str, building_root: Path) -> None:
+    """posA evidence-shape backstop over a FRESH native-dispatch close tree.
+
+    Asserts, 1:1, the property set the retired standing posA-native-complete
+    pins asserted: the 8 evidence files exist, the required JSON paths resolve,
+    the execution_path literal + open-capture event types + COMPUTED-gate
+    honesty notes are present, and no hardcoded-gate literal appears.
+    """
+
+    for parts, required in _POS_A_JSON_REQUIRED:
+        path = building_root.joinpath(*parts)
+        if not path.is_file():
+            raise ProfileError(
+                f"native_dispatch_close_case rejected {label}: posA shape -- "
+                f"evidence file missing on the fresh close tree: {'/'.join(parts)}"
+            )
+        value = json.loads(path.read_text(encoding="utf-8"))
+        for dotted in required:
+            if not json_path_exists(value, dotted):
+                raise ProfileError(
+                    f"native_dispatch_close_case rejected {label}: posA shape -- "
+                    f"{'/'.join(parts)} is missing required path {dotted!r}"
+                )
+    for parts, needles in _POS_A_TEXT_CONTAINS:
+        path = building_root.joinpath(*parts)
+        if not path.is_file():
+            raise ProfileError(
+                f"native_dispatch_close_case rejected {label}: posA shape -- "
+                f"evidence file missing on the fresh close tree: {'/'.join(parts)}"
+            )
+        text = path.read_text(encoding="utf-8")
+        for needle in needles:
+            if needle not in text:
+                raise ProfileError(
+                    f"native_dispatch_close_case rejected {label}: posA shape -- "
+                    f"{'/'.join(parts)} does not contain {needle!r}"
+                )
+    for parts, needles in _POS_A_TEXT_ABSENT:
+        text = building_root.joinpath(*parts).read_text(encoding="utf-8")
+        for needle in needles:
+            if needle in text:
+                raise ProfileError(
+                    f"native_dispatch_close_case rejected {label}: posA shape -- "
+                    f"{'/'.join(parts)} must NOT contain {needle!r} (the gate must "
+                    "be COMPUTED, never hardcoded)"
+                )
 
 
 def _assert_native_dispatch_building_produced(
@@ -7157,4 +7312,784 @@ def run_fail_fixture_rejects(repo: Path, profile: Mapping[str, Any]) -> int:
             count += 1
             continue
         raise ProfileError(f"fail_fixture_rejects expected rejection but passed: {relative}")
+    return count
+
+
+# ---------------------------------------------------------------------------
+# CLEAN-YARD v3 (Smith 0611): EPHEMERAL GENERATION cases. The product repo
+# ships ZERO standing dogfood buildings / status artifacts; a check that needs
+# building evidence GENERATES it with the REAL engine at check time, asserts
+# the SAME properties the retired standing-evidence pins asserted, and removes
+# it in ``finally``. Property tables below are migrated 1:1 from the retired
+# pins (provenance noted per table).
+# ---------------------------------------------------------------------------
+
+# Building-map shape -- union of the retired building-map json_required_paths
+# pins (coo_operating_chain 0527 / building_automation 0526 /
+# structure_template_integrity prune-0527 / read_side design-toolkit-0526 +
+# project-orchestration-ledger-0528).
+_VESSEL_CASE_BUILDING_MAP_REQUIRED = (
+    "kind",
+    "task_source_ref",
+    "brick_instances[].brick_instance_id",
+    "agent_bindings[].step_output_ref",
+    "agent_bindings[].agent_binding_id",
+    "link_edges[].link_edge_id",
+)
+# Step-output envelope -- the retired closure/work step-output pins
+# (read_side project-orchestration-ledger-0528, link_routing 0526/0527,
+# agent_axis preset-three-axis-contract-repair-0528).
+_VESSEL_CASE_STEP_OUTPUT_REQUIRED = (
+    "attempt_index",
+    "brick_instance_ref",
+    "step_output_ref",
+    "task_source_ref",
+    "agent_fact_fields[]",
+    "evidence_refs.raw_stream_ref",
+    "evidence_refs.claim_trace_ref",
+)
+# Orchestration-ledger packet shape -- union of the two retired
+# json_required_paths blocks on project/brick-protocol/status/
+# project-orchestration-ledger.json (read_side_projection_boundary), plus the
+# retired text needles that named row fields (current_brick_ref /
+# current_agent_ref / current_link_target_ref / latest_movement /
+# frontier_kind / board_state / evidence_refs / not process liveness proof).
+_VESSEL_CASE_LEDGER_PACKET_REQUIRED = (
+    "kind",
+    "schema_version",
+    "packet_ref",
+    "generated_at",
+    "project.project_ref",
+    "participants[].participant_ref",
+    "proof_limits[]",
+    "not_proven[]",
+)
+_VESSEL_CASE_LEDGER_ROW_REQUIRED = (
+    "building_ref",
+    "building_root",
+    "current_brick_ref",
+    "current_agent_ref",
+    "current_link_target_ref",
+    "latest_movement",
+    "frontier_kind",
+    "board_state",
+    "next_action_observation",
+    "last_evidence_at",
+    "evidence_refs.building_map",
+    "proof_limits[]",
+)
+
+
+def _vessel_case_require_json(value: Any, required: Sequence[str], label: str) -> None:
+    for dotted in required:
+        if not json_path_exists(value, dotted):
+            raise ProfileError(f"{label}: required path {dotted!r} missing")
+
+
+def run_intake_evidence_projection_case(repo: Path, profile: Mapping[str, Any]) -> int:
+    """CLEAN-YARD v3: generate a vessel + intake building, assert all read-side shapes.
+
+    One item drives, at check time:
+
+      1. S2 vessel creation (``create_project``) -- a synthetic vessel under
+         ``project/<vessel_id>``; a PRE-EXISTING dir REDs (a possibly-real
+         vessel is never reused or deleted); removed in ``finally``.
+      2. PROGRESS over the EMPTY vessel (0 buildings) -- the generator must
+         render for an empty vessel (the 0-building product case) and the
+         render must carry the declared direction echo.
+      3. REAL intake (``run_building_intake``) of the declared chain preset on
+         a stubbed write-capable adapter into the vessel; the run must reach a
+         complete frontier.
+      4. Building-map / task.md / declaration-chain / preset-expansion /
+         step-output assertions -- the retired standing-evidence pin
+         properties, asserted on the FRESH evidence (tables above).
+      5. Orchestration-ledger packet + rendered view + PROGRESS over the
+         1-building vessel -- the retired status-artifact pin properties,
+         asserted on a FRESH projection (no standing status export needed).
+    """
+
+    items = rule_items(profile, "intake_evidence_projection_case")
+    if not items:
+        return 0
+    import shutil
+
+    from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
+    from support.operator.building_operation import observe_building_frontier
+    from support.operator.driver import run_building_intake
+    from support.operator.ledger_projection import (
+        project_orchestration_ledger_packet,
+        render_project_orchestration_ledger_view,
+    )
+    from support.operator.progress_projection import render_project_progress
+    from support.operator.project_creation import create_project
+
+    count = 0
+    for item in items:
+        mapping = require_mapping(item, "intake_evidence_projection_case item")
+        label = require_string(mapping.get("label"), "intake_evidence_projection_case.label")
+        vessel_id = require_string(mapping.get("vessel_id"), f"{label}: vessel_id")
+        chain_preset_ref = require_string(
+            mapping.get("chain_preset_ref"), f"{label}: chain_preset_ref"
+        )
+        expected_expansion = require_mapping(
+            mapping.get("expected_preset_expansion", {}),
+            f"{label}: expected_preset_expansion",
+        )
+        vessel_dir = repo / "project" / vessel_id
+        if vessel_dir.exists():
+            raise ProfileError(
+                f"intake_evidence_projection_case rejected {label}: fixture path "
+                f"{vessel_dir} already exists -- refusing to reuse or remove a "
+                "possibly-real vessel; pick an unused fixture vessel_id"
+            )
+        project_ref = f"project:{vessel_id}"
+        building_id = f"{_case_slug(label)}-building"
+        task_statement = (
+            f"{label}: generate one engine building inside a temp vessel so the "
+            "read-side projection shapes can be asserted on fresh evidence."
+        )
+        command_runner = _preset_completion_command_runner(LocalCliCompleted)
+        try:
+            create_project(
+                repo,
+                project_id=vessel_id,
+                label=f"checker fixture vessel for {label}",
+                direction="hold one generated projection-shape building, then be removed",
+                why_exists="checker fixture: generates read-side projection evidence at check time",
+                why_now="created and removed inside one intake_evidence_projection_case run",
+                done_means="the case's assertions ran; the vessel is removed in finally",
+                out_of_scope="any real work; this vessel never outlives the checker case",
+                managers=["checker-fixture-human"],
+                declared_by="coo:intake-evidence-projection-case",
+            )
+
+            # (2) PROGRESS over the EMPTY vessel: the 0-building render is a
+            # REAL product case (a brand-new vessel) and must not choke.
+            empty_progress = render_project_progress(project_ref, repo_root=repo)
+            if "0" not in empty_progress:
+                raise ProfileError(
+                    f"intake_evidence_projection_case rejected {label}: empty-vessel "
+                    "PROGRESS render does not show a zero building count"
+                )
+
+            # (3) REAL intake on the stubbed write-capable adapter.
+            intent: dict[str, Any] = {
+                "plan_ref": f"building-plan:{building_id}",
+                "building_id": building_id,
+                "declared_by": "coo",
+                "task_statement": task_statement,
+                "chain_preset_ref": chain_preset_ref,
+                "selected_adapter_ref": "adapter:codex-local",
+                "selected_model_ref": "model:default",
+                "project_ref": project_ref,
+                "write_scope": {
+                    "allowed_paths": ["support/operator/**"],
+                    "forbidden_paths": [".git/**"],
+                },
+                "route_decision_basis": {
+                    "override_refs": [f"coo:{_case_slug(label)}"],
+                    "human_review_refs": [f"human-review:{_case_slug(label)}"],
+                },
+                "proof_limits": [
+                    "intake evidence-projection checker support evidence only",
+                    "not source truth",
+                    "not success judgment",
+                    "not quality judgment",
+                    "not Movement authority",
+                ],
+                "not_proven": [
+                    f"semantic correctness of {label}",
+                    "real provider behavior",
+                ],
+            }
+            run_building_intake(
+                intent,
+                repo_root=repo,
+                command_runner=command_runner,
+                adapter_cwd=repo,
+                adapter_timeout_seconds=10,
+            )
+            building_root = vessel_dir / "buildings" / building_id
+            frontier = observe_building_frontier(building_root, repo_root=repo)
+            if frontier.get("frontier_kind") != "complete":
+                raise ProfileError(
+                    f"intake_evidence_projection_case rejected {label}: generated "
+                    f"building frontier is {frontier.get('frontier_kind')!r}, "
+                    "expected complete"
+                )
+
+            # (4a) declaration chain landed (task placement + launch chain).
+            for record in (
+                ("work", "task.md"),
+                ("work", "building-intake.json"),
+                ("work", "preset-expansion.json"),
+                ("work", "declared-building-plan.json"),
+                ("work", "link-launch-policy.json"),
+                ("work", "building-map.json"),
+                ("evidence", "evidence-manifest.json"),
+            ):
+                if not building_root.joinpath(*record).is_file():
+                    raise ProfileError(
+                        f"intake_evidence_projection_case rejected {label}: generated "
+                        f"building is missing {'/'.join(record)}"
+                    )
+            task_text = (building_root / "work" / "task.md").read_text(encoding="utf-8")
+            if task_statement not in task_text:
+                raise ProfileError(
+                    f"intake_evidence_projection_case rejected {label}: work/task.md "
+                    "does not carry the declared task statement verbatim"
+                )
+
+            # (4b) building-map shape (retired building-map pin union).
+            building_map = json.loads(
+                (building_root / "work" / "building-map.json").read_text(encoding="utf-8")
+            )
+            _vessel_case_require_json(
+                building_map,
+                _VESSEL_CASE_BUILDING_MAP_REQUIRED,
+                f"{label}: building-map.json",
+            )
+
+            # (4c) preset-expansion declared values (retired p9 dogfood pins;
+            # exact-equality per declared expected key).
+            expansion = json.loads(
+                (building_root / "work" / "preset-expansion.json").read_text(encoding="utf-8")
+            )
+            for key, expected_value in expected_expansion.items():
+                if expansion.get(key) != expected_value:
+                    raise ProfileError(
+                        f"intake_evidence_projection_case rejected {label}: "
+                        f"preset-expansion.json {key} expected {expected_value!r}, "
+                        f"observed {expansion.get(key)!r}"
+                    )
+
+            # (4d) step-output envelopes (retired step-output pin union) + at
+            # least one returned with observed_evidence[] AND not_proven[].
+            step_outputs = sorted(
+                (building_root / "work" / "step-outputs").glob("*/step-output.json")
+            )
+            if not step_outputs:
+                raise ProfileError(
+                    f"intake_evidence_projection_case rejected {label}: generated "
+                    "building wrote no step outputs"
+                )
+            saw_observed_and_not_proven = False
+            for output_path in step_outputs:
+                output_value = json.loads(output_path.read_text(encoding="utf-8"))
+                _vessel_case_require_json(
+                    output_value,
+                    _VESSEL_CASE_STEP_OUTPUT_REQUIRED,
+                    f"{label}: {output_path.name}",
+                )
+                if json_path_exists(output_value, "returned.observed_evidence[]") and (
+                    json_path_exists(output_value, "returned.not_proven[]")
+                ):
+                    saw_observed_and_not_proven = True
+            if not saw_observed_and_not_proven:
+                raise ProfileError(
+                    f"intake_evidence_projection_case rejected {label}: no step output "
+                    "persisted returned.observed_evidence[] + returned.not_proven[]"
+                )
+
+            # (5) ledger packet + rendered view + PROGRESS over the 1-building
+            # vessel (retired status-artifact pins, generated fresh).
+            packet = project_orchestration_ledger_packet(repo_root=repo)
+            _vessel_case_require_json(
+                packet, _VESSEL_CASE_LEDGER_PACKET_REQUIRED, f"{label}: ledger packet"
+            )
+            rows = [
+                row
+                for row in packet.get("rows", [])
+                if isinstance(row, Mapping)
+                and str(row.get("building_ref", "")).endswith(building_id)
+            ]
+            if len(rows) != 1:
+                raise ProfileError(
+                    f"intake_evidence_projection_case rejected {label}: ledger packet "
+                    f"does not project exactly one row for {building_id} "
+                    f"(observed {len(rows)})"
+                )
+            _vessel_case_require_json(
+                rows[0], _VESSEL_CASE_LEDGER_ROW_REQUIRED, f"{label}: ledger row"
+            )
+            if "link_disposition" not in rows[0]:
+                raise ProfileError(
+                    f"intake_evidence_projection_case rejected {label}: ledger row is "
+                    "missing the link_disposition key (null allowed, key required)"
+                )
+            packet_text = json.dumps(packet)
+            for needle in ("project_orchestration_ledger", "not process liveness proof"):
+                if needle not in packet_text:
+                    raise ProfileError(
+                        f"intake_evidence_projection_case rejected {label}: ledger "
+                        f"packet does not carry {needle!r}"
+                    )
+            rendered_view = render_project_orchestration_ledger_view(repo_root=repo)
+            if building_id not in rendered_view:
+                raise ProfileError(
+                    f"intake_evidence_projection_case rejected {label}: rendered ledger "
+                    "view does not show the generated building"
+                )
+            one_progress = render_project_progress(project_ref, repo_root=repo)
+            if building_id not in one_progress:
+                raise ProfileError(
+                    f"intake_evidence_projection_case rejected {label}: 1-building "
+                    "PROGRESS render does not show the generated building"
+                )
+        finally:
+            shutil.rmtree(vessel_dir, ignore_errors=True)
+
+        # PART B -- effective-write step-output shape (retired read_side
+        # project-orchestration-ledger-0528 WORK-attempt pins: returned.adapter_ref,
+        # returned.changed_files[], returned.worktree_observation.observed_changed_
+        # files[], returned.worktree_observation.write_scope.allowed_paths[]) plus
+        # the retired agent_axis 0528 development-return pins
+        # (returned.worker_assignments[], returned.risks[]). Generated by ONE
+        # 1-step effective-write run whose stub CLI WRITES one scoped file inside
+        # a TEMP adapter cwd (never the repo) and returns the declared fields.
+        from support.operator.run import run_building_plan
+
+        def _writing_runner(args: Sequence[str], cwd: Path, timeout_seconds: int) -> Any:
+            checked_args = tuple(str(arg) for arg in args)
+            if "--version" in checked_args:
+                return LocalCliCompleted(
+                    args=checked_args,
+                    return_code=0,
+                    stdout="codex write-observation-fixture 0.0\n",
+                    stderr="",
+                )
+            scoped = Path(cwd) / "scoped"
+            scoped.mkdir(parents=True, exist_ok=True)
+            (scoped / "observed-note.md").write_text(
+                "write-observation fixture note\n", encoding="utf-8"
+            )
+            returned = {
+                "observed_evidence": ["wrote one scoped fixture note"],
+                "made_changes": ["scoped/observed-note.md"],
+                "worker_assignments": ["fixture-worker: scoped note"],
+                "risks": ["none observed"],
+                "blocked_or_missing_evidence": [
+                    "fixture observation: no blocking evidence beyond the declared scope"
+                ],
+                "not_proven": ["semantic correctness of the fixture note"],
+            }
+            return LocalCliCompleted(
+                args=checked_args,
+                return_code=0,
+                stdout=json.dumps(returned, sort_keys=True),
+                stderr="",
+            )
+
+        write_step_ref = f"{_case_slug(label)}-write-observation"
+        write_plan: dict[str, Any] = {
+            "plan_ref": f"building-plan:{write_step_ref}",
+            "owner_axis": "Brick",
+            "building_id": write_step_ref,
+            "plan_shape": "linear",
+            "selected_adapter_ref": "adapter:codex-local",
+            "selected_model_ref": "model:default",
+            "task_source_ref": "task-source:inline-statement",
+            "task_statement": f"{label}: one effective-write step for write-observation shape assertions.",
+            "proof_limits": ["support evidence only", "not Movement authority"],
+            "not_proven": ["semantic correctness of the fixture write"],
+            "steps": [
+                {
+                    "step_ref": write_step_ref,
+                    "rows": [
+                        {
+                            "axis": "Brick",
+                            "row_ref": f"brick-row:{write_step_ref}",
+                            "brick_work_ref": f"work:{write_step_ref}",
+                            "brick_instance_ref": f"brick-{write_step_ref}",
+                            "work_statement": "Write one scoped fixture note and return the declared evidence fields.",
+                            "comparison_rule": "Observe returned fields and the write observation only.",
+                            "required_return_shape": "observed_evidence, made_changes, worker_assignments, risks, blocked_or_missing_evidence, not_proven",
+                            "requires_brick_write_scope": True,
+                            "write_scope": {
+                                "allowed_paths": ["scoped/**"],
+                                "forbidden_paths": [".git/**"],
+                            },
+                        },
+                        {
+                            "axis": "Agent",
+                            "row_ref": f"agent-row:{write_step_ref}",
+                            "agent_object_ref": "agent-object:dev",
+                        },
+                        {
+                            "axis": "Link",
+                            "row_ref": f"link-row:{write_step_ref}",
+                            "movement": "forward",
+                            "target_ref": f"building-boundary:{write_step_ref}-closed",
+                            "declared_gate_refs": ["link-gate:default-transition"],
+                            "building_lifecycle": {
+                                "state": "closed",
+                                "reason": "write-observation fixture run closes after one step.",
+                            },
+                        },
+                    ],
+                }
+            ],
+        }
+        with tempfile.TemporaryDirectory(prefix="bp-write-observation-case-") as wtmp:
+            workspace = Path(wtmp) / "workspace"
+            workspace.mkdir(parents=True)
+            write_result = run_building_plan(
+                write_plan,
+                output_root=Path(wtmp) / "buildings",
+                overwrite_existing=True,
+                command_runner=_writing_runner,
+                adapter_cwd=workspace,
+                adapter_timeout_seconds=10,
+            )
+            write_root = Path(write_result.lifecycle_write.root)
+            write_outputs = sorted(
+                (write_root / "work" / "step-outputs").glob("*/step-output.json")
+            )
+            if not write_outputs:
+                raise ProfileError(
+                    f"intake_evidence_projection_case rejected {label}: write-observation "
+                    "run wrote no step outputs"
+                )
+            write_output = json.loads(write_outputs[0].read_text(encoding="utf-8"))
+            for dotted in (
+                "returned.adapter_ref",
+                "returned.changed_files[]",
+                "returned.worktree_observation.observed_changed_files[]",
+                "returned.worktree_observation.write_scope.allowed_paths[]",
+                "returned.worker_assignments[]",
+                "returned.risks[]",
+                "returned.blocked_or_missing_evidence[]",
+                "returned.made_changes[]",
+                "returned.not_proven[]",
+                "evidence_refs.raw_stream_ref",
+                "evidence_refs.claim_trace_ref",
+            ):
+                if not json_path_exists(write_output, dotted):
+                    raise ProfileError(
+                        f"intake_evidence_projection_case rejected {label}: "
+                        f"write-observation step output is missing {dotted!r}"
+                    )
+        count += 1
+    return count
+
+
+# Link-evidence property tables, migrated 1:1 from the retired standing-root
+# pins of link_routing_behavioral.yaml (link-decision-disposition-0527 /
+# link-owned-automation-0527 / step-output-and-route-request-0526 /
+# building-automation-complete-scope-c-0527 evidence). The
+# raw-link "transition_lifecycle_state" needle of the 0527 era is asserted
+# here via the fixture plan's declared resumed lifecycle row; the
+# disposition-row twin (caller/COO-authored resume) is asserted by the tier-a
+# generation harness (check_tier_a_three_axis_conformance assert_link).
+_LINK_CASE_CONCERN_JSON_REQUIRED = (
+    "binding",
+    "transition_boundary",
+    "transition_concern_ref",
+    "transition_concern_returned.concern_ref",
+    "transition_concern_returned.concern_kind",
+    "transition_concern_returned.binding",
+    "transition_concern_returned.reason_refs[]",
+    "transition_concern_returned.related_boundary_refs[]",
+)
+_LINK_CASE_CONCERN_STEP_OUTPUT_REQUIRED = (
+    "attempt_index",
+    "brick_instance_ref",
+    "step_output_ref",
+    "returned.observed_evidence[]",
+    "returned.transition_concern_evidence.binding",
+    "returned.transition_concern_evidence.concern_ref",
+    "returned.transition_concern_evidence.concern_kind",
+    "returned.transition_concern_evidence.reason_refs[]",
+    "returned.transition_concern_evidence.related_boundary_refs[]",
+    "evidence_refs.raw_stream_ref",
+    "evidence_refs.claim_trace_ref",
+)
+_LINK_CASE_DEV_REPLAY_STEP_OUTPUT_REQUIRED = (
+    "attempt_index",
+    "brick_instance_ref",
+    "step_output_ref",
+    "agent_fact_fields[]",
+    "returned.observed_evidence[]",
+    "returned.made_changes[]",
+    "returned.not_proven[]",
+    "evidence_refs.raw_stream_ref",
+    "evidence_refs.claim_trace_ref",
+)
+_LINK_CASE_QA_REPLAY_STEP_OUTPUT_REQUIRED = (
+    "attempt_index",
+    "brick_instance_ref",
+    "step_output_ref",
+    "agent_fact_fields[]",
+    "returned.observed_evidence[]",
+    "returned.not_proven[]",
+    "evidence_refs.raw_stream_ref",
+    "evidence_refs.claim_trace_ref",
+)
+_LINK_CASE_ROUTE_REQUEST_JSON_REQUIRED = (
+    "route_request_ref",
+    "route_request_returned",
+    "route_request_returned.requested_route_scope",
+    "route_request_returned.reason_refs",
+    "route_phase_boundary",
+)
+_LINK_CASE_RAW_LINK_NEEDLES = (
+    "declared_gate_refs",
+    "route_decision_adopted_transition_concern_refs",
+    "route_decision_not_adopted_transition_concern_refs",
+    "route_decision_override_refs",
+    "transition_lifecycle_state",
+    "transition-concern:link-owned-automation-0-implementation-gap",
+)
+_LINK_CASE_MOVEMENT_TRACE_NEEDLES = (
+    "declared_gate_refs",
+    "route_decision_adopted_transition_concern_refs",
+    "movement_source",
+)
+_LINK_CASE_RETURNED_CLAIMS_NEEDLES = (
+    "transition_concern_evidence",
+    "binding",
+    "implementation_gap",
+)
+_LINK_CASE_SUFFICIENCY_NEEDLES = (
+    # Same property as the retired 0527 needle "declared Link gate evaluation":
+    # the sufficiency verdict's provenance is the DECLARED gate set, never a
+    # support invention. The modern combined-gate emitter words it as below and
+    # names the declared gate ref in the reason; the law-source wording stays
+    # pinned on link/gate.py itself.
+    "caller_or_declared",
+    "combined movement gate derived from ordered per-gate GateFact results",
+    "link-gate:default-transition",
+)
+_LINK_CASE_SUFFICIENCY_JSON_REQUIRED = (
+    # retired agent_axis 0528 sufficiency_trace pins
+    "facts[].fact.sufficiency",
+    "facts[].fact.missing_required_facts",
+)
+_LINK_CASE_BUILDING_MAP_REQUIRED = (
+    "kind",
+    "brick_instances[].brick_instance_id",
+    "agent_bindings[].step_output_ref",
+    "link_edges[].link_edge_id",
+)
+
+
+def run_link_route_evidence_case(repo: Path, profile: Mapping[str, Any]) -> int:
+    """CLEAN-YARD v3: generate the Link routing/replay evidence at check time.
+
+    Each item runs the declared fixture plan (a strict-valid linear plan that
+    carries the full Link grammar: non-binding concern step, declared
+    route_decision_basis, declared route_replay_plan + max_attempts, declared
+    resumed transition_lifecycle, attempt-2 replay steps) through the REAL
+    ``run_building_plan`` on adapter:local with a deterministic brain that
+    returns the structured concern + route_request at the declared concern
+    step, into a TEMP output root (removed by the context manager). It then
+    asserts the property tables above -- migrated 1:1 from the retired
+    standing-evidence pins.
+    """
+
+    items = rule_items(profile, "link_route_evidence_case")
+    if not items:
+        return 0
+    from support.operator.building_operation import observe_building_frontier
+    from support.operator.run import run_building_plan
+
+    count = 0
+    for item in items:
+        mapping = require_mapping(item, "link_route_evidence_case item")
+        label = require_string(mapping.get("label"), "link_route_evidence_case.label")
+        plan_rel = require_string(mapping.get("plan_path"), f"{label}: plan_path")
+        concern_brick = require_string(mapping.get("concern_brick"), f"{label}: concern_brick")
+        dev_replay_brick = require_string(
+            mapping.get("dev_replay_brick"), f"{label}: dev_replay_brick"
+        )
+        qa_replay_brick = require_string(
+            mapping.get("qa_replay_brick"), f"{label}: qa_replay_brick"
+        )
+        concern_ref = require_string(mapping.get("concern_ref"), f"{label}: concern_ref")
+        plan = load_yaml_subset_file(repo, plan_rel)
+
+        def _brain(request: Any) -> Mapping[str, Any]:
+            source = str(getattr(request, "brick_instance_ref", "") or "")
+            if source == concern_brick:
+                return {
+                    "observed_evidence": ["observed an implementation gap in the dev boundary"],
+                    "transition_concern_evidence": {
+                        "concern_ref": concern_ref,
+                        "concern_kind": "implementation_gap",
+                        "binding": False,
+                        "reason_refs": ["observation:link-owned-automation-0-qa"],
+                        "related_boundary_refs": [concern_brick],
+                    },
+                    "not_proven": ["semantic correctness of the concern"],
+                }
+            if source == qa_replay_brick:
+                return {
+                    "observed_evidence": [f"replayed declared QA boundary for {source}"],
+                    "made_changes": ["declared fixture replay observation"],
+                    "route_request": {
+                        "request_ref": f"route-request:{_case_slug(label)}",
+                        "requested_route_scope": "implementation_only",
+                        "reason_refs": ["observation:link-owned-automation-0-qa"],
+                        "binding": False,
+                    },
+                    "not_proven": ["semantic correctness of the replay"],
+                }
+            returned: dict[str, Any] = {
+                "observed_evidence": [f"completed declared work for {source}"],
+                "made_changes": [f"declared fixture change for {source}"],
+                "not_proven": ["semantic correctness of the returned note"],
+            }
+            if source.endswith("closure"):
+                returned["remaining_delta"] = ["none declared by this fixture run"]
+            return returned
+
+        with tempfile.TemporaryDirectory(prefix="bp-link-route-evidence-") as tmpdir:
+            result = run_building_plan(
+                plan,
+                output_root=Path(tmpdir),
+                overwrite_existing=True,
+                local_callables={"callable:local:agent-invoke0-smoke": _brain},
+                adapter_cwd=repo,
+                adapter_timeout_seconds=10,
+            )
+            root = Path(result.lifecycle_write.root)
+            frontier = observe_building_frontier(root, repo_root=repo)
+            if frontier.get("frontier_kind") != "complete":
+                raise ProfileError(
+                    f"link_route_evidence_case rejected {label}: generated building "
+                    f"frontier is {frontier.get('frontier_kind')!r}, expected complete"
+                )
+
+            outputs_root = root / "work" / "step-outputs"
+
+            def _one_output_dir(brick_ref: str) -> Path:
+                # Located by brick_instance_ref: under the modern unroll grammar
+                # each replay attempt is its OWN declared step (the attempt
+                # semantic lives in the step/brick name; attempt_index presence
+                # is asserted by the property tables).
+                matches = [
+                    path
+                    for path in sorted(outputs_root.glob("*/step-output.json"))
+                    if json.loads(path.read_text(encoding="utf-8")).get("brick_instance_ref")
+                    == brick_ref
+                ]
+                if len(matches) != 1:
+                    raise ProfileError(
+                        f"link_route_evidence_case rejected {label}: expected exactly one "
+                        f"step output for {brick_ref}, observed {len(matches)}"
+                    )
+                return matches[0].parent
+
+            concern_dir = _one_output_dir(concern_brick)
+            concern_output = json.loads(
+                (concern_dir / "step-output.json").read_text(encoding="utf-8")
+            )
+            for dotted in _LINK_CASE_CONCERN_STEP_OUTPUT_REQUIRED:
+                if not json_path_exists(concern_output, dotted):
+                    raise ProfileError(
+                        f"link_route_evidence_case rejected {label}: concern step output "
+                        f"is missing {dotted!r}"
+                    )
+            concern_record_path = concern_dir / "transition-concern.json"
+            if not concern_record_path.is_file():
+                raise ProfileError(
+                    f"link_route_evidence_case rejected {label}: transition-concern.json "
+                    "was not persisted beside the concern step output"
+                )
+            concern_record = json.loads(concern_record_path.read_text(encoding="utf-8"))
+            for dotted in _LINK_CASE_CONCERN_JSON_REQUIRED:
+                if not json_path_exists(concern_record, dotted):
+                    raise ProfileError(
+                        f"link_route_evidence_case rejected {label}: transition-concern.json "
+                        f"is missing {dotted!r}"
+                    )
+
+            dev_replay_output = json.loads(
+                (_one_output_dir(dev_replay_brick) / "step-output.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            for dotted in _LINK_CASE_DEV_REPLAY_STEP_OUTPUT_REQUIRED:
+                if not json_path_exists(dev_replay_output, dotted):
+                    raise ProfileError(
+                        f"link_route_evidence_case rejected {label}: dev replay step "
+                        f"output is missing {dotted!r}"
+                    )
+            qa_replay_dir = _one_output_dir(qa_replay_brick)
+            qa_replay_output = json.loads(
+                (qa_replay_dir / "step-output.json").read_text(encoding="utf-8")
+            )
+            for dotted in _LINK_CASE_QA_REPLAY_STEP_OUTPUT_REQUIRED:
+                if not json_path_exists(qa_replay_output, dotted):
+                    raise ProfileError(
+                        f"link_route_evidence_case rejected {label}: qa replay step "
+                        f"output is missing {dotted!r}"
+                    )
+            # route-request persistence (retired step-output-and-route-request-0526
+            # pins): the QA replay return carried a non-binding route_request; the
+            # writer must persist route-request.json beside the step output and
+            # reference it from the step output (route_request_ref).
+            route_request_path = qa_replay_dir / "route-request.json"
+            if not route_request_path.is_file():
+                raise ProfileError(
+                    f"link_route_evidence_case rejected {label}: route-request.json was "
+                    "not persisted beside the QA replay step output"
+                )
+            route_request_record = json.loads(route_request_path.read_text(encoding="utf-8"))
+            for dotted in _LINK_CASE_ROUTE_REQUEST_JSON_REQUIRED:
+                if not json_path_exists(route_request_record, dotted):
+                    raise ProfileError(
+                        f"link_route_evidence_case rejected {label}: route-request.json "
+                        f"is missing {dotted!r}"
+                    )
+            if "route_request_ref" not in qa_replay_output:
+                raise ProfileError(
+                    f"link_route_evidence_case rejected {label}: QA replay step output "
+                    "does not reference the persisted route request (route_request_ref)"
+                )
+
+            for rel, needles in (
+                (("raw", "link.jsonl"), _LINK_CASE_RAW_LINK_NEEDLES),
+                (
+                    ("evidence", "claim_trace", "link", "movement_trace.json"),
+                    _LINK_CASE_MOVEMENT_TRACE_NEEDLES,
+                ),
+                (
+                    ("evidence", "claim_trace", "agent", "returned_claims.json"),
+                    _LINK_CASE_RETURNED_CLAIMS_NEEDLES,
+                ),
+                (
+                    ("evidence", "claim_trace", "link", "sufficiency_trace.json"),
+                    _LINK_CASE_SUFFICIENCY_NEEDLES,
+                ),
+            ):
+                text = root.joinpath(*rel).read_text(encoding="utf-8")
+                for needle in needles:
+                    if needle not in text:
+                        raise ProfileError(
+                            f"link_route_evidence_case rejected {label}: "
+                            f"{'/'.join(rel)} does not contain {needle!r}"
+                        )
+
+            sufficiency_value = json.loads(
+                root.joinpath(
+                    "evidence", "claim_trace", "link", "sufficiency_trace.json"
+                ).read_text(encoding="utf-8")
+            )
+            for dotted in _LINK_CASE_SUFFICIENCY_JSON_REQUIRED:
+                if not json_path_exists(sufficiency_value, dotted):
+                    raise ProfileError(
+                        f"link_route_evidence_case rejected {label}: sufficiency_trace.json "
+                        f"is missing {dotted!r}"
+                    )
+            building_map = json.loads(
+                (root / "work" / "building-map.json").read_text(encoding="utf-8")
+            )
+            for dotted in _LINK_CASE_BUILDING_MAP_REQUIRED:
+                if not json_path_exists(building_map, dotted):
+                    raise ProfileError(
+                        f"link_route_evidence_case rejected {label}: building-map.json "
+                        f"is missing {dotted!r}"
+                    )
+        count += 1
     return count

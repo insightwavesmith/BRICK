@@ -22,7 +22,6 @@ kernel_checks:
   - evidence_spine_projection
 path_exists:
   - AGENTS.md
-  - project/brick-protocol/status/kernel/current-working-context.md
   - support/checkers/check_profile.py
   - support/checkers/check_package_path_admission.py
   - support/checkers/check_axis_contract_projection.py

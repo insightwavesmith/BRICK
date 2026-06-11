@@ -1744,7 +1744,7 @@ def _adapter_required_return_shape(prepared: AgentRunPreparationRecord) -> Any:
     original declared value passes through VERBATIM and prompts do not change.
     It is NOT byte-neutral for STORED LEGACY plans whose Brick shape lacks a
     default-gate-required field (repro:
-    brick/building_plans/building-automation-complete-0-scope-c-dogfood.yaml
+    brick/building_plans/fixture-link-route-replay-0.yaml
     has rows without observed_evidence): such a row's adapter request now asks
     the gate-implied union. That delta is DELIBERATE -- it corrects a historic
     under-ask the gate side would have recorded as permanently-missing facts

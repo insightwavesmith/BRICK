@@ -1,23 +1,10 @@
 schema: checker-profile/v1
 profile_id: tier-a-three-axis-conformance
-description: HALF-2 Tier A (refactor/automation goal 0601 §3) deterministic 3-axis automation conformance over the engine-produced tier-a-3axis-conformance-0 Building, asserting Brick + Agent + Link mechanics + Evidence + declaration_provenance, with an anti-tautological FIRE probe.
+description: HALF-2 Tier A (refactor/automation goal 0601 §3) deterministic 3-axis automation conformance over an engine-GENERATED check-time Building (CLEAN-YARD v3 ephemeral generation, Smith 0611 -- no standing dogfood root; the harness runs the real dynamic walker on adapter:local into a temp root, asserts Brick + Agent + Link mechanics + Evidence + declaration_provenance, and removes it), with anti-tautological FIRE probes. The 14 standing-root path_exists pins of the 0531 era are SUPERSEDED by the harness's own launch-chain + evidence-shape assertions (assert_brick DECLARATION_CHAIN_ARTIFACTS + assert_evidence EVIDENCE_SHAPE_FILES assert the same file set on the generated root).
 kernel_checks:
   - tier_a_three_axis_conformance
 path_exists:
   - support/checkers/check_tier_a_three_axis_conformance.py
-  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/work/task.md
-  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/work/building-map.json
-  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/work/building-intake.json
-  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/work/preset-expansion.json
-  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/work/declared-building-plan.json
-  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/work/link-launch-policy.json
-  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/evidence/evidence-manifest.json
-  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/evidence/claim_trace/brick/work_contract.json
-  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/evidence/claim_trace/agent/returned_claims.json
-  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/evidence/claim_trace/link/movement_trace.json
-  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/evidence/claim_trace/link/sufficiency_trace.json
-  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/evidence/claim_trace/link/carry_trace.json
-  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/evidence/claim_trace/link/transfer_trace.json
 text_contains:
   - path: support/checkers/check_tier_a_three_axis_conformance.py
     texts:
@@ -28,6 +15,17 @@ text_contains:
       - def assert_declaration_provenance
       - def fire_probe
       - reroute_and_provenance_dropped
+      # CLEAN-YARD v3 ephemeral generation seam: the harness must GENERATE the
+      # asserted root with the real engine at check time (temp, removed after),
+      # snapshot the held stage (link_paused) before the caller/COO raise
+      # disposition + resume, and keep the budget-bound FIRE probe.
+      - def generate_tier_a_case_root
+      - def tier_a_case_plan
+      - run_building_plan
+      - resume_building_plan
+      - transition_lifecycle_disposition_action
+      - held-snapshot
+      - budget_hold_unevidenced
 text_absent:
   - path: support/checkers/check_tier_a_three_axis_conformance.py
     texts:

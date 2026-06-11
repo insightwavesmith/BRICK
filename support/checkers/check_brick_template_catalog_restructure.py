@@ -72,14 +72,11 @@ ADMITTED_TEMPLATE_ROOT_FILES = {
 }
 ADMITTED_TEMPLATE_SUFFIXES = {".yaml", ".json"}
 TASK_TEMPLATE_SUFFIXES = {".md"}
-# PRODUCT-TREE CLEANUP (0610): retired museum template sheets live at
-# archive/brick-templates/<same relative path under brick/templates/>.
-# Historical declaration packets keep their original brick/templates/... ref
-# text; resolution accepts the archive mirror ONLY when the file physically
-# EXISTS there. The invariant is preserved, not weakened: existence stays
-# required, only the admitted home set grew by the museum mirror. Live
-# catalog/step bindings never use this fallback (archive is not menu inventory).
-ARCHIVED_TEMPLATE_ROOT = "archive/brick-templates"
+# CLEAN-YARD v3 (Smith 0611): the archive/brick-templates mirror left for the
+# frozen museum repo and the ARCHIVE FALLBACK is PRUNED -- the product repo
+# ships zero standing declaration packets, so a template ref resolves ONLY at
+# its physical brick/templates path and a stale/retired ref REDs loudly (the
+# missing-ref FIRE probes below stay RED-first).
 BRICK_SPEC_FILENAME = "brick.md"
 BRICK_RETURN_FILENAME = "return.yaml"
 AGENT_INLINE_PAYLOAD_KEYS = {
@@ -568,22 +565,15 @@ def _physical_files(repo: Path) -> set[str]:
 
 
 def _archived_template_files(repo: Path) -> set[str]:
-    """Original brick/templates/<sub> paths whose museum copy EXISTS on disk at
-    archive/brick-templates/<sub> (ARCHIVE FALLBACK for historical packet refs).
+    """ARCHIVE FALLBACK PRUNED (CLEAN-YARD v3, 0611): always empty.
 
-    Existence-derived only: a path enters this set iff the archive mirror file
-    is physically present, so a truly-missing ref can never resolve through it.
+    The museum mirror left for the frozen history repo; the product repo holds
+    no standing declaration packets, so no historical ref may resolve through
+    an archive home. Kept as a seam so the resolver signature stays stable; a
+    ref that exists at no physical brick/templates path REDs.
     """
-    files: set[str] = set()
-    root = repo / ARCHIVED_TEMPLATE_ROOT
-    if not root.is_dir():
-        return files
-    for path in sorted(root.rglob("*")):
-        if not path.is_file() or path.name == ".DS_Store":
-            continue
-        sub = path.relative_to(root).as_posix()
-        files.add(f"brick/templates/{sub}")
-    return files
+    del repo
+    return set()
 
 
 def _brick_spec_files(repo: Path) -> set[str]:
@@ -1282,14 +1272,13 @@ def _validate_declared_template_ref(
     physical_files: set[str],
     archived_template_files: set[str],
 ) -> str | None:
-    """HISTORICAL declaration-packet ref resolution (ARCHIVE FALLBACK, 0610).
+    """Declaration-packet ref resolution (ARCHIVE FALLBACK PRUNED, 0611).
 
-    Museum template sheets moved to archive/brick-templates/<same relative
-    path under brick/templates/>. A historical packet's ref RESOLVES iff the
-    file EXISTS at its original brick/templates path OR at the archive mirror
-    (archived_template_files is existence-derived). A ref present at NEITHER
-    location still fails — the fallback preserves the invariant, it does not
-    weaken it. All path-shape rules stay identical to live resolution.
+    A packet's template ref RESOLVES iff the file EXISTS at its physical
+    brick/templates path. The 0610 archive-mirror fallback is pruned with the
+    museum (CLEAN-YARD v3): retired sheets live only in the frozen history
+    repo, and a ref to one REDs loudly here instead of resolving. All
+    path-shape rules stay identical to live resolution.
     """
     problem = _template_path_shape_problem(path)
     if problem:
@@ -1297,8 +1286,8 @@ def _validate_declared_template_ref(
     if path in physical_files or path in archived_template_files:
         return None
     return (
-        "template file exists at neither its brick/templates path nor the "
-        f"{ARCHIVED_TEMPLATE_ROOT}/ archive fallback"
+        "template file does not exist at its brick/templates path (no archive "
+        "fallback in the product repo; retired sheets live in the frozen museum)"
     )
 
 
@@ -1664,14 +1653,10 @@ def _synthetic_base(temp_root: Path) -> Mapping[str, Any]:
         path = temp_root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("---\nbrick_kind: fixture\n---\n", encoding="utf-8")
-    # ARCHIVE FALLBACK positive wiring (PRODUCT-TREE CLEANUP 0610): the control
-    # packet below references a sheet that exists ONLY at the archive mirror.
-    # The control fixture must validate clean, so removing/weakening the
-    # fallback turns the harness RED (anti-tautology: the positive direction is
-    # load-bearing, exercised through the REAL existence-derived resolver).
-    archived_fixture = temp_root / ARCHIVED_TEMPLATE_ROOT / "review/archived-fixture-return.yaml"
-    archived_fixture.parent.mkdir(parents=True, exist_ok=True)
-    archived_fixture.write_text("template_ref: archived-fixture\n", encoding="utf-8")
+    # ARCHIVE FALLBACK PRUNED (CLEAN-YARD v3, 0611): the control packet
+    # references only PHYSICAL sheets; the stale-ref FIRE probes
+    # (missing_both_locations_*) assert a retired/archived ref REDs loudly
+    # instead of resolving.
     archived_template_files = _archived_template_files(temp_root)
     catalog = {
         "compact_link_authoring_view": {
@@ -1837,12 +1822,9 @@ def _synthetic_base(temp_root: Path) -> Mapping[str, Any]:
                     ],
                     "expanded_brick_template_refs": [
                         "brick/templates/bricks/work/return.yaml",
-                        # archive-mirror-only sheet: resolves ONLY via the
-                        # archive fallback (positive-direction FIRE wiring).
-                        "brick/templates/review/archived-fixture-return.yaml",
                     ],
                     "legacy_expanded_brick_template_refs": [
-                        "brick/templates/review/archived-fixture-return.yaml",
+                        "brick/templates/bricks/work/return.yaml",
                     ],
                 },
             ),

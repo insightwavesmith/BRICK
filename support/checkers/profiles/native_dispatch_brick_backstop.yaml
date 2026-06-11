@@ -1,6 +1,6 @@
 schema: checker-profile/v1
 profile_id: native-dispatch-brick-backstop
-description: NATIVE-DISPATCH-BRICK-BACKSTOP-0 evidence-shape backstop asserting execution_path native-dispatch, open capture events, COMPUTED Link movement GateFact and BrickComparisonFact at close, and the agent_object binding; the optional Claude hook is config, this checker is the enforcement surface.
+description: NATIVE-DISPATCH-BRICK-BACKSTOP-0 evidence-shape backstop asserting execution_path native-dispatch, open capture events, COMPUTED Link movement GateFact and BrickComparisonFact at close, and the agent_object binding; the optional Claude hook is config, this checker is the enforcement surface. CLEAN-YARD v3 (Smith 0611) -- the standing posA-native-complete dogfood root left for the frozen museum; the SAME posA shape pins (8 evidence files, json required paths, execution_path literal, open-capture event types, COMPUTED-gate honesty notes, no hardcoded-gate literal) are now EXECUTED 1:1 over the FRESH close tree the native_dispatch_close_case generates per run (_assert_native_dispatch_pos_a_shape).
 kernel_checks:
   - package_path_admission
   - building_lifecycle_path_shape
@@ -10,101 +10,33 @@ path_exists:
   - support/connection/agent_resources.py
   - support/operator/building_operation.py
   - agent/skills/native-dispatch-recording/SKILL.md
-  - project/brick-protocol/buildings/posA-native-complete/work/building-work.json
-  - project/brick-protocol/buildings/posA-native-complete/work/building-map.json
-  - project/brick-protocol/buildings/posA-native-complete/capture/events.jsonl
-  - project/brick-protocol/buildings/posA-native-complete/evidence/evidence-manifest.json
-  - project/brick-protocol/buildings/posA-native-complete/evidence/claim_trace/brick/work_contract.json
-  - project/brick-protocol/buildings/posA-native-complete/evidence/claim_trace/agent/returned_claims.json
-  - project/brick-protocol/buildings/posA-native-complete/evidence/claim_trace/link/movement_trace.json
-  - project/brick-protocol/buildings/posA-native-complete/evidence/claim_trace/link/sufficiency_trace.json
 path_absent:
   - agent/skills/native-dispatch-recording/open-recording.py
   - agent/skills/native-dispatch-recording/close-recording.py
   - agent/skills/native-dispatch-recording/open-recording.sh
   - agent/skills/native-dispatch-recording/close-recording.sh
-json_required_paths:
-  # execution_path="native-dispatch" is a plain record field on the Brick work
-  # and the building-map projection. The marker word is Agent-owned vocabulary
-  # (brick_protocol.agent.performance.NATIVE_DISPATCH_PERFORMANCE_MODE).
-  - path: project/brick-protocol/buildings/posA-native-complete/work/building-work.json
-    required:
-      - execution_path
-      - building_id
-      - step_refs[]
-      - required_return_shape
-  - path: project/brick-protocol/buildings/posA-native-complete/work/building-map.json
-    required:
-      - execution_path
-      - kind
-      # agent_object binding: the Agent performer bound to the opened Brick.
-      - agent_bindings[].agent_performer_ref
-      - agent_bindings[].brick_instance_ref
-      - agent_bindings[].produced_public_fact_refs[]
-      - link_edges[].movement_fact_ref
-      - link_edges[].transition_fact_ref
-  - path: project/brick-protocol/buildings/posA-native-complete/evidence/evidence-manifest.json
-    required:
-      - execution_path
-  # COMPUTED BrickComparisonFact at close: observed_match_kind is the ζ1 Brick
-  # comparison measurement, never a hardcoded pass. Lives in the Brick claim
-  # trace alongside the Brick work contract fact.
-  - path: project/brick-protocol/buildings/posA-native-complete/evidence/claim_trace/brick/work_contract.json
-    required:
-      - facts[].fact.observed_match_kind
-      - facts[].fact.required_return_shape_evidence
-      - facts[].fact.comparison_evidence
-      - facts[].fact.forbidden_shortcut_evidence
-      - facts[].fact.work_statement
-  # COMPUTED Link movement GateFact at close: the sufficiency verdict is the
-  # ζ2 Link rule computation over the supplied return (stage=movement, a real
-  # sufficiency value, required_public_facts derived from the BrickComparison).
-  - path: project/brick-protocol/buildings/posA-native-complete/evidence/claim_trace/link/sufficiency_trace.json
-    required:
-      - facts[].fact.stage
-      - facts[].fact.sufficiency
-      - facts[].fact.required_public_facts[]
-      - facts[].fact.checked_public_fact
-      - facts[].fact.reason
-  - path: project/brick-protocol/buildings/posA-native-complete/evidence/claim_trace/link/movement_trace.json
-    required:
-      - facts[].fact.movement
-      - facts[].fact.declared_gate_refs[]
-      - facts[].fact.public_fact_refs[]
-  - path: project/brick-protocol/buildings/posA-native-complete/evidence/claim_trace/agent/returned_claims.json
-    required:
-      - facts[].fact.agent_object_ref
-      - facts[].fact.received_work
-      - facts[].fact.returned
 text_contains:
-  # execution_path literal value, not just the key.
-  - path: project/brick-protocol/buildings/posA-native-complete/work/building-work.json
+  # CLEAN-YARD v3: the posA shape fold must stay an EXECUTED case property set
+  # inside the close-case seam (generation + 1:1 migrated pin tables); these
+  # needles RED if the fold or its property tables are removed.
+  - path: support/checkers/lib/case_runners.py
     texts:
-      - '"execution_path": "native-dispatch"'
-  - path: project/brick-protocol/buildings/posA-native-complete/work/building-map.json
-    texts:
-      - '"execution_path": "native-dispatch"'
-  - path: project/brick-protocol/buildings/posA-native-complete/evidence/evidence-manifest.json
-    texts:
-      - '"execution_path": "native-dispatch"'
-  # Open capture events: building_opened and brick_opened were recorded before
-  # the native subagent received the work.
-  - path: project/brick-protocol/buildings/posA-native-complete/capture/events.jsonl
-    texts:
+      - _assert_native_dispatch_pos_a_shape
+      - _POS_A_JSON_REQUIRED
+      - _POS_A_TEXT_CONTAINS
+      - _POS_A_TEXT_ABSENT
+      - 'agent_bindings[].agent_performer_ref'
+      - 'link_edges[].transition_fact_ref'
+      - 'facts[].fact.observed_match_kind'
+      - 'facts[].fact.forbidden_shortcut_evidence'
+      - 'facts[].fact.required_public_facts[]'
+      - 'facts[].fact.checked_public_fact'
       - '"event_type":"building_opened"'
-      - '"event_type":"brick_opened"'
       - '"event_type":"brick_compared"'
-      - '"event_type":"link_movement"'
-  # COMPUTED gate stage is the Link movement gate; the sufficiency verdict is
-  # the rule computation over the BrickComparison (forbidden_shortcut_evidence
-  # records that support did NOT classify the return or force a pass).
-  - path: project/brick-protocol/buildings/posA-native-complete/evidence/claim_trace/link/sufficiency_trace.json
-    texts:
-      - '"stage": "movement"'
-  - path: project/brick-protocol/buildings/posA-native-complete/evidence/claim_trace/brick/work_contract.json
-    texts:
       - support/run did not classify Agent return
       - support/run did not judge success or quality
+      - hardcoded_pass
+      - forced_sufficient
   # Skill documents the convention, the marker, and the Claude-config boundary.
   - path: agent/skills/native-dispatch-recording/SKILL.md
     texts:
@@ -135,14 +67,10 @@ text_contains:
 native_dispatch_close_case:
   - label: native-dispatch-close-governance
 text_absent:
-  # The gate must be COMPUTED, never a hardcoded pass injected by support.
-  - path: project/brick-protocol/buildings/posA-native-complete/evidence/claim_trace/link/sufficiency_trace.json
-    texts:
-      - hardcoded_pass
-      - default_gatefact
-      - forced_sufficient
   # The skill must not stage a runnable hook executable in the repo tree; the
   # hook scripts are documented templates, staged under /tmp only for a proof.
+  # (The COMPUTED-gate text_absent over the sufficiency trace migrated into
+  # _POS_A_TEXT_ABSENT, executed over the fresh close tree each run.)
   - path: agent/skills/native-dispatch-recording/SKILL.md
     texts:
       - the hook is the enforcement surface

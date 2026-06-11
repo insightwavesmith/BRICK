@@ -1,0 +1,190 @@
+# CHECKER FIXTURE (CLEAN-YARD v3, Smith 0611). Plan files are yaml TEST DATA,
+# not building evidence; this fixture is the strict plan-boundary VALID-linear
+# prescription (checker-split-map-0611.md ⚠ §1-2) and the generation plan for
+# the link-routing evidence case. Twin of the retired dogfood plan
+# link-owned-automation-0-dogfood.yaml (original preserved in the frozen
+# museum repo); ids re-rooted to fixture-link-concern-replay-0. It carries the
+# full declared Link grammar on purpose: non-binding transition concern step,
+# route_decision_basis (adopted/not_adopted/override/reviewer/human refs),
+# declared route_replay_plan with max_attempts, declared_gate_refs, and a
+# closing building_lifecycle row -- so strict validation keeps exercising that
+# grammar.
+plan_ref: building-plan:fixture-link-concern-replay-0
+owner_axis: Brick
+building_id: fixture-link-concern-replay-0
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - Link-owned declared gate and policy automation dogfood
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of Agent returned work
+  - semantic correctness of Link concern mapping
+  - production runtime readiness
+steps:
+  - step_ref: link-owned-automation-0-plan
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-owned-automation-0-plan
+        brick_work_ref: work:link-owned-automation-0-plan
+        brick_instance_ref: brick-loa0-plan-attempt-1
+        work_statement: Plan the compact preset and Link-owned automation dogfood.
+        comparison_rule: Observe required honest report fields only.
+        required_return_shape: observed_evidence, made_changes, not_proven
+      - axis: Agent
+        row_ref: agent-row:link-owned-automation-0-plan
+        agent_object_ref: agent-object:pm-lead
+      - axis: Link
+        row_ref: link-row:link-owned-automation-0-plan-to-design
+        movement: forward
+        target_ref: brick-loa0-design-attempt-1
+        declared_gate_refs:
+          - link-gate:default-transition
+  - step_ref: link-owned-automation-0-design
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-owned-automation-0-design
+        brick_work_ref: work:link-owned-automation-0-design
+        brick_instance_ref: brick-loa0-design-attempt-1
+        work_statement: Design Link-owned automatic disposition policy boundaries.
+        comparison_rule: Observe required honest report fields only.
+        required_return_shape: observed_evidence, made_changes, not_proven
+      - axis: Agent
+        row_ref: agent-row:link-owned-automation-0-design
+        agent_object_ref: agent-object:design-lead
+      - axis: Link
+        row_ref: link-row:link-owned-automation-0-design-to-dev
+        movement: forward
+        target_ref: brick-loa0-dev-attempt-1
+        declared_gate_refs:
+          - link-gate:default-transition
+  - step_ref: link-owned-automation-0-dev
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-owned-automation-0-dev-attempt-1
+        brick_work_ref: work:link-owned-automation-0-dev
+        brick_instance_ref: brick-loa0-dev-attempt-1
+        work_statement: Implement the first declared work boundary for automation dogfood.
+        comparison_rule: Observe required honest report fields only.
+        required_return_shape: observed_evidence, made_changes, not_proven
+      - axis: Agent
+        row_ref: agent-row:link-owned-automation-0-dev-attempt-1
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:link-owned-automation-0-dev-to-qa
+        movement: forward
+        target_ref: brick-loa0-qa-attempt-1
+        declared_gate_refs:
+          - link-gate:default-transition
+  - step_ref: link-owned-automation-0-qa
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-owned-automation-0-qa-attempt-1
+        brick_work_ref: work:link-owned-automation-0-qa
+        brick_instance_ref: brick-loa0-qa-attempt-1
+        work_statement: Return transition_concern_evidence for implementation_gap plus a non-binding route_request.
+        comparison_rule: Observe concern evidence only; Agent does not choose Movement.
+        required_return_shape: observed_evidence, transition_concern_evidence, not_proven
+      - axis: Agent
+        row_ref: agent-row:link-owned-automation-0-qa-attempt-1
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:link-owned-automation-0-qa-reroute-dev
+        movement: reroute
+        target_ref: brick-loa0-dev-attempt-2
+        declared_gate_refs:
+          - link-gate:default-transition
+        route_decision_basis:
+          adopted_transition_concern_refs:
+            - transition-concern:link-owned-automation-0-implementation-gap
+          not_adopted_transition_concern_refs:
+            - transition-concern:link-owned-automation-0-style-note
+          override_refs:
+            - coo:link-owned-automation-0-keep-route
+          reviewer_observation_refs:
+            - observation:link-owned-automation-0-qa
+          human_review_refs: []
+        route_replay_plan:
+          route_replay_ref: route-replay:link-owned-automation-0
+          author_ref: coo:link-owned-automation-0
+          authoring_basis_refs:
+            - transition-concern:link-owned-automation-0-implementation-gap
+          immediate_target_ref: brick-loa0-dev-attempt-2
+          source_brick_refs:
+            - brick-loa0-dev-attempt-1
+          route_reason_refs:
+            - transition-concern:link-owned-automation-0-implementation-gap
+          affected_downstream_refs:
+            - brick-loa0-qa-attempt-1
+          replay_segment_refs:
+            - brick-loa0-qa-attempt-2
+          max_attempts: 2
+  - step_ref: link-owned-automation-0-dev-attempt-2
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-owned-automation-0-dev-attempt-2
+        brick_work_ref: work:link-owned-automation-0-dev
+        brick_instance_ref: brick-loa0-dev-attempt-2
+        work_statement: Replay the existing dev boundary after Link-owned reroute.
+        comparison_rule: Observe required honest report fields only.
+        required_return_shape: observed_evidence, made_changes, not_proven
+      - axis: Agent
+        row_ref: agent-row:link-owned-automation-0-dev-attempt-2
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:link-owned-automation-0-dev-replay-to-qa
+        movement: forward
+        target_ref: brick-loa0-qa-attempt-2
+        declared_gate_refs:
+          - link-gate:default-transition
+        transition_lifecycle:
+          state: resumed
+          progress_state: in_progress
+          resumed_from_ref: link-transition:link-owned-automation-0-implementation-gap
+          from_brick_ref: brick-loa0-dev-attempt-2
+          pending_target_ref: brick-loa0-qa-attempt-2
+          reason_refs:
+            - transition-concern:link-owned-automation-0-implementation-gap
+          required_disposition_owner: caller-or-coo
+  - step_ref: link-owned-automation-0-qa-attempt-2
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-owned-automation-0-qa-attempt-2
+        brick_work_ref: work:link-owned-automation-0-qa
+        brick_instance_ref: brick-loa0-qa-attempt-2
+        work_statement: Replay the existing QA boundary after dev attempt-2 and return a non-binding route_request.
+        comparison_rule: Observe required honest report fields only.
+        required_return_shape: observed_evidence, made_changes, route_request, not_proven
+      - axis: Agent
+        row_ref: agent-row:link-owned-automation-0-qa-attempt-2
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:link-owned-automation-0-qa-to-closure
+        movement: forward
+        target_ref: brick-loa0-closure
+        declared_gate_refs:
+          - link-gate:default-transition
+  - step_ref: link-owned-automation-0-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-owned-automation-0-closure
+        brick_work_ref: work:link-owned-automation-0-closure
+        brick_instance_ref: brick-loa0-closure
+        work_statement: Close LINK-OWNED-AUTOMATION-0 dogfood evidence.
+        comparison_rule: Observe closure report fields only.
+        required_return_shape: observed_evidence, remaining_delta, not_proven
+      - axis: Agent
+        row_ref: agent-row:link-owned-automation-0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:link-owned-automation-0-closed
+        movement: forward
+        target_ref: building-boundary:link-owned-automation-0-closed
+        declared_gate_refs:
+          - link-gate:default-transition
+        building_lifecycle:
+          state: closed
+          reason: LINK-OWNED-AUTOMATION-0 dogfood closure evidence recorded.

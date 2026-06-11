@@ -8,7 +8,7 @@ Prepare the Brick Protocol support-only Slack alert path for Building start, fin
 - support/operator/report_sinks.py
 - support/operator/run.py
 - support/operator/driver.py
-- project/brick-protocol/status/kernel/current-working-context.md
+- project/brick-protocol/PROGRESS.md
 
 ## Read Scope
 - brick/**

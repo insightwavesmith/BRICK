@@ -8,7 +8,6 @@ kernel_checks:
   - building_map_graph
 path_exists:
   - AGENTS.md
-  - project/brick-protocol/status/kernel/current-working-context.md
   - brick/templates/tasks/source-template.md
   - brick/templates/shapes/catalog.yaml
   - brick/templates/presets/fast-fix.md
@@ -20,7 +19,6 @@ path_exists:
   - brick/templates/presets/docs-simple-review.md
   - brick/templates/presets/portfolio-sequence.md
   - brick/templates/presets/brick-protocol-engine-feature-hard.md
-  - brick/building_plans/coo-operating-chain-0-compact.yaml
   - agent/prompts/coo.md
   - agent/skills/building-coordination/SKILL.md
   - agent/skills/task_intake/SKILL.md
@@ -31,15 +29,10 @@ path_exists:
   - support/operator/building_operation.py
   - support/connection/mcp_projection.py
   - support/checkers/profiles/coo_operating_chain.yaml
-  - project/brick-protocol/buildings/coo-operating-chain-0-0527/work/building-map.json
 path_absent:
   - support/checkers/check_coo_operating_chain0.py
   - brick/tasks
 text_contains:
-  - path: project/brick-protocol/status/kernel/current-working-context.md
-    texts:
-      - COO-OPERATING-CHAIN-0
-      - BAR-V2-REAL-TASK-DOGFOOD-1
   - path: brick/templates/tasks/source-template.md
     texts:
       - "## First-Line Contract"
@@ -241,20 +234,13 @@ text_contains:
   - path: support/operator/auto_repair_replay.py
     texts:
       - run_declared_auto_repair_replay_case
-  - path: brick/building_plans/coo-operating-chain-0-compact.yaml
-    texts:
-      - "parent_goal_ref: goal:coo-operating-chain"
-      - coo_operating_chain_packet
-      - parent_goal_delta_status
+# CLEAN-YARD v3 (Smith 0611): the standing coo-operating-chain-0-0527 dogfood
+# evidence + compact plan left for the frozen museum. The building-map shape
+# pin migrated to the EXECUTED intake_evidence_projection_case
+# (read_side_projection_boundary); the strict plan-boundary row re-points to
+# the standing fixture plan (⚠ §1-2).
 building_plan_boundary:
-  - path: brick/building_plans/coo-operating-chain-0-compact.yaml
-json_required_paths:
-  - path: project/brick-protocol/buildings/coo-operating-chain-0-0527/work/building-map.json
-    required:
-      - kind
-      - brick_instances[].brick_instance_id
-      - agent_bindings[].step_output_ref
-      - link_edges[].link_edge_id
+  - path: brick/building_plans/fixture-link-concern-replay-0.yaml
 text_absent:
   # L legacy cut (0610): the compat_preset_refs alias grammar is retired; the
   # former text_contains pin on this preset file flipped to its corrected fact

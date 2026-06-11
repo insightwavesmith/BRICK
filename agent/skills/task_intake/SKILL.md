@@ -71,7 +71,7 @@ brick/templates/presets/brick-protocol-portfolio-driver.md
 brick/templates/presets/brick-protocol-post-d-cleanup.md
 brick/templates/building-design-contract.yaml
 AGENTS.md
-project/brick-protocol/status/kernel/current-working-context.md
+project/brick-protocol/PROGRESS.md
 active phase spec or support record
 ```
 

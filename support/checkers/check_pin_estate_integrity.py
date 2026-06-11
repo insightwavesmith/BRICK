@@ -3,9 +3,9 @@
 
 After W2 DOC-DECOUPLE (82 decorative pins retired, ledger
 ``archive/PIN-RETIREMENT-LEDGER-0611.md``) the surviving history-doc pin estate
-is small and load-bearing: KEEP-LIVE structure pins on
-``current-working-context.md``, GUARD-ONLY anti-stale ``text_absent`` sweeps on
-archived museum docs, and the deferred 0528 orchestration-ledger pins. This
+was small and load-bearing; CLEAN-YARD v3 (0611) retired the last of it WITH
+its subjects (the estate is now EMPTY by design -- standing history docs left
+for the frozen museum and their properties became executed cases). This
 checker ports the ACTIVE-SPEC-SPINE-0 grounding disciplines (concept lift from
 the never-merged ``codex/active-spec-spine-0`` branch,
 ``d5bc86e:support/checkers/check_doc_grounding.py``; its JSON claim dataset is
@@ -26,10 +26,11 @@ dead and deliberately NOT ported) onto that estate:
 
   (b) ADVERSARIAL PIN PROBES (branch concept: ``_execute_adversarial_probe``,
       d5bc86e:215-251, scoped down to per-doc temp copies instead of full repo
-      copies): for a deterministic SAMPLE of the live estate (the
-      ``current-working-context.md`` structure block in
-      ``structure_template_integrity.yaml`` + 2 anti-stale ``text_absent``
-      guards), copy ONLY the pinned doc into a temp repo, run the REAL
+      copies): for a deterministic SAMPLE of the live estate (generalized
+      CLEAN-YARD v3 0611: first text_contains + first/last text_absent blocks
+      when any exist; an EMPTY estate -- the shipped state -- yields an empty
+      sample and the six synthetic FIRE probes stay the anti-tautology),
+      copy ONLY the pinned doc into a temp repo, run the REAL
       production pin runner (``rule_runners.text_rule``) for sanity, MUTATE the
       pinned text (remove a pinned needle / inject a forbidden stale literal),
       and assert the pin runner REDs with its expected rejection. This proves
@@ -113,10 +114,9 @@ HISTORY_PREFIXES = (
 TEXT_PIN_KINDS = ("text_contains", "text_absent")
 JSON_PIN_KIND = "json_required_paths"
 PATH_PIN_KINDS = ("path_exists", "path_absent")
-# Discipline (b) sample anchor: the sole CURRENT-CONTEXT-PRUNE-0 structure
-# guard (W2 ledger: "CWC heading pins ... KEPT (sole ... structure guard)").
-CWC_DOC = "project/brick-protocol/status/kernel/current-working-context.md"
-CWC_STRUCTURE_PROFILE = "structure_template_integrity.yaml"
+# Discipline (b) sample: generalized (CLEAN-YARD v3, 0611) -- no bespoke doc
+# anchor; see _select_probe_sample (empty estate => empty sample; the six
+# synthetic FIRE probes stay the anti-tautology).
 
 
 class PinEstateError(Exception):
@@ -231,29 +231,38 @@ def validate_non_decorative(pins: list[PinBlock]) -> None:
 # ---------------------------------------------------------------------------
 
 def _select_probe_sample(pins: list[PinBlock]) -> list[PinBlock]:
-    cwc_structure = [
-        pin
-        for pin in pins
-        if pin.profile == CWC_STRUCTURE_PROFILE
-        and pin.kind == "text_contains"
-        and pin.doc == CWC_DOC
-    ]
-    if len(cwc_structure) != 1:
-        raise PinEstateError(
-            "probe sample anchor missing: expected exactly 1 text_contains block on "
-            f"{CWC_DOC} in {CWC_STRUCTURE_PROFILE}, observed {len(cwc_structure)} "
-            "(the KEEP-LIVE CWC structure guard moved or vanished; re-anchor the sample)"
-        )
+    """Deterministic adversarial sample over whatever text pins survive.
+
+    CLEAN-YARD v3 (Smith 0611): the product repo ships ZERO standing dogfood
+    evidence, so the history-doc pin estate may legitimately be EMPTY (the old
+    anchors -- the KEEP-LIVE CWC structure block and the two anti-stale
+    text_absent guards -- left with their subjects; the same properties are
+    now executed cases over check-time generated evidence). With an empty
+    estate the adversarial sample is empty and the six synthetic FIRE probes
+    (run RED-first on every invocation, incl. the suppressed-mutation probe
+    that drives the REAL probe executor over a temp doc) remain the
+    anti-tautology. When text pins DO exist on the history prefixes again,
+    the sample is the first text_contains block plus the first and last
+    text_absent blocks (sorted by profile/doc), so a re-grown estate is
+    probed without a bespoke anchor.
+    """
+
+    text_contains = sorted(
+        (pin for pin in pins if pin.kind == "text_contains"),
+        key=lambda pin: (pin.profile, pin.doc),
+    )
     anti_stale = sorted(
         (pin for pin in pins if pin.kind == "text_absent"),
         key=lambda pin: (pin.profile, pin.doc),
     )
-    if len(anti_stale) < 2:
-        raise PinEstateError(
-            "probe sample anchor missing: fewer than 2 anti-stale text_absent guards "
-            f"survive in the history estate (observed {len(anti_stale)})"
-        )
-    return cwc_structure + [anti_stale[0], anti_stale[-1]]
+    sample: list[PinBlock] = []
+    if text_contains:
+        sample.append(text_contains[0])
+    if anti_stale:
+        sample.append(anti_stale[0])
+        if anti_stale[-1] is not anti_stale[0]:
+            sample.append(anti_stale[-1])
+    return sample
 
 
 def _run_text_rule(temp_repo: Path, pin: PinBlock, needles: tuple[str, ...]) -> None:

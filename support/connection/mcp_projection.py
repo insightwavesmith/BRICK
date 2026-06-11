@@ -399,9 +399,7 @@ def render_coo_operating_chain_context(repo_root: str | Path | None = None) -> d
         ],
         "startup_paths": [
             "AGENTS.md",
-            "project/brick-protocol/status/kernel/current-working-context.md",
-            "archive/status-kernel/current-brick-operating-packet-0531.md",
-            "archive/status-kernel/brick-protocol-post-d-surface-recompile-0-plan-0530.md",
+            "project/brick-protocol/PROGRESS.md",
             "brick/templates/tasks/source-template.md",
             "brick/templates/shapes/catalog.yaml",
             "brick/templates/presets/fast-fix.md",

@@ -77,9 +77,10 @@ physical_template_classification:
     # design/standard-development-assignment-return, do/standard-work-return,
     # closure/standard-closure-with-parent-delta, review/standard-axis-attack-qa-return,
     # review/standard-code-attack-qa-return, review/standard-evidence-integrity-return,
-    # review/minimal-review-template.json) moved to archive/brick-templates/<same
-    # relative path>. The menu lists the live tree only; archive is not menu
-    # inventory. Historical packet refs resolve via the checker's archive fallback.
+    # review/minimal-review-template.json) moved to the frozen HISTORY repo's
+    # archive/brick-templates/<same relative path> (CLEAN-YARD v3: the product
+    # repo ships no archive mirror; the menu lists the live tree only and a
+    # stale packet ref REDs in the catalog checker instead of resolving).
     # (0610 follow-up: design/standard-plan-return, review/standard-review-return,
     # review/standard-inspect-return — zero live refs — archived the same way.)
     # (T-FLATTEN v3 0611: review/standard-route-request-return — the historical-

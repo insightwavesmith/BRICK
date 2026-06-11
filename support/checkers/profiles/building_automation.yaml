@@ -13,8 +13,6 @@ path_exists:
   - support/checkers/check_building_lifecycle_path_shape.py
   - support/checkers/check_building_map_graph.py
   - brick/templates/tasks/source-template.md
-  - project/brick-protocol/buildings/building-automation-final-completion-audit-0-0526/work/building-map.json
-  - project/brick-protocol/buildings/building-automation-complete-0-scope-c-dogfood-0527/work/task.md
 path_absent:
   - support/run.py
   - support/recording/__main__.py
@@ -22,13 +20,13 @@ path_absent:
 path_absent_glob:
   - support/runner/**
   - support/building_run/**
+# CLEAN-YARD v3 (Smith 0611): the standing 0526/0527 dogfood evidence left
+# for the frozen museum. The task-placement property (work/task.md landed
+# verbatim inside the building root) and the building-map shape (incl.
+# agent_bindings[].agent_binding_id) are EXECUTED by
+# intake_evidence_projection_case (read_side_projection_boundary) over a
+# check-time generated building.
 text_contains:
-  - path: project/brick-protocol/buildings/building-automation-complete-0-scope-c-dogfood-0527/work/task.md
-    texts:
-      - TASK-SOURCE-EVIDENCE-PLACEMENT-0
-      - project/brick-protocol/buildings/<building-id>/work/task.md
-      - not source truth
-      - not Movement authority
   - path: support/operator/run.py
     texts:
       - AgentFact
@@ -114,13 +112,6 @@ text_absent:
       - os.system
       - eval(
       - exec(
-json_required_paths:
-  - path: project/brick-protocol/buildings/building-automation-final-completion-audit-0-0526/work/building-map.json
-    required:
-      - kind
-      - brick_instances[].brick_instance_id
-      - agent_bindings[].agent_binding_id
-      - link_edges[].link_edge_id
 proof_limits:
   - support evidence only
   - not source truth

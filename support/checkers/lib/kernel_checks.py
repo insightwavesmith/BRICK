@@ -1456,6 +1456,100 @@ def _minimal_operator_wake_target() -> Mapping[str, Any]:
     }
 
 
+# Inbox-packet property tables, migrated 1:1 from the retired standing-packet
+# pins of read_side_projection_boundary.yaml (json_required_paths +
+# json_value_paths on the 3 dogfood status/inbox packets).
+_INBOX_FRONTIER_PACKET_REQUIRED_KEYS = (
+    "report_id",
+    "report_kind",
+    "building_id",
+    "portfolio_id",
+    "observed_board_state",
+    "trigger_event_ref",
+    "current_brick_ref",
+    "last_completed_step_ref",
+    "frontier_ref",
+    "evidence_root_refs",
+    "evidence_refs_present",
+    "checker_summary_ref",
+    "required_disposition_owner",
+    "sink_refs",
+    "generated_at",
+    "source_truth",
+    "not_proven",
+    "proof_limits",
+)
+_OPERATOR_WAKE_PACKET_REQUIRED_KEYS = (
+    "wake_packet_id",
+    "report_id",
+    "report_kind",
+    "building_id",
+    "observed_board_state",
+    "evidence_root_refs",
+    "operator_wake_targets",
+    "source_truth",
+    "not_proven",
+    "proof_limits",
+)
+
+
+def _reporter_inbox_packet_shape_fold(
+    reporter: Any,
+    *,
+    local_inbox_packet: Mapping[str, Any],
+    wake_bus_frontier_packet: Mapping[str, Any],
+    operator_wake_packet: Mapping[str, Any],
+) -> None:
+    """Assert the written inbox/wake packets carry the retired pins' shape."""
+
+    for packet_label, packet in (
+        ("local-inbox frontier packet", local_inbox_packet),
+        ("wake-bus frontier packet", wake_bus_frontier_packet),
+    ):
+        for key in _INBOX_FRONTIER_PACKET_REQUIRED_KEYS:
+            if key not in packet:
+                raise ProfileError(f"{packet_label} is missing required key {key!r}")
+        if not (isinstance(packet.get("evidence_root_refs"), list) and packet["evidence_root_refs"]):
+            raise ProfileError(f"{packet_label} evidence_root_refs must be a non-empty list")
+        if packet.get("observed_board_state") not in set(reporter.OBSERVED_BOARD_STATES):
+            raise ProfileError(
+                f"{packet_label} observed_board_state {packet.get('observed_board_state')!r} "
+                "is not an admitted OBSERVED_BOARD_STATES member"
+            )
+        if "report-sink:local-inbox" not in (packet.get("sink_refs") or []):
+            raise ProfileError(f"{packet_label} sink_refs does not name report-sink:local-inbox")
+    if "report-sink:operator-wake-local" not in (
+        wake_bus_frontier_packet.get("sink_refs") or []
+    ):
+        raise ProfileError(
+            "wake-bus frontier packet sink_refs does not name report-sink:operator-wake-local"
+        )
+    wake_bus_targets = wake_bus_frontier_packet.get("operator_wake_targets")
+    if not (isinstance(wake_bus_targets, list) and wake_bus_targets):
+        raise ProfileError("wake-bus frontier packet operator_wake_targets must be non-empty")
+    if any(
+        target.get("sink_ref") != "report-sink:operator-wake-local"
+        for target in wake_bus_targets
+        if isinstance(target, Mapping)
+    ):
+        raise ProfileError(
+            "wake-bus frontier packet operator_wake_targets[].sink_ref must be "
+            "report-sink:operator-wake-local"
+        )
+    for key in _OPERATOR_WAKE_PACKET_REQUIRED_KEYS:
+        if key not in operator_wake_packet:
+            raise ProfileError(f"operator wake packet is missing required key {key!r}")
+    wake_targets = operator_wake_packet.get("operator_wake_targets")
+    if not (isinstance(wake_targets, list) and wake_targets):
+        raise ProfileError("operator wake packet operator_wake_targets must be non-empty")
+    for target in wake_targets:
+        if not isinstance(target, Mapping) or target.get("delivery_mode") != "local_projection":
+            raise ProfileError(
+                "operator wake packet operator_wake_targets[].delivery_mode must be "
+                "local_projection"
+            )
+
+
 def run_reporter_notification_projection(repo: Path) -> KernelResult:
     _ensure_import_identity(repo)
     reporter = importlib.import_module("brick_protocol.support.operator.reporter")
@@ -1561,6 +1655,28 @@ def run_reporter_notification_projection(repo: Path) -> KernelResult:
             raise ProfileError("operator wake packet source_truth is not false")
         if not wake_written_packet.get("operator_wake_targets"):
             raise ProfileError("operator wake packet did not preserve wake target refs")
+
+        # CLEAN-YARD v3 (Smith 0611): the 3 standing dogfood inbox packets
+        # (run-surface-authority-boundary-0529 / reporter-delivery-wake-bus-0531)
+        # left for the frozen museum; their json_required_paths/json_value_paths
+        # pin properties are EXECUTED here 1:1 over the packets the REAL sinks
+        # just wrote into the temp inbox.
+        local_inbox_wake_bus = [
+            observation
+            for observation in wake_observations
+            if observation.sink_ref == "report-sink:local-inbox"
+        ]
+        if len(local_inbox_wake_bus) != 1:
+            raise ProfileError("wake-bus local inbox sink observation was not emitted")
+        wake_bus_frontier_packet = json.loads(
+            (tmp_repo / local_inbox_wake_bus[0].written_path).read_text(encoding="utf-8")
+        )
+        _reporter_inbox_packet_shape_fold(
+            reporter,
+            local_inbox_packet=written_packet,
+            wake_bus_frontier_packet=wake_bus_frontier_packet,
+            operator_wake_packet=wake_written_packet,
+        )
 
         sink_rejected_complete = False
         try:
@@ -2416,9 +2532,10 @@ _SESSION_ID_UUID_RE = re.compile(
 # exact path and is unchanged by this widening.
 _SESSION_ID_STATIC_SCAN_ROOTS = (
     "support/docs/reviews",
-    # 0611 adaptation: W2 DOC-DECOUPLE moved frozen status/spec history here;
-    # archived history must not become a quiet landing zone for NEW leaks.
-    "archive",
+    # CLEAN-YARD v3 (0611): the archive/ museum root left for the frozen
+    # history repo; the per-vessel project roots + reviews remain the scan
+    # surface (a resurrected archive/ would be rejected by path admission
+    # before it could become a landing zone).
 )
 
 
@@ -2457,7 +2574,68 @@ def _line_carries_session_id(line: str) -> bool:
     return False
 
 
-def run_agent_session_id_redaction(repo: Path) -> KernelResult:
+def _session_id_redaction_fire_probe() -> None:
+    """Built-in anti-tautological FIRE probe (CLEAN-YARD v3, ⚠ §1-1).
+
+    The product allowlist is EMPTY and the product tree carries zero leaks, so
+    without a probe the scan could silently stop matching and stay green. On
+    every invocation this builds a TEMP repo with one synthetic vessel whose
+    status/kernel record carries a fake provider session id (a bare UUID --
+    the dominant real leak layout) and asserts the REAL scan path reports it;
+    then asserts the same vessel WITHOUT the leak scans clean. The temp tree
+    is removed by the TemporaryDirectory context. A probe that does not fire
+    raises ProfileError, so --all EXITs non-zero.
+    """
+
+    # One leak line PER detection family, each crafted so only ITS matcher
+    # catches it -- disabling any single family (bare UUID / bare ULID /
+    # keyed session form / prefixed value token) leaves its line unmatched and
+    # the probe RED. A single combined line would let one family die silently
+    # behind another.
+    family_leaks = {
+        "bare-uuid": "subagent row 123e4567-e89b-42d3-a456-426614174000",
+        "bare-ulid": "subagent row 01HXF1REPR0BE0F1REPR0BE042",
+        "keyed-session": "conversation_id: abc123def456ghi",
+        "value-token": "transport sess_a1b2c3d4e5f6g7",
+    }
+    with tempfile.TemporaryDirectory(prefix="bp-session-id-fire-") as tmp:
+        probe_repo = Path(tmp)
+        kernel_dir = probe_repo / "project" / "fire-probe-vessel" / "status" / "kernel"
+        kernel_dir.mkdir(parents=True)
+        leak_doc = kernel_dir / "fire-probe-record.md"
+        body_lines = ["# synthetic FIRE probe record", ""]
+        family_lineno: dict[str, int] = {}
+        for family, leak in family_leaks.items():
+            body_lines.append(leak)
+            family_lineno[family] = len(body_lines)
+        leak_doc.write_text("\n".join(body_lines) + "\n", encoding="utf-8")
+        offenders = _collect_session_id_offenders(probe_repo)[0]
+        offender_linenos: set[int] = set()
+        for entry in offenders:
+            tail = entry.rsplit(":", 1)[-1].split(" ")[0]
+            if tail.isdigit():
+                offender_linenos.add(int(tail))
+        for family, lineno in family_lineno.items():
+            if lineno not in offender_linenos:
+                raise ProfileError(
+                    "agent_session_id_redaction FIRE probe did NOT fire for the "
+                    f"{family} detection family: a synthetic session-id leak in a "
+                    "temp-generated vessel was not reported (that matcher has "
+                    "stopped matching; the empty-allowlist green is no longer "
+                    "trustworthy)"
+                )
+        leak_doc.write_text(
+            "# synthetic FIRE probe record\n\nno session id here\n", encoding="utf-8"
+        )
+        clean_offenders = _collect_session_id_offenders(probe_repo)[0]
+        if clean_offenders:
+            raise ProfileError(
+                "agent_session_id_redaction FIRE probe over-fired: a clean "
+                f"synthetic vessel reported offenders: {clean_offenders[:3]}"
+            )
+
+
+def _collect_session_id_offenders(repo: Path) -> tuple[list[str], int, dict[str, int]]:
     inspected = 0
     offenders: list[str] = []
     allowlisted_lines: dict[str, int] = {}
@@ -2498,6 +2676,14 @@ def run_agent_session_id_redaction(repo: Path) -> KernelResult:
                     )
             if matched:
                 allowlisted_lines[rel] = matched
+    return offenders, inspected, allowlisted_lines
+
+
+def run_agent_session_id_redaction(repo: Path) -> KernelResult:
+    # RED-first: prove the scan still fires on a synthetic leak in a
+    # temp-generated vessel before trusting the live tree's green.
+    _session_id_redaction_fire_probe()
+    offenders, inspected, allowlisted_lines = _collect_session_id_offenders(repo)
     if offenders:
         listing = "\n".join(offenders[:25])
         raise ProfileError(
@@ -2511,7 +2697,8 @@ def run_agent_session_id_redaction(repo: Path) -> KernelResult:
         check_id="agent_session_id_redaction",
         inspected=inspected,
         output=(
-            "no NEW provider/runtime session id in scanned support records, "
+            "FIRE probe fired (synthetic leak in a temp vessel RED); no NEW "
+            "provider/runtime session id in scanned support records, "
             "building work/evidence, review dispositions, or archived history; "
             f"{len(allowlisted_lines)} frozen-history legacy file(s) whose "
             f"{sum(allowlisted_lines.values())} offending line(s) all matched "

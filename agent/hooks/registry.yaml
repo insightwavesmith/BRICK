@@ -8,7 +8,7 @@
       "owner_axis": "Agent",
       "kind": "advisory",
       "event_ref": "before-agent-work",
-      "description": "Check AGENTS.md and current-working-context before protocol surfaces change.",
+      "description": "Check AGENTS.md and the project PROGRESS projection before protocol surfaces change.",
       "execution_opened": false
     },
     "hook:leader-write-need-gate": {

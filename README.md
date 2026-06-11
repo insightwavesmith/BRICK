@@ -119,7 +119,7 @@ Current control surfaces:
 
 ```text
 AGENTS.md
-project/brick-protocol/status/kernel/current-working-context.md
+project/brick-protocol/PROGRESS.md
 support/docs/spec/
 support/docs/reviews/
 support/docs/projection/
@@ -153,9 +153,10 @@ Historical dev log (FSR-0 / TSK-0..4 / TEAM-0..1 / DASH-0 phase records,
 review dispositions, and superseded spec history from 0518-0531) lives in the
 HISTORY repository (`brick-protocol`, the repo this product repo was split
 from at REPO-SPLIT 0611), under its top-level `archive/` productization
-museum. This product repo keeps only the small `archive/brick-templates/`
-set of retired template sheets that shipped frozen building evidence still
-references. Archived records are historical support evidence only -- not
+museum. This product repo ships NO archive/ tree at all (CLEAN-YARD v3,
+0611): the engine repo starts at project zero, and a check that needs
+building evidence generates it with the real engine at check time and
+removes it. Archived records are historical support evidence only -- not
 source truth, not success judgment, not Movement authority. The live,
 checker-pinned records stay under `support/docs/` and
 `project/brick-protocol/status/kernel/`.

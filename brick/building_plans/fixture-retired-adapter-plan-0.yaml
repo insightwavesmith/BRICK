@@ -1,0 +1,63 @@
+# CHECKER FIXTURE (CLEAN-YARD v3, Smith 0611). Plan files are yaml TEST DATA,
+# not building evidence. This fixture is the strict plan-boundary RETIRED-
+# ADAPTER prescription (checker-split-map-0611.md ⚠ §1-2): it declares the
+# retired write adapter ref adapter:codex-write-local on one step, so
+#   * STRICT validation (fail_fixture_rejects, allow_retired absent/false)
+#     must REJECT it -- the strict no-retired-adapter invariant stays
+#     single-sourced and executed;
+#   * the LENIENT path (building_plan_boundary row with
+#     allow_retired_write_adapter_refs: true, and the core
+#     building_plans_boundary_sweep) must ACCEPT it -- structural validation
+#     of historical plans stays open.
+# It is never run; no building evidence ever lands from this file.
+plan_ref: building-plan:fixture-retired-adapter-plan-0
+owner_axis: Brick
+building_id: fixture-retired-adapter-plan-0
+plan_shape: linear
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - strict plan-boundary retired-adapter checker fixture only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - any run of this fixture (it is validation test data only)
+steps:
+  - step_ref: fixture-retired-adapter-plan-0-work
+    selected_adapter_ref: adapter:codex-write-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:fixture-retired-adapter-plan-0-work
+        brick_work_ref: work:fixture-retired-adapter-plan-0-work
+        brick_instance_ref: brick-fixture-retired-adapter-plan-0-work
+        work_statement: Fixture work row declaring the retired write adapter; never executed.
+        comparison_rule: Observe only that strict validation rejects the retired adapter ref.
+        required_return_shape: observed_evidence, made_changes, not_proven
+        requires_brick_write_scope: true
+        write_scope:
+          allowed_paths:
+            - support/docs/references/grounding-and-evidence.md
+          forbidden_paths:
+            - .git/**
+            - .env
+            - "**/*.pem"
+            - "**/*.key"
+            - "**/*secret*"
+            - "**/*token*"
+            - "**/*credential*"
+          commit_allowed: false
+          push_allowed: false
+      - axis: Agent
+        row_ref: agent-row:fixture-retired-adapter-plan-0-work
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:fixture-retired-adapter-plan-0-close
+        movement: forward
+        target_ref: building-boundary:fixture-retired-adapter-plan-0-closed
+        declared_gate_refs:
+          - link-gate:default-transition
+        building_lifecycle:
+          state: closed
+          reason: Fixture plan closes immediately; it exists for boundary validation only.

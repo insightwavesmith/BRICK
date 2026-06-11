@@ -1,12 +1,23 @@
 #!/usr/bin/env python3
 """Tier-A 3-axis automation conformance assertion harness.
 
-HALF-2 Tier A (refactor/automation goal 0601 §3). Given the persisted
-``tier-a-3axis-conformance-0`` Building root produced by the real engine on
-adapter:local, this harness ASSERTS that one authentic engine run exercised all
-three axes plus the Link mechanics plus the full evidence shape, and that the
-engine wrote ``declaration_provenance`` (closing the P1 hole). It is the
-deterministic regression net re-run after each P3 extraction.
+HALF-2 Tier A (refactor/automation goal 0601 §3). CLEAN-YARD v3 (Smith 0611):
+the product repo ships NO standing dogfood Building; a check that needs a
+conformant Building GENERATES it with the REAL engine at check time, asserts,
+and removes it. On every run this harness drives ``run_building_plan``
+(``walker_mode="dynamic"``, adapter:local) over a declared graph plan that
+replays the original tier-a topology -- work, a review that proposes a
+non-binding reroute back to work (ADOPTED under the default gate within the
+per-node budget of 1), a mid node, a second review that proposes the same
+reroute past the exhausted budget (HOLD), then a caller/COO ``raise``
+disposition row + ``resume_building_plan`` to an unheld close with
+caller-supplied Carry/Transfer facts -- into a TEMP output root (never the
+repo tree; removed in ``finally``). It then ASSERTS that this authentic engine
+run exercised all three axes plus the Link mechanics plus the full evidence
+shape, and that the engine wrote ``declaration_provenance`` (closing the P1
+hole). The Building id is parameterized (``TIER_A_BUILDING_ID``); no project
+vessel is touched. It is the deterministic regression net re-run after each
+P3 extraction.
 
 It asserts, per the goal axis table:
 
@@ -50,10 +61,10 @@ from pathlib import Path
 from typing import Any
 
 
-PROJECT_ROOT = "project"
-BUILDINGS_SEGMENT = "buildings"
-TIER_A_BUILDING_ID = "tier-a-3axis-conformance-0"
-TIER_A_PROJECT_ID = "brick-protocol"
+# CLEAN-YARD v3: the asserted root is GENERATED per run into a temp dir; the
+# id is parameterized and intentionally distinct from the retired project #1
+# dogfood id (tier-a-3axis-conformance-0, preserved in the frozen museum repo).
+TIER_A_BUILDING_ID = "tier-a-3axis-case0"
 
 BUILDING_MAP_REL = ("work", "building-map.json")
 EVIDENCE_MANIFEST_REL = ("evidence", "evidence-manifest.json")
@@ -252,8 +263,23 @@ def assert_agent(building_root: Path, *, label: str, unmet: list[str]) -> None:
             )
 
 
-def assert_link(building_root: Path, *, label: str, unmet: list[str]) -> None:
-    """Link: forward + reroute + gate sufficiency + budget + pause/resume + carry/transfer."""
+def assert_link(
+    building_root: Path,
+    *,
+    label: str,
+    unmet: list[str],
+    held_stage_root: Path | None = None,
+) -> None:
+    """Link: forward + reroute + gate sufficiency + budget + pause/resume + carry/transfer.
+
+    ``held_stage_root``: the engine's resume path regenerates the final
+    evidence with the held proposal re-recorded as an adoption, so the
+    budget-exhaustion HOLD record exists in the evidence written AT THE HELD
+    STAGE (link_paused, before the caller/COO disposition). The generation
+    flow snapshots that stage; the HOLD assertion consults the final records
+    first (historical complete roots carried it) and falls back to the held
+    snapshot. Without either, the bound is reported unmet.
+    """
 
     # forward Movement present (movement_trace records forward movement facts).
     movement_trace = _read_json(building_root / Path(*MOVEMENT_TRACE_REL))
@@ -291,13 +317,20 @@ def assert_link(building_root: Path, *, label: str, unmet: list[str]) -> None:
         unmet.append(f"{label}: no positive Link-assigned node reroute budget recorded")
 
     # budget / max_attempts bounded: a HOLD on budget exhaustion was reached.
-    budget_holds = [
-        rec
-        for rec in records
-        if isinstance(rec, Mapping)
-        and rec.get("disposition_required") is True
-        and rec.get("budget_exhausted") is True
-    ]
+    def _budget_holds(record_list: list[Any]) -> list[Mapping[str, Any]]:
+        return [
+            rec
+            for rec in record_list
+            if isinstance(rec, Mapping)
+            and rec.get("disposition_required") is True
+            and rec.get("budget_exhausted") is True
+        ]
+
+    budget_holds = _budget_holds(records)
+    if not budget_holds and held_stage_root is not None:
+        held_evidence = _dynamic_walker_evidence(held_stage_root)
+        held_records = held_evidence.get("reroute_adoption_records")
+        budget_holds = _budget_holds(held_records if isinstance(held_records, list) else [])
     if not budget_holds:
         unmet.append(
             f"{label}: no budget-exhaustion HOLD record (budget/max_attempts bound not exercised)"
@@ -480,7 +513,12 @@ def _has_present_caller_fact(trace_path: Path) -> bool:
 # ---------------------------------------------------------------------------
 # orchestration
 # ---------------------------------------------------------------------------
-def assert_building_conformance(building_root: Path, *, label: str | None = None) -> list[str]:
+def assert_building_conformance(
+    building_root: Path,
+    *,
+    label: str | None = None,
+    held_stage_root: Path | None = None,
+) -> list[str]:
     """Run every Tier-A conformance assertion against one Building root."""
 
     root_label = label or building_root.name
@@ -489,45 +527,351 @@ def assert_building_conformance(building_root: Path, *, label: str | None = None
         return [f"{root_label}: Tier-A Building root does not exist: {building_root}"]
     assert_brick(building_root, label=root_label, unmet=unmet)
     assert_agent(building_root, label=root_label, unmet=unmet)
-    assert_link(building_root, label=root_label, unmet=unmet)
+    assert_link(building_root, label=root_label, unmet=unmet, held_stage_root=held_stage_root)
     assert_evidence(building_root, label=root_label, unmet=unmet)
     assert_declaration_provenance(building_root, label=root_label, unmet=unmet)
     return unmet
 
 
-def tier_a_building_root(repo: Path) -> Path:
-    return repo / PROJECT_ROOT / TIER_A_PROJECT_ID / BUILDINGS_SEGMENT / TIER_A_BUILDING_ID
+# ---------------------------------------------------------------------------
+# EPHEMERAL GENERATION (CLEAN-YARD v3): build the conformant root with the
+# REAL engine at check time. Engine modules are imported lazily inside the
+# generator only; the ASSERTIONS above read evidence files and import no axis
+# module (independent oracle preserved).
+# ---------------------------------------------------------------------------
+def _ensure_import_identity(repo: Path) -> None:
+    identity = repo / "support" / "import_identity"
+    for candidate in (str(identity), str(repo)):
+        if candidate not in sys.path:
+            sys.path.insert(0, candidate)
 
 
-def check_repo(repo: Path) -> list[str]:
-    root = tier_a_building_root(repo)
+def _tier_a_proof_limits() -> list[str]:
+    return [
+        "support evidence only",
+        "tier-a deterministic adapter:local 3-axis conformance run",
+        "support authors no route or Movement",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+    ]
+
+
+def _tier_a_brick_step(
+    prefix: str,
+    word: str,
+    brick_ref: str,
+    agent_ref: str,
+    completion_edge_ref: str,
+    *,
+    required_return_shape: str = "observed_evidence, not_proven",
+) -> dict[str, Any]:
+    step_ref = f"{prefix}-{word}"
+    return {
+        "step_ref": step_ref,
+        "completion_edge_ref": completion_edge_ref,
+        "rows": [
+            {
+                "axis": "Brick",
+                "row_ref": f"brick-row:{step_ref}",
+                "brick_work_ref": f"work:{step_ref}",
+                "brick_instance_ref": brick_ref,
+                "work_statement": (
+                    f"Tier-A case node {word}: produce a one-line build note. "
+                    "Return ONE JSON object with exactly the required fields. "
+                    "Do not choose Movement. Do not report success, failure, "
+                    "approval, or quality."
+                ),
+                "comparison_rule": (
+                    "support observes the adapter:local return shape; "
+                    "support does not judge quality."
+                ),
+                "required_return_shape": required_return_shape,
+            },
+            {"axis": "Agent", "row_ref": f"agent-row:{step_ref}", "agent_object_ref": agent_ref},
+        ],
+    }
+
+
+def tier_a_case_plan(building_id: str) -> tuple[dict[str, Any], dict[str, str]]:
+    """The declared graph plan replaying the original tier-a topology."""
+
+    prefix = building_id
+    bricks = {
+        "work": f"brick-{prefix}-work",
+        "review-1": f"brick-{prefix}-review-1",
+        "mid": f"brick-{prefix}-mid",
+        "review-2": f"brick-{prefix}-review-2",
+        "close": f"brick-{prefix}-close",
+    }
+    boundary = f"building-boundary:{building_id}-closed"
+    default_gate = ["link-gate:default-transition"]
+
+    def _fwd(edge: str, src_word: str, tgt_word: str) -> dict[str, Any]:
+        return {
+            "edge_ref": edge,
+            "source_step_ref": f"{prefix}-{src_word}",
+            "target_step_ref": f"{prefix}-{tgt_word}",
+            "rows": [
+                {
+                    "axis": "Link",
+                    "row_ref": f"link-row:{edge}",
+                    "movement": "forward",
+                    "target_ref": bricks[tgt_word],
+                    "declared_gate_refs": list(default_gate),
+                }
+            ],
+        }
+
+    close_edge = {
+        "edge_ref": f"edge:{prefix}-close-to-boundary",
+        "source_step_ref": f"{prefix}-close",
+        "caller_supplied_link_facts": {
+            "carry_fact": {
+                "carried_fact_refs": [f"agent-fact:{building_id}:{prefix}-work"],
+                "evidence_reference": f"carry:{prefix}-work-to-boundary",
+                "source_owner_axis": "Agent",
+                "target_boundary_ref": boundary,
+                "proof_limits": ["support evidence only", "not Movement authority"],
+                "not_proven": ["semantic correctness of the carried fact"],
+            },
+            "transfer_fact": {
+                "evidence_reference": f"transfer:{prefix}-close-to-boundary",
+                "source_boundary_ref": bricks["close"],
+                "target_boundary_ref": boundary,
+                "work_context_ref": f"work:{prefix}-close",
+                "public_fact_refs": [f"agent-fact:{building_id}:{prefix}-close"],
+                "required_public_facts": [f"agent-fact:{building_id}:{prefix}-close"],
+                "proof_limits": ["support evidence only", "not Movement authority"],
+                "not_proven": ["semantic correctness of the transferred work context"],
+            },
+        },
+        "rows": [
+            {
+                "axis": "Link",
+                "row_ref": f"link-row:{prefix}-close-to-boundary",
+                "movement": "forward",
+                "building_lifecycle": {
+                    "state": "closed",
+                    "reason": (
+                        "tier-a case walked work, a review that proposed a "
+                        "non-binding reroute to the work node (adopted within "
+                        "the per-node budget of 1), a mid node, a second review "
+                        "that proposed the same reroute past the exhausted "
+                        "budget (HOLD), and after a caller/COO raise disposition "
+                        "resumed and closed."
+                    ),
+                },
+                "target_ref": boundary,
+                "declared_gate_refs": list(default_gate),
+            }
+        ],
+    }
+
+    plan: dict[str, Any] = {
+        "plan_ref": f"building-plan:{building_id}",
+        "owner_axis": "Brick",
+        "building_id": building_id,
+        "plan_shape": "graph",
+        "composition_mode": "caller_or_coo_declared_graph_composition",
+        "declared_by": f"coo {building_id}",
+        "selected_adapter_ref": "adapter:local",
+        "selected_model_ref": "model:default",
+        # TASK-BY-TEXT inline flow: the sentinel task_source_ref admits the
+        # inline statement; the evidence writer lands it as work/task.md.
+        "task_source_ref": "task-source:inline-statement",
+        "task_statement": (
+            "Tier-A 3-axis conformance case: one deterministic adapter:local "
+            "engine run exercising Brick + Agent + Link mechanics + Evidence + "
+            "declaration provenance, generated at check time and removed after."
+        ),
+        "proof_limits": _tier_a_proof_limits(),
+        "not_proven": [
+            "semantic correctness of the agent-proposed reroute",
+            "real provider behavior",
+            "scheduler / queue / retry behavior",
+        ],
+        "execution_order": [
+            f"{prefix}-work",
+            f"{prefix}-review-1",
+            f"{prefix}-mid",
+            f"{prefix}-review-2",
+            f"{prefix}-close",
+        ],
+        "brick_steps": [
+            _tier_a_brick_step(prefix, "work", bricks["work"], "agent-object:dev", f"edge:{prefix}-work-to-review-1"),
+            _tier_a_brick_step(
+                prefix,
+                "review-1",
+                bricks["review-1"],
+                "agent-object:qa",
+                f"edge:{prefix}-review-1-to-mid",
+                required_return_shape="observed_evidence, transition_concern_evidence, not_proven",
+            ),
+            _tier_a_brick_step(prefix, "mid", bricks["mid"], "agent-object:inspector", f"edge:{prefix}-mid-to-review-2"),
+            _tier_a_brick_step(
+                prefix,
+                "review-2",
+                bricks["review-2"],
+                "agent-object:qa",
+                f"edge:{prefix}-review-2-to-close",
+                required_return_shape="observed_evidence, transition_concern_evidence, not_proven",
+            ),
+            _tier_a_brick_step(prefix, "close", bricks["close"], "agent-object:coo", f"edge:{prefix}-close-to-boundary"),
+        ],
+        "link_edges": [
+            _fwd(f"edge:{prefix}-work-to-review-1", "work", "review-1"),
+            _fwd(f"edge:{prefix}-review-1-to-mid", "review-1", "mid"),
+            _fwd(f"edge:{prefix}-mid-to-review-2", "mid", "review-2"),
+            _fwd(f"edge:{prefix}-review-2-to-close", "review-2", "close"),
+            close_edge,
+        ],
+        "node_reroute_budgets": {bricks["work"]: 1},
+    }
+    return plan, bricks
+
+
+def _tier_a_case_callable(bricks: Mapping[str, str]):
+    """adapter:local brain: reviews propose a non-binding reroute to work."""
+
+    review_sources = {bricks["review-1"], bricks["review-2"]}
+
+    def _callable(request: Any) -> Mapping[str, Any]:
+        source = str(getattr(request, "brick_instance_ref", "") or "")
+        if source in review_sources:
+            return {
+                "observed_evidence": [f"reviewed {bricks['work']} and found it incomplete"],
+                "transition_concern_evidence": {
+                    "concern_ref": f"transition-concern:{source}-incomplete-work",
+                    "concern_kind": "implementation_gap",
+                    "binding": False,
+                    "reason_refs": [f"observation:{source}"],
+                    "related_boundary_refs": [bricks["work"]],
+                },
+                "not_proven": ["semantic correctness of the proposed reroute"],
+            }
+        return {
+            "observed_evidence": [f"completed declared work for {source}"],
+            "not_proven": ["semantic correctness of the returned note"],
+        }
+
+    return _callable
+
+
+def _append_raise_disposition_row(
+    building_root: Path,
+    *,
+    building_id: str,
+    pending_target_ref: str,
+) -> None:
+    """Append the caller/COO ``raise`` disposition row (the human seam).
+
+    The disposition row is the CALLER/COO-authored resume input the engine
+    requires; support records it verbatim and never decides it.
+    """
+
+    row = {
+        "raw_ref": "raw:link:disposition:raise",
+        "building_id": building_id,
+        "step_ref": "coo-disposition-raise",
+        "transition_lifecycle_state": "resumed",
+        "transition_lifecycle_progress_state": "in_progress",
+        "transition_lifecycle_resumed_from_ref": "link-transition:disposition-raise",
+        "transition_lifecycle_pending_target_ref": pending_target_ref,
+        "transition_lifecycle_required_disposition_owner": "caller-or-coo",
+        "transition_lifecycle_disposition_action": "raise",
+        "transition_lifecycle_budget_increment": 1,
+        "transition_author_ref": f"coo:{building_id}",
+    }
+    with (building_root / "raw" / "link.jsonl").open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(row, separators=(",", ":")) + "\n")
+
+
+def generate_tier_a_case_root(repo: Path, output_root: Path) -> tuple[Path, Path]:
+    """Drive the REAL engine end-to-end; return (final_root, held_stage_root).
+
+    run -> HOLD on budget exhaustion (link_paused; the held stage is
+    SNAPSHOTTED because the resume path regenerates the evidence with the
+    held proposal re-recorded as an adoption) -> caller/COO raise disposition
+    -> resume -> unheld close. Raises on any engine failure (fail-closed).
+    """
+
+    _ensure_import_identity(repo)
+    from brick_protocol.support.operator.building_operation import (  # noqa: PLC0415
+        observe_building_frontier,
+    )
+    from brick_protocol.support.operator.run import (  # noqa: PLC0415 -- lazy engine import
+        resume_building_plan,
+        run_building_plan,
+    )
+
+    plan, bricks = tier_a_case_plan(TIER_A_BUILDING_ID)
+    brain = _tier_a_case_callable(bricks)
+    callables = {"callable:local:agent-invoke0-smoke": brain}
+    result = run_building_plan(
+        plan,
+        output_root=output_root,
+        overwrite_existing=True,
+        local_callables=callables,
+        adapter_cwd=repo,
+        adapter_timeout_seconds=30,
+        walker_mode="dynamic",
+    )
+    root = Path(result.lifecycle_write.root)
+    held_frontier = observe_building_frontier(root, repo_root=repo)
+    if held_frontier.get("frontier_kind") != "link_paused":
+        raise ValueError(
+            "tier-a generation did not HOLD on budget exhaustion "
+            f"(frontier={held_frontier.get('frontier_kind')!r}); the budget bound "
+            "was not exercised"
+        )
+    held_stage_root = output_root.parent / "held-snapshot" / root.name
+    held_stage_root.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(root, held_stage_root)
+    _append_raise_disposition_row(
+        root,
+        building_id=TIER_A_BUILDING_ID,
+        pending_target_ref=bricks["work"],
+    )
+    resume_building_plan(
+        root,
+        local_callables=callables,
+        adapter_cwd=repo,
+        adapter_timeout_seconds=30,
+    )
+    return root, held_stage_root
+
+
+def check_generated_root(root: Path, held_stage_root: Path | None = None) -> list[str]:
     if not root.is_dir():
         return [
-            f"tier-a building root not found: {root.relative_to(repo).as_posix()} "
-            "(produce it via the engine before asserting conformance)"
+            f"tier-a generated building root not found: {root} "
+            "(the engine generation failed to land a root)"
         ]
-    return assert_building_conformance(root, label=root.relative_to(repo).as_posix())
+    return assert_building_conformance(
+        root, label=f"generated:{root.name}", held_stage_root=held_stage_root
+    )
 
 
 # ---------------------------------------------------------------------------
 # anti-tautological FIRE probe
 # ---------------------------------------------------------------------------
-def fire_probe(repo: Path) -> Mapping[str, Any]:
+def fire_probe(source: Path) -> Mapping[str, Any]:
     """FIRE: a degraded copy with the reroute trace + provenance dropped must fail.
 
-    Copies the produced Tier-A root into a temp dir, then mutates the evidence to
-    (a) drop the dynamic_walker_evidence reroute records (so reroute / budget /
+    Copies the GENERATED Tier-A root into a temp dir, then mutates the evidence
+    to (a) drop the dynamic_walker_evidence reroute records (so reroute / budget /
     pause-resume can no longer be evidenced) and (b) drop declaration_provenance
     from the building-map. The harness MUST report unmet assertions on the
     degraded copy; if it does not, the harness has stopped asserting.
     """
 
-    source = tier_a_building_root(repo)
     if not source.is_dir():
         return {
             "probe_ref": "tier-a-conformance-probe:reroute_and_provenance_dropped",
             "fired": False,
-            "reason": "tier-a building root not present to derive a FIRE probe from",
+            "reason": "tier-a generated building root not present to derive a FIRE probe from",
         }
 
     with tempfile.TemporaryDirectory(prefix="bp-tier-a-fire-") as tmp:
@@ -737,15 +1081,15 @@ def _degrade_drop_work_statement(degraded: Path) -> None:
 # per-axis sibling FIRE probes (each proves dropping ONE axis-evidence -> FAIL)
 # ---------------------------------------------------------------------------
 def _degraded_copy_probe(
-    repo: Path,
+    source: Path,
     *,
     probe_ref: str,
     degrade: "callable",
     catch: "callable",
 ) -> Mapping[str, Any]:
-    """Generic sibling probe: copy the real root, apply ONE degradation, assert FAIL.
+    """Generic sibling probe: copy the generated root, apply ONE degradation, assert FAIL.
 
-    Copies the produced Tier-A root into a temp dir, applies ``degrade`` (which
+    Copies the GENERATED Tier-A root into a temp dir, applies ``degrade`` (which
     drops exactly one axis-evidence), runs the full conformance harness over the
     copy, and requires that the harness reports it unmet AND that the unmet set
     contains the specific ``catch`` violation. The ``catch`` predicate makes the
@@ -753,12 +1097,11 @@ def _degraded_copy_probe(
     evidence is supposed to raise, not by any incidental unmet message.
     """
 
-    source = tier_a_building_root(repo)
     if not source.is_dir():
         return {
             "probe_ref": probe_ref,
             "fired": False,
-            "reason": "tier-a building root not present to derive a FIRE probe from",
+            "reason": "tier-a generated building root not present to derive a FIRE probe from",
         }
     with tempfile.TemporaryDirectory(prefix="bp-tier-a-fire-") as tmp:
         degraded = Path(tmp) / "buildings" / (TIER_A_BUILDING_ID + "-degraded")
@@ -775,44 +1118,44 @@ def _degraded_copy_probe(
     }
 
 
-def agent_fact_shape_probe(repo: Path) -> Mapping[str, Any]:
+def agent_fact_shape_probe(source: Path) -> Mapping[str, Any]:
     """FIRE (Agent): a non-closed AgentFact shape must be reported unmet."""
 
     return _degraded_copy_probe(
-        repo,
+        source,
         probe_ref="tier-a-conformance-probe:agent_fact_shape_broken",
         degrade=_degrade_break_agent_fact_shape,
         catch=lambda violation: "closed 2-field agentfact" in violation.lower(),
     )
 
 
-def carry_probe(repo: Path) -> Mapping[str, Any]:
+def carry_probe(source: Path) -> Mapping[str, Any]:
     """FIRE (Link): a missing present CarryFact must be reported unmet."""
 
     return _degraded_copy_probe(
-        repo,
+        source,
         probe_ref="tier-a-conformance-probe:carry_dropped",
         degrade=_degrade_drop_present_carry,
         catch=lambda violation: "carryfact in carry_trace" in violation.lower(),
     )
 
 
-def transfer_probe(repo: Path) -> Mapping[str, Any]:
+def transfer_probe(source: Path) -> Mapping[str, Any]:
     """FIRE (Link): a missing present TransferFact must be reported unmet."""
 
     return _degraded_copy_probe(
-        repo,
+        source,
         probe_ref="tier-a-conformance-probe:transfer_dropped",
         degrade=_degrade_drop_present_transfer,
         catch=lambda violation: "transferfact in transfer_trace" in violation.lower(),
     )
 
 
-def sufficiency_probe(repo: Path) -> Mapping[str, Any]:
+def sufficiency_probe(source: Path) -> Mapping[str, Any]:
     """FIRE (Link gate): an empty sufficiency_trace must be reported unmet."""
 
     return _degraded_copy_probe(
-        repo,
+        source,
         probe_ref="tier-a-conformance-probe:sufficiency_dropped",
         degrade=_degrade_empty_sufficiency,
         catch=lambda violation: "sufficiency decision recorded in sufficiency_trace"
@@ -820,18 +1163,37 @@ def sufficiency_probe(repo: Path) -> Mapping[str, Any]:
     )
 
 
-def work_contract_probe(repo: Path) -> Mapping[str, Any]:
+def work_contract_probe(source: Path) -> Mapping[str, Any]:
     """FIRE (Brick): a missing work_statement must be reported unmet."""
 
     return _degraded_copy_probe(
-        repo,
+        source,
         probe_ref="tier-a-conformance-probe:work_statement_dropped",
         degrade=_degrade_drop_work_statement,
         catch=lambda violation: "work_statement" in violation.lower(),
     )
 
 
-def negative_probe_observations(repo: Path) -> tuple[Mapping[str, Any], ...]:
+def budget_hold_probe(source: Path) -> Mapping[str, Any]:
+    """FIRE (Link budget bound): an UN-evidenced budget HOLD must be reported unmet.
+
+    The resume path regenerates the final evidence with the held proposal
+    re-recorded as an adoption, so on a resumed root the HOLD is evidenced
+    ONLY through the held-stage snapshot. Running the harness over the final
+    root WITHOUT that snapshot must therefore report the budget bound unmet --
+    proving the HOLD assertion still fires when the held-stage evidence is
+    dropped (the harness has not stopped asserting the bound).
+    """
+
+    return _degraded_copy_probe(
+        source,
+        probe_ref="tier-a-conformance-probe:budget_hold_unevidenced",
+        degrade=lambda degraded: None,
+        catch=lambda violation: "budget-exhaustion hold" in violation.lower(),
+    )
+
+
+def negative_probe_observations(source: Path) -> tuple[Mapping[str, Any], ...]:
     """All anti-tautological FIRE probes (the original combined probe + 5 siblings).
 
     Each sibling drops exactly ONE axis-evidence and requires the harness to FAIL
@@ -840,19 +1202,20 @@ def negative_probe_observations(repo: Path) -> tuple[Mapping[str, Any], ...]:
     """
 
     return (
-        fire_probe(repo),
-        work_contract_probe(repo),
-        agent_fact_shape_probe(repo),
-        carry_probe(repo),
-        transfer_probe(repo),
-        sufficiency_probe(repo),
+        fire_probe(source),
+        work_contract_probe(source),
+        agent_fact_shape_probe(source),
+        carry_probe(source),
+        transfer_probe(source),
+        sufficiency_probe(source),
+        budget_hold_probe(source),
     )
 
 
-def run_negative_probe(repo: Path) -> str:
+def run_negative_probe(source: Path) -> str:
     """Run every FIRE probe; return a reason if any did NOT fire (else empty)."""
 
-    for observation in negative_probe_observations(repo):
+    for observation in negative_probe_observations(source):
         if observation.get("fired") is not True:
             probe_ref = str(observation.get("probe_ref") or "tier-a conformance FIRE probe")
             reason = observation.get("reason")
@@ -880,21 +1243,38 @@ def main(argv: list[str]) -> int:
     args = parse_args(argv)
     repo = Path(args.repo).resolve() if args.repo else Path(".").resolve()
 
-    not_fired = run_negative_probe(repo)
-    if not_fired:
-        print(
-            "tier-a 3-axis conformance rejected: anti-tautological FIRE probe did "
-            f"not fire: {not_fired}",
-            file=sys.stderr,
-        )
-        print(PROOF_LIMIT, file=sys.stderr)
-        return 1
+    # CLEAN-YARD v3: generate the evidence with the REAL engine at check time
+    # into a TEMP root, assert the SAME properties the standing-root era pinned,
+    # and remove it (the TemporaryDirectory context is the ``finally``).
+    with tempfile.TemporaryDirectory(prefix="bp-tier-a-case-") as tmp:
+        try:
+            generated_root, held_stage_root = generate_tier_a_case_root(
+                repo, Path(tmp) / "buildings"
+            )
+        except Exception as exc:  # noqa: BLE001 -- engine generation failure is RED, never green
+            print(
+                "tier-a 3-axis conformance rejected: engine generation failed "
+                f"({type(exc).__name__}: {exc})",
+                file=sys.stderr,
+            )
+            print(PROOF_LIMIT, file=sys.stderr)
+            return 1
 
-    try:
-        unmet = check_repo(repo)
-    except OSError as exc:
-        print(f"tier-a 3-axis conformance rejected: {exc}", file=sys.stderr)
-        return 1
+        not_fired = run_negative_probe(generated_root)
+        if not_fired:
+            print(
+                "tier-a 3-axis conformance rejected: anti-tautological FIRE probe did "
+                f"not fire: {not_fired}",
+                file=sys.stderr,
+            )
+            print(PROOF_LIMIT, file=sys.stderr)
+            return 1
+
+        try:
+            unmet = check_generated_root(generated_root, held_stage_root)
+        except OSError as exc:
+            print(f"tier-a 3-axis conformance rejected: {exc}", file=sys.stderr)
+            return 1
 
     if unmet:
         print("tier-a 3-axis conformance rejected:", file=sys.stderr)
@@ -904,8 +1284,9 @@ def main(argv: list[str]) -> int:
         return 1
 
     print(
-        "tier-a 3-axis conformance passed: FIRE probe fired; the engine-produced "
-        f"{TIER_A_BUILDING_ID} root asserts Brick (launch chain + work contracts), "
+        "tier-a 3-axis conformance passed: FIRE probe fired; the engine-GENERATED "
+        f"check-time {TIER_A_BUILDING_ID} root (temp, removed after) asserts Brick "
+        "(launch chain + work contracts), "
         "Agent (closed AgentFact + performer + declared binding), Link (forward + "
         "adopted reroute + gate sufficiency + budget + pause/resume + carry/transfer), "
         "Evidence (claim_trace + raw + manifests + building-map, complete-run), and "

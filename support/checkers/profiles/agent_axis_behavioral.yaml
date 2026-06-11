@@ -17,7 +17,6 @@ kernel_checks:
 path_exists:
   - support/checkers/profiles/agent_axis_behavioral.yaml
   - AGENTS.md
-  - project/brick-protocol/status/kernel/current-working-context.md
   - agent/tool_policies/read-write-scoped.yaml
   - support/connection/agent_adapter.py
   - support/connection/agent_resources.py
@@ -26,7 +25,6 @@ path_exists:
   - support/operator/write_observation.py
   - support/checkers/check_profile.py
   - support/checkers/lib/case_runners.py
-  - brick/building_plans/agent-projection-sync-0-dogfood.yaml
   - support/connection/agent_resources.py
   - support/connection/coo_sync.py
   - support/connection/mcp_projection.py
@@ -36,13 +34,10 @@ path_exists:
   - support/operator/building_operation.py
   - support/operator/plan_graph.py
   - AGENTS.md
-  - project/brick-protocol/status/kernel/current-working-context.md
-  - brick/building_plans/write-scope-default-exclude-0-compact.yaml
   - support/connection/agent_adapter.py
   - support/operator/plan_validation.py
   - support/operator/run.py
   - support/operator/write_observation.py
-  - project/brick-protocol/status/preset-three-axis-contract-audit.json
   - brick/templates/shapes/catalog.yaml
   - support/connection/agent_adapter.py
   - agent/return_fact.py
@@ -52,12 +47,6 @@ path_exists:
   - brick/comparison.py
   - link/transfer.py
   - link/carry.py
-  - brick/building_plans/preset-three-axis-contract-repair-0-dogfood.yaml
-  - project/brick-protocol/buildings/preset-three-axis-contract-repair-0-0528/work/building-map.json
-  - project/brick-protocol/buildings/preset-three-axis-contract-repair-0-0528/evidence/claim_trace/link/sufficiency_trace.json
-  - project/brick-protocol/buildings/preset-three-axis-contract-repair-0-0528/work/step-outputs/preset-three-axis-contract-repair-0-development-attempt-1/step-output.json
-  - project/brick-protocol/buildings/preset-three-axis-contract-repair-0-0528/work/step-outputs/preset-three-axis-contract-repair-0-review-attempt-1/step-output.json
-  - project/brick-protocol/buildings/preset-three-axis-contract-repair-0-0528/work/step-outputs/preset-three-axis-contract-repair-0-review-attempt-1/transition-concern.json
 path_absent:
   - support/checkers/check_write_scope_default_exclude0.py
   - support/operator/preset_three_axis_contract_repair.py
@@ -76,19 +65,6 @@ text_contains:
       - selected adapter ref is a brain/capability
       - the request remains read-only even if that adapter
       - with Brick `write_scope`, the write attempt must still
-  - path: project/brick-protocol/status/kernel/current-working-context.md
-    texts:
-      - Write capability is not
-      - owned by the adapter name or by `dev` alone
-      - effective write is opened only by
-      - Brick-declared `write_scope`
-      - expose adapter technical capability
-      - must still pass Agent tool
-      - '`tool-policy:read-write-scoped`, compatible adapter'
-      - adapter capability, and write observation checks
-      - selected adapter ref is a brain/capability
-      - the request remains read-only even if the adapter can technically
-      - with Brick `write_scope`, the write attempt must still pass Agent tool
   - path: agent/tool_policies/read-write-scoped.yaml
     texts:
       - compatible write-capable adapter support
@@ -164,10 +140,6 @@ text_contains:
   - path: AGENTS.md
     texts:
       - WRITE-SCOPE-DEFAULT-EXCLUDE-0
-  - path: project/brick-protocol/status/kernel/current-working-context.md
-    texts:
-      - WRITE-SCOPE-DEFAULT-EXCLUDE-0
-      - STEP-OUTPUT-AND-ROUTE-REQUEST-0
   - path: support/operator/write_observation.py
     texts:
       - _WRITE_OBSERVATION_DEFAULT_EXCLUDED_DIR_NAMES
@@ -195,11 +167,6 @@ text_contains:
       - missing_adapter_write_capability
       - Brick row write_scope.allowed_paths must be a non-empty list
       - Brick row write_scope.forbidden_paths must be a list
-  - path: brick/building_plans/write-scope-default-exclude-0-compact.yaml
-    texts:
-      - "parent_goal_ref: goal:bar-v2-active-sequence"
-      - STEP-OUTPUT-AND-ROUTE-REQUEST-0
-      - parent_goal_delta_status
   - path: support/connection/agent_adapter.py
     texts:
       - def _extract_required_return_fields
@@ -258,40 +225,6 @@ text_absent:
       - os.system
       - eval(
       - exec(
-json_required_paths:
-  - path: project/brick-protocol/status/preset-three-axis-contract-audit.json
-    required:
-      - kind
-      - schema_version
-      - source_refs[]
-      - operator_questions[]
-      - step_rows_contract.required_expansion[]
-      - step_rows_contract.forbidden_expansion[]
-      - phase_1_gate_observations[].step_ref
-      - phase_1_gate_observations[].sufficiency
-      - repair_phases[].phase_ref
-      - proof_limits[]
-      - not_proven[]
-  - path: project/brick-protocol/buildings/preset-three-axis-contract-repair-0-0528/work/step-outputs/preset-three-axis-contract-repair-0-development-attempt-1/step-output.json
-    required:
-      - returned.observed_evidence[]
-      - returned.worker_assignments[]
-      - returned.risks[]
-      - returned.not_proven[]
-      - evidence_refs.raw_stream_ref
-      - evidence_refs.claim_trace_ref
-  - path: project/brick-protocol/buildings/preset-three-axis-contract-repair-0-0528/work/step-outputs/preset-three-axis-contract-repair-0-review-attempt-1/step-output.json
-    required:
-      - returned.observed_evidence[]
-      - returned.blocked_or_missing_evidence[]
-      - returned.transition_concern_evidence.concern_ref
-      - returned.transition_concern_evidence.binding
-      - evidence_refs.raw_stream_ref
-      - evidence_refs.claim_trace_ref
-  - path: project/brick-protocol/buildings/preset-three-axis-contract-repair-0-0528/evidence/claim_trace/link/sufficiency_trace.json
-    required:
-      - facts[].fact.sufficiency
-      - facts[].fact.missing_required_facts
 adapter_capability_rehome_case:
   - label: ok-all-four
     case_kind: ok_all_four
@@ -396,11 +329,22 @@ adapter_model_selection_rejects:
     selected_model_ref: model:codex:gpt-test
   - adapter_ref: adapter:gemini-local
     selected_model_ref: model:gemini:bad model with spaces
+# CLEAN-YARD v3 (Smith 0611): the standing 0528 dogfood evidence
+# (preset-three-axis-contract-repair root + the hand-authored
+# preset-three-axis-contract-audit.json status record) left for the frozen
+# museum. The engine-generatable properties are EXECUTED elsewhere:
+# development-return persistence incl. worker_assignments[]/risks[]/
+# blocked_or_missing_evidence[] + evidence_refs -> intake_evidence_projection_
+# case PART B; review transition_concern_evidence.concern_ref/binding +
+# sufficiency facts[].fact.sufficiency/missing_required_facts ->
+# link_route_evidence_case. The audit json's shape pins were HISTORY of a
+# hand-authored 0528 record (not engine output) and retired with it. Strict
+# plan-boundary rows re-point to the standing fixtures (⚠ §1-2).
 building_plan_boundary:
-  - path: brick/building_plans/agent-projection-sync-0-dogfood.yaml
-  - path: brick/building_plans/project-orchestration-ledger-0.yaml
+  - path: brick/building_plans/fixture-link-concern-replay-0.yaml
+  - path: brick/building_plans/fixture-retired-adapter-plan-0.yaml
     allow_retired_write_adapter_refs: true
-  - path: brick/building_plans/preset-three-axis-contract-repair-0-dogfood.yaml
+  - path: brick/building_plans/fixture-link-route-replay-0.yaml
 write_scope_default_exclude_case:
   - label: provider-residue-excluded
     case_kind: provider_residue_excluded

@@ -14,40 +14,22 @@ kernel_checks:
   - install_script_lint
 path_exists:
   - support/onboarding/install.sh
+  - brick/building_plans/fixture-retired-adapter-plan-0.yaml
   - support/checkers/profiles/read_side_projection_boundary.yaml
   - AGENTS.md
   - support/operator/building_operation.py
-  - project/brick-protocol/status/project-orchestration-ledger.json
   - AGENTS.md
-  - project/brick-protocol/status/kernel/current-working-context.md
-  - brick/building_plans/design-toolkit-and-mcp-0-compact.yaml
   - support/connection/building_design_toolkit.py
   - support/connection/mcp_projection.py
   - support/connection/connect.py
-  - project/brick-protocol/buildings/design-toolkit-and-mcp-0-0526/work/building-map.json
   - AGENTS.md
-  - brick/building_plans/project-orchestration-ledger-0.yaml
-  - project/brick-protocol/buildings/project-orchestration-ledger-0-0528/work/task.md
-  - project/brick-protocol/buildings/project-orchestration-ledger-0-0528/work/building-map.json
-  - project/brick-protocol/buildings/project-orchestration-ledger-0-0528/work/step-outputs/project-orchestration-ledger-0-closure-attempt-1/step-output.json
-  - project/brick-protocol/status/project-orchestration-ledger.json
   - support/operator/building_operation.py
   - AGENTS.md
   - support/operator/reporter.py
   - support/operator/report_sinks.py
   - project/brick-protocol/status/inbox
   - project/brick-protocol/status/inbox/.gitkeep
-  - project/brick-protocol/status/inbox/run-surface-authority-boundary-codex-multistep-0-0529-building-frontier.json
-  - project/brick-protocol/status/inbox/reporter-delivery-wake-bus-0-0531-building-frontier.json
-  - project/brick-protocol/status/inbox/reporter-delivery-wake-bus-0-0531-building-frontier-operator-wake.json
-  - project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/task.md
-  - project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/building-intake.json
-  - project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/preset-expansion.json
-  - project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/declared-building-plan.json
-  - project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/link-launch-policy.json
-  - project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/building-map.json
   - AGENTS.md
-  - project/brick-protocol/status/kernel/current-working-context.md
   - support/operator/run.py
   - support/operator/contracts.py
   - support/operator/evidence_assembly.py
@@ -106,27 +88,10 @@ text_contains:
       - not a provider-liveness proof
       - whether a provider process is currently alive
       - "read-only view: exposes no source-truth-edit surface"
-  # The EXISTING export the view consumes carries rows + Brick/Agent/Link
-  # frontier + evidence refs + proof_limits.
-  - path: project/brick-protocol/status/project-orchestration-ledger.json
-    texts:
-      - project_orchestration_ledger
-      - current_brick_ref
-      - current_agent_ref
-      - current_link_target_ref
-      - latest_movement
-      - frontier_kind
-      - board_state
-      - evidence_refs
-      - not process liveness proof
   # AGENTS.md declares the read-side view boundary.
   - path: AGENTS.md
     texts:
       - DASHBOARD-READ-SIDE-VIEW
-  - path: project/brick-protocol/status/kernel/current-working-context.md
-    texts:
-      - DESIGN-TOOLKIT-AND-MCP-0
-      - TASK-INTAKE-SKILL-0
   - path: support/connection/building_design_toolkit.py
     texts:
       - render_building_design_context
@@ -137,11 +102,6 @@ text_contains:
       - "brick-protocol://building/design/context"
       - brick_protocol_render_building_design_context
       - choose Building shape
-  - path: brick/building_plans/design-toolkit-and-mcp-0-compact.yaml
-    texts:
-      - "parent_goal_ref: goal:bar-v2-active-sequence"
-      - TASK-INTAKE-SKILL-0
-      - parent_goal_delta_status
   - path: AGENTS.md
     texts:
       - PROJECT-ORCHESTRATION-LEDGER-0
@@ -160,13 +120,6 @@ text_contains:
   - path: support/operator/evidence_status.py
     texts:
       - building_index_packet
-  - path: project/brick-protocol/status/project-orchestration-ledger.json
-    texts:
-      - project_orchestration_ledger
-      - project-orchestration-ledger-0
-      - proof_limits
-      - not_proven
-      - not Movement authority
   - path: AGENTS.md
     texts:
       - REPORTER-NOTIFICATION-PROJECTION-0 local inbox projection slice only
@@ -287,21 +240,9 @@ text_contains:
       - raw_secret
       - not automatic resume
       - not route input
-  - path: project/brick-protocol/status/inbox/run-surface-authority-boundary-codex-multistep-0-0529-building-frontier.json
-    texts:
-      - run-surface-authority-boundary-codex-multistep-0-0529-building-frontier
-      - report-sink:local-inbox
-      - evidence_refs_present
-      - source_truth
-      - not source truth
   - path: AGENTS.md
     texts:
       - support/operator/evidence_assembly.py
-  - path: project/brick-protocol/status/kernel/current-working-context.md
-    texts:
-      - support/operator/run.py = declared Building Plan walker / public run facade
-      - support/operator/write_observation.py
-      - support/recording/raw_claim_trace.py
   - path: support/operator/run.py
     texts:
       - def build_minimal_crossing
@@ -398,170 +339,38 @@ text_absent:
     texts:
       - support.operator
       - operator.primitives
-json_required_paths:
-  # The EXISTING export the view consumes is shaped with rows carrying the
-  # Brick/Agent/Link frontier and evidence refs the view projects.
-  - path: project/brick-protocol/status/project-orchestration-ledger.json
-    required:
-      - kind
-      - rows[].current_brick_ref
-      - rows[].current_agent_ref
-      - rows[].current_link_target_ref
-      - rows[].latest_movement
-      - rows[].frontier_kind
-      - rows[].board_state
-      - rows[].evidence_refs.building_map
-      - rows[].proof_limits[]
-      - proof_limits[]
-      - not_proven[]
-      # Recency/observation fields the read-side view can project. generated_at
-      # is the snapshot build time; rows[].last_evidence_at is the newest
-      # recorded evidence timestamp; rows[].link_disposition is the compact
-      # projection of observed transition_lifecycle refs (key present on every
-      # row, null when no paused/resumed transition_lifecycle is observed).
-      - generated_at
-      - rows[].last_evidence_at
-      - rows[].link_disposition
-  - path: project/brick-protocol/buildings/design-toolkit-and-mcp-0-0526/work/building-map.json
-    required:
-      - kind
-      - brick_instances[].brick_instance_id
-      - agent_bindings[].step_output_ref
-      - link_edges[].link_edge_id
-  - path: project/brick-protocol/status/project-orchestration-ledger.json
-    required:
-      - kind
-      - schema_version
-      - packet_ref
-      - project.project_ref
-      - participants[].participant_ref
-      - rows[].building_ref
-      - rows[].building_root
-      - rows[].frontier_kind
-      - rows[].board_state
-      - rows[].next_action_observation
-      - rows[].evidence_refs.building_map
-      - rows[].proof_limits[]
-      - proof_limits[]
-      - not_proven[]
-  - path: project/brick-protocol/buildings/project-orchestration-ledger-0-0528/work/building-map.json
-    required:
-      - kind
-      - task_source_ref
-      - brick_instances[].brick_instance_id
-      - agent_bindings[].step_output_ref
-      - link_edges[].link_edge_id
-  - path: project/brick-protocol/buildings/project-orchestration-ledger-0-0528/work/step-outputs/project-orchestration-ledger-0-closure-attempt-1/step-output.json
-    required:
-      - attempt_index
-      - brick_instance_ref
-      - step_output_ref
-      - task_source_ref
-      - returned.observed_evidence[]
-      - returned.not_proven[]
-      - evidence_refs.raw_stream_ref
-      - evidence_refs.claim_trace_ref
-  - path: project/brick-protocol/buildings/project-orchestration-ledger-0-0528/work/step-outputs/project-orchestration-ledger-0-work-attempt-1/step-output.json
-    required:
-      - attempt_index
-      - brick_instance_ref
-      - step_output_ref
-      - task_source_ref
-      - returned.adapter_ref
-      - returned.changed_files[]
-      - returned.worktree_observation.observed_changed_files[]
-      - returned.worktree_observation.write_scope.allowed_paths[]
-      - evidence_refs.raw_stream_ref
-      - evidence_refs.claim_trace_ref
-  - path: project/brick-protocol/status/inbox/run-surface-authority-boundary-codex-multistep-0-0529-building-frontier.json
-    required:
-      - report_id
-      - report_kind
-      - building_id
-      - portfolio_id
-      - observed_board_state
-      - trigger_event_ref
-      - current_brick_ref
-      - last_completed_step_ref
-      - frontier_ref
-      - evidence_root_refs[]
-      - evidence_refs_present
-      - checker_summary_ref
-      - required_disposition_owner
-      - sink_refs[]
-      - generated_at
-      - source_truth
-      - not_proven[]
-      - proof_limits[]
-  - path: project/brick-protocol/status/inbox/reporter-delivery-wake-bus-0-0531-building-frontier.json
-    required:
-      - report_id
-      - report_kind
-      - building_id
-      - observed_board_state
-      - trigger_event_ref
-      - evidence_root_refs[]
-      - evidence_refs_present
-      - sink_refs[]
-      - operator_wake_targets[]
-      - source_truth
-      - not_proven[]
-      - proof_limits[]
-  - path: project/brick-protocol/status/inbox/reporter-delivery-wake-bus-0-0531-building-frontier-operator-wake.json
-    required:
-      - wake_packet_id
-      - report_id
-      - report_kind
-      - building_id
-      - observed_board_state
-      - evidence_root_refs[]
-      - operator_wake_targets[]
-      - source_truth
-      - not_proven[]
-      - proof_limits[]
-json_value_paths:
-  - path: project/brick-protocol/status/inbox/run-surface-authority-boundary-codex-multistep-0-0529-building-frontier.json
-    key: source_truth
-    values:
-      - "False"
-  - path: project/brick-protocol/status/inbox/run-surface-authority-boundary-codex-multistep-0-0529-building-frontier.json
-    key: observed_board_state
-    values:
-      - observed_started
-      - observed_running
-      - observed_closed_boundary
-      - observed_paused
-      - observed_human_gate
-      - needs_disposition
-      - observed_checker_failed
-      - observed_reporter_delivery_failed
-  - path: project/brick-protocol/status/inbox/run-surface-authority-boundary-codex-multistep-0-0529-building-frontier.json
-    key: sink_refs[]
-    values:
-      - report-sink:local-inbox
-  - path: project/brick-protocol/status/inbox/reporter-delivery-wake-bus-0-0531-building-frontier.json
-    key: source_truth
-    values:
-      - "False"
-  - path: project/brick-protocol/status/inbox/reporter-delivery-wake-bus-0-0531-building-frontier.json
-    key: sink_refs[]
-    values:
-      - report-sink:local-inbox
-      - report-sink:operator-wake-local
-  - path: project/brick-protocol/status/inbox/reporter-delivery-wake-bus-0-0531-building-frontier.json
-    key: operator_wake_targets[].sink_ref
-    values:
-      - report-sink:operator-wake-local
-  - path: project/brick-protocol/status/inbox/reporter-delivery-wake-bus-0-0531-building-frontier-operator-wake.json
-    key: source_truth
-    values:
-      - "False"
-  - path: project/brick-protocol/status/inbox/reporter-delivery-wake-bus-0-0531-building-frontier-operator-wake.json
-    key: operator_wake_targets[].delivery_mode
-    values:
-      - local_projection
+# CLEAN-YARD v3 (Smith 0611): the standing dogfood evidence this profile used
+# to pin (design-toolkit-and-mcp-0-0526 / project-orchestration-ledger-0-0528
+# building roots, status/project-orchestration-ledger.json export, the 0528
+# audit-era step outputs) left for the frozen museum. The SAME properties are
+# now EXECUTED here: this case creates a temp vessel with the S2 verb, drives
+# the REAL intake (stubbed write-capable adapter) to a complete building INSIDE
+# it, asserts the retired pin property tables (building-map shape, declaration
+# chain + task placement, preset-expansion declared values, step-output
+# envelopes, orchestration-ledger packet/row shape incl. generated_at +
+# last_evidence_at + link_disposition + 'not process liveness proof', rendered
+# ledger view, PROGRESS render over the EMPTY vessel (0 buildings) and the
+# 1-building vessel, effective-write step-output shape incl.
+# worktree_observation), and removes the vessel in finally.
+intake_evidence_projection_case:
+  - label: clean-yard-read-side-projection
+    vessel_id: checker-projection-fixture-vessel
+    chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
+    # Retired p9-dogfood preset-expansion pins (structure_template_integrity):
+    # the same declared values must appear on a FRESH engine-feature-hard
+    # expansion. (The 4th retired needle -- the archived 0526 review sheet
+    # path -- is frozen-history content the CURRENT catalog no longer expands;
+    # physicality of expanded refs is enforced by
+    # check_brick_template_catalog_restructure.)
+    expected_preset_expansion:
+      chain_preset_catalog_source: dogfood_chain_presets
+      canonical_chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
+      common_basis_ref: building-chain-preset:high-risk-change-inspected
 building_plan_boundary:
-  - path: brick/building_plans/project-orchestration-ledger-0.yaml
+  # CLEAN-YARD v3: the retired-adapter LENIENT leg (allow_retired) re-pointed
+  # from the departed dogfood plan project-orchestration-ledger-0.yaml to the
+  # standing fixture (⚠ §1-2 third prescription).
+  - path: brick/building_plans/fixture-retired-adapter-plan-0.yaml
     allow_retired_write_adapter_refs: true
 proof_limits:
   - support evidence only
