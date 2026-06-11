@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from collections.abc import Iterable
 from typing import Any
@@ -199,6 +200,7 @@ AUTHORITY_CLAIM_VALUES = {
     "quality judgment",
     "movement authority",
 }
+SENSITIVE_SK_TOKEN_RE = re.compile(r"\bsk-[a-z0-9._~+/=-]{12,}(?![a-z0-9._~+/=-])")
 ADAPTER_ERROR_FORBIDDEN_KEYS = {
     "auth",
     "auth_body",
@@ -887,7 +889,9 @@ def has_any_key(value: Any, keys: set[str]) -> bool:
 def has_sensitive_text(value: Any) -> bool:
     for text in text_values(value):
         lowered = text.strip().lower()
-        if any(marker in lowered for marker in ("sk-", "bearer ", "api_key", "api-key")):
+        if SENSITIVE_SK_TOKEN_RE.search(lowered):
+            return True
+        if any(marker in lowered for marker in ("bearer ", "api_key", "api-key")):
             return True
     return False
 

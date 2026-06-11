@@ -1,0 +1,87 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:lint-precision-fix-0612::work/step-outputs/lint-precision-fix-0612-closure-attempt-1/transition-concern.json",
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "binding": false,
+  "building_id": "lint-precision-fix-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-06-11T17:43:36.777481Z",
+  "id": "urn:bp:building:lint-precision-fix-0612::work/step-outputs/lint-precision-fix-0612-closure-attempt-1/transition-concern.json",
+  "link_role": "non-binding Agent transition concern evidence only",
+  "not_proven": [
+    "semantic fitness of selected chain preset",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "transition concern semantic correctness",
+    "Link disposition correctness",
+    "automatic repair/replay execution"
+  ],
+  "proof_limits": [
+    "task source is pre-run input evidence, not an automatic plan selector",
+    "chain preset is a caller / COO selection candidate only",
+    "not automatic shape selection",
+    "not Building Plan authoring from task text",
+    "support materializes caller / COO declared task source and preset only",
+    "not automatic preset selection",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "transition_concern_evidence is Agent returned evidence only",
+    "not Link Movement",
+    "not Link target choice",
+    "not route policy matching",
+    "not route materialization",
+    "not automatic repair/replay execution",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-06-11T17:43:36.777481Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:lint-precision-fix-0612",
+  "specversion": "1.0",
+  "step_output_ref": "work/step-outputs/lint-precision-fix-0612-closure-attempt-1/step-output.json",
+  "step_ref": "lint-precision-fix-0612-closure",
+  "subject": "lint-precision-fix-0612-closure",
+  "time": "2026-06-11T17:43:36.777481Z",
+  "transition_boundary": "Agent concern only; Link may adopt, not adopt, or override",
+  "transition_concern_ref": "transition-concern:lint-precision-fix-0612-closure:attempt-1",
+  "transition_concern_returned": {
+    "binding": false,
+    "concern_kind": "verification_gap",
+    "concern_ref": "transition-concern:lint-precision-fix-0612-full-gate-tempdir-block",
+    "not_proven": [
+      "Full profile gate exit 0"
+    ],
+    "proof_limits": [
+      "Non-binding Agent return evidence only",
+      "Does not choose Movement or target",
+      "Does not judge success or quality"
+    ],
+    "reason_refs": [
+      "cmd:python-direct-probe:passed",
+      "cmd:git-diff-check:exit-0",
+      "cmd:check-profile-all:tempdir-unavailable"
+    ],
+    "related_boundary_refs": [
+      "brick-closure",
+      "brick-verification"
+    ]
+  },
+  "type": "bp.step_output.transition_concern"
+}

@@ -1,0 +1,468 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:lint-precision-fix-0612::work/building-map.json",
+  "agent_bindings": [
+    {
+      "agent_binding_id": "binding:01:lint-precision-fix-0612-work",
+      "agent_performer_ref": "agent-performer:agent-object:dev",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-work",
+      "not_proven": [
+        "semantic fitness of selected chain preset",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:01:lint-precision-fix-0612-work"
+      ],
+      "proof_limits": [
+        "task source is pre-run input evidence, not an automatic plan selector",
+        "chain preset is a caller / COO selection candidate only",
+        "not automatic shape selection",
+        "not Building Plan authoring from task text",
+        "support materializes caller / COO declared task source and preset only",
+        "not automatic preset selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ],
+      "step_output_ref": "work/step-outputs/lint-precision-fix-0612-work-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:02:lint-precision-fix-0612-code-attack-qa",
+      "agent_performer_ref": "agent-performer:agent-object:qa",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected chain preset",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:02:lint-precision-fix-0612-code-attack-qa"
+      ],
+      "proof_limits": [
+        "task source is pre-run input evidence, not an automatic plan selector",
+        "chain preset is a caller / COO selection candidate only",
+        "not automatic shape selection",
+        "not Building Plan authoring from task text",
+        "support materializes caller / COO declared task source and preset only",
+        "not automatic preset selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ],
+      "step_output_ref": "work/step-outputs/lint-precision-fix-0612-code-attack-qa-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:03:lint-precision-fix-0612-closure",
+      "agent_performer_ref": "agent-performer:agent-object:coo",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-closure",
+      "not_proven": [
+        "semantic fitness of selected chain preset",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:03:lint-precision-fix-0612-closure"
+      ],
+      "proof_limits": [
+        "task source is pre-run input evidence, not an automatic plan selector",
+        "chain preset is a caller / COO selection candidate only",
+        "not automatic shape selection",
+        "not Building Plan authoring from task text",
+        "support materializes caller / COO declared task source and preset only",
+        "not automatic preset selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ],
+      "step_output_ref": "work/step-outputs/lint-precision-fix-0612-closure-attempt-1/step-output.json"
+    }
+  ],
+  "brick_instances": [
+    {
+      "agent_binding_refs": [
+        "binding:01:lint-precision-fix-0612-work"
+      ],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-work",
+      "brick_work_ref": "work:lint-precision-fix-0612-work",
+      "not_proven": [
+        "semantic fitness of selected chain preset",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "task source is pre-run input evidence, not an automatic plan selector",
+        "chain preset is a caller / COO selection candidate only",
+        "not automatic shape selection",
+        "not Building Plan authoring from task text",
+        "support materializes caller / COO declared task source and preset only",
+        "not automatic preset selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01",
+        "raw:link:01"
+      ]
+    },
+    {
+      "agent_binding_refs": [
+        "binding:02:lint-precision-fix-0612-code-attack-qa"
+      ],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-code-attack-qa",
+      "brick_work_ref": "work:lint-precision-fix-0612-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected chain preset",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "task source is pre-run input evidence, not an automatic plan selector",
+        "chain preset is a caller / COO selection candidate only",
+        "not automatic shape selection",
+        "not Building Plan authoring from task text",
+        "support materializes caller / COO declared task source and preset only",
+        "not automatic preset selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01",
+        "raw:link:01"
+      ]
+    },
+    {
+      "agent_binding_refs": [
+        "binding:03:lint-precision-fix-0612-closure"
+      ],
+      "attempt_index": 2,
+      "brick_instance_id": "brick-closure",
+      "brick_work_ref": "work:lint-precision-fix-0612-closure",
+      "not_proven": [
+        "semantic fitness of selected chain preset",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "task source is pre-run input evidence, not an automatic plan selector",
+        "chain preset is a caller / COO selection candidate only",
+        "not automatic shape selection",
+        "not Building Plan authoring from task text",
+        "support materializes caller / COO declared task source and preset only",
+        "not automatic preset selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02",
+        "raw:link:02"
+      ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 3,
+      "brick_instance_id": "building-boundary:lint-precision-fix-0612-closed",
+      "brick_work_ref": "building-boundary:lint-precision-fix-0612-closed",
+      "not_proven": [
+        "semantic fitness of selected chain preset",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "task source is pre-run input evidence, not an automatic plan selector",
+        "chain preset is a caller / COO selection candidate only",
+        "not automatic shape selection",
+        "not Building Plan authoring from task text",
+        "support materializes caller / COO declared task source and preset only",
+        "not automatic preset selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03",
+        "raw:link:03"
+      ]
+    }
+  ],
+  "building_id": "lint-precision-fix-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "declaration_provenance": {
+    "building_id": "lint-precision-fix-0612",
+    "composition_mode": "caller_or_coo_declared_linear_composition",
+    "declaration_evidence_refs": [
+      "work/task.md",
+      "work/building-intake.json",
+      "work/preset-expansion.json",
+      "work/declared-building-plan.json",
+      "work/link-launch-policy.json"
+    ],
+    "declared_by": "caller-claude-operator",
+    "declared_gate_refs": [
+      "link-gate:default-transition"
+    ],
+    "expanded_brick_spec_refs": [
+      "brick/templates/bricks/work/brick.md",
+      "brick/templates/bricks/code-attack-qa/brick.md",
+      "brick/templates/bricks/closure/brick.md"
+    ],
+    "expanded_brick_template_refs": [
+      "brick/templates/bricks/work/return.yaml",
+      "brick/templates/bricks/transition-concern-return.yaml",
+      "brick/templates/bricks/code-attack-qa/return.yaml",
+      "brick/templates/bricks/closure/return.yaml"
+    ],
+    "expanded_step_template_refs": [
+      "building-step-template:work",
+      "building-step-template:code-attack-qa",
+      "building-step-template:closure"
+    ],
+    "not_proven": [
+      "semantic fitness of selected chain preset",
+      "future Building run correctness",
+      "future Agent or provider quality",
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority"
+    ],
+    "plan_ref": "building-plan:lint-precision-fix-0612",
+    "plan_shape": "linear",
+    "proof_limits": [
+      "support declaration provenance evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "task source is pre-run input evidence, not an automatic plan selector",
+      "chain preset is a caller / COO selection candidate only",
+      "not automatic shape selection",
+      "not Building Plan authoring from task text",
+      "support materializes caller / COO declared task source and preset only",
+      "not automatic preset selection"
+    ],
+    "selected_preset_ref": "building-chain-preset:fast-fix",
+    "selected_shape_ref": "building-shape:reviewable-work",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-11T17:43:36Z",
+  "groups": [],
+  "id": "urn:bp:building:lint-precision-fix-0612::work/building-map.json",
+  "kind": "building_graph_map",
+  "link_edges": [
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:01:lint-precision-fix-0612-work",
+        "brick-comparison:01:lint-precision-fix-0612-work",
+        "movement-fact:01:lint-precision-fix-0612-work"
+      ],
+      "link_edge_id": "edge:01:lint-precision-fix-0612-work",
+      "movement_fact_ref": "movement-fact:01:lint-precision-fix-0612-work",
+      "public_fact_refs": [
+        "agent-fact:01:lint-precision-fix-0612-work",
+        "brick-comparison:01:lint-precision-fix-0612-work",
+        "movement-fact:01:lint-precision-fix-0612-work"
+      ],
+      "source_brick_instance_ref": "brick-work",
+      "step_output_ref": "work/step-outputs/lint-precision-fix-0612-work-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-code-attack-qa",
+      "transition_fact_ref": "transition-fact:01:lint-precision-fix-0612-work"
+    },
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:02:lint-precision-fix-0612-code-attack-qa",
+        "brick-comparison:02:lint-precision-fix-0612-code-attack-qa",
+        "movement-fact:02:lint-precision-fix-0612-code-attack-qa"
+      ],
+      "link_edge_id": "edge:02:lint-precision-fix-0612-code-attack-qa",
+      "movement_fact_ref": "movement-fact:02:lint-precision-fix-0612-code-attack-qa",
+      "public_fact_refs": [
+        "agent-fact:02:lint-precision-fix-0612-code-attack-qa",
+        "brick-comparison:02:lint-precision-fix-0612-code-attack-qa",
+        "movement-fact:02:lint-precision-fix-0612-code-attack-qa"
+      ],
+      "source_brick_instance_ref": "brick-code-attack-qa",
+      "step_output_ref": "work/step-outputs/lint-precision-fix-0612-code-attack-qa-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-closure",
+      "transition_fact_ref": "transition-fact:02:lint-precision-fix-0612-code-attack-qa"
+    },
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:03:lint-precision-fix-0612-closure",
+        "brick-comparison:03:lint-precision-fix-0612-closure",
+        "movement-fact:03:lint-precision-fix-0612-closure"
+      ],
+      "link_edge_id": "edge:03:lint-precision-fix-0612-closure",
+      "movement_fact_ref": "movement-fact:03:lint-precision-fix-0612-closure",
+      "public_fact_refs": [
+        "agent-fact:03:lint-precision-fix-0612-closure",
+        "brick-comparison:03:lint-precision-fix-0612-closure",
+        "movement-fact:03:lint-precision-fix-0612-closure"
+      ],
+      "source_brick_instance_ref": "brick-closure",
+      "step_output_ref": "work/step-outputs/lint-precision-fix-0612-closure-attempt-1/step-output.json",
+      "target_brick_instance_ref": "building-boundary:lint-precision-fix-0612-closed",
+      "transition_fact_ref": "transition-fact:03:lint-precision-fix-0612-closure"
+    }
+  ],
+  "not_proven": [
+    "semantic fitness of selected chain preset",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "profile": "planning-v0",
+  "proof_limits": [
+    "task source is pre-run input evidence, not an automatic plan selector",
+    "chain preset is a caller / COO selection candidate only",
+    "not automatic shape selection",
+    "not Building Plan authoring from task text",
+    "support materializes caller / COO declared task source and preset only",
+    "not automatic preset selection",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "raw_refs": [
+    "raw:brick:01",
+    "raw:agent:01",
+    "raw:link:01",
+    "raw:brick:02",
+    "raw:agent:02",
+    "raw:link:02",
+    "raw:brick:03",
+    "raw:agent:03",
+    "raw:link:03"
+  ],
+  "recorded_at": "2026-06-11T17:43:36Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:lint-precision-fix-0612",
+  "specversion": "1.0",
+  "subject": "work/building-map.json",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-11T17:43:36Z",
+  "type": "bp.building_graph_map"
+}
