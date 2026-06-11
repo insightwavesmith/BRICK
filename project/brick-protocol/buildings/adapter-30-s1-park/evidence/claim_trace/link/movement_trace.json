@@ -1,0 +1,319 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:adapter-30-s1-park::evidence/claim_trace/link/movement_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition",
+          "link-gate:coo"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:01:adapter-30-s1-park-design",
+          "brick-comparison:01:adapter-30-s1-park-design",
+          "sufficiency-fact-movement:01:adapter-30-s1-park-design"
+        ],
+        "target_boundary_ref": "brick:brick-adapter-30-s1-park-work"
+      },
+      "fact_ref": "movement-fact:01:adapter-30-s1-park-design",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:adapter-30-s1-park-design-to-adapter-30-s1-park-work",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-adapter-30-s1-park-design",
+        "target_boundary_ref": "brick-adapter-30-s1-park-work"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-adapter-30-s1-park-design-to-adapter-30-s1-park-work",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:01:edge-adapter-30-s1-park-design-to-adapter-30-s1-park-work"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:adapter-30-s1-park-work-to-adapter-30-s1-park-code-attack-qa",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-adapter-30-s1-park-work",
+        "target_boundary_ref": "brick-adapter-30-s1-park-code-attack-qa"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-code-attack-qa",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:02:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-code-attack-qa"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": false,
+        "link_edge_ref": "edge:adapter-30-s1-park-work-to-adapter-30-s1-park-axis-attack-qa",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-adapter-30-s1-park-work",
+        "target_boundary_ref": "brick-adapter-30-s1-park-axis-attack-qa"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-axis-attack-qa",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:03:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-axis-attack-qa"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": false,
+        "link_edge_ref": "edge:adapter-30-s1-park-work-to-adapter-30-s1-park-evidence-integrity",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-adapter-30-s1-park-work",
+        "target_boundary_ref": "brick-adapter-30-s1-park-evidence-integrity"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-evidence-integrity",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:04:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-evidence-integrity"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:adapter-30-s1-park-code-attack-qa-to-adapter-30-s1-park-closure",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-adapter-30-s1-park-code-attack-qa",
+        "target_boundary_ref": "brick-adapter-30-s1-park-closure"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-adapter-30-s1-park-code-attack-qa-to-adapter-30-s1-park-closure",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:05:edge-adapter-30-s1-park-code-attack-qa-to-adapter-30-s1-park-closure"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:adapter-30-s1-park-axis-attack-qa-to-adapter-30-s1-park-closure",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-adapter-30-s1-park-axis-attack-qa",
+        "target_boundary_ref": "brick-adapter-30-s1-park-closure"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-adapter-30-s1-park-axis-attack-qa-to-adapter-30-s1-park-closure",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:06:edge-adapter-30-s1-park-axis-attack-qa-to-adapter-30-s1-park-closure"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:adapter-30-s1-park-evidence-integrity-to-adapter-30-s1-park-closure",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-adapter-30-s1-park-evidence-integrity",
+        "target_boundary_ref": "brick-adapter-30-s1-park-closure"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-adapter-30-s1-park-evidence-integrity-to-adapter-30-s1-park-closure",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:07:edge-adapter-30-s1-park-evidence-integrity-to-adapter-30-s1-park-closure"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:adapter-30-s1-park-closure-to-boundary",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-adapter-30-s1-park-closure",
+        "target_boundary_ref": "building-boundary:adapter-30-s1-park-closed"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-adapter-30-s1-park-closure-to-boundary",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:08:edge-adapter-30-s1-park-closure-to-boundary"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-11T17:28:04Z",
+  "id": "urn:bp:building:adapter-30-s1-park::evidence/claim_trace/link/movement_trace.json",
+  "recorded_at": "2026-06-11T17:28:04Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:adapter-30-s1-park",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/movement_trace.json",
+  "time": "2026-06-11T17:28:04Z",
+  "type": "bp.claim_trace"
+}

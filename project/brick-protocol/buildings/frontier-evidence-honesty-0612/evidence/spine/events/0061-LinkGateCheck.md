@@ -1,0 +1,11 @@
+# LinkGateCheck · seq 61 · ["Link"]
+- axis_scope: ["Link"]
+- checked_public_fact: "brick-comparison:frontier-evidence-honesty-0612:frontier-evidence-honesty-0612-closure"
+- event_type: "LinkGateCheck"
+- gate_ref: "link-gate:human"
+- ordinal: 1
+- run_segment: 2
+- sequence_index: 61
+- source_fact_ref: "gate-receipt-fact-1:06:frontier-evidence-honesty-0612-closure"
+- spine_schema_version: "spine-v1"
+- sufficiency: "missing_required_facts"

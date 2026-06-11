@@ -1,0 +1,161 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:frontier-evidence-honesty-0612::work/step-outputs/frontier-evidence-honesty-0612-evidence-integrity-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:inspector",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-frontier-evidence-honesty-0612-evidence-integrity",
+  "building_id": "frontier-evidence-honesty-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:05",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-11T18:17:27.202653Z",
+  "id": "urn:bp:building:frontier-evidence-honesty-0612::work/step-outputs/frontier-evidence-honesty-0612-evidence-integrity-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:05:frontier-evidence-honesty-0612-evidence-integrity",
+  "recorded_at": "2026-06-11T18:17:27.202653Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:inspector",
+    "blocked_or_missing_evidence": [
+      "Implementation is blocked in this specific return by reviewer-readonly policy, empty write_scope, and the packet rule not to use tools or hooks.",
+      "No mutation authorization exists here for support/* or brick/building_plans/* despite the task-source repair request.",
+      "No current persisted evidence can be certified without inspecting the repo and running the declared repro/checker commands in a separate write-scoped repair Brick."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "checker_overclaim_risks": [
+      "Do not claim check_building_map_graph passes until a future temp dynamic frontier repro writes a map and the kernel checker is run against it.",
+      "Do not claim the full profile gate is green or red for only the known old map without running PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all.",
+      "Do not weaken, bypass, or special-case checker pins to make frontier evidence admissible.",
+      "A FIRE mutation proving phantom binding refs still fail remains unobserved here."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:frontier-evidence-honesty-0612",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:frontier-evidence-honesty-0612:agent-object:inspector:output"
+    ],
+    "evidence_scope": "Conversation-supplied AGENTS.md, AgentInstructionPacket, and inline task-source only. No current repo files, persisted evidence roots, checker outputs, or repro artifacts were inspected in this return.",
+    "evidence_used": [
+      "Supplied AGENTS.md instruction block.",
+      "Supplied AgentInstructionPacket for agent-object:inspector.",
+      "Supplied task-source:inline-statement for frontier-evidence-honesty-0612."
+    ],
+    "missing_evidence": [
+      "Current contents of support/operator/run.py, support/recording/capture.py, support/recording/building_map_emit.py, support/operator/walker_frontier.py, support/operator/walker_kernel.py, and resume/disposition helpers.",
+      "Temp repro A output showing capture/events.jsonl, raw/adapter-error.jsonl, evidence claim traces, and step-output adapter-error capsule after AdapterFrontierEvidenceWritten.",
+      "Temp dynamic repro B output showing building-map.json with only realized facts and a passing building_map_graph check.",
+      "Temp repro C output showing a future caller/COO disposition row addressed to the new hold identity is accepted, or a principled fail-closed reason.",
+      "FIRE result proving a reintroduced phantom binding ref makes the map checker red.",
+      "Full profile checker exit code and exact remaining-red list."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority",
+      "current repo file state",
+      "current checker state",
+      "Defect A fix",
+      "Defect B fix",
+      "Defect C fix",
+      "dynamic frontier diagnosis",
+      "resume disposition acceptance",
+      "FIRE pin behavior",
+      "full gate remaining-red set",
+      "absence of future support-authority leaks"
+    ],
+    "observed_evidence": [
+      "The supplied task source defines three frontier-evidence defects: first-step adapter-error evidence loss, dynamic frontier building-map phantom references, and resume path loss of an addressable hold identity.",
+      "The supplied AGENTS.md instructions classify support/operator and support/recording paths as support mechanics only; they must not own Brick, Agent, Link meaning, Movement, source truth, success judgment, or quality judgment.",
+      "The supplied task constrains repair surfaces to support/* and brick/building_plans/*, forbids project/ mutation, forbids Link vocabulary changes, and forbids weakening existing checkers.",
+      "The active agent packet selects agent-object:inspector with tool-policy:reviewer-readonly, write_scope empty, and rules requiring concise evidence-only return without choosing Movement or judging success/quality."
+    ],
+    "output_excerpt": "{\"observed_evidence\":[\"The supplied task source defines three frontier-evidence defects: first-step adapter-error evidence loss, dynamic frontier building-map phantom references, and resume path loss of an addressable hold identity.\",\"The supplied AGENTS.md instructions classify support/operator and support/recording paths as support mechanics only; they must not own Brick, Agent, Link meaning, Movement, source truth, success judgment, or quality judgment.\",\"The supplied task constrains repair surfaces to support/* and brick/building_plans/*, forbids project/ mutation, forbids Link vocabula...",
+    "persisted_evidence_roots": [
+      "Declared by task source but not verified in this return: /tmp/brick-frontier-repro/frontier-map-repro-0612",
+      "Declared by task source but not verified in this return: project/brick-protocol/buildings/adapter-30-s1-park",
+      "No new persisted evidence root observed or created."
+    ],
+    "proof_limit_findings": [
+      "This inspector return can preserve the defect statements and proof requirements as support evidence only.",
+      "The requested implementation cannot be treated as performed in this lane because the active packet is reviewer-readonly, write_scope is empty, and the packet says not to use tools or hooks.",
+      "Checker green, model review, dashboard rendering, or future repro output would remain support evidence only, not source truth, success judgment, quality judgment, or Movement authority.",
+      "The task's known baseline says the old adapter-30-s1-park map may keep the full gate red; that statement is unverified here and must not be promoted to current proof."
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "no Link Movement chosen",
+      "no route target chosen",
+      "no provider quality claim",
+      "no current checker claim",
+      "no implementation claim"
+    ],
+    "remaining_delta": [
+      "Open a separate write-scoped repair Brick if implementation is intended.",
+      "Before mutation, identify the verifier/checker lane covering root-collision handling, frontier map realized-fact closure, and resume hold identity preservation.",
+      "Repair only support-owned frontier writer/composer surfaces or brick/building_plans fixtures if current evidence confirms those are the repair surfaces.",
+      "Run the task's proof set in temp roots and report exact command outcomes, preserving project/ as append-only history."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "stale_source_risks": [
+      "Line references such as support/operator/run.py around 431 and support/recording/capture.py around 447 are task-source claims only and may be stale without current file inspection.",
+      "The project/brick-protocol/buildings/adapter-30-s1-park evidence state is task-source evidence only and may have changed since the observed report.",
+      "The known full-gate baseline is task-source evidence only; current checker status is not proven."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:05:frontier-evidence-honesty-0612-evidence-integrity",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:frontier-evidence-honesty-0612",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:frontier-evidence-honesty-0612-evidence-integrity:attempt-1",
+  "step_ref": "frontier-evidence-honesty-0612-evidence-integrity",
+  "subject": "frontier-evidence-honesty-0612-evidence-integrity",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-11T18:17:27.202653Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

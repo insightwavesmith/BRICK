@@ -641,17 +641,28 @@ def _adapter_error_link_frontier_raw_record(
     prepared: AgentRunPreparationRecord,
     observation: Any,
     index: int,
+    *,
+    transition_lifecycle: Mapping[str, Any] | None = None,
 ) -> Mapping[str, Any]:
-    return {
+    record = {
         "raw_ref": _raw_ref("link-frontier", index),
         "raw_refs": [_raw_ref("link-frontier", index)],
         "building_id": building_id,
         "step_ref": prepared.step_rows.step_ref,
         "observed_boundary_ref": prepared.brick_instance_ref,
+        "source_brick_instance_ref": prepared.brick_instance_ref,
+        "target_brick_instance_ref": prepared.brick_instance_ref,
         "transition_record_created": False,
         "adapter_error_ref": observation.adapter_error_ref,
         "frontier_kind": "agent_incomplete",
     }
+    if isinstance(transition_lifecycle, Mapping):
+        record.update(
+            _transition_lifecycle_evidence_fields(
+                {"transition_lifecycle": dict(transition_lifecycle)}
+            )
+        )
+    return record
 
 
 def _adapter_error_link_frontier_claim_fact(

@@ -1,0 +1,406 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:adapter-30-s1-park::work/building-map.json",
+  "agent_bindings": [
+    {
+      "agent_binding_id": "binding:01:adapter-30-s1-park-design",
+      "agent_performer_ref": "agent-performer:agent-object:design-lead",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-adapter-30-s1-park-design",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:01:adapter-30-s1-park-design"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ],
+      "step_output_ref": "work/step-outputs/adapter-30-s1-park-design-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:02:adapter-30-s1-park-work",
+      "agent_performer_ref": "agent-performer:agent-object:dev",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-adapter-30-s1-park-work",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent-received:02",
+        "raw:adapter-error:02"
+      ],
+      "step_output_ref": "work/step-outputs/adapter-30-s1-park-work-attempt-1/adapter-error.json"
+    }
+  ],
+  "brick_instances": [
+    {
+      "agent_binding_refs": [
+        "binding:01:adapter-30-s1-park-design"
+      ],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-adapter-30-s1-park-design",
+      "brick_work_ref": "work:adapter-30-s1-park-design",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01",
+        "raw:link:01"
+      ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-adapter-30-s1-park-work",
+      "brick_work_ref": "work:adapter-30-s1-park-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01",
+        "raw:link:01"
+      ]
+    }
+  ],
+  "building_id": "adapter-30-s1-park",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "frontier_observation": {
+    "adapter_error_ref": "adapter-error:adapter-30-s1-park-work:attempt-1",
+    "frontier_kind": "agent_incomplete",
+    "proof_limits": [
+      "graph support projection only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ]
+  },
+  "generatedAtTime": "2026-06-11T17:28:04Z",
+  "groups": [
+    {
+      "group_id": "group:adapter-30-s1-park-fan-out",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:adapter-30-s1-park-work-to-adapter-30-s1-park-code-attack-qa",
+        "edge:adapter-30-s1-park-work-to-adapter-30-s1-park-axis-attack-qa",
+        "edge:adapter-30-s1-park-work-to-adapter-30-s1-park-evidence-integrity"
+      ],
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [],
+      "sibling_independence": []
+    },
+    {
+      "group_id": "group:adapter-30-s1-park-fan-in",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:adapter-30-s1-park-code-attack-qa-to-adapter-30-s1-park-closure",
+        "edge:adapter-30-s1-park-axis-attack-qa-to-adapter-30-s1-park-closure",
+        "edge:adapter-30-s1-park-evidence-integrity-to-adapter-30-s1-park-closure"
+      ],
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [],
+      "sibling_independence": []
+    }
+  ],
+  "id": "urn:bp:building:adapter-30-s1-park::work/building-map.json",
+  "kind": "building_graph_map",
+  "link_edges": [
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:01:adapter-30-s1-park-design",
+        "brick-comparison:01:adapter-30-s1-park-design",
+        "movement-fact:01:adapter-30-s1-park-design"
+      ],
+      "link_edge_id": "edge:adapter-30-s1-park-design-to-adapter-30-s1-park-work",
+      "movement_fact_ref": "movement-fact:01:adapter-30-s1-park-design",
+      "public_fact_refs": [
+        "agent-fact:01:adapter-30-s1-park-design",
+        "brick-comparison:01:adapter-30-s1-park-design",
+        "movement-fact:01:adapter-30-s1-park-design"
+      ],
+      "source_brick_instance_ref": "brick-adapter-30-s1-park-design",
+      "step_output_ref": "work/step-outputs/adapter-30-s1-park-design-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-adapter-30-s1-park-work",
+      "transition_fact_ref": "transition-fact:01:adapter-30-s1-park-design"
+    },
+    {
+      "edge_role": "fan_out",
+      "input_public_fact_refs": [
+        "movement-fact:graph-edge:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-axis-attack-qa"
+      ],
+      "link_edge_id": "edge:adapter-30-s1-park-work-to-adapter-30-s1-park-axis-attack-qa",
+      "movement_fact_ref": "movement-fact:graph-edge:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-axis-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "public_fact_refs": [
+        "movement-fact:graph-edge:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-axis-attack-qa"
+      ],
+      "raw_refs": [
+        "raw:link-graph:03:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-axis-attack-qa"
+      ],
+      "source_brick_instance_ref": "brick-adapter-30-s1-park-work",
+      "target_brick_instance_ref": "brick-adapter-30-s1-park-axis-attack-qa",
+      "transition_fact_ref": "transition-fact:graph-edge:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-axis-attack-qa"
+    },
+    {
+      "edge_role": "fan_out",
+      "input_public_fact_refs": [
+        "movement-fact:graph-edge:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-evidence-integrity"
+      ],
+      "link_edge_id": "edge:adapter-30-s1-park-work-to-adapter-30-s1-park-evidence-integrity",
+      "movement_fact_ref": "movement-fact:graph-edge:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-evidence-integrity",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "public_fact_refs": [
+        "movement-fact:graph-edge:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-evidence-integrity"
+      ],
+      "raw_refs": [
+        "raw:link-graph:04:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-evidence-integrity"
+      ],
+      "source_brick_instance_ref": "brick-adapter-30-s1-park-work",
+      "target_brick_instance_ref": "brick-adapter-30-s1-park-evidence-integrity",
+      "transition_fact_ref": "transition-fact:graph-edge:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-evidence-integrity"
+    }
+  ],
+  "not_proven": [
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "not proven: source truth",
+    "not proven: success judgment",
+    "not proven: quality judgment",
+    "not proven: Movement authority",
+    "provider or local callable behavior after the adapter exception",
+    "semantic correctness of the interrupted work",
+    "caller/COO disposition after frontier observation"
+  ],
+  "profile": "planning-v0",
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "raw_refs": [
+    "raw:brick:01",
+    "raw:agent:01",
+    "raw:link:01",
+    "raw:brick:02",
+    "raw:agent-received:02",
+    "raw:adapter-error:02",
+    "raw:link-frontier:02"
+  ],
+  "recorded_at": "2026-06-11T17:28:04Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:adapter-30-s1-park",
+  "specversion": "1.0",
+  "subject": "work/building-map.json",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-11T17:28:04Z",
+  "type": "bp.building_graph_map"
+}

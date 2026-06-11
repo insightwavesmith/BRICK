@@ -1,0 +1,245 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:frontier-evidence-honesty-0612::work/step-outputs/frontier-evidence-honesty-0612-design-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:design-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-frontier-evidence-honesty-0612-design",
+  "building_id": "frontier-evidence-honesty-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "gate_sequence_decision_record": {
+    "action": "hold",
+    "evidence_ref": "observation:gate-sequence-frontier-evidence-honesty-0612-frontier-evidence-honesty-0612-design-link-gate-coo-hold",
+    "gate_action_sequence": [
+      {
+        "action": "next",
+        "evidence_ref": "observation:gate-sequence-frontier-evidence-honesty-0612-frontier-evidence-honesty-0612-design-link-gate-default-transition-next",
+        "gate_ref": "link-gate:default-transition",
+        "hold_reason": "",
+        "pending_target_ref": "",
+        "reason_refs": [
+          "observation:gate-sequence-frontier-evidence-honesty-0612-frontier-evidence-honesty-0612-design-link-gate-default-transition-next"
+        ],
+        "target_brick_ref": ""
+      },
+      {
+        "action": "hold",
+        "evidence_ref": "observation:gate-sequence-frontier-evidence-honesty-0612-frontier-evidence-honesty-0612-design-link-gate-coo-hold",
+        "gate_ref": "link-gate:coo",
+        "hold_reason": "gate_sequence_missing_required_facts:link-gate:coo",
+        "pending_target_ref": "brick-frontier-evidence-honesty-0612-work",
+        "reason_refs": [
+          "observation:coo-gate-missing-required-facts"
+        ],
+        "target_brick_ref": ""
+      }
+    ],
+    "gate_ref": "link-gate:coo",
+    "gate_results": [
+      {
+        "checked_public_fact": "brick-comparison:frontier-evidence-honesty-0612:frontier-evidence-honesty-0612-design",
+        "gate_ref": "link-gate:default-transition",
+        "missing_required_facts": [],
+        "required_public_facts": [
+          "BrickComparisonFact.required_return_shape_evidence",
+          "BrickComparisonFact.comparison_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.observed_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.design_summary",
+          "BrickComparisonFact.comparison_evidence.returned_field.relevant_current_structure",
+          "BrickComparisonFact.comparison_evidence.returned_field.proposed_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.unchanged_surfaces",
+          "BrickComparisonFact.comparison_evidence.returned_field.axis_responsibility",
+          "BrickComparisonFact.comparison_evidence.returned_field.invariants",
+          "BrickComparisonFact.comparison_evidence.returned_field.edge_cases",
+          "BrickComparisonFact.comparison_evidence.returned_field.checker_or_verifier_plan",
+          "BrickComparisonFact.comparison_evidence.returned_field.candidate_file_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_refs",
+          "BrickComparisonFact.comparison_evidence.returned_field.not_proven"
+        ],
+        "sufficiency": "sufficient"
+      },
+      {
+        "checked_public_fact": "brick-comparison:frontier-evidence-honesty-0612:frontier-evidence-honesty-0612-design",
+        "gate_ref": "link-gate:coo",
+        "missing_required_facts": [
+          "Link.route_decision_basis.override_refs"
+        ],
+        "required_public_facts": [
+          "Link.route_decision_basis.override_refs"
+        ],
+        "sufficiency": "missing_required_facts"
+      }
+    ],
+    "hold_reason": "gate_sequence_missing_required_facts:link-gate:coo",
+    "pending_target_ref": "brick-frontier-evidence-honesty-0612-work",
+    "reason_refs": [
+      "observation:coo-gate-missing-required-facts"
+    ],
+    "required_disposition_owner": "coo",
+    "target_brick_ref": ""
+  },
+  "generatedAtTime": "2026-06-11T17:52:57.471145Z",
+  "id": "urn:bp:building:frontier-evidence-honesty-0612::work/step-outputs/frontier-evidence-honesty-0612-design-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:frontier-evidence-honesty-0612-design",
+  "recorded_at": "2026-06-11T17:52:57.471145Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:design-lead",
+    "axis_responsibility": {
+      "Agent": "Owns the performer return fact and adapter-error evidence capsule contents as returned evidence, without self-classifying success or failure.",
+      "Brick": "Owns the work statement, declared Building Plan shape, declared topology, step contracts, and any brick/building_plans fixture or declared plan changes used for temp repros.",
+      "Evidence": "Temp repro outputs and checker outputs are support evidence only. Existing project history remains append-only evidence.",
+      "Link": "Owns Movement, transition lifecycle, hold/disposition vocabulary, gate sufficiency, and addressable handoff/hold facts. The repair must reuse existing Link vocabulary and must not choose Movement.",
+      "Support": "May walk declared plans, write capture/raw/evidence records, compose building-map projections from realized facts, and run checkers. Support must not invent routes, targets, sufficiency, or quality judgments."
+    },
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "candidate_file_changes": [
+      "support/recording/capture.py: refine root collision detection to allow declaration-only roots and reject prior evidence roots.",
+      "support/recording/building_map_emit.py: reuse or expose a fact-only failed-step brick plus binding packet helper for both linear and dynamic paths.",
+      "support/operator/run.py: ensure first-step adapter-error calls pass overwrite intent based on actual prior evidence, not root existence implied by declaration prewrite.",
+      "support/operator/walker_frontier.py: compose dynamic frontier map from realized facts only and include the failed step brick plus binding pair.",
+      "support/operator/walker_kernel.py: remove or bypass any frontier-map composition path that serializes unwalked declared edges/groups as realized facts.",
+      "support/operator/walker_resume.py: align frontier failure hold identity with existing disposition reader expectations if the writer needs an existing shape or address convention.",
+      "support/operator/* or support/recording/* temp-test helpers only if the repo already has an admitted local pattern for reproductions; otherwise use ad hoc temp commands without committing fixtures."
+    ],
+    "checker_or_verifier_plan": [
+      "Repro A in a temp output_root: run run_building_intake with a declaration prewrite and deliberate adapter error; observe AdapterFrontierEvidenceWritten; verify capture/events.jsonl, raw/adapter-error.jsonl, evidence claim traces, and step-output adapter-error capsule exist.",
+      "Repro B in a temp output_root: drive dynamic hold, disposition, resume, adapter-error frontier sequence; run the building_map_graph kernel check on work/building-map.json; require exit 0 for the temp map.",
+      "Repro C in the same temp output_root: append a caller/coo disposition row addressed to the newly written hold identity; run resume and observe whether existing resume machinery accepts it or fail-closes with a specific principled reason.",
+      "FIRE: copy the fixed temp map, inject a phantom binding ref, and run the map checker; require red to prove the checker pin remains active.",
+      "Full gate: run PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all and report exit code exactly, including whether the known adapter-30-s1-park historical map is the only remaining red item."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:frontier-evidence-honesty-0612",
+    "cli_version_text": "codex-cli 0.137.0",
+    "design_summary": "Design the repair as a narrow frontier-writer correction: make declaration-only roots admissible for first frontier evidence writes without blanket overwrite; make dynamic frontier map emission fact-driven so only realized completed rows plus the failed step brick and binding pair are emitted; and make every adapter-error frontier occurrence write or preserve an addressable Link lifecycle hold row that existing resume and disposition machinery can reference.",
+    "edge_cases": [
+      "Root contains declared-building-plan.json plus other declaration-chain files but no capture/raw/evidence/work step outputs.",
+      "Root contains capture/events.jsonl but no raw adapter-error rows.",
+      "Root contains raw/link.jsonl from an earlier lifecycle occurrence.",
+      "First step fails before any step_results exist.",
+      "A resumed step fails after prior hold and disposition rows were rewritten or filtered.",
+      "Dynamic declared graph includes fan-out/fan-in branches that were declared but not walked.",
+      "Failed step is inside a graph whose downstream QA steps are declared but not realized.",
+      "Adapter exception occurs while composing or writing frontier evidence and must fail closed without partial misleading graph facts.",
+      "A future disposition row addresses the new frontier hold identity after resume."
+    ],
+    "evidence_refs": [
+      "support-packet:frontier-evidence-honesty-0612:agent-object:design-lead:output"
+    ],
+    "invariants": [
+      "A declaration-only building root is not evidence collision.",
+      "A root with prior lifecycle/evidence material remains collision unless an existing admitted overwrite path applies.",
+      "Every brick agent_binding_ref in building-map output resolves to an emitted binding row.",
+      "Every link target_brick_instance_ref in building-map output resolves to a realized brick row, or the edge is not emitted.",
+      "Every fan-out/fan-in group edge ref resolves to an emitted edge row, or the group is not emitted.",
+      "Unwalked declared topology is not serialized as realized map fact evidence.",
+      "Every adapter-error frontier occurrence writes raw adapter-error evidence and an addressable hold/disposition-compatible Link lifecycle row.",
+      "Resume after a frontier failure has a concrete hold identity available for later caller/coo disposition.",
+      "Known historical bad evidence may keep full profile red, but new temp evidence must pass its narrow graph and lifecycle checks."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Live repository line locations were not verified in this return.",
+      "Exact phantom-ref insertion point is not proven until walker_frontier.py and walker_kernel.py are inspected.",
+      "Exact declaration-chain-only file allowlist is not proven until current writer inputs are inspected.",
+      "Existing resume/disposition hold identity shape is not proven until walker_resume._read_disposition_row and lifecycle checks are inspected.",
+      "No repro command was executed in this design return.",
+      "No checker output was produced in this design return.",
+      "Future Building correctness is not proven.",
+      "Source truth, success judgment, quality judgment, and Movement authority are not claimed."
+    ],
+    "observed_evidence": [
+      "The inline task source declares three frontier-evidence defects: first-step adapter-error evidence can be lost when a declaration-only root already exists; dynamic frontier building-map output can reference phantom facts; resume-time frontier evidence can leave no addressable hold identity.",
+      "The declared constraints prohibit scheduler, queue, retry, timer, Link vocabulary changes, checker weakening, project evidence rewrites, git commit, and git push.",
+      "The declared write scope is support/* and brick/building_plans/* only; project/ is append-only history and must not be modified.",
+      "This return is design support evidence only, derived from the provided task packet and design-lead projection seed, not from live repository execution."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"The inline task source declares three frontier-evidence defects: first-step adapter-error evidence can be lost when a declaration-only root already exists; dynamic frontier building-map output can reference phantom facts; resume-time frontier evidence can leave no addressable hold identity.\", \"The declared constraints prohibit scheduler, queue, retry, timer, Link vocabulary changes, checker weakening, project evidence rewrites, git commit, and git push.\", \"The declared write scope is support/* and brick/building_plans/* only; project/ is append-only history and mus...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "proposed_changes": [
+      "In the frontier capture writer, distinguish declaration-chain-only roots from roots that already contain lifecycle or evidence material. Permit writing frontier evidence into a root containing only declared inputs such as declared-building-plan.json, while continuing to fail closed when capture/, raw/, evidence/, work step outputs, or another building's lifecycle evidence already exists and overwrite is not explicitly valid.",
+      "Keep overwrite_existing narrow: it should mean replacing or appending within the current failed occurrence rules, not bypassing root collision checks for unrelated evidence.",
+      "For dynamic frontier map emission, stop deriving frontier map edges and groups from unwalked declared topology. Build the map from recorded facts only: completed step brick rows, completed binding rows, completed link rows, and the failed step brick plus its matching agent binding row.",
+      "Make failed-step brick refs and binding refs generated in one helper or one transaction-like packet so a brick cannot name an agent_binding_ref unless the binding row is also inserted into the same map packet.",
+      "Omit fan-out, fan-in, and downstream edges/groups for unwalked declared steps in frontier maps. Declared topology may remain in plan input evidence, but not as realized building-map fact rows.",
+      "On adapter-error frontier writes, emit an addressable transition_lifecycle hold record using existing paused/in_progress vocabulary and existing caller/coo disposition expectations. The record should identify the failed occurrence and pending declared boundary without introducing a new Movement literal or Link row kind.",
+      "On resume-time frontier writes, preserve enough ledger continuity for a later caller/coo disposition row to address the new hold identity. If raw/link.jsonl must be rewritten by existing resume logic, the frontier writer must write the new hold row after the failure occurrence rather than leaving the rewritten ledger without an addressable hold.",
+      "Do not edit existing project/brick-protocol/buildings/adapter-30-s1-park evidence. Use temp output roots for reproduction and verification."
+    ],
+    "relevant_current_structure": [
+      "Linear path: support/operator/run.py calls frontier evidence writing when an adapter error occurs; support/recording/capture.py currently appears to guard on existing root presence.",
+      "Linear map composer: support/recording/building_map_emit.py is reported to append the failed brick and binding row consistently.",
+      "Dynamic path: support/operator/walker_frontier.py and support/operator/walker_kernel.py are the suspected map composition surfaces for phantom refs during resume frontier writes.",
+      "Resume path: support/operator/walker_resume.py is the stated existing disposition and hold identity reader surface that the new frontier hold record must remain compatible with.",
+      "Checker surfaces: check_building_map_graph and the full profile gate must remain authority-preserving support evidence only and must not be weakened."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "unchanged_surfaces": [
+      "No link/ changes.",
+      "No new Link vocabulary.",
+      "No scheduler, queue, retry, timer, provider runtime, or dashboard expansion.",
+      "No checker weakening, bypass, or special-case exemption for known bad project history.",
+      "No project/ evidence rewrite.",
+      "No success, failure, quality, or approval classification by Agent return."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:01:frontier-evidence-honesty-0612-design",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:frontier-evidence-honesty-0612",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:frontier-evidence-honesty-0612-design:attempt-1",
+  "step_ref": "frontier-evidence-honesty-0612-design",
+  "subject": "frontier-evidence-honesty-0612-design",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-11T17:52:57.471145Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

@@ -1,0 +1,15 @@
+# BrickCompared · seq 16 · ["Brick"]
+- alias_fact_refs: ["brick-comparison:adapter-30-s1-park:adapter-30-s1-park-design"]
+- axis_scope: ["Brick"]
+- comparison_evidence: ["adapter returned value is available for Brick comparison observation","required_return_fields: observed_evidence, design_summary, relevant_current_structure, proposed_changes, unchanged_surfaces, axis_responsibility, invariants, edge_cases, checker_or_verifier_plan, candidate_file_changes, evidence_refs, not_proven","observed_return_fields: adapter_ref, agent_object_ref, axis_responsibility, brain_surface_ref, candidate_file_changes, checker_or_verifier_plan, cli_call_ref, cli_version_text, design_summary, edge_cases, evidence_refs, invariants, not_proven, observed_evidence, output_excerpt, proof_limits, proposed_changes, relevant_current_structure, returned_summary, selected_model_ref, unchanged_surfaces","missing_return_fields: none"]
+- comparison_observation: "contract observation only; not success judgment"
+- comparison_rule: "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickCompared"
+- forbidden_shortcut_evidence: ["support/run did not classify Agent return","support/run did not judge success or quality","support/run used caller-supplied Link facts"]
+- observed_match_kind: "matched"
+- required_return_shape_evidence: "observed_evidence,design_summary,relevant_current_structure,proposed_changes,unchanged_surfaces,axis_responsibility,invariants,edge_cases,checker_or_verifier_plan,candidate_file_changes,evidence_refs,not_proven"
+- run_segment: 1
+- sequence_index: 16
+- source_fact_ref: "brick-comparison:01:adapter-30-s1-park-design"
+- spine_schema_version: "spine-v1"
+- work_reference: "design Brick for task-source:inline-statement: Implement seam S1 of the chat-session adapter, per the Smith-approved design (v2, 2026-06-11): when a plan step's declared adapter is `adapter:chat-session`, the engine must PARK — record a work envelope + a park record (support-only record"

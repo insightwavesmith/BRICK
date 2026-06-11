@@ -19,7 +19,8 @@ from pathlib import Path
 from typing import Any
 
 from brick_protocol.support.operator.contracts import BuildingRunSupportResult
-from brick_protocol.support.operator.primitives import _merge_texts
+from brick_protocol.support.operator.primitives import _merge_texts, _resource_slug
+from brick_protocol.support.operator.walker_hold import _hold_paused_at_ref
 from brick_protocol.support.operator.walker_common import (
     FAN_TOPOLOGY_NOT_PROVEN,
     FAN_TOPOLOGY_PROOF_LIMITS,
@@ -27,6 +28,7 @@ from brick_protocol.support.operator.walker_common import (
     PROOF_LIMITS,
     RESUME_NOT_PROVEN,
 )
+from brick_protocol.support.recording.walker_evidence import build_hold_record
 
 
 def _dynamic_frontier_write_plan(
@@ -88,6 +90,8 @@ def _write_dynamic_adapter_error_frontier(
     node_landings: Mapping[str, int],
     held: bool,
     hold_record: Mapping[str, Any] | None,
+    cascade_depth: int,
+    parent_reroute_ref: str,
     fan_in_wait_all_observations: list[Mapping[str, Any]],
     has_fan_groups: bool,
     write_adapter_error_frontier,
@@ -106,6 +110,16 @@ def _write_dynamic_adapter_error_frontier(
     adapter_error = getattr(exc, "adapter_error", None)
     if prepared is None or adapter_request is None or not isinstance(adapter_error, Mapping):
         raise exc
+    frontier_hold_record = hold_record or _adapter_error_hold_record(
+        building_id=building_id,
+        completed_step_results=completed_step_results,
+        failed_preparation=prepared,
+        reroute_records=reroute_records,
+        node_budget=node_budget,
+        node_landings=node_landings,
+        cascade_depth=cascade_depth,
+        parent_reroute_ref=parent_reroute_ref,
+    )
     write_adapter_error_frontier(
         building_id=building_id,
         plan_ref=plan_ref,
@@ -114,8 +128,8 @@ def _write_dynamic_adapter_error_frontier(
             reroute_records=reroute_records,
             node_budget=node_budget,
             node_landings=node_landings,
-            held=held,
-            hold_record=hold_record,
+            held=True if frontier_hold_record else held,
+            hold_record=frontier_hold_record,
             fan_in_wait_all_observations=fan_in_wait_all_observations,
             has_fan_groups=has_fan_groups,
             resume_observations=resume_observations,
@@ -128,7 +142,81 @@ def _write_dynamic_adapter_error_frontier(
         overwrite_existing=overwrite_existing,
         proof_limits=checked_proof_limits,
         graph_context=graph_context,
+        frontier_transition_lifecycle=_adapter_error_paused_lifecycle(
+            frontier_hold_record
+        ),
     )
     raise RuntimeError(
         "dynamic adapter exception frontier evidence written before AgentFact returned"
     ) from exc
+
+
+def _adapter_error_hold_record(
+    *,
+    building_id: str,
+    completed_step_results: list[BuildingRunSupportResult],
+    failed_preparation: Any,
+    reroute_records: list[Mapping[str, Any]],
+    node_budget: Mapping[str, int],
+    node_landings: Mapping[str, int],
+    cascade_depth: int,
+    parent_reroute_ref: str,
+) -> Mapping[str, Any]:
+    step_ref = failed_preparation.step_rows.step_ref
+    target_brick = failed_preparation.brick_instance_ref
+    step_slug = _resource_slug("step_ref", step_ref.replace(":", "-"))
+    attempt_number = 1 + sum(
+        1
+        for result in completed_step_results
+        if result.preparation.step_rows.step_ref == step_ref
+    )
+    return build_hold_record(
+        reroute_ref=f"reroute-hold:{building_id}:adapter-error:{step_slug}",
+        adoption_sequence_number=len(reroute_records) + 1,
+        cascade_depth=cascade_depth,
+        parent_reroute_ref=parent_reroute_ref,
+        source_step_ref=step_ref,
+        source_brick_ref=target_brick,
+        source_transition_concern_ref=f"observation:adapter-error-frontier:{step_slug}",
+        transition_concern_binding=False,
+        immediate_target_ref=target_brick,
+        target_brick=target_brick,
+        pending_target_ref=target_brick,
+        attempt_number=attempt_number,
+        node_budget=int(node_budget.get(target_brick, 0)),
+        budget_exhausted=False,
+        disposition_required=True,
+        hold_reason="adapter_error_frontier",
+        required_disposition_owner="caller-or-coo",
+        transition_lifecycle_state="paused",
+        proof_limits=list(PROOF_LIMITS),
+        not_proven=list(_merge_texts(NOT_PROVEN, RESUME_NOT_PROVEN)),
+    )
+
+
+def _adapter_error_paused_lifecycle(
+    hold_record: Mapping[str, Any],
+) -> Mapping[str, Any]:
+    return {
+        "state": "paused",
+        "progress_state": "in_progress",
+        "paused_at_ref": _hold_paused_at_ref(hold_record),
+        "from_brick_ref": str(hold_record.get("source_brick_ref") or "brick-unknown"),
+        "pending_target_ref": str(
+            hold_record.get("pending_target_ref")
+            or hold_record.get("target_brick")
+            or "brick-unknown"
+        ),
+        "required_disposition_owner": str(
+            hold_record.get("required_disposition_owner") or "caller-or-coo"
+        ),
+        "reason_refs": [
+            str(
+                hold_record.get("source_transition_concern_ref")
+                or "observation:adapter-error-frontier"
+            ),
+            f"observation:reroute-hold-reason-{hold_record.get('hold_reason', 'adapter_error_frontier')}",
+        ],
+        "proof_limits": list(PROOF_LIMITS),
+        "not_proven": list(_merge_texts(NOT_PROVEN, RESUME_NOT_PROVEN)),
+    }

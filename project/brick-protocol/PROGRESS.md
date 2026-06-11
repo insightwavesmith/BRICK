@@ -8,17 +8,21 @@
 
 3축 프로토콜로 사람+AI 협업을 증거 기반으로 만드는 엔진을 제품화한다
 
-## 빌딩 집계 — 총 0개
+## 빌딩 집계 — 총 3개
 
 board_state 기준:
-- (빌딩 없음)
+- closed: 2
+- observed_running: 1
 
 frontier_kind 기준:
-- (빌딩 없음)
+- agent_incomplete: 1
+- complete: 2
 
 ## 최근 증거 빌딩 (last_evidence_at 상위 10)
 
-- (기록된 Link 증거 타임스탬프가 있는 빌딩 없음)
+- frontier-evidence-honesty-0612 — 2026-06-11T22:26:12Z — closed
+- lint-precision-fix-0612 — 2026-06-11T17:43:36Z — closed
+- adapter-30-s1-park — 2026-06-11T17:28:04Z — observed_running
 
 ## 이 파일이 증명하지 않는 것
 

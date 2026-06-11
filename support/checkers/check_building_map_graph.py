@@ -27,6 +27,13 @@ HISTORICAL_BUILDING_IDS: set[str] = set()
 # for the frozen museum with its root; the product vessel ships none, so the
 # grandfather set is EMPTY (a new map claiming pre-roundtrip leniency REDs).
 PRE_ROUNDTRIP_BUILDING_IDS: set[str] = set()
+# FRONTIER-FOSSIL (Smith disposition 0612, option c): adapter-30-s1-park's map
+# was REWRITTEN by the PRE-REPAIR crashed-resume frontier writer (phantom
+# binding/edge/group refs), and the building is unresumable by design (no held
+# record predates the fix). Evidence is append-only, so the map cannot be
+# corrected. This dated registry names THAT ONE building as a preserved fossil;
+# it exempts nothing else — any other map with the same defects still REDs.
+CRASHED_RESUME_FOSSIL_BUILDING_IDS: set[str] = {"adapter-30-s1-park"}
 
 BINDING_ROLES = {"primary", "support", "review"}
 EDGE_ROLES = {
@@ -939,6 +946,13 @@ def check_one(path: Path, *, fixture_mode: bool) -> tuple[Path, list[str], bool]
     if load_violations:
         return map_path, load_violations, False
     building_root = None if fixture_mode else building_root_for_map_path(map_path)
+    if (
+        not fixture_mode
+        and building_root is not None
+        and building_root.name in CRASHED_RESUME_FOSSIL_BUILDING_IDS
+    ):
+        # Dated fossil (Smith 0612): preserved verbatim, counted as historical.
+        return map_path, [], True
     violations = validate_graph_map(
         value,
         map_path,

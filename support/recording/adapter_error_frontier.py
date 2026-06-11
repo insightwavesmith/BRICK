@@ -17,6 +17,7 @@ Support recording shape only: NESTED evidence, no fourth axis or fact class.
 
 from __future__ import annotations
 
+import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -114,8 +115,13 @@ def write_adapter_error_frontier_evidence(
     overwrite_existing: bool,
     proof_limits: tuple[str, ...],
     graph_context: Mapping[str, Any] | None = None,
+    frontier_transition_lifecycle: Mapping[str, Any] | None = None,
 ) -> AdapterErrorFrontierEvidenceWriteResult:
     task_source_ref = _task_source_ref_from_plan(plan)
+    frontier_graph_context = _realized_frontier_graph_context(
+        graph_context,
+        completed_step_results,
+    )
     failed_step_index = len(completed_step_results) + 1
     failed_attempt_index = _frontier_attempt_index(
         completed_step_results,
@@ -139,7 +145,7 @@ def write_adapter_error_frontier_evidence(
         failed_preparation,
         observation,
         proof_limits=proof_limits,
-        graph_context=graph_context,
+        graph_context=frontier_graph_context,
         task_source_ref=task_source_ref,
     )
     building_map_packet = _adapter_error_frontier_building_map_packet(
@@ -148,13 +154,20 @@ def write_adapter_error_frontier_evidence(
         failed_preparation,
         observation,
         proof_limits=proof_limits,
-        graph_context=graph_context,
+        graph_context=frontier_graph_context,
         task_source_ref=task_source_ref,
+    )
+    effective_overwrite_existing = (
+        overwrite_existing
+        or _root_holds_only_declaration_chain_artifacts(
+            Path(output_root) / building_id,
+            building_id=building_id,
+        )
     )
     lifecycle_write = write_building_lifecycle(
         lifecycle_packet,
         output_root=output_root,
-        overwrite_existing=overwrite_existing,
+        overwrite_existing=effective_overwrite_existing,
     )
     complete_step_written = ()
     complete_raw_written = ()
@@ -177,7 +190,7 @@ def write_adapter_error_frontier_evidence(
                 completed_step_results,
                 plan=plan,
                 proof_limits=proof_limits,
-                graph_context=graph_context,
+                graph_context=frontier_graph_context,
             ),
         )
     adapter_step_written = write_adapter_error_outputs(
@@ -196,13 +209,14 @@ def write_adapter_error_frontier_evidence(
             observation,
             plan=plan,
             proof_limits=proof_limits,
-            graph_context=graph_context,
+            graph_context=frontier_graph_context,
+            frontier_transition_lifecycle=frontier_transition_lifecycle,
         ),
     )
     building_map_write = write_building_map(
         building_map_packet,
         output_root=output_root,
-        overwrite_existing=overwrite_existing,
+        overwrite_existing=effective_overwrite_existing,
     )
     written_files = (
         lifecycle_write.written_files
@@ -220,6 +234,110 @@ def write_adapter_error_frontier_evidence(
         building_map_packet=building_map_packet,
         proof_limits=lifecycle_write.proof_limits,
     )
+
+
+_DECLARATION_CHAIN_ROOT_ARTIFACTS: frozenset[Path] = frozenset(
+    {
+        Path("declared-building-plan.json"),
+        Path("work/task.md"),
+        Path("work/building-intake.json"),
+        Path("work/preset-expansion.json"),
+        Path("work/declared-building-plan.json"),
+        Path("work/link-launch-policy.json"),
+    }
+)
+_DECLARATION_CHAIN_PARENT_DIRS: frozenset[Path] = frozenset({Path("work")})
+_DECLARATION_CHAIN_PLAN_ARTIFACTS: frozenset[Path] = frozenset(
+    {
+        Path("declared-building-plan.json"),
+        Path("work/declared-building-plan.json"),
+    }
+)
+_DECLARATION_CHAIN_JSON_ARTIFACTS: frozenset[Path] = frozenset(
+    path for path in _DECLARATION_CHAIN_ROOT_ARTIFACTS if path.suffix == ".json"
+)
+
+
+def _root_holds_only_declaration_chain_artifacts(root: Path, *, building_id: str) -> bool:
+    """Admit a non-symlink root only when declaration files name this Building.
+
+    PROOF LIMIT: local-concurrency TOCTOU root/work swaps after this check are out of scope.
+    """
+
+    if root.is_symlink() or not root.exists() or not root.is_dir():
+        return False
+    saw_file = False
+    saw_plan_artifact = False
+    expected_building_id = building_id.strip()
+    for entry in root.rglob("*"):
+        relative = entry.relative_to(root)
+        if entry.is_symlink():
+            return False
+        if entry.is_dir():
+            if relative not in _DECLARATION_CHAIN_PARENT_DIRS:
+                return False
+            continue
+        if not entry.is_file():
+            return False
+        if relative not in _DECLARATION_CHAIN_ROOT_ARTIFACTS:
+            return False
+        if relative in _DECLARATION_CHAIN_JSON_ARTIFACTS:
+            try:
+                packet = json.loads(entry.read_text(encoding="utf-8"))
+            except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+                return False
+            if not isinstance(packet, Mapping):
+                return False
+            packet_building_id = packet.get("building_id")
+            if relative in _DECLARATION_CHAIN_PLAN_ARTIFACTS:
+                if not isinstance(packet_building_id, str):
+                    return False
+                if not packet_building_id.strip():
+                    return False
+                if packet_building_id.strip() != expected_building_id:
+                    return False
+            elif packet_building_id is not None:
+                if not isinstance(packet_building_id, str):
+                    return False
+                if packet_building_id.strip() != expected_building_id:
+                    return False
+        if relative in _DECLARATION_CHAIN_PLAN_ARTIFACTS:
+            saw_plan_artifact = True
+        saw_file = True
+    return saw_file and saw_plan_artifact
+
+
+def _realized_frontier_graph_context(
+    graph_context: Mapping[str, Any] | None,
+    completed_step_results: tuple[BuildingRunSupportResult, ...],
+) -> Mapping[str, Any] | None:
+    """Keep adapter-error frontier graph refs limited to walked step crossings."""
+
+    if not graph_context:
+        return None
+    completed_step_refs = {
+        result.preparation.step_rows.step_ref for result in completed_step_results
+    }
+    declared_edges = graph_context.get("declared_edges")
+    if not isinstance(declared_edges, list):
+        return {"declared_edges": [], "completion_edge_refs": [], "groups": []}
+    realized_edges = [
+        dict(edge)
+        for edge in declared_edges
+        if isinstance(edge, Mapping)
+        and edge.get("is_completion_edge") is True
+        and edge.get("source_step_ref") in completed_step_refs
+    ]
+    completion_edge_refs = [
+        str(edge.get("edge_ref"))
+        for edge in realized_edges
+        if isinstance(edge.get("edge_ref"), str) and edge.get("edge_ref")
+    ]
+    return {
+        "declared_edges": realized_edges,
+        "completion_edge_refs": sorted(completion_edge_refs),
+        "groups": [],
+    }
 
 
 def _adapter_error_observation(
@@ -597,6 +715,7 @@ def _adapter_error_frontier_trace_packet(
     plan: Mapping[str, Any],
     proof_limits: tuple[str, ...],
     graph_context: Mapping[str, Any] | None,
+    frontier_transition_lifecycle: Mapping[str, Any] | None = None,
 ) -> AdapterErrorFrontierTracePacket:
     failed_index = len(completed_step_results) + 1
     return AdapterErrorFrontierTracePacket(
@@ -627,6 +746,7 @@ def _adapter_error_frontier_trace_packet(
                 failed_preparation,
                 observation,
                 failed_index,
+                transition_lifecycle=frontier_transition_lifecycle,
             ),
         ),
         brick_claim_facts=(

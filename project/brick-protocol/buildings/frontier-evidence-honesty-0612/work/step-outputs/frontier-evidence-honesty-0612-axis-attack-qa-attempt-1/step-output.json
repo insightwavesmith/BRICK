@@ -1,0 +1,162 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:frontier-evidence-honesty-0612::work/step-outputs/frontier-evidence-honesty-0612-axis-attack-qa-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:inspector",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-frontier-evidence-honesty-0612-axis-attack-qa",
+  "building_id": "frontier-evidence-honesty-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:04",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-11T18:16:31.900401Z",
+  "id": "urn:bp:building:frontier-evidence-honesty-0612::work/step-outputs/frontier-evidence-honesty-0612-axis-attack-qa-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:04:frontier-evidence-honesty-0612-axis-attack-qa",
+  "recorded_at": "2026-06-11T18:16:31.900401Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_axis_findings": [
+      "Agent object is inspector with reviewer-readonly policy; mutation is not admitted by this packet.",
+      "The return must stay fact-only and avoid status, verdict, score, success, failure, or quality labels.",
+      "No provider sync, hook execution, or tool execution is proven by the packet."
+    ],
+    "agent_object_ref": "agent-object:inspector",
+    "attacked_scope": [
+      "Brick contract/source task consistency",
+      "Agent return shape and authority limits",
+      "Link Movement and hold/disposition boundary",
+      "Support writer/checker/projection authority leakage"
+    ],
+    "blocked_or_missing_evidence": [
+      "Tools were explicitly disallowed by the packet, so no local repo inspection or command proof was collected.",
+      "Repair write authority is not present in this inspector packet.",
+      "Packet write_scope is empty despite task-body write-scope constraints."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "brick_axis_findings": [
+      "Work objective and desired proof lanes are declared in the task-source.",
+      "The packet write_scope is empty while the task body says write scope is support/* and brick/building_plans/* only; this is a contract mismatch for any repair run.",
+      "The required return shape is closed and explicit for this inspector return."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:frontier-evidence-honesty-0612",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:frontier-evidence-honesty-0612:agent-object:inspector:output"
+    ],
+    "evidence_used": [
+      "task-source:inline-statement",
+      "agent_instruction_packet",
+      "AGENTS.md instructions supplied in prompt"
+    ],
+    "link_axis_findings": [
+      "The task requires preserving existing hold/disposition vocabulary and inventing no new Link vocabulary.",
+      "The inspector packet supplies no Link handoff refs and does not authorize a Movement or target choice.",
+      "Future repair evidence must keep failed-occurrence hold identity addressable without making support choose route or Movement."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Actual repo file contents",
+      "Precise source line locations",
+      "Defect A reproduction",
+      "Defect B dynamic-path diagnosis",
+      "Defect C resume/disposition behavior",
+      "FIRE checker result",
+      "Full check_profile.py --all result",
+      "Any code repair",
+      "Codex native sync",
+      "Claude native sync",
+      "MCP projection behavior",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority"
+    ],
+    "observed_evidence": [
+      "Only inline task-source and AgentInstructionPacket were observed; no tools were used.",
+      "Task declares three frontier-evidence defects: lost first-step adapter-error evidence, invalid dynamic frontier building-map references, and unresumable resume crash due missing addressable hold identity.",
+      "Declared constraints include no project/ mutation, no Link vocabulary change, no checker weakening, no scheduler/queue/retry/timer, and support/* plus brick/building_plans/* write-scope language in the task body.",
+      "Packet-level tool policy is reviewer-readonly and the explicit rules say do not use tools or hooks."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"Only inline task-source and AgentInstructionPacket were observed; no tools were used.\", \"Task declares three frontier-evidence defects: lost first-step adapter-error evidence, invalid dynamic frontier building-map references, and unresumable resume crash due missing addressable hold identity.\", \"Declared constraints include no project/ mutation, no Link vocabulary change, no checker weakening, no scheduler/queue/retry/timer, and support/* plus brick/building_plans/* write-scope language in the task body.\", \"Packet-level tool policy is reviewer-readonly and the expl...",
+    "projection_authority_findings": [
+      "The cited project/brick-protocol/buildings/adapter-30-s1-park artifact is historical evidence only and must not be rewritten.",
+      "Building-map output is support evidence/projection and must pass structural pins without becoming source truth, success judgment, quality judgment, or Movement authority."
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "Support evidence only",
+      "No source truth claim",
+      "No success or quality judgment",
+      "No Link Movement chosen",
+      "No route target chosen",
+      "No tools or hooks used"
+    ],
+    "remaining_delta": [
+      "A separate read-write-scoped repair Brick must reconcile the write_scope mismatch before mutation.",
+      "Diagnose dynamic frontier map composition before editing.",
+      "Repair future frontier writers only, leaving project/ evidence append-only.",
+      "Run the declared temp repros, FIRE mutation check, and full profile gate in the repair/verification lane."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "support_leak_findings": [
+      "The suspected repair surfaces are support/recording/capture.py, support/recording/building_map_emit.py, support/operator/walker_frontier.py, support/operator/walker_kernel.py, and resume/disposition support machinery, but this was not tool-verified.",
+      "A support writer that overwrites, selects unwalked topology, or emits phantom facts would leak beyond evidence recording into hidden route/topology authorship.",
+      "Checker weakening or project/ history edits would violate the declared task constraints."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:04:frontier-evidence-honesty-0612-axis-attack-qa",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:frontier-evidence-honesty-0612",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:frontier-evidence-honesty-0612-axis-attack-qa:attempt-1",
+  "step_ref": "frontier-evidence-honesty-0612-axis-attack-qa",
+  "subject": "frontier-evidence-honesty-0612-axis-attack-qa",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-11T18:16:31.900401Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

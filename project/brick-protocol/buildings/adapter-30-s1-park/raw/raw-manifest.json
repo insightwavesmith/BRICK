@@ -1,0 +1,107 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:adapter-30-s1-park::raw/raw-manifest.json",
+  "building_id": "adapter-30-s1-park",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "entries": [
+    {
+      "axis_owner": "Brick",
+      "content_shape": "jsonl Brick work rows",
+      "path": "raw/brick-work.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:brick:02"
+      ],
+      "record_role": "primary",
+      "source": "support/operator/run.py declared Brick rows before adapter exception observation"
+    },
+    {
+      "axis_owner": "Agent",
+      "content_shape": "jsonl Agent returned payload refs",
+      "path": "raw/agent-return.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:agent:01"
+      ],
+      "record_role": "primary",
+      "source": "support/operator/run.py run_building_plan closed AgentFact returns"
+    },
+    {
+      "axis_owner": "Link",
+      "content_shape": "jsonl Link transition rows and frontier absence rows",
+      "path": "raw/link.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:link:01",
+        "raw:link-frontier:02",
+        "raw:link-graph:01:edge-adapter-30-s1-park-design-to-adapter-30-s1-park-work",
+        "raw:link-graph:02:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-code-attack-qa",
+        "raw:link-graph:03:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-axis-attack-qa",
+        "raw:link-graph:04:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-evidence-integrity",
+        "raw:link-graph:05:edge-adapter-30-s1-park-code-attack-qa-to-adapter-30-s1-park-closure",
+        "raw:link-graph:06:edge-adapter-30-s1-park-axis-attack-qa-to-adapter-30-s1-park-closure",
+        "raw:link-graph:07:edge-adapter-30-s1-park-evidence-integrity-to-adapter-30-s1-park-closure",
+        "raw:link-graph:08:edge-adapter-30-s1-park-closure-to-boundary"
+      ],
+      "record_role": "primary",
+      "source": "support/operator/run.py declared Link rows and frontier absence observations"
+    },
+    {
+      "axis_owner": "Agent",
+      "content_shape": "jsonl Agent receipt rows",
+      "path": "raw/agent-received.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:agent-received:01",
+        "raw:agent-received:02"
+      ],
+      "record_role": "primary",
+      "source": "support/operator/run.py Agent receipt observations before returned AgentFact"
+    },
+    {
+      "axis_owner": "Agent",
+      "content_shape": "jsonl adapter exception observation rows",
+      "path": "raw/adapter-error.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:adapter-error:02"
+      ],
+      "record_role": "primary",
+      "source": "support/operator/run.py adapter exception observation"
+    }
+  ],
+  "generatedAtTime": "2026-06-11T17:28:04Z",
+  "id": "urn:bp:building:adapter-30-s1-park::raw/raw-manifest.json",
+  "raw_refs": [
+    "raw:brick:01",
+    "raw:agent:01",
+    "raw:link:01",
+    "raw:link-graph:01:edge-adapter-30-s1-park-design-to-adapter-30-s1-park-work",
+    "raw:link-graph:02:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-code-attack-qa",
+    "raw:link-graph:03:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-axis-attack-qa",
+    "raw:link-graph:04:edge-adapter-30-s1-park-work-to-adapter-30-s1-park-evidence-integrity",
+    "raw:link-graph:05:edge-adapter-30-s1-park-code-attack-qa-to-adapter-30-s1-park-closure",
+    "raw:link-graph:06:edge-adapter-30-s1-park-axis-attack-qa-to-adapter-30-s1-park-closure",
+    "raw:link-graph:07:edge-adapter-30-s1-park-evidence-integrity-to-adapter-30-s1-park-closure",
+    "raw:link-graph:08:edge-adapter-30-s1-park-closure-to-boundary",
+    "raw:brick:02",
+    "raw:agent-received:01",
+    "raw:agent-received:02",
+    "raw:adapter-error:02",
+    "raw:link-frontier:02"
+  ],
+  "recorded_at": "2026-06-11T17:28:04Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:adapter-30-s1-park",
+  "specversion": "1.0",
+  "subject": "raw/raw-manifest.json",
+  "time": "2026-06-11T17:28:04Z",
+  "type": "bp.raw_manifest"
+}

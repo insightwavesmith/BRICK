@@ -86,6 +86,7 @@ from brick_protocol.support.operator.walker_frontier import (
 )
 from brick_protocol.support.operator.walker_hold import (
     _build_hold,
+    _hold_paused_at_ref,
     _inject_fan_in_paused_link,
     _inject_hold_paused_link,
     _replace_held_source_with_lifecycle,
@@ -894,6 +895,49 @@ def _has_pending_recorded_returns(
     return replay_consumed.get(step_ref, 0) < len(recorded)
 
 
+def _resume_observation_for_hold(
+    resume_seed: "ResumeSeed | None",
+    hold_record: Mapping[str, Any],
+) -> Mapping[str, Any] | None:
+    if resume_seed is None:
+        return None
+    hold_ref = _hold_paused_at_ref(hold_record)
+    for observation in resume_seed.existing_resume_observations:
+        if not isinstance(observation, Mapping):
+            continue
+        refs = {
+            _optional_text_value(observation.get("paused_at_ref")),
+            _optional_text_value(observation.get("resumed_from")),
+        }
+        provenance = observation.get("disposition_row_provenance")
+        if isinstance(provenance, Mapping):
+            refs.add(_optional_text_value(provenance.get("disposition_row_paused_at_ref")))
+        if hold_ref in refs:
+            return observation
+    return None
+
+
+def _resume_observations_for_frontier(
+    resume_seed: "ResumeSeed | None",
+    *,
+    disposition_applied: bool,
+    node_budget: Mapping[str, int],
+    node_landings: Mapping[str, int],
+) -> list[Mapping[str, Any]] | None:
+    if resume_seed is None:
+        return None
+    observations = list(resume_seed.existing_resume_observations)
+    if disposition_applied:
+        observations.append(
+            _build_resume_disposition_observation(
+                resume_seed=resume_seed,
+                node_budget=node_budget,
+                node_landings=node_landings,
+            )
+        )
+    return observations
+
+
 def _stamp_resumed_lifecycle_on_held_source(
     step_results: list[BuildingRunSupportResult],
     *,
@@ -1342,9 +1386,17 @@ def _run_dynamic_graph_walker(
                 node_landings=node_landings,
                 held=False,
                 hold_record=None,
+                cascade_depth=cascade_depth,
+                parent_reroute_ref=item["parent_reroute_ref"],
                 fan_in_wait_all_observations=fan_in_wait_all_observations,
                 has_fan_groups=has_fan_groups,
                 write_adapter_error_frontier=write_adapter_error_frontier,
+                resume_observations=_resume_observations_for_frontier(
+                    resume_seed,
+                    disposition_applied=disposition_applied,
+                    node_budget=node_budget,
+                    node_landings=node_landings,
+                ),
             )
             raise AssertionError("unreachable after dynamic adapter frontier write")
         # E1 (U5.5 slice-3) + RESUME-GATE-RECORD — DYNAMIC-WALKER parity with run.py.
@@ -1495,7 +1547,7 @@ def _run_dynamic_graph_walker(
                 or step_result.preparation.next_brick_instance_ref
             )
             adoption_sequence_number += 1
-            hold_record = _build_hold(
+            prospective_hold = _build_hold(
                 building_id=building_id,
                 plan_ref=plan_ref,
                 source_step_ref=step_ref,
@@ -1517,6 +1569,29 @@ def _run_dynamic_graph_walker(
                 step=step,
                 step_result=step_result,
             )
+            previous_disposition = _resume_observation_for_hold(
+                resume_seed,
+                prospective_hold,
+            )
+            if previous_disposition is not None:
+                if previous_disposition.get("disposition_action") != "forward":
+                    raise ValueError(
+                        "resume replay encountered an already-disposed recorded HOLD "
+                        f"for {step_ref!r} with unsupported prior disposition "
+                        f"{previous_disposition.get('disposition_action')!r}"
+                    )
+                if has_fan_groups:
+                    _splice_declared_successors(
+                        attempt_queue,
+                        insert_at=cursor,
+                        source_step_ref=step_ref,
+                        cascade_depth=cascade_depth,
+                        parent_reroute_ref=item["parent_reroute_ref"],
+                        successors_by_source=fan_successors_by_source,
+                        scheduled_fan_steps=scheduled_fan_steps,
+                    )
+                continue
+            hold_record = prospective_hold
             reroute_records.append(hold_record)
             if has_fan_groups:
                 held_fan_steps.add((step_ref, cascade_depth))

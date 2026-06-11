@@ -596,6 +596,14 @@ def _executed_step_refs(building_root: Path, violations: list[str]) -> set[str]:
     for step_dir in sorted(p for p in step_outputs_dir.iterdir() if p.is_dir()):
         output_path = step_dir / "step-output.json"
         if not output_path.is_file():
+            # ADAPTER-ERROR OCCURRENCE (0612): a breakdown step writes an
+            # adapter-error.json capsule and NO step-output.json — the step
+            # never returned (no AgentFact), so there is no executed-step
+            # coverage to demand; the capsule is the admitted record of the
+            # occurrence (validated by the lifecycle path-shape checker).
+            # A dir with NEITHER file stays RED (fail-closed unchanged).
+            if (step_dir / "adapter-error.json").is_file():
+                continue
             violations.append(
                 f"{step_dir}: cannot determine executed step identity for coverage "
                 "(missing step-output.json)"

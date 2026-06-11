@@ -330,6 +330,10 @@ def _adapter_error_frontier_building_map_packet(
     graph_context: Mapping[str, Any] | None,
     task_source_ref: str | None,
 ) -> dict[str, Any]:
+    frontier_graph_context = _frontier_realized_graph_context(
+        graph_context,
+        completed_step_results,
+    )
     if completed_step_results:
         packet = dict(
             _accumulated_building_map_packet(
@@ -340,7 +344,7 @@ def _adapter_error_frontier_building_map_packet(
                     *(result.not_proven for result in completed_step_results),
                     observation.not_proven,
                 ),
-                graph_context=graph_context,
+                graph_context=frontier_graph_context,
                 task_source_ref=task_source_ref,
             )
         )
@@ -365,9 +369,20 @@ def _adapter_error_frontier_building_map_packet(
     ):
         if ref not in raw_refs:
             raw_refs.append(ref)
-    if failed_preparation.brick_instance_ref not in {
-        item.get("brick_instance_id") for item in brick_instances if isinstance(item, Mapping)
-    }:
+    failed_brick = next(
+        (
+            item
+            for item in brick_instances
+            if isinstance(item, dict)
+            and item.get("brick_instance_id") == failed_preparation.brick_instance_ref
+        ),
+        None,
+    )
+    failed_brick_raw_refs = [
+        _raw_ref("brick", failed_index),
+        _raw_ref("agent-received", failed_index),
+    ]
+    if failed_brick is None:
         brick_instances.append(
             {
                 "brick_instance_id": failed_preparation.brick_instance_ref,
@@ -377,11 +392,29 @@ def _adapter_error_frontier_building_map_packet(
                 ),
                 "attempt_index": failed_index,
                 "agent_binding_refs": [binding_ref],
-                "raw_refs": [_raw_ref("brick", failed_index), _raw_ref("agent-received", failed_index)],
+                "raw_refs": failed_brick_raw_refs,
                 "proof_limits": list(proof_limits),
                 "not_proven": list(observation.not_proven),
             }
         )
+    else:
+        refs = failed_brick.get("agent_binding_refs")
+        if not isinstance(refs, list):
+            refs = []
+            failed_brick["agent_binding_refs"] = refs
+        if binding_ref not in refs:
+            refs.append(binding_ref)
+        failed_brick["brick_work_ref"] = failed_preparation.step_rows.brick_row.get(
+            "brick_work_ref",
+            "work/building-work.json",
+        )
+        raw_ref_values = failed_brick.get("raw_refs")
+        if not isinstance(raw_ref_values, list):
+            raw_ref_values = []
+            failed_brick["raw_refs"] = raw_ref_values
+        for ref in failed_brick_raw_refs:
+            if ref not in raw_ref_values:
+                raw_ref_values.append(ref)
     agent_bindings.append(
         {
             "agent_binding_id": binding_ref,
@@ -418,3 +451,34 @@ def _adapter_error_frontier_building_map_packet(
     if task_source_ref:
         packet["task_source_ref"] = task_source_ref
     return packet
+
+
+def _frontier_realized_graph_context(
+    graph_context: Mapping[str, Any] | None,
+    completed_step_results: tuple[BuildingRunSupportResult, ...],
+) -> Mapping[str, Any] | None:
+    if not graph_context:
+        return None
+    completed_step_refs = {
+        result.preparation.step_rows.step_ref for result in completed_step_results
+    }
+    declared_edges = graph_context.get("declared_edges")
+    if not isinstance(declared_edges, list):
+        return {"declared_edges": [], "completion_edge_refs": [], "groups": []}
+    realized_edges = [
+        dict(edge)
+        for edge in declared_edges
+        if isinstance(edge, Mapping)
+        and edge.get("is_completion_edge") is True
+        and edge.get("source_step_ref") in completed_step_refs
+    ]
+    completion_edge_refs = [
+        str(edge.get("edge_ref"))
+        for edge in realized_edges
+        if isinstance(edge.get("edge_ref"), str) and edge.get("edge_ref")
+    ]
+    return {
+        "declared_edges": realized_edges,
+        "completion_edge_refs": sorted(completion_edge_refs),
+        "groups": [],
+    }
