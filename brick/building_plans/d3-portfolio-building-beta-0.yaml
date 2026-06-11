@@ -1,0 +1,43 @@
+plan_ref: building-plan:d3-portfolio-building-beta-0
+owner_axis: Brick
+building_id: d3-portfolio-building-beta-0-0530
+selected_shape_ref: building-shape:one-brick
+declared_by: coo
+selected_adapter_ref: adapter:codex-local
+selected_model_ref: model:codex:default
+proof_limits:
+  - support evidence only
+  - one declared portfolio candidate Building driven by the real Codex local adapter
+  - not provider reliability proof
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - repeated provider adherence to the JSON return shape
+  - Claude or Gemini local provider behavior
+  - semantic correctness of the returned observation
+steps:
+  - step_ref: d3-portfolio-building-beta-0-observe
+    selected_adapter_ref: adapter:codex-local
+    selected_model_ref: model:codex:default
+    rows:
+      - axis: Brick
+        row_ref: brick-row:d3-portfolio-building-beta-0-observe
+        brick_work_ref: work:d3-portfolio-building-beta-0-observe
+        brick_instance_ref: brick-d3-portfolio-building-beta-observe
+        work_statement: Return one JSON object with exactly two top-level fields, observed_evidence (a list of one short string naming this as portfolio candidate Building beta) and not_proven (a list of one short string). Do not use tools. Do not return transition_concern_evidence. Do not choose Movement or target. Do not report success, failure, approval, quality, or verdict.
+        comparison_rule: Observe whether the live Codex local adapter returns JSON fields matching required_return_shape; support does not judge quality.
+        required_return_shape: observed_evidence, not_proven
+      - axis: Agent
+        row_ref: agent-row:d3-portfolio-building-beta-0-observe
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:d3-portfolio-building-beta-0-closed
+        movement: forward
+        target_ref: building-boundary:d3-portfolio-building-beta-0-closed
+        declared_gate_refs:
+          - link-gate:default-transition
+        building_lifecycle:
+          state: closed
+          reason: D3-PORTFOLIO-BUILDING-BETA-0 observed one live Codex local adapter JSON return as the second declared portfolio candidate.

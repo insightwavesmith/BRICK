@@ -1,0 +1,526 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:link-owned-automation-0-dogfood-0527::evidence/claim_trace/brick/work_contract.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-loa0-plan-attempt-1",
+        "comparison_rule": "Observe required honest report fields only.",
+        "required_return_shape": "observed_evidence, made_changes, not_proven",
+        "source_facts": [],
+        "work_statement": "Plan the compact preset and Link-owned automation dogfood."
+      },
+      "fact_ref": "brick-work:01:link-owned-automation-0-plan",
+      "not_proven": [
+        "semantic correctness of Agent returned work",
+        "semantic correctness of Link concern mapping",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "Link-owned declared gate and policy automation dogfood",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe required honest report fields only.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Plan the compact preset and Link-owned automation dogfood."
+      },
+      "fact_ref": "brick-comparison:01:link-owned-automation-0-plan",
+      "not_proven": [
+        "semantic correctness of Agent returned work",
+        "semantic correctness of Link concern mapping",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "Link-owned declared gate and policy automation dogfood",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-loa0-design-attempt-1",
+        "comparison_rule": "Observe required honest report fields only.",
+        "required_return_shape": "observed_evidence, made_changes, not_proven",
+        "source_facts": [],
+        "work_statement": "Design Link-owned automatic disposition policy boundaries."
+      },
+      "fact_ref": "brick-work:02:link-owned-automation-0-design",
+      "not_proven": [
+        "semantic correctness of Agent returned work",
+        "semantic correctness of Link concern mapping",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "Link-owned declared gate and policy automation dogfood",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe required honest report fields only.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Design Link-owned automatic disposition policy boundaries."
+      },
+      "fact_ref": "brick-comparison:02:link-owned-automation-0-design",
+      "not_proven": [
+        "semantic correctness of Agent returned work",
+        "semantic correctness of Link concern mapping",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "Link-owned declared gate and policy automation dogfood",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-loa0-dev-attempt-1",
+        "comparison_rule": "Observe required honest report fields only.",
+        "required_return_shape": "observed_evidence, made_changes, not_proven",
+        "source_facts": [],
+        "work_statement": "Implement the first declared work boundary for automation dogfood."
+      },
+      "fact_ref": "brick-work:03:link-owned-automation-0-dev",
+      "not_proven": [
+        "semantic correctness of Agent returned work",
+        "semantic correctness of Link concern mapping",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "Link-owned declared gate and policy automation dogfood",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe required honest report fields only.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Implement the first declared work boundary for automation dogfood."
+      },
+      "fact_ref": "brick-comparison:03:link-owned-automation-0-dev",
+      "not_proven": [
+        "semantic correctness of Agent returned work",
+        "semantic correctness of Link concern mapping",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "Link-owned declared gate and policy automation dogfood",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-loa0-qa-attempt-1",
+        "comparison_rule": "Observe concern evidence only; Agent does not choose Movement.",
+        "required_return_shape": "observed_evidence, transition_concern_evidence, not_proven",
+        "source_facts": [],
+        "work_statement": "Return transition_concern_evidence for implementation_gap."
+      },
+      "fact_ref": "brick-work:04:link-owned-automation-0-qa",
+      "not_proven": [
+        "semantic correctness of Agent returned work",
+        "semantic correctness of Link concern mapping",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "Link-owned declared gate and policy automation dogfood",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:04"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe concern evidence only; Agent does not choose Movement.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Return transition_concern_evidence for implementation_gap."
+      },
+      "fact_ref": "brick-comparison:04:link-owned-automation-0-qa",
+      "not_proven": [
+        "semantic correctness of Agent returned work",
+        "semantic correctness of Link concern mapping",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "Link-owned declared gate and policy automation dogfood",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:04",
+        "raw:agent:04"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-loa0-dev-attempt-2",
+        "comparison_rule": "Observe required honest report fields only.",
+        "required_return_shape": "observed_evidence, made_changes, not_proven",
+        "source_facts": [],
+        "work_statement": "Replay the existing dev boundary after Link-owned reroute."
+      },
+      "fact_ref": "brick-work:05:link-owned-automation-0-dev",
+      "not_proven": [
+        "semantic correctness of Agent returned work",
+        "semantic correctness of Link concern mapping",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "Link-owned declared gate and policy automation dogfood",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:05"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe required honest report fields only.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Replay the existing dev boundary after Link-owned reroute."
+      },
+      "fact_ref": "brick-comparison:05:link-owned-automation-0-dev",
+      "not_proven": [
+        "semantic correctness of Agent returned work",
+        "semantic correctness of Link concern mapping",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "Link-owned declared gate and policy automation dogfood",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:05",
+        "raw:agent:05"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-loa0-qa-attempt-2",
+        "comparison_rule": "Observe required honest report fields only.",
+        "required_return_shape": "observed_evidence, made_changes, not_proven",
+        "source_facts": [],
+        "work_statement": "Replay the existing QA boundary after dev attempt-2."
+      },
+      "fact_ref": "brick-work:06:link-owned-automation-0-qa",
+      "not_proven": [
+        "semantic correctness of Agent returned work",
+        "semantic correctness of Link concern mapping",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "Link-owned declared gate and policy automation dogfood",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:06"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe required honest report fields only.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Replay the existing QA boundary after dev attempt-2."
+      },
+      "fact_ref": "brick-comparison:06:link-owned-automation-0-qa",
+      "not_proven": [
+        "semantic correctness of Agent returned work",
+        "semantic correctness of Link concern mapping",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "Link-owned declared gate and policy automation dogfood",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:06",
+        "raw:agent:06"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-loa0-closure",
+        "comparison_rule": "Observe closure report fields only.",
+        "required_return_shape": "observed_evidence, remaining_delta, not_proven",
+        "source_facts": [],
+        "work_statement": "Close LINK-OWNED-AUTOMATION-0 dogfood evidence."
+      },
+      "fact_ref": "brick-work:07:link-owned-automation-0-closure",
+      "not_proven": [
+        "semantic correctness of Agent returned work",
+        "semantic correctness of Link concern mapping",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "Link-owned declared gate and policy automation dogfood",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:07"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe closure report fields only.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Close LINK-OWNED-AUTOMATION-0 dogfood evidence."
+      },
+      "fact_ref": "brick-comparison:07:link-owned-automation-0-closure",
+      "not_proven": [
+        "semantic correctness of Agent returned work",
+        "semantic correctness of Link concern mapping",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "Link-owned declared gate and policy automation dogfood",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:07",
+        "raw:agent:07"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-27T11:12:45Z",
+  "id": "urn:bp:building:link-owned-automation-0-dogfood-0527::evidence/claim_trace/brick/work_contract.json",
+  "recorded_at": "2026-05-27T11:12:45Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:link-owned-automation-0-dogfood-0527",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/brick/work_contract.json",
+  "time": "2026-05-27T11:12:45Z",
+  "type": "bp.claim_trace"
+}

@@ -1,0 +1,333 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:project-orchestration-ledger-0-0528::evidence/claim_trace/link/sufficiency_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "caller_or_declared": true,
+        "checked_public_fact": "agent-fact:project-orchestration-ledger-0-0528:project-orchestration-ledger-0-plan",
+        "evidence_reference": "step-output:project-orchestration-ledger-0-plan",
+        "missing_required_facts": [],
+        "reason": "declared Link gate evaluation for work contract return shape and honest report channels",
+        "required_public_facts": [
+          "AgentFact.received_work",
+          "AgentFact.returned",
+          "BrickWork.required_return_shape",
+          "AgentFact.returned.observed_evidence",
+          "AgentFact.returned.not_proven",
+          "AgentFact.returned.remaining_delta"
+        ],
+        "stage": "movement",
+        "sufficiency": "sufficient"
+      },
+      "fact_ref": "sufficiency-fact-movement:01:project-orchestration-ledger-0-plan",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "caller_or_declared": true,
+        "checked_public_fact": "agent-fact:project-orchestration-ledger-0-0528:project-orchestration-ledger-0-design",
+        "evidence_reference": "step-output:project-orchestration-ledger-0-design",
+        "missing_required_facts": [],
+        "reason": "declared Link gate evaluation for work contract return shape and honest report channels",
+        "required_public_facts": [
+          "AgentFact.received_work",
+          "AgentFact.returned",
+          "BrickWork.required_return_shape",
+          "AgentFact.returned.observed_evidence",
+          "AgentFact.returned.made_changes",
+          "AgentFact.returned.not_proven"
+        ],
+        "stage": "movement",
+        "sufficiency": "sufficient"
+      },
+      "fact_ref": "sufficiency-fact-movement:02:project-orchestration-ledger-0-design",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:link:02"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "caller_or_declared": true,
+        "checked_public_fact": "agent-fact:project-orchestration-ledger-0-0528:project-orchestration-ledger-0-development",
+        "evidence_reference": "step-output:project-orchestration-ledger-0-development",
+        "missing_required_facts": [
+          "AgentFact.returned.worker_assignments",
+          "AgentFact.returned.risks"
+        ],
+        "reason": "declared Link gate evaluation for work contract return shape and honest report channels",
+        "required_public_facts": [
+          "AgentFact.received_work",
+          "AgentFact.returned",
+          "BrickWork.required_return_shape",
+          "AgentFact.returned.observed_evidence",
+          "AgentFact.returned.worker_assignments",
+          "AgentFact.returned.risks",
+          "AgentFact.returned.not_proven"
+        ],
+        "stage": "movement",
+        "sufficiency": "missing_required_facts"
+      },
+      "fact_ref": "sufficiency-fact-movement:03:project-orchestration-ledger-0-development",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:link:03"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "caller_or_declared": true,
+        "checked_public_fact": "agent-fact:project-orchestration-ledger-0-0528:project-orchestration-ledger-0-work",
+        "evidence_reference": "step-output:project-orchestration-ledger-0-work",
+        "missing_required_facts": [
+          "AgentFact.returned.observed_evidence",
+          "AgentFact.returned.made_changes",
+          "AgentFact.returned.blocked_or_missing_evidence"
+        ],
+        "reason": "declared Link gate evaluation for work contract return shape and honest report channels",
+        "required_public_facts": [
+          "AgentFact.received_work",
+          "AgentFact.returned",
+          "BrickWork.required_return_shape",
+          "AgentFact.returned.observed_evidence",
+          "AgentFact.returned.made_changes",
+          "AgentFact.returned.blocked_or_missing_evidence",
+          "AgentFact.returned.not_proven"
+        ],
+        "stage": "movement",
+        "sufficiency": "missing_required_facts"
+      },
+      "fact_ref": "sufficiency-fact-movement:04:project-orchestration-ledger-0-work",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:link:04"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "caller_or_declared": true,
+        "checked_public_fact": "agent-fact:project-orchestration-ledger-0-0528:project-orchestration-ledger-0-review",
+        "evidence_reference": "step-output:project-orchestration-ledger-0-review",
+        "missing_required_facts": [
+          "AgentFact.returned.transition_concern_evidence",
+          "Link.route_decision_basis.override_refs"
+        ],
+        "reason": "declared Link gate evaluation for work contract return shape and honest report channels",
+        "required_public_facts": [
+          "AgentFact.received_work",
+          "AgentFact.returned",
+          "BrickWork.required_return_shape",
+          "AgentFact.returned.observed_evidence",
+          "AgentFact.returned.blocked_or_missing_evidence",
+          "AgentFact.returned.transition_concern_evidence",
+          "AgentFact.returned.not_proven",
+          "Link.route_decision_basis.override_refs"
+        ],
+        "stage": "movement",
+        "sufficiency": "missing_required_facts"
+      },
+      "fact_ref": "sufficiency-fact-movement:05:project-orchestration-ledger-0-review",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:link:05"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "caller_or_declared": true,
+        "checked_public_fact": "agent-fact:project-orchestration-ledger-0-0528:project-orchestration-ledger-0-closure",
+        "evidence_reference": "step-output:project-orchestration-ledger-0-closure",
+        "missing_required_facts": [],
+        "reason": "declared Link gate evaluation for work contract return shape and honest report channels",
+        "required_public_facts": [
+          "AgentFact.received_work",
+          "AgentFact.returned",
+          "BrickWork.required_return_shape",
+          "AgentFact.returned.observed_evidence",
+          "AgentFact.returned.narrowly_proven",
+          "AgentFact.returned.not_proven",
+          "AgentFact.returned.remaining_delta",
+          "AgentFact.returned.review_needed"
+        ],
+        "stage": "movement",
+        "sufficiency": "sufficient"
+      },
+      "fact_ref": "sufficiency-fact-movement:06:project-orchestration-ledger-0-closure",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:link:06"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-28T06:59:24Z",
+  "id": "urn:bp:building:project-orchestration-ledger-0-0528::evidence/claim_trace/link/sufficiency_trace.json",
+  "recorded_at": "2026-05-28T06:59:24Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:project-orchestration-ledger-0-0528",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/sufficiency_trace.json",
+  "time": "2026-05-28T06:59:24Z",
+  "type": "bp.claim_trace"
+}

@@ -1,0 +1,29 @@
+kind: AgentReceiptContractProjection
+bal_owner: Agent
+module: Agent.receipt
+contract: AgentFact received_work
+projection_only: true
+
+public_fact:
+  name: ReceiptFact
+  fields:
+    - received_work
+    - received_at_reference
+    - evidence_reference
+
+allowed_facts:
+  - received_work
+
+forbidden_ownership:
+  - Brick work definition
+  - Link handoff choice
+  - quality judgement
+  - second AgentFact home
+
+verifiers:
+  - check_axis_contract_projection.py
+  # residual contract guards tracked in checker-consolidation-and-builder-plan-0602.md (not all built yet)
+
+proof_limits:
+  - performer call is outside this projection
+  - returned fact is outside this projection

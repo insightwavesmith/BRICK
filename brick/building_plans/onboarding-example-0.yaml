@@ -1,0 +1,42 @@
+plan_ref: building-plan:onboarding-example-0
+owner_axis: Brick
+building_id: onboarding-example-0-0607
+plan_shape: linear
+declared_by: coo
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - bundled onboarding example only
+  - runs in-process on adapter:local (no provider needed)
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - real provider behavior
+  - quality of the returned greeting
+  - repeated provider reliability
+  - production runtime readiness
+steps:
+  - step_ref: onboarding-example-0-hello
+    rows:
+      - axis: Brick
+        row_ref: brick-row:onboarding-example-0-hello
+        brick_work_ref: work:onboarding-example-0
+        brick_instance_ref: brick-onboarding-example-0-hello
+        work_statement: Say hello to the new operator and name the three axes of the Brick Protocol (Brick = the work, Agent = the worker, Link = the handoff). This is a tiny harmless first example; do not change any files.
+        comparison_rule: Observe whether the returned greeting evidence is present; this example records a first run, not success or quality.
+        required_return_shape: observed_evidence, proof_limits, not_proven
+      - axis: Agent
+        row_ref: agent-row:onboarding-example-0-hello
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:onboarding-example-0-hello-closed
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: ONBOARDING-EXAMPLE-0 first example run recorded on adapter:local; no further Movement chosen inside this example.
+        target_ref: building-boundary:onboarding-example-0-closed
+        next_brick_instance_ref: building-boundary-onboarding-example-0-closed

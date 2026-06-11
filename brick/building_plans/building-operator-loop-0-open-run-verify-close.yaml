@@ -1,0 +1,128 @@
+plan_ref: building-plan:building-operator-loop-0-open-run-verify-close
+owner_axis: Brick
+building_id: building-operator-loop-0-0526
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - future Building correctness
+  - operator judgment correctness
+  - full autonomous Building operation
+  - automatic route selection
+  - automatic replay selection
+steps:
+  - step_ref: building-operator-loop-0-01-design
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:bol0-design
+        brick_work_ref: work:bol0-design
+        brick_instance_ref: brick-bol0-design
+        work_statement: Define BUILDING-OPERATOR-LOOP-0 as an operator loop packet over a declared Building run.
+        comparison_rule: Verify the design keeps support/operator/run.py as the runner and keeps decisions with COO/Link boundary.
+        required_return_shape: loop_contract, boundary_split, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - support/docs/spec/brick-protocol-building-operator-loop-0-open-run-verify-close-0526.md
+          - project/brick-protocol/status/kernel/brick-protocol-link-reroute-replay-loop-0-support-record-0526.md
+      - axis: Agent
+        row_ref: agent-row:bol0-design
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:bol0-design-to-development
+        movement: forward
+        target_ref: brick-bol0-development
+        next_brick_instance_ref: brick-bol0-development
+  - step_ref: building-operator-loop-0-02-development
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:bol0-development
+        brick_work_ref: work:bol0-development
+        brick_instance_ref: brick-bol0-development
+        work_statement: Add the operator_loop_packet support helper and checker boundary.
+        comparison_rule: Observe support packet packaging only; do not add hidden runner calls, Movement choice, or proof authority.
+        required_return_shape: implemented_helper_refs, checker_refs, forbidden_authority, proof_limits, not_proven
+        source_facts:
+          - support/operator/building_operation.py
+          - support/checkers/check_building_operation_surface0.py
+      - axis: Agent
+        row_ref: agent-row:bol0-development
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:bol0-development-to-dogfood
+        movement: forward
+        target_ref: brick-bol0-dogfood
+        next_brick_instance_ref: brick-bol0-dogfood
+  - step_ref: building-operator-loop-0-03-dogfood
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:bol0-dogfood
+        brick_work_ref: work:bol0-dogfood
+        brick_instance_ref: brick-bol0-dogfood
+        work_statement: Apply operator_loop_packet to LINK-REROUTE-REPLAY-LOOP-0 evidence.
+        comparison_rule: Verify the packet observes plan, run evidence, checker observations, closure draft, and gap notes without decisions.
+        required_return_shape: operator_loop_packet, observed_gap_count, proof_limits, not_proven
+        source_facts:
+          - brick/building_plans/link-reroute-replay-loop-0-declared-loop.yaml
+          - project/brick-protocol/buildings/link-reroute-replay-loop-0-0526/work/building-map.json
+          - support/operator/building_operation.py
+      - axis: Agent
+        row_ref: agent-row:bol0-dogfood
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:bol0-dogfood-to-qa
+        movement: forward
+        target_ref: brick-bol0-qa
+        next_brick_instance_ref: brick-bol0-qa
+  - step_ref: building-operator-loop-0-04-qa
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:bol0-qa
+        brick_work_ref: work:bol0-qa
+        brick_instance_ref: brick-bol0-qa
+        work_statement: Verify BUILDING-OPERATOR-LOOP-0 helper boundary and evidence.
+        comparison_rule: Observe checker outputs and boundary only; do not judge project success.
+        required_return_shape: checker_observations, boundary_observations, repair_needed, proof_limits, not_proven
+        source_facts:
+          - support/checkers/check_building_operation_surface0.py
+          - support/checkers/check_link_reroute_replay_loop0.py
+          - support/operator/building_operation.py
+      - axis: Agent
+        row_ref: agent-row:bol0-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:bol0-qa-to-closure
+        movement: forward
+        target_ref: brick-bol0-closure
+        next_brick_instance_ref: brick-bol0-closure
+  - step_ref: building-operator-loop-0-05-closure
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:bol0-closure
+        brick_work_ref: work:bol0-closure
+        brick_instance_ref: brick-bol0-closure
+        work_statement: Close BUILDING-OPERATOR-LOOP-0 with observed support evidence and next Movement.
+        comparison_rule: Closure must not claim full autonomous operation or Movement authority.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, held, next_coo_decision_candidate
+        source_facts:
+          - brick/building_plans/building-operator-loop-0-open-run-verify-close.yaml
+          - support/docs/spec/brick-protocol-building-operator-loop-0-open-run-verify-close-0526.md
+      - axis: Agent
+        row_ref: agent-row:bol0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:bol0-closure-to-boundary
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: BUILDING-OPERATOR-LOOP-0 support loop packet closed.
+        target_ref: building-boundary:building-operator-loop-0-closed
+        next_brick_instance_ref: building-boundary-building-operator-loop-0-closed

@@ -1,0 +1,81 @@
+plan_ref: building-plan:building-next-wave-completion-0-closure
+owner_axis: Brick
+building_id: building-next-wave-completion-0-0526
+plan_shape: linear
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of all completed slices
+  - future external-domain readiness
+  - provider quality
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority
+steps:
+  - step_ref: building-next-wave-completion-0-audit
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-next-wave-completion-0-audit
+        brick_work_ref: work:building-next-wave-completion-0-audit
+        brick_instance_ref: brick-bnw0-completion-audit
+        work_statement: Audit the BUILDING-NEXT-WAVE-0 completed Building queue and verify the required roots and support records exist.
+        comparison_rule: Observe required roots, specs, checkers, support records, proof limits, and held boundaries without judging quality or success.
+        required_return_shape: completed_slice_refs, missing_refs, proof_limits, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-building-next-wave-completion-0-closure-0526.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+      - axis: Agent
+        row_ref: agent-row:building-next-wave-completion-0-audit
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:building-next-wave-completion-0-audit-to-validation
+        movement: forward
+        target_ref: brick-bnw0-completion-validation
+  - step_ref: building-next-wave-completion-0-validation
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-next-wave-completion-0-validation
+        brick_work_ref: work:building-next-wave-completion-0-validation
+        brick_instance_ref: brick-bnw0-completion-validation
+        work_statement: Validate BUILDING-NEXT-WAVE-0 completion audit with the support checker and graph evidence.
+        comparison_rule: Checker pass is support evidence only and must not become Movement authority.
+        required_return_shape: checker_refs, graph_refs, evidence_refs, proof_limits, not_proven
+        source_facts:
+          - support/checkers/check_building_next_wave_completion0.py
+      - axis: Agent
+        row_ref: agent-row:building-next-wave-completion-0-validation
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:building-next-wave-completion-0-validation-to-closure
+        movement: forward
+        target_ref: brick-bnw0-completion-closure
+  - step_ref: building-next-wave-completion-0-closure
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-next-wave-completion-0-closure
+        brick_work_ref: work:building-next-wave-completion-0-closure
+        brick_instance_ref: brick-bnw0-completion-closure
+        work_statement: Close BUILDING-NEXT-WAVE-0 as completed support evidence.
+        comparison_rule: Preserve observed evidence, narrowly proven scope, not-proven, held, and final COO Movement.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, held, coo_movement
+        source_facts:
+          - support/docs/spec/brick-protocol-building-next-wave-completion-0-closure-0526.md
+      - axis: Agent
+        row_ref: agent-row:building-next-wave-completion-0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:building-next-wave-completion-0-closure-to-boundary
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:building-next-wave-completion-0-closed

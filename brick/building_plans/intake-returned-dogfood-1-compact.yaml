@@ -1,0 +1,93 @@
+plan_ref: building-plan:intake-returned-dogfood-1-compact
+owner_axis: Brick
+building_id: intake-returned-dogfood-1-0527
+plan_shape: reviewable-work
+selected_adapter_ref: adapter:local
+parent_goal_ref: goal:coo-operating-chain-follow-up
+proof_limits:
+  - support evidence only
+  - task intake candidates are non-binding
+  - not active shape selection
+  - not active Building Plan declaration
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - future task source semantic correctness
+  - future selected shape fitness
+  - future Building design correctness
+remaining_delta:
+  - REAL ROUTE REPAIR DOGFOOD 1
+next_target_candidates:
+  - REAL ROUTE REPAIR DOGFOOD 1
+steps:
+  - step_ref: intake-returned-dogfood-1-01-intake
+    rows:
+      - axis: Brick
+        row_ref: brick-row:intake-returned-dogfood-1-intake
+        brick_work_ref: work:intake-returned-dogfood-1-intake
+        brick_instance_ref: brick-intake-returned-dogfood-1-intake
+        work_statement: Return non-binding task intake candidates for the declared COO operating chain dogfood source.
+        comparison_rule: Observe returned field presence only; do not declare active shape, active plan, Movement, or route target.
+        required_return_shape: task_source_observations, missing_fields, first_line_contract_candidate, candidate_shapes, candidate_brick_rows, candidate_agent_rows, candidate_link_rows, honest_report_questions, boundary_questions, read_scope_notes, write_scope_notes, missing_evidence_questions, review_gate_questions, not_proven_candidates, remaining_delta_candidates, evidence_refs, proof_limits, not_proven
+        source_facts:
+          - agent/skills/task_intake/SKILL.md
+          - brick/templates/tasks/source-template.md
+      - axis: Agent
+        row_ref: agent-row:intake-returned-dogfood-1-intake
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:intake-returned-dogfood-1-intake-to-qa
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-intake-returned-dogfood-1-qa
+        next_brick_instance_ref: brick-intake-returned-dogfood-1-qa
+  - step_ref: intake-returned-dogfood-1-02-qa
+    rows:
+      - axis: Brick
+        row_ref: brick-row:intake-returned-dogfood-1-qa
+        brick_work_ref: work:intake-returned-dogfood-1-qa
+        brick_instance_ref: brick-intake-returned-dogfood-1-qa
+        work_statement: Verify the intake returned packet is non-binding evidence and contains no active Movement or route target choice.
+        comparison_rule: QA observes field presence and forbidden authority absence only.
+        required_return_shape: checked_return_fields, missing_return_fields, forbidden_authority_observations, proof_limits, not_proven
+        source_facts:
+          - project/brick-protocol/buildings/intake-returned-dogfood-1-0527/work/step-outputs/intake-returned-dogfood-1-01-intake-attempt-1/step-output.json
+          - support/checkers/profiles/intake_returned_dogfood_1.yaml
+      - axis: Agent
+        row_ref: agent-row:intake-returned-dogfood-1-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:intake-returned-dogfood-1-qa-to-closure
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-intake-returned-dogfood-1-closure
+        next_brick_instance_ref: brick-intake-returned-dogfood-1-closure
+  - step_ref: intake-returned-dogfood-1-03-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:intake-returned-dogfood-1-closure
+        brick_work_ref: work:intake-returned-dogfood-1-closure
+        brick_instance_ref: brick-intake-returned-dogfood-1-closure
+        work_statement: Close task intake returned dogfood with observed evidence, narrowly proven scope, not_proven, and remaining delta.
+        comparison_rule: Closure records support evidence only and does not prove future design correctness.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta, next_target_candidates
+        source_facts:
+          - brick/building_plans/intake-returned-dogfood-1-compact.yaml
+          - project/brick-protocol/status/kernel/brick-protocol-intake-returned-dogfood-1-support-record-0527.md
+      - axis: Agent
+        row_ref: agent-row:intake-returned-dogfood-1-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:intake-returned-dogfood-1-closure
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: Task intake returned dogfood evidence closed.
+        target_ref: brick-real-route-repair-dogfood-1-open
+        next_brick_instance_ref: brick-real-route-repair-dogfood-1-open

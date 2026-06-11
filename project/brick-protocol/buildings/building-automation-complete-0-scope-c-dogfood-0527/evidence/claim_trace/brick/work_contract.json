@@ -1,0 +1,405 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:building-automation-complete-0-scope-c-dogfood-0527::evidence/claim_trace/brick/work_contract.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-bac0-dev-attempt-1",
+        "comparison_rule": "Observe returned development evidence only; do not judge quality.",
+        "required_return_shape": "made_changes, observed_evidence, blocked_or_missing_evidence, proof_limits, not_proven",
+        "source_facts": [
+          "BUILDING-AUTOMATION-COMPLETE-0"
+        ],
+        "work_statement": "Produce initial development evidence for Scope C dogfood."
+      },
+      "fact_ref": "brick-work:01:building-automation-complete-0-dev",
+      "not_proven": [
+        "semantic correctness of QA route request",
+        "semantic correctness of Link decision",
+        "hidden runtime loop behavior",
+        "scheduler or queue behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "declared boundary replay dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe returned development evidence only; do not judge quality.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Produce initial development evidence for Scope C dogfood."
+      },
+      "fact_ref": "brick-comparison:01:building-automation-complete-0-dev",
+      "not_proven": [
+        "semantic correctness of QA route request",
+        "semantic correctness of Link decision",
+        "hidden runtime loop behavior",
+        "scheduler or queue behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "declared boundary replay dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-bac0-qa-attempt-1",
+        "comparison_rule": "Observe route_request evidence only; QA does not choose Movement or target.",
+        "required_return_shape": "observations, route_request, proof_limits, not_proven",
+        "source_facts": [
+          "brick-bac0-dev-attempt-1",
+          "brick/templates/review/standard-route-request-return.yaml"
+        ],
+        "work_statement": "Return QA route_request evidence for an implementation-only repair."
+      },
+      "fact_ref": "brick-work:02:building-automation-complete-0-qa",
+      "not_proven": [
+        "semantic correctness of QA route request",
+        "semantic correctness of Link decision",
+        "hidden runtime loop behavior",
+        "scheduler or queue behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "declared boundary replay dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe route_request evidence only; QA does not choose Movement or target.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Return QA route_request evidence for an implementation-only repair."
+      },
+      "fact_ref": "brick-comparison:02:building-automation-complete-0-qa",
+      "not_proven": [
+        "semantic correctness of QA route request",
+        "semantic correctness of Link decision",
+        "hidden runtime loop behavior",
+        "scheduler or queue behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "declared boundary replay dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-bac0-dev-attempt-2",
+        "comparison_rule": "Observe append-only repair evidence only; do not mutate attempt 1.",
+        "required_return_shape": "made_changes, observed_evidence, attempt_index, proof_limits, not_proven",
+        "source_facts": [
+          "link-decision-packet:building-automation-complete-0-scope-c",
+          "route-replay:building-automation-complete-0-scope-c"
+        ],
+        "work_statement": "Replay the declared development boundary as attempt 2 after Link decision evidence."
+      },
+      "fact_ref": "brick-work:03:building-automation-complete-0-dev",
+      "not_proven": [
+        "semantic correctness of QA route request",
+        "semantic correctness of Link decision",
+        "hidden runtime loop behavior",
+        "scheduler or queue behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "declared boundary replay dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe append-only repair evidence only; do not mutate attempt 1.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Replay the declared development boundary as attempt 2 after Link decision evidence."
+      },
+      "fact_ref": "brick-comparison:03:building-automation-complete-0-dev",
+      "not_proven": [
+        "semantic correctness of QA route request",
+        "semantic correctness of Link decision",
+        "hidden runtime loop behavior",
+        "scheduler or queue behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "declared boundary replay dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-bac0-qa-attempt-2",
+        "comparison_rule": "Observe replay evidence only; do not classify success or quality.",
+        "required_return_shape": "replay_observations, attempt_index, proof_limits, not_proven",
+        "source_facts": [
+          "brick-bac0-dev-attempt-2",
+          "route-replay:building-automation-complete-0-scope-c"
+        ],
+        "work_statement": "Replay the declared QA boundary as attempt 2 after the repair attempt."
+      },
+      "fact_ref": "brick-work:04:building-automation-complete-0-qa",
+      "not_proven": [
+        "semantic correctness of QA route request",
+        "semantic correctness of Link decision",
+        "hidden runtime loop behavior",
+        "scheduler or queue behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "declared boundary replay dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:04"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe replay evidence only; do not classify success or quality.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Replay the declared QA boundary as attempt 2 after the repair attempt."
+      },
+      "fact_ref": "brick-comparison:04:building-automation-complete-0-qa",
+      "not_proven": [
+        "semantic correctness of QA route request",
+        "semantic correctness of Link decision",
+        "hidden runtime loop behavior",
+        "scheduler or queue behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "declared boundary replay dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:04",
+        "raw:agent:04"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-bac0-closure",
+        "comparison_rule": "Closure records observed evidence only.",
+        "required_return_shape": "observed_evidence, narrowly_proven, not_proven, remaining_delta",
+        "source_facts": [
+          "brick/building_plans/building-automation-complete-0-scope-c-dogfood.yaml"
+        ],
+        "work_statement": "Close Scope C dogfood evidence for declared boundary replay."
+      },
+      "fact_ref": "brick-work:05:building-automation-complete-0-closure",
+      "not_proven": [
+        "semantic correctness of QA route request",
+        "semantic correctness of Link decision",
+        "hidden runtime loop behavior",
+        "scheduler or queue behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "declared boundary replay dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:05"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Closure records observed evidence only.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Close Scope C dogfood evidence for declared boundary replay."
+      },
+      "fact_ref": "brick-comparison:05:building-automation-complete-0-closure",
+      "not_proven": [
+        "semantic correctness of QA route request",
+        "semantic correctness of Link decision",
+        "hidden runtime loop behavior",
+        "scheduler or queue behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "declared boundary replay dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:05",
+        "raw:agent:05"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-27T07:14:50Z",
+  "id": "urn:bp:building:building-automation-complete-0-scope-c-dogfood-0527::evidence/claim_trace/brick/work_contract.json",
+  "recorded_at": "2026-05-27T07:14:50Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:building-automation-complete-0-scope-c-dogfood-0527",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/brick/work_contract.json",
+  "time": "2026-05-27T07:14:50Z",
+  "type": "bp.claim_trace"
+}

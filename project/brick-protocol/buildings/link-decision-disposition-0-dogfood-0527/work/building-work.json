@@ -1,0 +1,59 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:link-decision-disposition-0-dogfood-0527::work/building-work.json",
+  "building_id": "link-decision-disposition-0-dogfood-0527",
+  "comparison_rule": "Observe returned planning evidence only.",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-05-27T08:50:19Z",
+  "id": "urn:bp:building:link-decision-disposition-0-dogfood-0527::work/building-work.json",
+  "not_proven": [
+    "semantic correctness of Agent transition concerns",
+    "semantic correctness of Link disposition",
+    "production runtime readiness",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "plan_ref": "building-plan:link-decision-disposition-0-dogfood",
+  "proof_limits": [
+    "support evidence only",
+    "transition concern disposition dogfood only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-05-27T08:50:19Z",
+  "required_return_shape": "observed_evidence, proof_limits, not_proven",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:link-decision-disposition-0-dogfood-0527",
+  "source_facts": [],
+  "specversion": "1.0",
+  "step_refs": [
+    "link-decision-disposition-0-plan",
+    "link-decision-disposition-0-design",
+    "link-decision-disposition-0-plan",
+    "link-decision-disposition-0-design",
+    "link-decision-disposition-0-qa",
+    "link-decision-disposition-0-inspect",
+    "link-decision-disposition-0-design",
+    "link-decision-disposition-0-qa",
+    "link-decision-disposition-0-closure"
+  ],
+  "subject": "work/building-work.json",
+  "time": "2026-05-27T08:50:19Z",
+  "type": "bp.building_work",
+  "work_statement": "Produce first planning evidence for transition concern dogfood."
+}

@@ -1,0 +1,65 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:design-toolkit-and-mcp-0-0526::evidence/evidence-manifest.json",
+  "building_id": "design-toolkit-and-mcp-0-0526",
+  "building_map_ref": "work/building-map.json",
+  "claim_trace_refs": [
+    "evidence/claim_trace/brick/work_contract.json",
+    "evidence/claim_trace/agent/returned_claims.json",
+    "evidence/claim_trace/link/transfer_trace.json",
+    "evidence/claim_trace/link/carry_trace.json",
+    "evidence/claim_trace/link/sufficiency_trace.json",
+    "evidence/claim_trace/link/movement_trace.json"
+  ],
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-05-26T12:41:07Z",
+  "id": "urn:bp:building:design-toolkit-and-mcp-0-0526::evidence/evidence-manifest.json",
+  "not_proven": [
+    "MCP client behavior",
+    "semantic fitness of future selected shapes",
+    "automatic Building Plan authoring",
+    "provider-native projection expansion",
+    "route policy behavior",
+    "not proven: source truth",
+    "not proven: success judgment",
+    "not proven: quality judgment",
+    "not proven: Movement authority",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work"
+  ],
+  "plan_ref": "building-plan:design-toolkit-and-mcp-0-compact",
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "raw_manifest_ref": "raw/raw-manifest.json",
+  "raw_stream_refs": [
+    "raw/brick-work.jsonl",
+    "raw/agent-return.jsonl",
+    "raw/link.jsonl"
+  ],
+  "recorded_at": "2026-05-26T12:41:07Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:design-toolkit-and-mcp-0-0526",
+  "specversion": "1.0",
+  "step_output_refs": [
+    "work/step-outputs/design-toolkit-and-mcp-0-01-toolkit-attempt-1/step-output.json",
+    "work/step-outputs/design-toolkit-and-mcp-0-02-mcp-attempt-1/step-output.json",
+    "work/step-outputs/design-toolkit-and-mcp-0-03-closure-attempt-1/step-output.json"
+  ],
+  "subject": "evidence/evidence-manifest.json",
+  "time": "2026-05-26T12:41:07Z",
+  "type": "bp.evidence_manifest"
+}

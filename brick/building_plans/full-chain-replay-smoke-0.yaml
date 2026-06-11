@@ -1,0 +1,185 @@
+plan_ref: building-plan:full-chain-replay-smoke-0
+owner_axis: Brick
+building_id: full-chain-replay-smoke-0-0530
+plan_shape: linear
+selected_shape_ref: building-shape:reviewable-work
+declared_by: coo
+selected_adapter_ref: adapter:local
+parent_goal_ref: goal:project-orchestration-dashboard
+proof_limits:
+  - support evidence only
+  - full-chain multi-segment declared replay run-surface smoke only
+  - adapter:local fixture path only, no provider subprocess
+  - declared reroute, not gate-driven insufficiency
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of returned observations
+  - provider behavior
+  - gate-driven insufficiency detection
+  - automatic route selection
+  - automatic replay segment selection
+  - runtime retry behavior
+steps:
+  - step_ref: full-chain-replay-smoke-0-stage-a-attempt-1
+    rows:
+      - axis: Brick
+        row_ref: brick-row:fcrs0-stage-a-attempt-1
+        brick_work_ref: work:fcrs0-stage-a
+        brick_instance_ref: brick-fcrs0-stage-a-attempt-1
+        work_statement: Produce first plan-stage evidence for the full-chain replay smoke. Return one mapping recording observed_evidence about the declared chain a-b-c attempt 1.
+        comparison_rule: Observe returned plan-stage evidence only; the Agent does not choose Movement or target.
+        required_return_shape: observed_evidence, proof_limits, not_proven
+      - axis: Agent
+        row_ref: agent-row:fcrs0-stage-a-attempt-1
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:fcrs0-stage-a-attempt-1-to-b-attempt-1
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-fcrs0-stage-b-attempt-1
+        next_brick_instance_ref: brick-fcrs0-stage-b-attempt-1
+  - step_ref: full-chain-replay-smoke-0-stage-b-attempt-1
+    rows:
+      - axis: Brick
+        row_ref: brick-row:fcrs0-stage-b-attempt-1
+        brick_work_ref: work:fcrs0-stage-b
+        brick_instance_ref: brick-fcrs0-stage-b-attempt-1
+        work_statement: Produce first dev-stage evidence for the full-chain replay smoke. Return one mapping recording observed_evidence about stage b attempt 1.
+        comparison_rule: Observe returned dev-stage evidence only.
+        required_return_shape: observed_evidence, proof_limits, not_proven
+      - axis: Agent
+        row_ref: agent-row:fcrs0-stage-b-attempt-1
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:fcrs0-stage-b-attempt-1-to-c-attempt-1
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-fcrs0-stage-c-attempt-1
+        next_brick_instance_ref: brick-fcrs0-stage-c-attempt-1
+  - step_ref: full-chain-replay-smoke-0-stage-c-attempt-1
+    rows:
+      - axis: Brick
+        row_ref: brick-row:fcrs0-stage-c-attempt-1
+        brick_work_ref: work:fcrs0-stage-c
+        brick_instance_ref: brick-fcrs0-stage-c-attempt-1
+        work_statement: Produce first qa-stage evidence for the full-chain replay smoke. Return one mapping recording observed_evidence about stage c attempt 1.
+        comparison_rule: Observe returned qa-stage evidence only; the Agent does not choose Movement or target.
+        required_return_shape: observed_evidence, proof_limits, not_proven
+      - axis: Agent
+        row_ref: agent-row:fcrs0-stage-c-attempt-1
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:fcrs0-stage-c-attempt-1-reroute-to-a-attempt-2
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: reroute
+        target_ref: brick-fcrs0-stage-a-attempt-2
+        next_brick_instance_ref: brick-fcrs0-stage-a-attempt-2
+        route_decision_basis:
+          override_refs:
+            - coo:full-chain-replay-smoke-0-multi-segment-replay
+          reviewer_observation_refs:
+            - observation:fcrs0-chain-needs-full-replay
+        route_replay_plan:
+          route_replay_ref: route-replay:full-chain-replay-smoke-0-multi-segment
+          author_ref: coo:full-chain-replay-smoke-0
+          authoring_basis_refs:
+            - observation:fcrs0-chain-needs-full-replay
+          immediate_target_ref: brick-fcrs0-stage-a-attempt-2
+          source_brick_refs:
+            - brick-fcrs0-stage-a-attempt-1
+          route_reason_refs:
+            - observation:fcrs0-chain-needs-full-replay
+          affected_downstream_refs:
+            - brick-fcrs0-stage-b-attempt-1
+            - brick-fcrs0-stage-c-attempt-1
+          replay_segment_refs:
+            - brick-fcrs0-stage-b-attempt-2
+            - brick-fcrs0-stage-c-attempt-2
+          max_attempts: 2
+          proof_limits:
+            - support evidence only
+            - caller-declared reroute replays stage a then stage b then stage c as appended attempt 2
+            - not source truth
+            - not success judgment
+            - not quality judgment
+            - not Movement authority
+          not_proven:
+            - semantic correctness of source attribution
+            - automatic route selection
+            - automatic replay segment selection
+            - runtime retry behavior
+  - step_ref: full-chain-replay-smoke-0-stage-a-attempt-2
+    rows:
+      - axis: Brick
+        row_ref: brick-row:fcrs0-stage-a-attempt-2
+        brick_work_ref: work:fcrs0-stage-a
+        brick_instance_ref: brick-fcrs0-stage-a-attempt-2
+        work_statement: Replay the plan stage as attempt 2 after the declared multi-segment reroute. Return one mapping recording observed_evidence and attempt_index for stage a attempt 2.
+        comparison_rule: Observe append-only plan-stage replay evidence only.
+        required_return_shape: observed_evidence, attempt_index, proof_limits, not_proven
+      - axis: Agent
+        row_ref: agent-row:fcrs0-stage-a-attempt-2
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:fcrs0-stage-a-attempt-2-to-b-attempt-2
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-fcrs0-stage-b-attempt-2
+        next_brick_instance_ref: brick-fcrs0-stage-b-attempt-2
+        transition_lifecycle:
+          state: resumed
+          progress_state: in_progress
+          resumed_from_ref: link-transition:fcrs0-multi-segment-replay
+          from_brick_ref: brick-fcrs0-stage-a-attempt-2
+          pending_target_ref: brick-fcrs0-stage-b-attempt-2
+          reason_refs:
+            - observation:fcrs0-chain-needs-full-replay
+          required_disposition_owner: caller-or-coo
+  - step_ref: full-chain-replay-smoke-0-stage-b-attempt-2
+    rows:
+      - axis: Brick
+        row_ref: brick-row:fcrs0-stage-b-attempt-2
+        brick_work_ref: work:fcrs0-stage-b
+        brick_instance_ref: brick-fcrs0-stage-b-attempt-2
+        work_statement: Replay the dev stage as attempt 2 after the plan-stage replay. Return one mapping recording observed_evidence and attempt_index for stage b attempt 2.
+        comparison_rule: Observe append-only dev-stage replay evidence only.
+        required_return_shape: observed_evidence, attempt_index, proof_limits, not_proven
+      - axis: Agent
+        row_ref: agent-row:fcrs0-stage-b-attempt-2
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:fcrs0-stage-b-attempt-2-to-c-attempt-2
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-fcrs0-stage-c-attempt-2
+        next_brick_instance_ref: brick-fcrs0-stage-c-attempt-2
+  - step_ref: full-chain-replay-smoke-0-stage-c-attempt-2
+    rows:
+      - axis: Brick
+        row_ref: brick-row:fcrs0-stage-c-attempt-2
+        brick_work_ref: work:fcrs0-stage-c
+        brick_instance_ref: brick-fcrs0-stage-c-attempt-2
+        work_statement: Replay the qa stage as attempt 2 after the dev-stage replay, then close the full-chain multi-segment replay smoke. Return one mapping recording observed_evidence, narrowly_proven, attempt_index, not_proven, and remaining_delta.
+        comparison_rule: Closure records append-only qa-stage replay evidence only; it does not judge run quality.
+        required_return_shape: observed_evidence, narrowly_proven, attempt_index, not_proven, remaining_delta
+      - axis: Agent
+        row_ref: agent-row:fcrs0-stage-c-attempt-2
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:fcrs0-stage-c-attempt-2-closed
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: FULL-CHAIN-REPLAY-SMOKE-0 walked stage a-b-c attempt 1, a declared multi-segment reroute route_replay_plan whose replay_segment_refs lists stage b and stage c attempt 2, and the replayed stage a-b-c attempt 2 steps to closure through run_building_plan with adapter:local.
+        target_ref: building-boundary:full-chain-replay-smoke-0-closed
+        next_brick_instance_ref: building-boundary-full-chain-replay-smoke-0-closed

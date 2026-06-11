@@ -1,0 +1,22 @@
+{
+  "tool_policy_ref": "tool-policy:leader-coordination",
+  "owner_axis": "Agent",
+  "allowed_use": "read declared task, design, evidence, and resource refs; prepare coordination or assignment returns",
+  "mutation_scope": "write only within a Brick-declared write_scope; no Movement/quality/route authority",
+  "execution_opened": false,
+  "forbidden_use": [
+    "write outside Brick-declared write_scope",
+    "git commit or git push",
+    "choose Link Movement",
+    "choose route target",
+    "classify success, failure, quality, or approval"
+  ],
+  "proof_limits": [
+    "Agent-axis tool policy only",
+    "not a provider runtime",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ]
+}

@@ -1,0 +1,256 @@
+plan_ref: building-plan:agent-brain-swap-dogfood-0-graph-dogfood
+owner_axis: Brick
+building_id: agent-brain-swap-dogfood-0-0525
+plan_shape: graph
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - provider answer quality
+  - provider equivalence
+  - semantic correctness of returned reviews
+  - provider credential validity beyond local CLI command completion
+  - future session continuity
+  - native provider projection readiness
+execution_order:
+  - agent-brain-swap-setup
+  - agent-brain-swap-qa-local
+  - agent-brain-swap-qa-codex
+  - agent-brain-swap-qa-claude
+  - agent-brain-swap-qa-gemini
+  - agent-brain-swap-synthesis
+  - agent-brain-swap-closure
+brick_steps:
+  - step_ref: agent-brain-swap-setup
+    completion_edge_ref: edge:agent-brain-swap-setup-to-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:agent-brain-swap-setup
+        brick_work_ref: work:agent-brain-swap-setup
+        brick_instance_ref: brick-agent-brain-swap-setup
+        work_statement: Prepare AGENT-BRAIN-SWAP-DOGFOOD-0 as a provider-neutral Agent Object dogfood.
+        comparison_rule: Observe whether the plan keeps agent-object:qa as the Agent body and changes only adapter refs.
+        required_return_shape: agent_object_ref, adapter_lanes, graph_shape, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - support/docs/spec/brick-protocol-agent-brain-swap-dogfood-0-provider-neutral-adapter-0525.md
+          - agent/objects/qa.yaml
+          - support/connection/agent_adapter.py
+      - axis: Agent
+        row_ref: agent-row:agent-brain-swap-setup
+        agent_object_ref: agent-object:coo
+  - step_ref: agent-brain-swap-qa-local
+    selected_adapter_ref: adapter:local
+    completion_edge_ref: edge:agent-brain-swap-local-to-synthesis
+    rows:
+      - axis: Brick
+        row_ref: brick-row:agent-brain-swap-qa-local
+        brick_work_ref: work:agent-brain-swap-qa-local
+        brick_instance_ref: brick-agent-brain-swap-qa-local
+        work_statement: Review AGENT-BRAIN-SWAP-DOGFOOD-0 from the local callable QA lane.
+        comparison_rule: Observe provider-neutral Agent Object reuse only; do not judge provider quality.
+        required_return_shape: checked_sources, adapter_ref, agent_object_ref, findings, proof_limits, not_proven
+        source_facts:
+          - agent/objects/qa.yaml
+          - support/docs/spec/brick-protocol-agent-brain-swap-dogfood-0-provider-neutral-adapter-0525.md
+      - axis: Agent
+        row_ref: agent-row:agent-brain-swap-qa-local
+        agent_object_ref: agent-object:qa
+  - step_ref: agent-brain-swap-qa-codex
+    selected_adapter_ref: adapter:codex-local
+    completion_edge_ref: edge:agent-brain-swap-codex-to-synthesis
+    rows:
+      - axis: Brick
+        row_ref: brick-row:agent-brain-swap-qa-codex
+        brick_work_ref: work:agent-brain-swap-qa-codex
+        brick_instance_ref: brick-agent-brain-swap-qa-codex
+        work_statement: Review AGENT-BRAIN-SWAP-DOGFOOD-0 from the Codex local CLI QA lane. Return concise support evidence only.
+        comparison_rule: Observe provider-neutral Agent Object reuse only; do not judge provider quality.
+        required_return_shape: checked_sources, adapter_ref, agent_object_ref, findings, proof_limits, not_proven
+        source_facts:
+          - agent/objects/qa.yaml
+          - support/docs/spec/brick-protocol-agent-brain-swap-dogfood-0-provider-neutral-adapter-0525.md
+          - support/connection/agent_adapter.py
+      - axis: Agent
+        row_ref: agent-row:agent-brain-swap-qa-codex
+        agent_object_ref: agent-object:qa
+  - step_ref: agent-brain-swap-qa-claude
+    selected_adapter_ref: adapter:claude-local
+    completion_edge_ref: edge:agent-brain-swap-claude-to-synthesis
+    rows:
+      - axis: Brick
+        row_ref: brick-row:agent-brain-swap-qa-claude
+        brick_work_ref: work:agent-brain-swap-qa-claude
+        brick_instance_ref: brick-agent-brain-swap-qa-claude
+        work_statement: Review AGENT-BRAIN-SWAP-DOGFOOD-0 from the Claude local CLI QA lane. Return concise support evidence only.
+        comparison_rule: Observe provider-neutral Agent Object reuse only; do not judge provider quality.
+        required_return_shape: checked_sources, adapter_ref, agent_object_ref, findings, proof_limits, not_proven
+        source_facts:
+          - agent/objects/qa.yaml
+          - support/docs/spec/brick-protocol-agent-brain-swap-dogfood-0-provider-neutral-adapter-0525.md
+          - support/connection/agent_adapter.py
+      - axis: Agent
+        row_ref: agent-row:agent-brain-swap-qa-claude
+        agent_object_ref: agent-object:qa
+  - step_ref: agent-brain-swap-qa-gemini
+    selected_adapter_ref: adapter:gemini-local
+    completion_edge_ref: edge:agent-brain-swap-gemini-to-synthesis
+    rows:
+      - axis: Brick
+        row_ref: brick-row:agent-brain-swap-qa-gemini
+        brick_work_ref: work:agent-brain-swap-qa-gemini
+        brick_instance_ref: brick-agent-brain-swap-qa-gemini
+        work_statement: Review AGENT-BRAIN-SWAP-DOGFOOD-0 from the Gemini local CLI QA lane. Return concise support evidence only.
+        comparison_rule: Observe provider-neutral Agent Object reuse only; do not judge provider quality.
+        required_return_shape: checked_sources, adapter_ref, agent_object_ref, findings, proof_limits, not_proven
+        source_facts:
+          - agent/objects/qa.yaml
+          - support/docs/spec/brick-protocol-agent-brain-swap-dogfood-0-provider-neutral-adapter-0525.md
+          - support/connection/agent_adapter.py
+      - axis: Agent
+        row_ref: agent-row:agent-brain-swap-qa-gemini
+        agent_object_ref: agent-object:qa
+  - step_ref: agent-brain-swap-synthesis
+    completion_edge_ref: edge:agent-brain-swap-synthesis-to-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:agent-brain-swap-synthesis
+        brick_work_ref: work:agent-brain-swap-synthesis
+        brick_instance_ref: brick-agent-brain-swap-synthesis
+        work_statement: Synthesize the four QA lane returns and identify whether the same Agent Object crossed all adapter refs.
+        comparison_rule: Observe incoming AgentFact refs and adapter refs only; do not judge provider answer quality.
+        required_return_shape: lane_inputs, adapter_refs_seen, same_agent_object_ref, handoff_ref_count, not_proven
+        source_facts:
+          - brick/building_plans/agent-brain-swap-dogfood-0-graph-dogfood.yaml
+          - support/checkers/check_agent_brain_swap_dogfood0.py
+      - axis: Agent
+        row_ref: agent-row:agent-brain-swap-synthesis
+        agent_object_ref: agent-object:coo
+  - step_ref: agent-brain-swap-closure
+    completion_edge_ref: edge:agent-brain-swap-closure-to-boundary
+    rows:
+      - axis: Brick
+        row_ref: brick-row:agent-brain-swap-closure
+        brick_work_ref: work:agent-brain-swap-closure
+        brick_instance_ref: brick-agent-brain-swap-closure
+        work_statement: Close AGENT-BRAIN-SWAP-DOGFOOD-0 with observed evidence and next COO Movement.
+        comparison_rule: Observe support evidence only; closure is not source truth or Movement authority.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, held, coo_movement
+        source_facts:
+          - support/docs/spec/brick-protocol-agent-brain-swap-dogfood-0-provider-neutral-adapter-0525.md
+          - project/brick-protocol/buildings/agent-brain-swap-dogfood-0-0525/work/building-map.json
+      - axis: Agent
+        row_ref: agent-row:agent-brain-swap-closure
+        agent_object_ref: agent-object:coo
+link_edges:
+  - edge_ref: edge:agent-brain-swap-setup-to-local
+    source_step_ref: agent-brain-swap-setup
+    target_step_ref: agent-brain-swap-qa-local
+    rows:
+      - axis: Link
+        row_ref: link-row:agent-brain-swap-setup-to-local
+        movement: forward
+        target_ref: brick-agent-brain-swap-qa-local
+  - edge_ref: edge:agent-brain-swap-setup-to-codex
+    source_step_ref: agent-brain-swap-setup
+    target_step_ref: agent-brain-swap-qa-codex
+    rows:
+      - axis: Link
+        row_ref: link-row:agent-brain-swap-setup-to-codex
+        movement: forward
+        target_ref: brick-agent-brain-swap-qa-codex
+  - edge_ref: edge:agent-brain-swap-setup-to-claude
+    source_step_ref: agent-brain-swap-setup
+    target_step_ref: agent-brain-swap-qa-claude
+    rows:
+      - axis: Link
+        row_ref: link-row:agent-brain-swap-setup-to-claude
+        movement: forward
+        target_ref: brick-agent-brain-swap-qa-claude
+  - edge_ref: edge:agent-brain-swap-setup-to-gemini
+    source_step_ref: agent-brain-swap-setup
+    target_step_ref: agent-brain-swap-qa-gemini
+    rows:
+      - axis: Link
+        row_ref: link-row:agent-brain-swap-setup-to-gemini
+        movement: forward
+        target_ref: brick-agent-brain-swap-qa-gemini
+  - edge_ref: edge:agent-brain-swap-local-to-synthesis
+    source_step_ref: agent-brain-swap-qa-local
+    target_step_ref: agent-brain-swap-synthesis
+    rows:
+      - axis: Link
+        row_ref: link-row:agent-brain-swap-local-to-synthesis
+        movement: forward
+        target_ref: brick-agent-brain-swap-synthesis
+  - edge_ref: edge:agent-brain-swap-codex-to-synthesis
+    source_step_ref: agent-brain-swap-qa-codex
+    target_step_ref: agent-brain-swap-synthesis
+    rows:
+      - axis: Link
+        row_ref: link-row:agent-brain-swap-codex-to-synthesis
+        movement: forward
+        target_ref: brick-agent-brain-swap-synthesis
+  - edge_ref: edge:agent-brain-swap-claude-to-synthesis
+    source_step_ref: agent-brain-swap-qa-claude
+    target_step_ref: agent-brain-swap-synthesis
+    rows:
+      - axis: Link
+        row_ref: link-row:agent-brain-swap-claude-to-synthesis
+        movement: forward
+        target_ref: brick-agent-brain-swap-synthesis
+  - edge_ref: edge:agent-brain-swap-gemini-to-synthesis
+    source_step_ref: agent-brain-swap-qa-gemini
+    target_step_ref: agent-brain-swap-synthesis
+    rows:
+      - axis: Link
+        row_ref: link-row:agent-brain-swap-gemini-to-synthesis
+        movement: forward
+        target_ref: brick-agent-brain-swap-synthesis
+  - edge_ref: edge:agent-brain-swap-synthesis-to-closure
+    source_step_ref: agent-brain-swap-synthesis
+    target_step_ref: agent-brain-swap-closure
+    rows:
+      - axis: Link
+        row_ref: link-row:agent-brain-swap-synthesis-to-closure
+        movement: forward
+        target_ref: brick-agent-brain-swap-closure
+  - edge_ref: edge:agent-brain-swap-closure-to-boundary
+    source_step_ref: agent-brain-swap-closure
+    rows:
+      - axis: Link
+        row_ref: link-row:agent-brain-swap-closure-to-boundary
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:agent-brain-swap-dogfood-0-closed
+groups:
+  - group_id: group:agent-brain-swap-fan-out
+    group_role: fan_out
+    member_ref_kind: link_edge
+    member_refs:
+      - edge:agent-brain-swap-setup-to-local
+      - edge:agent-brain-swap-setup-to-codex
+      - edge:agent-brain-swap-setup-to-claude
+      - edge:agent-brain-swap-setup-to-gemini
+    proof_limits:
+      - support topology label only
+    not_proven:
+      - parallel runtime execution
+  - group_id: group:agent-brain-swap-fan-in
+    group_role: fan_in
+    member_ref_kind: link_edge
+    member_refs:
+      - edge:agent-brain-swap-local-to-synthesis
+      - edge:agent-brain-swap-codex-to-synthesis
+      - edge:agent-brain-swap-claude-to-synthesis
+      - edge:agent-brain-swap-gemini-to-synthesis
+    proof_limits:
+      - support topology label only
+    not_proven:
+      - synthesis quality

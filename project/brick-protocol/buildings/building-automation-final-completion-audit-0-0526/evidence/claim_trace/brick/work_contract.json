@@ -1,0 +1,249 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:building-automation-final-completion-audit-0-0526::evidence/claim_trace/brick/work_contract.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-bafca0-requirements",
+        "comparison_rule": "Requirements must preserve Brick / Agent / Link ownership and must not redefine completion as production runtime readiness.",
+        "required_return_shape": "objective_requirements, admitted_completion_boundary, proof_limits, not_proven",
+        "source_facts": [
+          "AGENTS.md",
+          "project/brick-protocol/status/kernel/current-working-context.md",
+          "support/docs/spec/brick-protocol-building-automation-roadmap-0-three-axis-automation-0525.md"
+        ],
+        "work_statement": "Derive the explicit BUILDING-AUTOMATION-COMPLETE-0 requirements from the active roadmap and context."
+      },
+      "fact_ref": "brick-work:01:building-automation-final-completion-audit-0-01-requirements",
+      "not_proven": [
+        "production scheduler / queue / retry runtime",
+        "automatic semantic route selection",
+        "provider answer quality",
+        "provider-native app reload behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Requirements must preserve Brick / Agent / Link ownership and must not redefine completion as production runtime readiness.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Derive the explicit BUILDING-AUTOMATION-COMPLETE-0 requirements from the active roadmap and context."
+      },
+      "fact_ref": "brick-comparison:01:building-automation-final-completion-audit-0-01-requirements",
+      "not_proven": [
+        "production scheduler / queue / retry runtime",
+        "automatic semantic route selection",
+        "provider answer quality",
+        "provider-native app reload behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-bafca0-evidence",
+        "comparison_rule": "Evidence verification must distinguish narrowly proven from not proven and must not make provider quality or semantic route correctness claims.",
+        "required_return_shape": "requirement_evidence_map, checker_bundle, remaining_limits, proof_limits, not_proven",
+        "source_facts": [
+          "support/docs/spec/brick-protocol-building-automation-level-next-repair-0-current-level-0526.md",
+          "project/brick-protocol/status/kernel/brick-protocol-building-automation-level-next-repair-0-support-record-0526.md",
+          "support/checkers/check_building_automation_level_next0.py"
+        ],
+        "work_statement": "Verify each BUILDING-AUTOMATION-COMPLETE-0 requirement against current Building evidence, graph/evidence checks, Agent lane checks, and lifecycle checks."
+      },
+      "fact_ref": "brick-work:02:building-automation-final-completion-audit-0-02-evidence",
+      "not_proven": [
+        "production scheduler / queue / retry runtime",
+        "automatic semantic route selection",
+        "provider answer quality",
+        "provider-native app reload behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Evidence verification must distinguish narrowly proven from not proven and must not make provider quality or semantic route correctness claims.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Verify each BUILDING-AUTOMATION-COMPLETE-0 requirement against current Building evidence, graph/evidence checks, Agent lane checks, and lifecycle checks."
+      },
+      "fact_ref": "brick-comparison:02:building-automation-final-completion-audit-0-02-evidence",
+      "not_proven": [
+        "production scheduler / queue / retry runtime",
+        "automatic semantic route selection",
+        "provider answer quality",
+        "provider-native app reload behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-bafca0-closure",
+        "comparison_rule": "Closure may recommend goal completion only within admitted boundaries and must keep production/runtime/provider/semantic proof limits explicit.",
+        "required_return_shape": "observed_evidence, narrowly_proven, not_proven, held, goal_closure_assessment, final_movement",
+        "source_facts": [
+          "brick/building_plans/building-automation-final-completion-audit-0-final.yaml",
+          "support/docs/spec/brick-protocol-building-automation-final-completion-audit-0-final-0526.md"
+        ],
+        "work_statement": "Close the BUILDING-AUTOMATION-COMPLETE-0 goal if the explicit admitted-boundary requirements are satisfied."
+      },
+      "fact_ref": "brick-work:03:building-automation-final-completion-audit-0-03-closure",
+      "not_proven": [
+        "production scheduler / queue / retry runtime",
+        "automatic semantic route selection",
+        "provider answer quality",
+        "provider-native app reload behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Closure may recommend goal completion only within admitted boundaries and must keep production/runtime/provider/semantic proof limits explicit.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Close the BUILDING-AUTOMATION-COMPLETE-0 goal if the explicit admitted-boundary requirements are satisfied."
+      },
+      "fact_ref": "brick-comparison:03:building-automation-final-completion-audit-0-03-closure",
+      "not_proven": [
+        "production scheduler / queue / retry runtime",
+        "automatic semantic route selection",
+        "provider answer quality",
+        "provider-native app reload behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-26T05:18:22Z",
+  "id": "urn:bp:building:building-automation-final-completion-audit-0-0526::evidence/claim_trace/brick/work_contract.json",
+  "recorded_at": "2026-05-26T05:18:22Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:building-automation-final-completion-audit-0-0526",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/brick/work_contract.json",
+  "time": "2026-05-26T05:18:22Z",
+  "type": "bp.claim_trace"
+}

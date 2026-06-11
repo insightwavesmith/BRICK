@@ -1,0 +1,131 @@
+plan_ref: building-plan:dev-six-step
+owner_axis: Brick
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - production runtime readiness
+  - provider credential validity
+  - tool or hook execution
+steps:
+  - step_ref: dev-six-step-01-plan
+    rows:
+      - axis: Brick
+        row_ref: brick-row:dev-six-step-01
+        brick_work_ref: work:dev-six-step-01
+        brick_instance_ref: brick-dev-plan-01
+        work_statement: Define the development scope and return a concise implementation plan.
+        comparison_rule: Observe whether the return names scope, files, checks, and proof limits.
+        required_return_shape: summary, touched_surfaces, checks, proof_limits
+        source_facts:
+          - source:building-plan:dev-six-step
+      - axis: Agent
+        row_ref: agent-row:dev-six-step-01
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:dev-six-step-01
+        movement: forward
+        target_ref: brick-dev-implement-02
+        next_brick_instance_ref: brick-dev-implement-02
+  - step_ref: dev-six-step-02-implement
+    rows:
+      - axis: Brick
+        row_ref: brick-row:dev-six-step-02
+        brick_work_ref: work:dev-six-step-02
+        brick_instance_ref: brick-dev-implement-02
+        work_statement: Implement the approved development scope without opening held surfaces.
+        comparison_rule: Observe whether implementation stayed inside the declared surfaces.
+        required_return_shape: changed_files, evidence, proof_limits
+        source_facts:
+          - source:building-plan:dev-six-step
+      - axis: Agent
+        row_ref: agent-row:dev-six-step-02
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:dev-six-step-02
+        movement: forward
+        target_ref: brick-dev-check-03
+        next_brick_instance_ref: brick-dev-check-03
+  - step_ref: dev-six-step-03-check
+    rows:
+      - axis: Brick
+        row_ref: brick-row:dev-six-step-03
+        brick_work_ref: work:dev-six-step-03
+        brick_instance_ref: brick-dev-check-03
+        work_statement: Run the declared local checks and report observed evidence only.
+        comparison_rule: Observe whether checks are named with pass/fail output and proof limits.
+        required_return_shape: commands, observed_output, not_proven
+        source_facts:
+          - source:building-plan:dev-six-step
+      - axis: Agent
+        row_ref: agent-row:dev-six-step-03
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:dev-six-step-03
+        movement: forward
+        target_ref: brick-dev-review-04
+        next_brick_instance_ref: brick-dev-review-04
+  - step_ref: dev-six-step-04-review
+    rows:
+      - axis: Brick
+        row_ref: brick-row:dev-six-step-04
+        brick_work_ref: work:dev-six-step-04
+        brick_instance_ref: brick-dev-review-04
+        work_statement: Review the implementation against the constitutional and module boundaries.
+        comparison_rule: Observe whether issues are mapped to Brick, Agent, Link, or support.
+        required_return_shape: findings, boundary_notes, repair_scope
+        source_facts:
+          - source:building-plan:dev-six-step
+      - axis: Agent
+        row_ref: agent-row:dev-six-step-04
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:dev-six-step-04
+        movement: forward
+        target_ref: brick-dev-repair-05
+        next_brick_instance_ref: brick-dev-repair-05
+  - step_ref: dev-six-step-05-repair
+    rows:
+      - axis: Brick
+        row_ref: brick-row:dev-six-step-05
+        brick_work_ref: work:dev-six-step-05
+        brick_instance_ref: brick-dev-repair-05
+        work_statement: Apply only in-scope repairs from the review observations.
+        comparison_rule: Observe whether repairs are narrow and do not add new owners.
+        required_return_shape: repairs, checks_rerun, held_items
+        source_facts:
+          - source:building-plan:dev-six-step
+      - axis: Agent
+        row_ref: agent-row:dev-six-step-05
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:dev-six-step-05
+        movement: forward
+        target_ref: brick-dev-close-06
+        next_brick_instance_ref: brick-dev-close-06
+  - step_ref: dev-six-step-06-close
+    rows:
+      - axis: Brick
+        row_ref: brick-row:dev-six-step-06
+        brick_work_ref: work:dev-six-step-06
+        brick_instance_ref: brick-dev-close-06
+        work_statement: Close the development building with observed evidence and proof limits.
+        comparison_rule: Observe whether closure separates proven, not proven, held, and next Movement.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, next_movement
+        source_facts:
+          - source:building-plan:dev-six-step
+      - axis: Agent
+        row_ref: agent-row:dev-six-step-06
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:dev-six-step-06
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:closed
+        next_brick_instance_ref: building-boundary-closed

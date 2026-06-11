@@ -1,0 +1,246 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:preset-three-axis-contract-repair-0-0528::evidence/claim_trace/brick/work_contract.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-preset-contract-repair-development-attempt-1",
+        "comparison_rule": "Observe only required_return_shape field presence.",
+        "required_return_shape": "observed_evidence, worker_assignments, risks, not_proven",
+        "source_facts": [
+          "support/docs/spec/brick-protocol-preset-three-axis-contract-repair-0-0528.md"
+        ],
+        "work_statement": "Return CTO assignment evidence with explicit labels for adapter normalization dogfood."
+      },
+      "fact_ref": "brick-work:01:preset-three-axis-contract-repair-0-development",
+      "not_proven": [
+        "semantic correctness of dashboard work",
+        "real provider adherence to return labels",
+        "dashboard UI readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "adapter normalization and Link gate dogfood only",
+        "not provider behavior proof",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe only required_return_shape field presence.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Return CTO assignment evidence with explicit labels for adapter normalization dogfood."
+      },
+      "fact_ref": "brick-comparison:01:preset-three-axis-contract-repair-0-development",
+      "not_proven": [
+        "semantic correctness of dashboard work",
+        "real provider adherence to return labels",
+        "dashboard UI readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "adapter normalization and Link gate dogfood only",
+        "not provider behavior proof",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-preset-contract-repair-review-attempt-1",
+        "comparison_rule": "Observe non-binding concern field only.",
+        "required_return_shape": "observed_evidence, blocked_or_missing_evidence, transition_concern_evidence, not_proven",
+        "source_facts": [],
+        "work_statement": "Return QA observation with an explicit non-binding transition concern mapping."
+      },
+      "fact_ref": "brick-work:02:preset-three-axis-contract-repair-0-review",
+      "not_proven": [
+        "semantic correctness of dashboard work",
+        "real provider adherence to return labels",
+        "dashboard UI readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "adapter normalization and Link gate dogfood only",
+        "not provider behavior proof",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe non-binding concern field only.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Return QA observation with an explicit non-binding transition concern mapping."
+      },
+      "fact_ref": "brick-comparison:02:preset-three-axis-contract-repair-0-review",
+      "not_proven": [
+        "semantic correctness of dashboard work",
+        "real provider adherence to return labels",
+        "dashboard UI readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "adapter normalization and Link gate dogfood only",
+        "not provider behavior proof",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-preset-contract-repair-closure",
+        "comparison_rule": "Closure records support evidence only.",
+        "required_return_shape": "observed_evidence, narrowly_proven, not_proven, remaining_delta",
+        "source_facts": [],
+        "work_statement": "Close the repair dogfood with observed evidence and remaining delta."
+      },
+      "fact_ref": "brick-work:03:preset-three-axis-contract-repair-0-closure",
+      "not_proven": [
+        "semantic correctness of dashboard work",
+        "real provider adherence to return labels",
+        "dashboard UI readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "adapter normalization and Link gate dogfood only",
+        "not provider behavior proof",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Closure records support evidence only.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Close the repair dogfood with observed evidence and remaining delta."
+      },
+      "fact_ref": "brick-comparison:03:preset-three-axis-contract-repair-0-closure",
+      "not_proven": [
+        "semantic correctness of dashboard work",
+        "real provider adherence to return labels",
+        "dashboard UI readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "adapter normalization and Link gate dogfood only",
+        "not provider behavior proof",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-28T08:34:11Z",
+  "id": "urn:bp:building:preset-three-axis-contract-repair-0-0528::evidence/claim_trace/brick/work_contract.json",
+  "recorded_at": "2026-05-28T08:34:11Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:preset-three-axis-contract-repair-0-0528",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/brick/work_contract.json",
+  "time": "2026-05-28T08:34:11Z",
+  "type": "bp.claim_trace"
+}

@@ -1,0 +1,146 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:posA-native-complete::evidence/claim_trace/brick/work_contract.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick:posA-native-complete:native-dispatch",
+        "comparison_rule": "",
+        "required_return_shape": "observed_evidence, not_proven",
+        "source_facts": [],
+        "work_statement": "test statement"
+      },
+      "fact_ref": "brick-work:01:posA-native-complete-native-dispatch",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "native-dispatch support evidence only",
+        "support recorded a native subagent dispatch; support did not launch it",
+        "gate sufficiency is the Link rule computation over the supplied return",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, not_proven",
+          "observed_return_fields: not_proven, observed_evidence",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence, not_proven",
+        "work_reference": "test statement"
+      },
+      "fact_ref": "brick-comparison:01:posA-native-complete-native-dispatch",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "native-dispatch support evidence only",
+        "support recorded a native subagent dispatch; support did not launch it",
+        "gate sufficiency is the Link rule computation over the supplied return",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:01:posA-native-complete-native-dispatch",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, not_proven",
+          "observed_return_fields: not_proven, observed_evidence",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence, not_proven",
+        "work_reference": "test statement"
+      },
+      "fact_ref": "brick-comparison:posA-native-complete:posA-native-complete-native-dispatch",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "native-dispatch support evidence only",
+        "support recorded a native subagent dispatch; support did not launch it",
+        "gate sufficiency is the Link rule computation over the supplied return",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-29T10:42:03Z",
+  "id": "urn:bp:building:posA-native-complete::evidence/claim_trace/brick/work_contract.json",
+  "recorded_at": "2026-05-29T10:42:03Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:posA-native-complete",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/brick/work_contract.json",
+  "time": "2026-05-29T10:42:03Z",
+  "type": "bp.claim_trace"
+}

@@ -1,0 +1,71 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:posA-native-complete::evidence/evidence-manifest.json",
+  "building_id": "posA-native-complete",
+  "building_map_ref": "work/building-map.json",
+  "claim_trace_refs": [
+    "evidence/claim_trace/brick/work_contract.json",
+    "evidence/claim_trace/agent/returned_claims.json",
+    "evidence/claim_trace/link/transfer_trace.json",
+    "evidence/claim_trace/link/carry_trace.json",
+    "evidence/claim_trace/link/sufficiency_trace.json",
+    "evidence/claim_trace/link/movement_trace.json"
+  ],
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "execution_path": "native-dispatch",
+  "generatedAtTime": "2026-05-29T10:42:03Z",
+  "id": "urn:bp:building:posA-native-complete::evidence/evidence-manifest.json",
+  "not_proven": [
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "not proven: source truth",
+    "not proven: success judgment",
+    "not proven: quality judgment",
+    "not proven: Movement authority"
+  ],
+  "plan_ref": "native-dispatch-plan:posA-native-complete",
+  "plan_snapshot": {
+    "plan_hash": "9adee07d8e98f10058a22ee51710fef8877d0f1127b4b3e588fe52ac3b5667cd",
+    "plan_hash_algorithm": "sha256",
+    "plan_hash_basis": "canonical sorted-key JSON of the declared plan body",
+    "plan_ref": "native-dispatch-plan:posA-native-complete",
+    "plan_rows_copy": "{\"execution_path\":\"native-dispatch\",\"not_proven\":[\"brain surface behavior\",\"credential validity\",\"runtime or scheduler behavior\",\"tool or hook execution\",\"source truth\",\"success judgment\",\"quality judgment\",\"Movement authority\"],\"plan_ref\":\"native-dispatch-plan:posA-native-complete\",\"proof_limits\":[\"native-dispatch support evidence only\",\"support recorded a native subagent dispatch; support did not launch it\",\"gate sufficiency is the Link rule computation over the supplied return\",\"not source truth\",\"not success judgment\",\"not quality judgment\",\"not Movement authority\"],\"raw_refs\":[]}",
+    "proof_limits": [
+      "evidence copy only",
+      "not source truth"
+    ]
+  },
+  "proof_limits": [
+    "native-dispatch support evidence only",
+    "support recorded a native subagent dispatch; support did not launch it",
+    "gate sufficiency is the Link rule computation over the supplied return",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "raw_manifest_ref": "raw/raw-manifest.json",
+  "raw_stream_refs": [
+    "raw/brick-work.jsonl",
+    "raw/agent-return.jsonl",
+    "raw/link.jsonl"
+  ],
+  "recorded_at": "2026-05-29T10:42:03Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:posA-native-complete",
+  "specversion": "1.0",
+  "step_output_refs": [
+    "work/step-outputs/posA-native-complete-native-dispatch-attempt-1/step-output.json"
+  ],
+  "subject": "evidence/evidence-manifest.json",
+  "time": "2026-05-29T10:42:03Z",
+  "type": "bp.evidence_manifest"
+}

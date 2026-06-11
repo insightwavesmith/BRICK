@@ -1,0 +1,77 @@
+kind: LinkTransferContractProjection
+bal_owner: Link
+module: Link.transfer
+contract: TransferFact
+projection_only: true
+closed_shape: true
+extra_keys_allowed: false
+
+upstream_module: Link
+upstream_contract: LTC-0 Link Transfer Contract
+verifiers:
+  - check_axis_contract_projection.py
+  # residual contract guards tracked in checker-consolidation-and-builder-plan-0602.md (not all built yet)
+
+public_fact:
+  name: TransferFact
+  owner: Link
+  fields:
+    - source_boundary_ref
+    - target_boundary_ref
+    - public_fact_refs
+    - work_context_ref
+    - required_public_facts
+    - transfer_gate_reference
+    - proof_limits
+    - not_proven
+    - evidence_reference
+
+field_rules:
+  source_boundary_ref: required_brick_boundary_ref
+  target_boundary_ref: required_brick_boundary_ref
+  public_fact_refs: required_text_tuple
+  work_context_ref: required_text_ref
+  required_public_facts: required_text_tuple
+  transfer_gate_reference: optional_text_ref
+  proof_limits: required_text_tuple
+  not_proven: text_tuple
+  evidence_reference: required_text_ref
+
+allowed_facts:
+  - caller-supplied public fact references
+  - source Building boundary reference
+  - target Building boundary reference
+  - work context reference
+  - required public facts
+  - transfer Gate reference when supplied
+  - proof limits
+  - not-proven facts
+  - evidence reference
+
+forbidden_ownership:
+  - Agent execution
+  - provider call
+  - tool call
+  - runtime execution
+  - queue ownership
+  - scheduler ownership
+  - storage mutation
+  - wiki mutation
+  - source truth
+  - success judgment
+  - failure judgment
+  - quality judgment
+  - Movement choice
+  - destination choice
+  - performer choice
+  - semantic classification
+  - movement_gate_reference
+
+proof_limits:
+  - TransferFact is a Link public fact only
+  - TransferFact does not execute transfer mechanics
+  - TransferFact does not create default GateFacts
+  - TransferFact does not choose Movement
+  - TransferFact is not source truth
+  - TransferFact is not success judgment
+  - TransferFact is not quality judgment

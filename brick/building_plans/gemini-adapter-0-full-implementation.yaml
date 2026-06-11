@@ -1,0 +1,158 @@
+plan_ref: building-plan:gemini-adapter-0-full-implementation
+owner_axis: Brick
+building_id: gemini-adapter-0-0525
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - Gemini provider quality
+  - Gemini provider availability in other environments
+  - Gemini 3.5 model availability
+  - provider session continuity
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority
+steps:
+  - step_ref: gemini-adapter-0-01-design
+    rows:
+      - axis: Brick
+        row_ref: brick-row:gemini-adapter-0-design
+        brick_work_ref: work:gemini-adapter-0-design
+        brick_instance_ref: brick-gemini-adapter-design-01
+        work_statement: Design GEMINI-ADAPTER-0 as a thin local CLI QA lane extension.
+        comparison_rule: Observe whether the design uses existing Agent Adapter, keeps AgentFact closed, and avoids provider SDK/API, tool execution, Movement choice, and credential/session storage.
+        required_return_shape: role_boundary, command_shape, return_safety, checker_plan, forbidden_ownership, not_proven
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+          - support/docs/spec/brick-protocol-gemini-adapter-0-local-cli-qa-lane-0525.md
+          - support/connection/agent_adapter.py
+          - agent/objects/qa.yaml
+          - brick/templates/design/minimal-design-template.json
+      - axis: Agent
+        row_ref: agent-row:gemini-adapter-0-design
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:gemini-adapter-0-design
+        movement: forward
+        target_ref: brick-gemini-adapter-development-02
+        next_brick_instance_ref: brick-gemini-adapter-development-02
+  - step_ref: gemini-adapter-0-02-development
+    rows:
+      - axis: Brick
+        row_ref: brick-row:gemini-adapter-0-development
+        brick_work_ref: work:gemini-adapter-0-development
+        brick_instance_ref: brick-gemini-adapter-development-02
+        work_statement: Implement adapter:gemini-local, checker coverage, QA Agent Object ref update, and context/status documentation.
+        comparison_rule: Observe whether implementation parses Gemini JSON response, rejects tool-call output, redacts provider session/credential data, and preserves Codex/Claude adapters.
+        required_return_shape: implementation_map, changed_files, verification_evidence, boundaries_preserved, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-gemini-adapter-0-local-cli-qa-lane-0525.md
+          - support/connection/agent_adapter.py
+          - support/checkers/check_gemini_adapter0_local_cli.py
+          - agent/objects/qa.yaml
+          - brick/templates/do/minimal-do-return-template.json
+      - axis: Agent
+        row_ref: agent-row:gemini-adapter-0-development
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:gemini-adapter-0-development
+        movement: forward
+        target_ref: brick-gemini-adapter-codex-qa-03
+        next_brick_instance_ref: brick-gemini-adapter-codex-qa-03
+  - step_ref: gemini-adapter-0-03-codex-qa
+    selected_adapter_ref: adapter:codex-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:gemini-adapter-0-codex-qa
+        brick_work_ref: work:gemini-adapter-0-codex-qa
+        brick_instance_ref: brick-gemini-adapter-codex-qa-03
+        work_statement: Verify GEMINI-ADAPTER-0 from the Codex QA lane as support evidence.
+        comparison_rule: Observe whether adapter:gemini-local stays inside Agent Adapter and does not open provider SDK/API, Movement authority, or AgentFact expansion.
+        required_return_shape: checked_sources, findings, boundary_violations, evidence_used, narrowly_proven, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-gemini-adapter-0-local-cli-qa-lane-0525.md
+          - support/connection/agent_adapter.py
+          - support/checkers/check_gemini_adapter0_local_cli.py
+          - agent/objects/qa.yaml
+          - brick/templates/review/minimal-review-template.json
+      - axis: Agent
+        row_ref: agent-row:gemini-adapter-0-codex-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:gemini-adapter-0-codex-qa
+        movement: forward
+        target_ref: brick-gemini-adapter-claude-qa-04
+        next_brick_instance_ref: brick-gemini-adapter-claude-qa-04
+  - step_ref: gemini-adapter-0-04-claude-qa
+    selected_adapter_ref: adapter:claude-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:gemini-adapter-0-claude-qa
+        brick_work_ref: work:gemini-adapter-0-claude-qa
+        brick_instance_ref: brick-gemini-adapter-claude-qa-04
+        work_statement: Verify GEMINI-ADAPTER-0 from the Claude QA lane as support evidence.
+        comparison_rule: Observe whether Gemini adapter output stores only response excerpt and rejects tool-call output without storing raw provider session id.
+        required_return_shape: checked_sources, findings, boundary_violations, evidence_used, narrowly_proven, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-gemini-adapter-0-local-cli-qa-lane-0525.md
+          - support/connection/agent_adapter.py
+          - support/checkers/check_gemini_adapter0_local_cli.py
+          - agent/objects/qa.yaml
+          - brick/templates/review/minimal-review-template.json
+      - axis: Agent
+        row_ref: agent-row:gemini-adapter-0-claude-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:gemini-adapter-0-claude-qa
+        movement: forward
+        target_ref: brick-gemini-adapter-gemini-smoke-05
+        next_brick_instance_ref: brick-gemini-adapter-gemini-smoke-05
+  - step_ref: gemini-adapter-0-05-gemini-smoke
+    selected_adapter_ref: adapter:gemini-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:gemini-adapter-0-gemini-smoke
+        brick_work_ref: work:gemini-adapter-0-gemini-smoke
+        brick_instance_ref: brick-gemini-adapter-gemini-smoke-05
+        work_statement: Run a real Gemini local CLI QA smoke through adapter:gemini-local and return support evidence only.
+        comparison_rule: Observe whether Gemini returns closed AgentFact support evidence without tools, raw session id, credential body, provider request body, or Movement choice.
+        required_return_shape: returned_summary, adapter_ref, brain_surface_ref, output_excerpt, proof_limits, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-gemini-adapter-0-local-cli-qa-lane-0525.md
+          - support/connection/agent_adapter.py
+      - axis: Agent
+        row_ref: agent-row:gemini-adapter-0-gemini-smoke
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:gemini-adapter-0-gemini-smoke
+        movement: forward
+        target_ref: brick-gemini-adapter-closure-06
+        next_brick_instance_ref: brick-gemini-adapter-closure-06
+  - step_ref: gemini-adapter-0-06-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:gemini-adapter-0-closure
+        brick_work_ref: work:gemini-adapter-0-closure
+        brick_instance_ref: brick-gemini-adapter-closure-06
+        work_statement: Close GEMINI-ADAPTER-0 with observed evidence, narrowly proven scope, not_proven, and next Movement candidate.
+        comparison_rule: Observe whether closure names MULTI-LANE-DOGFOOD-0 only as next candidate and keeps provider SDK/API closed.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, next_movement
+        source_facts:
+          - support/docs/spec/brick-protocol-gemini-adapter-0-local-cli-qa-lane-0525.md
+      - axis: Agent
+        row_ref: agent-row:gemini-adapter-0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:gemini-adapter-0-closure
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:gemini-adapter-0-closed
+        next_brick_instance_ref: building-boundary-gemini-adapter-0-closed

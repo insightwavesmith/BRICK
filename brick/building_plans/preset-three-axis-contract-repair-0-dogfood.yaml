@@ -1,0 +1,80 @@
+plan_ref: building-plan:preset-three-axis-contract-repair-0-dogfood
+owner_axis: Brick
+building_id: preset-three-axis-contract-repair-0-0528
+selected_shape_ref: building-shape:reviewable-work
+declared_by: coo
+selected_adapter_ref: adapter:codex-local
+selected_model_ref: model:codex:default
+parent_goal_ref: goal:project-orchestration-dashboard
+proof_limits:
+  - support evidence only
+  - adapter normalization and Link gate dogfood only
+  - not provider behavior proof
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of dashboard work
+  - real provider adherence to return labels
+  - dashboard UI readiness
+steps:
+  - step_ref: preset-three-axis-contract-repair-0-development
+    rows:
+      - axis: Brick
+        row_ref: brick-row:preset-three-axis-contract-repair-0-development
+        brick_work_ref: work:preset-three-axis-contract-repair-0-development
+        brick_instance_ref: brick-preset-contract-repair-development-attempt-1
+        work_statement: Return CTO assignment evidence with explicit labels for adapter normalization dogfood.
+        comparison_rule: Observe only required_return_shape field presence.
+        required_return_shape: observed_evidence, worker_assignments, risks, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-preset-three-axis-contract-repair-0-0528.md
+      - axis: Agent
+        row_ref: agent-row:preset-three-axis-contract-repair-0-development
+        agent_object_ref: agent-object:cto-lead
+      - axis: Link
+        row_ref: link-row:preset-three-axis-contract-repair-0-development-to-review
+        movement: forward
+        target_ref: brick-preset-contract-repair-review-attempt-1
+        declared_gate_refs:
+          - link-gate:default-transition
+  - step_ref: preset-three-axis-contract-repair-0-review
+    rows:
+      - axis: Brick
+        row_ref: brick-row:preset-three-axis-contract-repair-0-review
+        brick_work_ref: work:preset-three-axis-contract-repair-0-review
+        brick_instance_ref: brick-preset-contract-repair-review-attempt-1
+        work_statement: Return QA observation with an explicit non-binding transition concern mapping.
+        comparison_rule: Observe non-binding concern field only.
+        required_return_shape: observed_evidence, blocked_or_missing_evidence, transition_concern_evidence, not_proven
+      - axis: Agent
+        row_ref: agent-row:preset-three-axis-contract-repair-0-review
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:preset-three-axis-contract-repair-0-review-to-closure
+        movement: forward
+        target_ref: brick-preset-contract-repair-closure
+        declared_gate_refs:
+          - link-gate:default-transition
+  - step_ref: preset-three-axis-contract-repair-0-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:preset-three-axis-contract-repair-0-closure
+        brick_work_ref: work:preset-three-axis-contract-repair-0-closure
+        brick_instance_ref: brick-preset-contract-repair-closure
+        work_statement: Close the repair dogfood with observed evidence and remaining delta.
+        comparison_rule: Closure records support evidence only.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta
+      - axis: Agent
+        row_ref: agent-row:preset-three-axis-contract-repair-0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:preset-three-axis-contract-repair-0-closed
+        movement: forward
+        target_ref: building-boundary:preset-three-axis-contract-repair-0-closed
+        declared_gate_refs:
+          - link-gate:default-transition
+        building_lifecycle:
+          state: closed
+          reason: PRESET-THREE-AXIS-CONTRACT-REPAIR-0 dogfood evidence recorded.

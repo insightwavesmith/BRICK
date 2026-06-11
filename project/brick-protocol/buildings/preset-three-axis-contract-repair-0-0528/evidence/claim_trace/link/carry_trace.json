@@ -1,0 +1,133 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:preset-three-axis-contract-repair-0-0528::evidence/claim_trace/link/carry_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "absent_fact_type": "CarryFact",
+        "caller_supplied": false,
+        "statement": "caller did not supply a Link CarryFact; support/operator/run.py did not create one",
+        "support_created_bal_fact": false,
+        "trace_role": "absence_placeholder"
+      },
+      "fact_ref": "absence:link-carry:01:preset-three-axis-contract-repair-0-development",
+      "not_proven": [
+        "semantic correctness of dashboard work",
+        "real provider adherence to return labels",
+        "dashboard UI readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "adapter normalization and Link gate dogfood only",
+        "not provider behavior proof",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "absent_fact_type": "CarryFact",
+        "caller_supplied": false,
+        "statement": "caller did not supply a Link CarryFact; support/operator/run.py did not create one",
+        "support_created_bal_fact": false,
+        "trace_role": "absence_placeholder"
+      },
+      "fact_ref": "absence:link-carry:02:preset-three-axis-contract-repair-0-review",
+      "not_proven": [
+        "semantic correctness of dashboard work",
+        "real provider adherence to return labels",
+        "dashboard UI readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "adapter normalization and Link gate dogfood only",
+        "not provider behavior proof",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:02"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "absent_fact_type": "CarryFact",
+        "caller_supplied": false,
+        "statement": "caller did not supply a Link CarryFact; support/operator/run.py did not create one",
+        "support_created_bal_fact": false,
+        "trace_role": "absence_placeholder"
+      },
+      "fact_ref": "absence:link-carry:03:preset-three-axis-contract-repair-0-closure",
+      "not_proven": [
+        "semantic correctness of dashboard work",
+        "real provider adherence to return labels",
+        "dashboard UI readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "adapter normalization and Link gate dogfood only",
+        "not provider behavior proof",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:03"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-28T08:34:11Z",
+  "id": "urn:bp:building:preset-three-axis-contract-repair-0-0528::evidence/claim_trace/link/carry_trace.json",
+  "recorded_at": "2026-05-28T08:34:11Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:preset-three-axis-contract-repair-0-0528",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/carry_trace.json",
+  "time": "2026-05-28T08:34:11Z",
+  "type": "bp.claim_trace"
+}

@@ -1,0 +1,62 @@
+{
+  "agent_binding_declarations": [
+    {
+      "agent_object_ref": "agent-object:dev",
+      "row_ref": "agent-row:tier-a-work",
+      "step_ref": "tier-a-work"
+    },
+    {
+      "agent_object_ref": "agent-object:qa",
+      "row_ref": "agent-row:tier-a-review-1",
+      "step_ref": "tier-a-review-1"
+    },
+    {
+      "agent_object_ref": "agent-object:inspector",
+      "row_ref": "agent-row:tier-a-mid",
+      "step_ref": "tier-a-mid"
+    },
+    {
+      "agent_object_ref": "agent-object:design-lead",
+      "row_ref": "agent-row:tier-a-review-2",
+      "step_ref": "tier-a-review-2"
+    },
+    {
+      "agent_object_ref": "agent-object:coo",
+      "row_ref": "agent-row:tier-a-close",
+      "step_ref": "tier-a-close"
+    }
+  ],
+  "building_id": "tier-a-3axis-conformance-0",
+  "chain_preset_ref": "",
+  "composition_mode": "caller_or_coo_declared_graph_composition",
+  "expanded_brick_template_refs": [],
+  "expanded_step_template_refs": [],
+  "kind": "preset_expansion_provenance",
+  "not_proven": [
+    "semantic correctness of the agent-proposed reroute",
+    "real provider behavior",
+    "scheduler / queue / retry behavior",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "quality of returned work",
+    "step template refs were not exposed by the plan",
+    "Brick template refs were not exposed by the plan"
+  ],
+  "plan_ref": "building-plan:tier-a-3axis-conformance-0",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support evidence only"
+  ],
+  "selected_preset_ref": "building-chain-preset:engine-feature-hard",
+  "selected_shape_ref": "building-shape:design-needed"
+}

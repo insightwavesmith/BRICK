@@ -1,0 +1,58 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:building-automation-complete-0-scope-c-dogfood-0527::work/building-work.json",
+  "building_id": "building-automation-complete-0-scope-c-dogfood-0527",
+  "comparison_rule": "Observe returned development evidence only; do not judge quality.",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-05-27T07:14:50Z",
+  "id": "urn:bp:building:building-automation-complete-0-scope-c-dogfood-0527::work/building-work.json",
+  "not_proven": [
+    "semantic correctness of QA route request",
+    "semantic correctness of Link decision",
+    "hidden runtime loop behavior",
+    "scheduler or queue behavior",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "plan_ref": "building-plan:building-automation-complete-0-scope-c-dogfood",
+  "proof_limits": [
+    "support evidence only",
+    "declared boundary replay dogfood only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-05-27T07:14:50Z",
+  "required_return_shape": "made_changes, observed_evidence, blocked_or_missing_evidence, proof_limits, not_proven",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:building-automation-complete-0-scope-c-dogfood-0527",
+  "source_facts": [
+    "BUILDING-AUTOMATION-COMPLETE-0"
+  ],
+  "specversion": "1.0",
+  "step_refs": [
+    "building-automation-complete-0-dev",
+    "building-automation-complete-0-qa",
+    "building-automation-complete-0-dev",
+    "building-automation-complete-0-qa",
+    "building-automation-complete-0-closure"
+  ],
+  "subject": "work/building-work.json",
+  "time": "2026-05-27T07:14:50Z",
+  "type": "bp.building_work",
+  "work_statement": "Produce initial development evidence for Scope C dogfood."
+}

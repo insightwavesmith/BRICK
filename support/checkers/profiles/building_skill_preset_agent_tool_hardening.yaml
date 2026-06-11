@@ -1,0 +1,3538 @@
+schema: checker-profile/v1
+profile_id: building-skill-preset-agent-tool-hardening
+description: BUILDING-SKILL-PRESET-AGENT-TOOL-HARDENING-0 role, preset, tool, and hook boundary profile.
+kernel_checks:
+  - package_path_admission
+  - axis_contract_projection
+  - agent_adapter_return_shape
+path_exists:
+  - agent/skills/building-coordination/SKILL.md
+  - agent/skills/task_intake/SKILL.md
+  - agent/hooks/registry.yaml
+  - agent/hooks/bindings.yaml
+  - agent/tool_policies/leader-coordination.yaml
+  - agent/tool_policies/read-write-scoped.yaml
+  - agent/tool_policies/reviewer-readonly.yaml
+  - brick/templates/shapes/catalog.yaml
+  - brick/templates/presets/fast-fix.md
+  - brick/templates/presets/design-build-parallel.md
+  - brick/templates/presets/high-risk-change-inspected.md
+  - brick/templates/presets/governed-change-review.md
+  - brick/templates/presets/app-feature-basic.md
+  - brick/templates/presets/app-feature-inspected.md
+  - brick/templates/presets/docs-simple-review.md
+  - brick/templates/presets/portfolio-sequence.md
+  - support/connection/agent_resources.py
+  - support/connection/agent_adapter.py
+  - support/operator/building_operation.py
+  - support/operator/run.py
+  - support/operator/write_observation.py
+# WAVE-B (0610): the OLD tool-policy filenames are retired (leader-readonly ->
+# leader-coordination, review-readonly -> reviewer-readonly, support-readonly
+# retired outright). ABSENCE pin: a renamed file silently coming back goes RED
+# here; the retired REFS rejecting loudly is pinned separately by
+# agent_resource_retired_ref_rejects below.
+path_absent:
+  - agent/tool_policies/leader-readonly.yaml
+  - agent/tool_policies/review-readonly.yaml
+  - agent/tool_policies/support-readonly.yaml
+text_contains:
+  # W2 DOC-DECOUPLE (0611): hardening chain + six-questions method rehomed from
+  # the 0527 spec doc to AGENTS.md (live constitution); 'native hook execution'
+  # closure enforced by hook_registry_axis_case (execution_opened rejected).
+  - path: AGENTS.md
+    texts:
+      - 'Building skill -> chain preset -> step template -> Agent Object -> tool / hook guardrail'
+      - 'Ask six questions: Brick, Agent, Link, Support, Evidence, Admission.'
+  - path: agent/prompts/coo.md
+    texts:
+      - MOVEMENT-BINARY-0 as the active Link language
+      - Older historical docs or evidence may still contain return / hold / stop / pass.
+      - Building-intake trigger
+      - 빌딩 만들자
+      - 빌딩 구성하자
+      - task intake 하자
+      - ask one core question
+      - 이 뜻 맞나?
+      - task_source_draft
+      - task-source confirmed first
+      - Do not start from
+      - selected_shape_ref
+      - active_plan_ref
+  - path: agent/skills/building-coordination/SKILL.md
+    texts:
+      - use the active MOVEMENT-BINARY-0 language
+      - Older historical docs or evidence may still show wider Movement vocabulary
+      - Building trigger rule
+      - 빌딩 기획하자
+      - 빌딩 플랜 잡자
+      - 빌딩 실행하자
+      - conversational loop
+      - ask a batch checklist
+      - Open COO intake questions before implementation.
+      - active startup order
+      - Run `task_intake` as the first active work step
+      - Confirm `task_source_draft`
+      - support records `work/task.md` as declaration evidence
+      - Builder materializer handoff
+      - After those declarations
+      - chain_preset_ref
+      - no_preset_fallback
+      - route_family_candidate
+      - preset_vs_manual_case_analysis
+      - graph_movement_case_analysis
+      - fan_in_first_candidate
+      - reroute_replay_candidate
+      - partial QA reuse remains not_proven
+      - brick/templates/presets/
+      - run_declared_auto_repair_replay_case
+  - path: agent/skills/task_intake/SKILL.md
+    texts:
+      - route_family_candidate
+      - preset_vs_manual_candidate
+      - preset_vs_manual_case_analysis
+      - manual_graph_candidate
+      - graph_movement_case_analysis
+      - fan_out_candidate
+      - fan_in_first_candidate
+      - fan_in_frontier_candidate
+      - reroute_replay_readiness_questions
+      - declared_boundary_candidate_refs
+      - route_policy_candidate_refs
+      - route_replay_plan_candidate_refs
+      - payload_delivery_scope_notes
+      - claim partial QA reuse is valid without consumed_input_refs
+  - path: agent/prompts/coo.md
+    texts:
+      - route_family_candidate
+      - graph_movement_case_analysis
+      - fan_in_first_candidate
+      - Slack is the payload
+      - closure-synthesis
+      - Partial QA reuse remains
+  - path: support/connection/agent_resources.py
+    texts:
+      - native hook execution remains closed
+      - leader lane must carry hook:leader-write-need-gate
+      - reviewer lane must carry hook:reviewer-no-mutation
+      # WAVE-B (0610): retired-name loud reject -- the resolver must keep
+      # naming the canonical replacement, never a vague missing-file error.
+      - retired tool policy ref
+      - retired hook ref
+      - leader lane must carry tool-policy:leader-coordination
+      - reviewer lane must carry tool-policy:reviewer-readonly
+  - path: support/connection/agent_adapter.py
+    texts:
+      - lowered.startswith("/")
+      - _RETURN_WAIVER_FIELDS_BY_REQUIRED
+      - return_field_waivers
+      - no_changes_reason
+  - path: support/operator/run.py
+    texts:
+      - validate_agent_refs
+      - Agent Object resource rejected by Agent resource resolver
+  - path: support/connection/building_design_toolkit.py
+    texts:
+      - step_templates
+      - chain_presets
+      - _registry_section_items
+      # PART-2 Phase 3 READ-ONLY agent-candidate COO surface (pin the helper +
+      # its axis law: support records candidates, does not pick among >= 2).
+      - 'def render_agent_candidate_packet('
+      - support does not pick among >= 2 candidates
+  - path: support/operator/plan_rendering.py
+    texts:
+      - 'def _render_candidate_agents_for_need('
+      - does NOT pick among >=2
+  - path: brick/templates/presets/app-feature-basic.md
+    texts:
+      - "preset_ref: building-chain-preset:app-feature-basic"
+      - "## Route"
+  - path: support/checkers/check_profile.py
+    texts:
+      - declared_step_template_plan_rejects
+      - compose_building_case
+      - compose_building_rejects
+      - source_fact_body_carry_case
+      - step_output_drain_case
+      - step_output_drain_rejects
+  # ELEGANT-REFACTOR P3d: compose_building + CompositionError/CompositionProblem
+  # lifted to operator/composition.py behind the building_operation facade
+  # (location-pin-follows-rehome).
+  - path: support/operator/composition.py
+    texts:
+      - 'def compose_building('
+      - class CompositionError(ValueError)
+      - class CompositionProblem
+      - selection_rule
+      - caller_or_coo_declared_only
+  - path: support/operator/composition.py
+    texts:
+      - 'selection_rule: caller_or_coo_declared_only'
+  # REHOME from retiring legacy_agent_harness_system profile (guard-before-retire):
+  # these legacy agent-harness surfaces had ZERO other enforcer.
+  - path: support/connection/agent_resources.py
+    texts:
+      - render_agent_team_context
+      - provider-specific Agent identity is not admitted
+      - write-capable adapter_refs remain technical capability refs, not authority
+      - write authority requires Brick write_scope plus Agent write policy plus adapter capability plus write observation
+  - path: support/connection/mcp_projection.py
+    texts:
+      - brick_protocol_render_agent_team_context
+      - brick-protocol://agent/team/context
+json_required_paths:
+  # REHOME from retiring legacy_agent_harness_system profile (guard-before-retire):
+  # cto-lead.yaml Agent Object schema keys + registry.yaml hook owner_axis/execution_opened.
+  - path: agent/objects/cto-lead.yaml
+    required:
+      - object_ref
+      - lane
+      - prompt_refs[]
+      - skill_refs[]
+      - hook_refs[]
+      - tool_policy_refs[]
+      - adapter_refs[]
+  - path: agent/hooks/registry.yaml
+    required:
+      - hooks.hook:leader-write-need-gate.owner_axis
+      - hooks.hook:unsafe-mutation-guard.execution_opened
+text_absent:
+  - path: agent/prompts/coo.md
+    texts:
+      - Until MOVEMENT-BINARY-0 is implemented
+      - Open or point to a real Brick-owned Building Plan before changing protocol
+      - Choose the Building shape by work type
+  - path: agent/skills/building-coordination/SKILL.md
+    texts:
+      - until MOVEMENT-BINARY-0 is implemented
+      - Name the Brick work contract and the Building Plan before resource changes.
+      - QA branch cannot route
+      - branch cannot reroute
+      - closure-synthesis means final close
+      - partial QA reuse without consumed_input_refs
+materialize_building_intent_case:
+  - label: materialize-building-intent:fast-fix-linear
+    document:
+      plan_ref: building-plan:materialize-fast-fix-linear
+      building_id: materialize-fast-fix-linear
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:fast-fix
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+          - .claude/**
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: materialize-fast-fix-linear
+      chain_preset_ref: building-chain-preset:fast-fix
+      selected_adapter_ref: adapter:codex-local
+      task_source_ref: brick/templates/tasks/source-template.md
+      step_refs:
+        - materialize-fast-fix-linear-work
+        - materialize-fast-fix-linear-code-attack-qa
+        - materialize-fast-fix-linear-closure
+      target_refs:
+        - brick-code-attack-qa
+        - brick-closure
+        - building-boundary:materialize-fast-fix-linear-closed
+      task_source_hash_present: true
+      declaration_evidence:
+        work_files:
+          - work/task.md
+          - work/building-intake.json
+          - work/preset-expansion.json
+          - work/declared-building-plan.json
+          - work/link-launch-policy.json
+        task_source_hash_present: true
+        task_source_hash_state: matched
+        expanded_step_template_refs:
+          - building-step-template:work
+          - building-step-template:code-attack-qa
+          - building-step-template:closure
+        expanded_brick_spec_refs:
+          - brick/templates/bricks/work/brick.md
+          - brick/templates/bricks/code-attack-qa/brick.md
+          - brick/templates/bricks/closure/brick.md
+        expanded_brick_template_refs:
+          - brick/templates/bricks/work/return.yaml
+          - brick/templates/bricks/code-attack-qa/return.yaml
+          - brick/templates/bricks/transition-concern-return.yaml
+          - brick/templates/bricks/closure/return.yaml
+  - label: materialize-building-intent:builder-default-building-id
+    document:
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:fast-fix
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+          - .claude/**
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: source-template-fast-fix
+      chain_preset_ref: building-chain-preset:fast-fix
+      selected_adapter_ref: adapter:codex-local
+      task_source_ref: brick/templates/tasks/source-template.md
+      step_refs:
+        - source-template-fast-fix-work
+        - source-template-fast-fix-code-attack-qa
+        - source-template-fast-fix-closure
+      target_refs:
+        - brick-code-attack-qa
+        - brick-closure
+        - building-boundary:source-template-fast-fix-closed
+      task_source_hash_present: true
+      declaration_evidence:
+        work_files:
+          - work/task.md
+          - work/building-intake.json
+          - work/preset-expansion.json
+          - work/declared-building-plan.json
+          - work/link-launch-policy.json
+        task_source_hash_present: true
+        task_source_hash_state: matched
+  - label: materialize-building-intent:app-feature-basic-linear
+    document:
+      plan_ref: building-plan:materialize-app-feature-basic-linear
+      building_id: materialize-app-feature-basic-linear
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:app-feature-basic
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+          - .claude/**
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: materialize-app-feature-basic-linear
+      chain_preset_ref: building-chain-preset:app-feature-basic
+      selected_adapter_ref: adapter:codex-local
+      task_source_ref: brick/templates/tasks/source-template.md
+      step_refs:
+        - materialize-app-feature-basic-linear-plan
+        - materialize-app-feature-basic-linear-design
+        - materialize-app-feature-basic-linear-development
+        - materialize-app-feature-basic-linear-work
+        - materialize-app-feature-basic-linear-review
+        - materialize-app-feature-basic-linear-closure
+      target_refs:
+        - brick-design
+        - brick-development
+        - brick-work
+        - brick-review
+        - brick-closure
+        - building-boundary:materialize-app-feature-basic-linear-closed
+      # GATE-WIRING FIRE (b) (0610): a preset with NO gate_concept_profile gets
+      # default-transition ONLY on every row -- support never invents a gate.
+      declared_gate_refs_by_row:
+        - link-gate:default-transition
+        - link-gate:default-transition
+        - link-gate:default-transition
+        - link-gate:default-transition
+        - link-gate:default-transition
+        - link-gate:default-transition
+      gate_sequence_policy_gate_refs_by_row:
+        - ""
+        - ""
+        - ""
+        - ""
+        - ""
+        - ""
+      # GATE-WIRING FIRE A4-absence (0610): no profile -> NO row carries
+      # gate_concept_provenance (support never invents provenance).
+      gate_concept_provenance_by_row:
+        - ""
+        - ""
+        - ""
+        - ""
+        - ""
+        - ""
+      task_source_hash_present: true
+      declaration_evidence:
+        work_files:
+          - work/task.md
+          - work/building-intake.json
+          - work/preset-expansion.json
+          - work/declared-building-plan.json
+          - work/link-launch-policy.json
+        task_source_hash_present: true
+        task_source_hash_state: matched
+  # GATE-WIRING FIRE (a) (0610): governed-change-review declares
+  # gate_concept_profile [strict-evidence, coo-review, human-review]. The
+  # materializer must TRANSLATE the declared label into REAL wired gates with
+  # exact placement: strict on the QA-row transitions, coo + human on the FINAL
+  # transition row only (target = closure boundary), the canonical human hold
+  # policy on that same row only, and NOTHING extra anywhere else ADDED BY THIS
+  # TRANSLATION (scope, codex review 0610: "nothing extra" covers what the
+  # token translation stamps; a pre-existing AUTHOR-declared gate_sequence_policy
+  # in a preset, e.g. brick-protocol-engine-feature-hard's design->work coo
+  # HOLD, is untouched and still holds on its own row). The per-row
+  # assertions pin both presence and absence, so this REDs if the label goes
+  # decorative again OR if support starts stamping gates on undeclared rows.
+  - label: materialize-building-intent:governed-change-review-gate-wiring
+    document:
+      plan_ref: building-plan:materialize-governed-gate-wiring
+      building_id: materialize-governed-gate-wiring
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:governed-change-review
+      selected_adapter_ref: adapter:local
+      selected_model_ref: model:default
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: materialize-governed-gate-wiring
+      chain_preset_ref: building-chain-preset:governed-change-review
+      selected_adapter_ref: adapter:local
+      task_source_ref: brick/templates/tasks/source-template.md
+      step_refs:
+        - materialize-governed-gate-wiring-design
+        - materialize-governed-gate-wiring-axis-attack-qa
+        - materialize-governed-gate-wiring-code-attack-qa
+        - materialize-governed-gate-wiring-closure
+      declared_gate_refs_by_row:
+        - link-gate:default-transition
+        - "link-gate:default-transition, link-gate:strict"
+        - "link-gate:default-transition, link-gate:strict"
+        - "link-gate:default-transition, link-gate:coo, link-gate:human"
+      gate_sequence_policy_gate_refs_by_row:
+        - ""
+        - ""
+        - ""
+        - link-gate:human
+      # GATE-WIRING FIRE A1/A4 (0610): every TRANSLATED row records
+      # machine-readable provenance (which declared tokens landed there + which
+      # preset declared them); the un-translated design row records NONE.
+      gate_concept_provenance_by_row:
+        - ""
+        - strict-evidence
+        - strict-evidence
+        - "coo-review, human-review"
+      gate_concept_provenance_declared_by: building-chain-preset:governed-change-review
+      task_source_hash_present: true
+  - label: materialize-building-intent:design-build-parallel-graph
+    document:
+      plan_ref: building-plan:materialize-design-build-parallel-graph
+      building_id: materialize-design-build-parallel-graph
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:design-build-parallel
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+          - .claude/**
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: materialize-design-build-parallel-graph
+      chain_preset_ref: building-chain-preset:design-build-parallel
+      selected_adapter_ref: adapter:codex-local
+      task_source_ref: brick/templates/tasks/source-template.md
+      plan_shape: graph
+      step_refs:
+        - materialize-design-build-parallel-graph-design
+        - materialize-design-build-parallel-graph-work
+        - materialize-design-build-parallel-graph-code-attack-qa
+        - materialize-design-build-parallel-graph-axis-attack-qa
+        - materialize-design-build-parallel-graph-closure
+      target_refs:
+        - brick-materialize-design-build-parallel-graph-work
+        - brick-materialize-design-build-parallel-graph-code-attack-qa
+        - brick-materialize-design-build-parallel-graph-axis-attack-qa
+        - brick-materialize-design-build-parallel-graph-closure
+        - brick-materialize-design-build-parallel-graph-closure
+        - building-boundary:materialize-design-build-parallel-graph-closed
+      movements:
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+      group_roles:
+        - fan_out
+        - fan_in
+      task_source_hash_present: true
+      # Phase 2.5 false-green guard: assert the materialized node return shapes
+      # themselves (not just step/target/movement refs). Verifies (1) no node
+      # carries the support-invented concern_observations, (2) each fan-in SOURCE
+      # shape == its brick return.yaml shape MINUS transition_concern_evidence
+      # (brick-derived, not hardcoded), (3) the fan-in TARGET closure shape
+      # contains transition_concern_evidence. Expectation is read from the LIVE
+      # brick return.yaml so it tracks the source of truth.
+      assert_materialized_return_shapes: true
+      # Mechanism-vs-policy provenance guard (Smith-ruled): the reroute BUDGET and
+      # closure routing POLICY are HUMAN Movement decisions; support records but
+      # NEVER synthesizes them. This case uses NO per-Building override, so every
+      # carried value's provenance MUST be preset-default (the reusable HUMAN-
+      # authored preset default), and NONE may be support-synthesized/absent. The
+      # exact per-node map below is asserted (case c: preset default).
+      assert_route_policy_provenance: true
+      route_policy_provenance:
+        materialize-design-build-parallel-graph-design:
+          node_reroute_budget: preset-default
+        materialize-design-build-parallel-graph-work:
+          node_reroute_budget: preset-default
+        materialize-design-build-parallel-graph-closure:
+          closure_transition_target_policy: preset-default
+      declaration_evidence:
+        work_files:
+          - work/task.md
+          - work/building-intake.json
+          - work/preset-expansion.json
+          - work/declared-building-plan.json
+          - work/link-launch-policy.json
+        task_source_hash_present: true
+        task_source_hash_state: matched
+  - label: materialize-building-intent:design-build-parallel-graph-per-building-override
+    document:
+      plan_ref: building-plan:materialize-design-build-parallel-graph-override
+      building_id: materialize-design-build-parallel-graph-override
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:design-build-parallel
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+          - .claude/**
+      # Per-Building OVERRIDE (config cascade): a HUMAN replaces the closure routing
+      # policy for THIS Building only (whole-policy replacement; the policy is one
+      # mapping on the closure node). The override beats the preset default and is
+      # stamped provenance per-building; the untouched per-node reroute budgets stay
+      # preset-default. Support synthesizes neither.
+      #
+      # (The reroute-budget per-Building override path is keyed by step_template_ref,
+      # whose colon the checker's YAML-subset parser cannot represent as a mapping
+      # key; that path is proven by the IMPLEMENTATION's own execution. This checker
+      # case drives the per-building provenance through the colon-free closure-policy
+      # override, which the subset parser represents faithfully.)
+      closure_transition_target_policy:
+        implementation_gap:
+          action: target
+          target_step_template_ref: building-step-template:design
+        verification_gap:
+          action: hold
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: materialize-design-build-parallel-graph-override
+      chain_preset_ref: building-chain-preset:design-build-parallel
+      plan_shape: graph
+      task_source_hash_present: true
+      # The untouched per-node budgets stay preset-default; the OVERRIDDEN closure
+      # policy is stamped per-building. node_reroute_budgets is keyed by
+      # brick_instance_ref.
+      node_reroute_budgets:
+        brick-materialize-design-build-parallel-graph-override-design: 1
+        brick-materialize-design-build-parallel-graph-override-work: 1
+      assert_route_policy_provenance: true
+      route_policy_provenance:
+        materialize-design-build-parallel-graph-override-design:
+          node_reroute_budget: preset-default
+        materialize-design-build-parallel-graph-override-work:
+          node_reroute_budget: preset-default
+        materialize-design-build-parallel-graph-override-closure:
+          closure_transition_target_policy: per-building
+  - label: materialize-building-intent:engine-feature-hard-graph
+    document:
+      plan_ref: building-plan:materialize-engine-feature-hard-graph
+      building_id: materialize-engine-feature-hard-graph
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+          - .claude/**
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: materialize-engine-feature-hard-graph
+      chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
+      selected_adapter_ref: adapter:codex-local
+      task_source_ref: brick/templates/tasks/source-template.md
+      plan_shape: graph
+      step_refs:
+        - materialize-engine-feature-hard-graph-design
+        - materialize-engine-feature-hard-graph-work
+        - materialize-engine-feature-hard-graph-code-attack-qa
+        - materialize-engine-feature-hard-graph-axis-attack-qa
+        - materialize-engine-feature-hard-graph-evidence-integrity
+        - materialize-engine-feature-hard-graph-closure
+      target_refs:
+        - brick-materialize-engine-feature-hard-graph-work
+        - brick-materialize-engine-feature-hard-graph-code-attack-qa
+        - brick-materialize-engine-feature-hard-graph-axis-attack-qa
+        - brick-materialize-engine-feature-hard-graph-evidence-integrity
+        - brick-materialize-engine-feature-hard-graph-closure
+        - brick-materialize-engine-feature-hard-graph-closure
+        - brick-materialize-engine-feature-hard-graph-closure
+        - building-boundary:materialize-engine-feature-hard-graph-closed
+      movements:
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+      declared_gate_refs:
+        - link-gate:default-transition
+        - link-gate:coo
+      gate_sequence_policy_gate_refs:
+        - link-gate:default-transition
+        - link-gate:coo
+      group_roles:
+        - fan_out
+        - fan_in
+      task_source_hash_present: true
+      declaration_evidence:
+        work_files:
+          - work/task.md
+          - work/building-intake.json
+          - work/preset-expansion.json
+          - work/declared-building-plan.json
+          - work/link-launch-policy.json
+        task_source_hash_present: true
+        task_source_hash_state: matched
+  - label: materialize-building-intent:high-risk-change-inspected-graph
+    document:
+      plan_ref: building-plan:materialize-high-risk-change-inspected-graph
+      building_id: materialize-high-risk-change-inspected-graph
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:high-risk-change-inspected
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+          - .claude/**
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: materialize-high-risk-change-inspected-graph
+      chain_preset_ref: building-chain-preset:high-risk-change-inspected
+      selected_adapter_ref: adapter:codex-local
+      task_source_ref: brick/templates/tasks/source-template.md
+      plan_shape: graph
+      step_refs:
+        - materialize-high-risk-change-inspected-graph-design
+        - materialize-high-risk-change-inspected-graph-work
+        - materialize-high-risk-change-inspected-graph-code-attack-qa
+        - materialize-high-risk-change-inspected-graph-axis-attack-qa
+        - materialize-high-risk-change-inspected-graph-evidence-integrity
+        - materialize-high-risk-change-inspected-graph-closure
+      target_refs:
+        - brick-materialize-high-risk-change-inspected-graph-work
+        - brick-materialize-high-risk-change-inspected-graph-code-attack-qa
+        - brick-materialize-high-risk-change-inspected-graph-axis-attack-qa
+        - brick-materialize-high-risk-change-inspected-graph-evidence-integrity
+        - brick-materialize-high-risk-change-inspected-graph-closure
+        - brick-materialize-high-risk-change-inspected-graph-closure
+        - brick-materialize-high-risk-change-inspected-graph-closure
+        - building-boundary:materialize-high-risk-change-inspected-graph-closed
+      movements:
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+      group_roles:
+        - fan_out
+        - fan_in
+      # GATE-WIRING FIRE (a, graph) (0610): high-risk-change-inspected declares
+      # [strict-evidence, fan-in-wait-all, coo-review, human-review]. Placement:
+      # strict on every fan-in QA edge (reviewer-lane source), coo + human +
+      # the canonical human hold policy on the TERMINAL boundary edge only;
+      # fan-in-wait-all stays a MODE word (no gate ref). Edge order: design->work,
+      # work->3 QA branches, 3 QA->closure fan-in edges, closure->boundary.
+      declared_gate_refs_by_row:
+        - link-gate:default-transition
+        - link-gate:default-transition
+        - link-gate:default-transition
+        - link-gate:default-transition
+        - "link-gate:default-transition, link-gate:strict"
+        - "link-gate:default-transition, link-gate:strict"
+        - "link-gate:default-transition, link-gate:strict"
+        - "link-gate:default-transition, link-gate:coo, link-gate:human"
+      gate_sequence_policy_gate_refs_by_row:
+        - ""
+        - ""
+        - ""
+        - ""
+        - ""
+        - ""
+        - ""
+        - link-gate:human
+      # GATE-WIRING FIRE A1/A4 (graph) (0610): the 3 strict QA fan-in edges and
+      # the terminal boundary edge each record provenance for exactly the
+      # tokens that landed there; un-translated edges record NONE.
+      gate_concept_provenance_by_row:
+        - ""
+        - ""
+        - ""
+        - ""
+        - strict-evidence
+        - strict-evidence
+        - strict-evidence
+        - "coo-review, human-review"
+      gate_concept_provenance_declared_by: building-chain-preset:high-risk-change-inspected
+      task_source_hash_present: true
+      declaration_evidence:
+        work_files:
+          - work/task.md
+          - work/building-intake.json
+          - work/preset-expansion.json
+          - work/declared-building-plan.json
+          - work/link-launch-policy.json
+        task_source_hash_present: true
+        task_source_hash_state: matched
+materialize_building_intent_rejects:
+  - label: materialize-building-intent:missing-task-source-ref
+    expected_message: task_source_ref must not be blank
+    document:
+      plan_ref: building-plan:materialize-missing-task
+      building_id: materialize-missing-task
+      declared_by: coo
+      chain_preset_ref: building-chain-preset:fast-fix
+      selected_adapter_ref: adapter:codex-local
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+  - label: materialize-building-intent:missing-chain-preset-ref
+    expected_message: chain_preset_ref must not be blank
+    document:
+      plan_ref: building-plan:materialize-missing-preset
+      building_id: materialize-missing-preset
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      selected_adapter_ref: adapter:codex-local
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+  - label: materialize-building-intent:write-scope-required
+    expected_message: write_scope is required
+    document:
+      plan_ref: building-plan:materialize-write-scope-required
+      building_id: materialize-write-scope-required
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:fast-fix
+      selected_adapter_ref: adapter:codex-local
+  # FIRE guard (axis fail-close): an OMITTED selected_adapter_ref must HARD-FAIL.
+  # The Agent performer's adapter is a human/COO NEED<->CAPABILITY declaration;
+  # support must NEVER silently default it to a concrete adapter (was: adapter:local).
+  # This case REDs on the old default-behavior and GREENs once materialize fails closed.
+  # LINEAR preset (fast-fix) -> exercises the linear render fallback site.
+  - label: materialize-building-intent:omitted-adapter-fails-closed-linear
+    expected_message: selected_adapter_ref must be declared in the confirmed intent
+    document:
+      plan_ref: building-plan:materialize-omitted-adapter-linear
+      building_id: materialize-omitted-adapter-linear
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:fast-fix
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+  # Same fail-close, BLANK (not omitted) adapter on a GRAPH preset (design-build-parallel)
+  # -> exercises the graph composition fallback site. The existing reject cases cover only
+  # adapter-declared linear/graph paths; this adds graph + blank coverage for the seam.
+  - label: materialize-building-intent:blank-adapter-fails-closed-graph
+    expected_message: selected_adapter_ref must be declared in the confirmed intent
+    document:
+      plan_ref: building-plan:materialize-blank-adapter-graph
+      building_id: materialize-blank-adapter-graph
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:design-build-parallel
+      selected_adapter_ref: ""
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+  - label: materialize-building-intent:unsafe-task-source-ref
+    expected_message: task_source_ref must be a safe repo-relative path
+    document:
+      plan_ref: building-plan:materialize-unsafe-task
+      building_id: materialize-unsafe-task
+      declared_by: coo
+      task_source_ref: ../outside.md
+      chain_preset_ref: building-chain-preset:fast-fix
+      selected_adapter_ref: adapter:codex-local
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+  - label: materialize-building-intent:portfolio-target-requires-explicit-driver
+    expected_message: target_word requires explicit portfolio/manual materialization
+    document:
+      plan_ref: building-plan:materialize-portfolio-reject
+      building_id: materialize-portfolio-reject
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:portfolio-sequence
+      selected_adapter_ref: adapter:local
+  - label: materialize-building-intent:hash-mismatch-at-declaration-write
+    expected_message: task_source_hash mismatch
+    mutate_materialized_task_source_hash: true
+    document:
+      plan_ref: building-plan:materialize-hash-mismatch
+      building_id: materialize-hash-mismatch
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:fast-fix
+      selected_adapter_ref: adapter:codex-local
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+  - label: materialize-building-intent:graph-preset-missing-closure-policy-fails-closed
+    expected_message: must declare closure_transition_target_policy for the fan-in closure node
+    strip_preset_ref: building-chain-preset:design-build-parallel
+    strip_preset_keys:
+      - closure_transition_target_policy
+    document:
+      plan_ref: building-plan:materialize-missing-closure-policy
+      building_id: materialize-missing-closure-policy
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:design-build-parallel
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+  - label: materialize-building-intent:graph-preset-missing-reroute-budget-fails-closed
+    expected_message: closure_transition_target_policy_unbudgeted_target
+    strip_preset_ref: building-chain-preset:design-build-parallel
+    strip_preset_keys:
+      - node_reroute_budgets
+    document:
+      plan_ref: building-plan:materialize-missing-reroute-budget
+      building_id: materialize-missing-reroute-budget
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:design-build-parallel
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+preset_building_completion_case:
+  - label: all-current-presets-slack-alert
+    task_source_ref: brick/templates/tasks/slack-alert-all-presets-task.md
+    selected_adapter_ref: adapter:codex-local
+    selected_model_ref: model:default
+    write_scope:
+      allowed_paths:
+        - support/operator/**
+        - support/checkers/**
+        - project/brick-protocol/status/kernel/**
+      forbidden_paths:
+        - .git/**
+        - .claude/**
+    # GATE-WIRING (0610): the route_decision_basis is the CALLER-declared
+    # disposition fact set for these fixture walks. The 6 review-gated presets'
+    # closure rows now carry REAL [coo, human] gates, so the basis declares BOTH
+    # the COO override and the human disposition -- this case is the standing
+    # no-over-block guard: every preset must still COMPLETE once the declared
+    # dispositions exist (and _assert_no_missing_gate_facts keeps every wired
+    # gate, including strict on QA rows, fully satisfied -- not decorative).
+    route_decision_basis:
+      override_refs:
+        - coo:all-presets-completion-smoke
+      human_review_refs:
+        - human-review:all-presets-completion-smoke
+    expected_preset_count: 17
+    expected_frontier_kind: complete
+    expected_portfolio_frontier_kind: complete
+    expected_preset_refs:
+      - building-chain-preset:app-feature-basic
+      - building-chain-preset:app-feature-inspected
+      - building-chain-preset:brick-protocol-constitution-change
+      - building-chain-preset:brick-protocol-dashboard-dev-basic
+      - building-chain-preset:brick-protocol-dashboard-dev-inspected
+      - building-chain-preset:brick-protocol-engine-feature-hard
+      - building-chain-preset:brick-protocol-portfolio-driver
+      - building-chain-preset:brick-protocol-post-d-cleanup
+      - building-chain-preset:design-build-parallel
+      - building-chain-preset:design-contract-only
+      - building-chain-preset:docs-simple-review
+      - building-chain-preset:fast-fix
+      - building-chain-preset:governed-change-review
+      - building-chain-preset:high-risk-change-inspected
+      - building-chain-preset:portfolio-sequence
+      - building-chain-preset:quick-check
+      - building-chain-preset:research-report
+    expected_portfolio_refs:
+      - building-chain-preset:brick-protocol-portfolio-driver
+      - building-chain-preset:portfolio-sequence
+# PART-2 Phase 1 CORE PRODUCT SEAM: the single task.md + chain preset ->
+# running-Building verb (support/operator/driver.py run_building_intake). This
+# case drives it over an adapter:local deterministic agent brain end-to-end and
+# asserts: (1) it writes the materialized plan to disk, (2) it maps
+# plan_shape -> walker_mode mechanically (linear -> linear; graph -> dynamic),
+# (3) it reaches a terminal frontier with Building evidence. The
+# no_preset_chain_preset_ref FIRE asserts the seam HARD-FAILS (does not run a
+# Building) when the intent names a preset absent from the registry.
+building_intake_seam_case:
+  # GATE-WIRING FIRE (d) (0610): governed-change-review's closure row now carries
+  # the REAL wired [default-transition, coo, human] gates. WITH the caller-declared
+  # disposition facts (route_decision_basis) the walk must COMPLETE -- the human
+  # gate must not over-block once the human disposition fact exists.
+  - label: building-intake-seam-linear-adapter-local
+    task_source_ref: brick/templates/tasks/source-template.md
+    chain_preset_ref: building-chain-preset:governed-change-review
+    selected_adapter_ref: adapter:local
+    expected_plan_shape: linear
+    expected_walker_mode: linear
+    expected_frontier_kind: complete
+    route_decision_basis:
+      override_refs:
+        - coo:intake-seam-checker-override
+      human_review_refs:
+        - human-review:intake-seam-checker-disposition
+    no_preset_chain_preset_ref: building-chain-preset:this-preset-is-not-in-the-registry
+  # TASK-BY-TEXT (0611, Smith ruling; codex FIX-A): humans SPEAK tasks; the
+  # machine records them as building evidence. An intent with task_statement
+  # (inline text, NO task_source_ref) must complete through the SAME seam,
+  # land the statement VERBATIM as the building's work/task.md, record
+  # task_source_basis == task_statement, and create NO repo-root
+  # task-statement file AT ANY POINT (the runner probes the repo-root glob
+  # DURING the run from inside the seam callable -- a regression back to the
+  # retired transient ephemeral-file mechanism REDs mid-walk, not just
+  # after). The persisted declared plan must CARRY the statement
+  # (task_source_ref == task-source:inline-statement + task_statement body)
+  # and REPLAYING that plan file must reproduce work/task.md verbatim (codex
+  # Vector C). The runner also FIREs the fail-closed set: BOTH sources ->
+  # reject with the EITHER/OR message; empty task_statement -> reject;
+  # oversize (>64KiB) statement -> reject; and FIX-IDEMPOTENCY -- with
+  # building_id absent the default id is a STABLE hash of (statement +
+  # preset): same pair -> same id (retry collides loudly on the existing
+  # root), different statement -> different id.
+  - label: building-intake-seam-task-statement
+    task_statement: "온보딩 화면의 환영 문구를 한 줄로 다듬어 주세요. 맥락: 첫 화면이 너무 딱딱하다는 피드백."
+    chain_preset_ref: building-chain-preset:governed-change-review
+    selected_adapter_ref: adapter:local
+    expected_plan_shape: linear
+    expected_walker_mode: linear
+    expected_frontier_kind: complete
+    route_decision_basis:
+      override_refs:
+        - coo:intake-seam-task-statement-override
+      human_review_refs:
+        - human-review:intake-seam-task-statement-disposition
+    no_preset_chain_preset_ref: building-chain-preset:this-preset-is-not-in-the-registry
+  # GATE-WIRING FIRE (c) (0610): the SAME preset walked WITHOUT a human
+  # disposition (COO override supplied, human_review_refs absent) must HOLD at
+  # the closure human gate via the EXISTING gate-sequence hold path: frontier
+  # link_paused, required_disposition_owner caller-or-coo, paused_at names
+  # link-gate:human, and the ONLY recorded missing fact is the human disposition
+  # fact. REDs if the human gate goes decorative again OR if the hold fires for
+  # an unrelated insufficiency. SCOPE (codex review, 0610): the human-token
+  # policy is the ONLY hold surface ADDED BY THE GATE-CONCEPT TRANSLATION --
+  # this case does NOT claim it is the only hold in the system; pre-existing
+  # AUTHOR-declared gate_sequence_policy holds (e.g.
+  # brick-protocol-engine-feature-hard's design->work coo HOLD) are untouched
+  # and still hold on their own rows.
+  - label: building-intake-seam-human-gate-hold
+    task_source_ref: brick/templates/tasks/source-template.md
+    chain_preset_ref: building-chain-preset:governed-change-review
+    selected_adapter_ref: adapter:local
+    expected_plan_shape: linear
+    expected_walker_mode: linear
+    expected_frontier_kind: link_paused
+    expected_required_disposition_owner: caller-or-coo
+    expected_hold_gate_ref: link-gate:human
+    expected_missing_required_fact: Link.route_decision_basis.human_review_refs
+    route_decision_basis:
+      override_refs:
+        - coo:intake-seam-checker-override
+    no_preset_chain_preset_ref: building-chain-preset:this-preset-is-not-in-the-registry
+# PROJECT-0 S3-C (0611): intake <-> project vessel connection, executed four
+# ways against a SYNTHETIC vessel created by the S2 creation verb (born
+# checker-legal; created and removed inside the case — no dogfood-building
+# dependency, repo tree left unchanged): (1) project_ref intake lands plan +
+# evidence under project/<vessel_id>/buildings (root derived through
+# buildings_root_for, THE single seam) with the project_ref fact stamped on
+# the persisted plan; (2) bogus project_ref rejects loudly BEFORE any run and
+# a malformed ref rejects with the seam's own form error; (3) a HAND-MADE
+# charterless project/<id>/ dir rejects with the S1 loader's voice
+# (project.json is missing); (4) compat — the ref-less default root IS
+# buildings_root_for('project:brick-protocol') (no parallel literal) and
+# declaring project_ref AND an explicit output_root together rejects as
+# ambiguous. REDs if intake silently invents a vessel, silently defaults a
+# ref'd intent elsewhere, or a second path-derivation literal reappears.
+intake_project_vessel_case:
+  - label: intake-project-ref-lands-in-vessel
+    vessel_id: intake-project-vessel-case-fixture
+    chain_preset_ref: building-chain-preset:governed-change-review
+    task_statement: "체커 픽스처: project_ref 가 선언된 intake 가 해당 동네(project/<id>/buildings)에 빌딩을 만든다."
+    route_decision_basis:
+      override_refs:
+        - coo:intake-project-vessel-case-override
+      human_review_refs:
+        - human-review:intake-project-vessel-case-disposition
+# FIX-C (codex review 0611): run_building_once TASK-SOURCE ADMISSION, parity
+# with run_building_plan strictness (P11b). Before the fix the single-step
+# surface validated NO task_source_ref: a once-packet declaring a missing task
+# file silently skipped the body (_source_fact_bodies -> {}) and ran without
+# its declared task. The runner FIREs four legs against the REAL
+# run_building_once wiring with a provider command-runner sentinel: (1)
+# missing repo-path ref -> VERBATIM reject ("task_source_ref declared file
+# does not exist: ...") BEFORE the provider boundary; (2) the SAME packet with
+# an existing file proceeds to the provider sentinel (no over-restriction);
+# (3) the inline sentinel ref without a carried task_statement body rejects;
+# (4) with the body it proceeds -- both task-source forms stay honest on the
+# once surface. Anti-tautology: removing the run_building_once admission
+# guard sends legs (1)/(3) into the provider sentinel and the case REDs.
+run_once_task_source_admission_case:
+  - label: once-task-source-admission
+    missing_task_source_ref: brick/templates/tasks/this-once-task-source-does-not-exist.md
+    valid_task_source_ref: brick/templates/tasks/source-template.md
+# GATE-WIRING FIRE A3 (0610): the adapter ASK is the Brick-shape + declared-gate
+# UNION (run._adapter_required_return_shape). The case re-creates the stored-
+# legacy under-ask (the design row's Brick shape with observed_evidence REMOVED,
+# the repro shape of brick/building_plans/building-automation-complete-0-scope-c-
+# dogfood.yaml rows) and walks the REAL linear runner over adapter:local: the
+# CLI prompt actually sent must ask the full union (base fields in declared
+# order + the default-gate field appended). The OLD Brick-shape-only under-ask
+# REDs this (the prompt would lack observed_evidence). passthrough_step_index
+# pins the other half on the UNTOUCHED review row: gates adding nothing -> the
+# declared labels pass through verbatim (so a blanket over-ask cannot fake the
+# fix). NOT byte-neutral by design for legacy under-asking rows -- documented at
+# the run.py seam; legacy stored plans stay strict-blocked for re-runs.
+adapter_gate_shape_union_case:
+  - label: legacy-underask-row-gets-gate-union
+    task_source_ref: brick/templates/tasks/source-template.md
+    chain_preset_ref: building-chain-preset:design-contract-only
+    target_step_index: 0
+    drop_field: observed_evidence
+    expected_request_labels: "design_summary, relevant_current_structure, proposed_changes, unchanged_surfaces, axis_responsibility, invariants, edge_cases, checker_or_verifier_plan, candidate_file_changes, evidence_refs, not_proven, observed_evidence"
+    passthrough_step_index: 1
+source_fact_body_carry_case:
+  - label: p4-compatible-fan-in-n3-no-consumer-source-facts-body-carry
+    building_id: checker-p4-compatible-fan-in-body-carry
+    target_step_ref: closure-synthesis
+    cascade_depth: 0
+    consumer_source_facts: []
+    upstream_results:
+      - step_ref: code-qa
+        returned:
+          body_marker: code-body
+      - step_ref: axis-qa
+        returned:
+          body_marker: axis-body
+      - step_ref: evidence-qa
+        returned:
+          body_marker: evidence-body
+    fan_in_sources_by_target:
+      closure-synthesis:
+        - code-qa
+        - axis-qa
+        - evidence-qa
+    expected:
+      body_absent: false
+      declared_source_fact_refs: []
+      source_fact_body_refs:
+        - work/step-outputs/code-qa-attempt-1/step-output.json
+        - work/step-outputs/axis-qa-attempt-1/step-output.json
+        - work/step-outputs/evidence-qa-attempt-1/step-output.json
+      missing_source_fact_refs: []
+      body_expectations:
+        - source_fact_ref: work/step-outputs/code-qa-attempt-1/step-output.json
+          returned_marker: code-body
+        - source_fact_ref: work/step-outputs/axis-qa-attempt-1/step-output.json
+          returned_marker: axis-body
+        - source_fact_ref: work/step-outputs/evidence-qa-attempt-1/step-output.json
+          returned_marker: evidence-body
+  - label: p4-compatible-fan-in-n3-no-consumer-source-facts-missing-upstream
+    building_id: checker-p4-compatible-fan-in-body-carry
+    target_step_ref: closure-synthesis
+    cascade_depth: 0
+    consumer_source_facts: []
+    upstream_results:
+      - step_ref: code-qa
+        returned:
+          body_marker: code-body
+      - step_ref: axis-qa
+        returned:
+          body_marker: axis-body
+    fan_in_sources_by_target:
+      closure-synthesis:
+        - code-qa
+        - axis-qa
+        - evidence-qa
+    expected:
+      body_absent: true
+      declared_source_fact_refs: []
+      source_fact_body_refs:
+        - work/step-outputs/code-qa-attempt-1/step-output.json
+        - work/step-outputs/axis-qa-attempt-1/step-output.json
+      missing_source_fact_refs:
+        - fan-in-source:evidence-qa:cascade-0
+      body_expectations:
+        - source_fact_ref: work/step-outputs/code-qa-attempt-1/step-output.json
+          returned_marker: code-body
+        - source_fact_ref: work/step-outputs/axis-qa-attempt-1/step-output.json
+          returned_marker: axis-body
+  - label: p5-fan-in-n3-declared-source-fact-body-carry
+    building_id: checker-p5-fan-in-body-carry
+    target_step_ref: closure-synthesis
+    cascade_depth: 0
+    consumer_source_facts:
+      - source-fact:closure-code/work/step-outputs/code-qa-attempt-1/step-output.json
+      - source-fact:closure-axis/work/step-outputs/axis-qa-attempt-1/step-output.json
+      - source-fact:closure-evidence/work/step-outputs/evidence-qa-attempt-1/step-output.json
+    upstream_results:
+      - step_ref: code-qa
+        returned:
+          body_marker: code-body
+      - step_ref: axis-qa
+        returned:
+          body_marker: axis-body
+      - step_ref: evidence-qa
+        returned:
+          body_marker: evidence-body
+    fan_in_sources_by_target:
+      closure-synthesis:
+        - code-qa
+        - axis-qa
+        - evidence-qa
+    expected:
+      body_absent: false
+      declared_source_fact_refs:
+        - source-fact:closure-code/work/step-outputs/code-qa-attempt-1/step-output.json
+        - source-fact:closure-axis/work/step-outputs/axis-qa-attempt-1/step-output.json
+        - source-fact:closure-evidence/work/step-outputs/evidence-qa-attempt-1/step-output.json
+      source_fact_body_refs:
+        - source-fact:closure-code/work/step-outputs/code-qa-attempt-1/step-output.json
+        - source-fact:closure-axis/work/step-outputs/axis-qa-attempt-1/step-output.json
+        - source-fact:closure-evidence/work/step-outputs/evidence-qa-attempt-1/step-output.json
+      missing_source_fact_refs: []
+      body_expectations:
+        - source_fact_ref: source-fact:closure-code/work/step-outputs/code-qa-attempt-1/step-output.json
+          returned_marker: code-body
+        - source_fact_ref: source-fact:closure-axis/work/step-outputs/axis-qa-attempt-1/step-output.json
+          returned_marker: axis-body
+        - source_fact_ref: source-fact:closure-evidence/work/step-outputs/evidence-qa-attempt-1/step-output.json
+          returned_marker: evidence-body
+  - label: p5-fan-in-n3-missing-upstream-body-observation
+    building_id: checker-p5-fan-in-body-carry
+    target_step_ref: closure-synthesis
+    cascade_depth: 0
+    consumer_source_facts:
+      - source-fact:closure-code/work/step-outputs/code-qa-attempt-1/step-output.json
+      - source-fact:closure-axis/work/step-outputs/axis-qa-attempt-1/step-output.json
+      - source-fact:closure-evidence/work/step-outputs/evidence-qa-attempt-1/step-output.json
+    upstream_results:
+      - step_ref: code-qa
+        returned:
+          body_marker: code-body
+      - step_ref: axis-qa
+        returned:
+          body_marker: axis-body
+    fan_in_sources_by_target:
+      closure-synthesis:
+        - code-qa
+        - axis-qa
+        - evidence-qa
+    expected:
+      body_absent: true
+      source_fact_body_refs:
+        - source-fact:closure-code/work/step-outputs/code-qa-attempt-1/step-output.json
+        - source-fact:closure-axis/work/step-outputs/axis-qa-attempt-1/step-output.json
+      missing_source_fact_refs_contains:
+        - source-fact:closure-evidence/work/step-outputs/evidence-qa-attempt-1/step-output.json
+        - fan-in-source:evidence-qa:cascade-0
+      body_expectations:
+        - source_fact_ref: source-fact:closure-code/work/step-outputs/code-qa-attempt-1/step-output.json
+          returned_marker: code-body
+        - source_fact_ref: source-fact:closure-axis/work/step-outputs/axis-qa-attempt-1/step-output.json
+          returned_marker: axis-body
+  - label: p5-linear-n1-declared-source-fact-body-carry
+    building_id: checker-p5-linear-body-carry
+    target_step_ref: linear-consumer
+    cascade_depth: 0
+    consumer_source_facts:
+      - source-fact:linear/work/step-outputs/linear-source-attempt-1/step-output.json
+    upstream_results:
+      - step_ref: linear-source
+        returned:
+          body_marker: linear-body
+    expected:
+      body_absent: false
+      source_fact_body_refs:
+        - source-fact:linear/work/step-outputs/linear-source-attempt-1/step-output.json
+      missing_source_fact_refs: []
+      body_expectations:
+        - source_fact_ref: source-fact:linear/work/step-outputs/linear-source-attempt-1/step-output.json
+          returned_marker: linear-body
+step_output_drain_case:
+  - label: p5-live-linear-n1-step-close-handoff
+    case_kind: live_linear_n1
+    expected:
+      consumer_brick_instance_ref: brick-linear-consumer
+      source_fact_body_refs:
+        - work/step-outputs/linear-producer-attempt-1/step-output.json
+      carried_markers:
+        - brick-linear-producer
+  - label: p5-live-dynamic-fan-in-n3-step-close-handoff
+    case_kind: live_dynamic_fan_in_n3
+    expected:
+      consumer_step_ref: fan-closure
+      consumer_brick_instance_ref: brick-fan-closure
+      source_fact_body_refs:
+        - work/step-outputs/fan-code-qa-attempt-1/step-output.json
+        - work/step-outputs/fan-axis-qa-attempt-1/step-output.json
+        - work/step-outputs/fan-evidence-qa-attempt-1/step-output.json
+      carried_markers:
+        - brick-fan-code-qa
+        - brick-fan-axis-qa
+        - brick-fan-evidence-qa
+      carry_gate_sufficiency: sufficient
+      carry_gate_missing_required_facts: []
+  - label: p6-live-dynamic-work-reroute-full-replay-n3
+    case_kind: live_dynamic_full_replay_n3
+    expected:
+      reroute_source_brick_instance_ref: brick-replay-closure-a
+      replay_window_brick_instance_refs:
+        - brick-replay-work-b
+        - brick-replay-code-qa-b
+        - brick-replay-axis-qa-b
+        - brick-replay-evidence-qa-b
+        - brick-replay-closure-b
+      replay_segment_step_refs: []
+      consumer_brick_instance_ref: brick-replay-closure-b
+      source_fact_body_refs:
+        - work/step-outputs/replay-code-qa-b-attempt-1/step-output.json
+        - work/step-outputs/replay-axis-qa-b-attempt-1/step-output.json
+        - work/step-outputs/replay-evidence-qa-b-attempt-1/step-output.json
+      carried_markers:
+        - brick-replay-code-qa-b
+        - brick-replay-axis-qa-b
+        - brick-replay-evidence-qa-b
+step_output_drain_rejects:
+  - label: p5-step-output-disk-fallback-rejected
+    case_kind: step_output_source_fact_disk_fallback_rejected
+    expected_message: step-output source_fact refs must be supplied from step-close evidence
+  - label: p5-graph-plan-linear-walker-rejected
+    case_kind: graph_plan_linear_walker_rejected
+    expected_message: graph Building plans require walker_mode='dynamic'
+  - label: p5-live-linear-missing-step-output-body-red
+    case_kind: live_linear_missing_step_output_body
+    expected_message: missing step-output source_fact body/evidence
+  - label: p5-live-dynamic-missing-step-output-body-red
+    case_kind: live_dynamic_missing_step_output_body
+    expected_message: dynamic fan-in missing step-output carry HOLD
+    expected_hold_reason: fan_in_wait_all_missing_source
+  - label: p6-live-dynamic-partial-qa-reuse-red
+    case_kind: live_dynamic_partial_replay_rejected
+    expected_message: partial QA reuse is not admitted
+gate_sequence_policy_case:
+  - label: c1-gate-sequence-coo-first-is-admitted
+    document:
+      source_brick_ref: brick-design
+      target_brick_ref: brick-work
+      declared_brick_refs:
+        - brick-design
+        - brick-work
+      node_reroute_budgets:
+        brick-design: 1
+      link_row:
+        declared_gate_refs:
+          - link-gate:default-transition
+          - link-gate:coo
+        gate_sequence_policy:
+          - gate_ref: link-gate:coo
+            on_missing_required_facts:
+              action: HOLD
+              required_disposition_owner: coo
+              pending_target_basis: target_brick
+            on_sufficient:
+              action: next
+              next_gate_ref: link-gate:default-transition
+          - gate_ref: link-gate:default-transition
+            on_missing_required_facts:
+              action: reroute
+              target_basis: source_brick
+              required_target_budget: true
+            on_sufficient:
+              action: forward
+compose_building_case:
+  - label: c1-compose-graph-preset-engine-feature-hard
+    document:
+      selected_shape_ref: building-shape:design-needed
+      declared_by: coo
+      chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
+      plan_ref: building-plan:c1-compose-graph-preset-engine-feature-hard
+      building_id: c1-compose-graph-preset-engine-feature-hard
+      nodes:
+        - node_id: graph-design
+          step_template_ref: building-step-template:design
+          completion_edge_ref: edge:graph-design-to-work
+          node_reroute_budget: 1
+          work_statement: Design graph dogfood route.
+          comparison_rule: Observe support evidence only; do not choose Movement or judge quality.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: graph-work
+          step_template_ref: building-step-template:work
+          completion_edge_ref: edge:graph-work-to-code-qa
+          node_reroute_budget: 1
+          work_statement: Implement graph dogfood payload.
+          comparison_rule: Observe support evidence only; do not choose Movement or judge quality.
+          required_return_shape: made_changes, observed_evidence, not_proven
+        - node_id: graph-code-qa
+          step_template_ref: building-step-template:code-attack-qa
+          completion_edge_ref: edge:graph-code-qa-to-closure
+          work_statement: Attack implementation code.
+          comparison_rule: Return the QA Brick's own fields; do not return Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, evidence_used, not_proven
+        - node_id: graph-axis-qa
+          step_template_ref: building-step-template:axis-attack-qa
+          completion_edge_ref: edge:graph-axis-qa-to-closure
+          work_statement: Attack Brick Agent Link boundaries.
+          comparison_rule: Return the axis QA Brick's own fields; do not return Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, attacked_scope, brick_axis_findings, agent_axis_findings, link_axis_findings, support_leak_findings, projection_authority_findings, evidence_used, not_proven
+        - node_id: graph-evidence
+          step_template_ref: building-step-template:evidence-integrity
+          completion_edge_ref: edge:graph-evidence-to-closure
+          work_statement: Inspect evidence integrity.
+          comparison_rule: Return the evidence-integrity Brick's own fields; do not return Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, evidence_scope, persisted_evidence_roots, proof_limit_findings, stale_source_risks, checker_overclaim_risks, missing_evidence, evidence_used, not_proven
+        - node_id: graph-closure
+          step_template_ref: building-step-template:closure
+          completion_edge_ref: edge:graph-closure-to-boundary
+          work_statement: Synthesize graph dogfood evidence.
+          comparison_rule: Closure-synthesis may return one non-binding transition_concern_evidence; it is not Movement authority.
+          required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta, transition_concern_evidence
+          closure_transition_target_policy:
+            implementation_gap:
+              action: target
+              target_ref: graph-work
+            verification_gap:
+              action: hold
+      edges:
+        - edge_ref: edge:graph-design-to-work
+          source: graph-design
+          target: graph-work
+          movement: forward
+          gate: coo
+          transition_lifecycle:
+            state: paused
+            progress_state: in_progress
+            paused_at_ref: link-transition:c1-compose-graph-design-to-work
+            from_brick_ref: brick-graph-design
+            pending_target_ref: brick-graph-work
+            required_disposition_owner: coo
+            reason_refs:
+              - observation:c1-compose-design-returned-before-write-scope-approval
+        - edge_ref: edge:graph-work-to-code-qa
+          source: graph-work
+          target: graph-code-qa
+          movement: forward
+        - edge_ref: edge:graph-work-to-axis-qa
+          source: graph-work
+          target: graph-axis-qa
+          movement: forward
+        - edge_ref: edge:graph-work-to-evidence
+          source: graph-work
+          target: graph-evidence
+          movement: forward
+        - edge_ref: edge:graph-code-qa-to-closure
+          source: graph-code-qa
+          target: graph-closure
+          movement: forward
+        - edge_ref: edge:graph-axis-qa-to-closure
+          source: graph-axis-qa
+          target: graph-closure
+          movement: forward
+        - edge_ref: edge:graph-evidence-to-closure
+          source: graph-evidence
+          target: graph-closure
+          movement: forward
+        - edge_ref: edge:graph-closure-to-boundary
+          source: graph-closure
+          target: building-boundary:c1-compose-graph-preset-engine-feature-hard-closed
+          movement: forward
+      groups:
+        - group_id: group:graph-hard-qa-fan-out
+          group_role: fan_out
+          member_ref_kind: link_edge
+          member_refs:
+            - edge:graph-work-to-code-qa
+            - edge:graph-work-to-axis-qa
+            - edge:graph-work-to-evidence
+        - group_id: group:graph-hard-qa-fan-in
+          group_role: fan_in
+          member_ref_kind: link_edge
+          member_refs:
+            - edge:graph-code-qa-to-closure
+            - edge:graph-axis-qa-to-closure
+            - edge:graph-evidence-to-closure
+    expected:
+      plan_shape: graph
+      selected_adapter_ref: adapter:local
+      chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
+      declared_gate_refs:
+        - link-gate:default-transition
+        - link-gate:coo
+      gate_sequence_policy_gate_refs:
+        - link-gate:default-transition
+        - link-gate:coo
+  - label: c1-compose-positive-roundtrip-dynamic
+    document:
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: caller
+      plan_ref: building-plan:c1-compose-profile-positive
+      building_id: c1-compose-profile-positive
+      nodes:
+        - node_id: c1-profile-work
+          step_template_ref: building-step-template:work
+          work_statement: Compose C1 profile work.
+          comparison_rule: Observe support evidence only; do not choose Movement or judge quality.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: c1-profile-review
+          step_template_ref: building-step-template:review
+          work_statement: Review C1 profile work.
+          comparison_rule: Observe support evidence only; do not choose Movement or judge quality.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: c1-profile-closure
+          step_template_ref: building-step-template:closure
+          work_statement: Close C1 profile composition proof.
+          comparison_rule: Observe support evidence only; closure is not Movement authority.
+          required_return_shape: observed_evidence, not_proven
+      edges:
+        - edge_ref: edge:c1-profile-work-to-review
+          source: c1-profile-work
+          target: c1-profile-review
+          movement: forward
+        - edge_ref: edge:c1-profile-review-to-closure
+          source: c1-profile-review
+          target: c1-profile-closure
+          movement: forward
+          gate: human
+        - edge_ref: edge:c1-profile-closure-to-boundary
+          source: c1-profile-closure
+          target: building-boundary:c1-compose-profile-positive-closed
+          movement: forward
+          building_lifecycle:
+            state: closed
+            reason: c1 compose profile positive closed
+    expected:
+      plan_shape: graph
+      selected_adapter_ref: adapter:local
+      declared_gate_refs:
+        - link-gate:default-transition
+        - link-gate:human
+      frontier_kind: complete
+      declaration_evidence:
+        plan_shape: graph
+        selected_shape_ref: building-shape:reviewable-work
+        expanded_step_template_refs:
+          - building-step-template:work
+          - building-step-template:review
+          - building-step-template:closure
+        expanded_brick_spec_refs:
+          - brick/templates/bricks/work/brick.md
+          - brick/templates/bricks/review/brick.md
+          - brick/templates/bricks/closure/brick.md
+        expanded_brick_template_refs:
+          - brick/templates/bricks/work/return.yaml
+          - brick/templates/bricks/review/return.yaml
+          - brick/templates/bricks/transition-concern-return.yaml
+          - brick/templates/bricks/closure/return.yaml
+        work_files:
+          - work/task.md
+          - work/building-intake.json
+          - work/preset-expansion.json
+          - work/declared-building-plan.json
+          - work/link-launch-policy.json
+  - label: c1-compose-positive-omitted-shape
+    document:
+      declared_by: caller
+      plan_ref: building-plan:c1-compose-profile-omitted-shape
+      building_id: c1-compose-profile-omitted-shape
+      nodes:
+        - node_id: c1-omit-work
+          step_template_ref: building-step-template:work
+          work_statement: Compose C1 omitted-shape profile work.
+          comparison_rule: Observe support evidence only; do not choose Movement or judge quality.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: c1-omit-review
+          step_template_ref: building-step-template:review
+          work_statement: Review C1 omitted-shape profile work.
+          comparison_rule: Observe support evidence only; do not choose Movement or judge quality.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: c1-omit-closure
+          step_template_ref: building-step-template:closure
+          work_statement: Close C1 omitted-shape composition proof.
+          comparison_rule: Observe support evidence only; closure is not Movement authority.
+          required_return_shape: observed_evidence, not_proven
+      edges:
+        - edge_ref: edge:c1-omit-work-to-review
+          source: c1-omit-work
+          target: c1-omit-review
+          movement: forward
+        - edge_ref: edge:c1-omit-review-to-closure
+          source: c1-omit-review
+          target: c1-omit-closure
+          movement: forward
+          gate: human
+        - edge_ref: edge:c1-omit-closure-to-boundary
+          source: c1-omit-closure
+          target: building-boundary:c1-compose-profile-omitted-shape-closed
+          movement: forward
+          building_lifecycle:
+            state: closed
+            reason: c1 compose profile omitted-shape closed
+    expected:
+      plan_shape: graph
+      selected_adapter_ref: adapter:local
+      declared_gate_refs:
+        - link-gate:default-transition
+        - link-gate:human
+      frontier_kind: complete
+      declaration_evidence:
+        plan_shape: graph
+        expanded_step_template_refs:
+          - building-step-template:work
+          - building-step-template:review
+          - building-step-template:closure
+        work_files:
+          - work/task.md
+          - work/building-intake.json
+          - work/preset-expansion.json
+          - work/declared-building-plan.json
+          - work/link-launch-policy.json
+  - label: builder-templated-work-statement-only
+    document:
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: caller
+      plan_ref: building-plan:builder-ws-only
+      building_id: builder-ws-only
+      nodes:
+        - node_id: bwso-work
+          step_template_ref: building-step-template:work
+          work_statement: Implement the builder work-statement-only proof.
+        - node_id: bwso-review
+          step_template_ref: building-step-template:review
+          work_statement: Review the builder proof.
+        - node_id: bwso-closure
+          step_template_ref: building-step-template:closure
+          work_statement: Close the builder proof.
+      edges:
+        - edge_ref: edge:bwso-work-to-review
+          source: bwso-work
+          target: bwso-review
+          movement: forward
+        - edge_ref: edge:bwso-review-to-closure
+          source: bwso-review
+          target: bwso-closure
+          movement: forward
+          gate: human
+        - edge_ref: edge:bwso-closure-to-boundary
+          source: bwso-closure
+          target: building-boundary:builder-ws-only-closed
+          movement: forward
+          building_lifecycle:
+            state: closed
+            reason: builder work-statement-only proof closed
+    expected:
+      plan_shape: graph
+      selected_adapter_ref: adapter:local
+      declared_gate_refs:
+        - link-gate:default-transition
+        - link-gate:human
+      frontier_kind: complete
+compose_building_rejects:
+  - label: c1-edge-movement-required
+    expected_code: missing_movement
+    document:
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: coo
+      nodes:
+        - node_id: missing-movement-work
+          step_template_ref: building-step-template:work
+          work_statement: Work edge must declare Movement.
+          comparison_rule: Support must not choose Movement for graph edges.
+          required_return_shape: observed_evidence, not_proven
+      edges:
+        - source: missing-movement-work
+          target: building-boundary:missing-movement-closed
+  - label: builder-templated-missing-work-statement
+    expected_code: missing_brick_fields
+    document:
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: caller
+      plan_ref: building-plan:builder-ws-missing
+      building_id: builder-ws-missing
+      nodes:
+        - node_id: bwsm-work
+          step_template_ref: building-step-template:work
+        - node_id: bwsm-review
+          step_template_ref: building-step-template:review
+          work_statement: Review.
+        - node_id: bwsm-closure
+          step_template_ref: building-step-template:closure
+          work_statement: Close.
+      edges:
+        - edge_ref: edge:bwsm-work-to-review
+          source: bwsm-work
+          target: bwsm-review
+          movement: forward
+        - edge_ref: edge:bwsm-review-to-closure
+          source: bwsm-review
+          target: bwsm-closure
+          movement: forward
+          gate: human
+        - edge_ref: edge:bwsm-closure-to-boundary
+          source: bwsm-closure
+          target: building-boundary:builder-ws-missing-closed
+          movement: forward
+          building_lifecycle:
+            state: closed
+            reason: builder missing work statement
+  # U5/D5: c1-unknown-shape removed. selected_shape_ref is now a pure optional tag
+  # (the composition-level + node-level shape membership gates were dropped), so a
+  # bogus shape no longer rejects. Nothing left to assert here.
+  - label: c1-unknown-step-template-agent
+    expected_code: unknown_step_template/agent
+    document:
+      selected_shape_ref: building-shape:simple-do
+      declared_by: caller
+      nodes:
+        - node_id: bad-template-work
+          step_template_ref: building-step-template:missing
+          work_statement: Work.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+      edges:
+        - source: bad-template-work
+          target: building-boundary:bad-template-closed
+          movement: forward
+  - label: c1-bad-gate-token
+    expected_code: bad_gate_token
+    document:
+      selected_shape_ref: building-shape:simple-do
+      declared_by: caller
+      nodes:
+        - node_id: bad-gate-work
+          step_template_ref: building-step-template:work
+          work_statement: Work.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+      edges:
+        - source: bad-gate-work
+          target: building-boundary:bad-gate-closed
+          movement: forward
+          gate: robot
+  - label: c1-compose-malformed-shape
+    expected_code: bad_declaration
+    document:
+      selected_shape_ref:
+        - building-shape:bad
+      declared_by: caller
+      nodes:
+        - node_id: malformed-shape-work
+          step_template_ref: building-step-template:work
+          work_statement: Work.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+      edges:
+        - source: malformed-shape-work
+          target: building-boundary:malformed-shape-closed
+          movement: forward
+  - label: c1-gate-ref-ordering
+    expected_code: gate_ref_ordering
+    document:
+      selected_shape_ref: building-shape:simple-do
+      declared_by: caller
+      nodes:
+        - node_id: bad-order-work
+          step_template_ref: building-step-template:work
+          work_statement: Work.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+      edges:
+        - source: bad-order-work
+          target: building-boundary:bad-order-closed
+          movement: forward
+          declared_gate_refs:
+            - link-gate:human
+            - link-gate:default-transition
+  - label: c1-gate-sequence-reroute-unbudgeted
+    expected_code: gate_sequence_policy_unbudgeted_target
+    document:
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: coo
+      nodes:
+        - node_id: gate-sequence-design
+          step_template_ref: building-step-template:design
+          work_statement: Design before guarded work.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: gate-sequence-work
+          step_template_ref: building-step-template:work
+          work_statement: Work after guarded design.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+      edges:
+        - source: gate-sequence-design
+          target: gate-sequence-work
+          movement: forward
+          declared_gate_refs:
+            - link-gate:default-transition
+            - link-gate:coo
+          gate_sequence_policy:
+            - gate_ref: link-gate:default-transition
+              on_missing_required_facts:
+                action: reroute
+                target_basis: source_brick
+                required_target_budget: true
+              on_sufficient:
+                action: next
+                next_gate_ref: link-gate:coo
+            - gate_ref: link-gate:coo
+              on_missing_required_facts:
+                action: HOLD
+                required_disposition_owner: coo
+                pending_target_basis: target_brick
+              on_sufficient:
+                action: forward
+        - source: gate-sequence-work
+          target: building-boundary:gate-sequence-unbudgeted-closed
+          movement: forward
+  - label: c1-gate-sequence-next-missing-next-gate-ref
+    expected_code: gate_sequence_policy_next_gate_ref
+    document:
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: coo
+      nodes:
+        - node_id: gate-sequence-next-design
+          step_template_ref: building-step-template:design
+          node_reroute_budget: 1
+          work_statement: Design before guarded work.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: gate-sequence-next-work
+          step_template_ref: building-step-template:work
+          work_statement: Work after guarded design.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+      edges:
+        - source: gate-sequence-next-design
+          target: gate-sequence-next-work
+          movement: forward
+          declared_gate_refs:
+            - link-gate:default-transition
+            - link-gate:coo
+          gate_sequence_policy:
+            - gate_ref: link-gate:default-transition
+              on_missing_required_facts:
+                action: reroute
+                target_basis: source_brick
+                required_target_budget: true
+              on_sufficient:
+                action: next
+            - gate_ref: link-gate:coo
+              on_missing_required_facts:
+                action: HOLD
+                required_disposition_owner: coo
+                pending_target_basis: target_brick
+              on_sufficient:
+                action: forward
+        - source: gate-sequence-next-work
+          target: building-boundary:gate-sequence-next-closed
+          movement: forward
+  - label: c1-gate-sequence-forward-before-terminal-red
+    expected_code: gate_sequence_policy_invalid
+    document:
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: coo
+      nodes:
+        - node_id: gate-sequence-forward-design
+          step_template_ref: building-step-template:design
+          node_reroute_budget: 1
+          work_statement: Design before guarded work.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: gate-sequence-forward-work
+          step_template_ref: building-step-template:work
+          work_statement: Work after guarded design.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+      edges:
+        - source: gate-sequence-forward-design
+          target: gate-sequence-forward-work
+          movement: forward
+          declared_gate_refs:
+            - link-gate:default-transition
+            - link-gate:coo
+          gate_sequence_policy:
+            - gate_ref: link-gate:default-transition
+              on_missing_required_facts:
+                action: reroute
+                target_basis: source_brick
+                required_target_budget: true
+              on_sufficient:
+                action: forward
+            - gate_ref: link-gate:coo
+              on_missing_required_facts:
+                action: HOLD
+                required_disposition_owner: coo
+                pending_target_basis: target_brick
+              on_sufficient:
+                action: forward
+        - source: gate-sequence-forward-work
+          target: building-boundary:gate-sequence-forward-closed
+          movement: forward
+  - label: c1-gate-sequence-unadmitted-action-red
+    expected_code: gate_sequence_policy_invalid
+    document:
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: coo
+      nodes:
+        - node_id: gate-sequence-action-design
+          step_template_ref: building-step-template:design
+          node_reroute_budget: 1
+          work_statement: Design before guarded work.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: gate-sequence-action-work
+          step_template_ref: building-step-template:work
+          work_statement: Work after guarded design.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+      edges:
+        - source: gate-sequence-action-design
+          target: gate-sequence-action-work
+          movement: forward
+          declared_gate_refs:
+            - link-gate:default-transition
+            - link-gate:coo
+          gate_sequence_policy:
+            - gate_ref: link-gate:default-transition
+              on_missing_required_facts:
+                action: reroute
+                target_basis: source_brick
+                required_target_budget: true
+              on_sufficient:
+                action: next
+                next_gate_ref: link-gate:coo
+            - gate_ref: link-gate:coo
+              on_missing_required_facts:
+                action: teleport
+                required_disposition_owner: coo
+                pending_target_basis: target_brick
+              on_sufficient:
+                action: forward
+        - source: gate-sequence-action-work
+          target: building-boundary:gate-sequence-action-closed
+          movement: forward
+  - label: c1-unknown-endpoint
+    expected_code: unknown_endpoint
+    document:
+      selected_shape_ref: building-shape:simple-do
+      declared_by: caller
+      nodes:
+        - node_id: unknown-endpoint-work
+          step_template_ref: building-step-template:work
+          work_statement: Work.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+      edges:
+        - source: unknown-endpoint-work
+          target: unknown-endpoint-target
+          movement: forward
+  - label: c1-cycle-self-loop
+    expected_code: cycle/self_loop
+    document:
+      selected_shape_ref: building-shape:simple-do
+      declared_by: caller
+      nodes:
+        - node_id: cycle-work
+          step_template_ref: building-step-template:work
+          work_statement: Work.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+      edges:
+        - source: cycle-work
+          target: cycle-work
+          movement: forward
+  - label: c1-duplicate-brick-id
+    expected_code: duplicate_brick_id
+    document:
+      selected_shape_ref: building-shape:simple-do
+      declared_by: caller
+      nodes:
+        - node_id: duplicate-work
+          step_template_ref: building-step-template:work
+          work_statement: Work one.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: duplicate-work
+          step_template_ref: building-step-template:review
+          work_statement: Work two.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+      edges:
+        - source: duplicate-work
+          target: building-boundary:duplicate-work-closed
+          movement: forward
+  - label: c1-missing-brick-fields
+    expected_code: missing_brick_fields
+    document:
+      selected_shape_ref: building-shape:simple-do
+      declared_by: caller
+      nodes:
+        # builder contract: a templated node still requires work_statement;
+        # comparison_rule/required_return_shape now auto-fill from the template.
+        - node_id: missing-field-work
+          step_template_ref: building-step-template:work
+          comparison_rule: Observe support evidence only.
+      edges:
+        - source: missing-field-work
+          target: building-boundary:missing-field-closed
+          movement: forward
+  - label: c1-missing-review-gate
+    expected_code: missing_review_gate
+    document:
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: caller
+      nodes:
+        - node_id: review-gate-work
+          step_template_ref: building-step-template:review
+          requires_review_gate: true
+          work_statement: Review work.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+      edges:
+        - source: review-gate-work
+          target: building-boundary:review-gate-closed
+          movement: forward
+  - label: c1-empty-composition
+    expected_code: empty_composition
+    document:
+      selected_shape_ref: building-shape:simple-do
+      declared_by: caller
+      nodes: []
+      edges: []
+  - label: c1-execution-order-groups-coherence
+    expected_code: execution_order/groups coherence
+    document:
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: caller
+      nodes:
+        - node_id: fan-root
+          step_template_ref: building-step-template:work
+          work_statement: Fan root.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: fan-a
+          step_template_ref: building-step-template:review
+          work_statement: Fan branch.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: fan-close
+          step_template_ref: building-step-template:closure
+          work_statement: Fan close.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+      edges:
+        - edge_ref: edge:fan-root-to-a
+          source: fan-root
+          target: fan-a
+          movement: forward
+        - edge_ref: edge:fan-a-to-close
+          source: fan-a
+          target: fan-close
+          movement: forward
+        - edge_ref: edge:fan-close-to-boundary
+          source: fan-close
+          target: building-boundary:fan-closed
+          movement: forward
+      groups:
+        - group_id: group:bad-fan-out
+          group_role: fan_out
+          member_ref_kind: link_edge
+          member_refs:
+            - edge:fan-root-to-a
+  - label: c1-graph-preset-missing-groups
+    expected_code: chain_preset_graph_groups_missing
+    document:
+      selected_shape_ref: building-shape:design-needed
+      declared_by: coo
+      chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
+      nodes:
+        - node_id: missing-groups-design
+          step_template_ref: building-step-template:design
+          completion_edge_ref: edge:missing-groups-design-to-work
+          work_statement: Design.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: missing-groups-work
+          step_template_ref: building-step-template:work
+          completion_edge_ref: edge:missing-groups-work-to-code
+          work_statement: Work.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: missing-groups-code
+          step_template_ref: building-step-template:code-attack-qa
+          completion_edge_ref: edge:missing-groups-code-to-closure
+          work_statement: Code QA.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: missing-groups-axis
+          step_template_ref: building-step-template:axis-attack-qa
+          completion_edge_ref: edge:missing-groups-axis-to-closure
+          work_statement: Axis QA.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: missing-groups-evidence
+          step_template_ref: building-step-template:evidence-integrity
+          completion_edge_ref: edge:missing-groups-evidence-to-closure
+          work_statement: Evidence QA.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: missing-groups-closure
+          step_template_ref: building-step-template:closure
+          completion_edge_ref: edge:missing-groups-closure-to-boundary
+          work_statement: Closure.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+      edges:
+        - edge_ref: edge:missing-groups-design-to-work
+          source: missing-groups-design
+          target: missing-groups-work
+          movement: forward
+        - edge_ref: edge:missing-groups-work-to-code
+          source: missing-groups-work
+          target: missing-groups-code
+          movement: forward
+        - edge_ref: edge:missing-groups-work-to-axis
+          source: missing-groups-work
+          target: missing-groups-axis
+          movement: forward
+        - edge_ref: edge:missing-groups-work-to-evidence
+          source: missing-groups-work
+          target: missing-groups-evidence
+          movement: forward
+        - edge_ref: edge:missing-groups-code-to-closure
+          source: missing-groups-code
+          target: missing-groups-closure
+          movement: forward
+        - edge_ref: edge:missing-groups-axis-to-closure
+          source: missing-groups-axis
+          target: missing-groups-closure
+          movement: forward
+        - edge_ref: edge:missing-groups-evidence-to-closure
+          source: missing-groups-evidence
+          target: missing-groups-closure
+          movement: forward
+        - edge_ref: edge:missing-groups-closure-to-boundary
+          source: missing-groups-closure
+          target: building-boundary:missing-groups-closed
+          movement: forward
+  - label: c1-fan-out-missing-completion-edge
+    expected_code: missing_completion_edge_ref
+    document:
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: coo
+      nodes:
+        - node_id: fan-out-no-completion
+          step_template_ref: building-step-template:work
+          work_statement: Fan-out without completion edge.
+          comparison_rule: Support must not choose the first outgoing edge.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: fan-out-code
+          step_template_ref: building-step-template:code-attack-qa
+          completion_edge_ref: edge:fan-out-code-to-boundary
+          work_statement: Code branch.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: fan-out-axis
+          step_template_ref: building-step-template:axis-attack-qa
+          completion_edge_ref: edge:fan-out-axis-to-boundary
+          work_statement: Axis branch.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+      edges:
+        - edge_ref: edge:fan-out-root-to-code
+          source: fan-out-no-completion
+          target: fan-out-code
+          movement: forward
+        - edge_ref: edge:fan-out-root-to-axis
+          source: fan-out-no-completion
+          target: fan-out-axis
+          movement: forward
+        - edge_ref: edge:fan-out-code-to-boundary
+          source: fan-out-code
+          target: building-boundary:fan-out-code-closed
+          movement: forward
+        - edge_ref: edge:fan-out-axis-to-boundary
+          source: fan-out-axis
+          target: building-boundary:fan-out-axis-closed
+          movement: forward
+  - label: c1-hard-graph-qa-transition-concern-shape
+    expected_code: qa_transition_concern_shape
+    document:
+      selected_shape_ref: building-shape:design-needed
+      declared_by: coo
+      chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
+      nodes:
+        - node_id: bad-qa-concern-design
+          step_template_ref: building-step-template:design
+          completion_edge_ref: edge:bad-qa-concern-design-to-work
+          work_statement: Design hard graph.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: bad-qa-concern-work
+          step_template_ref: building-step-template:work
+          completion_edge_ref: edge:bad-qa-concern-work-to-code
+          node_reroute_budget: 1
+          work_statement: Work hard graph.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: made_changes, observed_evidence, not_proven
+        - node_id: bad-qa-concern-code
+          step_template_ref: building-step-template:code-attack-qa
+          completion_edge_ref: edge:bad-qa-concern-code-to-closure
+          work_statement: Code QA must not return transition concerns.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, transition_concern_evidence, not_proven
+        - node_id: bad-qa-concern-axis
+          step_template_ref: building-step-template:axis-attack-qa
+          completion_edge_ref: edge:bad-qa-concern-axis-to-closure
+          work_statement: Axis QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, attacked_scope, brick_axis_findings, agent_axis_findings, link_axis_findings, support_leak_findings, projection_authority_findings, evidence_used, not_proven
+        - node_id: bad-qa-concern-evidence
+          step_template_ref: building-step-template:evidence-integrity
+          completion_edge_ref: edge:bad-qa-concern-evidence-to-closure
+          work_statement: Evidence QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, evidence_scope, persisted_evidence_roots, proof_limit_findings, stale_source_risks, checker_overclaim_risks, missing_evidence, evidence_used, not_proven
+        - node_id: bad-qa-concern-closure
+          step_template_ref: building-step-template:closure
+          completion_edge_ref: edge:bad-qa-concern-closure-to-boundary
+          work_statement: Closure synthesis.
+          comparison_rule: Closure may return one non-binding transition concern.
+          required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta, transition_concern_evidence
+      edges:
+        - edge_ref: edge:bad-qa-concern-design-to-work
+          source: bad-qa-concern-design
+          target: bad-qa-concern-work
+          movement: forward
+        - edge_ref: edge:bad-qa-concern-work-to-code
+          source: bad-qa-concern-work
+          target: bad-qa-concern-code
+          movement: forward
+        - edge_ref: edge:bad-qa-concern-work-to-axis
+          source: bad-qa-concern-work
+          target: bad-qa-concern-axis
+          movement: forward
+        - edge_ref: edge:bad-qa-concern-work-to-evidence
+          source: bad-qa-concern-work
+          target: bad-qa-concern-evidence
+          movement: forward
+        - edge_ref: edge:bad-qa-concern-code-to-closure
+          source: bad-qa-concern-code
+          target: bad-qa-concern-closure
+          movement: forward
+        - edge_ref: edge:bad-qa-concern-axis-to-closure
+          source: bad-qa-concern-axis
+          target: bad-qa-concern-closure
+          movement: forward
+        - edge_ref: edge:bad-qa-concern-evidence-to-closure
+          source: bad-qa-concern-evidence
+          target: bad-qa-concern-closure
+          movement: forward
+        - edge_ref: edge:bad-qa-concern-closure-to-boundary
+          source: bad-qa-concern-closure
+          target: building-boundary:bad-qa-concern-closed
+          movement: forward
+      groups:
+        - group_id: group:bad-qa-concern-fan-out
+          group_role: fan_out
+          member_ref_kind: link_edge
+          member_refs:
+            - edge:bad-qa-concern-work-to-code
+            - edge:bad-qa-concern-work-to-axis
+            - edge:bad-qa-concern-work-to-evidence
+        - group_id: group:bad-qa-concern-fan-in
+          group_role: fan_in
+          member_ref_kind: link_edge
+          member_refs:
+            - edge:bad-qa-concern-code-to-closure
+            - edge:bad-qa-concern-axis-to-closure
+            - edge:bad-qa-concern-evidence-to-closure
+  - label: c1-hard-graph-closure-step-output-source-facts
+    expected_code: fan_in_source_fact_disk_dependency
+    document:
+      selected_shape_ref: building-shape:design-needed
+      declared_by: coo
+      chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
+      nodes:
+        - node_id: bad-disk-design
+          step_template_ref: building-step-template:design
+          completion_edge_ref: edge:bad-disk-design-to-work
+          work_statement: Design hard graph.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: bad-disk-work
+          step_template_ref: building-step-template:work
+          completion_edge_ref: edge:bad-disk-work-to-code
+          node_reroute_budget: 1
+          work_statement: Work hard graph.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: made_changes, observed_evidence, not_proven
+        - node_id: bad-disk-code
+          step_template_ref: building-step-template:code-attack-qa
+          completion_edge_ref: edge:bad-disk-code-to-closure
+          work_statement: Code QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, evidence_used, not_proven
+        - node_id: bad-disk-axis
+          step_template_ref: building-step-template:axis-attack-qa
+          completion_edge_ref: edge:bad-disk-axis-to-closure
+          work_statement: Axis QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, attacked_scope, brick_axis_findings, agent_axis_findings, link_axis_findings, support_leak_findings, projection_authority_findings, evidence_used, not_proven
+        - node_id: bad-disk-evidence
+          step_template_ref: building-step-template:evidence-integrity
+          completion_edge_ref: edge:bad-disk-evidence-to-closure
+          work_statement: Evidence QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, evidence_scope, persisted_evidence_roots, proof_limit_findings, stale_source_risks, checker_overclaim_risks, missing_evidence, evidence_used, not_proven
+        - node_id: bad-disk-closure
+          step_template_ref: building-step-template:closure
+          completion_edge_ref: edge:bad-disk-closure-to-boundary
+          work_statement: Closure synthesis must use carried packet bodies.
+          comparison_rule: Closure must not read sibling step-output files directly.
+          required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta, transition_concern_evidence
+          source_facts:
+            - work/step-outputs/bad-disk-code/step-output.json
+      edges:
+        - edge_ref: edge:bad-disk-design-to-work
+          source: bad-disk-design
+          target: bad-disk-work
+          movement: forward
+        - edge_ref: edge:bad-disk-work-to-code
+          source: bad-disk-work
+          target: bad-disk-code
+          movement: forward
+        - edge_ref: edge:bad-disk-work-to-axis
+          source: bad-disk-work
+          target: bad-disk-axis
+          movement: forward
+        - edge_ref: edge:bad-disk-work-to-evidence
+          source: bad-disk-work
+          target: bad-disk-evidence
+          movement: forward
+        - edge_ref: edge:bad-disk-code-to-closure
+          source: bad-disk-code
+          target: bad-disk-closure
+          movement: forward
+        - edge_ref: edge:bad-disk-axis-to-closure
+          source: bad-disk-axis
+          target: bad-disk-closure
+          movement: forward
+        - edge_ref: edge:bad-disk-evidence-to-closure
+          source: bad-disk-evidence
+          target: bad-disk-closure
+          movement: forward
+        - edge_ref: edge:bad-disk-closure-to-boundary
+          source: bad-disk-closure
+          target: building-boundary:bad-disk-closed
+          movement: forward
+      groups:
+        - group_id: group:bad-disk-fan-out
+          group_role: fan_out
+          member_ref_kind: link_edge
+          member_refs:
+            - edge:bad-disk-work-to-code
+            - edge:bad-disk-work-to-axis
+            - edge:bad-disk-work-to-evidence
+        - group_id: group:bad-disk-fan-in
+          group_role: fan_in
+          member_ref_kind: link_edge
+          member_refs:
+            - edge:bad-disk-code-to-closure
+            - edge:bad-disk-axis-to-closure
+            - edge:bad-disk-evidence-to-closure
+  - label: c1-hard-graph-closure-transition-concern-missing
+    expected_code: closure_transition_concern_shape_missing
+    document:
+      selected_shape_ref: building-shape:design-needed
+      declared_by: coo
+      chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
+      nodes:
+        - node_id: bad-closure-shape-design
+          step_template_ref: building-step-template:design
+          completion_edge_ref: edge:bad-closure-shape-design-to-work
+          work_statement: Design hard graph.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: bad-closure-shape-work
+          step_template_ref: building-step-template:work
+          completion_edge_ref: edge:bad-closure-shape-work-to-code
+          node_reroute_budget: 1
+          work_statement: Work hard graph.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: made_changes, observed_evidence, not_proven
+        - node_id: bad-closure-shape-code
+          step_template_ref: building-step-template:code-attack-qa
+          completion_edge_ref: edge:bad-closure-shape-code-to-closure
+          work_statement: Code QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, evidence_used, not_proven
+        - node_id: bad-closure-shape-axis
+          step_template_ref: building-step-template:axis-attack-qa
+          completion_edge_ref: edge:bad-closure-shape-axis-to-closure
+          work_statement: Axis QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, attacked_scope, brick_axis_findings, agent_axis_findings, link_axis_findings, support_leak_findings, projection_authority_findings, evidence_used, not_proven
+        - node_id: bad-closure-shape-evidence
+          step_template_ref: building-step-template:evidence-integrity
+          completion_edge_ref: edge:bad-closure-shape-evidence-to-closure
+          work_statement: Evidence QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, evidence_scope, persisted_evidence_roots, proof_limit_findings, stale_source_risks, checker_overclaim_risks, missing_evidence, evidence_used, not_proven
+        - node_id: bad-closure-shape-closure
+          step_template_ref: building-step-template:closure
+          completion_edge_ref: edge:bad-closure-shape-closure-to-boundary
+          work_statement: Closure synthesis missing transition concern field.
+          comparison_rule: Closure must carry any Link-facing concern evidence.
+          required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta
+      edges:
+        - edge_ref: edge:bad-closure-shape-design-to-work
+          source: bad-closure-shape-design
+          target: bad-closure-shape-work
+          movement: forward
+        - edge_ref: edge:bad-closure-shape-work-to-code
+          source: bad-closure-shape-work
+          target: bad-closure-shape-code
+          movement: forward
+        - edge_ref: edge:bad-closure-shape-work-to-axis
+          source: bad-closure-shape-work
+          target: bad-closure-shape-axis
+          movement: forward
+        - edge_ref: edge:bad-closure-shape-work-to-evidence
+          source: bad-closure-shape-work
+          target: bad-closure-shape-evidence
+          movement: forward
+        - edge_ref: edge:bad-closure-shape-code-to-closure
+          source: bad-closure-shape-code
+          target: bad-closure-shape-closure
+          movement: forward
+        - edge_ref: edge:bad-closure-shape-axis-to-closure
+          source: bad-closure-shape-axis
+          target: bad-closure-shape-closure
+          movement: forward
+        - edge_ref: edge:bad-closure-shape-evidence-to-closure
+          source: bad-closure-shape-evidence
+          target: bad-closure-shape-closure
+          movement: forward
+        - edge_ref: edge:bad-closure-shape-closure-to-boundary
+          source: bad-closure-shape-closure
+          target: building-boundary:bad-closure-shape-closed
+          movement: forward
+      groups:
+        - group_id: group:bad-closure-shape-fan-out
+          group_role: fan_out
+          member_ref_kind: link_edge
+          member_refs:
+            - edge:bad-closure-shape-work-to-code
+            - edge:bad-closure-shape-work-to-axis
+            - edge:bad-closure-shape-work-to-evidence
+        - group_id: group:bad-closure-shape-fan-in
+          group_role: fan_in
+          member_ref_kind: link_edge
+          member_refs:
+            - edge:bad-closure-shape-code-to-closure
+            - edge:bad-closure-shape-axis-to-closure
+            - edge:bad-closure-shape-evidence-to-closure
+  # Phase 2 position rule (c): the FIRST-position (root) design node has no incoming
+  # Link edge, so a Link-facing transition_concern_evidence in its return shape has no
+  # upstream Brick to route to -- it must be observations-only (human-routed). The
+  # closure here is correct (valid transition_concern_evidence + policy) and the
+  # fan-in sources are observations-only, so the ONLY concern problem is the new
+  # first_position_transition_concern_shape on the root design node.
+  - label: c1-hard-graph-first-position-transition-concern-shape
+    expected_code: first_position_transition_concern_shape
+    document:
+      selected_shape_ref: building-shape:design-needed
+      declared_by: coo
+      chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
+      nodes:
+        - node_id: bad-root-concern-design
+          step_template_ref: building-step-template:design
+          completion_edge_ref: edge:bad-root-concern-design-to-work
+          node_reroute_budget: 1
+          work_statement: Root design declares a Link-facing concern with no upstream.
+          comparison_rule: Root concern has no upstream Brick to route to.
+          required_return_shape: observed_evidence, transition_concern_evidence, not_proven
+        - node_id: bad-root-concern-work
+          step_template_ref: building-step-template:work
+          completion_edge_ref: edge:bad-root-concern-work-to-code
+          node_reroute_budget: 1
+          work_statement: Work hard graph.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: made_changes, observed_evidence, not_proven
+        - node_id: bad-root-concern-code
+          step_template_ref: building-step-template:code-attack-qa
+          completion_edge_ref: edge:bad-root-concern-code-to-closure
+          work_statement: Code QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, evidence_used, not_proven
+        - node_id: bad-root-concern-axis
+          step_template_ref: building-step-template:axis-attack-qa
+          completion_edge_ref: edge:bad-root-concern-axis-to-closure
+          work_statement: Axis QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, attacked_scope, brick_axis_findings, agent_axis_findings, link_axis_findings, support_leak_findings, projection_authority_findings, evidence_used, not_proven
+        - node_id: bad-root-concern-evidence
+          step_template_ref: building-step-template:evidence-integrity
+          completion_edge_ref: edge:bad-root-concern-evidence-to-closure
+          work_statement: Evidence QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, evidence_scope, persisted_evidence_roots, proof_limit_findings, stale_source_risks, checker_overclaim_risks, missing_evidence, evidence_used, not_proven
+        - node_id: bad-root-concern-closure
+          step_template_ref: building-step-template:closure
+          completion_edge_ref: edge:bad-root-concern-closure-to-boundary
+          work_statement: Closure synthesis.
+          comparison_rule: Closure may return one non-binding transition concern.
+          required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta, transition_concern_evidence
+          closure_transition_target_policy:
+            implementation_gap:
+              action: target
+              target_ref: bad-root-concern-work
+            verification_gap:
+              action: hold
+      edges:
+        - edge_ref: edge:bad-root-concern-design-to-work
+          source: bad-root-concern-design
+          target: bad-root-concern-work
+          movement: forward
+        - edge_ref: edge:bad-root-concern-work-to-code
+          source: bad-root-concern-work
+          target: bad-root-concern-code
+          movement: forward
+        - edge_ref: edge:bad-root-concern-work-to-axis
+          source: bad-root-concern-work
+          target: bad-root-concern-axis
+          movement: forward
+        - edge_ref: edge:bad-root-concern-work-to-evidence
+          source: bad-root-concern-work
+          target: bad-root-concern-evidence
+          movement: forward
+        - edge_ref: edge:bad-root-concern-code-to-closure
+          source: bad-root-concern-code
+          target: bad-root-concern-closure
+          movement: forward
+        - edge_ref: edge:bad-root-concern-axis-to-closure
+          source: bad-root-concern-axis
+          target: bad-root-concern-closure
+          movement: forward
+        - edge_ref: edge:bad-root-concern-evidence-to-closure
+          source: bad-root-concern-evidence
+          target: bad-root-concern-closure
+          movement: forward
+        - edge_ref: edge:bad-root-concern-closure-to-boundary
+          source: bad-root-concern-closure
+          target: building-boundary:bad-root-concern-closed
+          movement: forward
+      groups:
+        - group_id: group:bad-root-concern-fan-out
+          group_role: fan_out
+          member_ref_kind: link_edge
+          member_refs:
+            - edge:bad-root-concern-work-to-code
+            - edge:bad-root-concern-work-to-axis
+            - edge:bad-root-concern-work-to-evidence
+        - group_id: group:bad-root-concern-fan-in
+          group_role: fan_in
+          member_ref_kind: link_edge
+          member_refs:
+            - edge:bad-root-concern-code-to-closure
+            - edge:bad-root-concern-axis-to-closure
+            - edge:bad-root-concern-evidence-to-closure
+  - label: c1-hard-graph-budget-policy-missing
+    expected_code: closure_transition_target_policy_missing
+    document:
+      selected_shape_ref: building-shape:design-needed
+      declared_by: coo
+      chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
+      nodes:
+        - node_id: bad-budget-design
+          step_template_ref: building-step-template:design
+          completion_edge_ref: edge:bad-budget-design-to-work
+          work_statement: Design hard graph.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: bad-budget-work
+          step_template_ref: building-step-template:work
+          completion_edge_ref: edge:bad-budget-work-to-code
+          node_reroute_budget: 1
+          work_statement: Work hard graph without declared target budget.
+          comparison_rule: Support must not infer reroute budget or policy.
+          required_return_shape: made_changes, observed_evidence, not_proven
+        - node_id: bad-budget-code
+          step_template_ref: building-step-template:code-attack-qa
+          completion_edge_ref: edge:bad-budget-code-to-closure
+          work_statement: Code QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, evidence_used, not_proven
+        - node_id: bad-budget-axis
+          step_template_ref: building-step-template:axis-attack-qa
+          completion_edge_ref: edge:bad-budget-axis-to-closure
+          work_statement: Axis QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, attacked_scope, brick_axis_findings, agent_axis_findings, link_axis_findings, support_leak_findings, projection_authority_findings, evidence_used, not_proven
+        - node_id: bad-budget-evidence
+          step_template_ref: building-step-template:evidence-integrity
+          completion_edge_ref: edge:bad-budget-evidence-to-closure
+          work_statement: Evidence QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, evidence_scope, persisted_evidence_roots, proof_limit_findings, stale_source_risks, checker_overclaim_risks, missing_evidence, evidence_used, not_proven
+        - node_id: bad-budget-closure
+          step_template_ref: building-step-template:closure
+          completion_edge_ref: edge:bad-budget-closure-to-boundary
+          work_statement: Closure synthesis.
+          comparison_rule: Closure may return one non-binding transition concern.
+          required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta, transition_concern_evidence
+      edges:
+        - edge_ref: edge:bad-budget-design-to-work
+          source: bad-budget-design
+          target: bad-budget-work
+          movement: forward
+        - edge_ref: edge:bad-budget-work-to-code
+          source: bad-budget-work
+          target: bad-budget-code
+          movement: forward
+        - edge_ref: edge:bad-budget-work-to-axis
+          source: bad-budget-work
+          target: bad-budget-axis
+          movement: forward
+        - edge_ref: edge:bad-budget-work-to-evidence
+          source: bad-budget-work
+          target: bad-budget-evidence
+          movement: forward
+        - edge_ref: edge:bad-budget-code-to-closure
+          source: bad-budget-code
+          target: bad-budget-closure
+          movement: forward
+        - edge_ref: edge:bad-budget-axis-to-closure
+          source: bad-budget-axis
+          target: bad-budget-closure
+          movement: forward
+        - edge_ref: edge:bad-budget-evidence-to-closure
+          source: bad-budget-evidence
+          target: bad-budget-closure
+          movement: forward
+        - edge_ref: edge:bad-budget-closure-to-boundary
+          source: bad-budget-closure
+          target: building-boundary:bad-budget-closed
+          movement: forward
+      groups:
+        - group_id: group:bad-budget-fan-out
+          group_role: fan_out
+          member_ref_kind: link_edge
+          member_refs:
+            - edge:bad-budget-work-to-code
+            - edge:bad-budget-work-to-axis
+            - edge:bad-budget-work-to-evidence
+        - group_id: group:bad-budget-fan-in
+          group_role: fan_in
+          member_ref_kind: link_edge
+          member_refs:
+            - edge:bad-budget-code-to-closure
+            - edge:bad-budget-axis-to-closure
+            - edge:bad-budget-evidence-to-closure
+  - label: c1-hard-graph-closure-self-target-unbudgeted
+    expected_code: closure_transition_target_policy_unbudgeted_target
+    document:
+      selected_shape_ref: building-shape:design-needed
+      declared_by: coo
+      chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
+      nodes:
+        - node_id: bad-self-budget-design
+          step_template_ref: building-step-template:design
+          completion_edge_ref: edge:bad-self-budget-design-to-work
+          work_statement: Design hard graph.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: bad-self-budget-work
+          step_template_ref: building-step-template:work
+          completion_edge_ref: edge:bad-self-budget-work-to-code
+          node_reroute_budget: 1
+          work_statement: Work hard graph.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: made_changes, observed_evidence, not_proven
+        - node_id: bad-self-budget-code
+          step_template_ref: building-step-template:code-attack-qa
+          completion_edge_ref: edge:bad-self-budget-code-to-closure
+          work_statement: Code QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, evidence_used, not_proven
+        - node_id: bad-self-budget-axis
+          step_template_ref: building-step-template:axis-attack-qa
+          completion_edge_ref: edge:bad-self-budget-axis-to-closure
+          work_statement: Axis QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, attacked_scope, brick_axis_findings, agent_axis_findings, link_axis_findings, support_leak_findings, projection_authority_findings, evidence_used, not_proven
+        - node_id: bad-self-budget-evidence
+          step_template_ref: building-step-template:evidence-integrity
+          completion_edge_ref: edge:bad-self-budget-evidence-to-closure
+          work_statement: Evidence QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, evidence_scope, persisted_evidence_roots, proof_limit_findings, stale_source_risks, checker_overclaim_risks, missing_evidence, evidence_used, not_proven
+        - node_id: bad-self-budget-closure
+          step_template_ref: building-step-template:closure
+          completion_edge_ref: edge:bad-self-budget-closure-to-boundary
+          work_statement: Closure synthesis declares self target without its own budget.
+          comparison_rule: Closure self-target must be explicit and budgeted.
+          required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta, transition_concern_evidence
+          closure_transition_target_policy:
+            implementation_gap:
+              action: target
+              target_ref: bad-self-budget-work
+            verification_gap:
+              action: target
+              target_ref: bad-self-budget-closure
+      edges:
+        - edge_ref: edge:bad-self-budget-design-to-work
+          source: bad-self-budget-design
+          target: bad-self-budget-work
+          movement: forward
+        - edge_ref: edge:bad-self-budget-work-to-code
+          source: bad-self-budget-work
+          target: bad-self-budget-code
+          movement: forward
+        - edge_ref: edge:bad-self-budget-work-to-axis
+          source: bad-self-budget-work
+          target: bad-self-budget-axis
+          movement: forward
+        - edge_ref: edge:bad-self-budget-work-to-evidence
+          source: bad-self-budget-work
+          target: bad-self-budget-evidence
+          movement: forward
+        - edge_ref: edge:bad-self-budget-code-to-closure
+          source: bad-self-budget-code
+          target: bad-self-budget-closure
+          movement: forward
+        - edge_ref: edge:bad-self-budget-axis-to-closure
+          source: bad-self-budget-axis
+          target: bad-self-budget-closure
+          movement: forward
+        - edge_ref: edge:bad-self-budget-evidence-to-closure
+          source: bad-self-budget-evidence
+          target: bad-self-budget-closure
+          movement: forward
+        - edge_ref: edge:bad-self-budget-closure-to-boundary
+          source: bad-self-budget-closure
+          target: building-boundary:bad-self-budget-closed
+          movement: forward
+      groups:
+        - group_id: group:bad-self-budget-fan-out
+          group_role: fan_out
+          member_ref_kind: link_edge
+          member_refs:
+            - edge:bad-self-budget-work-to-code
+            - edge:bad-self-budget-work-to-axis
+            - edge:bad-self-budget-work-to-evidence
+        - group_id: group:bad-self-budget-fan-in
+          group_role: fan_in
+          member_ref_kind: link_edge
+          member_refs:
+            - edge:bad-self-budget-code-to-closure
+            - edge:bad-self-budget-axis-to-closure
+            - edge:bad-self-budget-evidence-to-closure
+  - label: c1-hard-graph-policy-unknown-implementation-target
+    expected_code: closure_transition_target_policy_unknown_target
+    document:
+      selected_shape_ref: building-shape:design-needed
+      declared_by: coo
+      chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
+      nodes:
+        - node_id: bad-policy-target-design
+          step_template_ref: building-step-template:design
+          completion_edge_ref: edge:bad-policy-target-design-to-work
+          work_statement: Design hard graph.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: bad-policy-target-work
+          step_template_ref: building-step-template:work
+          completion_edge_ref: edge:bad-policy-target-work-to-code
+          node_reroute_budget: 1
+          work_statement: Work hard graph.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: made_changes, observed_evidence, not_proven
+        - node_id: bad-policy-target-code
+          step_template_ref: building-step-template:code-attack-qa
+          completion_edge_ref: edge:bad-policy-target-code-to-closure
+          work_statement: Code QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, evidence_used, not_proven
+        - node_id: bad-policy-target-axis
+          step_template_ref: building-step-template:axis-attack-qa
+          completion_edge_ref: edge:bad-policy-target-axis-to-closure
+          work_statement: Axis QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, attacked_scope, brick_axis_findings, agent_axis_findings, link_axis_findings, support_leak_findings, projection_authority_findings, evidence_used, not_proven
+        - node_id: bad-policy-target-evidence
+          step_template_ref: building-step-template:evidence-integrity
+          completion_edge_ref: edge:bad-policy-target-evidence-to-closure
+          work_statement: Evidence QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, evidence_scope, persisted_evidence_roots, proof_limit_findings, stale_source_risks, checker_overclaim_risks, missing_evidence, evidence_used, not_proven
+        - node_id: bad-policy-target-closure
+          step_template_ref: building-step-template:closure
+          completion_edge_ref: edge:bad-policy-target-closure-to-boundary
+          work_statement: Closure synthesis declares unknown implementation target.
+          comparison_rule: Policy targets must resolve to declared Brick nodes.
+          required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta, transition_concern_evidence
+          closure_transition_target_policy:
+            implementation_gap:
+              action: target
+              target_ref: bad-policy-target-missing-work
+            verification_gap:
+              action: hold
+      edges:
+        - edge_ref: edge:bad-policy-target-design-to-work
+          source: bad-policy-target-design
+          target: bad-policy-target-work
+          movement: forward
+        - edge_ref: edge:bad-policy-target-work-to-code
+          source: bad-policy-target-work
+          target: bad-policy-target-code
+          movement: forward
+        - edge_ref: edge:bad-policy-target-work-to-axis
+          source: bad-policy-target-work
+          target: bad-policy-target-axis
+          movement: forward
+        - edge_ref: edge:bad-policy-target-work-to-evidence
+          source: bad-policy-target-work
+          target: bad-policy-target-evidence
+          movement: forward
+        - edge_ref: edge:bad-policy-target-code-to-closure
+          source: bad-policy-target-code
+          target: bad-policy-target-closure
+          movement: forward
+        - edge_ref: edge:bad-policy-target-axis-to-closure
+          source: bad-policy-target-axis
+          target: bad-policy-target-closure
+          movement: forward
+        - edge_ref: edge:bad-policy-target-evidence-to-closure
+          source: bad-policy-target-evidence
+          target: bad-policy-target-closure
+          movement: forward
+        - edge_ref: edge:bad-policy-target-closure-to-boundary
+          source: bad-policy-target-closure
+          target: building-boundary:bad-policy-target-closed
+          movement: forward
+      groups:
+        - group_id: group:bad-policy-target-fan-out
+          group_role: fan_out
+          member_ref_kind: link_edge
+          member_refs:
+            - edge:bad-policy-target-work-to-code
+            - edge:bad-policy-target-work-to-axis
+            - edge:bad-policy-target-work-to-evidence
+        - group_id: group:bad-policy-target-fan-in
+          group_role: fan_in
+          member_ref_kind: link_edge
+          member_refs:
+            - edge:bad-policy-target-code-to-closure
+            - edge:bad-policy-target-axis-to-closure
+            - edge:bad-policy-target-evidence-to-closure
+  - label: c-reject-policy-unknown-concern-kind
+    expected_code: closure_transition_target_policy_unknown_concern_kind
+    document:
+      selected_shape_ref: building-shape:design-needed
+      declared_by: coo
+      chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
+      nodes:
+        - node_id: bad-policy-unknown-design
+          step_template_ref: building-step-template:design
+          completion_edge_ref: edge:bad-policy-unknown-design-to-work
+          work_statement: Design hard graph.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+        - node_id: bad-policy-unknown-work
+          step_template_ref: building-step-template:work
+          completion_edge_ref: edge:bad-policy-unknown-work-to-code
+          node_reroute_budget: 1
+          work_statement: Work hard graph.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: made_changes, observed_evidence, not_proven
+        - node_id: bad-policy-unknown-code
+          step_template_ref: building-step-template:code-attack-qa
+          completion_edge_ref: edge:bad-policy-unknown-code-to-closure
+          work_statement: Code QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, evidence_used, not_proven
+        - node_id: bad-policy-unknown-axis
+          step_template_ref: building-step-template:axis-attack-qa
+          completion_edge_ref: edge:bad-policy-unknown-axis-to-closure
+          work_statement: Axis QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, attacked_scope, brick_axis_findings, agent_axis_findings, link_axis_findings, support_leak_findings, projection_authority_findings, evidence_used, not_proven
+        - node_id: bad-policy-unknown-evidence
+          step_template_ref: building-step-template:evidence-integrity
+          completion_edge_ref: edge:bad-policy-unknown-evidence-to-closure
+          work_statement: Evidence QA.
+          comparison_rule: QA returns its own Brick fields without Link-facing transition_concern_evidence.
+          required_return_shape: observed_evidence, evidence_scope, persisted_evidence_roots, proof_limit_findings, stale_source_risks, checker_overclaim_risks, missing_evidence, evidence_used, not_proven
+        - node_id: bad-policy-unknown-closure
+          step_template_ref: building-step-template:closure
+          completion_edge_ref: edge:bad-policy-unknown-closure-to-boundary
+          work_statement: Closure synthesis rejects unadmitted concern policy keys.
+          comparison_rule: Policy concern kinds must be admitted Agent transition concern kinds.
+          required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta, transition_concern_evidence
+          closure_transition_target_policy:
+            implementation_gap:
+              action: target
+              target_ref: bad-policy-unknown-work
+            verification_gap:
+              action: hold
+            evidence_packet_gap:
+              action: hold
+      edges:
+        - edge_ref: edge:bad-policy-unknown-design-to-work
+          source: bad-policy-unknown-design
+          target: bad-policy-unknown-work
+          movement: forward
+        - edge_ref: edge:bad-policy-unknown-work-to-code
+          source: bad-policy-unknown-work
+          target: bad-policy-unknown-code
+          movement: forward
+        - edge_ref: edge:bad-policy-unknown-work-to-axis
+          source: bad-policy-unknown-work
+          target: bad-policy-unknown-axis
+          movement: forward
+        - edge_ref: edge:bad-policy-unknown-work-to-evidence
+          source: bad-policy-unknown-work
+          target: bad-policy-unknown-evidence
+          movement: forward
+        - edge_ref: edge:bad-policy-unknown-code-to-closure
+          source: bad-policy-unknown-code
+          target: bad-policy-unknown-closure
+          movement: forward
+        - edge_ref: edge:bad-policy-unknown-axis-to-closure
+          source: bad-policy-unknown-axis
+          target: bad-policy-unknown-closure
+          movement: forward
+        - edge_ref: edge:bad-policy-unknown-evidence-to-closure
+          source: bad-policy-unknown-evidence
+          target: bad-policy-unknown-closure
+          movement: forward
+        - edge_ref: edge:bad-policy-unknown-closure-to-boundary
+          source: bad-policy-unknown-closure
+          target: building-boundary:bad-policy-unknown-closed
+          movement: forward
+      groups:
+        - group_id: group:bad-policy-unknown-fan-out
+          group_role: fan_out
+          member_ref_kind: link_edge
+          member_refs:
+            - edge:bad-policy-unknown-work-to-code
+            - edge:bad-policy-unknown-work-to-axis
+            - edge:bad-policy-unknown-work-to-evidence
+        - group_id: group:bad-policy-unknown-fan-in
+          group_role: fan_in
+          member_ref_kind: link_edge
+          member_refs:
+            - edge:bad-policy-unknown-code-to-closure
+            - edge:bad-policy-unknown-axis-to-closure
+            - edge:bad-policy-unknown-evidence-to-closure
+  # U5/D5: c1-collect-all removed. Its multi-problem ("collect-all") demonstration
+  # paired unknown_shape + bad_gate_token, but unknown_shape no longer fires now that
+  # shape is a pure optional tag. The remaining single bad_gate_token reject is
+  # already covered by the c1-bad-gate-token case above, so this case is dropped
+  # rather than degraded to a redundant single-code reject.
+agent_resource_boundary:
+  - role: coo
+    lane: leader
+    required_hook_refs:
+      - hook:leader-write-need-gate
+      - hook:unsafe-mutation-guard
+      - hook:resource-ref-redaction
+    required_tool_policy_refs:
+      - tool-policy:leader-coordination
+    forbidden_tool_policy_refs:
+      - tool-policy:leader-readonly
+      # COO = PURE READ-ONLY (Smith ruling 0610): the Movement/judgment
+      # authority carries no write tools. The four team leads MAY carry
+      # tool-policy:read-write-scoped (capability >= need); the COO may NOT.
+      # The NEED gate for write-capable leads is proven by
+      # adapter_capability_rehome_case's
+      # write_capable_leader_effective_write_gated_by_brick_scope case.
+      - tool-policy:read-write-scoped
+    forbidden_adapter_refs:
+      - adapter:codex-write-local
+      - adapter:claude-write-local
+    hooks_execution_opened: false
+  - role: pm-lead
+    lane: leader
+    required_hook_refs:
+      - hook:leader-write-need-gate
+      - hook:unsafe-mutation-guard
+      - hook:resource-ref-redaction
+    required_tool_policy_refs:
+      - tool-policy:leader-coordination
+    forbidden_tool_policy_refs:
+      - tool-policy:leader-readonly
+    # leader lane MAY carry tool-policy:read-write-scoped; effective write stays
+    # gated by a Brick-declared write_scope NEED (see coo entry).
+    forbidden_adapter_refs:
+      - adapter:codex-write-local
+      - adapter:claude-write-local
+    hooks_execution_opened: false
+  - role: design-lead
+    lane: leader
+    required_hook_refs:
+      - hook:leader-write-need-gate
+      - hook:unsafe-mutation-guard
+      - hook:resource-ref-redaction
+    required_tool_policy_refs:
+      - tool-policy:leader-coordination
+    forbidden_tool_policy_refs:
+      - tool-policy:leader-readonly
+    # leader lane MAY carry tool-policy:read-write-scoped; effective write stays
+    # gated by a Brick-declared write_scope NEED (see coo entry).
+    forbidden_adapter_refs:
+      - adapter:codex-write-local
+      - adapter:claude-write-local
+    hooks_execution_opened: false
+  - role: cto-lead
+    lane: leader
+    required_hook_refs:
+      - hook:leader-write-need-gate
+      - hook:unsafe-mutation-guard
+      - hook:resource-ref-redaction
+    required_tool_policy_refs:
+      - tool-policy:leader-coordination
+    forbidden_tool_policy_refs:
+      - tool-policy:leader-readonly
+    # leader lane MAY carry tool-policy:read-write-scoped; effective write stays
+    # gated by a Brick-declared write_scope NEED (see coo entry).
+    forbidden_adapter_refs:
+      - adapter:codex-write-local
+      - adapter:claude-write-local
+    hooks_execution_opened: false
+  - role: qa-lead
+    lane: leader
+    required_hook_refs:
+      - hook:leader-write-need-gate
+      - hook:unsafe-mutation-guard
+      - hook:resource-ref-redaction
+    required_tool_policy_refs:
+      - tool-policy:leader-coordination
+    forbidden_tool_policy_refs:
+      - tool-policy:leader-readonly
+    # leader lane MAY carry tool-policy:read-write-scoped; effective write stays
+    # gated by a Brick-declared write_scope NEED (see coo entry).
+    forbidden_adapter_refs:
+      - adapter:codex-write-local
+      - adapter:claude-write-local
+    hooks_execution_opened: false
+  - role: dev
+    lane: worker
+    required_hook_refs:
+      - hook:unsafe-mutation-guard
+      - hook:resource-ref-redaction
+    required_tool_policy_refs:
+      - tool-policy:read-write-scoped
+    required_adapter_refs:
+      - adapter:codex-local
+    forbidden_adapter_refs:
+      - adapter:codex-write-local
+      - adapter:claude-write-local
+    hooks_execution_opened: false
+  - role: qa
+    lane: reviewer
+    required_hook_refs:
+      - hook:reviewer-no-mutation
+      - hook:unsafe-mutation-guard
+      - hook:resource-ref-redaction
+    required_tool_policy_refs:
+      - tool-policy:reviewer-readonly
+    forbidden_tool_policy_refs:
+      - tool-policy:read-write-scoped
+      - tool-policy:review-readonly
+    forbidden_adapter_refs:
+      - adapter:codex-write-local
+      - adapter:claude-write-local
+    hooks_execution_opened: false
+  - role: inspector
+    lane: reviewer
+    required_hook_refs:
+      - hook:reviewer-no-mutation
+      - hook:unsafe-mutation-guard
+      - hook:resource-ref-redaction
+    required_tool_policy_refs:
+      - tool-policy:reviewer-readonly
+    forbidden_tool_policy_refs:
+      - tool-policy:read-write-scoped
+      - tool-policy:review-readonly
+    forbidden_adapter_refs:
+      - adapter:codex-write-local
+      - adapter:claude-write-local
+    hooks_execution_opened: false
+# WAVE-B (0610) RETIRED-MAP DELETION PROBE: agent_resource_boundary above only
+# validates CURRENT Agent Objects; nothing there REDs if the retired-ref map
+# entries in support/connection/agent_resources.py are deleted. These items pin
+# each retired ref + its SPECIFIC loud-reject message from the profile side
+# (NOT derived from the maps), so deleting any _RETIRED_TOOL_POLICY_REFS /
+# _RETIRED_HOOK_REFS entry goes RED here. The retired STEP-TEMPLATE entry is
+# pinned by declared-step-template-plan-rejects:retired-development-step-template.
+agent_resource_retired_ref_rejects:
+  - ref_field: tool_policy_refs
+    retired_ref: tool-policy:leader-readonly
+    expected_message: "retired tool policy ref tool-policy:leader-readonly: use tool-policy:leader-coordination"
+  - ref_field: tool_policy_refs
+    retired_ref: tool-policy:review-readonly
+    expected_message: "retired tool policy ref tool-policy:review-readonly: use tool-policy:reviewer-readonly"
+  - ref_field: tool_policy_refs
+    retired_ref: tool-policy:support-readonly
+    expected_message: "retired tool policy ref tool-policy:support-readonly: retired outright with no replacement (never bound by any Agent Object)"
+  - ref_field: hook_refs
+    retired_ref: hook:leader-no-code
+    expected_message: "retired hook ref hook:leader-no-code: use hook:leader-write-need-gate"
+declared_step_template_plan_case:
+  - label: default-parity-omit-adapter
+    document:
+      plan_ref: building-plan:default-parity-omit-adapter
+      building_id: default-parity-omit-adapter
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: coo
+      # selected_adapter_ref intentionally omitted — DEFAULT-PARITY: the linear
+      # render path must default it to adapter:local (like compose_building), not
+      # "" (which plan_validation rejects). This case renders only if the default
+      # parity holds.
+      steps:
+        - step_ref: dp-plan
+          brick_word: plan
+          agent_word: pm
+          link: design
+          brick:
+            row_ref: brick-row:dp-plan
+            brick_work_ref: work:dp-plan
+            brick_instance_ref: brick-plan
+            work_statement: Plan the default-parity proof.
+            comparison_rule: Observe step template expansion only.
+            required_return_shape: observed_evidence, not_proven
+    expected:
+      movement: forward
+      target_ref: brick-design
+      declared_gate_refs:
+        - link-gate:default-transition
+  - label: declared-step-template-plan-case:plan-pm
+    document:
+      plan_ref: building-plan:building-skill-preset-agent-tool-hardening-plan-pm
+      building_id: building-skill-preset-agent-tool-hardening-plan-pm
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: coo
+      selected_adapter_ref: adapter:local
+      steps:
+        - step_ref: hardening-plan
+          brick_word: plan
+          agent_word: pm
+          link: design
+          brick:
+            row_ref: brick-row:hardening-plan
+            brick_work_ref: work:hardening-plan
+            brick_instance_ref: brick-plan
+            work_statement: Plan the hardening sequence.
+            comparison_rule: Observe step template expansion only.
+            required_return_shape: observed_evidence, not_proven
+    expected:
+      movement: forward
+      target_ref: brick-design
+      declared_gate_refs:
+        - link-gate:default-transition
+  - label: declared-step-template-plan-case:development-cto
+    document:
+      plan_ref: building-plan:building-skill-preset-agent-tool-hardening-development-cto
+      building_id: building-skill-preset-agent-tool-hardening-development-cto
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: coo
+      selected_adapter_ref: adapter:local
+      steps:
+        - step_ref: hardening-development
+          brick_word: development
+          agent_word: cto
+          link: work
+          brick:
+            row_ref: brick-row:hardening-development
+            brick_work_ref: work:hardening-development
+            brick_instance_ref: brick-development
+            work_statement: Return implementation assignment without writing.
+            comparison_rule: CTO assignment only.
+            required_return_shape: worker_assignments, observed_evidence, not_proven
+    expected:
+      movement: forward
+      target_ref: brick-work
+      declared_gate_refs:
+        - link-gate:default-transition
+  - label: declared-step-template-plan-case:work-dev
+    document:
+      plan_ref: building-plan:building-skill-preset-agent-tool-hardening-work-dev
+      building_id: building-skill-preset-agent-tool-hardening-work-dev
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: coo
+      selected_adapter_ref: adapter:local
+      steps:
+        - step_ref: hardening-work
+          brick_word: work
+          agent_word: dev
+          link: review
+          brick:
+            row_ref: brick-row:hardening-work
+            brick_work_ref: work:hardening-work
+            brick_instance_ref: brick-work
+            work_statement: Return scoped implementation evidence.
+            comparison_rule: DEV worker step template only.
+            required_return_shape: made_changes, observed_evidence, blocked_or_missing_evidence, not_proven
+    expected:
+      movement: forward
+      target_ref: brick-review
+      declared_gate_refs:
+        - link-gate:default-transition
+  - label: declared-step-template-plan-case:review-qa-strict-human
+    document:
+      plan_ref: building-plan:building-skill-preset-agent-tool-hardening-review-qa
+      building_id: building-skill-preset-agent-tool-hardening-review-qa
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: coo
+      selected_adapter_ref: adapter:local
+      steps:
+        - step_ref: hardening-review
+          brick_word: review
+          agent_word: qa_lead
+          link: strict+human -> inspect
+          brick:
+            row_ref: brick-row:hardening-review
+            brick_work_ref: work:hardening-review
+            brick_instance_ref: brick-review
+            work_statement: Return non-binding review observations.
+            comparison_rule: QA review step template only.
+            required_return_shape: observed_evidence, transition_concern_evidence, not_proven
+    expected:
+      movement: forward
+      target_ref: brick-inspect
+      declared_gate_refs:
+        - link-gate:default-transition
+        - link-gate:strict
+        - link-gate:human
+  - label: declared-step-template-plan-case:closure-coo
+    document:
+      plan_ref: building-plan:building-skill-preset-agent-tool-hardening-closure-coo
+      building_id: building-skill-preset-agent-tool-hardening-closure-coo
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: coo
+      selected_adapter_ref: adapter:local
+      steps:
+        - step_ref: hardening-closure
+          brick_word: closure
+          agent_word: coo
+          link: closure
+          brick:
+            row_ref: brick-row:hardening-closure
+            brick_work_ref: work:hardening-closure
+            brick_instance_ref: brick-closure
+            work_statement: Return closure observations for the hardening sequence.
+            comparison_rule: COO closure step template only.
+            required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta
+    expected:
+      movement: forward
+      target_ref: brick-closure
+      declared_gate_refs:
+        - link-gate:default-transition
+  - label: declared-step-template-plan-case:linear-same-need-agent-override
+    # finding-2 regression: the linear render path honors a step-level
+    # agent_object_ref override when it satisfies the same brick NEED (mirrors the
+    # graph path). code-attack-qa NEED = reviewer / non-writer; agent_object_hint_ref =
+    # agent-object:qa. The same-NEED override agent-object:inspector (also reviewer
+    # / non-writer) must CHANGE the stamped Agent row from qa to inspector.
+    document:
+      plan_ref: building-plan:building-skill-preset-agent-tool-hardening-linear-override
+      building_id: building-skill-preset-agent-tool-hardening-linear-override
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: coo
+      selected_adapter_ref: adapter:local
+      steps:
+        - step_ref: hardening-code-qa-override
+          step_template_ref: building-step-template:code-attack-qa
+          agent_object_ref: agent-object:inspector
+          link: inspect
+          brick:
+            row_ref: brick-row:hardening-code-qa-override
+            brick_work_ref: work:hardening-code-qa-override
+            brick_instance_ref: brick-code-qa-override
+            work_statement: Attack implementation code under a same-NEED agent override.
+            comparison_rule: Return the QA Brick's own fields without Link-facing transition_concern_evidence.
+            required_return_shape: observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, evidence_used, not_proven
+    expected:
+      movement: forward
+      target_ref: brick-inspect
+      agent_object_ref: agent-object:inspector
+      declared_gate_refs:
+        - link-gate:default-transition
+declared_step_template_plan_rejects:
+  # KIND REVERT (0611, Smith ruling): cto-assignment -> development (the 0610
+  # rename put a role in the kind name -- an axis smell). The short-lived
+  # cto-assignment name lived on origin/main for about a day, so it must
+  # REJECT loudly (plan_rendering names the canonical replacement); the
+  # positive development case above is the anti-tautology twin (same shape,
+  # canonical name, renders).
+  - label: declared-step-template-plan-rejects:retired-cto-assignment-step-template
+    # MESSAGE PIN: the rejection must be the LOUD retired message naming the
+    # canonical replacement -- not the generic not-in-catalog error. Delete
+    # the RETIRED_STEP_TEMPLATE_REFS entry and this case goes RED on message
+    # mismatch (anti-tautology verified).
+    expected_message: "is retired: use building-step-template:development"
+    document:
+      plan_ref: building-plan:retired-cto-assignment-step-template
+      building_id: retired-cto-assignment-step-template
+      declared_by: coo
+      selected_adapter_ref: adapter:local
+      steps:
+        - step_ref: retired-cto-assignment
+          step_template_ref: building-step-template:cto-assignment
+          link: work
+          brick:
+            row_ref: brick-row:retired-cto-assignment
+            brick_work_ref: work:retired-cto-assignment
+            brick_instance_ref: brick-retired-cto-assignment
+            work_statement: Retired cto-assignment step template name must reject.
+            comparison_rule: Retired name never silently resolves.
+            required_return_shape: rejected_fixture
+  - label: declared-step-template-plan-rejects:linear-need-violating-agent-override
+    # finding-2 regression (negative): a step-level agent_object_ref override that
+    # VIOLATES the brick NEED must be rejected (the linear path is fail-closed).
+    # code-attack-qa NEED = reviewer / non-writer; agent-object:dev is worker /
+    # writer, so the override escapes the NEED and must raise.
+    document:
+      plan_ref: building-plan:building-skill-preset-agent-tool-hardening-linear-override-reject
+      building_id: building-skill-preset-agent-tool-hardening-linear-override-reject
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: coo
+      selected_adapter_ref: adapter:local
+      steps:
+        - step_ref: hardening-code-qa-bad-override
+          step_template_ref: building-step-template:code-attack-qa
+          agent_object_ref: agent-object:dev
+          link: inspect
+          brick:
+            row_ref: brick-row:hardening-code-qa-bad-override
+            brick_work_ref: work:hardening-code-qa-bad-override
+            brick_instance_ref: brick-code-qa-bad-override
+            work_statement: Attempt a NEED-violating agent override on a QA step.
+            comparison_rule: Return the QA Brick's own fields without Link-facing transition_concern_evidence.
+            required_return_shape: observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, evidence_used, not_proven
+  - label: bad-step-template-graph-preset-linear-engine-feature-hard
+    document:
+      plan_ref: building-plan:bad-step-template-graph-preset-linear-engine-feature-hard
+      building_id: bad-step-template-graph-preset-linear-engine-feature-hard
+      selected_shape_ref: building-shape:design-needed
+      chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
+      declared_by: coo
+      selected_adapter_ref: adapter:local
+      steps:
+        - step_ref: bad-graph-linear-design
+          step_template_ref: building-step-template:design
+          link: work
+          brick:
+            row_ref: brick-row:bad-graph-linear-design
+            brick_work_ref: work:bad-graph-linear-design
+            brick_instance_ref: brick-design
+            work_statement: Bad linear rendering of graph preset design.
+            comparison_rule: Graph preset must not be smuggled through the linear renderer.
+            required_return_shape: rejected_fixture
+        - step_ref: bad-graph-linear-work
+          step_template_ref: building-step-template:work
+          link: code_attack_qa
+          brick:
+            row_ref: brick-row:bad-graph-linear-work
+            brick_work_ref: work:bad-graph-linear-work
+            brick_instance_ref: brick-work
+            work_statement: Bad linear rendering of graph preset work.
+            comparison_rule: Graph preset must declare fan-out/fan-in graph grammar.
+            required_return_shape: rejected_fixture
+        - step_ref: bad-graph-linear-code-qa
+          step_template_ref: building-step-template:code-attack-qa
+          link: closure
+          brick:
+            row_ref: brick-row:bad-graph-linear-code-qa
+            brick_work_ref: work:bad-graph-linear-code-qa
+            brick_instance_ref: brick-code-qa
+            work_statement: Bad linear rendering of graph preset code QA.
+            comparison_rule: Graph preset must declare fan-in edge groups.
+            required_return_shape: rejected_fixture
+        - step_ref: bad-graph-linear-axis-qa
+          step_template_ref: building-step-template:axis-attack-qa
+          link: closure
+          brick:
+            row_ref: brick-row:bad-graph-linear-axis-qa
+            brick_work_ref: work:bad-graph-linear-axis-qa
+            brick_instance_ref: brick-axis-qa
+            work_statement: Bad linear rendering of graph preset axis QA.
+            comparison_rule: Graph preset must declare fan-in edge groups.
+            required_return_shape: rejected_fixture
+        - step_ref: bad-graph-linear-evidence
+          step_template_ref: building-step-template:evidence-integrity
+          link: closure
+          brick:
+            row_ref: brick-row:bad-graph-linear-evidence
+            brick_work_ref: work:bad-graph-linear-evidence
+            brick_instance_ref: brick-evidence
+            work_statement: Bad linear rendering of graph preset evidence lane.
+            comparison_rule: Graph preset must declare fan-in edge groups.
+            required_return_shape: rejected_fixture
+        - step_ref: bad-graph-linear-closure
+          step_template_ref: building-step-template:closure
+          link: closure
+          brick:
+            row_ref: brick-row:bad-graph-linear-closure
+            brick_work_ref: work:bad-graph-linear-closure
+            brick_instance_ref: brick-closure
+            work_statement: Bad linear closure for graph preset.
+            comparison_rule: Closure-synthesis is not proof that graph grammar was declared.
+            required_return_shape: rejected_fixture
+  - label: bad-step-template-compact-multiple-targets
+    document:
+      plan_ref: building-plan:bad-step-template-compact-multiple-targets
+      building_id: bad-step-template-compact-multiple-targets
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: coo
+      selected_adapter_ref: adapter:local
+      steps:
+        - step_ref: bad-compact-targets
+          brick_word: plan
+          agent_word: pm
+          link: design or work
+          brick:
+            row_ref: brick-row:bad-compact-targets
+            brick_work_ref: work:bad-compact-targets
+            brick_instance_ref: brick-plan
+            work_statement: Bad compact link with multiple targets.
+            comparison_rule: Must reject support target inference.
+            required_return_shape: rejected_fixture
+  - label: bad-step-template-unknown-gate-token
+    document:
+      plan_ref: building-plan:bad-step-template-unknown-gate-token
+      building_id: bad-step-template-unknown-gate-token
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: coo
+      selected_adapter_ref: adapter:local
+      steps:
+        - step_ref: bad-unknown-gate
+          brick_word: plan
+          agent_word: pm
+          link: magic -> design
+          brick:
+            row_ref: brick-row:bad-unknown-gate
+            brick_work_ref: work:bad-unknown-gate
+            brick_instance_ref: brick-plan
+            work_statement: Bad compact link with unadmitted gate token.
+            comparison_rule: Must reject unknown gate syntax.
+            required_return_shape: rejected_fixture
+  - label: bad-step-template-missing-link-declaration
+    document:
+      plan_ref: building-plan:bad-step-template-missing-link-declaration
+      building_id: bad-step-template-missing-link-declaration
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: coo
+      selected_adapter_ref: adapter:local
+      steps:
+        - step_ref: bad-missing-link
+          brick_word: plan
+          agent_word: pm
+          brick:
+            row_ref: brick-row:bad-missing-link
+            brick_work_ref: work:bad-missing-link
+            brick_instance_ref: brick-plan
+            work_statement: Bad step template intent without compact link or link_word.
+            comparison_rule: Must not infer Link movement from Brick and Agent words alone.
+            required_return_shape: rejected_fixture
+  - label: bad-step-template-development-write-scope
+    document:
+      plan_ref: building-plan:bad-step-template-development-write-scope
+      building_id: bad-step-template-development-write-scope
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: coo
+      selected_adapter_ref: adapter:local
+      steps:
+        - step_ref: bad-development-write-scope
+          brick_word: development
+          agent_word: cto
+          link: work
+          brick:
+            row_ref: brick-row:bad-development-write-scope
+            brick_work_ref: work:bad-development-write-scope
+            brick_instance_ref: brick-development
+            work_statement: Bad CTO assignment step template with write scope.
+            comparison_rule: Must reject CTO direct coding.
+            required_return_shape: rejected_fixture
+            write_scope:
+              allowed_paths:
+                - support/operator/**
+  # main (6/4 retirement): a development step template that selects the retired
+  # adapter:codex-write-local must be rejected by render_declared_step_template_plan.
+  - label: bad-step-template-development-write-adapter
+    document:
+      plan_ref: building-plan:bad-step-template-development-write-adapter
+      building_id: bad-step-template-development-write-adapter
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: coo
+      selected_adapter_ref: adapter:local
+      steps:
+        - step_ref: bad-development-write-adapter
+          brick_word: development
+          agent_word: cto
+          link: work
+          selected_adapter_ref: adapter:codex-write-local
+          brick:
+            row_ref: brick-row:bad-development-write-adapter
+            brick_work_ref: work:bad-development-write-adapter
+            brick_instance_ref: brick-development
+            work_statement: Bad CTO assignment step template with compatibility write alias.
+            comparison_rule: Must reject CTO direct compatibility write alias use.
+            required_return_shape: rejected_fixture
+  # branch (U5/D5): the bad-step-template-chain-preset-shape-mismatch rejection
+  # case was removed. selected_shape_ref is now an OPTIONAL recorded tag, so a
+  # chain preset whose selected_shape_ref differs from the caller declaration is no
+  # longer rejected by render_declared_step_template_plan (the membership/match
+  # constraint was dropped). The compose_building (graph) path now drops shape
+  # membership too (parity): its c1-unknown-shape / c1-collect-all reject cases were
+  # removed in the same change, so shape_ref is a pure optional tag on BOTH the
+  # linear and graph paths and no path asserts shape-membership rejection any longer.
+# PART-2 Phase 3: READ-ONLY COO surface for the agent NEED<->CAPABILITY matcher's
+# candidates (render_agent_candidate_packet). The matcher's >= 2 ValueError is the
+# fail-closed halt; this packet is the informed surface beside it. The AXIS FIRE
+# here is the real guard: support records candidates + a MECHANICAL match reason
+# ONLY -- it does NOT pick among >= 2, rank, or recommend. If the packet were made
+# to pick/rank one, the no-forbidden-pick-field assertion goes RED; the case also
+# re-asserts that _resolve_agent_for_need still RAISES for the ambiguous need.
+agent_candidate_packet_case:
+  # MULTI: leader / write_need=false -> 5 candidates -> ambiguous -> COO decision.
+  # All qualifying leaders are listed (none omitted); each match_reason is mechanical.
+  - label: multi-leader-coordination-five-candidates
+    role_need: leader
+    write_need: false
+    expect_min_candidates: 2
+    expect_ambiguous: true
+    expected_candidate_refs:
+      - agent-object:coo
+      - agent-object:cto-lead
+      - agent-object:design-lead
+      - agent-object:pm-lead
+      - agent-object:qa-lead
+  # MULTI + WRITE NEED: leader / write_need=true -> the four write-capable team
+  # leads ONLY. The COO is PURE READ-ONLY (Smith ruling 0610: the Movement/
+  # judgment authority carries no write tools), so a write-need brick's
+  # candidate set EXCLUDES agent-object:coo. Re-adding read-write-scoped to
+  # coo.yaml turns this RED (expected_candidate_refs is an exact-set match).
+  - label: multi-leader-write-need-excludes-coo
+    role_need: leader
+    write_need: true
+    expect_min_candidates: 2
+    expect_ambiguous: true
+    expected_candidate_refs:
+      - agent-object:cto-lead
+      - agent-object:design-lead
+      - agent-object:pm-lead
+      - agent-object:qa-lead
+  # SINGLE: worker / write_need=true -> exactly one candidate (dev) -> unambiguous;
+  # the matcher still auto-resolves it (this surface does not change that path).
+  - label: single-worker-writer-dev
+    role_need: worker
+    write_need: true
+    expect_min_candidates: 1
+    expect_ambiguous: false
+    expected_candidate_refs:
+      - agent-object:dev
+# PART-2 P4: the READ-ONLY, NON-BINDING preset-ranking packet. Each case drives
+# render_preset_ranking_packet over the real chain-preset catalog and asserts
+# (1) RANK = mechanical hint-match ordering (ranking_basis says "not quality"),
+# (2) NO pick/recommend field (axis FIRE -- inject one to RED), and
+# (3) the materializer STILL hard-refuses a run with no/blank chain_preset_ref
+# (the ranking NEVER auto-applies -- proving it is non-binding).
+preset_ranking_packet_case:
+  # GOVERNANCE hint -> the governed-change-review preset is the top mechanical
+  # match (its declared intent + selection_hint name contracts/policy/permissions/
+  # authority). >= 2 presets match, so the COO still chooses among the ranking.
+  - label: governance-hint-ranks-governed-change-review-top
+    selection_hint: "Use when the requested work changes active instructions, public contracts, review policy, permissions, or authority boundaries."
+    expect_min_candidates: 2
+    expect_top_ref: building-chain-preset:governed-change-review
+    expect_min_top_score: 5
+  # SCOPE FILTER: restricting to the common scope returns only common presets and
+  # never leaks a dogfood-scope route into the ranking.
+  - label: governance-hint-common-scope-only
+    selection_hint: "Use when the requested work changes active instructions, public contracts, review policy, permissions, or authority boundaries."
+    catalog_scope: common
+    expect_min_candidates: 2
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic fitness of future chain preset selection
+  - native hook execution behavior
+  - provider-native tool permission behavior

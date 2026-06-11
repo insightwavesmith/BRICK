@@ -1,0 +1,84 @@
+plan_ref: building-plan:building-accumulation-0-repair-cycle
+owner_axis: Brick
+building_id: building-accumulation-0-repair-cycle-0524
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - provider credential validity
+  - live adapter execution
+  - session continuity
+  - route/replay correctness
+  - source truth
+steps:
+  - step_ref: building-accumulation-0-repair-01-development
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-accumulation-0-repair-development
+        brick_work_ref: work:building-accumulation-0-repair-development
+        brick_instance_ref: brick-building-accumulation-repair-development-01
+        work_statement: Repair BUILDING-ACCUMULATION-0 after Codex QA and Claude QA both observed that accumulated Link claim_trace can look support-synthesized.
+        comparison_rule: Observe whether the repair stops support/operator/run.py from creating owner-looking Link Transfer, Carry, or Sufficiency facts when no caller-supplied Link facts exist, while preserving one-root accumulation and existing boundaries.
+        required_return_shape: implementation_map, changed_files, verification_evidence, claim_ledger, not_proven
+        source_facts:
+          - brick/templates/do/minimal-do-return-template.json
+          - project/brick-protocol/status/kernel/brick-protocol-building-accumulation-0-codex-qa-report-0524.md
+          - project/brick-protocol/status/kernel/brick-protocol-building-accumulation-0-claude-qa-report-0524.md
+          - support/docs/spec/brick-protocol-building-accumulation-0-design-0524.md
+      - axis: Agent
+        row_ref: agent-row:building-accumulation-0-repair-development
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:building-accumulation-0-repair-development
+        movement: forward
+        target_ref: brick-building-accumulation-repair-codex-qa-02
+        next_brick_instance_ref: brick-building-accumulation-repair-codex-qa-02
+  - step_ref: building-accumulation-0-repair-02-codex-qa
+    selected_adapter_ref: adapter:codex-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-accumulation-0-repair-codex-qa
+        brick_work_ref: work:building-accumulation-0-repair-codex-qa
+        brick_instance_ref: brick-building-accumulation-repair-codex-qa-02
+        work_statement: Review the repaired BUILDING-ACCUMULATION-0 implementation as Codex QA using only observed evidence.
+        comparison_rule: Observe whether the repair removed support-created owner-looking Link facts and preserved one-root evidence behavior without opening new surfaces.
+        required_return_shape: checked_work, checked_sources, match_facts, missing_or_mismatched_facts, boundary_violations, evidence_used, narrowly_proven, not_proven, next_movement_recommendation
+        source_facts:
+          - brick/templates/review/minimal-review-template.json
+          - project/brick-protocol/status/kernel/brick-protocol-building-accumulation-0-development-repair-report-0524.md
+      - axis: Agent
+        row_ref: agent-row:building-accumulation-0-repair-codex-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:building-accumulation-0-repair-codex-qa
+        movement: forward
+        target_ref: brick-building-accumulation-repair-claude-qa-03
+        next_brick_instance_ref: brick-building-accumulation-repair-claude-qa-03
+  - step_ref: building-accumulation-0-repair-03-claude-qa
+    selected_adapter_ref: adapter:claude-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-accumulation-0-repair-claude-qa
+        brick_work_ref: work:building-accumulation-0-repair-claude-qa
+        brick_instance_ref: brick-building-accumulation-repair-claude-qa-03
+        work_statement: Review the repaired BUILDING-ACCUMULATION-0 implementation as Claude QA using only observed evidence.
+        comparison_rule: Observe whether the repair stayed inside BUILDING-ACCUMULATION-0 and did not turn support/operator/run.py into Link owner, Movement chooser, or GateFact creator.
+        required_return_shape: checked_work, checked_sources, match_facts, missing_or_mismatched_facts, boundary_violations, evidence_used, narrowly_proven, not_proven, next_movement_recommendation
+        source_facts:
+          - brick/templates/review/minimal-review-template.json
+          - project/brick-protocol/status/kernel/brick-protocol-building-accumulation-0-development-repair-report-0524.md
+      - axis: Agent
+        row_ref: agent-row:building-accumulation-0-repair-claude-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:building-accumulation-0-repair-claude-qa
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:building-accumulation-0-repair-reviewed
+        next_brick_instance_ref: building-boundary-building-accumulation-0-repair-reviewed

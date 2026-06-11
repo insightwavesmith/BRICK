@@ -1,0 +1,142 @@
+plan_ref: building-plan:coo-operating-chain-0-compact
+owner_axis: Brick
+building_id: coo-operating-chain-0-0527
+plan_shape: reviewable-work
+selected_adapter_ref: adapter:local
+parent_goal_ref: goal:coo-operating-chain
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement owner
+not_proven:
+  - semantic correctness of future task sources
+  - semantic fitness of future selected shapes
+  - future Building Plan correctness
+  - future Agent or provider quality
+  - future reviewer Movement decision correctness
+remaining_delta:
+  - real task dogfood using COO-OPERATING-CHAIN-0
+next_target_candidates:
+  - BAR-V2-REAL-TASK-DOGFOOD-1
+steps:
+  - step_ref: coo-operating-chain-0-01-design
+    rows:
+      - axis: Brick
+        row_ref: brick-row:coo-operating-chain-0-design
+        brick_work_ref: work:coo-operating-chain-0-design
+        brick_instance_ref: brick-coo-operating-chain-0-design
+        work_statement: Design COO-OPERATING-CHAIN-0 as an honest task intake chain over admitted task source, task_intake, design toolkit, MCP context, operator helper, and closure evidence.
+        comparison_rule: Observe whether the design preserves Brick / Agent / Link ownership and keeps task_intake and MCP candidate-only.
+        required_return_shape: chain_contract, task_source_sections, honest_report_contract, mcp_context_refs, helper_contract, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+          - support/docs/spec/brick-protocol-coo-operating-chain-0-0527.md
+      - axis: Agent
+        row_ref: agent-row:coo-operating-chain-0-design
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:coo-operating-chain-0-design-to-development
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-coo-operating-chain-0-development
+        next_brick_instance_ref: brick-coo-operating-chain-0-development
+  - step_ref: coo-operating-chain-0-02-development
+    rows:
+      - axis: Brick
+        row_ref: brick-row:coo-operating-chain-0-development
+        brick_work_ref: work:coo-operating-chain-0-development
+        brick_instance_ref: brick-coo-operating-chain-0-development
+        work_statement: Implement the task source template, task_intake returned shape, operator helper, MCP read-only context, package path admission repair, and profile declarations for COO-OPERATING-CHAIN-0.
+        comparison_rule: Observe changed surfaces and ensure no new checker file, provider runtime, task declared reroute, or support-chosen Movement is opened.
+        required_return_shape: changed_surfaces, helper_packet_refs, mcp_context_refs, profile_refs, path_admission_repairs, proof_limits, not_proven
+        source_facts:
+          - brick/templates/tasks/source-template.md
+          - agent/skills/task_intake/SKILL.md
+          - support/operator/building_operation.py
+          - support/connection/mcp_projection.py
+          - support/checkers/check_package_path_admission.py
+      - axis: Agent
+        row_ref: agent-row:coo-operating-chain-0-development
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:coo-operating-chain-0-development-to-qa
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-coo-operating-chain-0-qa
+        next_brick_instance_ref: brick-coo-operating-chain-0-qa
+  - step_ref: coo-operating-chain-0-03-qa
+    rows:
+      - axis: Brick
+        row_ref: brick-row:coo-operating-chain-0-qa
+        brick_work_ref: work:coo-operating-chain-0-qa
+        brick_instance_ref: brick-coo-operating-chain-0-qa
+        work_statement: Review COO-OPERATING-CHAIN-0 boundaries and verify that task source, task_intake, MCP, toolkit, and helper remain observation/candidate surfaces only.
+        comparison_rule: QA returned evidence is advisory and non-binding; it must not choose Movement or route target.
+        required_return_shape: checked_surfaces, boundary_observations, forbidden_owner_absent, transition_concern_evidence_if_any, proof_limits, not_proven
+        source_facts:
+          - support/checkers/profiles/coo_operating_chain.yaml
+          - support/docs/spec/brick-protocol-coo-operating-chain-0-0527.md
+      - axis: Agent
+        row_ref: agent-row:coo-operating-chain-0-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:coo-operating-chain-0-qa-to-dogfood
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-coo-operating-chain-0-dogfood
+        next_brick_instance_ref: brick-coo-operating-chain-0-dogfood
+  - step_ref: coo-operating-chain-0-04-dogfood
+    rows:
+      - axis: Brick
+        row_ref: brick-row:coo-operating-chain-0-dogfood
+        brick_work_ref: work:coo-operating-chain-0-dogfood
+        brick_instance_ref: brick-coo-operating-chain-0-dogfood
+        work_statement: Dogfood COO-OPERATING-CHAIN-0 by rendering the design toolkit context, MCP COO operating chain context, and coo_operating_chain_packet for this task source and active plan.
+        comparison_rule: Observe helper/tool outputs only; do not infer semantic task correctness.
+        required_return_shape: design_context_result, mcp_context_result, coo_operating_chain_packet_result, profile_result, proof_limits, not_proven
+        source_facts:
+          - support/connection/building_design_toolkit.py
+          - support/connection/mcp_projection.py
+          - support/operator/building_operation.py
+      - axis: Agent
+        row_ref: agent-row:coo-operating-chain-0-dogfood
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:coo-operating-chain-0-dogfood-to-closure
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-coo-operating-chain-0-closure
+        next_brick_instance_ref: brick-coo-operating-chain-0-closure
+  - step_ref: coo-operating-chain-0-05-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:coo-operating-chain-0-closure
+        brick_work_ref: work:coo-operating-chain-0-closure
+        brick_instance_ref: brick-coo-operating-chain-0-closure
+        work_statement: Close COO-OPERATING-CHAIN-0 with observed evidence, narrowly proven scope, not_proven, remaining_delta, deferred review queue, and next Movement candidate.
+        comparison_rule: Closure records support evidence and proof limits only; it does not prove future semantic task quality.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, deferred_smith_review_queue, next_target_candidates, next_movement_candidate
+        source_facts:
+          - brick/building_plans/coo-operating-chain-0-compact.yaml
+          - support/docs/spec/brick-protocol-coo-operating-chain-0-0527.md
+          - brick/templates/closure/standard-closure-with-parent-delta.yaml
+      - axis: Agent
+        row_ref: agent-row:coo-operating-chain-0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:coo-operating-chain-0-closure
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: COO operating chain support evidence closed.
+        target_ref: brick-coo-operating-chain-0-closed
+        next_brick_instance_ref: brick-coo-operating-chain-0-closed

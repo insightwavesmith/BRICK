@@ -1,0 +1,36 @@
+template_ref: brick-template:inspect-return
+owner_axis: Brick
+template_kind: inspect_return_shape
+maps_to: AgentFact.returned
+step_template_refs:
+  - building-step-template:inspect
+required_return_shape:
+  - inspected_scope
+  - matched_facts
+  - missing_facts
+  - mismatched_facts
+  - boundary_findings
+  - observed_evidence
+  - not_proven
+next_link_input_sections:
+  - observed public facts for Link
+  - missing facts for Link Gate
+  - inspection evidence refs
+  - not_proven
+forbidden_return_keys:
+  - success
+  - failure
+  - approved
+  - quality
+  - movement_choice
+  - route_target
+proof_limits:
+  - Brick-owned return-shape data resource only
+  - inspection findings are evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - complete absence of future boundary drift
+  - support loader behavior

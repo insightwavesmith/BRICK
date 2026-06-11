@@ -1,0 +1,134 @@
+plan_ref: building-plan:external-domain-dogfood-0-workshop-brief
+owner_axis: Brick
+building_id: external-domain-dogfood-0-0526
+plan_shape: linear
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - quality of the external-domain brief
+  - suitability for a real client
+  - provider quality
+  - external domain readiness
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority
+steps:
+  - step_ref: external-domain-dogfood-0-coo-preflight
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:external-domain-dogfood-0-coo-preflight
+        brick_work_ref: work:external-domain-dogfood-0-coo-preflight
+        brick_instance_ref: brick-edd0-coo-preflight
+        work_statement: Ask COO questions and frame the external-domain dogfood as a non-protocol work Building.
+        comparison_rule: Verify Brick, Agent, Link, support, evidence, return, and reroute boundaries before running non-protocol work.
+        required_return_shape: coo_questions, external_domain_scope, proof_limits, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-external-domain-dogfood-0-workshop-brief-0526.md
+          - support/docs/spec/brick-protocol-building-method-0-building-operating-mode-0525.md
+      - axis: Agent
+        row_ref: agent-row:external-domain-dogfood-0-coo-preflight
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:external-domain-dogfood-0-preflight-to-brief
+        movement: forward
+        target_ref: brick-edd0-workshop-brief
+        transition_authoring:
+          transition_authoring_ref: link-authoring:edd0-forward-to-brief
+          author_ref: coo:external-domain-dogfood-0
+          authoring_basis_refs:
+            - brick-work:01:external-domain-dogfood-0-coo-preflight
+          transition_reason_refs:
+            - brick-work:01:external-domain-dogfood-0-coo-preflight
+          proof_limits:
+            - forward authoring is support evidence only
+          not_proven:
+            - semantic necessity of the forward transition
+  - step_ref: external-domain-dogfood-0-workshop-brief
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:external-domain-dogfood-0-workshop-brief
+        brick_work_ref: work:external-domain-dogfood-0-workshop-brief
+        brick_instance_ref: brick-edd0-workshop-brief
+        work_statement: Prepare a short non-protocol workshop brief for a two-hour team onboarding session about documenting decisions clearly.
+        comparison_rule: Observe whether the Building can carry non-protocol work text through raw evidence and AgentFact without changing Brick Protocol semantics.
+        required_return_shape: audience, session_goal, agenda_outline, materials_needed, proof_limits, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-external-domain-dogfood-0-workshop-brief-0526.md
+      - axis: Agent
+        row_ref: agent-row:external-domain-dogfood-0-workshop-brief
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:external-domain-dogfood-0-brief-to-review
+        movement: forward
+        target_ref: brick-edd0-review
+        transition_authoring:
+          transition_authoring_ref: link-authoring:edd0-forward-to-review
+          author_ref: coo:external-domain-dogfood-0
+          authoring_basis_refs:
+            - brick-work:02:external-domain-dogfood-0-workshop-brief
+          transition_reason_refs:
+            - brick-work:02:external-domain-dogfood-0-workshop-brief
+          proof_limits:
+            - external-domain brief handoff is support evidence only
+          not_proven:
+            - brief quality
+  - step_ref: external-domain-dogfood-0-review
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:external-domain-dogfood-0-review
+        brick_work_ref: work:external-domain-dogfood-0-review
+        brick_instance_ref: brick-edd0-review
+        work_statement: Review the non-protocol workshop brief as support evidence only.
+        comparison_rule: Observation may note evidence shape and proof limits, but must not become quality judgment or Movement authority.
+        required_return_shape: observed_evidence, evidence_shape_notes, not_quality_judgment, proof_limits, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-external-domain-dogfood-0-workshop-brief-0526.md
+      - axis: Agent
+        row_ref: agent-row:external-domain-dogfood-0-review
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:external-domain-dogfood-0-review-to-closure
+        movement: forward
+        target_ref: brick-edd0-closure
+        transition_authoring:
+          transition_authoring_ref: link-authoring:edd0-forward-to-closure
+          author_ref: coo:external-domain-dogfood-0
+          authoring_basis_refs:
+            - brick-work:03:external-domain-dogfood-0-review
+          transition_reason_refs:
+            - brick-work:03:external-domain-dogfood-0-review
+          proof_limits:
+            - review handoff is support evidence only
+          not_proven:
+            - external domain readiness
+  - step_ref: external-domain-dogfood-0-closure
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:external-domain-dogfood-0-closure
+        brick_work_ref: work:external-domain-dogfood-0-closure
+        brick_instance_ref: brick-edd0-closure
+        work_statement: Close EXTERNAL-DOMAIN-DOGFOOD-0 as non-protocol Building evidence.
+        comparison_rule: Preserve observed evidence, narrowly proven scope, not-proven, held, and COO Movement.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, held, coo_movement
+        source_facts:
+          - support/docs/spec/brick-protocol-external-domain-dogfood-0-workshop-brief-0526.md
+      - axis: Agent
+        row_ref: agent-row:external-domain-dogfood-0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:external-domain-dogfood-0-closure-to-boundary
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:external-domain-dogfood-0-closed

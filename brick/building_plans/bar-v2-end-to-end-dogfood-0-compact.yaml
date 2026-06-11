@@ -1,0 +1,96 @@
+plan_ref: building-plan:bar-v2-end-to-end-dogfood-0-compact
+owner_axis: Brick
+building_id: bar-v2-end-to-end-dogfood-0-0526
+plan_shape: linear
+selected_adapter_ref: adapter:local
+parent_goal_ref: goal:bar-v2-active-sequence
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of arbitrary future task plans
+  - semantic correctness of future QA transition concern evidence
+  - future provider behavior
+  - future stale references
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority
+remaining_delta: []
+next_target_candidates: []
+steps:
+  - step_ref: bar-v2-end-to-end-dogfood-0-01-run
+    rows:
+      - axis: Brick
+        row_ref: brick-row:bar-v2-end-to-end-dogfood-0-run
+        brick_work_ref: work:bar-v2-end-to-end-dogfood-0-run
+        brick_instance_ref: brick-bar-v2-end-to-end-dogfood-0-run
+        work_statement: Run the declared BAR-v2 end-to-end dogfood case over admitted support helpers.
+        comparison_rule: Observe dogfood chain evidence; do not infer semantic success.
+        required_return_shape: dogfood_case_ref, route_match_state, auto_repair_execution_building_id, child_candidate_written_file, cascade_gap_count, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+          - support/docs/spec/brick-protocol-bar-v2-end-to-end-dogfood-0-0526.md
+          - support/operator/bar_v2_dogfood.py
+      - axis: Agent
+        row_ref: agent-row:bar-v2-end-to-end-dogfood-0-run
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:bar-v2-end-to-end-dogfood-0-run-to-profile
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-bar-v2-end-to-end-dogfood-0-profile
+        next_brick_instance_ref: brick-bar-v2-end-to-end-dogfood-0-profile
+  - step_ref: bar-v2-end-to-end-dogfood-0-02-profile
+    rows:
+      - axis: Brick
+        row_ref: brick-row:bar-v2-end-to-end-dogfood-0-profile
+        brick_work_ref: work:bar-v2-end-to-end-dogfood-0-profile
+        brick_instance_ref: brick-bar-v2-end-to-end-dogfood-0-profile
+        work_statement: Observe the Phase 16 profile and final BAR-v2 dogfood evidence.
+        comparison_rule: Profile pass is support evidence only.
+        required_return_shape: profile_ref, observed_dogfood_refs, proof_limits, not_proven
+        source_facts:
+          - support/checkers/profiles/bar_v2_end_to_end_dogfood.yaml
+          - project/brick-protocol/buildings/auto-repair-replay-0-example-0526/work/building-map.json
+      - axis: Agent
+        row_ref: agent-row:bar-v2-end-to-end-dogfood-0-profile
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:bar-v2-end-to-end-dogfood-0-profile-to-closure
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-bar-v2-end-to-end-dogfood-0-closure
+        next_brick_instance_ref: brick-bar-v2-end-to-end-dogfood-0-closure
+  - step_ref: bar-v2-end-to-end-dogfood-0-03-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:bar-v2-end-to-end-dogfood-0-closure
+        brick_work_ref: work:bar-v2-end-to-end-dogfood-0-closure
+        brick_instance_ref: brick-bar-v2-end-to-end-dogfood-0-closure
+        work_statement: Close BAR-v2 active sequence with final evidence, proof limits, deferred review queue, and no remaining active deltas.
+        comparison_rule: Closure records BAR-v2 active sequence evidence only; it does not prove future semantic correctness.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, deferred_smith_review_queue, next_target_candidates, next_movement_candidate
+        source_facts:
+          - brick/building_plans/bar-v2-end-to-end-dogfood-0-compact.yaml
+          - support/docs/spec/brick-protocol-bar-v2-end-to-end-dogfood-0-0526.md
+          - brick/templates/closure/standard-closure-with-parent-delta.yaml
+      - axis: Agent
+        row_ref: agent-row:bar-v2-end-to-end-dogfood-0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:bar-v2-end-to-end-dogfood-0-closure
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: BAR-v2 active sequence closed by end-to-end dogfood.
+        target_ref: brick-bar-v2-active-sequence-closed
+        next_brick_instance_ref: brick-bar-v2-active-sequence-closed

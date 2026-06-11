@@ -1,0 +1,499 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:project-orchestration-ledger-0-0528::evidence/claim_trace/brick/work_contract.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-pol0-plan-attempt-1",
+        "comparison_rule": "Observe planned ledger boundary and forbidden authorities only.",
+        "required_return_shape": "observed_evidence, not_proven, remaining_delta",
+        "source_facts": [
+          "project/brick-protocol/buildings/project-orchestration-ledger-0-0528/work/task.md"
+        ],
+        "work_statement": "Plan PROJECT-ORCHESTRATION-LEDGER-0 as a support-only ledger/export slice."
+      },
+      "fact_ref": "brick-work:01:project-orchestration-ledger-0-plan",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:brick:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe planned ledger boundary and forbidden authorities only.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Plan PROJECT-ORCHESTRATION-LEDGER-0 as a support-only ledger/export slice."
+      },
+      "fact_ref": "brick-comparison:01:project-orchestration-ledger-0-plan",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-pol0-design-attempt-1",
+        "comparison_rule": "Observe field contract only; do not judge dashboard quality.",
+        "required_return_shape": "observed_evidence, made_changes, not_proven",
+        "source_facts": [],
+        "work_statement": "Design the ledger/export packet fields and proof limits."
+      },
+      "fact_ref": "brick-work:02:project-orchestration-ledger-0-design",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:brick:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe field contract only; do not judge dashboard quality.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Design the ledger/export packet fields and proof limits."
+      },
+      "fact_ref": "brick-comparison:02:project-orchestration-ledger-0-design",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-pol0-development-attempt-1",
+        "comparison_rule": "CTO returns assignment evidence only and does not write implementation files.",
+        "required_return_shape": "observed_evidence, worker_assignments, risks, not_proven",
+        "source_facts": [],
+        "work_statement": "Assign implementation boundaries for the ledger/export helper, profile, support record, and evidence output."
+      },
+      "fact_ref": "brick-work:03:project-orchestration-ledger-0-development",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:brick:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "CTO returns assignment evidence only and does not write implementation files.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Assign implementation boundaries for the ledger/export helper, profile, support record, and evidence output."
+      },
+      "fact_ref": "brick-comparison:03:project-orchestration-ledger-0-development",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-pol0-work-attempt-1",
+        "comparison_rule": "Observe only whether the changed file is inside write_scope and the Building evidence records changed_files.",
+        "required_return_shape": "observed_evidence, made_changes, blocked_or_missing_evidence, not_proven",
+        "source_facts": [
+          "project/brick-protocol/status/kernel/brick-protocol-project-orchestration-ledger-0-support-record-0528.md",
+          "support/docs/spec/brick-protocol-project-orchestration-ledger-0-0528.md",
+          "agent/objects/dev.yaml",
+          "agent/tool_policies/read-write-scoped.yaml"
+        ],
+        "work_statement": "Add one short DEV-worker observation line to project/brick-protocol/status/kernel/brick-protocol-project-orchestration-ledger-0-support-record-0528.md stating that the Phase 1 Building work Brick was rerun through adapter:codex-write-local as a scoped DEV worker. Do not edit any other file. Do not run git commit or git push. Return non-judgmental support evidence only."
+      },
+      "fact_ref": "brick-work:04:project-orchestration-ledger-0-work",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:brick:04"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe only whether the changed file is inside write_scope and the Building evidence records changed_files.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Add one short DEV-worker observation line to project/brick-protocol/status/kernel/brick-protocol-project-orchestration-ledger-0-support-record-0528.md stating that the Phase 1 Building work Brick was rerun through adapter:codex-write-local as a scoped DEV worker. Do not edit any other file. Do not run git commit or git push. Return non-judgmental support evidence only."
+      },
+      "fact_ref": "brick-comparison:04:project-orchestration-ledger-0-work",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:brick:04",
+        "raw:agent:04"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-pol0-review-attempt-1",
+        "comparison_rule": "Observe review concerns only; QA does not choose Movement or target.",
+        "required_return_shape": "observed_evidence, blocked_or_missing_evidence, transition_concern_evidence, not_proven",
+        "source_facts": [],
+        "work_statement": "Review that the ledger/export stays support-only and does not choose Movement or become dashboard runtime."
+      },
+      "fact_ref": "brick-work:05:project-orchestration-ledger-0-review",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:brick:05"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe review concerns only; QA does not choose Movement or target.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Review that the ledger/export stays support-only and does not choose Movement or become dashboard runtime."
+      },
+      "fact_ref": "brick-comparison:05:project-orchestration-ledger-0-review",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:brick:05",
+        "raw:agent:05"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-pol0-closure",
+        "comparison_rule": "Closure records observed evidence, not_proven, remaining_delta, and next Movement candidate only.",
+        "required_return_shape": "observed_evidence, narrowly_proven, not_proven, remaining_delta, review_needed",
+        "source_facts": [],
+        "work_statement": "Close PROJECT-ORCHESTRATION-LEDGER-0 and prepare Smith review before Phase 2."
+      },
+      "fact_ref": "brick-work:06:project-orchestration-ledger-0-closure",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:brick:06"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Closure records observed evidence, not_proven, remaining_delta, and next Movement candidate only.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Close PROJECT-ORCHESTRATION-LEDGER-0 and prepare Smith review before Phase 2."
+      },
+      "fact_ref": "brick-comparison:06:project-orchestration-ledger-0-closure",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:brick:06",
+        "raw:agent:06"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-28T06:59:24Z",
+  "id": "urn:bp:building:project-orchestration-ledger-0-0528::evidence/claim_trace/brick/work_contract.json",
+  "recorded_at": "2026-05-28T06:59:24Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:project-orchestration-ledger-0-0528",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/brick/work_contract.json",
+  "time": "2026-05-28T06:59:24Z",
+  "type": "bp.claim_trace"
+}

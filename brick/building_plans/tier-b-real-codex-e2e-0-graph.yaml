@@ -1,0 +1,145 @@
+plan_ref: building-plan:tier-b-real-codex-e2e-0
+owner_axis: Brick
+building_id: tier-b-real-codex-e2e-0
+plan_shape: graph
+selected_adapter_ref: adapter:codex-local
+selected_model_ref: model:codex:default
+proof_limits:
+  - support evidence only
+  - HALF-2 Tier B real-provider end-to-end dogfood through the DECOMPOSED engine (P3c dynamic_walker facade + P3d building_operation facade)
+  - forward-only declared graph; default gate adopts each crossing; support authors no route or Movement
+  - real codex local CLI is spawned as a subprocess for every step
+  - not provider reliability proof
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - repeated provider adherence to the JSON return shape
+  - semantic correctness of returned observations
+  - other provider behavior
+  - runtime retry or scheduler behavior
+  - provider reliability in longer multi-step Buildings
+reproduction:
+  intent: >-
+    Auditable re-run of the HALF-2 Tier B real-provider end-to-end dogfood. The
+    runnable steps live INLINE here because brick/building_plans only admits
+    .yaml/.yml/.json files (see
+    support/checkers/check_package_path_admission.py is_brick_building_plan_path)
+    -- a standalone .py harness has no admitted repo location, so embedding the
+    command keeps the run committable + reproducible without breaking the green
+    package-path-admission checker.
+  default_command_runner: >-
+    No command_runner is injected. With command_runner=None the adapter's
+    _run_or_delegate falls through to _run_command (subprocess.run), so the REAL
+    codex CLI binary is spawned as a subprocess for all 3 forward steps
+    (design, work, close).
+  output_root_note: >-
+    output_root is left at DEFAULT_BUILDINGS_ROOT
+    (project/brick-protocol/buildings) so the Building persists in the repo,
+    committable + auditable -- NOT a /tmp dir.
+  adapter_cli: codex
+  walker_mode: dynamic
+  run_command: >-
+    PYTHONPATH=support/import_identity python3 -c "import json;
+    from pathlib import Path;
+    import yaml;
+    from brick_protocol.support.operator.run import run_building_plan;
+    plan = yaml.safe_load(Path('brick/building_plans/tier-b-real-codex-e2e-0-graph.yaml').read_text());
+    plan.pop('reproduction', None);
+    result = run_building_plan(plan, walker_mode='dynamic', overwrite_existing=True);
+    print(result.lifecycle_write.root)"
+  verify_command: >-
+    PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all
+execution_order:
+  - tbrce0-design
+  - tbrce0-work
+  - tbrce0-close
+brick_steps:
+  - step_ref: tbrce0-design
+    completion_edge_ref: edge:tbrce0-design-to-work
+    rows:
+      - axis: Brick
+        row_ref: brick-row:tbrce0-design
+        brick_work_ref: work:tbrce0-design
+        brick_instance_ref: brick-tbrce0-design
+        work_statement: >-
+          Name one design intent for a tiny build task in one short phrase.
+          Return ONE JSON object with exactly two top-level fields:
+          observed_evidence (a list of one short string naming the design intent
+          you stated) and not_proven (a list of one short string). Do not return
+          any other fields. Do not choose Movement. Do not report success,
+          failure, approval, or quality.
+        comparison_rule: Observe whether the live codex local adapter returns observed_evidence for the design intent; support does not judge quality.
+        required_return_shape: observed_evidence, not_proven
+      - axis: Agent
+        row_ref: agent-row:tbrce0-design
+        agent_object_ref: agent-object:coo
+  - step_ref: tbrce0-work
+    completion_edge_ref: edge:tbrce0-work-to-close
+    rows:
+      - axis: Brick
+        row_ref: brick-row:tbrce0-work
+        brick_work_ref: work:tbrce0-work
+        brick_instance_ref: brick-tbrce0-work
+        work_statement: >-
+          Produce a one-line build note for the tiny build task. Return ONE JSON
+          object with exactly two top-level fields: observed_evidence (a list of
+          one short string naming the build note you produced) and not_proven (a
+          list of one short string). Do not return any other fields. Do not
+          choose Movement. Do not report success, failure, approval, or quality.
+        comparison_rule: Observe whether the live codex local adapter returns observed_evidence for the build note; support does not judge quality.
+        required_return_shape: observed_evidence, not_proven
+      - axis: Agent
+        row_ref: agent-row:tbrce0-work
+        agent_object_ref: agent-object:dev
+  - step_ref: tbrce0-close
+    completion_edge_ref: edge:tbrce0-close-to-boundary
+    rows:
+      - axis: Brick
+        row_ref: brick-row:tbrce0-close
+        brick_work_ref: work:tbrce0-close
+        brick_instance_ref: brick-tbrce0-close
+        work_statement: >-
+          Close the building. Return ONE JSON object with exactly two top-level
+          fields: observed_evidence (a list of one short string) and not_proven
+          (a list of one short string). Do not return any other fields. Do not
+          choose Movement. Do not report success, failure, approval, or quality.
+        comparison_rule: Closure records support evidence only and does not judge provider quality.
+        required_return_shape: observed_evidence, not_proven
+      - axis: Agent
+        row_ref: agent-row:tbrce0-close
+        agent_object_ref: agent-object:coo
+link_edges:
+  - edge_ref: edge:tbrce0-design-to-work
+    source_step_ref: tbrce0-design
+    target_step_ref: tbrce0-work
+    rows:
+      - axis: Link
+        row_ref: link-row:tbrce0-design-to-work
+        movement: forward
+        target_ref: brick-tbrce0-work
+        declared_gate_refs:
+          - link-gate:default-transition
+  - edge_ref: edge:tbrce0-work-to-close
+    source_step_ref: tbrce0-work
+    target_step_ref: tbrce0-close
+    rows:
+      - axis: Link
+        row_ref: link-row:tbrce0-work-to-close
+        movement: forward
+        target_ref: brick-tbrce0-close
+        declared_gate_refs:
+          - link-gate:default-transition
+  - edge_ref: edge:tbrce0-close-to-boundary
+    source_step_ref: tbrce0-close
+    rows:
+      - axis: Link
+        row_ref: link-row:tbrce0-close-to-boundary
+        movement: forward
+        target_ref: building-boundary:tier-b-real-codex-e2e-0-closed
+        declared_gate_refs:
+          - link-gate:default-transition
+        building_lifecycle:
+          state: closed
+          reason: TIER-B-REAL-CODEX-E2E-0 walked a real-codex design step, a real-codex work step, and a real-codex close step forward through the decomposed dynamic engine under a default gate, and the walk closed.

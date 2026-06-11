@@ -1,0 +1,130 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:current-context-prune-0-0527::evidence/claim_trace/link/carry_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "absent_fact_type": "CarryFact",
+        "caller_supplied": false,
+        "statement": "caller did not supply a Link CarryFact; support/operator/run.py did not create one",
+        "support_created_bal_fact": false,
+        "trace_role": "absence_placeholder"
+      },
+      "fact_ref": "absence:link-carry:01:current-context-prune-0-01-design",
+      "not_proven": [
+        "semantic completeness of all historical context",
+        "future operator understanding",
+        "future task source semantic correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "current context is operator view only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "absent_fact_type": "CarryFact",
+        "caller_supplied": false,
+        "statement": "caller did not supply a Link CarryFact; support/operator/run.py did not create one",
+        "support_created_bal_fact": false,
+        "trace_role": "absence_placeholder"
+      },
+      "fact_ref": "absence:link-carry:02:current-context-prune-0-02-qa",
+      "not_proven": [
+        "semantic completeness of all historical context",
+        "future operator understanding",
+        "future task source semantic correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "current context is operator view only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:link:02"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "absent_fact_type": "CarryFact",
+        "caller_supplied": false,
+        "statement": "caller did not supply a Link CarryFact; support/operator/run.py did not create one",
+        "support_created_bal_fact": false,
+        "trace_role": "absence_placeholder"
+      },
+      "fact_ref": "absence:link-carry:03:current-context-prune-0-03-closure",
+      "not_proven": [
+        "semantic completeness of all historical context",
+        "future operator understanding",
+        "future task source semantic correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "current context is operator view only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:link:03"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-26T22:44:17Z",
+  "id": "urn:bp:building:current-context-prune-0-0527::evidence/claim_trace/link/carry_trace.json",
+  "recorded_at": "2026-05-26T22:44:17Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:current-context-prune-0-0527",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/carry_trace.json",
+  "time": "2026-05-26T22:44:17Z",
+  "type": "bp.claim_trace"
+}

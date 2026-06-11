@@ -1,0 +1,63 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:project-orchestration-ledger-0-0528::work/building-work.json",
+  "building_id": "project-orchestration-ledger-0-0528",
+  "comparison_rule": "Observe planned ledger boundary and forbidden authorities only.",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-05-28T06:59:24Z",
+  "id": "urn:bp:building:project-orchestration-ledger-0-0528::work/building-work.json",
+  "not_proven": [
+    "dashboard UI readiness",
+    "multi-participant import",
+    "shared project collaboration",
+    "process liveness",
+    "semantic correctness of any Building",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "semantic correctness of file edits"
+  ],
+  "plan_ref": "building-plan:project-orchestration-ledger-0",
+  "proof_limits": [
+    "support evidence only",
+    "project orchestration ledger/export Phase 1 only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "not dashboard runtime"
+  ],
+  "recorded_at": "2026-05-28T06:59:24Z",
+  "required_return_shape": "observed_evidence, not_proven, remaining_delta",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:project-orchestration-ledger-0-0528",
+  "source_facts": [
+    "project/brick-protocol/buildings/project-orchestration-ledger-0-0528/work/task.md"
+  ],
+  "specversion": "1.0",
+  "step_refs": [
+    "project-orchestration-ledger-0-plan",
+    "project-orchestration-ledger-0-design",
+    "project-orchestration-ledger-0-development",
+    "project-orchestration-ledger-0-work",
+    "project-orchestration-ledger-0-review",
+    "project-orchestration-ledger-0-closure"
+  ],
+  "subject": "work/building-work.json",
+  "task_source_ref": "project/brick-protocol/buildings/project-orchestration-ledger-0-0528/work/task.md",
+  "time": "2026-05-28T06:59:24Z",
+  "type": "bp.building_work",
+  "work_statement": "Plan PROJECT-ORCHESTRATION-LEDGER-0 as a support-only ledger/export slice."
+}

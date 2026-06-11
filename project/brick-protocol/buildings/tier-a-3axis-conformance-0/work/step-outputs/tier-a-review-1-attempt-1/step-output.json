@@ -1,0 +1,81 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:tier-a-3axis-conformance-0::work/step-outputs/tier-a-review-1-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-tier-a-review-1",
+  "building_id": "tier-a-3axis-conformance-0",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "project/brick-protocol/buildings/tier-a-3axis-conformance-0/work/task.md"
+  },
+  "generatedAtTime": "2026-05-31T23:19:35Z",
+  "id": "urn:bp:building:tier-a-3axis-conformance-0::work/step-outputs/tier-a-review-1-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic correctness of the agent-proposed reroute",
+    "real provider behavior",
+    "scheduler / queue / retry behavior",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:tier-a-review-1",
+  "recorded_at": "2026-05-31T23:19:35Z",
+  "returned": {
+    "not_proven": [
+      "semantic correctness of the review observation"
+    ],
+    "observed_evidence": [
+      "tier-a review observed the prior build node is missing a required output"
+    ],
+    "transition_concern_evidence": {
+      "binding": false,
+      "concern_kind": "implementation_gap",
+      "concern_ref": "transition-concern:tier-a-review-1",
+      "reason_refs": [
+        "prior build node is missing a required output and needs rework"
+      ],
+      "related_boundary_refs": [
+        "brick-tier-a-work"
+      ]
+    }
+  },
+  "returned_fact_ref": "agent-fact:02:tier-a-review-1",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:tier-a-3axis-conformance-0",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:tier-a-review-1:attempt-1",
+  "step_ref": "tier-a-review-1",
+  "subject": "tier-a-review-1",
+  "task_source_ref": "project/brick-protocol/buildings/tier-a-3axis-conformance-0/work/task.md",
+  "time": "2026-05-31T23:19:35Z",
+  "transition_concern_ref": "work/step-outputs/tier-a-review-1-attempt-1/transition-concern.json",
+  "type": "bp.step_output"
+}

@@ -1,0 +1,551 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:coo-operating-chain-0-0527::work/building-map.json",
+  "agent_bindings": [
+    {
+      "agent_binding_id": "binding:01:coo-operating-chain-0-01-design",
+      "agent_performer_ref": "agent-performer:agent-object:coo",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-coo-operating-chain-0-design",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:01:coo-operating-chain-0-01-design"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ],
+      "step_output_ref": "work/step-outputs/coo-operating-chain-0-01-design-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:02:coo-operating-chain-0-02-development",
+      "agent_performer_ref": "agent-performer:agent-object:dev",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-coo-operating-chain-0-development",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:02:coo-operating-chain-0-02-development"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ],
+      "step_output_ref": "work/step-outputs/coo-operating-chain-0-02-development-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:03:coo-operating-chain-0-03-qa",
+      "agent_performer_ref": "agent-performer:agent-object:qa",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-coo-operating-chain-0-qa",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:03:coo-operating-chain-0-03-qa"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ],
+      "step_output_ref": "work/step-outputs/coo-operating-chain-0-03-qa-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:04:coo-operating-chain-0-04-dogfood",
+      "agent_performer_ref": "agent-performer:agent-object:coo",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-coo-operating-chain-0-dogfood",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:04:coo-operating-chain-0-04-dogfood"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:agent:04"
+      ],
+      "step_output_ref": "work/step-outputs/coo-operating-chain-0-04-dogfood-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:05:coo-operating-chain-0-05-closure",
+      "agent_performer_ref": "agent-performer:agent-object:coo",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-coo-operating-chain-0-closure",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:05:coo-operating-chain-0-05-closure"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:agent:05"
+      ],
+      "step_output_ref": "work/step-outputs/coo-operating-chain-0-05-closure-attempt-1/step-output.json"
+    }
+  ],
+  "brick_instances": [
+    {
+      "agent_binding_refs": [
+        "binding:01:coo-operating-chain-0-01-design"
+      ],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-coo-operating-chain-0-design",
+      "brick_work_ref": "work:coo-operating-chain-0-design",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01",
+        "raw:link:01"
+      ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-coo-operating-chain-0-development",
+      "brick_work_ref": "brick-coo-operating-chain-0-development",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01",
+        "raw:link:01"
+      ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 2,
+      "brick_instance_id": "brick-coo-operating-chain-0-qa",
+      "brick_work_ref": "brick-coo-operating-chain-0-qa",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02",
+        "raw:link:02"
+      ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 3,
+      "brick_instance_id": "brick-coo-operating-chain-0-dogfood",
+      "brick_work_ref": "brick-coo-operating-chain-0-dogfood",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03",
+        "raw:link:03"
+      ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 4,
+      "brick_instance_id": "brick-coo-operating-chain-0-closure",
+      "brick_work_ref": "brick-coo-operating-chain-0-closure",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:04",
+        "raw:agent:04",
+        "raw:link:04"
+      ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 5,
+      "brick_instance_id": "brick-coo-operating-chain-0-closed",
+      "brick_work_ref": "brick-coo-operating-chain-0-closed",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:05",
+        "raw:agent:05",
+        "raw:link:05"
+      ]
+    }
+  ],
+  "building_id": "coo-operating-chain-0-0527",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-05-26T22:16:32Z",
+  "groups": [],
+  "id": "urn:bp:building:coo-operating-chain-0-0527::work/building-map.json",
+  "kind": "building_graph_map",
+  "link_edges": [
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:01:coo-operating-chain-0-01-design",
+        "brick-comparison:01:coo-operating-chain-0-01-design",
+        "movement-fact:01:coo-operating-chain-0-01-design"
+      ],
+      "link_edge_id": "edge:01:coo-operating-chain-0-01-design",
+      "movement_fact_ref": "movement-fact:01:coo-operating-chain-0-01-design",
+      "public_fact_refs": [
+        "agent-fact:01:coo-operating-chain-0-01-design",
+        "brick-comparison:01:coo-operating-chain-0-01-design",
+        "movement-fact:01:coo-operating-chain-0-01-design"
+      ],
+      "source_brick_instance_ref": "brick-coo-operating-chain-0-design",
+      "step_output_ref": "work/step-outputs/coo-operating-chain-0-01-design-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-coo-operating-chain-0-development",
+      "transition_fact_ref": "transition-fact:01:coo-operating-chain-0-01-design"
+    },
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:02:coo-operating-chain-0-02-development",
+        "brick-comparison:02:coo-operating-chain-0-02-development",
+        "movement-fact:02:coo-operating-chain-0-02-development"
+      ],
+      "link_edge_id": "edge:02:coo-operating-chain-0-02-development",
+      "movement_fact_ref": "movement-fact:02:coo-operating-chain-0-02-development",
+      "public_fact_refs": [
+        "agent-fact:02:coo-operating-chain-0-02-development",
+        "brick-comparison:02:coo-operating-chain-0-02-development",
+        "movement-fact:02:coo-operating-chain-0-02-development"
+      ],
+      "source_brick_instance_ref": "brick-coo-operating-chain-0-development",
+      "step_output_ref": "work/step-outputs/coo-operating-chain-0-02-development-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-coo-operating-chain-0-qa",
+      "transition_fact_ref": "transition-fact:02:coo-operating-chain-0-02-development"
+    },
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:03:coo-operating-chain-0-03-qa",
+        "brick-comparison:03:coo-operating-chain-0-03-qa",
+        "movement-fact:03:coo-operating-chain-0-03-qa"
+      ],
+      "link_edge_id": "edge:03:coo-operating-chain-0-03-qa",
+      "movement_fact_ref": "movement-fact:03:coo-operating-chain-0-03-qa",
+      "public_fact_refs": [
+        "agent-fact:03:coo-operating-chain-0-03-qa",
+        "brick-comparison:03:coo-operating-chain-0-03-qa",
+        "movement-fact:03:coo-operating-chain-0-03-qa"
+      ],
+      "source_brick_instance_ref": "brick-coo-operating-chain-0-qa",
+      "step_output_ref": "work/step-outputs/coo-operating-chain-0-03-qa-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-coo-operating-chain-0-dogfood",
+      "transition_fact_ref": "transition-fact:03:coo-operating-chain-0-03-qa"
+    },
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:04:coo-operating-chain-0-04-dogfood",
+        "brick-comparison:04:coo-operating-chain-0-04-dogfood",
+        "movement-fact:04:coo-operating-chain-0-04-dogfood"
+      ],
+      "link_edge_id": "edge:04:coo-operating-chain-0-04-dogfood",
+      "movement_fact_ref": "movement-fact:04:coo-operating-chain-0-04-dogfood",
+      "public_fact_refs": [
+        "agent-fact:04:coo-operating-chain-0-04-dogfood",
+        "brick-comparison:04:coo-operating-chain-0-04-dogfood",
+        "movement-fact:04:coo-operating-chain-0-04-dogfood"
+      ],
+      "source_brick_instance_ref": "brick-coo-operating-chain-0-dogfood",
+      "step_output_ref": "work/step-outputs/coo-operating-chain-0-04-dogfood-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-coo-operating-chain-0-closure",
+      "transition_fact_ref": "transition-fact:04:coo-operating-chain-0-04-dogfood"
+    },
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:05:coo-operating-chain-0-05-closure",
+        "brick-comparison:05:coo-operating-chain-0-05-closure",
+        "movement-fact:05:coo-operating-chain-0-05-closure"
+      ],
+      "link_edge_id": "edge:05:coo-operating-chain-0-05-closure",
+      "movement_fact_ref": "movement-fact:05:coo-operating-chain-0-05-closure",
+      "public_fact_refs": [
+        "agent-fact:05:coo-operating-chain-0-05-closure",
+        "brick-comparison:05:coo-operating-chain-0-05-closure",
+        "movement-fact:05:coo-operating-chain-0-05-closure"
+      ],
+      "source_brick_instance_ref": "brick-coo-operating-chain-0-closure",
+      "step_output_ref": "work/step-outputs/coo-operating-chain-0-05-closure-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-coo-operating-chain-0-closed",
+      "transition_fact_ref": "transition-fact:05:coo-operating-chain-0-05-closure"
+    }
+  ],
+  "not_proven": [
+    "semantic correctness of future task sources",
+    "semantic fitness of future selected shapes",
+    "future Building Plan correctness",
+    "future Agent or provider quality",
+    "future reviewer Movement decision correctness",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "profile": "planning-v0",
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement owner"
+  ],
+  "raw_refs": [
+    "raw:brick:01",
+    "raw:agent:01",
+    "raw:link:01",
+    "raw:brick:02",
+    "raw:agent:02",
+    "raw:link:02",
+    "raw:brick:03",
+    "raw:agent:03",
+    "raw:link:03",
+    "raw:brick:04",
+    "raw:agent:04",
+    "raw:link:04",
+    "raw:brick:05",
+    "raw:agent:05",
+    "raw:link:05"
+  ],
+  "recorded_at": "2026-05-26T22:16:32Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:coo-operating-chain-0-0527",
+  "specversion": "1.0",
+  "subject": "work/building-map.json",
+  "time": "2026-05-26T22:16:32Z",
+  "type": "bp.building_graph_map"
+}

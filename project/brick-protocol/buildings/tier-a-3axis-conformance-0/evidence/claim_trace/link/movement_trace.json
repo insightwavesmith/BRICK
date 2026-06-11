@@ -1,0 +1,336 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:tier-a-3axis-conformance-0::evidence/claim_trace/link/movement_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:01:tier-a-work",
+          "brick-comparison:01:tier-a-work",
+          "sufficiency-fact-movement:01:tier-a-work"
+        ],
+        "target_boundary_ref": "brick:brick-tier-a-review-1"
+      },
+      "fact_ref": "movement-fact:01:tier-a-work",
+      "not_proven": [
+        "semantic correctness of the agent-proposed reroute",
+        "real provider behavior",
+        "scheduler / queue / retry behavior",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:02:tier-a-review-1",
+          "brick-comparison:02:tier-a-review-1",
+          "sufficiency-fact-movement:02:tier-a-review-1"
+        ],
+        "target_boundary_ref": "brick:brick-tier-a-mid"
+      },
+      "fact_ref": "movement-fact:02:tier-a-review-1",
+      "not_proven": [
+        "semantic correctness of the agent-proposed reroute",
+        "real provider behavior",
+        "scheduler / queue / retry behavior",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:02"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:03:tier-a-work",
+          "brick-comparison:03:tier-a-work",
+          "sufficiency-fact-movement:03:tier-a-work"
+        ],
+        "target_boundary_ref": "brick:brick-tier-a-review-1"
+      },
+      "fact_ref": "movement-fact:03:tier-a-work",
+      "not_proven": [
+        "semantic correctness of the agent-proposed reroute",
+        "real provider behavior",
+        "scheduler / queue / retry behavior",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:03"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:04:tier-a-mid",
+          "brick-comparison:04:tier-a-mid",
+          "sufficiency-fact-movement:04:tier-a-mid"
+        ],
+        "target_boundary_ref": "brick:brick-tier-a-review-2"
+      },
+      "fact_ref": "movement-fact:04:tier-a-mid",
+      "not_proven": [
+        "semantic correctness of the agent-proposed reroute",
+        "real provider behavior",
+        "scheduler / queue / retry behavior",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:04"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:05:tier-a-review-2",
+          "brick-comparison:05:tier-a-review-2",
+          "sufficiency-fact-movement:05:tier-a-review-2",
+          "transition-concern:tier-a-review-2",
+          "observation:reroute-hold-reason-target_node_budget_exhausted"
+        ],
+        "target_boundary_ref": "brick:brick-tier-a-close",
+        "transition_author_ref": "coo:tier-a-operator",
+        "transition_authoring_basis_refs": [
+          "transition-concern:tier-a-review-2",
+          "observation:reroute-hold-reason-target_node_budget_exhausted"
+        ],
+        "transition_authoring_ref": "link-authoring:resume-disposition:tier-a-3axis-conformance-0:tier-a-review-2",
+        "transition_lifecycle_budget_increment": 1,
+        "transition_lifecycle_carry_budget_evidence_ref": "evidence/claim_trace/link/carry_trace.json#carry-budget:tier-a-3axis-conformance-0:node:brick-tier-a-work",
+        "transition_lifecycle_disposition_action": "raise",
+        "transition_lifecycle_from_brick_ref": "brick-tier-a-review-2",
+        "transition_lifecycle_not_proven": [
+          "adapter:local resume probes only unless caller uses another adapter",
+          "parallel runtime execution",
+          "full process-integrity across resumed provider processes",
+          "semantic correctness of the human/COO disposition"
+        ],
+        "transition_lifecycle_paused_at_ref": "link-transition:reroute-hold-tier-a-3axis-conformance-0-02-brick-tier-a-work",
+        "transition_lifecycle_pending_target_ref": "brick-tier-a-work",
+        "transition_lifecycle_progress_state": "in_progress",
+        "transition_lifecycle_proof_limits": [
+          "support evidence only",
+          "dynamic walker walks declared gate-adopted agent-proposed routes only",
+          "support authors no route or Movement",
+          "not source truth",
+          "not success judgment",
+          "not quality judgment",
+          "not Movement authority"
+        ],
+        "transition_lifecycle_reason_refs": [
+          "transition-concern:tier-a-review-2",
+          "observation:reroute-hold-reason-target_node_budget_exhausted"
+        ],
+        "transition_lifecycle_required_disposition_owner": "caller-or-coo",
+        "transition_lifecycle_resumed_from_ref": "link-transition:reroute-hold-tier-a-3axis-conformance-0-02-brick-tier-a-work",
+        "transition_lifecycle_state": "resumed"
+      },
+      "fact_ref": "movement-fact:05:tier-a-review-2",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:05"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:06:tier-a-work",
+          "brick-comparison:06:tier-a-work",
+          "sufficiency-fact-movement:06:tier-a-work"
+        ],
+        "target_boundary_ref": "brick:brick-tier-a-review-1"
+      },
+      "fact_ref": "movement-fact:06:tier-a-work",
+      "not_proven": [
+        "semantic correctness of the agent-proposed reroute",
+        "real provider behavior",
+        "scheduler / queue / retry behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:06"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "building_lifecycle_reason": "TIER-A-3AXIS-CONFORMANCE-0 walked work, a review that proposed a non-binding reroute to brick-tier-a-work (adopted under the default gate within the per-node budget of 1), a mid node, a second review that proposed the same reroute past the exhausted budget (HOLD), and after a caller/COO raise disposition resumed and closed.",
+        "building_lifecycle_state": "closed",
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:07:tier-a-close",
+          "brick-comparison:07:tier-a-close"
+        ],
+        "target_boundary_ref": "brick:building-boundary:tier-a-3axis-conformance-0-closed"
+      },
+      "fact_ref": "movement-fact:07:tier-a-close",
+      "not_proven": [
+        "semantic correctness of the agent-proposed reroute",
+        "real provider behavior",
+        "scheduler / queue / retry behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:07"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-31T23:19:35Z",
+  "id": "urn:bp:building:tier-a-3axis-conformance-0::evidence/claim_trace/link/movement_trace.json",
+  "recorded_at": "2026-05-31T23:19:35Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:tier-a-3axis-conformance-0",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/movement_trace.json",
+  "time": "2026-05-31T23:19:35Z",
+  "type": "bp.claim_trace"
+}

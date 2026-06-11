@@ -1,0 +1,52 @@
+template_ref: brick-template:human-ai-building-design-contract
+owner_axis: Brick
+template_kind: building_design_contract
+selection_rule: selected_shape_ref requires caller_or_coo_declaration
+fields:
+  - task_source_ref
+  - candidate_shapes
+  - selected_shape_ref
+  - declared_by
+  - active_plan_ref
+  - rejected_candidates
+  - required_questions
+  - human_gates
+  - write_scope
+  - proof_limits
+  - not_proven
+candidate_shape:
+  shape_ref: building-shape:<id>
+  proposed_by: agent-object:<id>
+  reason_refs:
+    - task_source:<id>
+  binding: false
+selected_shape:
+  shape_ref: building-shape:<id>
+  declared_by: caller-or-coo
+  declaration_ref: support-evidence:<id>
+  active_plan_ref: building-plan:<id>
+human_gates:
+  - gate_ref: human-gate:<id>
+    impact_tier: low
+    required_when:
+      - constitutional wording changes
+proof_limits:
+  - Brick-owned design contract only
+  - candidate generation is support evidence only
+  - selected shape requires caller / COO declaration
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic fitness of candidate shapes
+  - future Building Plan correctness
+  - automatic plan authoring
+  - MCP toolkit behavior
+forbidden:
+  - automatic shape selection
+  - runner-authored shape
+  - adapter-authored shape
+  - MCP-authored shape
+  - hidden Movement chooser
+  - credential or session body

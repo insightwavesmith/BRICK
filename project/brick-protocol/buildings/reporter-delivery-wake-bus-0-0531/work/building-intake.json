@@ -1,0 +1,46 @@
+{
+  "building_id": "reporter-delivery-wake-bus-0-0531",
+  "composition_mode": "caller_or_coo_declared_graph_composition",
+  "declaration_evidence_refs": [
+    "work/task.md",
+    "work/building-intake.json",
+    "work/preset-expansion.json",
+    "work/declared-building-plan.json",
+    "work/link-launch-policy.json"
+  ],
+  "declared_by": "coo reporter-delivery-wake-bus-0-0531",
+  "kind": "building_intake_provenance",
+  "not_proven": [
+    "real provider thread wake behavior",
+    "real Slack delivery",
+    "external notification behavior",
+    "delivery reliability",
+    "semantic usefulness for every future Building type",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "plan_ref": "building-plan:reporter-delivery-wake-bus-0-0531",
+  "plan_shape": "graph",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support evidence only",
+    "local adapter dogfood only",
+    "not route input"
+  ],
+  "selected_adapter_ref": "adapter:local",
+  "selected_model_ref": "model:default",
+  "selected_preset_ref": "building-chain-preset:engine-feature-hard",
+  "selected_shape_ref": "building-shape:design-needed",
+  "task_source_ref": "project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/task.md"
+}

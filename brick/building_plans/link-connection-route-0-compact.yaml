@@ -1,0 +1,107 @@
+plan_ref: building-plan:link-connection-route-0-compact
+owner_axis: Brick
+building_id: link-connection-route-0-0526
+plan_shape: linear
+selected_adapter_ref: adapter:local
+parent_goal_ref: goal:bar-v2-active-sequence
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of future route decisions
+  - route policy matching behavior
+  - route materialization behavior
+  - automatic repair/replay behavior
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority
+remaining_delta:
+  - DEVELOPMENT-WORKTREE-CONVENTION-0
+  - WRITE-SCOPE-DEFAULT-EXCLUDE-0
+  - STEP-OUTPUT-AND-ROUTE-REQUEST-0
+  - TASK-SHAPE-AND-DESIGN-CONTRACT-0
+  - DESIGN-TOOLKIT-AND-MCP-0
+  - TASK-INTAKE-SKILL-0
+  - LINK-ROUTE-POLICY-RESOURCE-0
+  - CHECKER-STRICT-VALIDATION-0
+  - ROUTE-MATCH-AND-MATERIALIZATION-0
+  - AUTO-REPAIR-REPLAY-0
+  - AUTO-CHILD-BUILDING-GENERATION-0
+  - CASCADE-SWEEP-0
+  - BAR-V2-END-TO-END-DOGFOOD-0
+next_target_candidates:
+  - DEVELOPMENT-WORKTREE-CONVENTION-0
+steps:
+  - step_ref: link-connection-route-0-01-design
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-connection-route-0-design
+        brick_work_ref: work:link-connection-route-0-design
+        brick_instance_ref: brick-link-connection-route-0-design
+        work_statement: Define Link connection language as default forward and exception reroute while preserving forward/reroute only.
+        comparison_rule: Observe whether Link wording keeps route requests advisory and keeps support/operator/run.py from choosing Movement or target.
+        required_return_shape: link_rule, changed_link_projections, mini_sweep_boundary, forbidden_scope, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+          - support/docs/spec/brick-protocol-link-connection-route-0-default-forward-exception-route-0526.md
+          - link/movement.yaml
+          - link/transition.yaml
+      - axis: Agent
+        row_ref: agent-row:link-connection-route-0-design
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:link-connection-route-0-design-to-profile
+        movement: forward
+        target_ref: brick-link-connection-route-0-profile
+        next_brick_instance_ref: brick-link-connection-route-0-profile
+  - step_ref: link-connection-route-0-02-profile
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-connection-route-0-profile
+        brick_work_ref: work:link-connection-route-0-profile
+        brick_instance_ref: brick-link-connection-route-0-profile
+        work_statement: Observe the Phase 3 profile and Link YAML projections for forward/reroute-only connection-route language.
+        comparison_rule: Profile pass is support evidence only and must not be treated as Movement authority.
+        required_return_shape: profile_ref, observed_rules, link_projection_refs, proof_limits, not_proven
+        source_facts:
+          - support/checkers/profiles/link_connection_route.yaml
+          - support/checkers/check_profile.py
+          - link/movement.yaml
+          - link/transition.yaml
+      - axis: Agent
+        row_ref: agent-row:link-connection-route-0-profile
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:link-connection-route-0-profile-to-closure
+        movement: forward
+        target_ref: brick-link-connection-route-0-closure
+        next_brick_instance_ref: brick-link-connection-route-0-closure
+  - step_ref: link-connection-route-0-03-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-connection-route-0-closure
+        brick_work_ref: work:link-connection-route-0-closure
+        brick_instance_ref: brick-link-connection-route-0-closure
+        work_statement: Close Phase 3 with Link connection-route evidence, parent delta, deferred queue observation, and next Movement candidate.
+        comparison_rule: Closure records support evidence and parent delta only; it does not prove future route correctness.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, deferred_smith_review_queue, next_target_candidates, next_movement_candidate
+        source_facts:
+          - brick/building_plans/link-connection-route-0-compact.yaml
+          - support/docs/spec/brick-protocol-link-connection-route-0-default-forward-exception-route-0526.md
+          - brick/templates/closure/standard-closure-with-parent-delta.yaml
+      - axis: Agent
+        row_ref: agent-row:link-connection-route-0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:link-connection-route-0-closure-to-worktree-convention
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: Phase 3 closes Link connection-route wording, then routes forward to Phase 4.
+        target_ref: brick-development-worktree-convention-0-open
+        next_brick_instance_ref: brick-development-worktree-convention-0-open

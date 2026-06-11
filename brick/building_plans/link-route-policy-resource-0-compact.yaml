@@ -1,0 +1,99 @@
+plan_ref: building-plan:link-route-policy-resource-0-compact
+owner_axis: Brick
+building_id: link-route-policy-resource-0-0526
+plan_shape: linear
+selected_adapter_ref: adapter:local
+parent_goal_ref: goal:bar-v2-active-sequence
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - literal match behavior
+  - route template materialization behavior
+  - automatic repair/replay behavior
+  - automatic child Building generation
+  - semantic correctness of QA route requests
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority
+remaining_delta:
+  - CHECKER-STRICT-VALIDATION-0
+  - ROUTE-MATCH-AND-MATERIALIZATION-0
+  - AUTO-REPAIR-REPLAY-0
+  - AUTO-CHILD-BUILDING-GENERATION-0
+  - CASCADE-SWEEP-0
+  - BAR-V2-END-TO-END-DOGFOOD-0
+next_target_candidates:
+  - CHECKER-STRICT-VALIDATION-0
+steps:
+  - step_ref: link-route-policy-resource-0-01-contract
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-route-policy-resource-0-contract
+        brick_work_ref: work:link-route-policy-resource-0-contract
+        brick_instance_ref: brick-link-route-policy-resource-0-contract
+        work_statement: Define the Link-owned route policy contract data resource without promoting RoutePolicyFact.
+        comparison_rule: Observe whether policy entries are declared data only and matching/materialization remain deferred.
+        required_return_shape: route_policy_ref, allowed_request_scopes, deferred_boundaries, forbidden_scope, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+          - support/docs/spec/brick-protocol-link-route-policy-resource-0-0526.md
+          - link/route_policies/basic_qa_repair.yaml
+      - axis: Agent
+        row_ref: agent-row:link-route-policy-resource-0-contract
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:link-route-policy-resource-0-contract-to-profile
+        movement: forward
+        target_ref: brick-link-route-policy-resource-0-profile
+        next_brick_instance_ref: brick-link-route-policy-resource-0-profile
+  - step_ref: link-route-policy-resource-0-02-profile
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-route-policy-resource-0-profile
+        brick_work_ref: work:link-route-policy-resource-0-profile
+        brick_instance_ref: brick-link-route-policy-resource-0-profile
+        work_statement: Observe the Phase 10 profile and Link Movement literal boundary.
+        comparison_rule: Profile pass is support evidence only and must not prove matching behavior.
+        required_return_shape: profile_ref, route_policy_observation, proof_limits, not_proven
+        source_facts:
+          - support/checkers/profiles/link_route_policy_resource.yaml
+          - support/checkers/check_profile.py
+          - link/movement.yaml
+      - axis: Agent
+        row_ref: agent-row:link-route-policy-resource-0-profile
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:link-route-policy-resource-0-profile-to-closure
+        movement: forward
+        target_ref: brick-link-route-policy-resource-0-closure
+        next_brick_instance_ref: brick-link-route-policy-resource-0-closure
+  - step_ref: link-route-policy-resource-0-03-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-route-policy-resource-0-closure
+        brick_work_ref: work:link-route-policy-resource-0-closure
+        brick_instance_ref: brick-link-route-policy-resource-0-closure
+        work_statement: Close Phase 10 with route policy resource evidence, parent delta, and next Movement candidate.
+        comparison_rule: Closure records contract-resource evidence only; it does not prove route matching.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, deferred_smith_review_queue, next_target_candidates, next_movement_candidate
+        source_facts:
+          - brick/building_plans/link-route-policy-resource-0-compact.yaml
+          - support/docs/spec/brick-protocol-link-route-policy-resource-0-0526.md
+          - brick/templates/closure/standard-closure-with-parent-delta.yaml
+      - axis: Agent
+        row_ref: agent-row:link-route-policy-resource-0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:link-route-policy-resource-0-closure-to-strict-validation
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: Phase 10 closes Link route policy resource, then routes forward to Phase 11.
+        target_ref: brick-checker-strict-validation-0-open
+        next_brick_instance_ref: brick-checker-strict-validation-0-open

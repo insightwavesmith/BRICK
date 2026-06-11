@@ -1,0 +1,674 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:link-decision-disposition-0-dogfood-0527::evidence/claim_trace/brick/work_contract.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-ldd0-plan-attempt-1",
+        "comparison_rule": "Observe returned planning evidence only.",
+        "required_return_shape": "observed_evidence, proof_limits, not_proven",
+        "source_facts": [],
+        "work_statement": "Produce first planning evidence for transition concern dogfood."
+      },
+      "fact_ref": "brick-work:01:link-decision-disposition-0-plan",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe returned planning evidence only.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Produce first planning evidence for transition concern dogfood."
+      },
+      "fact_ref": "brick-comparison:01:link-decision-disposition-0-plan",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-ldd0-design-attempt-1",
+        "comparison_rule": "Observe transition concern evidence only; Agent does not choose Movement or target.",
+        "required_return_shape": "observed_evidence, transition_concern_evidence, proof_limits, not_proven",
+        "source_facts": [
+          "brick/templates/review/standard-transition-concern-return.yaml"
+        ],
+        "work_statement": "Return design transition_concern_evidence for an upstream gap."
+      },
+      "fact_ref": "brick-work:02:link-decision-disposition-0-design",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe transition concern evidence only; Agent does not choose Movement or target.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Return design transition_concern_evidence for an upstream gap."
+      },
+      "fact_ref": "brick-comparison:02:link-decision-disposition-0-design",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-ldd0-plan-attempt-2",
+        "comparison_rule": "Observe append-only planning replay evidence only.",
+        "required_return_shape": "observed_evidence, attempt_index, proof_limits, not_proven",
+        "source_facts": [],
+        "work_statement": "Replay the planning boundary as attempt 2 after adopted concern evidence."
+      },
+      "fact_ref": "brick-work:03:link-decision-disposition-0-plan",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe append-only planning replay evidence only.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Replay the planning boundary as attempt 2 after adopted concern evidence."
+      },
+      "fact_ref": "brick-comparison:03:link-decision-disposition-0-plan",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-ldd0-design-attempt-2",
+        "comparison_rule": "Observe replay evidence only.",
+        "required_return_shape": "observed_evidence, attempt_index, proof_limits, not_proven",
+        "source_facts": [],
+        "work_statement": "Replay the design boundary as attempt 2 after planning replay."
+      },
+      "fact_ref": "brick-work:04:link-decision-disposition-0-design",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:04"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe replay evidence only.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Replay the design boundary as attempt 2 after planning replay."
+      },
+      "fact_ref": "brick-comparison:04:link-decision-disposition-0-design",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:04",
+        "raw:agent:04"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-ldd0-qa-attempt-1",
+        "comparison_rule": "Observe concern evidence and a forward Link disposition.",
+        "required_return_shape": "observed_evidence, transition_concern_evidence, proof_limits, not_proven",
+        "source_facts": [
+          "brick/templates/review/standard-transition-concern-return.yaml"
+        ],
+        "work_statement": "Return QA transition concern evidence that the Link does not adopt."
+      },
+      "fact_ref": "brick-work:05:link-decision-disposition-0-qa",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:05"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe concern evidence and a forward Link disposition.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Return QA transition concern evidence that the Link does not adopt."
+      },
+      "fact_ref": "brick-comparison:05:link-decision-disposition-0-qa",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:05",
+        "raw:agent:05"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-ldd0-inspect-attempt-1",
+        "comparison_rule": "Observe that Link override can reroute without Agent choosing a target.",
+        "required_return_shape": "observed_evidence, proof_limits, not_proven",
+        "source_facts": [],
+        "work_statement": "Return inspection observations without Agent transition concern evidence."
+      },
+      "fact_ref": "brick-work:06:link-decision-disposition-0-inspect",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:06"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe that Link override can reroute without Agent choosing a target.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Return inspection observations without Agent transition concern evidence."
+      },
+      "fact_ref": "brick-comparison:06:link-decision-disposition-0-inspect",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:06",
+        "raw:agent:06"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-ldd0-design-attempt-3",
+        "comparison_rule": "Observe append-only design attempt 3 evidence only.",
+        "required_return_shape": "observed_evidence, attempt_index, proof_limits, not_proven",
+        "source_facts": [],
+        "work_statement": "Replay the design boundary as attempt 3 after human override evidence."
+      },
+      "fact_ref": "brick-work:07:link-decision-disposition-0-design",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:07"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe append-only design attempt 3 evidence only.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Replay the design boundary as attempt 3 after human override evidence."
+      },
+      "fact_ref": "brick-comparison:07:link-decision-disposition-0-design",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:07",
+        "raw:agent:07"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-ldd0-qa-attempt-2",
+        "comparison_rule": "Observe append-only QA attempt 2 evidence only.",
+        "required_return_shape": "observed_evidence, attempt_index, proof_limits, not_proven",
+        "source_facts": [],
+        "work_statement": "Replay QA boundary as attempt 2 after human override reroute."
+      },
+      "fact_ref": "brick-work:08:link-decision-disposition-0-qa",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:08"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe append-only QA attempt 2 evidence only.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Replay QA boundary as attempt 2 after human override reroute."
+      },
+      "fact_ref": "brick-comparison:08:link-decision-disposition-0-qa",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:08",
+        "raw:agent:08"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-ldd0-closure",
+        "comparison_rule": "Closure records observed evidence only.",
+        "required_return_shape": "observed_evidence, narrowly_proven, not_proven, remaining_delta",
+        "source_facts": [],
+        "work_statement": "Close LINK-DECISION-DISPOSITION-0 dogfood evidence."
+      },
+      "fact_ref": "brick-work:09:link-decision-disposition-0-closure",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:09"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Closure records observed evidence only.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Close LINK-DECISION-DISPOSITION-0 dogfood evidence."
+      },
+      "fact_ref": "brick-comparison:09:link-decision-disposition-0-closure",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:09",
+        "raw:agent:09"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-27T08:50:19Z",
+  "id": "urn:bp:building:link-decision-disposition-0-dogfood-0527::evidence/claim_trace/brick/work_contract.json",
+  "recorded_at": "2026-05-27T08:50:19Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:link-decision-disposition-0-dogfood-0527",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/brick/work_contract.json",
+  "time": "2026-05-27T08:50:19Z",
+  "type": "bp.claim_trace"
+}

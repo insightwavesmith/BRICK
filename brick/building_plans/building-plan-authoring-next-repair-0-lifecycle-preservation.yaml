@@ -1,0 +1,105 @@
+plan_ref: building-plan:building-plan-authoring-next-repair-0-lifecycle-preservation
+owner_axis: Brick
+building_id: building-plan-authoring-next-repair-0-0526
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of future authored plans
+  - full autonomous Building authoring
+  - provider quality
+  - runtime route selection
+steps:
+  - step_ref: building-plan-authoring-next-repair-0-01-design
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:bpanr0-design
+        brick_work_ref: work:bpanr0-design
+        brick_instance_ref: brick-bpanr0-design
+        work_statement: Define the repair for BUILDING-PLAN-AUTHORING-NEXT drift after AGENT-REAL-WORK-HARDENING-0.
+        comparison_rule: Observe that the repair preserves caller-declared lifecycle evidence without choosing Movement.
+        required_return_shape: observed_gap, repair_surface, proof_limits, not_proven
+        source_facts:
+          - support/checkers/check_building_plan_authoring1.py
+          - support/checkers/check_building_plan_authoring2.py
+          - support/operator/building_operation.py
+      - axis: Agent
+        row_ref: agent-row:bpanr0-design
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:bpanr0-design-to-development
+        movement: forward
+        target_ref: brick-bpanr0-development
+        next_brick_instance_ref: brick-bpanr0-development
+  - step_ref: building-plan-authoring-next-repair-0-02-development
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:bpanr0-development
+        brick_work_ref: work:bpanr0-development
+        brick_instance_ref: brick-bpanr0-development
+        work_statement: Repair declared Building Plan rendering so caller-declared building_lifecycle is preserved.
+        comparison_rule: Development must not add inference, route choice, target choice, or file writing helper behavior.
+        required_return_shape: changed_surfaces, preserved_fields, proof_limits, not_proven
+        source_facts:
+          - support/operator/building_operation.py
+          - support/checkers/check_building_plan_authoring1.py
+          - support/checkers/check_building_plan_authoring2.py
+      - axis: Agent
+        row_ref: agent-row:bpanr0-development
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:bpanr0-development-to-qa
+        movement: forward
+        target_ref: brick-bpanr0-qa
+        next_brick_instance_ref: brick-bpanr0-qa
+  - step_ref: building-plan-authoring-next-repair-0-03-qa
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:bpanr0-qa
+        brick_work_ref: work:bpanr0-qa
+        brick_instance_ref: brick-bpanr0-qa
+        work_statement: Verify Authoring-1 and Authoring-2 declared renderer checks pass after lifecycle preservation repair.
+        comparison_rule: Checker observations are support evidence only and must not become source truth or Movement authority.
+        required_return_shape: checker_observations, repair_needed, proof_limits, not_proven
+        source_facts:
+          - support/checkers/check_building_plan_authoring1.py
+          - support/checkers/check_building_plan_authoring2.py
+      - axis: Agent
+        row_ref: agent-row:bpanr0-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:bpanr0-qa-to-closure
+        movement: forward
+        target_ref: brick-bpanr0-closure
+        next_brick_instance_ref: brick-bpanr0-closure
+  - step_ref: building-plan-authoring-next-repair-0-04-closure
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:bpanr0-closure
+        brick_work_ref: work:bpanr0-closure
+        brick_instance_ref: brick-bpanr0-closure
+        work_statement: Close BUILDING-PLAN-AUTHORING-NEXT-REPAIR-0 with observed evidence and next Movement.
+        comparison_rule: Closure must not claim full autonomous authoring or semantic plan correctness.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, held, next_coo_decision_candidate
+        source_facts:
+          - brick/building_plans/building-plan-authoring-next-repair-0-lifecycle-preservation.yaml
+          - support/docs/spec/brick-protocol-building-plan-authoring-next-repair-0-lifecycle-preservation-0526.md
+      - axis: Agent
+        row_ref: agent-row:bpanr0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:bpanr0-closure-to-boundary
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: BUILDING-PLAN-AUTHORING-NEXT lifecycle preservation repair closed.
+        target_ref: building-boundary:building-plan-authoring-next-repair-0-closed
+        next_brick_instance_ref: building-boundary-building-plan-authoring-next-repair-0-closed

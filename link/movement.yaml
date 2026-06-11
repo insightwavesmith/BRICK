@@ -1,0 +1,60 @@
+kind: LinkMovementContractProjection
+bal_owner: Link
+module: Link.movement
+contract: Movement Contract
+projection_only: true
+
+public_fact:
+  name: MovementFact
+  owner: Link
+  fields:
+    - movement
+    - reason
+    - handoff_target_fact
+    - gatefact_reference
+    - transition_history_reference
+
+movement_literals:
+  - movement: forward
+  - movement: reroute
+
+GateFact:
+  criteria:
+    - sufficient
+    - insufficient
+    - missing_required_facts
+
+# VOCABULARY (0610): the verbs below are MovementFact RECORD verbs
+# (record / represent a field on this fact). They do NOT mean the Link Carry
+# STAGE -- that word belongs to CarryFact (link/carry.yaml).
+allowed:
+  - record one admitted English movement literal
+  - record movement reason when supplied
+  - reference GateFact sufficiency evidence when supplied
+  - record declared_gate_refs for caller/COO-declared compact preset gate evaluation
+  - record handoff target fact when supplied
+  - represent default forward connection between declared Brick boundaries
+  - represent exception route to another declared Brick boundary as reroute
+  - record route_replay_plan inside reroute when supplied by the Link row
+  - record route_decision_basis and transition_lifecycle as Link row evidence when supplied
+  - represent any backward, sideways, or repair move as reroute
+  - represent transition pause or resume through transition_lifecycle evidence, not Movement
+  - represent Building wait or close through Building lifecycle evidence, not Movement
+
+connection_route_rule:
+  default_connection: forward
+  exception_route: reroute
+  route_replay_position: route_replay_plan inside reroute
+  route_policy_phase: LINK-ROUTE-POLICY-RESOURCE-0
+  route_authoring_boundary: caller-declared Link row or later admitted policy/template only
+
+forbidden_ownership:
+  - Brick work definition
+  - Agent identity rewrite
+  - quality approval
+  - outcome verdict
+  - automatic route selection
+  - support-chosen route target
+  - runtime execution
+  - storage mutation
+  - Korean or noncanonical movement value

@@ -1,0 +1,266 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:building-automation-final-completion-audit-0-0526::evidence/claim_trace/agent/returned_claims.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:coo",
+        "received_work": "brick-work:01:building-automation-final-completion-audit-0-01-requirements",
+        "returned": {
+          "admitted_completion_boundary": [
+            "admitted-boundary self-development completion only",
+            "not production runtime certification",
+            "not scheduler queue retry runtime readiness",
+            "not automatic route selection"
+          ],
+          "not_proven": [
+            "production runtime readiness",
+            "scheduler queue retry runtime",
+            "automatic semantic route or Movement selection",
+            "default GateFact creation",
+            "provider answer quality",
+            "provider native app reload behavior",
+            "semantic correctness of all future Buildings or reroutes",
+            "graph database external storage behavior"
+          ],
+          "objective_requirements": [
+            "Brick Agent Link three-axis Building progresses through admitted support/operator/run.py",
+            "Building records accumulate capture raw claim_trace and building-map evidence",
+            "Agent Objects remain provider-neutral while adapter lanes swap local brain surfaces",
+            "Building-first operation governs active development work",
+            "session provider projection Link lifecycle and current-level follow-up slices are closed or audited",
+            "completion keeps production runtime provider quality and semantic route proof limits explicit"
+          ],
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:01:building-automation-final-completion-audit-0-01-requirements",
+      "not_proven": [
+        "production scheduler / queue / retry runtime",
+        "automatic semantic route selection",
+        "provider answer quality",
+        "provider-native app reload behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:qa",
+        "received_work": "brick-work:02:building-automation-final-completion-audit-0-02-evidence",
+        "returned": {
+          "checker_bundle": [
+            "check_building_automation_final_completion0.py",
+            "check_building_automation_level_next0.py",
+            "check_building_operator_loop0.py",
+            "check_agent_real_work_hardening0.py",
+            "check_provider_lane_expansion0.py",
+            "check_evidence_graph_completeness_next0.py"
+          ],
+          "not_proven": [
+            "production runtime readiness",
+            "scheduler queue retry runtime",
+            "automatic semantic route or Movement selection",
+            "default GateFact creation",
+            "provider answer quality",
+            "provider native app reload behavior",
+            "semantic correctness of all future Buildings or reroutes",
+            "graph database external storage behavior"
+          ],
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "remaining_limits": [
+            "production runtime readiness",
+            "scheduler queue retry runtime",
+            "automatic semantic route or Movement selection",
+            "default GateFact creation",
+            "provider answer quality",
+            "provider native app reload behavior",
+            "semantic correctness of all future Buildings or reroutes",
+            "graph database external storage behavior"
+          ],
+          "requirement_evidence_map": {
+            "agent_brain_swap": [
+              "agent/objects/*.yaml",
+              "support/connection/agent_adapter.py",
+              "check_agent_brain_swap_dogfood0.py",
+              "check_provider_lane_expansion0.py"
+            ],
+            "building_first_operation": [
+              "BUILDING-METHOD-0",
+              "BUILDING-OPERATOR-LOOP-0",
+              "BUILDING-AUTOMATION-REPAIR-0"
+            ],
+            "evidence_accumulation": [
+              "capture/events.jsonl",
+              "raw/*.jsonl",
+              "evidence/claim_trace/**",
+              "work/building-map.json"
+            ],
+            "follow_up_slices": [
+              "SESSION-LIFECYCLE-NEXT-REPAIR-0",
+              "PROVIDER-PROJECTION-NEXT-REPAIR-0",
+              "LINK-LIFECYCLE-NEXT-AUDIT-0",
+              "BUILDING-AUTOMATION-LEVEL-NEXT-REPAIR-0"
+            ],
+            "three_axis_building_progress": [
+              "support/operator/run.py",
+              "project/brick-protocol/buildings/link-reroute-replay-loop-0-0526/",
+              "project/brick-protocol/buildings/building-automation-level-next-repair-0-0526/"
+            ]
+          }
+        }
+      },
+      "fact_ref": "agent-fact:02:building-automation-final-completion-audit-0-02-evidence",
+      "not_proven": [
+        "production scheduler / queue / retry runtime",
+        "automatic semantic route selection",
+        "provider answer quality",
+        "provider-native app reload behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:coo",
+        "received_work": "brick-work:03:building-automation-final-completion-audit-0-03-closure",
+        "returned": {
+          "final_movement": "close active goal after final audit evidence and verification pass",
+          "goal_closure_assessment": "ready_for_goal_completion_within_admitted_boundaries",
+          "held": [
+            "scheduler queue retry runtime",
+            "automatic route or Movement chooser",
+            "default GateFact creator",
+            "provider SDK API ownership",
+            "graph database external storage"
+          ],
+          "narrowly_proven": [
+            "BUILDING-AUTOMATION-COMPLETE-0 can be closed within admitted boundaries",
+            "three-axis Building operation and evidence accumulation are current support evidence",
+            "declared reroute and replay handoff are narrowly proven as Building operation",
+            "agent brain swap remains provider-neutral within admitted adapter lanes"
+          ],
+          "not_proven": [
+            "production runtime readiness",
+            "scheduler queue retry runtime",
+            "automatic semantic route or Movement selection",
+            "default GateFact creation",
+            "provider answer quality",
+            "provider native app reload behavior",
+            "semantic correctness of all future Buildings or reroutes",
+            "graph database external storage behavior"
+          ],
+          "observed_evidence": [
+            "BUILDING-AUTOMATION-LEVEL-NEXT-REPAIR-0 records current_level L5-narrow-declared-building-operation",
+            "current Building roots preserve capture raw claim_trace and building-map evidence",
+            "provider-neutral Agent Objects and adapter lanes are checked as support evidence",
+            "Link lifecycle uses forward and reroute while close is building_lifecycle"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:03:building-automation-final-completion-audit-0-03-closure",
+      "not_proven": [
+        "production scheduler / queue / retry runtime",
+        "automatic semantic route selection",
+        "provider answer quality",
+        "provider-native app reload behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-26T05:18:22Z",
+  "id": "urn:bp:building:building-automation-final-completion-audit-0-0526::evidence/claim_trace/agent/returned_claims.json",
+  "recorded_at": "2026-05-26T05:18:22Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:building-automation-final-completion-audit-0-0526",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/agent/returned_claims.json",
+  "time": "2026-05-26T05:18:22Z",
+  "type": "bp.claim_trace"
+}

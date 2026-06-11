@@ -1,0 +1,39 @@
+plan_ref: building-plan:session-continuity-0-development-repair-open
+owner_axis: Brick
+building_id: session-continuity-0-development-repair-open-0524
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - repair correctness
+  - provider resume behavior
+  - QA completeness
+  - Link route/replay correctness
+steps:
+  - step_ref: session-continuity-0-development-repair-open-01
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:session-continuity-0-development-repair-open
+        brick_work_ref: work:session-continuity-0-development-repair
+        brick_instance_ref: brick-session-continuity-development-repair-open-01
+        work_statement: Repair SESSION-CONTINUITY-0 after Codex QA opening failed because source_fact_bodies rejected code source text containing credential-pattern examples. The repair must preserve raw secret rejection while allowing safe redacted source fact body delivery for repo files.
+        comparison_rule: Observe whether the repair prevents raw provider values from entering evidence, keeps source fact body delivery usable for code/docs, keeps AgentFact closed, and does not implement LINK-ROUTE-REPLAY-0.
+        required_return_shape: implementation_map, changed_files, verification_evidence, claim_ledger, not_proven
+        source_facts:
+          - AGENTS.md
+          - brick/templates/do/minimal-do-return-template.json
+          - support/docs/spec/brick-protocol-session-continuity-0-design-0524.md
+          - project/brick-protocol/status/kernel/brick-protocol-session-continuity-0-development-report-0524.md
+          - brick/building_plans/session-continuity-0-codex-qa-open.yaml
+      - axis: Agent
+        row_ref: agent-row:session-continuity-0-development-repair-open
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:session-continuity-0-development-repair-open
+        movement: reroute
+        target_ref: brick-session-continuity-development-open-01
+        next_brick_instance_ref: brick-session-continuity-development-open-01

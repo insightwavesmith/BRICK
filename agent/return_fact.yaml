@@ -1,0 +1,19 @@
+contract: AgentFact
+owner: Agent
+module: Agent.return_fact
+projection_only: true
+received_work:
+  presence: required
+returned:
+  presence: required
+  content_kinds:
+    - substance
+    - artifact substance
+    - partial substance
+    - absence
+    - inability
+    - uncertainty
+    - evidence actually returned
+verifiers:
+  - check_axis_contract_projection.py
+  # residual contract guards tracked in checker-consolidation-and-builder-plan-0602.md (not all built yet)

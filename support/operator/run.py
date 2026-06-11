@@ -1,0 +1,2111 @@
+"""Single public Building run surface for SIMPLE-RUN-0.
+
+This support surface walks caller-declared Building rows and caller-supplied
+Link facts. It records support evidence, but it does not choose Movement,
+create undeclared GateFacts, judge success or quality, store secrets, or
+own Brick / Agent / Link meaning.
+"""
+
+from __future__ import annotations
+
+import dataclasses
+import json
+import re
+import subprocess
+
+from datetime import datetime, timezone
+
+from collections.abc import Iterable, Mapping, Sequence
+from pathlib import Path
+from typing import Any
+
+from brick_protocol.link.carry import CarryFact
+from brick_protocol.link.transfer import TransferFact
+
+from brick_protocol.agent.performance import make_agent_performer_fact
+from brick_protocol.agent.receipt import make_receipt_fact
+from brick_protocol.agent.return_fact import AgentFact, make_agent_fact
+from brick_protocol.brick.comparison import BrickComparisonFact
+from brick_protocol.brick.work import BrickWork, parse_required_return_shape
+from brick_protocol.link.gate import (
+    GateFact,
+    evaluate_declared_movement_gate,
+    gate_required_return_fields,
+    make_gate_fact,
+)
+from brick_protocol.link.movement import MovementFact
+from brick_protocol.link.transition import TransitionFact
+from brick_protocol.support.connection.agent_adapter import (
+    AgentAdapterRequest,
+    AgentAdapterResult,
+    AgentBrainCallable,
+    CommandRunner,
+    connect_agent_brain,
+    safe_source_fact_body,
+)
+from brick_protocol.support.connection.agent_resources import (
+    render_agent_instruction_packet,
+    validate_agent_refs,
+)
+from brick_protocol.support.operator.contracts import (
+    AgentObjectContractData,
+    AgentRunCompletionRecord,
+    AgentRunPreparationRecord,
+    BuildingPlanSupportResult,
+    BuildingRunSupportResult,
+    MinimalCrossingRecord,
+    ThreeAxisStepRows,
+)
+from brick_protocol.support.operator.evidence_assembly import (
+    _lifecycle_packet_from_mapping,
+    agent_run_building_map_packet,
+    agent_run_lifecycle_mapping,
+    write_accumulated_building_evidence,
+    write_adapter_error_frontier_evidence,
+    write_single_building_evidence,
+)
+from brick_protocol.support.operator.gate_sequence import (
+    GateSequenceDecision,
+    gate_sequence_decision_from_record,
+    gate_sequence_decision_to_record,
+    run_gate_sequence_policy,
+)
+from brick_protocol.support.operator.reporter import (
+    building_event_kind_from_frontier,
+    emit_building_event_for_policy,
+    report_event_policy_from_plan,
+)
+from brick_protocol.support.operator.dynamic_walker import (
+    _resume_dynamic_graph_walker,
+    _run_dynamic_graph_walker,
+)
+from brick_protocol.support.operator.plan_validation import (
+    _agent_run_handoff_packet,
+    _caller_link_facts,
+    _comparison_fact_from_observation,
+    _incoming_link_handoff_refs,
+    _movement_and_target_from_link_row,
+    _plan_building_id,
+    _step_fixture_from_plan_step,
+    _validate_brick_row_write_need_for_scope,
+    _validate_building_lifecycle_for_link_row,
+    _validate_declared_gate_refs_for_link_row,
+    _validate_gate_sequence_policy_for_link_row,
+    _validate_route_decision_basis_for_link_row,
+    validate_declared_building_plan,
+    _validate_route_replay_plan_for_link_row,
+    _task_source_ref_from_plan,
+    _validate_transition_authoring_for_link_row,
+    _validate_transition_lifecycle_for_link_row,
+)
+from brick_protocol.support.operator.primitives import (
+    INLINE_TASK_SOURCE_REF,
+    _AGENT_OBJECT_ALLOWED_KEYS,
+    _AGENT_ROW_ALLOWED_KEYS,
+    _AGENT_OBJECT_REF_FIELDS,
+    _BRICK_ROW_ALLOWED_KEYS,
+    _DEFAULT_AGENT_OBJECT_ROOT,
+    _DECLARED_GATE_REFS_KEY,
+    _FORBIDDEN_PAYLOAD_KEYS,
+    _LINK_ROW_ALLOWED_KEYS,
+    _REPO_ROOT,
+    _RETURN_FORBIDDEN_KEYS,
+    _agent_run_not_proven,
+    _first_text,
+    _json_resource_mapping,
+    _mapping,
+    _merge_texts,
+    _optional_fact,
+    _optional_text_from_mapping,
+    _optional_text_value,
+    _path_segment,
+    _proof_limits_tuple,
+    _raw_ref,
+    _require_fact,
+    _require_mapping_value,
+    _require_only_keys,
+    _required_text,
+    _resource_slug,
+    _step_fact_ref,
+    _text_tuple,
+    _validate_no_payload_forbidden,
+)
+from brick_protocol.support.operator.write_observation import (
+    _adapter_result_with_write_observation,
+    _write_adapter_observation_before,
+    _write_scope_from_brick_row,
+)
+from brick_protocol.support.recording.building_map import BuildingMapWriteResult
+from brick_protocol.support.recording.capture import (
+    BuildingLifecycleWriteResult,
+    DEFAULT_BUILDINGS_ROOT,
+)
+from brick_protocol.support.recording.contracts import StepOutputObservation
+from brick_protocol.support.recording.step_outputs import write_step_output
+
+
+class AdapterFrontierEvidenceWritten(RuntimeError):
+    """Raised after support writes frontier evidence for an adapter exception."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        building_id: str,
+        building_root: Path,
+        written_files: tuple[Path, ...],
+    ) -> None:
+        super().__init__(message)
+        self.building_id = building_id
+        self.building_root = building_root
+        self.written_files = written_files
+
+
+class _AdapterRunInterrupted(RuntimeError):
+    def __init__(
+        self,
+        *,
+        prepared: AgentRunPreparationRecord,
+        adapter_request: AgentAdapterRequest,
+        adapter_error: Mapping[str, Any],
+    ) -> None:
+        super().__init__("adapter exception observed before AgentFact returned")
+        self.prepared = prepared
+        self.adapter_request = adapter_request
+        self.adapter_error = adapter_error
+
+def run_building_once(
+    fixture: Mapping[str, Any] | str | Path,
+    *,
+    output_root: Path | str = DEFAULT_BUILDINGS_ROOT,
+    overwrite_existing: bool = False,
+    local_callables: Mapping[str, AgentBrainCallable] | None = None,
+    command_runner: CommandRunner | None = None,
+    adapter_cwd: Path | str | None = None,
+    adapter_timeout_seconds: int = 120,
+    proof_limits: Iterable[str] | str | None = None,
+) -> BuildingRunSupportResult:
+    """Run one declared Building step and write support projections."""
+
+    packet = _fixture_mapping(fixture)
+    _validate_no_payload_forbidden("fixture", packet, _FORBIDDEN_PAYLOAD_KEYS)
+    # FIX-C (codex review 0611) TASK-SOURCE ADMISSION on the SINGLE-STEP
+    # surface, parity with run_building_plan strictness (P11b): a declared
+    # task_source_ref that is a repo path and does not resolve to an existing
+    # file is a broken declared road and must reject LOUDLY here -- before
+    # preparation / provider invocation -- instead of the prior behavior where
+    # _source_fact_bodies silently skipped the missing file (the declared task
+    # body just vanished from the prompt and evidence). Packets without
+    # task_source_ref -> no check; the inline sentinel requires its carried
+    # task_statement body (same validator, same rejects as the plan walker).
+    _task_source_ref_from_plan(packet, repo_root=_REPO_ROOT)
+    link_facts = _caller_link_facts(packet)
+    checked_proof_limits = _proof_limits_tuple(
+        proof_limits if proof_limits is not None else packet.get("proof_limits")
+    )
+    prepared = prepare_agent_run_from_step_rows(packet, proof_limits=checked_proof_limits)
+    # LIVE RUN ADMISSION on the SINGLE-STEP surface is STRICT about write grants,
+    # parity with run_building_plan and the dynamic walker/resume: a brick row
+    # carrying write_scope must EXPLICITLY declare its write NEED
+    # (requires_brick_write_scope: true). This fires BEFORE the scope leaves
+    # toward AgentAdapterRequest (_adapter_request_from_prepared /
+    # _write_scope_from_brick_row) and before any provider invocation, so a
+    # smuggled scope on a fixture packet can never silently open workspace write.
+    _validate_brick_row_write_need_for_scope(
+        prepared.step_rows.brick_row,
+        require_write_need_marker=True,
+    )
+    adapter_request = _adapter_request_from_prepared(packet, prepared)
+    try:
+        adapter_result = _adapter_result_or_interrupt(
+            prepared,
+            adapter_request,
+            local_callables=local_callables,
+            command_runner=command_runner,
+            adapter_cwd=adapter_cwd,
+            adapter_timeout_seconds=adapter_timeout_seconds,
+        )
+    except _AdapterRunInterrupted as interrupted:
+        evidence_write = write_adapter_error_frontier_evidence(
+            building_id=prepared.building_id,
+            plan_ref=_optional_text_value(packet.get("plan_ref")) or "building-plan:single-step",
+            plan=packet,
+            completed_step_results=(),
+            failed_preparation=interrupted.prepared,
+            adapter_request=interrupted.adapter_request,
+            adapter_error=interrupted.adapter_error,
+            output_root=output_root,
+            overwrite_existing=overwrite_existing,
+            proof_limits=checked_proof_limits,
+        )
+        raise AdapterFrontierEvidenceWritten(
+            "adapter exception frontier evidence written before AgentFact returned",
+            building_id=prepared.building_id,
+            building_root=evidence_write.lifecycle_write.root,
+            written_files=evidence_write.written_files,
+        ) from interrupted
+    completion = complete_agent_run_from_prepared(
+        prepared,
+        returned_value=adapter_result.returned_value,
+        adapter_result=adapter_result,
+        comparison_observation=packet.get("comparison_observation"),
+        proof_limits=_merge_texts(checked_proof_limits, adapter_result.proof_limits),
+        **link_facts,
+    )
+    evidence_write = write_single_building_evidence(
+        completion,
+        output_root=output_root,
+        overwrite_existing=overwrite_existing,
+    )
+    return BuildingRunSupportResult(
+        building_id=prepared.building_id,
+        preparation=prepared,
+        adapter_result=adapter_result,
+        completion=completion,
+        lifecycle_write=evidence_write.lifecycle_write,
+        building_map_write=evidence_write.building_map_write,
+        written_files=evidence_write.written_files,
+        capture_event_types=evidence_write.capture_event_types,
+        building_map_packet=evidence_write.building_map_packet,
+        proof_limits=_merge_texts(
+            checked_proof_limits,
+            adapter_result.proof_limits,
+            completion.proof_limits,
+            evidence_write.proof_limits,
+        ),
+        not_proven=_merge_texts(
+            packet.get("not_proven"),
+            adapter_result.not_proven,
+            completion.not_proven,
+        ),
+    )
+
+
+def run_building_plan(
+    plan: Mapping[str, Any] | str | Path,
+    *,
+    output_root: Path | str = DEFAULT_BUILDINGS_ROOT,
+    overwrite_existing: bool = False,
+    local_callables: Mapping[str, AgentBrainCallable] | None = None,
+    command_runner: CommandRunner | None = None,
+    adapter_cwd: Path | str | None = None,
+    adapter_timeout_seconds: int = 120,
+    proof_limits: Iterable[str] | str | None = None,
+    walker_mode: str = "linear",
+) -> BuildingPlanSupportResult:
+    """Walk declared Building plan steps and write one accumulated Building root.
+
+    ``walker_mode`` defaults to ``"linear"`` -- the existing linear walker below,
+    UNCHANGED (zero regression). ``walker_mode="dynamic"`` dispatches to the
+    BOUNDED-AGENT-PROPOSED-ROUTING-LOOP-0 dynamic graph walker
+    (``support/operator/dynamic_walker.py``), which reuses this module's step
+    executor and accumulated-evidence writer for the forward path and adds
+    runtime, gate-adopted, node-budgeted reroute + HOLD.
+    """
+
+    packet = _fixture_mapping(plan)
+    _validate_no_payload_forbidden("plan", packet, _FORBIDDEN_PAYLOAD_KEYS)
+    declaration_plan = packet
+    if walker_mode not in {"linear", "dynamic"}:
+        raise ValueError("walker_mode must be 'linear' or 'dynamic'")
+    if walker_mode == "dynamic":
+        checked_proof_limits = _proof_limits_tuple(
+            proof_limits if proof_limits is not None else packet.get("proof_limits")
+        )
+        return _run_dynamic_graph_walker(
+            packet,
+            output_root=output_root,
+            overwrite_existing=overwrite_existing,
+            local_callables=local_callables,
+            command_runner=command_runner,
+            adapter_cwd=adapter_cwd,
+            adapter_timeout_seconds=adapter_timeout_seconds,
+            checked_proof_limits=checked_proof_limits,
+            run_step=_run_building_step_without_writing,
+            record_step_output=_write_step_output_on_step_close,
+            write_accumulated=write_accumulated_building_evidence,
+            write_adapter_error_frontier=write_adapter_error_frontier_evidence,
+        )
+    if _optional_text_from_mapping(packet, "plan_shape") == "graph":
+        raise ValueError(
+            "graph Building plans require walker_mode='dynamic'; "
+            "linear graph projection is not admitted"
+        )
+    original_task_source_ref = _task_source_ref_from_plan(packet)
+    graph_context: Mapping[str, Any] | None = None
+    task_source_ref = _task_source_ref_from_plan(packet)
+    steps_value = packet.get("steps")
+    if not isinstance(steps_value, list) or not steps_value:
+        raise ValueError("Building plan must contain a non-empty steps list")
+    plan_ref = _optional_text_value(packet.get("plan_ref")) or "building-plan:anonymous"
+    building_id = _plan_building_id(packet, plan_ref)
+    checked_proof_limits = _proof_limits_tuple(
+        proof_limits if proof_limits is not None else packet.get("proof_limits")
+    )
+    report_event_policy = report_event_policy_from_plan(packet)
+    # P11b RUNTIME task_source_ref ENFORCEMENT: thread the repo root so the live
+    # engine rejects a declared-but-missing task_source_ref at run time, matching
+    # the checker boundary. Plans without task_source_ref -> None -> no check.
+    # LIVE RUN ADMISSION is STRICT about write grants (require_write_need_marker):
+    # a brick row carrying write_scope must EXPLICITLY declare its write NEED
+    # (requires_brick_write_scope: true); a silently granted scope is rejected
+    # here, before any provider projection can open workspace write. The
+    # historical read sweep (building_plans_boundary_sweep) keeps the default
+    # non-strict mode -- preserved evidence is read, not re-admitted.
+    validate_declared_building_plan(
+        packet,
+        repo_root=_REPO_ROOT,
+        require_write_need_marker=True,
+    )
+    building_root = _preflight_step_output_building_root(
+        output_root,
+        building_id,
+        overwrite_existing=overwrite_existing,
+    )
+    report_event_observations: list[Mapping[str, Any]] = []
+    started_event = emit_building_event_for_policy(
+        report_event_policy,
+        event_kind="building_started",
+        building_id=building_id,
+        building_root=building_root,
+        current_brick_ref=_first_brick_instance_ref_from_steps(steps_value),
+        repo_root=_REPO_ROOT,
+        overwrite_existing=overwrite_existing,
+    )
+    if started_event is not None:
+        report_event_observations.append(started_event)
+    step_results: list[BuildingRunSupportResult] = []
+    for index, step_value in enumerate(steps_value):
+        step = _require_mapping_value(f"steps[{index}]", step_value)
+        step_fixture = _step_fixture_from_plan_step(
+            packet,
+            step,
+            index,
+            building_id=building_id,
+            incoming_link_handoff_refs=_incoming_link_handoff_refs(steps_value, index),
+        )
+        source_fact_bodies = _step_output_source_fact_bodies_from_refs(
+            building_root,
+            _brick_source_facts_from_step(step),
+        )
+        if source_fact_bodies:
+            step_fixture = dict(step_fixture)
+            step_fixture["source_fact_bodies"] = source_fact_bodies
+        try:
+            step_result = _run_building_step_without_writing(
+                step_fixture,
+                local_callables=local_callables,
+                command_runner=command_runner,
+                adapter_cwd=adapter_cwd,
+                adapter_timeout_seconds=adapter_timeout_seconds,
+                proof_limits=checked_proof_limits,
+            )
+            # E1 (U5.5 slice-3) + RESUME-GATE-RECORD: compute the live gate-sequence
+            # disposition and attach it to the step result BEFORE the step-output
+            # write so the AT-TIME step-output.json persists the
+            # gate_sequence_decision_record (which resume reads back without
+            # recompute). This is a PURE computation over the already-completed
+            # step_result + step; it does NOT depend on the step-output file, and the
+            # hold / reroute / paused / waiting flow-control branches below are
+            # unchanged — they still run AFTER the write, in the same order, reading
+            # gate_sequence_decision exactly as before. Recording carry only.
+            gate_sequence_decision = run_gate_sequence_policy(
+                step=step,
+                step_result=step_result,
+                source_brick_ref=step_result.preparation.brick_instance_ref,
+                target_brick_ref=step_result.preparation.next_brick_instance_ref,
+            )
+            step_result = dataclasses.replace(
+                step_result, gate_sequence_decision=gate_sequence_decision
+            )
+            step_result = _write_step_output_on_step_close(
+                building_root=building_root,
+                building_id=building_id,
+                step_result=step_result,
+                completed_step_results=step_results,
+                proof_limits=checked_proof_limits,
+                task_source_ref=task_source_ref,
+                overwrite_existing=overwrite_existing,
+            )
+        except _AdapterRunInterrupted as interrupted:
+            evidence_write = write_adapter_error_frontier_evidence(
+                building_id=building_id,
+                plan_ref=plan_ref,
+                plan=packet,
+                completed_step_results=tuple(step_results),
+                failed_preparation=interrupted.prepared,
+                adapter_request=interrupted.adapter_request,
+                adapter_error=interrupted.adapter_error,
+                output_root=output_root,
+                overwrite_existing=overwrite_existing or bool(step_results),
+                proof_limits=checked_proof_limits,
+                graph_context=graph_context,
+            )
+            raise AdapterFrontierEvidenceWritten(
+                "adapter exception frontier evidence written before AgentFact returned",
+                building_id=building_id,
+                building_root=evidence_write.lifecycle_write.root,
+                written_files=evidence_write.written_files,
+            ) from interrupted
+        step_results.append(step_result)
+        if gate_sequence_decision.action in {"hold", "reroute"}:
+            step_results[-1] = _step_result_with_gate_sequence_pause(
+                step_result,
+                gate_sequence_decision,
+            )
+            break
+        if _declared_transition_lifecycle_state(step) == "paused":
+            break
+        # G2 P-deadgate: a Building Plan Link row that declares
+        # building_lifecycle.state == "waiting" is a human-review gate. support
+        # must halt before walking the next step into closure; whether to close,
+        # resume, or reroute is a Link/human disposition, not a support choice
+        # (zeta7). The waiting gate surfaces via observe_building_frontier as
+        # frontier_kind == human_review_waiting.
+        if _declared_building_lifecycle_state(step) == "waiting":
+            break
+        # ζ7 SUPPORT-MOVEMENT-AUTHORITY-RETRACT-0: support does NOT block the next
+        # transition on declared-gate insufficiency. The Link-owned GateFact
+        # (movement_gate_fact, recorded in each step's crossing record) carries the
+        # sufficiency evidence; going-back is a DECLARED Link disposition — reroute /
+        # replay (route_replay_plan, max_attempts) and the paused/hold lifecycle —
+        # decided by Link / caller / COO, not by support. support only walks the
+        # declared road and records.
+    evidence_write = write_accumulated_building_evidence(
+        building_id=building_id,
+        plan_ref=plan_ref,
+        plan=packet,
+        step_results=tuple(step_results),
+        output_root=output_root,
+        overwrite_existing=overwrite_existing,
+        proof_limits=checked_proof_limits,
+        graph_context=graph_context,
+        declaration_plan=declaration_plan,
+        step_outputs_already_written=True,
+    )
+    if report_event_policy:
+        terminal_event_kind = building_event_kind_from_frontier(
+            evidence_write.lifecycle_write.root,
+            repo_root=_REPO_ROOT,
+        )
+        terminal_event = emit_building_event_for_policy(
+            report_event_policy,
+            event_kind=terminal_event_kind,
+            building_id=building_id,
+            building_root=evidence_write.lifecycle_write.root,
+            repo_root=_REPO_ROOT,
+            overwrite_existing=overwrite_existing,
+        )
+        if terminal_event is not None:
+            report_event_observations.append(terminal_event)
+    result = BuildingPlanSupportResult(
+        building_id=building_id,
+        plan_ref=plan_ref,
+        step_results=tuple(step_results),
+        lifecycle_write=evidence_write.lifecycle_write,
+        building_map_write=evidence_write.building_map_write,
+        written_files=evidence_write.written_files,
+        capture_event_types=evidence_write.capture_event_types,
+        building_map_packet=evidence_write.building_map_packet,
+        proof_limits=_merge_texts(checked_proof_limits, *(r.proof_limits for r in step_results)),
+        not_proven=_merge_texts(packet.get("not_proven"), *(r.not_proven for r in step_results)),
+    )
+    if report_event_observations:
+        object.__setattr__(
+            result,
+            "_report_event_observations",
+            tuple(report_event_observations),
+        )
+    return result
+
+
+def resume_building_plan(
+    building_root: Path | str,
+    *,
+    overwrite_existing: bool = True,
+    local_callables: Mapping[str, AgentBrainCallable] | None = None,
+    command_runner: CommandRunner | None = None,
+    adapter_cwd: Path | str | None = None,
+    adapter_timeout_seconds: int = 120,
+    proof_limits: Iterable[str] | str | None = None,
+) -> BuildingPlanSupportResult:
+    """Resume a held dynamic Building from written evidence and a disposition row.
+
+    This is a separate resume verb, not ``walker_mode``. It rehydrates completed
+    steps from recorded step outputs / raw Agent returns so completed Agent work is
+    not called again, then lets the admitted dynamic graph walker continue from the
+    declared human/COO disposition.
+    """
+
+    root = Path(building_root)
+    checked_proof_limits = _proof_limits_tuple(proof_limits)
+    return _resume_dynamic_graph_walker(
+        root,
+        output_root=root.parent,
+        overwrite_existing=overwrite_existing,
+        local_callables=local_callables,
+        command_runner=command_runner,
+        adapter_cwd=adapter_cwd,
+        adapter_timeout_seconds=adapter_timeout_seconds,
+        checked_proof_limits=checked_proof_limits,
+        run_step=_run_building_step_without_writing,
+        replay_step=_replay_building_step_from_returned,
+        record_step_output=_write_step_output_on_step_close,
+        write_accumulated=write_accumulated_building_evidence,
+        write_adapter_error_frontier=write_adapter_error_frontier_evidence,
+    )
+
+
+def _run_building_step_without_writing(
+    fixture: Mapping[str, Any],
+    *,
+    local_callables: Mapping[str, AgentBrainCallable] | None,
+    command_runner: CommandRunner | None,
+    adapter_cwd: Path | str | None,
+    adapter_timeout_seconds: int,
+    proof_limits: Iterable[str] | str | None,
+) -> BuildingRunSupportResult:
+    """Run one declared step and keep the evidence in memory for accumulation."""
+
+    packet = _fixture_mapping(fixture)
+    _validate_no_payload_forbidden("fixture", packet, _FORBIDDEN_PAYLOAD_KEYS)
+    link_facts = _caller_link_facts(packet)
+    checked_proof_limits = _proof_limits_tuple(
+        proof_limits if proof_limits is not None else packet.get("proof_limits")
+    )
+    prepared = prepare_agent_run_from_step_rows(packet, proof_limits=checked_proof_limits)
+    adapter_request = _adapter_request_from_prepared(packet, prepared)
+    adapter_result = _adapter_result_or_interrupt(
+        prepared,
+        adapter_request,
+        local_callables=local_callables,
+        command_runner=command_runner,
+        adapter_cwd=adapter_cwd,
+        adapter_timeout_seconds=adapter_timeout_seconds,
+    )
+    completion = complete_agent_run_from_prepared(
+        prepared,
+        returned_value=adapter_result.returned_value,
+        adapter_result=adapter_result,
+        comparison_observation=packet.get("comparison_observation"),
+        proof_limits=_merge_texts(checked_proof_limits, adapter_result.proof_limits),
+        **link_facts,
+    )
+    lifecycle_packet = _lifecycle_packet_from_mapping(
+        completion.lifecycle_packet_mapping,
+        movement=completion.crossing_record.link_fact.movement,
+    )
+    empty_lifecycle_write = BuildingLifecycleWriteResult(
+        root=Path(),
+        written_files=(),
+        proof_limits=lifecycle_packet.proof_limits,
+    )
+    empty_map_write = BuildingMapWriteResult(root=Path(), path=Path(), written_files=())
+    return BuildingRunSupportResult(
+        building_id=prepared.building_id,
+        preparation=prepared,
+        adapter_result=adapter_result,
+        completion=completion,
+        lifecycle_write=empty_lifecycle_write,
+        building_map_write=empty_map_write,
+        written_files=(),
+        capture_event_types=tuple(event.event_type for event in lifecycle_packet.capture_events),
+        building_map_packet=completion.building_map_packet,
+        proof_limits=_merge_texts(
+            checked_proof_limits,
+            adapter_result.proof_limits,
+            completion.proof_limits,
+        ),
+        not_proven=_merge_texts(
+            packet.get("not_proven"),
+            adapter_result.not_proven,
+            completion.not_proven,
+        ),
+    )
+
+
+def _replay_building_step_from_returned(
+    fixture: Mapping[str, Any],
+    *,
+    returned_value: Any,
+    recorded_at: str = "",
+    gate_sequence_decision_record: Mapping[str, Any] | None = None,
+    proof_limits: Iterable[str] | str | None,
+) -> BuildingRunSupportResult:
+    """Rebuild one completed step from recorded Agent returned evidence.
+
+    This helper deliberately does not call ``connect_agent_brain``. It recreates
+    the same support dataclasses the accumulated writer expects from the written
+    returned payload.
+
+    U5.5 RESUME-GATE-RECORD: when a ``gate_sequence_decision_record`` is supplied
+    (the step recorded one AT-TIME), the rebuilt result carries the RECONSTRUCTED
+    gate-sequence decision so the claim-trace seam can RE-RECORD the gate facts. It
+    READS the recorded decision back — it NEVER calls ``run_gate_sequence_policy``
+    (no recompute / no re-derive on the replay path).
+    """
+
+    packet = _fixture_mapping(fixture)
+    _validate_no_payload_forbidden("fixture", packet, _FORBIDDEN_PAYLOAD_KEYS)
+    link_facts = _caller_link_facts(packet)
+    checked_proof_limits = _proof_limits_tuple(
+        proof_limits if proof_limits is not None else packet.get("proof_limits")
+    )
+    prepared = prepare_agent_run_from_step_rows(packet, proof_limits=checked_proof_limits)
+    adapter_request = _adapter_request_from_prepared(packet, prepared)
+    adapter_result = AgentAdapterResult(
+        request=adapter_request,
+        returned_value=returned_value,
+        proof_limits=checked_proof_limits,
+        not_proven=_agent_run_not_proven(),
+    )
+    completion = complete_agent_run_from_prepared(
+        prepared,
+        returned_value=returned_value,
+        adapter_result=adapter_result,
+        comparison_observation=packet.get("comparison_observation"),
+        proof_limits=checked_proof_limits,
+        **link_facts,
+    )
+    lifecycle_packet = _lifecycle_packet_from_mapping(
+        completion.lifecycle_packet_mapping,
+        movement=completion.crossing_record.link_fact.movement,
+    )
+    empty_lifecycle_write = BuildingLifecycleWriteResult(
+        root=Path(),
+        written_files=(),
+        proof_limits=lifecycle_packet.proof_limits,
+    )
+    empty_map_write = BuildingMapWriteResult(root=Path(), path=Path(), written_files=())
+    # U5.5 RESUME-GATE-RECORD: READ the recorded AT-TIME gate-sequence decision back
+    # (fail-closed on a malformed record). None when the step declared no policy.
+    replayed_gate_decision = (
+        gate_sequence_decision_from_record(gate_sequence_decision_record)
+        if gate_sequence_decision_record is not None
+        else None
+    )
+    return BuildingRunSupportResult(
+        building_id=prepared.building_id,
+        preparation=prepared,
+        adapter_result=adapter_result,
+        completion=completion,
+        lifecycle_write=empty_lifecycle_write,
+        building_map_write=empty_map_write,
+        written_files=(),
+        capture_event_types=tuple(event.event_type for event in lifecycle_packet.capture_events),
+        building_map_packet=completion.building_map_packet,
+        proof_limits=_merge_texts(
+            checked_proof_limits,
+            adapter_result.proof_limits,
+            completion.proof_limits,
+        ),
+        not_proven=_merge_texts(
+            packet.get("not_proven"),
+            adapter_result.not_proven,
+            completion.not_proven,
+        ),
+        recorded_at=recorded_at,
+        gate_sequence_decision=replayed_gate_decision,
+    )
+
+
+# run_building_intake (support/operator/driver.py) writes its materialized
+# INPUT plan to <building_root>/declared-building-plan.json and then
+# immediately walks it; without an admission for exactly that artifact, the
+# first defaults use always self-collided here (FileExistsError). The
+# admission is fail-closed and EXACT: a pre-existing root is admitted IFF it
+# holds ONLY regular non-symlink file(s) named in this set -- any other name,
+# any subdirectory, any symlink, or an EMPTY root still rejects. (The run's
+# own work/declared-building-plan.json declaration packet lives under work/
+# and is a different file.) Parity copy lives in walker_kernel.py.
+_PREEXISTING_ROOT_INTAKE_ARTIFACTS: frozenset[str] = frozenset(
+    {"declared-building-plan.json"}
+)
+
+
+def _root_holds_only_intake_plan_artifact(root: Path) -> bool:
+    entries = list(root.iterdir())
+    if not entries:
+        return False
+    for entry in entries:
+        if entry.name not in _PREEXISTING_ROOT_INTAKE_ARTIFACTS:
+            return False
+        if entry.is_symlink() or not entry.is_file():
+            return False
+    return True
+
+
+def _preflight_step_output_building_root(
+    output_root: Path | str,
+    building_id: str,
+    *,
+    overwrite_existing: bool,
+) -> Path:
+    root = Path(output_root) / building_id
+    if root.exists():
+        if not root.is_dir():
+            raise NotADirectoryError(f"Building lifecycle root is not a directory: {root}")
+        if not overwrite_existing and not _root_holds_only_intake_plan_artifact(root):
+            raise FileExistsError(
+                "Building lifecycle root already exists; choose a new building_id "
+                "or pass overwrite_existing=True"
+            )
+    return root
+
+
+def _first_brick_instance_ref_from_steps(steps: Sequence[Any]) -> str:
+    for step in steps:
+        if not isinstance(step, Mapping):
+            continue
+        rows = step.get("rows")
+        if not isinstance(rows, list):
+            continue
+        for row in rows:
+            if not isinstance(row, Mapping) or row.get("axis") != "Brick":
+                continue
+            value = row.get("brick_instance_ref")
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+    return ""
+
+
+def _write_step_output_on_step_close(
+    *,
+    building_root: Path,
+    building_id: str,
+    step_result: BuildingRunSupportResult,
+    completed_step_results: Sequence[BuildingRunSupportResult],
+    proof_limits: tuple[str, ...],
+    task_source_ref: str | None,
+    overwrite_existing: bool,
+) -> BuildingRunSupportResult:
+    if not step_result.recorded_at:
+        step_result = dataclasses.replace(
+            step_result,
+            recorded_at=_per_step_recorded_at(),
+        )
+    step_ref = step_result.preparation.step_rows.step_ref
+    step_index = len(completed_step_results) + 1
+    attempt_index = _step_attempt_index(completed_step_results, step_ref)
+    write_step_output(
+        building_root,
+        building_id,
+        _step_output_observation_from_result(
+            building_id,
+            step_result,
+            step_index=step_index,
+            task_source_ref=task_source_ref,
+        ),
+        attempt_index=attempt_index,
+        proof_limits=proof_limits,
+        recorded_at=step_result.recorded_at,
+        existing_policy="replace" if overwrite_existing else "same_content_or_error",
+    )
+    return step_result
+
+
+def _step_output_observation_from_result(
+    building_id: str,
+    result: BuildingRunSupportResult,
+    *,
+    step_index: int,
+    task_source_ref: str | None,
+) -> StepOutputObservation:
+    step_ref = result.preparation.step_rows.step_ref
+    return StepOutputObservation(
+        building_id=building_id,
+        step_ref=step_ref,
+        brick_instance_ref=result.preparation.brick_instance_ref,
+        agent_object_ref=result.preparation.agent_object.object_ref,
+        returned=result.adapter_result.returned_value,
+        received_work_ref=_step_fact_ref("brick-work", step_index, step_ref),
+        returned_fact_ref=_step_fact_ref("agent-fact", step_index, step_ref),
+        raw_ref=_raw_ref("agent", step_index),
+        task_source_ref=task_source_ref or "",
+        not_proven=result.not_proven,
+        recorded_at=result.recorded_at,
+        gate_sequence_decision_record=gate_sequence_decision_to_record(
+            result.gate_sequence_decision
+        ),
+    )
+
+
+def _step_attempt_index(
+    completed_step_results: Sequence[BuildingRunSupportResult],
+    step_ref: str,
+) -> int:
+    return 1 + sum(
+        1
+        for result in completed_step_results
+        if result.preparation.step_rows.step_ref == step_ref
+    )
+
+
+def _adapter_result_or_interrupt(
+    prepared: AgentRunPreparationRecord,
+    adapter_request: AgentAdapterRequest,
+    *,
+    local_callables: Mapping[str, AgentBrainCallable] | None,
+    command_runner: CommandRunner | None,
+    adapter_cwd: Path | str | None,
+    adapter_timeout_seconds: int,
+) -> AgentAdapterResult:
+    try:
+        write_observation_before = _write_adapter_observation_before(
+            adapter_request,
+            adapter_cwd=adapter_cwd,
+        )
+        adapter_result = connect_agent_brain(
+            adapter_request,
+            local_callables=local_callables,
+            command_runner=command_runner,
+            cwd=adapter_cwd,
+            timeout_seconds=adapter_timeout_seconds,
+        )
+        return _adapter_result_with_write_observation(
+            adapter_result,
+            write_observation_before,
+            adapter_cwd=adapter_cwd,
+        )
+    except Exception as exc:
+        raise _AdapterRunInterrupted(
+            prepared=prepared,
+            adapter_request=adapter_request,
+            adapter_error=_adapter_error_mapping(exc),
+        ) from exc
+
+
+def _adapter_error_mapping(exc: Exception) -> Mapping[str, Any]:
+    return {
+        "error_kind": _adapter_error_kind(exc),
+        "exception_type": type(exc).__name__,
+        "message_excerpt": _safe_exception_excerpt(exc),
+        "proof_limits": [
+            "adapter exception frontier support evidence only",
+            "not Agent returned payload",
+            "not AgentFact",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ],
+        "not_proven": [
+            "provider or local callable behavior after the adapter exception",
+            "semantic correctness of the interrupted work",
+            "caller/COO disposition after frontier observation",
+        ],
+    }
+
+
+def _adapter_error_kind(exc: Exception) -> str:
+    message = str(exc).lower()
+    if isinstance(exc, FileNotFoundError):
+        return "local_cli_missing"
+    if isinstance(exc, subprocess.TimeoutExpired):
+        return "local_cli_timeout"
+    if "non-zero" in message or "returned non-zero" in message:
+        return "local_cli_nonzero"
+    if "returned payload" in message or "forbidden returned" in message:
+        return "adapter_return_shape_rejected"
+    return "adapter_exception"
+
+
+def _per_step_recorded_at() -> str:
+    """Return a per-step RFC 3339 UTC timestamp at microsecond resolution.
+
+    δ-b PER-STEP recorded_at: real datetime is available in run.py, so capture
+    the wall-clock time when a step's agent dispatch completes. Microsecond
+    resolution keeps back-to-back in-process steps distinct; the Z suffix matches
+    the format produced by support.recording.capture.graph_ready_timestamp.
+    """
+
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _safe_exception_excerpt(exc: Exception) -> str:
+    text = " ".join(str(exc).split())
+    secret_patterns = (
+        (r"(?i)authorization\s*:\s*bearer\s+\S+", "authorization credential redacted"),
+        (r"(?i)\bbearer\s+\S+", "credential redacted"),
+        (r"(?i)\bapi[_-]?key\s*[:=]\s*\S+", "credential redacted"),
+        (r"(?i)sk-[A-Za-z0-9._~+/=-]+", "credential redacted"),
+        (r"(?i)xoxb-[A-Za-z0-9._~+/=-]+", "credential redacted"),
+        (r"(?i)ghp_[A-Za-z0-9_]+", "credential redacted"),
+        (r"(?i)gho_[A-Za-z0-9_]+", "credential redacted"),
+        (r"(?i)github_pat_[A-Za-z0-9_]+", "credential redacted"),
+        (r"(?i)AIza[A-Za-z0-9_-]+", "credential redacted"),
+        # Provider/runtime session + resume artifacts. Per the AGENTS principle a
+        # provider-specific session id must never reach a durable support record,
+        # and an adapter exception excerpt IS durable support evidence. The
+        # prefixed forms run before the bare-UUID sweep so they keep a specific
+        # label; the UUID sweep is safe here because spine ids are slug-style and
+        # content hashes are 64-hex sha256 (no UUID dashes), so it cannot eat
+        # legitimate Brick/Agent/Link identifiers.
+        (r"(?i)\bprovider-session-[A-Za-z0-9._~+/=-]+", "session id redacted"),
+        (r"(?i)\bsess[_-][A-Za-z0-9._~+/=-]+", "session id redacted"),
+        (r"(?i)\bresume[_-]token[_-][A-Za-z0-9._~+/=-]+", "resume token redacted"),
+        (r"(?i)\bchatcmpl-[A-Za-z0-9._~+/=-]+", "session id redacted"),
+        (r"\bya29\.[A-Za-z0-9._-]+", "credential redacted"),
+        (r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{4,}", "credential redacted"),
+        (r"(?i)\bapi[_-]?key\b", "credential label redacted"),
+        (r"(?i)\bbearer\b", "credential label redacted"),
+        (
+            r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b",
+            "session id redacted",
+        ),
+        # Bare ULID (Crockford base32) session ids. Last so the prefixed/UUID forms
+        # win their specific labels first; safe in error text where over-scrubbing
+        # only costs a little debug detail and never breaks behavior.
+        (r"\b[0-9A-HJKMNP-TV-Z]{26}\b", "session id redacted"),
+    )
+    for pattern, replacement in secret_patterns:
+        text = re.sub(pattern, replacement, text)
+    return text[:240]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def build_minimal_crossing(
+    work_statement: str,
+    returned: object,
+    *,
+    link_fact: MovementFact,
+    transition_fact: TransitionFact,
+    transfer_gate_fact: GateFact | None = None,
+    carry_gate_fact: GateFact | None = None,
+    movement_gate_fact: GateFact | None = None,
+    transfer_fact: "TransferFact | None" = None,
+    carry_fact: "CarryFact | None" = None,
+    comparison_rule: str = "",
+    required_return_shape: str = "",
+    proof_limits: Iterable[str] | str | None = None,
+) -> MinimalCrossingRecord:
+    """Build one crossing from explicit caller-supplied Link facts."""
+
+    brick_work = BrickWork.from_parts(
+        work_statement=work_statement,
+        comparison_rule=comparison_rule,
+        required_return_shape=required_return_shape,
+    )
+    _validate_no_payload_forbidden("returned", returned, _RETURN_FORBIDDEN_KEYS)
+    agent_fact = make_agent_fact(received_work=brick_work, returned=returned)
+    brick_comparison = BrickComparisonFact.from_parts(
+        work_reference=brick_work.work_statement,
+        comparison_evidence=(
+            "public AgentFact returned value is available for Brick comparison",
+        ),
+        observed_match_kind="unknown",
+        comparison_rule=brick_work.comparison_rule,
+        required_return_shape_evidence=brick_work.required_return_shape,
+        forbidden_shortcut_evidence=(
+            "support/run did not classify the returned value",
+            "support/run used caller-supplied Link public facts",
+        ),
+    )
+    return record_from_public_facts(
+        brick_work=brick_work,
+        agent_fact=agent_fact,
+        brick_comparison=brick_comparison,
+        link_fact=link_fact,
+        transition_fact=transition_fact,
+        transfer_gate_fact=transfer_gate_fact,
+        carry_gate_fact=carry_gate_fact,
+        movement_gate_fact=movement_gate_fact,
+        transfer_fact=transfer_fact,
+        carry_fact=carry_fact,
+        proof_limits=proof_limits,
+    )
+
+
+def record_from_public_facts(
+    *,
+    brick_work: BrickWork,
+    agent_fact: AgentFact,
+    brick_comparison: BrickComparisonFact,
+    link_fact: MovementFact,
+    transition_fact: TransitionFact,
+    transfer_gate_fact: GateFact | None = None,
+    carry_gate_fact: GateFact | None = None,
+    movement_gate_fact: GateFact | None = None,
+    transfer_fact: "TransferFact | None" = None,
+    carry_fact: "CarryFact | None" = None,
+    proof_limits: Iterable[str] | str | None = None,
+) -> MinimalCrossingRecord:
+    """Compose caller-supplied public facts into a narrow support record."""
+
+    return MinimalCrossingRecord(
+        brick_work=_require_fact("brick_work", brick_work, BrickWork),
+        agent_fact=_require_fact("agent_fact", agent_fact, AgentFact),
+        brick_comparison=_require_fact(
+            "brick_comparison",
+            brick_comparison,
+            BrickComparisonFact,
+        ),
+        link_fact=_require_fact("link_fact", link_fact, MovementFact),
+        transition_fact=_require_fact("transition_fact", transition_fact, TransitionFact),
+        transfer_gate_fact=_optional_fact("transfer_gate_fact", transfer_gate_fact, GateFact),
+        carry_gate_fact=_optional_fact("carry_gate_fact", carry_gate_fact, GateFact),
+        movement_gate_fact=_optional_fact(
+            "movement_gate_fact",
+            movement_gate_fact,
+            GateFact,
+        ),
+        transfer_fact=_optional_fact(
+            "transfer_fact",
+            transfer_fact,
+            "brick_protocol.link.transfer",
+            "TransferFact",
+        ),
+        carry_fact=_optional_fact(
+            "carry_fact",
+            carry_fact,
+            "brick_protocol.link.carry",
+            "CarryFact",
+        ),
+        proof_limits=_proof_limits_tuple(proof_limits),
+    )
+
+
+def prepare_agent_run_from_step_rows(
+    fixture: Mapping[str, Any],
+    *,
+    building_id: str | None = None,
+    proof_limits: Iterable[str] | str | None = None,
+) -> AgentRunPreparationRecord:
+    """Resolve one declared step row packet and Agent Object into support prep evidence."""
+
+    _require_mapping_value("fixture", fixture)
+    _validate_no_payload_forbidden("fixture", fixture, _FORBIDDEN_PAYLOAD_KEYS)
+    step_rows = _three_axis_step_rows_from_mapping(
+        _require_mapping_value("step_rows", fixture.get("step_rows"))
+    )
+    agent_ref = _required_text(
+        "step_rows.agent_row.agent_object_ref",
+        step_rows.agent_row.get("agent_object_ref"),
+    )
+    if "agent_objects" in fixture:
+        agent_objects = _require_mapping_value("agent_objects", fixture.get("agent_objects"))
+        agent_object = _agent_object_from_mapping(
+            _require_mapping_value(f"agent_objects.{agent_ref}", agent_objects.get(agent_ref))
+        )
+    else:
+        agent_object = load_agent_object_resource(agent_ref)
+    if agent_object.object_ref != agent_ref:
+        raise ValueError("Agent row ref must match Agent Object object_ref")
+
+    brick_work = _brick_work_from_row(step_rows.brick_row)
+    checked_building_id = _path_segment(
+        "building_id",
+        building_id or _optional_text_from_mapping(fixture, "building_id") or step_rows.step_ref,
+    )
+    agent_performer_fact = make_agent_performer_fact(
+        name=agent_object.name,
+        lane=agent_object.lane,
+        callable_performers=agent_object.callable_performer_refs,
+    )
+    receipt_fact = make_receipt_fact(
+        received_work=brick_work,
+        received_at_reference=_optional_text_from_mapping(fixture, "received_at_reference"),
+        evidence_reference=_optional_text_from_mapping(
+            fixture,
+            "receipt_evidence_reference",
+        ),
+    )
+    raw_refs = _merge_texts(
+        step_rows.brick_row.get("raw_refs"),
+        step_rows.link_row.get("raw_refs"),
+        fixture.get("raw_refs"),
+    )
+    task_source_ref = _optional_text_from_mapping(fixture, "task_source_ref")
+    if task_source_ref:
+        raw_refs = _merge_texts(raw_refs, (task_source_ref,))
+    brick_instance_ref = _required_text(
+        "step_rows.brick_row.brick_instance_ref",
+        step_rows.brick_row.get("brick_instance_ref", "brick-001"),
+    )
+    next_brick_instance_ref = _required_text(
+        "step_rows.link_row.next_brick_instance_ref",
+        step_rows.link_row.get("next_brick_instance_ref", "brick-002"),
+    )
+    checked_proof_limits = _proof_limits_tuple(
+        proof_limits if proof_limits is not None else fixture.get("proof_limits")
+    )
+    call_preparation_refs = {
+        "agent_object_ref": agent_object.object_ref,
+        "agent_performer_fact_ref": f"agent-performer:{agent_object.object_ref}",
+        "receipt_fact_ref": f"receipt:{checked_building_id}:{agent_object.object_ref}",
+        "prompt_refs": agent_object.prompt_refs,
+        "skill_refs": agent_object.skill_refs,
+        "hook_refs": agent_object.hook_refs,
+        "tool_policy_refs": agent_object.tool_policy_refs,
+        "discipline_refs": agent_object.discipline_refs,
+        "adapter_refs": agent_object.adapter_refs,
+        "call_preparation_only": True,
+    }
+    if task_source_ref:
+        call_preparation_refs["task_source_ref"] = task_source_ref
+    return AgentRunPreparationRecord(
+        building_id=checked_building_id,
+        step_rows=step_rows,
+        brick_work=brick_work,
+        brick_instance_ref=brick_instance_ref,
+        next_brick_instance_ref=next_brick_instance_ref,
+        agent_object=agent_object,
+        agent_performer_fact=agent_performer_fact,
+        receipt_fact=receipt_fact,
+        call_preparation_refs=call_preparation_refs,
+        raw_refs=raw_refs,
+        proof_limits=checked_proof_limits,
+        not_proven=_agent_run_not_proven(),
+    )
+
+
+def complete_agent_run_from_prepared(
+    prepared: AgentRunPreparationRecord,
+    *,
+    returned_value: Any,
+    link_fact: MovementFact,
+    transition_fact: TransitionFact,
+    adapter_result: AgentAdapterResult | None = None,
+    transfer_gate_fact: GateFact | None = None,
+    carry_gate_fact: GateFact | None = None,
+    movement_gate_fact: GateFact | None = None,
+    transfer_fact: "TransferFact | None" = None,
+    carry_fact: "CarryFact | None" = None,
+    comparison_observation: BrickComparisonFact | Mapping[str, Any] | None = None,
+    proof_limits: Iterable[str] | str | None = None,
+) -> AgentRunCompletionRecord:
+    """Record adapter return evidence and caller-supplied Link facts."""
+
+    if not isinstance(prepared, AgentRunPreparationRecord):
+        raise TypeError("prepared must be AgentRunPreparationRecord")
+    _validate_no_payload_forbidden("returned_value", returned_value, _RETURN_FORBIDDEN_KEYS)
+    agent_fact = make_agent_fact(received_work=prepared.brick_work, returned=returned_value)
+    brick_comparison = _comparison_fact_from_observation(
+        prepared,
+        comparison_observation,
+        returned_value=returned_value,
+    )
+    if movement_gate_fact is None:
+        movement_gate_fact = _declared_movement_gate_fact(
+            prepared,
+            brick_comparison,
+        )
+    crossing_record = record_from_public_facts(
+        brick_work=prepared.brick_work,
+        agent_fact=agent_fact,
+        brick_comparison=brick_comparison,
+        link_fact=link_fact,
+        transition_fact=transition_fact,
+        transfer_gate_fact=transfer_gate_fact,
+        carry_gate_fact=carry_gate_fact,
+        movement_gate_fact=movement_gate_fact,
+        transfer_fact=transfer_fact,
+        carry_fact=carry_fact,
+        proof_limits=proof_limits or prepared.proof_limits,
+    )
+    checked_proof_limits = crossing_record.proof_limits
+    not_proven = _agent_run_not_proven()
+    building_map_packet = agent_run_building_map_packet(
+        prepared,
+        crossing_record,
+        proof_limits=checked_proof_limits,
+        not_proven=not_proven,
+    )
+    lifecycle_packet_mapping = agent_run_lifecycle_mapping(
+        prepared,
+        crossing_record,
+        building_map_packet=building_map_packet,
+        proof_limits=checked_proof_limits,
+        not_proven=not_proven,
+    )
+    return AgentRunCompletionRecord(
+        preparation=prepared,
+        adapter_result=adapter_result,
+        agent_fact=agent_fact,
+        brick_comparison=brick_comparison,
+        crossing_record=crossing_record,
+        link_handoff_packet=_agent_run_handoff_packet(
+            prepared,
+            crossing_record,
+            not_proven,
+            checked_proof_limits,
+        ),
+        building_map_packet=building_map_packet,
+        lifecycle_packet_mapping=lifecycle_packet_mapping,
+        proof_limits=checked_proof_limits,
+        not_proven=not_proven,
+    )
+
+
+def _declared_movement_gate_fact(
+    prepared: AgentRunPreparationRecord,
+    brick_comparison: BrickComparisonFact,
+) -> GateFact | None:
+    gate_refs = _text_tuple(
+        "declared_gate_refs",
+        prepared.step_rows.link_row.get(_DECLARED_GATE_REFS_KEY, ()),
+    )
+    if not gate_refs:
+        return None
+    checked = f"brick-comparison:{prepared.building_id}:{prepared.step_rows.step_ref}"
+    return evaluate_declared_movement_gate(
+        gate_refs=gate_refs,
+        required_return_fields=_brick_comparison_required_return_fields(brick_comparison),
+        missing_return_fields=_brick_comparison_missing_return_fields(brick_comparison),
+        observed_match_kind=brick_comparison.observed_match_kind,
+        human_review_present=_link_row_has_non_empty_list(
+            prepared.step_rows.link_row,
+            ("route_decision_basis", "human_review_refs"),
+        ),
+        override_present=_link_row_has_non_empty_list(
+            prepared.step_rows.link_row,
+            ("route_decision_basis", "override_refs"),
+        ),
+        base_required_return_fields=_required_return_shape_fields(
+            prepared.brick_work.required_return_shape
+        ),
+        checked_public_fact=checked,
+        evidence_reference=checked,
+    )
+
+
+def _brick_comparison_required_return_fields(
+    brick_comparison: BrickComparisonFact,
+) -> tuple[str, ...]:
+    return brick_comparison.required_return_fields()
+
+
+def _brick_comparison_missing_return_fields(
+    brick_comparison: BrickComparisonFact,
+) -> tuple[str, ...]:
+    return brick_comparison.missing_return_fields()
+
+
+def _brick_comparison_fields_from_evidence(
+    brick_comparison: BrickComparisonFact,
+    prefix: str,
+) -> tuple[str, ...]:
+    return brick_comparison.fields_from_evidence(prefix)
+
+
+def _required_return_shape_fields(value: Any) -> tuple[str, ...]:
+    return parse_required_return_shape(value)
+
+
+def _link_row_has_non_empty_list(
+    link_row: Mapping[str, Any],
+    path: tuple[str, str],
+) -> bool:
+    outer = link_row.get(path[0])
+    if not isinstance(outer, Mapping):
+        return False
+    value = outer.get(path[1])
+    return isinstance(value, list) and any(isinstance(item, str) and item.strip() for item in value)
+
+
+def _step_result_with_gate_sequence_pause(
+    step_result: BuildingRunSupportResult,
+    decision: GateSequenceDecision,
+) -> BuildingRunSupportResult:
+    prepared = step_result.preparation
+    step_rows = prepared.step_rows
+    link_row = dict(step_rows.link_row)
+    pending_target = (
+        decision.pending_target_ref
+        or decision.target_brick_ref
+        or prepared.next_brick_instance_ref
+    )
+    paused_at_ref = "link-transition:" + (
+        decision.evidence_ref.removeprefix("observation:") or "gate-sequence"
+    )
+    link_row["transition_lifecycle"] = {
+        "state": "paused",
+        "progress_state": "in_progress",
+        "paused_at_ref": paused_at_ref,
+        "from_brick_ref": prepared.brick_instance_ref,
+        "pending_target_ref": pending_target,
+        "required_disposition_owner": (
+            decision.required_disposition_owner or "caller-or-coo"
+        ),
+        "reason_refs": list(decision.reason_refs or (decision.evidence_ref,)),
+        "proof_limits": [
+            "support observed declared gate_sequence_policy pause only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ],
+        "not_proven": [
+            "caller/COO disposition after gate sequence pause",
+            "semantic correctness of the paused transition",
+        ],
+    }
+    new_step_rows = dataclasses.replace(step_rows, link_row=link_row)
+    new_prepared = dataclasses.replace(prepared, step_rows=new_step_rows)
+    return dataclasses.replace(step_result, preparation=new_prepared)
+
+
+def _declared_transition_lifecycle_state(step: Mapping[str, Any]) -> str:
+    try:
+        rows = step.get("rows")
+        if not isinstance(rows, list):
+            return ""
+        link_rows = [
+            row for row in rows if isinstance(row, Mapping) and row.get("axis") == "Link"
+        ]
+        if len(link_rows) != 1:
+            return ""
+        lifecycle = link_rows[0].get("transition_lifecycle")
+        if not isinstance(lifecycle, Mapping):
+            return ""
+        return _optional_text_value(lifecycle.get("state")) or ""
+    except (TypeError, ValueError):
+        return ""
+
+
+def _declared_building_lifecycle_state(step: Mapping[str, Any]) -> str:
+    try:
+        rows = step.get("rows")
+        if not isinstance(rows, list):
+            return ""
+        link_rows = [
+            row for row in rows if isinstance(row, Mapping) and row.get("axis") == "Link"
+        ]
+        if len(link_rows) != 1:
+            return ""
+        lifecycle = link_rows[0].get("building_lifecycle")
+        if not isinstance(lifecycle, Mapping):
+            return ""
+        return _optional_text_value(lifecycle.get("state")) or ""
+    except (TypeError, ValueError):
+        return ""
+
+
+
+
+
+
+def load_agent_object_resource(
+    agent_object_ref: str,
+    *,
+    object_root: Path | str | None = None,
+) -> AgentObjectContractData:
+    """Load a provider-neutral Agent Object resource by symbolic ref."""
+
+    object_ref = _required_text("agent_object_ref", agent_object_ref)
+    if not object_ref.startswith("agent-object:"):
+        raise ValueError("Agent Object resource ref must start with agent-object:")
+    slug = _resource_slug("agent_object_ref", object_ref.removeprefix("agent-object:"))
+    root = Path(object_root) if object_root is not None else _DEFAULT_AGENT_OBJECT_ROOT
+    value = _json_resource_mapping(root / f"{slug}.yaml")
+    agent_object = _agent_object_from_mapping(value)
+    if agent_object.object_ref != object_ref:
+        raise ValueError("Agent Object resource object_ref does not match requested ref")
+    _validate_agent_object_with_resource_resolver(object_ref, root)
+    return agent_object
+
+
+def _validate_agent_object_with_resource_resolver(
+    agent_object_ref: str,
+    object_root: Path,
+) -> None:
+    """Reuse the Agent resource resolver before the runner prepares a step.
+
+    The runner remains a declared-road walker. This check only makes sure the
+    Agent Object row is accepted by the Agent resource resolver before adapter
+    preparation.
+    """
+
+    root = object_root.resolve()
+    repo_root = root.parents[1] if root.name == "objects" and root.parent.name == "agent" else _REPO_ROOT
+    validation = validate_agent_refs(agent_object_ref, repo_root=repo_root)
+    if not validation.get("ok"):
+        violations = validation.get("violations")
+        if isinstance(violations, list) and violations:
+            reason = "; ".join(str(item) for item in violations)
+        else:
+            reason = "Agent Object resource rejected by Agent resource resolver"
+        raise ValueError(reason)
+
+
+def _fixture_mapping(fixture: Mapping[str, Any] | str | Path) -> Mapping[str, Any]:
+    if isinstance(fixture, Mapping):
+        return fixture
+    path = Path(fixture)
+    text = path.read_text(encoding="utf-8")
+    if path.suffix in {".yaml", ".yml"}:
+        try:
+            import yaml  # type: ignore[import-not-found]
+        except ImportError as exc:
+            raise ValueError("YAML Building Plan files require PyYAML") from exc
+        value = yaml.safe_load(text)
+    else:
+        value = json.loads(text)
+    if not isinstance(value, Mapping):
+        raise TypeError("fixture must be a JSON object")
+    return value
+
+
+def _three_axis_step_rows_from_mapping(value: Mapping[str, Any]) -> ThreeAxisStepRows:
+    _validate_no_payload_forbidden("step_rows", value, _FORBIDDEN_PAYLOAD_KEYS)
+    step_ref = _required_text("step_rows.step_ref", value.get("step_ref"))
+    rows_value = value.get("rows")
+    if not isinstance(rows_value, list):
+        raise TypeError("step_rows.rows must be a JSON array")
+    if len(rows_value) != 3:
+        raise ValueError("Building Plan step rows must contain exactly three rows")
+    rows = [
+        _require_mapping_value(f"step_rows.rows[{index}]", item)
+        for index, item in enumerate(rows_value)
+    ]
+    by_axis: dict[str, Mapping[str, Any]] = {}
+    for row in rows:
+        axis = _required_text("step row axis", row.get("axis"))
+        if axis in by_axis:
+            raise ValueError(f"Building Plan step has duplicate {axis} row")
+        by_axis[axis] = row
+    if set(by_axis) != {"Brick", "Agent", "Link"}:
+        raise ValueError("Building Plan step rows must be exactly Brick, Agent, Link")
+    _require_only_keys("Brick row", by_axis["Brick"], _BRICK_ROW_ALLOWED_KEYS)
+    _require_only_keys("Agent row", by_axis["Agent"], _AGENT_ROW_ALLOWED_KEYS)
+    _require_only_keys("Link row", by_axis["Link"], _LINK_ROW_ALLOWED_KEYS)
+    movement, target = _movement_and_target_from_link_row(by_axis["Link"])
+    _validate_route_replay_plan_for_link_row(
+        by_axis["Link"],
+        movement=movement,
+        target=target,
+    )
+    _validate_declared_gate_refs_for_link_row(by_axis["Link"])
+    _validate_gate_sequence_policy_for_link_row(
+        by_axis["Link"],
+        source_brick_ref=_optional_text_from_mapping(
+            by_axis["Brick"],
+            "brick_instance_ref",
+        )
+        or "",
+        target_brick_ref=target,
+    )
+    _validate_route_decision_basis_for_link_row(by_axis["Link"])
+    _validate_transition_authoring_for_link_row(by_axis["Link"])
+    _validate_transition_lifecycle_for_link_row(by_axis["Link"])
+    _validate_building_lifecycle_for_link_row(by_axis["Link"])
+    return ThreeAxisStepRows(
+        step_ref=step_ref,
+        brick_row=by_axis["Brick"],
+        agent_row=by_axis["Agent"],
+        link_row=by_axis["Link"],
+        proof_limits=_proof_limits_tuple(value.get("proof_limits")),
+    )
+
+
+def _agent_object_from_mapping(value: Mapping[str, Any]) -> AgentObjectContractData:
+    _require_only_keys("Agent Object", value, _AGENT_OBJECT_ALLOWED_KEYS)
+    _validate_no_payload_forbidden("Agent Object", value, _FORBIDDEN_PAYLOAD_KEYS)
+    kwargs: dict[str, Any] = {
+        "object_ref": _required_text("Agent Object object_ref", value.get("object_ref")),
+        "name": _required_text("Agent Object name", value.get("name")),
+        "lane": _required_text("Agent Object lane", value.get("lane")),
+        "callable_performer_refs": _text_tuple(
+            "Agent Object callable_performer_refs",
+            value.get("callable_performer_refs", ()),
+        ),
+    }
+    for key in _AGENT_OBJECT_REF_FIELDS:
+        kwargs[key] = _text_tuple(f"Agent Object {key}", value.get(key, ()))
+    return AgentObjectContractData(**kwargs)
+
+
+def _brick_work_from_row(row: Mapping[str, Any]) -> BrickWork:
+    return BrickWork.from_parts(
+        work_statement=_required_text("Brick row work_statement", row.get("work_statement")),
+        comparison_rule=_optional_text_value(row.get("comparison_rule")) or "",
+        required_return_shape=_optional_text_value(row.get("required_return_shape")) or "",
+        source_facts=_text_tuple("Brick row source_facts", row.get("source_facts", ())),
+    )
+
+
+def _adapter_request_from_prepared(
+    packet: Mapping[str, Any],
+    prepared: AgentRunPreparationRecord,
+) -> AgentAdapterRequest:
+    if "selected_adapter_ref" not in packet:
+        raise ValueError("selected_adapter_ref must be declared by caller or Building Plan step")
+    selected_adapter_ref = _required_text(
+        "selected_adapter_ref",
+        packet.get("selected_adapter_ref"),
+    )
+    if selected_adapter_ref not in prepared.agent_object.adapter_refs:
+        raise ValueError("selected adapter must be referenced by Agent Object")
+    callable_ref = ""
+    if selected_adapter_ref == "adapter:local":
+        callable_ref = _first_text(prepared.agent_object.callable_performer_refs)
+    agent_instruction_packet = render_agent_instruction_packet(
+        prepared.agent_object.object_ref,
+        repo_root=_REPO_ROOT,
+    )
+    request_kwargs = {
+        "building_id": prepared.building_id,
+        "agent_object_ref": prepared.agent_object.object_ref,
+        "adapter_ref": selected_adapter_ref,
+        "callable_ref": callable_ref,
+        "brick_instance_ref": prepared.brick_instance_ref,
+        "next_brick_instance_ref": prepared.next_brick_instance_ref,
+        "selected_model_ref": _optional_text_from_mapping(packet, "selected_model_ref") or "",
+        "prompt_refs": prepared.agent_object.prompt_refs,
+        "skill_refs": prepared.agent_object.skill_refs,
+        "hook_refs": prepared.agent_object.hook_refs,
+        "tool_policy_refs": prepared.agent_object.tool_policy_refs,
+        "discipline_refs": prepared.agent_object.discipline_refs,
+        "input_packet_ref": _optional_text_from_mapping(packet, "adapter_input_packet_ref")
+        or f"support-packet:{prepared.building_id}:{prepared.agent_object.object_ref}:input",
+        "output_packet_ref": _optional_text_from_mapping(packet, "adapter_output_packet_ref")
+        or f"support-packet:{prepared.building_id}:{prepared.agent_object.object_ref}:output",
+        "work_statement": prepared.brick_work.work_statement,
+        "comparison_rule": prepared.brick_work.comparison_rule,
+        "required_return_shape": _adapter_required_return_shape(prepared),
+        # branch (step-output drain): packet-aware source-fact body carry +
+        # missing-step-output guard, NOT main's plain 1-arg _source_fact_bodies.
+        "source_fact_bodies": _adapter_source_fact_bodies(
+            packet,
+            prepared.brick_work.source_facts,
+        ),
+        "link_handoff_refs": (
+            _mapping("link_handoff_refs", packet["link_handoff_refs"])
+            if "link_handoff_refs" in packet
+            else {}
+        ),
+        "write_scope": _write_scope_from_brick_row(prepared.step_rows.brick_row),
+        "building_session_ref": _optional_text_from_mapping(packet, "building_session_ref") or "",
+        "session_scope_ref": _optional_text_from_mapping(packet, "session_scope_ref") or "",
+        "session_continuity_mode": _optional_text_from_mapping(
+            packet,
+            "session_continuity_mode",
+        )
+        or "none",
+        "agent_instruction_packet": agent_instruction_packet,
+        "proof_limits": prepared.proof_limits,
+        "not_proven": prepared.not_proven,
+    }
+    return _agent_adapter_request_from_kwargs(request_kwargs)
+
+
+def _adapter_required_return_shape(prepared: AgentRunPreparationRecord) -> Any:
+    """The return shape the ADAPTER asks the Agent for: Brick shape + gate fields.
+
+    GATE-SEAM CONSISTENCY (0610): the comparison side already requires the
+    union of the Brick-declared return shape and the declared Link gates'
+    evidence fields (plan_validation._required_agent_return_fields_for_brick_handoff
+    -> link/gate.gate_required_return_fields). The adapter request previously
+    asked for the Brick shape ONLY, so a declared link-gate:strict row could
+    never be satisfied through a local CLI adapter (the prompt never asked for
+    blocked_or_missing_evidence / remaining_delta, and adapter extraction drops
+    unrequested keys) -- the gate recorded permanently-missing facts. This
+    helper threads the SAME union into the request.
+
+    NEUTRALITY SCOPE (qualified, codex review 0610): byte-neutrality holds
+    ONLY when the declared gates add no field beyond the Brick shape -- every
+    FRESHLY MATERIALIZED default-only / coo / human row today, because the
+    live kind shapes already carry observed_evidence + not_proven; then the
+    original declared value passes through VERBATIM and prompts do not change.
+    It is NOT byte-neutral for STORED LEGACY plans whose Brick shape lacks a
+    default-gate-required field (repro:
+    brick/building_plans/building-automation-complete-0-scope-c-dogfood.yaml
+    has rows without observed_evidence): such a row's adapter request now asks
+    the gate-implied union. That delta is DELIBERATE -- it corrects a historic
+    under-ask the gate side would have recorded as permanently-missing facts
+    anyway, and legacy stored plans are already strict-blocked at run
+    admission for re-runs (require_write_need_marker), so no green walk flips.
+    FIRE: adapter_gate_shape_union_case pins the NEW behavior (a row whose
+    Brick shape lacks a default-gate-required field must be ASKED for the
+    union; the old Brick-shape-only under-ask REDs that case).
+    """
+
+    base_fields = parse_required_return_shape(prepared.brick_work.required_return_shape)
+    gate_refs = _text_tuple(
+        "declared_gate_refs",
+        prepared.step_rows.link_row.get(_DECLARED_GATE_REFS_KEY, ()),
+    )
+    union_fields = gate_required_return_fields(gate_refs, base_fields)
+    if tuple(union_fields) == tuple(base_fields):
+        return prepared.brick_work.required_return_shape
+    return ", ".join(union_fields)
+
+
+def _agent_adapter_request_from_kwargs(kwargs: Mapping[str, Any]) -> AgentAdapterRequest:
+    """Build AgentAdapterRequest while adapter packet fields can land independently."""
+
+    admitted_fields = {field.name for field in dataclasses.fields(AgentAdapterRequest)}
+    return AgentAdapterRequest(
+        **{key: value for key, value in kwargs.items() if key in admitted_fields}
+    )
+
+
+def _adapter_source_fact_bodies(
+    packet: Mapping[str, Any],
+    source_facts: Iterable[str],
+) -> Mapping[str, str]:
+    source_fact_refs = tuple(source_facts)
+    supplied_bodies = _supplied_source_fact_bodies(packet)
+    missing_step_output_refs = [
+        source_fact
+        for source_fact in source_fact_refs
+        if _is_step_output_source_fact_ref(source_fact)
+        and source_fact not in supplied_bodies
+    ]
+    if missing_step_output_refs:
+        raise ValueError(
+            "missing step-output source_fact body/evidence: "
+            + ", ".join(missing_step_output_refs)
+        )
+    bodies = dict(
+        _source_fact_bodies(
+            source_fact
+            for source_fact in source_fact_refs
+            if not _is_step_output_source_fact_ref(source_fact)
+            and source_fact != INLINE_TASK_SOURCE_REF
+        )
+    )
+    # TASK-BY-TEXT (0611, codex FIX-A): the inline task sentinel resolves to
+    # the statement body carried ON the packet (threaded from the plan by
+    # _step_fixture_from_plan_step), never to a file -- parity with the file
+    # flow where the declared task file body lands in the prompt. A sentinel
+    # source fact WITHOUT a carried body is skipped exactly like an unreadable
+    # file ref (run admission already rejects a sentinel task_source_ref
+    # without a statement; this branch only feeds the prompt carry).
+    if INLINE_TASK_SOURCE_REF in source_fact_refs:
+        inline_statement = packet.get("task_statement")
+        if isinstance(inline_statement, str) and inline_statement.strip():
+            bodies[INLINE_TASK_SOURCE_REF] = safe_source_fact_body(inline_statement)
+    for source_fact_ref, body in supplied_bodies.items():
+        if not _is_step_output_source_fact_ref(source_fact_ref):
+            raise ValueError(
+                "source_fact_bodies packet carry is admitted only for step-output refs"
+            )
+        bodies[source_fact_ref] = safe_source_fact_body(str(body))
+    return bodies
+
+
+def _supplied_source_fact_bodies(packet: Mapping[str, Any]) -> Mapping[str, str]:
+    supplied = packet.get("source_fact_bodies")
+    if supplied is None:
+        return {}
+    result: dict[str, str] = {}
+    supplied_bodies = _mapping("source_fact_bodies", supplied)
+    for source_fact_ref, body in supplied_bodies.items():
+        ref = _required_text("source_fact_bodies ref", source_fact_ref)
+        result[ref] = safe_source_fact_body(str(body))
+    return result
+
+
+def _source_fact_bodies(source_facts: Iterable[str]) -> Mapping[str, str]:
+    bodies: dict[str, str] = {}
+    for source_fact in source_facts:
+        if _is_step_output_source_fact_ref(source_fact):
+            raise ValueError(
+                "step-output source_fact refs must be supplied from step-close evidence"
+            )
+        path = _readable_source_fact_path(source_fact)
+        if path is None:
+            continue
+        try:
+            body = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeError):
+            continue
+        bodies[source_fact] = safe_source_fact_body(body)
+    return bodies
+
+
+def _brick_source_facts_from_step(step: Mapping[str, Any]) -> tuple[str, ...]:
+    rows = step.get("rows")
+    if not isinstance(rows, list):
+        return ()
+    for row in rows:
+        if isinstance(row, Mapping) and row.get("axis") == "Brick":
+            return _text_tuple("Brick row source_facts", row.get("source_facts", ()))
+    return ()
+
+
+def _step_output_source_fact_bodies_from_refs(
+    building_root: Path,
+    source_facts: Iterable[str],
+) -> Mapping[str, str]:
+    bodies: dict[str, str] = {}
+    missing: list[str] = []
+    for source_fact in source_facts:
+        if not _is_step_output_source_fact_ref(source_fact):
+            continue
+        relative_ref = _step_output_relative_ref(source_fact)
+        if relative_ref is None:
+            missing.append(source_fact)
+            continue
+        path = building_root / relative_ref
+        try:
+            body = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeError):
+            missing.append(source_fact)
+            continue
+        bodies[source_fact] = safe_source_fact_body(body)
+    if missing:
+        raise ValueError(
+            "missing step-output source_fact body/evidence: " + ", ".join(missing)
+        )
+    return bodies
+
+
+def _is_step_output_source_fact_ref(source_fact: str) -> bool:
+    text = _required_text("source_fact", source_fact)
+    normalized = text.replace("\\", "/")
+    return (
+        "work/step-outputs/" in normalized
+        or normalized.startswith("step-output:")
+        or normalized.endswith("/step-output.json")
+    )
+
+
+def _step_output_relative_ref(source_fact: str) -> str | None:
+    text = _required_text("source_fact", source_fact).replace("\\", "/")
+    marker = "work/step-outputs/"
+    if marker not in text:
+        return None
+    return text[text.index(marker) :]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def _readable_source_fact_path(source_fact: str) -> Path | None:
+    text = _required_text("source_fact", source_fact)
+    if "://" in text or text.startswith(("env:", "keychain:", "external_secret:")):
+        return None
+    candidate = Path(text)
+    if not candidate.is_absolute():
+        candidate = _REPO_ROOT / candidate
+    try:
+        resolved = candidate.resolve()
+        resolved.relative_to(_REPO_ROOT.resolve())
+    except (OSError, ValueError):
+        return None
+    if not resolved.is_file():
+        return None
+    return resolved
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+__all__ = [
+    "AdapterFrontierEvidenceWritten",
+    "AgentObjectContractData",
+    "AgentRunCompletionRecord",
+    "AgentRunPreparationRecord",
+    "BuildingPlanSupportResult",
+    "BuildingRunSupportResult",
+    "MinimalCrossingRecord",
+    "ThreeAxisStepRows",
+    "agent_run_building_map_packet",
+    "agent_run_lifecycle_mapping",
+    "build_minimal_crossing",
+    "complete_agent_run_from_prepared",
+    "load_agent_object_resource",
+    "prepare_agent_run_from_step_rows",
+    "record_from_public_facts",
+    "run_building_once",
+    "run_building_plan",
+]

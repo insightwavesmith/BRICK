@@ -1,0 +1,84 @@
+catalog_ref: brick-shape-catalog:split-p3b-p4
+owner_axis: Brick
+catalog_kind: building_shape_menu
+selection_rule: caller_or_coo_declared_only
+proof_limits:
+  - Brick-owned shape menu only
+  - not automatic shape selection
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic fitness of any future selected shape
+  - automatic Building Plan authoring
+  - route policy behavior
+shapes:
+  - shape_ref: building-shape:one-brick
+    intent: One work Brick can return the requested artifact and closure evidence.
+    step_roles:
+      - work
+      - closure
+    link_rule: forward only unless caller declares reroute in a later plan.
+    evidence_expectations:
+      - step output
+      - closure parent delta
+  - shape_ref: building-shape:simple-do
+    intent: One implementation or documentation step followed by closure.
+    step_roles:
+      - do
+      - closure
+    link_rule: forward default connection.
+    evidence_expectations:
+      - returned work
+      - validation refs
+      - closure parent delta
+  - shape_ref: building-shape:reviewable-work
+    intent: Work should be reviewed before closure.
+    step_roles:
+      - work
+      - qa
+      - closure
+    link_rule: forward default connection; transition concerns are evidence only until Link disposition adopts, does not adopt, or overrides.
+    evidence_expectations:
+      - work return
+      - QA return
+      - step output refs
+  - shape_ref: building-shape:design-needed
+    intent: The work needs a design Brick before implementation.
+    step_roles:
+      - design
+      - work
+      - qa
+      - closure
+    link_rule: forward default connection.
+    evidence_expectations:
+      - design contract
+      - work return
+      - QA return
+      - closure parent delta
+  - shape_ref: building-shape:repairable-work
+    intent: The plan includes declared repair or replay targets if QA returns transition concern evidence.
+    step_roles:
+      - design_or_work
+      - qa
+      - repair_candidate
+      - replay_candidate
+      - closure
+    link_rule: reroute only when declared by caller / COO or later admitted route policy.
+    evidence_expectations:
+      - transition concern evidence
+      - route replay refs when declared
+      - closure parent delta
+  - shape_ref: building-shape:parent-goal
+    intent: A large parent objective is split into child Buildings while preserving objective carry.
+    step_roles:
+      - parent_design
+      - child_building_candidate
+      - parent_closure
+    link_rule: child candidates are not active Buildings until caller / COO declaration.
+    evidence_expectations:
+      - parent_goal_ref
+      - remaining_delta
+      - next_target_candidates
+      - closure parent delta

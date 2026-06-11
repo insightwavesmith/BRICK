@@ -1,0 +1,103 @@
+plan_ref: building-plan:write-scope-default-exclude-0-compact
+owner_axis: Brick
+building_id: write-scope-default-exclude-0-0526
+plan_shape: linear
+selected_adapter_ref: adapter:local
+parent_goal_ref: goal:bar-v2-active-sequence
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of future writes
+  - complete diff attribution for pre-existing dirty paths
+  - provider answer quality
+  - runtime or scheduler behavior
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority
+remaining_delta:
+  - STEP-OUTPUT-AND-ROUTE-REQUEST-0
+  - TASK-SHAPE-AND-DESIGN-CONTRACT-0
+  - DESIGN-TOOLKIT-AND-MCP-0
+  - TASK-INTAKE-SKILL-0
+  - LINK-ROUTE-POLICY-RESOURCE-0
+  - CHECKER-STRICT-VALIDATION-0
+  - ROUTE-MATCH-AND-MATERIALIZATION-0
+  - AUTO-REPAIR-REPLAY-0
+  - AUTO-CHILD-BUILDING-GENERATION-0
+  - CASCADE-SWEEP-0
+  - BAR-V2-END-TO-END-DOGFOOD-0
+next_target_candidates:
+  - STEP-OUTPUT-AND-ROUTE-REQUEST-0
+steps:
+  - step_ref: write-scope-default-exclude-0-01-design
+    rows:
+      - axis: Brick
+        row_ref: brick-row:write-scope-default-exclude-0-design
+        brick_work_ref: work:write-scope-default-exclude-0-design
+        brick_instance_ref: brick-write-scope-default-exclude-0-design
+        work_statement: Define the default non-output residue filter for write observation without widening write authority.
+        comparison_rule: Observe whether excluded residue is narrow and ordinary source/output paths remain observable.
+        required_return_shape: default_excluded_residue, preserved_observation_scope, forbidden_scope, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+          - support/docs/spec/brick-protocol-write-scope-default-exclude-0-0526.md
+          - support/operator/run.py
+      - axis: Agent
+        row_ref: agent-row:write-scope-default-exclude-0-design
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:write-scope-default-exclude-0-design-to-profile
+        movement: forward
+        target_ref: brick-write-scope-default-exclude-0-profile
+        next_brick_instance_ref: brick-write-scope-default-exclude-0-profile
+  - step_ref: write-scope-default-exclude-0-02-profile
+    rows:
+      - axis: Brick
+        row_ref: brick-row:write-scope-default-exclude-0-profile
+        brick_work_ref: work:write-scope-default-exclude-0-profile
+        brick_instance_ref: brick-write-scope-default-exclude-0-profile
+        work_statement: Observe the Phase 5 profile and direct residue filter probe for default-exclude behavior.
+        comparison_rule: Profile and probe pass are support evidence only and must not be treated as source truth.
+        required_return_shape: profile_ref, probe_observations, proof_limits, not_proven
+        source_facts:
+          - support/checkers/profiles/write_scope_default_exclude.yaml
+          - support/checkers/check_profile.py
+          - support/operator/run.py
+      - axis: Agent
+        row_ref: agent-row:write-scope-default-exclude-0-profile
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:write-scope-default-exclude-0-profile-to-closure
+        movement: forward
+        target_ref: brick-write-scope-default-exclude-0-closure
+        next_brick_instance_ref: brick-write-scope-default-exclude-0-closure
+  - step_ref: write-scope-default-exclude-0-03-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:write-scope-default-exclude-0-closure
+        brick_work_ref: work:write-scope-default-exclude-0-closure
+        brick_instance_ref: brick-write-scope-default-exclude-0-closure
+        work_statement: Close Phase 5 with default-exclude evidence, parent delta, deferred queue observation, and next Movement candidate.
+        comparison_rule: Closure records support evidence and parent delta only; it does not prove future write correctness.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, deferred_smith_review_queue, next_target_candidates, next_movement_candidate
+        source_facts:
+          - brick/building_plans/write-scope-default-exclude-0-compact.yaml
+          - support/docs/spec/brick-protocol-write-scope-default-exclude-0-0526.md
+          - brick/templates/closure/standard-closure-with-parent-delta.yaml
+      - axis: Agent
+        row_ref: agent-row:write-scope-default-exclude-0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:write-scope-default-exclude-0-closure-to-step-output
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: Phase 5 closes write observation default exclude, then routes forward to Phase 6.
+        target_ref: brick-step-output-and-route-request-0-open
+        next_brick_instance_ref: brick-step-output-and-route-request-0-open

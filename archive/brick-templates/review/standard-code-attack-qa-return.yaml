@@ -1,0 +1,40 @@
+template_ref: brick-template:standard-code-attack-qa-return
+owner_axis: Brick
+template_kind: attack_qa_return_shape
+maps_to: AgentFact.returned
+step_template_refs:
+  - building-step-template:code-attack-qa
+required_return_shape:
+  - attacked_work
+  - checked_sources
+  - regression_risks
+  - negative_probe_observations
+  - failing_or_missing_probes
+  - boundary_violations
+  - transition_concern_evidence
+  - evidence_used
+  - not_proven
+next_link_input_sections:
+  - observed public facts for Link
+  - missing facts for Link Gate
+  - attack QA evidence refs
+  - non-binding transition_concern_evidence
+  - not_proven
+forbidden_return_keys:
+  - success
+  - failure
+  - approved
+  - quality
+  - movement_choice
+  - route_target
+proof_limits:
+  - Brick-owned return-shape data resource only
+  - QA attack evidence is not reviewer authority
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - full regression coverage
+  - semantic correctness of implementation
+  - support loader behavior

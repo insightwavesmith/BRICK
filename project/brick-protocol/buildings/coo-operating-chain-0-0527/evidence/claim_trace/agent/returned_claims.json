@@ -1,0 +1,353 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:coo-operating-chain-0-0527::evidence/claim_trace/agent/returned_claims.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:coo",
+        "received_work": "brick-work:01:coo-operating-chain-0-01-design",
+        "returned": {
+          "adapter_ref": "adapter:local",
+          "agent_object_ref": "agent-object:coo",
+          "callable_ref": "callable:local:agent-invoke0-smoke",
+          "discipline_refs": [
+            "discipline:closed-agentfact",
+            "discipline:proof-limits"
+          ],
+          "evidence_refs": [
+            "support-packet:coo-operating-chain-0-0527:agent-object:coo:output"
+          ],
+          "hook_refs": [
+            "hook:instruction-chain-read",
+            "hook:resource-ref-redaction"
+          ],
+          "prompt_refs": [
+            "prompt:coo"
+          ],
+          "returned_summary": "local Agent Adapter callable returned support evidence",
+          "skill_refs": [
+            "skill:building-coordination",
+            "skill:task_intake",
+            "skill:protocol-boundary-watch",
+            "skill:evidence-verification"
+          ],
+          "tool_policy_refs": [
+            "tool-policy:support-readonly"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:01:coo-operating-chain-0-01-design",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:dev",
+        "received_work": "brick-work:02:coo-operating-chain-0-02-development",
+        "returned": {
+          "adapter_ref": "adapter:local",
+          "agent_object_ref": "agent-object:dev",
+          "callable_ref": "callable:local:agent-invoke0-smoke",
+          "discipline_refs": [
+            "discipline:closed-agentfact",
+            "discipline:proof-limits"
+          ],
+          "evidence_refs": [
+            "support-packet:coo-operating-chain-0-0527:agent-object:dev:output"
+          ],
+          "hook_refs": [
+            "hook:instruction-chain-read",
+            "hook:resource-ref-redaction"
+          ],
+          "prompt_refs": [
+            "prompt:dev"
+          ],
+          "returned_summary": "local Agent Adapter callable returned support evidence",
+          "skill_refs": [
+            "skill:scoped-implementation",
+            "skill:protocol-boundary-watch"
+          ],
+          "tool_policy_refs": [
+            "tool-policy:read-write-scoped"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:02:coo-operating-chain-0-02-development",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:qa",
+        "received_work": "brick-work:03:coo-operating-chain-0-03-qa",
+        "returned": {
+          "adapter_ref": "adapter:local",
+          "agent_object_ref": "agent-object:qa",
+          "callable_ref": "callable:local:agent-invoke0-smoke",
+          "discipline_refs": [
+            "discipline:closed-agentfact",
+            "discipline:proof-limits"
+          ],
+          "evidence_refs": [
+            "support-packet:coo-operating-chain-0-0527:agent-object:qa:output"
+          ],
+          "hook_refs": [
+            "hook:instruction-chain-read",
+            "hook:resource-ref-redaction"
+          ],
+          "prompt_refs": [
+            "prompt:qa"
+          ],
+          "returned_summary": "local Agent Adapter callable returned support evidence",
+          "skill_refs": [
+            "skill:evidence-verification",
+            "skill:protocol-boundary-watch"
+          ],
+          "tool_policy_refs": [
+            "tool-policy:review-readonly"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:03:coo-operating-chain-0-03-qa",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:coo",
+        "received_work": "brick-work:04:coo-operating-chain-0-04-dogfood",
+        "returned": {
+          "adapter_ref": "adapter:local",
+          "agent_object_ref": "agent-object:coo",
+          "callable_ref": "callable:local:agent-invoke0-smoke",
+          "discipline_refs": [
+            "discipline:closed-agentfact",
+            "discipline:proof-limits"
+          ],
+          "evidence_refs": [
+            "support-packet:coo-operating-chain-0-0527:agent-object:coo:output"
+          ],
+          "hook_refs": [
+            "hook:instruction-chain-read",
+            "hook:resource-ref-redaction"
+          ],
+          "prompt_refs": [
+            "prompt:coo"
+          ],
+          "returned_summary": "local Agent Adapter callable returned support evidence",
+          "skill_refs": [
+            "skill:building-coordination",
+            "skill:task_intake",
+            "skill:protocol-boundary-watch",
+            "skill:evidence-verification"
+          ],
+          "tool_policy_refs": [
+            "tool-policy:support-readonly"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:04:coo-operating-chain-0-04-dogfood",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:agent:04"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:coo",
+        "received_work": "brick-work:05:coo-operating-chain-0-05-closure",
+        "returned": {
+          "adapter_ref": "adapter:local",
+          "agent_object_ref": "agent-object:coo",
+          "callable_ref": "callable:local:agent-invoke0-smoke",
+          "discipline_refs": [
+            "discipline:closed-agentfact",
+            "discipline:proof-limits"
+          ],
+          "evidence_refs": [
+            "support-packet:coo-operating-chain-0-0527:agent-object:coo:output"
+          ],
+          "hook_refs": [
+            "hook:instruction-chain-read",
+            "hook:resource-ref-redaction"
+          ],
+          "prompt_refs": [
+            "prompt:coo"
+          ],
+          "returned_summary": "local Agent Adapter callable returned support evidence",
+          "skill_refs": [
+            "skill:building-coordination",
+            "skill:task_intake",
+            "skill:protocol-boundary-watch",
+            "skill:evidence-verification"
+          ],
+          "tool_policy_refs": [
+            "tool-policy:support-readonly"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:05:coo-operating-chain-0-05-closure",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:agent:05"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-26T22:16:32Z",
+  "id": "urn:bp:building:coo-operating-chain-0-0527::evidence/claim_trace/agent/returned_claims.json",
+  "recorded_at": "2026-05-26T22:16:32Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:coo-operating-chain-0-0527",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/agent/returned_claims.json",
+  "time": "2026-05-26T22:16:32Z",
+  "type": "bp.claim_trace"
+}

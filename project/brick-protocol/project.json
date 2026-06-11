@@ -1,0 +1,11 @@
+{
+  "project_ref": "project:brick-protocol",
+  "label": "Brick Protocol (1호 — 자기개발 도그푸드)",
+  "direction": "3축 프로토콜로 사람+AI 협업을 증거 기반으로 만드는 엔진을 제품화한다",
+  "done_means": "체커 전체 green을 유지한 채 외부 팀이 이 프로토콜로 실제 일을 굴릴 수 있는 제품화 상태",
+  "out_of_scope": "성공/품질 판단 자동화, cross-repo 집계, 스케줄러/큐/재시도 런타임 인프라, 프로토콜 자기개발 외의 일감",
+  "managers": ["smith"],
+  "declared_by": "smith",
+  "declared_at": "2026-06-11T12:57:11+09:00",
+  "charter_ref": "project/brick-protocol/README.md"
+}

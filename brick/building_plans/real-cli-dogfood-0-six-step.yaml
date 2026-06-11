@@ -1,0 +1,142 @@
+plan_ref: building-plan:real-cli-dogfood-0-six-step
+owner_axis: Brick
+building_id: real-cli-dogfood-0-0525
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - provider quality
+  - provider session continuity
+  - provider credential portability
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority
+steps:
+  - step_ref: real-cli-dogfood-0-01-design
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:real-cli-dogfood-0-design
+        brick_work_ref: work:real-cli-dogfood-0-design
+        brick_instance_ref: brick-real-cli-dogfood-design-01
+        work_statement: Design a minimal real CLI dogfood that calls Codex and Claude as Building Agents through Agent Adapter.
+        comparison_rule: Observe provider-neutral boundary and secret redaction only.
+        required_return_shape: role boundary, current structure, changes, unchanged surfaces, axis responsibility, execution sequence, invariants, edge cases, checker plan, candidate file changes, evidence packet, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-real-cli-dogfood-0-codex-claude-building-agent-0525.md
+      - axis: Agent
+        row_ref: agent-row:real-cli-dogfood-0-design
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:real-cli-dogfood-0-design
+        movement: forward
+        target_ref: brick-real-cli-dogfood-development-02
+        next_brick_instance_ref: brick-real-cli-dogfood-development-02
+  - step_ref: real-cli-dogfood-0-02-development
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:real-cli-dogfood-0-development
+        brick_work_ref: work:real-cli-dogfood-0-development
+        brick_instance_ref: brick-real-cli-dogfood-development-02
+        work_statement: Prepare the real CLI dogfood Building and smoke both local CLI adapters.
+        comparison_rule: Observe actual local CLI calls without storing secrets.
+        required_return_shape: implementation_map, changed_files, verification_evidence, claim_ledger, not_proven
+        source_facts:
+          - support/connection/agent_adapter.py
+      - axis: Agent
+        row_ref: agent-row:real-cli-dogfood-0-development
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:real-cli-dogfood-0-development
+        movement: forward
+        target_ref: brick-real-cli-dogfood-codex-qa-03
+        next_brick_instance_ref: brick-real-cli-dogfood-codex-qa-03
+  - step_ref: real-cli-dogfood-0-03-codex-qa
+    selected_adapter_ref: adapter:codex-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:real-cli-dogfood-0-codex-qa
+        brick_work_ref: work:real-cli-dogfood-0-codex-qa
+        brick_instance_ref: brick-real-cli-dogfood-codex-qa-03
+        work_statement: As Codex local CLI, return concise Brick Protocol support evidence only. Do not claim success or choose Movement. Return the phrase codex-building-agent-observed plus one short proof-limit sentence.
+        comparison_rule: Observe only that Codex local CLI returned through AgentFact.
+        required_return_shape: returned_summary, proof_limits, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-real-cli-dogfood-0-codex-claude-building-agent-0525.md
+      - axis: Agent
+        row_ref: agent-row:real-cli-dogfood-0-codex-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:real-cli-dogfood-0-codex-qa
+        movement: forward
+        target_ref: brick-real-cli-dogfood-claude-qa-04
+        next_brick_instance_ref: brick-real-cli-dogfood-claude-qa-04
+  - step_ref: real-cli-dogfood-0-04-claude-qa
+    selected_adapter_ref: adapter:claude-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:real-cli-dogfood-0-claude-qa
+        brick_work_ref: work:real-cli-dogfood-0-claude-qa
+        brick_instance_ref: brick-real-cli-dogfood-claude-qa-04
+        work_statement: As Claude local CLI, return concise Brick Protocol support evidence only. Do not claim success or choose Movement. Return the phrase claude-building-agent-observed plus one short proof-limit sentence.
+        comparison_rule: Observe only that Claude local CLI returned through AgentFact.
+        required_return_shape: returned_summary, proof_limits, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-real-cli-dogfood-0-codex-claude-building-agent-0525.md
+      - axis: Agent
+        row_ref: agent-row:real-cli-dogfood-0-claude-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:real-cli-dogfood-0-claude-qa
+        movement: forward
+        target_ref: brick-real-cli-dogfood-integration-05
+        next_brick_instance_ref: brick-real-cli-dogfood-integration-05
+  - step_ref: real-cli-dogfood-0-05-integration
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:real-cli-dogfood-0-integration
+        brick_work_ref: work:real-cli-dogfood-0-integration
+        brick_instance_ref: brick-real-cli-dogfood-integration-05
+        work_statement: Integrate real CLI dogfood observations and record held provider boundaries.
+        comparison_rule: Observe that returned CLI output is support evidence only.
+        required_return_shape: repairs, checks_rerun, held_items
+        source_facts:
+          - project/brick-protocol/status/kernel/brick-protocol-real-cli-dogfood-0-codex-claude-building-agent-support-record-0525.md
+      - axis: Agent
+        row_ref: agent-row:real-cli-dogfood-0-integration
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:real-cli-dogfood-0-integration
+        movement: forward
+        target_ref: brick-real-cli-dogfood-closure-06
+        next_brick_instance_ref: brick-real-cli-dogfood-closure-06
+  - step_ref: real-cli-dogfood-0-06-closure
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:real-cli-dogfood-0-closure
+        brick_work_ref: work:real-cli-dogfood-0-closure
+        brick_instance_ref: brick-real-cli-dogfood-closure-06
+        work_statement: Close REAL-CLI-DOGFOOD-0 with observed evidence and proof limits.
+        comparison_rule: Observe whether closure separates actual CLI evidence from not_proven provider claims.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, next_movement
+        source_facts:
+          - project/brick-protocol/status/kernel/brick-protocol-real-cli-dogfood-0-codex-claude-building-agent-support-record-0525.md
+      - axis: Agent
+        row_ref: agent-row:real-cli-dogfood-0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:real-cli-dogfood-0-closure
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:real-cli-dogfood-0-closed
+        next_brick_instance_ref: building-boundary-real-cli-dogfood-0-closed

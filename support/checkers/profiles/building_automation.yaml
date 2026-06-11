@@ -1,0 +1,132 @@
+schema: checker-profile/v1
+profile_id: building-automation
+description: Building automation support profile over accumulated Building evidence.
+kernel_checks:
+  - building_lifecycle_path_shape
+  - building_map_graph
+path_exists:
+  - support/operator/run.py
+  - agent/performance.py
+  - support/connection/agent_adapter.py
+  - support/connection/agent_resources.py
+  - support/checkers/check_profile.py
+  - support/checkers/check_building_lifecycle_path_shape.py
+  - support/checkers/check_building_map_graph.py
+  - brick/templates/tasks/source-template.md
+  - project/brick-protocol/buildings/building-automation-final-completion-audit-0-0526/work/building-map.json
+  - project/brick-protocol/buildings/building-automation-complete-0-scope-c-dogfood-0527/work/task.md
+path_absent:
+  - support/run.py
+  - support/recording/__main__.py
+  - brick/tasks
+path_absent_glob:
+  - support/runner/**
+  - support/building_run/**
+text_contains:
+  - path: project/brick-protocol/buildings/building-automation-complete-0-scope-c-dogfood-0527/work/task.md
+    texts:
+      - TASK-SOURCE-EVIDENCE-PLACEMENT-0
+      - project/brick-protocol/buildings/<building-id>/work/task.md
+      - not source truth
+      - not Movement authority
+  - path: support/operator/run.py
+    texts:
+      - AgentFact
+      - movement
+      - AdapterFrontierEvidenceWritten
+      - _adapter_result_or_interrupt
+      - _safe_exception_excerpt
+      - credential redacted
+      - write_adapter_error_frontier_evidence
+  # The public adapter-error frontier writer name stays exposed on the thin
+  # facade (re-exported for external importers).
+  - path: support/operator/evidence_assembly.py
+    texts:
+      - write_adapter_error_frontier_evidence
+  # ELEGANT-REFACTOR P3b: the adapter-error frontier writer + its trace-packet and
+  # lifecycle builders moved into the adapter-error frontier emitter; the
+  # building-map frontier packet moved into the building-map emitter; the plan
+  # snapshot (P12 BUILDING-PLAN-DURABILITY evidence copy) moved into the
+  # declaration-packets emitter and is called from the lifecycle emitter. The
+  # location pins follow the behavior-identical rehome (checker-pin-follows-rehome
+  # standard); the recording_checker_derived_contract + building_lifecycle_path_shape
+  # checks keep the produced shape pinned.
+  - path: support/recording/adapter_error_frontier.py
+    texts:
+      - write_adapter_error_frontier_evidence
+      - AdapterErrorFrontierTracePacket
+      - _adapter_error_frontier_lifecycle_packet
+      - _adapter_error_frontier_building_map_packet
+      - '"plan_snapshot": _plan_snapshot(plan_ref, plan)'
+  - path: support/recording/building_map_emit.py
+    texts:
+      - _adapter_error_frontier_building_map_packet
+  - path: support/recording/declaration_packets.py
+    texts:
+      - 'def _plan_snapshot('
+      - '"plan_hash": plan_hash'
+      - '"proof_limits": ["evidence copy only", "not source truth"]'
+  - path: support/recording/step_outputs.py
+    texts:
+      - write_adapter_error_outputs
+      - agent_fact_created
+  - path: support/recording/raw_claim_trace.py
+    texts:
+      - write_adapter_error_frontier_raw_and_claim_trace
+      - receipt_trace.json
+      - frontier_trace.json
+  # ELEGANT-REFACTOR P3d: building_operation god-module decomposed; the pins below
+  # follow each concern to its new module behind the facade (pin-follows-rehome).
+  # Evidence presence (frontier required-set + marker) -> evidence_status.
+  - path: support/operator/evidence_status.py
+    texts:
+      - FRONTIER_EVIDENCE_FILES
+      - _frontier_marker_present
+  # Frontier observation (adapter-error count) -> frontier_observation.
+  - path: support/operator/frontier_observation.py
+    texts:
+      - adapter_error_records
+  # AXIS-SEPARATION: native-dispatch is Agent-axis vocabulary; support imports
+  # the word and keeps the local alias so use-sites stay behavior-identical. The
+  # native-dispatch seam -> native_dispatch.
+  - path: support/operator/native_dispatch.py
+    texts:
+      - 'from brick_protocol.agent.performance import NATIVE_DISPATCH_PERFORMANCE_MODE'
+      - 'NATIVE_DISPATCH_EXECUTION_PATH = NATIVE_DISPATCH_PERFORMANCE_MODE'
+  - path: agent/performance.py
+    texts:
+      # AXIS-SEPARATION: the native-dispatch performance-mode WORD is owned here.
+      - 'NATIVE_DISPATCH_PERFORMANCE_MODE = "native-dispatch"'
+      - NATIVE_DISPATCH_PERFORMANCE_MODE
+  - path: support/checkers/check_building_lifecycle_path_shape.py
+    texts:
+      - FRONTIER_REQUIRED_RECORDS
+      - adapter-error.json
+      - receipt_trace.json
+      - frontier_trace.json
+      - complete_required_records_present
+      - frontier_required_records_present
+      - brick_comparison_field_ref_tokens
+text_absent:
+  - path: support/checkers/check_profile.py
+    texts:
+      - subprocess.run
+      - os.system
+      - eval(
+      - exec(
+json_required_paths:
+  - path: project/brick-protocol/buildings/building-automation-final-completion-audit-0-0526/work/building-map.json
+    required:
+      - kind
+      - brick_instances[].brick_instance_id
+      - agent_bindings[].agent_binding_id
+      - link_edges[].link_edge_id
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - provider answer quality
+  - production runtime readiness

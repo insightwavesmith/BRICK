@@ -1,0 +1,50 @@
+schema: checker-profile/v1
+profile_id: tier-a-three-axis-conformance
+description: HALF-2 Tier A (refactor/automation goal 0601 §3) deterministic 3-axis automation conformance over the engine-produced tier-a-3axis-conformance-0 Building, asserting Brick + Agent + Link mechanics + Evidence + declaration_provenance, with an anti-tautological FIRE probe.
+kernel_checks:
+  - tier_a_three_axis_conformance
+path_exists:
+  - support/checkers/check_tier_a_three_axis_conformance.py
+  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/work/task.md
+  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/work/building-map.json
+  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/work/building-intake.json
+  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/work/preset-expansion.json
+  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/work/declared-building-plan.json
+  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/work/link-launch-policy.json
+  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/evidence/evidence-manifest.json
+  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/evidence/claim_trace/brick/work_contract.json
+  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/evidence/claim_trace/agent/returned_claims.json
+  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/evidence/claim_trace/link/movement_trace.json
+  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/evidence/claim_trace/link/sufficiency_trace.json
+  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/evidence/claim_trace/link/carry_trace.json
+  - project/brick-protocol/buildings/tier-a-3axis-conformance-0/evidence/claim_trace/link/transfer_trace.json
+text_contains:
+  - path: support/checkers/check_tier_a_three_axis_conformance.py
+    texts:
+      - def assert_brick
+      - def assert_agent
+      - def assert_link
+      - def assert_evidence
+      - def assert_declaration_provenance
+      - def fire_probe
+      - reroute_and_provenance_dropped
+text_absent:
+  - path: support/checkers/check_tier_a_three_axis_conformance.py
+    texts:
+      - 'from brick_protocol.brick'
+      - 'from brick_protocol.agent'
+      - 'from brick_protocol.link'
+      - choose_movement
+      - success_judgment
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+  - not real-provider proof
+not_proven:
+  - semantic correctness of Agent transition_concern_evidence
+  - real-provider behavior
+  - repeated provider reliability
+  - checker profile pass as source truth

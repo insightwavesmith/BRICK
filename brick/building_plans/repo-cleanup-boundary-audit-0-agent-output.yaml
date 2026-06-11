@@ -1,0 +1,124 @@
+plan_ref: building-plan:repo-cleanup-boundary-audit-0-agent-output
+owner_axis: Brick
+building_id: repo-cleanup-boundary-audit-0-agent-output-0526
+plan_shape: linear
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - no deletion is performed in Chapter A rerun
+  - returned outputs are AgentFact returned payloads
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - correctness of every cleanup classification
+  - safety of actual deletion
+  - adapter consolidation readiness
+  - future Chapter B cleanup execution
+steps:
+  - step_ref: repo-cleanup-boundary-audit-0-agent-output-preflight
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:repo-cleanup-boundary-audit-0-agent-output-preflight
+        brick_work_ref: work:repo-cleanup-boundary-audit-0-agent-output-preflight
+        brick_instance_ref: brick-repo-cleanup-agent-output-preflight
+        work_statement: Confirm the Chapter A rerun boundary. Every Brick must return an output through its Agent row. Chapter A rerun performs no deletion and stops at COO checkpoint.
+        comparison_rule: Check only whether this rerun collects inventory, classification, delete manifest, and closure as AgentFact returned payloads.
+        required_return_shape: preflight_observations, boundary_rules, output_authorship_rule, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+          - support/docs/spec/brick-protocol-repo-cleanup-boundary-audit-0-inventory-classification-0526.md
+      - axis: Agent
+        row_ref: agent-row:repo-cleanup-boundary-audit-0-agent-output-preflight
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:repo-cleanup-boundary-audit-0-agent-output-preflight-to-inventory
+        movement: forward
+        target_ref: brick-repo-cleanup-agent-output-inventory
+  - step_ref: repo-cleanup-boundary-audit-0-agent-output-inventory
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:repo-cleanup-boundary-audit-0-agent-output-inventory
+        brick_work_ref: work:repo-cleanup-boundary-audit-0-agent-output-inventory
+        brick_instance_ref: brick-repo-cleanup-agent-output-inventory
+        work_statement: Return repo inventory observations as the Brick output. Observe active roots, absent superseded roots, tracked and untracked counts, ignored local residue candidates, and adapter refs without changing files.
+        comparison_rule: Inventory is observation only and must not approve deletion.
+        required_return_shape: inventory_counts, present_active_roots, absent_superseded_roots, ignored_residue_candidates, adapter_refs_observed, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+      - axis: Agent
+        row_ref: agent-row:repo-cleanup-boundary-audit-0-agent-output-inventory
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:repo-cleanup-boundary-audit-0-agent-output-inventory-to-classification
+        movement: forward
+        target_ref: brick-repo-cleanup-agent-output-classification
+  - step_ref: repo-cleanup-boundary-audit-0-agent-output-classification
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:repo-cleanup-boundary-audit-0-agent-output-classification
+        brick_work_ref: work:repo-cleanup-boundary-audit-0-agent-output-classification
+        brick_instance_ref: brick-repo-cleanup-agent-output-classification
+        work_statement: Return cleanup classification as the Brick output. Classify surfaces as active axis, active support, active project evidence, historical support evidence, ignored local residue delete candidate, consolidation candidate, or needs review.
+        comparison_rule: Classification must keep adapter capability consolidation separate from deletion and must preserve historical evidence.
+        required_return_shape: classification_table, delete_candidates, consolidation_candidates, needs_review, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+      - axis: Agent
+        row_ref: agent-row:repo-cleanup-boundary-audit-0-agent-output-classification
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:repo-cleanup-boundary-audit-0-agent-output-classification-to-manifest
+        movement: forward
+        target_ref: brick-repo-cleanup-agent-output-delete-manifest
+  - step_ref: repo-cleanup-boundary-audit-0-agent-output-delete-manifest
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:repo-cleanup-boundary-audit-0-agent-output-delete-manifest
+        brick_work_ref: work:repo-cleanup-boundary-audit-0-agent-output-delete-manifest
+        brick_instance_ref: brick-repo-cleanup-agent-output-delete-manifest
+        work_statement: Return a delete manifest candidate as the Brick output. No deletion is approved or executed in this Building.
+        comparison_rule: The manifest must mark all entries as candidates, require COO review, and leave approved_delete_count at zero.
+        required_return_shape: candidate_manifest, approved_delete_count, coo_review_required, delete_performed, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+      - axis: Agent
+        row_ref: agent-row:repo-cleanup-boundary-audit-0-agent-output-delete-manifest
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:repo-cleanup-boundary-audit-0-agent-output-manifest-to-closure
+        movement: forward
+        target_ref: brick-repo-cleanup-agent-output-closure
+  - step_ref: repo-cleanup-boundary-audit-0-agent-output-closure
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:repo-cleanup-boundary-audit-0-agent-output-closure
+        brick_work_ref: work:repo-cleanup-boundary-audit-0-agent-output-closure
+        brick_instance_ref: brick-repo-cleanup-agent-output-closure
+        work_statement: Return Chapter A rerun closure as the Brick output with observed evidence, narrowly proven scope, not-proven items, held boundaries, and next Movement.
+        comparison_rule: Closure must stop before deletion and carry the delete manifest into COO review.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, held, coo_movement
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+          - brick/building_plans/repo-cleanup-boundary-audit-0-agent-output.yaml
+      - axis: Agent
+        row_ref: agent-row:repo-cleanup-boundary-audit-0-agent-output-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:repo-cleanup-boundary-audit-0-agent-output-closure-to-coo-checkpoint
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: coo-checkpoint:repo-cleanup-boundary-audit-0-delete-review

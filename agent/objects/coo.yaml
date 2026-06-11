@@ -1,0 +1,36 @@
+{
+  "object_ref": "agent-object:coo",
+  "name": "coo",
+  "lane": "leader",
+  "callable_performer_refs": [
+    "callable:local:agent-invoke0-smoke"
+  ],
+  "prompt_refs": [
+    "prompt:coo"
+  ],
+  "skill_refs": [
+    "skill:building-coordination",
+    "skill:task_intake",
+    "skill:project-creation",
+    "skill:protocol-boundary-watch",
+    "skill:evidence-verification"
+  ],
+  "hook_refs": [
+    "hook:instruction-chain-read",
+    "hook:leader-write-need-gate",
+    "hook:unsafe-mutation-guard",
+    "hook:resource-ref-redaction"
+  ],
+  "tool_policy_refs": [
+    "tool-policy:leader-coordination"
+  ],
+  "discipline_refs": [
+    "discipline:closed-agentfact",
+    "discipline:proof-limits"
+  ],
+  "adapter_refs": [
+    "adapter:local",
+    "adapter:codex-local",
+    "adapter:claude-local"
+  ]
+}

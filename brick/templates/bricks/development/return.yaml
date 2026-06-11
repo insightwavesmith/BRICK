@@ -1,0 +1,39 @@
+template_ref: brick-template:development-return
+owner_axis: Brick
+template_kind: development_assignment_return_shape
+maps_to: AgentFact.returned
+step_template_refs:
+  - building-step-template:development
+required_return_shape:
+  - assignment_summary
+  - worker_brick_boundaries
+  - write_scope_requirements
+  - risk_boundaries
+  - required_verification
+  - observed_evidence
+  - blocked_or_missing_evidence
+  - not_proven
+next_link_input_sections:
+  - public facts available for Link
+  - missing facts for Link Gate
+  - handoff refs
+  - not_proven
+forbidden_return_keys:
+  - success
+  - failure
+  - approved
+  - quality
+  - movement_choice
+  - route_target
+proof_limits:
+  - Brick-owned return-shape data resource only
+  - CTO assignment is not direct write authorization
+  - DEV writes require a later declared worker Brick with write scope
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - worker implementation behavior
+  - provider availability
+  - support loader behavior

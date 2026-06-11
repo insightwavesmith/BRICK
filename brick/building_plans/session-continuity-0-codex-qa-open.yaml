@@ -1,0 +1,43 @@
+plan_ref: building-plan:session-continuity-0-codex-qa-open
+owner_axis: Brick
+building_id: session-continuity-0-codex-qa-open-0524
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - QA completeness
+  - provider resume behavior
+  - real Codex CLI behavior
+  - real Claude CLI behavior
+  - Link route/replay correctness
+steps:
+  - step_ref: session-continuity-0-codex-qa-open-01
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:session-continuity-0-codex-qa-open
+        brick_work_ref: work:session-continuity-0-codex-qa
+        brick_instance_ref: brick-session-continuity-codex-qa-open-01
+        work_statement: Review the SESSION-CONTINUITY-0 development as Codex QA using only observed evidence, with attention to Agent receipt/work-packet composition, AgentFact closure, provider-neutral continuity refs, no raw provider values, and Link Movement ownership.
+        comparison_rule: Observe whether findings cite files, commands, boundary risks, and repair scope without verdict authority.
+        required_return_shape: checked_work, checked_sources, match_facts, missing_or_mismatched_facts, boundary_violations, evidence_used, narrowly_proven, not_proven, next_movement_recommendation
+        source_facts:
+          - AGENTS.md
+          - brick/templates/review/minimal-review-template.json
+          - support/docs/spec/brick-protocol-session-continuity-0-design-0524.md
+          - project/brick-protocol/status/kernel/brick-protocol-session-continuity-0-development-report-0524.md
+          - support/connection/agent_adapter.py
+          - support/operator/run.py
+          - support/checkers/check_session_continuity0_agent_adapter_boundary.py
+          - support/checkers/fixtures/session_continuity0_agent_adapter_boundary/pass/work_packet_and_continuity_request.json
+      - axis: Agent
+        row_ref: agent-row:session-continuity-0-codex-qa-open
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:session-continuity-0-codex-qa-open
+        movement: forward
+        target_ref: brick-session-continuity-claude-qa-04
+        next_brick_instance_ref: brick-session-continuity-claude-qa-04

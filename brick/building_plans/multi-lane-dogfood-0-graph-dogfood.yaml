@@ -1,0 +1,225 @@
+plan_ref: building-plan:multi-lane-dogfood-0-graph-dogfood
+owner_axis: Brick
+building_id: multi-lane-dogfood-0-0525
+plan_shape: graph
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - parallel runtime execution
+  - provider quality
+  - provider credential validity
+  - native provider session continuity
+  - future MCP or toolkit projection behavior
+  - semantic graph correctness
+  - external graph DB import
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority
+execution_order:
+  - multi-lane-design-setup
+  - multi-lane-codex-qa
+  - multi-lane-claude-qa
+  - multi-lane-gemini-qa
+  - multi-lane-synthesis
+  - multi-lane-closure
+brick_steps:
+  - step_ref: multi-lane-design-setup
+    completion_edge_ref: edge:multi-lane-design-to-codex
+    rows:
+      - axis: Brick
+        row_ref: brick-row:multi-lane-design-setup
+        brick_work_ref: work:multi-lane-design-setup
+        brick_instance_ref: brick-multi-lane-design-setup
+        work_statement: Design the MULTI-LANE-DOGFOOD-0 topology using existing graph Building Plan walking.
+        comparison_rule: Observe whether Brick owns the plan, Agent owns AgentFact collection, and Link owns declared edges.
+        required_return_shape: topology_summary, lane_refs, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - support/docs/spec/brick-protocol-multi-lane-dogfood-0-building-topology-0525.md
+          - support/docs/spec/brick-protocol-building-graph-run-0-declared-topology-walker-0525.md
+          - support/operator/run.py
+      - axis: Agent
+        row_ref: agent-row:multi-lane-design-setup
+        agent_object_ref: agent-object:coo
+  - step_ref: multi-lane-codex-qa
+    selected_adapter_ref: adapter:codex-local
+    completion_edge_ref: edge:multi-lane-codex-to-synthesis
+    rows:
+      - axis: Brick
+        row_ref: brick-row:multi-lane-codex-qa
+        brick_work_ref: work:multi-lane-codex-qa
+        brick_instance_ref: brick-multi-lane-codex-qa
+        work_statement: Review the dogfood topology from the Codex QA lane.
+        comparison_rule: Observe declared topology evidence only; do not choose Movement or judge quality.
+        required_return_shape: checked_sources, findings, boundary_notes, not_proven
+        source_facts:
+          - brick/building_plans/multi-lane-dogfood-0-graph-dogfood.yaml
+          - support/operator/run.py
+          - support/connection/agent_adapter.py
+      - axis: Agent
+        row_ref: agent-row:multi-lane-codex-qa
+        agent_object_ref: agent-object:qa
+  - step_ref: multi-lane-claude-qa
+    selected_adapter_ref: adapter:claude-local
+    completion_edge_ref: edge:multi-lane-claude-to-synthesis
+    rows:
+      - axis: Brick
+        row_ref: brick-row:multi-lane-claude-qa
+        brick_work_ref: work:multi-lane-claude-qa
+        brick_instance_ref: brick-multi-lane-claude-qa
+        work_statement: Review the dogfood topology from the Claude QA lane.
+        comparison_rule: Observe declared topology evidence only; do not choose Movement or judge quality.
+        required_return_shape: checked_sources, findings, boundary_notes, not_proven
+        source_facts:
+          - brick/building_plans/multi-lane-dogfood-0-graph-dogfood.yaml
+          - support/operator/run.py
+          - support/connection/agent_adapter.py
+      - axis: Agent
+        row_ref: agent-row:multi-lane-claude-qa
+        agent_object_ref: agent-object:qa
+  - step_ref: multi-lane-gemini-qa
+    selected_adapter_ref: adapter:gemini-local
+    completion_edge_ref: edge:multi-lane-gemini-to-synthesis
+    rows:
+      - axis: Brick
+        row_ref: brick-row:multi-lane-gemini-qa
+        brick_work_ref: work:multi-lane-gemini-qa
+        brick_instance_ref: brick-multi-lane-gemini-qa
+        work_statement: Review the dogfood topology from the Gemini QA lane.
+        comparison_rule: Observe declared topology evidence only; do not choose Movement or judge quality.
+        required_return_shape: checked_sources, findings, boundary_notes, not_proven
+        source_facts:
+          - brick/building_plans/multi-lane-dogfood-0-graph-dogfood.yaml
+          - support/operator/run.py
+          - support/connection/agent_adapter.py
+      - axis: Agent
+        row_ref: agent-row:multi-lane-gemini-qa
+        agent_object_ref: agent-object:qa
+  - step_ref: multi-lane-synthesis
+    completion_edge_ref: edge:multi-lane-synthesis-to-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:multi-lane-synthesis
+        brick_work_ref: work:multi-lane-synthesis
+        brick_instance_ref: brick-multi-lane-synthesis
+        work_statement: Synthesize the three QA lane returns into support observations for closure.
+        comparison_rule: Observe whether all three QA lane handoffs are received; do not choose Movement.
+        required_return_shape: lane_inputs, synthesis_observations, repair_refs, handoff_ref_count, not_proven
+        source_facts:
+          - brick/building_plans/multi-lane-dogfood-0-graph-dogfood.yaml
+          - support/checkers/check_multi_lane_dogfood0_building_topology.py
+      - axis: Agent
+        row_ref: agent-row:multi-lane-synthesis
+        agent_object_ref: agent-object:coo
+  - step_ref: multi-lane-closure
+    completion_edge_ref: edge:multi-lane-closure-to-boundary
+    rows:
+      - axis: Brick
+        row_ref: brick-row:multi-lane-closure
+        brick_work_ref: work:multi-lane-closure
+        brick_instance_ref: brick-multi-lane-closure
+        work_statement: Close MULTI-LANE-DOGFOOD-0 with observed topology evidence and proof limits.
+        comparison_rule: Observe support evidence only; closure is not source truth or Movement authority.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, next_movement
+        source_facts:
+          - support/docs/spec/brick-protocol-multi-lane-dogfood-0-building-topology-0525.md
+          - brick/building_plans/multi-lane-dogfood-0-graph-dogfood.yaml
+      - axis: Agent
+        row_ref: agent-row:multi-lane-closure
+        agent_object_ref: agent-object:coo
+link_edges:
+  - edge_ref: edge:multi-lane-design-to-codex
+    source_step_ref: multi-lane-design-setup
+    target_step_ref: multi-lane-codex-qa
+    rows:
+      - axis: Link
+        row_ref: link-row:multi-lane-design-to-codex
+        movement: forward
+        target_ref: brick-multi-lane-codex-qa
+  - edge_ref: edge:multi-lane-design-to-claude
+    source_step_ref: multi-lane-design-setup
+    target_step_ref: multi-lane-claude-qa
+    rows:
+      - axis: Link
+        row_ref: link-row:multi-lane-design-to-claude
+        movement: forward
+        target_ref: brick-multi-lane-claude-qa
+  - edge_ref: edge:multi-lane-design-to-gemini
+    source_step_ref: multi-lane-design-setup
+    target_step_ref: multi-lane-gemini-qa
+    rows:
+      - axis: Link
+        row_ref: link-row:multi-lane-design-to-gemini
+        movement: forward
+        target_ref: brick-multi-lane-gemini-qa
+  - edge_ref: edge:multi-lane-codex-to-synthesis
+    source_step_ref: multi-lane-codex-qa
+    target_step_ref: multi-lane-synthesis
+    rows:
+      - axis: Link
+        row_ref: link-row:multi-lane-codex-to-synthesis
+        movement: forward
+        target_ref: brick-multi-lane-synthesis
+  - edge_ref: edge:multi-lane-claude-to-synthesis
+    source_step_ref: multi-lane-claude-qa
+    target_step_ref: multi-lane-synthesis
+    rows:
+      - axis: Link
+        row_ref: link-row:multi-lane-claude-to-synthesis
+        movement: forward
+        target_ref: brick-multi-lane-synthesis
+  - edge_ref: edge:multi-lane-gemini-to-synthesis
+    source_step_ref: multi-lane-gemini-qa
+    target_step_ref: multi-lane-synthesis
+    rows:
+      - axis: Link
+        row_ref: link-row:multi-lane-gemini-to-synthesis
+        movement: forward
+        target_ref: brick-multi-lane-synthesis
+  - edge_ref: edge:multi-lane-synthesis-to-closure
+    source_step_ref: multi-lane-synthesis
+    target_step_ref: multi-lane-closure
+    rows:
+      - axis: Link
+        row_ref: link-row:multi-lane-synthesis-to-closure
+        movement: forward
+        target_ref: brick-multi-lane-closure
+  - edge_ref: edge:multi-lane-closure-to-boundary
+    source_step_ref: multi-lane-closure
+    rows:
+      - axis: Link
+        row_ref: link-row:multi-lane-closure-to-boundary
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:multi-lane-dogfood-0-closed
+groups:
+  - group_id: group:multi-lane-design-fan-out
+    group_role: fan_out
+    member_ref_kind: link_edge
+    member_refs:
+      - edge:multi-lane-design-to-codex
+      - edge:multi-lane-design-to-claude
+      - edge:multi-lane-design-to-gemini
+    proof_limits:
+      - support topology label only
+    not_proven:
+      - parallel runtime execution
+  - group_id: group:multi-lane-qa-fan-in
+    group_role: fan_in
+    member_ref_kind: link_edge
+    member_refs:
+      - edge:multi-lane-codex-to-synthesis
+      - edge:multi-lane-claude-to-synthesis
+      - edge:multi-lane-gemini-to-synthesis
+    proof_limits:
+      - support topology label only
+    not_proven:
+      - synthesis quality

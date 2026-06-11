@@ -1,0 +1,59 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:design-toolkit-and-mcp-0-0526::work/building-work.json",
+  "building_id": "design-toolkit-and-mcp-0-0526",
+  "comparison_rule": "Observe whether the toolkit renders context without choosing shape or Movement.",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-05-26T12:41:07Z",
+  "id": "urn:bp:building:design-toolkit-and-mcp-0-0526::work/building-work.json",
+  "not_proven": [
+    "MCP client behavior",
+    "semantic fitness of future selected shapes",
+    "automatic Building Plan authoring",
+    "provider-native projection expansion",
+    "route policy behavior",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work"
+  ],
+  "plan_ref": "building-plan:design-toolkit-and-mcp-0-compact",
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-05-26T12:41:07Z",
+  "required_return_shape": "toolkit_surface, rendered_context_observation, proof_limits, not_proven",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:design-toolkit-and-mcp-0-0526",
+  "source_facts": [
+    "AGENTS.md",
+    "project/brick-protocol/status/kernel/current-working-context.md",
+    "support/docs/spec/brick-protocol-design-toolkit-and-mcp-0-0526.md",
+    "support/connection/building_design_toolkit.py"
+  ],
+  "specversion": "1.0",
+  "step_refs": [
+    "design-toolkit-and-mcp-0-01-toolkit",
+    "design-toolkit-and-mcp-0-02-mcp",
+    "design-toolkit-and-mcp-0-03-closure"
+  ],
+  "subject": "work/building-work.json",
+  "time": "2026-05-26T12:41:07Z",
+  "type": "bp.building_work",
+  "work_statement": "Define the read-only Building design toolkit over admitted Brick design resources."
+}

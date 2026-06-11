@@ -1,0 +1,67 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:posA-native-complete::work/step-outputs/posA-native-complete-native-dispatch-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:test",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick:posA-native-complete:native-dispatch",
+  "building_id": "posA-native-complete",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl"
+  },
+  "generatedAtTime": "2026-05-29T10:42:03Z",
+  "id": "urn:bp:building:posA-native-complete::work/step-outputs/posA-native-complete-native-dispatch-attempt-1/step-output.json",
+  "not_proven": [
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "native-dispatch support evidence only",
+    "support recorded a native subagent dispatch; support did not launch it",
+    "gate sufficiency is the Link rule computation over the supplied return",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:posA-native-complete-native-dispatch",
+  "recorded_at": "2026-05-29T10:42:03Z",
+  "returned": {
+    "not_proven": [
+      "y"
+    ],
+    "observed_evidence": [
+      "x"
+    ]
+  },
+  "returned_fact_ref": "agent-fact:01:posA-native-complete-native-dispatch",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:posA-native-complete",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:posA-native-complete-native-dispatch:attempt-1",
+  "step_ref": "posA-native-complete-native-dispatch",
+  "subject": "posA-native-complete-native-dispatch",
+  "time": "2026-05-29T10:42:03Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

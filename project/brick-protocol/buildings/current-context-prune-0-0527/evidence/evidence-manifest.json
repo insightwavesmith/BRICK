@@ -1,0 +1,64 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:current-context-prune-0-0527::evidence/evidence-manifest.json",
+  "building_id": "current-context-prune-0-0527",
+  "building_map_ref": "work/building-map.json",
+  "claim_trace_refs": [
+    "evidence/claim_trace/brick/work_contract.json",
+    "evidence/claim_trace/agent/returned_claims.json",
+    "evidence/claim_trace/link/transfer_trace.json",
+    "evidence/claim_trace/link/carry_trace.json",
+    "evidence/claim_trace/link/sufficiency_trace.json",
+    "evidence/claim_trace/link/movement_trace.json"
+  ],
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-05-26T22:44:17Z",
+  "id": "urn:bp:building:current-context-prune-0-0527::evidence/evidence-manifest.json",
+  "not_proven": [
+    "semantic completeness of all historical context",
+    "future operator understanding",
+    "future task source semantic correctness",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "not proven: source truth",
+    "not proven: success judgment",
+    "not proven: quality judgment",
+    "not proven: Movement authority"
+  ],
+  "plan_ref": "building-plan:current-context-prune-0-compact",
+  "proof_limits": [
+    "support evidence only",
+    "current context is operator view only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement owner"
+  ],
+  "raw_manifest_ref": "raw/raw-manifest.json",
+  "raw_stream_refs": [
+    "raw/brick-work.jsonl",
+    "raw/agent-return.jsonl",
+    "raw/link.jsonl"
+  ],
+  "recorded_at": "2026-05-26T22:44:17Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:current-context-prune-0-0527",
+  "specversion": "1.0",
+  "step_output_refs": [
+    "work/step-outputs/current-context-prune-0-01-design-attempt-1/step-output.json",
+    "work/step-outputs/current-context-prune-0-02-qa-attempt-1/step-output.json",
+    "work/step-outputs/current-context-prune-0-03-closure-attempt-1/step-output.json"
+  ],
+  "subject": "evidence/evidence-manifest.json",
+  "time": "2026-05-26T22:44:17Z",
+  "type": "bp.evidence_manifest"
+}

@@ -1,0 +1,152 @@
+plan_ref: building-plan:b2-real-codex-dynamic-reroute-0
+owner_axis: Brick
+building_id: b2-real-codex-dynamic-reroute-0-0530
+plan_shape: graph
+selected_adapter_ref: adapter:codex-local
+selected_model_ref: model:codex:default
+proof_limits:
+  - support evidence only
+  - dynamic walker adopts a real-codex agent-proposed non-binding reroute under a default gate
+  - support authors no route or Movement
+  - not provider reliability proof
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of the agent-proposed reroute
+  - repeated provider adherence to the nested transition_concern_evidence shape
+  - other provider behavior
+  - runtime retry or scheduler behavior
+reproduction:
+  intent: >-
+    Auditable re-run of B2 (real-provider dynamic walk). The exact runnable
+    steps live INLINE here because brick/building_plans only admits
+    .yaml/.yml/.json files (see support/checkers/check_package_path_admission.py
+    is_brick_building_plan_path) -- a standalone .py harness has no admitted repo
+    location, so embedding the command keeps the run committable + reproducible
+    without breaking the green package-path-admission checker.
+  default_command_runner: >-
+    No command_runner is injected. With command_runner=None the adapter's
+    _run_or_delegate falls through to _run_command (subprocess.run), so the REAL
+    codex CLI binary is spawned as a subprocess for all 4 calls
+    (3 forward nodes + 1 reroute re-execution of brick-b2rcr-work).
+  output_root_note: >-
+    output_root is left at DEFAULT_BUILDINGS_ROOT
+    (project/brick-protocol/buildings) so the Building persists in the repo,
+    committable + auditable -- NOT a /tmp dir.
+  adapter_cli: codex
+  walker_mode: dynamic
+  run_command: >-
+    PYTHONPATH=support/import_identity python3 -c "import json;
+    from pathlib import Path;
+    import yaml;
+    from brick_protocol.support.operator.run import run_building_plan;
+    plan = yaml.safe_load(Path('brick/building_plans/b2-real-codex-dynamic-reroute-0-graph.yaml').read_text());
+    plan.pop('reproduction', None);
+    result = run_building_plan(plan, walker_mode='dynamic', overwrite_existing=True);
+    print(result.lifecycle_write.root)"
+  verify_command: >-
+    PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all
+execution_order:
+  - b2rcr-work
+  - b2rcr-review
+  - b2rcr-close
+brick_steps:
+  - step_ref: b2rcr-work
+    completion_edge_ref: edge:b2rcr-work-to-review
+    rows:
+      - axis: Brick
+        row_ref: brick-row:b2rcr-work
+        brick_work_ref: work:b2rcr-work
+        brick_instance_ref: brick-b2rcr-work
+        work_statement: >-
+          Produce a one-line build note. Return ONE JSON object with exactly two
+          top-level fields: observed_evidence (a list of one short string naming
+          the build note you produced) and not_proven (a list of one short
+          string). Do not return any transition_concern_evidence. Do not choose
+          Movement. Do not report success, failure, approval, or quality.
+        comparison_rule: Observe whether the live codex local adapter returns observed_evidence for the build note; support does not judge quality.
+        required_return_shape: observed_evidence, not_proven
+      - axis: Agent
+        row_ref: agent-row:b2rcr-work
+        agent_object_ref: agent-object:dev
+  - step_ref: b2rcr-review
+    completion_edge_ref: edge:b2rcr-review-to-close
+    rows:
+      - axis: Brick
+        row_ref: brick-row:b2rcr-review
+        brick_work_ref: work:b2rcr-review
+        brick_instance_ref: brick-b2rcr-review
+        work_statement: >-
+          You are reviewing the prior build node brick-b2rcr-work. Treat the
+          prior build work as INCOMPLETE: it is missing a required output and
+          needs rework. You MUST propose sending the work back to the build node
+          by returning a transition_concern_evidence object. Return ONE JSON
+          object with exactly these three top-level fields: observed_evidence (a
+          list of short strings), not_proven (a list of short strings), and
+          transition_concern_evidence (a JSON object). The
+          transition_concern_evidence object MUST have exactly these keys and no
+          others - concern_ref (a string starting with 'transition-concern:'),
+          concern_kind (use the string 'implementation_gap'), binding (the JSON
+          literal false), reason_refs (a non-empty list of short strings), and
+          related_boundary_refs (a list containing exactly the one string
+          'brick-b2rcr-work'). Do not choose Movement. Do not name a target other
+          than 'brick-b2rcr-work'. Do not report success, failure, approval, or
+          quality.
+        comparison_rule: Observe whether the live codex local adapter returns a non-binding transition_concern_evidence naming the existing build node brick-b2rcr-work; support adopts under the declared default gate and authors no route.
+        required_return_shape: observed_evidence, transition_concern_evidence, not_proven
+      - axis: Agent
+        row_ref: agent-row:b2rcr-review
+        agent_object_ref: agent-object:qa
+  - step_ref: b2rcr-close
+    completion_edge_ref: edge:b2rcr-close-to-boundary
+    rows:
+      - axis: Brick
+        row_ref: brick-row:b2rcr-close
+        brick_work_ref: work:b2rcr-close
+        brick_instance_ref: brick-b2rcr-close
+        work_statement: >-
+          Close the building. Return ONE JSON object with exactly two top-level
+          fields: observed_evidence (a list of one short string) and not_proven
+          (a list of one short string). Do not return transition_concern_evidence.
+          Do not choose Movement. Do not report success, failure, approval, or
+          quality.
+        comparison_rule: Closure records support evidence only and does not judge provider quality.
+        required_return_shape: observed_evidence, not_proven
+      - axis: Agent
+        row_ref: agent-row:b2rcr-close
+        agent_object_ref: agent-object:coo
+link_edges:
+  - edge_ref: edge:b2rcr-work-to-review
+    source_step_ref: b2rcr-work
+    target_step_ref: b2rcr-review
+    rows:
+      - axis: Link
+        row_ref: link-row:b2rcr-work-to-review
+        movement: forward
+        target_ref: brick-b2rcr-review
+        declared_gate_refs:
+          - link-gate:default-transition
+  - edge_ref: edge:b2rcr-review-to-close
+    source_step_ref: b2rcr-review
+    target_step_ref: b2rcr-close
+    rows:
+      - axis: Link
+        row_ref: link-row:b2rcr-review-to-close
+        movement: forward
+        target_ref: brick-b2rcr-close
+        declared_gate_refs:
+          - link-gate:default-transition
+  - edge_ref: edge:b2rcr-close-to-boundary
+    source_step_ref: b2rcr-close
+    rows:
+      - axis: Link
+        row_ref: link-row:b2rcr-close-to-boundary
+        movement: forward
+        target_ref: building-boundary:b2-real-codex-dynamic-reroute-0-closed
+        building_lifecycle:
+          state: closed
+          reason: B2-REAL-CODEX-DYNAMIC-REROUTE-0 walked work then a real-codex review that proposed a non-binding reroute to brick-b2rcr-work, the default gate adopted it, the work node re-executed within the per-node budget of 1, and the walk closed.
+node_reroute_budgets:
+  brick-b2rcr-work: 1

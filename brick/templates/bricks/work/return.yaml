@@ -1,0 +1,39 @@
+template_ref: brick-template:work-return
+owner_axis: Brick
+template_kind: work_return_shape
+maps_to: AgentFact.returned
+step_template_refs:
+  - building-step-template:work
+required_return_shape:
+  - received_work_ref
+  - made_changes
+  - changed_files
+  - observed_evidence
+  - commands_run
+  - blocked_or_missing_evidence
+  - handoff_refs
+  - not_proven
+next_link_input_sections:
+  - public facts available for Link
+  - missing facts for Link Gate
+  - handoff refs
+  - not_proven
+forbidden_return_keys:
+  - success
+  - failure
+  - approved
+  - quality
+  - movement_choice
+  - route_target
+proof_limits:
+  - Brick-owned return-shape data resource only
+  - changed files are support evidence only
+  - checker green is support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of changed files
+  - complete coverage
+  - support loader behavior

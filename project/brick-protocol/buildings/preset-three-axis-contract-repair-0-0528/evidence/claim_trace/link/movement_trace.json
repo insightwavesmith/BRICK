@@ -1,0 +1,151 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:preset-three-axis-contract-repair-0-0528::evidence/claim_trace/link/movement_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:01:preset-three-axis-contract-repair-0-development",
+          "brick-comparison:01:preset-three-axis-contract-repair-0-development",
+          "sufficiency-fact-movement:01:preset-three-axis-contract-repair-0-development"
+        ],
+        "target_boundary_ref": "brick:brick-preset-contract-repair-review-attempt-1"
+      },
+      "fact_ref": "movement-fact:01:preset-three-axis-contract-repair-0-development",
+      "not_proven": [
+        "semantic correctness of dashboard work",
+        "real provider adherence to return labels",
+        "dashboard UI readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "adapter normalization and Link gate dogfood only",
+        "not provider behavior proof",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:02:preset-three-axis-contract-repair-0-review",
+          "brick-comparison:02:preset-three-axis-contract-repair-0-review",
+          "sufficiency-fact-movement:02:preset-three-axis-contract-repair-0-review"
+        ],
+        "target_boundary_ref": "brick:brick-preset-contract-repair-closure"
+      },
+      "fact_ref": "movement-fact:02:preset-three-axis-contract-repair-0-review",
+      "not_proven": [
+        "semantic correctness of dashboard work",
+        "real provider adherence to return labels",
+        "dashboard UI readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "adapter normalization and Link gate dogfood only",
+        "not provider behavior proof",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:02"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:03:preset-three-axis-contract-repair-0-closure",
+          "brick-comparison:03:preset-three-axis-contract-repair-0-closure",
+          "sufficiency-fact-movement:03:preset-three-axis-contract-repair-0-closure"
+        ],
+        "target_boundary_ref": "brick:building-boundary:preset-three-axis-contract-repair-0-closed"
+      },
+      "fact_ref": "movement-fact:03:preset-three-axis-contract-repair-0-closure",
+      "not_proven": [
+        "semantic correctness of dashboard work",
+        "real provider adherence to return labels",
+        "dashboard UI readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "adapter normalization and Link gate dogfood only",
+        "not provider behavior proof",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:03"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-28T08:34:11Z",
+  "id": "urn:bp:building:preset-three-axis-contract-repair-0-0528::evidence/claim_trace/link/movement_trace.json",
+  "recorded_at": "2026-05-28T08:34:11Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:preset-three-axis-contract-repair-0-0528",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/movement_trace.json",
+  "time": "2026-05-28T08:34:11Z",
+  "type": "bp.claim_trace"
+}

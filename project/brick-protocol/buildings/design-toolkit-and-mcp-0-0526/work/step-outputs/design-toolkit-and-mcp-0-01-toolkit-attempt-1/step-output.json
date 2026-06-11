@@ -1,0 +1,90 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:design-toolkit-and-mcp-0-0526::work/step-outputs/design-toolkit-and-mcp-0-01-toolkit-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-design-toolkit-and-mcp-0-toolkit",
+  "building_id": "design-toolkit-and-mcp-0-0526",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl"
+  },
+  "generatedAtTime": "2026-05-26T12:41:07Z",
+  "id": "urn:bp:building:design-toolkit-and-mcp-0-0526::work/step-outputs/design-toolkit-and-mcp-0-01-toolkit-attempt-1/step-output.json",
+  "not_proven": [
+    "MCP client behavior",
+    "semantic fitness of future selected shapes",
+    "automatic Building Plan authoring",
+    "provider-native projection expansion",
+    "route policy behavior",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:design-toolkit-and-mcp-0-01-toolkit",
+  "recorded_at": "2026-05-26T12:41:07Z",
+  "returned": {
+    "adapter_ref": "adapter:local",
+    "agent_object_ref": "agent-object:coo",
+    "callable_ref": "callable:local:agent-invoke0-smoke",
+    "discipline_refs": [
+      "discipline:closed-agentfact",
+      "discipline:proof-limits"
+    ],
+    "evidence_refs": [
+      "support-packet:design-toolkit-and-mcp-0-0526:agent-object:coo:output"
+    ],
+    "hook_refs": [
+      "hook:instruction-chain-read",
+      "hook:resource-ref-redaction"
+    ],
+    "prompt_refs": [
+      "prompt:coo"
+    ],
+    "returned_summary": "local Agent Adapter callable returned support evidence",
+    "skill_refs": [
+      "skill:building-coordination",
+      "skill:protocol-boundary-watch",
+      "skill:evidence-verification"
+    ],
+    "tool_policy_refs": [
+      "tool-policy:support-readonly"
+    ]
+  },
+  "returned_fact_ref": "agent-fact:01:design-toolkit-and-mcp-0-01-toolkit",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:design-toolkit-and-mcp-0-0526",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:design-toolkit-and-mcp-0-01-toolkit:attempt-1",
+  "step_ref": "design-toolkit-and-mcp-0-01-toolkit",
+  "subject": "design-toolkit-and-mcp-0-01-toolkit",
+  "time": "2026-05-26T12:41:07Z",
+  "type": "bp.step_output"
+}

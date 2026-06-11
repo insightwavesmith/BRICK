@@ -1,0 +1,128 @@
+plan_ref: building-plan:agent-projection-sync-0-dogfood
+owner_axis: Brick
+building_id: agent-projection-sync-0-dogfood-0527
+selected_adapter_ref: adapter:local
+selected_model_ref: model:default
+proof_limits:
+  - support evidence only
+  - projection sync dogfood is not local app reload proof
+  - selected_model_ref is model selection grammar, not provider availability proof
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - local Codex app reload behavior
+  - local Claude app reload behavior
+  - provider model availability
+  - provider quality
+  - native hook execution
+steps:
+  - step_ref: agent-projection-sync-0-01-design
+    selected_model_ref: model:default
+    rows:
+      - axis: Brick
+        row_ref: brick-row:aps0-design
+        brick_work_ref: work:aps0-design
+        brick_instance_ref: brick-aps0-design-attempt-1
+        work_statement: Design AGENT-PROJECTION-SYNC-0 so Agent resources can sync out to provider-native projection files and sync in only as drift observation.
+        comparison_rule: Observe whether agent/ remains source, support/connection projects and observes only, selected_model_ref stays run-level selection, and Link Movement remains untouched.
+        required_return_shape: six_questions, source_projection_map, selected_model_contract, forbidden_authority, implementation_targets, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+          - support/docs/spec/brick-protocol-agent-projection-sync-0-0527.md
+          - support/connection/agent_resources.py
+          - support/connection/coo_sync.py
+          - support/connection/agent_adapter.py
+      - axis: Agent
+        row_ref: agent-row:aps0-design-coo
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:aps0-design-to-development
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-aps0-development-attempt-1
+        next_brick_instance_ref: brick-aps0-development-attempt-1
+  - step_ref: agent-projection-sync-0-02-development
+    selected_model_ref: model:default
+    rows:
+      - axis: Brick
+        row_ref: brick-row:aps0-development
+        brick_work_ref: work:aps0-development
+        brick_instance_ref: brick-aps0-development-attempt-1
+        work_statement: Implement the minimal existing-surface changes for projection sync context, MCP read-only exposure, selected_model_ref propagation, and checker profile coverage.
+        comparison_rule: Observe changed files and validation output only; do not claim app reload, provider quality, model availability, or Movement authority.
+        required_return_shape: changed_files, implementation_map, model_projection_cases, mcp_context_observation, proof_limits, not_proven
+        source_facts:
+          - support/connection/coo_sync.py
+          - support/connection/mcp_projection.py
+          - support/connection/agent_adapter.py
+          - support/operator/run.py
+          - support/operator/plan_validation.py
+          - support/operator/building_operation.py
+          - support/operator/plan_graph.py
+          - support/checkers/profiles/agent_projection_sync.yaml
+      - axis: Agent
+        row_ref: agent-row:aps0-development-dev
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:aps0-development-to-qa
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-aps0-qa-attempt-1
+        next_brick_instance_ref: brick-aps0-qa-attempt-1
+  - step_ref: agent-projection-sync-0-03-qa
+    selected_model_ref: model:default
+    rows:
+      - axis: Brick
+        row_ref: brick-row:aps0-qa
+        brick_work_ref: work:aps0-qa
+        brick_instance_ref: brick-aps0-qa-attempt-1
+        work_statement: Review AGENT-PROJECTION-SYNC-0 boundaries and validation evidence.
+        comparison_rule: Observe whether sync-in is observation only, projection files are not source truth, selected_model_ref does not enter Agent Object, and support does not choose Movement.
+        required_return_shape: checked_sources, findings, missing_evidence, transition_concern_evidence, proof_limits, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-agent-projection-sync-0-0527.md
+          - AGENTS.md
+          - support/checkers/profiles/agent_projection_sync.yaml
+      - axis: Agent
+        row_ref: agent-row:aps0-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:aps0-qa-to-closure
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-aps0-closure-attempt-1
+        next_brick_instance_ref: brick-aps0-closure-attempt-1
+  - step_ref: agent-projection-sync-0-04-closure
+    selected_model_ref: model:default
+    rows:
+      - axis: Brick
+        row_ref: brick-row:aps0-closure
+        brick_work_ref: work:aps0-closure
+        brick_instance_ref: brick-aps0-closure-attempt-1
+        work_statement: Close AGENT-PROJECTION-SYNC-0 with evidence roots, validation commands, narrowly_proven, not_proven, and remaining_delta.
+        comparison_rule: Observe closure evidence only; do not claim source truth, provider runtime readiness, or quality success.
+        required_return_shape: evidence_root, validation_commands, narrowly_proven, not_proven, remaining_delta, next_movement_candidate
+        source_facts:
+          - project/brick-protocol/status/kernel/brick-protocol-agent-projection-sync-0-support-record-0527.md
+      - axis: Agent
+        row_ref: agent-row:aps0-closure-coo
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:aps0-closure
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: building-boundary:agent-projection-sync-0-closed
+        building_lifecycle:
+          state: closed
+          reason: closure:agent-projection-sync-0
+          proof_limits:
+            - closure evidence only
+          not_proven:
+            - local app reload behavior

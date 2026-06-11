@@ -1,0 +1,49 @@
+{
+  "building_id": "reporter-delivery-wake-bus-0-0531",
+  "evidence_root_refs": [
+    "project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531"
+  ],
+  "frontier_ref": "project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531#frontier:complete",
+  "not_proven": [
+    "operator noticed wake packet",
+    "delivery reliability",
+    "real provider thread wake behavior",
+    "external side effect behavior",
+    "stale evidence race behavior"
+  ],
+  "observed_board_state": "observed_closed_boundary",
+  "operator_wake_targets": [
+    {
+      "delivery_mode": "local_projection",
+      "not_proven": [
+        "operator noticed wake packet",
+        "real provider thread wake behavior",
+        "external side effect behavior"
+      ],
+      "proof_limits": [
+        "provider-neutral local wake target reference only"
+      ],
+      "side_effect_state": "none",
+      "sink_ref": "report-sink:operator-wake-local",
+      "target_kind": "operator_wake_local",
+      "target_ref": "operator-wake-target:local-active-operator"
+    }
+  ],
+  "portfolio_id": "",
+  "proof_limits": [
+    "provider-neutral operator wake projection only",
+    "writes local status inbox wake packets only",
+    "not provider mutation",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "not route input",
+    "not automatic resume"
+  ],
+  "report_id": "reporter-delivery-wake-bus-0-0531-building-frontier",
+  "report_kind": "building_frontier",
+  "required_disposition_owner": "",
+  "source_truth": false,
+  "wake_packet_id": "reporter-delivery-wake-bus-0-0531-building-frontier-operator-wake"
+}

@@ -1,0 +1,159 @@
+plan_ref: building-plan:building-graph-run-0-full-implementation
+owner_axis: Brick
+building_id: building-graph-run-0-0525
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - parallel runtime execution
+  - scheduler correctness
+  - queue/retry behavior
+  - provider quality
+  - Gemini adapter behavior
+  - external graph DB behavior
+  - semantic graph correctness
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority
+steps:
+  - step_ref: building-graph-run-0-01-design
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-graph-run-0-design
+        brick_work_ref: work:building-graph-run-0-design
+        brick_instance_ref: brick-building-graph-run-design-01
+        work_statement: Design BUILDING-GRAPH-RUN-0 declared topology walking inside support/operator/run.py.
+        comparison_rule: Observe whether design uses existing support/operator/run.py, keeps graph topology declared by Brick/Link, and does not open scheduler, runtime, route choice, or Movement authority.
+        required_return_shape: role_boundary, graph_plan_shape, support_run_changes, checker_plan, dogfood_plan_shape, edge_cases, forbidden_ownership, not_proven
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+          - support/docs/spec/brick-protocol-building-graph-run-0-declared-topology-walker-0525.md
+          - support/docs/spec/brick-protocol-building-graph-need-0-three-axis-analysis-0525.md
+          - support/operator/run.py
+          - brick/templates/design/minimal-design-template.json
+      - axis: Agent
+        row_ref: agent-row:building-graph-run-0-design
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:building-graph-run-0-design
+        movement: forward
+        target_ref: brick-building-graph-run-development-02
+        next_brick_instance_ref: brick-building-graph-run-development-02
+  - step_ref: building-graph-run-0-02-development
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-graph-run-0-development
+        brick_work_ref: work:building-graph-run-0-development
+        brick_instance_ref: brick-building-graph-run-development-02
+        work_statement: Implement declared graph topology plan walking, checker coverage, graph dogfood plan, path admission if needed, and active context updates.
+        comparison_rule: Observe whether implementation preserves linear plans, validates graph plans, records fan-out/fan-in groups, and avoids route/Movement/GateFact creation.
+        required_return_shape: implementation_map, changed_files, verification_evidence, graph_dogfood_result, boundaries_preserved, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-building-graph-run-0-declared-topology-walker-0525.md
+          - support/operator/run.py
+          - support/checkers/check_building_plan0_declared_plan_boundary.py
+          - support/checkers/check_building_map_graph.py
+          - brick/templates/do/minimal-do-return-template.json
+      - axis: Agent
+        row_ref: agent-row:building-graph-run-0-development
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:building-graph-run-0-development
+        movement: forward
+        target_ref: brick-building-graph-run-codex-verification-03
+        next_brick_instance_ref: brick-building-graph-run-codex-verification-03
+  - step_ref: building-graph-run-0-03-codex-verification
+    selected_adapter_ref: adapter:codex-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-graph-run-0-codex-verification
+        brick_work_ref: work:building-graph-run-0-codex-verification
+        brick_instance_ref: brick-building-graph-run-codex-verification-03
+        work_statement: Verify BUILDING-GRAPH-RUN-0 from the Codex lane as support evidence.
+        comparison_rule: Observe whether declared graph topology walking works without runtime/scheduler/Movement ownership and whether graph dogfood proves fan-out/fan-in projection only.
+        required_return_shape: checked_work, checked_sources, match_facts, missing_or_mismatched_facts, boundary_violations, evidence_used, narrowly_proven, not_proven, next_movement_recommendation
+        source_facts:
+          - support/docs/spec/brick-protocol-building-graph-run-0-declared-topology-walker-0525.md
+          - support/operator/run.py
+          - support/checkers/check_building_graph_run0_declared_topology.py
+          - brick/building_plans/building-graph-run-0-graph-dogfood.yaml
+          - brick/templates/review/minimal-review-template.json
+      - axis: Agent
+        row_ref: agent-row:building-graph-run-0-codex-verification
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:building-graph-run-0-codex-verification
+        movement: forward
+        target_ref: brick-building-graph-run-claude-verification-04
+        next_brick_instance_ref: brick-building-graph-run-claude-verification-04
+  - step_ref: building-graph-run-0-04-claude-verification
+    selected_adapter_ref: adapter:claude-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-graph-run-0-claude-verification
+        brick_work_ref: work:building-graph-run-0-claude-verification
+        brick_instance_ref: brick-building-graph-run-claude-verification-04
+        work_statement: Verify BUILDING-GRAPH-RUN-0 from the Claude lane as support evidence.
+        comparison_rule: Observe whether graph topology is declared by Brick/Link, Agent binding stays separate from Link edges, and support does not choose route.
+        required_return_shape: checked_work, checked_sources, match_facts, missing_or_mismatched_facts, boundary_violations, evidence_used, narrowly_proven, not_proven, next_movement_recommendation
+        source_facts:
+          - support/docs/spec/brick-protocol-building-graph-run-0-declared-topology-walker-0525.md
+          - support/operator/run.py
+          - support/checkers/check_building_graph_run0_declared_topology.py
+          - brick/building_plans/building-graph-run-0-graph-dogfood.yaml
+          - brick/templates/review/minimal-review-template.json
+      - axis: Agent
+        row_ref: agent-row:building-graph-run-0-claude-verification
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:building-graph-run-0-claude-verification
+        movement: forward
+        target_ref: brick-building-graph-run-integration-05
+        next_brick_instance_ref: brick-building-graph-run-integration-05
+  - step_ref: building-graph-run-0-05-integration
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-graph-run-0-integration
+        brick_work_ref: work:building-graph-run-0-integration
+        brick_instance_ref: brick-building-graph-run-integration-05
+        work_statement: Integrate in-scope BUILDING-GRAPH-RUN-0 verification observations and update active context.
+        comparison_rule: Observe whether integration preserves declared topology walking and leaves Gemini adapter as next candidate.
+        required_return_shape: repairs, checks_rerun, next_building_candidates, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-building-graph-run-0-declared-topology-walker-0525.md
+      - axis: Agent
+        row_ref: agent-row:building-graph-run-0-integration
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:building-graph-run-0-integration
+        movement: forward
+        target_ref: brick-building-graph-run-closure-06
+        next_brick_instance_ref: brick-building-graph-run-closure-06
+  - step_ref: building-graph-run-0-06-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-graph-run-0-closure
+        brick_work_ref: work:building-graph-run-0-closure
+        brick_instance_ref: brick-building-graph-run-closure-06
+        work_statement: Close BUILDING-GRAPH-RUN-0 with observed evidence, narrowly proven scope, not_proven, and next Movement candidate.
+        comparison_rule: Observe whether closure names GEMINI-ADAPTER-0 only as next candidate and keeps provider SDK/API closed.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, next_movement
+        source_facts:
+          - support/docs/spec/brick-protocol-building-graph-run-0-declared-topology-walker-0525.md
+      - axis: Agent
+        row_ref: agent-row:building-graph-run-0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:building-graph-run-0-closure
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:building-graph-run-0-closed
+        next_brick_instance_ref: building-boundary-building-graph-run-0-closed

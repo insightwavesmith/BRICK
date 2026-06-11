@@ -1,0 +1,64 @@
+plan_ref: building-plan:review-fix-close
+owner_axis: Brick
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+steps:
+  - step_ref: review-fix-close-01-review
+    rows:
+      - axis: Brick
+        row_ref: brick-row:review-fix-close-01
+        brick_work_ref: work:review-fix-close-01
+        brick_instance_ref: brick-review-01
+        work_statement: Review the current change for bugs, stale active references, and boundary drift.
+        comparison_rule: Observe whether findings include file references and scope labels.
+        required_return_shape: findings, scope, not_proven
+      - axis: Agent
+        row_ref: agent-row:review-fix-close-01
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:review-fix-close-01
+        movement: forward
+        target_ref: brick-fix-02
+        next_brick_instance_ref: brick-fix-02
+  - step_ref: review-fix-close-02-fix
+    rows:
+      - axis: Brick
+        row_ref: brick-row:review-fix-close-02
+        brick_work_ref: work:review-fix-close-02
+        brick_instance_ref: brick-fix-02
+        work_statement: Apply in-scope fixes only.
+        comparison_rule: Observe whether fixes map directly to the review findings.
+        required_return_shape: fixes, checks, held_items
+      - axis: Agent
+        row_ref: agent-row:review-fix-close-02
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:review-fix-close-02
+        movement: forward
+        target_ref: brick-close-03
+        next_brick_instance_ref: brick-close-03
+  - step_ref: review-fix-close-03-close
+    rows:
+      - axis: Brick
+        row_ref: brick-row:review-fix-close-03
+        brick_work_ref: work:review-fix-close-03
+        brick_instance_ref: brick-close-03
+        work_statement: Report the observed evidence and close or hold with proof limits.
+        comparison_rule: Observe whether the report separates evidence, proven scope, and not-proven scope.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, next_movement
+      - axis: Agent
+        row_ref: agent-row:review-fix-close-03
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:review-fix-close-03
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:closed
+        next_brick_instance_ref: building-boundary-closed

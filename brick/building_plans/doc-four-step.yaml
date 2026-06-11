@@ -1,0 +1,81 @@
+plan_ref: building-plan:doc-four-step
+owner_axis: Brick
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+steps:
+  - step_ref: doc-four-step-01-design
+    rows:
+      - axis: Brick
+        row_ref: brick-row:doc-four-step-01
+        brick_work_ref: work:doc-four-step-01
+        brick_instance_ref: brick-doc-design-01
+        work_statement: Draft the document design from the current constitutional chain.
+        comparison_rule: Observe whether the draft names upstream docs, scope, and proof limits.
+        required_return_shape: purpose, upstream_chain, outline, proof_limits
+      - axis: Agent
+        row_ref: agent-row:doc-four-step-01
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:doc-four-step-01
+        movement: forward
+        target_ref: brick-doc-write-02
+        next_brick_instance_ref: brick-doc-write-02
+  - step_ref: doc-four-step-02-write
+    rows:
+      - axis: Brick
+        row_ref: brick-row:doc-four-step-02
+        brick_work_ref: work:doc-four-step-02
+        brick_instance_ref: brick-doc-write-02
+        work_statement: Write the document inside the approved scope.
+        comparison_rule: Observe whether the document avoids authority claims and new module ownership.
+        required_return_shape: changed_sections, support_evidence, not_proven
+      - axis: Agent
+        row_ref: agent-row:doc-four-step-02
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:doc-four-step-02
+        movement: forward
+        target_ref: brick-doc-review-03
+        next_brick_instance_ref: brick-doc-review-03
+  - step_ref: doc-four-step-03-review
+    rows:
+      - axis: Brick
+        row_ref: brick-row:doc-four-step-03
+        brick_work_ref: work:doc-four-step-03
+        brick_instance_ref: brick-doc-review-03
+        work_statement: Review the document for chain, boundary, and stale active path errors.
+        comparison_rule: Observe whether review findings are actionable and scoped.
+        required_return_shape: findings, stale_refs, repair_scope
+      - axis: Agent
+        row_ref: agent-row:doc-four-step-03
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:doc-four-step-03
+        movement: forward
+        target_ref: brick-doc-close-04
+        next_brick_instance_ref: brick-doc-close-04
+  - step_ref: doc-four-step-04-close
+    rows:
+      - axis: Brick
+        row_ref: brick-row:doc-four-step-04
+        brick_work_ref: work:doc-four-step-04
+        brick_instance_ref: brick-doc-close-04
+        work_statement: Close the document with observed evidence, held items, and next Movement.
+        comparison_rule: Observe whether closure avoids source-truth and quality claims.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, held
+      - axis: Agent
+        row_ref: agent-row:doc-four-step-04
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:doc-four-step-04
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:closed
+        next_brick_instance_ref: building-boundary-closed

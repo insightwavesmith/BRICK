@@ -1,0 +1,30 @@
+template_ref: brick-template:standard-transition-concern-return
+owner_axis: Brick
+template_kind: review_return_shape
+returned_shape:
+  transition_concern_evidence:
+    concern_ref: transition-concern:<id>
+    concern_kind: implementation_gap | design_gap | upstream_gap | boundary_mismatch | insufficient_input | replay_needed | verification_gap | unknown
+    reason_refs:
+      - observation:<id>
+    related_boundary_refs:
+      - brick:<id>
+    binding: false
+    proof_limits:
+      - Agent concern only
+      - not Movement authority
+forbidden_transition_concern_fields:
+  - movement
+  - target
+  - target_ref
+  - route_target
+  - success
+  - failure
+  - approved
+  - quality
+proof_limits:
+  - transition_concern_evidence is Agent returned evidence only
+  - Link owns Movement and target disposition
+  - not route policy matching
+  - not route materialization
+  - not automatic repair/replay execution

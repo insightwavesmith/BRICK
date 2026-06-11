@@ -1,0 +1,56 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:current-context-prune-0-0527::work/building-work.json",
+  "building_id": "current-context-prune-0-0527",
+  "comparison_rule": "Observe current context shape only; do not delete historical evidence or claim source truth.",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-05-26T22:44:17Z",
+  "id": "urn:bp:building:current-context-prune-0-0527::work/building-work.json",
+  "not_proven": [
+    "semantic completeness of all historical context",
+    "future operator understanding",
+    "future task source semantic correctness",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "plan_ref": "building-plan:current-context-prune-0-compact",
+  "proof_limits": [
+    "support evidence only",
+    "current context is operator view only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement owner"
+  ],
+  "recorded_at": "2026-05-26T22:44:17Z",
+  "required_return_shape": "context_sections, retained_refs, proof_limits, not_proven",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:current-context-prune-0-0527",
+  "source_facts": [
+    "brick/tasks/current-context-prune-0.md",
+    "project/brick-protocol/status/kernel/current-working-context.md"
+  ],
+  "specversion": "1.0",
+  "step_refs": [
+    "current-context-prune-0-01-design",
+    "current-context-prune-0-02-qa",
+    "current-context-prune-0-03-closure"
+  ],
+  "subject": "work/building-work.json",
+  "time": "2026-05-26T22:44:17Z",
+  "type": "bp.building_work",
+  "work_statement": "Design the pruned current context as an operator-facing current view with links to historical support records."
+}

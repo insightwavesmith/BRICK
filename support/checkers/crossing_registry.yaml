@@ -1,0 +1,225 @@
+# Crossing-Contract Registry (engine blueprint 0531 §3 Table A).
+#
+# Append-only. One row per axis crossing: at each crossing exactly ONE canonical
+# contract crosses, and an axis's internal change is hidden behind that contract
+# (information hiding / narrow waist). Adding a crossing = appending ONE row; the
+# elegance guard (support/checkers/check_axis_crossing_elegance.py) reads this
+# file and module_registry.yaml and needs no code edit per added row.
+#
+# Support record / governance projection only. This file decides nothing: it is
+# NOT source truth, NOT success judgment, NOT quality judgment, and NOT Movement
+# authority. It admits no axis or fact class.
+#
+# columns:
+#   crossing_id        stable id (referenced by module_registry owns/consumes)
+#   crossing           human seam name (Table A row 1)
+#   seam               <from-axis>-><to-axis> mechanical seam
+#   owner_axis         Brick | Agent | Link | support (the axis that OWNS it)
+#   canonical_contract the single contract name that crosses (G1 unique)
+#   canonical_symbols  the public symbols a support module may import from the
+#                      owning axis module for this crossing (G3 allowlist; the
+#                      guard groups these by defined_at, so two crossings that
+#                      share one axis file share the union)
+#   defined_at         the axis source file the contract is defined in
+#   projection_yaml    the paired axis projection YAML (or "" if none)
+#   pinned_by          the behavioral pin that proves the contract body (NOT this
+#                      guard; this guard governs shape/boundary only)
+#   is_axis_crossing   true for the 11 axis crossings; false for the support
+#                      ReportPacket projection (listed so G1 owns its name
+#                      uniqueness — see blueprint §3.1/§7 — but it is NOT an axis
+#                      crossing and is excluded from G3's axis-import grouping)
+
+crossings:
+  - crossing_id: brick_work
+    crossing: "Brick->Agent (work dispatch)"
+    seam: "Brick->Agent"
+    owner_axis: Brick
+    canonical_contract: BrickWork
+    canonical_symbols:
+      - BrickWork
+      - parse_required_return_shape
+    defined_at: brick/work.py
+    projection_yaml: brick/work.yaml
+    pinned_by: check_axis_contract_projection (check_brick_work)
+    is_axis_crossing: true
+
+  - crossing_id: agent_return_fact
+    crossing: "Agent->downstream (returned)"
+    seam: "Agent->downstream"
+    owner_axis: Agent
+    canonical_contract: AgentFact
+    canonical_symbols:
+      - AgentFact
+      - make_agent_fact
+      - AGENT_FACT_FIELDS
+      - RETURNED_FORBIDDEN_KEYS
+      - TRANSITION_CONCERN_ALLOWED_KEYS
+      - TRANSITION_CONCERN_KINDS
+      - validate_transition_concern_evidence
+    defined_at: agent/return_fact.py
+    projection_yaml: agent/return_fact.yaml
+    pinned_by: check_axis_contract_projection (check_agent_return_fact) + single-home verifier
+    is_axis_crossing: true
+
+  - crossing_id: agent_receipt
+    crossing: "Agent receipt (intake)"
+    seam: "upstream->Agent"
+    owner_axis: Agent
+    canonical_contract: ReceiptFact
+    canonical_symbols:
+      - ReceiptFact
+      - make_receipt_fact
+    defined_at: agent/receipt.py
+    projection_yaml: agent/receipt.yaml
+    pinned_by: check_axis_contract_projection (check_agent_receipt)
+    is_axis_crossing: true
+
+  - crossing_id: agent_performer
+    crossing: "Performer-lane (who performs)"
+    seam: "Agent->performer"
+    owner_axis: Agent
+    canonical_contract: AgentPerformerFact
+    canonical_symbols:
+      - AgentPerformerFact
+      - make_agent_performer_fact
+      - NATIVE_DISPATCH_PERFORMANCE_MODE
+    defined_at: agent/performance.py
+    projection_yaml: agent/performance.yaml
+    pinned_by: check_axis_contract_projection (check_agent_performance)
+    is_axis_crossing: true
+
+  - crossing_id: brick_comparison
+    crossing: "Agent->Brick (comparison)"
+    seam: "Agent->Brick"
+    owner_axis: Brick
+    canonical_contract: BrickComparisonFact
+    canonical_symbols:
+      - BrickComparisonFact
+    defined_at: brick/comparison.py
+    projection_yaml: brick/comparison.yaml
+    pinned_by: check_axis_contract_projection (check_brick_comparison) + SEQ-0
+    is_axis_crossing: true
+
+  - crossing_id: link_gate
+    crossing: "comparison->Link (sufficiency)"
+    seam: "Brick->Link"
+    owner_axis: Link
+    canonical_contract: GateFact
+    canonical_symbols:
+      - GateFact
+      - make_gate_fact
+      - gate_required_return_fields
+      - evaluate_declared_movement_gate
+      - make_transfer_gate_fact
+      - make_carry_gate_fact
+      - make_movement_gate_fact
+      - DECLARED_GATE_REFS
+      # E1 (U5.5 slice-3): the admitted Link gate sufficiency vocabulary, single-
+      # sourced by recording (claims_link) to validate the recorded sufficiency.
+      - GATE_SUFFICIENCY_LITERALS
+    defined_at: link/gate.py
+    projection_yaml: link/gate.yaml
+    pinned_by: check_axis_contract_projection (check_link_gate)
+    is_axis_crossing: true
+
+  - crossing_id: link_movement
+    crossing: "Movement decision"
+    seam: "Link->Link"
+    owner_axis: Link
+    canonical_contract: MovementFact
+    canonical_symbols:
+      - MovementFact
+      - make_movement_fact
+      - MOVEMENT_LITERALS
+    defined_at: link/movement.py
+    projection_yaml: link/movement.yaml
+    pinned_by: check_axis_contract_projection + axis_vocab_drift
+    is_axis_crossing: true
+
+  - crossing_id: link_transfer
+    crossing: "Transfer"
+    seam: "Brick-boundary->Brick-boundary"
+    owner_axis: Link
+    canonical_contract: TransferFact
+    canonical_symbols:
+      - TransferFact
+      - make_transfer_fact
+    defined_at: link/transfer.py
+    projection_yaml: link/transfer.yaml
+    pinned_by: check_axis_contract_projection
+    is_axis_crossing: true
+
+  - crossing_id: link_carry
+    crossing: "Carry"
+    seam: "cross-boundary ref preservation"
+    owner_axis: Link
+    canonical_contract: CarryFact
+    canonical_symbols:
+      - CarryFact
+      - make_carry_fact
+    defined_at: link/carry.py
+    projection_yaml: link/carry.yaml
+    pinned_by: check_axis_contract_projection + bounded routing checker
+    is_axis_crossing: true
+
+  - crossing_id: link_transition
+    crossing: "Transition topology"
+    seam: "Link->Link"
+    owner_axis: Link
+    canonical_contract: TransitionFact
+    # link/transition.py hosts TWO crossings (TransitionFact + transition_lifecycle);
+    # the guard groups canonical_symbols by defined_at, so both rows' symbols form
+    # one allowlist for that file. These are the topology symbols.
+    canonical_symbols:
+      - TransitionFact
+      - make_transition_fact
+      - BUILDING_LIFECYCLE_STATES
+    defined_at: link/transition.py
+    projection_yaml: link/transition.yaml
+    pinned_by: check_axis_contract_projection
+    is_axis_crossing: true
+
+  - crossing_id: transition_lifecycle
+    crossing: "Pause/resume (transition lifecycle)"
+    seam: "Link->Link"
+    owner_axis: Link
+    canonical_contract: transition_lifecycle
+    # The pause/resume lifecycle vocabulary, co-located in link/transition.py.
+    canonical_symbols:
+      - DISPOSITION_ACTIONS
+      - TRANSITION_LIFECYCLE_STATES
+      - TRANSITION_LIFECYCLE_PROGRESS_STATES
+      - TRANSITION_LIFECYCLE_DISPOSITION_OWNERS
+      - TRANSITION_LIFECYCLE_DISPOSITION_AUTHOR_PREFIXES
+      - TRANSITION_LIFECYCLE_ALLOWED_KEYS
+    defined_at: link/transition.py
+    projection_yaml: link/transition.yaml
+    pinned_by: check_axis_contract_projection + bounded routing checker
+    is_axis_crossing: true
+
+  # NOT an axis crossing. Listed only so G1 owns ReportPacket contract-name
+  # uniqueness (blueprint §3.1/§7). Report delivery is support mechanics that
+  # decides nothing; the "decides nothing" fields are pinned by the reporter
+  # negative probe, not by this guard. owner_axis=support and
+  # is_axis_crossing=false exclude it from G3's axis-import grouping.
+  - crossing_id: report_packet
+    crossing: "Report delivery (support projection, NOT an axis)"
+    seam: "support->declared sinks"
+    owner_axis: support
+    canonical_contract: ReportPacket
+    canonical_symbols: []
+    defined_at: support/operator/reporter.py
+    projection_yaml: support/checkers/profiles/reporter_notification_projection.yaml
+    pinned_by: reporter negative probe + reporter_notification_projection profile
+    is_axis_crossing: false
+
+proof_limits:
+  - support evidence only
+  - governance/navigation projection only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - crossing registry row as source truth
+  - contract body behavior (pinned by per-row pinned_by, not by this registry)

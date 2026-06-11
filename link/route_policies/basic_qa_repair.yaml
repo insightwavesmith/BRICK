@@ -1,0 +1,79 @@
+route_policy_ref: route-policy:qa-basic-repair
+owner_axis: Link
+resource_kind: route_policy_contract
+fact_class_admission: not_admitted
+movement_literal: reroute
+matching_boundary: ROUTE-MATCH-AND-MATERIALIZATION-0
+materialization_boundary: ROUTE-MATCH-AND-MATERIALIZATION-0
+auto_repair_boundary: AUTO-REPAIR-REPLAY-0
+description: Basic QA route request menu for literal matching and caller-declared replay materialization.
+allowed_route_requests:
+  - requested_route_scope: qa_only
+    route_path_ref: route-path:qa-replay
+    target_step: qa
+    replay_steps: []
+    route_reason_refs_required: true
+    replay_segment_refs: []
+    human_gate_required: false
+  - requested_route_scope: implementation_only
+    route_path_ref: route-path:dev-repair-then-qa-replay
+    target_step: dev
+    replay_steps:
+      - qa
+    route_reason_refs_required: true
+    replay_segment_refs:
+      - replay-segment:qa
+    human_gate_required: false
+  - requested_route_scope: design_gap
+    route_path_ref: route-path:design-repair-then-work-and-qa-replay
+    target_step: design
+    replay_steps:
+      - work
+      - qa
+    route_reason_refs_required: true
+    replay_segment_refs:
+      - replay-segment:work
+      - replay-segment:qa
+    human_gate_required: true
+allowed_transition_concerns:
+  - concern_kind: implementation_gap
+    requested_route_scope: implementation_only
+  - concern_kind: replay_needed
+    requested_route_scope: implementation_only
+  - concern_kind: design_gap
+    requested_route_scope: design_gap
+  - concern_kind: upstream_gap
+    requested_route_scope: design_gap
+  - concern_kind: boundary_mismatch
+    requested_route_scope: design_gap
+  - concern_kind: insufficient_input
+    requested_route_scope: design_gap
+  - concern_kind: verification_gap
+    requested_route_scope: qa_only
+human_gate_required_when:
+  - requested_route_scope: unknown
+  - requested_route_scope_not_listed
+  - write_scope_expands
+  - constitutional_surface_changes
+forbidden:
+  - RoutePolicyFact promotion
+  - semantic quality judgment
+  - support-chosen Movement
+  - provider or Agent endpoint
+  - runtime scheduler ownership
+  - automatic repair execution before AUTO-REPAIR-REPLAY-0
+proof_limits:
+  - Link-owned contract data resource only
+  - not a BAL fact class
+  - not route policy matching yet
+  - materialization requires a caller-declared route_replay_plan
+  - not automatic repair/replay execution yet
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - literal match behavior
+  - declared route replay plan materialization behavior
+  - automatic repair/replay behavior
+  - semantic correctness of QA route requests

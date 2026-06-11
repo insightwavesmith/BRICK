@@ -1,0 +1,59 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:building-automation-final-completion-audit-0-0526::evidence/evidence-manifest.json",
+  "building_id": "building-automation-final-completion-audit-0-0526",
+  "building_map_ref": "work/building-map.json",
+  "claim_trace_refs": [
+    "evidence/claim_trace/brick/work_contract.json",
+    "evidence/claim_trace/agent/returned_claims.json",
+    "evidence/claim_trace/link/transfer_trace.json",
+    "evidence/claim_trace/link/carry_trace.json",
+    "evidence/claim_trace/link/sufficiency_trace.json",
+    "evidence/claim_trace/link/movement_trace.json"
+  ],
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-05-26T05:18:22Z",
+  "id": "urn:bp:building:building-automation-final-completion-audit-0-0526::evidence/evidence-manifest.json",
+  "not_proven": [
+    "production scheduler / queue / retry runtime",
+    "automatic semantic route selection",
+    "provider answer quality",
+    "provider-native app reload behavior",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "not proven: source truth",
+    "not proven: success judgment",
+    "not proven: quality judgment",
+    "not proven: Movement authority"
+  ],
+  "plan_ref": "building-plan:building-automation-final-completion-audit-0-final",
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "raw_manifest_ref": "raw/raw-manifest.json",
+  "raw_stream_refs": [
+    "raw/brick-work.jsonl",
+    "raw/agent-return.jsonl",
+    "raw/link.jsonl"
+  ],
+  "recorded_at": "2026-05-26T05:18:22Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:building-automation-final-completion-audit-0-0526",
+  "specversion": "1.0",
+  "subject": "evidence/evidence-manifest.json",
+  "time": "2026-05-26T05:18:22Z",
+  "type": "bp.evidence_manifest"
+}

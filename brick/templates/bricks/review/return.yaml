@@ -1,0 +1,41 @@
+template_ref: brick-template:review-return
+owner_axis: Brick
+template_kind: review_return_shape
+maps_to: AgentFact.returned
+step_template_refs:
+  - building-step-template:review
+required_return_shape:
+  - observed_evidence
+  - checked_work
+  - checked_sources
+  - observed_matches
+  - missing_or_mismatched_facts
+  - boundary_violations
+  - evidence_used
+  - transition_concern_evidence
+  - narrowly_proven
+  - not_proven
+next_link_input_sections:
+  - observed public facts for Link
+  - missing facts for Link Gate
+  - boundary violation refs
+  - non-binding transition_concern_evidence
+  - not_proven
+forbidden_return_keys:
+  - success
+  - failure
+  - approved
+  - quality
+  - movement_choice
+  - route_target
+proof_limits:
+  - Brick-owned return-shape data resource only
+  - transition_concern_evidence is non-binding evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of review observations
+  - Link disposition after concerns
+  - support loader behavior

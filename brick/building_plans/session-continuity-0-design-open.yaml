@@ -1,0 +1,39 @@
+plan_ref: building-plan:session-continuity-0-design-open
+owner_axis: Brick
+building_id: session-continuity-0-design-open-0524
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - final design correctness
+  - implementation correctness
+  - provider resume behavior
+  - automatic Agent receipt template rendering
+steps:
+  - step_ref: session-continuity-0-design-open-01
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:session-continuity-0-design-open
+        brick_work_ref: work:session-continuity-0-design
+        brick_instance_ref: brick-session-continuity-design-open-01
+        work_statement: Open the SESSION-CONTINUITY-0 Design Brick. The assigned Agent must write the design document using the minimal design template and must classify template rendering as Agent receipt/work-packet composition, not Adapter ownership.
+        comparison_rule: Observe whether the Design Brick is opened with template source facts and without implementation changes.
+        required_return_shape: opening evidence, assigned work packet refs, proof limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - brick/templates/design/minimal-design-template.json
+          - brick/building_plans/session-continuity-0-four-step.yaml
+          - support/docs/spec/brick-protocol-session-continuity-0-and-link-route-replay-0-plan-0524.md
+          - project/brick-protocol/status/kernel/brick-protocol-building-accumulation-0-continuous-building-evidence-support-record-0524.md
+      - axis: Agent
+        row_ref: agent-row:session-continuity-0-design-open
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:session-continuity-0-design-open
+        movement: forward
+        target_ref: brick-session-continuity-development-02
+        next_brick_instance_ref: brick-session-continuity-development-02

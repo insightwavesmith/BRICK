@@ -1,0 +1,55 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:posA-native-complete::evidence/claim_trace/link/transfer_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "absent_fact_type": "TransferFact",
+        "caller_supplied": false,
+        "statement": "caller did not supply a Link TransferFact; support/operator/run.py did not create one",
+        "support_created_bal_fact": false,
+        "trace_role": "absence_placeholder"
+      },
+      "fact_ref": "absence:link-transfer:01:posA-native-complete-native-dispatch",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "native-dispatch support evidence only",
+        "support recorded a native subagent dispatch; support did not launch it",
+        "gate sufficiency is the Link rule computation over the supplied return",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-29T10:42:03Z",
+  "id": "urn:bp:building:posA-native-complete::evidence/claim_trace/link/transfer_trace.json",
+  "recorded_at": "2026-05-29T10:42:03Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:posA-native-complete",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/transfer_trace.json",
+  "time": "2026-05-29T10:42:03Z",
+  "type": "bp.claim_trace"
+}

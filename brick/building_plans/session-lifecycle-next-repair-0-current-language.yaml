@@ -1,0 +1,106 @@
+plan_ref: building-plan:session-lifecycle-next-repair-0-current-language
+owner_axis: Brick
+building_id: session-lifecycle-next-repair-0-0526
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - remote provider session resume
+  - remote provider session close
+  - future provider session reuse
+  - provider credential validity
+steps:
+  - step_ref: session-lifecycle-next-repair-0-01-scope
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:slnr0-scope
+        brick_work_ref: work:slnr0-scope
+        brick_instance_ref: brick-slnr0-scope
+        work_statement: Identify SESSION-LIFECYCLE-NEXT drift after MOVEMENT-BINARY-0 and IMPORT-IDENTITY cleanup.
+        comparison_rule: Observe stale checker/spec language only; do not choose route, lifecycle state, or provider session behavior.
+        required_return_shape: observed_gap, current_language, repair_surfaces, proof_limits, not_proven
+        source_facts:
+          - support/checkers/check_session_continuity0_agent_adapter_boundary.py
+          - support/checkers/check_provider_native_session_resume0.py
+          - brick/building_plans/provider-native-session-resume-0-command-shape-dogfood.yaml
+      - axis: Agent
+        row_ref: agent-row:slnr0-scope
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:slnr0-scope-to-development
+        movement: forward
+        target_ref: brick-slnr0-development
+        next_brick_instance_ref: brick-slnr0-development
+  - step_ref: session-lifecycle-next-repair-0-02-development
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:slnr0-development
+        brick_work_ref: work:slnr0-development
+        brick_instance_ref: brick-slnr0-development
+        work_statement: Repair stale session lifecycle checker and spec expectations to current active language.
+        comparison_rule: Development may update stale support paths and Movement wording only; it must not add a session engine or provider runtime.
+        required_return_shape: changed_surfaces, removed_stale_expectations, proof_limits, not_proven
+        source_facts:
+          - support/checkers/check_session_continuity0_agent_adapter_boundary.py
+          - support/checkers/check_provider_native_session_resume0.py
+          - support/docs/spec/brick-protocol-provider-native-session-resume-0-command-shape-0526.md
+      - axis: Agent
+        row_ref: agent-row:slnr0-development
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:slnr0-development-to-qa
+        movement: forward
+        target_ref: brick-slnr0-qa
+        next_brick_instance_ref: brick-slnr0-qa
+  - step_ref: session-lifecycle-next-repair-0-03-qa
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:slnr0-qa
+        brick_work_ref: work:slnr0-qa
+        brick_instance_ref: brick-slnr0-qa
+        work_statement: Verify SESSION-LIFECYCLE-NEXT checks use support/operator/run.py, forward/reroute Movement, and building_lifecycle close state.
+        comparison_rule: Checker output is support evidence only and must not prove remote provider session behavior or Movement authority.
+        required_return_shape: checker_observations, lifecycle_observation, repair_needed, proof_limits, not_proven
+        source_facts:
+          - support/checkers/check_session_continuity0_agent_adapter_boundary.py
+          - support/checkers/check_provider_native_session_resume0.py
+          - brick/building_plans/session-lifecycle-next-repair-0-current-language.yaml
+      - axis: Agent
+        row_ref: agent-row:slnr0-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:slnr0-qa-to-closure
+        movement: forward
+        target_ref: brick-slnr0-closure
+        next_brick_instance_ref: brick-slnr0-closure
+  - step_ref: session-lifecycle-next-repair-0-04-closure
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:slnr0-closure
+        brick_work_ref: work:slnr0-closure
+        brick_instance_ref: brick-slnr0-closure
+        work_statement: Close SESSION-LIFECYCLE-NEXT-REPAIR-0 with observed evidence and next COO Movement.
+        comparison_rule: Closure must separate narrowly proven local command-shape evidence from not-proven provider-native session behavior.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, held, next_coo_decision_candidate
+        source_facts:
+          - brick/building_plans/session-lifecycle-next-repair-0-current-language.yaml
+          - support/docs/spec/brick-protocol-session-lifecycle-next-repair-0-current-language-0526.md
+      - axis: Agent
+        row_ref: agent-row:slnr0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:slnr0-closure-to-boundary
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: SESSION-LIFECYCLE-NEXT current-language repair closed.
+        target_ref: building-boundary:session-lifecycle-next-repair-0-closed
+        next_brick_instance_ref: building-boundary-session-lifecycle-next-repair-0-closed

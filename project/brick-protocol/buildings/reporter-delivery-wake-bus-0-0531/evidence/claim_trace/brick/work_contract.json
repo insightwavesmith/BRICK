@@ -1,0 +1,895 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:reporter-delivery-wake-bus-0-0531::evidence/claim_trace/brick/work_contract.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-design",
+        "comparison_rule": "Return design evidence without source truth, quality judgment, Movement authority, or target selection.",
+        "required_return_shape": "observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+        "source_facts": [
+          "project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/task.md",
+          "project/brick-protocol/status/kernel/brick-protocol-reporter-notification-projection-0-support-record-0531.md"
+        ],
+        "work_statement": "Design the support-only local delivery and operator wake bus boundary."
+      },
+      "fact_ref": "brick-work:01:reporter-delivery-design",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+          "observed_return_fields: blocked_or_missing_evidence, not_proven, observed_evidence, proof_limits, remaining_delta",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Return design evidence without source truth, quality judgment, Movement authority, or target selection.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+        "work_reference": "Design the support-only local delivery and operator wake bus boundary."
+      },
+      "fact_ref": "brick-comparison:01:reporter-delivery-design",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:01:reporter-delivery-design",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+          "observed_return_fields: blocked_or_missing_evidence, not_proven, observed_evidence, proof_limits, remaining_delta",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Return design evidence without source truth, quality judgment, Movement authority, or target selection.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+        "work_reference": "Design the support-only local delivery and operator wake bus boundary."
+      },
+      "fact_ref": "brick-comparison:reporter-delivery-wake-bus-0-0531:reporter-delivery-design",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-work",
+        "comparison_rule": "Returned implementation evidence must include made_changes, observed evidence, blocked or missing evidence, not_proven, remaining_delta, and proof_limits.",
+        "required_return_shape": "made_changes, observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+        "source_facts": [
+          "project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/task.md",
+          "support/operator/reporter.py",
+          "support/operator/report_sinks.py"
+        ],
+        "work_statement": "Implement the support-only reporter local inbox and provider-neutral local operator wake projection."
+      },
+      "fact_ref": "brick-work:02:reporter-delivery-work",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: made_changes, observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+          "observed_return_fields: blocked_or_missing_evidence, made_changes, not_proven, observed_evidence, proof_limits, remaining_delta",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Returned implementation evidence must include made_changes, observed evidence, blocked or missing evidence, not_proven, remaining_delta, and proof_limits.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "made_changes, observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+        "work_reference": "Implement the support-only reporter local inbox and provider-neutral local operator wake projection."
+      },
+      "fact_ref": "brick-comparison:02:reporter-delivery-work",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:02:reporter-delivery-work",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: made_changes, observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+          "observed_return_fields: blocked_or_missing_evidence, made_changes, not_proven, observed_evidence, proof_limits, remaining_delta",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Returned implementation evidence must include made_changes, observed evidence, blocked or missing evidence, not_proven, remaining_delta, and proof_limits.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "made_changes, observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+        "work_reference": "Implement the support-only reporter local inbox and provider-neutral local operator wake projection."
+      },
+      "fact_ref": "brick-comparison:reporter-delivery-wake-bus-0-0531:reporter-delivery-work",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-code-attack-qa",
+        "comparison_rule": "Return QA observations and proof limits without success, quality, or Movement judgment.",
+        "required_return_shape": "observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+        "source_facts": [
+          "project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/task.md",
+          "support/checkers/profiles/reporter_notification_projection.yaml"
+        ],
+        "work_statement": "Attack the delivery / wake bus implementation and checker probes for regression risk."
+      },
+      "fact_ref": "brick-work:03:reporter-delivery-code-attack-qa",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+          "observed_return_fields: blocked_or_missing_evidence, not_proven, observed_evidence, proof_limits, remaining_delta",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Return QA observations and proof limits without success, quality, or Movement judgment.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+        "work_reference": "Attack the delivery / wake bus implementation and checker probes for regression risk."
+      },
+      "fact_ref": "brick-comparison:03:reporter-delivery-code-attack-qa",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:03:reporter-delivery-code-attack-qa",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+          "observed_return_fields: blocked_or_missing_evidence, not_proven, observed_evidence, proof_limits, remaining_delta",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Return QA observations and proof limits without success, quality, or Movement judgment.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+        "work_reference": "Attack the delivery / wake bus implementation and checker probes for regression risk."
+      },
+      "fact_ref": "brick-comparison:reporter-delivery-wake-bus-0-0531:reporter-delivery-code-attack-qa",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-axis-attack-qa",
+        "comparison_rule": "Return axis observations and not_proven without treating support as an owner axis.",
+        "required_return_shape": "observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+        "source_facts": [
+          "project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/task.md",
+          "AGENTS.md",
+          "link/gate.yaml",
+          "link/movement.yaml"
+        ],
+        "work_statement": "Inspect Brick / Agent / Link / support boundaries for reporter delivery and operator wake projection."
+      },
+      "fact_ref": "brick-work:04:reporter-delivery-axis-attack-qa",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:04"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+          "observed_return_fields: blocked_or_missing_evidence, not_proven, observed_evidence, proof_limits, remaining_delta",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Return axis observations and not_proven without treating support as an owner axis.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+        "work_reference": "Inspect Brick / Agent / Link / support boundaries for reporter delivery and operator wake projection."
+      },
+      "fact_ref": "brick-comparison:04:reporter-delivery-axis-attack-qa",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:04",
+        "raw:agent:04"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:04:reporter-delivery-axis-attack-qa",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+          "observed_return_fields: blocked_or_missing_evidence, not_proven, observed_evidence, proof_limits, remaining_delta",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Return axis observations and not_proven without treating support as an owner axis.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+        "work_reference": "Inspect Brick / Agent / Link / support boundaries for reporter delivery and operator wake projection."
+      },
+      "fact_ref": "brick-comparison:reporter-delivery-wake-bus-0-0531:reporter-delivery-axis-attack-qa",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:04",
+        "raw:agent:04"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-evidence-integrity",
+        "comparison_rule": "Return evidence integrity observations, gaps, not_proven, remaining_delta, and proof_limits only.",
+        "required_return_shape": "observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+        "source_facts": [
+          "project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/task.md",
+          "project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/"
+        ],
+        "work_statement": "Inspect declaration artifacts, local inbox packets, and proof-limit separation for the reporter delivery bus."
+      },
+      "fact_ref": "brick-work:05:reporter-delivery-evidence-integrity",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:05"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+          "observed_return_fields: blocked_or_missing_evidence, not_proven, observed_evidence, proof_limits, remaining_delta",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Return evidence integrity observations, gaps, not_proven, remaining_delta, and proof_limits only.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+        "work_reference": "Inspect declaration artifacts, local inbox packets, and proof-limit separation for the reporter delivery bus."
+      },
+      "fact_ref": "brick-comparison:05:reporter-delivery-evidence-integrity",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:05",
+        "raw:agent:05"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:05:reporter-delivery-evidence-integrity",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+          "observed_return_fields: blocked_or_missing_evidence, not_proven, observed_evidence, proof_limits, remaining_delta",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Return evidence integrity observations, gaps, not_proven, remaining_delta, and proof_limits only.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+        "work_reference": "Inspect declaration artifacts, local inbox packets, and proof-limit separation for the reporter delivery bus."
+      },
+      "fact_ref": "brick-comparison:reporter-delivery-wake-bus-0-0531:reporter-delivery-evidence-integrity",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:05",
+        "raw:agent:05"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-closure",
+        "comparison_rule": "Return closure synthesis without source truth, quality judgment, success judgment, or Movement authority.",
+        "required_return_shape": "observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+        "source_facts": [
+          "project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/task.md",
+          "project/brick-protocol/status/kernel/brick-protocol-reporter-delivery-wake-bus-0-support-record-0531.md"
+        ],
+        "work_statement": "Record closure support evidence and remaining delta for local delivery / wake bus dogfood."
+      },
+      "fact_ref": "brick-work:06:reporter-delivery-closure",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:06"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+          "observed_return_fields: blocked_or_missing_evidence, not_proven, observed_evidence, proof_limits, remaining_delta",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Return closure synthesis without source truth, quality judgment, success judgment, or Movement authority.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+        "work_reference": "Record closure support evidence and remaining delta for local delivery / wake bus dogfood."
+      },
+      "fact_ref": "brick-comparison:06:reporter-delivery-closure",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:06",
+        "raw:agent:06"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:06:reporter-delivery-closure",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+          "observed_return_fields: blocked_or_missing_evidence, not_proven, observed_evidence, proof_limits, remaining_delta",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Return closure synthesis without source truth, quality judgment, success judgment, or Movement authority.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits",
+        "work_reference": "Record closure support evidence and remaining delta for local delivery / wake bus dogfood."
+      },
+      "fact_ref": "brick-comparison:reporter-delivery-wake-bus-0-0531:reporter-delivery-closure",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:06",
+        "raw:agent:06"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-31T11:23:17Z",
+  "id": "urn:bp:building:reporter-delivery-wake-bus-0-0531::evidence/claim_trace/brick/work_contract.json",
+  "recorded_at": "2026-05-31T11:23:17Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:reporter-delivery-wake-bus-0-0531",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/brick/work_contract.json",
+  "time": "2026-05-31T11:23:17Z",
+  "type": "bp.claim_trace"
+}

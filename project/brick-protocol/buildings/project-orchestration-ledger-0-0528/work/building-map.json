@@ -1,0 +1,686 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:project-orchestration-ledger-0-0528::work/building-map.json",
+  "agent_bindings": [
+    {
+      "agent_binding_id": "binding:01:project-orchestration-ledger-0-plan",
+      "agent_performer_ref": "agent-performer:agent-object:pm-lead",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-pol0-plan-attempt-1",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "semantic correctness of file edits"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:01:project-orchestration-ledger-0-plan"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ],
+      "step_output_ref": "work/step-outputs/project-orchestration-ledger-0-plan-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:02:project-orchestration-ledger-0-design",
+      "agent_performer_ref": "agent-performer:agent-object:design-lead",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-pol0-design-attempt-1",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "semantic correctness of file edits"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:02:project-orchestration-ledger-0-design"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ],
+      "step_output_ref": "work/step-outputs/project-orchestration-ledger-0-design-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:03:project-orchestration-ledger-0-development",
+      "agent_performer_ref": "agent-performer:agent-object:cto-lead",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-pol0-development-attempt-1",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "semantic correctness of file edits"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:03:project-orchestration-ledger-0-development"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ],
+      "step_output_ref": "work/step-outputs/project-orchestration-ledger-0-development-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:04:project-orchestration-ledger-0-work",
+      "agent_performer_ref": "agent-performer:agent-object:dev",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-pol0-work-attempt-1",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "semantic correctness of file edits"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:04:project-orchestration-ledger-0-work"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:agent:04"
+      ],
+      "step_output_ref": "work/step-outputs/project-orchestration-ledger-0-work-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:05:project-orchestration-ledger-0-review",
+      "agent_performer_ref": "agent-performer:agent-object:qa",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-pol0-review-attempt-1",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "semantic correctness of file edits"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:05:project-orchestration-ledger-0-review"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:agent:05"
+      ],
+      "step_output_ref": "work/step-outputs/project-orchestration-ledger-0-review-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:06:project-orchestration-ledger-0-closure",
+      "agent_performer_ref": "agent-performer:agent-object:coo",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-pol0-closure",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "semantic correctness of file edits"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:06:project-orchestration-ledger-0-closure"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:agent:06"
+      ],
+      "step_output_ref": "work/step-outputs/project-orchestration-ledger-0-closure-attempt-1/step-output.json"
+    }
+  ],
+  "brick_instances": [
+    {
+      "agent_binding_refs": [
+        "binding:01:project-orchestration-ledger-0-plan"
+      ],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-pol0-plan-attempt-1",
+      "brick_work_ref": "work:project-orchestration-ledger-0-plan",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "semantic correctness of file edits"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01",
+        "raw:link:01"
+      ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-pol0-design-attempt-1",
+      "brick_work_ref": "brick-pol0-design-attempt-1",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "semantic correctness of file edits"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01",
+        "raw:link:01"
+      ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 2,
+      "brick_instance_id": "brick-pol0-development-attempt-1",
+      "brick_work_ref": "brick-pol0-development-attempt-1",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "semantic correctness of file edits"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02",
+        "raw:link:02"
+      ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 3,
+      "brick_instance_id": "brick-pol0-work-attempt-1",
+      "brick_work_ref": "brick-pol0-work-attempt-1",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "semantic correctness of file edits"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03",
+        "raw:link:03"
+      ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 4,
+      "brick_instance_id": "brick-pol0-review-attempt-1",
+      "brick_work_ref": "brick-pol0-review-attempt-1",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "semantic correctness of file edits"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:brick:04",
+        "raw:agent:04",
+        "raw:link:04"
+      ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 5,
+      "brick_instance_id": "brick-pol0-closure",
+      "brick_work_ref": "brick-pol0-closure",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "semantic correctness of file edits"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:brick:05",
+        "raw:agent:05",
+        "raw:link:05"
+      ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 6,
+      "brick_instance_id": "building-boundary:project-orchestration-ledger-0-closed",
+      "brick_work_ref": "building-boundary:project-orchestration-ledger-0-closed",
+      "not_proven": [
+        "dashboard UI readiness",
+        "multi-participant import",
+        "shared project collaboration",
+        "process liveness",
+        "semantic correctness of any Building",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "semantic correctness of file edits"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "project orchestration ledger/export Phase 1 only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not dashboard runtime"
+      ],
+      "raw_refs": [
+        "raw:brick:06",
+        "raw:agent:06",
+        "raw:link:06"
+      ]
+    }
+  ],
+  "building_id": "project-orchestration-ledger-0-0528",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-05-28T06:59:24Z",
+  "groups": [],
+  "id": "urn:bp:building:project-orchestration-ledger-0-0528::work/building-map.json",
+  "kind": "building_graph_map",
+  "link_edges": [
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:01:project-orchestration-ledger-0-plan",
+        "brick-comparison:01:project-orchestration-ledger-0-plan",
+        "movement-fact:01:project-orchestration-ledger-0-plan"
+      ],
+      "link_edge_id": "edge:01:project-orchestration-ledger-0-plan",
+      "movement_fact_ref": "movement-fact:01:project-orchestration-ledger-0-plan",
+      "public_fact_refs": [
+        "agent-fact:01:project-orchestration-ledger-0-plan",
+        "brick-comparison:01:project-orchestration-ledger-0-plan",
+        "movement-fact:01:project-orchestration-ledger-0-plan"
+      ],
+      "source_brick_instance_ref": "brick-pol0-plan-attempt-1",
+      "step_output_ref": "work/step-outputs/project-orchestration-ledger-0-plan-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-pol0-design-attempt-1",
+      "transition_fact_ref": "transition-fact:01:project-orchestration-ledger-0-plan"
+    },
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:02:project-orchestration-ledger-0-design",
+        "brick-comparison:02:project-orchestration-ledger-0-design",
+        "movement-fact:02:project-orchestration-ledger-0-design"
+      ],
+      "link_edge_id": "edge:02:project-orchestration-ledger-0-design",
+      "movement_fact_ref": "movement-fact:02:project-orchestration-ledger-0-design",
+      "public_fact_refs": [
+        "agent-fact:02:project-orchestration-ledger-0-design",
+        "brick-comparison:02:project-orchestration-ledger-0-design",
+        "movement-fact:02:project-orchestration-ledger-0-design"
+      ],
+      "source_brick_instance_ref": "brick-pol0-design-attempt-1",
+      "step_output_ref": "work/step-outputs/project-orchestration-ledger-0-design-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-pol0-development-attempt-1",
+      "transition_fact_ref": "transition-fact:02:project-orchestration-ledger-0-design"
+    },
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:03:project-orchestration-ledger-0-development",
+        "brick-comparison:03:project-orchestration-ledger-0-development",
+        "movement-fact:03:project-orchestration-ledger-0-development"
+      ],
+      "link_edge_id": "edge:03:project-orchestration-ledger-0-development",
+      "movement_fact_ref": "movement-fact:03:project-orchestration-ledger-0-development",
+      "public_fact_refs": [
+        "agent-fact:03:project-orchestration-ledger-0-development",
+        "brick-comparison:03:project-orchestration-ledger-0-development",
+        "movement-fact:03:project-orchestration-ledger-0-development"
+      ],
+      "source_brick_instance_ref": "brick-pol0-development-attempt-1",
+      "step_output_ref": "work/step-outputs/project-orchestration-ledger-0-development-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-pol0-work-attempt-1",
+      "transition_fact_ref": "transition-fact:03:project-orchestration-ledger-0-development"
+    },
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:04:project-orchestration-ledger-0-work",
+        "brick-comparison:04:project-orchestration-ledger-0-work",
+        "movement-fact:04:project-orchestration-ledger-0-work"
+      ],
+      "link_edge_id": "edge:04:project-orchestration-ledger-0-work",
+      "movement_fact_ref": "movement-fact:04:project-orchestration-ledger-0-work",
+      "public_fact_refs": [
+        "agent-fact:04:project-orchestration-ledger-0-work",
+        "brick-comparison:04:project-orchestration-ledger-0-work",
+        "movement-fact:04:project-orchestration-ledger-0-work"
+      ],
+      "source_brick_instance_ref": "brick-pol0-work-attempt-1",
+      "step_output_ref": "work/step-outputs/project-orchestration-ledger-0-work-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-pol0-review-attempt-1",
+      "transition_fact_ref": "transition-fact:04:project-orchestration-ledger-0-work"
+    },
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:05:project-orchestration-ledger-0-review",
+        "brick-comparison:05:project-orchestration-ledger-0-review",
+        "movement-fact:05:project-orchestration-ledger-0-review"
+      ],
+      "link_edge_id": "edge:05:project-orchestration-ledger-0-review",
+      "movement_fact_ref": "movement-fact:05:project-orchestration-ledger-0-review",
+      "public_fact_refs": [
+        "agent-fact:05:project-orchestration-ledger-0-review",
+        "brick-comparison:05:project-orchestration-ledger-0-review",
+        "movement-fact:05:project-orchestration-ledger-0-review"
+      ],
+      "source_brick_instance_ref": "brick-pol0-review-attempt-1",
+      "step_output_ref": "work/step-outputs/project-orchestration-ledger-0-review-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-pol0-closure",
+      "transition_fact_ref": "transition-fact:05:project-orchestration-ledger-0-review"
+    },
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:06:project-orchestration-ledger-0-closure",
+        "brick-comparison:06:project-orchestration-ledger-0-closure",
+        "movement-fact:06:project-orchestration-ledger-0-closure"
+      ],
+      "link_edge_id": "edge:06:project-orchestration-ledger-0-closure",
+      "movement_fact_ref": "movement-fact:06:project-orchestration-ledger-0-closure",
+      "public_fact_refs": [
+        "agent-fact:06:project-orchestration-ledger-0-closure",
+        "brick-comparison:06:project-orchestration-ledger-0-closure",
+        "movement-fact:06:project-orchestration-ledger-0-closure"
+      ],
+      "source_brick_instance_ref": "brick-pol0-closure",
+      "step_output_ref": "work/step-outputs/project-orchestration-ledger-0-closure-attempt-1/step-output.json",
+      "target_brick_instance_ref": "building-boundary:project-orchestration-ledger-0-closed",
+      "transition_fact_ref": "transition-fact:06:project-orchestration-ledger-0-closure"
+    }
+  ],
+  "not_proven": [
+    "dashboard UI readiness",
+    "multi-participant import",
+    "shared project collaboration",
+    "process liveness",
+    "semantic correctness of any Building",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "semantic correctness of file edits"
+  ],
+  "profile": "planning-v0",
+  "proof_limits": [
+    "support evidence only",
+    "project orchestration ledger/export Phase 1 only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "not dashboard runtime"
+  ],
+  "raw_refs": [
+    "raw:brick:01",
+    "raw:agent:01",
+    "raw:link:01",
+    "raw:brick:02",
+    "raw:agent:02",
+    "raw:link:02",
+    "raw:brick:03",
+    "raw:agent:03",
+    "raw:link:03",
+    "raw:brick:04",
+    "raw:agent:04",
+    "raw:link:04",
+    "raw:brick:05",
+    "raw:agent:05",
+    "raw:link:05",
+    "raw:brick:06",
+    "raw:agent:06",
+    "raw:link:06"
+  ],
+  "recorded_at": "2026-05-28T06:59:24Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:project-orchestration-ledger-0-0528",
+  "specversion": "1.0",
+  "subject": "work/building-map.json",
+  "task_source_ref": "project/brick-protocol/buildings/project-orchestration-ledger-0-0528/work/task.md",
+  "time": "2026-05-28T06:59:24Z",
+  "type": "bp.building_graph_map"
+}

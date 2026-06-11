@@ -1,0 +1,85 @@
+plan_ref: building-plan:connection-install-sync-0-codex-mcp-closure
+owner_axis: Brick
+building_id: connection-install-sync-0-0525
+plan_shape: linear
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - Claude MCP config installation
+  - app reload behavior after future config edits
+  - provider quality
+  - provider session behavior
+steps:
+  - step_ref: connection-install-sync-0-01-design
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:connection-install-sync-design
+        brick_work_ref: work:connection-install-sync-design
+        brick_instance_ref: brick-connection-install-sync-design-01
+        work_statement: Define CONNECTION-INSTALL-SYNC-0 as Codex MCP install/sync closure over the admitted MCP projection call door.
+        comparison_rule: Verify connection exposure without making MCP the Agent resource owner or Link Movement authority.
+        required_return_shape: observed_config, connection_boundary, held_targets, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - support/connection/mcp_projection.py
+          - support/docs/spec/brick-protocol-mcp-projection-0-agent-resource-call-door-0525.md
+      - axis: Agent
+        row_ref: agent-row:connection-install-sync-design
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:connection-install-sync-design-to-validation
+        movement: forward
+        target_ref: brick-connection-install-sync-validation-02
+        next_brick_instance_ref: brick-connection-install-sync-validation-02
+  - step_ref: connection-install-sync-0-02-validation
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:connection-install-sync-validation
+        brick_work_ref: work:connection-install-sync-validation
+        brick_instance_ref: brick-connection-install-sync-validation-02
+        work_statement: Validate Codex local MCP config and direct JSON-RPC projection behavior.
+        comparison_rule: Only observe exact local config and read-only MCP behavior; do not write credentials, app configs, or provider state.
+        required_return_shape: checker_observations, mcp_tool_observation, repair_needed, proof_limits, not_proven
+        source_facts:
+          - support/checkers/check_mcp_projection0_agent_resource_call_door.py
+          - support/connection/mcp_projection.py
+      - axis: Agent
+        row_ref: agent-row:connection-install-sync-validation
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:connection-install-sync-validation-to-closure
+        movement: forward
+        target_ref: brick-connection-install-sync-closure-03
+        next_brick_instance_ref: brick-connection-install-sync-closure-03
+  - step_ref: connection-install-sync-0-03-closure
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:connection-install-sync-closure
+        brick_work_ref: work:connection-install-sync-closure
+        brick_instance_ref: brick-connection-install-sync-closure-03
+        work_statement: Close CONNECTION-INSTALL-SYNC-0 and name next COO Movement.
+        comparison_rule: Preserve observed evidence, narrow proof, not-proven, held, and next Movement only.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, held, coo_movement
+        source_facts:
+          - support/docs/spec/brick-protocol-connection-install-sync-0-codex-mcp-closure-0525.md
+          - support/checkers/check_connection_install_sync0.py
+          - brick/building_plans/connection-install-sync-0-codex-mcp-closure.yaml
+      - axis: Agent
+        row_ref: agent-row:connection-install-sync-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:connection-install-sync-closure-to-boundary
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:connection-install-sync-0-closed
+        next_brick_instance_ref: building-boundary-connection-install-sync-0-closed

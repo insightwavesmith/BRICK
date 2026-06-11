@@ -1,0 +1,436 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:reporter-delivery-wake-bus-0-0531::evidence/claim_trace/agent/returned_claims.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:design-lead",
+        "received_work": "brick-work:01:reporter-delivery-design",
+        "returned": {
+          "blocked_or_missing_evidence": [],
+          "not_proven": [
+            "real provider thread wake behavior",
+            "real Slack delivery",
+            "external notification behavior",
+            "delivery reliability",
+            "semantic usefulness for every future Building type"
+          ],
+          "observed_evidence": [
+            "adapter:local observed brick-design",
+            "support-only reporter delivery bus uses local inbox and operator wake local sinks",
+            "operator wake target remains provider-neutral local_projection with side_effect_state none"
+          ],
+          "proof_limits": [
+            "support evidence only",
+            "local adapter dogfood only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "not route input"
+          ],
+          "remaining_delta": [
+            "external Slack delivery remains deferred",
+            "real provider thread wake behavior remains deferred"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:01:reporter-delivery-design",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:dev",
+        "received_work": "brick-work:02:reporter-delivery-work",
+        "returned": {
+          "blocked_or_missing_evidence": [],
+          "made_changes": [
+            "support/operator/reporter.py admits operator_wake_targets validation and delivery wake probes",
+            "support/operator/report_sinks.py admits report-sink:operator-wake-local as local projection only",
+            "support/checkers/check_profile.py executes reporter delivery wake and return-shape waiver probes",
+            "brick/templates/shapes/registry.yaml narrows no_changes_reason to a made_changes waiver"
+          ],
+          "not_proven": [
+            "real provider thread wake behavior",
+            "real Slack delivery",
+            "external notification behavior",
+            "delivery reliability",
+            "semantic usefulness for every future Building type"
+          ],
+          "observed_evidence": [
+            "adapter:local observed brick-work",
+            "support-only reporter delivery bus uses local inbox and operator wake local sinks",
+            "operator wake target remains provider-neutral local_projection with side_effect_state none"
+          ],
+          "proof_limits": [
+            "support evidence only",
+            "local adapter dogfood only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "not route input"
+          ],
+          "remaining_delta": [
+            "external Slack delivery remains deferred",
+            "real provider thread wake behavior remains deferred"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:02:reporter-delivery-work",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:qa",
+        "received_work": "brick-work:03:reporter-delivery-code-attack-qa",
+        "returned": {
+          "blocked_or_missing_evidence": [],
+          "not_proven": [
+            "real provider thread wake behavior",
+            "real Slack delivery",
+            "external notification behavior",
+            "delivery reliability",
+            "semantic usefulness for every future Building type"
+          ],
+          "observed_evidence": [
+            "adapter:local observed brick-code-attack-qa",
+            "support-only reporter delivery bus uses local inbox and operator wake local sinks",
+            "operator wake target remains provider-neutral local_projection with side_effect_state none"
+          ],
+          "proof_limits": [
+            "support evidence only",
+            "local adapter dogfood only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "not route input"
+          ],
+          "remaining_delta": [
+            "external Slack delivery remains deferred",
+            "real provider thread wake behavior remains deferred"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:03:reporter-delivery-code-attack-qa",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:inspector",
+        "received_work": "brick-work:04:reporter-delivery-axis-attack-qa",
+        "returned": {
+          "blocked_or_missing_evidence": [],
+          "not_proven": [
+            "real provider thread wake behavior",
+            "real Slack delivery",
+            "external notification behavior",
+            "delivery reliability",
+            "semantic usefulness for every future Building type"
+          ],
+          "observed_evidence": [
+            "adapter:local observed brick-axis-attack-qa",
+            "support-only reporter delivery bus uses local inbox and operator wake local sinks",
+            "operator wake target remains provider-neutral local_projection with side_effect_state none"
+          ],
+          "proof_limits": [
+            "support evidence only",
+            "local adapter dogfood only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "not route input"
+          ],
+          "remaining_delta": [
+            "external Slack delivery remains deferred",
+            "real provider thread wake behavior remains deferred"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:04:reporter-delivery-axis-attack-qa",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:agent:04"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:inspector",
+        "received_work": "brick-work:05:reporter-delivery-evidence-integrity",
+        "returned": {
+          "blocked_or_missing_evidence": [],
+          "not_proven": [
+            "real provider thread wake behavior",
+            "real Slack delivery",
+            "external notification behavior",
+            "delivery reliability",
+            "semantic usefulness for every future Building type"
+          ],
+          "observed_evidence": [
+            "adapter:local observed brick-evidence-integrity",
+            "support-only reporter delivery bus uses local inbox and operator wake local sinks",
+            "operator wake target remains provider-neutral local_projection with side_effect_state none"
+          ],
+          "proof_limits": [
+            "support evidence only",
+            "local adapter dogfood only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "not route input"
+          ],
+          "remaining_delta": [
+            "external Slack delivery remains deferred",
+            "real provider thread wake behavior remains deferred"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:05:reporter-delivery-evidence-integrity",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:agent:05"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:coo",
+        "received_work": "brick-work:06:reporter-delivery-closure",
+        "returned": {
+          "blocked_or_missing_evidence": [],
+          "not_proven": [
+            "real provider thread wake behavior",
+            "real Slack delivery",
+            "external notification behavior",
+            "delivery reliability",
+            "semantic usefulness for every future Building type"
+          ],
+          "observed_evidence": [
+            "adapter:local observed brick-closure",
+            "support-only reporter delivery bus uses local inbox and operator wake local sinks",
+            "operator wake target remains provider-neutral local_projection with side_effect_state none"
+          ],
+          "proof_limits": [
+            "support evidence only",
+            "local adapter dogfood only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "not route input"
+          ],
+          "remaining_delta": [
+            "external Slack delivery remains deferred",
+            "real provider thread wake behavior remains deferred"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:06:reporter-delivery-closure",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:agent:06"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-31T11:23:17Z",
+  "id": "urn:bp:building:reporter-delivery-wake-bus-0-0531::evidence/claim_trace/agent/returned_claims.json",
+  "recorded_at": "2026-05-31T11:23:17Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:reporter-delivery-wake-bus-0-0531",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/agent/returned_claims.json",
+  "time": "2026-05-31T11:23:17Z",
+  "type": "bp.claim_trace"
+}

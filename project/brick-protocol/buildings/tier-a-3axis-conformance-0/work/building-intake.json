@@ -1,0 +1,44 @@
+{
+  "building_id": "tier-a-3axis-conformance-0",
+  "composition_mode": "caller_or_coo_declared_graph_composition",
+  "declaration_evidence_refs": [
+    "work/task.md",
+    "work/building-intake.json",
+    "work/preset-expansion.json",
+    "work/declared-building-plan.json",
+    "work/link-launch-policy.json"
+  ],
+  "declared_by": "coo tier-a-3axis-conformance-0",
+  "kind": "building_intake_provenance",
+  "not_proven": [
+    "semantic correctness of the agent-proposed reroute",
+    "real provider behavior",
+    "scheduler / queue / retry behavior",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "quality of returned work",
+    "plan_shape was not exposed by the plan",
+    "step template refs were not exposed by the plan"
+  ],
+  "plan_ref": "building-plan:tier-a-3axis-conformance-0",
+  "plan_shape": "",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support evidence only"
+  ],
+  "selected_adapter_ref": "adapter:local",
+  "selected_model_ref": "model:default",
+  "selected_preset_ref": "building-chain-preset:engine-feature-hard",
+  "selected_shape_ref": "building-shape:design-needed",
+  "task_source_ref": "project/brick-protocol/buildings/tier-a-3axis-conformance-0/work/task.md"
+}

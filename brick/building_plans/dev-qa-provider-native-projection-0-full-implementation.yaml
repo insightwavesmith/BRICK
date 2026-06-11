@@ -1,0 +1,110 @@
+plan_ref: building-plan:dev-qa-provider-native-projection-0-full-implementation
+owner_axis: Brick
+building_id: dev-qa-provider-native-projection-0-0525
+plan_shape: linear
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - Codex app reload behavior
+  - Claude app reload behavior
+  - provider quality
+  - tool or hook execution
+steps:
+  - step_ref: dev-qa-provider-native-projection-0-01-design
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:dev-qa-provider-native-projection-design
+        brick_work_ref: work:dev-qa-provider-native-projection-design
+        brick_instance_ref: brick-dev-qa-provider-native-projection-design-01
+        work_statement: Design DEV-QA-PROVIDER-NATIVE-PROJECTION-0 using existing support connection render/write surfaces.
+        comparison_rule: Confirm DEV/QA projections remain generated from agent/ and do not become source truth.
+        required_return_shape: projection_targets, source_owner, support_surfaces, held_boundaries, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - support/docs/spec/brick-protocol-dev-qa-provider-native-projection-0-agent-projections-0525.md
+          - support/connection/agent_resources.py
+          - support/connection/coo_sync.py
+      - axis: Agent
+        row_ref: agent-row:dev-qa-provider-native-projection-design
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:dev-qa-provider-native-projection-design-to-write
+        movement: forward
+        target_ref: brick-dev-qa-provider-native-projection-write-02
+        next_brick_instance_ref: brick-dev-qa-provider-native-projection-write-02
+  - step_ref: dev-qa-provider-native-projection-0-02-write
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:dev-qa-provider-native-projection-write
+        brick_work_ref: work:dev-qa-provider-native-projection-write
+        brick_instance_ref: brick-dev-qa-provider-native-projection-write-02
+        work_statement: Write exact local DEV/QA Codex and Claude projections through support/connection/coo_sync.py.
+        comparison_rule: Observe sanitized write evidence only; do not call providers or store projection bodies in AgentFact.
+        required_return_shape: kind, roles, written, proof_limits, not_proven
+        source_facts:
+          - support/connection/coo_sync.py
+          - agent/objects/dev.yaml
+          - agent/objects/qa.yaml
+          - agent/prompts/dev.md
+          - agent/prompts/qa.md
+      - axis: Agent
+        row_ref: agent-row:dev-qa-provider-native-projection-write
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:dev-qa-provider-native-projection-write-to-qa
+        movement: forward
+        target_ref: brick-dev-qa-provider-native-projection-qa-03
+        next_brick_instance_ref: brick-dev-qa-provider-native-projection-qa-03
+  - step_ref: dev-qa-provider-native-projection-0-03-qa
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:dev-qa-provider-native-projection-qa
+        brick_work_ref: work:dev-qa-provider-native-projection-qa
+        brick_instance_ref: brick-dev-qa-provider-native-projection-qa-03
+        work_statement: Verify DEV/QA provider-native projection files match rendered Agent resources and boundaries remain support-only.
+        comparison_rule: Checker output is support evidence only and cannot become source truth, quality judgment, or Movement authority.
+        required_return_shape: checker_observations, projection_files, repair_needed, proof_limits, not_proven
+        source_facts:
+          - support/checkers/check_dev_qa_provider_native_projection0.py
+          - support/checkers/check_agent_resource_toolkit0.py
+          - support/checkers/check_coo_sync0_local_projection.py
+      - axis: Agent
+        row_ref: agent-row:dev-qa-provider-native-projection-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:dev-qa-provider-native-projection-qa-to-closure
+        movement: forward
+        target_ref: brick-dev-qa-provider-native-projection-closure-04
+        next_brick_instance_ref: brick-dev-qa-provider-native-projection-closure-04
+  - step_ref: dev-qa-provider-native-projection-0-04-closure
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:dev-qa-provider-native-projection-closure
+        brick_work_ref: work:dev-qa-provider-native-projection-closure
+        brick_instance_ref: brick-dev-qa-provider-native-projection-closure-04
+        work_statement: Close DEV-QA-PROVIDER-NATIVE-PROJECTION-0 with observed evidence and next COO Movement.
+        comparison_rule: Preserve observed evidence, narrow proof, not-proven, held, and next Movement only.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, held, coo_movement
+        source_facts:
+          - support/docs/spec/brick-protocol-dev-qa-provider-native-projection-0-agent-projections-0525.md
+          - support/checkers/check_dev_qa_provider_native_projection0.py
+      - axis: Agent
+        row_ref: agent-row:dev-qa-provider-native-projection-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:dev-qa-provider-native-projection-closure-to-boundary
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded closure Movement wording moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:dev-qa-provider-native-projection-0-closed
+        next_brick_instance_ref: building-boundary-dev-qa-provider-native-projection-0-closed

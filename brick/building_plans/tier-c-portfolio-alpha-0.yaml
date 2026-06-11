@@ -1,0 +1,45 @@
+plan_ref: building-plan:tier-c-portfolio-alpha-0
+owner_axis: Brick
+building_id: tier-c-portfolio-alpha-0-0601
+selected_shape_ref: building-shape:one-brick
+composition_mode: coo-declared-portfolio-candidate
+declared_by: coo
+selected_adapter_ref: adapter:codex-local
+selected_model_ref: model:codex:default
+proof_limits:
+  - support evidence only
+  - one declared portfolio candidate Building driven by the real Codex local adapter
+  - HALF-2 Tier C multi-building portfolio first declared candidate (alpha)
+  - not provider reliability proof
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - repeated provider adherence to the JSON return shape
+  - Claude or Gemini local provider behavior
+  - semantic correctness of the returned observation
+steps:
+  - step_ref: tier-c-portfolio-alpha-0-observe
+    selected_adapter_ref: adapter:codex-local
+    selected_model_ref: model:codex:default
+    rows:
+      - axis: Brick
+        row_ref: brick-row:tier-c-portfolio-alpha-0-observe
+        brick_work_ref: work:tier-c-portfolio-alpha-0-observe
+        brick_instance_ref: brick-tier-c-portfolio-alpha-observe
+        work_statement: Return one JSON object with exactly two top-level fields, observed_evidence (a list of one short string naming this as Tier C portfolio candidate Building alpha) and not_proven (a list of one short string). Do not use tools. Do not return transition_concern_evidence. Do not choose Movement or target. Do not report success, failure, approval, quality, or verdict.
+        comparison_rule: Observe whether the live Codex local adapter returns JSON fields matching required_return_shape; support does not judge quality.
+        required_return_shape: observed_evidence, not_proven
+      - axis: Agent
+        row_ref: agent-row:tier-c-portfolio-alpha-0-observe
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:tier-c-portfolio-alpha-0-closed
+        movement: forward
+        target_ref: building-boundary:tier-c-portfolio-alpha-0-closed
+        declared_gate_refs:
+          - link-gate:default-transition
+        building_lifecycle:
+          state: closed
+          reason: TIER-C-PORTFOLIO-BUILDING-ALPHA-0 observed one live Codex local adapter JSON return as the first declared Tier C portfolio candidate.

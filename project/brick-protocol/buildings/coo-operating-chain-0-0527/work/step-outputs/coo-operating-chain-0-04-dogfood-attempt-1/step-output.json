@@ -1,0 +1,91 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:coo-operating-chain-0-0527::work/step-outputs/coo-operating-chain-0-04-dogfood-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-coo-operating-chain-0-dogfood",
+  "building_id": "coo-operating-chain-0-0527",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:04",
+    "raw_stream_ref": "raw/agent-return.jsonl"
+  },
+  "generatedAtTime": "2026-05-26T22:16:32Z",
+  "id": "urn:bp:building:coo-operating-chain-0-0527::work/step-outputs/coo-operating-chain-0-04-dogfood-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic correctness of future task sources",
+    "semantic fitness of future selected shapes",
+    "future Building Plan correctness",
+    "future Agent or provider quality",
+    "future reviewer Movement decision correctness",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement owner"
+  ],
+  "received_work_ref": "brick-work:04:coo-operating-chain-0-04-dogfood",
+  "recorded_at": "2026-05-26T22:16:32Z",
+  "returned": {
+    "adapter_ref": "adapter:local",
+    "agent_object_ref": "agent-object:coo",
+    "callable_ref": "callable:local:agent-invoke0-smoke",
+    "discipline_refs": [
+      "discipline:closed-agentfact",
+      "discipline:proof-limits"
+    ],
+    "evidence_refs": [
+      "support-packet:coo-operating-chain-0-0527:agent-object:coo:output"
+    ],
+    "hook_refs": [
+      "hook:instruction-chain-read",
+      "hook:resource-ref-redaction"
+    ],
+    "prompt_refs": [
+      "prompt:coo"
+    ],
+    "returned_summary": "local Agent Adapter callable returned support evidence",
+    "skill_refs": [
+      "skill:building-coordination",
+      "skill:task_intake",
+      "skill:protocol-boundary-watch",
+      "skill:evidence-verification"
+    ],
+    "tool_policy_refs": [
+      "tool-policy:support-readonly"
+    ]
+  },
+  "returned_fact_ref": "agent-fact:04:coo-operating-chain-0-04-dogfood",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:coo-operating-chain-0-0527",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:coo-operating-chain-0-04-dogfood:attempt-1",
+  "step_ref": "coo-operating-chain-0-04-dogfood",
+  "subject": "coo-operating-chain-0-04-dogfood",
+  "time": "2026-05-26T22:16:32Z",
+  "type": "bp.step_output"
+}

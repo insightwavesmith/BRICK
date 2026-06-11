@@ -1,0 +1,78 @@
+kind: LinkCarryContractProjection
+bal_owner: Link
+module: Link.carry
+contract: CarryFact
+projection_only: true
+closed_shape: true
+extra_keys_allowed: false
+
+upstream_module: Link
+upstream_contract: LTC-0 Link Transfer Contract
+verifiers:
+  - check_axis_contract_projection.py
+  # residual contract guards tracked in checker-consolidation-and-builder-plan-0602.md (not all built yet)
+
+public_fact:
+  name: CarryFact
+  owner: Link
+  fields:
+    - carried_fact_refs
+    - source_owner_axis
+    - target_boundary_ref
+    - carry_gate_reference
+    - proof_limits
+    - not_proven
+    - evidence_reference
+
+source_owner_axis_literals:
+  - Brick
+  - Agent
+  - Link
+
+field_rules:
+  carried_fact_refs: required_text_tuple
+  source_owner_axis: required_owner_axis_literal
+  target_boundary_ref: required_brick_boundary_ref
+  carry_gate_reference: optional_text_ref
+  proof_limits: required_text_tuple
+  not_proven: text_tuple
+  evidence_reference: required_text_ref
+
+allowed_facts:
+  - carried public fact references
+  - preserved source owner axis literal
+  - target Building boundary reference
+  - carry Gate reference when supplied
+  - proof limits
+  - not-proven facts
+  - evidence reference
+
+forbidden_ownership:
+  - owner-axis rewrite
+  - Support owner axis
+  - Agent execution
+  - provider call
+  - tool call
+  - runtime execution
+  - queue ownership
+  - scheduler ownership
+  - storage mutation
+  - wiki mutation
+  - source truth
+  - success judgment
+  - failure judgment
+  - quality judgment
+  - Movement choice
+  - destination choice
+  - performer choice
+  - semantic classification
+  - movement_gate_reference
+
+proof_limits:
+  - CarryFact is a Link public fact only
+  - CarryFact preserves source owner axis without rewriting it
+  - CarryFact does not create default GateFacts
+  - CarryFact does not choose Movement
+  - CarryFact is not source truth
+  - CarryFact is not success judgment
+  - CarryFact is not quality judgment

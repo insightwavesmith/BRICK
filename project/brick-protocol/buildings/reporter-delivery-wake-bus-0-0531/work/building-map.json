@@ -1,0 +1,737 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:reporter-delivery-wake-bus-0-0531::work/building-map.json",
+  "agent_bindings": [
+    {
+      "agent_binding_id": "binding:01:reporter-delivery-design",
+      "agent_performer_ref": "agent-performer:agent-object:design-lead",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-design",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:01:reporter-delivery-design"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ],
+      "step_output_ref": "work/step-outputs/reporter-delivery-design-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:02:reporter-delivery-work",
+      "agent_performer_ref": "agent-performer:agent-object:dev",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-work",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:02:reporter-delivery-work"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ],
+      "step_output_ref": "work/step-outputs/reporter-delivery-work-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:03:reporter-delivery-code-attack-qa",
+      "agent_performer_ref": "agent-performer:agent-object:qa",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-code-attack-qa",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:03:reporter-delivery-code-attack-qa"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ],
+      "step_output_ref": "work/step-outputs/reporter-delivery-code-attack-qa-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:04:reporter-delivery-axis-attack-qa",
+      "agent_performer_ref": "agent-performer:agent-object:inspector",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-axis-attack-qa",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:04:reporter-delivery-axis-attack-qa"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:agent:04"
+      ],
+      "step_output_ref": "work/step-outputs/reporter-delivery-axis-attack-qa-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:05:reporter-delivery-evidence-integrity",
+      "agent_performer_ref": "agent-performer:agent-object:inspector",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-evidence-integrity",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:05:reporter-delivery-evidence-integrity"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:agent:05"
+      ],
+      "step_output_ref": "work/step-outputs/reporter-delivery-evidence-integrity-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:06:reporter-delivery-closure",
+      "agent_performer_ref": "agent-performer:agent-object:coo",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-closure",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:06:reporter-delivery-closure"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:agent:06"
+      ],
+      "step_output_ref": "work/step-outputs/reporter-delivery-closure-attempt-1/step-output.json"
+    }
+  ],
+  "brick_instances": [
+    {
+      "agent_binding_refs": [
+        "binding:01:reporter-delivery-design"
+      ],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-design",
+      "brick_work_ref": "work:reporter-delivery-design",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01",
+        "raw:link:01"
+      ]
+    },
+    {
+      "agent_binding_refs": [
+        "binding:02:reporter-delivery-work"
+      ],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-work",
+      "brick_work_ref": "work:reporter-delivery-work",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01",
+        "raw:link:01"
+      ]
+    },
+    {
+      "agent_binding_refs": [
+        "binding:03:reporter-delivery-code-attack-qa"
+      ],
+      "attempt_index": 2,
+      "brick_instance_id": "brick-code-attack-qa",
+      "brick_work_ref": "work:reporter-delivery-code-attack-qa",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02",
+        "raw:link:02"
+      ]
+    },
+    {
+      "agent_binding_refs": [
+        "binding:04:reporter-delivery-axis-attack-qa"
+      ],
+      "attempt_index": 3,
+      "brick_instance_id": "brick-axis-attack-qa",
+      "brick_work_ref": "work:reporter-delivery-axis-attack-qa",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03",
+        "raw:link:03"
+      ]
+    },
+    {
+      "agent_binding_refs": [
+        "binding:05:reporter-delivery-evidence-integrity"
+      ],
+      "attempt_index": 4,
+      "brick_instance_id": "brick-evidence-integrity",
+      "brick_work_ref": "work:reporter-delivery-evidence-integrity",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:04",
+        "raw:agent:04",
+        "raw:link:04"
+      ]
+    },
+    {
+      "agent_binding_refs": [
+        "binding:06:reporter-delivery-closure"
+      ],
+      "attempt_index": 5,
+      "brick_instance_id": "brick-closure",
+      "brick_work_ref": "work:reporter-delivery-closure",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:05",
+        "raw:agent:05",
+        "raw:link:05"
+      ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 6,
+      "brick_instance_id": "building-boundary:reporter-delivery-wake-bus-0-0531-closed",
+      "brick_work_ref": "building-boundary:reporter-delivery-wake-bus-0-0531-closed",
+      "not_proven": [
+        "real provider thread wake behavior",
+        "real Slack delivery",
+        "external notification behavior",
+        "delivery reliability",
+        "semantic usefulness for every future Building type",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "local adapter dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "not route input"
+      ],
+      "raw_refs": [
+        "raw:brick:06",
+        "raw:agent:06",
+        "raw:link:06"
+      ]
+    }
+  ],
+  "building_id": "reporter-delivery-wake-bus-0-0531",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "declaration_provenance": {
+    "building_id": "reporter-delivery-wake-bus-0-0531",
+    "composition_mode": "caller_or_coo_declared_graph_composition",
+    "declaration_evidence_refs": [
+      "work/task.md",
+      "work/building-intake.json",
+      "work/preset-expansion.json",
+      "work/declared-building-plan.json",
+      "work/link-launch-policy.json"
+    ],
+    "declared_by": "coo reporter-delivery-wake-bus-0-0531",
+    "declared_gate_refs": [
+      "link-gate:default-transition",
+      "link-gate:strict"
+    ],
+    "expanded_step_template_refs": [
+      "building-step-template:design",
+      "building-step-template:work",
+      "building-step-template:code-attack-qa",
+      "building-step-template:axis-attack-qa",
+      "building-step-template:evidence-integrity",
+      "building-step-template:closure"
+    ],
+    "not_proven": [
+      "real provider thread wake behavior",
+      "real Slack delivery",
+      "external notification behavior",
+      "delivery reliability",
+      "semantic usefulness for every future Building type",
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority"
+    ],
+    "plan_ref": "building-plan:reporter-delivery-wake-bus-0-0531",
+    "plan_shape": "graph",
+    "proof_limits": [
+      "support declaration provenance evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "support evidence only",
+      "local adapter dogfood only",
+      "not route input"
+    ],
+    "selected_preset_ref": "building-chain-preset:engine-feature-hard",
+    "selected_shape_ref": "building-shape:design-needed",
+    "task_source_ref": "project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/task.md"
+  },
+  "generatedAtTime": "2026-05-31T11:23:17Z",
+  "groups": [],
+  "id": "urn:bp:building:reporter-delivery-wake-bus-0-0531::work/building-map.json",
+  "kind": "building_graph_map",
+  "link_edges": [
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:01:reporter-delivery-design",
+        "brick-comparison:01:reporter-delivery-design",
+        "movement-fact:01:reporter-delivery-design"
+      ],
+      "link_edge_id": "edge:design-to-work",
+      "movement_fact_ref": "movement-fact:01:reporter-delivery-design",
+      "public_fact_refs": [
+        "agent-fact:01:reporter-delivery-design",
+        "brick-comparison:01:reporter-delivery-design",
+        "movement-fact:01:reporter-delivery-design"
+      ],
+      "source_brick_instance_ref": "brick-design",
+      "step_output_ref": "work/step-outputs/reporter-delivery-design-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-work",
+      "transition_fact_ref": "transition-fact:01:reporter-delivery-design"
+    },
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:02:reporter-delivery-work",
+        "brick-comparison:02:reporter-delivery-work",
+        "movement-fact:02:reporter-delivery-work"
+      ],
+      "link_edge_id": "edge:work-to-code-attack-qa",
+      "movement_fact_ref": "movement-fact:02:reporter-delivery-work",
+      "public_fact_refs": [
+        "agent-fact:02:reporter-delivery-work",
+        "brick-comparison:02:reporter-delivery-work",
+        "movement-fact:02:reporter-delivery-work"
+      ],
+      "source_brick_instance_ref": "brick-work",
+      "step_output_ref": "work/step-outputs/reporter-delivery-work-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-code-attack-qa",
+      "transition_fact_ref": "transition-fact:02:reporter-delivery-work"
+    },
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:03:reporter-delivery-code-attack-qa",
+        "brick-comparison:03:reporter-delivery-code-attack-qa",
+        "movement-fact:03:reporter-delivery-code-attack-qa"
+      ],
+      "link_edge_id": "edge:code-attack-qa-to-axis-attack-qa",
+      "movement_fact_ref": "movement-fact:03:reporter-delivery-code-attack-qa",
+      "public_fact_refs": [
+        "agent-fact:03:reporter-delivery-code-attack-qa",
+        "brick-comparison:03:reporter-delivery-code-attack-qa",
+        "movement-fact:03:reporter-delivery-code-attack-qa"
+      ],
+      "source_brick_instance_ref": "brick-code-attack-qa",
+      "step_output_ref": "work/step-outputs/reporter-delivery-code-attack-qa-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-axis-attack-qa",
+      "transition_fact_ref": "transition-fact:03:reporter-delivery-code-attack-qa"
+    },
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:04:reporter-delivery-axis-attack-qa",
+        "brick-comparison:04:reporter-delivery-axis-attack-qa",
+        "movement-fact:04:reporter-delivery-axis-attack-qa"
+      ],
+      "link_edge_id": "edge:axis-attack-qa-to-evidence-integrity",
+      "movement_fact_ref": "movement-fact:04:reporter-delivery-axis-attack-qa",
+      "public_fact_refs": [
+        "agent-fact:04:reporter-delivery-axis-attack-qa",
+        "brick-comparison:04:reporter-delivery-axis-attack-qa",
+        "movement-fact:04:reporter-delivery-axis-attack-qa"
+      ],
+      "source_brick_instance_ref": "brick-axis-attack-qa",
+      "step_output_ref": "work/step-outputs/reporter-delivery-axis-attack-qa-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-evidence-integrity",
+      "transition_fact_ref": "transition-fact:04:reporter-delivery-axis-attack-qa"
+    },
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:05:reporter-delivery-evidence-integrity",
+        "brick-comparison:05:reporter-delivery-evidence-integrity",
+        "movement-fact:05:reporter-delivery-evidence-integrity"
+      ],
+      "link_edge_id": "edge:evidence-integrity-to-closure",
+      "movement_fact_ref": "movement-fact:05:reporter-delivery-evidence-integrity",
+      "public_fact_refs": [
+        "agent-fact:05:reporter-delivery-evidence-integrity",
+        "brick-comparison:05:reporter-delivery-evidence-integrity",
+        "movement-fact:05:reporter-delivery-evidence-integrity"
+      ],
+      "source_brick_instance_ref": "brick-evidence-integrity",
+      "step_output_ref": "work/step-outputs/reporter-delivery-evidence-integrity-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-closure",
+      "transition_fact_ref": "transition-fact:05:reporter-delivery-evidence-integrity"
+    },
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:06:reporter-delivery-closure",
+        "brick-comparison:06:reporter-delivery-closure",
+        "movement-fact:06:reporter-delivery-closure"
+      ],
+      "link_edge_id": "edge:closure-to-closed-boundary",
+      "movement_fact_ref": "movement-fact:06:reporter-delivery-closure",
+      "public_fact_refs": [
+        "agent-fact:06:reporter-delivery-closure",
+        "brick-comparison:06:reporter-delivery-closure",
+        "movement-fact:06:reporter-delivery-closure"
+      ],
+      "source_brick_instance_ref": "brick-closure",
+      "step_output_ref": "work/step-outputs/reporter-delivery-closure-attempt-1/step-output.json",
+      "target_brick_instance_ref": "building-boundary:reporter-delivery-wake-bus-0-0531-closed",
+      "transition_fact_ref": "transition-fact:06:reporter-delivery-closure"
+    }
+  ],
+  "not_proven": [
+    "real provider thread wake behavior",
+    "real Slack delivery",
+    "external notification behavior",
+    "delivery reliability",
+    "semantic usefulness for every future Building type",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "profile": "planning-v0",
+  "proof_limits": [
+    "support evidence only",
+    "local adapter dogfood only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "not route input"
+  ],
+  "raw_refs": [
+    "raw:brick:01",
+    "raw:agent:01",
+    "raw:link:01",
+    "raw:brick:02",
+    "raw:agent:02",
+    "raw:link:02",
+    "raw:brick:03",
+    "raw:agent:03",
+    "raw:link:03",
+    "raw:brick:04",
+    "raw:agent:04",
+    "raw:link:04",
+    "raw:brick:05",
+    "raw:agent:05",
+    "raw:link:05",
+    "raw:brick:06",
+    "raw:agent:06",
+    "raw:link:06"
+  ],
+  "recorded_at": "2026-05-31T11:23:17Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:reporter-delivery-wake-bus-0-0531",
+  "specversion": "1.0",
+  "subject": "work/building-map.json",
+  "task_source_ref": "project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/task.md",
+  "time": "2026-05-31T11:23:17Z",
+  "type": "bp.building_graph_map"
+}

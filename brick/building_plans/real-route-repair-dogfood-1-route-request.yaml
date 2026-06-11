@@ -1,0 +1,64 @@
+plan_ref: building-plan:real-route-repair-dogfood-1-route-request
+owner_axis: Brick
+building_id: real-route-repair-dogfood-1-request-0527
+plan_shape: reviewable-work
+selected_adapter_ref: adapter:local
+parent_goal_ref: goal:coo-operating-chain-follow-up
+proof_limits:
+  - support evidence only
+  - route request returned evidence only
+  - not route policy matching
+  - not route materialization
+  - not automatic repair/replay execution
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of QA route request
+  - route policy match until separately observed
+  - repair/replay execution until separately observed
+remaining_delta:
+  - run declared repair replay case
+steps:
+  - step_ref: real-route-repair-dogfood-1-01-qa-request
+    rows:
+      - axis: Brick
+        row_ref: brick-row:real-route-repair-dogfood-1-qa-request
+        brick_work_ref: work:real-route-repair-dogfood-1-qa-request
+        brick_instance_ref: brick-real-route-repair-dogfood-1-qa-observation
+        work_statement: Return QA observation with non-binding implementation-only route request evidence.
+        comparison_rule: Observe route request evidence only; QA must not choose a route target.
+        required_return_shape: observed_evidence, route_request, blocked_or_missing_evidence, proof_limits, not_proven
+        source_facts:
+          - brick/templates/review/standard-route-request-return.yaml
+      - axis: Agent
+        row_ref: agent-row:real-route-repair-dogfood-1-qa-request
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:real-route-repair-dogfood-1-qa-request-to-closure
+        movement: forward
+        target_ref: brick-real-route-repair-dogfood-1-request-closure
+        next_brick_instance_ref: brick-real-route-repair-dogfood-1-request-closure
+  - step_ref: real-route-repair-dogfood-1-02-request-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:real-route-repair-dogfood-1-request-closure
+        brick_work_ref: work:real-route-repair-dogfood-1-request-closure
+        brick_instance_ref: brick-real-route-repair-dogfood-1-request-closure
+        work_statement: Close route request observation before separate Link policy materialization.
+        comparison_rule: Closure records route request packet existence only.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta
+        source_facts:
+          - project/brick-protocol/buildings/real-route-repair-dogfood-1-request-0527/work/step-outputs/real-route-repair-dogfood-1-01-qa-request-attempt-1/route-request.json
+      - axis: Agent
+        row_ref: agent-row:real-route-repair-dogfood-1-request-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:real-route-repair-dogfood-1-request-closure
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: Route request observation closed before declared repair replay case.
+        target_ref: brick-real-route-repair-dogfood-1-repair-replay-open
+        next_brick_instance_ref: brick-real-route-repair-dogfood-1-repair-replay-open

@@ -1,0 +1,37 @@
+template_ref: brick-template:standard-evidence-integrity-return
+owner_axis: Brick
+template_kind: evidence_integrity_return_shape
+maps_to: AgentFact.returned
+step_template_refs:
+  - building-step-template:evidence-integrity
+required_return_shape:
+  - evidence_scope
+  - persisted_evidence_roots
+  - proof_limit_findings
+  - stale_source_risks
+  - checker_overclaim_risks
+  - missing_evidence
+  - evidence_used
+  - not_proven
+next_link_input_sections:
+  - observed public facts for Link
+  - missing facts for Link Gate
+  - evidence integrity refs
+  - not_proven
+forbidden_return_keys:
+  - success
+  - failure
+  - approved
+  - quality
+  - movement_choice
+  - route_target
+proof_limits:
+  - Brick-owned return-shape data resource only
+  - evidence review is support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - complete historical evidence classification
+  - support loader behavior

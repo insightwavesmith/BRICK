@@ -1,0 +1,114 @@
+{
+  "kind": "step_rows_three_axis_contract_audit",
+  "schema_version": "step-rows-three-axis-contract-repair-0",
+  "building_ref": "project-orchestration-ledger-0-0528",
+  "source_refs": [
+    "brick/templates/shapes/registry.yaml",
+    "brick/building_plans/project-orchestration-ledger-0.yaml",
+    "project/brick-protocol/buildings/project-orchestration-ledger-0-0528/evidence/claim_trace/link/sufficiency_trace.json"
+  ],
+  "operator_questions": [
+    "Which axis owns this problem?",
+    "Is this source truth, evidence, or projection?",
+    "Can an existing module/profile/template handle it?",
+    "Is an Agent saying Movement, target, success, or quality?",
+    "Is Link recording only movement, target, gate, or disposition?",
+    "Which profile or dogfood catches this drift again?"
+  ],
+  "step_rows_contract": {
+    "shape_registry_ref": "building-shape-registry:bar-v2-initial",
+    "compact_expression": "link: target | link: gate+gate -> target",
+    "required_expansion": [
+      "Brick row",
+      "Agent row",
+      "Link row"
+    ],
+    "forbidden_expansion": [
+      "support-chosen target",
+      "Agent-chosen Movement",
+      "Agent-chosen route target",
+      "inline Agent config body",
+      "automatic shape selection"
+    ]
+  },
+  "phase_1_gate_observations": [
+    {
+      "step_ref": "project-orchestration-ledger-0-plan",
+      "sufficiency": "sufficient",
+      "missing_required_facts": []
+    },
+    {
+      "step_ref": "project-orchestration-ledger-0-design",
+      "sufficiency": "sufficient",
+      "missing_required_facts": []
+    },
+    {
+      "step_ref": "project-orchestration-ledger-0-development",
+      "sufficiency": "missing_required_facts",
+      "missing_required_facts": [
+        "AgentFact.returned.worker_assignments",
+        "AgentFact.returned.risks"
+      ]
+    },
+    {
+      "step_ref": "project-orchestration-ledger-0-work",
+      "sufficiency": "missing_required_facts",
+      "missing_required_facts": [
+        "AgentFact.returned.observed_evidence",
+        "AgentFact.returned.made_changes",
+        "AgentFact.returned.blocked_or_missing_evidence"
+      ]
+    },
+    {
+      "step_ref": "project-orchestration-ledger-0-review",
+      "sufficiency": "missing_required_facts",
+      "missing_required_facts": [
+        "AgentFact.returned.transition_concern_evidence",
+        "Link.route_decision_basis.override_refs"
+      ]
+    },
+    {
+      "step_ref": "project-orchestration-ledger-0-closure",
+      "sufficiency": "sufficient",
+      "missing_required_facts": []
+    }
+  ],
+  "repair_phases": [
+    {
+      "phase_ref": "STEP-ROWS-THREE-AXIS-CONTRACT-AUDIT-0",
+      "axis": "Brick",
+      "surface": "support evidence/profile",
+      "reason": "prove the step templates expanded to Brick/Agent/Link rows and name the actual gate gaps"
+    },
+    {
+      "phase_ref": "AGENT-ADAPTER-RETURN-NORMALIZATION-0",
+      "axis": "Agent",
+      "surface": "support/connection/agent_adapter.py and support/operator/write_observation.py",
+      "reason": "lift explicit required_return_shape labels from adapter text into AgentFact.returned fields without inference"
+    },
+    {
+      "phase_ref": "LINK-GATE-DISPOSITION-0",
+      "axis": "Link",
+      "surface": "support/operator/run.py walker enforcement",
+      "reason": "do not walk forward through an insufficient declared Link gate"
+    },
+    {
+      "phase_ref": "PHASE-1-REPAIR-DOGFOOD-0",
+      "axis": "crossing",
+      "surface": "Building evidence root",
+      "reason": "prove the repaired chain records sufficient Agent returns or blocks before invalid forward"
+    }
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "not_proven": [
+    "semantic correctness of future dashboard work",
+    "provider ability to always follow labeled return instructions",
+    "future shared project collaboration"
+  ]
+}

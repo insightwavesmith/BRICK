@@ -1,0 +1,91 @@
+plan_ref: building-plan:cascade-sweep-0-compact
+owner_axis: Brick
+building_id: cascade-sweep-0-0526
+plan_shape: linear
+selected_adapter_ref: adapter:local
+parent_goal_ref: goal:bar-v2-active-sequence
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic completeness of stale reference detection
+  - future stale references
+  - BAR-v2 end-to-end dogfood
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority
+remaining_delta:
+  - BAR-V2-END-TO-END-DOGFOOD-0
+next_target_candidates:
+  - BAR-V2-END-TO-END-DOGFOOD-0
+steps:
+  - step_ref: cascade-sweep-0-01-sweep
+    rows:
+      - axis: Brick
+        row_ref: brick-row:cascade-sweep-0-sweep
+        brick_work_ref: work:cascade-sweep-0-sweep
+        brick_instance_ref: brick-cascade-sweep-0-sweep
+        work_statement: Run the declared BAR-v2 cascade sweep over active docs, profiles, checkers, and route policy resources.
+        comparison_rule: Observe zero declared sweep gaps as support evidence only.
+        required_return_shape: cascade_sweep_case_ref, gap_count, gaps, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+          - support/docs/spec/brick-protocol-cascade-sweep-0-0526.md
+          - support/operator/cascade_sweep.py
+          - support/checkers/profiles/cascade_sweep.yaml
+      - axis: Agent
+        row_ref: agent-row:cascade-sweep-0-sweep
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:cascade-sweep-0-sweep-to-profile
+        movement: forward
+        target_ref: brick-cascade-sweep-0-profile
+        next_brick_instance_ref: brick-cascade-sweep-0-profile
+  - step_ref: cascade-sweep-0-02-profile
+    rows:
+      - axis: Brick
+        row_ref: brick-row:cascade-sweep-0-profile
+        brick_work_ref: work:cascade-sweep-0-profile
+        brick_instance_ref: brick-cascade-sweep-0-profile
+        work_statement: Observe the Phase 15 profile and declared sweep result.
+        comparison_rule: Profile pass is support evidence only and not semantic completeness.
+        required_return_shape: profile_ref, sweep_gap_count, proof_limits, not_proven
+        source_facts:
+          - support/checkers/profiles/cascade_sweep.yaml
+      - axis: Agent
+        row_ref: agent-row:cascade-sweep-0-profile
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:cascade-sweep-0-profile-to-closure
+        movement: forward
+        target_ref: brick-cascade-sweep-0-closure
+        next_brick_instance_ref: brick-cascade-sweep-0-closure
+  - step_ref: cascade-sweep-0-03-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:cascade-sweep-0-closure
+        brick_work_ref: work:cascade-sweep-0-closure
+        brick_instance_ref: brick-cascade-sweep-0-closure
+        work_statement: Close Phase 15 with cascade sweep evidence, parent delta, and next Movement candidate.
+        comparison_rule: Closure records declared sweep evidence only; it does not prove future stale refs impossible.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, deferred_smith_review_queue, next_target_candidates, next_movement_candidate
+        source_facts:
+          - brick/building_plans/cascade-sweep-0-compact.yaml
+          - support/docs/spec/brick-protocol-cascade-sweep-0-0526.md
+          - brick/templates/closure/standard-closure-with-parent-delta.yaml
+      - axis: Agent
+        row_ref: agent-row:cascade-sweep-0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:cascade-sweep-0-closure-to-dogfood
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: Phase 15 closes cascade sweep, then routes forward to Phase 16.
+        target_ref: brick-bar-v2-end-to-end-dogfood-0-open
+        next_brick_instance_ref: brick-bar-v2-end-to-end-dogfood-0-open

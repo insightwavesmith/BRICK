@@ -1,0 +1,88 @@
+plan_ref: building-plan:building-automation-complete-audit-0-current-completion
+owner_axis: Brick
+building_id: building-automation-complete-audit-0-0526
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - full BUILDING-AUTOMATION-COMPLETE-0 completion
+  - semantic correctness of future Buildings
+  - autonomous route selection
+  - provider answer quality
+steps:
+  - step_ref: building-automation-complete-audit-0-01-requirements
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:baca0-requirements
+        brick_work_ref: work:baca0-requirements
+        brick_instance_ref: brick-baca0-requirements
+        work_statement: Derive concrete BUILDING-AUTOMATION-COMPLETE-0 requirements from the active goal and current chain docs.
+        comparison_rule: Requirements must preserve the original full objective and must not redefine completion around existing partial evidence.
+        required_return_shape: derived_requirements, authoritative_evidence_needed, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+          - support/docs/spec/brick-protocol-building-automation-level-0-current-level-assessment-0526.md
+      - axis: Agent
+        row_ref: agent-row:baca0-requirements
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:baca0-requirements-to-evidence
+        movement: forward
+        target_ref: brick-baca0-evidence
+        next_brick_instance_ref: brick-baca0-evidence
+  - step_ref: building-automation-complete-audit-0-02-evidence
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:baca0-evidence
+        brick_work_ref: work:baca0-evidence
+        brick_instance_ref: brick-baca0-evidence
+        work_statement: Collect current checker evidence for Building automation, Agent real work, graph/evidence accumulation, provider-neutral brain swap, session/provider projection, and Link lifecycle.
+        comparison_rule: Checker output is support evidence only and must not be treated as completion unless coverage matches the requirement.
+        required_return_shape: checker_evidence, proven_items, incomplete_or_weak_items, proof_limits, not_proven
+        source_facts:
+          - support/checkers/check_building_automation_level0.py
+          - support/checkers/check_building_operator_loop0.py
+          - support/checkers/check_agent_real_work_hardening0.py
+          - support/checkers/check_real_write_dogfood0.py
+          - support/checkers/check_agent_brain_swap_dogfood0.py
+          - support/checkers/check_provider_lane_expansion0.py
+          - support/checkers/check_evidence_graph_completeness_next0.py
+      - axis: Agent
+        row_ref: agent-row:baca0-evidence
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:baca0-evidence-to-closure
+        movement: forward
+        target_ref: brick-baca0-closure
+        next_brick_instance_ref: brick-baca0-closure
+  - step_ref: building-automation-complete-audit-0-03-closure
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:baca0-closure
+        brick_work_ref: work:baca0-closure
+        brick_instance_ref: brick-baca0-closure
+        work_statement: Close BUILDING-AUTOMATION-COMPLETE-AUDIT-0 with completion status, missing proof, and next Movement.
+        comparison_rule: Closure must not mark BUILDING-AUTOMATION-COMPLETE-0 complete unless every requirement is proven by current evidence.
+        required_return_shape: observed_evidence, narrowly_proven, incomplete_or_unproven, held, next_coo_decision_candidate
+        source_facts:
+          - brick/building_plans/building-automation-complete-audit-0-current-completion.yaml
+          - support/docs/spec/brick-protocol-building-automation-complete-audit-0-current-completion-0526.md
+      - axis: Agent
+        row_ref: agent-row:baca0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:baca0-closure-to-boundary
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: BUILDING-AUTOMATION-COMPLETE-AUDIT-0 closed with remaining completion gap evidence.
+        target_ref: building-boundary:building-automation-complete-audit-0-closed
+        next_brick_instance_ref: building-boundary-building-automation-complete-audit-0-closed

@@ -1,0 +1,344 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:link-owned-automation-0-dogfood-0527::evidence/claim_trace/link/sufficiency_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "caller_or_declared": true,
+        "checked_public_fact": "agent-fact:link-owned-automation-0-dogfood-0527:link-owned-automation-0-plan",
+        "evidence_reference": "step-output:link-owned-automation-0-plan",
+        "missing_required_facts": [],
+        "reason": "declared Link gate evaluation for work contract return shape and honest report channels",
+        "required_public_facts": [
+          "AgentFact.received_work",
+          "AgentFact.returned",
+          "BrickWork.required_return_shape",
+          "AgentFact.returned.observed_evidence",
+          "AgentFact.returned.made_changes",
+          "AgentFact.returned.not_proven"
+        ],
+        "stage": "movement",
+        "sufficiency": "sufficient"
+      },
+      "fact_ref": "sufficiency-fact-movement:01:link-owned-automation-0-plan",
+      "not_proven": [
+        "semantic correctness of Agent returned work",
+        "semantic correctness of Link concern mapping",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "Link-owned declared gate and policy automation dogfood",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "caller_or_declared": true,
+        "checked_public_fact": "agent-fact:link-owned-automation-0-dogfood-0527:link-owned-automation-0-design",
+        "evidence_reference": "step-output:link-owned-automation-0-design",
+        "missing_required_facts": [],
+        "reason": "declared Link gate evaluation for work contract return shape and honest report channels",
+        "required_public_facts": [
+          "AgentFact.received_work",
+          "AgentFact.returned",
+          "BrickWork.required_return_shape",
+          "AgentFact.returned.observed_evidence",
+          "AgentFact.returned.made_changes",
+          "AgentFact.returned.not_proven"
+        ],
+        "stage": "movement",
+        "sufficiency": "sufficient"
+      },
+      "fact_ref": "sufficiency-fact-movement:02:link-owned-automation-0-design",
+      "not_proven": [
+        "semantic correctness of Agent returned work",
+        "semantic correctness of Link concern mapping",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "Link-owned declared gate and policy automation dogfood",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:02"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "caller_or_declared": true,
+        "checked_public_fact": "agent-fact:link-owned-automation-0-dogfood-0527:link-owned-automation-0-dev",
+        "evidence_reference": "step-output:link-owned-automation-0-dev",
+        "missing_required_facts": [],
+        "reason": "declared Link gate evaluation for work contract return shape and honest report channels",
+        "required_public_facts": [
+          "AgentFact.received_work",
+          "AgentFact.returned",
+          "BrickWork.required_return_shape",
+          "AgentFact.returned.observed_evidence",
+          "AgentFact.returned.made_changes",
+          "AgentFact.returned.not_proven"
+        ],
+        "stage": "movement",
+        "sufficiency": "sufficient"
+      },
+      "fact_ref": "sufficiency-fact-movement:03:link-owned-automation-0-dev",
+      "not_proven": [
+        "semantic correctness of Agent returned work",
+        "semantic correctness of Link concern mapping",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "Link-owned declared gate and policy automation dogfood",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:03"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "caller_or_declared": true,
+        "checked_public_fact": "agent-fact:link-owned-automation-0-dogfood-0527:link-owned-automation-0-qa",
+        "evidence_reference": "step-output:link-owned-automation-0-qa",
+        "missing_required_facts": [],
+        "reason": "declared Link gate evaluation for work contract return shape and honest report channels",
+        "required_public_facts": [
+          "AgentFact.received_work",
+          "AgentFact.returned",
+          "BrickWork.required_return_shape",
+          "AgentFact.returned.observed_evidence",
+          "AgentFact.returned.transition_concern_evidence",
+          "AgentFact.returned.not_proven"
+        ],
+        "stage": "movement",
+        "sufficiency": "sufficient"
+      },
+      "fact_ref": "sufficiency-fact-movement:04:link-owned-automation-0-qa",
+      "not_proven": [
+        "semantic correctness of Agent returned work",
+        "semantic correctness of Link concern mapping",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "Link-owned declared gate and policy automation dogfood",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:04"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "caller_or_declared": true,
+        "checked_public_fact": "agent-fact:link-owned-automation-0-dogfood-0527:link-owned-automation-0-dev",
+        "evidence_reference": "step-output:link-owned-automation-0-dev",
+        "missing_required_facts": [],
+        "reason": "declared Link gate evaluation for work contract return shape and honest report channels",
+        "required_public_facts": [
+          "AgentFact.received_work",
+          "AgentFact.returned",
+          "BrickWork.required_return_shape",
+          "AgentFact.returned.observed_evidence",
+          "AgentFact.returned.made_changes",
+          "AgentFact.returned.not_proven"
+        ],
+        "stage": "movement",
+        "sufficiency": "sufficient"
+      },
+      "fact_ref": "sufficiency-fact-movement:05:link-owned-automation-0-dev",
+      "not_proven": [
+        "semantic correctness of Agent returned work",
+        "semantic correctness of Link concern mapping",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "Link-owned declared gate and policy automation dogfood",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:05"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "caller_or_declared": true,
+        "checked_public_fact": "agent-fact:link-owned-automation-0-dogfood-0527:link-owned-automation-0-qa",
+        "evidence_reference": "step-output:link-owned-automation-0-qa",
+        "missing_required_facts": [],
+        "reason": "declared Link gate evaluation for work contract return shape and honest report channels",
+        "required_public_facts": [
+          "AgentFact.received_work",
+          "AgentFact.returned",
+          "BrickWork.required_return_shape",
+          "AgentFact.returned.observed_evidence",
+          "AgentFact.returned.made_changes",
+          "AgentFact.returned.not_proven"
+        ],
+        "stage": "movement",
+        "sufficiency": "sufficient"
+      },
+      "fact_ref": "sufficiency-fact-movement:06:link-owned-automation-0-qa",
+      "not_proven": [
+        "semantic correctness of Agent returned work",
+        "semantic correctness of Link concern mapping",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "Link-owned declared gate and policy automation dogfood",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:06"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "caller_or_declared": true,
+        "checked_public_fact": "agent-fact:link-owned-automation-0-dogfood-0527:link-owned-automation-0-closure",
+        "evidence_reference": "step-output:link-owned-automation-0-closure",
+        "missing_required_facts": [],
+        "reason": "declared Link gate evaluation for work contract return shape and honest report channels",
+        "required_public_facts": [
+          "AgentFact.received_work",
+          "AgentFact.returned",
+          "BrickWork.required_return_shape",
+          "AgentFact.returned.observed_evidence",
+          "AgentFact.returned.remaining_delta",
+          "AgentFact.returned.not_proven"
+        ],
+        "stage": "movement",
+        "sufficiency": "sufficient"
+      },
+      "fact_ref": "sufficiency-fact-movement:07:link-owned-automation-0-closure",
+      "not_proven": [
+        "semantic correctness of Agent returned work",
+        "semantic correctness of Link concern mapping",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "Link-owned declared gate and policy automation dogfood",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:07"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-27T11:12:45Z",
+  "id": "urn:bp:building:link-owned-automation-0-dogfood-0527::evidence/claim_trace/link/sufficiency_trace.json",
+  "recorded_at": "2026-05-27T11:12:45Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:link-owned-automation-0-dogfood-0527",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/sufficiency_trace.json",
+  "time": "2026-05-27T11:12:45Z",
+  "type": "bp.claim_trace"
+}

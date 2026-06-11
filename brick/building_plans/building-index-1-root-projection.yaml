@@ -1,0 +1,135 @@
+plan_ref: building-plan:building-index-1-root-projection
+owner_axis: Brick
+building_id: building-index-1-0526
+plan_shape: linear
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - complete historical inventory outside project/brick-protocol/buildings
+  - semantic correctness of listed roots
+  - external search readiness
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority
+steps:
+  - step_ref: building-index-1-coo-preflight
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-index-1-coo-preflight
+        brick_work_ref: work:building-index-1-coo-preflight
+        brick_instance_ref: brick-bi1-coo-preflight
+        work_statement: Ask COO questions and frame BUILDING-INDEX-1 as support projection over Building roots, not storage or source truth.
+        comparison_rule: Verify Brick, Agent, Link, support, evidence, return, and reroute boundaries before index generation.
+        required_return_shape: coo_questions, index_boundary, held_boundaries, proof_limits, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-building-index-1-root-projection-0526.md
+          - support/operator/building_operation.py
+      - axis: Agent
+        row_ref: agent-row:building-index-1-coo-preflight
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:building-index-1-preflight-to-helper
+        movement: forward
+        target_ref: brick-bi1-helper-implementation
+        transition_authoring:
+          transition_authoring_ref: link-authoring:bi1-forward-to-helper
+          author_ref: coo:building-index-1
+          authoring_basis_refs:
+            - brick-work:01:building-index-1-coo-preflight
+          transition_reason_refs:
+            - brick-work:01:building-index-1-coo-preflight
+          proof_limits:
+            - forward authoring is support evidence only
+          not_proven:
+            - semantic necessity of the forward transition
+  - step_ref: building-index-1-helper-implementation
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-index-1-helper-implementation
+        brick_work_ref: work:building-index-1-helper-implementation
+        brick_instance_ref: brick-bi1-helper-implementation
+        work_statement: Add a support-only Building index packet helper over project Building roots.
+        comparison_rule: Helper may list roots and mechanical counts only; it must not create storage, dashboard, source truth, quality ranking, or Movement authority.
+        required_return_shape: helper_function, indexed_fields, forbidden_judgments, proof_limits, not_proven
+        source_facts:
+          - support/operator/building_operation.py
+          - project/brick-protocol/status/kernel/evidence-auto-0-analysis-0526.md
+      - axis: Agent
+        row_ref: agent-row:building-index-1-helper-implementation
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:building-index-1-helper-to-packet
+        movement: forward
+        target_ref: brick-bi1-index-packet
+        transition_authoring:
+          transition_authoring_ref: link-authoring:bi1-forward-to-packet
+          author_ref: coo:building-index-1
+          authoring_basis_refs:
+            - brick-work:02:building-index-1-helper-implementation
+          transition_reason_refs:
+            - brick-work:02:building-index-1-helper-implementation
+          proof_limits:
+            - helper implementation authoring is support evidence only
+          not_proven:
+            - semantic correctness of index entries
+  - step_ref: building-index-1-index-packet
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-index-1-index-packet
+        brick_work_ref: work:building-index-1-index-packet
+        brick_instance_ref: brick-bi1-index-packet
+        work_statement: Generate and inspect a Building index projection packet for project Building roots.
+        comparison_rule: Packet must list roots and mechanical counts only; it must not rank, approve, fail, or choose Movement.
+        required_return_shape: packet_ref, root_count, sample_roots, mechanical_fields, proof_limits, not_proven
+        source_facts:
+          - project/brick-protocol/status/kernel/building-index-1-projection-0526.md
+          - project/brick-protocol/buildings/evidence-auto-0-0526/work/building-map.json
+      - axis: Agent
+        row_ref: agent-row:building-index-1-index-packet
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:building-index-1-packet-to-closure
+        movement: forward
+        target_ref: brick-bi1-closure
+        transition_authoring:
+          transition_authoring_ref: link-authoring:bi1-forward-to-closure
+          author_ref: coo:building-index-1
+          authoring_basis_refs:
+            - brick-work:03:building-index-1-index-packet
+          transition_reason_refs:
+            - brick-work:03:building-index-1-index-packet
+          proof_limits:
+            - index packet authoring is support evidence only
+          not_proven:
+            - complete historical inventory outside active buildings root
+  - step_ref: building-index-1-closure
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-index-1-closure
+        brick_work_ref: work:building-index-1-closure
+        brick_instance_ref: brick-bi1-closure
+        work_statement: Close BUILDING-INDEX-1 as project-local Building root support projection.
+        comparison_rule: Preserve observed evidence, narrowly proven scope, not-proven, held, and next COO Movement.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, held, coo_movement
+        source_facts:
+          - support/docs/spec/brick-protocol-building-index-1-root-projection-0526.md
+      - axis: Agent
+        row_ref: agent-row:building-index-1-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:building-index-1-closure-to-boundary
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:building-index-1-closed

@@ -1,0 +1,101 @@
+plan_ref: building-plan:design-toolkit-and-mcp-0-compact
+owner_axis: Brick
+building_id: design-toolkit-and-mcp-0-0526
+plan_shape: linear
+selected_adapter_ref: adapter:local
+parent_goal_ref: goal:bar-v2-active-sequence
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - MCP client behavior
+  - semantic fitness of future selected shapes
+  - automatic Building Plan authoring
+  - provider-native projection expansion
+  - route policy behavior
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority
+remaining_delta:
+  - TASK-INTAKE-SKILL-0
+  - LINK-ROUTE-POLICY-RESOURCE-0
+  - CHECKER-STRICT-VALIDATION-0
+  - ROUTE-MATCH-AND-MATERIALIZATION-0
+  - AUTO-REPAIR-REPLAY-0
+  - AUTO-CHILD-BUILDING-GENERATION-0
+  - CASCADE-SWEEP-0
+  - BAR-V2-END-TO-END-DOGFOOD-0
+next_target_candidates:
+  - TASK-INTAKE-SKILL-0
+steps:
+  - step_ref: design-toolkit-and-mcp-0-01-toolkit
+    rows:
+      - axis: Brick
+        row_ref: brick-row:design-toolkit-and-mcp-0-toolkit
+        brick_work_ref: work:design-toolkit-and-mcp-0-toolkit
+        brick_instance_ref: brick-design-toolkit-and-mcp-0-toolkit
+        work_statement: Define the read-only Building design toolkit over admitted Brick design resources.
+        comparison_rule: Observe whether the toolkit renders context without choosing shape or Movement.
+        required_return_shape: toolkit_surface, rendered_context_observation, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+          - support/docs/spec/brick-protocol-design-toolkit-and-mcp-0-0526.md
+          - support/connection/building_design_toolkit.py
+      - axis: Agent
+        row_ref: agent-row:design-toolkit-and-mcp-0-toolkit
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:design-toolkit-and-mcp-0-toolkit-to-mcp
+        movement: forward
+        target_ref: brick-design-toolkit-and-mcp-0-mcp
+        next_brick_instance_ref: brick-design-toolkit-and-mcp-0-mcp
+  - step_ref: design-toolkit-and-mcp-0-02-mcp
+    rows:
+      - axis: Brick
+        row_ref: brick-row:design-toolkit-and-mcp-0-mcp
+        brick_work_ref: work:design-toolkit-and-mcp-0-mcp
+        brick_instance_ref: brick-design-toolkit-and-mcp-0-mcp
+        work_statement: Observe MCP resource/tool exposure for the Building design context.
+        comparison_rule: MCP projection output is support context only; it must not become source truth or Movement authority.
+        required_return_shape: mcp_resource_ref, mcp_tool_ref, direct_probe_observation, proof_limits, not_proven
+        source_facts:
+          - support/connection/mcp_projection.py
+          - support/connection/building_design_toolkit.py
+          - support/checkers/profiles/design_toolkit_and_mcp.yaml
+      - axis: Agent
+        row_ref: agent-row:design-toolkit-and-mcp-0-mcp
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:design-toolkit-and-mcp-0-mcp-to-closure
+        movement: forward
+        target_ref: brick-design-toolkit-and-mcp-0-closure
+        next_brick_instance_ref: brick-design-toolkit-and-mcp-0-closure
+  - step_ref: design-toolkit-and-mcp-0-03-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:design-toolkit-and-mcp-0-closure
+        brick_work_ref: work:design-toolkit-and-mcp-0-closure
+        brick_instance_ref: brick-design-toolkit-and-mcp-0-closure
+        work_statement: Close Phase 8 with design toolkit and MCP evidence, parent delta, and next Movement candidate.
+        comparison_rule: Closure records read-only exposure evidence only; it does not prove future design quality.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, deferred_smith_review_queue, next_target_candidates, next_movement_candidate
+        source_facts:
+          - brick/building_plans/design-toolkit-and-mcp-0-compact.yaml
+          - support/docs/spec/brick-protocol-design-toolkit-and-mcp-0-0526.md
+          - brick/templates/closure/standard-closure-with-parent-delta.yaml
+      - axis: Agent
+        row_ref: agent-row:design-toolkit-and-mcp-0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:design-toolkit-and-mcp-0-closure-to-intake-skill
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: Phase 8 closes read-only design toolkit and MCP context exposure, then routes forward to Phase 9.
+        target_ref: brick-intake-skill-0-open
+        next_brick_instance_ref: brick-intake-skill-0-open

@@ -1,0 +1,219 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:design-toolkit-and-mcp-0-0526::evidence/claim_trace/agent/returned_claims.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:coo",
+        "received_work": "brick-work:01:design-toolkit-and-mcp-0-01-toolkit",
+        "returned": {
+          "adapter_ref": "adapter:local",
+          "agent_object_ref": "agent-object:coo",
+          "callable_ref": "callable:local:agent-invoke0-smoke",
+          "discipline_refs": [
+            "discipline:closed-agentfact",
+            "discipline:proof-limits"
+          ],
+          "evidence_refs": [
+            "support-packet:design-toolkit-and-mcp-0-0526:agent-object:coo:output"
+          ],
+          "hook_refs": [
+            "hook:instruction-chain-read",
+            "hook:resource-ref-redaction"
+          ],
+          "prompt_refs": [
+            "prompt:coo"
+          ],
+          "returned_summary": "local Agent Adapter callable returned support evidence",
+          "skill_refs": [
+            "skill:building-coordination",
+            "skill:protocol-boundary-watch",
+            "skill:evidence-verification"
+          ],
+          "tool_policy_refs": [
+            "tool-policy:support-readonly"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:01:design-toolkit-and-mcp-0-01-toolkit",
+      "not_proven": [
+        "MCP client behavior",
+        "semantic fitness of future selected shapes",
+        "automatic Building Plan authoring",
+        "provider-native projection expansion",
+        "route policy behavior",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:qa",
+        "received_work": "brick-work:02:design-toolkit-and-mcp-0-02-mcp",
+        "returned": {
+          "adapter_ref": "adapter:local",
+          "agent_object_ref": "agent-object:qa",
+          "callable_ref": "callable:local:agent-invoke0-smoke",
+          "discipline_refs": [
+            "discipline:closed-agentfact",
+            "discipline:proof-limits"
+          ],
+          "evidence_refs": [
+            "support-packet:design-toolkit-and-mcp-0-0526:agent-object:qa:output"
+          ],
+          "hook_refs": [
+            "hook:instruction-chain-read",
+            "hook:resource-ref-redaction"
+          ],
+          "prompt_refs": [
+            "prompt:qa"
+          ],
+          "returned_summary": "local Agent Adapter callable returned support evidence",
+          "skill_refs": [
+            "skill:evidence-verification",
+            "skill:protocol-boundary-watch"
+          ],
+          "tool_policy_refs": [
+            "tool-policy:review-readonly"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:02:design-toolkit-and-mcp-0-02-mcp",
+      "not_proven": [
+        "MCP client behavior",
+        "semantic fitness of future selected shapes",
+        "automatic Building Plan authoring",
+        "provider-native projection expansion",
+        "route policy behavior",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:coo",
+        "received_work": "brick-work:03:design-toolkit-and-mcp-0-03-closure",
+        "returned": {
+          "adapter_ref": "adapter:local",
+          "agent_object_ref": "agent-object:coo",
+          "callable_ref": "callable:local:agent-invoke0-smoke",
+          "discipline_refs": [
+            "discipline:closed-agentfact",
+            "discipline:proof-limits"
+          ],
+          "evidence_refs": [
+            "support-packet:design-toolkit-and-mcp-0-0526:agent-object:coo:output"
+          ],
+          "hook_refs": [
+            "hook:instruction-chain-read",
+            "hook:resource-ref-redaction"
+          ],
+          "prompt_refs": [
+            "prompt:coo"
+          ],
+          "returned_summary": "local Agent Adapter callable returned support evidence",
+          "skill_refs": [
+            "skill:building-coordination",
+            "skill:protocol-boundary-watch",
+            "skill:evidence-verification"
+          ],
+          "tool_policy_refs": [
+            "tool-policy:support-readonly"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:03:design-toolkit-and-mcp-0-03-closure",
+      "not_proven": [
+        "MCP client behavior",
+        "semantic fitness of future selected shapes",
+        "automatic Building Plan authoring",
+        "provider-native projection expansion",
+        "route policy behavior",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-26T12:41:07Z",
+  "id": "urn:bp:building:design-toolkit-and-mcp-0-0526::evidence/claim_trace/agent/returned_claims.json",
+  "recorded_at": "2026-05-26T12:41:07Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:design-toolkit-and-mcp-0-0526",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/agent/returned_claims.json",
+  "time": "2026-05-26T12:41:07Z",
+  "type": "bp.claim_trace"
+}

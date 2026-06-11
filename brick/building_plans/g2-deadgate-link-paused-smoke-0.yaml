@@ -1,0 +1,77 @@
+plan_ref: building-plan:g2-deadgate-link-paused-smoke-0
+owner_axis: Brick
+building_id: g2-deadgate-link-paused-smoke-0-0530
+selected_shape_ref: building-shape:one-brick
+selected_adapter_ref: adapter:local
+declared_by: coo
+parent_goal_ref: goal:g2-deadgate
+proof_limits:
+  - support evidence only
+  - adapter:local frontier-gate smoke only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+  - not pause/resume authority
+not_proven:
+  - semantic correctness of the declared pause
+  - whether caller/COO should resume, reroute, or close
+  - production runtime readiness
+steps:
+  - step_ref: g2-deadgate-link-paused-smoke-0-observe
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:g2-link-paused-observe
+        brick_work_ref: work:g2-link-paused-observe
+        brick_instance_ref: brick-g2-link-paused-observe
+        work_statement: Return observed evidence for the link-paused frontier-gate smoke.
+        comparison_rule: Observe returned evidence only; Agent does not choose Movement or target.
+        required_return_shape: observed_evidence, not_proven
+      - axis: Agent
+        row_ref: agent-row:g2-link-paused-observe
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:g2-link-paused-observe-paused
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-g2-link-paused-closure
+        next_brick_instance_ref: brick-g2-link-paused-closure
+        transition_lifecycle:
+          state: paused
+          progress_state: in_progress
+          paused_at_ref: link-transition:g2-link-paused-observe
+          from_brick_ref: brick-g2-link-paused-observe
+          pending_target_ref: brick-g2-link-paused-closure
+          required_disposition_owner: caller-or-coo
+          reason_refs:
+            - transition-concern:g2-link-paused-hold
+          proof_limits:
+            - declared Link pause evidence only
+            - not pause/resume authority
+          not_proven:
+            - whether the pause should be resumed
+  - step_ref: g2-deadgate-link-paused-smoke-0-closure
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:g2-link-paused-closure
+        brick_work_ref: work:g2-link-paused-closure
+        brick_instance_ref: brick-g2-link-paused-closure
+        work_statement: Close the link-paused frontier-gate smoke after disposition.
+        comparison_rule: Closure records observed evidence only.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta
+      - axis: Agent
+        row_ref: agent-row:g2-link-paused-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:g2-link-paused-closure
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: G2 link-paused smoke closes after the declared pause is dispositioned.
+        target_ref: building-boundary:g2-deadgate-link-paused-smoke-0-closed
+        next_brick_instance_ref: building-boundary-g2-deadgate-link-paused-smoke-0-closed

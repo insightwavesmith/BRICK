@@ -1,0 +1,76 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:link-decision-disposition-0-dogfood-0527::work/step-outputs/link-decision-disposition-0-design-attempt-1/transition-concern.json",
+  "agent_object_ref": "agent-object:design-lead",
+  "attempt_index": 1,
+  "binding": false,
+  "building_id": "link-decision-disposition-0-dogfood-0527",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-05-27T08:50:19Z",
+  "id": "urn:bp:building:link-decision-disposition-0-dogfood-0527::work/step-outputs/link-decision-disposition-0-design-attempt-1/transition-concern.json",
+  "link_role": "non-binding Agent transition concern evidence only",
+  "not_proven": [
+    "semantic correctness of Agent transition concerns",
+    "semantic correctness of Link disposition",
+    "production runtime readiness",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "transition concern semantic correctness",
+    "Link disposition correctness",
+    "automatic repair/replay execution"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "transition concern disposition dogfood only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "transition_concern_evidence is Agent returned evidence only",
+    "not Link Movement",
+    "not Link target choice",
+    "not route policy matching",
+    "not route materialization",
+    "not automatic repair/replay execution",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-05-27T08:50:19Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:link-decision-disposition-0-dogfood-0527",
+  "specversion": "1.0",
+  "step_output_ref": "work/step-outputs/link-decision-disposition-0-design-attempt-1/step-output.json",
+  "step_ref": "link-decision-disposition-0-design",
+  "subject": "link-decision-disposition-0-design",
+  "time": "2026-05-27T08:50:19Z",
+  "transition_boundary": "Agent concern only; Link may adopt, not adopt, or override",
+  "transition_concern_ref": "transition-concern:link-decision-disposition-0-design:attempt-1",
+  "transition_concern_returned": {
+    "binding": false,
+    "concern_kind": "upstream_gap",
+    "concern_ref": "transition-concern:ldd0-upstream-gap",
+    "proof_limits": [
+      "Agent concern only",
+      "not Movement authority"
+    ],
+    "reason_refs": [
+      "observation:ldd0-design-upstream-gap"
+    ],
+    "related_boundary_refs": [
+      "brick-ldd0-plan-attempt-1"
+    ]
+  },
+  "type": "bp.step_output.transition_concern"
+}

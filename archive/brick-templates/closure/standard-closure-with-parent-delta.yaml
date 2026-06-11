@@ -1,0 +1,42 @@
+template_ref: brick-template:closure-with-parent-delta
+owner_axis: Brick
+description: Standard BAR-v2 closure return shape for carrying a parent objective across child phases.
+required_return_shape:
+  - observed_evidence
+  - narrowly_proven
+  - not_proven
+  - remaining_delta
+  - parent_goal_delta_status
+  - next_target_candidates
+  - deferred_smith_review_queue
+parent_goal_delta_status:
+  allowed_fields:
+    - matched_delta_refs
+    - closed_delta_refs
+    - open_delta_refs
+    - missing_delta_refs
+    - unknown_delta_refs
+    - evidence_refs
+rules:
+  - parent_goal_delta_status is observation language, not a percentage.
+  - not_proven is next-target material, not a failure verdict.
+  - remaining_delta must name concrete future work candidates.
+  - proof scope may narrow, but objective scope must be carried.
+forbidden_return_keys:
+  - success
+  - failure
+  - approved
+  - good_enough
+  - movement_choice
+  - route_target
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of future phases
+  - automatic route policy correctness
+  - automatic repair/replay behavior
+  - child Building generation behavior

@@ -1,0 +1,2520 @@
+"""In-process kernel-check bodies + axis-vocab drift scan + subprocess shim.
+
+Lifted verbatim from check_profile.py (P3a behavior-preserving decomposition).
+Holds the kernel-check implementations the profile runner's run_kernel_check
+dispatches to (axis_vocab_drift, building_map_graph, agent_adapter_return_shape,
+reporter_notification_projection) plus the in-process call_main shim. Support
+checker mechanics only: it derives/observes evidence shapes; it authors no axis
+crossing and decides nothing.
+"""
+
+from __future__ import annotations
+
+import argparse
+import ast
+import contextlib
+import hashlib
+import importlib
+import io
+import json
+import os
+import re
+import subprocess
+import sys
+import tempfile
+from collections import Counter
+from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass, fields
+from pathlib import Path
+from typing import Any
+
+from support.checkers.lib.yaml_subset import (
+    KernelResult,
+    ProfileError,
+    to_posix,
+    to_repo_path,
+)
+
+
+_AXIS_VOCAB_EXPECTED_MOVEMENT = ("forward", "reroute")
+
+
+_AXIS_VOCAB_EXPECTED_DISPOSITION_ACTIONS = ("raise", "forward", "stop")
+
+
+_AXIS_VOCAB_EXPECTED_DISPOSITION_OWNERS = ("caller", "coo", "caller-or-coo")
+
+
+_AXIS_VOCAB_EXPECTED_PROGRESS_STATES = ("in_progress",)
+
+
+_AXIS_VOCAB_EXPECTED_AUTHOR_PREFIXES = ("human:", "coo:")
+
+
+_AXIS_VOCAB_REQUIRED_TRANSITION_KEYS = (
+    "disposition_action",
+    "budget_increment",
+    "progress_state",
+)
+
+
+_AXIS_VOCAB_EXPECTED_ADAPTER_REFS = (
+    "adapter:local",
+    "adapter:codex-local",
+    "adapter:claude-local",
+    "adapter:gemini-local",
+)
+
+
+_AXIS_VOCAB_RETIRED_WRITE_ADAPTER_REFS = (
+    "adapter:codex-write-local",
+    "adapter:claude-write-local",
+)
+
+
+# W2 DOC-DECOUPLE (0611): the 0531 operating packet (stamped HISTORICAL 0610)
+# was dropped from this scan; AGENTS.md carries the identical required
+# transition-lifecycle texts (pinned core.yaml) and the enum truth is parsed
+# from link/transition.py + link/movement.py in _axis_vocab_check_link_sources.
+_AXIS_VOCAB_DOC_PATHS = (
+    "AGENTS.md",
+)
+
+
+_AXIS_VOCAB_MOVEMENT_ENUM_ALLOWLIST = {
+    "link/movement.py",
+    "support/checkers/check_axis_contract_projection.py",
+    "support/checkers/check_profile.py",
+    # ELEGANT-REFACTOR P3a: the axis-vocab drift check (with its re-encoded enum
+    # literals) moved here from check_profile.py; the self-allowlist follows the
+    # rehome (checker-pin-follows-rehome standard).
+    "support/checkers/lib/kernel_checks.py",
+}
+
+
+_AXIS_VOCAB_DISPOSITION_ENUM_ALLOWLIST = {
+    "link/transition.py",
+    "support/checkers/check_building_operator_driver0.py",
+    "support/checkers/check_profile.py",
+    "support/checkers/lib/kernel_checks.py",
+}
+
+
+_AXIS_VOCAB_ADAPTER_ENUM_ALLOWLIST = {
+    "support/connection/agent_adapter.py",
+    "support/checkers/check_profile.py",
+    "support/checkers/lib/kernel_checks.py",
+}
+
+
+_AXIS_VOCAB_TRANSITION_AUTHOR_PREFIX_CONSUMERS = (
+    "support/operator/plan_validation.py",
+    "support/operator/walker_resume.py",
+    "support/operator/walker_step_fixture.py",
+)
+
+
+_AXIS_VOCAB_PYTHON_SCAN_ROOTS = ("brick", "agent", "link", "support")
+
+
+def _axis_vocab_parse_python(repo: Path, relative: str) -> tuple[ast.Module, str]:
+    path = to_repo_path(repo, relative)
+    try:
+        text = path.read_text(encoding="utf-8")
+        return ast.parse(text, filename=relative), text
+    except SyntaxError as exc:
+        raise ProfileError(f"axis_vocab_drift rejected {relative}: invalid Python: {exc}") from exc
+
+
+def _axis_vocab_read_literal(node: ast.AST, env: Mapping[str, Any]) -> Any:
+    if isinstance(node, ast.Constant):
+        return node.value
+    if isinstance(node, (ast.Tuple, ast.List)):
+        values = [_axis_vocab_read_literal(item, env) for item in node.elts]
+        return tuple(values) if isinstance(node, ast.Tuple) else values
+    if isinstance(node, ast.Set):
+        values = [_axis_vocab_read_literal(item, env) for item in node.elts]
+        if all(isinstance(item, str) for item in values):
+            return frozenset(values)
+        return None
+    if isinstance(node, ast.Dict):
+        keys = [_axis_vocab_read_literal(item, env) for item in node.keys]
+        values = [_axis_vocab_read_literal(item, env) for item in node.values]
+        if all(isinstance(key, str) for key in keys):
+            return dict(zip(keys, values, strict=True))
+        return None
+    if isinstance(node, ast.Name):
+        return env.get(node.id)
+    if isinstance(node, ast.Subscript) and isinstance(node.value, ast.Name):
+        source = env.get(node.value.id)
+        key = _axis_vocab_read_literal(node.slice, env)
+        if isinstance(source, Mapping) and isinstance(key, str):
+            return source.get(key)
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and len(node.args) == 1:
+        value = _axis_vocab_read_literal(node.args[0], env)
+        if node.func.id == "frozenset" and _axis_vocab_all_strings(value):
+            return frozenset(value)
+        if node.func.id == "set" and _axis_vocab_all_strings(value):
+            return set(value)
+        if node.func.id == "tuple" and _axis_vocab_all_strings(value):
+            return tuple(value)
+        if node.func.id == "list" and _axis_vocab_all_strings(value):
+            return list(value)
+    return None
+
+
+def _axis_vocab_all_strings(value: Any) -> bool:
+    return isinstance(value, (tuple, list, set, frozenset)) and all(
+        isinstance(item, str) for item in value
+    )
+
+
+def _axis_vocab_module_env(tree: ast.Module) -> dict[str, Any]:
+    env: dict[str, Any] = {}
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            value = _axis_vocab_read_literal(node.value, env)
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    env[target.id] = value
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            env[node.target.id] = _axis_vocab_read_literal(node.value, env) if node.value else None
+    return env
+
+
+def _axis_vocab_sequence(env: Mapping[str, Any], name: str, label: str) -> tuple[str, ...]:
+    value = env.get(name)
+    if not _axis_vocab_all_strings(value):
+        raise ProfileError(f"axis_vocab_drift rejected {label}: {name} must be a string sequence")
+    return tuple(value)
+
+
+def _axis_vocab_set(env: Mapping[str, Any], name: str, label: str) -> frozenset[str]:
+    value = env.get(name)
+    if not _axis_vocab_all_strings(value):
+        raise ProfileError(f"axis_vocab_drift rejected {label}: {name} must be a string set")
+    return frozenset(value)
+
+
+def _axis_vocab_literal_string_set(node: ast.AST) -> frozenset[str] | None:
+    if not isinstance(node, (ast.Set, ast.Tuple, ast.List)):
+        return None
+    values: list[str] = []
+    for element in node.elts:
+        if not isinstance(element, ast.Constant) or not isinstance(element.value, str):
+            return None
+        values.append(element.value)
+    if not values:
+        return None
+    return frozenset(values)
+
+
+def _axis_vocab_import_aliases(tree: ast.Module, module_name: str) -> dict[str, str]:
+    aliases: dict[str, str] = {}
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.ImportFrom):
+            continue
+        is_relative = node.level == 1 and node.module == module_name
+        is_absolute = node.level == 0 and node.module == f"support.connection.{module_name}"
+        if not (is_relative or is_absolute):
+            continue
+        for alias in node.names:
+            aliases[alias.name] = alias.asname or alias.name
+    return aliases
+
+
+def _axis_vocab_absolute_import_aliases(tree: ast.Module, module_name: str) -> dict[str, str]:
+    aliases: dict[str, str] = {}
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.ImportFrom):
+            continue
+        if node.level != 0 or node.module != module_name:
+            continue
+        for alias in node.names:
+            aliases[alias.name] = alias.asname or alias.name
+    return aliases
+
+
+def _axis_vocab_assigned_names(tree: ast.Module) -> set[str]:
+    names: set[str] = set()
+    for node in ast.walk(tree):
+        targets: list[ast.AST] = []
+        if isinstance(node, ast.Assign):
+            targets.extend(node.targets)
+        elif isinstance(node, ast.AnnAssign):
+            targets.append(node.target)
+        elif isinstance(node, (ast.AugAssign, ast.For)):
+            targets.append(node.target)
+        for target in targets:
+            if isinstance(target, ast.Name):
+                names.add(target.id)
+    return names
+
+
+def _axis_vocab_name_used(tree: ast.Module, name: str) -> bool:
+    return any(isinstance(node, ast.Name) and node.id == name for node in ast.walk(tree))
+
+
+def _axis_vocab_python_files(repo: Path) -> list[Path]:
+    paths: list[Path] = []
+    for root_name in _AXIS_VOCAB_PYTHON_SCAN_ROOTS:
+        root = repo / root_name
+        if not root.is_dir():
+            continue
+        paths.extend(path for path in root.rglob("*.py") if "__pycache__" not in path.parts)
+    return sorted(paths)
+
+
+def _axis_vocab_scan_exact_enum_redefinitions(repo: Path, violations: list[str]) -> int:
+    movement_set = frozenset(_AXIS_VOCAB_EXPECTED_MOVEMENT)
+    disposition_set = frozenset(_AXIS_VOCAB_EXPECTED_DISPOSITION_ACTIONS)
+    adapter_set = frozenset(_AXIS_VOCAB_EXPECTED_ADAPTER_REFS)
+    inspected = 0
+    for path in _axis_vocab_python_files(repo):
+        relative = to_posix(path.relative_to(repo))
+        tree, _text = _axis_vocab_parse_python(repo, relative)
+        inspected += 1
+        for node in ast.walk(tree):
+            values = _axis_vocab_literal_string_set(node)
+            if values is None:
+                continue
+            if values == movement_set and relative not in _AXIS_VOCAB_MOVEMENT_ENUM_ALLOWLIST:
+                violations.append(
+                    f"{relative}:{getattr(node, 'lineno', '?')}: exact Movement enum "
+                    "literal must import/read Link-owned MOVEMENT_LITERALS"
+                )
+            if values == disposition_set and relative not in _AXIS_VOCAB_DISPOSITION_ENUM_ALLOWLIST:
+                violations.append(
+                    f"{relative}:{getattr(node, 'lineno', '?')}: exact disposition_action "
+                    "enum literal must import/read link/transition.py DISPOSITION_ACTIONS"
+                )
+            if values == adapter_set and relative not in _AXIS_VOCAB_ADAPTER_ENUM_ALLOWLIST:
+                violations.append(
+                    f"{relative}:{getattr(node, 'lineno', '?')}: exact adapter ref enum "
+                    "literal must import/read support/connection/agent_adapter.py ALLOWED_ADAPTER_REFS"
+                )
+    return inspected
+
+
+def _axis_vocab_check_link_sources(repo: Path, violations: list[str]) -> None:
+    movement_tree, _movement_text = _axis_vocab_parse_python(repo, "link/movement.py")
+    transition_tree, _transition_text = _axis_vocab_parse_python(repo, "link/transition.py")
+    movement_env = _axis_vocab_module_env(movement_tree)
+    transition_env = _axis_vocab_module_env(transition_tree)
+
+    movement_literals = _axis_vocab_sequence(movement_env, "MOVEMENT_LITERALS", "link/movement.py")
+    if movement_literals != _AXIS_VOCAB_EXPECTED_MOVEMENT:
+        violations.append(
+            "link/movement.py: MOVEMENT_LITERALS must equal "
+            f"{list(_AXIS_VOCAB_EXPECTED_MOVEMENT)}, observed {list(movement_literals)}"
+        )
+
+    disposition_actions = _axis_vocab_sequence(
+        transition_env,
+        "DISPOSITION_ACTIONS",
+        "link/transition.py",
+    )
+    if disposition_actions != _AXIS_VOCAB_EXPECTED_DISPOSITION_ACTIONS:
+        violations.append(
+            "link/transition.py: DISPOSITION_ACTIONS must equal "
+            f"{list(_AXIS_VOCAB_EXPECTED_DISPOSITION_ACTIONS)}, observed {list(disposition_actions)}"
+        )
+
+    owners = _axis_vocab_set(
+        transition_env,
+        "TRANSITION_LIFECYCLE_DISPOSITION_OWNERS",
+        "link/transition.py",
+    )
+    expected_owners = frozenset(_AXIS_VOCAB_EXPECTED_DISPOSITION_OWNERS)
+    if owners != expected_owners:
+        violations.append(
+            "link/transition.py: TRANSITION_LIFECYCLE_DISPOSITION_OWNERS must equal "
+            f"{sorted(expected_owners)}, observed {sorted(owners)}"
+        )
+    if "human" in owners:
+        violations.append("link/transition.py: human must not be a required_disposition_owner")
+
+    progress_states = _axis_vocab_set(
+        transition_env,
+        "TRANSITION_LIFECYCLE_PROGRESS_STATES",
+        "link/transition.py",
+    )
+    expected_progress = frozenset(_AXIS_VOCAB_EXPECTED_PROGRESS_STATES)
+    if progress_states != expected_progress:
+        violations.append(
+            "link/transition.py: TRANSITION_LIFECYCLE_PROGRESS_STATES must equal "
+            f"{sorted(expected_progress)}, observed {sorted(progress_states)}"
+        )
+
+    allowed_keys = _axis_vocab_set(
+        transition_env,
+        "TRANSITION_LIFECYCLE_ALLOWED_KEYS",
+        "link/transition.py",
+    )
+    missing_keys = sorted(set(_AXIS_VOCAB_REQUIRED_TRANSITION_KEYS) - set(allowed_keys))
+    if missing_keys:
+        violations.append(
+            "link/transition.py: TRANSITION_LIFECYCLE_ALLOWED_KEYS missing "
+            f"{missing_keys}"
+        )
+
+    author_prefixes = _axis_vocab_sequence(
+        transition_env,
+        "TRANSITION_LIFECYCLE_DISPOSITION_AUTHOR_PREFIXES",
+        "link/transition.py",
+    )
+    if author_prefixes != _AXIS_VOCAB_EXPECTED_AUTHOR_PREFIXES:
+        violations.append(
+            "link/transition.py: TRANSITION_LIFECYCLE_DISPOSITION_AUTHOR_PREFIXES must equal "
+            f"{list(_AXIS_VOCAB_EXPECTED_AUTHOR_PREFIXES)}, observed {list(author_prefixes)}"
+        )
+    if "caller:" in author_prefixes:
+        violations.append("link/transition.py: caller: is not an admitted transition disposition author prefix")
+
+
+def _axis_vocab_check_transition_author_prefix_consumers(repo: Path, violations: list[str]) -> None:
+    source_name = "TRANSITION_LIFECYCLE_DISPOSITION_AUTHOR_PREFIXES"
+    for relative in _AXIS_VOCAB_TRANSITION_AUTHOR_PREFIX_CONSUMERS:
+        tree, _text = _axis_vocab_parse_python(repo, relative)
+        imports = _axis_vocab_absolute_import_aliases(tree, "brick_protocol.link.transition")
+        alias = imports.get(source_name)
+        if not alias:
+            violations.append(
+                f"{relative}: transition disposition author prefixes must import "
+                f"{source_name} from brick_protocol.link.transition"
+            )
+        elif not _axis_vocab_name_used(tree, alias):
+            violations.append(
+                f"{relative}: imported transition disposition author-prefix alias "
+                f"{alias!r} is not read"
+            )
+
+
+def _axis_vocab_check_docs(repo: Path, violations: list[str]) -> None:
+    required = [
+        "progress_state: in_progress",
+        "required_disposition_owner: caller | coo | caller-or-coo",
+        "disposition_action: raise | forward | stop",
+        "budget_increment: <finite positive integer, required only for raise>",
+        "`human:/coo:/caller:` are author prefixes, not owner values",
+        "admits `human:` and `coo:` author prefixes only",
+        "finite positive `budget_increment`",
+        "`forward` and `stop` must not carry",
+    ]
+    for relative in _AXIS_VOCAB_DOC_PATHS:
+        text = to_repo_path(repo, relative).read_text(encoding="utf-8")
+        compact_text = " ".join(text.split())
+        for needle in required:
+            if needle not in compact_text:
+                violations.append(f"{relative}: missing transition lifecycle text {needle!r}")
+        for line_no, line in enumerate(text.splitlines(), start=1):
+            if "required_disposition_owner" in line and "human" in line:
+                violations.append(
+                    f"{relative}:{line_no}: human must not appear as required_disposition_owner"
+                )
+
+
+def _axis_vocab_check_agent_adapter_refs(repo: Path, violations: list[str]) -> None:
+    adapter_tree, _adapter_text = _axis_vocab_parse_python(repo, "support/connection/agent_adapter.py")
+    adapter_env = _axis_vocab_module_env(adapter_tree)
+    adapter_refs = _axis_vocab_set(
+        adapter_env,
+        "ALLOWED_ADAPTER_REFS",
+        "support/connection/agent_adapter.py",
+    )
+    expected_adapter_refs = frozenset(_AXIS_VOCAB_EXPECTED_ADAPTER_REFS)
+    if adapter_refs != expected_adapter_refs:
+        violations.append(
+            "support/connection/agent_adapter.py: ALLOWED_ADAPTER_REFS must equal "
+            f"{sorted(expected_adapter_refs)}, observed {sorted(adapter_refs)}"
+        )
+    retired_adapter_refs = sorted(set(_AXIS_VOCAB_RETIRED_WRITE_ADAPTER_REFS) & set(adapter_refs))
+    if retired_adapter_refs:
+        violations.append(
+            "support/connection/agent_adapter.py: retired write adapter refs must not be "
+            f"admitted active adapters: {retired_adapter_refs}"
+        )
+
+    resources_tree, _resources_text = _axis_vocab_parse_python(
+        repo,
+        "support/connection/agent_resources.py",
+    )
+    imports = _axis_vocab_import_aliases(resources_tree, "agent_adapter")
+    allowed_alias = imports.get("ALLOWED_ADAPTER_REFS")
+    write_capability_alias = imports.get("adapter_is_write_capable")
+    if not allowed_alias:
+        violations.append(
+            "support/connection/agent_resources.py: must import ALLOWED_ADAPTER_REFS "
+            "from .agent_adapter"
+        )
+    elif not _axis_vocab_name_used(resources_tree, allowed_alias):
+        violations.append(
+            "support/connection/agent_resources.py: imported ALLOWED_ADAPTER_REFS "
+            f"alias {allowed_alias!r} is not read"
+        )
+    if not write_capability_alias:
+        violations.append(
+            "support/connection/agent_resources.py: must import adapter_is_write_capable "
+            "from .agent_adapter"
+        )
+    elif not _axis_vocab_name_used(resources_tree, write_capability_alias):
+        violations.append(
+            "support/connection/agent_resources.py: imported adapter_is_write_capable "
+            f"alias {write_capability_alias!r} is not read"
+        )
+
+    assigned = _axis_vocab_assigned_names(resources_tree)
+    for forbidden_name in {"ALLOWED_ADAPTER_REFS", "_ALLOWED_ADAPTER_REFS"} & assigned:
+        violations.append(
+            "support/connection/agent_resources.py: must not assign duplicate adapter "
+            f"ref object {forbidden_name}"
+        )
+    for node in ast.walk(resources_tree):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            if all(adapter_ref in node.value for adapter_ref in _AXIS_VOCAB_EXPECTED_ADAPTER_REFS):
+                violations.append(
+                    "support/connection/agent_resources.py:"
+                    f"{getattr(node, 'lineno', '?')}: must not redefine adapter refs as a string"
+                )
+
+
+def run_axis_vocab_drift(repo: Path) -> KernelResult:
+    violations: list[str] = []
+    _axis_vocab_check_link_sources(repo, violations)
+    _axis_vocab_check_transition_author_prefix_consumers(repo, violations)
+    _axis_vocab_check_docs(repo, violations)
+    _axis_vocab_check_agent_adapter_refs(repo, violations)
+    scanned = _axis_vocab_scan_exact_enum_redefinitions(repo, violations)
+    if violations:
+        detail = "\n".join(f"- {violation}" for violation in violations)
+        raise ProfileError(f"kernel check axis_vocab_drift rejected evidence:\n{detail}")
+    return KernelResult(
+        check_id="axis_vocab_drift",
+        inspected=scanned + 5,
+        output=(
+            "axis vocab drift passed: parsed Link Movement/transition sources, "
+            "transition author-prefix consumers, AGENTS/current packet text, "
+            "Agent adapter refs, and scanned "
+            f"{scanned} active Python file(s) for competing full enum literals."
+        ),
+    )
+
+
+@contextlib.contextmanager
+def captured_output() -> Any:
+    out = io.StringIO()
+    err = io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        yield out, err
+
+
+@contextlib.contextmanager
+def patched_argv(argv: list[str]) -> Any:
+    previous = sys.argv[:]
+    sys.argv = argv
+    try:
+        yield
+    finally:
+        sys.argv = previous
+
+
+def call_main(check_id: str, module_name: str, argv: list[str] | None) -> KernelResult:
+    module = importlib.import_module(module_name)
+    with captured_output() as (out, err):
+        if argv is None:
+            with patched_argv([check_id]):
+                code = int(module.main())
+        elif check_id == "package_path_admission":
+            with patched_argv([check_id] + argv):
+                code = int(module.main())
+        else:
+            code = int(module.main(argv))
+    output = (out.getvalue() + err.getvalue()).strip()
+    if code != 0:
+        raise ProfileError(f"kernel check {check_id} rejected evidence:\n{output}")
+    return KernelResult(check_id=check_id, inspected=1, output=output)
+
+
+def run_building_map_graph(repo: Path) -> KernelResult:
+    module = importlib.import_module("support.checkers.check_building_map_graph")
+    map_paths = sorted(repo.glob("project/*/buildings/*/work/building-map.json"))
+    if not map_paths:
+        return KernelResult(
+            check_id="building_map_graph",
+            inspected=0,
+            output="building map graph skipped: no project/*/buildings/*/work/building-map.json maps present.",
+        )
+    all_violations: list[str] = []
+    historical = 0
+    for map_path in map_paths:
+        _, violations, historical_map = module.check_one(map_path, fixture_mode=False)
+        if historical_map:
+            historical += 1
+        all_violations.extend(violations)
+    if all_violations:
+        detail = "\n".join(f"- {violation}" for violation in all_violations)
+        raise ProfileError(f"kernel check building_map_graph rejected evidence:\n{detail}")
+    return KernelResult(
+        check_id="building_map_graph",
+        inspected=len(map_paths),
+        output=(
+            "building map graph passed: "
+            f"{len(map_paths)} map(s) inspected, {historical} historical support map(s) preserved."
+        ),
+    )
+
+
+def _ensure_import_identity(repo: Path) -> None:
+    support_import_identity = str((repo / "support" / "import_identity").resolve())
+    if support_import_identity not in sys.path:
+        sys.path.insert(0, support_import_identity)
+
+
+def _minimal_reporter_packet() -> Mapping[str, Any]:
+    return {
+        "report_id": "reporter-negative-probe-valid",
+        "report_kind": "building_frontier",
+        "building_id": "probe-building",
+        "portfolio_id": "",
+        "observed_board_state": "observed_running",
+        "trigger_event_ref": "observation:probe",
+        "current_brick_ref": "brick:probe",
+        "last_completed_step_ref": "",
+        "frontier_ref": "project/brick-protocol/buildings/probe#frontier:closure_pending",
+        "evidence_root_refs": ["project/brick-protocol/buildings/probe"],
+        "evidence_refs_present": False,
+        "checker_summary_ref": "support/checkers/profiles/reporter_notification_projection.yaml",
+        "required_disposition_owner": "",
+        "sink_refs": ["report-sink:local-inbox"],
+        "generated_at": "2026-05-31T00:00:00+00:00",
+        "source_truth": False,
+        "not_proven": ["negative probe"],
+        "proof_limits": ["negative probe support evidence only"],
+    }
+
+
+def run_building_plans_boundary_sweep(repo: Path) -> KernelResult:
+    """Global building-plan boundary sweep (checker consolidation, pass-1).
+
+    REHOME target: the per-profile ``building_plan_boundary`` pins (bar_v2,
+    real_route_repair, provider_json_return_smoke, current_context_prune, ...)
+    each pinned ONE frozen/live plan because no global walk existed. This sweep
+    runs the SAME ``validate_building_plan_boundary`` over EVERY linear plan in
+    brick/building_plans/, so those single-sourced per-plan structural guards
+    survive as one general kernel-check and the per-profile pins can retire.
+
+    Graph / stepless plans are skipped (they have their own validation path);
+    their count is reported, never silently absorbed. A real boundary violation
+    on any linear plan raises ProfileError -> --all RED.
+
+    HARDENED (guard-before-retire): when the linear yaml-subset parser fails on a
+    plan, fall back to PyYAML (yaml.safe_load). If PyYAML yields a dict with a
+    non-empty ``steps`` list, the plan is a real LINEAR plan that the subset
+    parser merely could not read, so it is validated via the SAME
+    ``validate_building_plan_boundary`` (no silent skip). Only truly graph/stepless
+    plans (no ``steps``) are skipped. A now-included plan that genuinely fails
+    validation is surfaced (--all RED), never hidden. The number of PyYAML-
+    recovered plans is reported separately.
+    """
+    plans_dir = repo / "brick" / "building_plans"
+    if not plans_dir.is_dir():
+        raise ProfileError("brick/building_plans must exist for the boundary sweep")
+    import yaml
+    from support.checkers.lib.yaml_subset import load_yaml_subset_file
+    from support.checkers.lib.rule_runners import (
+        validate_building_plan_boundary,
+        _admitted_agent_object_refs,
+    )
+
+    admitted = _admitted_agent_object_refs(repo)
+    validated = 0
+    skipped = 0
+    pyyaml_recovered = 0
+    for path in sorted(plans_dir.glob("*.yaml")):
+        rel = to_posix(path.relative_to(repo))
+        try:
+            plan = load_yaml_subset_file(repo, rel)
+        except Exception:
+            # Subset parser could not read it. Fall back to PyYAML: a real LINEAR
+            # plan (dict with non-empty steps) must still be covered, not skipped.
+            recovered = yaml.safe_load(path.read_text(encoding="utf-8"))
+            recovered_steps = recovered.get("steps") if isinstance(recovered, Mapping) else None
+            if not (isinstance(recovered_steps, list) and recovered_steps):
+                skipped += 1  # graph / stepless plan -> own validation path
+                continue
+            # Real linear plan the subset parser missed; validate it (surface any
+            # genuine failure rather than hiding it). This is STRUCTURAL validation
+            # of historical plans, so retired write-adapter refs are tolerated here
+            # (adapter activeness is enforced at run time, not in the boundary sweep).
+            validate_building_plan_boundary(
+                recovered, rel, admitted, repo, allow_retired_write_adapter_refs=True
+            )
+            validated += 1
+            pyyaml_recovered += 1
+            continue
+        steps = plan.get("steps")
+        if not (isinstance(steps, list) and steps):
+            skipped += 1  # stepless / graph plan -> own validation path
+            continue
+        # Reuses the EXACT per-profile boundary validator; a violation raises
+        # ProfileError, which fails the check (no swallowing of real failures).
+        # Structural sweep over historical plans: retired write-adapter refs are
+        # tolerated here (adapter activeness is enforced at run time, not here).
+        validate_building_plan_boundary(
+            plan, rel, admitted, repo, allow_retired_write_adapter_refs=True
+        )
+        validated += 1
+    return KernelResult(
+        check_id="building_plans_boundary_sweep",
+        inspected=validated,
+        output=(
+            f"building plans boundary sweep passed: {validated} linear building "
+            f"plan(s) validated (Brick owner_axis + plan_ref + non-empty steps + "
+            f"declared-plan validation + per-step rows; {pyyaml_recovered} "
+            f"PyYAML-recovered from subset-parse failure); {skipped} graph/stepless "
+            f"plan(s) skipped (own validation path)."
+        ),
+    )
+
+
+def _agent_instruction_packet_probe(repo: Path) -> Mapping[str, Any]:
+    resources = importlib.import_module("brick_protocol.support.connection.agent_resources")
+    packet = resources.render_agent_instruction_packet("dev", repo_root=repo)
+    if not isinstance(packet, Mapping):
+        raise ProfileError("agent instruction packet renderer did not return a mapping")
+    required_keys = {
+        "kind",
+        "agent_object_ref",
+        "role",
+        "prompt_resources",
+        "skill_resources",
+        "hook_resources",
+        "tool_policy_resources",
+        "discipline_resources",
+        "adapter_refs",
+        "proof_limits",
+        "not_proven",
+    }
+    missing = sorted(required_keys - set(packet))
+    if missing:
+        raise ProfileError(f"agent instruction packet missing required keys: {missing}")
+    projection_keys = {"projection_target", "projection_status", "rendered_instruction_text"}
+    leaked = sorted(projection_keys & set(packet))
+    if leaked:
+        raise ProfileError(f"agent instruction packet leaked projection-seed keys: {leaked}")
+    if packet.get("kind") != "agent-instruction-packet":
+        raise ProfileError("agent instruction packet kind drifted")
+    if packet.get("agent_object_ref") != "agent-object:dev" or packet.get("role") != "dev":
+        raise ProfileError("agent instruction packet did not preserve dev Agent Object identity")
+    for key in (
+        "prompt_resources",
+        "skill_resources",
+        "tool_policy_resources",
+        "discipline_resources",
+        "adapter_refs",
+        "proof_limits",
+        "not_proven",
+    ):
+        if not isinstance(packet.get(key), list) or not packet[key]:
+            raise ProfileError(f"agent instruction packet {key} must be a non-empty list")
+    hook_resources = packet.get("hook_resources")
+    if not isinstance(hook_resources, Mapping) or "selected" not in hook_resources:
+        raise ProfileError("agent instruction packet hook_resources must preserve selected hooks")
+    return packet
+
+
+def _agent_adapter_request_instruction_packet_probe(
+    adapter: Any,
+    instruction_packet: Mapping[str, Any],
+    required_shape: str,
+) -> object:
+    request_fields = {field.name for field in fields(adapter.AgentAdapterRequest)}
+    if "agent_instruction_packet" not in request_fields:
+        raise ProfileError("AgentAdapterRequest must admit agent_instruction_packet")
+    request = adapter.AgentAdapterRequest(
+        building_id="agent-adapter-return-shape-probe",
+        agent_object_ref="agent-object:dev",
+        adapter_ref=adapter.ADAPTER_CODEX_LOCAL,
+        brick_instance_ref="brick-work",
+        next_brick_instance_ref="brick-closure",
+        required_return_shape=required_shape,
+        agent_instruction_packet=instruction_packet,
+    )
+    observed = getattr(request, "agent_instruction_packet")
+    if not isinstance(observed, Mapping):
+        raise ProfileError("AgentAdapterRequest did not preserve agent_instruction_packet")
+    for key in ("kind", "agent_object_ref", "role"):
+        if observed.get(key) != instruction_packet.get(key):
+            raise ProfileError(f"AgentAdapterRequest agent_instruction_packet lost {key}")
+    return request
+
+
+def _agent_effective_write_probe(
+    repo: Path,
+    adapter: Any,
+    instruction_packet: Mapping[str, Any],
+) -> int:
+    write_scope = {
+        "allowed_paths": ["support/connection/agent_adapter.py"],
+        "forbidden_paths": [".git/**", ".env"],
+        "commit_allowed": False,
+        "push_allowed": False,
+    }
+    write_request = adapter.AgentAdapterRequest(
+        building_id="agent-effective-write-probe",
+        agent_object_ref="agent-object:dev",
+        adapter_ref=adapter.ADAPTER_CODEX_LOCAL,
+        brick_instance_ref="brick-work",
+        next_brick_instance_ref="brick-closure",
+        tool_policy_refs=(adapter.READ_WRITE_TOOL_POLICY_REF,),
+        write_scope=write_scope,
+        agent_instruction_packet=instruction_packet,
+    )
+    if not adapter.agent_request_effective_write(write_request):
+        raise ProfileError("codex-local write_scope request did not become effective_write")
+    if adapter._codex_sandbox_for_request(write_request) != "workspace-write":
+        raise ProfileError("effective_write request did not select workspace-write sandbox")
+    write_prompt = json.loads(
+        adapter._build_prompt(
+            write_request,
+            adapter._LOCAL_CLI_SPECS[adapter.ADAPTER_CODEX_LOCAL],
+        )
+    )
+    if "You may edit files only inside the Brick-declared write_scope.allowed_paths." not in write_prompt.get(
+        "rules",
+        [],
+    ):
+        raise ProfileError("effective_write prompt did not expose scoped write rules")
+    if write_prompt.get("agent_instruction_packet", {}).get("kind") != "agent-instruction-packet":
+        raise ProfileError("effective_write prompt did not carry Agent instruction packet")
+
+    non_dev_packet = dict(instruction_packet)
+    non_dev_packet["agent_object_ref"] = "agent-object:cto-lead"
+    non_dev_packet["role"] = "cto-lead"
+    non_dev_request = adapter.AgentAdapterRequest(
+        building_id="agent-effective-write-non-dev-probe",
+        agent_object_ref="agent-object:cto-lead",
+        adapter_ref=adapter.ADAPTER_CODEX_LOCAL,
+        brick_instance_ref="brick-work",
+        next_brick_instance_ref="brick-closure",
+        tool_policy_refs=(adapter.READ_WRITE_TOOL_POLICY_REF,),
+        write_scope=write_scope,
+        agent_instruction_packet=non_dev_packet,
+    )
+    if not adapter.agent_request_effective_write(non_dev_request):
+        raise ProfileError("effective_write was incorrectly tied to agent-object:dev")
+
+    try:
+        adapter.connect_agent_brain(
+            non_dev_request,
+            command_runner=lambda _args, _cwd, _timeout: (_ for _ in ()).throw(
+                AssertionError("effective write reached command runner without observation")
+            ),
+            cwd=repo,
+        )
+    except ValueError as exc:
+        if "effective write requires write observation before adapter execution" not in str(exc):
+            raise ProfileError("effective_write without observation rejected with wrong reason") from exc
+    else:
+        raise ProfileError("effective_write reached adapter execution without observation marker")
+
+    adapter._mark_effective_write_observation_path(non_dev_request, repo)
+    try:
+        adapter.connect_agent_brain(
+            non_dev_request,
+            command_runner=lambda _args, _cwd, _timeout: (_ for _ in ()).throw(
+                AssertionError("effective write reached command runner after cwd mismatch")
+            ),
+            cwd=repo / "support",
+        )
+    except ValueError as exc:
+        if "effective write observation cwd must match adapter execution cwd" not in str(exc):
+            raise ProfileError("effective_write cwd mismatch rejected with wrong reason") from exc
+    else:
+        raise ProfileError("effective_write observation marker accepted mismatched cwd")
+
+    try:
+        adapter.AgentAdapterRequest(
+            building_id="agent-effective-write-negative-no-policy",
+            agent_object_ref="agent-object:dev",
+            adapter_ref=adapter.ADAPTER_CODEX_LOCAL,
+            brick_instance_ref="brick-work",
+            next_brick_instance_ref="brick-closure",
+            write_scope=write_scope,
+            agent_instruction_packet=instruction_packet,
+        )
+    except ValueError as exc:
+        if "write_scope requires tool-policy:read-write-scoped" not in str(exc):
+            raise ProfileError("write_scope without tool policy rejected with wrong reason") from exc
+    else:
+        raise ProfileError("write_scope without read-write tool policy was not rejected")
+
+    try:
+        adapter.AgentAdapterRequest(
+            building_id="agent-effective-write-negative-unsupported-adapter",
+            agent_object_ref="agent-object:dev",
+            # gemini-local (read + review, NOT observed-write) is the non-observed-write
+            # example now; claude-local is write-capable after the claude-write rehome.
+            adapter_ref=adapter.ADAPTER_GEMINI_LOCAL,
+            brick_instance_ref="brick-work",
+            next_brick_instance_ref="brick-closure",
+            tool_policy_refs=(adapter.READ_WRITE_TOOL_POLICY_REF,),
+            write_scope=write_scope,
+            agent_instruction_packet=instruction_packet,
+        )
+    except ValueError as exc:
+        if "supports observed workspace write" not in str(exc):
+            raise ProfileError("unsupported observed-write adapter rejected with wrong reason") from exc
+    else:
+        raise ProfileError("unsupported adapter with write_scope was not rejected")
+
+    for retired_adapter_ref in _AXIS_VOCAB_RETIRED_WRITE_ADAPTER_REFS:
+        try:
+            adapter.AgentAdapterRequest(
+                building_id="agent-effective-write-negative-retired-adapter",
+                agent_object_ref="agent-object:dev",
+                adapter_ref=retired_adapter_ref,
+                brick_instance_ref="brick-work",
+                next_brick_instance_ref="brick-closure",
+                tool_policy_refs=(adapter.READ_WRITE_TOOL_POLICY_REF,),
+                write_scope=write_scope,
+                agent_instruction_packet=instruction_packet,
+            )
+        except ValueError as exc:
+            message = str(exc)
+            if "retired" not in message and "not admitted" not in message:
+                raise ProfileError(
+                    f"retired write adapter {retired_adapter_ref} rejected with wrong reason"
+                ) from exc
+        else:
+            raise ProfileError(f"retired write adapter {retired_adapter_ref} was not rejected")
+
+    bad_packet = dict(instruction_packet)
+    bad_packet["agent_object_ref"] = "agent-object:qa"
+    try:
+        adapter.AgentAdapterRequest(
+            building_id="agent-instruction-packet-negative-mismatch",
+            agent_object_ref="agent-object:dev",
+            adapter_ref=adapter.ADAPTER_CODEX_LOCAL,
+            brick_instance_ref="brick-work",
+            next_brick_instance_ref="brick-closure",
+            agent_instruction_packet=bad_packet,
+        )
+    except ValueError as exc:
+        if "agent_instruction_packet.agent_object_ref must match" not in str(exc):
+            raise ProfileError("instruction packet mismatch rejected with wrong reason") from exc
+    else:
+        raise ProfileError("mismatched instruction packet was not rejected")
+
+    # claude-local is now write-capable (same observed-write 3-gate as codex).
+    # A claude write request must select scoped write CLI knobs; a claude read
+    # request must keep the EXACT prior read-only shape. Live in-scope/out-of-scope
+    # claude writes remain NOT-PROVEN (no OS sandbox); these assert the knobs only.
+    claude_write_request = adapter.AgentAdapterRequest(
+        building_id="agent-effective-write-claude-positive",
+        agent_object_ref="agent-object:dev",
+        adapter_ref=adapter.ADAPTER_CLAUDE_LOCAL,
+        brick_instance_ref="brick-work",
+        next_brick_instance_ref="brick-closure",
+        tool_policy_refs=(adapter.READ_WRITE_TOOL_POLICY_REF,),
+        write_scope=write_scope,
+        agent_instruction_packet=instruction_packet,
+    )
+    if not adapter.agent_request_effective_write(claude_write_request):
+        raise ProfileError("claude-local write_scope request did not become effective_write")
+    knobs = adapter._claude_cli_invocation(claude_write_request)
+    if knobs["permission_mode"] != "acceptEdits":
+        raise ProfileError("claude effective_write did not select acceptEdits")
+    write_tools = (
+        [t.strip() for t in knobs["tools"].split(",") if t.strip()]
+        if knobs["tools"]
+        else []
+    )
+    if set(write_tools) != {"Read", "Grep", "Glob", "Edit", "Write"}:
+        raise ProfileError(
+            "claude effective_write did not expose the exact comma-separated scoped "
+            f"write tool set; observed {knobs['tools']!r}"
+        )
+    if knobs["system_prompt"] != adapter._CLAUDE_SCOPED_WRITE_SYSTEM_PROMPT:
+        raise ProfileError("claude effective_write did not use the scoped-write system prompt")
+
+    claude_read_request = adapter.AgentAdapterRequest(
+        building_id="agent-effective-write-claude-read",
+        agent_object_ref="agent-object:dev",
+        adapter_ref=adapter.ADAPTER_CLAUDE_LOCAL,
+        brick_instance_ref="brick-work",
+        next_brick_instance_ref="brick-closure",
+        agent_instruction_packet=instruction_packet,
+    )
+    if adapter.agent_request_effective_write(claude_read_request):
+        raise ProfileError("claude read request became effective_write")
+    knobs_read = adapter._claude_cli_invocation(claude_read_request)
+    if knobs_read["permission_mode"] != "plan":
+        raise ProfileError("claude read request did not stay in plan mode")
+    if knobs_read["tools"] != "":
+        raise ProfileError("claude read request exposed tools")
+    if knobs_read["system_prompt"] != adapter._CLAUDE_NONINTERACTIVE_SYSTEM_PROMPT:
+        raise ProfileError("claude read request did not use the read-only system prompt")
+
+    return 11
+
+
+def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
+    _ensure_import_identity(repo)
+    adapter = importlib.import_module("brick_protocol.support.connection.agent_adapter")
+    comparison = importlib.import_module("brick_protocol.brick.comparison")
+    instruction_packet = _agent_instruction_packet_probe(repo)
+
+    required_shape = (
+        "made_changes, observed_evidence, blocked_or_missing_evidence, "
+        "not_proven, remaining_delta"
+    )
+    output_text = json.dumps(
+        {
+            "no_changes_reason": "probe made no file changes",
+            "observed_evidence": ["probe observed adapter return extraction"],
+            "blocked_or_missing_evidence": [],
+            "not_proven": ["semantic correctness"],
+            "remaining_delta": [],
+        },
+        sort_keys=True,
+    )
+    extracted = adapter._extract_required_return_fields(output_text, required_shape)
+    if extracted.get("no_changes_reason") != "probe made no file changes":
+        raise ProfileError("agent adapter did not preserve made_changes waiver field")
+
+    brick_comparison = comparison.BrickComparisonFact.from_returned_value(
+        work_reference="work:agent-adapter-return-shape-probe",
+        required_fields=adapter._required_return_shape_fields(required_shape),
+        returned_value=extracted,
+        comparison_rule="Probe made_changes waiver preservation only.",
+        required_return_shape_evidence=required_shape,
+    )
+    if "made_changes via no_changes_reason" not in brick_comparison.waived_return_fields():
+        raise ProfileError("Brick comparison did not observe no_changes_reason waiver")
+
+    request = _agent_adapter_request_instruction_packet_probe(
+        adapter,
+        instruction_packet,
+        required_shape,
+    )
+    prompt = json.loads(
+        adapter._build_prompt(
+            request,
+            adapter._LOCAL_CLI_SPECS[adapter.ADAPTER_CODEX_LOCAL],
+        )
+    )
+    if prompt.get("return_field_waivers") != ["no_changes_reason"]:
+        raise ProfileError("adapter prompt did not expose no_changes_reason waiver")
+    if prompt.get("agent_instruction_packet", {}).get("kind") != "agent-instruction-packet":
+        raise ProfileError("adapter prompt did not carry Agent instruction packet")
+    effective_write_inspected = _agent_effective_write_probe(repo, adapter, instruction_packet)
+
+    # REHOME (checker consolidation): assert the FULL return-field vocabulary the
+    # retiring provider_json_return_smoke profile single-sourced (several tokens
+    # were pinned only there). The Agent return label/JSON field constants live in
+    # support/connection/agent_adapter.py; the forbidden return keys live in
+    # agent/return_fact.py and are re-exported into the adapter. An absent guard
+    # fires nothing, so verify the constants directly instead of leaving the
+    # vocabulary text-pinned in one retiring profile.
+    return_fact = importlib.import_module("brick_protocol.agent.return_fact")
+    _EXPECTED_RETURN_LABEL_FIELDS = (
+        "blocked_or_missing_evidence",
+        "made_changes",
+        "not_proven",
+        "observed_evidence",
+        "open_questions",
+        "remaining_delta",
+        "review_needed",
+        "transition_concern_evidence",
+    )
+    _EXPECTED_RETURN_JSON_FIELDS = ("transition_concern_evidence",)
+    _EXPECTED_RETURNED_FORBIDDEN_KEYS = ("movement_choice", "route_target", "target_ref")
+    missing_label_fields = sorted(
+        set(_EXPECTED_RETURN_LABEL_FIELDS) - set(adapter._RETURN_LABEL_FIELDS)
+    )
+    if missing_label_fields:
+        raise ProfileError(
+            "agent adapter _RETURN_LABEL_FIELDS missing return label field(s): "
+            + ", ".join(missing_label_fields)
+        )
+    missing_json_fields = sorted(
+        set(_EXPECTED_RETURN_JSON_FIELDS) - set(adapter._RETURN_JSON_FIELDS)
+    )
+    if missing_json_fields:
+        raise ProfileError(
+            "agent adapter _RETURN_JSON_FIELDS missing JSON return field(s): "
+            + ", ".join(missing_json_fields)
+        )
+    missing_forbidden_keys = sorted(
+        set(_EXPECTED_RETURNED_FORBIDDEN_KEYS) - set(return_fact.RETURNED_FORBIDDEN_KEYS)
+    )
+    if missing_forbidden_keys:
+        raise ProfileError(
+            "return_fact RETURNED_FORBIDDEN_KEYS missing forbidden return key(s): "
+            + ", ".join(missing_forbidden_keys)
+        )
+    if set(adapter._RETURN_FORBIDDEN_KEYS) != set(return_fact.RETURNED_FORBIDDEN_KEYS):
+        raise ProfileError(
+            "agent adapter _RETURN_FORBIDDEN_KEYS drifted from "
+            "return_fact RETURNED_FORBIDDEN_KEYS"
+        )
+
+    return KernelResult(
+        check_id="agent_adapter_return_shape",
+        inspected=6 + effective_write_inspected,
+        output=(
+            "agent adapter return shape passed: no_changes_reason waiver "
+            "extraction, Brick comparison waiver, prompt projection, runtime "
+            "Agent instruction packet rendering, and AgentAdapterRequest "
+            "injection plus effective_write probes inspected."
+        ),
+    )
+
+
+_PROVIDER_PREFLIGHT_REQUIRED_KEYS = (
+    "adapter_ref",
+    "cli",
+    "installed",
+    "authed",
+    "ok",
+    "message_ko",
+)
+_PROVIDER_PREFLIGHT_AUTHED_LITERALS = ("yes", "no", "unknown")
+
+
+def _provider_preflight_assert_shape(label: str, status: Any) -> None:
+    if not isinstance(status, Mapping):
+        raise ProfileError(
+            f"provider_preflight: {label} must return a status mapping, got {type(status).__name__}"
+        )
+    missing = [key for key in _PROVIDER_PREFLIGHT_REQUIRED_KEYS if key not in status]
+    if missing:
+        raise ProfileError(
+            f"provider_preflight: {label} status missing required key(s): {', '.join(missing)}"
+        )
+    if not isinstance(status["installed"], bool):
+        raise ProfileError(f"provider_preflight: {label} 'installed' must be a bool")
+    if not isinstance(status["ok"], bool):
+        raise ProfileError(f"provider_preflight: {label} 'ok' must be a bool")
+    if status["authed"] not in _PROVIDER_PREFLIGHT_AUTHED_LITERALS:
+        raise ProfileError(
+            f"provider_preflight: {label} 'authed' must be one of "
+            f"{_PROVIDER_PREFLIGHT_AUTHED_LITERALS}, got {status['authed']!r}"
+        )
+    message = status["message_ko"]
+    if not isinstance(message, str) or not message.strip():
+        raise ProfileError(f"provider_preflight: {label} 'message_ko' must be non-empty text")
+
+
+def run_provider_preflight(repo: Path) -> KernelResult:
+    """ONBOARDING-PROVIDER-PREFLIGHT-0 execution checker.
+
+    Imports preflight_provider from the Agent Adapter and asserts it (a) returns a
+    status dict with the required keys for an ACTIVE adapter and adapter:local,
+    (b) NEVER raises -- including for a deliberately bogus/retired adapter ref,
+    where it must return ok False with a friendly message instead of raising, and
+    (c) always carries a non-empty message_ko. This is the no-raise guard: if
+    preflight_provider EVER raises (e.g. on a missing CLI), this checker goes RED.
+    """
+
+    _ensure_import_identity(repo)
+    adapter = importlib.import_module("brick_protocol.support.connection.agent_adapter")
+
+    inspected = 0
+
+    # (a) Active local CLI adapter + in-process adapter:local must each return a
+    #     well-shaped status. preflight_provider must NOT raise for either.
+    for label in (adapter.ADAPTER_CODEX_LOCAL, adapter.ADAPTER_LOCAL):
+        try:
+            status = adapter.preflight_provider(label)
+        except Exception as exc:  # noqa: BLE001 -- no-raise is the invariant under test
+            raise ProfileError(
+                f"provider_preflight: preflight_provider({label!r}) raised {type(exc).__name__}: {exc}"
+            ) from exc
+        _provider_preflight_assert_shape(label, status)
+        if status["adapter_ref"] != label:
+            raise ProfileError(
+                f"provider_preflight: {label} status adapter_ref must echo the input"
+            )
+        inspected += 1
+
+    # adapter:local has no CLI: it must report ready.
+    local_status = adapter.preflight_provider(adapter.ADAPTER_LOCAL)
+    if not (local_status["installed"] and local_status["ok"] and local_status["authed"] == "yes"):
+        raise ProfileError(
+            "provider_preflight: adapter:local must report installed/authed/ok ready"
+        )
+
+    # (b) Deliberately bogus + retired refs must return ok False WITHOUT raising.
+    for bogus_ref in (
+        "adapter:bogus-not-a-real-provider",
+        "adapter:codex-write-local",  # retired write adapter
+        "",
+    ):
+        try:
+            status = adapter.preflight_provider(bogus_ref)
+        except Exception as exc:  # noqa: BLE001 -- no-raise is the invariant under test
+            raise ProfileError(
+                "provider_preflight: preflight_provider must not raise for a bogus/retired "
+                f"ref {bogus_ref!r}; raised {type(exc).__name__}: {exc}"
+            ) from exc
+        _provider_preflight_assert_shape(f"bogus={bogus_ref!r}", status)
+        if status["ok"] is not False:
+            raise ProfileError(
+                f"provider_preflight: bogus/retired ref {bogus_ref!r} must return ok False"
+            )
+        inspected += 1
+
+    return KernelResult(
+        check_id="provider_preflight",
+        inspected=inspected,
+        output=(
+            "provider preflight passed: preflight_provider returns a well-shaped "
+            "status dict for active + in-process adapters, reports adapter:local "
+            "ready, and returns ok False (never raises) for bogus/retired refs "
+            f"({inspected} ref(s) inspected)."
+        ),
+    )
+
+
+_ONBOARD_SMOKE_REQUIRED_KEYS = (
+    "host",
+    "preflight",
+    "connect_hint",
+    "example_result",
+    "handoff_message_ko",
+    "ok",
+)
+
+
+def run_onboard_smoke(repo: Path) -> KernelResult:
+    """ONBOARDING-WIZARD-0 execution checker.
+
+    Drives the real ``support/operator/onboard.run_onboard`` END-TO-END on
+    ``adapter:local`` with a TEMP ``output_root`` (never the repo) and asserts:
+      (a) it returns the structured dict {host, preflight, connect_hint,
+          example_result, handoff_message_ko, ok},
+      (b) ok is True and the bundled example actually ran (ran True) with a
+          building_id + landed evidence under the temp root,
+      (c) it NEVER raises, including for a bogus host (which must return ok False
+          with a friendly message, not a stack-trace),
+      (d) the bundled example plan is a valid linear Building plan (the
+          building_plans_boundary_sweep already covers it; here we assert the
+          plan file exists and the run produced evidence).
+    If run_onboard EVER raises, this kernel check goes RED and --all EXITs
+    non-zero. This is the no-raise guard for the guided onboarding experience.
+    """
+
+    _ensure_import_identity(repo)
+    onboard = importlib.import_module("brick_protocol.support.operator.onboard")
+
+    # The bundled example plan must exist (boundary sweep validates its shape).
+    plan_path = repo / onboard.EXAMPLE_PLAN_REL
+    if not plan_path.is_file():
+        raise ProfileError(
+            f"onboard_smoke: bundled example plan missing: {onboard.EXAMPLE_PLAN_REL}"
+        )
+
+    inspected = 0
+
+    # (a)+(b)+(d) Happy path on adapter:local with a TEMP output_root (NOT repo).
+    with tempfile.TemporaryDirectory(prefix="bp-onboard-smoke-") as tmp:
+        tmp_root = Path(tmp)
+        try:
+            result = onboard.run_onboard(
+                "codex",
+                repo_root=repo,
+                run_example=True,
+                output_root=tmp_root,
+            )
+        except Exception as exc:  # noqa: BLE001 -- no-raise is the invariant under test
+            raise ProfileError(
+                "onboard_smoke: run_onboard('codex', run_example=True) raised "
+                f"{type(exc).__name__}: {exc}"
+            ) from exc
+
+        _onboard_smoke_assert_shape("codex", result)
+
+        if result["ok"] is not True:
+            raise ProfileError(
+                "onboard_smoke: adapter:local example must make ok True; got "
+                f"{result['ok']!r} (example_result={result.get('example_result')})"
+            )
+
+        example = result["example_result"]
+        if not isinstance(example, Mapping):
+            raise ProfileError("onboard_smoke: example_result must be a mapping")
+        if example.get("ran") is not True:
+            raise ProfileError("onboard_smoke: bundled example did not run (ran != True)")
+        building_id = example.get("building_id")
+        if not isinstance(building_id, str) or not building_id.strip():
+            raise ProfileError("onboard_smoke: example_result missing a building_id")
+        evidence_root = example.get("evidence_root")
+        if not isinstance(evidence_root, str) or not evidence_root.strip():
+            raise ProfileError("onboard_smoke: example_result missing evidence_root")
+        evidence_path = Path(evidence_root)
+        if not evidence_path.is_dir():
+            raise ProfileError(
+                f"onboard_smoke: example evidence root is not a directory: {evidence_root}"
+            )
+        # Evidence MUST land under the temp root, never the repo working tree.
+        try:
+            evidence_path.resolve().relative_to(tmp_root.resolve())
+        except ValueError as exc:
+            raise ProfileError(
+                "onboard_smoke: example evidence must land under the temp output_root, "
+                f"not {evidence_root}"
+            ) from exc
+        if int(example.get("written_file_count") or 0) <= 0:
+            raise ProfileError("onboard_smoke: example produced no written evidence files")
+        inspected += 1
+
+    # (c) A bogus host must return ok False WITHOUT raising. Skip the example so
+    #     this stays cheap; the never-raise guard is what matters here.
+    try:
+        bogus = onboard.run_onboard(
+            "definitely-not-a-host",
+            repo_root=repo,
+            run_example=False,
+        )
+    except Exception as exc:  # noqa: BLE001 -- no-raise is the invariant under test
+        raise ProfileError(
+            "onboard_smoke: run_onboard must not raise for a bogus host; raised "
+            f"{type(exc).__name__}: {exc}"
+        ) from exc
+    _onboard_smoke_assert_shape("bogus", bogus)
+    if bogus["ok"] is not False:
+        raise ProfileError("onboard_smoke: bogus host must return ok False")
+    inspected += 1
+
+    return KernelResult(
+        check_id="onboard_smoke",
+        inspected=inspected,
+        output=(
+            "onboard smoke passed: run_onboard drives the bundled adapter:local "
+            "example end-to-end to a TEMP output_root, returns the structured "
+            "{preflight, connect_hint, example_result, handoff_message_ko, ok} "
+            "dict with ok True + a building_id + landed evidence, and never raises "
+            f"(bogus host returns ok False) ({inspected} flow(s) inspected)."
+        ),
+    )
+
+
+def _onboard_smoke_assert_shape(label: str, result: Any) -> None:
+    if not isinstance(result, Mapping):
+        raise ProfileError(
+            f"onboard_smoke: {label} must return a dict, got {type(result).__name__}"
+        )
+    missing = [key for key in _ONBOARD_SMOKE_REQUIRED_KEYS if key not in result]
+    if missing:
+        raise ProfileError(
+            f"onboard_smoke: {label} result missing required key(s): {', '.join(missing)}"
+        )
+    if not isinstance(result["ok"], bool):
+        raise ProfileError(f"onboard_smoke: {label} 'ok' must be a bool")
+    handoff = result["handoff_message_ko"]
+    if not isinstance(handoff, str) or not handoff.strip():
+        raise ProfileError(
+            f"onboard_smoke: {label} 'handoff_message_ko' must be non-empty text"
+        )
+    preflight = result["preflight"]
+    if not isinstance(preflight, Mapping) or not str(preflight.get("message_ko") or "").strip():
+        raise ProfileError(
+            f"onboard_smoke: {label} preflight must carry a non-empty message_ko"
+        )
+
+
+_INSTALL_SCRIPT_REL = "support/onboarding/install.sh"
+
+# Secret-shaped patterns the one-line installer must NEVER carry inline. The
+# script relies on the teammate's OWN gh/git login as the access grant; nothing
+# here may embed a literal credential. These are substring/structure probes, not
+# a cryptographic secret scanner.
+_INSTALL_SCRIPT_SECRET_PATTERNS = (
+    "ghp_",
+    "github_pat_",
+    "gho_",
+    "token=",
+    "Bearer ",
+    "BRICK_TOKEN=",
+    "AWS_SECRET",
+    "PRIVATE KEY",
+)
+
+
+def run_install_script_lint(repo: Path) -> KernelResult:
+    """ONBOARDING-INSTALL-SCRIPT-0 structural / safety lint.
+
+    Reads ``support/onboarding/install.sh`` (the one-line installer) and asserts
+    its STRUCTURE and SAFETY shape:
+      (a) the file exists and is non-empty;
+      (b) it sets ``set -eu`` (fail-fast, fail-on-unset);
+      (c) ALL logic is wrapped in a ``main()`` function AND ``main`` is invoked
+          as the LAST non-empty line (anti-truncation: a cut-off download leaves
+          main undefined / never called, so a partial file cannot run a
+          half-baked install);
+      (d) it contains NO ``http://`` (HTTPS only);
+      (e) it contains NO ``/Users/`` literal (no hardcoded user-home path);
+      (f) it contains NO obvious inline secret pattern (the script relies on the
+          teammate's own gh/git login, never an embedded token);
+      (g) it references the onboard wizard entry as the next step.
+
+    LIMIT (stated in the output and honestly here): this is a STRUCTURE/SAFETY
+    lint. It does NOT prove the script actually installs on a real fresh machine
+    (network clone, uv sync, provider auth, etc.) -- that proof is manual /
+    Phase-4 infra, not gated here. A violation makes main() return non-zero and
+    raises ProfileError, so --all EXITs non-zero.
+    """
+
+    script_path = repo / _INSTALL_SCRIPT_REL
+    if not script_path.is_file():
+        raise ProfileError(
+            f"install_script_lint: installer missing: {_INSTALL_SCRIPT_REL}"
+        )
+
+    text = script_path.read_text(encoding="utf-8")
+    if not text.strip():
+        raise ProfileError(
+            f"install_script_lint: {_INSTALL_SCRIPT_REL} is empty"
+        )
+
+    violations: list[str] = []
+
+    # (b) fail-fast options.
+    if "set -eu" not in text:
+        violations.append("missing 'set -eu' (fail-fast / fail-on-unset)")
+
+    # (c) main() defined AND invoked as the LAST non-empty line.
+    if "main(" not in text:
+        violations.append("no main( function defined")
+    non_empty_lines = [line.rstrip() for line in text.splitlines() if line.strip()]
+    last_line = non_empty_lines[-1] if non_empty_lines else ""
+    if last_line.strip() != 'main "$@"':
+        violations.append(
+            "last non-empty line must be exactly 'main \"$@\"' (anti-truncation), "
+            f"got: {last_line.strip()!r}"
+        )
+
+    # (d) HTTPS only -- no plaintext http:// scheme anywhere.
+    if "http://" in text:
+        violations.append("contains 'http://' (HTTPS only)")
+
+    # (e) no hardcoded user-home literal.
+    if "/Users/" in text:
+        violations.append("contains a hardcoded '/Users/' path (no user-home literal)")
+
+    # (f) no inline secret patterns.
+    for pattern in _INSTALL_SCRIPT_SECRET_PATTERNS:
+        if pattern in text:
+            violations.append(f"contains a secret-shaped pattern: {pattern!r}")
+
+    # (g) references the onboard wizard entry (the next-step pointer).
+    if "support.operator.onboard" not in text:
+        violations.append(
+            "does not reference the onboard wizard entry "
+            "(brick_protocol.support.operator.onboard)"
+        )
+
+    if violations:
+        raise ProfileError(
+            "install_script_lint: "
+            f"{_INSTALL_SCRIPT_REL} failed structural/safety lint: "
+            + "; ".join(violations)
+        )
+
+    return KernelResult(
+        check_id="install_script_lint",
+        inspected=1,
+        output=(
+            "install script lint passed: "
+            f"{_INSTALL_SCRIPT_REL} sets 'set -eu', wraps all logic in main() "
+            "invoked as 'main \"$@\"' on the last non-empty line (anti-truncation), "
+            "carries no http:// (HTTPS only), no /Users/ literal, no inline "
+            "secret pattern, and references the onboard wizard entry. "
+            "PROOF LIMIT: this is a STRUCTURE/SAFETY lint only -- it does NOT "
+            "prove the script actually installs on a real fresh machine (network "
+            "clone, uv sync, provider auth); that is manual / Phase-4 infra, not "
+            "gated here."
+        ),
+    )
+
+
+def _minimal_operator_wake_target() -> Mapping[str, Any]:
+    return {
+        "target_ref": "operator-wake-target:local-active-operator",
+        "target_kind": "operator_wake_local",
+        "sink_ref": "report-sink:operator-wake-local",
+        "delivery_mode": "local_projection",
+        "side_effect_state": "none",
+        "proof_limits": ["provider-neutral local wake target reference only"],
+        "not_proven": [
+            "operator noticed wake packet",
+            "real provider thread wake behavior",
+            "external side effect behavior",
+        ],
+    }
+
+
+def run_reporter_notification_projection(repo: Path) -> KernelResult:
+    _ensure_import_identity(repo)
+    reporter = importlib.import_module("brick_protocol.support.operator.reporter")
+    report_sinks = importlib.import_module("brick_protocol.support.operator.report_sinks")
+
+    observations = tuple(reporter.reporter_negative_probe_observations())
+    if not observations:
+        raise ProfileError("reporter negative probes did not return observations")
+    not_rejected = [
+        str(observation.get("probe_ref") or "<missing-probe-ref>")
+        for observation in observations
+        if observation.get("rejected") is not True
+    ]
+    if not_rejected:
+        raise ProfileError(
+            "reporter negative probe(s) were not rejected: " + ", ".join(not_rejected)
+        )
+    owner_observations = tuple(reporter.reporter_owner_vocabulary_probe_observations())
+    if not owner_observations:
+        raise ProfileError("reporter owner vocabulary probes did not return observations")
+    owner_not_passed = [
+        str(observation.get("probe_ref") or "<missing-probe-ref>")
+        for observation in owner_observations
+        if observation.get("passed") is not True
+    ]
+    if owner_not_passed:
+        raise ProfileError(
+            "reporter owner vocabulary probe(s) did not pass: "
+            + ", ".join(owner_not_passed)
+        )
+    delivery_wake_observations = tuple(reporter.reporter_delivery_wake_probe_observations())
+    if not delivery_wake_observations:
+        raise ProfileError("reporter delivery wake probes did not return observations")
+    delivery_wake_not_passed = [
+        str(observation.get("probe_ref") or "<missing-probe-ref>")
+        for observation in delivery_wake_observations
+        if observation.get("passed") is not True
+    ]
+    if delivery_wake_not_passed:
+        raise ProfileError(
+            "reporter delivery wake probe(s) did not pass: "
+            + ", ".join(delivery_wake_not_passed)
+        )
+    event_hook_observations = tuple(reporter.reporter_event_hook_probe_observations())
+    if not event_hook_observations:
+        raise ProfileError("reporter event hook probes did not return observations")
+    event_hook_not_passed = [
+        str(observation.get("probe_ref") or "<missing-probe-ref>")
+        for observation in event_hook_observations
+        if observation.get("passed") is not True
+    ]
+    if event_hook_not_passed:
+        raise ProfileError(
+            "reporter event hook probe(s) did not pass: "
+            + ", ".join(event_hook_not_passed)
+        )
+
+    packet = _minimal_reporter_packet()
+    reporter.validate_report_packet(packet)
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_repo = Path(tmp)
+        sink_observations = report_sinks.deliver_report_packet(
+            packet,
+            repo_root=tmp_repo,
+            overwrite_existing=False,
+        )
+        if len(sink_observations) != 1:
+            raise ProfileError("local inbox sink did not return exactly one observation")
+        sink_observation = sink_observations[0]
+        if sink_observation.delivered is not True:
+            raise ProfileError("local inbox sink observation did not mark delivered")
+        written = tmp_repo / sink_observation.written_path
+        if not written.is_file():
+            raise ProfileError(f"local inbox sink did not write packet: {written}")
+        written_packet = json.loads(written.read_text(encoding="utf-8"))
+        if written_packet.get("source_truth") is not False:
+            raise ProfileError("written local inbox packet source_truth is not false")
+
+        wake_packet = {
+            **packet,
+            "sink_refs": ["report-sink:local-inbox", "report-sink:operator-wake-local"],
+            "operator_wake_targets": [_minimal_operator_wake_target()],
+        }
+        wake_observations = report_sinks.deliver_report_packet(
+            wake_packet,
+            repo_root=tmp_repo,
+            overwrite_existing=True,
+        )
+        if len(wake_observations) != 2:
+            raise ProfileError("delivery wake bus did not emit two local observations")
+        operator_wake_observations = [
+            observation
+            for observation in wake_observations
+            if observation.sink_ref == "report-sink:operator-wake-local"
+        ]
+        if len(operator_wake_observations) != 1:
+            raise ProfileError("operator wake local sink observation was not emitted")
+        wake_written = tmp_repo / operator_wake_observations[0].written_path
+        if not wake_written.is_file():
+            raise ProfileError(f"operator wake sink did not write packet: {wake_written}")
+        wake_written_packet = json.loads(wake_written.read_text(encoding="utf-8"))
+        if wake_written_packet.get("source_truth") is not False:
+            raise ProfileError("operator wake packet source_truth is not false")
+        if not wake_written_packet.get("operator_wake_targets"):
+            raise ProfileError("operator wake packet did not preserve wake target refs")
+
+        sink_rejected_complete = False
+        try:
+            report_sinks.deliver_report_packet(
+                {**packet, "complete": True},
+                repo_root=tmp_repo,
+                overwrite_existing=True,
+            )
+        except ValueError:
+            sink_rejected_complete = True
+        if not sink_rejected_complete:
+            raise ProfileError("local inbox sink accepted forbidden complete field")
+
+        sink_rejected_raw_secret = False
+        try:
+            report_sinks.deliver_report_packet(
+                {**packet, "raw_secret": "redacted-probe"},
+                repo_root=tmp_repo,
+                overwrite_existing=True,
+            )
+        except ValueError:
+            sink_rejected_raw_secret = True
+        if not sink_rejected_raw_secret:
+            raise ProfileError("local inbox sink accepted raw secret shaped field")
+
+        sink_rejected_unadmitted = False
+        try:
+            report_sinks.deliver_report_packet(
+                packet,
+                sink_refs=["report-sink:slack"],
+                repo_root=tmp_repo,
+                overwrite_existing=True,
+            )
+        except ValueError:
+            sink_rejected_unadmitted = True
+        if not sink_rejected_unadmitted:
+            raise ProfileError("local inbox sink accepted unadmitted sink ref")
+
+    # G6 sink ceiling — re-ratified at FOUR by Smith (0611): report_sinks owns
+    # the dispatch seam + exactly these four sinks. The dashboard sink
+    # (B-DASH/B-DASH-WIRE) made the set 4 de facto; Smith ratified 4 with the
+    # explicit condition that a 5th sink requires the report_bus + sinks/<name>
+    # split FIRST (blueprint 3.1) — never a 5th sibling in this module.
+    ratified_sink_refs = frozenset(
+        {
+            "report-sink:local-inbox",
+            "report-sink:operator-wake-local",
+            "report-sink:slack",
+            "report-sink:dashboard",
+        }
+    )
+    admitted_sink_refs = frozenset(report_sinks.ADMITTED_SINK_REFS)
+    if admitted_sink_refs != ratified_sink_refs:
+        unexpected = sorted(admitted_sink_refs - ratified_sink_refs)
+        missing = sorted(ratified_sink_refs - admitted_sink_refs)
+        raise ProfileError(
+            "G6 sink ceiling violated: ADMITTED_SINK_REFS must be exactly the "
+            f"FOUR Smith-ratified (0611) sinks {sorted(ratified_sink_refs)} "
+            f"(unexpected={unexpected}, missing={missing}); "
+            "a 5th sink requires the report_bus split — never a 5th sibling"
+        )
+
+    return KernelResult(
+        check_id="reporter_notification_projection",
+        inspected=(
+            len(observations)
+            + len(owner_observations)
+            + len(delivery_wake_observations)
+            + len(event_hook_observations)
+            + 6
+        ),
+        output=(
+            "reporter notification projection passed: "
+            f"{len(observations)} reporter negative probe(s), "
+            f"{len(owner_observations)} owner vocabulary probe(s), "
+            f"{len(delivery_wake_observations)} delivery wake probe(s), "
+            f"{len(event_hook_observations)} event hook probe(s), "
+            "local inbox write, operator wake write, forbidden field rejects, "
+            "unadmitted sink reject, and the G6 sink ceiling (4 ratified sinks: "
+            "local-inbox, operator-wake-local, slack, dashboard — Smith 0611; "
+            "a 5th sink requires the report_bus split, never a 5th sibling) inspected."
+        ),
+    )
+
+
+_MCP_STDIO_SMOKE_TIMEOUT_SECONDS = 30
+
+
+def run_mcp_stdio_smoke(repo: Path) -> KernelResult:
+    """Execution smoke: bare-launch the MCP projection server like a real host.
+
+    A real MCP host launches ``support/connection/mcp_projection.py`` as a plain
+    Python script with a CLEAN environment (no PYTHONPATH pointing at the
+    import_identity shim). The script's own __file__ bootstrap must therefore put
+    everything it needs on sys.path; if it forgets the import_identity shim the
+    bare launch crashes at import (ModuleNotFoundError: brick_protocol) before it
+    can answer a single JSON-RPC request.
+
+    This check subprocess-launches that script with PYTHONPATH deleted, pipes one
+    ``initialize`` JSON-RPC line, and asserts the server did not crash and did
+    answer with a JSON-RPC result. subprocess is permitted here in the checker
+    layer (it observes the script from the outside, like a host); it must stay out
+    of mcp_projection.py itself, which owns no execution surface.
+    """
+    script = repo / "support" / "connection" / "mcp_projection.py"
+    if not script.is_file():
+        raise ProfileError(f"mcp_stdio_smoke could not find MCP server script: {script}")
+
+    clean_env = dict(os.environ)
+    clean_env.pop("PYTHONPATH", None)
+
+    request_line = (
+        json.dumps({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}})
+        + "\n"
+    )
+    try:
+        completed = subprocess.run(
+            [sys.executable, str(script), "--repo", str(repo)],
+            input=request_line,
+            capture_output=True,
+            text=True,
+            env=clean_env,
+            cwd=str(repo),
+            timeout=_MCP_STDIO_SMOKE_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise ProfileError(
+            "mcp_stdio_smoke: bare-launched MCP server timed out "
+            f"after {_MCP_STDIO_SMOKE_TIMEOUT_SECONDS}s without responding"
+        ) from exc
+
+    stdout = completed.stdout or ""
+    stderr = completed.stderr or ""
+    if "Traceback" in stderr or "ModuleNotFoundError" in stderr:
+        raise ProfileError(
+            "mcp_stdio_smoke: bare-launched MCP server (clean env, no PYTHONPATH) "
+            "crashed at startup:\n" + stderr.strip()
+        )
+    if '"result"' not in stdout:
+        raise ProfileError(
+            "mcp_stdio_smoke: bare-launched MCP server did not emit a JSON-RPC "
+            f"'\"result\"' to initialize.\nstdout:\n{stdout.strip()}\n"
+            f"stderr:\n{stderr.strip()}"
+        )
+
+    return KernelResult(
+        check_id="mcp_stdio_smoke",
+        inspected=1,
+        output=(
+            "mcp stdio smoke passed: bare-launched server (clean env, no "
+            "PYTHONPATH) responded to initialize"
+        ),
+    )
+
+
+_CONNECT_CONFIG_LAUNCH_TIMEOUT_SECONDS = 30
+
+
+def _parse_codex_mcp_config(config_text: str) -> tuple[str, str, str]:
+    """Extract (command, script_path, repo_arg) from the emitted Codex TOML.
+
+    The generator emits exactly:
+
+        [mcp_servers.brick-protocol]
+        command = "python3"
+        args = ["<script>", "--repo", "<repo>"]
+
+    This parses those three values out of the rendered block so the checker
+    launches EXACTLY what the generator told the user to run (not a
+    hand-written command). Parsing failure is a ProfileError: a malformed
+    generated config is itself a defect.
+    """
+
+    command: str | None = None
+    args_line: str | None = None
+    for raw in config_text.splitlines():
+        line = raw.strip()
+        if line.startswith("command"):
+            _, _, value = line.partition("=")
+            command = value.strip().strip('"')
+        elif line.startswith("args"):
+            args_line = line
+
+    if command is None or args_line is None:
+        raise ProfileError(
+            "connect_config_launch: generated Codex config missing command/args "
+            f"line(s):\n{config_text}"
+        )
+
+    _, _, args_value = args_line.partition("=")
+    args_value = args_value.strip()
+    if not (args_value.startswith("[") and args_value.endswith("]")):
+        raise ProfileError(
+            f"connect_config_launch: generated args is not a list literal: {args_value!r}"
+        )
+    items = [
+        item.strip().strip('"')
+        for item in args_value[1:-1].split(",")
+        if item.strip()
+    ]
+    if len(items) != 3 or items[1] != "--repo":
+        raise ProfileError(
+            "connect_config_launch: generated args do not match "
+            f'["<script>", "--repo", "<repo>"]: {items!r}'
+        )
+    script_path, _flag, repo_arg = items
+    return command, script_path, repo_arg
+
+
+def run_connect_config_launch(repo: Path) -> KernelResult:
+    """Execution proof: the generated Codex connect config yields a working server.
+
+    Imports the read-only connect generator (support/connection/connect.py),
+    renders the Codex MCP config for THIS repo, extracts the command + server
+    script + ``--repo`` it tells the user to run, and then subprocess-launches
+    EXACTLY that command with a CLEAN environment (PYTHONPATH deleted) and one
+    piped ``initialize`` JSON-RPC line. The launch must return a JSON-RPC
+    ``"result"`` with no Traceback / ModuleNotFoundError. This proves
+    "generated config -> actually working connection" end to end, not just that
+    the generator emitted a plausible-looking string.
+
+    Also asserts the emitted script path is ``<repo>/support/connection/
+    mcp_projection.py`` and exists, the emitted ``--repo`` equals this repo, and
+    that connect.py's source carries no hardcoded user-home literal (the path
+    must be computed, never baked in).
+
+    subprocess lives here in the checker layer (it observes the generated
+    command from the outside, like a real MCP host); the generator itself runs
+    no subprocess and owns no execution surface.
+    """
+
+    repo_text = str(repo)
+    if repo_text not in sys.path:
+        sys.path.insert(0, repo_text)
+    connect = importlib.import_module("support.connection.connect")
+
+    # The generated config must carry no hardcoded absolute user path; the path
+    # is computed from the checkout. Guard the source directly.
+    connect_source_path = repo / "support" / "connection" / "connect.py"
+    if not connect_source_path.is_file():
+        raise ProfileError(
+            f"connect_config_launch: connect generator missing: {connect_source_path}"
+        )
+    connect_source = connect_source_path.read_text(encoding="utf-8")
+    user_home_literal = "/" + "Users/"
+    if user_home_literal in connect_source:
+        raise ProfileError(
+            "connect_config_launch: connect.py source contains a hardcoded "
+            "user-home literal; the repo path must be computed, never baked in."
+        )
+
+    config_text = connect.render_codex_mcp_config(repo)
+    command, script_path, repo_arg = _parse_codex_mcp_config(config_text)
+
+    expected_script = (repo / "support" / "connection" / "mcp_projection.py").resolve()
+    emitted_script = Path(script_path).resolve()
+    if emitted_script != expected_script:
+        raise ProfileError(
+            "connect_config_launch: generated config points at "
+            f"{emitted_script}, expected {expected_script}"
+        )
+    if not emitted_script.is_file():
+        raise ProfileError(
+            f"connect_config_launch: generated server script does not exist: {emitted_script}"
+        )
+    if Path(repo_arg).resolve() != repo.resolve():
+        raise ProfileError(
+            "connect_config_launch: generated --repo "
+            f"{repo_arg} does not match this repo {repo}"
+        )
+
+    clean_env = dict(os.environ)
+    clean_env.pop("PYTHONPATH", None)
+
+    request_line = (
+        json.dumps({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}})
+        + "\n"
+    )
+    launch_argv = [command, script_path, "--repo", repo_arg]
+    try:
+        completed = subprocess.run(
+            launch_argv,
+            input=request_line,
+            capture_output=True,
+            text=True,
+            env=clean_env,
+            cwd=str(repo),
+            timeout=_CONNECT_CONFIG_LAUNCH_TIMEOUT_SECONDS,
+        )
+    except FileNotFoundError as exc:
+        raise ProfileError(
+            "connect_config_launch: generated command could not be launched "
+            f"(command not found on PATH): {launch_argv!r}: {exc}"
+        ) from exc
+    except subprocess.TimeoutExpired as exc:
+        raise ProfileError(
+            "connect_config_launch: generated config server timed out "
+            f"after {_CONNECT_CONFIG_LAUNCH_TIMEOUT_SECONDS}s without responding"
+        ) from exc
+
+    stdout = completed.stdout or ""
+    stderr = completed.stderr or ""
+    if "Traceback" in stderr or "ModuleNotFoundError" in stderr:
+        raise ProfileError(
+            "connect_config_launch: generated config server (clean env, no "
+            "PYTHONPATH) crashed at startup:\n" + stderr.strip()
+        )
+    if '"result"' not in stdout:
+        raise ProfileError(
+            "connect_config_launch: generated config server did not emit a "
+            f"JSON-RPC '\"result\"' to initialize.\nstdout:\n{stdout.strip()}\n"
+            f"stderr:\n{stderr.strip()}"
+        )
+
+    return KernelResult(
+        check_id="connect_config_launch",
+        inspected=1,
+        output=(
+            "connect config launch passed: generated Codex config "
+            "(computed repo path, no hardcoded user-home literal) launched the "
+            "server with a clean env (no PYTHONPATH) and it answered initialize"
+        ),
+    )
+
+
+def run_codex_projection_native(repo: Path) -> KernelResult:
+    """Execution proof: the Codex projection is a REAL Codex-native TOML subagent.
+
+    Imports the read-only renderer (support/connection/agent_resources.py) and
+    asserts, BY EXECUTION over admitted Agent Objects, that render_codex_subagent_toml:
+
+      (a) parses as VALID TOML (tomllib) and carries the required Codex subagent
+          keys name + description + developer_instructions;
+      (b) sandbox_mode is "workspace-write" for the dev (read-write-scoped) agent
+          and "read-only" for a leader/reviewer agent -- a REAL tool-policy
+          mapping, not a constant (this is the load-bearing FIRE pin: making
+          sandbox_mode constant must turn this RED);
+      (c) the Codex TOML is materially DIFFERENT from the generic/claude seed
+          text -- the codex output is valid TOML whereas the claude seed is
+          markdown that does NOT parse as a TOML table (real translation, not a
+          relabel);
+      (d) developer_instructions carries the "enforced by Brick MCP" honesty note
+          (return shape / Link / evidence are not native-Codex-expressible).
+
+    This is checker-layer support evidence only: it imports the renderer
+    in-process, runs no subprocess, writes no file, and chooses no Movement. The
+    renderer it pins is itself read-only (no subprocess in connection/).
+    """
+
+    import tomllib
+
+    repo_text = str(repo)
+    if repo_text not in sys.path:
+        sys.path.insert(0, repo_text)
+    _ensure_import_identity(repo)
+    agent_resources = importlib.import_module("support.connection.agent_resources")
+
+    list_refs = agent_resources.list_agent_object_refs
+    render_toml = agent_resources.render_codex_subagent_toml
+    render_claude_seed = agent_resources.render_claude_projection_seed
+    render_codex_seed = agent_resources.render_codex_projection_seed
+
+    refs = list(list_refs(repo))
+    if not refs:
+        raise ProfileError(
+            "codex_projection_native: no admitted Agent Object refs to project"
+        )
+
+    roles = [ref.removeprefix("agent-object:") for ref in refs]
+
+    # (a) + (d): every admitted role must yield valid TOML with the required
+    # Codex subagent keys and the Brick-MCP honesty note.
+    write_roles: list[str] = []
+    read_only_roles: list[str] = []
+    inspected = 0
+    for role in roles:
+        toml_text = render_toml(role, repo_root=repo)
+        try:
+            parsed = tomllib.loads(toml_text)
+        except tomllib.TOMLDecodeError as exc:
+            raise ProfileError(
+                f"codex_projection_native: render_codex_subagent_toml({role!r}) "
+                f"is not valid TOML: {exc}"
+            ) from exc
+        for required_key in ("name", "description", "developer_instructions"):
+            value = parsed.get(required_key)
+            if not isinstance(value, str) or not value.strip():
+                raise ProfileError(
+                    f"codex_projection_native: {role!r} TOML missing required Codex "
+                    f"subagent key {required_key!r}"
+                )
+        if parsed.get("name") != role:
+            raise ProfileError(
+                f"codex_projection_native: {role!r} TOML name must equal the role"
+            )
+        sandbox_mode = parsed.get("sandbox_mode")
+        if sandbox_mode not in {"workspace-write", "read-only"}:
+            raise ProfileError(
+                f"codex_projection_native: {role!r} TOML sandbox_mode must be "
+                f"workspace-write or read-only, got {sandbox_mode!r}"
+            )
+        if "enforced by Brick MCP" not in parsed["developer_instructions"]:
+            raise ProfileError(
+                f"codex_projection_native: {role!r} developer_instructions is "
+                "missing the 'enforced by Brick MCP' honesty note (return shape / "
+                "Link / evidence are not native-Codex-expressible)"
+            )
+        if sandbox_mode == "workspace-write":
+            write_roles.append(role)
+        else:
+            read_only_roles.append(role)
+        inspected += 1
+
+    # (b) REAL tool-policy mapping, not a constant. The dev agent
+    # (tool-policy:read-write-scoped) MUST map to workspace-write; a leader and a
+    # reviewer (read-only policies) MUST map to read-only. Making sandbox_mode a
+    # constant (ignoring tool policy) is what this FIRE pin catches.
+    if "dev" in roles:
+        dev_sandbox = tomllib.loads(render_toml("dev", repo_root=repo))["sandbox_mode"]
+        if dev_sandbox != "workspace-write":
+            raise ProfileError(
+                "codex_projection_native: dev (tool-policy:read-write-scoped) must "
+                f"map to sandbox_mode workspace-write, got {dev_sandbox!r}"
+            )
+    if not write_roles:
+        raise ProfileError(
+            "codex_projection_native: no role mapped to workspace-write; a "
+            "constant read-only sandbox_mode would hide the read-write-scoped "
+            "worker (mapping is not real)"
+        )
+    if not read_only_roles:
+        raise ProfileError(
+            "codex_projection_native: no role mapped to read-only; a constant "
+            "workspace-write sandbox_mode would over-grant every leader/reviewer "
+            "(mapping is not real)"
+        )
+
+    # (e) PER-STEP write_need gate. The per-agent TOML above is the DESCRIPTIVE
+    # max-capability projection; the RUN-TIME provider projection FOR A STEP must
+    # additionally gate sandbox_mode on the step's Brick write NEED. A
+    # write-capable agent (read-write-scoped) on a read-only Brick (write_need
+    # False) MUST project read-only sandbox -- the agent's CAPABILITY must never
+    # override the Brick NEED. Removing the write_need gate (back to keying on
+    # tool_policy alone) turns this RED.
+    sandbox_for_policies = agent_resources.codex_sandbox_mode_for_tool_policies
+    write_capable_policies = ["tool-policy:leader-coordination", "tool-policy:read-write-scoped"]
+    leak_sandbox = sandbox_for_policies(write_capable_policies, write_need=False)
+    if leak_sandbox != "read-only":
+        raise ProfileError(
+            "codex_projection_native: a write-capable agent on a read-only Brick "
+            f"(write_need=False) must project sandbox_mode read-only, got "
+            f"{leak_sandbox!r} (capability overrode the Brick NEED)"
+        )
+    write_sandbox = sandbox_for_policies(write_capable_policies, write_need=True)
+    if write_sandbox != "workspace-write":
+        raise ProfileError(
+            "codex_projection_native: a write-capable agent on a write-needed "
+            f"Brick (write_need=True) must project sandbox_mode workspace-write, "
+            f"got {write_sandbox!r} (over-restricted a legitimate write)"
+        )
+
+    # (c) materially DIFFERENT from the generic/claude seed: codex is valid TOML
+    # with the subagent keys; the claude seed's rendered_instruction_text is
+    # markdown that does NOT parse as a TOML table carrying those keys.
+    probe_role = "dev" if "dev" in roles else roles[0]
+    claude_text = render_claude_seed(probe_role, repo_root=repo)["rendered_instruction_text"]
+    codex_toml = render_toml(probe_role, repo_root=repo)
+    if claude_text.strip() == codex_toml.strip():
+        raise ProfileError(
+            "codex_projection_native: codex TOML is byte-identical to the claude "
+            "seed text (relabel, not a real translation)"
+        )
+    claude_is_toml_subagent = False
+    try:
+        claude_parsed = tomllib.loads(claude_text)
+        claude_is_toml_subagent = isinstance(claude_parsed.get("name"), str) and isinstance(
+            claude_parsed.get("developer_instructions"), str
+        )
+    except tomllib.TOMLDecodeError:
+        claude_is_toml_subagent = False
+    if claude_is_toml_subagent:
+        raise ProfileError(
+            "codex_projection_native: the claude seed text also parses as a Codex "
+            "subagent TOML; the codex projection is not a materially different form"
+        )
+
+    # The wired Codex projection seed must surface the real TOML without dropping
+    # the existing generic instruction text other consumers/checkers rely on.
+    seed = render_codex_seed(probe_role, repo_root=repo)
+    if "rendered_codex_subagent_toml" not in seed:
+        raise ProfileError(
+            "codex_projection_native: render_codex_projection_seed dropped the "
+            "rendered_codex_subagent_toml key"
+        )
+    if "rendered_instruction_text" not in seed:
+        raise ProfileError(
+            "codex_projection_native: render_codex_projection_seed dropped the "
+            "existing rendered_instruction_text key (would break other consumers)"
+        )
+    if tomllib.loads(seed["rendered_codex_subagent_toml"])["name"] != probe_role:
+        raise ProfileError(
+            "codex_projection_native: seed rendered_codex_subagent_toml is not the "
+            "role's valid TOML"
+        )
+
+    return KernelResult(
+        check_id="codex_projection_native",
+        inspected=inspected,
+        output=(
+            "codex projection native passed: "
+            f"{inspected} Agent Object(s) rendered valid Codex-native subagent TOML "
+            f"(write={sorted(write_roles)}, read-only count={len(read_only_roles)}); "
+            "real tool-policy -> sandbox_mode mapping, honesty note present, "
+            "materially different from the claude markdown seed"
+        ),
+    )
+
+
+def _split_claude_frontmatter(md_text: str) -> tuple[str, str]:
+    """Split a Claude subagent .md into (frontmatter_yaml, body).
+
+    The Claude subagent format is ``--- <yaml> --- <body>``. Leading HTML
+    comments (the read-only provenance banner this renderer stamps) precede the
+    opening fence, so we scan for the first non-blank, non-comment line and
+    require it to be the ``---`` fence, then capture up to the closing fence.
+    Raises ProfileError if no valid frontmatter block is present.
+    """
+
+    lines = md_text.splitlines()
+    idx = 0
+    # Skip the leading provenance comment banner + blank lines before the fence.
+    while idx < len(lines):
+        stripped = lines[idx].strip()
+        if not stripped or (stripped.startswith("<!--")):
+            idx += 1
+            continue
+        break
+    if idx >= len(lines) or lines[idx].strip() != "---":
+        raise ProfileError(
+            "claude_projection_native: subagent .md does not open with a '---' "
+            "YAML frontmatter fence"
+        )
+    open_fence = idx
+    close_fence = -1
+    for j in range(open_fence + 1, len(lines)):
+        if lines[j].strip() == "---":
+            close_fence = j
+            break
+    if close_fence == -1:
+        raise ProfileError(
+            "claude_projection_native: subagent .md frontmatter has no closing "
+            "'---' fence"
+        )
+    frontmatter = "\n".join(lines[open_fence + 1 : close_fence])
+    body = "\n".join(lines[close_fence + 1 :])
+    return frontmatter, body
+
+
+def run_claude_projection_native(repo: Path) -> KernelResult:
+    """Execution proof: the Claude projection is a REAL Claude-native .md subagent.
+
+    Imports the read-only renderer (support/connection/agent_resources.py) and
+    asserts, BY EXECUTION over admitted Agent Objects, that render_claude_subagent_md:
+
+      (a) parses as a real Claude subagent file -- '---' YAML frontmatter '---'
+          plus a body -- and the frontmatter carries the required name +
+          description + tools keys;
+      (b) REAL tool-policy mapping: the dev agent (tool-policy:read-write-scoped)
+          tools INCLUDE Edit AND Write; a leader/reviewer agent (read-only
+          policy) tools EXCLUDE Edit/Write -- so making the tool list a constant
+          (ignoring policy) turns this RED (this is the load-bearing FIRE pin);
+      (c) materially DIFFERENT from the codex form: the codex render is valid
+          TOML; the claude render is markdown-with-frontmatter that does NOT
+          parse as a Codex subagent TOML table (real translation, not a relabel);
+      (d) the "enforced by Brick MCP" honesty note is present in the body.
+
+    This is checker-layer support evidence only: it imports the renderer
+    in-process, runs no subprocess, writes no file, and chooses no Movement. The
+    renderer it pins is itself read-only (no subprocess in connection/).
+    """
+
+    import tomllib
+
+    from support.checkers.lib.yaml_subset import parse_yaml_subset
+
+    repo_text = str(repo)
+    if repo_text not in sys.path:
+        sys.path.insert(0, repo_text)
+    _ensure_import_identity(repo)
+    agent_resources = importlib.import_module("support.connection.agent_resources")
+
+    list_refs = agent_resources.list_agent_object_refs
+    render_md = agent_resources.render_claude_subagent_md
+    render_toml = agent_resources.render_codex_subagent_toml
+    render_claude_seed = agent_resources.render_claude_projection_seed
+
+    refs = list(list_refs(repo))
+    if not refs:
+        raise ProfileError(
+            "claude_projection_native: no admitted Agent Object refs to project"
+        )
+
+    roles = [ref.removeprefix("agent-object:") for ref in refs]
+
+    def _tool_list(role: str) -> list[str]:
+        md_text = render_md(role, repo_root=repo)
+        frontmatter, body = _split_claude_frontmatter(md_text)
+        parsed = parse_yaml_subset(frontmatter)
+        if not isinstance(parsed, Mapping):
+            raise ProfileError(
+                f"claude_projection_native: {role!r} frontmatter is not a YAML "
+                "mapping"
+            )
+        for required_key in ("name", "description", "tools"):
+            value = parsed.get(required_key)
+            if not isinstance(value, str) or not value.strip():
+                raise ProfileError(
+                    f"claude_projection_native: {role!r} frontmatter missing "
+                    f"required Claude subagent key {required_key!r}"
+                )
+        if parsed.get("name") != role:
+            raise ProfileError(
+                f"claude_projection_native: {role!r} frontmatter name must equal "
+                "the role"
+            )
+        if "enforced by Brick MCP" not in body:
+            raise ProfileError(
+                f"claude_projection_native: {role!r} body is missing the 'enforced "
+                "by Brick MCP' honesty note (return shape / Link / evidence are "
+                "not native-Claude-expressible)"
+            )
+        return [tool.strip() for tool in str(parsed["tools"]).split(",") if tool.strip()]
+
+    # (a) + (d): every admitted role must yield a parseable subagent .md with the
+    # required keys and the Brick-MCP honesty note. Split into write/read-only by
+    # the REAL tool mapping (Edit + Write present == write-capable).
+    write_roles: list[str] = []
+    read_only_roles: list[str] = []
+    inspected = 0
+    for role in roles:
+        tools = _tool_list(role)
+        if "Edit" in tools and "Write" in tools:
+            write_roles.append(role)
+        elif "Edit" not in tools and "Write" not in tools:
+            read_only_roles.append(role)
+        else:
+            raise ProfileError(
+                f"claude_projection_native: {role!r} tools list is half-write "
+                f"(Edit/Write must be both present or both absent), got {tools}"
+            )
+        inspected += 1
+
+    # (b) REAL tool-policy mapping, not a constant. The dev agent
+    # (tool-policy:read-write-scoped) MUST include Edit AND Write; a leader and a
+    # reviewer (read-only policies) MUST exclude both. Making the tools list a
+    # constant (ignoring tool policy) is what this FIRE pin catches.
+    if "dev" in roles:
+        dev_tools = _tool_list("dev")
+        if "Edit" not in dev_tools or "Write" not in dev_tools:
+            raise ProfileError(
+                "claude_projection_native: dev (tool-policy:read-write-scoped) "
+                f"tools must INCLUDE Edit and Write, got {dev_tools}"
+            )
+    if not write_roles:
+        raise ProfileError(
+            "claude_projection_native: no role's tools include Edit/Write; a "
+            "constant read-only tools list would hide the read-write-scoped "
+            "worker (mapping is not real)"
+        )
+    if not read_only_roles:
+        raise ProfileError(
+            "claude_projection_native: no role's tools exclude Edit/Write; a "
+            "constant write-capable tools list would over-grant every "
+            "leader/reviewer (mapping is not real)"
+        )
+
+    # (e) PER-STEP write_need gate. The per-agent .md above is the DESCRIPTIVE
+    # max-capability projection; the RUN-TIME provider projection FOR A STEP must
+    # additionally gate the tool set on the step's Brick write NEED. A
+    # write-capable agent (read-write-scoped) on a read-only Brick (write_need
+    # False) MUST project a tool set with NO Edit/Write -- the agent's CAPABILITY
+    # must never override the Brick NEED. Removing the write_need gate (back to
+    # keying on tool_policy alone) turns this RED.
+    tools_for_policies = agent_resources.claude_tools_for_tool_policies
+    write_capable_policies = ["tool-policy:leader-coordination", "tool-policy:read-write-scoped"]
+    leak_tools = list(tools_for_policies(write_capable_policies, write_need=False)["tools"])
+    if "Edit" in leak_tools or "Write" in leak_tools:
+        raise ProfileError(
+            "claude_projection_native: a write-capable agent on a read-only Brick "
+            f"(write_need=False) must project a tool set with NO Edit/Write, got "
+            f"{leak_tools} (capability overrode the Brick NEED)"
+        )
+    write_tools = list(tools_for_policies(write_capable_policies, write_need=True)["tools"])
+    if "Edit" not in write_tools or "Write" not in write_tools:
+        raise ProfileError(
+            "claude_projection_native: a write-capable agent on a write-needed "
+            f"Brick (write_need=True) must project a tool set INCLUDING Edit and "
+            f"Write, got {write_tools} (over-restricted a legitimate write)"
+        )
+
+    # (c) materially DIFFERENT from the codex form: the claude render is markdown
+    # with YAML frontmatter; the codex render is valid TOML. Assert codex != claude
+    # shape -- the claude .md must NOT parse as a Codex subagent TOML table, and
+    # the two texts must not be byte-identical.
+    probe_role = "dev" if "dev" in roles else roles[0]
+    claude_md = render_md(probe_role, repo_root=repo)
+    codex_toml = render_toml(probe_role, repo_root=repo)
+    if claude_md.strip() == codex_toml.strip():
+        raise ProfileError(
+            "claude_projection_native: claude .md is byte-identical to the codex "
+            "TOML (relabel, not a real translation)"
+        )
+    claude_is_codex_toml = False
+    try:
+        claude_parsed = tomllib.loads(claude_md)
+        claude_is_codex_toml = isinstance(
+            claude_parsed.get("name"), str
+        ) and isinstance(claude_parsed.get("developer_instructions"), str)
+    except tomllib.TOMLDecodeError:
+        claude_is_codex_toml = False
+    if claude_is_codex_toml:
+        raise ProfileError(
+            "claude_projection_native: the claude .md also parses as a Codex "
+            "subagent TOML; the claude projection is not a materially different "
+            "form"
+        )
+
+    # The wired Claude projection seed must surface the real .md + tools without
+    # dropping the existing generic instruction text other consumers rely on, and
+    # without leaking the codex toml key into the claude seed.
+    seed = render_claude_seed(probe_role, repo_root=repo)
+    if "rendered_claude_subagent_md" not in seed:
+        raise ProfileError(
+            "claude_projection_native: render_claude_projection_seed dropped the "
+            "rendered_claude_subagent_md key"
+        )
+    if "claude_tools" not in seed:
+        raise ProfileError(
+            "claude_projection_native: render_claude_projection_seed dropped the "
+            "claude_tools key"
+        )
+    if "rendered_instruction_text" not in seed:
+        raise ProfileError(
+            "claude_projection_native: render_claude_projection_seed dropped the "
+            "existing rendered_instruction_text key (would break other consumers)"
+        )
+    if "rendered_codex_subagent_toml" in seed:
+        raise ProfileError(
+            "claude_projection_native: the claude seed leaked the codex "
+            "rendered_codex_subagent_toml key (host seeds must not cross-leak)"
+        )
+    seed_frontmatter, _ = _split_claude_frontmatter(seed["rendered_claude_subagent_md"])
+    if parse_yaml_subset(seed_frontmatter).get("name") != probe_role:
+        raise ProfileError(
+            "claude_projection_native: seed rendered_claude_subagent_md is not the "
+            "role's valid subagent .md"
+        )
+
+    return KernelResult(
+        check_id="claude_projection_native",
+        inspected=inspected,
+        output=(
+            "claude projection native passed: "
+            f"{inspected} Agent Object(s) rendered valid Claude-native subagent .md "
+            f"(write={sorted(write_roles)}, read-only count={len(read_only_roles)}); "
+            "real tool-policy -> tools allow/deny mapping (dev and write-capable "
+            "leaders have Edit+Write, reviewers remain read-only), honesty note "
+            "present, materially different from the codex TOML form"
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# AGENT-SESSION-ID-REDACTION guard (TREASURE PORT 2, 0611). Lifted from the
+# never-merged codex/agent-axis-slice-a-0605 branch
+# (2d44fc7:support/checkers/lib/kernel_checks.py:1188-1273, regexes + scan
+# logic verbatim) and adapted to today's tree: the archive/ museum W2 moved
+# frozen history into is now a scan root, and the branch's "zero-tolerance, no
+# allowlist" stance (it REDACTED its 45 historical sites) is replaced by the
+# 0611 operator policy: frozen building evidence and archived history are NOT
+# rewritten; the investigator-verified legacy leaks are carried on an explicit
+# per-path allowlist of frozen line-content hashes (codex-review tightening C
+# replaced the original line-COUNT budgets, which let a same-count swap
+# through), and any NEW leak fails closed.
+#
+# AGENTS principle: a provider-specific (or runtime) session id must NEVER be
+# stored in a support record, projection, or evidence surface. The adapter
+# exception frontier scrubs them at the durable boundary
+# (support/operator/run.py::_safe_exception_excerpt); this is the STATIC
+# counterpart that forbids a raw session id from being committed into the kernel
+# status records, building work/evidence, the review dispositions, or the
+# archived history.
+#
+# Detection (layout-robust; the branch's first cut demanded a same-line cue and
+# so MISSED the dominant real layouts -- a "Claude session id:" label line above
+# a UUID in a fenced ```text block, and "PID / <uuid>" subagent rows). Now:
+#   * ANY RFC-4122-shaped UUID (incl. UUIDv7) OR Crockford-base32 ULID, with NO
+#     cue requirement. Legit identifiers in these roots are slug ids and 64-hex
+#     sha256 hashes, which are never UUID/ULID-shaped, so a bare one here is
+#     always a runtime/session/run id (re-verified on today's tree 0611: every
+#     hit in the scan roots is one of the 6 allowlisted legacy session-id sites).
+#   * keyed forms  session_id / session_token / provider_session / resume_token /
+#     conversation_id / continuation_id : <v> (also "key":"<v>" compact JSON and
+#     camelCase/prefixed keys via a lazy [\w-]*? prefix; the value must contain a
+#     digit, so "session id: unknown" is NOT flagged)
+#   * prefixed value tokens  sess_/sess- / provider-session- / resume-token- /
+#     chatcmpl- / ya29. (Google OAuth) / JWT (eyJ.x.y)  (the underscore/dash
+#     forms require a digit in the value, so prose like "provider-session-looking"
+#     is NOT flagged)
+# Deliberately OUT of static scope (ACCEPTED RESIDUAL, zero live instances): a
+# generic provider OBJECT-id prefix sweep (run_/msg_/resp_/thread_/step_/...) is
+# NOT flagged here because it collides with legitimate dev identifiers
+# (run_compose0, run_gemini35_flash); and note the run.py error-text redactor
+# does NOT sweep those prefixes either, so there is no separate compensating
+# control for them. A bare opaque token with no session key and no known shape
+# (e.g. a dash-less 32-hex id, which would collide with MD5) is likewise not
+# statically detectable without false-positives. The standing guarantee for
+# those is that the engine must not STORE provider ids in the first place (the
+# run.py exception-frontier redactor scrubs the KNOWN session formats).
+_SESSION_ID_VALUE_TOKEN_RES = (
+    # sess_ AND sess- (OpenAI emits both underscore and dash session prefixes).
+    re.compile(r"(?i)\bsess[_-](?=[A-Za-z0-9._~+/=-]*\d)[A-Za-z0-9._~+/=-]{6,}"),
+    re.compile(r"(?i)\bprovider-session-(?=[A-Za-z0-9._~+/=-]*\d)[A-Za-z0-9._~+/=-]{6,}"),
+    re.compile(r"(?i)\bresume[_-]token[_-](?=[A-Za-z0-9._~+/=-]*\d)[A-Za-z0-9._~+/=-]{6,}"),
+    re.compile(r"(?i)\bchatcmpl-[A-Za-z0-9]{6,}"),
+    re.compile(r"\bya29\.[A-Za-z0-9._-]{10,}"),                                    # Google OAuth token
+    re.compile(r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{4,}"),  # JWT (3 segments)
+)
+# Bare ULID (Crockford base32, 26 chars, excludes I/L/O/U) -- some providers issue
+# ULID session ids. Empirically FP-clean: legit ids in the scan roots are slug URNs
+# + 64-hex sha256, neither of which is a 26-char uppercase ULID.
+_SESSION_ID_ULID_RE = re.compile(r"\b[0-9A-HJKMNP-TV-Z]{26}\b")
+# Quoted-or-bare session key followed by an id-shaped value. Covers the KV form
+# (session_id: <uuid>), compact JSON ("session_id":"01HX..."), AND camelCase /
+# prefixed keys (providerSessionId, chat_session_id) via the lazy [\w-]*? prefix.
+# The value lookahead requires a DIGIT so a real id (UUID/ULID/chatcmpl all carry
+# digits) is caught while prose like "session id: unknown" is not; and the value
+# class excludes '<', so the "<redacted-session-id>" placeholder is NOT re-flagged.
+_SESSION_ID_KEYED_RE = re.compile(
+    r"(?i)['\"]?\b[\w-]*?"
+    r"(?:session[ _-]?id|session[ _-]?token|provider[ _-]?session|resume[ _-]?token"
+    r"|conversation[ _-]?id|continuation[ _-]?id)"
+    r"\b['\"]?\s*[:=]\s*['\"]?(?=[A-Za-z0-9._~+/=-]*\d)[A-Za-z0-9._~+/=-]{6,}"
+)
+_SESSION_ID_UUID_RE = re.compile(
+    r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b"
+)
+# PROJECT-0 S1-C: project scan roots are derived PER VESSEL (every
+# project/<id>/buildings + project/<id>/status — a new project must never be a
+# silently unscanned landing zone for session-id leaks; widened 0611 from
+# project #1's status/kernel to full status/, re-verified 0 offenders). The
+# static roots stay literal. The frozen-history allowlist below is keyed by
+# exact path and is unchanged by this widening.
+_SESSION_ID_STATIC_SCAN_ROOTS = (
+    "support/docs/reviews",
+    # 0611 adaptation: W2 DOC-DECOUPLE moved frozen status/spec history here;
+    # archived history must not become a quiet landing zone for NEW leaks.
+    "archive",
+)
+
+
+def _session_id_scan_roots(repo: Path) -> tuple[str, ...]:
+    project_roots = [
+        to_posix(path.relative_to(repo))
+        for pattern in ("*/buildings", "*/status")
+        for path in sorted((repo / "project").glob(pattern))
+        if path.is_dir()
+    ]
+    return tuple(project_roots) + _SESSION_ID_STATIC_SCAN_ROOTS
+_SESSION_ID_SCAN_SUFFIXES = (".md", ".json", ".jsonl", ".txt")
+# FROZEN-HISTORY ALLOWLIST — EMPTY in the product repo (REPO-SPLIT seed 0611,
+# checker-split-map-0611.md ⚠1): the 6-file/8-line frozen legacy allowlist
+# moved to the history repo WITH the files it froze. The one allowlisted file
+# that ships product-side (the p9 catalog dogfood work record) had its single
+# legacy session-id line REDACTED in the product copy instead of carried as an
+# allowlist row, so a new user's evidence tree starts with ZERO tolerated
+# session-id lines. Any future entry here requires the same discipline the
+# history repo used: path -> tuple of sha256[:16] digests of the EXACT
+# offending line content (a ceiling, not a pin — see run_agent_session_id_redaction).
+_SESSION_ID_LEGACY_ALLOWLIST: dict[str, tuple[str, ...]] = {}
+
+
+def _session_line_digest(line: str) -> str:
+    return hashlib.sha256(line.encode("utf-8")).hexdigest()[:16]
+
+
+def _line_carries_session_id(line: str) -> bool:
+    if _SESSION_ID_UUID_RE.search(line) or _SESSION_ID_ULID_RE.search(line):
+        return True
+    if _SESSION_ID_KEYED_RE.search(line):
+        return True
+    if any(pattern.search(line) for pattern in _SESSION_ID_VALUE_TOKEN_RES):
+        return True
+    return False
+
+
+def run_agent_session_id_redaction(repo: Path) -> KernelResult:
+    inspected = 0
+    offenders: list[str] = []
+    allowlisted_lines: dict[str, int] = {}
+    for root_rel in _session_id_scan_roots(repo):
+        root = repo / root_rel
+        if not root.exists():
+            continue
+        for path in sorted(root.rglob("*")):
+            if not path.is_file() or path.suffix not in _SESSION_ID_SCAN_SUFFIXES:
+                continue
+            inspected += 1
+            try:
+                text = path.read_text(encoding="utf-8")
+            except (UnicodeDecodeError, OSError):
+                continue
+            rel = to_posix(path.relative_to(repo))
+            frozen = _SESSION_ID_LEGACY_ALLOWLIST.get(rel)
+            hits = [
+                (lineno, line)
+                for lineno, line in enumerate(text.splitlines(), start=1)
+                if _line_carries_session_id(line)
+            ]
+            if frozen is None:
+                offenders.extend(f"{rel}:{lineno}" for lineno, _line in hits)
+                continue
+            remaining = Counter(frozen)
+            matched = 0
+            for lineno, line in hits:
+                digest = _session_line_digest(line)
+                if remaining.get(digest, 0) > 0:
+                    remaining[digest] -= 1
+                    matched += 1
+                else:
+                    offenders.append(
+                        f"{rel}:{lineno} (offending line's content hash {digest} is "
+                        "not a frozen allowlisted legacy line of this file; a "
+                        "same-count replacement, swap, or addition is a NEW leak)"
+                    )
+            if matched:
+                allowlisted_lines[rel] = matched
+    if offenders:
+        listing = "\n".join(offenders[:25])
+        raise ProfileError(
+            "provider/runtime session id present in a support record, building "
+            "work/evidence, review disposition, or archived history outside the "
+            "frozen-history allowlist; it must be redacted per the AGENTS "
+            "session-id principle:\n"
+            f"{listing}"
+        )
+    return KernelResult(
+        check_id="agent_session_id_redaction",
+        inspected=inspected,
+        output=(
+            "no NEW provider/runtime session id in scanned support records, "
+            "building work/evidence, review dispositions, or archived history; "
+            f"{len(allowlisted_lines)} frozen-history legacy file(s) whose "
+            f"{sum(allowlisted_lines.values())} offending line(s) all matched "
+            "their frozen content hashes."
+        ),
+    )

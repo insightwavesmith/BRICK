@@ -1,0 +1,43 @@
+plan_ref: building-plan:link-route-replay-0-development-open
+owner_axis: Brick
+building_id: link-route-replay-0-development-open-0524
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - implementation correctness
+  - semantic correctness of route/replay attribution
+  - provider resume behavior
+  - provider credential validity
+  - runtime or scheduler behavior
+steps:
+  - step_ref: link-route-replay-0-development-open-01
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-route-replay-0-development-open
+        brick_work_ref: work:link-route-replay-0-development
+        brick_instance_ref: brick-link-route-replay-development-open-01
+        work_statement: Implement LINK-ROUTE-REPLAY-0 from the design. Add checker-first route/replay boundary evidence, preserve caller-declared reroute target and replay segment, keep attempts append-only, and do not add a Movement chooser, default GateFact creator, runtime/scheduler/queue/retry service, provider SDK adapter, or mutable workflow state.
+        comparison_rule: Observe whether implementation preserves Link ownership of route/replay, records route/replay evidence in raw/capture/claim_trace/graph projection, rejects support-chosen route or replay behavior, and keeps AgentFact closed.
+        required_return_shape: implementation_map, changed_files, verification_evidence, claim_ledger, not_proven
+        source_facts:
+          - AGENTS.md
+          - brick/templates/do/minimal-do-return-template.json
+          - support/docs/spec/brick-protocol-link-route-replay-0-design-0524.md
+          - project/brick-protocol/status/kernel/brick-protocol-link-route-replay-0-design-report-0524.md
+          - support/operator/run.py
+          - link/movement.py
+          - link/transition.py
+          - support/recording/building_map.py
+      - axis: Agent
+        row_ref: agent-row:link-route-replay-0-development-open
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:link-route-replay-0-development-open
+        movement: forward
+        target_ref: brick-link-route-replay-codex-qa-03
+        next_brick_instance_ref: brick-link-route-replay-codex-qa-03

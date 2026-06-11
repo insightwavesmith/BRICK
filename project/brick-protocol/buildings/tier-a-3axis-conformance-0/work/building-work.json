@@ -1,0 +1,57 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:tier-a-3axis-conformance-0::work/building-work.json",
+  "building_id": "tier-a-3axis-conformance-0",
+  "comparison_rule": "support observes the adapter:local return shape; support does not judge quality.",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-05-31T23:19:35Z",
+  "id": "urn:bp:building:tier-a-3axis-conformance-0::work/building-work.json",
+  "not_proven": [
+    "semantic correctness of the agent-proposed reroute",
+    "real provider behavior",
+    "scheduler / queue / retry behavior",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "quality of returned work"
+  ],
+  "plan_ref": "building-plan:tier-a-3axis-conformance-0",
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-05-31T23:19:35Z",
+  "required_return_shape": "observed_evidence, not_proven",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:tier-a-3axis-conformance-0",
+  "source_facts": [],
+  "specversion": "1.0",
+  "step_refs": [
+    "tier-a-work",
+    "tier-a-review-1",
+    "tier-a-work",
+    "tier-a-mid",
+    "tier-a-review-2",
+    "tier-a-work",
+    "tier-a-close"
+  ],
+  "subject": "work/building-work.json",
+  "task_source_ref": "project/brick-protocol/buildings/tier-a-3axis-conformance-0/work/task.md",
+  "time": "2026-05-31T23:19:35Z",
+  "type": "bp.building_work",
+  "work_statement": "Produce a one-line build note. Return ONE JSON object with exactly observed_evidence (a list) and not_proven (a list). Do not return transition_concern_evidence. Do not choose Movement. Do not report success, failure, approval, or quality."
+}

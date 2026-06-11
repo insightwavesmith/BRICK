@@ -1,0 +1,41 @@
+plan_ref: building-plan:session-continuity-0-design-repair-open
+owner_axis: Brick
+building_id: session-continuity-0-design-repair-open-0524
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - final design correctness
+  - implementation correctness
+  - provider resume behavior
+  - automatic Agent receipt template rendering
+steps:
+  - step_ref: session-continuity-0-design-repair-open-01
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:session-continuity-0-design-repair-open
+        brick_work_ref: work:session-continuity-0-design-repair
+        brick_instance_ref: brick-session-continuity-design-repair-open-01
+        work_statement: Repair the SESSION-CONTINUITY-0 design to incorporate Smith's direction that rendered BrickWork/template body delivery should be absorbed narrowly through support/operator/run.py and AgentAdapterRequest fields, with no new module.
+        comparison_rule: Observe whether the repaired design classifies the issue as Agent receipt/work-packet composition, keeps Adapter as brain connection, adds no new module for template rendering, and keeps AgentFact closed.
+        required_return_shape: role boundary, current structure, changes, unchanged surfaces, axis responsibility, execution sequence, invariants, edge cases, checker plan, candidate file changes, evidence packet, not_proven
+        source_facts:
+          - AGENTS.md
+          - brick/templates/design/minimal-design-template.json
+          - support/docs/spec/brick-protocol-session-continuity-0-design-0524.md
+          - support/operator/run.py
+          - support/connection/agent_adapter.py
+          - agent/receipt.py
+          - agent/return_fact.py
+      - axis: Agent
+        row_ref: agent-row:session-continuity-0-design-repair-open
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:session-continuity-0-design-repair-open
+        movement: forward
+        target_ref: brick-session-continuity-development-02
+        next_brick_instance_ref: brick-session-continuity-development-02

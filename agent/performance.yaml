@@ -1,0 +1,30 @@
+kind: AgentPerformanceContractProjection
+bal_owner: Agent
+module: Agent.performance
+contract: AgentPerformerFact
+projection_only: true
+
+public_fact:
+  name: AgentPerformerFact
+  fields:
+    - name
+    - lane
+    - callable_performers
+
+allowed_facts:
+  - name
+  - lane
+  - callable_performers
+
+forbidden_ownership:
+  - Brick work definition
+  - Link handoff choice
+  - quality judgement
+
+verifiers:
+  - check_axis_contract_projection.py
+  - check_package_path_admission.py
+
+proof_limits:
+  - callable availability is outside this projection
+  - returned fact is outside this projection

@@ -1,0 +1,50 @@
+{
+  "building_id": "run-surface-authority-boundary-codex-multistep-0-0529",
+  "checker_summary_ref": "support/checkers/check_profile.py --all EXIT=0 (P5 validation)",
+  "current_brick_ref": "building-boundary:run-surface-authority-boundary-codex-multistep-0-closed",
+  "evidence_refs_present": true,
+  "evidence_root_refs": [
+    "project/brick-protocol/buildings/run-surface-authority-boundary-codex-multistep-0-0529"
+  ],
+  "frontier_ref": "project/brick-protocol/buildings/run-surface-authority-boundary-codex-multistep-0-0529#frontier:complete",
+  "generated_at": "2026-05-31T00:00:00+00:00",
+  "last_completed_step_ref": "work/step-outputs/run-surface-authority-boundary-codex-multistep-0-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "delivery reliability",
+    "stale evidence snapshot behavior",
+    "semantic correctness of observed frontier",
+    "whether caller or COO should act on disposition evidence",
+    "external notification behavior",
+    "production readiness",
+    "whether a provider process is currently alive",
+    "semantic correctness of current frontier",
+    "whether caller/COO should resume, reroute, or close",
+    "future Building outcome"
+  ],
+  "observed_board_state": "observed_closed_boundary",
+  "portfolio_id": "",
+  "proof_limits": [
+    "support projection only",
+    "reads existing Building or portfolio evidence only",
+    "report packet is not AgentFact",
+    "report packet is not Link transfer / carry / Movement",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "not route target choice",
+    "not driver input",
+    "support frontier observation only",
+    "static evidence files only",
+    "not process liveness",
+    "not pause/resume authority"
+  ],
+  "report_id": "run-surface-authority-boundary-codex-multistep-0-0529-building-frontier",
+  "report_kind": "building_frontier",
+  "required_disposition_owner": "",
+  "sink_refs": [
+    "report-sink:local-inbox"
+  ],
+  "source_truth": false,
+  "trigger_event_ref": "building:run-surface-authority-boundary-codex-multistep-0-0529:frontier-complete"
+}

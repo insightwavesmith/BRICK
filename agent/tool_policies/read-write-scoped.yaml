@@ -1,0 +1,24 @@
+{
+  "tool_policy_ref": "tool-policy:read-write-scoped",
+  "owner_axis": "Agent",
+  "allowed_use": "read and edit only through an admitted Brick write_scope and compatible write-capable adapter support",
+  "mutation_scope": "Brick-declared write_scope only; no free tool execution",
+  "execution_opened": true,
+  "execution_opening_condition": "Effective write opens only when Brick write_scope, this read-write scoped Agent policy, compatible adapter mapping/technical capability, and support write observation are all present; not adapter identity alone",
+  "forbidden_use": [
+    "write outside Brick-declared write_scope",
+    "write secret, token, credential, auth, or .git paths",
+    "git commit or git push",
+    "choose Link Movement",
+    "create GateFact",
+    "classify success, failure, quality, or approval"
+  ],
+  "proof_limits": [
+    "Agent-axis tool policy only",
+    "not a provider runtime",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ]
+}

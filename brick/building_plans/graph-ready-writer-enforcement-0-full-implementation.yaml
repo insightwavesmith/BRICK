@@ -1,0 +1,107 @@
+plan_ref: building-plan:graph-ready-writer-enforcement-0-full-implementation
+owner_axis: Brick
+building_id: graph-ready-writer-enforcement-0-0525
+plan_shape: linear
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - external graph database import
+  - semantic graph correctness
+  - future provider behavior
+  - future evidence materializer behavior
+steps:
+  - step_ref: graph-ready-writer-enforcement-0-01-design
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:graph-ready-writer-enforcement-design
+        brick_work_ref: work:graph-ready-writer-enforcement-design
+        brick_instance_ref: brick-graph-ready-writer-enforcement-design-01
+        work_statement: Design GRAPH-READY-WRITER-ENFORCEMENT-0 as writer enforcement over existing Building evidence writers.
+        comparison_rule: Keep enforcement as compatibility metadata only; do not make graph/source truth/Movement authority.
+        required_return_shape: writer_surfaces, enforced_fields, forbidden_scope, proof_limits, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-graph-ready-enforcement-0-three-axis-analysis-0525.md
+          - support/recording/capture.py
+          - support/recording/building_map.py
+          - support/operator/run.py
+      - axis: Agent
+        row_ref: agent-row:graph-ready-writer-enforcement-design
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:graph-ready-writer-enforcement-design-to-development
+        movement: forward
+        target_ref: brick-graph-ready-writer-enforcement-development-02
+        next_brick_instance_ref: brick-graph-ready-writer-enforcement-development-02
+  - step_ref: graph-ready-writer-enforcement-0-02-development
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:graph-ready-writer-enforcement-development
+        brick_work_ref: work:graph-ready-writer-enforcement-development
+        brick_instance_ref: brick-graph-ready-writer-enforcement-development-02
+        work_statement: Implement graph-ready writer metadata in existing capture/raw/claim_trace/building-map writers and add a checker.
+        comparison_rule: Enforce recorded_at/time, schema_version, dataschema, URN @id, and context compatibility hints without migrating historical roots.
+        required_return_shape: changed_files, enforced_fields, checker_ref, proof_limits, not_proven
+        source_facts:
+          - support/recording/capture.py
+          - support/recording/building_map.py
+          - support/operator/run.py
+      - axis: Agent
+        row_ref: agent-row:graph-ready-writer-enforcement-development
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:graph-ready-writer-enforcement-development-to-qa
+        movement: forward
+        target_ref: brick-graph-ready-writer-enforcement-qa-03
+        next_brick_instance_ref: brick-graph-ready-writer-enforcement-qa-03
+  - step_ref: graph-ready-writer-enforcement-0-03-qa
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:graph-ready-writer-enforcement-qa
+        brick_work_ref: work:graph-ready-writer-enforcement-qa
+        brick_instance_ref: brick-graph-ready-writer-enforcement-qa-03
+        work_statement: Verify graph-ready writer enforcement and identify whether return or reroute repair is required.
+        comparison_rule: If checker failure is local to implementation, Link may return one step to development; broader boundary drift requires reroute to a repair Building.
+        required_return_shape: checker_observations, evidence_root_observations, return_or_reroute_candidate, proof_limits, not_proven
+        source_facts:
+          - support/checkers/check_graph_ready_writer_enforcement0.py
+          - project/brick-protocol/buildings/graph-ready-writer-enforcement-0-0525/work/building-map.json
+      - axis: Agent
+        row_ref: agent-row:graph-ready-writer-enforcement-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:graph-ready-writer-enforcement-qa-to-closure
+        movement: forward
+        target_ref: brick-graph-ready-writer-enforcement-closure-04
+        next_brick_instance_ref: brick-graph-ready-writer-enforcement-closure-04
+  - step_ref: graph-ready-writer-enforcement-0-04-closure
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:graph-ready-writer-enforcement-closure
+        brick_work_ref: work:graph-ready-writer-enforcement-closure
+        brick_instance_ref: brick-graph-ready-writer-enforcement-closure-04
+        work_statement: Close GRAPH-READY-WRITER-ENFORCEMENT-0 with observed evidence and next COO Movement.
+        comparison_rule: Preserve observed evidence, narrow proof, not-proven, held, and next Movement only.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, held, coo_movement
+        source_facts:
+          - support/docs/spec/brick-protocol-graph-ready-writer-enforcement-0-cloud-events-prov-jsonld-0525.md
+          - project/brick-protocol/buildings/graph-ready-writer-enforcement-0-0525/work/building-map.json
+      - axis: Agent
+        row_ref: agent-row:graph-ready-writer-enforcement-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:graph-ready-writer-enforcement-closure-to-boundary
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:graph-ready-writer-enforcement-0-closed
+        next_brick_instance_ref: building-boundary-graph-ready-writer-enforcement-0-closed

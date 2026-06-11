@@ -1,0 +1,160 @@
+plan_ref: building-plan:mcp-projection-0-full-implementation
+owner_axis: Brick
+building_id: mcp-projection-0-0525
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - Codex MCP installation behavior
+  - Claude MCP installation behavior
+  - external app reload behavior
+  - provider quality
+  - provider session behavior
+  - production MCP compliance
+  - external network transport
+  - native tool or hook execution
+  - future Building correctness
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority
+steps:
+  - step_ref: mcp-projection-0-01-design
+    rows:
+      - axis: Brick
+        row_ref: brick-row:mcp-projection-0-design
+        brick_work_ref: work:mcp-projection-0-design
+        brick_instance_ref: brick-mcp-projection-design-01
+        work_statement: Design MCP-PROJECTION-0 as a read-only local call door over admitted Agent resources.
+        comparison_rule: Observe whether the design starts from Brick / Agent / Link responsibilities, keeps agent/ as source, and does not open runtime, providers, storage, or Movement choice.
+        required_return_shape: role_boundary, current_structure, standards_alignment, axis_responsibility, allowed_resources, allowed_tools, unchanged_surfaces, invariants, edge_cases, checker_plan, candidate_file_changes, evidence_packet, not_proven
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+          - support/docs/spec/brick-protocol-mcp-projection-0-agent-resource-call-door-0525.md
+          - support/docs/spec/brick-protocol-agent-resource-toolkit-0-agent-resource-renderer-0525.md
+          - support/docs/spec/brick-protocol-coo-sync-0-local-app-projection-0525.md
+          - brick/templates/design/minimal-design-template.json
+      - axis: Agent
+        row_ref: agent-row:mcp-projection-0-design
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:mcp-projection-0-design
+        movement: forward
+        target_ref: brick-mcp-projection-development-02
+        next_brick_instance_ref: brick-mcp-projection-development-02
+  - step_ref: mcp-projection-0-02-development
+    rows:
+      - axis: Brick
+        row_ref: brick-row:mcp-projection-0-development
+        brick_work_ref: work:mcp-projection-0-development
+        brick_instance_ref: brick-mcp-projection-development-02
+        work_statement: Implement support/connection/mcp_projection.py, its checker, package path admission, projection snippets, and active control docs for MCP-PROJECTION-0.
+        comparison_rule: Observe whether implementation exposes only read-only resources/tools over Agent resource renderer outputs and leaves provider calls, app config writes, and Movement ownership closed.
+        required_return_shape: implementation_map, changed_files, verification_evidence, claim_ledger, boundaries_preserved, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-mcp-projection-0-agent-resource-call-door-0525.md
+          - support/connection/agent_resources.py
+          - support/connection/coo_sync.py
+          - brick/templates/do/minimal-do-return-template.json
+      - axis: Agent
+        row_ref: agent-row:mcp-projection-0-development
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:mcp-projection-0-development
+        movement: forward
+        target_ref: brick-mcp-projection-codex-verification-03
+        next_brick_instance_ref: brick-mcp-projection-codex-verification-03
+  - step_ref: mcp-projection-0-03-codex-verification
+    selected_adapter_ref: adapter:codex-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:mcp-projection-0-codex-verification
+        brick_work_ref: work:mcp-projection-0-codex-verification
+        brick_instance_ref: brick-mcp-projection-codex-verification-03
+        work_statement: Verify MCP-PROJECTION-0 from the Codex lane as Building support evidence.
+        comparison_rule: Observe whether the MCP projection is a read-only call door over Agent resources and not a runtime/provider/Movement owner.
+        required_return_shape: checked_work, checked_sources, match_facts, missing_or_mismatched_facts, boundary_violations, evidence_used, narrowly_proven, not_proven, next_movement_recommendation
+        source_facts:
+          - support/docs/spec/brick-protocol-mcp-projection-0-agent-resource-call-door-0525.md
+          - support/connection/mcp_projection.py
+          - support/checkers/check_mcp_projection0_agent_resource_call_door.py
+          - support/docs/projection/brick-protocol-mcp-projection-0-install-snippets-0525.md
+          - brick/templates/review/minimal-review-template.json
+      - axis: Agent
+        row_ref: agent-row:mcp-projection-0-codex-verification
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:mcp-projection-0-codex-verification
+        movement: forward
+        target_ref: brick-mcp-projection-claude-verification-04
+        next_brick_instance_ref: brick-mcp-projection-claude-verification-04
+  - step_ref: mcp-projection-0-04-claude-verification
+    selected_adapter_ref: adapter:claude-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:mcp-projection-0-claude-verification
+        brick_work_ref: work:mcp-projection-0-claude-verification
+        brick_instance_ref: brick-mcp-projection-claude-verification-04
+        work_statement: Verify MCP-PROJECTION-0 from the Claude lane as Building support evidence.
+        comparison_rule: Observe whether the MCP projection can be read as a Claude-compatible call door without making Claude or MCP a source of protocol meaning.
+        required_return_shape: checked_work, checked_sources, match_facts, missing_or_mismatched_facts, boundary_violations, evidence_used, narrowly_proven, not_proven, next_movement_recommendation
+        source_facts:
+          - support/docs/spec/brick-protocol-mcp-projection-0-agent-resource-call-door-0525.md
+          - support/connection/mcp_projection.py
+          - support/checkers/check_mcp_projection0_agent_resource_call_door.py
+          - support/docs/projection/brick-protocol-mcp-projection-0-install-snippets-0525.md
+          - brick/templates/review/minimal-review-template.json
+      - axis: Agent
+        row_ref: agent-row:mcp-projection-0-claude-verification
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:mcp-projection-0-claude-verification
+        movement: forward
+        target_ref: brick-mcp-projection-integration-05
+        next_brick_instance_ref: brick-mcp-projection-integration-05
+  - step_ref: mcp-projection-0-05-integration
+    rows:
+      - axis: Brick
+        row_ref: brick-row:mcp-projection-0-integration
+        brick_work_ref: work:mcp-projection-0-integration
+        brick_instance_ref: brick-mcp-projection-integration-05
+        work_statement: Integrate in-scope MCP-PROJECTION-0 verification observations and update active context.
+        comparison_rule: Observe whether integration preserves projection-only MCP boundaries and leaves BUILDING-GRAPH-NEED-0 as the next candidate.
+        required_return_shape: repairs, checks_rerun, next_building_candidates, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-mcp-projection-0-agent-resource-call-door-0525.md
+      - axis: Agent
+        row_ref: agent-row:mcp-projection-0-integration
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:mcp-projection-0-integration
+        movement: forward
+        target_ref: brick-mcp-projection-closure-06
+        next_brick_instance_ref: brick-mcp-projection-closure-06
+  - step_ref: mcp-projection-0-06-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:mcp-projection-0-closure
+        brick_work_ref: work:mcp-projection-0-closure
+        brick_instance_ref: brick-mcp-projection-closure-06
+        work_statement: Close MCP-PROJECTION-0 with observed evidence, narrowly proven scope, not_proven, and next Movement candidate.
+        comparison_rule: Observe whether closure names BUILDING-GRAPH-NEED-0 only as next candidate and keeps graph changes closed.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, next_movement
+        source_facts:
+          - support/docs/spec/brick-protocol-mcp-projection-0-agent-resource-call-door-0525.md
+      - axis: Agent
+        row_ref: agent-row:mcp-projection-0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:mcp-projection-0-closure
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:mcp-projection-0-closed
+        next_brick_instance_ref: building-boundary-mcp-projection-0-closed

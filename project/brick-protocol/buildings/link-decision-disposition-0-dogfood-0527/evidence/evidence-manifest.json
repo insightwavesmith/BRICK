@@ -1,0 +1,70 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:link-decision-disposition-0-dogfood-0527::evidence/evidence-manifest.json",
+  "building_id": "link-decision-disposition-0-dogfood-0527",
+  "building_map_ref": "work/building-map.json",
+  "claim_trace_refs": [
+    "evidence/claim_trace/brick/work_contract.json",
+    "evidence/claim_trace/agent/returned_claims.json",
+    "evidence/claim_trace/link/transfer_trace.json",
+    "evidence/claim_trace/link/carry_trace.json",
+    "evidence/claim_trace/link/sufficiency_trace.json",
+    "evidence/claim_trace/link/movement_trace.json"
+  ],
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-05-27T08:50:19Z",
+  "id": "urn:bp:building:link-decision-disposition-0-dogfood-0527::evidence/evidence-manifest.json",
+  "not_proven": [
+    "semantic correctness of Agent transition concerns",
+    "semantic correctness of Link disposition",
+    "production runtime readiness",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "not proven: source truth",
+    "not proven: success judgment",
+    "not proven: quality judgment",
+    "not proven: Movement authority"
+  ],
+  "plan_ref": "building-plan:link-decision-disposition-0-dogfood",
+  "proof_limits": [
+    "support evidence only",
+    "transition concern disposition dogfood only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "raw_manifest_ref": "raw/raw-manifest.json",
+  "raw_stream_refs": [
+    "raw/brick-work.jsonl",
+    "raw/agent-return.jsonl",
+    "raw/link.jsonl"
+  ],
+  "recorded_at": "2026-05-27T08:50:19Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:link-decision-disposition-0-dogfood-0527",
+  "specversion": "1.0",
+  "step_output_refs": [
+    "work/step-outputs/link-decision-disposition-0-plan-attempt-1/step-output.json",
+    "work/step-outputs/link-decision-disposition-0-design-attempt-1/step-output.json",
+    "work/step-outputs/link-decision-disposition-0-plan-attempt-2/step-output.json",
+    "work/step-outputs/link-decision-disposition-0-design-attempt-2/step-output.json",
+    "work/step-outputs/link-decision-disposition-0-qa-attempt-1/step-output.json",
+    "work/step-outputs/link-decision-disposition-0-inspect-attempt-1/step-output.json",
+    "work/step-outputs/link-decision-disposition-0-design-attempt-3/step-output.json",
+    "work/step-outputs/link-decision-disposition-0-qa-attempt-2/step-output.json",
+    "work/step-outputs/link-decision-disposition-0-closure-attempt-1/step-output.json"
+  ],
+  "subject": "evidence/evidence-manifest.json",
+  "time": "2026-05-27T08:50:19Z",
+  "type": "bp.evidence_manifest"
+}

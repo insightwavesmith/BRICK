@@ -1,0 +1,111 @@
+plan_ref: building-plan:building-automation-level-0-current-level-audit
+owner_axis: Brick
+building_id: building-automation-level-0-0526
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - full Building automation readiness
+  - semantic correctness of future reroute/replay loops
+  - provider quality
+  - provider-native session behavior
+  - graph DB behavior
+steps:
+  - step_ref: building-automation-level-0-01-rubric
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-automation-level-0-rubric
+        brick_work_ref: work:building-automation-level-0-rubric
+        brick_instance_ref: brick-building-automation-level-0-rubric
+        work_statement: Define the L1 through L5 Building automation ladder without opening a new runtime engine.
+        comparison_rule: Verify the ladder separates single Brick, linear Building, graph-aware Building, real Agent work, and self-running repair/replay Building.
+        required_return_shape: level_ladder, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - support/docs/spec/brick-protocol-building-automation-level-0-current-level-assessment-0526.md
+          - support/docs/spec/brick-protocol-movement-binary-0-next-work-and-automation-queue-0526.md
+      - axis: Agent
+        row_ref: agent-row:building-automation-level-0-rubric
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:building-automation-level-0-rubric-to-inventory
+        movement: forward
+        target_ref: brick-building-automation-level-0-inventory
+        next_brick_instance_ref: brick-building-automation-level-0-inventory
+  - step_ref: building-automation-level-0-02-inventory
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-automation-level-0-inventory
+        brick_work_ref: work:building-automation-level-0-inventory
+        brick_instance_ref: brick-building-automation-level-0-inventory
+        work_statement: Inventory current runner, operator helper, evidence roots, graph support, Agent Objects, and adapter lanes against the automation ladder.
+        comparison_rule: Observe current files and Building roots only; do not claim full automation readiness.
+        required_return_shape: observed_surfaces, observed_roots, observed_checkers, proof_limits, not_proven
+        source_facts:
+          - support/operator/run.py
+          - support/operator/building_operation.py
+          - support/connection/agent_adapter.py
+          - agent/objects/coo.yaml
+          - agent/objects/dev.yaml
+          - agent/objects/qa.yaml
+      - axis: Agent
+        row_ref: agent-row:building-automation-level-0-inventory
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:building-automation-level-0-inventory-to-gap-classification
+        movement: forward
+        target_ref: brick-building-automation-level-0-gap-classification
+        next_brick_instance_ref: brick-building-automation-level-0-gap-classification
+  - step_ref: building-automation-level-0-03-gap-classification
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-automation-level-0-gap-classification
+        brick_work_ref: work:building-automation-level-0-gap-classification
+        brick_instance_ref: brick-building-automation-level-0-gap-classification
+        work_statement: Classify the current automation level and name the next gaps toward L5.
+        comparison_rule: Assessment must use observed evidence refs and must not treat checker pass as source truth.
+        required_return_shape: level_assessment, current_level, gap_classes, next_repair_candidates, proof_limits, not_proven
+        source_facts:
+          - project/brick-protocol/buildings/movement-binary-0-0526/work/building-map.json
+          - project/brick-protocol/buildings/real-write-dogfood-0-0525/work/building-map.json
+          - project/brick-protocol/buildings/agent-brain-swap-dogfood-0-0525/work/building-map.json
+          - project/brick-protocol/buildings/multi-lane-dogfood-0-0525/work/building-map.json
+      - axis: Agent
+        row_ref: agent-row:building-automation-level-0-gap-classification
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:building-automation-level-0-gap-classification-to-closure
+        movement: forward
+        target_ref: brick-building-automation-level-0-closure
+        next_brick_instance_ref: brick-building-automation-level-0-closure
+  - step_ref: building-automation-level-0-04-closure
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-automation-level-0-closure
+        brick_work_ref: work:building-automation-level-0-closure
+        brick_instance_ref: brick-building-automation-level-0-closure
+        work_statement: Close BUILDING-AUTOMATION-LEVEL-0 with observed evidence, level assessment, not-proven items, held boundaries, and next Movement.
+        comparison_rule: Closure must not claim L5 full automation readiness.
+        required_return_shape: observed_evidence, level_assessment, current_level, narrowly_proven, not_proven, held, coo_movement
+        source_facts:
+          - brick/building_plans/building-automation-level-0-current-level-audit.yaml
+          - support/docs/spec/brick-protocol-building-automation-level-0-current-level-assessment-0526.md
+      - axis: Agent
+        row_ref: agent-row:building-automation-level-0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:building-automation-level-0-closure-to-boundary
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: BUILDING-AUTOMATION-LEVEL-0 assessment closed; next work is LINK-REROUTE-REPLAY-LOOP-0.
+        target_ref: building-boundary:building-automation-level-0-closed
+        next_brick_instance_ref: building-boundary-building-automation-level-0-closed

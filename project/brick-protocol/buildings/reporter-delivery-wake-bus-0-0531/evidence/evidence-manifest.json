@@ -1,0 +1,89 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:reporter-delivery-wake-bus-0-0531::evidence/evidence-manifest.json",
+  "building_id": "reporter-delivery-wake-bus-0-0531",
+  "building_map_ref": "work/building-map.json",
+  "claim_trace_refs": [
+    "evidence/claim_trace/brick/work_contract.json",
+    "evidence/claim_trace/agent/returned_claims.json",
+    "evidence/claim_trace/link/transfer_trace.json",
+    "evidence/claim_trace/link/carry_trace.json",
+    "evidence/claim_trace/link/sufficiency_trace.json",
+    "evidence/claim_trace/link/movement_trace.json"
+  ],
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "declaration_evidence_refs": [
+    "work/task.md",
+    "work/building-intake.json",
+    "work/preset-expansion.json",
+    "work/declared-building-plan.json",
+    "work/link-launch-policy.json"
+  ],
+  "generatedAtTime": "2026-05-31T11:23:17Z",
+  "id": "urn:bp:building:reporter-delivery-wake-bus-0-0531::evidence/evidence-manifest.json",
+  "not_proven": [
+    "real provider thread wake behavior",
+    "real Slack delivery",
+    "external notification behavior",
+    "delivery reliability",
+    "semantic usefulness for every future Building type",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "not proven: source truth",
+    "not proven: success judgment",
+    "not proven: quality judgment",
+    "not proven: Movement authority"
+  ],
+  "plan_ref": "building-plan:reporter-delivery-wake-bus-0-0531",
+  "plan_snapshot": {
+    "plan_hash": "a2273e987f84da37046b2265774f5574346c737c47b5f729e38cbd55cd49b63d",
+    "plan_hash_algorithm": "sha256",
+    "plan_hash_basis": "canonical sorted-key JSON of the declared plan body",
+    "plan_ref": "building-plan:reporter-delivery-wake-bus-0-0531",
+    "plan_rows_copy": "{\"building_id\":\"reporter-delivery-wake-bus-0-0531\",\"chain_preset_ref\":\"building-chain-preset:engine-feature-hard\",\"composition_mode\":\"caller_or_coo_declared_graph_composition\",\"declared_by\":\"coo reporter-delivery-wake-bus-0-0531\",\"dynamic_walker_evidence\":{\"held\":false,\"hold\":{},\"kind\":\"dynamic_walker_evidence\",\"node_reroute_budgets\":{},\"node_reroute_landings\":{},\"not_proven\":[\"semantic correctness of the agent-proposed reroute\",\"parallel runtime execution (P-walker-2 fan-in/fan-out out of scope here)\",\"scheduler / queue / retry behavior\",\"caller/COO disposition after a HOLD\"],\"proof_limits\":[\"support evidence only\",\"dynamic walker walks declared gate-adopted agent-proposed routes only\",\"support authors no route or Movement\",\"not source truth\",\"not success judgment\",\"not quality judgment\",\"not Movement authority\"],\"reroute_adoption_records\":[],\"walker_mode\":\"dynamic\"},\"graph_context_ref\":\"support-projection:declared-graph-topology\",\"not_proven\":[\"real provider thread wake behavior\",\"real Slack delivery\",\"external notification behavior\",\"delivery reliability\",\"semantic usefulness for every future Building type\"],\"owner_axis\":\"Brick\",\"plan_ref\":\"building-plan:reporter-delivery-wake-bus-0-0531\",\"preset_expansion\":{\"agent_object_refs\":[\"agent-object:design-lead\",\"agent-object:dev\",\"agent-object:qa\",\"agent-object:inspector\",\"agent-object:inspector\",\"agent-object:coo\"],\"chain_preset_ref\":\"building-chain-preset:engine-feature-hard\",\"expanded_brick_template_refs\":[\"building-step-template:design\",\"building-step-template:work\",\"building-step-template:code-attack-qa\",\"building-step-template:axis-attack-qa\",\"building-step-template:evidence-integrity\",\"building-step-template:closure\"],\"expanded_step_template_refs\":[\"building-step-template:design\",\"building-step-template:work\",\"building-step-template:code-attack-qa\",\"building-step-template:axis-attack-qa\",\"building-step-template:evidence-integrity\",\"building-step-template:closure\"],\"not_proven\":[\"semantic fitness of selected shape\",\"selected preset ref was not declared unless separately present\"],\"proof_limits\":[\"support records caller / COO declared graph composition only\",\"not automatic preset selection\",\"not automatic shape selection\",\"not source truth\",\"not success judgment\",\"not quality judgment\",\"not Movement authority\"],\"selected_preset_ref\":\"building-chain-preset:engine-feature-hard\",\"selected_shape_ref\":\"building-shape:design-needed\",\"selection_rule\":\"caller_or_coo_declared_only\"},\"proof_limits\":[\"support evidence only\",\"local adapter dogfood only\",\"not source truth\",\"not success judgment\",\"not quality judgment\",\"not Movement authority\",\"not route input\"],\"selected_adapter_ref\":\"adapter:local\",\"selected_model_ref\":\"model:default\",\"selected_preset_ref\":\"building-chain-preset:engine-feature-hard\",\"selected_shape_ref\":\"building-shape:design-needed\",\"selection_rule\":\"caller_or_coo_declared_only\",\"steps\":[{\"caller_supplied_link_facts\":null,\"not_proven\":[\"real provider thread wake behavior\",\"real Slack delivery\",\"external notification behavior\",\"delivery reliability\",\"semantic usefulness for every future Building type\"],\"proof_limits\":[\"support evidence only\",\"local adapter dogfood only\",\"not source truth\",\"not success judgment\",\"not quality judgment\",\"not Movement authority\",\"not route input\"],\"rows\":[{\"axis\":\"Brick\",\"brick_instance_ref\":\"brick-design\",\"brick_work_ref\":\"work:reporter-delivery-design\",\"comparison_rule\":\"Return design evidence without source truth, quality judgment, Movement authority, or target selection.\",\"required_return_shape\":\"observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits\",\"row_ref\":\"brick-row:reporter-delivery-design\",\"source_facts\":[\"project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/task.md\",\"project/brick-protocol/status/kernel/brick-protocol-reporter-notification-projection-0-support-record-0531.md\"],\"work_statement\":\"Design the support-only local delivery and operator wake bus boundary.\"},{\"agent_object_ref\":\"agent-object:design-lead\",\"axis\":\"Agent\",\"row_ref\":\"agent-row:reporter-delivery-design\"},{\"axis\":\"Link\",\"declared_gate_refs\":[\"link-gate:default-transition\",\"link-gate:strict\"],\"movement\":\"forward\",\"next_brick_instance_ref\":\"brick-work\",\"row_ref\":\"link-row:edge:design-to-work\",\"target_ref\":\"brick-work\"}],\"selected_adapter_ref\":\"adapter:local\",\"selected_model_ref\":\"model:default\",\"step_ref\":\"reporter-delivery-design\"},{\"caller_supplied_link_facts\":null,\"not_proven\":[\"real provider thread wake behavior\",\"real Slack delivery\",\"external notification behavior\",\"delivery reliability\",\"semantic usefulness for every future Building type\"],\"proof_limits\":[\"support evidence only\",\"local adapter dogfood only\",\"not source truth\",\"not success judgment\",\"not quality judgment\",\"not Movement authority\",\"not route input\"],\"rows\":[{\"axis\":\"Brick\",\"brick_instance_ref\":\"brick-work\",\"brick_work_ref\":\"work:reporter-delivery-work\",\"comparison_rule\":\"Returned implementation evidence must include made_changes, observed evidence, blocked or missing evidence, not_proven, remaining_delta, and proof_limits.\",\"required_return_shape\":\"made_changes, observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits\",\"row_ref\":\"brick-row:reporter-delivery-work\",\"source_facts\":[\"project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/task.md\",\"support/operator/reporter.py\",\"support/operator/report_sinks.py\"],\"work_statement\":\"Implement the support-only reporter local inbox and provider-neutral local operator wake projection.\"},{\"agent_object_ref\":\"agent-object:dev\",\"axis\":\"Agent\",\"row_ref\":\"agent-row:reporter-delivery-work\"},{\"axis\":\"Link\",\"declared_gate_refs\":[\"link-gate:default-transition\",\"link-gate:strict\"],\"movement\":\"forward\",\"next_brick_instance_ref\":\"brick-code-attack-qa\",\"row_ref\":\"link-row:edge:work-to-code-attack-qa\",\"target_ref\":\"brick-code-attack-qa\"}],\"selected_adapter_ref\":\"adapter:local\",\"selected_model_ref\":\"model:default\",\"step_ref\":\"reporter-delivery-work\"},{\"caller_supplied_link_facts\":null,\"not_proven\":[\"real provider thread wake behavior\",\"real Slack delivery\",\"external notification behavior\",\"delivery reliability\",\"semantic usefulness for every future Building type\"],\"proof_limits\":[\"support evidence only\",\"local adapter dogfood only\",\"not source truth\",\"not success judgment\",\"not quality judgment\",\"not Movement authority\",\"not route input\"],\"rows\":[{\"axis\":\"Brick\",\"brick_instance_ref\":\"brick-code-attack-qa\",\"brick_work_ref\":\"work:reporter-delivery-code-attack-qa\",\"comparison_rule\":\"Return QA observations and proof limits without success, quality, or Movement judgment.\",\"required_return_shape\":\"observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits\",\"row_ref\":\"brick-row:reporter-delivery-code-attack-qa\",\"source_facts\":[\"project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/task.md\",\"support/checkers/profiles/reporter_notification_projection.yaml\"],\"work_statement\":\"Attack the delivery / wake bus implementation and checker probes for regression risk.\"},{\"agent_object_ref\":\"agent-object:qa\",\"axis\":\"Agent\",\"row_ref\":\"agent-row:reporter-delivery-code-attack-qa\"},{\"axis\":\"Link\",\"declared_gate_refs\":[\"link-gate:default-transition\",\"link-gate:strict\"],\"movement\":\"forward\",\"next_brick_instance_ref\":\"brick-axis-attack-qa\",\"row_ref\":\"link-row:edge:code-attack-qa-to-axis-attack-qa\",\"target_ref\":\"brick-axis-attack-qa\"}],\"selected_adapter_ref\":\"adapter:local\",\"selected_model_ref\":\"model:default\",\"step_ref\":\"reporter-delivery-code-attack-qa\"},{\"caller_supplied_link_facts\":null,\"not_proven\":[\"real provider thread wake behavior\",\"real Slack delivery\",\"external notification behavior\",\"delivery reliability\",\"semantic usefulness for every future Building type\"],\"proof_limits\":[\"support evidence only\",\"local adapter dogfood only\",\"not source truth\",\"not success judgment\",\"not quality judgment\",\"not Movement authority\",\"not route input\"],\"rows\":[{\"axis\":\"Brick\",\"brick_instance_ref\":\"brick-axis-attack-qa\",\"brick_work_ref\":\"work:reporter-delivery-axis-attack-qa\",\"comparison_rule\":\"Return axis observations and not_proven without treating support as an owner axis.\",\"required_return_shape\":\"observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits\",\"row_ref\":\"brick-row:reporter-delivery-axis-attack-qa\",\"source_facts\":[\"project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/task.md\",\"AGENTS.md\",\"link/gate.yaml\",\"link/movement.yaml\"],\"work_statement\":\"Inspect Brick / Agent / Link / support boundaries for reporter delivery and operator wake projection.\"},{\"agent_object_ref\":\"agent-object:inspector\",\"axis\":\"Agent\",\"row_ref\":\"agent-row:reporter-delivery-axis-attack-qa\"},{\"axis\":\"Link\",\"declared_gate_refs\":[\"link-gate:default-transition\",\"link-gate:strict\"],\"movement\":\"forward\",\"next_brick_instance_ref\":\"brick-evidence-integrity\",\"row_ref\":\"link-row:edge:axis-attack-qa-to-evidence-integrity\",\"target_ref\":\"brick-evidence-integrity\"}],\"selected_adapter_ref\":\"adapter:local\",\"selected_model_ref\":\"model:default\",\"step_ref\":\"reporter-delivery-axis-attack-qa\"},{\"caller_supplied_link_facts\":null,\"not_proven\":[\"real provider thread wake behavior\",\"real Slack delivery\",\"external notification behavior\",\"delivery reliability\",\"semantic usefulness for every future Building type\"],\"proof_limits\":[\"support evidence only\",\"local adapter dogfood only\",\"not source truth\",\"not success judgment\",\"not quality judgment\",\"not Movement authority\",\"not route input\"],\"rows\":[{\"axis\":\"Brick\",\"brick_instance_ref\":\"brick-evidence-integrity\",\"brick_work_ref\":\"work:reporter-delivery-evidence-integrity\",\"comparison_rule\":\"Return evidence integrity observations, gaps, not_proven, remaining_delta, and proof_limits only.\",\"required_return_shape\":\"observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits\",\"row_ref\":\"brick-row:reporter-delivery-evidence-integrity\",\"source_facts\":[\"project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/task.md\",\"project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/\"],\"work_statement\":\"Inspect declaration artifacts, local inbox packets, and proof-limit separation for the reporter delivery bus.\"},{\"agent_object_ref\":\"agent-object:inspector\",\"axis\":\"Agent\",\"row_ref\":\"agent-row:reporter-delivery-evidence-integrity\"},{\"axis\":\"Link\",\"declared_gate_refs\":[\"link-gate:default-transition\",\"link-gate:strict\"],\"movement\":\"forward\",\"next_brick_instance_ref\":\"brick-closure\",\"row_ref\":\"link-row:edge:evidence-integrity-to-closure\",\"target_ref\":\"brick-closure\"}],\"selected_adapter_ref\":\"adapter:local\",\"selected_model_ref\":\"model:default\",\"step_ref\":\"reporter-delivery-evidence-integrity\"},{\"caller_supplied_link_facts\":null,\"not_proven\":[\"real provider thread wake behavior\",\"real Slack delivery\",\"external notification behavior\",\"delivery reliability\",\"semantic usefulness for every future Building type\"],\"proof_limits\":[\"support evidence only\",\"local adapter dogfood only\",\"not source truth\",\"not success judgment\",\"not quality judgment\",\"not Movement authority\",\"not route input\"],\"rows\":[{\"axis\":\"Brick\",\"brick_instance_ref\":\"brick-closure\",\"brick_work_ref\":\"work:reporter-delivery-closure\",\"comparison_rule\":\"Return closure synthesis without source truth, quality judgment, success judgment, or Movement authority.\",\"required_return_shape\":\"observed_evidence, blocked_or_missing_evidence, not_proven, remaining_delta, proof_limits\",\"row_ref\":\"brick-row:reporter-delivery-closure\",\"source_facts\":[\"project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/task.md\",\"project/brick-protocol/status/kernel/brick-protocol-reporter-delivery-wake-bus-0-support-record-0531.md\"],\"work_statement\":\"Record closure support evidence and remaining delta for local delivery / wake bus dogfood.\"},{\"agent_object_ref\":\"agent-object:coo\",\"axis\":\"Agent\",\"row_ref\":\"agent-row:reporter-delivery-closure\"},{\"axis\":\"Link\",\"building_lifecycle\":{\"not_proven\":[\"real provider thread wake behavior\",\"real Slack delivery\",\"external notification behavior\",\"delivery reliability\",\"semantic usefulness for every future Building type\"],\"proof_limits\":[\"support evidence only\",\"local adapter dogfood only\",\"not source truth\",\"not success judgment\",\"not quality judgment\",\"not Movement authority\",\"not route input\"],\"reason\":\"declared closure boundary after local delivery wake bus dogfood\",\"state\":\"closed\"},\"declared_gate_refs\":[\"link-gate:default-transition\",\"link-gate:strict\"],\"movement\":\"forward\",\"next_brick_instance_ref\":\"building-boundary:reporter-delivery-wake-bus-0-0531-closed\",\"row_ref\":\"link-row:edge:closure-to-closed-boundary\",\"target_ref\":\"building-boundary:reporter-delivery-wake-bus-0-0531-closed\"}],\"selected_adapter_ref\":\"adapter:local\",\"selected_model_ref\":\"model:default\",\"step_ref\":\"reporter-delivery-closure\"}],\"task_source_ref\":\"project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/task.md\"}",
+    "proof_limits": [
+      "evidence copy only",
+      "not source truth"
+    ]
+  },
+  "proof_limits": [
+    "support evidence only",
+    "local adapter dogfood only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "not route input"
+  ],
+  "raw_manifest_ref": "raw/raw-manifest.json",
+  "raw_stream_refs": [
+    "raw/brick-work.jsonl",
+    "raw/agent-return.jsonl",
+    "raw/link.jsonl"
+  ],
+  "recorded_at": "2026-05-31T11:23:17Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:reporter-delivery-wake-bus-0-0531",
+  "specversion": "1.0",
+  "step_output_refs": [
+    "work/step-outputs/reporter-delivery-design-attempt-1/step-output.json",
+    "work/step-outputs/reporter-delivery-work-attempt-1/step-output.json",
+    "work/step-outputs/reporter-delivery-code-attack-qa-attempt-1/step-output.json",
+    "work/step-outputs/reporter-delivery-axis-attack-qa-attempt-1/step-output.json",
+    "work/step-outputs/reporter-delivery-evidence-integrity-attempt-1/step-output.json",
+    "work/step-outputs/reporter-delivery-closure-attempt-1/step-output.json"
+  ],
+  "subject": "evidence/evidence-manifest.json",
+  "task_source_ref": "project/brick-protocol/buildings/reporter-delivery-wake-bus-0-0531/work/task.md",
+  "time": "2026-05-31T11:23:17Z",
+  "type": "bp.evidence_manifest"
+}

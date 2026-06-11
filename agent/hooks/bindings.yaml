@@ -1,0 +1,51 @@
+{
+  "bindings": {
+    "agent-object:coo": [
+      "hook:instruction-chain-read",
+      "hook:leader-write-need-gate",
+      "hook:unsafe-mutation-guard",
+      "hook:resource-ref-redaction"
+    ],
+    "agent-object:dev": [
+      "hook:instruction-chain-read",
+      "hook:unsafe-mutation-guard",
+      "hook:resource-ref-redaction"
+    ],
+    "agent-object:qa": [
+      "hook:instruction-chain-read",
+      "hook:reviewer-no-mutation",
+      "hook:unsafe-mutation-guard",
+      "hook:resource-ref-redaction"
+    ],
+    "agent-object:pm-lead": [
+      "hook:instruction-chain-read",
+      "hook:leader-write-need-gate",
+      "hook:unsafe-mutation-guard",
+      "hook:resource-ref-redaction"
+    ],
+    "agent-object:design-lead": [
+      "hook:instruction-chain-read",
+      "hook:leader-write-need-gate",
+      "hook:unsafe-mutation-guard",
+      "hook:resource-ref-redaction"
+    ],
+    "agent-object:cto-lead": [
+      "hook:instruction-chain-read",
+      "hook:leader-write-need-gate",
+      "hook:unsafe-mutation-guard",
+      "hook:resource-ref-redaction"
+    ],
+    "agent-object:qa-lead": [
+      "hook:instruction-chain-read",
+      "hook:leader-write-need-gate",
+      "hook:unsafe-mutation-guard",
+      "hook:resource-ref-redaction"
+    ],
+    "agent-object:inspector": [
+      "hook:instruction-chain-read",
+      "hook:reviewer-no-mutation",
+      "hook:unsafe-mutation-guard",
+      "hook:resource-ref-redaction"
+    ]
+  }
+}

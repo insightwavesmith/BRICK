@@ -1,0 +1,33 @@
+{
+  "object_ref": "agent-object:qa",
+  "name": "qa",
+  "lane": "reviewer",
+  "callable_performer_refs": [
+    "callable:local:agent-invoke0-smoke"
+  ],
+  "prompt_refs": [
+    "prompt:qa"
+  ],
+  "skill_refs": [
+    "skill:evidence-verification",
+    "skill:protocol-boundary-watch"
+  ],
+  "hook_refs": [
+    "hook:instruction-chain-read",
+    "hook:reviewer-no-mutation",
+    "hook:unsafe-mutation-guard",
+    "hook:resource-ref-redaction"
+  ],
+  "tool_policy_refs": [
+    "tool-policy:reviewer-readonly"
+  ],
+  "discipline_refs": [
+    "discipline:closed-agentfact",
+    "discipline:proof-limits"
+  ],
+  "adapter_refs": [
+    "adapter:local",
+    "adapter:codex-local",
+    "adapter:claude-local"
+  ]
+}

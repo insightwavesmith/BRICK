@@ -1,0 +1,42 @@
+plan_ref: building-plan:session-continuity-0-development-open
+owner_axis: Brick
+building_id: session-continuity-0-development-open-0524
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - implementation correctness
+  - provider resume behavior
+  - provider credential validity
+  - Link route/replay correctness
+steps:
+  - step_ref: session-continuity-0-development-open-01
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:session-continuity-0-development-open
+        brick_work_ref: work:session-continuity-0-development
+        brick_instance_ref: brick-session-continuity-development-open-01
+        work_statement: Implement SESSION-CONTINUITY-0 from the repaired design. Keep the implementation inside existing SIMPLE-RUN-0 surfaces where possible, add checker-first evidence, keep AgentFact closed, preserve Agent receipt/work-packet composition, and do not implement LINK-ROUTE-REPLAY-0.
+        comparison_rule: Observe whether implementation maps to the design, adds provider-neutral continuity request evidence, adds complete work-packet delivery into AgentAdapterRequest, rejects raw provider values in committed evidence, and preserves Link Movement ownership.
+        required_return_shape: implementation_map, changed_files, verification_evidence, claim_ledger, not_proven
+        source_facts:
+          - AGENTS.md
+          - brick/templates/do/minimal-do-return-template.json
+          - support/docs/spec/brick-protocol-session-continuity-0-design-0524.md
+          - project/brick-protocol/status/kernel/brick-protocol-session-continuity-0-design-report-0524.md
+          - support/operator/run.py
+          - support/connection/agent_adapter.py
+          - agent/receipt.py
+          - agent/return_fact.py
+      - axis: Agent
+        row_ref: agent-row:session-continuity-0-development-open
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:session-continuity-0-development-open
+        movement: forward
+        target_ref: brick-session-continuity-codex-qa-03
+        next_brick_instance_ref: brick-session-continuity-codex-qa-03

@@ -1,0 +1,91 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:step-output-and-route-request-0-0526::work/step-outputs/step-output-and-route-request-0-02-qa-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-step-output-and-route-request-0-qa",
+  "building_id": "step-output-and-route-request-0-0526",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl"
+  },
+  "generatedAtTime": "2026-05-26T12:29:58Z",
+  "id": "urn:bp:building:step-output-and-route-request-0-0526::work/step-outputs/step-output-and-route-request-0-02-qa-attempt-1/step-output.json",
+  "not_proven": [
+    "route policy matching",
+    "route materialization",
+    "automatic repair/replay execution",
+    "automatic child Building generation",
+    "semantic correctness of QA route request",
+    "provider answer quality",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:step-output-and-route-request-0-02-qa",
+  "recorded_at": "2026-05-26T12:29:58Z",
+  "returned": {
+    "adapter_ref": "adapter:local",
+    "agent_object_ref": "agent-object:qa",
+    "evidence_refs": [
+      "support-packet:step-output-and-route-request-0-0526:agent-object:qa:output"
+    ],
+    "not_proven": [
+      "semantic correctness of returned work",
+      "provider answer quality"
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "returned_summary": "Phase 6 local callable returned declared support evidence",
+    "route_request": {
+      "binding": false,
+      "commentary_ref": "support-evidence:phase6-local-callable",
+      "reason_refs": [
+        "qa-finding:step-output-route-request-preservation"
+      ],
+      "request_ref": "route-request:step-output-and-route-request-0:qa:implementation-only",
+      "requested_route_scope": "implementation_only"
+    }
+  },
+  "returned_fact_ref": "agent-fact:02:step-output-and-route-request-0-02-qa",
+  "route_request_ref": "work/step-outputs/step-output-and-route-request-0-02-qa-attempt-1/route-request.json",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:step-output-and-route-request-0-0526",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:step-output-and-route-request-0-02-qa:attempt-1",
+  "step_ref": "step-output-and-route-request-0-02-qa",
+  "subject": "step-output-and-route-request-0-02-qa",
+  "time": "2026-05-26T12:29:58Z",
+  "type": "bp.step_output"
+}

@@ -1,0 +1,247 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:current-context-prune-0-0527::evidence/claim_trace/brick/work_contract.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-current-context-prune-0-design",
+        "comparison_rule": "Observe current context shape only; do not delete historical evidence or claim source truth.",
+        "required_return_shape": "context_sections, retained_refs, proof_limits, not_proven",
+        "source_facts": [
+          "brick/tasks/current-context-prune-0.md",
+          "project/brick-protocol/status/kernel/current-working-context.md"
+        ],
+        "work_statement": "Design the pruned current context as an operator-facing current view with links to historical support records."
+      },
+      "fact_ref": "brick-work:01:current-context-prune-0-01-design",
+      "not_proven": [
+        "semantic completeness of all historical context",
+        "future operator understanding",
+        "future task source semantic correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "current context is operator view only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe current context shape only; do not delete historical evidence or claim source truth.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Design the pruned current context as an operator-facing current view with links to historical support records."
+      },
+      "fact_ref": "brick-comparison:01:current-context-prune-0-01-design",
+      "not_proven": [
+        "semantic completeness of all historical context",
+        "future operator understanding",
+        "future task source semantic correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "current context is operator view only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-current-context-prune-0-qa",
+        "comparison_rule": "QA observes missing or present sections only; it must not choose Movement or route target.",
+        "required_return_shape": "checked_sections, missing_refs, proof_limits, not_proven",
+        "source_facts": [
+          "project/brick-protocol/status/kernel/current-working-context.md",
+          "support/checkers/profiles/current_context_prune.yaml"
+        ],
+        "work_statement": "Verify the pruned current context names active next sequence, recent closed refs, guardrails, and next Movement candidate."
+      },
+      "fact_ref": "brick-work:02:current-context-prune-0-02-qa",
+      "not_proven": [
+        "semantic completeness of all historical context",
+        "future operator understanding",
+        "future task source semantic correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "current context is operator view only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "QA observes missing or present sections only; it must not choose Movement or route target.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Verify the pruned current context names active next sequence, recent closed refs, guardrails, and next Movement candidate."
+      },
+      "fact_ref": "brick-comparison:02:current-context-prune-0-02-qa",
+      "not_proven": [
+        "semantic completeness of all historical context",
+        "future operator understanding",
+        "future task source semantic correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "current context is operator view only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-current-context-prune-0-closure",
+        "comparison_rule": "Closure records support evidence only and does not prove future operator correctness.",
+        "required_return_shape": "observed_evidence, narrowly_proven, not_proven, remaining_delta, next_target_candidates",
+        "source_facts": [
+          "brick/building_plans/current-context-prune-0-compact.yaml",
+          "project/brick-protocol/status/kernel/brick-protocol-current-context-prune-0-support-record-0527.md"
+        ],
+        "work_statement": "Close current context prune with observed evidence, narrowly proven scope, not_proven, remaining_delta, and next target."
+      },
+      "fact_ref": "brick-work:03:current-context-prune-0-03-closure",
+      "not_proven": [
+        "semantic completeness of all historical context",
+        "future operator understanding",
+        "future task source semantic correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "current context is operator view only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Closure records support evidence only and does not prove future operator correctness.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Close current context prune with observed evidence, narrowly proven scope, not_proven, remaining_delta, and next target."
+      },
+      "fact_ref": "brick-comparison:03:current-context-prune-0-03-closure",
+      "not_proven": [
+        "semantic completeness of all historical context",
+        "future operator understanding",
+        "future task source semantic correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "current context is operator view only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-26T22:44:17Z",
+  "id": "urn:bp:building:current-context-prune-0-0527::evidence/claim_trace/brick/work_contract.json",
+  "recorded_at": "2026-05-26T22:44:17Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:current-context-prune-0-0527",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/brick/work_contract.json",
+  "time": "2026-05-26T22:44:17Z",
+  "type": "bp.claim_trace"
+}

@@ -1,0 +1,155 @@
+plan_ref: building-plan:agent-resource-toolkit-0-full-implementation
+owner_axis: Brick
+building_id: agent-resource-toolkit-0-0525
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - Codex native sync
+  - Claude native sync
+  - MCP projection behavior
+  - provider quality
+  - tool or hook execution
+  - future Building correctness
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority
+steps:
+  - step_ref: agent-resource-toolkit-0-01-design
+    rows:
+      - axis: Brick
+        row_ref: brick-row:agent-resource-toolkit-0-design
+        brick_work_ref: work:agent-resource-toolkit-0-design
+        brick_instance_ref: brick-agent-resource-toolkit-design-01
+        work_statement: Design AGENT-RESOURCE-TOOLKIT-0 as a support resolver and renderer over Agent-axis resources without opening native app sync or MCP.
+        comparison_rule: Observe whether the design keeps Agent resource source ownership in agent/ and support rendering below it.
+        required_return_shape: role_boundary, current_structure, changes, unchanged_surfaces, axis_responsibility, execution_sequence, invariants, edge_cases, checker_plan, candidate_file_changes, evidence_packet, not_proven
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+          - support/docs/spec/brick-protocol-agent-resource-toolkit-0-coo-sync-plan-0524.md
+          - support/docs/spec/brick-protocol-agent-resource-toolkit-0-agent-resource-renderer-0525.md
+          - brick/templates/design/minimal-design-template.json
+      - axis: Agent
+        row_ref: agent-row:agent-resource-toolkit-0-design
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:agent-resource-toolkit-0-design
+        movement: forward
+        target_ref: brick-agent-resource-toolkit-development-02
+        next_brick_instance_ref: brick-agent-resource-toolkit-development-02
+  - step_ref: agent-resource-toolkit-0-02-development
+    rows:
+      - axis: Brick
+        row_ref: brick-row:agent-resource-toolkit-0-development
+        brick_work_ref: work:agent-resource-toolkit-0-development
+        brick_instance_ref: brick-agent-resource-toolkit-development-02
+        work_statement: Implement support/connection/agent_resources.py, its checker, and path admission for AGENT-RESOURCE-TOOLKIT-0 using existing Agent resources as source.
+        comparison_rule: Observe whether implementation renders support packets and projection seeds without writing native app files, calling providers, or expanding AgentFact.
+        required_return_shape: implementation_map, changed_files, verification_evidence, claim_ledger, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-agent-resource-toolkit-0-agent-resource-renderer-0525.md
+          - agent/objects/coo.yaml
+          - agent/objects/dev.yaml
+          - agent/objects/qa.yaml
+          - brick/templates/do/minimal-do-return-template.json
+      - axis: Agent
+        row_ref: agent-row:agent-resource-toolkit-0-development
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:agent-resource-toolkit-0-development
+        movement: forward
+        target_ref: brick-agent-resource-toolkit-codex-verification-03
+        next_brick_instance_ref: brick-agent-resource-toolkit-codex-verification-03
+  - step_ref: agent-resource-toolkit-0-03-codex-verification
+    selected_adapter_ref: adapter:codex-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:agent-resource-toolkit-0-codex-verification
+        brick_work_ref: work:agent-resource-toolkit-0-codex-verification
+        brick_instance_ref: brick-agent-resource-toolkit-codex-verification-03
+        work_statement: Verify AGENT-RESOURCE-TOOLKIT-0 from the Codex lane as Building support evidence.
+        comparison_rule: Observe whether resolver/renderer stays provider-neutral and below Agent resource ownership.
+        required_return_shape: checked_work, checked_sources, match_facts, missing_or_mismatched_facts, boundary_violations, evidence_used, narrowly_proven, not_proven, next_movement_recommendation
+        source_facts:
+          - support/docs/spec/brick-protocol-agent-resource-toolkit-0-agent-resource-renderer-0525.md
+          - support/connection/agent_resources.py
+          - support/checkers/check_agent_resource_toolkit0.py
+          - brick/templates/review/minimal-review-template.json
+      - axis: Agent
+        row_ref: agent-row:agent-resource-toolkit-0-codex-verification
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:agent-resource-toolkit-0-codex-verification
+        movement: forward
+        target_ref: brick-agent-resource-toolkit-claude-verification-04
+        next_brick_instance_ref: brick-agent-resource-toolkit-claude-verification-04
+  - step_ref: agent-resource-toolkit-0-04-claude-verification
+    selected_adapter_ref: adapter:claude-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:agent-resource-toolkit-0-claude-verification
+        brick_work_ref: work:agent-resource-toolkit-0-claude-verification
+        brick_instance_ref: brick-agent-resource-toolkit-claude-verification-04
+        work_statement: Verify AGENT-RESOURCE-TOOLKIT-0 from the Claude lane as Building support evidence.
+        comparison_rule: Observe whether projection seeds are support output only and do not define Agent meaning.
+        required_return_shape: checked_work, checked_sources, match_facts, missing_or_mismatched_facts, boundary_violations, evidence_used, narrowly_proven, not_proven, next_movement_recommendation
+        source_facts:
+          - support/docs/spec/brick-protocol-agent-resource-toolkit-0-agent-resource-renderer-0525.md
+          - support/connection/agent_resources.py
+          - support/checkers/check_agent_resource_toolkit0.py
+          - brick/templates/review/minimal-review-template.json
+      - axis: Agent
+        row_ref: agent-row:agent-resource-toolkit-0-claude-verification
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:agent-resource-toolkit-0-claude-verification
+        movement: forward
+        target_ref: brick-agent-resource-toolkit-integration-05
+        next_brick_instance_ref: brick-agent-resource-toolkit-integration-05
+  - step_ref: agent-resource-toolkit-0-05-integration
+    rows:
+      - axis: Brick
+        row_ref: brick-row:agent-resource-toolkit-0-integration
+        brick_work_ref: work:agent-resource-toolkit-0-integration
+        brick_instance_ref: brick-agent-resource-toolkit-integration-05
+        work_statement: Integrate in-scope AGENT-RESOURCE-TOOLKIT-0 verification observations and record follow-up candidates.
+        comparison_rule: Observe whether integration remains support renderer work and does not open COO-SYNC-0 or MCP.
+        required_return_shape: repairs, checks_rerun, next_building_candidates, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-agent-resource-toolkit-0-agent-resource-renderer-0525.md
+      - axis: Agent
+        row_ref: agent-row:agent-resource-toolkit-0-integration
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:agent-resource-toolkit-0-integration
+        movement: forward
+        target_ref: brick-agent-resource-toolkit-closure-06
+        next_brick_instance_ref: brick-agent-resource-toolkit-closure-06
+  - step_ref: agent-resource-toolkit-0-06-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:agent-resource-toolkit-0-closure
+        brick_work_ref: work:agent-resource-toolkit-0-closure
+        brick_instance_ref: brick-agent-resource-toolkit-closure-06
+        work_statement: Close AGENT-RESOURCE-TOOLKIT-0 with observed evidence, narrowly proven scope, not_proven, and next Movement candidate.
+        comparison_rule: Observe whether closure names COO-SYNC-0 only as next candidate and keeps sync/MCP implementation closed.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, next_movement
+        source_facts:
+          - support/docs/spec/brick-protocol-agent-resource-toolkit-0-agent-resource-renderer-0525.md
+      - axis: Agent
+        row_ref: agent-row:agent-resource-toolkit-0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:agent-resource-toolkit-0-closure
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:agent-resource-toolkit-0-closed
+        next_brick_instance_ref: building-boundary-agent-resource-toolkit-0-closed

@@ -1,0 +1,77 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:preset-three-axis-contract-repair-0-0528::work/step-outputs/preset-three-axis-contract-repair-0-review-attempt-1/transition-concern.json",
+  "agent_object_ref": "agent-object:qa",
+  "attempt_index": 1,
+  "binding": false,
+  "building_id": "preset-three-axis-contract-repair-0-0528",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-05-28T08:34:11Z",
+  "id": "urn:bp:building:preset-three-axis-contract-repair-0-0528::work/step-outputs/preset-three-axis-contract-repair-0-review-attempt-1/transition-concern.json",
+  "link_role": "non-binding Agent transition concern evidence only",
+  "not_proven": [
+    "semantic correctness of dashboard work",
+    "real provider adherence to return labels",
+    "dashboard UI readiness",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "transition concern semantic correctness",
+    "Link disposition correctness",
+    "automatic repair/replay execution"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "adapter normalization and Link gate dogfood only",
+    "not provider behavior proof",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "transition_concern_evidence is Agent returned evidence only",
+    "not Link Movement",
+    "not Link target choice",
+    "not route policy matching",
+    "not route materialization",
+    "not automatic repair/replay execution",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-05-28T08:34:11Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:preset-three-axis-contract-repair-0-0528",
+  "specversion": "1.0",
+  "step_output_ref": "work/step-outputs/preset-three-axis-contract-repair-0-review-attempt-1/step-output.json",
+  "step_ref": "preset-three-axis-contract-repair-0-review",
+  "subject": "preset-three-axis-contract-repair-0-review",
+  "time": "2026-05-28T08:34:11Z",
+  "transition_boundary": "Agent concern only; Link may adopt, not adopt, or override",
+  "transition_concern_ref": "transition-concern:preset-three-axis-contract-repair-0-review:attempt-1",
+  "transition_concern_returned": {
+    "binding": false,
+    "concern_kind": "boundary_mismatch",
+    "concern_ref": "transition-concern:preset-contract-review-001",
+    "proof_limits": [
+      "Agent concern only",
+      "not Movement authority"
+    ],
+    "reason_refs": [
+      "observation:qa-review-field-presence"
+    ],
+    "related_boundary_refs": [
+      "brick-preset-contract-repair-development-attempt-1"
+    ]
+  },
+  "type": "bp.step_output.transition_concern"
+}

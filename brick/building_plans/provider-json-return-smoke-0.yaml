@@ -1,0 +1,46 @@
+plan_ref: building-plan:provider-json-return-smoke-0
+owner_axis: Brick
+building_id: provider-json-return-smoke-0-0528
+selected_shape_ref: building-shape:one-brick
+declared_by: coo
+selected_adapter_ref: adapter:codex-local
+selected_model_ref: model:codex:default
+parent_goal_ref: goal:project-orchestration-dashboard
+proof_limits:
+  - support evidence only
+  - live provider JSON return smoke only
+  - not provider reliability proof
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - repeated provider adherence to JSON return shape
+  - Claude or Gemini local provider behavior
+  - dashboard UI readiness
+steps:
+  - step_ref: provider-json-return-smoke-0-observe
+    selected_adapter_ref: adapter:codex-local
+    selected_model_ref: model:codex:default
+    rows:
+      - axis: Brick
+        row_ref: brick-row:provider-json-return-smoke-0-observe
+        brick_work_ref: work:provider-json-return-smoke-0-observe
+        brick_instance_ref: brick-provider-json-return-smoke-observe
+        work_statement: Return one JSON object with observed_evidence and not_proven fields only. Do not use tools. Do not choose Movement or target. Do not report success, failure, approval, quality, or verdict.
+        comparison_rule: Observe whether the live Codex local adapter can return JSON fields matching required_return_shape.
+        required_return_shape: observed_evidence, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-preset-three-axis-contract-repair-0-0528.md
+      - axis: Agent
+        row_ref: agent-row:provider-json-return-smoke-0-observe
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:provider-json-return-smoke-0-closed
+        movement: forward
+        target_ref: building-boundary:provider-json-return-smoke-0-closed
+        declared_gate_refs:
+          - link-gate:default-transition
+        building_lifecycle:
+          state: closed
+          reason: PROVIDER-JSON-RETURN-SMOKE-0 observed one live Codex local adapter JSON return.

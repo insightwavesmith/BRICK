@@ -1,0 +1,125 @@
+schema: checker-profile/v1
+profile_id: core
+description: Core profile runner slice over kernel support checkers and boundary declarations.
+kernel_checks:
+  - axis_vocab_drift
+  - package_path_admission
+  - axis_contract_projection
+  - declared_verifier_exists
+  - axis_field_enum_parity
+  - agentfact_single_home
+  - building_root_anchor
+  - catalog_reader_sync
+  - agent_resource_resolution
+  - bricks_spec_completeness
+  - building_lifecycle_path_shape
+  - building_map_graph
+  - project_declaration
+  - building_declaration_integrity
+  - building_plans_boundary_sweep
+  - axis_crossing_elegance
+  - evidence_spine
+  - evidence_spine_projection
+path_exists:
+  - AGENTS.md
+  - project/brick-protocol/status/kernel/current-working-context.md
+  - support/checkers/check_profile.py
+  - support/checkers/check_package_path_admission.py
+  - support/checkers/check_axis_contract_projection.py
+  - support/checkers/check_declared_verifier_exists.py
+  - support/checkers/check_axis_field_enum_parity.py
+  - support/checkers/check_agentfact_single_home.py
+  - support/checkers/check_building_root_anchor.py
+  - support/checkers/check_catalog_reader_sync.py
+  - support/checkers/check_agent_resource_resolution.py
+  - support/checkers/check_bricks_spec_completeness.py
+  - support/checkers/check_building_lifecycle_path_shape.py
+  - support/checkers/check_building_map_graph.py
+  - support/checkers/check_project_declaration.py
+  - support/checkers/check_building_declaration_integrity.py
+  - support/checkers/check_axis_crossing_elegance.py
+  - support/checkers/check_evidence_spine.py
+  - support/checkers/check_evidence_spine_projection.py
+  - support/checkers/crossing_registry.yaml
+  - support/checkers/module_registry.yaml
+path_absent:
+  - brick_protocol
+  - architecture-review-site
+  - support/run.py
+path_absent_glob:
+  - support/runner/**
+  - support/building_run/**
+  - support/invocation/**
+path_allowlist:
+  - root: support/checkers/profiles
+    paths:
+      - support/checkers/profiles/agent_axis_behavioral.yaml
+      - support/checkers/profiles/bounded_agent_proposed_routing_loop.yaml
+      - support/checkers/profiles/building_operator_driver0.yaml
+      - support/checkers/profiles/building_automation.yaml
+      - support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml
+      - support/checkers/profiles/coo_operating_chain.yaml
+      - support/checkers/profiles/core.yaml
+      - support/checkers/profiles/link_routing_behavioral.yaml
+      - support/checkers/profiles/native_dispatch_brick_backstop.yaml
+      - support/checkers/profiles/read_side_projection_boundary.yaml
+      - support/checkers/profiles/structure_template_integrity.yaml
+      - support/checkers/profiles/tier_a_three_axis_conformance.yaml
+text_contains:
+  - path: AGENTS.md
+    texts:
+      - Support is not a fourth axis.
+      - Runtime, engine, storage, wiki, docs, tests, checkers, memory, tools, Claude,
+      - support/operator/run.py
+      - brick_protocol.support.operator.run
+      - "Agent transition concerns use the closed `concern_kind` vocabulary"
+      - "upstream_gap"
+      - "boundary_mismatch"
+      - "insufficient_input"
+      - "replay_needed"
+      - "unknown"
+      - "design_gap"
+      - "implementation_gap"
+      - "verification_gap"
+      - "callable_performer_refs"
+      - "transition_lifecycle:"
+      - "progress_state: in_progress"
+      - "required_disposition_owner: caller | coo | caller-or-coo"
+      - "disposition_action: raise | forward | stop"
+      - "budget_increment: <finite positive integer, required only for raise>"
+      - "`human:/coo:/caller:` are author prefixes, not owner values"
+      - "Human gate MUST-HALT conditions:"
+      - "child Building candidate"
+      - "support/operator/child_building_generation.py"
+      - "AUTO-REPAIR-REPLAY-0"
+      - "support/operator/auto_repair_replay.py"
+      - "repair/replay Building Plan"
+      - "credential / secret exposure risk"
+      - "Impact tiers:"
+      - "High-impact work requires explicit"
+  - path: support/checkers/check_profile.py
+    texts:
+      - KERNEL_CHECK_IDS
+      - source truth
+text_absent:
+  - path: support/checkers/check_profile.py
+    texts:
+      - subprocess
+      - os.system
+      - eval(
+      - exec(
+yaml_literal_set:
+  - path: link/movement.yaml
+    key: movement_literals[].movement
+    values:
+      - forward
+      - reroute
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - checker profile pass as source truth
+  - complete checker compaction

@@ -1,0 +1,416 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:coo-operating-chain-0-0527::evidence/claim_trace/brick/work_contract.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-coo-operating-chain-0-design",
+        "comparison_rule": "Observe whether the design preserves Brick / Agent / Link ownership and keeps task_intake and MCP candidate-only.",
+        "required_return_shape": "chain_contract, task_source_sections, honest_report_contract, mcp_context_refs, helper_contract, proof_limits, not_proven",
+        "source_facts": [
+          "AGENTS.md",
+          "project/brick-protocol/status/kernel/current-working-context.md",
+          "brick/tasks/coo-operating-chain-0.md",
+          "support/docs/spec/brick-protocol-coo-operating-chain-0-0527.md"
+        ],
+        "work_statement": "Design COO-OPERATING-CHAIN-0 as an honest task intake chain over admitted task source, task_intake, design toolkit, MCP context, operator helper, and closure evidence."
+      },
+      "fact_ref": "brick-work:01:coo-operating-chain-0-01-design",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe whether the design preserves Brick / Agent / Link ownership and keeps task_intake and MCP candidate-only.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Design COO-OPERATING-CHAIN-0 as an honest task intake chain over admitted task source, task_intake, design toolkit, MCP context, operator helper, and closure evidence."
+      },
+      "fact_ref": "brick-comparison:01:coo-operating-chain-0-01-design",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-coo-operating-chain-0-development",
+        "comparison_rule": "Observe changed surfaces and ensure no new checker file, provider runtime, task declared reroute, or support-chosen Movement is opened.",
+        "required_return_shape": "changed_surfaces, helper_packet_refs, mcp_context_refs, profile_refs, path_admission_repairs, proof_limits, not_proven",
+        "source_facts": [
+          "brick/tasks/source-template.md",
+          "agent/skills/task_intake/SKILL.md",
+          "support/operator/building_operation.py",
+          "support/connection/mcp_projection.py",
+          "support/checkers/check_package_path_admission.py"
+        ],
+        "work_statement": "Implement the task source template, task_intake returned shape, operator helper, MCP read-only context, package path admission repair, and profile declarations for COO-OPERATING-CHAIN-0."
+      },
+      "fact_ref": "brick-work:02:coo-operating-chain-0-02-development",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe changed surfaces and ensure no new checker file, provider runtime, task declared reroute, or support-chosen Movement is opened.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Implement the task source template, task_intake returned shape, operator helper, MCP read-only context, package path admission repair, and profile declarations for COO-OPERATING-CHAIN-0."
+      },
+      "fact_ref": "brick-comparison:02:coo-operating-chain-0-02-development",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-coo-operating-chain-0-qa",
+        "comparison_rule": "QA returned evidence is advisory and non-binding; it must not choose Movement or route target.",
+        "required_return_shape": "checked_surfaces, boundary_observations, forbidden_owner_absent, route_request_evidence_if_any, proof_limits, not_proven",
+        "source_facts": [
+          "support/checkers/profiles/coo_operating_chain.yaml",
+          "brick/tasks/coo-operating-chain-0.md",
+          "support/docs/spec/brick-protocol-coo-operating-chain-0-0527.md"
+        ],
+        "work_statement": "Review COO-OPERATING-CHAIN-0 boundaries and verify that task source, task_intake, MCP, toolkit, and helper remain observation/candidate surfaces only."
+      },
+      "fact_ref": "brick-work:03:coo-operating-chain-0-03-qa",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "QA returned evidence is advisory and non-binding; it must not choose Movement or route target.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Review COO-OPERATING-CHAIN-0 boundaries and verify that task source, task_intake, MCP, toolkit, and helper remain observation/candidate surfaces only."
+      },
+      "fact_ref": "brick-comparison:03:coo-operating-chain-0-03-qa",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-coo-operating-chain-0-dogfood",
+        "comparison_rule": "Observe helper/tool outputs only; do not infer semantic task correctness.",
+        "required_return_shape": "design_context_result, mcp_context_result, coo_operating_chain_packet_result, profile_result, proof_limits, not_proven",
+        "source_facts": [
+          "support/connection/building_design_toolkit.py",
+          "support/connection/mcp_projection.py",
+          "support/operator/building_operation.py",
+          "brick/tasks/coo-operating-chain-0.md"
+        ],
+        "work_statement": "Dogfood COO-OPERATING-CHAIN-0 by rendering the design toolkit context, MCP COO operating chain context, and coo_operating_chain_packet for this task source and active plan."
+      },
+      "fact_ref": "brick-work:04:coo-operating-chain-0-04-dogfood",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:04"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe helper/tool outputs only; do not infer semantic task correctness.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Dogfood COO-OPERATING-CHAIN-0 by rendering the design toolkit context, MCP COO operating chain context, and coo_operating_chain_packet for this task source and active plan."
+      },
+      "fact_ref": "brick-comparison:04:coo-operating-chain-0-04-dogfood",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:04",
+        "raw:agent:04"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-coo-operating-chain-0-closure",
+        "comparison_rule": "Closure records support evidence and proof limits only; it does not prove future semantic task quality.",
+        "required_return_shape": "observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, deferred_smith_review_queue, next_target_candidates, next_movement_candidate",
+        "source_facts": [
+          "brick/building_plans/coo-operating-chain-0-compact.yaml",
+          "support/docs/spec/brick-protocol-coo-operating-chain-0-0527.md",
+          "brick/templates/closure/standard-closure-with-parent-delta.yaml"
+        ],
+        "work_statement": "Close COO-OPERATING-CHAIN-0 with observed evidence, narrowly proven scope, not_proven, remaining_delta, deferred review queue, and next Movement candidate."
+      },
+      "fact_ref": "brick-work:05:coo-operating-chain-0-05-closure",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:05"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Closure records support evidence and proof limits only; it does not prove future semantic task quality.",
+        "observed_match_kind": "unknown",
+        "work_reference": "Close COO-OPERATING-CHAIN-0 with observed evidence, narrowly proven scope, not_proven, remaining_delta, deferred review queue, and next Movement candidate."
+      },
+      "fact_ref": "brick-comparison:05:coo-operating-chain-0-05-closure",
+      "not_proven": [
+        "semantic correctness of future task sources",
+        "semantic fitness of future selected shapes",
+        "future Building Plan correctness",
+        "future Agent or provider quality",
+        "future reviewer Movement decision correctness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement owner"
+      ],
+      "raw_refs": [
+        "raw:brick:05",
+        "raw:agent:05"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-26T22:16:32Z",
+  "id": "urn:bp:building:coo-operating-chain-0-0527::evidence/claim_trace/brick/work_contract.json",
+  "recorded_at": "2026-05-26T22:16:32Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:coo-operating-chain-0-0527",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/brick/work_contract.json",
+  "time": "2026-05-26T22:16:32Z",
+  "type": "bp.claim_trace"
+}

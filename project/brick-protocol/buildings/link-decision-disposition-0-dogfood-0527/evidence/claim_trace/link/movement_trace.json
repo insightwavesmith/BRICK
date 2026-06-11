@@ -1,0 +1,430 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:link-decision-disposition-0-dogfood-0527::evidence/claim_trace/link/movement_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:01:link-decision-disposition-0-plan",
+          "brick-comparison:01:link-decision-disposition-0-plan"
+        ],
+        "target_boundary_ref": "brick:brick-ldd0-design-attempt-1"
+      },
+      "fact_ref": "movement-fact:01:link-decision-disposition-0-plan",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "affected_downstream_refs": [
+          "brick-ldd0-design-attempt-1"
+        ],
+        "author_ref": "coo:link-decision-disposition-0",
+        "authoring_basis_refs": [
+          "transition-concern:ldd0-upstream-gap"
+        ],
+        "immediate_target_ref": "brick-ldd0-plan-attempt-2",
+        "movement": "reroute",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:02:link-decision-disposition-0-design",
+          "brick-comparison:02:link-decision-disposition-0-design",
+          "transition-concern:ldd0-upstream-gap"
+        ],
+        "replay_segment_refs": [
+          "brick-ldd0-design-attempt-2"
+        ],
+        "route_decision_adopted_transition_concern_refs": [
+          "transition-concern:ldd0-upstream-gap"
+        ],
+        "route_decision_human_review_refs": [
+          "human-review:ldd0-design-gap"
+        ],
+        "route_reason_refs": [
+          "transition-concern:ldd0-upstream-gap"
+        ],
+        "route_replay_ref": "route-replay:ldd0-design-gap",
+        "source_brick_refs": [
+          "brick-ldd0-plan-attempt-1"
+        ],
+        "target_boundary_ref": "brick:brick-ldd0-plan-attempt-2"
+      },
+      "fact_ref": "movement-fact:02:link-decision-disposition-0-design",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:02"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:03:link-decision-disposition-0-plan",
+          "brick-comparison:03:link-decision-disposition-0-plan"
+        ],
+        "target_boundary_ref": "brick:brick-ldd0-design-attempt-2",
+        "transition_lifecycle_from_brick_ref": "brick-ldd0-plan-attempt-2",
+        "transition_lifecycle_pending_target_ref": "brick-ldd0-design-attempt-2",
+        "transition_lifecycle_progress_state": "in_progress",
+        "transition_lifecycle_reason_refs": [
+          "transition-concern:ldd0-upstream-gap"
+        ],
+        "transition_lifecycle_required_disposition_owner": "caller-or-coo",
+        "transition_lifecycle_resumed_from_ref": "link-transition:ldd0-design-gap",
+        "transition_lifecycle_state": "resumed"
+      },
+      "fact_ref": "movement-fact:03:link-decision-disposition-0-plan",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:03"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:04:link-decision-disposition-0-design",
+          "brick-comparison:04:link-decision-disposition-0-design"
+        ],
+        "target_boundary_ref": "brick:brick-ldd0-qa-attempt-1"
+      },
+      "fact_ref": "movement-fact:04:link-decision-disposition-0-design",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:04"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:05:link-decision-disposition-0-qa",
+          "brick-comparison:05:link-decision-disposition-0-qa"
+        ],
+        "route_decision_human_review_refs": [
+          "human-review:ldd0-forward-after-qa"
+        ],
+        "route_decision_not_adopted_transition_concern_refs": [
+          "transition-concern:ldd0-qa-concern"
+        ],
+        "target_boundary_ref": "brick:brick-ldd0-inspect-attempt-1"
+      },
+      "fact_ref": "movement-fact:05:link-decision-disposition-0-qa",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:05"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "affected_downstream_refs": [
+          "brick-ldd0-qa-attempt-1",
+          "brick-ldd0-inspect-attempt-1"
+        ],
+        "author_ref": "human:smith",
+        "authoring_basis_refs": [
+          "human-review:ldd0-override-reroute"
+        ],
+        "immediate_target_ref": "brick-ldd0-design-attempt-3",
+        "movement": "reroute",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:06:link-decision-disposition-0-inspect",
+          "brick-comparison:06:link-decision-disposition-0-inspect",
+          "human-review:ldd0-override-reroute"
+        ],
+        "replay_segment_refs": [
+          "brick-ldd0-qa-attempt-2"
+        ],
+        "route_decision_override_refs": [
+          "human-review:ldd0-override-reroute"
+        ],
+        "route_decision_reviewer_observation_refs": [
+          "observation:ldd0-inspector-observation"
+        ],
+        "route_reason_refs": [
+          "human-review:ldd0-override-reroute"
+        ],
+        "route_replay_ref": "route-replay:ldd0-human-override",
+        "source_brick_refs": [
+          "brick-ldd0-design-attempt-2"
+        ],
+        "target_boundary_ref": "brick:brick-ldd0-design-attempt-3"
+      },
+      "fact_ref": "movement-fact:06:link-decision-disposition-0-inspect",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:06"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:07:link-decision-disposition-0-design",
+          "brick-comparison:07:link-decision-disposition-0-design"
+        ],
+        "target_boundary_ref": "brick:brick-ldd0-qa-attempt-2"
+      },
+      "fact_ref": "movement-fact:07:link-decision-disposition-0-design",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:07"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:08:link-decision-disposition-0-qa",
+          "brick-comparison:08:link-decision-disposition-0-qa"
+        ],
+        "target_boundary_ref": "brick:brick-ldd0-closure"
+      },
+      "fact_ref": "movement-fact:08:link-decision-disposition-0-qa",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:08"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:09:link-decision-disposition-0-closure",
+          "brick-comparison:09:link-decision-disposition-0-closure"
+        ],
+        "target_boundary_ref": "brick:building-boundary-link-decision-disposition-0-closed"
+      },
+      "fact_ref": "movement-fact:09:link-decision-disposition-0-closure",
+      "not_proven": [
+        "semantic correctness of Agent transition concerns",
+        "semantic correctness of Link disposition",
+        "production runtime readiness",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "transition concern disposition dogfood only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:09"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-27T08:50:19Z",
+  "id": "urn:bp:building:link-decision-disposition-0-dogfood-0527::evidence/claim_trace/link/movement_trace.json",
+  "recorded_at": "2026-05-27T08:50:19Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:link-decision-disposition-0-dogfood-0527",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/movement_trace.json",
+  "time": "2026-05-27T08:50:19Z",
+  "type": "bp.claim_trace"
+}

@@ -1,0 +1,82 @@
+schema: checker-profile/v1
+profile_id: building-operator-driver0
+description: BUILDING-OPERATOR-DRIVER-0 enforcement over the admitted bounded declared multi-Building driver, adapter:local checker probes, and the MODE-2 no-bare-default-transition rule.
+kernel_checks:
+  - building_operator_driver0
+  - onboard_smoke
+path_exists:
+  - support/operator/driver.py
+  - support/checkers/check_building_operator_driver0.py
+  - AGENTS.md
+  # ONBOARDING-WIZARD-0 surface (pinned by the onboard_smoke kernel check).
+  - support/operator/onboard.py
+  - brick/building_plans/onboarding-example-0.yaml
+text_contains:
+  - path: AGENTS.md
+    texts:
+      - BUILDING-OPERATOR-DRIVER-0
+  - path: support/operator/driver.py
+    texts:
+      - def run_declared_portfolio
+      - run_building_plan(
+      - multi_candidate_requires_declared_policy
+      - proposed_candidate_not_in_declared_set
+      - portfolio_transition_budget_exhausted
+      - support authors no Building Plan, Movement, target, or adoption
+      - disposition_action_surface
+  - path: support/checkers/check_building_operator_driver0.py
+    texts:
+      - MODE2 bare-default rejected
+      - candidate-not-in-declared-set rejected
+      - child_roots=
+      - adapter:local deterministic fixture only
+  # ONBOARDING-WIZARD-0 PART-2: the example routes through the PART-1 seam, the
+  # real-vs-local adapter is driven by preflight readiness evidence, and the
+  # handoff names the seam verb. (onboard_seam_case executes these; the source
+  # pins keep the routing/handoff honest even if the case stops covering them.)
+  - path: support/operator/onboard.py
+    texts:
+      - from brick_protocol.support.operator.driver import run_building_intake
+      - 'SEAM_VERB = "support.operator.driver.run_building_intake"'
+      - result_obj = run_building_intake(
+      - def _choose_example_adapter
+      - def _preflight_readiness
+      # c2 (0610): the adapter-write gate reads the CANONICAL observed-write set
+      # (adapter_is_write_capable -- codex-local AND claude-local), not a codex
+      # literal. Pins updated to the corrected fact.
+      - adapter_is_write_capable(real_ref)
+      - 'adapter_ref": real_ref'
+      - preflight readiness=ready for observed-write adapter
+      - '"routed_through": SEAM_VERB'
+      - '"preflight_readiness": readiness'
+      - allow_real_provider
+text_absent:
+  - path: support/operator/driver.py
+    texts:
+      - while True
+      - subprocess
+      - os.system
+      - threading
+      - choose_movement
+      - support_chosen_movement
+      - 'author_ref = "support:'
+      - "author_ref = 'support:"
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+  - not real-provider proof
+  - not concurrency proof
+onboard_seam_case:
+  - label: onboarding example routes through the PART-1 seam (adapter:local default)
+    host: codex
+    bogus_host: definitely-not-a-host
+    expected_frontier_kind: complete
+not_proven:
+  - semantic correctness of Agent transition_concern_evidence
+  - caller/COO disposition after a portfolio HOLD
+  - real-provider multi-Building autonomy
+  - checker profile pass as source truth
+  - real-provider onboarding example completion (adapter:codex-local)

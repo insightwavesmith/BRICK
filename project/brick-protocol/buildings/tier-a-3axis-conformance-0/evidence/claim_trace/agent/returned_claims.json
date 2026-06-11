@@ -1,0 +1,344 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:tier-a-3axis-conformance-0::evidence/claim_trace/agent/returned_claims.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:dev",
+        "received_work": "brick-work:01:tier-a-work",
+        "returned": {
+          "not_proven": [
+            "semantic correctness of the build note"
+          ],
+          "observed_evidence": [
+            "tier-a work node produced a deterministic build note"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:01:tier-a-work",
+      "not_proven": [
+        "semantic correctness of the agent-proposed reroute",
+        "real provider behavior",
+        "scheduler / queue / retry behavior",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:qa",
+        "received_work": "brick-work:02:tier-a-review-1",
+        "returned": {
+          "not_proven": [
+            "semantic correctness of the review observation"
+          ],
+          "observed_evidence": [
+            "tier-a review observed the prior build node is missing a required output"
+          ],
+          "transition_concern_evidence": {
+            "binding": false,
+            "concern_kind": "implementation_gap",
+            "concern_ref": "transition-concern:tier-a-review-1",
+            "reason_refs": [
+              "prior build node is missing a required output and needs rework"
+            ],
+            "related_boundary_refs": [
+              "brick-tier-a-work"
+            ]
+          }
+        }
+      },
+      "fact_ref": "agent-fact:02:tier-a-review-1",
+      "not_proven": [
+        "semantic correctness of the agent-proposed reroute",
+        "real provider behavior",
+        "scheduler / queue / retry behavior",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:dev",
+        "received_work": "brick-work:03:tier-a-work",
+        "returned": {
+          "not_proven": [
+            "semantic correctness of the build note"
+          ],
+          "observed_evidence": [
+            "tier-a work node produced a deterministic build note"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:03:tier-a-work",
+      "not_proven": [
+        "semantic correctness of the agent-proposed reroute",
+        "real provider behavior",
+        "scheduler / queue / retry behavior",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:inspector",
+        "received_work": "brick-work:04:tier-a-mid",
+        "returned": {
+          "not_proven": [
+            "semantic correctness of the mid output"
+          ],
+          "observed_evidence": [
+            "tier-a mid node consumed the work output deterministically"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:04:tier-a-mid",
+      "not_proven": [
+        "semantic correctness of the agent-proposed reroute",
+        "real provider behavior",
+        "scheduler / queue / retry behavior",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:04"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:design-lead",
+        "received_work": "brick-work:05:tier-a-review-2",
+        "returned": {
+          "not_proven": [
+            "semantic correctness of the review observation"
+          ],
+          "observed_evidence": [
+            "tier-a review observed the prior build node is missing a required output"
+          ],
+          "transition_concern_evidence": {
+            "binding": false,
+            "concern_kind": "implementation_gap",
+            "concern_ref": "transition-concern:tier-a-review-2",
+            "reason_refs": [
+              "prior build node is missing a required output and needs rework"
+            ],
+            "related_boundary_refs": [
+              "brick-tier-a-work"
+            ]
+          }
+        }
+      },
+      "fact_ref": "agent-fact:05:tier-a-review-2",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:05"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:dev",
+        "received_work": "brick-work:06:tier-a-work",
+        "returned": {
+          "not_proven": [
+            "semantic correctness of the build note"
+          ],
+          "observed_evidence": [
+            "tier-a work node produced a deterministic build note"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:06:tier-a-work",
+      "not_proven": [
+        "semantic correctness of the agent-proposed reroute",
+        "real provider behavior",
+        "scheduler / queue / retry behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:06"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:coo",
+        "received_work": "brick-work:07:tier-a-close",
+        "returned": {
+          "not_proven": [
+            "semantic correctness of the closure"
+          ],
+          "observed_evidence": [
+            "tier-a close node recorded closure support evidence"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:07:tier-a-close",
+      "not_proven": [
+        "semantic correctness of the agent-proposed reroute",
+        "real provider behavior",
+        "scheduler / queue / retry behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:07"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-31T23:19:35Z",
+  "id": "urn:bp:building:tier-a-3axis-conformance-0::evidence/claim_trace/agent/returned_claims.json",
+  "recorded_at": "2026-05-31T23:19:35Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:tier-a-3axis-conformance-0",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/agent/returned_claims.json",
+  "time": "2026-05-31T23:19:35Z",
+  "type": "bp.claim_trace"
+}

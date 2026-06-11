@@ -1,0 +1,105 @@
+plan_ref: building-plan:step-output-and-route-request-0-compact
+owner_axis: Brick
+building_id: step-output-and-route-request-0-0526
+plan_shape: linear
+selected_adapter_ref: adapter:local
+parent_goal_ref: goal:bar-v2-active-sequence
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - route policy matching
+  - route materialization
+  - automatic repair/replay execution
+  - automatic child Building generation
+  - semantic correctness of QA route request
+  - provider answer quality
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority
+remaining_delta:
+  - TASK-SHAPE-AND-DESIGN-CONTRACT-0
+  - DESIGN-TOOLKIT-AND-MCP-0
+  - TASK-INTAKE-SKILL-0
+  - LINK-ROUTE-POLICY-RESOURCE-0
+  - CHECKER-STRICT-VALIDATION-0
+  - ROUTE-MATCH-AND-MATERIALIZATION-0
+  - AUTO-REPAIR-REPLAY-0
+  - AUTO-CHILD-BUILDING-GENERATION-0
+  - CASCADE-SWEEP-0
+  - BAR-V2-END-TO-END-DOGFOOD-0
+next_target_candidates:
+  - TASK-SHAPE-AND-DESIGN-CONTRACT-0
+steps:
+  - step_ref: step-output-and-route-request-0-01-design
+    rows:
+      - axis: Brick
+        row_ref: brick-row:step-output-and-route-request-0-design
+        brick_work_ref: work:step-output-and-route-request-0-design
+        brick_instance_ref: brick-step-output-and-route-request-0-design
+        work_statement: Define per-step output projection and non-binding QA route_request evidence shape.
+        comparison_rule: Observe whether the step output shape preserves Brick / Agent / Link boundaries.
+        required_return_shape: step_output_shape, route_request_shape, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+          - support/docs/spec/brick-protocol-step-output-and-route-request-0-0526.md
+          - support/operator/run.py
+      - axis: Agent
+        row_ref: agent-row:step-output-and-route-request-0-design
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:step-output-and-route-request-0-design-to-qa
+        movement: forward
+        target_ref: brick-step-output-and-route-request-0-qa
+        next_brick_instance_ref: brick-step-output-and-route-request-0-qa
+  - step_ref: step-output-and-route-request-0-02-qa
+    rows:
+      - axis: Brick
+        row_ref: brick-row:step-output-and-route-request-0-qa
+        brick_work_ref: work:step-output-and-route-request-0-qa
+        brick_instance_ref: brick-step-output-and-route-request-0-qa
+        work_statement: Return QA route_request evidence as Agent returned data without choosing Movement or target.
+        comparison_rule: Observe route_request preservation only; no route policy matching or materialization is admitted.
+        required_return_shape: returned_summary, evidence_refs, route_request, proof_limits, not_proven
+        source_facts:
+          - brick/templates/review/standard-route-request-return.yaml
+          - support/operator/run.py
+          - link/movement.yaml
+      - axis: Agent
+        row_ref: agent-row:step-output-and-route-request-0-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:step-output-and-route-request-0-qa-to-closure
+        movement: forward
+        target_ref: brick-step-output-and-route-request-0-closure
+        next_brick_instance_ref: brick-step-output-and-route-request-0-closure
+  - step_ref: step-output-and-route-request-0-03-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:step-output-and-route-request-0-closure
+        brick_work_ref: work:step-output-and-route-request-0-closure
+        brick_instance_ref: brick-step-output-and-route-request-0-closure
+        work_statement: Close Phase 6 with step-output evidence, route_request evidence, parent delta, and next Movement candidate.
+        comparison_rule: Closure records observed evidence only; it does not prove route policy behavior.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, deferred_smith_review_queue, next_target_candidates, next_movement_candidate
+        source_facts:
+          - brick/building_plans/step-output-and-route-request-0-compact.yaml
+          - support/docs/spec/brick-protocol-step-output-and-route-request-0-0526.md
+          - support/recording/contracts.py
+          - brick/templates/closure/standard-closure-with-parent-delta.yaml
+      - axis: Agent
+        row_ref: agent-row:step-output-and-route-request-0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:step-output-and-route-request-0-closure-to-taskshape
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: Phase 6 closes step output and route request evidence, then routes forward to Phase 7.
+        target_ref: brick-taskshape-and-design-contract-0-open
+        next_brick_instance_ref: brick-taskshape-and-design-contract-0-open

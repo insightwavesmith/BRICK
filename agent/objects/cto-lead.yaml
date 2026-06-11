@@ -1,0 +1,36 @@
+{
+  "object_ref": "agent-object:cto-lead",
+  "name": "cto-lead",
+  "lane": "leader",
+  "callable_performer_refs": [
+    "callable:local:agent-invoke0-smoke"
+  ],
+  "prompt_refs": [
+    "prompt:cto-lead"
+  ],
+  "skill_refs": [
+    "skill:software-architecture",
+    "skill:code-analyzer",
+    "skill:structure-validator",
+    "skill:gap-detector"
+  ],
+  "hook_refs": [
+    "hook:instruction-chain-read",
+    "hook:leader-write-need-gate",
+    "hook:unsafe-mutation-guard",
+    "hook:resource-ref-redaction"
+  ],
+  "tool_policy_refs": [
+    "tool-policy:leader-coordination",
+    "tool-policy:read-write-scoped"
+  ],
+  "discipline_refs": [
+    "discipline:closed-agentfact",
+    "discipline:proof-limits"
+  ],
+  "adapter_refs": [
+    "adapter:local",
+    "adapter:codex-local",
+    "adapter:claude-local"
+  ]
+}

@@ -1,0 +1,127 @@
+plan_ref: building-plan:reporter-notification-projection-0-p6-dogfood
+owner_axis: Brick
+building_id: reporter-notification-projection-0-p6-dogfood-0531
+plan_shape: linear
+selected_shape_ref: building-shape:repairable-work
+selected_preset_ref: building-chain-preset:fast-fix
+chain_preset_ref: building-chain-preset:fast-fix
+composition_mode: coo-declared-dogfood-plan
+declared_by: coo:p6-dogfood
+selected_adapter_ref: adapter:local
+selected_model_ref: model:default
+task_source_ref: project/brick-protocol/status/kernel/brick-protocol-reporter-notification-projection-0-support-record-0531.md
+parent_goal_ref: goal:axis-vocab-first-refactor-p6
+max_attempts_by_boundary:
+  brick-reporter-notification-p6-replay-proof: 2
+preset_expansion:
+  expanded_step_template_refs:
+    - building-step-template:inspect
+    - building-step-template:closure
+  expanded_brick_template_refs:
+    - brick/templates/review/minimal-review-template.json
+    - brick/templates/closure/standard-closure-with-parent-delta.yaml
+proof_limits:
+  - support evidence only
+  - dogfood Building observes reporter local inbox projection path only
+  - minimal Brick-owned P6 dogfood plan
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+  - not route input
+not_proven:
+  - external notification behavior
+  - reporter delivery reliability
+  - stale evidence snapshot behavior
+  - semantic usefulness for every future Building type
+steps:
+  - step_ref: reporter-notification-projection-0-p6-01-observe
+    step_template_ref: building-step-template:inspect
+    rows:
+      - axis: Brick
+        row_ref: brick-row:reporter-notification-projection-0-p6-observe
+        brick_work_ref: work:reporter-notification-projection-0-p6-observe
+        brick_instance_ref: brick-reporter-notification-p6-observe
+        work_statement: Observe the admitted REPORTER-NOTIFICATION-PROJECTION-0 local inbox projection path against the current persisted support record and runner evidence shape.
+        comparison_rule: Observe returned evidence fields only; do not classify reporter usefulness, delivery reliability, source truth, success, quality, Movement, route input, or target selection.
+        required_return_shape: returned_summary, evidence_refs, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-brick-operating-packet-0531.md
+          - project/brick-protocol/status/kernel/brick-protocol-reporter-notification-projection-0-support-record-0531.md
+          - support/operator/reporter.py
+          - support/operator/report_sinks.py
+      - axis: Agent
+        row_ref: agent-row:reporter-notification-projection-0-p6-observe
+        agent_object_ref: agent-object:inspector
+      - axis: Link
+        row_ref: link-row:reporter-notification-projection-0-p6-observe-to-replay-proof
+        movement: reroute
+        target_ref: brick-reporter-notification-p6-replay-proof
+        next_brick_instance_ref: brick-reporter-notification-p6-replay-proof
+        declared_gate_refs:
+          - link-gate:default-transition
+        route_replay_plan:
+          route_replay_ref: route-replay:reporter-notification-projection-0-p6-dogfood
+          author_ref: coo:p6-dogfood
+          authoring_basis_refs:
+            - brick-work:01:reporter-notification-projection-0-p6-01-observe
+          immediate_target_ref: brick-reporter-notification-p6-replay-proof
+          source_brick_refs:
+            - brick-reporter-notification-p6-observe
+          route_reason_refs:
+            - brick-comparison:01:reporter-notification-projection-0-p6-01-observe
+          affected_downstream_refs:
+            - brick-reporter-notification-p6-closure
+          replay_segment_refs: []
+          max_attempts: 2
+  - step_ref: reporter-notification-projection-0-p6-02-replay-proof
+    step_template_ref: building-step-template:inspect
+    rows:
+      - axis: Brick
+        row_ref: brick-row:reporter-notification-projection-0-p6-replay-proof
+        brick_work_ref: work:reporter-notification-projection-0-p6-replay-proof
+        brick_instance_ref: brick-reporter-notification-p6-replay-proof
+        work_statement: Record the declared route-replay budget evidence boundary for the reporter dogfood Building.
+        comparison_rule: Observe whether the declared Link row exposes max_attempts evidence without making support a movement author.
+        required_return_shape: returned_summary, evidence_refs, proof_limits, not_proven
+        source_facts:
+          - brick/building_plans/reporter-notification-projection-0-p6-dogfood.yaml
+          - support/operator/evidence_assembly.py
+      - axis: Agent
+        row_ref: agent-row:reporter-notification-projection-0-p6-replay-proof
+        agent_object_ref: agent-object:inspector
+      - axis: Link
+        row_ref: link-row:reporter-notification-projection-0-p6-replay-proof-to-closure
+        movement: forward
+        target_ref: brick-reporter-notification-p6-closure
+        next_brick_instance_ref: brick-reporter-notification-p6-closure
+        declared_gate_refs:
+          - link-gate:default-transition
+  - step_ref: reporter-notification-projection-0-p6-03-closure
+    step_template_ref: building-step-template:closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:reporter-notification-projection-0-p6-closure
+        brick_work_ref: work:reporter-notification-projection-0-p6-closure
+        brick_instance_ref: brick-reporter-notification-p6-closure
+        work_statement: Close the P6 dogfood route by preserving the evidence root for reporter local inbox observation.
+        comparison_rule: Closure records observed evidence only; it does not decide success, quality, source truth, Movement, route input, or target selection.
+        required_return_shape: returned_summary, evidence_refs, proof_limits, not_proven
+        source_facts:
+          - brick/building_plans/reporter-notification-projection-0-p6-dogfood.yaml
+          - project/brick-protocol/status/kernel/brick-protocol-reporter-notification-projection-0-support-record-0531.md
+          - support/checkers/profiles/reporter_notification_projection.yaml
+      - axis: Agent
+        row_ref: agent-row:reporter-notification-projection-0-p6-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:reporter-notification-projection-0-p6-closure
+        movement: forward
+        target_ref: building-boundary:reporter-notification-projection-0-p6-dogfood-closed
+        next_brick_instance_ref: building-boundary:reporter-notification-projection-0-p6-dogfood-closed
+        declared_gate_refs:
+          - link-gate:default-transition
+        building_lifecycle:
+          state: closed
+          reason: P6 dogfood Building route closed after local inbox projection evidence was ready for reporter observation.

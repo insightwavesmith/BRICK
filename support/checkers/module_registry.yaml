@@ -1,0 +1,1291 @@
+# Module Registry (engine blueprint 0531 §4 Table B) — the cohesion ledger.
+#
+# Append-only. ONE row per support module on disk (minus package __init__.py and
+# tests, which G4 excludes). The elegance guard reads this file + the file tree
+# and rejects any support module not registered here (G4, bidirectional with the
+# package-path mag-0 allowlist).
+#
+# Support record / governance projection only. Decides nothing: NOT source truth,
+# NOT success judgment, NOT quality judgment, NOT Movement authority. Admits no
+# axis or fact class.
+#
+# OWNERSHIP MODEL (so the guard is honest, not tautological):
+#   owns_crossings      = the axis crossings whose SUPPORT-SIDE mechanics are
+#                         solely homed in this module. Most support modules are
+#                         consumers / validators / projectors / orchestrators /
+#                         emitters and own ZERO axis crossings (they consume
+#                         contracts; they do not home one). Owning <=1 is the
+#                         elegant target (G2). The 4 god-modules own MANY and are
+#                         governed by the G6 ceiling (decomposition_target),
+#                         which exempts them from G2 until P3 shrinks them. (G6 is
+#                         a self-consistency check, NOT a one-way ratchet — see
+#                         the decomposition_ceilings proof-limit note below.)
+#   consumes_crossings  = crossings this module reaches via the canonical contract
+#                         (real axis imports). Read-only coupling record.
+#   imports_axis        = the axis source files this module imports from. G3
+#                         AST-scans the real imports and rejects any symbol that
+#                         is not a canonical_symbol of a crossing defined in that
+#                         file (per crossing_registry.yaml).
+#   forbidden_ownership = the authoring this support module must NEVER do
+#                         (G5 re-encodes the support baseline independently).
+#   decomposition_target= present only on a god-module: its G6 ceiling id +
+#                         ceiling value (owns_crossings count; lowered to 0 in P3.
+#                         self-consistency check, not an enforced ratchet — see
+#                         decomposition_ceilings proof-limit).
+#
+# roles:
+#   facade            delegates each crossing to its owner, authors nothing
+#                     (run.py; the 4 god-module facades arrive in P3).
+#   oracle            independent re-encoder (check_axis_contract_projection).
+#   carrier           aggregates the 5/typed facts by design (operator/contracts).
+#   checker           support-evidence checker (single concern).
+#   checker-runner    profile load + dispatch (the check_profile god-checker).
+#   checker-lib       checker helper sublayer.
+#   path-gate         file-tree admission gate (check_package_path_admission).
+#   connection        Agent-brain / projection connection surface.
+#   recording         deterministic evidence/packet writer (one seam).
+#   operator          Building operator mechanics (validate / project / route /
+#                     orchestrate); a god-operator carries decomposition_target.
+#
+# SUPPORT_FORBIDDEN_OWNERSHIP baseline (G5 re-encodes this, hand-written):
+#   movement_author, target_selector, success_judge, quality_judge, route_invent
+
+modules:
+  # ---- support/checkers ---------------------------------------------------
+  - module: support/checkers/check_profile.py
+    layer: checkers
+    role: checker-runner
+    # ELEGANT-REFACTOR P3a: the kernel-check bodies + rule/case runners + YAML
+    # parser were lifted into support/checkers/lib/* (each a registered
+    # checker-lib row above). This module is now the THIN FACADE (profile load +
+    # validate, RULE_RUNNERS, run_kernel_check dispatch, self-test, CLI). It
+    # homes NO crossing mechanics any more (owns_crossings shrank 11 -> 0; the
+    # axis MOVEMENT_LITERALS import moved to lib/rule_runners). The G6 ceiling
+    # lowered 11 -> 0 (historical; G6 is a self-consistency ceiling, see proof-limit).
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: check-profile-god-0
+    pinned_by: core profile self-test + checker_strict_validation profile
+
+  - module: support/checkers/check_package_path_admission.py
+    layer: checkers
+    role: path-gate
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: package_path_admission kernel check (self-inspecting)
+
+  - module: support/checkers/check_axis_contract_projection.py
+    layer: checkers
+    role: oracle
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: axis_contract_projection kernel check (independent re-encode)
+
+  - module: support/checkers/check_declared_verifier_exists.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: declared_verifier_exists kernel check (axis-contract verifier existence)
+
+  - module: support/checkers/check_axis_field_enum_parity.py
+    layer: checkers
+    role: oracle
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: axis_field_enum_parity kernel check (independent ast oracle)
+
+  - module: support/checkers/check_agentfact_single_home.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: agentfact_single_home kernel check (single AgentFact home)
+
+  - module: support/checkers/check_building_root_anchor.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_root_anchor kernel check (repo-anchored single-source Building root)
+
+  - module: support/checkers/check_catalog_reader_sync.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: catalog_reader_sync kernel check (code reader catalog file-path resolves)
+
+  - module: support/checkers/check_agent_resource_resolution.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: agent_resource_resolution kernel check (file-backed Agent Object refs prefix-match + resolve; adapter refs admitted)
+
+  - module: support/checkers/check_bricks_spec_completeness.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bricks_spec_completeness kernel check (brick spec frontmatter complete + required_return_template_refs/agent_object_hint_ref resolve + flat/missing-return/primary-return FIRE probes; needed-kind coverage is pinned by catalog/preset reference validation)
+
+  - module: support/checkers/check_building_lifecycle_path_shape.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_lifecycle_path_shape kernel check
+
+  - module: support/checkers/check_evidence_spine.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: [agent_return_fact]
+    imports_axis:
+      - agent/return_fact.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: evidence_spine kernel check (U5.5 spine structural integrity; verifies pairing/hash-chain/monotonic-order/index-re-derivation for u5_5_live buildings, reuses the canonical RETURNED_FORBIDDEN_KEYS forbidden-key set, judges nothing)
+
+  - module: support/checkers/check_evidence_spine_projection.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: evidence_spine_projection kernel check (U5.5 spine projection completeness; verifies the spine projection covers the building-scope declarations — exactly one each of PresetExpansion and LinkLaunchPolicy in events/ — for u5_5_live buildings, reuses the existing u5_5_live gate, judges nothing)
+
+  - module: support/checkers/check_pin_estate_integrity.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pin_estate_integrity kernel check (TREASURE PORT 1 0611, concept lift from d5bc86e check_doc_grounding; decorative-pin rejection + adversarial pin probes + dated pin-estate ratchet vs support/checkers/pin_estate_baseline.yaml over the post-W2 history-doc pin estate, judges nothing)
+
+  - module: support/checkers/check_building_map_graph.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_map_graph kernel check
+
+  - module: support/checkers/check_building_declaration_integrity.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_declaration_integrity kernel check (3 negative probes)
+
+  # PROJECT-0 S1-B (0611): every project/<id>/ vessel must declare its charter
+  # (README.md) + machine declaration (project.json) before buildings
+  # accumulate. Single concern; consumes the support loader
+  # (support/operator/project_declaration.py); anti-tautology probes incl.
+  # non-slug ids, symlinked vessel, slug-law seam parity, creation rollback.
+  - module: support/checkers/check_project_declaration.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: project_declaration kernel check (core profile; anti-tautology probes incl. slug law + symlink + rollback)
+
+  - module: support/checkers/check_tier_a_three_axis_conformance.py
+    layer: checkers
+    role: oracle
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: tier_a_three_axis_conformance kernel check (FIRE probe + per-axis assertions)
+
+  - module: support/checkers/check_building_operator_driver0.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_operator_driver0 kernel check
+
+  - module: support/checkers/check_bounded_agent_proposed_routing_loop0.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop kernel check
+
+  - module: support/checkers/check_recording_checker_derived_contract.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract kernel check
+
+  - module: support/checkers/check_axis_crossing_elegance.py
+    layer: checkers
+    role: oracle
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: axis_crossing_elegance kernel check (this guard; self-registered, anti-tautological)
+
+  - module: support/checkers/check_brick_template_catalog_restructure.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: brick_template_catalog_restructure kernel check (P3 staged FIRE fixtures)
+
+  - module: support/checkers/lib/common.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: imported by checker layer; covered by checker_strict_validation profile
+
+  # ELEGANT-REFACTOR P3a (engine blueprint 0531 §5 / detail-design §D-4 Opt B):
+  # the check_profile god-checker's kernel-check bodies, declarative rule runners,
+  # behavioral case runners, and the YAML-subset parser were lifted here. Each is
+  # a single-concern checker-lib module that owns ZERO axis crossing (it parses,
+  # validates, projects, or dispatches; it homes no crossing). The facade
+  # (check_profile.py) imports them and re-exports the public names.
+  - module: support/checkers/lib/yaml_subset.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: imported by check_profile facade; covered by checker_strict_validation + core profile self-test
+
+  - module: support/checkers/lib/rule_runners.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings:
+      - link_movement
+    imports_axis:
+      - link/movement.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_plan_boundary / route_policy_boundary / fail_fixture_rejects rules (checker_strict_validation profile)
+
+  - module: support/checkers/lib/case_runners.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: route_materialization / compose_building profile cases
+
+  - module: support/checkers/lib/kernel_checks.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: axis_vocab_drift / building_map_graph / agent_adapter_return_shape / reporter_notification_projection kernel checks (core profile) + agent_session_id_redaction kernel check (agent_axis_behavioral profile, TREASURE PORT 2 0611, frozen-line-content-hash allowlist over kernel/buildings/reviews/archive session-id leaks)
+
+  # ---- support/connection -------------------------------------------------
+  - module: support/connection/agent_adapter.py
+    layer: connection
+    role: connection
+    owns_crossings: [agent_return_fact]
+    consumes_crossings:
+      - agent_return_fact
+      - brick_work
+    imports_axis:
+      - agent/return_fact.py
+      - brick/work.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: agent_adapter_return_shape kernel check + adapter_model_selection cases
+
+  - module: support/connection/agent_resources.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: [agent_performer]
+    imports_axis:
+      - agent/performance.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: agent_resource_boundary cases (agent_projection_sync profile)
+
+  - module: support/connection/building_design_toolkit.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: design_toolkit_and_mcp profile
+
+  - module: support/connection/coo_sync.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: agent_projection_sync profile
+
+  - module: support/connection/mcp_projection.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: design_toolkit_and_mcp profile
+
+  - module: support/connection/connect.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: connect_config_launch kernel check (read_side_projection_boundary profile)
+
+  # ---- support/operator ---------------------------------------------------
+  - module: support/operator/run.py
+    layer: operator
+    role: facade
+    owns_crossings:
+      - brick_work
+      - agent_return_fact
+      - agent_receipt
+      - agent_performer
+      - brick_comparison
+      - link_gate
+      - link_movement
+      - link_transfer
+      - link_carry
+      - link_transition
+    consumes_crossings:
+      - brick_work
+      - agent_return_fact
+      - agent_receipt
+      - agent_performer
+      - brick_comparison
+      - link_gate
+      - link_movement
+      - link_transfer
+      - link_carry
+      - link_transition
+    imports_axis:
+      - brick/work.py
+      - brick/comparison.py
+      - agent/return_fact.py
+      - agent/receipt.py
+      - agent/performance.py
+      - link/gate.py
+      - link/movement.py
+      - link/transfer.py
+      - link/carry.py
+      - link/transition.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: run_surface_split profile (facade entry; delegates each crossing to its axis owner)
+
+  - module: support/operator/contracts.py
+    layer: operator
+    role: carrier
+    owns_crossings:
+      - brick_work
+      - agent_return_fact
+      - agent_receipt
+      - agent_performer
+      - brick_comparison
+      - link_gate
+      - link_movement
+      - link_transfer
+      - link_carry
+      - link_transition
+    consumes_crossings:
+      - brick_work
+      - agent_return_fact
+      - agent_receipt
+      - agent_performer
+      - brick_comparison
+      - link_gate
+      - link_movement
+      - link_transfer
+      - link_carry
+      - link_transition
+    imports_axis:
+      - brick/work.py
+      - brick/comparison.py
+      - agent/return_fact.py
+      - agent/receipt.py
+      - agent/performance.py
+      - link/gate.py
+      - link/movement.py
+      - link/transfer.py
+      - link/carry.py
+      - link/transition.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: axis_contract_projection (typed-fact carrier; aggregates the facts by design)
+
+  # ELEGANT-REFACTOR P3d (engine blueprint 0531 §5 Opt 2 / detail-design §D-1):
+  # the largest god-module's single-concern parts (shared path/JSON/text helpers,
+  # allowlisted checker-profile subprocess, evidence presence/analysis, project
+  # orchestration-ledger projection+view, Building frontier observation, COO
+  # operating-chain/operator-loop/closure projection, declared-plan rendering,
+  # compose_building plan assembly, coo_run_orchestration packet, native-dispatch
+  # open/close seam) were lifted into single-concern operator collaborators
+  # (support/operator/{building_operation_common,checker_runner,evidence_status,
+  # ledger_projection,frontier_observation,coo_operating_chain,plan_rendering,
+  # composition,orchestration_packet,native_dispatch}.py, each a registered row
+  # below). This module is now the THIN READ-PROJECTION FACADE: it re-exports
+  # every previously-public name (driver/reporter observe_building_frontier; the
+  # checker lib case runners' compose_building / render_declared_step_template_plan
+  # / observe_building_frontier / CompositionError; mcp_projection's
+  # coo_operating_chain_packet reference) as thin re-exports. It homes NO crossing
+  # mechanics any more (owns_crossings shrank 9 -> 0; the agent/performance +
+  # link/movement + link/transition axis imports moved into the native_dispatch /
+  # plan_rendering collaborators that cross via the canonical contract, G3). The
+  # G6 ceiling bo-god-0 lowered 9 -> 0 (historical; self-consistency ceiling, see proof-limit).
+  - module: support/operator/building_operation.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: bo-god-0
+    pinned_by: compose_building / declared_step_template_plan cases + frontier observation (thin facade; concerns lifted to operator/{checker_runner,evidence_status,ledger_projection,frontier_observation,coo_operating_chain,plan_rendering,composition,orchestration_packet,native_dispatch} + building_operation_common in P3d)
+
+  - module: support/operator/building_operation_common.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: compose_building / declared_step_template_plan cases + frontier observation (shared path/JSON/text helpers + default refs imported by the building-operation collaborators; reaches no axis)
+
+  # ONBOARDING-WIZARD-0: friendly never-raising onboarding flow that ties the
+  # existing preflight + connect + a bundled adapter:local example Building into
+  # one guided, plain-Korean beginner experience. Reuses existing functions
+  # (preflight_provider, connect.render_connect, run_building_plan); owns no
+  # crossing, judges nothing, owns no Movement.
+  - module: support/operator/onboard.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: onboard_smoke kernel check (building_operator_driver0 profile)
+
+  # PROJECT-0 S1-A (0611): project declaration record loader. Reads + validates
+  # project/<id>/project.json (closed 9-key set, non-empty direction, judgment
+  # keys rejected, human-only managers, charter_ref resolves to the project's
+  # own README.md). Records facts only — owns no crossing, judges nothing.
+  - module: support/operator/project_declaration.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: project_declaration kernel check (core profile; loader is the validator the checker drives)
+
+  # PROJECT-0 S2-A (0611): project creation verb (charter-first 기계 박제).
+  # Writes project/<id>/README.md (charter) FIRST, then project.json (the
+  # shadow declaration), then the vessel skeleton dirs (buildings/ status/
+  # _portfolio-projections/ — empty dirs, no placeholder files), and
+  # fail-closed round-trips through the S1 loader: a rejected declaration
+  # removes the vessel and the loader's rejection speaks verbatim. Records
+  # direction facts only — owns no crossing, judges nothing.
+  - module: support/operator/project_creation.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: project_declaration kernel check (core profile; every vessel the verb creates must pass the loader-driven kernel check or be removed)
+
+  # PROJECT-0 S4-C (0611): per-vessel PROGRESS.md machine projection (TRUTH
+  # layer only). Renders + writes project/<id>/PROGRESS.md from already-written
+  # Building evidence: counts by board_state/frontier_kind, latest Buildings by
+  # recorded evidence timestamp, declared direction echoed as header context.
+  # No judgment vocabulary, no human prose slot, no wallclock in the body
+  # (idempotent over unchanged evidence). Optional output — the declaration
+  # checker never requires it. Owns no crossing, judges nothing.
+  - module: support/operator/progress_projection.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: project_declaration kernel check (core profile; the vessel must load through the S1 declaration loader before any PROGRESS projection renders) + building_root_anchor read-side vessel-literal guard
+
+  # ONBOARDING-RECORDING-HOOKS (0610): TRACKED machine-neutral templates for
+  # the per-LLM auto-recording hooks. NOT engine surfaces -- inert template
+  # SOURCE files the onboard wizard's opt-in recording step copies into a
+  # checkout's .claude/hooks/ + .codex/hooks/ machine config (gitignored).
+  # No machine default (BRICK_REPO_ROOT required), no crossing, no judgment,
+  # always exit 0 (a recording failure can never block a dispatch).
+  - module: support/onboarding/claude-hooks/open-recording.py
+    layer: onboarding
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: ONBOARD_RECORDING_HOOK_TEMPLATE_TARGETS (check_package_path_admission.py) + onboard recording step (support/operator/onboard.py)
+
+  - module: support/onboarding/claude-hooks/close-recording.py
+    layer: onboarding
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: ONBOARD_RECORDING_HOOK_TEMPLATE_TARGETS (check_package_path_admission.py) + onboard recording step (support/operator/onboard.py)
+
+  - module: support/onboarding/codex-hooks/codex-open-recording.py
+    layer: onboarding
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: ONBOARD_RECORDING_HOOK_TEMPLATE_TARGETS (check_package_path_admission.py) + onboard recording step (support/operator/onboard.py)
+
+  - module: support/onboarding/codex-hooks/codex-close-recording.py
+    layer: onboarding
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: ONBOARD_RECORDING_HOOK_TEMPLATE_TARGETS (check_package_path_admission.py) + onboard recording step (support/operator/onboard.py)
+
+  - module: support/operator/checker_runner.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: simple_run0_one_run_surface (allowlisted checker-profile subprocess invocation; forbidden-part filtered, runs no commit/push, chooses no Movement)
+
+  - module: support/operator/evidence_status.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_lifecycle_path_shape + building_declaration_integrity (evidence presence + mechanical layer-count analysis read projection; not content correctness, chooses no Movement)
+
+  - module: support/operator/ledger_projection.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_operator_driver0 (project orchestration-ledger read projection + read-only markdown view over already-written evidence; not a dashboard runtime, chooses no Movement)
+
+  - module: support/operator/frontier_observation.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_operator_driver0 + bounded_agent_proposed_routing_loop (Building frontier observation over recorded link.jsonl lifecycle records; reads lifecycle state by field name, chooses no Movement or target)
+
+  - module: support/operator/coo_operating_chain.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_operator_driver0 (COO operating-chain / operator-loop / closure read projection + forbidden-verdict gap notes; reads design/agent context via the support.connection toolkit, authors no verdict or Movement)
+
+  - module: support/operator/plan_rendering.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - link_movement
+    imports_axis:
+      - link/movement.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: declared_step_template_plan case (declared-plan rendering from shape-registry step templates + compact link expressions; reads declared movement literals via the canonical MOVEMENT_LITERALS contract, authors no Movement or route)
+
+  - module: support/operator/composition.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: compose_building case (compose_building Brick plan assembly + CompositionProblem collection; crosses to Link via the canonical movement/gate-ref contracts through plan_rendering, authors no Movement or route)
+
+  - module: support/operator/orchestration_packet.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_operator_driver0 (coo_run_orchestration read packet composing the declared-plan + evidence-analysis + closure-draft collaborators; chooses no Movement or target)
+
+  - module: support/operator/native_dispatch.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - agent_performer
+      - link_movement
+      - link_transition
+    imports_axis:
+      - agent/performance.py
+      - link/movement.py
+      - link/transition.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: simple_run0_one_run_surface + building_lifecycle_path_shape (POSITION-A native-dispatch open/close recording seam; records a native subagent dispatch + a COMPUTED Link gate via the canonical NATIVE_DISPATCH_PERFORMANCE_MODE / make_movement_fact / make_transition_fact contracts, launches nothing and chooses no Movement)
+
+  # ELEGANT-REFACTOR P3b (engine blueprint 0531 §5 / detail-design §D-2 Opt B):
+  # the per-crossing-family emitters (Brick/Agent/Link/Carry-budget claim+raw,
+  # declaration packets, building-map, lifecycle, adapter-error frontier) were
+  # lifted into support/recording/claims_*.py + the recording emitter sublayer
+  # (each a registered recording row below). This module is now the THIN WRITER
+  # FACADE (the three public writers as thin orchestrators + re-exported public
+  # names). It homes NO crossing mechanics any more (owns_crossings shrank 9 ->
+  # 0; the GateFact axis import moved to recording/claims_link). The G6 ceiling
+  # lowered 9 -> 0 (historical; self-consistency ceiling, see proof-limit).
+  - module: support/operator/evidence_assembly.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ea-god-0
+    pinned_by: recording_checker_derived_contract + write_single/accumulated evidence (thin facade; crossings lifted to recording/claims_* emitters in P3b)
+
+  # ELEGANT-REFACTOR P3c (engine blueprint 0531 §5 / detail-design §D-3 Opt B):
+  # the dynamic graph walker god-module's separable concerns (forward walk kernel,
+  # resume-after-HOLD verb, reroute + per-node budget, HOLD construction, fan-in
+  # wait-all, agent transition-concern adoption, per-step row fixtures, adapter-
+  # error frontier) were lifted into single-concern operator collaborators
+  # (support/operator/walker_*.py, each a registered row below). This module is
+  # now the THIN FACADE: it re-exports every previously-public name (run.py's
+  # walk/resume entry + the checker's _node_reroute_budgets import) as thin
+  # delegators. It homes NO crossing mechanics any more (owns_crossings shrank
+  # 10 -> 0; the agent/return_fact + link/transition axis imports moved into the
+  # transition-concern / reroute-budget / resume / step-fixture collaborators
+  # that cross via the canonical contract, G3). The G6 ceiling was lowered (historical)
+  # 10 -> 0 accordingly (decomposition_ceilings below).
+  - module: support/operator/dynamic_walker.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: dw-god-0
+    pinned_by: bounded_agent_proposed_routing_loop + recording_checker_derived_contract (thin facade; walk kernel + per-concern collaborators lifted to operator/walker_* in P3c)
+
+  - module: support/operator/walker_common.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (shared walker proof-limit / not-proven vocab; imported by the walker collaborators)
+
+  - module: support/operator/walker_step_fixture.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - transition_lifecycle
+    imports_axis:
+      - link/transition.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (per-step Brick/Link row readers + declared gate disposition; reads declared gate via the canonical transition-lifecycle author-prefix contract, authors none)
+
+  - module: support/operator/walker_reroute_budget.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - transition_lifecycle
+    imports_axis:
+      - link/transition.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (Link-assigned per-target-node reroute budget reader + Carry-budget evidence refs; validates disposition_action via the canonical DISPOSITION_ACTIONS contract, authors no budget)
+
+  - module: support/operator/walker_fan_in.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (declared fan-out splice + fan-in wait-all observation/HOLD; serial walk only, chooses no Movement)
+
+  - module: support/operator/walker_transition_concern.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - agent_return_fact
+    imports_axis:
+      - agent/return_fact.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (Agent non-binding transition-concern adoption + existing-node target resolution; consumes the canonical validate_transition_concern_evidence contract, invents no node)
+
+  - module: support/operator/gate_sequence.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - brick_comparison
+      - link_gate
+      - transition_lifecycle
+    imports_axis:
+      - brick/work.py
+      - link/gate.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_skill_preset_agent_tool_hardening gate_sequence_policy cases (reads declared Link gate sequence and returns support-only action observation)
+
+  - module: support/operator/walker_hold.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (HOLD RerouteAdoptionRecord builder + paused transition_lifecycle injection; built from the recording contract field-spec, decides no raise/forward/stop)
+
+  - module: support/operator/walker_frontier.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (adapter-error frontier write-plan + writer; records the frontier through the injected support writer, chooses no Movement)
+
+  - module: support/operator/walker_kernel.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (the forward step-walk kernel; orchestrates the collaborators + reuses the injected step executor/writer, authors no route or Movement)
+
+  - module: support/operator/walker_resume.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - transition_lifecycle
+    imports_axis:
+      - link/transition.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (the resume-after-HOLD verb; reads the human/COO disposition row via the canonical transition-lifecycle author-prefix contract and replays/walks, authors no disposition)
+
+  - module: support/operator/plan_validation.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - brick_work
+      - brick_comparison
+      - link_gate
+      - link_movement
+      - link_transfer
+      - link_carry
+      - link_transition
+      - transition_lifecycle
+    imports_axis:
+      - brick/work.py
+      - brick/comparison.py
+      - link/gate.py
+      - link/movement.py
+      - link/transfer.py
+      - link/carry.py
+      - link/transition.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_plan_boundary + compose_building cases (validates declared rows; consumes, owns none)
+
+  - module: support/operator/primitives.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - agent_return_fact
+      - link_gate
+      - link_movement
+      - link_transition
+      - transition_lifecycle
+    imports_axis:
+      - agent/return_fact.py
+      - link/gate.py
+      - link/movement.py
+      - link/transition.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: shared operator primitives; covered by run_surface_split + route_match_and_materialization
+
+  - module: support/operator/route_materialization.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: route_materialization_case + transition_concern_disposition_case (literal route matching; chooses no Movement)
+
+  - module: support/operator/plan_graph.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: compose_building cases (graph->linear projection)
+
+  - module: support/operator/auto_repair_replay.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: auto_repair_replay_case profile
+
+  - module: support/operator/child_building_generation.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: structure-template-integrity profile (child_building_candidate_case rule)
+
+  - module: support/operator/driver.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - agent_return_fact
+      - transition_lifecycle
+    imports_axis:
+      - agent/return_fact.py
+      - link/transition.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_operator_driver0 kernel check (bounded portfolio driver; selection is the declared gate dial, not new authority)
+
+  - module: support/operator/write_observation.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: write_scope_default_exclude profile
+
+  - module: support/operator/reporter.py
+    layer: operator
+    role: operator
+    owns_crossings: [report_packet]
+    consumes_crossings: [transition_lifecycle]
+    imports_axis:
+      - link/transition.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: reporter_notification_projection kernel check (render-only target; owns the ReportPacket support projection, decides nothing)
+
+  - module: support/operator/report_sinks.py
+    layer: operator
+    role: operator
+    owns_crossings: [report_packet]
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: rs-sink-ceiling-0
+    pinned_by: reporter_notification_projection kernel check (G6 sink ceiling re-ratified at FOUR by Smith 0611 = dispatch seam + exactly {local-inbox, operator-wake-local, slack, dashboard}; a 5th sink requires the report_bus split — never a 5th sibling; blueprint 3.1)
+
+  - module: support/operator/dashboard_export.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: dashboard read-side projection (reshapes the ledger packet + agent/brick/building-map evidence into a dashboard-readable snapshot, and one building into the same per-building row/detail shape as an event delta; not a dashboard runtime, chooses no Movement, judges nothing)
+
+  # ---- support/recording --------------------------------------------------
+  - module: support/recording/records.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: [agent_return_fact]
+    imports_axis:
+      - agent/return_fact.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract (typed packet records)
+
+  - module: support/recording/contracts.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract (recording input contracts; the derived-shape source)
+
+  - module: support/recording/building_map.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_map_graph kernel check (Building Graph map writer)
+
+  - module: support/recording/capture.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_lifecycle_path_shape (CAP-BOOT-3 capture writer)
+
+  - module: support/recording/spine.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: evidence_spine kernel check (U5.5 spine shared pure functions — event_type set + canonical_json/content_hash/render_event_md; reuses capture.graph_ready_json_object, owns no crossing, judges nothing)
+
+  - module: support/recording/spine_projection.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: evidence_spine_projection kernel check (U5.5 slice-2 BUILD-2 building-scope declaration projector — reads work/preset-expansion.json + work/link-launch-policy.json, appends PresetExpansion + LinkLaunchPolicy via spine.append_spine_events; imports recording only, owns no crossing, judges nothing)
+
+  - module: support/recording/operator_evidence.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract (accumulated-Building operator evidence emitters)
+
+  - module: support/recording/raw_claim_trace.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_lifecycle_path_shape (raw stream + claim-trace writer)
+
+  - module: support/recording/step_outputs.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: [agent_return_fact]
+    imports_axis:
+      - agent/return_fact.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: step_output_and_route_request profile (per-step output + transition concern writer)
+
+  - module: support/recording/walker_evidence.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract (dynamic-walker support evidence emitters)
+
+  # ELEGANT-REFACTOR P3b (engine blueprint 0531 §5 / detail-design §D-2 Opt B):
+  # the evidence_assembly god-module's per-crossing-family emitters lifted here as
+  # single-concern recording collaborators behind the writer facade
+  # (support/operator/evidence_assembly.py). Each owns ZERO axis crossing (it
+  # assembles raw records / claim facts / packets and homes no crossing); the one
+  # axis-internal import (the canonical GateFact contract of the link_gate
+  # crossing) lives in claims_link only, which crosses via that canonical
+  # contract (elegance guard G3). Behavior stays pinned by
+  # recording_checker_derived_contract / building_lifecycle_path_shape / Tier-A.
+  - module: support/recording/claims_common.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract (shared claim/step leaf primitives; imported by the claims_* emitters)
+
+  - module: support/recording/claims_brick.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract (Brick raw records + work/comparison claim facts)
+
+  - module: support/recording/claims_agent.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract (Agent raw records + claim/receipt facts)
+
+  - module: support/recording/claims_link.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings:
+      - link_gate
+    imports_axis:
+      - link/gate.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract (Link transfer/movement/sufficiency facts + gate body; consumes the canonical GateFact contract only)
+
+  - module: support/recording/claims_carry_budget.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (node-reroute + route-replay Carry budget observation facts)
+
+  - module: support/recording/claims_assembly.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract (per-axis RawClaimTracePacket assembler over the claims_* families)
+
+  - module: support/recording/declaration_packets.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_declaration_integrity + run_surface_split (declaration-provenance packets + plan snapshot)
+
+  - module: support/recording/building_map_emit.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_map_graph kernel check (accumulated / single-run / adapter-error frontier Building Graph map packets)
+
+  - module: support/recording/lifecycle_emit.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_lifecycle_path_shape (lifecycle + capture-event packets; mapping converters)
+
+  - module: support/recording/adapter_error_frontier.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_automation (write_adapter_error_frontier_evidence + agent-incomplete frontier lifecycle/map/trace builders)
+
+# G6 decomposition ceiling: each decomposition_target's current owns_crossings
+# count is its ceiling; raising owns_crossings above the ceiling -> G6 RED.
+# PROOF LIMIT (codex review 4 P2-2, decision C 0601): this is a CURRENT-state
+# self-consistency check, NOT an independently-enforced one-way ratchet — editing
+# this ceiling upward in the same commit is not rejected here. The intent ("a
+# decomposed module does not re-bloat") is enforced by G2 (owns<=1) + G1 + G4 +
+# mag-0, not by G6 alone. "shrink-only" below is a HISTORICAL note (P3 actually
+# moved each count down to 0), not a guaranteed mechanism.
+decomposition_ceilings:
+  - target: bo-god-0
+    module: support/operator/building_operation.py
+    ceiling: 0          # P3d DONE: checker-runner / evidence-status / ledger-projection / frontier-observation / coo-operating-chain / plan-rendering / composition / orchestration-packet / native-dispatch collaborators + building_operation_common lifted (§D-1 Opt 2); facade homes no crossing. lowered 9 -> 0 (historical).
+  - target: ea-god-0
+    module: support/operator/evidence_assembly.py
+    ceiling: 0          # P3b DONE: per-crossing-family emitters lifted to recording/claims_* + emitter sublayer (§D-2 Opt B); facade homes no crossing. lowered 9 -> 0 (historical).
+  - target: dw-god-0
+    module: support/operator/dynamic_walker.py
+    ceiling: 0          # P3c DONE: forward walk kernel + resume verb + reroute-budget / HOLD / fan-in / transition-concern / step-fixture / frontier collaborators lifted to operator/walker_* (§D-3 Opt B); facade homes no crossing. lowered 10 -> 0 (historical).
+  - target: check-profile-god-0
+    module: support/checkers/check_profile.py
+    ceiling: 0          # P3a DONE: kernel-check bodies + rule/case runners + YAML parser lifted to checkers/lib/* (§D-4 Opt B); facade homes no crossing. lowered 11 -> 0 (historical).
+  - target: rs-sink-ceiling-0
+    module: support/operator/report_sinks.py
+    ceiling: 1          # owns exactly the report_packet sink-dispatch seam; sink set re-ratified at FOUR (Smith 0611: local-inbox, operator-wake-local, slack, dashboard — live-pinned by the reporter_notification_projection kernel check); a 5th sink requires the report_bus + sinks/<name> split FIRST — never a 5th sibling (blueprint 3.1)
+
+proof_limits:
+  - support evidence only
+  - governance/navigation projection only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - module registry row as source truth
+  - module behavior (pinned by per-row pinned_by, not by this registry)

@@ -1,0 +1,60 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:step-output-and-route-request-0-0526::work/building-work.json",
+  "building_id": "step-output-and-route-request-0-0526",
+  "comparison_rule": "Observe whether the step output shape preserves Brick / Agent / Link boundaries.",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-05-26T12:29:58Z",
+  "id": "urn:bp:building:step-output-and-route-request-0-0526::work/building-work.json",
+  "not_proven": [
+    "route policy matching",
+    "route materialization",
+    "automatic repair/replay execution",
+    "automatic child Building generation",
+    "semantic correctness of QA route request",
+    "provider answer quality",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work"
+  ],
+  "plan_ref": "building-plan:step-output-and-route-request-0-compact",
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-05-26T12:29:58Z",
+  "required_return_shape": "step_output_shape, route_request_shape, proof_limits, not_proven",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:step-output-and-route-request-0-0526",
+  "source_facts": [
+    "AGENTS.md",
+    "project/brick-protocol/status/kernel/current-working-context.md",
+    "support/docs/spec/brick-protocol-step-output-and-route-request-0-0526.md",
+    "support/operator/run.py"
+  ],
+  "specversion": "1.0",
+  "step_refs": [
+    "step-output-and-route-request-0-01-design",
+    "step-output-and-route-request-0-02-qa",
+    "step-output-and-route-request-0-03-closure"
+  ],
+  "subject": "work/building-work.json",
+  "time": "2026-05-26T12:29:58Z",
+  "type": "bp.building_work",
+  "work_statement": "Define per-step output projection and non-binding QA route_request evidence shape."
+}

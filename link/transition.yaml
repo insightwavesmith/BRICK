@@ -1,0 +1,48 @@
+kind: LinkTransitionContractProjection
+bal_owner: Link
+module: Link.transition
+contract: Transition Contract
+projection_only: true
+
+upstream_module: Link.transition
+upstream_contract: Transition Contract
+verifiers:
+  - axis import boundary checker
+  - axis contract projection checker
+  - movement English literal checker
+
+public_fact:
+  name: TransitionFact
+  owner: Link
+  fields:
+    - movement
+    - target_fact
+    - topology_fact
+    - merge_rule_fact
+    - handoff_reference
+    - not_proven
+
+allowed_facts:
+  - movement
+  - target_fact
+  - topology_fact
+  - merge_rule_fact
+  - handoff_reference
+  - not_proven
+
+connection_route_rule:
+  default_forward_connection: movement forward to the declared target_fact
+  exception_reroute: movement reroute to another declared target_fact
+  route_replay_plan: route_replay_plan is Link row evidence, not a TransitionFact field
+  transition_concern_boundary: Agent returned concern evidence may inform later Link disposition but does not choose Movement
+  route_decision_basis: route_decision_basis is Link row evidence, not a TransitionFact field
+  transition_lifecycle: transition_lifecycle paused/resumed is Link row evidence, not a Movement literal
+
+forbidden_ownership:
+  - executing handoff
+  - owning performer launch timing
+  - judging quality
+  - choosing route target
+  - choosing replay segment
+  - persisting source truth
+  - becoming runtime

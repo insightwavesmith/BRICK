@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "brick-protocol"
+version = "0.0.0"
+description = "A three-axis work protocol for human-agent work."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [
+  { name = "Brick Protocol contributors" }
+]
+# PyYAML is a hard runtime dependency: the operator surface
+# (support/operator/plan_rendering.py) loads the split brick catalog and
+# preset registry via yaml.safe_load on every intake/preset run.
+dependencies = [
+  "PyYAML>=6.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["support/checkers"]
+
+[tool.setuptools]
+packages = [
+  "brick_protocol",
+  "brick_protocol.brick",
+  "brick_protocol.agent",
+  "brick_protocol.link",
+  "brick_protocol.support",
+  "brick_protocol.support.recording",
+]
+include-package-data = false
+
+[tool.setuptools.package-dir]
+"brick_protocol" = "support/import_identity/brick_protocol"
+"brick_protocol.brick" = "brick"
+"brick_protocol.agent" = "agent"
+"brick_protocol.link" = "link"
+"brick_protocol.support" = "support"
+"brick_protocol.support.recording" = "support/recording"
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"

@@ -1,0 +1,102 @@
+plan_ref: building-plan:building-operation-surface-0-full-implementation
+owner_axis: Brick
+building_id: building-operation-surface-0-0525
+plan_shape: linear
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - future Building correctness
+  - operator judgment correctness
+  - automatic Movement selection
+  - runtime behavior
+steps:
+  - step_ref: building-operation-surface-design
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-operation-surface-design
+        brick_work_ref: work:building-operation-surface-design
+        brick_instance_ref: brick-building-operation-surface-design
+        work_statement: Design BUILDING-OPERATION-SURFACE-0 as a support helper, not a runner or Movement authority.
+        comparison_rule: Observe whether the design keeps support/operator/run.py as the public Building run surface and keeps closure decisions with COO.
+        required_return_shape: observed_boundaries, helper_functions, forbidden_authority, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - support/docs/spec/brick-protocol-building-operation-surface-0-operator-helper-0525.md
+          - project/brick-protocol/status/kernel/brick-protocol-agent-brain-swap-dogfood-0-support-record-0525.md
+      - axis: Agent
+        row_ref: agent-row:building-operation-surface-design
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:building-operation-surface-design-to-development
+        movement: forward
+        target_ref: brick-building-operation-surface-development
+  - step_ref: building-operation-surface-development
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-operation-surface-development
+        brick_work_ref: work:building-operation-surface-development
+        brick_instance_ref: brick-building-operation-surface-development
+        work_statement: Implement the operator helper support surface and checker.
+        comparison_rule: Observe support helper functions only; do not add a runner, provider call, Movement chooser, or commit/push automation.
+        required_return_shape: implemented_files, helper_functions, checker_refs, proof_limits, not_proven
+        source_facts:
+          - support/operator/building_operation.py
+          - support/checkers/check_building_operation_surface0.py
+          - support/checkers/check_package_path_admission.py
+      - axis: Agent
+        row_ref: agent-row:building-operation-surface-development
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:building-operation-surface-development-to-qa
+        movement: forward
+        target_ref: brick-building-operation-surface-qa
+  - step_ref: building-operation-surface-qa
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-operation-surface-qa
+        brick_work_ref: work:building-operation-surface-qa
+        brick_instance_ref: brick-building-operation-surface-qa
+        work_statement: Verify BUILDING-OPERATION-SURFACE-0 helper boundaries and evidence root.
+        comparison_rule: Observe checker outputs and helper boundary only; do not judge project success.
+        required_return_shape: checker_observations, evidence_observations, repair_needed, proof_limits, not_proven
+        source_facts:
+          - support/checkers/check_building_operation_surface0.py
+          - support/operator/building_operation.py
+      - axis: Agent
+        row_ref: agent-row:building-operation-surface-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:building-operation-surface-qa-to-closure
+        movement: forward
+        target_ref: brick-building-operation-surface-closure
+  - step_ref: building-operation-surface-closure
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-operation-surface-closure
+        brick_work_ref: work:building-operation-surface-closure
+        brick_instance_ref: brick-building-operation-surface-closure
+        work_statement: Close BUILDING-OPERATION-SURFACE-0 with observed evidence and next COO Movement.
+        comparison_rule: Preserve observed evidence, narrow proof, not-proven, held, and next Movement only.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, held, coo_movement
+        source_facts:
+          - support/docs/spec/brick-protocol-building-operation-surface-0-operator-helper-0525.md
+          - project/brick-protocol/buildings/building-operation-surface-0-0525/work/building-map.json
+      - axis: Agent
+        row_ref: agent-row:building-operation-surface-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:building-operation-surface-closure-to-boundary
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:building-operation-surface-0-closed

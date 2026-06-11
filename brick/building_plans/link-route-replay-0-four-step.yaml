@@ -1,0 +1,111 @@
+plan_ref: building-plan:link-route-replay-0-four-step
+owner_axis: Brick
+building_id: link-route-replay-0-four-step-0524
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - implementation correctness
+  - provider resume behavior
+  - real Codex CLI behavior
+  - real Claude CLI behavior
+  - runtime or scheduler behavior
+steps:
+  - step_ref: link-route-replay-0-01-design
+    selected_adapter_ref: adapter:codex-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-route-replay-0-design
+        brick_work_ref: work:link-route-replay-0-design
+        brick_instance_ref: brick-link-route-replay-design-01
+        work_statement: Write the LINK-ROUTE-REPLAY-0 design document before implementation, preserving Link ownership of reroute target and replay segment while support/operator/run.py only materializes a caller-declared route/replay plan.
+        comparison_rule: Observe whether the design names role boundary, current structure, changes, unchanged surfaces, axis responsibility, execution sequence, invariants, edge cases, checker plan, candidate file changes, evidence packet, and not_proven.
+        required_return_shape: role boundary, current structure, changes, unchanged surfaces, axis responsibility, execution sequence, invariants, edge cases, checker plan, candidate file changes, evidence packet, not_proven
+        source_facts:
+          - AGENTS.md
+          - brick/templates/design/minimal-design-template.json
+          - support/docs/spec/brick-protocol-session-continuity-0-and-link-route-replay-0-plan-0524.md
+          - project/brick-protocol/status/kernel/brick-protocol-session-continuity-0-support-record-0524.md
+          - support/operator/run.py
+          - link/movement.py
+          - link/transition.py
+          - support/recording/building_map.py
+      - axis: Agent
+        row_ref: agent-row:link-route-replay-0-design
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:link-route-replay-0-design
+        movement: forward
+        target_ref: brick-link-route-replay-development-02
+        next_brick_instance_ref: brick-link-route-replay-development-02
+  - step_ref: link-route-replay-0-02-development
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-route-replay-0-development
+        brick_work_ref: work:link-route-replay-0-development
+        brick_instance_ref: brick-link-route-replay-development-02
+        work_statement: Implement LINK-ROUTE-REPLAY-0 from the design without adding a Movement chooser, default GateFact creator, runtime/scheduler/queue/retry service, provider SDK adapter, or mutable workflow state.
+        comparison_rule: Observe whether implementation preserves caller-declared reroute target and replay segment, append-only Brick attempts, graph/capture evidence, and Link ownership.
+        required_return_shape: implementation_map, changed_files, verification_evidence, claim_ledger, not_proven
+        source_facts:
+          - brick/templates/do/minimal-do-return-template.json
+          - support/docs/spec/brick-protocol-link-route-replay-0-design-0524.md
+      - axis: Agent
+        row_ref: agent-row:link-route-replay-0-development
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:link-route-replay-0-development
+        movement: forward
+        target_ref: brick-link-route-replay-codex-qa-03
+        next_brick_instance_ref: brick-link-route-replay-codex-qa-03
+  - step_ref: link-route-replay-0-03-codex-qa
+    selected_adapter_ref: adapter:codex-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-route-replay-0-codex-qa
+        brick_work_ref: work:link-route-replay-0-codex-qa
+        brick_instance_ref: brick-link-route-replay-codex-qa-03
+        work_statement: Review the LINK-ROUTE-REPLAY-0 implementation as Codex QA using only observed evidence.
+        comparison_rule: Observe whether findings cite files, commands, boundary risks, and repair scope without verdict authority.
+        required_return_shape: checked_work, checked_sources, match_facts, missing_or_mismatched_facts, boundary_violations, evidence_used, narrowly_proven, not_proven, next_movement_recommendation
+        source_facts:
+          - brick/templates/review/minimal-review-template.json
+          - support/docs/spec/brick-protocol-link-route-replay-0-design-0524.md
+          - project/brick-protocol/status/kernel/brick-protocol-link-route-replay-0-development-report-0524.md
+      - axis: Agent
+        row_ref: agent-row:link-route-replay-0-codex-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:link-route-replay-0-codex-qa
+        movement: forward
+        target_ref: brick-link-route-replay-claude-qa-04
+        next_brick_instance_ref: brick-link-route-replay-claude-qa-04
+  - step_ref: link-route-replay-0-04-claude-qa
+    selected_adapter_ref: adapter:claude-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-route-replay-0-claude-qa
+        brick_work_ref: work:link-route-replay-0-claude-qa
+        brick_instance_ref: brick-link-route-replay-claude-qa-04
+        work_statement: Review the LINK-ROUTE-REPLAY-0 implementation as Claude QA using only observed evidence.
+        comparison_rule: Observe whether findings cite files, commands, boundary risks, and repair scope without verdict authority.
+        required_return_shape: checked_work, checked_sources, match_facts, missing_or_mismatched_facts, boundary_violations, evidence_used, narrowly_proven, not_proven, next_movement_recommendation
+        source_facts:
+          - brick/templates/review/minimal-review-template.json
+          - support/docs/spec/brick-protocol-link-route-replay-0-design-0524.md
+          - project/brick-protocol/status/kernel/brick-protocol-link-route-replay-0-development-report-0524.md
+      - axis: Agent
+        row_ref: agent-row:link-route-replay-0-claude-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:link-route-replay-0-claude-qa
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:link-route-replay-0-reviewed
+        next_brick_instance_ref: building-boundary-link-route-replay-0-reviewed

@@ -1,0 +1,91 @@
+plan_ref: building-plan:auto-child-building-generation-0-compact
+owner_axis: Brick
+building_id: auto-child-building-generation-0-0526
+plan_shape: linear
+selected_adapter_ref: adapter:local
+parent_goal_ref: goal:bar-v2-active-sequence
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of generated candidate plan
+  - future child Building execution
+  - BAR-v2 end-to-end dogfood
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority
+remaining_delta:
+  - CASCADE-SWEEP-0
+  - BAR-V2-END-TO-END-DOGFOOD-0
+next_target_candidates:
+  - CASCADE-SWEEP-0
+steps:
+  - step_ref: auto-child-building-generation-0-01-generate
+    rows:
+      - axis: Brick
+        row_ref: brick-row:auto-child-building-generation-0-generate
+        brick_work_ref: work:auto-child-building-generation-0-generate
+        brick_instance_ref: brick-auto-child-building-generation-0-generate
+        work_statement: Generate a next child Building candidate from declared remaining_delta.
+        comparison_rule: Observe generated candidate carries parent goal and selected delta; do not execute it.
+        required_return_shape: child_generation_ref, candidate_plan_ref, candidate_plan, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+          - support/docs/spec/brick-protocol-auto-child-building-generation-0-0526.md
+          - support/operator/child_building_generation.py
+      - axis: Agent
+        row_ref: agent-row:auto-child-building-generation-0-generate
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:auto-child-building-generation-0-generate-to-profile
+        movement: forward
+        target_ref: brick-auto-child-building-generation-0-profile
+        next_brick_instance_ref: brick-auto-child-building-generation-0-profile
+  - step_ref: auto-child-building-generation-0-02-profile
+    rows:
+      - axis: Brick
+        row_ref: brick-row:auto-child-building-generation-0-profile
+        brick_work_ref: work:auto-child-building-generation-0-profile
+        brick_instance_ref: brick-auto-child-building-generation-0-profile
+        work_statement: Observe the Phase 14 profile and inline candidate Building Plan.
+        comparison_rule: Candidate generation is support evidence only and not active execution proof.
+        required_return_shape: profile_ref, inline_candidate_ref, proof_limits, not_proven
+        source_facts:
+          - support/checkers/profiles/auto_child_building_generation.yaml
+      - axis: Agent
+        row_ref: agent-row:auto-child-building-generation-0-profile
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:auto-child-building-generation-0-profile-to-closure
+        movement: forward
+        target_ref: brick-auto-child-building-generation-0-closure
+        next_brick_instance_ref: brick-auto-child-building-generation-0-closure
+  - step_ref: auto-child-building-generation-0-03-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:auto-child-building-generation-0-closure
+        brick_work_ref: work:auto-child-building-generation-0-closure
+        brick_instance_ref: brick-auto-child-building-generation-0-closure
+        work_statement: Close Phase 14 with generated child candidate evidence, parent delta, and next Movement candidate.
+        comparison_rule: Closure records candidate generation only; it does not execute CASCADE-SWEEP-0.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, deferred_smith_review_queue, next_target_candidates, next_movement_candidate
+        source_facts:
+          - brick/building_plans/auto-child-building-generation-0-compact.yaml
+          - support/docs/spec/brick-protocol-auto-child-building-generation-0-0526.md
+          - brick/templates/closure/standard-closure-with-parent-delta.yaml
+      - axis: Agent
+        row_ref: agent-row:auto-child-building-generation-0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:auto-child-building-generation-0-closure-to-cascade-sweep
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: Phase 14 closes child candidate generation, then routes forward to Phase 15.
+        target_ref: brick-cascade-sweep-0-open
+        next_brick_instance_ref: brick-cascade-sweep-0-open

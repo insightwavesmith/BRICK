@@ -1,0 +1,112 @@
+plan_ref: building-plan:session-continuity-0-four-step
+owner_axis: Brick
+building_id: session-continuity-0-four-step-0524
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - implementation correctness
+  - provider credential validity
+  - provider resume behavior
+  - Link route/replay correctness
+  - runtime or scheduler behavior
+steps:
+  - step_ref: session-continuity-0-01-design
+    selected_adapter_ref: adapter:codex-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:session-continuity-0-design
+        brick_work_ref: work:session-continuity-0-design
+        brick_instance_ref: brick-session-continuity-design-01
+        work_statement: Write the SESSION-CONTINUITY-0 design document before implementation, preserving AgentFact closure and treating template rendering as Agent receipt work-packet composition rather than Adapter ownership.
+        comparison_rule: Observe whether the design names role boundary, current structure, changes, unchanged surfaces, axis responsibility, execution sequence, invariants, edge cases, checker plan, candidate file changes, evidence packet, and not_proven.
+        required_return_shape: role boundary, current structure, changes, unchanged surfaces, axis responsibility, execution sequence, invariants, edge cases, checker plan, candidate file changes, evidence packet, not_proven
+        source_facts:
+          - AGENTS.md
+          - brick/templates/design/minimal-design-template.json
+          - support/docs/spec/brick-protocol-session-continuity-0-and-link-route-replay-0-plan-0524.md
+          - support/docs/spec/brick-protocol-building-accumulation-0-design-0524.md
+          - project/brick-protocol/status/kernel/brick-protocol-building-accumulation-0-continuous-building-evidence-support-record-0524.md
+          - support/operator/run.py
+          - support/connection/agent_adapter.py
+          - agent/receipt.py
+          - agent/return_fact.py
+      - axis: Agent
+        row_ref: agent-row:session-continuity-0-design
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:session-continuity-0-design
+        movement: forward
+        target_ref: brick-session-continuity-development-02
+        next_brick_instance_ref: brick-session-continuity-development-02
+  - step_ref: session-continuity-0-02-development
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:session-continuity-0-development
+        brick_work_ref: work:session-continuity-0-development
+        brick_instance_ref: brick-session-continuity-development-02
+        work_statement: Implement the SESSION-CONTINUITY-0 design without expanding AgentFact, storing raw provider values, or opening runtime/scheduler/queue ownership.
+        comparison_rule: Observe whether implementation follows the design and preserves SIMPLE-RUN-0 boundaries.
+        required_return_shape: implementation_map, changed_files, verification_evidence, claim_ledger, not_proven
+        source_facts:
+          - brick/templates/do/minimal-do-return-template.json
+          - support/docs/spec/brick-protocol-session-continuity-0-design-0524.md
+      - axis: Agent
+        row_ref: agent-row:session-continuity-0-development
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:session-continuity-0-development
+        movement: forward
+        target_ref: brick-session-continuity-codex-qa-03
+        next_brick_instance_ref: brick-session-continuity-codex-qa-03
+  - step_ref: session-continuity-0-03-codex-qa
+    selected_adapter_ref: adapter:codex-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:session-continuity-0-codex-qa
+        brick_work_ref: work:session-continuity-0-codex-qa
+        brick_instance_ref: brick-session-continuity-codex-qa-03
+        work_statement: Review the SESSION-CONTINUITY-0 implementation as Codex QA using only observed evidence.
+        comparison_rule: Observe whether findings cite files, commands, boundary risks, and repair scope without verdict authority.
+        required_return_shape: checked_work, checked_sources, match_facts, missing_or_mismatched_facts, boundary_violations, evidence_used, narrowly_proven, not_proven, next_movement_recommendation
+        source_facts:
+          - brick/templates/review/minimal-review-template.json
+          - support/docs/spec/brick-protocol-session-continuity-0-design-0524.md
+          - project/brick-protocol/status/kernel/brick-protocol-session-continuity-0-development-report-0524.md
+      - axis: Agent
+        row_ref: agent-row:session-continuity-0-codex-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:session-continuity-0-codex-qa
+        movement: forward
+        target_ref: brick-session-continuity-claude-qa-04
+        next_brick_instance_ref: brick-session-continuity-claude-qa-04
+  - step_ref: session-continuity-0-04-claude-qa
+    selected_adapter_ref: adapter:claude-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:session-continuity-0-claude-qa
+        brick_work_ref: work:session-continuity-0-claude-qa
+        brick_instance_ref: brick-session-continuity-claude-qa-04
+        work_statement: Review the SESSION-CONTINUITY-0 implementation as Claude QA using only observed evidence.
+        comparison_rule: Observe whether findings cite files, commands, boundary risks, and repair scope without verdict authority.
+        required_return_shape: checked_work, checked_sources, match_facts, missing_or_mismatched_facts, boundary_violations, evidence_used, narrowly_proven, not_proven, next_movement_recommendation
+        source_facts:
+          - brick/templates/review/minimal-review-template.json
+          - support/docs/spec/brick-protocol-session-continuity-0-design-0524.md
+          - project/brick-protocol/status/kernel/brick-protocol-session-continuity-0-development-report-0524.md
+      - axis: Agent
+        row_ref: agent-row:session-continuity-0-claude-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:session-continuity-0-claude-qa
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:session-continuity-0-reviewed
+        next_brick_instance_ref: building-boundary-session-continuity-0-reviewed

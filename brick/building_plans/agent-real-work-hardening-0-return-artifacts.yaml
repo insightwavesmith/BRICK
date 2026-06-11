@@ -1,0 +1,146 @@
+plan_ref: building-plan:agent-real-work-hardening-0-return-artifacts
+owner_axis: Brick
+building_id: agent-real-work-hardening-0-0526
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of future artifacts
+  - provider quality
+  - full autonomous implementation
+  - automatic route selection
+steps:
+  - step_ref: agent-real-work-hardening-0-01-design-artifact
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:arwh0-design
+        brick_work_ref: work:arwh0-design
+        brick_instance_ref: brick-arwh0-design
+        work_statement: Return a design artifact for AGENT-REAL-WORK-HARDENING-0.
+        comparison_rule: Observe design artifact shape and handoff refs only.
+        required_return_shape: design_artifact, design_decisions, handoff_refs, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - support/docs/spec/brick-protocol-agent-real-work-hardening-0-return-artifacts-0526.md
+          - project/brick-protocol/status/kernel/brick-protocol-building-operator-loop-0-support-record-0526.md
+      - axis: Agent
+        row_ref: agent-row:arwh0-design
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:arwh0-design-to-docs
+        movement: forward
+        target_ref: brick-arwh0-documentation
+        next_brick_instance_ref: brick-arwh0-documentation
+  - step_ref: agent-real-work-hardening-0-02-documentation-artifact
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:arwh0-documentation
+        brick_work_ref: work:arwh0-documentation
+        brick_instance_ref: brick-arwh0-documentation
+        work_statement: Return a documentation artifact that explains the real-work return patterns.
+        comparison_rule: Observe documentation artifact and documented refs only.
+        required_return_shape: documentation_artifact, documented_refs, handoff_refs, proof_limits, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-agent-real-work-hardening-0-return-artifacts-0526.md
+      - axis: Agent
+        row_ref: agent-row:arwh0-documentation
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:arwh0-docs-to-coding
+        movement: forward
+        target_ref: brick-arwh0-coding
+        next_brick_instance_ref: brick-arwh0-coding
+  - step_ref: agent-real-work-hardening-0-03-coding-artifact
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:arwh0-coding
+        brick_work_ref: work:arwh0-coding
+        brick_instance_ref: brick-arwh0-coding
+        work_statement: Return a coding artifact using the DEVELOPMENT-AGENT-TOOL-USE-0 return shape and prior REAL-WRITE evidence refs.
+        comparison_rule: Observe implementation_map, changed_files, verification_evidence, claim_ledger, and handoff_refs without judging quality.
+        required_return_shape: implementation_map, changed_files, verification_evidence, claim_ledger, handoff_refs, proof_limits, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-development-agent-tool-use-0-0525.md
+          - support/docs/spec/brick-protocol-real-write-dogfood-0-codex-write-building-0525.md
+          - project/brick-protocol/status/kernel/brick-protocol-real-write-dogfood-0-support-record-0525.md
+          - project/brick-protocol/status/kernel/real-write-dogfood-observed-file-0525.md
+      - axis: Agent
+        row_ref: agent-row:arwh0-coding
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:arwh0-coding-to-qa
+        movement: forward
+        target_ref: brick-arwh0-qa
+        next_brick_instance_ref: brick-arwh0-qa
+  - step_ref: agent-real-work-hardening-0-04-qa-artifact
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:arwh0-qa
+        brick_work_ref: work:arwh0-qa
+        brick_instance_ref: brick-arwh0-qa
+        work_statement: Return a QA artifact with advisory review observation and checker observations.
+        comparison_rule: Verify QA observation remains advisory and does not choose Movement.
+        required_return_shape: review_observation, checker_observations, repair_needed, proof_limits, not_proven
+        source_facts:
+          - support/checkers/check_real_write_dogfood0.py
+          - support/checkers/check_building_work_actualization0.py
+      - axis: Agent
+        row_ref: agent-row:arwh0-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:arwh0-qa-to-report
+        movement: forward
+        target_ref: brick-arwh0-report
+        next_brick_instance_ref: brick-arwh0-report
+  - step_ref: agent-real-work-hardening-0-05-report-artifact
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:arwh0-report
+        brick_work_ref: work:arwh0-report
+        brick_instance_ref: brick-arwh0-report
+        work_statement: Return a report artifact that synthesizes design, documentation, coding, and QA refs.
+        comparison_rule: Observe report artifact and synthesis refs only.
+        required_return_shape: report_artifact, synthesis_refs, open_questions, proof_limits, not_proven
+        source_facts:
+          - project/brick-protocol/buildings/agent-real-work-hardening-0-0526/work/building-map.json
+      - axis: Agent
+        row_ref: agent-row:arwh0-report
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:arwh0-report-to-closure
+        movement: forward
+        target_ref: brick-arwh0-closure
+        next_brick_instance_ref: brick-arwh0-closure
+  - step_ref: agent-real-work-hardening-0-06-closure
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:arwh0-closure
+        brick_work_ref: work:arwh0-closure
+        brick_instance_ref: brick-arwh0-closure
+        work_statement: Close AGENT-REAL-WORK-HARDENING-0 with observed evidence and next Movement.
+        comparison_rule: Closure must not claim provider quality or full autonomous implementation.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, held, next_coo_decision_candidate
+        source_facts:
+          - brick/building_plans/agent-real-work-hardening-0-return-artifacts.yaml
+          - support/docs/spec/brick-protocol-agent-real-work-hardening-0-return-artifacts-0526.md
+      - axis: Agent
+        row_ref: agent-row:arwh0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:arwh0-closure-to-boundary
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: AGENT-REAL-WORK-HARDENING-0 return artifact patterns closed.
+        target_ref: building-boundary:agent-real-work-hardening-0-closed
+        next_brick_instance_ref: building-boundary-agent-real-work-hardening-0-closed

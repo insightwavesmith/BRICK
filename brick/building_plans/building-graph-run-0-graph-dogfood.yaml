@@ -1,0 +1,182 @@
+plan_ref: building-plan:building-graph-run-0-graph-dogfood
+owner_axis: Brick
+building_id: building-graph-run-0-dogfood-0525
+plan_shape: graph
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - parallel runtime execution
+  - scheduler correctness
+  - queue/retry behavior
+  - provider quality
+  - external graph DB behavior
+  - semantic graph correctness
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority
+execution_order:
+  - graph-run-design
+  - graph-run-codex-qa
+  - graph-run-claude-qa
+  - graph-run-synthesis
+  - graph-run-closure
+brick_steps:
+  - step_ref: graph-run-design
+    completion_edge_ref: edge:graph-run-design-to-codex
+    rows:
+      - axis: Brick
+        row_ref: brick-row:graph-run-design
+        brick_work_ref: work:graph-run-design
+        brick_instance_ref: brick-graph-run-design
+        work_statement: Design declared graph topology walking for BUILDING-GRAPH-RUN-0.
+        comparison_rule: Observe whether graph topology is declared by Brick/Link and support only walks execution_order.
+        required_return_shape: graph_plan_shape, edge_rules, groups, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - support/docs/spec/brick-protocol-building-graph-run-0-declared-topology-walker-0525.md
+          - support/operator/run.py
+      - axis: Agent
+        row_ref: agent-row:graph-run-design
+        agent_object_ref: agent-object:coo
+  - step_ref: graph-run-codex-qa
+    completion_edge_ref: edge:graph-run-codex-to-synthesis
+    rows:
+      - axis: Brick
+        row_ref: brick-row:graph-run-codex-qa
+        brick_work_ref: work:graph-run-codex-qa
+        brick_instance_ref: brick-graph-run-codex-qa
+        work_statement: Review declared graph topology walking from Codex QA lane.
+        comparison_rule: Observe support evidence only; do not choose Movement or judge quality.
+        required_return_shape: checked_sources, findings, boundary_violations, not_proven
+        source_facts:
+          - support/operator/run.py
+          - brick/building_plans/building-graph-run-0-graph-dogfood.yaml
+      - axis: Agent
+        row_ref: agent-row:graph-run-codex-qa
+        agent_object_ref: agent-object:qa
+  - step_ref: graph-run-claude-qa
+    completion_edge_ref: edge:graph-run-claude-to-synthesis
+    rows:
+      - axis: Brick
+        row_ref: brick-row:graph-run-claude-qa
+        brick_work_ref: work:graph-run-claude-qa
+        brick_instance_ref: brick-graph-run-claude-qa
+        work_statement: Review declared graph topology walking from Claude QA lane.
+        comparison_rule: Observe support evidence only; do not choose Movement or judge quality.
+        required_return_shape: checked_sources, findings, boundary_violations, not_proven
+        source_facts:
+          - support/operator/run.py
+          - brick/building_plans/building-graph-run-0-graph-dogfood.yaml
+      - axis: Agent
+        row_ref: agent-row:graph-run-claude-qa
+        agent_object_ref: agent-object:qa
+  - step_ref: graph-run-synthesis
+    completion_edge_ref: edge:graph-run-synthesis-to-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:graph-run-synthesis
+        brick_work_ref: work:graph-run-synthesis
+        brick_instance_ref: brick-graph-run-synthesis
+        work_statement: Synthesize the two QA lane returns into support observations for closure.
+        comparison_rule: Observe whether both QA lanes produced AgentFact returns and fan-in edges resolve.
+        required_return_shape: lane_inputs, synthesis_observations, repair_refs, not_proven
+        source_facts:
+          - project/brick-protocol/buildings/building-graph-run-0-dogfood-0525/evidence/claim_trace/agent/returned_claims.json
+          - support/operator/run.py
+      - axis: Agent
+        row_ref: agent-row:graph-run-synthesis
+        agent_object_ref: agent-object:coo
+  - step_ref: graph-run-closure
+    completion_edge_ref: edge:graph-run-closure-to-boundary
+    rows:
+      - axis: Brick
+        row_ref: brick-row:graph-run-closure
+        brick_work_ref: work:graph-run-closure
+        brick_instance_ref: brick-graph-run-closure
+        work_statement: Close BUILDING-GRAPH-RUN-0 dogfood with observed evidence and proof limits.
+        comparison_rule: Observe support evidence only; closure is not source truth or Movement authority.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, next_movement
+        source_facts:
+          - support/docs/spec/brick-protocol-building-graph-run-0-declared-topology-walker-0525.md
+          - project/brick-protocol/status/kernel/building-operation-retrospective-notes-0525.md
+      - axis: Agent
+        row_ref: agent-row:graph-run-closure
+        agent_object_ref: agent-object:coo
+link_edges:
+  - edge_ref: edge:graph-run-design-to-codex
+    source_step_ref: graph-run-design
+    target_step_ref: graph-run-codex-qa
+    rows:
+      - axis: Link
+        row_ref: link-row:graph-run-design-to-codex
+        movement: forward
+        target_ref: brick-graph-run-codex-qa
+  - edge_ref: edge:graph-run-design-to-claude
+    source_step_ref: graph-run-design
+    target_step_ref: graph-run-claude-qa
+    rows:
+      - axis: Link
+        row_ref: link-row:graph-run-design-to-claude
+        movement: forward
+        target_ref: brick-graph-run-claude-qa
+  - edge_ref: edge:graph-run-codex-to-synthesis
+    source_step_ref: graph-run-codex-qa
+    target_step_ref: graph-run-synthesis
+    rows:
+      - axis: Link
+        row_ref: link-row:graph-run-codex-to-synthesis
+        movement: forward
+        target_ref: brick-graph-run-synthesis
+  - edge_ref: edge:graph-run-claude-to-synthesis
+    source_step_ref: graph-run-claude-qa
+    target_step_ref: graph-run-synthesis
+    rows:
+      - axis: Link
+        row_ref: link-row:graph-run-claude-to-synthesis
+        movement: forward
+        target_ref: brick-graph-run-synthesis
+  - edge_ref: edge:graph-run-synthesis-to-closure
+    source_step_ref: graph-run-synthesis
+    target_step_ref: graph-run-closure
+    rows:
+      - axis: Link
+        row_ref: link-row:graph-run-synthesis-to-closure
+        movement: forward
+        target_ref: brick-graph-run-closure
+  - edge_ref: edge:graph-run-closure-to-boundary
+    source_step_ref: graph-run-closure
+    rows:
+      - axis: Link
+        row_ref: link-row:graph-run-closure-to-boundary
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:building-graph-run-0-dogfood-closed
+groups:
+  - group_id: group:graph-run-design-fan-out
+    group_role: fan_out
+    member_ref_kind: link_edge
+    member_refs:
+      - edge:graph-run-design-to-codex
+      - edge:graph-run-design-to-claude
+    proof_limits:
+      - support topology label only
+    not_proven:
+      - parallel runtime execution
+  - group_id: group:graph-run-qa-fan-in
+    group_role: fan_in
+    member_ref_kind: link_edge
+    member_refs:
+      - edge:graph-run-codex-to-synthesis
+      - edge:graph-run-claude-to-synthesis
+    proof_limits:
+      - support topology label only
+    not_proven:
+      - synthesis quality

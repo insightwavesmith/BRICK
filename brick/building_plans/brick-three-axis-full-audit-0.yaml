@@ -1,0 +1,60 @@
+plan_ref: building-plan:brick-three-axis-full-audit-0
+owner_axis: Brick
+building_id: brick-three-axis-full-audit-0-0530
+plan_shape: linear
+selected_shape_ref: building-shape:reviewable-work
+declared_by: coo
+selected_adapter_ref: adapter:local
+task_source_ref: project/brick-protocol/status/kernel/brick-protocol-three-axis-full-audit-0-worksource-0530.md
+parent_goal_ref: goal:brick-three-axis-full-audit-0
+proof_limits:
+  - support evidence only
+  - evidence-only architecture audit package
+  - no product-code repair in this Building
+  - subagent and external model output is support evidence only
+  - Main Codex verification decides severity for this audit record
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of every historical record
+  - complete inventory of every historical Building root
+  - repeated provider reliability
+  - production runtime readiness
+steps:
+  - step_ref: brick-three-axis-full-audit-0-report
+    rows:
+      - axis: Brick
+        row_ref: brick-row:btafa0-report
+        brick_work_ref: work:brick-three-axis-full-audit-0
+        brick_instance_ref: brick-btafa0-report
+        work_statement: Return an evidence-only full Brick Protocol audit packet from subagent measurement, Main Codex spot-checks, and external adversarial review reconciliation. Do not repair product code.
+        comparison_rule: Observe returned audit evidence fields only; this Building records an audit package and follow-up repair queue, not success or quality.
+        required_return_shape: observed_evidence, risks, remaining_delta, proof_limits, not_proven
+        source_facts:
+          - subagent:A:constitution-root
+          - subagent:B:brick-axis
+          - subagent:C:agent-axis
+          - subagent:D:link-axis
+          - subagent:E:axis-crossing-building
+          - subagent:F:support-import
+          - subagent:G:project-evidence
+          - subagent:H:checker-coverage
+          - subagent:I:historical-drift
+          - external-review:opus:18655
+          - external-review:gemini:18656-failed
+          - external-review:gemini:20322-partial
+      - axis: Agent
+        row_ref: agent-row:btafa0-report
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:btafa0-report-closed
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: BRICK-THREE-AXIS-FULL-AUDIT-0 evidence-only audit package recorded; no repair movement chosen inside this goal.
+        target_ref: building-boundary:brick-three-axis-full-audit-0-closed
+        next_brick_instance_ref: building-boundary-brick-three-axis-full-audit-0-closed

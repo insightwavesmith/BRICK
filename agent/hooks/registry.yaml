@@ -1,0 +1,43 @@
+{
+  "_header": [
+    "VOCABULARY: these are Agent-axis ADVISORY INTENTS, never executed (every entry: execution_opened false).",
+    "The EXECUTING hooks are per-machine config (.claude/hooks/, .codex/hooks/) wired by the onboard recording step."
+  ],
+  "hooks": {
+    "hook:instruction-chain-read": {
+      "owner_axis": "Agent",
+      "kind": "advisory",
+      "event_ref": "before-agent-work",
+      "description": "Check AGENTS.md and current-working-context before protocol surfaces change.",
+      "execution_opened": false
+    },
+    "hook:leader-write-need-gate": {
+      "owner_axis": "Agent",
+      "kind": "guardrail-intent",
+      "event_ref": "before-agent-mutation",
+      "description": "Leader lane may implement directly when the Brick declares a write_scope NEED and the leader carries write capability; otherwise it defaults to coordination and worker assignment.",
+      "execution_opened": false
+    },
+    "hook:reviewer-no-mutation": {
+      "owner_axis": "Agent",
+      "kind": "guardrail-intent",
+      "event_ref": "before-review-work",
+      "description": "Reviewer lane returns observations and transition_concern_evidence only; it does not mutate by default.",
+      "execution_opened": false
+    },
+    "hook:unsafe-mutation-guard": {
+      "owner_axis": "Agent",
+      "kind": "guardrail-intent",
+      "event_ref": "before-tool-use",
+      "description": "Reject or flag destructive, approval-required, broad autofix, or out-of-scope mutation intent.",
+      "execution_opened": false
+    },
+    "hook:resource-ref-redaction": {
+      "owner_axis": "Agent",
+      "kind": "advisory",
+      "event_ref": "before-agent-return",
+      "description": "Ensure Agent returns contain refs only for setup tokens and connector state.",
+      "execution_opened": false
+    }
+  }
+}

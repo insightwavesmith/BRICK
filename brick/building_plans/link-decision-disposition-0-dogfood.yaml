@@ -1,0 +1,251 @@
+plan_ref: building-plan:link-decision-disposition-0-dogfood
+owner_axis: Brick
+building_id: link-decision-disposition-0-dogfood-0527
+plan_shape: declared-transition-concern-disposition-dogfood
+selected_adapter_ref: adapter:local
+parent_goal_ref: goal:link-decision-disposition-0
+proof_limits:
+  - support evidence only
+  - transition concern disposition dogfood only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of Agent transition concerns
+  - semantic correctness of Link disposition
+  - production runtime readiness
+steps:
+  - step_ref: link-decision-disposition-0-plan
+    rows:
+      - axis: Brick
+        row_ref: brick-row:ldd0-plan-attempt-1
+        brick_work_ref: work:ldd0-plan
+        brick_instance_ref: brick-ldd0-plan-attempt-1
+        work_statement: Produce first planning evidence for transition concern dogfood.
+        comparison_rule: Observe returned planning evidence only.
+        required_return_shape: observed_evidence, proof_limits, not_proven
+      - axis: Agent
+        row_ref: agent-row:ldd0-plan-attempt-1
+        agent_object_ref: agent-object:pm-lead
+      - axis: Link
+        row_ref: link-row:ldd0-plan-attempt-1-to-design
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-ldd0-design-attempt-1
+        next_brick_instance_ref: brick-ldd0-design-attempt-1
+  - step_ref: link-decision-disposition-0-design
+    rows:
+      - axis: Brick
+        row_ref: brick-row:ldd0-design-attempt-1
+        brick_work_ref: work:ldd0-design
+        brick_instance_ref: brick-ldd0-design-attempt-1
+        work_statement: Return design transition_concern_evidence for an upstream gap.
+        comparison_rule: Observe transition concern evidence only; Agent does not choose Movement or target.
+        required_return_shape: observed_evidence, transition_concern_evidence, proof_limits, not_proven
+        source_facts:
+          - brick/templates/review/standard-transition-concern-return.yaml
+      - axis: Agent
+        row_ref: agent-row:ldd0-design-attempt-1
+        agent_object_ref: agent-object:design-lead
+      - axis: Link
+        row_ref: link-row:ldd0-design-attempt-1-adopted-reroute
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: reroute
+        target_ref: brick-ldd0-plan-attempt-2
+        next_brick_instance_ref: brick-ldd0-plan-attempt-2
+        route_decision_basis:
+          adopted_transition_concern_refs:
+            - transition-concern:ldd0-upstream-gap
+          human_review_refs:
+            - human-review:ldd0-design-gap
+        route_replay_plan:
+          route_replay_ref: route-replay:ldd0-design-gap
+          author_ref: coo:link-decision-disposition-0
+          authoring_basis_refs:
+            - transition-concern:ldd0-upstream-gap
+          immediate_target_ref: brick-ldd0-plan-attempt-2
+          source_brick_refs:
+            - brick-ldd0-plan-attempt-1
+          route_reason_refs:
+            - transition-concern:ldd0-upstream-gap
+          affected_downstream_refs:
+            - brick-ldd0-design-attempt-1
+          replay_segment_refs:
+            - brick-ldd0-design-attempt-2
+          max_attempts: 3
+  - step_ref: link-decision-disposition-0-plan
+    rows:
+      - axis: Brick
+        row_ref: brick-row:ldd0-plan-attempt-2
+        brick_work_ref: work:ldd0-plan
+        brick_instance_ref: brick-ldd0-plan-attempt-2
+        work_statement: Replay the planning boundary as attempt 2 after adopted concern evidence.
+        comparison_rule: Observe append-only planning replay evidence only.
+        required_return_shape: observed_evidence, attempt_index, proof_limits, not_proven
+      - axis: Agent
+        row_ref: agent-row:ldd0-plan-attempt-2
+        agent_object_ref: agent-object:pm-lead
+      - axis: Link
+        row_ref: link-row:ldd0-plan-attempt-2-to-design-replay
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-ldd0-design-attempt-2
+        next_brick_instance_ref: brick-ldd0-design-attempt-2
+        transition_lifecycle:
+          state: resumed
+          progress_state: in_progress
+          resumed_from_ref: link-transition:ldd0-design-gap
+          from_brick_ref: brick-ldd0-plan-attempt-2
+          pending_target_ref: brick-ldd0-design-attempt-2
+          reason_refs:
+            - transition-concern:ldd0-upstream-gap
+          required_disposition_owner: caller-or-coo
+  - step_ref: link-decision-disposition-0-design
+    rows:
+      - axis: Brick
+        row_ref: brick-row:ldd0-design-attempt-2
+        brick_work_ref: work:ldd0-design
+        brick_instance_ref: brick-ldd0-design-attempt-2
+        work_statement: Replay the design boundary as attempt 2 after planning replay.
+        comparison_rule: Observe replay evidence only.
+        required_return_shape: observed_evidence, attempt_index, proof_limits, not_proven
+      - axis: Agent
+        row_ref: agent-row:ldd0-design-attempt-2
+        agent_object_ref: agent-object:design-lead
+      - axis: Link
+        row_ref: link-row:ldd0-design-attempt-2-to-qa
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-ldd0-qa-attempt-1
+        next_brick_instance_ref: brick-ldd0-qa-attempt-1
+  - step_ref: link-decision-disposition-0-qa
+    rows:
+      - axis: Brick
+        row_ref: brick-row:ldd0-qa-attempt-1
+        brick_work_ref: work:ldd0-qa
+        brick_instance_ref: brick-ldd0-qa-attempt-1
+        work_statement: Return QA transition concern evidence that the Link does not adopt.
+        comparison_rule: Observe concern evidence and a forward Link disposition.
+        required_return_shape: observed_evidence, transition_concern_evidence, proof_limits, not_proven
+        source_facts:
+          - brick/templates/review/standard-transition-concern-return.yaml
+      - axis: Agent
+        row_ref: agent-row:ldd0-qa-attempt-1
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:ldd0-qa-attempt-1-not-adopted-forward
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-ldd0-inspect-attempt-1
+        next_brick_instance_ref: brick-ldd0-inspect-attempt-1
+        route_decision_basis:
+          not_adopted_transition_concern_refs:
+            - transition-concern:ldd0-qa-concern
+          human_review_refs:
+            - human-review:ldd0-forward-after-qa
+  - step_ref: link-decision-disposition-0-inspect
+    rows:
+      - axis: Brick
+        row_ref: brick-row:ldd0-inspect-attempt-1
+        brick_work_ref: work:ldd0-inspect
+        brick_instance_ref: brick-ldd0-inspect-attempt-1
+        work_statement: Return inspection observations without Agent transition concern evidence.
+        comparison_rule: Observe that Link override can reroute without Agent choosing a target.
+        required_return_shape: observed_evidence, proof_limits, not_proven
+      - axis: Agent
+        row_ref: agent-row:ldd0-inspect-attempt-1
+        agent_object_ref: agent-object:inspector
+      - axis: Link
+        row_ref: link-row:ldd0-inspect-attempt-1-override-reroute
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: reroute
+        target_ref: brick-ldd0-design-attempt-3
+        next_brick_instance_ref: brick-ldd0-design-attempt-3
+        route_decision_basis:
+          override_refs:
+            - human-review:ldd0-override-reroute
+          reviewer_observation_refs:
+            - observation:ldd0-inspector-observation
+        route_replay_plan:
+          route_replay_ref: route-replay:ldd0-human-override
+          author_ref: human:smith
+          authoring_basis_refs:
+            - human-review:ldd0-override-reroute
+          immediate_target_ref: brick-ldd0-design-attempt-3
+          source_brick_refs:
+            - brick-ldd0-design-attempt-2
+          route_reason_refs:
+            - human-review:ldd0-override-reroute
+          affected_downstream_refs:
+            - brick-ldd0-qa-attempt-1
+            - brick-ldd0-inspect-attempt-1
+          replay_segment_refs:
+            - brick-ldd0-qa-attempt-2
+          max_attempts: 3
+  - step_ref: link-decision-disposition-0-design
+    rows:
+      - axis: Brick
+        row_ref: brick-row:ldd0-design-attempt-3
+        brick_work_ref: work:ldd0-design
+        brick_instance_ref: brick-ldd0-design-attempt-3
+        work_statement: Replay the design boundary as attempt 3 after human override evidence.
+        comparison_rule: Observe append-only design attempt 3 evidence only.
+        required_return_shape: observed_evidence, attempt_index, proof_limits, not_proven
+      - axis: Agent
+        row_ref: agent-row:ldd0-design-attempt-3
+        agent_object_ref: agent-object:design-lead
+      - axis: Link
+        row_ref: link-row:ldd0-design-attempt-3-to-qa-replay
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-ldd0-qa-attempt-2
+        next_brick_instance_ref: brick-ldd0-qa-attempt-2
+  - step_ref: link-decision-disposition-0-qa
+    rows:
+      - axis: Brick
+        row_ref: brick-row:ldd0-qa-attempt-2
+        brick_work_ref: work:ldd0-qa
+        brick_instance_ref: brick-ldd0-qa-attempt-2
+        work_statement: Replay QA boundary as attempt 2 after human override reroute.
+        comparison_rule: Observe append-only QA attempt 2 evidence only.
+        required_return_shape: observed_evidence, attempt_index, proof_limits, not_proven
+      - axis: Agent
+        row_ref: agent-row:ldd0-qa-attempt-2
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:ldd0-qa-attempt-2-to-closure
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-ldd0-closure
+        next_brick_instance_ref: brick-ldd0-closure
+  - step_ref: link-decision-disposition-0-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:ldd0-closure
+        brick_work_ref: work:ldd0-closure
+        brick_instance_ref: brick-ldd0-closure
+        work_statement: Close LINK-DECISION-DISPOSITION-0 dogfood evidence.
+        comparison_rule: Closure records observed evidence only.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta
+      - axis: Agent
+        row_ref: agent-row:ldd0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:ldd0-closure
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: Link disposition dogfood closes after adopted, not adopted, and override cases.
+        target_ref: building-boundary:link-decision-disposition-0-closed
+        next_brick_instance_ref: building-boundary-link-decision-disposition-0-closed

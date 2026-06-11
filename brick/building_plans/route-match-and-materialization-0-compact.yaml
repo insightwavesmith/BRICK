@@ -1,0 +1,95 @@
+plan_ref: building-plan:route-match-and-materialization-0-compact
+owner_axis: Brick
+building_id: route-match-and-materialization-0-0526
+plan_shape: linear
+selected_adapter_ref: adapter:local
+parent_goal_ref: goal:bar-v2-active-sequence
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of QA route requests
+  - semantic correctness of route templates
+  - automatic repair/replay behavior
+  - automatic child Building generation
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority
+remaining_delta:
+  - AUTO-REPAIR-REPLAY-0
+  - AUTO-CHILD-BUILDING-GENERATION-0
+  - CASCADE-SWEEP-0
+  - BAR-V2-END-TO-END-DOGFOOD-0
+next_target_candidates:
+  - AUTO-REPAIR-REPLAY-0
+steps:
+  - step_ref: route-match-and-materialization-0-01-support
+    rows:
+      - axis: Brick
+        row_ref: brick-row:route-match-and-materialization-0-support
+        brick_work_ref: work:route-match-and-materialization-0-support
+        brick_instance_ref: brick-route-match-and-materialization-0-support
+        work_statement: Define literal route request matching and caller-declared route replay plan materialization support.
+        comparison_rule: Observe that materialization uses declared policy and caller-supplied replay refs only.
+        required_return_shape: support_helper_ref, route_policy_ref, declared_replay_plan_ref, proof_limits, not_proven
+        source_facts:
+          - AGENTS.md
+          - project/brick-protocol/status/kernel/current-working-context.md
+          - support/docs/spec/brick-protocol-route-match-and-materialization-0-0526.md
+          - support/operator/route_materialization.py
+          - link/route_policies/basic_qa_repair.yaml
+      - axis: Agent
+        row_ref: agent-row:route-match-and-materialization-0-support
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:route-match-and-materialization-0-support-to-profile
+        movement: forward
+        target_ref: brick-route-match-and-materialization-0-profile
+        next_brick_instance_ref: brick-route-match-and-materialization-0-profile
+  - step_ref: route-match-and-materialization-0-02-profile
+    rows:
+      - axis: Brick
+        row_ref: brick-row:route-match-and-materialization-0-profile
+        brick_work_ref: work:route-match-and-materialization-0-profile
+        brick_instance_ref: brick-route-match-and-materialization-0-profile
+        work_statement: Observe the Phase 12 profile and route materialization inline example.
+        comparison_rule: Literal match and materialization pass; execution remains not admitted.
+        required_return_shape: profile_ref, matched_case_ref, materialized_link_row_ref, proof_limits, not_proven
+        source_facts:
+          - support/checkers/profiles/route_match_and_materialization.yaml
+      - axis: Agent
+        row_ref: agent-row:route-match-and-materialization-0-profile
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:route-match-and-materialization-0-profile-to-closure
+        movement: forward
+        target_ref: brick-route-match-and-materialization-0-closure
+        next_brick_instance_ref: brick-route-match-and-materialization-0-closure
+  - step_ref: route-match-and-materialization-0-03-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:route-match-and-materialization-0-closure
+        brick_work_ref: work:route-match-and-materialization-0-closure
+        brick_instance_ref: brick-route-match-and-materialization-0-closure
+        work_statement: Close Phase 12 with route match/materialization evidence, parent delta, and next Movement candidate.
+        comparison_rule: Closure records materialization evidence only; it does not execute repair/replay.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, deferred_smith_review_queue, next_target_candidates, next_movement_candidate
+        source_facts:
+          - brick/building_plans/route-match-and-materialization-0-compact.yaml
+          - support/docs/spec/brick-protocol-route-match-and-materialization-0-0526.md
+          - brick/templates/closure/standard-closure-with-parent-delta.yaml
+      - axis: Agent
+        row_ref: agent-row:route-match-and-materialization-0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:route-match-and-materialization-0-closure-to-auto-repair
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: Phase 12 closes route match and materialization, then routes forward to Phase 13.
+        target_ref: brick-auto-repair-replay-0-open
+        next_brick_instance_ref: brick-auto-repair-replay-0-open

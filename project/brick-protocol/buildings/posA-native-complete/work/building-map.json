@@ -1,0 +1,168 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:posA-native-complete::work/building-map.json",
+  "agent_bindings": [
+    {
+      "agent_binding_id": "binding:01:posA-native-complete-native-dispatch",
+      "agent_performer_ref": "agent-performer:agent-object:test",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick:posA-native-complete:native-dispatch",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:01:posA-native-complete-native-dispatch"
+      ],
+      "proof_limits": [
+        "native-dispatch support evidence only",
+        "support recorded a native subagent dispatch; support did not launch it",
+        "gate sufficiency is the Link rule computation over the supplied return",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ],
+      "step_output_ref": "work/step-outputs/posA-native-complete-native-dispatch-attempt-1/step-output.json"
+    }
+  ],
+  "brick_instances": [
+    {
+      "agent_binding_refs": [
+        "binding:01:posA-native-complete-native-dispatch"
+      ],
+      "attempt_index": 1,
+      "brick_instance_id": "brick:posA-native-complete:native-dispatch",
+      "brick_work_ref": "work/building-work.json",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "native-dispatch support evidence only",
+        "support recorded a native subagent dispatch; support did not launch it",
+        "gate sufficiency is the Link rule computation over the supplied return",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01",
+        "raw:link:01"
+      ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 1,
+      "brick_instance_id": "brick:posA-native-complete:native-dispatch-closed",
+      "brick_work_ref": "brick:posA-native-complete:native-dispatch-closed",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "native-dispatch support evidence only",
+        "support recorded a native subagent dispatch; support did not launch it",
+        "gate sufficiency is the Link rule computation over the supplied return",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01",
+        "raw:link:01"
+      ]
+    }
+  ],
+  "building_id": "posA-native-complete",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "execution_path": "native-dispatch",
+  "generatedAtTime": "2026-05-29T10:42:03Z",
+  "groups": [],
+  "id": "urn:bp:building:posA-native-complete::work/building-map.json",
+  "kind": "building_graph_map",
+  "link_edges": [
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:01:posA-native-complete-native-dispatch",
+        "brick-comparison:01:posA-native-complete-native-dispatch",
+        "movement-fact:01:posA-native-complete-native-dispatch"
+      ],
+      "link_edge_id": "edge:01:posA-native-complete-native-dispatch",
+      "movement_fact_ref": "movement-fact:01:posA-native-complete-native-dispatch",
+      "public_fact_refs": [
+        "agent-fact:01:posA-native-complete-native-dispatch",
+        "brick-comparison:01:posA-native-complete-native-dispatch",
+        "movement-fact:01:posA-native-complete-native-dispatch"
+      ],
+      "source_brick_instance_ref": "brick:posA-native-complete:native-dispatch",
+      "step_output_ref": "work/step-outputs/posA-native-complete-native-dispatch-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick:posA-native-complete:native-dispatch-closed",
+      "transition_fact_ref": "transition-fact:01:posA-native-complete-native-dispatch"
+    }
+  ],
+  "not_proven": [
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "profile": "planning-v0",
+  "proof_limits": [
+    "native-dispatch support evidence only",
+    "support recorded a native subagent dispatch; support did not launch it",
+    "gate sufficiency is the Link rule computation over the supplied return",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "raw_refs": [
+    "raw:brick:01",
+    "raw:agent:01",
+    "raw:link:01"
+  ],
+  "recorded_at": "2026-05-29T10:42:03Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:posA-native-complete",
+  "specversion": "1.0",
+  "subject": "work/building-map.json",
+  "time": "2026-05-29T10:42:03Z",
+  "type": "bp.building_graph_map"
+}

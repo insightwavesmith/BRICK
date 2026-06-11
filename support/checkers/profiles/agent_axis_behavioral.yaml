@@ -1,0 +1,444 @@
+schema: checker-profile/v1
+profile_id: agent-axis-behavioral
+description: Consolidated agent-axis behavioral profile (PASS-2 fold of adapter_capability_rehome, agent_projection_sync, write_scope_default_exclude, preset_three_axis_contract_repair).
+kernel_checks:
+  - package_path_admission
+  - axis_contract_projection
+  - building_lifecycle_path_shape
+  - building_map_graph
+  - provider_preflight
+  # TREASURE PORT 2 (0611, lifted from 2d44fc7): no provider/runtime session id
+  # in kernel/buildings/reviews/archive surfaces; 6 frozen-history legacy leak
+  # files ride an explicit per-path allowlist of frozen line-content hashes
+  # (codex-review tightening C: every offending line must hash-match a frozen
+  # legacy line, so a same-count swap/replacement REDs; operator policy 0611:
+  # frozen evidence/history is not rewritten); any NEW leak REDs.
+  - agent_session_id_redaction
+path_exists:
+  - support/checkers/profiles/agent_axis_behavioral.yaml
+  - AGENTS.md
+  - project/brick-protocol/status/kernel/current-working-context.md
+  - agent/tool_policies/read-write-scoped.yaml
+  - support/connection/agent_adapter.py
+  - support/connection/agent_resources.py
+  - support/operator/plan_validation.py
+  - support/operator/plan_rendering.py
+  - support/operator/write_observation.py
+  - support/checkers/check_profile.py
+  - support/checkers/lib/case_runners.py
+  - brick/building_plans/agent-projection-sync-0-dogfood.yaml
+  - support/connection/agent_resources.py
+  - support/connection/coo_sync.py
+  - support/connection/mcp_projection.py
+  - support/connection/agent_adapter.py
+  - support/operator/run.py
+  - support/operator/plan_validation.py
+  - support/operator/building_operation.py
+  - support/operator/plan_graph.py
+  - AGENTS.md
+  - project/brick-protocol/status/kernel/current-working-context.md
+  - brick/building_plans/write-scope-default-exclude-0-compact.yaml
+  - support/connection/agent_adapter.py
+  - support/operator/plan_validation.py
+  - support/operator/run.py
+  - support/operator/write_observation.py
+  - project/brick-protocol/status/preset-three-axis-contract-audit.json
+  - brick/templates/shapes/catalog.yaml
+  - support/connection/agent_adapter.py
+  - agent/return_fact.py
+  - support/operator/write_observation.py
+  - support/operator/run.py
+  - support/operator/plan_validation.py
+  - brick/comparison.py
+  - link/transfer.py
+  - link/carry.py
+  - brick/building_plans/preset-three-axis-contract-repair-0-dogfood.yaml
+  - project/brick-protocol/buildings/preset-three-axis-contract-repair-0-0528/work/building-map.json
+  - project/brick-protocol/buildings/preset-three-axis-contract-repair-0-0528/evidence/claim_trace/link/sufficiency_trace.json
+  - project/brick-protocol/buildings/preset-three-axis-contract-repair-0-0528/work/step-outputs/preset-three-axis-contract-repair-0-development-attempt-1/step-output.json
+  - project/brick-protocol/buildings/preset-three-axis-contract-repair-0-0528/work/step-outputs/preset-three-axis-contract-repair-0-review-attempt-1/step-output.json
+  - project/brick-protocol/buildings/preset-three-axis-contract-repair-0-0528/work/step-outputs/preset-three-axis-contract-repair-0-review-attempt-1/transition-concern.json
+path_absent:
+  - support/checkers/check_write_scope_default_exclude0.py
+  - support/operator/preset_three_axis_contract_repair.py
+  - support/operator/link_gate_disposition.py
+  - support/checkers/check_preset_three_axis_contract_repair0.py
+  - link/route_templates
+  - link/route_bindings
+text_contains:
+  - path: AGENTS.md
+    texts:
+      - Write capability is not owned by the adapter name
+      - not adapter identity alone
+      - Adapter refs expose technical
+      - Brick-declared write scope, Agent tool policy, adapter support
+      - adapter capability, and write observation checks
+      - selected adapter ref is a brain/capability
+      - the request remains read-only even if that adapter
+      - with Brick `write_scope`, the write attempt must still
+  - path: project/brick-protocol/status/kernel/current-working-context.md
+    texts:
+      - Write capability is not
+      - owned by the adapter name or by `dev` alone
+      - effective write is opened only by
+      - Brick-declared `write_scope`
+      - expose adapter technical capability
+      - must still pass Agent tool
+      - '`tool-policy:read-write-scoped`, compatible adapter'
+      - adapter capability, and write observation checks
+      - selected adapter ref is a brain/capability
+      - the request remains read-only even if the adapter can technically
+      - with Brick `write_scope`, the write attempt must still pass Agent tool
+  - path: agent/tool_policies/read-write-scoped.yaml
+    texts:
+      - compatible write-capable adapter support
+      - not adapter identity alone
+  - path: support/connection/agent_adapter.py
+    texts:
+      - ADAPTER_CAPABILITY_LITERALS
+      - def adapter_capabilities
+      - def adapter_has_capability
+      - def adapter_is_write_capable
+      - def preflight_provider
+      - message_ko
+      - missing_agent_write_policy
+      - missing_adapter_write_capability
+      - legacy_adapter_identity_only_not_authority
+  - path: support/connection/agent_resources.py
+    texts:
+      - adapter_is_write_capable
+      - missing_adapter_write_capability
+  - path: support/operator/plan_validation.py
+    texts:
+      - missing_adapter_write_capability
+  - path: support/operator/plan_rendering.py
+    texts:
+      - write_scope belongs to later dev worker Brick
+  - path: support/operator/write_observation.py
+    texts:
+      - agent_request_effective_write
+      - if not agent_request_effective_write(request)
+      - write_observation_out_of_scope
+  - path: support/checkers/check_profile.py
+    texts:
+      - adapter_capability_rehome_case
+      - run_adapter_capability_rehome_case
+  - path: support/checkers/lib/case_runners.py
+    texts:
+      - run_adapter_capability_rehome_case
+      - ok_all_four
+      - poc_read_only_adapter_with_write_scope
+      - legacy_adapter_identity_only_not_authority
+  - path: AGENTS.md
+    texts:
+      - AGENT-PROJECTION-SYNC-0
+      - selected_model_ref
+      - sync-in observation
+  - path: support/connection/coo_sync.py
+    texts:
+      - _admitted_projection_roles
+      - render_agent_projection_sync_context
+      - automatic_agent_resource_write
+      - candidate_import_requires_building
+      # projection_freshness_observation rehome (guard-before-retire): these
+      # freshness-observation surfaces were single-sourced in that retiring profile.
+      - observe_agent_projection_freshness
+      - agent-projection-freshness-observation
+      - matches_rendered_agent_resource
+      - field_presence
+  - path: support/connection/mcp_projection.py
+    texts:
+      - brick_protocol_render_agent_projection_sync_context
+      - brick-protocol://agent/projection-sync/context
+  - path: support/connection/agent_adapter.py
+    texts:
+      - selected_model_ref
+      - project_model_ref_to_cli_arg
+      - supported_model_ref_examples
+  - path: support/operator/plan_validation.py
+    texts:
+      - selected_model_ref
+  - path: support/operator/plan_graph.py
+    texts:
+      - selected_model_ref
+  - path: AGENTS.md
+    texts:
+      - WRITE-SCOPE-DEFAULT-EXCLUDE-0
+  - path: project/brick-protocol/status/kernel/current-working-context.md
+    texts:
+      - WRITE-SCOPE-DEFAULT-EXCLUDE-0
+      - STEP-OUTPUT-AND-ROUTE-REQUEST-0
+  - path: support/operator/write_observation.py
+    texts:
+      - _WRITE_OBSERVATION_DEFAULT_EXCLUDED_DIR_NAMES
+      - _WRITE_OBSERVATION_DEFAULT_EXCLUDED_FILE_NAMES
+      - _WRITE_OBSERVATION_DEFAULT_EXCLUDED_SUFFIXES
+      - _is_write_observation_default_excluded_residue
+      - directory-looking entries do not include children
+      - effective write observation requires write_scope.forbidden_paths
+      - write_observation_out_of_scope
+  - path: support/operator/primitives.py
+    texts:
+      - .claude
+      - _RAW_SECRET_PATTERNS
+      - raw credential-looking text
+  - path: support/connection/agent_adapter.py
+    texts:
+      - missing_brick_write_scope
+      - missing_agent_write_policy
+      - missing_adapter_write_capability
+      - legacy_adapter_identity_only_not_authority
+      - .allowed_paths must be a non-empty list
+      - .forbidden_paths must be a list
+  - path: support/operator/plan_validation.py
+    texts:
+      - missing_adapter_write_capability
+      - Brick row write_scope.allowed_paths must be a non-empty list
+      - Brick row write_scope.forbidden_paths must be a list
+  - path: brick/building_plans/write-scope-default-exclude-0-compact.yaml
+    texts:
+      - "parent_goal_ref: goal:bar-v2-active-sequence"
+      - STEP-OUTPUT-AND-ROUTE-REQUEST-0
+      - parent_goal_delta_status
+  - path: support/connection/agent_adapter.py
+    texts:
+      - def _extract_required_return_fields
+      - Return one JSON object
+      - unstructured prose
+      - completed
+      - RETURNED_FORBIDDEN_KEYS
+  - path: agent/return_fact.py
+    texts:
+      - movement_choice
+      - route_target
+  - path: support/operator/write_observation.py
+    texts:
+      - changed_files
+      - worktree_observation
+  - path: support/operator/run.py
+    texts:
+      - movement_gate_fact
+      - SUPPORT-MOVEMENT-AUTHORITY-RETRACT-0
+      - write_accumulated_building_evidence
+  - path: brick/comparison.py
+    texts:
+      - waived_return_fields
+      - made_changes via no_changes_reason
+  - path: link/transfer.py
+    texts:
+      - _brick_boundary_ref
+      - must reference a Brick boundary
+  - path: link/carry.py
+    texts:
+      - _brick_boundary_ref
+      - must reference a Brick boundary
+text_absent:
+  - path: support/connection/agent_adapter.py
+    texts:
+      - "write_scope requires adapter:"
+      - is admitted only for agent-object:dev
+      - "adapter:codex-write-local requires tool-policy:"
+  - path: support/connection/agent_resources.py
+    texts:
+      - "read-write scoped policy requires adapter:"
+      - is admitted only for agent-object:dev
+  - path: support/operator/plan_validation.py
+    texts:
+      - requires Brick row write_scope
+  - path: support/operator/plan_rendering.py
+    texts:
+      - selected_adapter_ref == "adapter:codex-write-local"
+  - path: support/operator/write_observation.py
+    texts:
+      - node_modules
+      - .vscode
+      - .idea
+  - path: support/checkers/check_profile.py
+    texts:
+      - os.system
+      - eval(
+      - exec(
+json_required_paths:
+  - path: project/brick-protocol/status/preset-three-axis-contract-audit.json
+    required:
+      - kind
+      - schema_version
+      - source_refs[]
+      - operator_questions[]
+      - step_rows_contract.required_expansion[]
+      - step_rows_contract.forbidden_expansion[]
+      - phase_1_gate_observations[].step_ref
+      - phase_1_gate_observations[].sufficiency
+      - repair_phases[].phase_ref
+      - proof_limits[]
+      - not_proven[]
+  - path: project/brick-protocol/buildings/preset-three-axis-contract-repair-0-0528/work/step-outputs/preset-three-axis-contract-repair-0-development-attempt-1/step-output.json
+    required:
+      - returned.observed_evidence[]
+      - returned.worker_assignments[]
+      - returned.risks[]
+      - returned.not_proven[]
+      - evidence_refs.raw_stream_ref
+      - evidence_refs.claim_trace_ref
+  - path: project/brick-protocol/buildings/preset-three-axis-contract-repair-0-0528/work/step-outputs/preset-three-axis-contract-repair-0-review-attempt-1/step-output.json
+    required:
+      - returned.observed_evidence[]
+      - returned.blocked_or_missing_evidence[]
+      - returned.transition_concern_evidence.concern_ref
+      - returned.transition_concern_evidence.binding
+      - evidence_refs.raw_stream_ref
+      - evidence_refs.claim_trace_ref
+  - path: project/brick-protocol/buildings/preset-three-axis-contract-repair-0-0528/evidence/claim_trace/link/sufficiency_trace.json
+    required:
+      - facts[].fact.sufficiency
+      - facts[].fact.missing_required_facts
+adapter_capability_rehome_case:
+  - label: ok-all-four
+    case_kind: ok_all_four
+  - label: claude-local-write-scope-accepted
+    case_kind: claude_write_ok
+  - label: codex-local-without-write-scope-is-read-only
+    case_kind: missing_brick_scope
+  - label: missing-agent-policy
+    case_kind: missing_agent_policy
+    expected_reason: missing_agent_write_policy
+  - label: missing-adapter-capability
+    case_kind: missing_adapter_capability
+    expected_reason: missing_adapter_write_capability
+  - label: observation-out-of-scope
+    case_kind: observation_out_of_scope
+    expected_reason: write_observation_out_of_scope
+  - label: poc-read-only-adapter-with-write-scope
+    case_kind: poc_read_only_adapter_with_write_scope
+    expected_reason: missing_adapter_write_capability
+  - label: legacy-adapter-identity-only-not-authority
+    case_kind: legacy_adapter_identity_only_not_authority
+    expected_reason: legacy_adapter_identity_only_not_authority
+  - label: write-capable-adapter-without-write-scope-no-write-observation
+    case_kind: write_capable_adapter_without_write_scope_no_write_observation
+  - label: write-capable-leader-effective-write-gated-by-brick-scope
+    case_kind: write_capable_leader_effective_write_gated_by_brick_scope
+  - label: write-capable-leader-read-only-brick-projects-read-only
+    case_kind: write_capable_leader_read_only_brick_projection_read_only
+  - label: write-capable-leader-write-needed-brick-projects-write
+    case_kind: write_capable_leader_write_needed_brick_projection_write
+  - label: write-scope-on-read-only-brick-rejected
+    case_kind: write_scope_on_read_only_brick_rejected
+    expected_reason: "write_scope present on a read-only Brick"
+  - label: silent-write-grant-rejected-at-run-admission
+    case_kind: silent_write_grant_rejected_at_run_admission
+    expected_reason: "silent write grants are not admitted"
+  - label: explicit-write-need-marker-admitted-strict
+    case_kind: explicit_write_need_marker_admitted_strict
+  - label: silent-write-grant-rejected-at-single-step-admission
+    case_kind: silent_write_grant_rejected_at_single_step_admission
+    expected_reason: "silent write grants are not admitted"
+  - label: explicit-write-need-marker-single-step-proceeds
+    case_kind: explicit_write_need_marker_single_step_proceeds
+  # L legacy cut (0610): the retired legacy grammar is REJECTED LOUDLY, never read.
+  - label: legacy-write-need-marker-not-recognized-strict
+    case_kind: legacy_write_need_marker_not_recognized_strict
+    expected_reason: "silent write grants are not admitted"
+  - label: legacy-write-need-graph-row-key-rejected
+    case_kind: legacy_write_need_graph_row_key_rejected
+    expected_reason: "unadmitted key 'write_need'"
+hook_registry_axis_case:
+  - label: judging-kind-rejected
+    expected_reason: hook_kind_not_advisory_or_guardrail
+    hook_definition:
+      owner_axis: Agent
+      kind: sufficiency-gate
+      event_ref: before-agent-return
+      description: decides whether the work is good enough
+      execution_opened: false
+  - label: link-owned-hook-rejected
+    expected_reason: hook_owner_axis_must_be_agent
+    hook_definition:
+      owner_axis: Link
+      kind: advisory
+      event_ref: before-agent-return
+      description: hook claims Link ownership
+      execution_opened: false
+  - label: execution-opened-rejected
+    expected_reason: hook_execution_must_remain_closed
+    hook_definition:
+      owner_axis: Agent
+      kind: guardrail-intent
+      event_ref: before-tool-use
+      description: tries to run natively
+      execution_opened: true
+  - label: judgment-field-rejected
+    expected_reason: hook_carries_forbidden_field
+    hook_definition:
+      owner_axis: Agent
+      kind: advisory
+      event_ref: before-agent-return
+      description: smuggles a verdict field
+      execution_opened: false
+      sufficiency_verdict: good
+adapter_model_selection_case:
+  - adapter_ref: adapter:codex-local
+    selected_model_ref: model:codex:gpt-test
+    expected_cli_arg: gpt-test
+  - adapter_ref: adapter:claude-local
+    selected_model_ref: model:claude:sonnet
+    expected_cli_arg: sonnet
+  - adapter_ref: adapter:gemini-local
+    selected_model_ref: model:gemini:gemini-2.5-flash
+    expected_cli_arg: gemini-2.5-flash
+  - adapter_ref: adapter:local
+    selected_model_ref: model:default
+    expected_cli_arg: ""
+adapter_model_selection_rejects:
+  - adapter_ref: adapter:codex-local
+    selected_model_ref: model:claude:sonnet
+  - adapter_ref: adapter:local
+    selected_model_ref: model:codex:gpt-test
+  - adapter_ref: adapter:gemini-local
+    selected_model_ref: model:gemini:bad model with spaces
+building_plan_boundary:
+  - path: brick/building_plans/agent-projection-sync-0-dogfood.yaml
+  - path: brick/building_plans/project-orchestration-ledger-0.yaml
+    allow_retired_write_adapter_refs: true
+  - path: brick/building_plans/preset-three-axis-contract-repair-0-dogfood.yaml
+write_scope_default_exclude_case:
+  - label: provider-residue-excluded
+    case_kind: provider_residue_excluded
+  - label: directory-allowed-path-is-not-recursive
+    case_kind: directory_allowed_path_is_not_recursive
+  - label: explicit-wildcard-allows-children
+    case_kind: explicit_wildcard_allows_children
+  - label: token-shaped-filename-short-marker-accepted
+    case_kind: token_shaped_filename_short_marker_accepted
+  - label: raw-secret-rejected
+    case_kind: raw_secret_rejected
+  - label: building-plan-support-result-no-record-converter
+    case_kind: building_plan_support_result_no_record_converter
+  - label: dirty-root-reuse-requires-overwrite-or-new-root
+    case_kind: dirty_root_reuse_requires_overwrite_or_new_root
+proof_limits:
+  - support evidence only
+  - capability fixtures are support checker evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+  - projection sync context is not app reload proof
+  - machinery boundary only; live freshness authority remains separate support observation
+  - selected_model_ref is model selection grammar, not model availability proof
+not_proven:
+  - Slack delivery
+  - provider login/session quality
+  - provider app reload behavior
+  - production runtime
+  - semantic correctness of future DEV returns
+  - live projection freshness authority
+  - local app reload behavior
+  - provider model availability
+  - provider quality
+  - native hook execution
+  - future projection freshness
+  - semantic correctness of future writes
+  - complete diff attribution for pre-existing dirty paths
+  - semantic correctness of dashboard work
+  - provider ability to always follow JSON return shape

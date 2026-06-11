@@ -1,0 +1,119 @@
+plan_ref: building-plan:link-transition-authoring-1-general-authoring
+owner_axis: Brick
+building_id: link-transition-authoring-1-0526
+plan_shape: linear
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic correctness of transition authoring reasons
+  - automatic route choice
+  - future Building correctness
+steps:
+  - step_ref: link-transition-authoring-1-coo-preflight
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-transition-authoring-1-coo-preflight
+        brick_work_ref: work:link-transition-authoring-1-coo-preflight
+        brick_instance_ref: brick-lta1-coo-preflight
+        work_statement: Ask COO questions and frame Link transition authoring as Link-owned movement evidence.
+        comparison_rule: Verify Brick, Agent, Link, support, evidence, return, and reroute boundaries are named.
+        required_return_shape: coo_questions, link_transition_boundary, proof_limits, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-link-transition-authoring-1-general-transition-authoring-0526.md
+          - support/docs/spec/brick-protocol-link-return-reroute-dogfood-0-declared-transition-0526.md
+      - axis: Agent
+        row_ref: agent-row:link-transition-authoring-1-coo-preflight
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:link-transition-authoring-1-preflight-to-observation
+        movement: forward
+        target_ref: brick-lta1-transition-observation
+        transition_authoring:
+          transition_authoring_ref: link-authoring:lta1-forward-to-observation
+          author_ref: coo:link-transition-authoring-1
+          authoring_basis_refs:
+            - brick-work:01:link-transition-authoring-1-coo-preflight
+          transition_reason_refs:
+            - brick-work:01:link-transition-authoring-1-coo-preflight
+          proof_limits:
+            - forward authoring is support evidence only
+          not_proven:
+            - semantic necessity of the forward transition
+  - step_ref: link-transition-authoring-1-transition-observation
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-transition-authoring-1-transition-observation
+        brick_work_ref: work:link-transition-authoring-1-transition-observation
+        brick_instance_ref: brick-lta1-transition-observation
+        work_statement: Return an observation that requests one-step repair without becoming Link Movement.
+        comparison_rule: Observation may advise repair but must not choose Movement.
+        required_return_shape: review_observation with binding false, proof_limits, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-link-transition-authoring-1-general-transition-authoring-0526.md
+      - axis: Agent
+        row_ref: agent-row:link-transition-authoring-1-transition-observation
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:link-transition-authoring-1-observation-return-to-repair
+        movement: reroute
+        target_ref: brick-lta1-development-repair
+        transition_authoring:
+          transition_authoring_ref: link-authoring:lta1-return-to-development-repair
+          author_ref: link-planning-brick:brick-lta1-transition-observation
+          authoring_basis_refs:
+            - observation:lta1-transition-observation
+            - brick-comparison:02:link-transition-authoring-1-transition-observation
+          transition_reason_refs:
+            - observation:lta1-transition-observation
+          proof_limits:
+            - return authoring is support evidence only
+          not_proven:
+            - semantic correctness of one-step return
+  - step_ref: link-transition-authoring-1-development-repair
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-transition-authoring-1-development-repair
+        brick_work_ref: work:link-transition-authoring-1-development-repair
+        brick_instance_ref: brick-lta1-development-repair
+        work_statement: Receive declared return handoff and repair as a new append-only Brick attempt.
+        comparison_rule: Observe transition_authoring handoff only.
+        required_return_shape: received_transition_authoring_refs, proof_limits, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-link-transition-authoring-1-general-transition-authoring-0526.md
+      - axis: Agent
+        row_ref: agent-row:link-transition-authoring-1-development-repair
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:link-transition-authoring-1-repair-to-closure
+        movement: forward
+        target_ref: brick-lta1-closure
+  - step_ref: link-transition-authoring-1-closure
+    selected_adapter_ref: adapter:local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-transition-authoring-1-closure
+        brick_work_ref: work:link-transition-authoring-1-closure
+        brick_instance_ref: brick-lta1-closure
+        work_statement: Close LINK-TRANSITION-AUTHORING-1 as support evidence for general Link transition authoring.
+        comparison_rule: Preserve narrow proof and held boundaries only.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, held, coo_movement
+        source_facts:
+          - support/docs/spec/brick-protocol-link-transition-authoring-1-general-transition-authoring-0526.md
+      - axis: Agent
+        row_ref: agent-row:link-transition-authoring-1-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:link-transition-authoring-1-closure-to-boundary
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:link-transition-authoring-1-closed

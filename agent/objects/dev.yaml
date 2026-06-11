@@ -1,0 +1,32 @@
+{
+  "object_ref": "agent-object:dev",
+  "name": "dev",
+  "lane": "worker",
+  "callable_performer_refs": [
+    "callable:local:agent-invoke0-smoke"
+  ],
+  "prompt_refs": [
+    "prompt:dev"
+  ],
+  "skill_refs": [
+    "skill:scoped-implementation",
+    "skill:protocol-boundary-watch"
+  ],
+  "hook_refs": [
+    "hook:instruction-chain-read",
+    "hook:unsafe-mutation-guard",
+    "hook:resource-ref-redaction"
+  ],
+  "tool_policy_refs": [
+    "tool-policy:read-write-scoped"
+  ],
+  "discipline_refs": [
+    "discipline:closed-agentfact",
+    "discipline:proof-limits"
+  ],
+  "adapter_refs": [
+    "adapter:local",
+    "adapter:codex-local",
+    "adapter:claude-local"
+  ]
+}

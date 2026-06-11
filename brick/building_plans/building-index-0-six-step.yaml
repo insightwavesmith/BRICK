@@ -1,0 +1,141 @@
+plan_ref: building-plan:building-index-0-six-step
+owner_axis: Brick
+building_id: building-index-0-0525
+selected_adapter_ref: adapter:local
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - complete root inventory
+  - semantic correctness
+  - external graph import readiness
+  - source truth
+  - success judgment
+  - quality judgment
+  - Movement authority
+steps:
+  - step_ref: building-index-0-01-design
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-index-0-design
+        brick_work_ref: work:building-index-0-design
+        brick_instance_ref: brick-building-index-design-01
+        work_statement: Design BUILDING-INDEX-0 support projection boundary.
+        comparison_rule: Observe projection-only boundary.
+        required_return_shape: role boundary, current structure, projection file, checker boundary, unchanged surfaces, not_proven
+        source_facts:
+          - support/docs/spec/brick-protocol-building-index-0-support-projection-0525.md
+      - axis: Agent
+        row_ref: agent-row:building-index-0-design
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:building-index-0-design
+        movement: forward
+        target_ref: brick-building-index-development-02
+        next_brick_instance_ref: brick-building-index-development-02
+  - step_ref: building-index-0-02-development
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-index-0-development
+        brick_work_ref: work:building-index-0-development
+        brick_instance_ref: brick-building-index-development-02
+        work_statement: Implement BUILDING-INDEX-0 projection and checker.
+        comparison_rule: Observe projection-only support status behavior.
+        required_return_shape: implementation_map, changed_files, verification_evidence, claim_ledger, not_proven
+        source_facts:
+          - project/brick-protocol/status/kernel/building-index-0-projection-0525.md
+          - support/checkers/check_building_index0_projection.py
+      - axis: Agent
+        row_ref: agent-row:building-index-0-development
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:building-index-0-development
+        movement: forward
+        target_ref: brick-building-index-codex-qa-03
+        next_brick_instance_ref: brick-building-index-codex-qa-03
+  - step_ref: building-index-0-03-codex-qa
+    selected_adapter_ref: adapter:codex-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-index-0-codex-qa
+        brick_work_ref: work:building-index-0-codex-qa
+        brick_instance_ref: brick-building-index-codex-qa-03
+        work_statement: As Codex local CLI, review BUILDING-INDEX-0 projection boundary only.
+        comparison_rule: Observe that index is support projection and not authority.
+        required_return_shape: checked_work, checked_sources, match_facts, missing_or_mismatched_facts, boundary_violations, evidence_used, narrowly_proven, not_proven, next_movement_recommendation
+        source_facts:
+          - support/docs/spec/brick-protocol-building-index-0-support-projection-0525.md
+          - project/brick-protocol/status/kernel/building-index-0-projection-0525.md
+      - axis: Agent
+        row_ref: agent-row:building-index-0-codex-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:building-index-0-codex-qa
+        movement: forward
+        target_ref: brick-building-index-claude-qa-04
+        next_brick_instance_ref: brick-building-index-claude-qa-04
+  - step_ref: building-index-0-04-claude-qa
+    selected_adapter_ref: adapter:claude-local
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-index-0-claude-qa
+        brick_work_ref: work:building-index-0-claude-qa
+        brick_instance_ref: brick-building-index-claude-qa-04
+        work_statement: As Claude local CLI, review BUILDING-INDEX-0 projection boundary only.
+        comparison_rule: Observe that index is support projection and not authority.
+        required_return_shape: checked_work, checked_sources, match_facts, missing_or_mismatched_facts, boundary_violations, evidence_used, narrowly_proven, not_proven, next_movement_recommendation
+        source_facts:
+          - support/docs/spec/brick-protocol-building-index-0-support-projection-0525.md
+          - project/brick-protocol/status/kernel/building-index-0-projection-0525.md
+      - axis: Agent
+        row_ref: agent-row:building-index-0-claude-qa
+        agent_object_ref: agent-object:qa
+      - axis: Link
+        row_ref: link-row:building-index-0-claude-qa
+        movement: forward
+        target_ref: brick-building-index-integration-05
+        next_brick_instance_ref: brick-building-index-integration-05
+  - step_ref: building-index-0-05-integration
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-index-0-integration
+        brick_work_ref: work:building-index-0-integration
+        brick_instance_ref: brick-building-index-integration-05
+        work_statement: Integrate BUILDING-INDEX-0 QA observations.
+        comparison_rule: Observe support evidence only.
+        required_return_shape: repairs, checks_rerun, held_items
+        source_facts:
+          - project/brick-protocol/status/kernel/brick-protocol-building-index-0-support-projection-support-record-0525.md
+      - axis: Agent
+        row_ref: agent-row:building-index-0-integration
+        agent_object_ref: agent-object:dev
+      - axis: Link
+        row_ref: link-row:building-index-0-integration
+        movement: forward
+        target_ref: brick-building-index-closure-06
+        next_brick_instance_ref: brick-building-index-closure-06
+  - step_ref: building-index-0-06-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:building-index-0-closure
+        brick_work_ref: work:building-index-0-closure
+        brick_instance_ref: brick-building-index-closure-06
+        work_statement: Close BUILDING-INDEX-0 and AUTO-NEXT-8 sequence with observed evidence.
+        comparison_rule: Observe proof limits only.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, next_movement
+        source_facts:
+          - project/brick-protocol/status/kernel/brick-protocol-building-index-0-support-projection-support-record-0525.md
+      - axis: Agent
+        row_ref: agent-row:building-index-0-closure
+        agent_object_ref: agent-object:coo
+      - axis: Link
+        row_ref: link-row:building-index-0-closure
+        movement: forward
+        building_lifecycle:
+          state: closed
+          reason: superseded stop Movement moved to Building lifecycle close state by MOVEMENT-BINARY-0
+        target_ref: building-boundary:auto-next-8-closed
+        next_brick_instance_ref: building-boundary-auto-next-8-closed

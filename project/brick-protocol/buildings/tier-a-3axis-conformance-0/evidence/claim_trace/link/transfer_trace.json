@@ -1,0 +1,274 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:tier-a-3axis-conformance-0::evidence/claim_trace/link/transfer_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "absent_fact_type": "TransferFact",
+        "caller_supplied": false,
+        "statement": "caller did not supply a Link TransferFact; support/operator/run.py did not create one",
+        "support_created_bal_fact": false,
+        "trace_role": "absence_placeholder"
+      },
+      "fact_ref": "absence:link-transfer:01:tier-a-work",
+      "not_proven": [
+        "semantic correctness of the agent-proposed reroute",
+        "real provider behavior",
+        "scheduler / queue / retry behavior",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "absent_fact_type": "TransferFact",
+        "caller_supplied": false,
+        "statement": "caller did not supply a Link TransferFact; support/operator/run.py did not create one",
+        "support_created_bal_fact": false,
+        "trace_role": "absence_placeholder"
+      },
+      "fact_ref": "absence:link-transfer:02:tier-a-review-1",
+      "not_proven": [
+        "semantic correctness of the agent-proposed reroute",
+        "real provider behavior",
+        "scheduler / queue / retry behavior",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:02"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "absent_fact_type": "TransferFact",
+        "caller_supplied": false,
+        "statement": "caller did not supply a Link TransferFact; support/operator/run.py did not create one",
+        "support_created_bal_fact": false,
+        "trace_role": "absence_placeholder"
+      },
+      "fact_ref": "absence:link-transfer:03:tier-a-work",
+      "not_proven": [
+        "semantic correctness of the agent-proposed reroute",
+        "real provider behavior",
+        "scheduler / queue / retry behavior",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:03"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "absent_fact_type": "TransferFact",
+        "caller_supplied": false,
+        "statement": "caller did not supply a Link TransferFact; support/operator/run.py did not create one",
+        "support_created_bal_fact": false,
+        "trace_role": "absence_placeholder"
+      },
+      "fact_ref": "absence:link-transfer:04:tier-a-mid",
+      "not_proven": [
+        "semantic correctness of the agent-proposed reroute",
+        "real provider behavior",
+        "scheduler / queue / retry behavior",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:04"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "absent_fact_type": "TransferFact",
+        "caller_supplied": false,
+        "statement": "caller did not supply a Link TransferFact; support/operator/run.py did not create one",
+        "support_created_bal_fact": false,
+        "trace_role": "absence_placeholder"
+      },
+      "fact_ref": "absence:link-transfer:05:tier-a-review-2",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:05"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "absent_fact_type": "TransferFact",
+        "caller_supplied": false,
+        "statement": "caller did not supply a Link TransferFact; support/operator/run.py did not create one",
+        "support_created_bal_fact": false,
+        "trace_role": "absence_placeholder"
+      },
+      "fact_ref": "absence:link-transfer:06:tier-a-work",
+      "not_proven": [
+        "semantic correctness of the agent-proposed reroute",
+        "real provider behavior",
+        "scheduler / queue / retry behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:06"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "caller_supplied": true,
+        "evidence_reference": "transfer:tier-a-close-to-boundary",
+        "not_proven": [
+          "semantic correctness of the transferred work context"
+        ],
+        "proof_limits": [
+          "support evidence only",
+          "not Movement authority"
+        ],
+        "public_fact_refs": [
+          "agent-fact:tier-a-3axis-conformance-0:tier-a-close"
+        ],
+        "required_public_facts": [
+          "agent-fact:tier-a-3axis-conformance-0:tier-a-close"
+        ],
+        "source_boundary_ref": "brick-tier-a-close",
+        "target_boundary_ref": "building-boundary:tier-a-3axis-conformance-0-closed",
+        "transfer_gate_reference": null,
+        "work_context_ref": "work:tier-a-close"
+      },
+      "fact_ref": "transfer-fact:07:tier-a-close",
+      "not_proven": [
+        "semantic correctness of the agent-proposed reroute",
+        "real provider behavior",
+        "scheduler / queue / retry behavior",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "semantic correctness of the transferred work context"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:07"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-05-31T23:19:35Z",
+  "id": "urn:bp:building:tier-a-3axis-conformance-0::evidence/claim_trace/link/transfer_trace.json",
+  "recorded_at": "2026-05-31T23:19:35Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:tier-a-3axis-conformance-0",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/transfer_trace.json",
+  "time": "2026-05-31T23:19:35Z",
+  "type": "bp.claim_trace"
+}

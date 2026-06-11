@@ -1,0 +1,850 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:brick-template-catalog-restructure-0-p9-dogfood-0601::evidence/claim_trace/brick/work_contract.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-btcr0-p9-01-design",
+        "comparison_rule": "Observe only that required returned fields are present; do not judge success, quality, source truth, or Movement.",
+        "required_return_shape": "returned_summary, evidence_refs",
+        "source_facts": [
+          "brick/templates/shapes/catalog.yaml",
+          "brick/templates/shapes/step-templates.yaml",
+          "brick/templates/shapes/chain-presets-brick-protocol.yaml",
+          "project/brick-protocol/status/kernel/brick-template-catalog-restructure-0-p8-checker-fire-closure-0601.md"
+        ],
+        "work_statement": "P9 dogfood observation for design: return local support evidence that this step walked through the split Brick template catalog path."
+      },
+      "fact_ref": "brick-work:01:btcr0-p9-01-design",
+      "not_proven": [
+        "semantic fitness of physical Brick templates",
+        "provider behavior or provider reliability",
+        "P10 old registry deletion safety",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "P9 dogfood validates split catalog declaration evidence binding only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: returned_summary, evidence_refs, observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits",
+          "observed_return_fields: adapter_ref, agent_object_ref, callable_ref, discipline_refs, evidence_refs, hook_refs, prompt_refs, returned_summary, skill_refs, tool_policy_refs",
+          "missing_return_fields: observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe only that required returned fields are present; do not judge success, quality, source truth, or Movement.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "missing",
+        "required_return_shape_evidence": "returned_summary, evidence_refs",
+        "work_reference": "P9 dogfood observation for design: return local support evidence that this step walked through the split Brick template catalog path."
+      },
+      "fact_ref": "brick-comparison:01:btcr0-p9-01-design",
+      "not_proven": [
+        "semantic fitness of physical Brick templates",
+        "provider behavior or provider reliability",
+        "P10 old registry deletion safety",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "P9 dogfood validates split catalog declaration evidence binding only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:01:btcr0-p9-01-design",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: returned_summary, evidence_refs, observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits",
+          "observed_return_fields: adapter_ref, agent_object_ref, callable_ref, discipline_refs, evidence_refs, hook_refs, prompt_refs, returned_summary, skill_refs, tool_policy_refs",
+          "missing_return_fields: observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe only that required returned fields are present; do not judge success, quality, source truth, or Movement.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "missing",
+        "required_return_shape_evidence": "returned_summary, evidence_refs",
+        "work_reference": "P9 dogfood observation for design: return local support evidence that this step walked through the split Brick template catalog path."
+      },
+      "fact_ref": "brick-comparison:brick-template-catalog-restructure-0-p9-dogfood-0601:btcr0-p9-01-design",
+      "not_proven": [
+        "semantic fitness of physical Brick templates",
+        "provider behavior or provider reliability",
+        "P10 old registry deletion safety",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "P9 dogfood validates split catalog declaration evidence binding only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-btcr0-p9-02-work",
+        "comparison_rule": "Observe only that required returned fields are present; do not judge success, quality, source truth, or Movement.",
+        "required_return_shape": "returned_summary, evidence_refs",
+        "source_facts": [
+          "brick/templates/shapes/catalog.yaml",
+          "brick/templates/shapes/step-templates.yaml",
+          "brick/templates/shapes/chain-presets-brick-protocol.yaml",
+          "project/brick-protocol/status/kernel/brick-template-catalog-restructure-0-p8-checker-fire-closure-0601.md"
+        ],
+        "work_statement": "P9 dogfood observation for work: return local support evidence that this step walked through the split Brick template catalog path."
+      },
+      "fact_ref": "brick-work:02:btcr0-p9-02-work",
+      "not_proven": [
+        "semantic fitness of physical Brick templates",
+        "provider behavior or provider reliability",
+        "P10 old registry deletion safety",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "P9 dogfood validates split catalog declaration evidence binding only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: returned_summary, evidence_refs, observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits",
+          "observed_return_fields: adapter_ref, agent_object_ref, callable_ref, discipline_refs, evidence_refs, hook_refs, prompt_refs, returned_summary, skill_refs, tool_policy_refs",
+          "missing_return_fields: observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe only that required returned fields are present; do not judge success, quality, source truth, or Movement.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "missing",
+        "required_return_shape_evidence": "returned_summary, evidence_refs",
+        "work_reference": "P9 dogfood observation for work: return local support evidence that this step walked through the split Brick template catalog path."
+      },
+      "fact_ref": "brick-comparison:02:btcr0-p9-02-work",
+      "not_proven": [
+        "semantic fitness of physical Brick templates",
+        "provider behavior or provider reliability",
+        "P10 old registry deletion safety",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "P9 dogfood validates split catalog declaration evidence binding only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:02:btcr0-p9-02-work",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: returned_summary, evidence_refs, observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits",
+          "observed_return_fields: adapter_ref, agent_object_ref, callable_ref, discipline_refs, evidence_refs, hook_refs, prompt_refs, returned_summary, skill_refs, tool_policy_refs",
+          "missing_return_fields: observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe only that required returned fields are present; do not judge success, quality, source truth, or Movement.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "missing",
+        "required_return_shape_evidence": "returned_summary, evidence_refs",
+        "work_reference": "P9 dogfood observation for work: return local support evidence that this step walked through the split Brick template catalog path."
+      },
+      "fact_ref": "brick-comparison:brick-template-catalog-restructure-0-p9-dogfood-0601:btcr0-p9-02-work",
+      "not_proven": [
+        "semantic fitness of physical Brick templates",
+        "provider behavior or provider reliability",
+        "P10 old registry deletion safety",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "P9 dogfood validates split catalog declaration evidence binding only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-btcr0-p9-03-code-attack-qa",
+        "comparison_rule": "Observe only that required returned fields are present; do not judge success, quality, source truth, or Movement.",
+        "required_return_shape": "returned_summary, evidence_refs",
+        "source_facts": [
+          "brick/templates/shapes/catalog.yaml",
+          "brick/templates/shapes/step-templates.yaml",
+          "brick/templates/shapes/chain-presets-brick-protocol.yaml",
+          "project/brick-protocol/status/kernel/brick-template-catalog-restructure-0-p8-checker-fire-closure-0601.md"
+        ],
+        "work_statement": "P9 dogfood observation for code-attack-qa: return local support evidence that this step walked through the split Brick template catalog path."
+      },
+      "fact_ref": "brick-work:03:btcr0-p9-03-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of physical Brick templates",
+        "provider behavior or provider reliability",
+        "P10 old registry deletion safety",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "P9 dogfood validates split catalog declaration evidence binding only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: returned_summary, evidence_refs, observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits",
+          "observed_return_fields: adapter_ref, agent_object_ref, callable_ref, discipline_refs, evidence_refs, hook_refs, prompt_refs, returned_summary, skill_refs, tool_policy_refs",
+          "missing_return_fields: observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe only that required returned fields are present; do not judge success, quality, source truth, or Movement.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "missing",
+        "required_return_shape_evidence": "returned_summary, evidence_refs",
+        "work_reference": "P9 dogfood observation for code-attack-qa: return local support evidence that this step walked through the split Brick template catalog path."
+      },
+      "fact_ref": "brick-comparison:03:btcr0-p9-03-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of physical Brick templates",
+        "provider behavior or provider reliability",
+        "P10 old registry deletion safety",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "P9 dogfood validates split catalog declaration evidence binding only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:03:btcr0-p9-03-code-attack-qa",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: returned_summary, evidence_refs, observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits",
+          "observed_return_fields: adapter_ref, agent_object_ref, callable_ref, discipline_refs, evidence_refs, hook_refs, prompt_refs, returned_summary, skill_refs, tool_policy_refs",
+          "missing_return_fields: observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe only that required returned fields are present; do not judge success, quality, source truth, or Movement.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "missing",
+        "required_return_shape_evidence": "returned_summary, evidence_refs",
+        "work_reference": "P9 dogfood observation for code-attack-qa: return local support evidence that this step walked through the split Brick template catalog path."
+      },
+      "fact_ref": "brick-comparison:brick-template-catalog-restructure-0-p9-dogfood-0601:btcr0-p9-03-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of physical Brick templates",
+        "provider behavior or provider reliability",
+        "P10 old registry deletion safety",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "P9 dogfood validates split catalog declaration evidence binding only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-btcr0-p9-04-axis-attack-qa",
+        "comparison_rule": "Observe only that required returned fields are present; do not judge success, quality, source truth, or Movement.",
+        "required_return_shape": "returned_summary, evidence_refs",
+        "source_facts": [
+          "brick/templates/shapes/catalog.yaml",
+          "brick/templates/shapes/step-templates.yaml",
+          "brick/templates/shapes/chain-presets-brick-protocol.yaml",
+          "project/brick-protocol/status/kernel/brick-template-catalog-restructure-0-p8-checker-fire-closure-0601.md"
+        ],
+        "work_statement": "P9 dogfood observation for axis-attack-qa: return local support evidence that this step walked through the split Brick template catalog path."
+      },
+      "fact_ref": "brick-work:04:btcr0-p9-04-axis-attack-qa",
+      "not_proven": [
+        "semantic fitness of physical Brick templates",
+        "provider behavior or provider reliability",
+        "P10 old registry deletion safety",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "P9 dogfood validates split catalog declaration evidence binding only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:04"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: returned_summary, evidence_refs, observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits",
+          "observed_return_fields: adapter_ref, agent_object_ref, callable_ref, discipline_refs, evidence_refs, hook_refs, prompt_refs, returned_summary, skill_refs, tool_policy_refs",
+          "missing_return_fields: observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe only that required returned fields are present; do not judge success, quality, source truth, or Movement.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "missing",
+        "required_return_shape_evidence": "returned_summary, evidence_refs",
+        "work_reference": "P9 dogfood observation for axis-attack-qa: return local support evidence that this step walked through the split Brick template catalog path."
+      },
+      "fact_ref": "brick-comparison:04:btcr0-p9-04-axis-attack-qa",
+      "not_proven": [
+        "semantic fitness of physical Brick templates",
+        "provider behavior or provider reliability",
+        "P10 old registry deletion safety",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "P9 dogfood validates split catalog declaration evidence binding only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:04",
+        "raw:agent:04"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:04:btcr0-p9-04-axis-attack-qa",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: returned_summary, evidence_refs, observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits",
+          "observed_return_fields: adapter_ref, agent_object_ref, callable_ref, discipline_refs, evidence_refs, hook_refs, prompt_refs, returned_summary, skill_refs, tool_policy_refs",
+          "missing_return_fields: observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe only that required returned fields are present; do not judge success, quality, source truth, or Movement.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "missing",
+        "required_return_shape_evidence": "returned_summary, evidence_refs",
+        "work_reference": "P9 dogfood observation for axis-attack-qa: return local support evidence that this step walked through the split Brick template catalog path."
+      },
+      "fact_ref": "brick-comparison:brick-template-catalog-restructure-0-p9-dogfood-0601:btcr0-p9-04-axis-attack-qa",
+      "not_proven": [
+        "semantic fitness of physical Brick templates",
+        "provider behavior or provider reliability",
+        "P10 old registry deletion safety",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "P9 dogfood validates split catalog declaration evidence binding only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:04",
+        "raw:agent:04"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-btcr0-p9-05-evidence-integrity",
+        "comparison_rule": "Observe only that required returned fields are present; do not judge success, quality, source truth, or Movement.",
+        "required_return_shape": "returned_summary, evidence_refs",
+        "source_facts": [
+          "brick/templates/shapes/catalog.yaml",
+          "brick/templates/shapes/step-templates.yaml",
+          "brick/templates/shapes/chain-presets-brick-protocol.yaml",
+          "project/brick-protocol/status/kernel/brick-template-catalog-restructure-0-p8-checker-fire-closure-0601.md"
+        ],
+        "work_statement": "P9 dogfood observation for evidence-integrity: return local support evidence that this step walked through the split Brick template catalog path."
+      },
+      "fact_ref": "brick-work:05:btcr0-p9-05-evidence-integrity",
+      "not_proven": [
+        "semantic fitness of physical Brick templates",
+        "provider behavior or provider reliability",
+        "P10 old registry deletion safety",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "P9 dogfood validates split catalog declaration evidence binding only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:05"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: returned_summary, evidence_refs, observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits",
+          "observed_return_fields: adapter_ref, agent_object_ref, callable_ref, discipline_refs, evidence_refs, hook_refs, prompt_refs, returned_summary, skill_refs, tool_policy_refs",
+          "missing_return_fields: observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe only that required returned fields are present; do not judge success, quality, source truth, or Movement.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "missing",
+        "required_return_shape_evidence": "returned_summary, evidence_refs",
+        "work_reference": "P9 dogfood observation for evidence-integrity: return local support evidence that this step walked through the split Brick template catalog path."
+      },
+      "fact_ref": "brick-comparison:05:btcr0-p9-05-evidence-integrity",
+      "not_proven": [
+        "semantic fitness of physical Brick templates",
+        "provider behavior or provider reliability",
+        "P10 old registry deletion safety",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "P9 dogfood validates split catalog declaration evidence binding only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:05",
+        "raw:agent:05"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:05:btcr0-p9-05-evidence-integrity",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: returned_summary, evidence_refs, observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits",
+          "observed_return_fields: adapter_ref, agent_object_ref, callable_ref, discipline_refs, evidence_refs, hook_refs, prompt_refs, returned_summary, skill_refs, tool_policy_refs",
+          "missing_return_fields: observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe only that required returned fields are present; do not judge success, quality, source truth, or Movement.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "missing",
+        "required_return_shape_evidence": "returned_summary, evidence_refs",
+        "work_reference": "P9 dogfood observation for evidence-integrity: return local support evidence that this step walked through the split Brick template catalog path."
+      },
+      "fact_ref": "brick-comparison:brick-template-catalog-restructure-0-p9-dogfood-0601:btcr0-p9-05-evidence-integrity",
+      "not_proven": [
+        "semantic fitness of physical Brick templates",
+        "provider behavior or provider reliability",
+        "P10 old registry deletion safety",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "P9 dogfood validates split catalog declaration evidence binding only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:05",
+        "raw:agent:05"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-btcr0-p9-06-closure",
+        "comparison_rule": "Observe only that required returned fields are present; do not judge success, quality, source truth, or Movement.",
+        "required_return_shape": "returned_summary, evidence_refs",
+        "source_facts": [
+          "brick/templates/shapes/catalog.yaml",
+          "brick/templates/shapes/step-templates.yaml",
+          "brick/templates/shapes/chain-presets-brick-protocol.yaml",
+          "project/brick-protocol/status/kernel/brick-template-catalog-restructure-0-p8-checker-fire-closure-0601.md"
+        ],
+        "work_statement": "P9 dogfood observation for closure: return local support evidence that this step walked through the split Brick template catalog path."
+      },
+      "fact_ref": "brick-work:06:btcr0-p9-06-closure",
+      "not_proven": [
+        "semantic fitness of physical Brick templates",
+        "provider behavior or provider reliability",
+        "P10 old registry deletion safety",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "P9 dogfood validates split catalog declaration evidence binding only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:06"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: returned_summary, evidence_refs, observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits",
+          "observed_return_fields: adapter_ref, agent_object_ref, callable_ref, discipline_refs, evidence_refs, hook_refs, prompt_refs, returned_summary, skill_refs, tool_policy_refs",
+          "missing_return_fields: observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe only that required returned fields are present; do not judge success, quality, source truth, or Movement.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "missing",
+        "required_return_shape_evidence": "returned_summary, evidence_refs",
+        "work_reference": "P9 dogfood observation for closure: return local support evidence that this step walked through the split Brick template catalog path."
+      },
+      "fact_ref": "brick-comparison:06:btcr0-p9-06-closure",
+      "not_proven": [
+        "semantic fitness of physical Brick templates",
+        "provider behavior or provider reliability",
+        "P10 old registry deletion safety",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "P9 dogfood validates split catalog declaration evidence binding only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:06",
+        "raw:agent:06"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:06:btcr0-p9-06-closure",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: returned_summary, evidence_refs, observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits",
+          "observed_return_fields: adapter_ref, agent_object_ref, callable_ref, discipline_refs, evidence_refs, hook_refs, prompt_refs, returned_summary, skill_refs, tool_policy_refs",
+          "missing_return_fields: observed_evidence, not_proven, blocked_or_missing_evidence, remaining_delta, proof_limits"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe only that required returned fields are present; do not judge success, quality, source truth, or Movement.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "missing",
+        "required_return_shape_evidence": "returned_summary, evidence_refs",
+        "work_reference": "P9 dogfood observation for closure: return local support evidence that this step walked through the split Brick template catalog path."
+      },
+      "fact_ref": "brick-comparison:brick-template-catalog-restructure-0-p9-dogfood-0601:btcr0-p9-06-closure",
+      "not_proven": [
+        "semantic fitness of physical Brick templates",
+        "provider behavior or provider reliability",
+        "P10 old registry deletion safety",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "P9 dogfood validates split catalog declaration evidence binding only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:06",
+        "raw:agent:06"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-01T11:06:13Z",
+  "id": "urn:bp:building:brick-template-catalog-restructure-0-p9-dogfood-0601::evidence/claim_trace/brick/work_contract.json",
+  "recorded_at": "2026-06-01T11:06:13Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:brick-template-catalog-restructure-0-p9-dogfood-0601",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/brick/work_contract.json",
+  "time": "2026-06-01T11:06:13Z",
+  "type": "bp.claim_trace"
+}
