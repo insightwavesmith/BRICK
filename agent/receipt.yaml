@@ -10,6 +10,9 @@ public_fact:
     - received_work
     - received_at_reference
     - evidence_reference
+    # MAIL-REPAIR (Smith ruling B2, 0611): the delivered Link handoff ADDRESSES,
+    # recorded as fact ("received"); addresses only, no bodies, no Movement choice.
+    - received_handoff_refs
 
 allowed_facts:
   - received_work

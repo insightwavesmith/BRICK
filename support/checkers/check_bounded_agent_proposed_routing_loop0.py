@@ -39,6 +39,7 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import os
 import sys
 import tempfile
 from collections.abc import Mapping, Sequence
@@ -890,6 +891,27 @@ def _node_budget_trace_violations(
     return violations
 
 
+def _current_hold_paused_at_ref(building_root: Path) -> str | None:
+    """The CURRENT hold's identity (``link-transition:<reroute>``) or None.
+
+    FIX 2 (0611): a disposition row must be ADDRESSED to the hold it disposes.
+    This mirrors what a real human/COO author does: read the held record from
+    the written evidence and echo its identity into the row.
+    """
+
+    from brick_protocol.support.operator.walker_hold import _hold_paused_at_ref
+    from brick_protocol.support.operator.walker_resume import _read_written_dynamic_plan
+
+    try:
+        _plan, evidence = _read_written_dynamic_plan(building_root)
+    except (OSError, ValueError):
+        return None
+    hold = evidence.get("hold")
+    if not isinstance(hold, Mapping) or not evidence.get("held"):
+        return None
+    return _hold_paused_at_ref(hold)
+
+
 def _append_disposition_row(
     building_root: Path,
     *,
@@ -898,14 +920,24 @@ def _append_disposition_row(
     action: str,
     author_ref: str = "human:smith",
     budget_increment: int | None = None,
+    reason_refs: list[str] | None = None,
+    resumed_from_ref: str | None = None,
 ) -> None:
+    # FIX 2 (0611): address THE CURRENT hold by default (identity match is now
+    # required by walker_resume._read_disposition_row). ``resumed_from_ref``
+    # stays overridable so cases can author a WRONG-hold row deliberately.
+    if resumed_from_ref is None:
+        resumed_from_ref = (
+            _current_hold_paused_at_ref(building_root)
+            or f"link-transition:disposition-{action}"
+        )
     row: dict[str, Any] = {
         "raw_ref": f"raw:link:disposition:{action}",
         "building_id": building_id,
         "step_ref": f"human-disposition-{action}",
         "transition_lifecycle_state": "resumed",
         "transition_lifecycle_progress_state": "in_progress",
-        "transition_lifecycle_resumed_from_ref": f"link-transition:disposition-{action}",
+        "transition_lifecycle_resumed_from_ref": resumed_from_ref,
         "transition_lifecycle_pending_target_ref": pending_target_ref,
         "transition_lifecycle_required_disposition_owner": "caller-or-coo",
         "transition_lifecycle_disposition_action": action,
@@ -913,6 +945,11 @@ def _append_disposition_row(
     }
     if budget_increment is not None:
         row["transition_lifecycle_budget_increment"] = budget_increment
+    if reason_refs is not None:
+        # MAIL-REPAIR (0611): reason_refs is an ADMITTED transition_lifecycle key
+        # (link/transition.TRANSITION_LIFECYCLE_ALLOWED_KEYS); the disposition
+        # row's reason ADDRESSES are truck-eligible runtime mail (B3 lane 2).
+        row["transition_lifecycle_reason_refs"] = list(reason_refs)
     with (building_root / "raw" / "link.jsonl").open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(row, separators=(",", ":")) + "\n")
 
@@ -3474,6 +3511,1306 @@ def check(repo: Path) -> list[str]:
                     f"fc-gap6: replayed step {key6} got a FRESH recorded_at ({n6}) instead of "
                     f"preserving the original ({o6})")
 
+    # ------------------------------------------------------------------
+    # MAIL-REPAIR (Smith rulings 0611, B1/B2/B3): runtime rows ride the mail.
+    # Ported b5b probe (measured RED 0611: in a gate-adopted dynamic reroute,
+    # runtime concern.reason_refs markers arrived in 0/10 redo-worker inputs
+    # while declared refs arrived in all) as an EXECUTED case family:
+    #   mail-1  runtime marker ARRIVES in every redo input (and ONLY there),
+    #           provenance recorded as data, packet carries ADDRESSES ONLY,
+    #           receipt (B2) records the delivered addresses as fact.
+    #   mail-2  broken ledger address (B1) -> HOLD loudly, nothing adopted.
+    #   mail-3  declared-only plan: mailbox byte-identical to the declared
+    #           assembler output; NO runtime_handoffs key (regression guard).
+    #   mail-4  raise-resume: THIS resume's disposition row reason_refs ride
+    #           to the re-adopted redo landing (B3 lane 2).
+    # ------------------------------------------------------------------
+    from brick_protocol.support.operator.plan_validation import (
+        _incoming_link_handoff_refs as _declared_mailbox_assembler,
+    )
+    from brick_protocol.support.operator.walker_hold import (
+        _hold_paused_at_ref as _hold_identity_ref,
+    )
+    from brick_protocol.support.operator.walker_resume import (
+        _read_disposition_row as _live_read_disposition_row,
+        _read_written_dynamic_plan as _mail_plan_evidence,
+    )
+    from brick_protocol.support.recording.step_outputs import (
+        _step_output_manifest_ref as _mail_manifest_ref,
+    )
+
+    def _mail_disposition_selection_replay(
+        ledger_snapshot: str,
+        hold_record: Mapping[str, Any],
+    ) -> Mapping[str, Any] | None:
+        """Replay the disposition selection by CALLING THE LIVE FUNCTION.
+
+        codex re-review also-check b (0611): this oracle previously
+        REIMPLEMENTED the selection predicate (file-order rows carrying a
+        disposition_action whose pending_target_ref AND hold identity match the
+        current hold; the selected row is the LAST match), which could silently
+        diverge from production. It now materializes the pre-resume ledger
+        snapshot as raw/link.jsonl under a throwaway root and invokes
+        ``walker_resume._read_disposition_row`` -- the SAME function the resume
+        verb runs -- so the test predicate CANNOT diverge from the live rule.
+        Returns the selected disposition mapping (carrying
+        ``selected_row_provenance``) or None when nothing matches.
+        """
+
+        with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-oracle-") as oracle_tmp:
+            oracle_root = Path(oracle_tmp)
+            (oracle_root / "raw").mkdir(parents=True)
+            (oracle_root / "raw" / "link.jsonl").write_text(
+                ledger_snapshot, encoding="utf-8"
+            )
+            return _live_read_disposition_row(oracle_root, hold_record)
+
+    _mail_provenance_keys = (
+        "disposition_row_paused_at_ref",
+        "disposition_row_raw_ref",
+        "disposition_row_same_hold_index",
+    )
+
+    mail_runtime_marker = "observation:mail-repair-runtime-marker-rides"
+    mail_declared_marker = "observation:mail-repair-declared-lane-reason"
+    _mail_entry_allowed_keys = {
+        "from_step_ref",
+        "from_brick_instance_ref",
+        "row_kind",
+        "row_ref",
+        "reason_refs",
+        "provenance",
+        "reroute_ref",
+    }
+
+    def _mail_plan() -> tuple[Mapping[str, Any], Mapping[str, str]]:
+        plan, refs = _full_chain_replay_plan()
+        plan = json.loads(json.dumps(plan))
+        for edge in plan["link_edges"]:
+            for row in edge["rows"]:
+                if row.get("movement") == "reroute":
+                    row["route_replay_plan"]["route_reason_refs"] = [
+                        *row["route_replay_plan"]["route_reason_refs"],
+                        mail_declared_marker,
+                    ]
+        return plan, refs
+
+    def _mail_capture_callable(source_brick: str, extra_reason_refs: list[str]):
+        captures: list[dict[str, Any]] = []
+
+        def _callable(request: Any) -> Mapping[str, Any]:
+            captures.append(
+                {
+                    "brick_instance_ref": request.brick_instance_ref,
+                    "link_handoff_refs": json.loads(
+                        json.dumps(request.link_handoff_refs, default=str)
+                    ),
+                }
+            )
+            returned: dict[str, Any] = {
+                "observed_evidence": [f"mail obs {request.brick_instance_ref}"],
+                "not_proven": ["semantic correctness"],
+            }
+            if request.brick_instance_ref == source_brick:
+                returned["transition_concern_evidence"] = {
+                    "concern_ref": f"transition-concern:{request.brick_instance_ref}",
+                    "concern_kind": "implementation_gap",
+                    "binding": False,
+                    "reason_refs": [
+                        f"brick-comparison:{request.brick_instance_ref}",
+                        *extra_reason_refs,
+                    ],
+                    "related_boundary_refs": ["brick-bapr-loop0-b5-c3-a2"],
+                }
+            return returned
+
+        return captures, _callable
+
+    # mail-1: runtime marker arrival + provenance + addresses-only + receipt.
+    plan_m1, refs_m1 = _mail_plan()
+    captures_m1, callable_m1 = _mail_capture_callable(
+        refs_m1["source"], [mail_runtime_marker]
+    )
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-1-") as tmp:
+        res_m1 = run_building_plan(
+            plan_m1,
+            output_root=Path(tmp),
+            overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": callable_m1},
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+            walker_mode="dynamic",
+        )
+        root_m1 = res_m1.lifecycle_write.root
+        rec_m1 = list(getattr(res_m1, "_dynamic_walker_reroute_records", ()))
+        if len(_adopted_records(rec_m1)) != 1:
+            violations.append(
+                f"mail-1: expected exactly 1 adopted reroute, got {len(_adopted_records(rec_m1))}"
+            )
+        sequence_m1 = [c["brick_instance_ref"] for c in captures_m1]
+        expected_sequence_m1 = [
+            "brick-bapr-loop0-b5-c3-a1",
+            "brick-bapr-loop0-b5-c3-b1",
+            "brick-bapr-loop0-b5-c3-c1",
+            "brick-bapr-loop0-b5-c3-a2",
+            "brick-bapr-loop0-b5-c3-b2",
+            "brick-bapr-loop0-b5-c3-c2",
+            "brick-bapr-loop0-b5-c3-a2",
+            "brick-bapr-loop0-b5-c3-b2",
+            "brick-bapr-loop0-b5-c3-c2",
+            "brick-bapr-loop0-b5-c3-d2",
+        ]
+        if sequence_m1 != expected_sequence_m1:
+            violations.append(f"mail-1: unexpected execution sequence {sequence_m1}")
+        else:
+            redo_indices = (3, 4, 5)
+            other_indices = (0, 1, 2, 6, 7, 8, 9)
+            for i in redo_indices:
+                mailbox = captures_m1[i]["link_handoff_refs"]
+                mailbox_json = json.dumps(mailbox, ensure_ascii=False)
+                entries = mailbox.get("runtime_handoffs")
+                if not isinstance(entries, list) or len(entries) != 1:
+                    violations.append(
+                        f"mail-1: redo input [{i}] did not carry exactly one runtime handoff entry"
+                    )
+                    continue
+                entry = entries[0]
+                if entry.get("row_kind") != "transition_concern":
+                    violations.append(f"mail-1: redo input [{i}] runtime row_kind drifted")
+                if mail_runtime_marker not in entry.get("reason_refs", []):
+                    violations.append(
+                        f"mail-1: runtime reason_ref marker did NOT arrive in redo input [{i}]"
+                    )
+                if mail_declared_marker not in mailbox_json:
+                    violations.append(
+                        f"mail-1: declared route_replay marker REGRESSED out of redo input [{i}]"
+                    )
+                if set(entry) != _mail_entry_allowed_keys:
+                    violations.append(
+                        f"mail-1: runtime handoff entry keys drifted in [{i}]: {sorted(entry)} "
+                        "(ADDRESSES ONLY: refs + provenance, no body/free-text fields)"
+                    )
+                provenance = entry.get("provenance")
+                if not isinstance(provenance, Mapping):
+                    violations.append(f"mail-1: redo input [{i}] runtime entry has NO provenance")
+                else:
+                    recorded_in = str(provenance.get("recorded_in") or "")
+                    recorded_path = root_m1 / recorded_in
+                    if provenance.get("row_kind") != "transition_concern":
+                        violations.append(f"mail-1: provenance row_kind drifted in [{i}]")
+                    if not recorded_in or not recorded_path.is_file():
+                        violations.append(
+                            f"mail-1: provenance recorded_in does not resolve in the ledger [{i}]"
+                        )
+                    elif mail_runtime_marker not in recorded_path.read_text(encoding="utf-8"):
+                        violations.append(
+                            f"mail-1: recorded ledger row does not carry the delivered address [{i}] "
+                            "(delivery must read the recorded fact)"
+                        )
+            for i in other_indices:
+                mailbox = captures_m1[i]["link_handoff_refs"]
+                if "runtime_handoffs" in mailbox:
+                    violations.append(
+                        f"mail-1: non-redo input [{i}] carried runtime_handoffs (B3 narrow violated)"
+                    )
+                if mail_runtime_marker in json.dumps(mailbox, ensure_ascii=False):
+                    violations.append(
+                        f"mail-1: runtime marker leaked into non-redo input [{i}]"
+                    )
+            # B2 receipt: the redo step's AgentReceipt records the delivered
+            # addresses as fact -- in the prepared ReceiptFact AND in the written
+            # capture evidence (agent_received facts carry received_handoff_refs).
+            redo_receipt = res_m1.step_results[3].preparation.receipt_fact
+            if mail_runtime_marker not in redo_receipt.received_handoff_refs:
+                violations.append(
+                    "mail-1: redo step ReceiptFact.received_handoff_refs does not carry the "
+                    "delivered runtime address (B2)"
+                )
+            declared_receipt = res_m1.step_results[6].preparation.receipt_fact
+            if mail_declared_marker not in declared_receipt.received_handoff_refs:
+                violations.append(
+                    "mail-1: declared-pass ReceiptFact.received_handoff_refs does not carry the "
+                    "declared address (B2)"
+                )
+            if mail_runtime_marker in declared_receipt.received_handoff_refs:
+                violations.append(
+                    "mail-1: runtime address leaked into the declared-pass receipt (B3 narrow)"
+                )
+            receipt_event_hit = False
+            events_path = root_m1 / "capture" / "events.jsonl"
+            for line in events_path.read_text(encoding="utf-8").splitlines():
+                if not line.strip():
+                    continue
+                event = json.loads(line)
+                data = event.get("data") if isinstance(event.get("data"), Mapping) else event
+                if "agent-received" not in str(data.get("event_id", "")):
+                    continue
+                refs_recorded = data.get("received_handoff_refs")
+                if isinstance(refs_recorded, list) and mail_runtime_marker in refs_recorded:
+                    receipt_event_hit = True
+                    break
+            if not receipt_event_hit:
+                violations.append(
+                    "mail-1: written agent_received capture event does not record the delivered "
+                    "runtime address (B2 receipt evidence)"
+                )
+
+    # mail-2 (B1): an address claiming a ledger residence with NO document is a
+    # broken ticket -> HOLD loudly via the existing hold machinery; nothing rides,
+    # nothing is adopted, no budget is consumed.
+    plan_m2, refs_m2 = _mail_plan()
+    captures_m2, callable_m2 = _mail_capture_callable(
+        refs_m2["source"],
+        ["work/step-outputs/mail-repair-missing-attempt-1/step-output.json"],
+    )
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-2-") as tmp:
+        res_m2 = run_building_plan(
+            plan_m2,
+            output_root=Path(tmp),
+            overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": callable_m2},
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+            walker_mode="dynamic",
+        )
+        rec_m2 = list(getattr(res_m2, "_dynamic_walker_reroute_records", ()))
+        held_m2 = _held_records(rec_m2)
+        fr_m2 = observe_building_frontier(res_m2.lifecycle_write.root, repo_root=repo)
+        if _adopted_records(rec_m2):
+            violations.append("mail-2: a broken-address reroute was ADOPTED (silent delivery)")
+        if len(held_m2) != 1 or not str(held_m2[0].get("hold_reason", "")).startswith(
+            "runtime_handoff_address_unresolved_in_ledger"
+        ):
+            violations.append(
+                "mail-2: broken ledger address did not HOLD with the loud "
+                f"runtime_handoff_address_unresolved_in_ledger reason ({[r.get('hold_reason') for r in held_m2]})"
+            )
+        if fr_m2["frontier_kind"] != "link_paused":
+            violations.append(
+                f"mail-2: broken-address HOLD frontier was not link_paused ({fr_m2['frontier_kind']})"
+            )
+        if len(res_m2.step_results) != 3:
+            violations.append(
+                "mail-2: walk did not stop at the broken-address boundary "
+                f"({len(res_m2.step_results)} steps executed)"
+            )
+        if any(mail_runtime_marker in json.dumps(c["link_handoff_refs"]) for c in captures_m2):
+            violations.append("mail-2: a broken-mail packet was still delivered to an agent input")
+
+    # mail-3 (regression guard): a declared-only plan's mailbox is BYTE-IDENTICAL
+    # to the declared assembler output -- the widening adds NOTHING when no
+    # runtime row is eligible.
+    plan_m3, _refs_m3 = _mail_plan()
+    captures_m3, _unused_callable = _mail_capture_callable("brick-none", [])
+
+    def _clean_callable_m3(request: Any) -> Mapping[str, Any]:
+        captures_m3.append(
+            {
+                "brick_instance_ref": request.brick_instance_ref,
+                "link_handoff_refs": json.loads(
+                    json.dumps(request.link_handoff_refs, default=str)
+                ),
+            }
+        )
+        return {
+            "observed_evidence": [f"mail declared-only obs {request.brick_instance_ref}"],
+            "not_proven": ["semantic correctness"],
+        }
+
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-3-") as tmp:
+        run_building_plan(
+            plan_m3,
+            output_root=Path(tmp),
+            overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": _clean_callable_m3},
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+            walker_mode="dynamic",
+        )
+    linear_m3, _graph_context_m3 = _linear_plan_from_graph_plan(plan_m3)
+    linear_steps_m3 = list(linear_m3["steps"])
+    if len(captures_m3) != len(linear_steps_m3):
+        violations.append(
+            f"mail-3: declared-only walk executed {len(captures_m3)} steps, "
+            f"expected {len(linear_steps_m3)}"
+        )
+    else:
+        for i, capture in enumerate(captures_m3):
+            declared_mailbox = json.loads(
+                json.dumps(
+                    _declared_mailbox_assembler(linear_steps_m3, i), default=str
+                )
+            )
+            if json.dumps(capture["link_handoff_refs"], sort_keys=True) != json.dumps(
+                declared_mailbox, sort_keys=True
+            ):
+                violations.append(
+                    f"mail-3: declared-only mailbox [{i}] drifted from the declared "
+                    "assembler output (byte-identity regression)"
+                )
+            if "runtime_handoffs" in capture["link_handoff_refs"]:
+                violations.append(
+                    f"mail-3: declared-only mailbox [{i}] grew a runtime_handoffs key"
+                )
+
+    # mail-4 (B3 lane 2): a raise-resume's human/COO disposition row reason_refs
+    # ride to the re-adopted redo landing, stamped as a resume_disposition entry
+    # with raw/link.jsonl provenance.
+    mail_disposition_marker = "observation:mail-repair-disposition-reason-rides"
+    plan_m4, b2_m4 = _checker_plan("bapr-mail-4-resume", budget=1)
+    callable_m4 = _reroute_callable(
+        b2_m4, {"brick-bapr-mail-4-resume-review", b2_m4}
+    )
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-4-") as tmp:
+        res_m4 = run_building_plan(
+            plan_m4,
+            output_root=Path(tmp),
+            overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": callable_m4},
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+            walker_mode="dynamic",
+        )
+        root_m4 = res_m4.lifecycle_write.root
+        if observe_building_frontier(root_m4, repo_root=repo)["frontier_kind"] != "link_paused":
+            violations.append("mail-4: setup did not produce a budget HOLD before raise resume")
+        # FIX 2/3 (0611): the CURRENT hold's identity, read from the written
+        # evidence BEFORE resume, and the pre-resume ledger snapshot the
+        # provenance discriminator must replay against.
+        _plan_evidence_m4, evidence_m4 = _mail_plan_evidence(root_m4)
+        hold_identity_m4 = (
+            _hold_identity_ref(evidence_m4["hold"]) if evidence_m4.get("held") else ""
+        )
+        _append_disposition_row(
+            root_m4,
+            building_id=res_m4.building_id,
+            pending_target_ref=b2_m4,
+            action="raise",
+            author_ref="coo:smith",
+            budget_increment=1,
+            reason_refs=[mail_disposition_marker],
+        )
+        ledger_snapshot_m4 = (root_m4 / "raw" / "link.jsonl").read_text(encoding="utf-8")
+        resume_captures_m4: list[dict[str, Any]] = []
+
+        def _resume_capture_callable_m4(request: Any) -> Mapping[str, Any]:
+            resume_captures_m4.append(
+                {
+                    "brick_instance_ref": request.brick_instance_ref,
+                    "link_handoff_refs": json.loads(
+                        json.dumps(request.link_handoff_refs, default=str)
+                    ),
+                }
+            )
+            return callable_m4(request)
+
+        hold_record_m4 = dict(evidence_m4.get("hold") or {})
+        try:
+            resume_building_plan(
+                root_m4,
+                local_callables={
+                    "callable:local:agent-invoke0-smoke": _resume_capture_callable_m4
+                },
+                adapter_cwd=repo,
+                adapter_timeout_seconds=30,
+            )
+        except ValueError as exc:
+            violations.append(f"mail-4: raise resume crashed: {exc}")
+        else:
+            disposition_entries = [
+                entry
+                for capture in resume_captures_m4
+                if capture["brick_instance_ref"] == b2_m4
+                for entry in capture["link_handoff_refs"].get("runtime_handoffs", [])
+                if entry.get("row_kind") == "resume_disposition"
+            ]
+            if not disposition_entries:
+                violations.append(
+                    "mail-4: the resume disposition row's mail did NOT ride to the "
+                    "re-adopted redo landing"
+                )
+            else:
+                entry_m4 = disposition_entries[0]
+                if mail_disposition_marker not in entry_m4.get("reason_refs", []):
+                    violations.append(
+                        "mail-4: disposition reason_ref address did not arrive in the redo input"
+                    )
+                provenance_m4 = entry_m4.get("provenance")
+                if not isinstance(provenance_m4, Mapping) or provenance_m4.get(
+                    "recorded_in"
+                ) != "raw/link.jsonl":
+                    violations.append(
+                        "mail-4: resume_disposition entry provenance does not cite raw/link.jsonl"
+                    )
+                elif provenance_m4.get("author_ref") != "coo:smith":
+                    violations.append(
+                        "mail-4: resume_disposition provenance does not carry the human/COO author"
+                    )
+                else:
+                    # FIX 3 (0611): the provenance names the SPECIFIC selected
+                    # row, not just the file -- hold identity + row raw_ref +
+                    # 1-based same-hold index -- and replaying the selection
+                    # rule over the pre-resume ledger lands on the SAME row.
+                    if provenance_m4.get("disposition_row_paused_at_ref") != hold_identity_m4:
+                        violations.append(
+                            "mail-4: provenance disposition_row_paused_at_ref does not "
+                            "carry the current hold identity (replay provenance ambiguous)"
+                        )
+                    # FIX 3 (0611, persisted): the provenance must survive in
+                    # the WRITTEN resume observation -- the transient ResumeSeed
+                    # dies with the process and raw/link.jsonl is REWRITTEN on
+                    # resume, so only the persisted observation keeps the
+                    # selection replayable later. Read it back from the
+                    # rewritten evidence, not from the in-memory seed.
+                    _plan_after_m4, evidence_after_m4 = _mail_plan_evidence(root_m4)
+                    persisted_obs_m4 = [
+                        obs
+                        for obs in evidence_after_m4.get("resume_observations", [])
+                        if isinstance(obs, Mapping)
+                    ]
+                    persisted_prov_m4 = (
+                        persisted_obs_m4[-1].get("disposition_row_provenance")
+                        if persisted_obs_m4
+                        else None
+                    )
+                    if not isinstance(persisted_prov_m4, Mapping):
+                        violations.append(
+                            "mail-4: the PERSISTED resume observation does not carry "
+                            "disposition_row_provenance (replay provenance dies with "
+                            "the transient seed)"
+                        )
+                    elif any(
+                        persisted_prov_m4.get(key) != provenance_m4.get(key)
+                        for key in _mail_provenance_keys
+                    ):
+                        violations.append(
+                            "mail-4: persisted disposition_row_provenance drifted from "
+                            "the delivered runtime-mail provenance"
+                        )
+                    else:
+                        # Replay the selection rule via the LIVE function over
+                        # the pre-resume ledger snapshot, keyed by the PERSISTED
+                        # discriminator: it must land on the SAME row.
+                        oracle_m4 = _mail_disposition_selection_replay(
+                            ledger_snapshot_m4, hold_record_m4
+                        )
+                        oracle_prov_m4 = (
+                            oracle_m4.get("selected_row_provenance")
+                            if isinstance(oracle_m4, Mapping)
+                            else None
+                        )
+                        if (
+                            not isinstance(oracle_prov_m4, Mapping)
+                            or any(
+                                oracle_prov_m4.get(key) != persisted_prov_m4.get(key)
+                                for key in _mail_provenance_keys
+                            )
+                            or mail_disposition_marker
+                            not in list(oracle_m4.get("reason_refs", []))
+                        ):
+                            violations.append(
+                                "mail-4: replaying the recorded selection rule (live "
+                                "_read_disposition_row over the pre-resume snapshot) did "
+                                "not land on the SAME raw/link.jsonl row deterministically"
+                            )
+
+    # mail-5 (FIX 1, 0611 path traversal / cross-building smuggling): a
+    # step-output-form address may name ONLY this Building's work/step-outputs/
+    # ledger subtree. The old existence-only probe passed a ``..``-escaping ref
+    # whose target exists OUTSIDE the building root (verified: it resolves
+    # outside) and honored absolute-path refs as building-relative. Both must
+    # HOLD loudly (runtime_handoff_address_unresolved_in_ledger, fail-closed);
+    # an in-subtree resolving ref must still ride (no over-tightening).
+    source_step_m5 = "bapr-loop0-b5-c3-c1"
+    in_subtree_ref_m5 = _mail_manifest_ref(source_step_m5, 1)
+
+    # mail-5a: ..-escape to an EXISTING file outside the building root.
+    plan_m5a, refs_m5a = _mail_plan()
+    escape_ref_m5 = "work/step-outputs/../../../other-building/raw/secret.json"
+    captures_m5a, callable_m5a = _mail_capture_callable(
+        refs_m5a["source"], [escape_ref_m5]
+    )
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-5a-") as tmp:
+        smuggle_m5 = Path(tmp) / "other-building" / "raw" / "secret.json"
+        smuggle_m5.parent.mkdir(parents=True)
+        smuggle_m5.write_text("{}", encoding="utf-8")
+        res_m5a = run_building_plan(
+            plan_m5a,
+            output_root=Path(tmp),
+            overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": callable_m5a},
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+            walker_mode="dynamic",
+        )
+        root_m5a = res_m5a.lifecycle_write.root
+        if not (root_m5a / escape_ref_m5).is_file():
+            violations.append(
+                "mail-5a: setup lost the outside-the-building smuggle target (the "
+                "old existence-only probe must see it for this pin to bite)"
+            )
+        rec_m5a = list(getattr(res_m5a, "_dynamic_walker_reroute_records", ()))
+        held_m5a = _held_records(rec_m5a)
+        if _adopted_records(rec_m5a):
+            violations.append(
+                "mail-5a: a ..-escaping ledger address was ADOPTED "
+                "(cross-building smuggling delivered)"
+            )
+        if len(held_m5a) != 1 or not str(held_m5a[0].get("hold_reason", "")).startswith(
+            "runtime_handoff_address_unresolved_in_ledger"
+        ):
+            violations.append(
+                "mail-5a: ..-escaping address did not HOLD with the loud "
+                "runtime_handoff_address_unresolved_in_ledger reason "
+                f"({[r.get('hold_reason') for r in held_m5a]})"
+            )
+        if any(
+            escape_ref_m5 in json.dumps(c["link_handoff_refs"]) for c in captures_m5a
+        ):
+            violations.append(
+                "mail-5a: an escaping address was still delivered to an agent input"
+            )
+
+    # mail-5b: an absolute-path ref must not be honored as building-relative
+    # (the old probe stripped to the marker and would have let it RIDE because
+    # the in-ledger tail exists).
+    plan_m5b, refs_m5b = _mail_plan()
+    absolute_ref_m5 = "/" + in_subtree_ref_m5
+    captures_m5b, callable_m5b = _mail_capture_callable(
+        refs_m5b["source"], [absolute_ref_m5]
+    )
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-5b-") as tmp:
+        res_m5b = run_building_plan(
+            plan_m5b,
+            output_root=Path(tmp),
+            overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": callable_m5b},
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+            walker_mode="dynamic",
+        )
+        root_m5b = res_m5b.lifecycle_write.root
+        if not (root_m5b / in_subtree_ref_m5).is_file():
+            violations.append(
+                "mail-5b: setup lost the in-ledger tail document (the old probe "
+                "would have ridden on it; this pin needs it present)"
+            )
+        rec_m5b = list(getattr(res_m5b, "_dynamic_walker_reroute_records", ()))
+        held_m5b = _held_records(rec_m5b)
+        if _adopted_records(rec_m5b):
+            violations.append(
+                "mail-5b: an absolute-path address was ADOPTED (honored as "
+                "building-relative)"
+            )
+        if len(held_m5b) != 1 or not str(held_m5b[0].get("hold_reason", "")).startswith(
+            "runtime_handoff_address_unresolved_in_ledger"
+        ):
+            violations.append(
+                "mail-5b: absolute-path address did not HOLD with the loud "
+                "runtime_handoff_address_unresolved_in_ledger reason "
+                f"({[r.get('hold_reason') for r in held_m5b]})"
+            )
+        if any(
+            absolute_ref_m5 in json.dumps(c["link_handoff_refs"]) for c in captures_m5b
+        ):
+            violations.append(
+                "mail-5b: an absolute-path address was still delivered to an agent input"
+            )
+
+    # mail-5c: an in-subtree resolving ledger address still rides (the
+    # containment guard must not over-tighten the legitimate delivery).
+    plan_m5c, refs_m5c = _mail_plan()
+    captures_m5c, callable_m5c = _mail_capture_callable(
+        refs_m5c["source"], [in_subtree_ref_m5]
+    )
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-5c-") as tmp:
+        res_m5c = run_building_plan(
+            plan_m5c,
+            output_root=Path(tmp),
+            overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": callable_m5c},
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+            walker_mode="dynamic",
+        )
+        rec_m5c = list(getattr(res_m5c, "_dynamic_walker_reroute_records", ()))
+        if len(_adopted_records(rec_m5c)) != 1:
+            violations.append(
+                "mail-5c: an in-subtree resolving ledger address blocked adoption "
+                "(containment over-tightened)"
+            )
+        if not any(
+            in_subtree_ref_m5 in entry.get("reason_refs", [])
+            for c in captures_m5c
+            for entry in c["link_handoff_refs"].get("runtime_handoffs", [])
+        ):
+            violations.append(
+                "mail-5c: an in-subtree resolving address did not ride to the redo input"
+            )
+
+    # mail-5d (FIX 1b, 0611 case-bypass): the step-output FORM must be detected
+    # case-INSENSITIVELY. On a case-insensitive filesystem (macOS default)
+    # ``Work/Step-Outputs/../../...`` addresses the same bytes as the lowercase
+    # form, but the exact-case membership test did not recognize it as
+    # step-output-form, so it slipped through as an OPAQUE ref and was DELIVERED
+    # -- escaping the FIX 1 containment guard entirely (operator-verified
+    # 0611: _runtime_handoff_unresolved_address returned "" = delivered). A
+    # case-varied escaping ref must HOLD loudly; mail-5c above pins that the
+    # legit lowercase in-subtree ref still rides (no over-tightening).
+    plan_m5d, refs_m5d = _mail_plan()
+    case_escape_ref_m5 = "Work/Step-Outputs/../../../other-building/raw/secret.json"
+    captures_m5d, callable_m5d = _mail_capture_callable(
+        refs_m5d["source"], [case_escape_ref_m5]
+    )
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-5d-") as tmp:
+        smuggle_m5d = Path(tmp) / "other-building" / "raw" / "secret.json"
+        smuggle_m5d.parent.mkdir(parents=True)
+        smuggle_m5d.write_text("{}", encoding="utf-8")
+        res_m5d = run_building_plan(
+            plan_m5d,
+            output_root=Path(tmp),
+            overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": callable_m5d},
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+            walker_mode="dynamic",
+        )
+        rec_m5d = list(getattr(res_m5d, "_dynamic_walker_reroute_records", ()))
+        held_m5d = _held_records(rec_m5d)
+        if _adopted_records(rec_m5d):
+            violations.append(
+                "mail-5d: a CASE-VARIED ..-escaping ledger address was ADOPTED "
+                "(case-bypass: cross-building smuggling delivered)"
+            )
+        if len(held_m5d) != 1 or not str(held_m5d[0].get("hold_reason", "")).startswith(
+            "runtime_handoff_address_unresolved_in_ledger"
+        ):
+            violations.append(
+                "mail-5d: case-varied ..-escaping address did not HOLD with the loud "
+                "runtime_handoff_address_unresolved_in_ledger reason "
+                f"({[r.get('hold_reason') for r in held_m5d]})"
+            )
+        if any(
+            case_escape_ref_m5 in json.dumps(c["link_handoff_refs"]) for c in captures_m5d
+        ):
+            violations.append(
+                "mail-5d: a case-varied escaping address was still delivered to an "
+                "agent input"
+            )
+
+    # mail-5e (FIX 1c, 0611 spelling-independence -- codex round-3 STILL-OPEN):
+    # the step-output FORM must be decided by WHERE the ref RESOLVES, not by a
+    # CONTIGUOUS ``work/step-outputs/`` marker spelling. Prior rounds
+    # whack-a-moled spellings (FIX 1 exact-case, FIX 1b casefolded); a ref that
+    # resolves THROUGH the subtree and climbs out but is SPELLED
+    # non-contiguously (``work/./step-outputs/../..``, ``work//step-outputs/
+    # ../..``) bypassed detection entirely, fell through as an "opaque" ref,
+    # and was DELIVERED (operator-verified 0611: returned "" for both
+    # variants). Both must HOLD loudly; a deliberately weird-but-contained
+    # spelling (``work/./step-outputs/<slug>/step-output.json``) that resolves
+    # INSIDE must still ride (containment, not spelling, is the rule -- no
+    # over-tightening).
+    for variant_tag_m5e, escape_ref_m5e in (
+        ("dot-segment", "work/./step-outputs/../../escape/x.json"),
+        ("doubled-separator", "work//step-outputs/../../escape/x.json"),
+    ):
+        plan_m5e, refs_m5e = _mail_plan()
+        captures_m5e, callable_m5e = _mail_capture_callable(
+            refs_m5e["source"], [escape_ref_m5e]
+        )
+        with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-5e-") as tmp:
+            res_m5e = run_building_plan(
+                plan_m5e,
+                output_root=Path(tmp),
+                overwrite_existing=True,
+                local_callables={"callable:local:agent-invoke0-smoke": callable_m5e},
+                adapter_cwd=repo,
+                adapter_timeout_seconds=30,
+                walker_mode="dynamic",
+            )
+            rec_m5e = list(getattr(res_m5e, "_dynamic_walker_reroute_records", ()))
+            held_m5e = _held_records(rec_m5e)
+            if _adopted_records(rec_m5e):
+                violations.append(
+                    f"mail-5e ({variant_tag_m5e}): a non-contiguously spelled "
+                    "..-escaping ledger address was ADOPTED (spelling bypass: the "
+                    "ref resolves out of work/step-outputs but the contiguous-"
+                    "marker detection never saw it)"
+                )
+            if len(held_m5e) != 1 or not str(
+                held_m5e[0].get("hold_reason", "")
+            ).startswith("runtime_handoff_address_unresolved_in_ledger"):
+                violations.append(
+                    f"mail-5e ({variant_tag_m5e}): non-contiguously spelled "
+                    "..-escaping address did not HOLD with the loud "
+                    "runtime_handoff_address_unresolved_in_ledger reason "
+                    f"({[r.get('hold_reason') for r in held_m5e]})"
+                )
+            if any(
+                escape_ref_m5e in json.dumps(c["link_handoff_refs"])
+                for c in captures_m5e
+            ):
+                violations.append(
+                    f"mail-5e ({variant_tag_m5e}): a non-contiguously spelled "
+                    "escaping address was still delivered to an agent input"
+                )
+
+    # mail-5e contained-spelling guard: the SAME non-contiguous spelling that
+    # resolves INSIDE the subtree still rides (mirrors mail-5c; pins that the
+    # fix is containment-by-resolution, not a new spelling blacklist).
+    dotted_in_subtree_ref_m5e = in_subtree_ref_m5.replace(
+        "work/step-outputs/", "work/./step-outputs/", 1
+    )
+    plan_m5e_in, refs_m5e_in = _mail_plan()
+    captures_m5e_in, callable_m5e_in = _mail_capture_callable(
+        refs_m5e_in["source"], [dotted_in_subtree_ref_m5e]
+    )
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-5e-in-") as tmp:
+        res_m5e_in = run_building_plan(
+            plan_m5e_in,
+            output_root=Path(tmp),
+            overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": callable_m5e_in},
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+            walker_mode="dynamic",
+        )
+        rec_m5e_in = list(getattr(res_m5e_in, "_dynamic_walker_reroute_records", ()))
+        if len(_adopted_records(rec_m5e_in)) != 1:
+            violations.append(
+                "mail-5e (contained spelling): a dot-segment in-subtree resolving "
+                "ledger address blocked adoption (containment over-tightened into "
+                "a spelling blacklist)"
+            )
+        if not any(
+            dotted_in_subtree_ref_m5e in entry.get("reason_refs", [])
+            for c in captures_m5e_in
+            for entry in c["link_handoff_refs"].get("runtime_handoffs", [])
+        ):
+            violations.append(
+                "mail-5e (contained spelling): a dot-segment in-subtree resolving "
+                "address did not ride to the redo input"
+            )
+
+    # mail-5f (FIX 1d, 0611 trusted-intermediate symlink -- codex round-4 NEW
+    # High): the containment root must NOT be derived by FOLLOWING A SYMLINK.
+    # The prior round resolve()d <building_root>/work/step-outputs FIRST and
+    # trusted that resolved inode as the containment root (samestat ancestry),
+    # so when work/step-outputs ITSELF was a symlink to an OUTSIDE dir the
+    # symlink TARGET became the trusted root and ``work/step-outputs/x.json``
+    # was DELIVERED while resolving outside the building (operator-reproduced
+    # 0611: _runtime_handoff_unresolved_address returned ""). This pin drives
+    # the SAME live resolver the dynamic walker runs (mail-5a/5b/5d/5e prove
+    # through the full run that a non-empty return HOLDs loudly with
+    # runtime_handoff_address_unresolved_in_ledger; this pin proves the
+    # symlinked-ledger-root class returns non-empty), because a full-run
+    # fixture cannot hold a symlinked ledger root: the engine itself writes
+    # real step-output dirs there mid-run. The symlink is built with
+    # os.symlink inside a throwaway tempdir and removed in finally -- the
+    # repo tree never carries it.
+    from brick_protocol.support.operator.walker_kernel import (
+        _runtime_handoff_unresolved_address as _mail_live_resolver,
+    )
+
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-5f-") as tmp:
+        building_m5f = Path(tmp) / "building"
+        (building_m5f / "work").mkdir(parents=True)
+        outside_m5f = Path(tmp) / "outside"
+        outside_m5f.mkdir()
+        (outside_m5f / "x.json").write_text("{}", encoding="utf-8")
+        ledger_symlink_m5f = building_m5f / "work" / "step-outputs"
+        os.symlink(outside_m5f, ledger_symlink_m5f)
+        try:
+            symlinked_ref_m5f = "work/step-outputs/x.json"
+            resolved_m5f = (building_m5f / symlinked_ref_m5f).resolve()
+            if not resolved_m5f.is_file() or str(resolved_m5f).startswith(
+                str(building_m5f.resolve()) + os.sep
+            ):
+                violations.append(
+                    "mail-5f: setup lost the symlinked ledger root (the ref must "
+                    "resolve to an EXISTING file OUTSIDE the building for this "
+                    "pin to bite)"
+                )
+            if _mail_live_resolver(building_m5f, [symlinked_ref_m5f]) == "":
+                violations.append(
+                    "mail-5f: work/step-outputs IS a symlink to an outside dir, "
+                    "yet work/step-outputs/x.json was DELIVERED (the resolved "
+                    "ledger subtree was trusted as the containment root -- "
+                    "trusted-intermediate symlink class open)"
+                )
+            # Same probe, real directory: the legit form still delivers (the
+            # repair is root-anchored containment, not a symlink blacklist).
+            real_building_m5f = Path(tmp) / "building-real"
+            slug_dir_m5f = (
+                real_building_m5f / "work" / "step-outputs" / "doc-attempt-1"
+            )
+            slug_dir_m5f.mkdir(parents=True)
+            (slug_dir_m5f / "step-output.json").write_text("{}", encoding="utf-8")
+            legit_ref_m5f = "work/step-outputs/doc-attempt-1/step-output.json"
+            if _mail_live_resolver(real_building_m5f, [legit_ref_m5f]) != "":
+                violations.append(
+                    "mail-5f: a real-directory in-subtree document no longer "
+                    "resolves (root-anchored containment over-tightened)"
+                )
+        finally:
+            ledger_symlink_m5f.unlink(missing_ok=True)
+
+    # mail-5g (PIN-COMPLETENESS, 0611 operator sabotage finding): the SECOND
+    # escape branch of _step_output_address_escapes_ledger had no pin. The
+    # function rejects on TWO distinct branches: (i) candidate resolves
+    # OUTSIDE the building root (relative_to raises -> True; pinned by
+    # mail-5f) and (ii) candidate resolves INSIDE the building root but its
+    # post-resolve relative path does not start with ("work", "step-outputs")
+    # -- the FINAL ``return (len(parts) <= 2 or parts[:2] != ...)`` line. The
+    # operator sabotaged that final return to ``return False`` and the full
+    # checker stayed EXIT 0: the in-building-detour delivery (work/
+    # step-outputs symlinked to a SIBLING in-building dir) was caught by no
+    # mail case. The live code is correct (operator matrix verified); this
+    # pin makes a future regression of that line RED. Same tempdir/os.symlink
+    # /finally discipline as mail-5f -- the repo tree never carries a symlink.
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-5g-") as tmp:
+        building_m5g = Path(tmp) / "building"
+        (building_m5g / "work").mkdir(parents=True)
+        elsewhere_m5g = building_m5g / "elsewhere"
+        elsewhere_m5g.mkdir()
+        (elsewhere_m5g / "doc-attempt-1").mkdir()
+        (elsewhere_m5g / "doc-attempt-1" / "x.json").write_text(
+            "{}", encoding="utf-8"
+        )
+        ledger_symlink_m5g = building_m5g / "work" / "step-outputs"
+        os.symlink(elsewhere_m5g, ledger_symlink_m5g)
+        try:
+            detour_ref_m5g = "work/step-outputs/doc-attempt-1/x.json"
+            resolved_m5g = (building_m5g / detour_ref_m5g).resolve()
+            real_root_m5g = building_m5g.resolve()
+            in_root_m5g = str(resolved_m5g).startswith(
+                str(real_root_m5g) + os.sep
+            )
+            in_ledger_m5g = str(resolved_m5g).startswith(
+                str(real_root_m5g / "work" / "step-outputs") + os.sep
+            )
+            if not resolved_m5g.is_file() or not in_root_m5g or in_ledger_m5g:
+                violations.append(
+                    "mail-5g: setup lost the in-building detour (the ref must "
+                    "resolve to an EXISTING file INSIDE the building root but "
+                    "OUTSIDE work/step-outputs for this pin to bite)"
+                )
+            if _mail_live_resolver(building_m5g, [detour_ref_m5g]) == "":
+                violations.append(
+                    "mail-5g: work/step-outputs IS a symlink to a SIBLING "
+                    "in-building dir, yet work/step-outputs/doc-attempt-1/"
+                    "x.json was DELIVERED (an in-root resolution was trusted "
+                    "without the work/step-outputs lexical-prefix guard -- "
+                    "the final containment return of "
+                    "_step_output_address_escapes_ledger regressed)"
+                )
+        finally:
+            ledger_symlink_m5g.unlink(missing_ok=True)
+
+    # mail-6 (FIX 2 eligibility creep + FIX 3 replay provenance, 0611): ONLY a
+    # disposition row addressed to THE CURRENT hold is THIS resume's row. After
+    # a first raise-resume of the same target, the ledger carries same-target
+    # disposition-shaped rows (the recorded resumed lifecycle of the OLD
+    # resume); a second resume must SKIP them -- with no row for the current
+    # hold it fails closed loudly; with one, only its addresses board and the
+    # delivered provenance discriminator replays to that exact row.
+    mail6_stale_marker = "observation:mail-repair-stale-from-old-resume"
+    mail6_new_marker = "observation:mail-repair-current-hold-disposition"
+    plan_m6, b2_m6 = _checker_plan("bapr-mail-6-stale", budget=1)
+    callable_m6 = _reroute_callable(b2_m6, {"brick-bapr-mail-6-stale-review", b2_m6})
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-6-") as tmp:
+        res_m6 = run_building_plan(
+            plan_m6,
+            output_root=Path(tmp),
+            overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": callable_m6},
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+            walker_mode="dynamic",
+        )
+        root_m6 = res_m6.lifecycle_write.root
+        _plan_evidence_m6, evidence_m6 = _mail_plan_evidence(root_m6)
+        if not evidence_m6.get("held"):
+            violations.append("mail-6: setup did not produce the FIRST budget HOLD")
+        hold_a_identity_m6 = (
+            _hold_identity_ref(evidence_m6["hold"]) if evidence_m6.get("held") else ""
+        )
+        _append_disposition_row(
+            root_m6,
+            building_id=res_m6.building_id,
+            pending_target_ref=b2_m6,
+            action="raise",
+            author_ref="coo:smith",
+            budget_increment=1,
+            reason_refs=[mail6_stale_marker],
+        )
+        try:
+            resume_building_plan(
+                root_m6,
+                local_callables={"callable:local:agent-invoke0-smoke": callable_m6},
+                adapter_cwd=repo,
+                adapter_timeout_seconds=30,
+            )
+        except ValueError as exc:
+            violations.append(f"mail-6: first raise resume crashed: {exc}")
+        _plan_evidence2_m6, evidence2_m6 = _mail_plan_evidence(root_m6)
+        if not evidence2_m6.get("held"):
+            violations.append(
+                "mail-6: setup did not reach a SECOND hold of the same target "
+                "after the first resume"
+            )
+        else:
+            hold_b_identity_m6 = _hold_identity_ref(evidence2_m6["hold"])
+            if hold_b_identity_m6 == hold_a_identity_m6:
+                violations.append(
+                    "mail-6: setup invalid -- the second hold's identity did not "
+                    "differ from the first"
+                )
+            # FIX 2 (0611, raise-generation attempt axis): landings ACCUMULATE
+            # across raise generations, so the walk-1 hold has attempt N and the
+            # walk-2 hold for the same target has attempt N+1 -- and the hold
+            # identity must EMBED that attempt_number (the disposition row
+            # echoes the identity string, so matching requires the attempt to
+            # match too). Pin both: the accumulation AND the embedding.
+            attempt_a_m6 = evidence_m6["hold"].get("attempt_number") if evidence_m6.get("held") else None
+            attempt_b_m6 = evidence2_m6["hold"].get("attempt_number")
+            if (
+                not isinstance(attempt_a_m6, int)
+                or not isinstance(attempt_b_m6, int)
+                or attempt_b_m6 != attempt_a_m6 + 1
+            ):
+                violations.append(
+                    "mail-6: raise-generation attempt_number did not accumulate "
+                    f"(walk-1 hold attempt={attempt_a_m6!r}, walk-2 hold "
+                    f"attempt={attempt_b_m6!r}; expected N and N+1)"
+                )
+            if (
+                f"-attempt-{attempt_a_m6}" not in hold_a_identity_m6
+                or f"-attempt-{attempt_b_m6}" not in hold_b_identity_m6
+            ):
+                violations.append(
+                    "mail-6: the hold identity does not embed attempt_number "
+                    "(FIX 2: the disposition row must echo the attempt; a stale "
+                    "attempt-N row must not be able to match an attempt-N+1 hold)"
+                )
+            # (i) operator repro now BLOCKED: the ledger still carries
+            # same-target disposition-shaped rows from the OLD resume (the
+            # stamped resumed-lifecycle row survives the rewrite), and we ALSO
+            # write an EXPLICIT human-authored STALE row addressed to the OLD
+            # hold's attempt-N identity. With NO row addressed to the CURRENT
+            # (attempt-N+1) hold the resume must fail closed -- the stale
+            # attempt-N row must NOT be selected.
+            _append_disposition_row(
+                root_m6,
+                building_id=res_m6.building_id,
+                pending_target_ref=b2_m6,
+                action="raise",
+                author_ref="coo:smith",
+                budget_increment=1,
+                reason_refs=[mail6_stale_marker],
+                resumed_from_ref=hold_a_identity_m6,
+            )
+            stale_resume_blocked_m6 = False
+            try:
+                resume_building_plan(
+                    root_m6,
+                    local_callables={"callable:local:agent-invoke0-smoke": callable_m6},
+                    adapter_cwd=repo,
+                    adapter_timeout_seconds=30,
+                )
+            except ValueError as exc:
+                if "no human/COO disposition row found" in str(exc):
+                    stale_resume_blocked_m6 = True
+                else:
+                    violations.append(
+                        f"mail-6: stale-row resume failed with an unexpected error: {exc}"
+                    )
+            if not stale_resume_blocked_m6:
+                violations.append(
+                    "mail-6: a resume with only STALE same-target rows did not fail "
+                    "closed (a previous resume's row was accepted as THIS resume's)"
+                )
+            # (ii) a row addressed to the CURRENT hold boards -- and ONLY it.
+            _append_disposition_row(
+                root_m6,
+                building_id=res_m6.building_id,
+                pending_target_ref=b2_m6,
+                action="raise",
+                author_ref="coo:smith",
+                budget_increment=1,
+                reason_refs=[mail6_new_marker],
+            )
+            ledger_snapshot_m6 = (root_m6 / "raw" / "link.jsonl").read_text(
+                encoding="utf-8"
+            )
+            resume_captures_m6: list[dict[str, Any]] = []
+
+            def _resume_capture_callable_m6(request: Any) -> Mapping[str, Any]:
+                resume_captures_m6.append(
+                    {
+                        "brick_instance_ref": request.brick_instance_ref,
+                        "link_handoff_refs": json.loads(
+                            json.dumps(request.link_handoff_refs, default=str)
+                        ),
+                    }
+                )
+                return callable_m6(request)
+
+            try:
+                resume_building_plan(
+                    root_m6,
+                    local_callables={
+                        "callable:local:agent-invoke0-smoke": _resume_capture_callable_m6
+                    },
+                    adapter_cwd=repo,
+                    adapter_timeout_seconds=30,
+                )
+            except ValueError as exc:
+                violations.append(f"mail-6: current-hold raise resume crashed: {exc}")
+            else:
+                disposition_entries_m6 = [
+                    entry
+                    for capture in resume_captures_m6
+                    if capture["brick_instance_ref"] == b2_m6
+                    for entry in capture["link_handoff_refs"].get("runtime_handoffs", [])
+                    if entry.get("row_kind") == "resume_disposition"
+                ]
+                if not disposition_entries_m6:
+                    violations.append(
+                        "mail-6: the CURRENT hold's disposition mail did not ride to "
+                        "the re-adopted redo landing"
+                    )
+                else:
+                    entry_m6 = disposition_entries_m6[0]
+                    if mail6_new_marker not in entry_m6.get("reason_refs", []):
+                        violations.append(
+                            "mail-6: the CURRENT hold's disposition address did not arrive"
+                        )
+                    if mail6_stale_marker in entry_m6.get("reason_refs", []):
+                        violations.append(
+                            "mail-6: a STALE previous-resume address boarded the mail "
+                            "(THIS-resume-only violated)"
+                        )
+                    provenance_m6 = entry_m6.get("provenance")
+                    provenance_m6 = (
+                        provenance_m6 if isinstance(provenance_m6, Mapping) else {}
+                    )
+                    if (
+                        provenance_m6.get("disposition_row_paused_at_ref")
+                        != hold_b_identity_m6
+                    ):
+                        violations.append(
+                            "mail-6: provenance does not carry the CURRENT hold identity"
+                        )
+                    # FIX 3 (0611): replay via the LIVE selection function over
+                    # the pre-resume snapshot; it must land on the row carrying
+                    # the CURRENT marker, and the discriminator it reports must
+                    # equal BOTH the delivered provenance and the provenance
+                    # PERSISTED in the written resume observation.
+                    oracle_m6 = _mail_disposition_selection_replay(
+                        ledger_snapshot_m6, dict(evidence2_m6["hold"])
+                    )
+                    oracle_prov_m6 = (
+                        oracle_m6.get("selected_row_provenance")
+                        if isinstance(oracle_m6, Mapping)
+                        else None
+                    )
+                    if (
+                        not isinstance(oracle_prov_m6, Mapping)
+                        or any(
+                            oracle_prov_m6.get(key) != provenance_m6.get(key)
+                            for key in _mail_provenance_keys
+                        )
+                        or mail6_new_marker not in list(oracle_m6.get("reason_refs", []))
+                    ):
+                        violations.append(
+                            "mail-6: replaying the recorded selection rule (live "
+                            "_read_disposition_row over the pre-resume snapshot) did "
+                            "not land on the SAME recorded row deterministically"
+                        )
+                    _plan_after_m6, evidence_after_m6 = _mail_plan_evidence(root_m6)
+                    persisted_obs_m6 = [
+                        obs
+                        for obs in evidence_after_m6.get("resume_observations", [])
+                        if isinstance(obs, Mapping)
+                    ]
+                    persisted_prov_m6 = (
+                        persisted_obs_m6[-1].get("disposition_row_provenance")
+                        if persisted_obs_m6
+                        else None
+                    )
+                    if not isinstance(persisted_prov_m6, Mapping) or any(
+                        persisted_prov_m6.get(key) != provenance_m6.get(key)
+                        for key in _mail_provenance_keys
+                    ):
+                        violations.append(
+                            "mail-6: the PERSISTED resume observation does not carry "
+                            "the selected row's disposition_row_provenance"
+                        )
+                if any(
+                    mail6_stale_marker in json.dumps(c["link_handoff_refs"])
+                    for c in resume_captures_m6
+                ):
+                    violations.append(
+                        "mail-6: the stale marker leaked into a resume agent input"
+                    )
+
+    # mail-7 (FIX 2, 0611 hold-identity collision -- codex re-review BLOCKER,
+    # END-TO-END collision construction on the real engine): the
+    # adoption_sequence_number RESETS to 0 on every walk, so a FORWARD
+    # disposition chain constructs two holds for the SAME target at the SAME
+    # sequence position in different walk generations: walk-1 budget-holds at
+    # seq N when the redo landing re-proposes its own node; the human authors
+    # FORWARD; the resumed walk forwards past that occurrence WITHOUT a
+    # sequence increment, and the DECLARED same-node step then re-holds the
+    # same exhausted target at seq N again. Operator-reproduced 0611 on the
+    # real engine: under the bare reroute_ref identity the colliding pair also
+    # shares attempt_number (no adoption between them -- landings unchanged),
+    # and the STALE stamped forward row of resume-1 (which survives in the
+    # REWRITTEN raw/link.jsonl) was SELECTED as the current hold's disposition
+    # with NO new human row: a prior generation's human decision silently
+    # boarded the current hold. The fixed identity embeds the held occurrence
+    # (source_step_ref + cascade_depth + attempt_number), which discriminates
+    # the pair (depth 1 vs 0); the stale row must now select NOTHING and the
+    # resume must fail closed LOUDLY.
+    plan_m7, b2_m7 = _checker_plan("bapr-mail-7-collide", budget=1)
+    callable_m7 = _reroute_callable(
+        b2_m7, {"brick-bapr-mail-7-collide-design", b2_m7}
+    )
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-7-") as tmp:
+        res_m7 = run_building_plan(
+            plan_m7,
+            output_root=Path(tmp),
+            overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": callable_m7},
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+            walker_mode="dynamic",
+        )
+        root_m7 = res_m7.lifecycle_write.root
+        _plan_evidence_m7, evidence_m7 = _mail_plan_evidence(root_m7)
+        if not evidence_m7.get("held"):
+            violations.append("mail-7: setup did not produce the FIRST budget HOLD")
+        else:
+            hold_a_m7 = dict(evidence_m7["hold"])
+            _append_disposition_row(
+                root_m7,
+                building_id=res_m7.building_id,
+                pending_target_ref=b2_m7,
+                action="forward",
+                author_ref="coo:smith",
+            )
+            try:
+                resume_building_plan(
+                    root_m7,
+                    local_callables={"callable:local:agent-invoke0-smoke": callable_m7},
+                    adapter_cwd=repo,
+                    adapter_timeout_seconds=30,
+                )
+            except ValueError as exc:
+                violations.append(f"mail-7: forward resume crashed: {exc}")
+            _plan_evidence2_m7, evidence2_m7 = _mail_plan_evidence(root_m7)
+            if not evidence2_m7.get("held"):
+                violations.append(
+                    "mail-7: setup did not reach the SECOND same-target hold after "
+                    "the forward resume"
+                )
+            else:
+                hold_b_m7 = dict(evidence2_m7["hold"])
+                # Setup-validity pins: this case exists to construct the EXACT
+                # collision the bare identity could not survive -- same
+                # sequence position, same target, same attempt_number across
+                # generations. If the engine ever stops producing it, this
+                # case must say so instead of silently degenerating.
+                if (
+                    hold_b_m7.get("adoption_sequence_number")
+                    != hold_a_m7.get("adoption_sequence_number")
+                    or hold_b_m7.get("target_brick") != hold_a_m7.get("target_brick")
+                    or hold_b_m7.get("attempt_number") != hold_a_m7.get("attempt_number")
+                ):
+                    violations.append(
+                        "mail-7: setup no longer constructs the cross-generation "
+                        "collision (same seq + same target + same attempt expected; "
+                        f"got seq {hold_a_m7.get('adoption_sequence_number')!r}/"
+                        f"{hold_b_m7.get('adoption_sequence_number')!r}, attempt "
+                        f"{hold_a_m7.get('attempt_number')!r}/"
+                        f"{hold_b_m7.get('attempt_number')!r})"
+                    )
+                if _hold_identity_ref(hold_a_m7) == _hold_identity_ref(hold_b_m7):
+                    violations.append(
+                        "mail-7: the two same-seq cross-generation holds share ONE "
+                        "identity (FIX 2 regressed: the identity does not embed the "
+                        "held occurrence; a stale prior-resume row can match the "
+                        "current hold)"
+                    )
+                # (i) the STALE stamped forward row of resume-1 (still in the
+                # rewritten ledger, addressed to hold-A's identity) must select
+                # NOTHING for hold-B -- first at the live selection function...
+                stale_selected_m7 = _live_read_disposition_row(root_m7, hold_b_m7)
+                if stale_selected_m7 is not None:
+                    violations.append(
+                        "mail-7: _read_disposition_row SELECTED the stale prior-"
+                        "generation forward row for the current hold (hold-identity "
+                        "collision: a previous resume's human decision boarded)"
+                    )
+                # ...and end-to-end: the resume verb must fail closed LOUDLY.
+                stale_resume_blocked_m7 = False
+                try:
+                    resume_building_plan(
+                        root_m7,
+                        local_callables={
+                            "callable:local:agent-invoke0-smoke": callable_m7
+                        },
+                        adapter_cwd=repo,
+                        adapter_timeout_seconds=30,
+                    )
+                except ValueError as exc:
+                    if "no human/COO disposition row found" in str(exc):
+                        stale_resume_blocked_m7 = True
+                    else:
+                        violations.append(
+                            "mail-7: stale-row resume failed with an unexpected "
+                            f"error: {exc}"
+                        )
+                if not stale_resume_blocked_m7:
+                    violations.append(
+                        "mail-7: a resume over ONLY a stale prior-generation row did "
+                        "not fail closed (the stale disposition was applied to the "
+                        "current hold)"
+                    )
+                # (ii) GOOD PATH at the selection seam: a fresh human row
+                # addressed to the CURRENT hold's identity is selected -- the
+                # guard discriminates generations, it does not block resumes.
+                # (The full forward-generation walk continuation is pinned by
+                # fc-gap6/mail-6; re-walking THIS self-rerouting building after
+                # a forward is a separate engine surface: a forwarded concern
+                # occurrence is re-evaluated on replay, so the continued walk
+                # re-holds at the OLD occurrence before reaching this one --
+                # see the operator report 0611. Data: selection-level proof.)
+                mail7_new_marker = "observation:mail-repair-current-generation-row"
+                _append_disposition_row(
+                    root_m7,
+                    building_id=res_m7.building_id,
+                    pending_target_ref=b2_m7,
+                    action="forward",
+                    author_ref="coo:smith",
+                    reason_refs=[mail7_new_marker],
+                )
+                good_selected_m7 = _live_read_disposition_row(root_m7, hold_b_m7)
+                if (
+                    good_selected_m7 is None
+                    or mail7_new_marker not in list(good_selected_m7.get("reason_refs", []))
+                    or good_selected_m7.get("selected_row_provenance", {}).get(
+                        "disposition_row_paused_at_ref"
+                    )
+                    != _hold_identity_ref(hold_b_m7)
+                ):
+                    violations.append(
+                        "mail-7: a fresh row addressed to the CURRENT hold identity "
+                        "was not selected (over-tightened: the generation guard "
+                        "blocks legitimate dispositions)"
+                    )
+
     # Invariant I (ζ7 source guard): the dynamic walker authors no route/Movement.
     walker_src = (repo / "support" / "operator" / "dynamic_walker.py").read_text(encoding="utf-8")
     if "support authors no route or Movement" not in walker_src:
@@ -3523,7 +4860,30 @@ def main(argv: Sequence[str] | None = None) -> int:
         "no-judgment records / invalid-concern paused frontier over adapter:local "
         "deterministic fixtures, persisted "
         "node_reroute_budgets and route_replay_plan.max_attempts as Link Carry "
-        "budget evidence, and authored no route or Movement."
+        "budget evidence, delivered the MAIL-REPAIR (0611) runtime mail (mail-1 "
+        "gate-adopted concern reason_refs arrive in every redo input with recorded "
+        "provenance + AgentReceipt received_handoff_refs; mail-2 broken ledger "
+        "address HOLDs loudly; mail-3 declared-only mailbox byte-identical to the "
+        "declared assembler; mail-4 raise-resume disposition reason_refs ride to "
+        "the re-adopted landing with row-specific replay provenance PERSISTED "
+        "in the written resume observation (the live _read_disposition_row "
+        "replay oracle lands on the same row); mail-5 "
+        "step-output addresses stay contained in THIS Building's "
+        "work/step-outputs subtree -- ..-escaping, absolute, case-varied "
+        "(mail-5d case-bypass), non-contiguously spelled (mail-5e "
+        "containment-by-resolution, spelling-independent), AND "
+        "symlinked-ledger-root (mail-5f trusted-intermediate symlink: "
+        "containment anchored on the resolved BUILDING root, never a resolved "
+        "ledger subtree; mail-5g in-building detour: an in-root resolution "
+        "OUTSIDE work/step-outputs stays unresolved) forms HOLD while a "
+        "weird-but-contained spelling still rides; "
+        "mail-6 only the CURRENT hold's disposition row boards, stale "
+        "previous-resume rows incl. an explicit stale attempt-N row are "
+        "skipped fail-closed and the hold identity embeds the accumulating "
+        "attempt_number; mail-7 a cross-generation same-seq/same-attempt hold "
+        "collision (forward chain) no longer lets a stale prior-generation row "
+        "board -- the occurrence-qualified identity discriminates and the "
+        "resume fails closed loudly), and authored no route or Movement."
     )
     print(
         "proof limit: support evidence only; checker pass does not prove source "

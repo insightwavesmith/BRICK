@@ -286,11 +286,24 @@ def agent_run_lifecycle_mapping(
                     "public_fact_refs": [
                         f"receipt:{prepared.building_id}:{prepared.agent_object.object_ref}"
                     ],
+                    # MAIL-REPAIR (Smith ruling B2, 0611): the receipt event
+                    # records the delivered handoff ADDRESSES as fact ("received").
+                    # Stamped ONLY when addresses were delivered (additive; a
+                    # no-handoff step's event is byte-stable). Addresses only.
                     "facts": {
                         "received_work_ref": prepared.step_rows.brick_row.get(
                             "brick_work_ref",
                             "work/building-work.json",
-                        )
+                        ),
+                        **(
+                            {
+                                "received_handoff_refs": list(
+                                    prepared.receipt_fact.received_handoff_refs
+                                )
+                            }
+                            if prepared.receipt_fact.received_handoff_refs
+                            else {}
+                        ),
                     },
                 },
                 "agent_returned": {

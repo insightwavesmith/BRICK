@@ -105,6 +105,39 @@ text_contains:
       - transition_lifecycle_carry_budget_evidence_ref
       - route_replay_plan.max_attempts was not recorded as Carry budget evidence
       - all-placeholder carry_trace was not rejected
+      # MAIL-REPAIR (0611): the executed runtime-mail case family stays wired.
+      - "mail-1: runtime reason_ref marker did NOT arrive"
+      - "mail-2: a broken-address reroute was ADOPTED"
+      - "mail-3: declared-only mailbox"
+      - "mail-4: the resume disposition row's mail"
+      # FIX 1/2/3 (0611): the codex-found blocker pins stay wired -- path
+      # traversal containment (mail-5), THIS-resume-only disposition
+      # eligibility (mail-6), and row-specific replay provenance (mail-4/6).
+      - "mail-5a: a ..-escaping ledger address was ADOPTED"
+      - "mail-5b: an absolute-path address was ADOPTED"
+      - "mail-5c: an in-subtree resolving ledger address blocked adoption"
+      - "mail-6: a resume with only STALE same-target rows did not fail"
+      - replaying the recorded selection rule
+  # MAIL-REPAIR (0611): the engine-side mail lane stays wired -- the kernel
+  # carries runtime_handoffs on adopted-reroute redo items, reads the recorded
+  # row back from the ledger, and HOLDs loudly on a broken ledger address.
+  # FIX 1 (0611): step-output-form addresses are CONTAINED to this Building's
+  # work/step-outputs subtree, not merely existence-probed.
+  - path: support/operator/walker_kernel.py
+    texts:
+      - runtime_handoffs
+      - _runtime_concern_handoff_from_ledger
+      - runtime_handoff_address_unresolved_in_ledger
+      - _step_output_address_escapes_ledger
+  # FIX 2/3 (0611): the resume reader scopes the disposition row to THE
+  # CURRENT hold and records the selected row's replay discriminator.
+  - path: support/operator/walker_resume.py
+    texts:
+      - disposition_reason_refs
+      - disposition_row_same_hold_index
+  - path: agent/receipt.py
+    texts:
+      - received_handoff_refs
   - path: support/checkers/check_building_lifecycle_path_shape.py
     texts:
       - transition_lifecycle_reason_refs

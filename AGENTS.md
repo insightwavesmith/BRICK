@@ -488,6 +488,21 @@ propose non-binding transition concerns; declared Link gate/policy adopts or
 pauses; support walks and records. Per-node budgets and HOLD/frontier evidence
 bound the route. Support authors no route or Movement.
 
+Runtime mail (MAIL-REPAIR, Smith rulings 0611): a redo step scheduled by an
+ADOPTED runtime reroute receives, in its Link handoff packet
+(`link_handoff_refs.runtime_handoffs`), the eligible runtime rows' ADDRESSES —
+narrowly (B3) the gate-adopted transition concern's `reason_refs` and, on a
+raise resume, that resume's human/COO disposition row `reason_refs`. Nothing
+else rides. Delivery reads the RECORDED row back from the Building ledger
+(the written transition-concern step-output document / `raw/link.jsonl`),
+never memory, and each entry stamps provenance as data (runtime row ref +
+row kind + recorded residence). Addresses only — bodies never ride. An
+address that does not resolve in the ledger is a broken ticket (B1): the walk
+HOLDs loudly via the existing hold machinery; no silent delivery. The
+AgentReceipt records the delivered handoff addresses as fact (B2,
+`received_handoff_refs`). Plans with no eligible runtime rows keep a
+byte-identical declared-refs handoff packet.
+
 AUTO-REPAIR-REPLAY-0 admits `support/operator/auto_repair_replay.py` only for
 predeclared repair/replay Building Plan execution after literal route
 materialization. It may check and walk the declared repair/replay plan; it must

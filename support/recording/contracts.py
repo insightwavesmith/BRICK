@@ -190,7 +190,18 @@ RESUME_OBSERVATION_REQUIRED_FIELDS: tuple[str, ...] = (
     "proof_limits",
     "not_proven",
 )
-RESUME_OBSERVATION_OPTIONAL_FIELDS: tuple[str, ...] = ()
+RESUME_OBSERVATION_OPTIONAL_FIELDS: tuple[str, ...] = (
+    # FIX 3 (0611 replay provenance): the SELECTED disposition row's
+    # discriminator, PERSISTED so it survives the raw/link.jsonl rewrite a
+    # resume performs (write_text, not append -- the transient seed provenance
+    # alone dangles on later replay). Data only (refs + an int): the
+    # generation-unique hold identity (disposition_row_paused_at_ref, which
+    # embeds source/depth/attempt -- see walker_hold._hold_paused_at_ref), the
+    # row's own raw_ref, and the pre-resume-snapshot-relative 1-based match
+    # index. OPTIONAL: observations recorded before this field existed, and
+    # synthetic dispositions, legitimately lack it. NO judgment fields.
+    "disposition_row_provenance",
+)
 
 # STRUCTURED FIELD-SET OBSERVATION (no judgment). Pure machine-readable
 # observation of the field sets at a gate/reroute boundary:

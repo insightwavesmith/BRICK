@@ -1237,6 +1237,10 @@ def prepare_agent_run_from_step_rows(
         lane=agent_object.lane,
         callable_performers=agent_object.callable_performer_refs,
     )
+    # MAIL-REPAIR (Smith ruling B2, 0611): the receipt records WHICH handoff
+    # ADDRESSES were delivered with the work ("received" as fact) -- flattened
+    # from the SAME link_handoff_refs packet the adapter request delivers
+    # (declared and runtime lanes alike). Addresses only; data, no judgment.
     receipt_fact = make_receipt_fact(
         received_work=brick_work,
         received_at_reference=_optional_text_from_mapping(fixture, "received_at_reference"),
@@ -1244,6 +1248,7 @@ def prepare_agent_run_from_step_rows(
             fixture,
             "receipt_evidence_reference",
         ),
+        received_handoff_refs=_handoff_address_refs(fixture.get("link_handoff_refs")),
     )
     raw_refs = _merge_texts(
         step_rows.brick_row.get("raw_refs"),
@@ -1648,6 +1653,44 @@ def _agent_object_from_mapping(value: Mapping[str, Any]) -> AgentObjectContractD
     for key in _AGENT_OBJECT_REF_FIELDS:
         kwargs[key] = _text_tuple(f"Agent Object {key}", value.get(key, ()))
     return AgentObjectContractData(**kwargs)
+
+
+def _handoff_address_refs(value: Any) -> tuple[str, ...]:
+    """Flatten a delivered link_handoff_refs packet to its ADDRESS strings.
+
+    MAIL-REPAIR (Smith ruling B2, 0611): the AgentReceipt records which handoff
+    addresses were delivered with the work. Addresses are the text items of
+    ``*_refs`` list fields anywhere in the packet (declared incoming /
+    route_replay handoffs AND runtime_handoffs alike); bodies never ride, so
+    nothing else is collected. Order-preserving, de-duplicated; an absent or
+    empty packet -> (). Pure data read; no Movement choice, no judgment.
+    """
+
+    collected: list[str] = []
+    seen: set[str] = set()
+
+    def _walk(node: Any) -> None:
+        if isinstance(node, Mapping):
+            for key, child in node.items():
+                if (
+                    isinstance(key, str)
+                    and key.endswith("_refs")
+                    and isinstance(child, list)
+                ):
+                    for item in child:
+                        text = _optional_text_value(item)
+                        if text and text not in seen:
+                            seen.add(text)
+                            collected.append(text)
+                else:
+                    _walk(child)
+        elif isinstance(node, list):
+            for child in node:
+                _walk(child)
+
+    if isinstance(value, Mapping):
+        _walk(value)
+    return tuple(collected)
 
 
 def _brick_work_from_row(row: Mapping[str, Any]) -> BrickWork:

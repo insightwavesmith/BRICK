@@ -769,15 +769,36 @@ def _append_raise_disposition_row(
 
     The disposition row is the CALLER/COO-authored resume input the engine
     requires; support records it verbatim and never decides it.
+
+    FIX 2 (0611, "THIS resume only"): the row must be ADDRESSED to the hold it
+    disposes -- the resume reader (walker_resume._read_disposition_row) now
+    requires the row's ``resumed_from_ref``/``paused_at_ref`` to equal the
+    CURRENT hold's identity (``link-transition:<reroute_ref>``). Mirror the
+    real human seam: read the held record back from the written evidence and
+    echo its identity.
     """
 
+    from brick_protocol.support.operator.walker_hold import (  # noqa: PLC0415
+        _hold_paused_at_ref,
+    )
+    from brick_protocol.support.operator.walker_resume import (  # noqa: PLC0415
+        _read_written_dynamic_plan,
+    )
+
+    _plan, evidence = _read_written_dynamic_plan(building_root)
+    hold = evidence.get("hold")
+    if not isinstance(hold, Mapping) or not evidence.get("held"):
+        raise ValueError(
+            "tier-a disposition authoring requires a held dynamic_walker_evidence "
+            "record to address (FIX 2: a disposition row names ITS hold)"
+        )
     row = {
         "raw_ref": "raw:link:disposition:raise",
         "building_id": building_id,
         "step_ref": "coo-disposition-raise",
         "transition_lifecycle_state": "resumed",
         "transition_lifecycle_progress_state": "in_progress",
-        "transition_lifecycle_resumed_from_ref": "link-transition:disposition-raise",
+        "transition_lifecycle_resumed_from_ref": _hold_paused_at_ref(hold),
         "transition_lifecycle_pending_target_ref": pending_target_ref,
         "transition_lifecycle_required_disposition_owner": "caller-or-coo",
         "transition_lifecycle_disposition_action": "raise",

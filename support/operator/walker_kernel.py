@@ -23,7 +23,8 @@ built from the recording contract field-spec).
 from __future__ import annotations
 
 import dataclasses
-from collections.abc import Mapping
+import json
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, Callable
 
@@ -468,6 +469,265 @@ def _step_output_body_from_file(building_root: Path, step_output_ref: str) -> st
         return None
 
 
+# ---------------------------------------------------------------------------
+# MAIL-REPAIR (Smith rulings 0611, B1/B2/B3): runtime rows ride the mail.
+#
+# The mailbox assembler previously read PLAN-DECLARED rows only
+# (_incoming_link_handoff_refs); runtime rows -- the transition concern the
+# gate ADOPTED for a reroute, and the human/COO disposition row of a resume --
+# never reached the redo workers' agent inputs (b5b measured RED: runtime
+# concern.reason_refs markers arrived in 0/10 redo inputs while declared refs
+# arrived in all). The repair is ONE assembler widening: an adopted reroute's
+# appended queue items carry a ``runtime_handoffs`` packet section built by
+# READING THE RECORDED ROW BACK FROM THE LEDGER (the written
+# transition-concern.json step-output document), never from memory, so replay
+# reads the recorded fact and the packet stamps provenance (which runtime row
+# fed it: row ref + kind + recorded residence). ADDRESSES ONLY ride (refs; no
+# bodies, no free text).
+#
+# B3 (narrow, fail-closed): ONLY two runtime rows are truck-eligible --
+#   (1) the transition concern ADOPTED by the gate for THIS reroute (its
+#       mandatory reason_refs), and
+#   (2) the disposition row of THIS resume (its reason_refs, raise lane).
+# Nothing else rides (no speculative/unadopted rows; the gate-sequence
+# reroute adopts a DECLARED policy action row, not a runtime row, so it
+# carries no runtime mail).
+#
+# B1 (broken ticket, fails-closed): an address that claims a ledger residence
+# (step-output form) but has no document, or an adopted concern row whose
+# recorded ledger document is missing/mismatched, must NOT be silently
+# delivered -> the walk HOLDs via the EXISTING hold machinery (loud
+# hold_reason; no new Movement vocabulary).
+#
+# ζ7 unchanged: support delivers recorded addresses and records; it authors no
+# route, Movement, success, or quality.
+# ---------------------------------------------------------------------------
+
+
+def _runtime_handoff_unresolved_address(
+    building_root: Path,
+    reason_refs: Sequence[Any],
+) -> str:
+    """The FIRST runtime address claiming a ledger residence with no document.
+
+    B1: a reason_ref of step-output FORM (a filesystem-path-shaped ref or a
+    ``step-output:<slug>:attempt-N`` manifest ref) addresses a DOCUMENT in the
+    Building ledger; a missing document is a broken ticket -> the caller HOLDs.
+    Opaque refs (observation:/brick-comparison:/...) have their recorded
+    residence in the runtime row document itself, which the ledger reader
+    verifies separately. Returns "" when every address resolves. (run.py
+    ``_is_step_output_source_fact_ref`` is a contiguous-marker predicate on a
+    DIFFERENT surface -- declared Brick-row source_fact bodies, repo-root
+    contained via ``_readable_source_fact_path`` -- runtime mail never routes
+    through it, so it is intentionally NOT mirrored here since FIX 1c.)
+
+    FIX 1 (0611 path traversal / cross-building smuggling): the ONLY ledger
+    residence a step-output-form address may name is THIS Building's
+    ``work/step-outputs/`` subtree. A mere existence probe is NOT containment:
+    ``work/step-outputs/../../../other-building/raw/secret.json`` exists and
+    would have been silently delivered. Therefore an address is UNRESOLVED
+    (-> the caller HOLDs loudly; never delivered) when it
+      - starts with ``/`` (an absolute path is never a building-relative
+        ledger address),
+      - carries a ``..`` (or empty/``.``) path segment, or
+      - does not ``resolve()`` to a file STRICTLY INSIDE
+        ``<building_root>/work/step-outputs/`` (symlink escapes fail too).
+
+    FIX 1c (0611 spelling-independence, codex round-3 STILL-OPEN): the path
+    FORM is no longer detected by how the ``work/step-outputs/`` MARKER is
+    SPELLED -- it is decided by WHERE the ref RESOLVES. Prior rounds detected
+    the marker as a CONTIGUOUS string (FIX 1 exact-case, FIX 1b casefolded),
+    so a ref that RESOLVES into (then out of) the subtree but is SPELLED
+    non-contiguously -- ``work/./step-outputs/../../escape/x.json``,
+    ``work//step-outputs/../../escape/x.json`` -- bypassed detection entirely,
+    fell through as an "opaque" ref, and was DELIVERED (operator-verified
+    0611: returned ""). That is the SAME CLASS recurring; the spelling match
+    was the root cause, so it is gone. The branching is now:
+
+      - ``step-output:<slug>:attempt-N`` MANIFEST refs (a scheme, no ``/``)
+        keep their existing handling: shape-validated, then containment.
+      - ANY remaining ref carrying a ``/`` is filesystem-path-shaped. The only
+        ledger residence a path-form runtime ref may name is THIS Building's
+        ``work/step-outputs/`` subtree, so EVERY such ref must ``resolve()``
+        (under ``building_root``) to a document strictly inside it. Absolute
+        paths are never building-relative ledger addresses -> UNRESOLVED.
+        Whatever the spelling (``work/./step-outputs``, ``work//step-outputs``,
+        ``Work/Step-Outputs`` on a case-insensitive filesystem), an in-subtree
+        resolution delivers and an out-of-subtree resolution is UNRESOLVED ->
+        the caller HOLDs (fail-closed). FIX 1d (0611, codex round-4
+        trusted-intermediate symlink): containment is anchored on the RESOLVED
+        BUILDING ROOT, never on a resolved ledger subtree -- see
+        ``_step_output_address_escapes_ledger``.
+      - Refs with NO ``/`` and no manifest scheme are the opaque scheme tokens
+        (observation:/brick-comparison:/...) verified elsewhere, unchanged.
+    """
+
+    for ref in reason_refs:
+        text = str(ref).replace("\\", "/")
+        if text.casefold().startswith("step-output:"):
+            parts = text.split(":")
+            if (
+                len(parts) != 3
+                or not parts[1]
+                or not parts[2].casefold().startswith("attempt-")
+            ):
+                return str(ref)
+            relative = f"work/step-outputs/{parts[1]}-{parts[2]}/step-output.json"
+            if _step_output_address_escapes_ledger(building_root, relative):
+                return str(ref)
+            continue
+        if "/" not in text:
+            # Opaque scheme token (observation:, brick-comparison:, ...):
+            # its recorded residence is verified by the ledger reader.
+            continue
+        if text.startswith("/"):
+            return str(ref)
+        if _step_output_address_escapes_ledger(building_root, text):
+            return str(ref)
+    return ""
+
+
+def _step_output_address_escapes_ledger(
+    building_root: Path,
+    relative: str,
+) -> bool:
+    """True when a step-output-form address must NOT be delivered (fail-closed).
+
+    FIX 1 (0611): containment, not just existence. FIX 1c (0611): containment
+    by RESOLUTION, not by segment spelling. FIX 1d (0611, codex round-4
+    trusted-intermediate symlink): containment is anchored on the RESOLVED
+    BUILDING ROOT, never on a resolved ledger subtree. The prior round
+    ``resolve()``d ``<building_root>/work/step-outputs`` FIRST and trusted
+    that inode as the containment root (``samestat`` ancestry), so when
+    ``work/step-outputs`` ITSELF was a symlink pointing OUTSIDE the building,
+    the symlink TARGET became the trusted root and
+    ``work/step-outputs/x.json`` was DELIVERED while resolving outside the
+    building (operator-reproduced 0611). Deriving the containment root by
+    following a symlink is the root cause, so no intermediate path is ever
+    resolved into a trusted root any more. The rule is now:
+
+      - ``real_root = building_root.resolve(strict=True)`` is the ONLY
+        trusted anchor (resolving the root cannot be redirected by ledger
+        content -- the building root is operator-supplied, not
+        address-supplied);
+      - the candidate ``(building_root / relative).resolve()`` (collapsing
+        ``.``/``..``/doubled separators and following EVERY symlink) must be
+        a FILE whose resolved path lies under ``real_root`` -- an escape
+        outside the building rejects; AND
+      - the candidate's path RELATIVE TO ``real_root`` must begin with the
+        literal ``("work", "step-outputs")`` components and name a document
+        STRICTLY BELOW them (lexical prefix on the POST-resolve relative
+        path).
+
+    A ledger directory that symlinks elsewhere therefore always fails: the
+    candidate either resolves outside ``real_root`` (first guard) or resolves
+    inside but its post-resolve relative path no longer starts with
+    ``work/step-outputs`` (second guard). That closes the whole
+    trusted-intermediate-symlink CLASS, not one spelling of it. A ``..`` that
+    climbs out, an in-building symlink detour, or a missing root/document all
+    reject; a weirdly-spelled ref (dot segments, doubled ``/``) that resolves
+    to a real document strictly inside ``real_root/work/step-outputs`` is
+    contained.
+    """
+
+    try:
+        real_root = building_root.resolve(strict=True)
+    except OSError:
+        return True
+    try:
+        candidate = (building_root / relative).resolve()
+    except OSError:
+        return True
+    if not candidate.is_file():
+        return True
+    try:
+        candidate_in_root = candidate.relative_to(real_root)
+    except ValueError:
+        return True
+    return (
+        len(candidate_in_root.parts) <= 2
+        or candidate_in_root.parts[:2] != ("work", "step-outputs")
+    )
+
+
+def _runtime_concern_handoff_from_ledger(
+    *,
+    building_root: Path,
+    source_step_ref: str,
+    source_brick_ref: str,
+    source_attempt_index: int,
+    adopted_concern: Mapping[str, Any],
+) -> tuple[dict[str, Any] | None, str]:
+    """Build the adopted-concern runtime mail entry FROM THE RECORDED FACT.
+
+    Reads the source occurrence's written transition-concern.json (the runtime
+    row's formal residence in the ledger; written by record_step_output BEFORE
+    adoption) and delivers the RECORDED reason_refs -- never the in-memory
+    values -- with provenance (row ref + kind + recorded residence) so replay
+    reads the recorded fact. Returns ``(entry, "")`` on success, or
+    ``(None, hold_reason)`` fail-closed (B1) when the recorded residence is
+    missing/unreadable, the recorded row is not the adopted row, the mandatory
+    recorded reason_refs are empty, or a recorded address does not resolve in
+    the ledger. ADDRESSES ONLY: the entry carries refs and provenance data, no
+    bodies and no free-text fields.
+    """
+
+    manifest_ref = _step_output_manifest_ref(source_step_ref, source_attempt_index)
+    concern_doc_ref = (
+        manifest_ref[: -len("step-output.json")] + "transition-concern.json"
+        if manifest_ref.endswith("step-output.json")
+        else manifest_ref
+    )
+    body = _step_output_body_from_file(building_root, concern_doc_ref)
+    if body is None:
+        return None, f"runtime_handoff_concern_row_unrecorded_in_ledger:{concern_doc_ref}"
+    try:
+        document = json.loads(body)
+    except ValueError:
+        return None, f"runtime_handoff_concern_row_unrecorded_in_ledger:{concern_doc_ref}"
+    if not isinstance(document, Mapping):
+        return None, f"runtime_handoff_concern_row_unrecorded_in_ledger:{concern_doc_ref}"
+    recorded = document.get("transition_concern_returned")
+    if not isinstance(recorded, Mapping):
+        return None, f"runtime_handoff_concern_row_unrecorded_in_ledger:{concern_doc_ref}"
+    recorded_row_ref = _optional_text_value(recorded.get("concern_ref")) or ""
+    adopted_row_ref = _optional_text_value(adopted_concern.get("concern_ref")) or ""
+    if not recorded_row_ref or recorded_row_ref != adopted_row_ref:
+        return None, f"runtime_handoff_concern_row_unrecorded_in_ledger:{concern_doc_ref}"
+    raw_reason_refs = recorded.get("reason_refs")
+    reason_refs = [
+        text
+        for text in (
+            _optional_text_value(ref)
+            for ref in (raw_reason_refs if isinstance(raw_reason_refs, list) else [])
+        )
+        if text
+    ]
+    if not reason_refs:
+        return None, f"runtime_handoff_concern_row_unrecorded_in_ledger:{concern_doc_ref}"
+    unresolved = _runtime_handoff_unresolved_address(building_root, reason_refs)
+    if unresolved:
+        return None, f"runtime_handoff_address_unresolved_in_ledger:{unresolved}"
+    return (
+        {
+            "from_step_ref": source_step_ref,
+            "from_brick_instance_ref": source_brick_ref,
+            "row_kind": "transition_concern",
+            "row_ref": recorded_row_ref,
+            "reason_refs": list(reason_refs),
+            "provenance": {
+                "runtime_row_ref": _optional_text_value(
+                    document.get("transition_concern_ref")
+                )
+                or recorded_row_ref,
+                "row_kind": "transition_concern",
+                "recorded_in": concern_doc_ref,
+            },
+        },
+        "",
+    )
+
+
 @dataclasses.dataclass(frozen=True)
 class ResumeSeed:
     """Optional seeded-initial-state for the FORWARD walk, used ONLY by resume.
@@ -532,6 +792,21 @@ class ResumeSeed:
     # recorded_at instead of being stamped with a fresh one (gap-6 evidence
     # fidelity). Empty => no seed (forward path stamps recorded_at as before).
     replay_recorded_at: Mapping[str, list[str]] = dataclasses.field(default_factory=dict)
+    # MAIL-REPAIR (0611, B3 lane 2): the reason_refs the human/COO disposition
+    # row carries (read FROM raw/link.jsonl by walker_resume; B1-checked there
+    # fail-closed). On a raise disposition these ADDRESSES ride to the
+    # re-adopted redo landing's handoff packet. Empty => nothing rides.
+    disposition_reason_refs: tuple[str, ...] = ()
+    # FIX 3 (0611 replay provenance): the SELECTED disposition row's
+    # discriminator from walker_resume._read_disposition_row -- the current
+    # hold identity (disposition_row_paused_at_ref), the row's own raw_ref
+    # (disposition_row_raw_ref), and its 1-based index among rows matching the
+    # selection rule in file order (disposition_row_same_hold_index) -- so the
+    # runtime-mail provenance names the SPECIFIC raw/link.jsonl row, not just
+    # the file. Data only (refs + an int); empty on the forward path.
+    disposition_row_provenance: Mapping[str, Any] = dataclasses.field(
+        default_factory=dict
+    )
 
 
 def _step_declares_gate_sequence_policy(step: Mapping[str, Any]) -> bool:
@@ -730,6 +1005,17 @@ def _build_resume_disposition_observation(
         node_landings=int(node_landings.get(target, 0)),
         proof_limits=list(PROOF_LIMITS),
         not_proven=not_proven,
+        # FIX 3 (0611): PERSIST the selected disposition row's discriminator
+        # (generation-unique hold identity + the row's own raw_ref + the
+        # pre-resume-snapshot match index) into the written resume
+        # observation. The transient ResumeSeed provenance alone dangles on a
+        # later replay because the resume REWRITES raw/link.jsonl
+        # (raw_claim_trace._write_jsonl uses write_text, not append).
+        disposition_row_provenance=(
+            dict(resume_seed.disposition_row_provenance)
+            if resume_seed.disposition_row_provenance
+            else None
+        ),
     )
 
 
@@ -910,6 +1196,11 @@ def _run_dynamic_graph_walker(
         cursor += 1
         step_ref = item["step_ref"]
         cascade_depth = int(item.get("cascade_depth", 0))
+        # MAIL-REPAIR (0611, B3 lane 2): the resume disposition row's mail entry,
+        # set ONLY in this iteration's disposition hook (raise lane) and consumed
+        # ONLY by this iteration's adoption (the held landing re-adoption).
+        # Iteration-local so it can never leak onto a later unrelated adoption.
+        disposition_runtime_handoff: dict[str, Any] | None = None
         if has_fan_groups:
             wait_state, wait_observation = _fan_in_wait_all_state(
                 step_ref=step_ref,
@@ -947,6 +1238,23 @@ def _run_dynamic_graph_walker(
             if step_ref in forward_order
             else {},
         )
+        # MAIL-REPAIR (0611) -- the ONE assembler widening: a redo step scheduled
+        # by an ADOPTED runtime reroute carries the eligible runtime rows' mail
+        # (B3: the gate-adopted concern + this resume's disposition row) into its
+        # handoff packet as ADDRESSES with recorded provenance. Items without
+        # runtime mail (the whole declared path) take the EXACT prior branch --
+        # the declared-refs mailbox stays byte-identical (regression guard).
+        runtime_handoffs = item.get("runtime_handoffs") or ()
+        if runtime_handoffs:
+            widened_handoff_refs = dict(step_fixture.get("link_handoff_refs") or {})
+            widened_handoff_refs.setdefault(
+                "target_brick_instance_ref", brick_ref_by_step[step_ref]
+            )
+            widened_handoff_refs["runtime_handoffs"] = [
+                dict(entry) for entry in runtime_handoffs
+            ]
+            step_fixture = dict(step_fixture)
+            step_fixture["link_handoff_refs"] = widened_handoff_refs
         source_fact_body_carry = _source_fact_body_carry_for_step(
             building_root=building_root,
             building_id=building_id,
@@ -1153,6 +1461,34 @@ def _run_dynamic_graph_walker(
                 continue
             # raise: fall through to the normal branches; the bumped budget lets the
             # held landing ADOPT below (no special-casing needed).
+            # MAIL-REPAIR (0611, B3 lane 2): THIS resume's disposition row is a
+            # truck-eligible runtime row -- when the human/COO disposition carries
+            # reason_refs, those ADDRESSES ride to the re-adopted redo landing in
+            # the same iteration. The row was READ FROM the ledger (raw/link.jsonl
+            # via walker_resume._read_disposition_row) and its step-output-form
+            # addresses were B1-checked fail-closed at seed build. Data only.
+            if resume_seed.disposition_reason_refs:
+                disposition_runtime_handoff = {
+                    "from_step_ref": step_ref,
+                    "from_brick_instance_ref": brick_ref_by_step[step_ref],
+                    "row_kind": "resume_disposition",
+                    "row_ref": (
+                        "transition-lifecycle:resumed:"
+                        + resume_seed.pending_target_ref
+                    ),
+                    "reason_refs": list(resume_seed.disposition_reason_refs),
+                    "provenance": {
+                        "runtime_row_ref": resume_seed.paused_at_ref,
+                        "row_kind": "resume_disposition",
+                        "recorded_in": "raw/link.jsonl",
+                        "author_ref": resume_seed.author_ref,
+                        # FIX 3 (0611): the SPECIFIC selected row, not just the
+                        # file -- hold identity + row raw_ref + 1-based index
+                        # among same-hold rows (file order; selected = last),
+                        # so replaying the selection rule lands on this row.
+                        **resume_seed.disposition_row_provenance,
+                    },
+                }
         if gate_sequence_decision.action == "hold":
             target_brick = (
                 gate_sequence_decision.pending_target_ref
@@ -1492,6 +1828,61 @@ def _run_dynamic_graph_walker(
                         )
                     break
 
+                # MAIL-REPAIR (0611, B3 lane 1): the gate ADOPTED this concern for
+                # THIS reroute, so its mandatory reason_refs are truck-eligible.
+                # Build the mail entry by READING THE RECORDED ROW BACK FROM THE
+                # LEDGER (the just-written transition-concern.json document) --
+                # delivery reads the recorded fact, never memory. B1 fail-closed:
+                # a missing/mismatched recorded residence or an address that does
+                # not resolve in the ledger HOLDs LOUDLY via the existing hold
+                # machinery (no silent delivery) BEFORE any budget is consumed.
+                source_attempt_index = sum(
+                    1
+                    for completed in step_results
+                    if completed.preparation.step_rows.step_ref == step_ref
+                )
+                concern_runtime_handoff, broken_mail_reason = (
+                    _runtime_concern_handoff_from_ledger(
+                        building_root=building_root,
+                        source_step_ref=step_ref,
+                        source_brick_ref=brick_ref_by_step[step_ref],
+                        source_attempt_index=source_attempt_index,
+                        adopted_concern=concern,
+                    )
+                )
+                if concern_runtime_handoff is None:
+                    adoption_sequence_number += 1
+                    hold_record = _build_hold(
+                        building_id=building_id,
+                        plan_ref=plan_ref,
+                        source_step_ref=step_ref,
+                        source_brick_ref=brick_ref_by_step[step_ref],
+                        target_brick=target_brick,
+                        concern=concern,
+                        cascade_depth=item["cascade_depth"],
+                        parent_reroute_ref=item["parent_reroute_ref"],
+                        adoption_sequence_number=adoption_sequence_number,
+                        node_budget=node_budget.get(target_brick, 0),
+                        attempt_number=node_landings.get(target_brick, 0),
+                        budget_exhausted=False,
+                        hold_reason=broken_mail_reason,
+                        step=step,
+                        step_result=step_result,
+                    )
+                    reroute_records.append(hold_record)
+                    if has_fan_groups:
+                        held_fan_steps.add((step_ref, cascade_depth))
+                        fan_in_wait_all_observations.extend(
+                            _fan_in_wait_all_observations_for_held_source(
+                                held_source_step_ref=step_ref,
+                                cascade_depth=cascade_depth,
+                                fan_in_sources_by_target=fan_in_sources_by_target,
+                                completed_fan_steps=completed_fan_steps,
+                                held_fan_steps=held_fan_steps,
+                            )
+                        )
+                    break
+
                 # ADOPT: consume one from the TARGET node's SHARED budget (per landing),
                 # append the target (+ declared replay scope) to the live queue, record.
                 node_landings[target_brick] += 1
@@ -1503,6 +1894,19 @@ def _run_dynamic_graph_walker(
                     f"{target_brick.replace(':', '-')}"
                 )
                 reroute_cascade_depth = item["cascade_depth"] + 1
+                # MAIL-REPAIR (0611): every redo item THIS adoption schedules
+                # (target landing + declared replay scope + cohort re-verify)
+                # carries the eligible runtime mail: the adopted concern's
+                # recorded entry, plus -- on a raise resume -- THIS resume's
+                # disposition row entry (consumed here, iteration-local).
+                runtime_mail: list[dict[str, Any]] = [
+                    {**concern_runtime_handoff, "reroute_ref": reroute_ref}
+                ]
+                if disposition_runtime_handoff is not None:
+                    runtime_mail.append(
+                        {**disposition_runtime_handoff, "reroute_ref": reroute_ref}
+                    )
+                    disposition_runtime_handoff = None
                 # Append the target landing, then its declared replay scope (forward
                 # replay executions THROUGH downstream nodes; those do NOT consume budget).
                 appended: list[dict[str, Any]] = [
@@ -1511,6 +1915,7 @@ def _run_dynamic_graph_walker(
                         "cascade_depth": reroute_cascade_depth,
                         "parent_reroute_ref": reroute_ref,
                         "is_reroute_landing": True,
+                        "runtime_handoffs": tuple(runtime_mail),
                     }
                 ]
                 replay_scope = _declared_replay_scope_step_refs(
@@ -1523,6 +1928,7 @@ def _run_dynamic_graph_walker(
                             "cascade_depth": reroute_cascade_depth,
                             "parent_reroute_ref": reroute_ref,
                             "is_reroute_landing": False,
+                            "runtime_handoffs": tuple(runtime_mail),
                         }
                     )
                 # COHORT RE-VERIFICATION (knot ③ stale-pass): if this landing
@@ -1549,6 +1955,7 @@ def _run_dynamic_graph_walker(
                             "cascade_depth": reroute_cascade_depth,
                             "parent_reroute_ref": reroute_ref,
                             "is_reroute_landing": False,
+                            "runtime_handoffs": tuple(runtime_mail),
                         }
                     )
                 # A vouched-skipped sibling is NOT re-walked; carry its PRIOR pass

@@ -104,8 +104,56 @@ def _build_hold(
 
 
 def _hold_paused_at_ref(hold_record: Mapping[str, Any]) -> str:
+    """The hold's disposition-match identity (paused_at_ref / resumed_from_ref).
+
+    FIX 2 (0611 hold-identity collision, codex re-review BLOCKER): the bare
+    ``reroute_ref`` is NOT a building-history-unique identity. It embeds
+    ``adoption_sequence_number``, which RESETS to 0 on EVERY walk (the forward
+    walk and each resume re-walk alike), so two holds for the same
+    building+target at the same sequence position in DIFFERENT walk generations
+    produce the SAME string -- and a STALE prior-generation disposition row
+    (e.g. the recorded resumed-lifecycle row a previous resume stamped, which
+    is disposition-shaped and survives in the rewritten raw/link.jsonl) then
+    MATCHES the current hold in ``walker_resume._read_disposition_row``.
+    Operator-reproduced 0611 on the real engine: budget hold -> human FORWARD
+    -> resume -> a later source re-holds the same target at the same sequence
+    position -> the stale forward row was SELECTED with NO new human row.
+
+    Measured on the same probe: the colliding pair shares ``attempt_number``
+    too. That is structural, not accidental -- a same-sequence cross-generation
+    pair replays the SAME adoption prefix (the first N-1 sequence increments of
+    a resumed walk ARE the prior walk's adoptions, replayed), so the target's
+    landings count is equal; ``attempt_number`` ALONE cannot discriminate any
+    pair that actually collides. The fields that DO discriminate are already ON
+    the hold record: the held occurrence's ``source_step_ref`` +
+    ``cascade_depth`` (the colliding new hold is always a DIFFERENT occurrence;
+    a new same-(source, depth) occurrence requires a NEW adoption, which bumps
+    the sequence number and the landings). The identity therefore appends
+    source/depth/attempt to the reroute_ref. ``attempt_number`` is included so
+    raise-generation holds (attempt N vs N+1) differ in the echoed identity
+    itself, per the 0611 ruling. A record lacking these fields
+    (``fan_in_wait_all_hold``) keeps the bare reroute_ref-derived form --
+    spine_projection's resume_ordinal disambiguation for the fan-in sentinel
+    is unchanged.
+    """
+
     reroute_ref = _optional_text_value(hold_record.get("reroute_ref")) or "reroute-hold:unknown"
-    return "link-transition:" + reroute_ref.replace(":", "-")
+    identity = "link-transition:" + reroute_ref.replace(":", "-")
+    source_step_ref = _optional_text_value(hold_record.get("source_step_ref")) or ""
+    cascade_depth = hold_record.get("cascade_depth")
+    attempt_number = hold_record.get("attempt_number")
+    if (
+        source_step_ref
+        and isinstance(cascade_depth, int)
+        and not isinstance(cascade_depth, bool)
+        and isinstance(attempt_number, int)
+        and not isinstance(attempt_number, bool)
+    ):
+        identity += (
+            f"-src-{source_step_ref.replace(':', '-')}"
+            f"-depth-{cascade_depth}-attempt-{attempt_number}"
+        )
+    return identity
 
 
 def _resumed_lifecycle_from_hold(

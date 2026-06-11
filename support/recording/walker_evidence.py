@@ -215,12 +215,19 @@ def build_resume_observation(
     node_landings: int,
     proof_limits: list[str],
     not_proven: list[str],
+    disposition_row_provenance: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Emit a resume-after-HOLD observation from the contract field-spec.
 
     The human/COO-authored disposition is already declared on a Link
     transition_lifecycle row. This support record only records what was replayed
     and applied; it does not choose raise, forward, stop, or a budget amount.
+
+    FIX 3 (0611): ``disposition_row_provenance`` (optional, data only) persists
+    the SELECTED disposition row's discriminator -- the generation-unique hold
+    identity + the row's own raw_ref (+ the pre-resume-snapshot match index) --
+    so the selection stays replayable AFTER the resume rewrites raw/link.jsonl
+    (the transient in-memory seed alone would dangle).
     """
 
     values: dict[str, Any] = {
@@ -237,6 +244,8 @@ def build_resume_observation(
         "proof_limits": proof_limits,
         "not_proven": not_proven,
     }
+    if disposition_row_provenance:
+        values["disposition_row_provenance"] = dict(disposition_row_provenance)
     return _build_from_specs(
         resume_observation_field_specs(),
         values,

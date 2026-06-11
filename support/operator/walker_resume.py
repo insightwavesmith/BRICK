@@ -51,6 +51,7 @@ from brick_protocol.support.operator.walker_hold import (
 from brick_protocol.support.operator.walker_kernel import (
     ResumeSeed,
     _run_dynamic_graph_walker,
+    _runtime_handoff_unresolved_address,
 )
 from brick_protocol.support.operator.walker_reroute_budget import (
     _jsonl_records,
@@ -255,6 +256,37 @@ def _resume_dynamic_graph_walker(
         _require_budget_exhaustion_raise(hold_record, evidence, pending_target)
         budget_delta[pending_target] = increment
 
+    # MAIL-REPAIR (0611, B3 lane 2): THIS resume's disposition row is a
+    # truck-eligible runtime row -- its reason_refs (an ADMITTED
+    # transition_lifecycle key) ride as ADDRESSES to the re-adopted redo landing
+    # on a raise. B1 fail-closed AT SEED BUILD: a disposition address that
+    # claims a ledger residence (step-output form) but has no document is a
+    # broken ticket -- STOP LOUDLY here, before any walk, instead of silently
+    # delivering it (no silent delivery).
+    raw_disposition_reason_refs = disposition.get("reason_refs")
+    disposition_reason_refs = tuple(
+        text
+        for text in (
+            _optional_text_value(ref)
+            for ref in (
+                raw_disposition_reason_refs
+                if isinstance(raw_disposition_reason_refs, list)
+                else []
+            )
+        )
+        if text
+    )
+    if disposition_reason_refs:
+        unresolved = _runtime_handoff_unresolved_address(root, disposition_reason_refs)
+        if unresolved:
+            raise ValueError(
+                "resume: runtime_handoff_address_unresolved_in_ledger -- the "
+                f"human/COO disposition row carries reason_ref {unresolved!r} "
+                "which claims a step-output ledger residence but no such document "
+                "exists in this Building's ledger; refusing to silently deliver a "
+                "broken address to the redo landing (B1 fails-closed)"
+            )
+
     seed = ResumeSeed(
         replay_returns=replay_returns,
         gate_records=gate_records,
@@ -270,6 +302,16 @@ def _resume_dynamic_graph_walker(
         existing_resume_observations=tuple(existing_resume_observations),
         expected_replay_counts=dict(expected_replay_counts),
         replay_recorded_at=replay_recorded_at,
+        disposition_reason_refs=disposition_reason_refs,
+        # FIX 3 (0611): the SELECTED disposition row's discriminator (current
+        # hold identity + row raw_ref + 1-based same-hold index) rides into the
+        # runtime-mail provenance so replaying the selection rule lands on the
+        # SAME raw/link.jsonl row deterministically.
+        disposition_row_provenance=(
+            dict(disposition.get("selected_row_provenance"))
+            if isinstance(disposition.get("selected_row_provenance"), Mapping)
+            else {}
+        ),
     )
 
     # DELEGATE to the SAME forward walk loop. Resume inherits every forward
@@ -467,26 +509,92 @@ def _read_disposition_row(
     root: Path,
     hold_record: Mapping[str, Any],
 ) -> Mapping[str, Any] | None:
+    """The LATEST raw/link.jsonl disposition row addressed to THE CURRENT hold.
+
+    FIX 2 (0611 eligibility creep, "THIS resume only"): matching on
+    ``pending_target_ref`` ALONE accepted a STALE row -- e.g. the recorded
+    resumed-lifecycle row of a PREVIOUS resume of the SAME target -- as the
+    current disposition. The row must additionally reference the CURRENT hold's
+    identity string ``_hold_paused_at_ref(hold_record)``. That identity is
+    collision-free across walk generations (0611 codex re-review BLOCKER fix):
+    the bare reroute_ref embeds adoption_sequence_number, which RESETS each
+    walk, so two same-target holds in different generations could share it and
+    a stale prior-resume row (the stamped resumed-lifecycle row survives in the
+    rewritten ledger) matched the current hold; the identity now also carries
+    the held occurrence's source_step_ref + cascade_depth + attempt_number (see
+    ``walker_hold._hold_paused_at_ref``), so the row must echo the EXACT
+    current-generation hold -- which requires the attempt_number to match too.
+    The disposition row's ``paused_at_ref`` / ``resumed_from_ref`` (the
+    identity fields a disposition row actually carries in raw/link.jsonl) must
+    equal it. A row that matches the target but NOT the current hold identity
+    is NOT this resume's row and is SKIPPED; if none match, return None
+    (fail-closed: the caller refuses to resume; nothing boards).
+
+    FIX 3 (replay provenance): the selected row's discriminator is attached
+    under ``selected_row_provenance`` (data only) so an auditor replaying the
+    SAME selection rule -- file-order scan of raw/link.jsonl rows carrying a
+    ``disposition_action`` whose ``pending_target_ref`` AND hold identity match
+    the current hold, take the LAST -- lands on the SAME row deterministically.
+    HONEST LIMIT (0611): raw/link.jsonl is REWRITTEN (write_text, not appended;
+    see raw_claim_trace._write_jsonl) on every walk, so any file-positional
+    discriminator (offset, line number, match index) dangles across a resume:
+    the human-appended row is not preserved verbatim and the post-resume ledger
+    carries the STAMPED resumed-lifecycle row instead. The durable discriminator
+    is therefore the STABLE pair (the generation-unique hold identity above --
+    which embeds attempt_number and the reroute context -- plus the row's own
+    ``raw_ref``); ``disposition_row_same_hold_index`` (1-based file-order index
+    among matching rows; the selected row is the last, so index == match count)
+    is carried as PRE-RESUME-SNAPSHOT-relative data only, valid against the
+    ledger as it was when this selection ran, not against a later rewrite.
+    """
+
     pending_target = _optional_text_value(hold_record.get("pending_target_ref")) or ""
     if not pending_target:
         raise ValueError("HOLD record is missing pending_target_ref")
-    for record in reversed(_jsonl_records(root / "raw" / "link.jsonl")):
+    current_hold_ref = _hold_paused_at_ref(hold_record)
+    selected_record: Mapping[str, Any] | None = None
+    selected_lifecycle: dict[str, Any] | None = None
+    matching_row_count = 0
+    for record in _jsonl_records(root / "raw" / "link.jsonl"):
         lifecycle = _flattened_or_nested_transition_lifecycle(record)
         action = _optional_text_value(lifecycle.get("disposition_action"))
         if not action:
             continue
         if _optional_text_value(lifecycle.get("pending_target_ref")) != pending_target:
             continue
-        state = _optional_text_value(lifecycle.get("state"))
-        if state != "resumed":
-            raise ValueError("disposition transition_lifecycle.state must be resumed")
-        author_ref = _disposition_author_ref(record)
-        if not author_ref.startswith(_HUMAN_AUTHOR_PREFIXES):
-            raise ValueError("disposition row author must start with human: or coo:")
-        disposition = dict(lifecycle)
-        disposition["author_ref"] = author_ref
-        return disposition
-    return None
+        # FIX 2: the row must reference THE CURRENT hold. Every identity field
+        # the row carries must equal the current hold's ref; a row carrying
+        # NEITHER field cannot be scoped to this hold -> skip (fail-closed).
+        row_hold_refs = [
+            value
+            for value in (
+                _optional_text_value(lifecycle.get("paused_at_ref")),
+                _optional_text_value(lifecycle.get("resumed_from_ref")),
+            )
+            if value
+        ]
+        if not row_hold_refs or any(value != current_hold_ref for value in row_hold_refs):
+            continue
+        matching_row_count += 1
+        selected_record = record
+        selected_lifecycle = dict(lifecycle)
+    if selected_record is None or selected_lifecycle is None:
+        return None
+    state = _optional_text_value(selected_lifecycle.get("state"))
+    if state != "resumed":
+        raise ValueError("disposition transition_lifecycle.state must be resumed")
+    author_ref = _disposition_author_ref(selected_record)
+    if not author_ref.startswith(_HUMAN_AUTHOR_PREFIXES):
+        raise ValueError("disposition row author must start with human: or coo:")
+    disposition = dict(selected_lifecycle)
+    disposition["author_ref"] = author_ref
+    disposition["selected_row_provenance"] = {
+        "disposition_row_paused_at_ref": current_hold_ref,
+        "disposition_row_raw_ref": _optional_text_value(selected_record.get("raw_ref"))
+        or "",
+        "disposition_row_same_hold_index": matching_row_count,
+    }
+    return disposition
 
 
 def _flattened_or_nested_transition_lifecycle(record: Mapping[str, Any]) -> dict[str, Any]:
