@@ -8,10 +8,10 @@ First three commands:
 
 ```bash
 # 1. clone + install (your own gh/git login; no hosted installer)
-#    default install target is $HOME/brick-protocol; cloned elsewhere? set BRICK_HOME=/path/to/your/clone before running install.sh
-gh repo clone insightwavesmith/brick-protocol ~/brick-protocol && sh ~/brick-protocol/support/onboarding/install.sh
+#    default install target is $HOME/BRICK; cloned elsewhere? set BRICK_HOME=/path/to/your/clone before running install.sh
+gh repo clone insightwavesmith/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh
 # 2. verify your download (green = exit 0)
-cd ~/brick-protocol && PYTHONPATH=support/import_identity uv run python3 support/checkers/check_profile.py --all
+cd ~/BRICK && PYTHONPATH=support/import_identity uv run python3 support/checkers/check_profile.py --all
 # 3. onboard wizard (codex | claude | gemini | local)
 uv run python3 -m brick_protocol.support.operator.onboard codex
 ```

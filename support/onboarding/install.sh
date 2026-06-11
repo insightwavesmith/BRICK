@@ -3,13 +3,13 @@
 #
 # Usage (on a fresh machine) -- there is NO hosted installer URL; get the
 # script from the repository first, with your own gh/git login:
-#   gh repo clone insightwavesmith/brick-protocol ~/brick-protocol
-#   sh ~/brick-protocol/support/onboarding/install.sh
-# (or: git clone https://github.com/insightwavesmith/brick-protocol.git
+#   gh repo clone insightwavesmith/BRICK ~/BRICK
+#   sh ~/BRICK/support/onboarding/install.sh
+# (or: git clone https://github.com/insightwavesmith/BRICK.git
 #  then run support/onboarding/install.sh from the checkout)
-# Cloned somewhere other than $HOME/brick-protocol? Set BRICK_HOME to that path
+# Cloned somewhere other than $HOME/BRICK? Set BRICK_HOME to that path
 # first (e.g. BRICK_HOME=/path/to/your/clone sh install.sh) -- the default
-# target is $HOME/brick-protocol.
+# target is $HOME/BRICK.
 #
 # WHAT IT DOES (each step is plain and idempotent):
 #   1. checks python3 (>= 3.11) is present
@@ -22,7 +22,7 @@
 #   - This script is HTTPS-only and carries NO secret / token. It relies on the
 #     teammate's OWN `gh auth login` (or git credential) as the access grant to
 #     the private repo. There is nothing embedded here that grants access.
-#   - The clone target is ${BRICK_HOME:-$HOME/brick-protocol}. No /Users path is
+#   - The clone target is ${BRICK_HOME:-$HOME/BRICK}. No /Users path is
 #     hardcoded, so it works for any teammate on any machine.
 #   - ALL logic lives inside main(), invoked on the LAST line as `main "$@"`.
 #     This is deliberate anti-truncation: if the download is cut off mid-stream,
@@ -35,7 +35,7 @@
 
 set -eu
 
-REPO_SLUG="insightwavesmith/brick-protocol"
+REPO_SLUG="insightwavesmith/BRICK"
 # uv run resolves the synced .venv (where brick-protocol + PyYAML live); a
 # bare python3 outside the venv raises ModuleNotFoundError.
 ONBOARD_ENTRY="uv run python3 -m brick_protocol.support.operator.onboard codex"
@@ -50,7 +50,7 @@ main() {
                 "" \
                 "하는 일: python3 확인 -> uv 준비 -> 내 gh/git 로그인으로 저장소 받기 -> uv sync -> 다음 안내" \
                 "" \
-                "설치 위치는 BRICK_HOME 환경변수로 바꿀 수 있어요 (기본값: \$HOME/brick-protocol)." \
+                "설치 위치는 BRICK_HOME 환경변수로 바꿀 수 있어요 (기본값: \$HOME/BRICK)." \
                 "토큰이나 비밀번호는 이 스크립트에 들어 있지 않아요. 내 gh/git 로그인을 그대로 씁니다." \
                 "" \
                 "그냥 실행하려면 옵션 없이 다시 실행하세요."
@@ -58,7 +58,7 @@ main() {
             ;;
     esac
 
-    target="${BRICK_HOME:-$HOME/brick-protocol}"
+    target="${BRICK_HOME:-$HOME/BRICK}"
 
     # --- step 1: python3 present and >= 3.11 -------------------------------
     if ! command -v python3 >/dev/null 2>&1; then
