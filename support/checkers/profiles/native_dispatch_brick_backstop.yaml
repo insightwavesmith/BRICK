@@ -66,6 +66,21 @@ text_contains:
 # PASS. These RED if either guard in close_native_dispatch_brick is removed.
 native_dispatch_close_case:
   - label: native-dispatch-close-governance
+# IMPORTER honesty pin (0612): the post-hoc workflow-result import rides this
+# SAME repaired close seam, so its FIRE case lives here. It REDs if the
+# importer ever fabricates per-internal-agent evidence (the spine must record
+# EXACTLY ONE AgentBinding/AgentReceipt/AgentReturn -- one performer act, AND
+# each event's agent_object_ref must EQUAL the synthetic agent-object:workflow
+# -- the WHO is pinned, not just the count), if a caller-supplied performer
+# ref is admitted at open, if a nested identity shape rides an admitted field
+# (usage = flat int tally only; deep forbidden-key scan over the packet AND
+# the structured return), if the on-disk packet loses the verbatim "internal
+# agent detail not observable (workflow back door)" note, if envelope
+# tolerance regresses or the closed RETURNED_FORBIDDEN_KEYS set opens (no
+# laundering through the import verb), or if the composition-mode stamp /
+# declaration-law validation breaks (B4-REPAIR recurrence).
+workflow_import_case:
+  - label: workflow-import-honesty
 text_absent:
   # The skill must not stage a runnable hook executable in the repo tree; the
   # hook scripts are documented templates, staged under /tmp only for a proof.
@@ -88,3 +103,4 @@ not_proven:
   - whether a live Claude hook is wired (this profile does not read settings.json)
   - future provider or subagent behavior
   - production runtime readiness
+  - per-internal-agent identity of workflow agents (harness back door; the importer records one performer act + an explicit not-observable note, never per-agent rows)

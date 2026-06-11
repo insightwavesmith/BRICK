@@ -602,6 +602,30 @@ modules:
     decomposition_target: ""
     pinned_by: project_declaration kernel check (core profile; the vessel must load through the S1 declaration loader before any PROGRESS projection renders) + building_root_anchor read-side vessel-literal guard
 
+  # IMPORTER (0612): post-hoc workflow-result recording verbs. A Workflow's
+  # internal agents go through a harness back door the recording hooks cannot
+  # observe (B4 measurement), so a workflow's substantial work left no
+  # building evidence. The operator opens a recording building FIRST
+  # (open_workflow_recording -> open_native_dispatch_brick into the vessel via
+  # buildings_root_for), runs the workflow (unrecorded), then
+  # import_workflow_result stamps the RESULT as evidence (verbatim text rides
+  # the existing agent-return raw stream) and closes through the SAME repaired
+  # native close seam (envelope-tolerant extraction; the closed
+  # RETURNED_FORBIDDEN_KEYS set unchanged). HONESTY: per-internal-agent
+  # identity is NOT observable; the workflow is recorded as ONE performer act
+  # + an explicit not-observable note; no per-agent AgentBinding/AgentReceipt
+  # is fabricated. POST-HOC + EXPLICIT (operator-called; hooks/polls nothing).
+  # Owns no crossing, judges nothing.
+  - module: support/operator/workflow_import.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: workflow_import_case (native_dispatch_brick_backstop profile; honesty pin -- exactly one recorded performer act + not-observable note on the on-disk packet, no fabricated per-agent rows; envelope tolerance + no-laundering through the import verb; composition-mode-stamped building passes the declaration-law validator)
+
   # ONBOARDING-RECORDING-HOOKS (0610): TRACKED machine-neutral templates for
   # the per-LLM auto-recording hooks. NOT engine surfaces -- inert template
   # SOURCE files the onboard wizard's opt-in recording step copies into a

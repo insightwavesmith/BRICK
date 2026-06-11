@@ -174,6 +174,18 @@ PROJECT_PROGRESS0_TARGETS = {
     "support/operator/progress_projection.py",
 }
 
+# WORKFLOW-IMPORT-0 (IMPORTER, 0612): the post-hoc workflow-result recording
+# verbs. Workflow-internal agents pass through a harness back door the
+# recording hooks cannot observe (B4 measurement), so the operator opens a
+# recording building first, runs the workflow, then import_workflow_result
+# stamps the RESULT as evidence through the SAME repaired native close seam
+# (envelope-tolerant extraction; closed return-record key set unchanged).
+# HONESTY: one recorded performer act + an explicit not-observable note; no
+# per-internal-agent rows fabricated. Owns no crossing, judges nothing.
+WORKFLOW_IMPORT0_TARGETS = {
+    "support/operator/workflow_import.py",
+}
+
 # ONBOARDING-INSTALL-SCRIPT-0: the one-line (curl | sh) installer. A non-.py
 # support onboarding artifact: a portable POSIX sh script that gets a teammate
 # from a fresh machine to a ready Brick checkout, then points at the onboard
@@ -1575,6 +1587,9 @@ def allowed_path(path: str) -> bool:
         return True
 
     if clean in PROJECT_PROGRESS0_TARGETS:
+        return True
+
+    if clean in WORKFLOW_IMPORT0_TARGETS:
         return True
 
     if clean in ONBOARD_INSTALL_SCRIPT0_TARGETS:
