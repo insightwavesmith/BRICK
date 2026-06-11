@@ -8,6 +8,34 @@ Building's task evidence (`work/task.md`). Files dropped at the repository
 root (or anywhere unadmitted) are rejected by the admission checker — keep any
 scratch files of your own outside the repository.
 
+## 가장 빠른 길: 위자드
+
+`install.sh` 가 끝났다면, 첫 빌딩까지는 이 한 줄이 전부예요:
+
+```bash
+uv run python3 -m brick_protocol.support.operator.onboard codex
+```
+
+(host 자리는 `codex | claude | gemini | local` — provider CLI가 하나도 없으면
+`local`. provider 없이도 돌아갑니다.) 위자드는 provider 준비 상태 점검 → 연결
+설정 안내 → 첫 예제 빌딩(기본은 provider 없이 `adapter:local`, 결과는 임시
+폴더에만 기록) → 다음 단계 안내까지 알아서 진행해요. 아래의 손으로 조립하는
+경로 없이도 같은 입구(seam, `run_building_intake`)를 통과합니다.
+
+## 막혔을 때: 증상 → 처방
+
+`uv run python3 -m brick_protocol.support.operator.onboard doctor` 를 돌리면
+지금 컴퓨터의 준비 상태 점검과 함께 아래 표를 출력해요 (진단만 하고 항상
+exit 0).
+
+| 증상 | 처방 |
+| --- | --- |
+| `ModuleNotFoundError: No module named 'brick_protocol'` (또는 `'yaml'`) | 저장소 루트에서 `uv run python3 ...` 형식으로 실행 (uv 없이는 `PYTHONPATH=support/import_identity python3 ...` + 전역 PyYAML 필요) |
+| `FileExistsError` (Building root already exists) | 새 `building_id` 를 정하거나 `overwrite_existing=True` 를 의도적으로 전달 (위자드 예제는 자동 처리) |
+| `local_cli_missing` (codex 어댑터) | `npm install -g @openai/codex` 후 `codex login` |
+| `local_cli_missing` (claude 어댑터) | `npm install -g @anthropic-ai/claude-code` |
+| gh 인증 에러 (clone/pull 실패) | `gh auth login` (gh가 없으면 https://cli.github.com 에서 설치) |
+
 ## Speak your task: `run_building_intake` with `task_statement`
 
 The human flow is one call — pass your task as text, pick a preset, name the
@@ -36,18 +64,19 @@ and lands your exact words verbatim as the Building's `work/task.md` evidence.
 (declaring both rejects, fail-closed); the file form stays available as the
 automation path (see the intake section below).
 
-## Minimal hand-written plan (advanced)
+## 직접 조립하고 싶다면: minimal hand-written plan (advanced)
 
-You can also hand-write a full plan. Save this OUTSIDE the repository (for
-example `/tmp/first-building.yaml` — the repo tree itself admits no scratch
-files):
+You can also hand-write a full plan — this is the advanced path; the wizard
+and the `task_statement` one-liner above cover the common cases without it.
+Save this OUTSIDE the repository (for example `/tmp/first-building.yaml` —
+the repo tree itself admits no scratch files):
 
 ```yaml
 plan_ref: building-plan:first-building
 owner_axis: Brick
 building_id: first-building-001
-selected_adapter_ref: adapter:codex-local
-selected_model_ref: model:codex:default
+selected_adapter_ref: adapter:local
+selected_model_ref: model:default
 proof_limits:
   - support evidence only
   - not source truth
@@ -59,8 +88,8 @@ not_proven:
   - quality of returned work
 steps:
   - step_ref: first-building-01
-    selected_adapter_ref: adapter:codex-local
-    selected_model_ref: model:codex:default
+    selected_adapter_ref: adapter:local
+    selected_model_ref: model:default
     rows:
       - axis: Brick
         row_ref: brick-row:first-building-01
@@ -99,14 +128,18 @@ No `uv`? The bare-Python alternative works only if PyYAML is installed for your 
 PYTHONPATH=support/import_identity python3 -c 'from brick_protocol.support.operator.run import run_building_plan; result = run_building_plan("/tmp/first-building.yaml"); print(result.building_id); print(result.lifecycle_write.root); print("\n".join(str(path) for path in result.written_files))'
 ```
 
-`adapter:codex-local` invokes the local Codex CLI in read-only mode for this plan because the Brick row has no `write_scope`. It requires the local `codex` command and local provider state to be available. To run the same shape with the built-in local callable instead, change these fields:
+For `adapter:local` (the default above), the COO Agent Object uses its registered local callable reference: no provider CLI, no login, runs in-process. That is useful for a smoke run of the support path, but it does not prove provider behavior or work quality.
+
+### 업그레이드: 실제 provider로 (adapter:codex-local)
+
+To run the same shape on the real local Codex CLI instead, change these fields (top-level AND per-step):
 
 ```yaml
-selected_adapter_ref: adapter:local
-selected_model_ref: model:default
+selected_adapter_ref: adapter:codex-local
+selected_model_ref: model:codex:default
 ```
 
-For `adapter:local`, the COO Agent Object uses its registered local callable reference. That is useful for a smoke run of the support path, but it does not prove provider behavior or work quality.
+`adapter:codex-local` invokes the local Codex CLI in read-only mode for this plan because the Brick row has no `write_scope`. It requires the local `codex` command and local provider state to be available — if the CLI is missing you get a `local_cli_missing` adapter error (처방은 위의 증상→처방 표). `adapter:claude-local` works the same way for the Claude CLI.
 
 ## Evidence location
 

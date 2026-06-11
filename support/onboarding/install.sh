@@ -14,9 +14,14 @@
 # WHAT IT DOES (each step is plain and idempotent):
 #   1. checks python3 (>= 3.11) is present
 #   2. ensures `uv` is present (installs it via the official astral.sh script)
-#   3. clones the private repo using YOUR OWN gh/git login (no token in here)
+#   3. clones the private repo using YOUR OWN gh login (no token in here);
+#      before a FRESH clone it preflights `gh auth status` so the most likely
+#      fresh-machine failure becomes a one-line Korean prescription, not a raw
+#      git error
 #   4. runs `uv sync` in the checkout
-#   5. prints the next step: the onboard wizard
+#   5. runs the onboard doctor itself (rustup-style self-check: every provider
+#      preflight + the symptom -> prescription table; doctor always exits 0)
+#   6. prints the next step: the onboard wizard
 #
 # SAFETY / LIMITS (read this honestly):
 #   - This script is HTTPS-only and carries NO secret / token. It relies on the
@@ -96,17 +101,27 @@ main() {
 
     # --- step 3: clone via the user's OWN auth (idempotent) ----------------
     # No token lives here. If the checkout already exists, fast-forward pull
-    # instead of cloning, so re-running is safe.
+    # instead of cloning, so re-running is safe. Before a FRESH clone we
+    # preflight gh login: the repo is private, so an unauthed clone is the most
+    # likely fresh-machine failure -- catch it with a one-line prescription
+    # instead of a raw git error.
     if [ -d "$target/.git" ]; then
         printf '%s\n' "3) 이미 받아둔 저장소가 있어서 최신으로 갱신할게요 (fast-forward)..."
         git -C "$target" pull --ff-only
     else
-        printf '%s\n' "3) 저장소를 받을게요 (내 gh/git 로그인 사용)..."
-        if command -v gh >/dev/null 2>&1; then
-            gh repo clone "$REPO_SLUG" "$target"
-        else
-            git clone "https://github.com/$REPO_SLUG.git" "$target"
+        if ! command -v gh >/dev/null 2>&1; then
+            printf '%s\n' \
+                "gh CLI가 없어요. 비공개 저장소라 gh 로그인이 필요해요." \
+                "  - https://cli.github.com 에서 설치하고 'gh auth login' 한 뒤 다시 실행해 주세요." >&2
+            return 1
         fi
+        if ! gh auth status >/dev/null 2>&1; then
+            printf '%s\n' \
+                "GitHub 로그인이 안 돼 있어요. 'gh auth login' 을 실행한 뒤 다시 실행해 주세요." >&2
+            return 1
+        fi
+        printf '%s\n' "3) 저장소를 받을게요 (내 gh 로그인 사용)..."
+        gh repo clone "$REPO_SLUG" "$target"
     fi
     printf '%s\n' "3) 저장소 준비 완료 ✅ ($target)"
 
@@ -115,14 +130,23 @@ main() {
     ( cd "$target" && uv sync )
     printf '%s\n' "4) 의존성 설치 완료 ✅"
 
-    # --- step 5: next-step pointer (plain Korean) --------------------------
+    # --- step 5: self-check (rustup-style "Great!") -------------------------
+    # The script runs the preflight ITSELF instead of only telling you to.
+    # The onboard doctor diagnoses (gh + every provider preflight + the
+    # symptom -> prescription table) and ALWAYS exits 0 -- a missing provider
+    # shows a ❌ row + a one-line prescription, never kills the install.
+    printf '%s\n' "" "5) 설치 점검을 바로 돌려볼게요 (onboard doctor)..."
+    ( cd "$target" && uv run python3 -m brick_protocol.support.operator.onboard doctor )
+    printf '%s\n' "5) 설치 점검 완료 ✅"
+
+    # --- step 6: next-step pointer (plain Korean) --------------------------
     printf '%s\n' \
         "" \
         "받은 게 멀쩡한지 확인하려면 (verify your download):" \
         "  cd $target && $CHECKER_ENTRY" \
         "  (초록불 = exit 0 이면 정상이에요.)" \
         "" \
-        "끝! 다음 단계는 온보딩 마법사예요:" \
+        "끝! 다음 한 줄만 그대로 붙여넣으면 온보딩 마법사가 이어서 안내해요:" \
         "  cd $target && $ONBOARD_ENTRY" \
         "" \
         "막히면 그냥 한국어로 에이전트한테 물어보면 돼요. 천천히 하셔도 괜찮아요 🙂"

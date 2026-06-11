@@ -2,19 +2,23 @@
 
 Brick Protocol is a three-axis work protocol for human-agent work: Brick = the work, Agent = the performer, Link = the transfer/carry/movement between work boundaries.
 
-Start here: [quickstart](support/docs/references/quickstart.md) · [setup](support/docs/references/setup.md) · [three-axis overview](support/docs/references/three-axis-overview.md)
-
-First three commands:
+## 시작하기 (2분)
 
 ```bash
-# 1. clone + install (your own gh/git login; no hosted installer)
-#    default install target is $HOME/BRICK; cloned elsewhere? set BRICK_HOME=/path/to/your/clone before running install.sh
+# 1) 받기 + 설치 — 내 gh 로그인 사용 (호스팅된 설치 URL은 없어요)
+#    기본 위치는 $HOME/BRICK; 다른 곳에 받았다면 BRICK_HOME=/path/to/clone 지정
 gh repo clone insightwavesmith/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh
-# 2. verify your download (green = exit 0)
-cd ~/BRICK && PYTHONPATH=support/import_identity uv run python3 support/checkers/check_profile.py --all
-# 3. onboard wizard (codex | claude | gemini | local)
-uv run python3 -m brick_protocol.support.operator.onboard codex
+# 2) 온보딩 위자드 (codex | claude | gemini | local)
+cd ~/BRICK && uv run python3 -m brick_protocol.support.operator.onboard codex
 ```
+
+설치가 끝나면 위자드가 다음 단계를 알아서 안내해요. provider 없이도 첫 예제
+빌딩이 30초 안에 돕니다 (이 저장소 실측 약 1.6초, `adapter:local`). 막히면
+`uv run python3 -m brick_protocol.support.operator.onboard doctor` 가 증상→처방
+진단표를 보여줘요. 받은 게 멀쩡한지 확인(초록불 = exit 0):
+`PYTHONPATH=support/import_identity uv run python3 support/checkers/check_profile.py --all`
+
+Start here: [quickstart](support/docs/references/quickstart.md) · [setup](support/docs/references/setup.md) · [three-axis overview](support/docs/references/three-axis-overview.md)
 
 You do not author task files: SPEAK your task as text. Pass `task_statement`
 to the intake seam (see the quickstart's one-liner) and the machine records it

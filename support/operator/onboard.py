@@ -736,6 +736,139 @@ def _render_recording_text(recording: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+# ---------------------------------------------------------------------------
+# ONBOARD DOCTOR (ONBOARD-POLISH 0611)
+#
+# ``onboard doctor`` exposes the EXISTING never-raising preflight as a one-shot
+# diagnosis surface: it probes the gh login the install.sh clone path depends
+# on, runs preflight_provider for every supported host, and prints a fixed
+# symptom -> prescription table. Diagnosis ONLY: read-only, never raises, and
+# the CLI ALWAYS exits 0 (a missing provider is a ❌ row + a one-line
+# prescription, not a failure of the doctor itself). The provider
+# prescriptions are the SAME strings agent_adapter's preflight hints already
+# carry (npm install -g ... / codex login) -- copied, not invented.
+# ---------------------------------------------------------------------------
+
+# Fixed symptom -> prescription rows: the failures cold-start users actually
+# hit on the documented paths (quickstart / install.sh / first Building run).
+DOCTOR_SYMPTOM_PRESCRIPTIONS_KO: tuple[tuple[str, str], ...] = (
+    (
+        "ModuleNotFoundError: No module named 'brick_protocol' (또는 'yaml')",
+        "저장소 루트에서 'uv run python3 ...' 형식으로 실행하세요. "
+        "(uv 없이 쓰려면 'PYTHONPATH=support/import_identity python3 ...' "
+        "+ 전역 PyYAML 필요)",
+    ),
+    (
+        "FileExistsError: Building root already exists",
+        "building_id 를 새로 정하거나, 같은 자리를 일부러 다시 쓰려면 "
+        "overwrite_existing=True 를 명시적으로 넘기세요. (위자드 예제는 자동 처리)",
+    ),
+    (
+        "local_cli_missing (codex CLI가 없음)",
+        "npm install -g @openai/codex 후 codex login",
+    ),
+    (
+        "local_cli_missing (claude CLI가 없음)",
+        "npm install -g @anthropic-ai/claude-code",
+    ),
+    (
+        "gh 인증 에러 (clone/pull 실패)",
+        "gh auth login (gh가 없으면 https://cli.github.com 에서 설치)",
+    ),
+)
+
+
+def _doctor_gh_row() -> dict[str, Any]:
+    """gh login probe for the clone/pull path. Read-only, never raises."""
+
+    import shutil  # noqa: PLC0415
+    import subprocess  # noqa: PLC0415
+
+    target = "gh (저장소 받기/갱신)"
+    if shutil.which("gh") is None:
+        return {
+            "target": target,
+            "ok": False,
+            "message_ko": (
+                "gh CLI가 없어요 → https://cli.github.com 에서 설치한 뒤 "
+                "gh auth login"
+            ),
+        }
+    try:
+        completed = subprocess.run(  # noqa: S603 -- fixed argv, read-only probe
+            ("gh", "auth", "status"),
+            capture_output=True,
+            timeout=10,
+            check=False,
+        )
+        authed = completed.returncode == 0
+    except Exception:  # noqa: BLE001 -- doctor never raises
+        authed = False
+    if authed:
+        return {"target": target, "ok": True, "message_ko": "GitHub 로그인 확인 ✅"}
+    return {
+        "target": target,
+        "ok": False,
+        "message_ko": "GitHub 로그인이 안 돼 있어요 → gh auth login",
+    }
+
+
+def run_doctor() -> dict[str, Any]:
+    """Run every provider preflight + the gh probe. NEVER raises.
+
+    Returns {rows, symptom_table, all_ok}. ``all_ok`` summarizes the rows, but
+    the CLI entry ALWAYS exits 0: doctor is a diagnosis record, not a gate. It
+    proves no provider availability, judges no success/quality, and chooses no
+    Movement.
+    """
+
+    rows: list[dict[str, Any]] = []
+    try:
+        rows.append(_doctor_gh_row())
+        for host in SUPPORTED_HOSTS:
+            status = _preflight_step(host)
+            rows.append(
+                {
+                    "target": host,
+                    "ok": bool(status.get("ok")),
+                    "message_ko": str(status.get("message_ko") or ""),
+                }
+            )
+    except Exception as exc:  # noqa: BLE001 -- friendly row, never raise
+        rows.append(
+            {
+                "target": "doctor",
+                "ok": False,
+                "message_ko": f"진단 중에 문제가 생겼어요 ({type(exc).__name__}).",
+            }
+        )
+    return {
+        "rows": rows,
+        "symptom_table": list(DOCTOR_SYMPTOM_PRESCRIPTIONS_KO),
+        "all_ok": all(bool(row.get("ok")) for row in rows),
+    }
+
+
+def _render_doctor_text(result: dict[str, Any]) -> str:
+    lines: list[str] = []
+    lines.append("=== Brick Protocol 진단 (onboard doctor) ===\n")
+    lines.append("1) 준비 상태")
+    for row in result.get("rows", []):
+        mark = "✅" if row.get("ok") else "❌"
+        lines.append(f"   {mark} {row.get('target', '')}: {row.get('message_ko', '')}")
+    lines.append("")
+    lines.append("2) 증상 → 처방")
+    for symptom, prescription in result.get("symptom_table", []):
+        lines.append(f"   - {symptom}")
+        lines.append(f"     → {prescription}")
+    lines.append("")
+    lines.append(
+        "진단은 기록일 뿐이에요: 아무것도 바꾸지 않고, 항상 exit 0 입니다. "
+        "(❌ 줄이 있으면 그 옆의 처방 한 줄만 따라 하면 돼요.)"
+    )
+    return "\n".join(lines)
+
+
 def _handoff_message_ko(host: str) -> str:
     """Step 4: plain-Korean closing handoff that NAMES the Phase-1 seam verb."""
 
@@ -878,11 +1011,21 @@ def _render_flow_text(result: dict[str, Any]) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
+    args_list = list(sys.argv[1:]) if argv is None else list(argv)
+    # ``onboard doctor``: diagnosis-only subcommand. Runs the gh probe + every
+    # provider preflight, prints the symptom -> prescription table, and ALWAYS
+    # exits 0 (diagnosis is a record, not a gate).
+    if args_list[:1] == ["doctor"]:
+        sys.stdout.write(_render_doctor_text(run_doctor()))
+        sys.stdout.write("\n")
+        return 0
     parser = argparse.ArgumentParser(
         description=(
             "Friendly, never-raising onboarding flow. Prints the preflight + "
             "connect + a first example Building (routed through the PART-1 seam "
-            "driver.run_building_intake) in plain Korean."
+            "driver.run_building_intake) in plain Korean. Also: the 'doctor' "
+            "subcommand prints a symptom -> prescription diagnosis and always "
+            "exits 0."
         )
     )
     parser.add_argument("host", choices=SUPPORTED_HOSTS)
@@ -916,7 +1059,7 @@ def main(argv: list[str] | None = None) -> int:
             "overwrites a user-modified file (compare + skip + warn)."
         ),
     )
-    args = parser.parse_args(argv)
+    args = parser.parse_args(args_list)
     result = run_onboard(
         args.host,
         repo_root=args.repo,
@@ -938,6 +1081,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 __all__ = [
+    "DOCTOR_SYMPTOM_PRESCRIPTIONS_KO",
     "EXAMPLE_DECLARED_BY",
     "EXAMPLE_LOCAL_PRESET_REF",
     "EXAMPLE_PLAN_REL",
@@ -947,6 +1091,7 @@ __all__ = [
     "SEAM_VERB",
     "SUPPORTED_HOSTS",
     "main",
+    "run_doctor",
     "run_onboard",
     "run_recording_setup",
 ]
