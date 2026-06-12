@@ -405,6 +405,23 @@ def _slug_part(value: str) -> bool:
     return bool(re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", value))
 
 
+def _composition_slug(value: str) -> str:
+    cleaned = "".join(
+        char.lower() if char.isalnum() else "-"
+        for char in str(value).strip()
+    ).strip("-")
+    while "--" in cleaned:
+        cleaned = cleaned.replace("--", "-")
+    return cleaned or "node"
+
+
+def _chain_step_identity_slug(step_ref: str, step_alias: str) -> str:
+    if step_alias:
+        return _composition_slug(step_alias)
+    tail = step_ref.split(":", 1)[-1]
+    return _composition_slug(tail.removeprefix("building-step-template-"))
+
+
 def _is_brick_kind_template_dir(path: str) -> bool:
     parts = Path(path).parts
     return (
@@ -829,10 +846,27 @@ def _validate_chain_preset_references(
                     "chain preset must declare at least one step",
                 )
             )
+        step_template_rows: dict[str, list[tuple[str, bool]]] = {}
+        identity_rows: dict[str, list[str]] = {}
         for index, raw_step in enumerate(steps):
             step = _as_mapping(raw_step)
             step_location = f"{location}.steps[{index}]"
             step_ref = _text(step.get("step_template_ref"))
+            step_alias = _text(step.get("step_alias"))
+            has_step_alias = "step_alias" in step and bool(step_alias)
+            if "step_alias" in step and not step_alias:
+                violations.append(
+                    CatalogViolation(
+                        "invalid_chain_step_alias",
+                        step_location,
+                        "step_alias must be non-empty text when present",
+                    )
+                )
+            step_template_rows.setdefault(step_ref, []).append(
+                (step_location, has_step_alias)
+            )
+            identity_slug = _chain_step_identity_slug(step_ref, step_alias)
+            identity_rows.setdefault(identity_slug, []).append(step_location)
             if step_ref not in step_refs:
                 violations.append(
                     CatalogViolation(
@@ -890,6 +924,32 @@ def _validate_chain_preset_references(
                         f"target_word {target_word!r} looks like Movement, gate, step identity, or multiple targets",
                     )
                 )
+        for step_ref, rows in sorted(step_template_rows.items()):
+            if not step_ref or len(rows) <= 1:
+                continue
+            missing_alias_rows = [
+                step_location for step_location, has_alias in rows if not has_alias
+            ]
+            if missing_alias_rows:
+                violations.append(
+                    CatalogViolation(
+                        "chain_step_alias_required_for_repeated_template",
+                        location,
+                        f"step_template_ref {step_ref} appears multiple times; "
+                        "each repeated row must carry a distinguishing step_alias "
+                        f"(missing on {missing_alias_rows})",
+                    )
+                )
+        for identity_slug, rows in sorted(identity_rows.items()):
+            if len(rows) <= 1:
+                continue
+            violations.append(
+                CatalogViolation(
+                    "duplicate_chain_step_identity",
+                    location,
+                    f"step_alias/template slug {identity_slug!r} collides across rows {rows}",
+                )
+            )
     return violations
 
 
@@ -2020,6 +2080,16 @@ def _run_fire_fixtures() -> tuple[int, list[str]]:
             "invalid_chain_step_template_ref",
             None,
         ),
+        "chain_step_alias_required_for_repeated_template": (
+            "chain_step_alias_required_for_repeated_template",
+            "chain_step_alias_required_for_repeated_template",
+            None,
+        ),
+        "duplicate_chain_step_identity": (
+            "duplicate_chain_step_identity",
+            "duplicate_chain_step_identity",
+            None,
+        ),
         "invalid_chain_gate_concept_profile": (
             "invalid_chain_gate_concept_profile",
             "invalid_chain_gate_concept_profile",
@@ -2200,6 +2270,15 @@ def _run_fire_fixtures() -> tuple[int, list[str]]:
                 packet["legacy_expanded_brick_template_refs"] = ["/etc/passwd"]
             elif mutation == "invalid_chain_step_template_ref":
                 _first_dogfood_preset(state)["steps"][0]["step_template_ref"] = "building-step-template:missing"
+            elif mutation == "chain_step_alias_required_for_repeated_template":
+                row = _first_dogfood_preset(state)
+                row["steps"].append(copy.deepcopy(row["steps"][0]))
+            elif mutation == "duplicate_chain_step_identity":
+                row = _first_dogfood_preset(state)
+                row["steps"][0]["step_alias"] = "work-lens"
+                duplicate = copy.deepcopy(row["steps"][0])
+                duplicate["step_alias"] = "work-lens"
+                row["steps"].append(duplicate)
             elif mutation == "invalid_chain_brick_spec_ref":
                 _first_dogfood_preset(state)["steps"][0]["brick_spec_ref"] = (
                     "brick/templates/bricks/closure/brick.md"
