@@ -4,6 +4,7 @@ description: Building automation support profile over accumulated Building evide
 kernel_checks:
   - building_lifecycle_path_shape
   - building_map_graph
+  - chat_session_park_seam
 path_exists:
   - support/operator/run.py
   - agent/performance.py
@@ -32,15 +33,18 @@ text_contains:
       - AgentFact
       - movement
       - AdapterFrontierEvidenceWritten
+      - ChatSessionParkFrontierEvidenceWritten
       - _adapter_result_or_interrupt
       - _safe_exception_excerpt
       - credential redacted
       - write_adapter_error_frontier_evidence
+      - write_chat_session_park_frontier_evidence
   # The public adapter-error frontier writer name stays exposed on the thin
   # facade (re-exported for external importers).
   - path: support/operator/evidence_assembly.py
     texts:
       - write_adapter_error_frontier_evidence
+      - write_chat_session_park_frontier_evidence
   # ELEGANT-REFACTOR P3b: the adapter-error frontier writer + its trace-packet and
   # lifecycle builders moved into the adapter-error frontier emitter; the
   # building-map frontier packet moved into the building-map emitter; the plan
@@ -52,13 +56,18 @@ text_contains:
   - path: support/recording/adapter_error_frontier.py
     texts:
       - write_adapter_error_frontier_evidence
+      - write_chat_session_park_frontier_evidence
       - AdapterErrorFrontierTracePacket
+      - ChatSessionParkFrontierTracePacket
       - _adapter_error_frontier_lifecycle_packet
+      - _chat_session_park_frontier_lifecycle_packet
       - _adapter_error_frontier_building_map_packet
+      - _agent_adapter_request_work_envelope
       - '"plan_snapshot": _plan_snapshot(plan_ref, plan)'
   - path: support/recording/building_map_emit.py
     texts:
       - _adapter_error_frontier_building_map_packet
+      - _chat_session_park_frontier_building_map_packet
   - path: support/recording/declaration_packets.py
     texts:
       - 'def _plan_snapshot('
@@ -67,10 +76,13 @@ text_contains:
   - path: support/recording/step_outputs.py
     texts:
       - write_adapter_error_outputs
+      - write_chat_session_park_outputs
       - agent_fact_created
+      - chat_session_park_record
   - path: support/recording/raw_claim_trace.py
     texts:
       - write_adapter_error_frontier_raw_and_claim_trace
+      - write_chat_session_park_frontier_raw_and_claim_trace
       - receipt_trace.json
       - frontier_trace.json
   # ELEGANT-REFACTOR P3d: building_operation god-module decomposed; the pins below
@@ -79,11 +91,15 @@ text_contains:
   - path: support/operator/evidence_status.py
     texts:
       - FRONTIER_EVIDENCE_FILES
+      - PARKED_EVIDENCE_FILES
       - _frontier_marker_present
+      - _parked_marker_present
   # Frontier observation (adapter-error count) -> frontier_observation.
   - path: support/operator/frontier_observation.py
     texts:
       - adapter_error_records
+      - chat_session_park_records
+      - chat_session_parked
   # AXIS-SEPARATION: native-dispatch is Agent-axis vocabulary; support imports
   # the word and keeps the local alias so use-sites stay behavior-identical. The
   # native-dispatch seam -> native_dispatch.
@@ -99,12 +115,24 @@ text_contains:
   - path: support/checkers/check_building_lifecycle_path_shape.py
     texts:
       - FRONTIER_REQUIRED_RECORDS
+      - PARKED_REQUIRED_RECORDS
       - adapter-error.json
+      - chat-session-park.jsonl
+      - work-envelope.json
+      - parked.json
       - receipt_trace.json
       - frontier_trace.json
       - complete_required_records_present
       - frontier_required_records_present
+      - parked_required_records_present
       - brick_comparison_field_ref_tokens
+  - path: support/checkers/lib/kernel_checks.py
+    texts:
+      - run_chat_session_park_seam
+      - _chat_session_mutate_envelope_uuid
+      - _chat_session_mutate_park_as_adapter_error
+      - _chat_session_delete_work_envelope
+      - _chat_session_assert_undeclared_adapter_rejects
 text_absent:
   - path: support/checkers/check_profile.py
     texts:

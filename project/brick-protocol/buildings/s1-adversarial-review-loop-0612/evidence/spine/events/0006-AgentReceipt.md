@@ -1,0 +1,12 @@
+# AgentReceipt · seq 6 · ["Agent"]
+- agent_object_ref: "agent-object:workflow"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick:s1-adversarial-review-loop-0612:native-dispatch"
+- event_type: "AgentReceipt"
+- evidence_reference: "raw:agent:01"
+- received_work_ref: "brick-work:01:s1-adversarial-review-loop-0612-native-dispatch"
+- run_segment: 1
+- sequence_index: 6
+- source_fact_ref: "agent-fact:01:s1-adversarial-review-loop-0612-native-dispatch"
+- spine_schema_version: "spine-v1"
+- step_ref: "s1-adversarial-review-loop-0612-native-dispatch"

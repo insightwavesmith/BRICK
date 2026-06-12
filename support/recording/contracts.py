@@ -58,6 +58,27 @@ class AdapterErrorObservation:
 
 
 @dataclass(frozen=True)
+class ChatSessionParkObservation:
+    building_id: str
+    step_ref: str
+    brick_instance_ref: str
+    next_brick_instance_ref: str
+    agent_object_ref: str
+    adapter_ref: str
+    selected_model_ref: str
+    input_packet_ref: str
+    output_packet_ref: str
+    received_work_ref: str
+    parked_ref: str
+    work_envelope_ref: str
+    raw_ref: str
+    work_envelope: Mapping[str, Any]
+    task_source_ref: str = ""
+    proof_limits: tuple[str, ...] = field(default_factory=tuple)
+    not_proven: tuple[str, ...] = field(default_factory=tuple)
+
+
+@dataclass(frozen=True)
 class RawClaimTracePacket:
     brick_raw_records: tuple[Mapping[str, Any], ...]
     agent_raw_records: tuple[Mapping[str, Any], ...]
@@ -80,6 +101,17 @@ class AdapterErrorFrontierTracePacket:
     brick_raw_records: tuple[Mapping[str, Any], ...]
     agent_received_raw_records: tuple[Mapping[str, Any], ...]
     adapter_error_raw_records: tuple[Mapping[str, Any], ...]
+    link_raw_records: tuple[Mapping[str, Any], ...]
+    brick_claim_facts: tuple[Mapping[str, Any], ...]
+    agent_receipt_claim_facts: tuple[Mapping[str, Any], ...]
+    link_frontier_claim_facts: tuple[Mapping[str, Any], ...]
+
+
+@dataclass(frozen=True)
+class ChatSessionParkFrontierTracePacket:
+    brick_raw_records: tuple[Mapping[str, Any], ...]
+    agent_received_raw_records: tuple[Mapping[str, Any], ...]
+    park_raw_records: tuple[Mapping[str, Any], ...]
     link_raw_records: tuple[Mapping[str, Any], ...]
     brick_claim_facts: tuple[Mapping[str, Any], ...]
     agent_receipt_claim_facts: tuple[Mapping[str, Any], ...]
@@ -469,10 +501,14 @@ def building_map_link_edge_specs() -> tuple[EvidenceFieldSpec, ...]:
 # limits. NO verdict.
 FRONTIER_OBSERVATION_REQUIRED_FIELDS: tuple[str, ...] = (
     "frontier_kind",
-    "adapter_error_ref",
     "proof_limits",
 )
+FRONTIER_OBSERVATION_OPTIONAL_FIELDS: tuple[str, ...] = (
+    "adapter_error_ref",
+    "parked_ref",
+)
 FRONTIER_OBSERVATION_AGENT_INCOMPLETE_KIND = "agent_incomplete"
+FRONTIER_OBSERVATION_CHAT_SESSION_PARKED_KIND = "chat_session_parked"
 FRONTIER_OBSERVATION_PROOF_LIMITS: tuple[str, ...] = (
     "graph support projection only",
     "not source truth",
@@ -486,4 +522,7 @@ def frontier_observation_specs() -> tuple[EvidenceFieldSpec, ...]:
     return tuple(
         EvidenceFieldSpec(name, "required")
         for name in FRONTIER_OBSERVATION_REQUIRED_FIELDS
+    ) + tuple(
+        EvidenceFieldSpec(name, "optional")
+        for name in FRONTIER_OBSERVATION_OPTIONAL_FIELDS
     )

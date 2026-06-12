@@ -1,0 +1,202 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:adapter-30-s1-park-2::work/step-outputs/adapter-30-s1-park-2-closure-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-adapter-30-s1-park-2-closure",
+  "building_id": "adapter-30-s1-park-2",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:06",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "gate_sequence_decision_record": {
+    "action": "hold",
+    "evidence_ref": "observation:gate-sequence-adapter-30-s1-park-2-adapter-30-s1-park-2-closure-link-gate-human-hold",
+    "gate_action_sequence": [
+      {
+        "action": "hold",
+        "evidence_ref": "observation:gate-sequence-adapter-30-s1-park-2-adapter-30-s1-park-2-closure-link-gate-human-hold",
+        "gate_ref": "link-gate:human",
+        "hold_reason": "gate_sequence_missing_required_facts:link-gate:human",
+        "pending_target_ref": "brick-adapter-30-s1-park-2-closure",
+        "reason_refs": [
+          "observation:human-gate-disposition-missing"
+        ],
+        "target_brick_ref": ""
+      }
+    ],
+    "gate_ref": "link-gate:human",
+    "gate_results": [
+      {
+        "checked_public_fact": "brick-comparison:adapter-30-s1-park-2:adapter-30-s1-park-2-closure",
+        "gate_ref": "link-gate:human",
+        "missing_required_facts": [
+          "Link.route_decision_basis.human_review_refs"
+        ],
+        "required_public_facts": [
+          "Link.route_decision_basis.human_review_refs"
+        ],
+        "sufficiency": "missing_required_facts"
+      }
+    ],
+    "hold_reason": "gate_sequence_missing_required_facts:link-gate:human",
+    "pending_target_ref": "brick-adapter-30-s1-park-2-closure",
+    "reason_refs": [
+      "observation:human-gate-disposition-missing"
+    ],
+    "required_disposition_owner": "caller-or-coo",
+    "target_brick_ref": ""
+  },
+  "generatedAtTime": "2026-06-11T23:08:27.333918Z",
+  "id": "urn:bp:building:adapter-30-s1-park-2::work/step-outputs/adapter-30-s1-park-2-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:06:adapter-30-s1-park-2-closure",
+  "recorded_at": "2026-06-11T23:08:27.333918Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:coo",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:codex-local:adapter-30-s1-park-2",
+    "cli_version_text": "codex-cli 0.137.0",
+    "deferred_smith_review_queue": [
+      "Confirm whether the next declared boundary should be implementation/repair or verification-first inspection.",
+      "Confirm whether scoped write authority is declared for any repair lane.",
+      "Confirm that reporter bell remains the admitted local inbox/event projection only, not Slack, webhook, scheduler, queue, retry, or thread wake delivery."
+    ],
+    "evidence_refs": [
+      "support-packet:adapter-30-s1-park-2:agent-object:coo:output"
+    ],
+    "narrowly_proven": [
+      "The declared task boundary is understood as support-only PARK seam S1; S2 submit and S3 resume remain out of scope.",
+      "Incoming QA evidence agrees that park must not become Link Movement, route target, success judgment, quality judgment, source truth, scheduler, queue, retry, timer, or provider runtime.",
+      "Incoming QA evidence agrees that the current evidence packet cannot close the implementation deliverables because no live repository or checker evidence was inspected."
+    ],
+    "next_target_candidates": [
+      "candidate_only: caller/COO may declare a reroute to an implementation or repair Brick for the S1 PARK seam if live inspection shows missing implementation.",
+      "candidate_only: caller/COO may declare a verification Brick with read access to inspect implementation, evidence roots, path checkers, frontier projection, reporter mapping, and checker FIRE fixtures.",
+      "candidate_only: caller/COO may hold for Smith review if no declared Brick/Agent/Link basis exists for the next boundary."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "S1 implementation exists.",
+      "adapter:chat-session is registered without CLI invocation.",
+      "typed parked outcome exists without fabricated AgentFact.returned.",
+      "work envelope is a closed AgentAdapterRequest projection only.",
+      "UUID/ULID/session/provider identifiers are rejected from envelope or ledger evidence.",
+      "park record is shape-distinct from adapter-error.",
+      "frontier observation checks parked before agent_incomplete.",
+      "reporter maps emit the intended local wake/delivery event for parked frontier.",
+      "both path checkers admit the envelope and park-record paths.",
+      "all required RED/FIRE mutated-copy probes were executed and observed.",
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all exits 0.",
+      "absence of scheduler/queue/retry/timer in implementation.",
+      "absence of Link vocabulary or link/ mutation.",
+      "source truth.",
+      "success judgment.",
+      "quality judgment.",
+      "Movement authority."
+    ],
+    "observed_evidence": [
+      "Closure received three forward handoffs from code-attack-qa, axis-attack-qa, and evidence-integrity lanes for adapter-30-s1-park-2.",
+      "All three incoming returns used only the provided task packet / instruction packet and explicitly did not inspect repository files, persisted evidence roots, implementation diffs, fixtures, or checker outputs.",
+      "The task source requires S1 only: adapter:chat-session must park before step execution, record a closed AgentAdapterRequest envelope plus distinct park record, stop fails-closed, expose parked frontier before agent_incomplete, and ring the reporter bell.",
+      "The incoming QA lanes consistently identify missing proof for implementation existence, checker profile green, required RED/FIRE mutated-copy probes, reporter wake behavior, frontier branch ordering, dual path admission, and absence of scheduler/queue/retry/timer behavior."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"Closure received three forward handoffs from code-attack-qa, axis-attack-qa, and evidence-integrity lanes for adapter-30-s1-park-2.\", \"All three incoming returns used only the provided task packet / instruction packet and explicitly did not inspect repository files, persisted evidence roots, implementation diffs, fixtures, or checker outputs.\", \"The task source requires S1 only: adapter:chat-session must park before step execution, record a closed AgentAdapterRequest envelope plus distinct park record, stop fails-closed, expose parked frontier before agent_incomple...",
+    "parent_goal_delta_status": "not_closed: incoming QA lanes only establish contract-risk alignment and missing evidence; they do not prove S1 implementation or checker-backed closure.",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "remaining_delta": [
+      "A tool-allowed verification Brick must inspect the live repository files, persisted Building evidence root, fixtures, and checker outputs.",
+      "A declared implementation or repair Brick with scoped write authority is still needed if S1 has not yet been implemented or if inspection finds gaps.",
+      "Closure evidence must include changed files, evidence root, exact checker commands, and RED/FIRE then restored-green proof for each required pin before any closure claim is supportable."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "transition_concern_evidence": {
+      "binding": false,
+      "concern_kind": "verification_gap",
+      "concern_ref": "transition-concern:adapter-30-s1-park-2-closure-verification-gap",
+      "not_proven": [
+        "S1 implementation closure",
+        "checker profile green",
+        "required RED/FIRE probe evidence",
+        "reporter/frontier/path-admission proof"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "no Link Movement chosen"
+      ],
+      "reason_refs": [
+        "work/step-outputs/adapter-30-s1-park-2-code-attack-qa-attempt-1/step-output.json",
+        "work/step-outputs/adapter-30-s1-park-2-axis-attack-qa-attempt-1/step-output.json",
+        "work/step-outputs/adapter-30-s1-park-2-evidence-integrity-attempt-1/step-output.json",
+        "task-source:inline-statement"
+      ],
+      "related_boundary_refs": [
+        "brick-adapter-30-s1-park-2-closure",
+        "brick-adapter-30-s1-park-2-code-attack-qa",
+        "brick-adapter-30-s1-park-2-axis-attack-qa",
+        "brick-adapter-30-s1-park-2-evidence-integrity"
+      ]
+    }
+  },
+  "returned_fact_ref": "agent-fact:06:adapter-30-s1-park-2-closure",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:adapter-30-s1-park-2",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:adapter-30-s1-park-2-closure:attempt-1",
+  "step_ref": "adapter-30-s1-park-2-closure",
+  "subject": "adapter-30-s1-park-2-closure",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-11T23:08:27.333918Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

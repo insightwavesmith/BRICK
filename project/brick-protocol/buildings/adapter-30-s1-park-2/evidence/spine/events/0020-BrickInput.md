@@ -1,0 +1,12 @@
+# BrickInput · seq 20 · ["Brick"]
+- axis_scope: ["Brick"]
+- brick_instance_ref: "brick-adapter-30-s1-park-2-work"
+- comparison_rule: "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickInput"
+- required_return_shape: "made_changes, observed_evidence, not_proven"
+- run_segment: 2
+- sequence_index: 20
+- source_facts: ["task-source:inline-statement"]
+- spine_schema_version: "spine-v1"
+- step_ref: "adapter-30-s1-park-2-work"
+- work_statement: "work Brick for task-source:inline-statement: Implement seam S1 of the chat-session adapter, per the Smith-approved design (v2, 2026-06-11): when a plan step's declared adapter is `adapter:chat-session`, the engine must PARK — record a work envelope + a park record (support-only record"

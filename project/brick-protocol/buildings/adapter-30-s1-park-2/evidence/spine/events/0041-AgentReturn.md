@@ -1,0 +1,13 @@
+# AgentReturn · seq 41 · ["Agent"]
+- agent_object_ref: "agent-object:inspector"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-adapter-30-s1-park-2-axis-attack-qa"
+- event_type: "AgentReturn"
+- observed_fields: ["received_work","returned"]
+- returned_fact_ref: "agent-fact:04:adapter-30-s1-park-2-axis-attack-qa"
+- route_request_ref: ""
+- run_segment: 2
+- sequence_index: 41
+- spine_schema_version: "spine-v1"
+- step_output_ref: "step-output:adapter-30-s1-park-2-axis-attack-qa:attempt-1"
+- step_ref: "adapter-30-s1-park-2-axis-attack-qa"

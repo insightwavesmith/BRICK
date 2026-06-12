@@ -75,7 +75,9 @@ from brick_protocol.support.recording.step_outputs import write_step_outputs
 # so external importers (run.py / building_operation.py) keep working identically.
 from brick_protocol.support.recording.adapter_error_frontier import (  # noqa: F401
     AdapterErrorFrontierEvidenceWriteResult,
+    ChatSessionParkFrontierEvidenceWriteResult,
     write_adapter_error_frontier_evidence,
+    write_chat_session_park_frontier_evidence,
 )
 
 

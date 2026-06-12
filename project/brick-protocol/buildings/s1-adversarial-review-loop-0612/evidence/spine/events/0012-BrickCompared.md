@@ -1,0 +1,15 @@
+# BrickCompared · seq 12 · ["Brick"]
+- alias_fact_refs: ["brick-comparison:s1-adversarial-review-loop-0612:s1-adversarial-review-loop-0612-native-dispatch"]
+- axis_scope: ["Brick"]
+- comparison_evidence: ["adapter returned value is available for Brick comparison observation","required_return_fields: observed_evidence, not_proven","missing_return_fields: observed_evidence, not_proven"]
+- comparison_observation: "contract observation only; not success judgment"
+- comparison_rule: ""
+- event_type: "BrickCompared"
+- forbidden_shortcut_evidence: ["support/run did not classify Agent return","support/run did not judge success or quality","support/run used caller-supplied Link facts"]
+- observed_match_kind: "missing"
+- required_return_shape_evidence: "observed_evidence, not_proven"
+- run_segment: 1
+- sequence_index: 12
+- source_fact_ref: "brick-comparison:01:s1-adversarial-review-loop-0612-native-dispatch"
+- spine_schema_version: "spine-v1"
+- work_reference: "Out-of-band adversarial review loop over the uncommitted S1 chat-session PARK diff (building adapter-30-s1-park-2 work output). Five codex 5.5-xhigh CLI rounds driven by the operator outside the chain (pre-F6 compensation; recorded post-hoc per the review-work-belongs-in-buildings ruling, Smith 0612): R1 review found 3 defects (dynamic/resume park unwired; parked projects unknown; seam checker linear-only), R2 fixed; R3 review found 3 more + 1 boundary (agent capability bypass; portfolio abort on parked child; missing parked next-action; generic-resume-of-parked must be explicit S2/S3 fail-closed), R4 fixed; R5 final verdict HOLDS with no findings. Every finding was reproduced by the operator before repair; operator FIRE probes and the full 12-profile gate (exit 0) ran between rounds. Logs: /tmp/codex-s1-review-r{1,3,5}.md, /tmp/codex-s1-fix-r{2,4}.md."

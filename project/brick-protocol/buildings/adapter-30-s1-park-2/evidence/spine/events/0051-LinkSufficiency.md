@@ -1,0 +1,12 @@
+# LinkSufficiency · seq 51 · ["Link"]
+- axis_scope: ["Link"]
+- checked_public_fact: "brick-comparison:adapter-30-s1-park-2:adapter-30-s1-park-2-evidence-integrity"
+- event_type: "LinkSufficiency"
+- missing_required_facts: []
+- required_public_facts: ["BrickComparisonFact.required_return_shape_evidence","BrickComparisonFact.comparison_evidence","BrickComparisonFact.comparison_evidence.returned_field.observed_evidence","BrickComparisonFact.comparison_evidence.returned_field.evidence_scope","BrickComparisonFact.comparison_evidence.returned_field.persisted_evidence_roots","BrickComparisonFact.comparison_evidence.returned_field.proof_limit_findings","BrickComparisonFact.comparison_evidence.returned_field.stale_source_risks","BrickComparisonFact.comparison_evidence.returned_field.checker_overclaim_risks","BrickComparisonFact.comparison_evidence.returned_field.missing_evidence","BrickComparisonFact.comparison_evidence.returned_field.evidence_used","BrickComparisonFact.comparison_evidence.returned_field.not_proven","BrickComparisonFact.comparison_evidence.returned_field.blocked_or_missing_evidence","BrickComparisonFact.comparison_evidence.returned_field.remaining_delta","BrickComparisonFact.comparison_evidence.returned_field.proof_limits"]
+- run_segment: 2
+- sequence_index: 51
+- source_fact_ref: "sufficiency-fact-movement:05:adapter-30-s1-park-2-evidence-integrity"
+- spine_schema_version: "spine-v1"
+- stage: "movement"
+- sufficiency: "sufficient"

@@ -71,6 +71,19 @@ FRONTIER_EVIDENCE_FILES: tuple[str, ...] = (
     "work/building-map.json",
 )
 
+PARKED_EVIDENCE_FILES: tuple[str, ...] = (
+    "capture/events.jsonl",
+    "raw/raw-manifest.json",
+    "raw/agent-received.jsonl",
+    "raw/chat-session-park.jsonl",
+    "evidence/evidence-manifest.json",
+    "evidence/claim_trace/brick/work_contract.json",
+    "evidence/claim_trace/agent/receipt_trace.json",
+    "evidence/claim_trace/link/frontier_trace.json",
+    "work/building-work.json",
+    "work/building-map.json",
+)
+
 
 @dataclass(frozen=True)
 class EvidenceStatus:
@@ -133,7 +146,26 @@ def evidence_status(
             present.append(rel_path)
         else:
             missing.append(rel_path)
-    if _frontier_marker_present(root):
+    if _parked_marker_present(root):
+        parked_files = sorted(
+            path.relative_to(root).as_posix()
+            for path in (root / "work" / "step-outputs").glob("*/parked.json")
+            if path.is_file()
+        )
+        envelope_files = sorted(
+            path.relative_to(root).as_posix()
+            for path in (root / "work" / "step-outputs").glob("*/work-envelope.json")
+            if path.is_file()
+        )
+        if parked_files:
+            present.extend(parked_files)
+        else:
+            missing.append("work/step-outputs/<step-ref>-attempt-N/parked.json")
+        if envelope_files:
+            present.extend(envelope_files)
+        else:
+            missing.append("work/step-outputs/<step-ref>-attempt-N/work-envelope.json")
+    elif _frontier_marker_present(root):
         adapter_error_files = sorted(
             path.relative_to(root).as_posix()
             for path in (root / "work" / "step-outputs").glob("*/adapter-error.json")
@@ -165,6 +197,8 @@ def _evidence_required_files_for_root(root: Path) -> tuple[str, ...]:
         if _declaration_evidence_marker_present(root):
             return REQUIRED_EVIDENCE_FILES + DECLARATION_EVIDENCE_FILES
         return REQUIRED_EVIDENCE_FILES
+    if _parked_marker_present(root):
+        return PARKED_EVIDENCE_FILES
     if _frontier_marker_present(root):
         return FRONTIER_EVIDENCE_FILES
     return REQUIRED_EVIDENCE_FILES
@@ -204,6 +238,16 @@ def _frontier_marker_present(root: Path) -> bool:
     )
 
 
+def _parked_marker_present(root: Path) -> bool:
+    return (
+        (root / "raw" / "chat-session-park.jsonl").is_file()
+        or any(
+            path.is_file()
+            for path in (root / "work" / "step-outputs").glob("*/parked.json")
+        )
+    )
+
+
 def analyze_building_evidence(
     building_root: str | Path,
     *,
@@ -220,6 +264,10 @@ def analyze_building_evidence(
         "agent_return": _line_count(root / "raw" / "agent-return.jsonl"),
         "link": _line_count(root / "raw" / "link.jsonl"),
     }
+    if (root / "raw" / "agent-received.jsonl").is_file():
+        raw_counts["agent_received"] = _line_count(root / "raw" / "agent-received.jsonl")
+    if (root / "raw" / "chat-session-park.jsonl").is_file():
+        raw_counts["chat_session_park"] = _line_count(root / "raw" / "chat-session-park.jsonl")
     claim_counts = {
         "brick_work_contract": _fact_count(root / "evidence" / "claim_trace" / "brick" / "work_contract.json"),
         "agent_returned_claims": _fact_count(root / "evidence" / "claim_trace" / "agent" / "returned_claims.json"),
@@ -228,6 +276,14 @@ def analyze_building_evidence(
         "link_sufficiency_trace": _fact_count(root / "evidence" / "claim_trace" / "link" / "sufficiency_trace.json"),
         "link_movement_trace": _fact_count(root / "evidence" / "claim_trace" / "link" / "movement_trace.json"),
     }
+    if (root / "evidence" / "claim_trace" / "agent" / "receipt_trace.json").is_file():
+        claim_counts["agent_receipt_trace"] = _fact_count(
+            root / "evidence" / "claim_trace" / "agent" / "receipt_trace.json"
+        )
+    if (root / "evidence" / "claim_trace" / "link" / "frontier_trace.json").is_file():
+        claim_counts["link_frontier_trace"] = _fact_count(
+            root / "evidence" / "claim_trace" / "link" / "frontier_trace.json"
+        )
     graph_counts = _graph_counts(root / "work" / "building-map.json")
     return BuildingEvidenceAnalysis(
         building_root=status.building_root,

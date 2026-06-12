@@ -124,3 +124,59 @@ def _adapter_error_agent_receipt_claim_fact(
             "receipt_role": "Agent received declared work before adapter exception observation",
         },
     )
+
+
+def _chat_session_park_agent_received_raw_records(
+    building_id: str,
+    completed_step_results: tuple[BuildingRunSupportResult, ...],
+    failed_preparation: AgentRunPreparationRecord,
+    observation: Any,
+) -> Iterable[Mapping[str, Any]]:
+    for index, result in enumerate(completed_step_results, start=1):
+        prepared = result.preparation
+        yield {
+            "raw_ref": _raw_ref("agent-received", index),
+            "raw_refs": [_raw_ref("agent-received", index)],
+            "building_id": building_id,
+            "step_ref": prepared.step_rows.step_ref,
+            "agent_object_ref": prepared.agent_object.object_ref,
+            "received_work_ref": _step_fact_ref("brick-work", index, prepared.step_rows.step_ref),
+            "receipt_record_role": "received work observation only",
+        }
+    failed_index = len(completed_step_results) + 1
+    yield {
+        "raw_ref": _raw_ref("agent-received", failed_index),
+        "raw_refs": [_raw_ref("agent-received", failed_index)],
+        "building_id": building_id,
+        "step_ref": failed_preparation.step_rows.step_ref,
+        "agent_object_ref": failed_preparation.agent_object.object_ref,
+        "received_work_ref": observation.received_work_ref,
+        "receipt_record_role": "received work observation only",
+        "parked_ref": observation.parked_ref,
+        "work_envelope_ref": observation.work_envelope_ref,
+    }
+
+
+def _chat_session_park_agent_receipt_claim_fact(
+    prepared: AgentRunPreparationRecord,
+    observation: Any,
+    index: int,
+    proof_limits: tuple[str, ...],
+) -> Mapping[str, Any]:
+    return _claim_fact(
+        axis="Agent",
+        fact_ref=_step_fact_ref("agent-receipt", index, prepared.step_rows.step_ref),
+        raw_refs=[_raw_ref("agent-received", index)],
+        proof_limits=proof_limits,
+        not_proven=observation.not_proven,
+        fact={
+            "received_work_ref": observation.received_work_ref,
+            "agent_object_ref": observation.agent_object_ref,
+            "adapter_ref": observation.adapter_ref,
+            "input_packet_ref": observation.input_packet_ref,
+            "work_envelope_ref": observation.work_envelope_ref,
+            "closed_agent_fact_absent": True,
+            "returned_value_absent": True,
+            "receipt_role": "Agent received declared work before chat-session park observation",
+        },
+    )

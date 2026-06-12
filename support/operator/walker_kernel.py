@@ -82,6 +82,7 @@ from brick_protocol.support.operator.walker_fan_in import (
     _splice_declared_successors,
 )
 from brick_protocol.support.operator.walker_frontier import (
+    _write_dynamic_chat_session_park_frontier,
     _write_dynamic_adapter_error_frontier,
 )
 from brick_protocol.support.operator.walker_hold import (
@@ -1077,6 +1078,9 @@ def _run_dynamic_graph_walker(
     record_step_output,
     write_accumulated,
     write_adapter_error_frontier,
+    write_chat_session_park_frontier,
+    chat_session_park_frontier_exception,
+    repo_root: Path | str = _REPO_ROOT,
     resume_seed: "ResumeSeed | None" = None,
 ) -> BuildingPlanSupportResult:
     """Walk a declared graph plan with runtime, gate-adopted, budgeted reroute.
@@ -1098,6 +1102,7 @@ def _run_dynamic_graph_walker(
 
     if _optional_text_from_mapping(plan, "plan_shape") != "graph":
         raise ValueError("walker_mode='dynamic' requires a plan_shape: graph Building Plan")
+    repo_root_path = Path(repo_root).resolve()
 
     # FORWARD path reuses the existing graph -> execution_order linearization.
     # LIVE RUN ADMISSION is STRICT about write grants (require_write_need_marker,
@@ -1108,7 +1113,7 @@ def _run_dynamic_graph_walker(
     linear_plan, graph_context = _linear_plan_from_graph_plan(plan)
     validate_declared_building_plan(
         linear_plan,
-        repo_root=_REPO_ROOT,
+        repo_root=repo_root_path,
         require_write_need_marker=True,
     )
 
@@ -1149,7 +1154,7 @@ def _run_dynamic_graph_walker(
             building_id=building_id,
             building_root=building_root,
             current_brick_ref=brick_ref_by_step.get(forward_order[0], ""),
-            repo_root=_REPO_ROOT,
+            repo_root=repo_root_path,
             overwrite_existing=overwrite_existing,
         )
         if started_event is not None:
@@ -1371,6 +1376,55 @@ def _run_dynamic_graph_walker(
                     proof_limits=checked_proof_limits,
                 )
         except Exception as exc:  # noqa: BLE001 - distinguish adapter frontier below
+            if getattr(exc, "parked", None) is not None:
+                evidence_write = _write_dynamic_chat_session_park_frontier(
+                    exc,
+                    building_id=building_id,
+                    plan_ref=plan_ref,
+                    linear_plan=linear_plan,
+                    completed_step_results=step_results,
+                    output_root=output_root,
+                    overwrite_existing=overwrite_existing or bool(step_results),
+                    checked_proof_limits=checked_proof_limits,
+                    graph_context=graph_context,
+                    reroute_records=reroute_records,
+                    node_budget=node_budget,
+                    node_landings=node_landings,
+                    held=False,
+                    hold_record=None,
+                    cascade_depth=cascade_depth,
+                    parent_reroute_ref=item["parent_reroute_ref"],
+                    fan_in_wait_all_observations=fan_in_wait_all_observations,
+                    has_fan_groups=has_fan_groups,
+                    write_chat_session_park_frontier=write_chat_session_park_frontier,
+                    resume_observations=_resume_observations_for_frontier(
+                        resume_seed,
+                        disposition_applied=disposition_applied,
+                        node_budget=node_budget,
+                        node_landings=node_landings,
+                    ),
+                )
+                if report_event_policy:
+                    terminal_event_kind = building_event_kind_from_frontier(
+                        evidence_write.lifecycle_write.root,
+                        repo_root=repo_root_path,
+                    )
+                    terminal_event = emit_building_event_for_policy(
+                        report_event_policy,
+                        event_kind=terminal_event_kind,
+                        building_id=building_id,
+                        building_root=evidence_write.lifecycle_write.root,
+                        repo_root=repo_root_path,
+                        overwrite_existing=overwrite_existing,
+                    )
+                    if terminal_event is not None:
+                        report_event_observations.append(terminal_event)
+                raise chat_session_park_frontier_exception(
+                    "chat-session park frontier evidence written before AgentFact returned",
+                    building_id=building_id,
+                    building_root=evidence_write.lifecycle_write.root,
+                    written_files=evidence_write.written_files,
+                ) from exc
             _write_dynamic_adapter_error_frontier(
                 exc,
                 building_id=building_id,
@@ -2217,14 +2271,14 @@ def _run_dynamic_graph_walker(
     if report_event_policy:
         terminal_event_kind = building_event_kind_from_frontier(
             evidence_write.lifecycle_write.root,
-            repo_root=_REPO_ROOT,
+            repo_root=repo_root_path,
         )
         terminal_event = emit_building_event_for_policy(
             report_event_policy,
             event_kind=terminal_event_kind,
             building_id=building_id,
             building_root=evidence_write.lifecycle_write.root,
-            repo_root=_REPO_ROOT,
+            repo_root=repo_root_path,
             overwrite_existing=overwrite_existing,
         )
         if terminal_event is not None:

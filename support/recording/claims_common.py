@@ -131,8 +131,28 @@ def _step_output_adapter_error_ref(step_ref: str, attempt_index: int) -> str:
     return f"work/step-outputs/{slug}-attempt-{attempt_index}/adapter-error.json"
 
 
+def _step_output_work_envelope_ref(step_ref: str, attempt_index: int) -> str:
+    slug = _resource_slug("step_ref", step_ref.replace(":", "-"))
+    return f"work/step-outputs/{slug}-attempt-{attempt_index}/work-envelope.json"
+
+
+def _step_output_parked_ref(step_ref: str, attempt_index: int) -> str:
+    slug = _resource_slug("step_ref", step_ref.replace(":", "-"))
+    return f"work/step-outputs/{slug}-attempt-{attempt_index}/parked.json"
+
+
 def _adapter_error_attempt_from_ref(adapter_error_ref: str) -> int:
     parts = adapter_error_ref.rsplit(":attempt-", 1)
+    if len(parts) == 2:
+        try:
+            return int(parts[1])
+        except ValueError:
+            pass
+    return 1
+
+
+def _chat_session_park_attempt_from_ref(parked_ref: str) -> int:
+    parts = parked_ref.rsplit(":attempt-", 1)
     if len(parts) == 2:
         try:
             return int(parts[1])
@@ -152,5 +172,8 @@ __all__ = [
     "_step_result_attempts",
     "_dynamic_reroute_records",
     "_step_output_adapter_error_ref",
+    "_step_output_work_envelope_ref",
+    "_step_output_parked_ref",
     "_adapter_error_attempt_from_ref",
+    "_chat_session_park_attempt_from_ref",
 ]

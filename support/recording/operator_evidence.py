@@ -33,6 +33,7 @@ from brick_protocol.support.recording.contracts import (
     CAPTURE_EVENT_ROLE,
     CAPTURE_EVENT_TYPES,
     FRONTIER_OBSERVATION_AGENT_INCOMPLETE_KIND,
+    FRONTIER_OBSERVATION_CHAT_SESSION_PARKED_KIND,
     FRONTIER_OBSERVATION_PROOF_LIMITS,
     building_map_agent_binding_specs,
     building_map_brick_instance_specs,
@@ -251,18 +252,33 @@ def build_link_edge_row(
 # ---------------------------------------------------------------------------
 
 
-def build_frontier_observation(*, adapter_error_ref: str) -> dict[str, Any]:
-    """Emit the agent-incomplete frontier observation from the contract.
+def build_frontier_observation(
+    *,
+    adapter_error_ref: str = "",
+    parked_ref: str = "",
+    frontier_kind: str = FRONTIER_OBSERVATION_AGENT_INCOMPLETE_KIND,
+) -> dict[str, Any]:
+    """Emit a stopped frontier observation from the contract.
 
-    Records WHERE the Building stopped (frontier_kind + the adapter-error ref) plus
-    the standard proof limits. It is a FACT, NOT a verdict.
+    Records WHERE the Building stopped plus the supporting stop ref and proof
+    limits. It is a FACT, NOT a verdict.
     """
 
+    if frontier_kind not in {
+        FRONTIER_OBSERVATION_AGENT_INCOMPLETE_KIND,
+        FRONTIER_OBSERVATION_CHAT_SESSION_PARKED_KIND,
+    }:
+        raise ValueError(f"frontier_kind is not admitted for frontier observation: {frontier_kind}")
+    if bool(adapter_error_ref) == bool(parked_ref):
+        raise ValueError("frontier observation requires exactly one stop ref")
     values: dict[str, Any] = {
-        "frontier_kind": FRONTIER_OBSERVATION_AGENT_INCOMPLETE_KIND,
-        "adapter_error_ref": adapter_error_ref,
+        "frontier_kind": frontier_kind,
         "proof_limits": list(FRONTIER_OBSERVATION_PROOF_LIMITS),
     }
+    if adapter_error_ref:
+        values["adapter_error_ref"] = adapter_error_ref
+    if parked_ref:
+        values["parked_ref"] = parked_ref
     return _build_from_specs(
         frontier_observation_specs(),
         values,

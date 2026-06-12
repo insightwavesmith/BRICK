@@ -29,6 +29,7 @@ ADAPTER_LOCAL = "adapter:local"
 ADAPTER_CODEX_LOCAL = "adapter:codex-local"
 ADAPTER_CLAUDE_LOCAL = "adapter:claude-local"
 ADAPTER_GEMINI_LOCAL = "adapter:gemini-local"
+ADAPTER_CHAT_SESSION = "adapter:chat-session"
 READ_WRITE_TOOL_POLICY_REF = "tool-policy:read-write-scoped"
 ADAPTER_CAPABILITY_READ = "read"
 ADAPTER_CAPABILITY_WRITE = "write"
@@ -73,6 +74,7 @@ ALLOWED_ADAPTER_REFS = frozenset(
         ADAPTER_CODEX_LOCAL,
         ADAPTER_CLAUDE_LOCAL,
         ADAPTER_GEMINI_LOCAL,
+        ADAPTER_CHAT_SESSION,
     }
 )
 _ADAPTER_CAPABILITIES = {
@@ -80,6 +82,7 @@ _ADAPTER_CAPABILITIES = {
     ADAPTER_CODEX_LOCAL: frozenset({ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_WRITE}),
     ADAPTER_CLAUDE_LOCAL: frozenset({ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_WRITE}),
     ADAPTER_GEMINI_LOCAL: frozenset({ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_REVIEW}),
+    ADAPTER_CHAT_SESSION: frozenset({ADAPTER_CAPABILITY_READ}),
 }
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -319,6 +322,31 @@ class AgentAdapterResult:
     not_proven: tuple[str, ...] = field(default_factory=tuple)
 
 
+class AgentAdapterParked(RuntimeError):
+    """Typed support signal: chat-session work is parked, not invoked."""
+
+    def __init__(self, request: AgentAdapterRequest) -> None:
+        super().__init__("chat-session adapter parked work envelope before provider invocation")
+        self.request = request
+        self.parked_kind = "chat_session_parked"
+        self.proof_limits = (
+            "chat-session adapter park signal only",
+            "no CLI or provider invocation attempted",
+            "not Agent returned payload",
+            "not AgentFact",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        )
+        self.not_proven = (
+            "chat session pickup behavior",
+            "future submit or resume behavior",
+            "semantic correctness of parked work",
+            "caller/COO disposition after parked frontier observation",
+        )
+
+
 @dataclass(frozen=True)
 class LocalCliSpec:
     """Allowlisted local CLI command shape behind an adapter ref."""
@@ -401,6 +429,8 @@ def connect_agent_brain(
         raise TypeError("request must be AgentAdapterRequest")
     if request.adapter_ref not in ALLOWED_ADAPTER_REFS:
         raise ValueError("adapter_ref is not admitted for SIMPLE-RUN-0")
+    if request.adapter_ref == ADAPTER_CHAT_SESSION:
+        raise AgentAdapterParked(request)
     dispatch_cwd = Path(cwd) if cwd is not None else _REPO_ROOT
     _consume_effective_write_observation_path(request, cwd=dispatch_cwd)
     if request.adapter_ref == ADAPTER_LOCAL:
@@ -457,6 +487,8 @@ def supported_model_ref_examples(adapter_ref: str) -> tuple[str, ...]:
             MODEL_REF_GEMINI_FLASH,
             "model:gemini:<gemini-model-id>",
         )
+    if adapter_ref == ADAPTER_CHAT_SESSION:
+        return (MODEL_REF_DEFAULT,)
     return (MODEL_REF_DEFAULT,)
 
 
@@ -480,6 +512,9 @@ def project_model_ref_to_cli_arg(adapter_ref: str, selected_model_ref: str = "")
     """
 
     if adapter_ref == ADAPTER_LOCAL:
+        _normalize_selected_model_ref(adapter_ref, selected_model_ref)
+        return ""
+    if adapter_ref == ADAPTER_CHAT_SESSION:
         _normalize_selected_model_ref(adapter_ref, selected_model_ref)
         return ""
     spec = _local_cli_spec(adapter_ref)
@@ -572,6 +607,15 @@ def preflight_provider(adapter_ref: str) -> dict[str, Any]:
             "ok": True,
             "message_ko": "준비 완료 ✅ (별도 설치/로그인이 필요 없어요)",
         }
+    if ref == ADAPTER_CHAT_SESSION:
+        return {
+            "adapter_ref": ADAPTER_CHAT_SESSION,
+            "cli": "",
+            "installed": True,
+            "authed": "unknown",
+            "ok": True,
+            "message_ko": "chat-session은 CLI를 실행하지 않고 작업 봉투를 parked로 기록해요.",
+        }
 
     # Retired or unknown adapter refs: clear message, no raise.
     spec = _LOCAL_CLI_SPECS.get(ref)
@@ -584,7 +628,8 @@ def preflight_provider(adapter_ref: str) -> dict[str, Any]:
             "ok": False,
             "message_ko": (
                 "알 수 없는 provider예요. 지원하는 것: adapter:local, "
-                "adapter:codex-local, adapter:claude-local, adapter:gemini-local"
+                "adapter:codex-local, adapter:claude-local, adapter:gemini-local, "
+                "adapter:chat-session"
             ),
         }
 
@@ -860,9 +905,9 @@ def _invoke_local_cli(
 
 
 def _normalize_selected_model_ref(adapter_ref: str, selected_model_ref: str) -> str:
-    if adapter_ref == ADAPTER_LOCAL:
+    if adapter_ref in {ADAPTER_LOCAL, ADAPTER_CHAT_SESSION}:
         if selected_model_ref and selected_model_ref != MODEL_REF_DEFAULT:
-            raise ValueError("adapter:local accepts only model:default")
+            raise ValueError(f"{adapter_ref} accepts only model:default")
         return MODEL_REF_DEFAULT
     spec = _local_cli_spec(adapter_ref)
     if not selected_model_ref:
@@ -1618,12 +1663,14 @@ __all__ = [
     "ADAPTER_CAPABILITY_REVIEW",
     "ADAPTER_CAPABILITY_WRITE",
     "ADAPTER_CLAUDE_LOCAL",
+    "ADAPTER_CHAT_SESSION",
     "ADAPTER_CODEX_LOCAL",
     "ADAPTER_GEMINI_LOCAL",
     "ADAPTER_LOCAL",
     "ALLOWED_ADAPTER_REFS",
     "ALLOWED_SESSION_CONTINUITY_MODES",
     "AgentAdapterRequest",
+    "AgentAdapterParked",
     "AgentAdapterResult",
     "AgentBrainCallable",
     "CommandRunner",

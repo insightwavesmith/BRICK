@@ -1,0 +1,169 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:adapter-30-s1-park-2::work/step-outputs/adapter-30-s1-park-2-code-attack-qa-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-adapter-30-s1-park-2-code-attack-qa",
+  "building_id": "adapter-30-s1-park-2",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:03",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-11T23:06:13.812799Z",
+  "id": "urn:bp:building:adapter-30-s1-park-2::work/step-outputs/adapter-30-s1-park-2-code-attack-qa-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:03:adapter-30-s1-park-2-code-attack-qa",
+  "recorded_at": "2026-06-11T23:06:13.812799Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:qa",
+    "attacked_work": [
+      "Attacked the declared S1 contract surface, not an implementation diff.",
+      "The highest-risk implementation seams are support/connection/agent_adapter.py typed parked outcome, support/operator/run.py pre-step park handling, recording contracts/frontier observation, ledger projection ordering, reporter frontier/event maps, and both path checkers.",
+      "No claim can be made that the implementation exists or is correct because no code or evidence root was supplied and tools were forbidden."
+    ],
+    "blocked_or_missing_evidence": [
+      "No repository inspection allowed by packet rule: Do not use tools or hooks.",
+      "No changed files list supplied.",
+      "No Building/support evidence root supplied.",
+      "No checker command output supplied.",
+      "No mutated-copy RED/FIRE logs supplied.",
+      "No raw/claim_trace/frontier/reporter evidence supplied."
+    ],
+    "boundary_violations": [],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "checked_sources": [
+      "AGENTS.md instructions provided in prompt.",
+      "task-source:inline-statement.",
+      "agent prompt: prompt:qa.",
+      "discipline:closed-agentfact.",
+      "discipline:proof-limits.",
+      "tool-policy:reviewer-readonly.",
+      "skill:evidence-verification.",
+      "skill:protocol-boundary-watch."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:adapter-30-s1-park-2",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:adapter-30-s1-park-2:agent-object:qa:output"
+    ],
+    "evidence_used": [
+      "Inline task-source statement only.",
+      "Provided AGENTS.md operating constraints only.",
+      "Provided Agent instruction packet resources only."
+    ],
+    "failing_or_missing_probes": [
+      "Missing observed RED/FIRE evidence for envelope closed-key and session-id rejection.",
+      "Missing observed RED/FIRE evidence for park record distinctness from adapter-error.",
+      "Missing observed RED/FIRE evidence for parked-before-agent_incomplete observer ordering.",
+      "Missing observed RED/FIRE evidence for reporter wake event when parked mapping exists and RED when removed.",
+      "Missing observed evidence that both support/checkers/check_package_path_admission.py and support/checkers/check_building_lifecycle_path_shape.py admit the new paths.",
+      "Missing observed check_profile.py --all exit 0."
+    ],
+    "negative_probe_observations": [
+      "No negative probes were executed because the instruction packet forbids tools.",
+      "Declared required RED/FIRE probes are appropriate for the risk: envelope closed shape/session-token rejection, park-vs-adapter-error distinction, frontier branch order, reporter wake mapping, and dual path admission."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "S1 implementation exists.",
+      "Typed parked signal is implemented.",
+      "Work envelope and distinct park record are written.",
+      "Parked frontier branch is ordered before agent_incomplete.",
+      "Reporter bell emits for parked buildings.",
+      "Both path checkers admit the new paths and fail closed when missed.",
+      "All required negative probes FIRE on mutated copies.",
+      "All checker profiles pass.",
+      "No scheduler/queue/retry/timer was introduced.",
+      "No Link vocabulary or link/ edits were introduced.",
+      "No credential/session/provider-token data is recorded."
+    ],
+    "observed_evidence": [
+      "Received only the inline task source, AGENTS-governed constraints, and QA instruction packet for adapter-30-s1-park-2.",
+      "Task requires S1 only: adapter:chat-session parks before step execution, records a closed AgentAdapterRequest envelope plus distinct park record, stops fails-closed, exposes parked frontier before agent_incomplete, and rings reporter bell.",
+      "Rules explicitly prohibit tools/hooks for this QA return, so no repository files, fixtures, diffs, or checker outputs were inspected in this turn."
+    ],
+    "output_excerpt": "{\"observed_evidence\":[\"Received only the inline task source, AGENTS-governed constraints, and QA instruction packet for adapter-30-s1-park-2.\",\"Task requires S1 only: adapter:chat-session parks before step execution, records a closed AgentAdapterRequest envelope plus distinct park record, stops fails-closed, exposes parked frontier before agent_incomplete, and rings reporter bell.\",\"Rules explicitly prohibit tools/hooks for this QA return, so no repository files, fixtures, diffs, or checker outputs were inspected in this turn.\"],\"attacked_work\":[\"Attacked the declared S1 contract surface, n...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "This return is provider-neutral support evidence only.",
+      "No source truth claim.",
+      "No success judgment.",
+      "No quality judgment.",
+      "No Link Movement chosen.",
+      "No tools, hooks, commands, repository reads, or checker executions were used in this turn.",
+      "Findings are contract-risk observations from supplied text, not implementation verification."
+    ],
+    "regression_risks": [
+      "adapter:chat-session accidentally invokes a CLI or fabricates AgentFact.returned instead of producing a typed parked outcome.",
+      "Envelope gains invented fields or stores UUID/ULID/session-token-like provider state.",
+      "Park record is shape-indistinguishable from adapter-error frontier records.",
+      "Frontier observer checks agent_incomplete before parked and misprojects a parked Building as running/incomplete.",
+      "Reporter maps omit parked frontier, so no local wake/delivery event is emitted.",
+      "Only one of the two path admission checkers is updated, leaving an unpinned recording path.",
+      "Implementation adds scheduler/queue/retry/timer behavior or edits Link vocabulary instead of keeping park as support record plus derived frontier observation.",
+      "Malformed/missing park state silently falls back instead of failing closed."
+    ],
+    "remaining_delta": [
+      "Provide or inspect the implementation diff and evidence root under a tool-allowed QA Brick.",
+      "Verify the S1 seams directly in code and fixtures.",
+      "Run the required negative probes on mutated copies and capture RED/FIRE evidence.",
+      "Run PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all and record exit 0 if observed."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default"
+  },
+  "returned_fact_ref": "agent-fact:03:adapter-30-s1-park-2-code-attack-qa",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:adapter-30-s1-park-2",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:adapter-30-s1-park-2-code-attack-qa:attempt-1",
+  "step_ref": "adapter-30-s1-park-2-code-attack-qa",
+  "subject": "adapter-30-s1-park-2-code-attack-qa",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-11T23:06:13.812799Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

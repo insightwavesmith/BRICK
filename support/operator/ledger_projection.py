@@ -514,6 +514,8 @@ def _project_ledger_board_state(frontier_kind: str) -> str:
         return "closed"
     if frontier_kind == "human_review_waiting":
         return "waiting_review"
+    if frontier_kind == "chat_session_parked":
+        return "waiting_review"
     if frontier_kind == "link_paused":
         return "link_paused"
     if frontier_kind == "evidence_incomplete":
@@ -528,6 +530,8 @@ def _project_ledger_next_action(frontier_kind: str) -> str:
         return "read closure evidence and remaining_delta"
     if frontier_kind == "human_review_waiting":
         return "caller or COO review disposition is needed"
+    if frontier_kind == "chat_session_parked":
+        return "caller/COO disposition evidence or chat-session pickup is needed"
     if frontier_kind == "link_paused":
         return "caller or COO Link disposition evidence is needed"
     if frontier_kind == "agent_incomplete":

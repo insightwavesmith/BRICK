@@ -1,0 +1,166 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:adapter-30-s1-park-2::work/step-outputs/adapter-30-s1-park-2-axis-attack-qa-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:inspector",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-adapter-30-s1-park-2-axis-attack-qa",
+  "building_id": "adapter-30-s1-park-2",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:04",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-11T23:07:23.836296Z",
+  "id": "urn:bp:building:adapter-30-s1-park-2::work/step-outputs/adapter-30-s1-park-2-axis-attack-qa-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:04:adapter-30-s1-park-2-axis-attack-qa",
+  "recorded_at": "2026-06-11T23:07:23.836296Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_axis_findings": [
+      "matched: Inspector Agent is constrained to observation only and does not own implementation, quality, success, or route decisions.",
+      "matched: Chat-session parked outcome is specified as no AgentFact and no fabricated return, preserving AgentFact closure for real performer returns.",
+      "risk: The typed parked signal must not introduce status/verdict/result/session-id fields into Agent evidence or ledger records."
+    ],
+    "agent_object_ref": "agent-object:inspector",
+    "attacked_scope": [
+      "Source packet structure and BAL boundary claims only.",
+      "No implementation, fixtures, checker output, evidence roots, or repository state were inspected as closure evidence."
+    ],
+    "blocked_or_missing_evidence": [
+      "No repository inspection allowed by task packet constraints.",
+      "No checker command output supplied.",
+      "No mutated-copy RED evidence supplied.",
+      "No Building evidence root supplied.",
+      "No raw/capture/evidence/work records supplied.",
+      "No current module/path census supplied.",
+      "No model review evidence supplied."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "brick_axis_findings": [
+      "matched: Work contract is concrete: typed parked signal, envelope recording, park record, frontier branch, reporter bell, checker pins, and path admissions are named.",
+      "matched: Required return and honesty bar demand executed proof and not_proven separation.",
+      "mismatch_or_risk: This Building is axis_attack_qa/reviewer-readonly, while the source task is implementation work; this return cannot close implementation deliverables.",
+      "risk: Task says all 12 checker profiles stay green, but no current profile census or checker run evidence is present in the packet."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:adapter-30-s1-park-2",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:adapter-30-s1-park-2:agent-object:inspector:output"
+    ],
+    "evidence_used": [
+      "Provided AGENTS.md excerpt in prompt.",
+      "Provided inline task-source statement for adapter-30-s1-park-2.",
+      "Provided AgentInstructionPacket for agent-object:inspector.",
+      "Local inspector projection seed was read only to apply the required inspector discipline; no repo implementation files or checkers were inspected."
+    ],
+    "link_axis_findings": [
+      "matched: Movement vocabulary remains closed; park is not declared as Link Movement, Link state, route target, or transition vocabulary.",
+      "matched: link/ mutation is explicitly forbidden.",
+      "missing: No declared Link Movement or target is supplied for any next step; Agent must not choose one."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "S1 implementation exists.",
+      "adapter:chat-session is registered.",
+      "typed parked outcome is implemented without CLI invocation.",
+      "work envelope is closed AgentAdapterRequest projection only.",
+      "UUID/ULID/session id leakage is rejected.",
+      "park record is distinct from adapter-error.",
+      "frontier branch order is correct.",
+      "reporter maps emit a parked wake/local event.",
+      "both path checkers admit the new paths.",
+      "FIRE mutations were demonstrated RED.",
+      "check_profile.py --all exits 0.",
+      "absence of scheduler/queue/retry/timer in implementation.",
+      "source truth.",
+      "success judgment.",
+      "quality judgment.",
+      "Movement authority."
+    ],
+    "observed_evidence": [
+      "Task packet declares S1 only: adapter:chat-session must park before step execution by recording a closed AgentAdapterRequest work envelope plus a distinct park record, then stop the walk fails-closed.",
+      "Task packet explicitly excludes S2 submit and S3 resume, prohibits scheduler/queue/retry/timer behavior, prohibits link/ edits, and treats park as support record plus derived frontier branch.",
+      "Current Agent packet is inspector/reviewer-readonly with empty write_scope, required closed AgentFact return shape, and no Link handoff refs."
+    ],
+    "output_excerpt": "{\"observed_evidence\":[\"Task packet declares S1 only: adapter:chat-session must park before step execution by recording a closed AgentAdapterRequest work envelope plus a distinct park record, then stop the walk fails-closed.\",\"Task packet explicitly excludes S2 submit and S3 resume, prohibits scheduler/queue/retry/timer behavior, prohibits link/ edits, and treats park as support record plus derived frontier branch.\",\"Current Agent packet is inspector/reviewer-readonly with empty write_scope, required closed AgentFact return shape, and no Link handoff refs.\"],\"attacked_scope\":[\"Source packet ...",
+    "projection_authority_findings": [
+      "matched: Frontier and reporter outputs are described as derived observations/support events, not source truth.",
+      "risk: Checker green, reporter bell emission, and frontier projection must not be reported as success, quality, Movement authority, or source truth."
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "Support evidence only.",
+      "Not source truth.",
+      "Not success judgment.",
+      "Not quality judgment.",
+      "Not Movement authority.",
+      "No Link Movement or route target chosen.",
+      "No credential, setup token, provider session, or session-id body reported."
+    ],
+    "remaining_delta": [
+      "A separate declared implementation/verification Building with write_scope and checker-first evidence is needed to close S1 deliverables.",
+      "Minimum closure evidence must include exact changed files, evidence root, checker commands, FIRE RED/green proof for each pin, and explicit not_proven limits."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "support_leak_findings": [
+      "risk: Reporter bell language must remain within admitted support-only local inbox/event projection behavior; no Slack, webhook, thread wake, scheduler, queue, retry, or timer behavior is admitted by this packet.",
+      "risk: Frontier parked branch must be ordered before agent_incomplete or support projection can misread waiting as incomplete/running.",
+      "risk: Park record must be shape-distinct from adapter-error record so downstream projection does not infer broken vs waiting by guesswork.",
+      "risk: Envelope and park-record paths must be admitted in both named path checkers or lifecycle evidence can become silently unobservable."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:04:adapter-30-s1-park-2-axis-attack-qa",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:adapter-30-s1-park-2",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:adapter-30-s1-park-2-axis-attack-qa:attempt-1",
+  "step_ref": "adapter-30-s1-park-2-axis-attack-qa",
+  "subject": "adapter-30-s1-park-2-axis-attack-qa",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-11T23:07:23.836296Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

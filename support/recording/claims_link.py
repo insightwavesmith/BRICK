@@ -686,3 +686,55 @@ def _adapter_error_link_frontier_claim_fact(
             "frontier_role": "Link transition not recorded because Agent returned evidence is absent",
         },
     )
+
+
+def _chat_session_park_link_frontier_raw_record(
+    building_id: str,
+    prepared: AgentRunPreparationRecord,
+    observation: Any,
+    index: int,
+    *,
+    transition_lifecycle: Mapping[str, Any] | None = None,
+) -> Mapping[str, Any]:
+    record = {
+        "raw_ref": _raw_ref("link-frontier", index),
+        "raw_refs": [_raw_ref("link-frontier", index)],
+        "building_id": building_id,
+        "step_ref": prepared.step_rows.step_ref,
+        "observed_boundary_ref": prepared.brick_instance_ref,
+        "source_brick_instance_ref": prepared.brick_instance_ref,
+        "target_brick_instance_ref": prepared.brick_instance_ref,
+        "transition_record_created": False,
+        "parked_ref": observation.parked_ref,
+        "frontier_kind": "chat_session_parked",
+    }
+    if isinstance(transition_lifecycle, Mapping):
+        record.update(
+            _transition_lifecycle_evidence_fields(
+                {"transition_lifecycle": dict(transition_lifecycle)}
+            )
+        )
+    return record
+
+
+def _chat_session_park_link_frontier_claim_fact(
+    prepared: AgentRunPreparationRecord,
+    observation: Any,
+    index: int,
+    proof_limits: tuple[str, ...],
+) -> Mapping[str, Any]:
+    return _claim_fact(
+        axis="Link",
+        fact_ref=_step_fact_ref("link-frontier", index, prepared.step_rows.step_ref),
+        raw_refs=[_raw_ref("link-frontier", index)],
+        proof_limits=proof_limits,
+        not_proven=observation.not_proven,
+        fact={
+            "frontier_kind": "chat_session_parked",
+            "observed_boundary_ref": prepared.brick_instance_ref,
+            "transition_record_created": False,
+            "disposition_record_created": False,
+            "reason_refs": [observation.parked_ref],
+            "frontier_role": "Link transition not recorded because chat-session work is parked",
+        },
+    )

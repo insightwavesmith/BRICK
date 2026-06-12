@@ -30,7 +30,10 @@ from brick_protocol.support.operator.composition import (
     stamp_declared_portfolio_closure_gates,
 )
 from brick_protocol.support.operator.contracts import BuildingPlanSupportResult
-from brick_protocol.support.operator.run import run_building_plan
+from brick_protocol.support.operator.run import (
+    ChatSessionParkFrontierEvidenceWritten,
+    run_building_plan,
+)
 from brick_protocol.support.recording.capture import DEFAULT_BUILDINGS_ROOT, buildings_root_for
 
 
@@ -449,17 +452,41 @@ def run_declared_portfolio(
                 route_decision_basis=packet_route_decision_basis,
             )
             plan_input = stamped_plan
-        child_result = run_building_plan(
-            plan_input,
-            output_root=output,
-            overwrite_existing=overwrite_existing,
-            local_callables=local_callables,
-            command_runner=command_runner,
-            adapter_cwd=adapter_cwd,
-            adapter_timeout_seconds=adapter_timeout_seconds,
-            proof_limits=checked_proof_limits,
-            walker_mode=current.candidate.walker_mode,
-        )
+        try:
+            child_result = run_building_plan(
+                plan_input,
+                output_root=output,
+                overwrite_existing=overwrite_existing,
+                local_callables=local_callables,
+                command_runner=command_runner,
+                adapter_cwd=adapter_cwd,
+                adapter_timeout_seconds=adapter_timeout_seconds,
+                proof_limits=checked_proof_limits,
+                walker_mode=current.candidate.walker_mode,
+            )
+        except ChatSessionParkFrontierEvidenceWritten as parked:
+            child_frontier = observe_building_frontier(parked.building_root, repo_root=repo)
+            consumed_transitions += 1
+            driven_candidate_refs.append(current.candidate.candidate_ref)
+            sequence.append(
+                _parked_child_sequence_record(
+                    sequence_number=consumed_transitions,
+                    adoption=current,
+                    parked=parked,
+                    child_frontier=child_frontier,
+                    from_candidate_ref=previous_candidate_ref,
+                )
+            )
+            frontier = _hold_frontier(
+                portfolio_ref=portfolio_ref,
+                reason="child_building_not_closed",
+                from_candidate_ref=current.candidate.candidate_ref,
+                pending_candidate_ref=current.candidate.candidate_ref,
+                consumed_transitions=consumed_transitions,
+                max_transitions=max_transitions,
+                reason_refs=(f"observation:child-frontier-{child_frontier.get('frontier_kind', 'unknown')}",),
+            )
+            break
         child_frontier = observe_building_frontier(child_result.lifecycle_write.root, repo_root=repo)
         consumed_transitions += 1
         driven_candidate_refs.append(current.candidate.candidate_ref)
@@ -909,6 +936,34 @@ def _sequence_record(
         "adoption_mode": adoption.adoption_mode,
         "reason_refs": list(adoption.reason_refs),
         "child_frontier_kind": child_frontier.get("frontier_kind"),
+        "proof_limits": list(PROOF_LIMITS),
+        "not_proven": list(NOT_PROVEN),
+    }
+
+
+def _parked_child_sequence_record(
+    *,
+    sequence_number: int,
+    adoption: _Adoption,
+    parked: ChatSessionParkFrontierEvidenceWritten,
+    child_frontier: Mapping[str, Any],
+    from_candidate_ref: str,
+) -> Mapping[str, Any]:
+    return {
+        "sequence_number": sequence_number,
+        "candidate_ref": adoption.candidate.candidate_ref,
+        "declared_plan_ref": adoption.candidate.declared_plan_ref,
+        "child_plan_ref": adoption.candidate.declared_plan_ref,
+        "building_id": parked.building_id,
+        "child_evidence_root": str(parked.building_root),
+        "from_candidate_ref": from_candidate_ref,
+        "adopted_by": adoption.adopted_by,
+        "adoption_basis_ref": adoption.adoption_basis_ref,
+        "adoption_mode": adoption.adoption_mode,
+        "reason_refs": list(adoption.reason_refs),
+        "child_frontier_kind": child_frontier.get("frontier_kind"),
+        "child_closed": False,
+        "park_signal": "ChatSessionParkFrontierEvidenceWritten",
         "proof_limits": list(PROOF_LIMITS),
         "not_proven": list(NOT_PROVEN),
     }

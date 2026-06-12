@@ -146,6 +146,15 @@ FRONTIER_REQUIRED_RECORDS = {
     ("evidence", "claim_trace", "agent", "receipt_trace.json"),
     ("evidence", "claim_trace", "link", "frontier_trace.json"),
 }
+PARKED_REQUIRED_RECORDS = {
+    ("raw", "raw-manifest.json"),
+    ("raw", "agent-received.jsonl"),
+    ("raw", "chat-session-park.jsonl"),
+    ("evidence", "evidence-manifest.json"),
+    ("evidence", "claim_trace", "brick", "work_contract.json"),
+    ("evidence", "claim_trace", "agent", "receipt_trace.json"),
+    ("evidence", "claim_trace", "link", "frontier_trace.json"),
+}
 FRONTIER_OPTIONAL_RECORDS = {
     ("work", "building-work.json"),
     ("work", "building-map.json"),
@@ -154,7 +163,13 @@ FRONTIER_OPTIONAL_RECORDS = {
     ("raw", "brick-work.jsonl"),
     ("raw", "link.jsonl"),
 }
-FRONTIER_LIFECYCLE_RECORDS = FRONTIER_REQUIRED_RECORDS | FRONTIER_OPTIONAL_RECORDS
+PARKED_OPTIONAL_RECORDS = FRONTIER_OPTIONAL_RECORDS
+FRONTIER_LIFECYCLE_RECORDS = (
+    FRONTIER_REQUIRED_RECORDS
+    | PARKED_REQUIRED_RECORDS
+    | FRONTIER_OPTIONAL_RECORDS
+    | PARKED_OPTIONAL_RECORDS
+)
 MINIMAL_LIFECYCLE_RECORDS = (
     MINIMAL_REQUIRED_RECORDS | MINIMAL_OPTIONAL_RECORDS | FRONTIER_LIFECYCLE_RECORDS
 )
@@ -163,6 +178,8 @@ STEP_OUTPUT_RECORD_NAMES = {
     "route-request.json",
     "transition-concern.json",
     "adapter-error.json",
+    "work-envelope.json",
+    "parked.json",
 }
 AXIS_OWNER_LITERALS = {"Brick", "Agent", "Link"}
 RAW_RECORD_ROLES = {"primary", "support", "review"}
@@ -201,6 +218,10 @@ AUTHORITY_CLAIM_VALUES = {
     "movement authority",
 }
 SENSITIVE_SK_TOKEN_RE = re.compile(r"\bsk-[a-z0-9._~+/=-]{12,}(?![a-z0-9._~+/=-])")
+SESSION_UUID_RE = re.compile(
+    r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b"
+)
+SESSION_ULID_RE = re.compile(r"\b[0-9A-HJKMNP-TV-Z]{26}\b")
 ADAPTER_ERROR_FORBIDDEN_KEYS = {
     "auth",
     "auth_body",
@@ -221,6 +242,53 @@ ADAPTER_ERROR_FORBIDDEN_KEYS = {
     "target_ref",
     "token",
     "returned",
+}
+WORK_ENVELOPE_KEYS = {
+    "building_id",
+    "agent_object_ref",
+    "adapter_ref",
+    "brick_instance_ref",
+    "next_brick_instance_ref",
+    "selected_model_ref",
+    "callable_ref",
+    "prompt_refs",
+    "skill_refs",
+    "hook_refs",
+    "tool_policy_refs",
+    "discipline_refs",
+    "input_packet_ref",
+    "output_packet_ref",
+    "work_statement",
+    "comparison_rule",
+    "required_return_shape",
+    "source_fact_bodies",
+    "link_handoff_refs",
+    "agent_instruction_packet",
+    "write_scope",
+    "building_session_ref",
+    "session_scope_ref",
+    "session_continuity_mode",
+    "proof_limits",
+    "not_proven",
+}
+PARK_RECORD_FORBIDDEN_KEYS = {
+    "adapter_error_ref",
+    "agent_fact_created",
+    "error_kind",
+    "exception_type",
+    "message_excerpt",
+    "returned",
+    "movement",
+    "movement_choice",
+    "target",
+    "target_ref",
+    "route_target",
+    "session",
+    "session_id",
+    "provider_session_id",
+    "credential",
+    "credential_body",
+    "token",
 }
 FRONTIER_AGENT_FORBIDDEN_KEYS = {
     "agent_fact",
@@ -492,6 +560,24 @@ def has_adapter_error_step_output(tails: set[tuple[str, ...]]) -> bool:
     )
 
 
+def has_parked_step_output(tails: set[tuple[str, ...]]) -> bool:
+    return any(
+        len(tail) == 4
+        and tail[:2] == ("work", "step-outputs")
+        and tail[3] == "parked.json"
+        for tail in tails
+    )
+
+
+def has_work_envelope_step_output(tails: set[tuple[str, ...]]) -> bool:
+    return any(
+        len(tail) == 4
+        and tail[:2] == ("work", "step-outputs")
+        and tail[3] == "work-envelope.json"
+        for tail in tails
+    )
+
+
 # U5.5 SLICE-1A: the spine records/dirs REQUIRED only for a u5_5_live building.
 # (The per-event events/<seq>-<type> files are admitted by PATTERN and are not a
 # fixed required record; the REQUIRED floor is the 3 index records + the spine +
@@ -526,6 +612,14 @@ def frontier_required_records_present(tails: set[tuple[str, ...]]) -> bool:
     return FRONTIER_REQUIRED_RECORDS <= tails and has_adapter_error_step_output(tails)
 
 
+def parked_required_records_present(tails: set[tuple[str, ...]]) -> bool:
+    return (
+        PARKED_REQUIRED_RECORDS <= tails
+        and has_parked_step_output(tails)
+        and has_work_envelope_step_output(tails)
+    )
+
+
 def required_records_for_candidate(
     building_id: str,
     tails: set[tuple[str, ...]],
@@ -544,6 +638,8 @@ def required_records_for_candidate(
     spine = SPINE_REQUIRED_RECORDS if u5_5_live else set()
     if complete_required_records_present(tails):
         return MINIMAL_REQUIRED_RECORDS | spine
+    if not complete_agent_return_marker_present(tails) and parked_required_records_present(tails):
+        return PARKED_REQUIRED_RECORDS | spine
     if not complete_agent_return_marker_present(tails) and frontier_required_records_present(tails):
         return FRONTIER_REQUIRED_RECORDS | spine
     return MINIMAL_REQUIRED_RECORDS | spine
@@ -892,6 +988,13 @@ def has_sensitive_text(value: Any) -> bool:
         if SENSITIVE_SK_TOKEN_RE.search(lowered):
             return True
         if any(marker in lowered for marker in ("bearer ", "api_key", "api-key")):
+            return True
+    return False
+
+
+def has_session_identifier_text(value: Any) -> bool:
+    for text in text_values(value):
+        if SESSION_UUID_RE.search(text) or SESSION_ULID_RE.search(text):
             return True
     return False
 
@@ -1275,9 +1378,29 @@ def frontier_content_files_present(building_root: Path) -> bool:
     )
 
 
+def parked_content_files_present(building_root: Path) -> bool:
+    has_parked_step = any(
+        path.is_file()
+        for path in (building_root / "work" / "step-outputs").glob("*/parked.json")
+    )
+    has_work_envelope = any(
+        path.is_file()
+        for path in (building_root / "work" / "step-outputs").glob("*/work-envelope.json")
+    )
+    return (
+        has_parked_step
+        and has_work_envelope
+        and all((building_root / Path(*record)).exists() for record in PARKED_REQUIRED_RECORDS)
+    )
+
+
 def content_branch_for(building_root: Path) -> str:
     if complete_content_files_present(building_root):
         return "complete"
+    if not complete_agent_return_file_present(building_root) and parked_content_files_present(
+        building_root
+    ):
+        return "parked"
     if not complete_agent_return_file_present(building_root) and frontier_content_files_present(
         building_root
     ):
@@ -1314,11 +1437,56 @@ def validate_adapter_error_files(building_root: Path, violations: list[str]) -> 
             )
 
 
+def validate_chat_session_park_files(building_root: Path, violations: list[str]) -> None:
+    step_outputs = building_root / "work" / "step-outputs"
+    if not step_outputs.is_dir():
+        return
+    for parked_path in sorted(step_outputs.glob("*/parked.json")):
+        parked = parse_json_file(parked_path, violations)
+        if not isinstance(parked, dict):
+            violations.append(f"{parked_path}: parked record must be a JSON object")
+            continue
+        if parked.get("kind") != "chat_session_park_record":
+            violations.append(f"{parked_path}: parked record kind must be chat_session_park_record")
+        if parked.get("schema_version") != "chat-session-park-record-0":
+            violations.append(f"{parked_path}: parked record schema_version mismatch")
+        if not isinstance(parked.get("parked_ref"), str) or not parked.get("parked_ref"):
+            violations.append(f"{parked_path}: parked record requires parked_ref")
+        if not isinstance(parked.get("work_envelope_ref"), str) or not parked.get("work_envelope_ref"):
+            violations.append(f"{parked_path}: parked record requires work_envelope_ref")
+        if has_any_key(parked, PARK_RECORD_FORBIDDEN_KEYS):
+            violations.append(
+                f"{parked_path}: parked record must be distinct from adapter-error and must "
+                "not contain returned/Movement/target/session fields"
+            )
+        if has_forbidden_authority_claim(parked):
+            violations.append(
+                f"{parked_path}: parked record must not claim source truth, success "
+                "judgment, quality judgment, or Movement authority"
+            )
+        if has_sensitive_text(parked) or has_session_identifier_text(parked):
+            violations.append(f"{parked_path}: parked record must not contain credential/session text")
+    for envelope_path in sorted(step_outputs.glob("*/work-envelope.json")):
+        envelope = parse_json_file(envelope_path, violations)
+        if not isinstance(envelope, dict):
+            violations.append(f"{envelope_path}: work envelope must be a JSON object")
+            continue
+        if set(envelope) != WORK_ENVELOPE_KEYS:
+            violations.append(
+                f"{envelope_path}: work envelope keys must exactly match AgentAdapterRequest"
+            )
+        if envelope.get("adapter_ref") != "adapter:chat-session":
+            violations.append(f"{envelope_path}: work envelope adapter_ref must be adapter:chat-session")
+        if has_sensitive_text(envelope) or has_session_identifier_text(envelope):
+            violations.append(f"{envelope_path}: work envelope must not contain credential/session text")
+
+
 def validate_minimal_content(building_root: Path, violations: list[str]) -> None:
     raw_manifest_path = building_root / "raw" / "raw-manifest.json"
     evidence_manifest_path = building_root / "evidence" / "evidence-manifest.json"
     content_branch = content_branch_for(building_root)
     validate_adapter_error_files(building_root, violations)
+    validate_chat_session_park_files(building_root, violations)
     raw_manifest = parse_json_file(raw_manifest_path, violations)
     evidence_manifest = parse_json_file(evidence_manifest_path, violations)
     entries = manifest_entries(raw_manifest)
@@ -1378,7 +1546,7 @@ def validate_minimal_content(building_root: Path, violations: list[str]) -> None
             "success judgment, quality judgment, or Movement authority"
         )
 
-    if content_branch == "frontier":
+    if content_branch in {"frontier", "parked"}:
         claim_paths = {
             "Brick": [building_root / "evidence" / "claim_trace" / "brick" / "work_contract.json"],
             "Agent": [building_root / "evidence" / "claim_trace" / "agent" / "receipt_trace.json"],

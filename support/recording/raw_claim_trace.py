@@ -7,7 +7,11 @@ from collections.abc import Mapping
 from pathlib import Path
 
 from brick_protocol.support.recording.capture import graph_ready_json_object, graph_ready_timestamp
-from brick_protocol.support.recording.contracts import AdapterErrorFrontierTracePacket, RawClaimTracePacket
+from brick_protocol.support.recording.contracts import (
+    AdapterErrorFrontierTracePacket,
+    ChatSessionParkFrontierTracePacket,
+    RawClaimTracePacket,
+)
 
 
 def write_raw_and_claim_trace(
@@ -177,6 +181,94 @@ def write_adapter_error_frontier_raw_and_claim_trace(
             local_prefix="raw/adapter-error.jsonl",
             recorded_at=recorded_at,
             event_type="bp.raw.adapter_error",
+        ),
+        written,
+    )
+    if packet.link_raw_records:
+        _write_jsonl(
+            raw_dir / "link.jsonl",
+            _graph_ready_records(
+                packet.link_raw_records,
+                building_id=building_id,
+                local_prefix="raw/link.jsonl",
+                recorded_at=recorded_at,
+                event_type="bp.raw.link",
+            ),
+            written,
+        )
+    _write_json(
+        claim_root / "brick" / "work_contract.json",
+        _graph_ready_claim_trace(
+            {"facts": list(packet.brick_claim_facts)},
+            building_id=building_id,
+            local_id="evidence/claim_trace/brick/work_contract.json",
+            recorded_at=recorded_at,
+        ),
+        written,
+    )
+    _write_json(
+        claim_root / "agent" / "receipt_trace.json",
+        _graph_ready_claim_trace(
+            {"facts": list(packet.agent_receipt_claim_facts)},
+            building_id=building_id,
+            local_id="evidence/claim_trace/agent/receipt_trace.json",
+            recorded_at=recorded_at,
+        ),
+        written,
+    )
+    _write_json(
+        claim_root / "link" / "frontier_trace.json",
+        _graph_ready_claim_trace(
+            {"facts": list(packet.link_frontier_claim_facts)},
+            building_id=building_id,
+            local_id="evidence/claim_trace/link/frontier_trace.json",
+            recorded_at=recorded_at,
+        ),
+        written,
+    )
+    return tuple(written)
+
+
+def write_chat_session_park_frontier_raw_and_claim_trace(
+    building_root: Path,
+    building_id: str,
+    packet: ChatSessionParkFrontierTracePacket,
+) -> tuple[Path, ...]:
+    written: list[Path] = []
+    raw_dir = building_root / "raw"
+    claim_root = building_root / "evidence" / "claim_trace"
+    recorded_at = graph_ready_timestamp()
+    if packet.brick_raw_records:
+        _write_jsonl(
+            raw_dir / "brick-work.jsonl",
+            _graph_ready_records(
+                packet.brick_raw_records,
+                building_id=building_id,
+                local_prefix="raw/brick-work.jsonl",
+                recorded_at=recorded_at,
+                event_type="bp.raw.brick_work",
+            ),
+            written,
+        )
+    _write_jsonl(
+        raw_dir / "agent-received.jsonl",
+        _graph_ready_records(
+            packet.agent_received_raw_records,
+            building_id=building_id,
+            local_prefix="raw/agent-received.jsonl",
+            recorded_at=recorded_at,
+            event_type="bp.raw.agent_received",
+        ),
+        written,
+    )
+    _write_jsonl(
+        raw_dir / "chat-session-park.jsonl",
+        _graph_ready_records(
+            packet.park_raw_records,
+            building_id=building_id,
+            local_prefix="raw/chat-session-park.jsonl",
+            recorded_at=recorded_at,
+            event_type="bp.raw.chat_session_parked",
         ),
         written,
     )

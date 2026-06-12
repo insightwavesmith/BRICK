@@ -46,7 +46,9 @@ from brick_protocol.support.operator.primitives import (
 )
 from brick_protocol.support.recording.claims_common import (
     _adapter_error_attempt_from_ref,
+    _chat_session_park_attempt_from_ref,
     _step_output_adapter_error_ref,
+    _step_output_parked_ref,
     _step_output_manifest_ref,
     _step_result_attempts,
 )
@@ -54,6 +56,7 @@ from brick_protocol.support.recording.declaration_packets import (
     _declaration_provenance_observation,
 )
 from brick_protocol.support.recording.operator_evidence import (
+    FRONTIER_OBSERVATION_CHAT_SESSION_PARKED_KIND,
     build_agent_binding_row,
     build_brick_instance_row,
     build_frontier_observation,
@@ -446,6 +449,137 @@ def _adapter_error_frontier_building_map_packet(
         # field-spec in support/recording/contracts.py).
         "frontier_observation": build_frontier_observation(
             adapter_error_ref=observation.adapter_error_ref,
+        ),
+    }
+    if task_source_ref:
+        packet["task_source_ref"] = task_source_ref
+    return packet
+
+
+def _chat_session_park_frontier_building_map_packet(
+    building_id: str,
+    completed_step_results: tuple[BuildingRunSupportResult, ...],
+    failed_preparation: AgentRunPreparationRecord,
+    observation: Any,
+    *,
+    proof_limits: tuple[str, ...],
+    graph_context: Mapping[str, Any] | None,
+    task_source_ref: str | None,
+) -> dict[str, Any]:
+    frontier_graph_context = _frontier_realized_graph_context(
+        graph_context,
+        completed_step_results,
+    )
+    if completed_step_results:
+        packet = dict(
+            _accumulated_building_map_packet(
+                building_id,
+                completed_step_results,
+                proof_limits=proof_limits,
+                not_proven=_merge_texts(
+                    *(result.not_proven for result in completed_step_results),
+                    observation.not_proven,
+                ),
+                graph_context=frontier_graph_context,
+                task_source_ref=task_source_ref,
+            )
+        )
+        brick_instances = list(packet.get("brick_instances", []))
+        agent_bindings = list(packet.get("agent_bindings", []))
+        link_edges = list(packet.get("link_edges", []))
+        raw_refs = list(packet.get("raw_refs", []))
+        groups = list(packet.get("groups", []))
+    else:
+        brick_instances = []
+        agent_bindings = []
+        link_edges = []
+        groups = []
+        raw_refs = []
+    failed_index = len(completed_step_results) + 1
+    binding_ref = _step_fact_ref("binding", failed_index, failed_preparation.step_rows.step_ref)
+    for ref in (
+        _raw_ref("brick", failed_index),
+        _raw_ref("agent-received", failed_index),
+        observation.raw_ref,
+        _raw_ref("link-frontier", failed_index),
+    ):
+        if ref not in raw_refs:
+            raw_refs.append(ref)
+    failed_brick = next(
+        (
+            item
+            for item in brick_instances
+            if isinstance(item, dict)
+            and item.get("brick_instance_id") == failed_preparation.brick_instance_ref
+        ),
+        None,
+    )
+    failed_brick_raw_refs = [
+        _raw_ref("brick", failed_index),
+        _raw_ref("agent-received", failed_index),
+    ]
+    if failed_brick is None:
+        brick_instances.append(
+            {
+                "brick_instance_id": failed_preparation.brick_instance_ref,
+                "brick_work_ref": failed_preparation.step_rows.brick_row.get(
+                    "brick_work_ref",
+                    "work/building-work.json",
+                ),
+                "attempt_index": failed_index,
+                "agent_binding_refs": [binding_ref],
+                "raw_refs": failed_brick_raw_refs,
+                "proof_limits": list(proof_limits),
+                "not_proven": list(observation.not_proven),
+            }
+        )
+    else:
+        refs = failed_brick.get("agent_binding_refs")
+        if not isinstance(refs, list):
+            refs = []
+            failed_brick["agent_binding_refs"] = refs
+        if binding_ref not in refs:
+            refs.append(binding_ref)
+        failed_brick["brick_work_ref"] = failed_preparation.step_rows.brick_row.get(
+            "brick_work_ref",
+            "work/building-work.json",
+        )
+        raw_ref_values = failed_brick.get("raw_refs")
+        if not isinstance(raw_ref_values, list):
+            raw_ref_values = []
+            failed_brick["raw_refs"] = raw_ref_values
+        for ref in failed_brick_raw_refs:
+            if ref not in raw_ref_values:
+                raw_ref_values.append(ref)
+    agent_bindings.append(
+        {
+            "agent_binding_id": binding_ref,
+            "brick_instance_ref": failed_preparation.brick_instance_ref,
+            "agent_performer_ref": f"agent-performer:{failed_preparation.agent_object.object_ref}",
+            "binding_role": "primary",
+            "raw_refs": [_raw_ref("agent-received", failed_index), observation.raw_ref],
+            "step_output_ref": _step_output_parked_ref(
+                failed_preparation.step_rows.step_ref,
+                _chat_session_park_attempt_from_ref(observation.parked_ref),
+            ),
+            "proof_limits": list(proof_limits),
+            "not_proven": list(observation.not_proven),
+        }
+    )
+    packet = {
+        "kind": "building_graph_map",
+        "building_id": building_id,
+        "profile": _GRAPH_PROFILE,
+        "brick_instances": brick_instances,
+        "agent_bindings": agent_bindings,
+        "link_edges": link_edges,
+        "groups": groups,
+        "raw_refs": raw_refs,
+        "proof_limits": list(proof_limits),
+        "not_proven": list(observation.not_proven),
+        "frontier_observation": build_frontier_observation(
+            parked_ref=observation.parked_ref,
+            frontier_kind=FRONTIER_OBSERVATION_CHAT_SESSION_PARKED_KIND,
         ),
     }
     if task_source_ref:

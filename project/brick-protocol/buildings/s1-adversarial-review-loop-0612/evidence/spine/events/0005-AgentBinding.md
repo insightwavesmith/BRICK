@@ -1,0 +1,12 @@
+# AgentBinding · seq 5 · ["Agent"]
+- agent_object_ref: "agent-object:workflow"
+- agent_performer_ref: "agent-performer:agent-object:workflow"
+- axis_scope: ["Agent"]
+- binding_role: "primary"
+- brick_instance_ref: "brick:s1-adversarial-review-loop-0612:native-dispatch"
+- event_type: "AgentBinding"
+- run_segment: 1
+- sequence_index: 5
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/s1-adversarial-review-loop-0612-native-dispatch-attempt-1/step-output.json"
+- step_ref: "s1-adversarial-review-loop-0612-native-dispatch"

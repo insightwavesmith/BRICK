@@ -19,6 +19,7 @@ import io
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -63,6 +64,7 @@ _AXIS_VOCAB_EXPECTED_ADAPTER_REFS = (
     "adapter:codex-local",
     "adapter:claude-local",
     "adapter:gemini-local",
+    "adapter:chat-session",
 )
 
 
@@ -1760,6 +1762,624 @@ def run_reporter_notification_projection(repo: Path) -> KernelResult:
             "a 5th sink requires the report_bus split, never a 5th sibling) inspected."
         ),
     )
+
+
+def run_chat_session_park_seam(repo: Path) -> KernelResult:
+    """Exercise the S1 chat-session PARK seam over a temp Building root.
+
+    This is support-checker evidence only. It proves the runner writes the
+    support records and stops before an AgentFact; it does not prove S2 submit,
+    S3 resume, provider quality, or reader behavior.
+    """
+
+    from support.checkers import check_building_lifecycle_path_shape as lifecycle_shape
+    from support.checkers import check_package_path_admission as path_admission
+    from support.operator import run as run_module
+    from support.operator import dashboard_export, ledger_projection, progress_projection
+
+    inspected = 0
+    with tempfile.TemporaryDirectory(prefix="bp-chat-session-park-seam-") as tmpdir:
+        temp_repo = Path(tmpdir) / "repo"
+        buildings_root = temp_repo / "project" / "brick-protocol" / "buildings"
+        buildings_root.mkdir(parents=True)
+        _chat_session_write_temp_project_declaration(temp_repo)
+        shutil.copytree(
+            repo / "agent",
+            temp_repo / "agent",
+            ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
+        )
+        _chat_session_assert_declared_adapter_capability(temp_repo)
+        _chat_session_assert_undeclared_adapter_rejects(
+            run_module,
+            buildings_root=buildings_root,
+            temp_repo=temp_repo,
+        )
+        inspected += 2
+        linear_root, linear_written = _chat_session_drive_park(
+            run_module,
+            _chat_session_park_plan(),
+            buildings_root=buildings_root,
+            temp_repo=temp_repo,
+            walker_mode="linear",
+            label="linear",
+        )
+        dynamic_root, dynamic_written = _chat_session_drive_park(
+            run_module,
+            _chat_session_park_graph_plan(),
+            buildings_root=buildings_root,
+            temp_repo=temp_repo,
+            walker_mode="dynamic",
+            label="dynamic",
+        )
+        inspected += 2
+        for label, building_root, written_files in (
+            ("linear", linear_root, linear_written),
+            ("dynamic", dynamic_root, dynamic_written),
+        ):
+            inspected += _chat_session_assert_park_evidence(
+                building_root,
+                written_files=written_files,
+                temp_repo=temp_repo,
+                label=label,
+            )
+
+        paths = lifecycle_shape.collect_directory_paths(buildings_root)
+        lifecycle_violations = _chat_session_lifecycle_violations(buildings_root)
+        if lifecycle_violations:
+            raise ProfileError(
+                "chat_session_park_seam lifecycle checker rejected generated evidence:\n"
+                + "\n".join(f"- {violation}" for violation in lifecycle_violations)
+            )
+        path_violations = path_admission.check_paths(paths)
+        if path_violations:
+            raise ProfileError(
+                "chat_session_park_seam package path admission rejected generated evidence:\n"
+                + "\n".join(f"- {violation}" for violation in path_violations)
+            )
+        inspected += len(paths)
+
+        board_state = ledger_projection._project_ledger_board_state("chat_session_parked")
+        if board_state != "waiting_review":
+            raise ProfileError(
+                "chat_session_park_seam ledger board_state mapping is not the closed "
+                f"waiting-review family: {board_state!r}"
+            )
+        dashboard = dashboard_export.dashboard_export_packet(repo_root=temp_repo)
+        parked_dashboard_rows = [
+            row
+            for row in dashboard.get("buildings", [])
+            if isinstance(row, Mapping) and row.get("frontier") == "chat_session_parked"
+        ]
+        if len(parked_dashboard_rows) != 2:
+            raise ProfileError(
+                "chat_session_park_seam dashboard_export did not project both parked "
+                f"Buildings, observed {len(parked_dashboard_rows)}"
+            )
+        for row in parked_dashboard_rows:
+            if row.get("state") != "waiting_review" or row.get("disp") != "review":
+                raise ProfileError(
+                    "chat_session_park_seam dashboard_export did not show parked "
+                    f"Building in review/waiting family: state={row.get('state')!r} "
+                    f"disp={row.get('disp')!r}"
+                )
+        progress = progress_projection.render_project_progress(
+            "project:brick-protocol",
+            repo_root=temp_repo,
+        )
+        if "- waiting_review: 2" not in progress:
+            raise ProfileError(
+                "chat_session_park_seam PROGRESS projection did not count parked "
+                "Buildings under waiting_review"
+            )
+        inspected += 3
+
+        for building_root in (linear_root, dynamic_root):
+            _chat_session_assert_mutated_lifecycle_rejects(
+                building_root,
+                "envelope session-like identifier",
+                lambda root: _chat_session_mutate_envelope_uuid(root),
+            )
+            _chat_session_assert_mutated_lifecycle_rejects(
+                building_root,
+                "adapter-error-shaped park record",
+                lambda root: _chat_session_mutate_park_as_adapter_error(root),
+            )
+            _chat_session_assert_mutated_lifecycle_rejects(
+                building_root,
+                "missing work-envelope path",
+                lambda root: _chat_session_delete_work_envelope(root),
+            )
+            inspected += 3
+
+    return KernelResult(
+        check_id="chat_session_park_seam",
+        inspected=inspected,
+        output=(
+            "chat-session PARK seam passed: linear and dynamic graph runner paths "
+            "raised ChatSessionParkFrontierEvidenceWritten, wrote closed "
+            "work-envelope.json + distinct parked.json + raw/chat-session-park.jsonl, "
+            "stopped before AgentFact, lifecycle and package path admission accepted "
+            "generated evidence, frontier observed chat_session_parked before "
+            "incomplete, reporter mapped it to intervention_required/"
+            "needs_disposition, ledger mapped it to waiting_review, dashboard "
+            "rendered it as review, PROGRESS counted waiting_review, run-surface "
+            "operator wake packets were emitted, undeclared Agent Object "
+            "chat-session adapter selection rejected before park, dynamic typed-exception guard "
+            "would fire RED on a raw _AdapterRunParked leak, and six mutated "
+            "evidence copies fired RED (linear+dynamic session-like envelope, "
+            "adapter-error-shaped park record, missing envelope path)."
+        ),
+    )
+
+
+def _chat_session_park_plan() -> Mapping[str, Any]:
+    return {
+        "plan_ref": "building-plan:chat-session-park-seam-case",
+        "owner_axis": "Brick",
+        "building_id": "chat-session-park-seam-case",
+        "plan_shape": "linear",
+        "selected_adapter_ref": "adapter:chat-session",
+        "report_event_policy": {
+            "enabled": True,
+            "event_kinds": ["building_started", "intervention_required"],
+            "sink_refs": ["report-sink:local-inbox", "report-sink:operator-wake-local"],
+        },
+        "steps": [
+            {
+                "step_ref": "chat-session-park-work",
+                "rows": [
+                    {
+                        "axis": "Brick",
+                        "row_ref": "brick-row:chat-session-park-work",
+                        "brick_work_ref": "work:chat-session-park-work",
+                        "brick_instance_ref": "brick-chat-session-park-work",
+                        "work_statement": "Exercise chat-session S1 park seam.",
+                        "comparison_rule": "Support observes parked evidence shape only.",
+                        "required_return_shape": "made_changes, observed_evidence, not_proven",
+                    },
+                    {
+                        "axis": "Agent",
+                        "row_ref": "agent-row:chat-session-park-work",
+                        "agent_object_ref": "agent-object:dev",
+                    },
+                    {
+                        "axis": "Link",
+                        "row_ref": "link-row:chat-session-park-work",
+                        "movement": "forward",
+                        "target_ref": "brick-chat-session-park-closure",
+                    },
+                ],
+            }
+        ],
+    }
+
+
+def _chat_session_park_graph_plan() -> Mapping[str, Any]:
+    return {
+        "plan_ref": "building-plan:chat-session-park-seam-dynamic-case",
+        "owner_axis": "Brick",
+        "building_id": "chat-session-park-seam-dynamic-case",
+        "plan_shape": "graph",
+        "selected_adapter_ref": "adapter:chat-session",
+        "report_event_policy": {
+            "enabled": True,
+            "event_kinds": ["building_started", "intervention_required"],
+            "sink_refs": ["report-sink:local-inbox", "report-sink:operator-wake-local"],
+        },
+        "execution_order": ["chat-session-park-dynamic-work"],
+        "brick_steps": [
+            {
+                "step_ref": "chat-session-park-dynamic-work",
+                "completion_edge_ref": "edge:chat-session-park-dynamic-work-to-boundary",
+                "rows": [
+                    {
+                        "axis": "Brick",
+                        "row_ref": "brick-row:chat-session-park-dynamic-work",
+                        "brick_work_ref": "work:chat-session-park-dynamic-work",
+                        "brick_instance_ref": "brick-chat-session-park-dynamic-work",
+                        "work_statement": "Exercise chat-session S1 park seam on the dynamic graph walker.",
+                        "comparison_rule": "Support observes parked evidence shape only.",
+                        "required_return_shape": "made_changes, observed_evidence, not_proven",
+                    },
+                    {
+                        "axis": "Agent",
+                        "row_ref": "agent-row:chat-session-park-dynamic-work",
+                        "agent_object_ref": "agent-object:dev",
+                    },
+                ],
+            }
+        ],
+        "link_edges": [
+            {
+                "edge_ref": "edge:chat-session-park-dynamic-work-to-boundary",
+                "source_step_ref": "chat-session-park-dynamic-work",
+                "rows": [
+                    {
+                        "axis": "Link",
+                        "row_ref": "link-row:chat-session-park-dynamic-work",
+                        "movement": "forward",
+                        "target_ref": "building-boundary:chat-session-park-dynamic-closed",
+                    }
+                ],
+            }
+        ],
+    }
+
+
+def _chat_session_assert_declared_adapter_capability(temp_repo: Path) -> None:
+    dev = _chat_session_agent_object(temp_repo, "dev")
+    qa = _chat_session_agent_object(temp_repo, "qa")
+    if "adapter:chat-session" not in dev.get("adapter_refs", []):
+        raise ProfileError(
+            "chat_session_park_seam expected agent/objects/dev.yaml to declare "
+            "adapter:chat-session"
+        )
+    if "adapter:chat-session" in qa.get("adapter_refs", []):
+        raise ProfileError(
+            "chat_session_park_seam expected undeclared negative-control "
+            "agent/objects/qa.yaml to omit adapter:chat-session"
+        )
+
+
+def _chat_session_agent_object(temp_repo: Path, object_name: str) -> Mapping[str, Any]:
+    path = temp_repo / "agent" / "objects" / f"{object_name}.yaml"
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ProfileError(f"chat_session_park_seam failed to read Agent Object {path}: {exc}") from exc
+    if not isinstance(value, Mapping):
+        raise ProfileError(f"chat_session_park_seam expected mapping Agent Object at {path}")
+    return value
+
+
+def _chat_session_assert_undeclared_adapter_rejects(
+    run_module: Any,
+    *,
+    buildings_root: Path,
+    temp_repo: Path,
+) -> None:
+    plan = _chat_session_plan_with_agent(
+        "agent-object:qa",
+        building_id="chat-session-park-undeclared-agent-case",
+    )
+    original_runner_repo = run_module._REPO_ROOT
+    try:
+        run_module._REPO_ROOT = temp_repo
+        try:
+            run_module.run_building_plan(
+                plan,
+                output_root=buildings_root,
+                overwrite_existing=True,
+                walker_mode="linear",
+            )
+        except run_module.ChatSessionParkFrontierEvidenceWritten as exc:
+            raise ProfileError(
+                "chat_session_park_seam undeclared Agent Object parked instead "
+                f"of rejecting adapter admission: {exc}"
+            ) from exc
+        except ValueError as exc:
+            if "selected adapter must be referenced by Agent Object" not in str(exc):
+                raise ProfileError(
+                    "chat_session_park_seam undeclared Agent Object rejected with "
+                    f"the wrong reason: {exc}"
+                ) from exc
+            root = buildings_root / "chat-session-park-undeclared-agent-case"
+            if (root / "raw" / "chat-session-park.jsonl").exists() or any(
+                path.is_file()
+                for path in (root / "work" / "step-outputs").glob("*/parked.json")
+            ):
+                raise ProfileError(
+                    "chat_session_park_seam undeclared Agent Object wrote park evidence "
+                    "after adapter admission rejected"
+                )
+            return
+        except Exception as exc:  # noqa: BLE001 - checker reports unexpected leak type
+            raise ProfileError(
+                "chat_session_park_seam undeclared Agent Object should fail closed "
+                f"with ValueError, observed {type(exc).__name__}: {exc}"
+            ) from exc
+        raise ProfileError(
+            "chat_session_park_seam undeclared Agent Object with selected "
+            "adapter:chat-session returned normally instead of rejecting"
+        )
+    finally:
+        run_module._REPO_ROOT = original_runner_repo
+
+
+def _chat_session_plan_with_agent(agent_object_ref: str, *, building_id: str) -> Mapping[str, Any]:
+    plan = json.loads(json.dumps(_chat_session_park_plan()))
+    plan["building_id"] = building_id
+    plan["plan_ref"] = f"building-plan:{building_id}"
+    step = plan["steps"][0]
+    step["step_ref"] = f"{building_id}-work"
+    for row in step["rows"]:
+        if row.get("axis") == "Agent":
+            row["agent_object_ref"] = agent_object_ref
+            row["row_ref"] = f"agent-row:{building_id}-work"
+        elif row.get("axis") == "Brick":
+            row["row_ref"] = f"brick-row:{building_id}-work"
+            row["brick_work_ref"] = f"work:{building_id}-work"
+            row["brick_instance_ref"] = f"brick-{building_id}-work"
+        elif row.get("axis") == "Link":
+            row["row_ref"] = f"link-row:{building_id}-work"
+            row["target_ref"] = f"brick-{building_id}-closure"
+    return plan
+
+
+def _chat_session_write_temp_project_declaration(temp_repo: Path) -> None:
+    project_root = temp_repo / "project" / "brick-protocol"
+    project_root.mkdir(parents=True, exist_ok=True)
+    (project_root / "README.md").write_text(
+        "# Temp Brick Protocol Project\n\nChecker fixture project declaration.\n",
+        encoding="utf-8",
+    )
+    (project_root / "project.json").write_text(
+        json.dumps(
+            {
+                "project_ref": "project:brick-protocol",
+                "label": "Temp Brick Protocol",
+                "direction": "Exercise chat-session park projection seams.",
+                "done_means": "Checker fixture reaches its closed evidence assertions.",
+                "out_of_scope": "External delivery and provider liveness.",
+                "managers": ["smith"],
+                "declared_by": "smith",
+                "declared_at": "2026-06-11T00:00:00+00:00",
+                "charter_ref": "project/brick-protocol/README.md",
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def _chat_session_drive_park(
+    run_module: Any,
+    plan: Mapping[str, Any],
+    *,
+    buildings_root: Path,
+    temp_repo: Path,
+    walker_mode: str,
+    label: str,
+) -> tuple[Path, tuple[str, ...]]:
+    original_runner_repo = run_module._REPO_ROOT
+    try:
+        run_module._REPO_ROOT = temp_repo
+        try:
+            run_module.run_building_plan(
+                plan,
+                output_root=buildings_root,
+                overwrite_existing=True,
+                walker_mode=walker_mode,
+            )
+        except run_module.ChatSessionParkFrontierEvidenceWritten as exc:
+            return Path(exc.building_root), tuple(str(path) for path in exc.written_files)
+        except Exception as exc:  # noqa: BLE001 - assert typed park frontier
+            raise ProfileError(
+                f"chat_session_park_seam {label} path expected typed "
+                "ChatSessionParkFrontierEvidenceWritten, but leaked "
+                f"{type(exc).__name__}: {exc}"
+            ) from exc
+        raise ProfileError(
+            f"chat_session_park_seam {label} path expected the runner to stop with "
+            "ChatSessionParkFrontierEvidenceWritten, but it returned normally"
+        )
+    finally:
+        run_module._REPO_ROOT = original_runner_repo
+
+
+def _chat_session_assert_park_evidence(
+    building_root: Path,
+    *,
+    written_files: tuple[str, ...],
+    temp_repo: Path,
+    label: str,
+) -> int:
+    from brick_protocol.support.connection.agent_adapter import AgentAdapterRequest
+    from support.operator.frontier_observation import observe_building_frontier
+    from support.operator.reporter import (
+        OPERATOR_WAKE_LOCAL_SINK_REF,
+        building_event_kind_from_frontier,
+        render_report_packet,
+    )
+
+    if not building_root.is_dir():
+        raise ProfileError(f"chat_session_park_seam {label} path did not create a Building root")
+    if not written_files:
+        raise ProfileError(f"chat_session_park_seam {label} path reported no written evidence files")
+
+    step_dir = _chat_session_single_step_output_dir(building_root)
+    envelope_path = step_dir / "work-envelope.json"
+    parked_path = step_dir / "parked.json"
+    raw_park_path = building_root / "raw" / "chat-session-park.jsonl"
+    raw_agent_return_path = building_root / "raw" / "agent-return.jsonl"
+    raw_adapter_error_path = building_root / "raw" / "adapter-error.jsonl"
+    for required in (envelope_path, parked_path, raw_park_path):
+        if not required.is_file():
+            raise ProfileError(f"chat_session_park_seam {label} path missing required file: {required}")
+    if raw_agent_return_path.exists():
+        raise ProfileError(f"chat_session_park_seam {label} path fabricated raw/agent-return.jsonl")
+    if raw_adapter_error_path.exists():
+        raise ProfileError(
+            f"chat_session_park_seam {label} path wrote adapter-error raw evidence for a park"
+        )
+
+    envelope = _chat_session_json_object(envelope_path)
+    parked = _chat_session_json_object(parked_path)
+    expected_envelope_keys = {field.name for field in fields(AgentAdapterRequest)}
+    observed_envelope_keys = set(envelope)
+    if observed_envelope_keys != expected_envelope_keys:
+        raise ProfileError(
+            f"chat_session_park_seam {label} path work envelope keys drifted: "
+            f"missing={sorted(expected_envelope_keys - observed_envelope_keys)} "
+            f"unexpected={sorted(observed_envelope_keys - expected_envelope_keys)}"
+        )
+    if envelope.get("adapter_ref") != "adapter:chat-session":
+        raise ProfileError(
+            f"chat_session_park_seam {label} path work envelope did not preserve adapter:chat-session"
+        )
+    if parked.get("kind") != "chat_session_park_record":
+        raise ProfileError(f"chat_session_park_seam {label} path parked.json has the wrong kind")
+    if parked.get("schema_version") != "chat-session-park-record-0":
+        raise ProfileError(
+            f"chat_session_park_seam {label} path parked.json has the wrong schema version"
+        )
+    if "adapter_error_ref" in parked or "agent_fact_created" in parked:
+        raise ProfileError(
+            f"chat_session_park_seam {label} path parked.json reused adapter-error shape keys"
+        )
+    if parked.get("work_envelope_ref") == parked.get("parked_ref"):
+        raise ProfileError(
+            f"chat_session_park_seam {label} path parked ref and envelope ref are not distinct"
+        )
+
+    link_records = [
+        json.loads(line)
+        for line in (building_root / "raw" / "link.jsonl").read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    park_frontiers = [
+        record
+        for record in link_records
+        if isinstance(record, Mapping) and record.get("frontier_kind") == "chat_session_parked"
+    ]
+    if not park_frontiers:
+        raise ProfileError(
+            f"chat_session_park_seam {label} path did not write a chat_session_parked Link frontier row"
+        )
+    latest_park = park_frontiers[-1]
+    if latest_park.get("transition_lifecycle_state") != "paused":
+        raise ProfileError(
+            f"chat_session_park_seam {label} path did not carry a paused lifecycle row"
+        )
+    if not latest_park.get("transition_lifecycle_paused_at_ref"):
+        raise ProfileError(
+            f"chat_session_park_seam {label} path lifecycle row is not hold-addressable"
+        )
+    if latest_park.get("transition_lifecycle_required_disposition_owner") != "caller-or-coo":
+        raise ProfileError(
+            f"chat_session_park_seam {label} path lifecycle row has wrong disposition owner"
+        )
+
+    frontier = observe_building_frontier(building_root, repo_root=temp_repo)
+    if frontier.get("frontier_kind") != "chat_session_parked":
+        raise ProfileError(
+            f"chat_session_park_seam {label} path frontier branch did not win before incomplete: "
+            f"{frontier.get('frontier_kind')!r}"
+        )
+    event_kind = building_event_kind_from_frontier(building_root, repo_root=temp_repo)
+    if event_kind != "intervention_required":
+        raise ProfileError(
+            f"chat_session_park_seam {label} path reporter event mapping did not ring the bell: "
+            f"{event_kind!r}"
+        )
+    packet = render_report_packet(building_root=building_root, repo_root=temp_repo)
+    if packet.get("observed_board_state") != "needs_disposition":
+        raise ProfileError(
+            f"chat_session_park_seam {label} path report packet did not project needs_disposition"
+        )
+    inbox = temp_repo / "project" / "brick-protocol" / "status" / "inbox"
+    wake_packets = []
+    for path in sorted(inbox.glob("*operator-wake*.json")):
+        wake_packet = _chat_session_json_object(path)
+        if wake_packet.get("building_id") == building_root.name:
+            wake_packets.append(wake_packet)
+    if not wake_packets:
+        raise ProfileError(
+            f"chat_session_park_seam {label} path run-surface report_event_policy emitted no operator wake packet"
+        )
+    wake_targets = wake_packets[-1].get("operator_wake_targets")
+    if (
+        not isinstance(wake_targets, list)
+        or not wake_targets
+        or not isinstance(wake_targets[0], Mapping)
+        or wake_targets[0].get("sink_ref") != OPERATOR_WAKE_LOCAL_SINK_REF
+    ):
+        raise ProfileError(f"chat_session_park_seam {label} path wake packet used the wrong sink ref")
+    return 13
+
+
+def _chat_session_lifecycle_violations(target: Path) -> list[str]:
+    from support.checkers import check_building_lifecycle_path_shape as lifecycle_shape
+
+    label, paths = lifecycle_shape.collect_paths(target)
+    violations = lifecycle_shape.check_paths(
+        paths,
+        is_u5_5_live=lifecycle_shape.make_u5_5_live_resolver(label),
+    )
+    if not violations:
+        violations.extend(
+            lifecycle_shape.collect_content_violations(
+                label,
+                lifecycle_shape.known_candidates(set(paths)),
+            )
+        )
+    return violations
+
+
+def _chat_session_single_step_output_dir(building_root: Path) -> Path:
+    step_output_root = building_root / "work" / "step-outputs"
+    dirs = sorted(path for path in step_output_root.iterdir() if path.is_dir())
+    if len(dirs) != 1:
+        raise ProfileError(
+            "chat_session_park_seam expected exactly one step-output directory, "
+            f"observed {len(dirs)}"
+        )
+    return dirs[0]
+
+
+def _chat_session_json_object(path: Path) -> Mapping[str, Any]:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ProfileError(f"chat_session_park_seam failed to read JSON object {path}: {exc}") from exc
+    if not isinstance(value, Mapping):
+        raise ProfileError(f"chat_session_park_seam expected JSON object at {path}")
+    return value
+
+
+def _chat_session_write_json_object(path: Path, value: Mapping[str, Any]) -> None:
+    path.write_text(json.dumps(dict(value), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def _chat_session_assert_mutated_lifecycle_rejects(
+    building_root: Path,
+    label: str,
+    mutate: Callable[[Path], None],
+) -> None:
+    mutant = building_root.parent / f"{building_root.name}-mut-{_chat_session_slug(label)}"
+    if mutant.exists():
+        shutil.rmtree(mutant)
+    shutil.copytree(building_root, mutant)
+    mutate(mutant)
+    violations = _chat_session_lifecycle_violations(mutant)
+    if not violations:
+        raise ProfileError(f"chat_session_park_seam FIRE did not reject mutated copy: {label}")
+
+
+def _chat_session_mutate_envelope_uuid(building_root: Path) -> None:
+    envelope_path = _chat_session_single_step_output_dir(building_root) / "work-envelope.json"
+    envelope = dict(_chat_session_json_object(envelope_path))
+    envelope["building_session_ref"] = "123e4567-e89b-12d3-a456-426614174000"
+    _chat_session_write_json_object(envelope_path, envelope)
+
+
+def _chat_session_mutate_park_as_adapter_error(building_root: Path) -> None:
+    parked_path = _chat_session_single_step_output_dir(building_root) / "parked.json"
+    parked = dict(_chat_session_json_object(parked_path))
+    parked["adapter_error_ref"] = "adapter-error:mutated"
+    parked["agent_fact_created"] = False
+    _chat_session_write_json_object(parked_path, parked)
+
+
+def _chat_session_delete_work_envelope(building_root: Path) -> None:
+    envelope_path = _chat_session_single_step_output_dir(building_root) / "work-envelope.json"
+    envelope_path.unlink()
+
+
+def _chat_session_slug(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-") or "mutation"
 
 
 _MCP_STDIO_SMOKE_TIMEOUT_SECONDS = 30

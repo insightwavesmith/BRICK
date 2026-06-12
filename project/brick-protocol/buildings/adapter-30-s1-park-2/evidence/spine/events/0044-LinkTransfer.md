@@ -1,0 +1,11 @@
+# LinkTransfer · seq 44 · ["Link"]
+- absent_fact_type: "TransferFact"
+- axis_scope: ["Link"]
+- caller_supplied: false
+- event_type: "LinkTransfer"
+- run_segment: 2
+- sequence_index: 44
+- source_fact_ref: "absence:link-transfer:04:adapter-30-s1-park-2-axis-attack-qa"
+- spine_schema_version: "spine-v1"
+- support_created_bal_fact: false
+- trace_role: "absence_placeholder"

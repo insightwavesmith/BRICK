@@ -1,0 +1,82 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:s1-adversarial-review-loop-0612::evidence/evidence-manifest.json",
+  "building_id": "s1-adversarial-review-loop-0612",
+  "building_map_ref": "work/building-map.json",
+  "claim_trace_refs": [
+    "evidence/claim_trace/brick/work_contract.json",
+    "evidence/claim_trace/agent/returned_claims.json",
+    "evidence/claim_trace/link/transfer_trace.json",
+    "evidence/claim_trace/link/carry_trace.json",
+    "evidence/claim_trace/link/sufficiency_trace.json",
+    "evidence/claim_trace/link/movement_trace.json"
+  ],
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "declaration_evidence_refs": [
+    "work/task.md",
+    "work/building-intake.json",
+    "work/preset-expansion.json",
+    "work/declared-building-plan.json",
+    "work/link-launch-policy.json"
+  ],
+  "evidence_generation": "u5_5_live",
+  "execution_path": "native-dispatch",
+  "generatedAtTime": "2026-06-12T00:27:41Z",
+  "id": "urn:bp:building:s1-adversarial-review-loop-0612::evidence/evidence-manifest.json",
+  "not_proven": [
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "not proven: source truth",
+    "not proven: success judgment",
+    "not proven: quality judgment",
+    "not proven: Movement authority"
+  ],
+  "plan_ref": "native-dispatch-plan:s1-adversarial-review-loop-0612",
+  "plan_snapshot": {
+    "plan_hash": "0ae6605884b9ca3a7ffe050b053fddb0668affd5bad589655b2126c33b3fb907",
+    "plan_hash_algorithm": "sha256",
+    "plan_hash_basis": "canonical sorted-key JSON of the declared plan body",
+    "plan_ref": "native-dispatch-plan:s1-adversarial-review-loop-0612",
+    "plan_rows_copy": "{\"composition_mode\":\"caller_or_coo_declared_linear_composition\",\"execution_path\":\"native-dispatch\",\"not_proven\":[\"brain surface behavior\",\"credential validity\",\"runtime or scheduler behavior\",\"tool or hook execution\",\"source truth\",\"success judgment\",\"quality judgment\",\"Movement authority\"],\"plan_ref\":\"native-dispatch-plan:s1-adversarial-review-loop-0612\",\"proof_limits\":[\"workflow result imported post-hoc by the operator; support recorded the result, not the run\",\"internal agent detail not observable (workflow back door); recorded as one performer act\",\"native-dispatch support evidence only\",\"support recorded a native subagent dispatch; support did not launch it\",\"gate sufficiency is the Link rule computation over the supplied return\",\"not source truth\",\"not success judgment\",\"not quality judgment\",\"not Movement authority\",\"orchestration/Movement authority is user/Link-owned; support records only\"],\"raw_refs\":[],\"steps\":[{\"rows\":[{\"axis\":\"Brick\",\"brick_instance_ref\":\"brick:s1-adversarial-review-loop-0612:native-dispatch\",\"brick_work_ref\":\"work/building-work.json\",\"comparison_rule\":\"\",\"required_return_shape\":\"observed_evidence, not_proven\",\"row_ref\":\"brick-row:s1-adversarial-review-loop-0612-native-dispatch\",\"work_statement\":\"Out-of-band adversarial review loop over the uncommitted S1 chat-session PARK diff (building adapter-30-s1-park-2 work output). Five codex 5.5-xhigh CLI rounds driven by the operator outside the chain (pre-F6 compensation; recorded post-hoc per the review-work-belongs-in-buildings ruling, Smith 0612): R1 review found 3 defects (dynamic/resume park unwired; parked projects unknown; seam checker linear-only), R2 fixed; R3 review found 3 more + 1 boundary (agent capability bypass; portfolio abort on parked child; missing parked next-action; generic-resume-of-parked must be explicit S2/S3 fail-closed), R4 fixed; R5 final verdict HOLDS with no findings. Every finding was reproduced by the operator before repair; operator FIRE probes and the full 12-profile gate (exit 0) ran between rounds. Logs: /tmp/codex-s1-review-r{1,3,5}.md, /tmp/codex-s1-fix-r{2,4}.md.\"},{\"agent_object_ref\":\"agent-object:workflow\",\"axis\":\"Agent\",\"row_ref\":\"agent-row:s1-adversarial-review-loop-0612-native-dispatch\"},{\"axis\":\"Link\",\"declared_gate_refs\":[\"link-gate:default-transition\"],\"movement\":\"forward\",\"next_brick_instance_ref\":\"brick:s1-adversarial-review-loop-0612:native-dispatch-closed\",\"row_ref\":\"link-row:s1-adversarial-review-loop-0612-native-dispatch\",\"target_ref\":\"brick:brick:s1-adversarial-review-loop-0612:native-dispatch-closed\"}],\"step_ref\":\"s1-adversarial-review-loop-0612-native-dispatch\"}]}",
+    "proof_limits": [
+      "evidence copy only",
+      "not source truth"
+    ]
+  },
+  "proof_limits": [
+    "workflow result imported post-hoc by the operator; support recorded the result, not the run",
+    "internal agent detail not observable (workflow back door); recorded as one performer act",
+    "native-dispatch support evidence only",
+    "support recorded a native subagent dispatch; support did not launch it",
+    "gate sufficiency is the Link rule computation over the supplied return",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "orchestration/Movement authority is user/Link-owned; support records only"
+  ],
+  "raw_manifest_ref": "raw/raw-manifest.json",
+  "raw_stream_refs": [
+    "raw/brick-work.jsonl",
+    "raw/agent-return.jsonl",
+    "raw/link.jsonl"
+  ],
+  "recorded_at": "2026-06-12T00:27:41Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:s1-adversarial-review-loop-0612",
+  "specversion": "1.0",
+  "step_output_refs": [
+    "work/step-outputs/s1-adversarial-review-loop-0612-native-dispatch-attempt-1/step-output.json"
+  ],
+  "subject": "evidence/evidence-manifest.json",
+  "time": "2026-06-12T00:27:41Z",
+  "type": "bp.evidence_manifest"
+}

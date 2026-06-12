@@ -1,0 +1,160 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:adapter-30-s1-park-2::work/step-outputs/adapter-30-s1-park-2-evidence-integrity-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:inspector",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-adapter-30-s1-park-2-evidence-integrity",
+  "building_id": "adapter-30-s1-park-2",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:05",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-11T23:07:52.647421Z",
+  "id": "urn:bp:building:adapter-30-s1-park-2::work/step-outputs/adapter-30-s1-park-2-evidence-integrity-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:05:adapter-30-s1-park-2-evidence-integrity",
+  "recorded_at": "2026-06-11T23:07:52.647421Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:inspector",
+    "blocked_or_missing_evidence": [
+      "Tools and hooks were forbidden by the packet, so filesystem inspection and command execution were not performed.",
+      "No building_session_ref was supplied.",
+      "No link_handoff_refs were supplied.",
+      "No persisted Building evidence root or checker output was included in the packet."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "checker_overclaim_risks": [
+      "check_profile.py --all was not run in this turn.",
+      "No RED mutated-copy demonstrations were run for envelope shape, park-vs-adapter-error distinction, observer branch order, reporter bell mapping, or path admission.",
+      "Any claim that all 12 checker profiles stayed green would be unsupported from this evidence scope."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:adapter-30-s1-park-2",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:adapter-30-s1-park-2:agent-object:inspector:output"
+    ],
+    "evidence_scope": "This return uses only the provided runtime AgentInstructionPacket and inline task source. No repository files, persisted evidence roots, fixtures, or checker outputs were inspected because the packet forbids tools and hooks.",
+    "evidence_used": [
+      "runtime AgentInstructionPacket for agent-object:inspector.",
+      "task-source:inline-statement embedded in source_fact_bodies.",
+      "Declared rules, required_return_shape, tool policy, prompt, discipline, and skill resource bodies embedded in the packet."
+    ],
+    "missing_evidence": [
+      "Current persisted implementation state for adapter:chat-session.",
+      "Persisted envelope and park-record path shape.",
+      "Frontier observation branch ordering in live code.",
+      "Reporter map/frozenset handling for parked frontier events.",
+      "Both path checker allowlist updates.",
+      "Checker FIRE fixture outputs and restored green profile output."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "S1 seam implemented.",
+      "Typed parked signal exists and avoids CLI invocation.",
+      "Envelope contains only serialized AgentAdapterRequest projection keys and no UUID/ULID/session token body.",
+      "Park record is distinguishable from adapter-error record.",
+      "Parked frontier is observed before agent_incomplete/in-progress branches.",
+      "Reporter bell emits the intended delivery/wake event for parked frontier.",
+      "Path admission is present in both required checkers.",
+      "All 12 checker profiles are green.",
+      "Any checker pin FIRE result.",
+      "Source truth.",
+      "Success judgment.",
+      "Quality judgment.",
+      "Movement authority."
+    ],
+    "observed_evidence": [
+      "Input declares inspector Agent Object with reviewer-readonly tool policy and no mutation scope.",
+      "Task source requests S1 chat-session adapter PARK seam only: typed parked signal, envelope plus park record, frontier branch before agent_incomplete, reporter bell, checker pins, and all profiles green.",
+      "Hard constraints in task source keep Link vocabulary closed, forbid scheduler/queue/retry/timer, forbid credential/session bodies in evidence, and require distinct park vs adapter-error record shapes.",
+      "Declared comparison rule says observe declared task source, preset, and Brick contract only; no Movement choice or quality judgment."
+    ],
+    "output_excerpt": "{\"observed_evidence\":[\"Input declares inspector Agent Object with reviewer-readonly tool policy and no mutation scope.\",\"Task source requests S1 chat-session adapter PARK seam only: typed parked signal, envelope plus park record, frontier branch before agent_incomplete, reporter bell, checker pins, and all profiles green.\",\"Hard constraints in task source keep Link vocabulary closed, forbid scheduler/queue/retry/timer, forbid credential/session bodies in evidence, and require distinct park vs adapter-error record shapes.\",\"Declared comparison rule says observe declared task source, preset, ...",
+    "persisted_evidence_roots": [
+      "not_observed: project/brick-protocol/building-evidence/ for building_id adapter-30-s1-park-2 was not inspected.",
+      "not_observed: support/connection/agent_adapter.py, support/operator/run.py, support/recording/*, support/operator/ledger_projection.py, support/operator/reporter.py, and support/checkers/* were not inspected."
+    ],
+    "proof_limit_findings": [
+      "The packet is support input only, not source truth, not projection seed, not success judgment, not quality judgment, and not Movement authority.",
+      "No executed evidence proves S1 implementation, checker pins, path admission, reporter wake behavior, or frontier observation order.",
+      "The only narrow observation is that the declared task asks for support-only parking records and explicitly keeps park outside Link Movement vocabulary."
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "provider-neutral support evidence only.",
+      "not source truth.",
+      "not success judgment.",
+      "not quality judgment.",
+      "not Movement authority.",
+      "no Link Movement chosen.",
+      "no route target chosen.",
+      "no tools or hooks used.",
+      "no credential, setup token, auth body, or provider session body observed or returned."
+    ],
+    "remaining_delta": [
+      "A separate verification lane needs read access to inspect the named files and persisted evidence roots.",
+      "A repair or implementation lane, if separately declared, would need scoped write authority before changing code or checkers.",
+      "A verification lane must run the profile command and mutated-copy RED probes before any closure claim is supportable."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "stale_source_risks": [
+      "The task cites a Smith-approved design v2 dated 2026-06-11; no current repo comparison was performed on 2026-06-12 Asia/Seoul context.",
+      "Inline AGENTS.md and packet content may not match current persisted repository files because no file reads were allowed."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:05:adapter-30-s1-park-2-evidence-integrity",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:adapter-30-s1-park-2",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:adapter-30-s1-park-2-evidence-integrity:attempt-1",
+  "step_ref": "adapter-30-s1-park-2-evidence-integrity",
+  "subject": "adapter-30-s1-park-2-evidence-integrity",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-11T23:07:52.647421Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

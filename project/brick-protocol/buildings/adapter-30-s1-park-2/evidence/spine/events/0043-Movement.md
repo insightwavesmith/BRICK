@@ -1,0 +1,12 @@
+# Movement · seq 43 · ["Link"]
+- adopted_transition_concern_refs: []
+- axis_scope: ["Link"]
+- declared_movement: "forward"
+- event_type: "Movement"
+- gate_review_event_ref: "sufficiency-fact-movement:04:adapter-30-s1-park-2-axis-attack-qa"
+- not_adopted_transition_concern_refs: []
+- run_segment: 2
+- sequence_index: 43
+- source_fact_ref: "movement-fact:04:adapter-30-s1-park-2-axis-attack-qa"
+- spine_schema_version: "spine-v1"
+- target_boundary_ref: "brick:brick-adapter-30-s1-park-2-closure"

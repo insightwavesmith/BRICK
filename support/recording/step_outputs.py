@@ -14,7 +14,11 @@ from brick_protocol.agent.return_fact import (
     validate_transition_concern_evidence,
 )
 from brick_protocol.support.recording.capture import graph_ready_json_object, graph_ready_timestamp
-from brick_protocol.support.recording.contracts import AdapterErrorObservation, StepOutputObservation
+from brick_protocol.support.recording.contracts import (
+    AdapterErrorObservation,
+    ChatSessionParkObservation,
+    StepOutputObservation,
+)
 
 _RAW_SECRET_MARKERS: tuple[str, ...] = (
     "sk-",
@@ -270,6 +274,69 @@ def write_adapter_error_outputs(
     return tuple(written)
 
 
+def write_chat_session_park_outputs(
+    building_root: Path,
+    building_id: str,
+    observations: tuple[ChatSessionParkObservation, ...],
+    *,
+    proof_limits: tuple[str, ...],
+) -> tuple[Path, ...]:
+    written: list[Path] = []
+    recorded_at = graph_ready_timestamp()
+    for observation in observations:
+        attempt_index = _chat_session_park_attempt_index(observation)
+        envelope_ref = _step_output_work_envelope_ref(observation.step_ref, attempt_index)
+        parked_ref = _step_output_parked_ref(observation.step_ref, attempt_index)
+        _write_json(
+            building_root / envelope_ref,
+            dict(observation.work_envelope),
+            written,
+        )
+        packet: dict[str, Any] = {
+            "kind": "chat_session_park_record",
+            "schema_version": "chat-session-park-record-0",
+            "parked_ref": observation.parked_ref,
+            "building_id": building_id,
+            "step_ref": observation.step_ref,
+            "brick_instance_ref": observation.brick_instance_ref,
+            "agent_object_ref": observation.agent_object_ref,
+            "adapter_ref": observation.adapter_ref,
+            "selected_model_ref": observation.selected_model_ref,
+            "input_packet_ref": observation.input_packet_ref,
+            "output_packet_ref": observation.output_packet_ref,
+            "received_work_ref": observation.received_work_ref,
+            "work_envelope_ref": observation.work_envelope_ref,
+            "park_reason": "chat-session adapter parks declared work before provider invocation",
+            "support_record_role": "waiting-for-chat-session-submission",
+            "evidence_refs": {
+                "raw_ref": observation.raw_ref,
+                "raw_stream_ref": "raw/chat-session-park.jsonl",
+                "work_envelope_ref": observation.work_envelope_ref,
+                "receipt_trace_ref": "evidence/claim_trace/agent/receipt_trace.json",
+                "frontier_trace_ref": "evidence/claim_trace/link/frontier_trace.json",
+                "building_map_ref": "work/building-map.json",
+            },
+            "proof_limits": list(_merge_texts(proof_limits, observation.proof_limits)),
+            "not_proven": list(observation.not_proven),
+        }
+        if observation.task_source_ref:
+            packet["task_source_ref"] = observation.task_source_ref
+            packet["evidence_refs"]["task_source_ref"] = observation.task_source_ref
+        _write_json(
+            building_root / parked_ref,
+            graph_ready_json_object(
+                packet,
+                building_id=building_id,
+                local_id=parked_ref,
+                recorded_at=recorded_at,
+                event_type="bp.step_output.chat_session_parked",
+                subject=observation.step_ref,
+            ),
+            written,
+        )
+    return tuple(written)
+
+
 def step_output_manifest_refs(observations: tuple[StepOutputObservation, ...]) -> list[str]:
     attempts = _step_output_attempts(observations)
     return [
@@ -302,6 +369,14 @@ def _step_output_manifest_ref(step_ref: str, attempt_index: int) -> str:
 
 def _step_output_adapter_error_ref(step_ref: str, attempt_index: int) -> str:
     return f"{_step_output_dir_ref(step_ref, attempt_index)}/adapter-error.json"
+
+
+def _step_output_work_envelope_ref(step_ref: str, attempt_index: int) -> str:
+    return f"{_step_output_dir_ref(step_ref, attempt_index)}/work-envelope.json"
+
+
+def _step_output_parked_ref(step_ref: str, attempt_index: int) -> str:
+    return f"{_step_output_dir_ref(step_ref, attempt_index)}/parked.json"
 
 
 def _step_output_route_request_ref(step_ref: str, attempt_index: int) -> str:
@@ -441,6 +516,16 @@ def _validate_existing_policy(value: str) -> None:
 
 def _adapter_error_attempt_index(observation: AdapterErrorObservation) -> int:
     suffix = observation.adapter_error_ref.rsplit(":attempt-", 1)
+    if len(suffix) == 2:
+        try:
+            return int(suffix[1])
+        except ValueError:
+            pass
+    return 1
+
+
+def _chat_session_park_attempt_index(observation: ChatSessionParkObservation) -> int:
+    suffix = observation.parked_ref.rsplit(":attempt-", 1)
     if len(suffix) == 2:
         try:
             return int(suffix[1])

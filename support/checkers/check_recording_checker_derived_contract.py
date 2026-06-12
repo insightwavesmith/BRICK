@@ -291,6 +291,7 @@ def _check_a2_operator_evidence(repo: Path, walker_chk: Any) -> list[str]:
         CAPTURE_EVENT_HEADER_FIELDS,
         CAPTURE_EVENT_PAYLOAD_FIELDS,
         CAPTURE_EVENT_TYPES,
+        FRONTIER_OBSERVATION_OPTIONAL_FIELDS,
         FRONTIER_OBSERVATION_REQUIRED_FIELDS,
     )
 
@@ -383,7 +384,7 @@ def _check_a2_operator_evidence(repo: Path, walker_chk: Any) -> list[str]:
             _check_record_against_contract(
                 frontier_observation,
                 required=FRONTIER_OBSERVATION_REQUIRED_FIELDS,
-                optional=(),
+                optional=FRONTIER_OBSERVATION_OPTIONAL_FIELDS,
                 label="a2.frontier_observation",
             )
         )

@@ -37,6 +37,7 @@ from brick_protocol.link.movement import MovementFact
 from brick_protocol.link.transition import TransitionFact
 from brick_protocol.support.connection.agent_adapter import (
     AgentAdapterRequest,
+    AgentAdapterParked,
     AgentAdapterResult,
     AgentBrainCallable,
     CommandRunner,
@@ -62,6 +63,7 @@ from brick_protocol.support.operator.evidence_assembly import (
     agent_run_lifecycle_mapping,
     write_accumulated_building_evidence,
     write_adapter_error_frontier_evidence,
+    write_chat_session_park_frontier_evidence,
     write_single_building_evidence,
 )
 from brick_protocol.support.operator.gate_sequence import (
@@ -70,6 +72,7 @@ from brick_protocol.support.operator.gate_sequence import (
     gate_sequence_decision_to_record,
     run_gate_sequence_policy,
 )
+from brick_protocol.support.operator.frontier_observation import observe_building_frontier
 from brick_protocol.support.operator.reporter import (
     building_event_kind_from_frontier,
     emit_building_event_for_policy,
@@ -78,6 +81,10 @@ from brick_protocol.support.operator.reporter import (
 from brick_protocol.support.operator.dynamic_walker import (
     _resume_dynamic_graph_walker,
     _run_dynamic_graph_walker,
+)
+from brick_protocol.support.operator.walker_frontier import (
+    _chat_session_park_hold_record,
+    _chat_session_park_paused_lifecycle,
 )
 from brick_protocol.support.operator.plan_validation import (
     _agent_run_handoff_packet,
@@ -161,6 +168,23 @@ class AdapterFrontierEvidenceWritten(RuntimeError):
         self.written_files = written_files
 
 
+class ChatSessionParkFrontierEvidenceWritten(RuntimeError):
+    """Raised after support writes frontier evidence for a parked chat session."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        building_id: str,
+        building_root: Path,
+        written_files: tuple[Path, ...],
+    ) -> None:
+        super().__init__(message)
+        self.building_id = building_id
+        self.building_root = building_root
+        self.written_files = written_files
+
+
 class _AdapterRunInterrupted(RuntimeError):
     def __init__(
         self,
@@ -173,6 +197,40 @@ class _AdapterRunInterrupted(RuntimeError):
         self.prepared = prepared
         self.adapter_request = adapter_request
         self.adapter_error = adapter_error
+
+
+class _AdapterRunParked(RuntimeError):
+    def __init__(
+        self,
+        *,
+        prepared: AgentRunPreparationRecord,
+        adapter_request: AgentAdapterRequest,
+        parked: AgentAdapterParked,
+    ) -> None:
+        super().__init__("chat-session adapter parked work before AgentFact returned")
+        self.prepared = prepared
+        self.adapter_request = adapter_request
+        self.parked = parked
+
+
+def _chat_session_park_frontier_transition_lifecycle(
+    *,
+    building_id: str,
+    completed_step_results: tuple[BuildingRunSupportResult, ...],
+    failed_preparation: AgentRunPreparationRecord,
+) -> Mapping[str, Any]:
+    hold_record = _chat_session_park_hold_record(
+        building_id=building_id,
+        completed_step_results=list(completed_step_results),
+        failed_preparation=failed_preparation,
+        reroute_records=[],
+        node_budget={},
+        node_landings={},
+        cascade_depth=0,
+        parent_reroute_ref="",
+    )
+    return _chat_session_park_paused_lifecycle(hold_record)
+
 
 def run_building_once(
     fixture: Mapping[str, Any] | str | Path,
@@ -225,6 +283,29 @@ def run_building_once(
             adapter_cwd=adapter_cwd,
             adapter_timeout_seconds=adapter_timeout_seconds,
         )
+    except _AdapterRunParked as parked:
+        evidence_write = write_chat_session_park_frontier_evidence(
+            building_id=prepared.building_id,
+            plan_ref=_optional_text_value(packet.get("plan_ref")) or "building-plan:single-step",
+            plan=packet,
+            completed_step_results=(),
+            failed_preparation=parked.prepared,
+            adapter_request=parked.adapter_request,
+            output_root=output_root,
+            overwrite_existing=overwrite_existing,
+            proof_limits=checked_proof_limits,
+            frontier_transition_lifecycle=_chat_session_park_frontier_transition_lifecycle(
+                building_id=prepared.building_id,
+                completed_step_results=(),
+                failed_preparation=parked.prepared,
+            ),
+        )
+        raise ChatSessionParkFrontierEvidenceWritten(
+            "chat-session park frontier evidence written before AgentFact returned",
+            building_id=prepared.building_id,
+            building_root=evidence_write.lifecycle_write.root,
+            written_files=evidence_write.written_files,
+        ) from parked
     except _AdapterRunInterrupted as interrupted:
         evidence_write = write_adapter_error_frontier_evidence(
             building_id=prepared.building_id,
@@ -325,6 +406,9 @@ def run_building_plan(
             record_step_output=_write_step_output_on_step_close,
             write_accumulated=write_accumulated_building_evidence,
             write_adapter_error_frontier=write_adapter_error_frontier_evidence,
+            write_chat_session_park_frontier=write_chat_session_park_frontier_evidence,
+            chat_session_park_frontier_exception=ChatSessionParkFrontierEvidenceWritten,
+            repo_root=_REPO_ROOT,
         )
     if _optional_text_from_mapping(packet, "plan_shape") == "graph":
         raise ValueError(
@@ -427,6 +511,45 @@ def run_building_plan(
                 task_source_ref=task_source_ref,
                 overwrite_existing=overwrite_existing,
             )
+        except _AdapterRunParked as parked:
+            evidence_write = write_chat_session_park_frontier_evidence(
+                building_id=building_id,
+                plan_ref=plan_ref,
+                plan=packet,
+                completed_step_results=tuple(step_results),
+                failed_preparation=parked.prepared,
+                adapter_request=parked.adapter_request,
+                output_root=output_root,
+                overwrite_existing=overwrite_existing or bool(step_results),
+                proof_limits=checked_proof_limits,
+                graph_context=graph_context,
+                frontier_transition_lifecycle=_chat_session_park_frontier_transition_lifecycle(
+                    building_id=building_id,
+                    completed_step_results=tuple(step_results),
+                    failed_preparation=parked.prepared,
+                ),
+            )
+            if report_event_policy:
+                terminal_event_kind = building_event_kind_from_frontier(
+                    evidence_write.lifecycle_write.root,
+                    repo_root=_REPO_ROOT,
+                )
+                terminal_event = emit_building_event_for_policy(
+                    report_event_policy,
+                    event_kind=terminal_event_kind,
+                    building_id=building_id,
+                    building_root=evidence_write.lifecycle_write.root,
+                    repo_root=_REPO_ROOT,
+                    overwrite_existing=overwrite_existing,
+                )
+                if terminal_event is not None:
+                    report_event_observations.append(terminal_event)
+            raise ChatSessionParkFrontierEvidenceWritten(
+                "chat-session park frontier evidence written before AgentFact returned",
+                building_id=building_id,
+                building_root=evidence_write.lifecycle_write.root,
+                written_files=evidence_write.written_files,
+            ) from parked
         except _AdapterRunInterrupted as interrupted:
             evidence_write = write_adapter_error_frontier_evidence(
                 building_id=building_id,
@@ -535,10 +658,19 @@ def resume_building_plan(
     steps from recorded step outputs / raw Agent returns so completed Agent work is
     not called again, then lets the admitted dynamic graph walker continue from the
     declared human/COO disposition.
+
+    Proof limit: a chat-session parked Building is intentionally not resumable by
+    this generic disposition surface; S2/S3 submit/claim owns that resume authority.
     """
 
     root = Path(building_root)
     checked_proof_limits = _proof_limits_tuple(proof_limits)
+    frontier = observe_building_frontier(root, repo_root=_REPO_ROOT)
+    if frontier.get("frontier_kind") == "chat_session_parked":
+        raise ValueError(
+            "parked building resume is the S2/S3 submit/claim surface; "
+            "not resumable by generic disposition"
+        )
     return _resume_dynamic_graph_walker(
         root,
         output_root=root.parent,
@@ -553,6 +685,9 @@ def resume_building_plan(
         record_step_output=_write_step_output_on_step_close,
         write_accumulated=write_accumulated_building_evidence,
         write_adapter_error_frontier=write_adapter_error_frontier_evidence,
+        write_chat_session_park_frontier=write_chat_session_park_frontier_evidence,
+        chat_session_park_frontier_exception=ChatSessionParkFrontierEvidenceWritten,
+        repo_root=_REPO_ROOT,
     )
 
 
@@ -867,6 +1002,12 @@ def _adapter_result_or_interrupt(
             write_observation_before,
             adapter_cwd=adapter_cwd,
         )
+    except AgentAdapterParked as parked:
+        raise _AdapterRunParked(
+            prepared=prepared,
+            adapter_request=adapter_request,
+            parked=parked,
+        ) from parked
     except Exception as exc:
         raise _AdapterRunInterrupted(
             prepared=prepared,

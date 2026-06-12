@@ -125,6 +125,7 @@ from support.checkers.lib.kernel_checks import (
     run_onboard_smoke,
     run_install_script_lint,
     run_reporter_notification_projection,
+    run_chat_session_park_seam,
     run_mcp_stdio_smoke,
     run_connect_config_launch,
     run_codex_projection_native,
@@ -163,6 +164,7 @@ KERNEL_CHECK_IDS = {
     "onboard_smoke",
     "install_script_lint",
     "reporter_notification_projection",
+    "chat_session_park_seam",
     "mcp_stdio_smoke",
     "connect_config_launch",
     "codex_projection_native",
@@ -499,6 +501,14 @@ def run_kernel_check(repo: Path, check_id: str) -> KernelResult:
         # from merely text-pinning the presence of probe functions while never
         # observing that authority-leaking packets and unadmitted sinks reject.
         return run_reporter_notification_projection(repo)
+    if check_id == "chat_session_park_seam":
+        # Executes the chat-session S1 PARK seam IN-PROCESS over a temp project
+        # Building root: declared adapter:chat-session must write a closed
+        # AgentAdapterRequest envelope + distinct park record, stop before any
+        # AgentFact, observe frontier_kind=chat_session_parked before incomplete,
+        # map to the reporter intervention bell, and pass both lifecycle/path
+        # admission checkers on the generated support evidence.
+        return run_chat_session_park_seam(repo)
     if check_id == "mcp_stdio_smoke":
         # Execution smoke: bare-launches support/connection/mcp_projection.py with
         # a CLEAN env (no PYTHONPATH) like a real MCP host and asserts it answers

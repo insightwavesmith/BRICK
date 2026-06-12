@@ -1,0 +1,20 @@
+# PresetExpansion · seq 1 · ["Brick"]
+- axis_scope: ["Brick"]
+- building_id: "s1-adversarial-review-loop-0612"
+- canonical_chain_preset_ref: ""
+- chain_preset_catalog_scope: ""
+- chain_preset_catalog_source: ""
+- chain_preset_ref: ""
+- common_basis_ref: ""
+- compat_chain_preset_ref: ""
+- composition_mode: "caller_or_coo_declared_linear_composition"
+- event_type: "PresetExpansion"
+- expanded_brick_template_refs: []
+- expanded_step_template_refs: []
+- plan_ref: "native-dispatch-plan:s1-adversarial-review-loop-0612"
+- run_segment: 1
+- selected_preset_ref: ""
+- selected_shape_ref: ""
+- sequence_index: 1
+- shape_catalog_ref: "brick-template-catalog:split-p3b-p4"
+- spine_schema_version: "spine-v1"

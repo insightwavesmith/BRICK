@@ -135,6 +135,7 @@ _FRONTIER_TO_OBSERVED_STATE = {
     "complete": "observed_closed_boundary",
     "link_paused": "observed_paused",
     "human_review_waiting": "observed_human_gate",
+    "chat_session_parked": "needs_disposition",
     "agent_incomplete": "observed_running",
     "closure_pending": "observed_running",
     "evidence_incomplete": "observed_running",
@@ -151,6 +152,7 @@ BUILDING_EVENT_FRONTIER_KINDS = {
     "complete": "building_finished",
     "link_paused": "intervention_required",
     "human_review_waiting": "intervention_required",
+    "chat_session_parked": "intervention_required",
 }
 BUILDING_EVENT_PROOF_LIMITS: tuple[str, ...] = (
     "opt-in Building event notification support hook only",
@@ -1290,6 +1292,8 @@ def _required_disposition_owner(frontier: Mapping[str, Any]) -> str:
     if owner:
         return owner
     if frontier.get("frontier_kind") == "human_review_waiting":
+        return "caller-or-coo"
+    if frontier.get("frontier_kind") == "chat_session_parked":
         return "caller-or-coo"
     if frontier.get("frontier_kind") == "link_paused":
         return "coo"

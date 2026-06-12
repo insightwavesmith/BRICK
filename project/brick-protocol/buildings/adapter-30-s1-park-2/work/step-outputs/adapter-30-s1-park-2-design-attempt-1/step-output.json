@@ -1,0 +1,243 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:adapter-30-s1-park-2::work/step-outputs/adapter-30-s1-park-2-design-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:design-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-adapter-30-s1-park-2-design",
+  "building_id": "adapter-30-s1-park-2",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "gate_sequence_decision_record": {
+    "action": "hold",
+    "evidence_ref": "observation:gate-sequence-adapter-30-s1-park-2-adapter-30-s1-park-2-design-link-gate-coo-hold",
+    "gate_action_sequence": [
+      {
+        "action": "next",
+        "evidence_ref": "observation:gate-sequence-adapter-30-s1-park-2-adapter-30-s1-park-2-design-link-gate-default-transition-next",
+        "gate_ref": "link-gate:default-transition",
+        "hold_reason": "",
+        "pending_target_ref": "",
+        "reason_refs": [
+          "observation:gate-sequence-adapter-30-s1-park-2-adapter-30-s1-park-2-design-link-gate-default-transition-next"
+        ],
+        "target_brick_ref": ""
+      },
+      {
+        "action": "hold",
+        "evidence_ref": "observation:gate-sequence-adapter-30-s1-park-2-adapter-30-s1-park-2-design-link-gate-coo-hold",
+        "gate_ref": "link-gate:coo",
+        "hold_reason": "gate_sequence_missing_required_facts:link-gate:coo",
+        "pending_target_ref": "brick-adapter-30-s1-park-2-work",
+        "reason_refs": [
+          "observation:coo-gate-missing-required-facts"
+        ],
+        "target_brick_ref": ""
+      }
+    ],
+    "gate_ref": "link-gate:coo",
+    "gate_results": [
+      {
+        "checked_public_fact": "brick-comparison:adapter-30-s1-park-2:adapter-30-s1-park-2-design",
+        "gate_ref": "link-gate:default-transition",
+        "missing_required_facts": [],
+        "required_public_facts": [
+          "BrickComparisonFact.required_return_shape_evidence",
+          "BrickComparisonFact.comparison_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.observed_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.design_summary",
+          "BrickComparisonFact.comparison_evidence.returned_field.relevant_current_structure",
+          "BrickComparisonFact.comparison_evidence.returned_field.proposed_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.unchanged_surfaces",
+          "BrickComparisonFact.comparison_evidence.returned_field.axis_responsibility",
+          "BrickComparisonFact.comparison_evidence.returned_field.invariants",
+          "BrickComparisonFact.comparison_evidence.returned_field.edge_cases",
+          "BrickComparisonFact.comparison_evidence.returned_field.checker_or_verifier_plan",
+          "BrickComparisonFact.comparison_evidence.returned_field.candidate_file_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_refs",
+          "BrickComparisonFact.comparison_evidence.returned_field.not_proven"
+        ],
+        "sufficiency": "sufficient"
+      },
+      {
+        "checked_public_fact": "brick-comparison:adapter-30-s1-park-2:adapter-30-s1-park-2-design",
+        "gate_ref": "link-gate:coo",
+        "missing_required_facts": [
+          "Link.route_decision_basis.override_refs"
+        ],
+        "required_public_facts": [
+          "Link.route_decision_basis.override_refs"
+        ],
+        "sufficiency": "missing_required_facts"
+      }
+    ],
+    "hold_reason": "gate_sequence_missing_required_facts:link-gate:coo",
+    "pending_target_ref": "brick-adapter-30-s1-park-2-work",
+    "reason_refs": [
+      "observation:coo-gate-missing-required-facts"
+    ],
+    "required_disposition_owner": "coo",
+    "target_brick_ref": ""
+  },
+  "generatedAtTime": "2026-06-11T22:34:29.310470Z",
+  "id": "urn:bp:building:adapter-30-s1-park-2::work/step-outputs/adapter-30-s1-park-2-design-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:adapter-30-s1-park-2-design",
+  "recorded_at": "2026-06-11T22:34:29.310470Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:design-lead",
+    "axis_responsibility": [
+      "Brick: declared work contract, S1 scope, and required return/checker expectations.",
+      "Agent: provider-neutral performer contract and absence of AgentFact until a later submitted return exists.",
+      "Link: no new authority in S1; existing declared Movement vocabulary remains closed.",
+      "Support: adapter resolution, runner parking, support-only records, derived frontier observation, reporter projection, and checker evidence."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "candidate_file_changes": [
+      "support/connection/agent_adapter.py",
+      "support/operator/run.py",
+      "support/recording/adapter_error_frontier.py or a new nearby parked-frontier support module if already admitted by checker/profile update",
+      "support/recording/contracts.py",
+      "support/operator/ledger_projection.py",
+      "support/operator/reporter.py",
+      "support/checkers/check_package_path_admission.py",
+      "support/checkers/check_building_lifecycle_path_shape.py",
+      "support/checkers/profile YAML or existing checker-profile fixture surfaces for the new pins",
+      "project/brick-protocol/status or building-evidence paths only if the Building runner records support evidence for this work"
+    ],
+    "checker_or_verifier_plan": [
+      "Add profile-backed positive fixture for a parked chat-session Building root.",
+      "Sabotage envelope with extra key and UUID/ULID-shaped or free-text session id; checker must go RED, then restored fixture green.",
+      "Sabotage park record to match adapter-error shape; checker must go RED, then restored fixture green.",
+      "Sabotage observer ordering so parked is read as incomplete/running; checker must go RED, then restored fixture green.",
+      "Sabotage reporter map/event admission so parked emits no wake event; checker must go RED, then restored fixture green.",
+      "Remove each required path admission independently from both path checkers; each omission must go RED.",
+      "Final verification target: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all exits 0."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:adapter-30-s1-park-2",
+    "cli_version_text": "codex-cli 0.137.0",
+    "design_summary": "Design contract: adapter:chat-session is a support adapter kind that never invokes a provider CLI. When encountered by the runner, it raises or returns a typed parked outcome before AgentFact creation. The runner records a closed AgentAdapterRequest projection as the work envelope plus a distinct support-only park record, then stops the walk loudly. Frontier observation derives parked before agent_incomplete, and reporter maps parked to a wake/intervention observed state without making parked a Link state or Movement literal.",
+    "edge_cases": [
+      "adapter:chat-session declared with unexpected provider/session metadata in request projection.",
+      "Park record written without matching envelope.",
+      "Envelope present but park record malformed or adapter-error-shaped.",
+      "Observer sees parked evidence and incomplete AgentFact evidence candidates in the same Building root.",
+      "Reporter frontier map admits parked but event-kind frozensets omit it, or the reverse.",
+      "Path admitted in one checker but not the other.",
+      "Unknown adapter ref near chat-session spelling must not fall back to local adapter behavior."
+    ],
+    "evidence_refs": [
+      "support-packet:adapter-30-s1-park-2:agent-object:design-lead:output"
+    ],
+    "invariants": [
+      "adapter:chat-session must not invoke CLI/provider execution.",
+      "Parking records support evidence only and must not store credentials, setup tokens, provider sessions, UUID/ULID-shaped session ids, or free-text session identifiers.",
+      "Envelope shape is closed to AgentAdapterRequest projection keys only.",
+      "Park record shape must be distinguishable from adapter-error shape.",
+      "Malformed park state, missing envelope, unknown adapter kind, or inadmissible path must loudly reject.",
+      "Frontier parked observation must be ordered before agent_incomplete.",
+      "Reporter parked mapping removal must be checker-visible.",
+      "All added paths must be admitted by both package path and lifecycle path checkers."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Live repository file shapes were not inspected in this return.",
+      "No code mutation was performed.",
+      "No checker was executed.",
+      "No FIRE/RED sabotage run was executed.",
+      "Exact existing typed-exception class names and fixture locations remain unverified.",
+      "Current reporter map names and frontier observation implementation details remain unverified.",
+      "Provider behavior, source truth, success judgment, quality judgment, and Movement authority are not claimed."
+    ],
+    "observed_evidence": [
+      "Input is inline task source only; no live repository inspection or checker execution was performed because the packet forbids tools.",
+      "Declared S1 scope is pre-step PARK for adapter:chat-session only: typed parked signal, work envelope, park record, frontier observation branch, reporter bell, checker pins, and profile preservation.",
+      "S2 submit, S3 resume, scheduler, queue, retry, timer, Link vocabulary edits, and link/ edits are out of scope."
+    ],
+    "output_excerpt": "{\"observed_evidence\":[\"Input is inline task source only; no live repository inspection or checker execution was performed because the packet forbids tools.\",\"Declared S1 scope is pre-step PARK for adapter:chat-session only: typed parked signal, work envelope, park record, frontier observation branch, reporter bell, checker pins, and profile preservation.\",\"S2 submit, S3 resume, scheduler, queue, retry, timer, Link vocabulary edits, and link/ edits are out of scope.\"],\"design_summary\":\"Design contract: adapter:chat-session is a support adapter kind that never invokes a provider CLI. When enc...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "proposed_changes": [
+      "Add provider-neutral adapter kind adapter:chat-session with typed parked outcome and no CLI invocation path.",
+      "Add envelope recording using serialized AgentAdapterRequest projection only, with closed keys and no session/token/free-text provider ids.",
+      "Add distinct park record kind/shape separate from adapter-error records.",
+      "Wire run.py to record envelope plus park record and stop the lane loudly before AgentFact fabrication.",
+      "Add frontier observer branch for parked before agent_incomplete/incomplete-running derivation.",
+      "Add reporter closed-map entries so parked emits the intended wake/intervention event family.",
+      "Add checker/profile fixtures and sabotage cases for envelope shape, park-vs-error distinction, branch ordering, reporter bell, and both path allowlists."
+    ],
+    "relevant_current_structure": [
+      "support/connection/agent_adapter.py owns adapter resolution and existing typed adapter-error precedent.",
+      "support/operator/run.py is the single-Building walk integration point.",
+      "support/recording/adapter_error_frontier.py is the nearby record/observation precedent but must not be reused shape-identically.",
+      "support/recording/contracts.py and support/operator/ledger_projection.py participate in derived frontier observation.",
+      "support/operator/reporter.py has closed frontier/event maps that must admit parked wake projection.",
+      "support/checkers/check_package_path_admission.py and support/checkers/check_building_lifecycle_path_shape.py both need path admission pins."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "unchanged_surfaces": [
+      "No link/ edits.",
+      "No new Link Movement literal, transition state, gate authority, route target, scheduler, queue, retry, timer, provider runtime, credential store, or session body store.",
+      "No AgentFact fabricated for parked chat-session work.",
+      "No success, quality, approval, or source-truth judgment in records or projections.",
+      "No append-only evidence rewrite."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:01:adapter-30-s1-park-2-design",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:adapter-30-s1-park-2",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:adapter-30-s1-park-2-design:attempt-1",
+  "step_ref": "adapter-30-s1-park-2-design",
+  "subject": "adapter-30-s1-park-2-design",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-11T22:34:29.310470Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

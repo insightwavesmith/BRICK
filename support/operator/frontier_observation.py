@@ -34,12 +34,14 @@ _FRONTIER_COMPLETE = "complete"
 _FRONTIER_CLOSURE_PENDING = "closure_pending"
 _FRONTIER_EVIDENCE_INCOMPLETE = "evidence_incomplete"
 _FRONTIER_AGENT_INCOMPLETE = "agent_incomplete"
+_FRONTIER_CHAT_SESSION_PARKED = "chat_session_parked"
 _FRONTIER_LINK_PAUSED = "link_paused"
 _FRONTIER_HUMAN_REVIEW_WAITING = "human_review_waiting"
 FRONTIER_KINDS: tuple[str, ...] = (
     _FRONTIER_COMPLETE,
     _FRONTIER_CLOSURE_PENDING,
     _FRONTIER_EVIDENCE_INCOMPLETE,
+    _FRONTIER_CHAT_SESSION_PARKED,
     _FRONTIER_AGENT_INCOMPLETE,
     _FRONTIER_LINK_PAUSED,
     _FRONTIER_HUMAN_REVIEW_WAITING,
@@ -67,6 +69,9 @@ def observe_building_frontier(
     if not agent_return_records:
         agent_return_records = _jsonl_records(root / "raw" / "agent-returns.jsonl")
     adapter_error_records = _jsonl_records(root / "raw" / "adapter-error.jsonl")
+    chat_session_park_records = _jsonl_records(root / "raw" / "chat-session-park.jsonl")
+    parked_step_output_count = _parked_step_output_count(root)
+    work_envelope_count = _work_envelope_count(root)
     building_map = _read_json_mapping(root / "work" / "building-map.json")
 
     frontier_kind = _FRONTIER_CLOSURE_PENDING
@@ -75,6 +80,9 @@ def observe_building_frontier(
     if status.missing_files:
         frontier_kind = _FRONTIER_EVIDENCE_INCOMPLETE
         frontier_reason = "required evidence files are missing"
+    elif chat_session_park_records or parked_step_output_count:
+        frontier_kind = _FRONTIER_CHAT_SESSION_PARKED
+        frontier_reason = "chat-session park evidence exists before returned AgentFact"
     elif len(agent_received_records) > len(agent_return_records):
         frontier_kind = _FRONTIER_AGENT_INCOMPLETE
         frontier_reason = (
@@ -102,6 +110,9 @@ def observe_building_frontier(
             "agent_received_records": len(agent_received_records),
             "agent_return_records": len(agent_return_records),
             "adapter_error_records": len(adapter_error_records),
+            "chat_session_park_records": len(chat_session_park_records),
+            "parked_step_output_records": parked_step_output_count,
+            "work_envelope_records": work_envelope_count,
             "link_records": len(link_records),
             "building_map_link_edges": _list_count(building_map.get("link_edges")),
         },
@@ -151,6 +162,22 @@ def _latest_transition_lifecycle_record(records: Sequence[Mapping[str, Any]]) ->
                 if record.get(key) not in (None, "")
             }
     return {}
+
+
+def _parked_step_output_count(root: Path) -> int:
+    return sum(
+        1
+        for path in (root / "work" / "step-outputs").glob("*/parked.json")
+        if path.is_file()
+    )
+
+
+def _work_envelope_count(root: Path) -> int:
+    return sum(
+        1
+        for path in (root / "work" / "step-outputs").glob("*/work-envelope.json")
+        if path.is_file()
+    )
 
 
 def _latest_building_lifecycle_state(records: Sequence[Mapping[str, Any]]) -> str:

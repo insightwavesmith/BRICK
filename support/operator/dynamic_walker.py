@@ -88,6 +88,7 @@ from brick_protocol.support.operator.walker_resume import (
 from brick_protocol.support.operator.walker_frontier import (
     _dynamic_frontier_write_plan,
     _write_dynamic_adapter_error_frontier,
+    _write_dynamic_chat_session_park_frontier,
 )
 
 # Per-target-node reroute budget + Carry-budget evidence refs. The standalone
