@@ -181,6 +181,15 @@ def run_agent_resource_boundary(repo: Path, profile: Mapping[str, Any]) -> int:
                 f"agent_resource_boundary rejected {role}: lane expected {mapping['lane']!r}, "
                 f"observed {agent_object.get('lane')!r}"
             )
+        if (
+            "preferred_adapter_ref" in mapping
+            and agent_object.get("preferred_adapter_ref") != mapping["preferred_adapter_ref"]
+        ):
+            raise ProfileError(
+                f"agent_resource_boundary rejected {role}: preferred_adapter_ref "
+                f"expected {mapping['preferred_adapter_ref']!r}, "
+                f"observed {agent_object.get('preferred_adapter_ref')!r}"
+            )
         _validate_required_refs(agent_object, mapping, role)
         _validate_forbidden_refs(agent_object, mapping, role)
         if mapping.get("hooks_execution_opened") is False:
@@ -295,6 +304,47 @@ def run_agent_resource_retired_ref_rejects(repo: Path, profile: Mapping[str, Any
         raise ProfileError(
             f"agent_resource_retired_ref_rejects expected rejection but passed: {retired_ref}"
         )
+    return count
+
+
+def run_agent_preferred_adapter_rejects(repo: Path, profile: Mapping[str, Any]) -> int:
+    items = rule_items(profile, "agent_preferred_adapter_rejects")
+    if not items:
+        return 0
+    from support.connection.agent_resources import (
+        AgentResourceError,
+        _validate_agent_authority,
+    )
+
+    count = 0
+    for item in items:
+        mapping = require_mapping(item, "agent_preferred_adapter_rejects item")
+        expected_message = require_string(
+            mapping.get("expected_message"),
+            "agent_preferred_adapter_rejects.expected_message",
+        )
+        agent_object = dict(
+            require_mapping(
+                mapping.get("agent_object"),
+                "agent_preferred_adapter_rejects.agent_object",
+            )
+        )
+        probe_path = repo / "agent" / "objects" / "preferred-adapter-probe.yaml"
+        try:
+            _validate_agent_authority(
+                "preferred-adapter-probe",
+                agent_object,
+                probe_path,
+            )
+        except AgentResourceError as exc:
+            if expected_message not in str(exc):
+                raise ProfileError(
+                    "agent_preferred_adapter_rejects rejected with unexpected "
+                    f"message: expected {expected_message!r}, observed {str(exc)!r}"
+                ) from exc
+            count += 1
+            continue
+        raise ProfileError("agent_preferred_adapter_rejects expected rejection but passed")
     return count
 
 

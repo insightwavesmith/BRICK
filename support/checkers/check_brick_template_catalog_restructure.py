@@ -1193,9 +1193,17 @@ def _validate_shape_subtree_extra_documents(
 
 def _is_admitted_catalog_binding_path(value_path: str, normalized: str) -> bool:
     return (
-        normalized == "agent_object_ref"
-        and ".step_template_catalog.rows[" in value_path
-        and value_path.endswith(".agent_object_ref")
+        (
+            normalized == "agent_object_ref"
+            and ".step_template_catalog.rows[" in value_path
+            and value_path.endswith(".agent_object_ref")
+        )
+        or (
+            normalized in {"selected_adapter_ref", "selected_model_ref"}
+            and ".chain_presets[" in value_path
+            and ".steps[" in value_path
+            and value_path.endswith(f".{normalized}")
+        )
     )
 
 

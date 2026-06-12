@@ -53,6 +53,7 @@ class AgentObjectContractData:
     tool_policy_refs: tuple[str, ...] = ()
     discipline_refs: tuple[str, ...] = ()
     adapter_refs: tuple[str, ...] = ()
+    preferred_adapter_ref: str = ""
 
 @dataclass(frozen=True)
 class ThreeAxisStepRows:

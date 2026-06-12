@@ -78,6 +78,8 @@ text_contains:
       - link/movement.py MOVEMENT_LITERALS
       - compact_link_authoring
       - target_word
+      - selected_adapter_ref
+      - selected_model_ref
       - step_template_catalog.rows
       - physical_template_classification
       - p7-marked declaration packets inspected
