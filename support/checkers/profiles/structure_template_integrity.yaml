@@ -32,6 +32,7 @@ path_exists:
   - brick/templates/presets/brick-protocol-engine-feature-hard.md
   - brick/templates/presets/brick-protocol-portfolio-driver.md
   - brick/templates/presets/brick-protocol-post-d-cleanup.md
+  - brick/templates/presets/postmortem-fleet.md
   - brick/templates/presets/research-report.md
   - brick/templates/presets/quick-check.md
   - brick/templates/presets/design-contract-only.md
@@ -69,6 +70,8 @@ text_contains:
       - invalid_chain_brick_spec_ref
       - brick_template_axis_owned_return_field
       - invalid_chain_step_template_ref
+      - chain_step_alias_required_for_repeated_template
+      - duplicate_chain_step_identity
       - invalid_chain_gate_concept_profile
       - invalid_chain_target_word
       - legacy_expanded_brick_template_ref_invalid
@@ -80,6 +83,7 @@ text_contains:
       - target_word
       - selected_adapter_ref
       - selected_model_ref
+      - step_alias
       - step_template_catalog.rows
       - physical_template_classification
       - p7-marked declaration packets inspected

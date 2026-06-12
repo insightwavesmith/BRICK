@@ -1557,7 +1557,16 @@ def _materializer_graph_declaration(
 
     nodes: list[Mapping[str, Any]] = []
     node_ids: list[str] = []
+    node_id_sources: dict[str, list[str]] = {}
+    step_template_sources: dict[str, list[tuple[str, bool]]] = {}
     edge_refs: list[str] = []
+    step_template_counts = Counter(
+        _clean_text(
+            f"chain preset steps[{index}].step_template_ref",
+            raw_step.get("step_template_ref", ""),
+        )
+        for index, raw_step in enumerate(steps)
+    )
     for index, raw_step in enumerate(steps):
         step_template_ref = _clean_text(
             f"chain preset steps[{index}].step_template_ref",
@@ -1565,8 +1574,20 @@ def _materializer_graph_declaration(
         )
         step_template = _materializer_step_template(registry, step_template_ref)
         _validate_declared_brick_spec_ref(raw_step, step_template, label=f"chain preset steps[{index}]")
-        kind_slug = _materializer_step_template_slug(step_template_ref)
+        step_alias = _materializer_step_alias(raw_step, index)
+        kind_slug = (
+            _composition_slug(step_alias)
+            if step_alias is not None
+            else _materializer_step_template_slug(step_template_ref)
+        )
         node_id = f"{building_slug}-{kind_slug}"
+        source_label = f"steps[{index}] {step_template_ref}"
+        if step_alias is not None:
+            source_label = f"{source_label} step_alias={step_alias}"
+        node_id_sources.setdefault(node_id, []).append(source_label)
+        step_template_sources.setdefault(step_template_ref, []).append(
+            (source_label, step_alias is not None)
+        )
         node_ids.append(node_id)
         node = _materializer_graph_node(
             index,
@@ -1590,6 +1611,29 @@ def _materializer_graph_declaration(
             ),
         )
         nodes.append(node)
+
+    alias_problems: list[str] = []
+    for step_template_ref, sources in sorted(step_template_sources.items()):
+        if step_template_counts[step_template_ref] <= 1:
+            continue
+        missing_alias_sources = [
+            source_label for source_label, has_alias in sources if not has_alias
+        ]
+        if missing_alias_sources:
+            alias_problems.append(
+                f"step_alias required for repeated step_template_ref {step_template_ref}: "
+                + ", ".join(missing_alias_sources)
+            )
+    for node_id, sources in sorted(node_id_sources.items()):
+        if len(sources) > 1:
+            alias_problems.append(
+                f"node_id collision {node_id}: " + ", ".join(sources)
+            )
+    if alias_problems:
+        raise ValueError(
+            "chain preset step_alias node identity collision: "
+            + "; ".join(alias_problems)
+        )
 
     edges: list[Mapping[str, Any]] = []
     completion_edge_by_node: dict[str, str] = {}
@@ -1727,6 +1771,15 @@ def _materializer_step_template(
 def _materializer_step_template_slug(step_template_ref: str) -> str:
     tail = step_template_ref.split(":", 1)[-1]
     return _composition_slug(tail.removeprefix("building-step-template-"))
+
+
+def _materializer_step_alias(raw_step: Mapping[str, Any], index: int) -> str | None:
+    if "step_alias" not in raw_step:
+        return None
+    return _clean_text(
+        f"chain preset steps[{index}].step_alias",
+        raw_step.get("step_alias", ""),
+    )
 
 
 def _materializer_graph_node(

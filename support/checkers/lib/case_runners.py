@@ -811,6 +811,29 @@ def _materialize_reject_strip_preset_keys(mapping: Mapping[str, Any]) -> tuple[s
     )
 
 
+def _materialize_reject_patch_preset_steps(mapping: Mapping[str, Any]) -> tuple[Mapping[str, Any], ...]:
+    raw = mapping.get("patch_chain_preset_steps")
+    if raw is None:
+        return ()
+    if not isinstance(raw, Sequence) or isinstance(raw, (str, bytes)):
+        raise ProfileError(
+            "materialize_building_intent_rejects.patch_chain_preset_steps must be a list"
+        )
+    steps: list[Mapping[str, Any]] = []
+    for index, raw_step in enumerate(raw):
+        steps.append(
+            require_mapping(
+                raw_step,
+                f"materialize_building_intent_rejects.patch_chain_preset_steps[{index}]",
+            )
+        )
+    if not steps:
+        raise ProfileError(
+            "materialize_building_intent_rejects.patch_chain_preset_steps must not be empty"
+        )
+    return tuple(steps)
+
+
 @contextlib.contextmanager
 def _stripped_chain_preset_keys(materialize_fn, preset_ref: str, keys):
     """Temporarily wrap the materializer's registry loader to drop preset keys.
@@ -854,6 +877,39 @@ def _stripped_chain_preset_keys(materialize_fn, preset_ref: str, keys):
         globals_ns["_load_shape_registry"] = original_loader
 
 
+@contextlib.contextmanager
+def _patched_chain_preset_steps(materialize_fn, preset_ref: str, steps: Sequence[Mapping[str, Any]]):
+    """Temporarily replace one resolved chain preset's steps for a RED probe."""
+
+    globals_ns = materialize_fn.__globals__
+    if "_load_shape_registry" not in globals_ns:
+        raise ProfileError(
+            "materialize_building_intent_rejects patch scaffold cannot find "
+            "_load_shape_registry in the materializer's module globals"
+        )
+    original_loader = globals_ns["_load_shape_registry"]
+    found = False
+
+    def _wrapped(repo_root):
+        nonlocal found
+        registry = dict(original_loader(repo_root))
+        chain_presets = registry.get("chain_presets")
+        if isinstance(chain_presets, Mapping) and preset_ref in chain_presets:
+            preset = dict(chain_presets[preset_ref])
+            preset["steps"] = [dict(step) for step in steps]
+            patched = dict(chain_presets)
+            patched[preset_ref] = preset
+            registry["chain_presets"] = patched
+            found = True
+        return registry
+
+    globals_ns["_load_shape_registry"] = _wrapped
+    try:
+        yield _StripProbe(lambda: found)
+    finally:
+        globals_ns["_load_shape_registry"] = original_loader
+
+
 class _StripProbe:
     """Truthy iff the strip target preset_ref was found (evaluated lazily)."""
 
@@ -884,6 +940,40 @@ def run_materialize_building_intent_rejects(repo: Path, profile: Mapping[str, An
         # materializer uses; the negative proves support never defaults the route
         # author's closure policy / reroute budgets.
         strip_keys = _materialize_reject_strip_preset_keys(mapping)
+        patched_steps = _materialize_reject_patch_preset_steps(mapping)
+        if patched_steps:
+            patch_preset_ref = require_string(
+                mapping.get("patch_chain_preset_ref"),
+                "materialize_building_intent_rejects.patch_chain_preset_ref",
+            )
+            with _patched_chain_preset_steps(
+                materialize_building_intent, patch_preset_ref, patched_steps
+            ) as patch_probe:
+                try:
+                    materialize_building_intent(case, repo_root=repo)
+                except (TypeError, ValueError) as exc:
+                    if not patch_probe:
+                        raise ProfileError(
+                            "materialize_building_intent_rejects patch_chain_preset_ref "
+                            f"not in catalog (rejection unrelated to patch): {patch_preset_ref} "
+                            f"({relative})"
+                        ) from exc
+                    if expected_message and expected_message not in str(exc):
+                        raise ProfileError(
+                            f"materialize_building_intent_rejects rejected {relative}: "
+                            f"expected message {expected_message!r}, observed {exc}"
+                        ) from exc
+                    count += 1
+                    continue
+                if not patch_probe:
+                    raise ProfileError(
+                        "materialize_building_intent_rejects patch_chain_preset_ref "
+                        f"not in catalog: {patch_preset_ref} ({relative})"
+                    )
+                raise ProfileError(
+                    "materialize_building_intent_rejects expected fail-closed with patched "
+                    f"chain preset steps but passed: {relative}"
+                )
         if strip_keys:
             strip_preset_ref = require_string(
                 mapping.get("strip_preset_ref"),
