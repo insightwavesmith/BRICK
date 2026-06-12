@@ -12,6 +12,7 @@ import urllib.error
 import urllib.request
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -25,6 +26,15 @@ SLACK_SINK_REF = "report-sink:slack"
 SLACK_BOT_TOKEN_ENV = "BRICK_REPORT_SLACK_BOT_TOKEN"
 SLACK_CHANNEL_ID_ENV = "BRICK_REPORT_SLACK_CHANNEL_ID"
 SLACK_API_URL = "https://slack.com/api/chat.postMessage"
+SLACK_THREAD_PARENT_RECORD = "raw/report-thread.jsonl"
+SLACK_THREAD_REPLY_EVENT_KINDS = frozenset({"brick_returned", "disposition_applied"})
+SLACK_THREAD_STATUS_ONLY_EVENT_KINDS = frozenset({"brick_received", "gate_passed"})
+SLACK_BRICK_GRAIN_EVENT_KINDS = (
+    "brick_received",
+    "brick_returned",
+    "gate_passed",
+    "disposition_applied",
+)
 DASHBOARD_SINK_REF = "report-sink:dashboard"
 DASHBOARD_INGEST_URL_ENV = "BRICK_DASHBOARD_INGEST_URL"
 DASHBOARD_INGEST_SECRET_ENV = "BRICK_DASHBOARD_INGEST_SECRET"
@@ -320,6 +330,7 @@ def deliver_report_packet(
             observations.append(
                 send_slack_report_packet(
                     packet,
+                    repo_root=repo,
                     allow_real_delivery=allow_real_slack_delivery,
                     env=slack_env,
                     timeout_seconds=slack_timeout_seconds,
@@ -431,6 +442,7 @@ def dry_run_report_packet(
 def send_slack_report_packet(
     packet: Mapping[str, Any],
     *,
+    repo_root: Path | str = REPO_ROOT,
     allow_real_delivery: bool = False,
     env: Mapping[str, str] | None = None,
     timeout_seconds: float = 10.0,
@@ -440,6 +452,7 @@ def send_slack_report_packet(
 
     _validate_packet_for_sink(packet)
     _validate_slack_packet(packet)
+    repo = Path(repo_root).resolve()
     packet_ref = _required_text(packet.get("report_id"), "report_id")
     if not _packet_allows_external_delivery(packet):
         return _external_guard_observation(SLACK_SINK_REF, packet)
@@ -463,10 +476,48 @@ def send_slack_report_packet(
             environment_presence=environment_presence,
         )
 
-    body = json.dumps(
-        {"channel": channel_id, "text": _slack_message_text(packet)},
-        separators=(",", ":"),
-    ).encode("utf-8")
+    event_kind = _slack_event_kind(packet)
+    if event_kind in SLACK_THREAD_STATUS_ONLY_EVENT_KINDS:
+        return ReportSinkObservation(
+            sink_ref=SLACK_SINK_REF,
+            delivered=False,
+            packet_ref=packet_ref,
+            written_path="",
+            proof_limits=SLACK_REAL_DELIVERY_PROOF_LIMITS,
+            not_proven=_merge_texts(
+                SLACK_NOT_PROVEN,
+                ("Slack thread status-only event not posted separately",),
+            ),
+            delivery_status_class="not_attempted_thread_status_only",
+            provider_response_status_class="not_attempted",
+            environment_presence=environment_presence,
+        )
+
+    payload = {"channel": channel_id, "text": _slack_message_text(packet)}
+    if event_kind in SLACK_THREAD_REPLY_EVENT_KINDS:
+        thread_ref = _slack_thread_ref_for_packet(repo, packet)
+        thread_ts = str(thread_ref.get("message_ts") or "").strip()
+        thread_channel = str(thread_ref.get("channel_ref") or "").strip()
+        if not thread_ts:
+            return ReportSinkObservation(
+                sink_ref=SLACK_SINK_REF,
+                delivered=False,
+                packet_ref=packet_ref,
+                written_path="",
+                proof_limits=SLACK_REAL_DELIVERY_PROOF_LIMITS,
+                not_proven=_merge_texts(
+                    SLACK_NOT_PROVEN,
+                    ("Slack thread parent ts was not recorded",),
+                ),
+                delivery_status_class="not_attempted_missing_thread_ts",
+                provider_response_status_class="not_attempted",
+                environment_presence=environment_presence,
+            )
+        payload["thread_ts"] = thread_ts
+        if thread_channel:
+            payload["channel"] = thread_channel
+
+    body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
     request = urllib.request.Request(
         SLACK_API_URL,
         data=body,
@@ -500,11 +551,24 @@ def send_slack_report_packet(
 
     http_status_class = _http_status_class(response_status)
     provider_status_class, provider_ok = _slack_provider_status_class(response_body)
+    delivered = http_status_class == "http_2xx" and provider_ok is True
+    written_path = ""
+    if (
+        delivered
+        and event_kind == "building_started"
+        and packet.get("report_event_grain") == "brick"
+    ):
+        written_path = _record_slack_thread_parent_observation(
+            repo,
+            packet,
+            response_body=response_body,
+            fallback_channel_ref=channel_id,
+        )
     return ReportSinkObservation(
         sink_ref=SLACK_SINK_REF,
-        delivered=http_status_class == "http_2xx" and provider_ok is True,
+        delivered=delivered,
         packet_ref=packet_ref,
-        written_path="",
+        written_path=written_path,
         proof_limits=SLACK_REAL_DELIVERY_PROOF_LIMITS,
         not_proven=SLACK_NOT_PROVEN,
         delivery_status_class=http_status_class,
@@ -978,6 +1042,108 @@ def _packet_allows_external_delivery(packet: Mapping[str, Any]) -> bool:
     return True
 
 
+def _building_root_for_packet(repo: Path, packet: Mapping[str, Any]) -> Path | None:
+    roots = packet.get("evidence_root_refs")
+    if not isinstance(roots, list) or not roots:
+        return None
+    first = roots[0]
+    if not isinstance(first, str) or not first.strip():
+        return None
+    try:
+        return _repo_path(repo, first)
+    except ValueError:
+        return None
+
+
+def _record_slack_thread_parent_observation(
+    repo: Path,
+    packet: Mapping[str, Any],
+    *,
+    response_body: bytes,
+    fallback_channel_ref: str,
+) -> str:
+    thread = _slack_thread_fields_from_response(
+        response_body,
+        fallback_channel_ref=fallback_channel_ref,
+    )
+    message_ts = str(thread.get("message_ts") or "").strip()
+    channel_ref = str(thread.get("channel_ref") or "").strip()
+    if not message_ts or not channel_ref:
+        return ""
+    root = _building_root_for_packet(repo, packet)
+    if root is None:
+        return ""
+    path = root / SLACK_THREAD_PARENT_RECORD
+    path.parent.mkdir(parents=True, exist_ok=True)
+    record = {
+        "kind": "report_slack_thread_parent_observation",
+        "report_id": _required_text(packet.get("report_id"), "report_id"),
+        "event_kind": "building_started",
+        "channel_ref": channel_ref,
+        "message_ts": message_ts,
+        "recorded_at": str(packet.get("generated_at") or ""),
+        "source_truth": False,
+        "proof_limits": [
+            "Slack thread parent reference support observation only",
+            "records Slack channel ref and message ts only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ],
+        "not_proven": [
+            "future Slack thread delivery",
+            "reader noticed Slack message",
+        ],
+    }
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(record, ensure_ascii=False, separators=(",", ":"), sort_keys=True) + "\n")
+    return _rel(repo, path)
+
+
+def _slack_thread_ref_for_packet(repo: Path, packet: Mapping[str, Any]) -> Mapping[str, str]:
+    root = _building_root_for_packet(repo, packet)
+    if root is None:
+        return {}
+    path = root / SLACK_THREAD_PARENT_RECORD
+    latest: dict[str, str] = {}
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return {}
+    for line in lines:
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(record, Mapping):
+            continue
+        if record.get("kind") != "report_slack_thread_parent_observation":
+            continue
+        message_ts = str(record.get("message_ts") or "").strip()
+        channel_ref = str(record.get("channel_ref") or "").strip()
+        if message_ts:
+            latest = {"message_ts": message_ts, "channel_ref": channel_ref}
+    return latest
+
+
+def _slack_thread_fields_from_response(
+    response_body: bytes,
+    *,
+    fallback_channel_ref: str,
+) -> Mapping[str, str]:
+    try:
+        decoded = json.loads(response_body.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return {}
+    if not isinstance(decoded, Mapping):
+        return {}
+    return {
+        "message_ts": str(decoded.get("ts") or "").strip(),
+        "channel_ref": str(decoded.get("channel") or fallback_channel_ref).strip(),
+    }
+
+
 def _external_guard_observation(
     sink_ref: str, packet: Mapping[str, Any]
 ) -> ReportSinkObservation:
@@ -1102,6 +1268,8 @@ def _slack_message_text(packet: Mapping[str, Any]) -> str:
     if not source_ref:
         source_ref = _required_text(packet.get("report_id"), "report_id")
     event_kind = _slack_event_kind(packet)
+    if event_kind in SLACK_THREAD_REPLY_EVENT_KINDS:
+        return _slack_thread_reply_text(packet, source_ref=source_ref, event_kind=event_kind)
     work_kind = str(packet.get("current_work_kind") or "").strip()
     lane = str(packet.get("current_lane") or "").strip()
     lane_label = _label_value("lanes", lane) or lane or "확인 필요"
@@ -1134,6 +1302,62 @@ def _slack_status_sentence(packet: Mapping[str, Any], *, event_kind: str) -> str
     return f"{label} 상태를 봤어요."
 
 
+def _slack_thread_reply_text(
+    packet: Mapping[str, Any],
+    *,
+    source_ref: str,
+    event_kind: str,
+) -> str:
+    context = packet.get("event_context")
+    ctx = context if isinstance(context, Mapping) else {}
+    if event_kind == "disposition_applied":
+        return _slack_disposition_reply_text(packet, source_ref=source_ref, context=ctx)
+    return _slack_brick_returned_reply_text(packet, source_ref=source_ref, context=ctx)
+
+
+def _slack_brick_returned_reply_text(
+    packet: Mapping[str, Any],
+    *,
+    source_ref: str,
+    context: Mapping[str, Any],
+) -> str:
+    step_ref = str(context.get("step_ref") or packet.get("last_completed_step_ref") or "").strip()
+    sequence = _circled_sequence(context.get("sequence_index"))
+    received_at = _kst_hhmm(context.get("received_at") or packet.get("generated_at"))
+    returned_at = _kst_hhmm(context.get("returned_at") or packet.get("generated_at"))
+    summary = str(context.get("returned_summary") or "반환 기록됨").strip()
+    gate_note = str(context.get("gate_note") or "통과→다음스텝").strip()
+    title = _short_step_ref(step_ref) if step_ref else _slack_human_title(packet, fallback=source_ref)
+    lines = [
+        f"{sequence} {title}",
+        f"받음({received_at}) → 반환({returned_at}, {summary}) → 게이트 결과({gate_note})",
+        f"ref: {_slack_ref_line(packet, source_ref=source_ref)}",
+        "※ 상태 알림일 뿐 source truth/성공·품질·Movement 판단 아님",
+    ]
+    return "\n".join(lines)
+
+
+def _slack_disposition_reply_text(
+    packet: Mapping[str, Any],
+    *,
+    source_ref: str,
+    context: Mapping[str, Any],
+) -> str:
+    author_ref = str(context.get("disposition_author_ref") or "coo:unknown").strip()
+    author = author_ref.split(":", 1)[0] if ":" in author_ref else author_ref
+    if author not in {"human", "coo"}:
+        author = "coo"
+    action = str(context.get("disposition_action") or "forward").strip()
+    applied_at = _kst_hhmm(context.get("applied_at") or packet.get("generated_at"))
+    lines = [
+        f"⤷ {author} 도장",
+        f"처분({applied_at}): {action}",
+        f"ref: {_slack_ref_line(packet, source_ref=source_ref)}",
+        "※ 상태 알림일 뿐 source truth/성공·품질·Movement 판단 아님",
+    ]
+    return "\n".join(lines)
+
+
 def _slack_stage_lines(packet: Mapping[str, Any]) -> tuple[str, ...]:
     raw_kinds = packet.get("completed_step_kinds")
     if not isinstance(raw_kinds, list):
@@ -1150,6 +1374,9 @@ def _slack_stage_lines(packet: Mapping[str, Any]) -> tuple[str, ...]:
 
 def _slack_event_kind(packet: Mapping[str, Any]) -> str:
     trigger = str(packet.get("trigger_event_ref") or "")
+    for event_kind in SLACK_BRICK_GRAIN_EVENT_KINDS:
+        if event_kind in trigger:
+            return event_kind
     if "building_started" in trigger:
         return "building_started"
     if "intervention_required" in trigger:
@@ -1164,6 +1391,34 @@ def _slack_event_kind(packet: Mapping[str, Any]) -> str:
     if state == "observed_closed_boundary":
         return "building_finished"
     return "state_observed"
+
+
+def _circled_sequence(value: Any) -> str:
+    if isinstance(value, bool):
+        return "①"
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        number = 1
+    numerals = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳"
+    if 1 <= number <= len(numerals):
+        return numerals[number - 1]
+    return f"{number}."
+
+
+def _kst_hhmm(value: Any) -> str:
+    text = str(value or "").strip()
+    dt: datetime | None = None
+    if text:
+        try:
+            dt = datetime.fromisoformat(text.replace("Z", "+00:00"))
+        except ValueError:
+            dt = None
+    if dt is None:
+        dt = datetime.now(timezone.utc)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone(timedelta(hours=9))).strftime("%H:%M")
 
 
 def _slack_event_label(packet: Mapping[str, Any], *, event_kind: str) -> str:

@@ -153,14 +153,31 @@ _FRONTIER_TO_OBSERVED_STATE = {
     "closure_pending": "observed_running",
     "evidence_incomplete": "observed_running",
 }
+REPORT_GRAIN_ENV = "BRICK_REPORT_GRAIN"
+REPORT_EVENT_GRAINS = frozenset({"building", "brick"})
+BRICK_GRAIN_EVENT_KINDS: tuple[str, ...] = (
+    "brick_received",
+    "brick_returned",
+    "gate_passed",
+    "disposition_applied",
+)
 BUILDING_EVENT_KINDS = frozenset(
-    {"building_started", "intervention_required", "building_finished"}
+    {
+        "building_started",
+        "intervention_required",
+        "building_finished",
+        *BRICK_GRAIN_EVENT_KINDS,
+    }
 )
 REPORT_EVENT_MODES = frozenset({"basic", "verbose"})
 BUILDING_EVENT_OBSERVED_STATES = {
     "building_started": "observed_started",
     "intervention_required": "observed_paused",
     "building_finished": "observed_closed_boundary",
+    "brick_received": "observed_running",
+    "brick_returned": "observed_running",
+    "gate_passed": "observed_running",
+    "disposition_applied": "observed_running",
 }
 BUILDING_EVENT_FRONTIER_KINDS = {
     "complete": "building_finished",
@@ -221,12 +238,17 @@ def report_event_policy_from_plan(plan: Mapping[str, Any]) -> Mapping[str, Any] 
     mode = str(raw_policy.get("mode") or "basic").strip()
     if mode not in REPORT_EVENT_MODES:
         raise ValueError(f"unadmitted report_event_policy.mode: {mode}")
+    grain = _report_event_grain(
+        raw_policy.get("grain", raw_policy.get("report_event_grain"))
+    )
 
     event_kinds = _policy_text_tuple(
         raw_policy.get("event_kinds"),
         "report_event_policy.event_kinds",
         default=DEFAULT_BUILDING_EVENT_KINDS,
     )
+    if grain == "brick":
+        event_kinds = _merge_texts(event_kinds, BRICK_GRAIN_EVENT_KINDS)
     unadmitted_events = sorted(set(event_kinds) - BUILDING_EVENT_KINDS)
     if unadmitted_events:
         raise ValueError(f"unadmitted Building event kind(s): {unadmitted_events}")
@@ -247,7 +269,7 @@ def report_event_policy_from_plan(plan: Mapping[str, Any]) -> Mapping[str, Any] 
     if not isinstance(allow_real_dashboard_delivery, bool):
         raise ValueError("report_event_policy.allow_real_dashboard_delivery must be a boolean")
 
-    return {
+    policy = {
         "enabled": True,
         "mode": mode,
         "event_kinds": list(event_kinds),
@@ -276,13 +298,20 @@ def report_event_policy_from_plan(plan: Mapping[str, Any]) -> Mapping[str, Any] 
             )
         ),
     }
+    if grain == "brick":
+        policy["report_event_grain"] = "brick"
+    return policy
 
 
 def _default_report_event_policy() -> Mapping[str, Any]:
-    return {
+    grain = _report_event_grain(None)
+    event_kinds = DEFAULT_BUILDING_EVENT_KINDS
+    if grain == "brick":
+        event_kinds = _merge_texts(event_kinds, BRICK_GRAIN_EVENT_KINDS)
+    policy = {
         "enabled": True,
         "mode": "basic",
-        "event_kinds": list(DEFAULT_BUILDING_EVENT_KINDS),
+        "event_kinds": list(event_kinds),
         "sink_refs": list(DEFAULT_BUILDING_EVENT_SINK_REFS),
         "allow_real_slack_delivery": True,
         "allow_real_dashboard_delivery": True,
@@ -291,6 +320,9 @@ def _default_report_event_policy() -> Mapping[str, Any]:
         "proof_limits": list(BUILDING_EVENT_PROOF_LIMITS),
         "not_proven": list(BUILDING_EVENT_NOT_PROVEN),
     }
+    if grain == "brick":
+        policy["report_event_grain"] = "brick"
+    return policy
 
 
 def _event_policy_sink_refs(
@@ -352,6 +384,8 @@ def render_building_event_report_packet(
     repo_root: Path | str = REPO_ROOT,
     stage_mode: str = "basic",
     generated_at: str | None = None,
+    report_event_grain: str = "",
+    event_context: Mapping[str, Any] | None = None,
     proof_limits: Iterable[str] | str | None = None,
     not_proven: Iterable[str] | str | None = None,
 ) -> Mapping[str, Any]:
@@ -444,6 +478,10 @@ def render_building_event_report_packet(
     }
     if project_ref is not None:
         packet["project_ref"] = project_ref
+    if event_kind in BRICK_GRAIN_EVENT_KINDS or report_event_grain == "brick":
+        packet["report_event_grain"] = "brick"
+    if event_context:
+        packet["event_context"] = _report_event_context(event_context)
     if checked_stage_mode == "verbose":
         packet["completed_step_kinds"] = list(_completed_step_kinds(root, building_map))
     validate_report_packet(packet)
@@ -473,6 +511,8 @@ def emit_building_event_report_packet(
     dashboard_timeout_seconds: float = 10.0,
     dashboard_env: Mapping[str, str] | None = None,
     stage_mode: str = "basic",
+    report_event_grain: str = "",
+    event_context: Mapping[str, Any] | None = None,
     proof_limits: Iterable[str] | str | None = None,
     not_proven: Iterable[str] | str | None = None,
 ) -> Mapping[str, Any]:
@@ -492,6 +532,8 @@ def emit_building_event_report_packet(
         repo_root=repo,
         stage_mode=stage_mode,
         generated_at=generated_at,
+        report_event_grain=report_event_grain,
+        event_context=event_context,
         proof_limits=proof_limits,
         not_proven=not_proven,
     )
@@ -531,6 +573,7 @@ def emit_building_event_for_policy(
     slack_env: Mapping[str, str] | None = None,
     slack_sender: SlackSender | None = None,
     dashboard_env: Mapping[str, str] | None = None,
+    event_context: Mapping[str, Any] | None = None,
 ) -> Mapping[str, Any] | None:
     """Emit an event only when the caller-declared policy admits that kind."""
 
@@ -565,6 +608,8 @@ def emit_building_event_for_policy(
         allow_real_dashboard_delivery=bool(policy.get("allow_real_dashboard_delivery")),
         dashboard_env=dashboard_env,
         stage_mode=str(policy.get("mode") or "basic"),
+        report_event_grain=str(policy.get("report_event_grain") or ""),
+        event_context=event_context,
         proof_limits=policy.get("proof_limits"),
         not_proven=policy.get("not_proven"),
     )
@@ -1661,6 +1706,39 @@ def _report_event_mode(value: Any) -> str:
     if mode not in REPORT_EVENT_MODES:
         raise ValueError(f"unadmitted report event mode: {mode}")
     return mode
+
+
+def _report_event_grain(value: Any) -> str:
+    raw = value if value is not None else os.environ.get(REPORT_GRAIN_ENV)
+    grain = str(raw or "building").strip().lower()
+    if grain not in REPORT_EVENT_GRAINS:
+        raise ValueError(
+            f"{REPORT_GRAIN_ENV} / report_event_policy.grain must be 'building' or 'brick'"
+        )
+    return grain
+
+
+def _report_event_context(value: Mapping[str, Any]) -> Mapping[str, Any]:
+    if not isinstance(value, Mapping):
+        raise ValueError("event_context must be a mapping")
+    forbidden = sorted(set(_nested_keys(value)) & FORBIDDEN_REPORT_PACKET_FIELDS)
+    if forbidden:
+        raise ValueError(f"event_context includes forbidden field(s): {forbidden}")
+    cleaned: dict[str, Any] = {}
+    for raw_key, raw_value in value.items():
+        key = str(raw_key).strip()
+        if not key:
+            continue
+        if raw_value is None:
+            continue
+        if isinstance(raw_value, (str, int, bool)):
+            cleaned[key] = raw_value
+            continue
+        if isinstance(raw_value, list) and all(
+            isinstance(item, (str, int, bool)) for item in raw_value
+        ):
+            cleaned[key] = list(raw_value)
+    return cleaned
 
 
 def _step_ref_from_step_output_ref(step_output_ref: str) -> str:

@@ -1101,6 +1101,110 @@ def _build_resume_disposition_observation(
     )
 
 
+def _report_policy_uses_brick_grain(policy: Mapping[str, Any] | None) -> bool:
+    return bool(policy and policy.get("report_event_grain") == "brick")
+
+
+def _emit_brick_grain_step_events(
+    policy: Mapping[str, Any] | None,
+    *,
+    building_id: str,
+    building_root: Path | str,
+    repo_root: Path,
+    step_result: BuildingRunSupportResult,
+    step_index: int,
+    attempt_index: int,
+    gate_sequence_decision: GateSequenceDecision,
+    report_env: Mapping[str, str] | None,
+    report_slack_sender: Any | None,
+    overwrite_existing: bool,
+) -> tuple[Mapping[str, Any], ...]:
+    if not _report_policy_uses_brick_grain(policy):
+        return ()
+    step_ref = step_result.preparation.step_rows.step_ref
+    context = _brick_grain_step_context(
+        step_result,
+        step_index=step_index,
+        gate_sequence_decision=gate_sequence_decision,
+    )
+    last_completed_step_ref = _step_output_manifest_ref(step_ref, attempt_index)
+    observations: list[Mapping[str, Any]] = []
+    for event_kind in ("brick_received", "brick_returned", "gate_passed"):
+        event = _emit_building_event_best_effort(
+            policy,
+            event_kind=event_kind,
+            building_id=building_id,
+            building_root=building_root,
+            repo_root=repo_root,
+            current_brick_ref=step_result.preparation.brick_instance_ref,
+            overwrite_existing=overwrite_existing,
+            report_env=report_env,
+            report_slack_sender=report_slack_sender,
+            last_completed_step_ref=last_completed_step_ref,
+            event_context={**context, "event_stage": event_kind},
+        )
+        if event is not None:
+            observations.append(event)
+    return tuple(observations)
+
+
+def _brick_grain_step_context(
+    step_result: BuildingRunSupportResult,
+    *,
+    step_index: int,
+    gate_sequence_decision: GateSequenceDecision,
+) -> Mapping[str, Any]:
+    recorded_at = step_result.recorded_at or ""
+    return {
+        "step_ref": step_result.preparation.step_rows.step_ref,
+        "sequence_index": step_index,
+        "received_at": recorded_at,
+        "returned_at": recorded_at,
+        "returned_summary": "반환 기록됨",
+        "gate_note": _brick_grain_gate_note(gate_sequence_decision),
+    }
+
+
+def _brick_grain_gate_note(gate_sequence_decision: GateSequenceDecision) -> str:
+    if gate_sequence_decision.action == "hold":
+        return "홀드"
+    if gate_sequence_decision.action == "reroute":
+        return "통과→다음스텝"
+    return "통과→다음스텝"
+
+
+def _emit_disposition_applied_event(
+    policy: Mapping[str, Any] | None,
+    *,
+    building_id: str,
+    building_root: Path | str,
+    repo_root: Path,
+    current_brick_ref: str,
+    resume_seed: ResumeSeed,
+    report_env: Mapping[str, str] | None,
+    report_slack_sender: Any | None,
+    overwrite_existing: bool,
+) -> Mapping[str, Any] | None:
+    if not _report_policy_uses_brick_grain(policy) or resume_seed.skip_lifecycle_stamp:
+        return None
+    return _emit_building_event_best_effort(
+        policy,
+        event_kind="disposition_applied",
+        building_id=building_id,
+        building_root=building_root,
+        repo_root=repo_root,
+        current_brick_ref=current_brick_ref,
+        overwrite_existing=overwrite_existing,
+        report_env=report_env,
+        report_slack_sender=report_slack_sender,
+        event_context={
+            "disposition_action": resume_seed.disposition_action,
+            "disposition_author_ref": resume_seed.author_ref,
+            "applied_at": "",
+        },
+    )
+
+
 def _emit_building_event_best_effort(
     policy: Mapping[str, Any] | None,
     *,
@@ -1109,9 +1213,11 @@ def _emit_building_event_best_effort(
     building_root: Path | str,
     repo_root: Path,
     current_brick_ref: str = "",
+    last_completed_step_ref: str = "",
     overwrite_existing: bool,
     report_env: Mapping[str, str] | None = None,
     report_slack_sender: Any | None = None,
+    event_context: Mapping[str, Any] | None = None,
 ) -> Mapping[str, Any] | None:
     if not event_kind:
         return None
@@ -1122,11 +1228,13 @@ def _emit_building_event_best_effort(
             building_id=building_id,
             building_root=building_root,
             current_brick_ref=current_brick_ref,
+            last_completed_step_ref=last_completed_step_ref,
             repo_root=_report_repo_root_for_building_root(building_root, fallback_repo=repo_root),
             overwrite_existing=overwrite_existing,
             slack_env=report_env,
             slack_sender=report_slack_sender,
             dashboard_env=report_env,
+            event_context=event_context,
         )
     except Exception as exc:  # noqa: BLE001 - notification must never break evidence write.
         return {
@@ -1628,6 +1736,11 @@ def _run_dynamic_graph_walker(
             step_result = dataclasses.replace(
                 step_result, gate_sequence_decision=gate_sequence_decision
             )
+        attempt_index = 1 + sum(
+            1
+            for completed in step_results
+            if completed.preparation.step_rows.step_ref == step_ref
+        )
         step_result = record_step_output(
             building_root=building_root,
             building_id=building_id,
@@ -1636,6 +1749,21 @@ def _run_dynamic_graph_walker(
             proof_limits=checked_proof_limits,
             task_source_ref=task_source_ref,
             overwrite_existing=overwrite_existing,
+        )
+        report_event_observations.extend(
+            _emit_brick_grain_step_events(
+                report_event_policy,
+                building_id=building_id,
+                building_root=building_root,
+                repo_root=repo_root_path,
+                step_result=step_result,
+                step_index=len(step_results) + 1,
+                attempt_index=attempt_index,
+                gate_sequence_decision=gate_sequence_decision,
+                report_env=report_env,
+                report_slack_sender=report_slack_sender,
+                overwrite_existing=overwrite_existing,
+            )
         )
         step_results.append(step_result)
         step_result_events.append(
@@ -1662,6 +1790,19 @@ def _run_dynamic_graph_walker(
             disposition_applied = True
             # gap-3: the held occurrence is the step_result just appended above.
             held_occurrence_index = len(step_results) - 1
+            disposition_event = _emit_disposition_applied_event(
+                report_event_policy,
+                building_id=building_id,
+                building_root=building_root,
+                repo_root=repo_root_path,
+                current_brick_ref=brick_ref_by_step[step_ref],
+                resume_seed=resume_seed,
+                report_env=report_env,
+                report_slack_sender=report_slack_sender,
+                overwrite_existing=overwrite_existing,
+            )
+            if disposition_event is not None:
+                report_event_observations.append(disposition_event)
             if resume_seed.disposition_action == "stop":
                 # Human/COO ended the building at the held gate. Replace the held
                 # source's Link row with a resumed->closed lifecycle and stop.
