@@ -104,7 +104,7 @@ def observe_building_frontier(
         frontier_reason = "declared building_lifecycle.state is waiting"
     elif _closed_boundary_observed(link_records, building_map):
         frontier_kind = _FRONTIER_COMPLETE
-        frontier_reason = "declared closed boundary observed in Link evidence"
+        frontier_reason = "declared closed boundary observed in executed Link evidence"
 
     return {
         "kind": "building_frontier_observation",
@@ -176,8 +176,7 @@ def _closed_boundary_raw_record_after_latest_pause(records: Sequence[Mapping[str
         if record.get("transition_lifecycle_state") == "paused":
             latest_pause_index = index
     for record in reversed(records[latest_pause_index + 1 :]):
-        raw_ref = str(record.get("raw_ref") or "")
-        if not raw_ref.startswith("raw:link:"):
+        if not _is_executed_link_record(record):
             continue
         target = str(
             record.get("target_brick_instance_ref")
@@ -227,6 +226,8 @@ def _closed_boundary_observed(
 
     _ = building_map
     for record in reversed(link_records):
+        if not _is_executed_link_record(record):
+            continue
         target = str(
             record.get("target_brick_instance_ref")
             or record.get("target")
@@ -235,6 +236,11 @@ def _closed_boundary_observed(
         if _is_closed_boundary_ref(target):
             return True
     return False
+
+
+def _is_executed_link_record(record: Mapping[str, Any]) -> bool:
+    raw_ref = str(record.get("raw_ref") or "")
+    return raw_ref.startswith("raw:link:")
 
 
 def _is_closed_boundary_ref(value: str) -> bool:

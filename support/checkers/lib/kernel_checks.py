@@ -3550,6 +3550,11 @@ _DASHBOARD_STATE_CASE_EXPECTED: Mapping[str, Mapping[str, str]] = {
         "board_state": "observed_running",
         "disp": "running",
     },
+    "projection-declared-edge-mid-walk": {
+        "frontier_kind": "closure_pending",
+        "board_state": "observed_running",
+        "disp": "running",
+    },
     "projection-adapter-error": {
         "frontier_kind": "agent_incomplete",
         "board_state": "link_paused",
@@ -3645,6 +3650,14 @@ def _dashboard_productization_assert_state_projection_cases(
         ) -> bool:
             if original_closed_boundary_observed(link_records, building_map):
                 return True
+            for record in reversed(link_records):
+                target = str(
+                    record.get("target_brick_instance_ref")
+                    or record.get("target")
+                    or ""
+                )
+                if frontier_observation._is_closed_boundary_ref(target):
+                    return True
             link_edges = building_map.get("link_edges")
             if isinstance(link_edges, list):
                 for edge in link_edges:
@@ -3675,6 +3688,14 @@ def _dashboard_productization_assert_state_projection_cases(
                 raise ProfileError(
                     "dashboard_productization_projection FIRE mutation did not apply: "
                     f"mid-walk row was {mid_walk_row!r}"
+                )
+            declared_edge_row = {
+                str(row.get("building_id")): row for row in mutated_table
+            }.get("projection-declared-edge-mid-walk")
+            if not declared_edge_row or declared_edge_row.get("disp") != "closed":
+                raise ProfileError(
+                    "dashboard_productization_projection FIRE mutation did not apply: "
+                    f"declared-edge mid-walk row was {declared_edge_row!r}"
                 )
             try:
                 _dashboard_state_assert_expected(mutated_table, label="closed-boundary-mutated")
@@ -3768,6 +3789,7 @@ def _dashboard_state_write_fixture(building_root: Path, case_id: str) -> None:
                 _dashboard_state_link_record(
                     case_id,
                     target_ref=f"building-boundary:{case_id}-closed",
+                    building_lifecycle_state="closed",
                 )
             ],
             map_target_ref=f"building-boundary:{case_id}-closed",
@@ -3781,6 +3803,22 @@ def _dashboard_state_write_fixture(building_root: Path, case_id: str) -> None:
                     case_id,
                     target_ref=f"brick:{case_id}:next",
                 )
+            ],
+            map_target_ref=f"building-boundary:{case_id}-closed",
+        )
+        return
+    if case_id == "projection-declared-edge-mid-walk":
+        _dashboard_state_write_complete_fixture(
+            building_root,
+            raw_link_records=[
+                _dashboard_state_link_record(
+                    case_id,
+                    target_ref=f"brick:{case_id}:next",
+                ),
+                _dashboard_state_declared_graph_link_record(
+                    case_id,
+                    target_ref=f"building-boundary:{case_id}-closed",
+                ),
             ],
             map_target_ref=f"building-boundary:{case_id}-closed",
         )
@@ -3995,14 +4033,43 @@ def _dashboard_state_agent_return_record(case_id: str) -> Mapping[str, Any]:
     }
 
 
-def _dashboard_state_link_record(case_id: str, *, target_ref: str) -> Mapping[str, Any]:
-    return {
+def _dashboard_state_link_record(
+    case_id: str,
+    *,
+    target_ref: str,
+    building_lifecycle_state: str = "",
+) -> Mapping[str, Any]:
+    record = {
         "raw_ref": f"raw:link:{case_id}",
         "recorded_at": "2026-06-12T00:00:00Z",
         "step_ref": f"step:{case_id}",
         "source_brick_instance_ref": f"brick:{case_id}:work",
         "target_brick_instance_ref": target_ref,
         "movement": "forward",
+    }
+    if building_lifecycle_state:
+        record["building_lifecycle_state"] = building_lifecycle_state
+    return record
+
+
+def _dashboard_state_declared_graph_link_record(
+    case_id: str,
+    *,
+    target_ref: str,
+) -> Mapping[str, Any]:
+    return {
+        "raw_ref": f"raw:link-graph:01:edge-{case_id}-closure-to-boundary",
+        "raw_refs": [f"raw:link-graph:01:edge-{case_id}-closure-to-boundary"],
+        "recorded_at": "2026-06-12T00:00:00Z",
+        "step_ref": f"step:{case_id}:closure",
+        "source_step_ref": f"step:{case_id}:closure",
+        "source_brick_instance_ref": f"brick:{case_id}:closure",
+        "target_brick_instance_ref": target_ref,
+        "target": target_ref,
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "declared_graph_edge": True,
+        "is_completion_edge": True,
     }
 
 
