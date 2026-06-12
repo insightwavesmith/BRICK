@@ -1,0 +1,90 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:f13-frontier-declared-edge-fallback-0612::work/step-outputs/f13-frontier-declared-edge-fallback-0612-closure-attempt-1/transition-concern.json",
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "binding": false,
+  "building_id": "f13-frontier-declared-edge-fallback-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-06-12T09:08:19.991244Z",
+  "id": "urn:bp:building:f13-frontier-declared-edge-fallback-0612::work/step-outputs/f13-frontier-declared-edge-fallback-0612-closure-attempt-1/transition-concern.json",
+  "link_role": "non-binding Agent transition concern evidence only",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "transition concern semantic correctness",
+    "Link disposition correctness",
+    "automatic repair/replay execution"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "transition_concern_evidence is Agent returned evidence only",
+    "not Link Movement",
+    "not Link target choice",
+    "not route policy matching",
+    "not route materialization",
+    "not automatic repair/replay execution",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-06-12T09:08:19.991244Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:f13-frontier-declared-edge-fallback-0612",
+  "specversion": "1.0",
+  "step_output_ref": "work/step-outputs/f13-frontier-declared-edge-fallback-0612-closure-attempt-1/step-output.json",
+  "step_ref": "f13-frontier-declared-edge-fallback-0612-closure",
+  "subject": "f13-frontier-declared-edge-fallback-0612-closure",
+  "time": "2026-06-12T09:08:19.991244Z",
+  "transition_boundary": "Agent concern only; Link may adopt, not adopt, or override",
+  "transition_concern_ref": "transition-concern:f13-frontier-declared-edge-fallback-0612-closure:attempt-1",
+  "transition_concern_returned": {
+    "binding": false,
+    "concern_kind": "verification_gap",
+    "concern_ref": "transition-concern:f13-frontier-declared-edge-fallback-0612-closure-verification-gap",
+    "not_proven": [
+      "full writable profile gate",
+      "notify-v2 real-ledger before/after observation",
+      "temp zero-step graph Building proof",
+      "runtime checker mutation RED"
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "non-binding Agent transition concern"
+    ],
+    "reason_refs": [
+      "support/operator/frontier_observation.py:173-243",
+      "support/checkers/lib/kernel_checks.py:3416-3419",
+      "support/checkers/lib/kernel_checks.py:3510-3573",
+      "work/step-outputs/f13-frontier-declared-edge-fallback-0612-code-attack-qa-attempt-1/step-output.json",
+      "work/step-outputs/f13-frontier-declared-edge-fallback-0612-axis-attack-qa-attempt-1/step-output.json",
+      "work/step-outputs/f13-frontier-declared-edge-fallback-0612-evidence-integrity-attempt-1/step-output.json"
+    ],
+    "related_boundary_refs": [
+      "brick-f13-frontier-declared-edge-fallback-0612-closure",
+      "brick-f13-frontier-declared-edge-fallback-0612-work"
+    ]
+  },
+  "type": "bp.step_output.transition_concern"
+}

@@ -1,0 +1,12 @@
+# AgentReceipt · seq 40 · ["Agent"]
+- agent_object_ref: "agent-object:inspector"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-f13-frontier-declared-edge-fallback-0612-axis-attack-qa"
+- event_type: "AgentReceipt"
+- evidence_reference: "raw:agent:04"
+- received_work_ref: "brick-work:04:f13-frontier-declared-edge-fallback-0612-axis-attack-qa"
+- run_segment: 2
+- sequence_index: 40
+- source_fact_ref: "agent-fact:04:f13-frontier-declared-edge-fallback-0612-axis-attack-qa"
+- spine_schema_version: "spine-v1"
+- step_ref: "f13-frontier-declared-edge-fallback-0612-axis-attack-qa"

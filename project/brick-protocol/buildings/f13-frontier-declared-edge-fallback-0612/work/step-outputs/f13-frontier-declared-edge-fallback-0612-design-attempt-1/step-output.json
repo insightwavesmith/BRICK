@@ -1,0 +1,255 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:f13-frontier-declared-edge-fallback-0612::work/step-outputs/f13-frontier-declared-edge-fallback-0612-design-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:design-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-f13-frontier-declared-edge-fallback-0612-design",
+  "building_id": "f13-frontier-declared-edge-fallback-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "gate_sequence_decision_record": {
+    "action": "hold",
+    "evidence_ref": "observation:gate-sequence-f13-frontier-declared-edge-fallback-0612-f13-frontier-declared-edge-fallback-0612-design-link-gate-coo-hold",
+    "gate_action_sequence": [
+      {
+        "action": "next",
+        "evidence_ref": "observation:gate-sequence-f13-frontier-declared-edge-fallback-0612-f13-frontier-declared-edge-fallback-0612-design-link-gate-default-transition-next",
+        "gate_ref": "link-gate:default-transition",
+        "hold_reason": "",
+        "pending_target_ref": "",
+        "reason_refs": [
+          "observation:gate-sequence-f13-frontier-declared-edge-fallback-0612-f13-frontier-declared-edge-fallback-0612-design-link-gate-default-transition-next"
+        ],
+        "target_brick_ref": ""
+      },
+      {
+        "action": "hold",
+        "evidence_ref": "observation:gate-sequence-f13-frontier-declared-edge-fallback-0612-f13-frontier-declared-edge-fallback-0612-design-link-gate-coo-hold",
+        "gate_ref": "link-gate:coo",
+        "hold_reason": "gate_sequence_missing_required_facts:link-gate:coo",
+        "pending_target_ref": "brick-f13-frontier-declared-edge-fallback-0612-work",
+        "reason_refs": [
+          "observation:coo-gate-missing-required-facts"
+        ],
+        "target_brick_ref": ""
+      }
+    ],
+    "gate_ref": "link-gate:coo",
+    "gate_results": [
+      {
+        "checked_public_fact": "brick-comparison:f13-frontier-declared-edge-fallback-0612:f13-frontier-declared-edge-fallback-0612-design",
+        "gate_ref": "link-gate:default-transition",
+        "missing_required_facts": [],
+        "required_public_facts": [
+          "BrickComparisonFact.required_return_shape_evidence",
+          "BrickComparisonFact.comparison_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.observed_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.design_summary",
+          "BrickComparisonFact.comparison_evidence.returned_field.relevant_current_structure",
+          "BrickComparisonFact.comparison_evidence.returned_field.proposed_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.unchanged_surfaces",
+          "BrickComparisonFact.comparison_evidence.returned_field.axis_responsibility",
+          "BrickComparisonFact.comparison_evidence.returned_field.invariants",
+          "BrickComparisonFact.comparison_evidence.returned_field.edge_cases",
+          "BrickComparisonFact.comparison_evidence.returned_field.checker_or_verifier_plan",
+          "BrickComparisonFact.comparison_evidence.returned_field.candidate_file_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_refs",
+          "BrickComparisonFact.comparison_evidence.returned_field.not_proven",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_refs.repository_artifact_ref"
+        ],
+        "sufficiency": "sufficient"
+      },
+      {
+        "checked_public_fact": "brick-comparison:f13-frontier-declared-edge-fallback-0612:f13-frontier-declared-edge-fallback-0612-design",
+        "gate_ref": "link-gate:coo",
+        "missing_required_facts": [
+          "Link.route_decision_basis.override_refs"
+        ],
+        "required_public_facts": [
+          "Link.route_decision_basis.override_refs"
+        ],
+        "sufficiency": "missing_required_facts"
+      }
+    ],
+    "hold_reason": "gate_sequence_missing_required_facts:link-gate:coo",
+    "pending_target_ref": "brick-f13-frontier-declared-edge-fallback-0612-work",
+    "reason_refs": [
+      "observation:coo-gate-missing-required-facts"
+    ],
+    "required_disposition_owner": "coo",
+    "target_brick_ref": ""
+  },
+  "generatedAtTime": "2026-06-12T08:45:40.064659Z",
+  "id": "urn:bp:building:f13-frontier-declared-edge-fallback-0612::work/step-outputs/f13-frontier-declared-edge-fallback-0612-design-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:f13-frontier-declared-edge-fallback-0612-design",
+  "recorded_at": "2026-06-12T08:45:40.064659Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:design-lead",
+    "axis_responsibility": {
+      "Agent": "This return is design-lead support evidence only and does not classify success, quality, or route.",
+      "Brick": "The task and Building Plan declaration define the work and graph edges; declared terminal graph edges are Brick work composition evidence, not closure execution.",
+      "Evidence": "raw/link.jsonl rows are observed evidence; raw:link-graph:* rows are declaration records, while raw:link:* closed-boundary rows are executed Link evidence for this predicate.",
+      "Link": "Closed-boundary Movement meaning remains Link-owned; the observer may read recorded Link evidence but must not choose Movement, target, route, or sufficiency.",
+      "Support": "frontier_observation, ledger/dashboard projection, and checker fixtures are support mechanics that read evidence and expose the bug/regression pin."
+    },
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "candidate_file_changes": [
+      "support/operator/frontier_observation.py",
+      "support/checkers/lib/kernel_checks.py",
+      "support/checkers/profiles/read_side_projection_boundary.yaml only if a new kernel check id or explicit text pin is added; not needed if dashboard_productization_projection is extended in place",
+      "support/checkers/check_profile.py only if a new kernel check id is introduced; prefer avoiding this"
+    ],
+    "checker_or_verifier_plan": [
+      "Verifier-first: patch or extend support/checkers/lib/kernel_checks.py before or with the code change, preferably inside run_dashboard_productization_projection already covered by read_side_projection_boundary.",
+      "Negative pin: fixture with raw/link.jsonl terminal raw:link-graph:* closed-boundary row and no raw:link:* closed-boundary row must observe closure_pending/non-closed projection.",
+      "Positive pin: fixture with raw:link:* closed-boundary row and building_lifecycle_state closed must observe complete/closed projection.",
+      "Mutation RED: monkeypatch the closure predicate to ignore raw_ref namespace, or to use the current target-only body; the declared graph fixture must become closed and _dashboard_state_assert_expected must reject it.",
+      "Branch-preservation probe: keep existing projection-parked and projection-adapter-error cases unchanged so chat_session_parked and agent_incomplete precedence remains pinned.",
+      "Post-implementation commands to run in a temp source copy: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all; plus direct observe_building_frontier probes for the temp declared-edge fixture, the real notify-v2 root if present in that copy, and f9-projection-states-0612."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:f13-frontier-declared-edge-fallback-0612",
+    "cli_version_text": "codex-cli 0.137.0",
+    "design_summary": "Repair should make closure observation depend on executed Link evidence, not declared graph plan-edge evidence. The low-blast-radius design is to extract one private predicate, for example _is_executed_closed_boundary_record(record), and use it from both _closed_boundary_raw_record_after_latest_pause and _closed_boundary_observed. The predicate should require raw_ref.startswith('raw:link:') plus _is_closed_boundary_ref(target). This mirrors the already-correct sibling helper and excludes raw:link-graph:* and raw:link-frontier:* without relying on optional boolean annotations. The checker fixture should also keep an executed closure row carrying building_lifecycle_state == 'closed' so lifecycle remains observed evidence, even if raw_ref namespace is the predicate gate.",
+    "edge_cases": [
+      "A declared graph row missing declared_graph_edge but still using raw:link-graph:* must remain non-closing.",
+      "A record with raw_ref raw:link-frontier:* and closed-looking text must remain non-closing.",
+      "A non-boundary target that merely ends with closed must remain non-closing through _is_closed_boundary_ref.",
+      "A paused/resumed path must use the same executed-record predicate after latest pause, preventing helper drift.",
+      "A building with agent_received_records greater than agent_return_records must continue to report agent_incomplete before the fallback, even if declared terminal graph rows exist.",
+      "Synthetic checker fixtures should include building_lifecycle_state closed on executed closure rows to keep fixture shape close to real ledger evidence."
+    ],
+    "evidence_refs": [
+      "support-packet:f13-frontier-declared-edge-fallback-0612:agent-object:design-lead:output",
+      "support/operator/frontier_observation.py:77",
+      "support/operator/frontier_observation.py:83",
+      "support/operator/frontier_observation.py:96",
+      "support/operator/frontier_observation.py:105",
+      "support/operator/frontier_observation.py:173",
+      "support/operator/frontier_observation.py:216",
+      "support/operator/plan_graph.py:576",
+      "support/operator/plan_graph.py:583",
+      "support/checkers/lib/kernel_checks.py:3405",
+      "support/checkers/lib/kernel_checks.py:3503",
+      "support/checkers/lib/kernel_checks.py:3626",
+      "support/checkers/profiles/read_side_projection_boundary.yaml:4",
+      "project/brick-protocol/buildings/f9-projection-states-0612/raw/link.jsonl:3",
+      "project/brick-protocol/buildings/adapter-30-s1-park/raw/link.jsonl:9"
+    ],
+    "invariants": [
+      "A declared graph terminal edge alone must never produce frontier_kind complete.",
+      "An executed raw:link:* record targeting a closed building boundary must still produce complete.",
+      "raw:link-frontier:* records must not be accepted as executed closure records.",
+      "declared_graph_edge truthy rows must be ignored for closure even if their target is a closed boundary.",
+      "The fallback must not inspect process liveness or infer provider state.",
+      "Checker green, dashboard rendering, and projection freshness remain support evidence only."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "No repository repair was made in this read-only design pass.",
+      "Temp drive before/after fixture proof was not run because this Agent instruction forbids creating or writing files.",
+      "The real notify-v2-vessel-guard-voice ledger could not be observed in this worktree because that root was absent.",
+      "After-fix behavior is not proven.",
+      "Mutation RED is not proven until the checker fixture is implemented and run.",
+      "Full check_profile.py --all in a temp source copy was not run.",
+      "Complete absence of future support-authority leaks is not proven.",
+      "No source truth, success judgment, quality judgment, or Movement authority is claimed."
+    ],
+    "observed_evidence": [
+      "Read-only inspection only; no files were edited, created, deleted, committed, pushed, or written.",
+      "support/operator/frontier_observation.py:83-105 shows S1 park, agent_incomplete, pause-after-close, paused, and waiting branches all precede the no-pause fallback at line 105.",
+      "support/operator/frontier_observation.py:173-189 has the stricter sibling helper discipline: it ignores records whose raw_ref does not start with raw:link:.",
+      "support/operator/frontier_observation.py:216-237 shows _closed_boundary_observed currently accepts any closed-boundary target and does not filter declared graph rows.",
+      "In-memory probe observed declared_graph raw_ref raw:link-graph:* with target building-boundary:x-closed returns True from _closed_boundary_observed and False from _closed_boundary_raw_record_after_latest_pause; executed raw_ref raw:link:03 closure returns True from both.",
+      "project/brick-protocol/buildings/f9-projection-states-0612/raw/link.jsonl:3 is an executed closure row with raw_ref raw:link:03, building_lifecycle_state closed, and target building-boundary:f9-projection-states-0612-closed; observe_building_frontier reports complete for that root.",
+      "project/brick-protocol/buildings/adapter-30-s1-park/raw/link.jsonl:2-9 shows declared graph rows use declared_graph_edge true and raw_ref raw:link-graph:*; line 9 is the terminal declared closed-boundary edge. Its current frontier is agent_incomplete because that branch precedes fallback, so it is not a no-pause fallback proof.",
+      "project/brick-protocol/buildings/notify-v2-vessel-guard-voice was not present under this worktree's project/brick-protocol/buildings path.",
+      "No Claude/Gemini/model review was run in this read-only design pass."
+    ],
+    "output_excerpt": "{\"observed_evidence\":[\"Read-only inspection only; no files were edited, created, deleted, committed, pushed, or written.\",\"support/operator/frontier_observation.py:83-105 shows S1 park, agent_incomplete, pause-after-close, paused, and waiting branches all precede the no-pause fallback at line 105.\",\"support/operator/frontier_observation.py:173-189 has the stricter sibling helper discipline: it ignores records whose raw_ref does not start with raw:link:.\",\"support/operator/frontier_observation.py:216-237 shows _closed_boundary_observed currently accepts any closed-boundary target and does no...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "proposed_changes": [
+      "In support/operator/frontier_observation.py, add a single private helper that checks executed closed-boundary Link records and have both closure helpers call it.",
+      "Use raw_ref namespace as the structural discriminator: include raw:link: executed rows; exclude raw:link-graph:* declared graph rows and raw:link-frontier:* observation rows; then require _is_closed_boundary_ref(target).",
+      "Keep branch order above the fallback byte-identical; do not move chat_session_parked, agent_incomplete, link_paused, human_review_waiting, or pause-after-close branches.",
+      "In support/checkers/lib/kernel_checks.py, extend dashboard_productization_projection state fixtures with a no-pause graph-declared-terminal-only case: agent returned evidence present, raw/link.jsonl contains a raw:link-graph:* terminal closed-boundary row, no executed closure row, expected frontier_kind closure_pending and dashboard disp running/non-closed.",
+      "Add or update the executed-closure fixture so a raw:link:* closed-boundary row with building_lifecycle_state closed remains complete.",
+      "Add a mutation probe that replaces the fixed predicate with the current broken behavior, proving the declared graph terminal fixture turns closed and the checker fires RED."
+    ],
+    "relevant_current_structure": [
+      "support/operator/frontier_observation.py owns static frontier observation and states it is not process liveness, source truth, success judgment, quality judgment, or Movement authority.",
+      "observe_building_frontier initializes closure_pending, then only switches to complete through closed_boundary_after_latest_pause or the no-pause _closed_boundary_observed fallback.",
+      "support/operator/plan_graph.py:576-583 defines declared graph raw refs as raw:link-graph:*; these are declaration evidence, not execution closure evidence.",
+      "support/checkers/lib/kernel_checks.py:3405-3431 defines dashboard state projection cases including projection-mid-walk as closure_pending/running and projection-closed as complete/closed.",
+      "support/checkers/lib/kernel_checks.py:3503-3552 already has a RED probe for accidentally deriving closure from building_map.link_edges, but it does not pin raw/link.jsonl declared graph terminal rows.",
+      "support/checkers/profiles/read_side_projection_boundary.yaml:4-10 already includes dashboard_productization_projection, so the F13 checker pin can extend that existing family without opening a new standalone checker."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "unchanged_surfaces": [
+      "No link/, agent/, brick/, or project/ edits are needed for the repair surface.",
+      "No scheduler, queue, retry, timer, provider runtime, dashboard runtime, Slack/webhook/thread delivery, route selection, or Movement choice should be added.",
+      "No GateFact, Agent success/failure field, quality verdict, or source-truth surface should be introduced.",
+      "Existing S1 park, S2 submit, chat_session_parked, agent_incomplete, and link_paused branch behavior should remain unchanged because the edit is only inside closure-record recognition.",
+      "Existing dashboard display mapping can stay unchanged; the input frontier_kind should be corrected before projection."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:01:f13-frontier-declared-edge-fallback-0612-design",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:f13-frontier-declared-edge-fallback-0612",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:f13-frontier-declared-edge-fallback-0612-design:attempt-1",
+  "step_ref": "f13-frontier-declared-edge-fallback-0612-design",
+  "subject": "f13-frontier-declared-edge-fallback-0612-design",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T08:45:40.064659Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

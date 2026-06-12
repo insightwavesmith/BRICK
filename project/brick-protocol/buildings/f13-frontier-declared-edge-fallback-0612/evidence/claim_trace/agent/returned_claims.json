@@ -1,0 +1,893 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:f13-frontier-declared-edge-fallback-0612::evidence/claim_trace/agent/returned_claims.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:design-lead",
+        "received_work": "brick-work:01:f13-frontier-declared-edge-fallback-0612-design",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:design-lead",
+          "axis_responsibility": {
+            "Agent": "This return is design-lead support evidence only and does not classify success, quality, or route.",
+            "Brick": "The task and Building Plan declaration define the work and graph edges; declared terminal graph edges are Brick work composition evidence, not closure execution.",
+            "Evidence": "raw/link.jsonl rows are observed evidence; raw:link-graph:* rows are declaration records, while raw:link:* closed-boundary rows are executed Link evidence for this predicate.",
+            "Link": "Closed-boundary Movement meaning remains Link-owned; the observer may read recorded Link evidence but must not choose Movement, target, route, or sufficiency.",
+            "Support": "frontier_observation, ledger/dashboard projection, and checker fixtures are support mechanics that read evidence and expose the bug/regression pin."
+          },
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "candidate_file_changes": [
+            "support/operator/frontier_observation.py",
+            "support/checkers/lib/kernel_checks.py",
+            "support/checkers/profiles/read_side_projection_boundary.yaml only if a new kernel check id or explicit text pin is added; not needed if dashboard_productization_projection is extended in place",
+            "support/checkers/check_profile.py only if a new kernel check id is introduced; prefer avoiding this"
+          ],
+          "checker_or_verifier_plan": [
+            "Verifier-first: patch or extend support/checkers/lib/kernel_checks.py before or with the code change, preferably inside run_dashboard_productization_projection already covered by read_side_projection_boundary.",
+            "Negative pin: fixture with raw/link.jsonl terminal raw:link-graph:* closed-boundary row and no raw:link:* closed-boundary row must observe closure_pending/non-closed projection.",
+            "Positive pin: fixture with raw:link:* closed-boundary row and building_lifecycle_state closed must observe complete/closed projection.",
+            "Mutation RED: monkeypatch the closure predicate to ignore raw_ref namespace, or to use the current target-only body; the declared graph fixture must become closed and _dashboard_state_assert_expected must reject it.",
+            "Branch-preservation probe: keep existing projection-parked and projection-adapter-error cases unchanged so chat_session_parked and agent_incomplete precedence remains pinned.",
+            "Post-implementation commands to run in a temp source copy: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all; plus direct observe_building_frontier probes for the temp declared-edge fixture, the real notify-v2 root if present in that copy, and f9-projection-states-0612."
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:f13-frontier-declared-edge-fallback-0612",
+          "cli_version_text": "codex-cli 0.137.0",
+          "design_summary": "Repair should make closure observation depend on executed Link evidence, not declared graph plan-edge evidence. The low-blast-radius design is to extract one private predicate, for example _is_executed_closed_boundary_record(record), and use it from both _closed_boundary_raw_record_after_latest_pause and _closed_boundary_observed. The predicate should require raw_ref.startswith('raw:link:') plus _is_closed_boundary_ref(target). This mirrors the already-correct sibling helper and excludes raw:link-graph:* and raw:link-frontier:* without relying on optional boolean annotations. The checker fixture should also keep an executed closure row carrying building_lifecycle_state == 'closed' so lifecycle remains observed evidence, even if raw_ref namespace is the predicate gate.",
+          "edge_cases": [
+            "A declared graph row missing declared_graph_edge but still using raw:link-graph:* must remain non-closing.",
+            "A record with raw_ref raw:link-frontier:* and closed-looking text must remain non-closing.",
+            "A non-boundary target that merely ends with closed must remain non-closing through _is_closed_boundary_ref.",
+            "A paused/resumed path must use the same executed-record predicate after latest pause, preventing helper drift.",
+            "A building with agent_received_records greater than agent_return_records must continue to report agent_incomplete before the fallback, even if declared terminal graph rows exist.",
+            "Synthetic checker fixtures should include building_lifecycle_state closed on executed closure rows to keep fixture shape close to real ledger evidence."
+          ],
+          "evidence_refs": [
+            "support-packet:f13-frontier-declared-edge-fallback-0612:agent-object:design-lead:output",
+            "support/operator/frontier_observation.py:77",
+            "support/operator/frontier_observation.py:83",
+            "support/operator/frontier_observation.py:96",
+            "support/operator/frontier_observation.py:105",
+            "support/operator/frontier_observation.py:173",
+            "support/operator/frontier_observation.py:216",
+            "support/operator/plan_graph.py:576",
+            "support/operator/plan_graph.py:583",
+            "support/checkers/lib/kernel_checks.py:3405",
+            "support/checkers/lib/kernel_checks.py:3503",
+            "support/checkers/lib/kernel_checks.py:3626",
+            "support/checkers/profiles/read_side_projection_boundary.yaml:4",
+            "project/brick-protocol/buildings/f9-projection-states-0612/raw/link.jsonl:3",
+            "project/brick-protocol/buildings/adapter-30-s1-park/raw/link.jsonl:9"
+          ],
+          "invariants": [
+            "A declared graph terminal edge alone must never produce frontier_kind complete.",
+            "An executed raw:link:* record targeting a closed building boundary must still produce complete.",
+            "raw:link-frontier:* records must not be accepted as executed closure records.",
+            "declared_graph_edge truthy rows must be ignored for closure even if their target is a closed boundary.",
+            "The fallback must not inspect process liveness or infer provider state.",
+            "Checker green, dashboard rendering, and projection freshness remain support evidence only."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "No repository repair was made in this read-only design pass.",
+            "Temp drive before/after fixture proof was not run because this Agent instruction forbids creating or writing files.",
+            "The real notify-v2-vessel-guard-voice ledger could not be observed in this worktree because that root was absent.",
+            "After-fix behavior is not proven.",
+            "Mutation RED is not proven until the checker fixture is implemented and run.",
+            "Full check_profile.py --all in a temp source copy was not run.",
+            "Complete absence of future support-authority leaks is not proven.",
+            "No source truth, success judgment, quality judgment, or Movement authority is claimed."
+          ],
+          "observed_evidence": [
+            "Read-only inspection only; no files were edited, created, deleted, committed, pushed, or written.",
+            "support/operator/frontier_observation.py:83-105 shows S1 park, agent_incomplete, pause-after-close, paused, and waiting branches all precede the no-pause fallback at line 105.",
+            "support/operator/frontier_observation.py:173-189 has the stricter sibling helper discipline: it ignores records whose raw_ref does not start with raw:link:.",
+            "support/operator/frontier_observation.py:216-237 shows _closed_boundary_observed currently accepts any closed-boundary target and does not filter declared graph rows.",
+            "In-memory probe observed declared_graph raw_ref raw:link-graph:* with target building-boundary:x-closed returns True from _closed_boundary_observed and False from _closed_boundary_raw_record_after_latest_pause; executed raw_ref raw:link:03 closure returns True from both.",
+            "project/brick-protocol/buildings/f9-projection-states-0612/raw/link.jsonl:3 is an executed closure row with raw_ref raw:link:03, building_lifecycle_state closed, and target building-boundary:f9-projection-states-0612-closed; observe_building_frontier reports complete for that root.",
+            "project/brick-protocol/buildings/adapter-30-s1-park/raw/link.jsonl:2-9 shows declared graph rows use declared_graph_edge true and raw_ref raw:link-graph:*; line 9 is the terminal declared closed-boundary edge. Its current frontier is agent_incomplete because that branch precedes fallback, so it is not a no-pause fallback proof.",
+            "project/brick-protocol/buildings/notify-v2-vessel-guard-voice was not present under this worktree's project/brick-protocol/buildings path.",
+            "No Claude/Gemini/model review was run in this read-only design pass."
+          ],
+          "output_excerpt": "{\"observed_evidence\":[\"Read-only inspection only; no files were edited, created, deleted, committed, pushed, or written.\",\"support/operator/frontier_observation.py:83-105 shows S1 park, agent_incomplete, pause-after-close, paused, and waiting branches all precede the no-pause fallback at line 105.\",\"support/operator/frontier_observation.py:173-189 has the stricter sibling helper discipline: it ignores records whose raw_ref does not start with raw:link:.\",\"support/operator/frontier_observation.py:216-237 shows _closed_boundary_observed currently accepts any closed-boundary target and does no...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "proposed_changes": [
+            "In support/operator/frontier_observation.py, add a single private helper that checks executed closed-boundary Link records and have both closure helpers call it.",
+            "Use raw_ref namespace as the structural discriminator: include raw:link: executed rows; exclude raw:link-graph:* declared graph rows and raw:link-frontier:* observation rows; then require _is_closed_boundary_ref(target).",
+            "Keep branch order above the fallback byte-identical; do not move chat_session_parked, agent_incomplete, link_paused, human_review_waiting, or pause-after-close branches.",
+            "In support/checkers/lib/kernel_checks.py, extend dashboard_productization_projection state fixtures with a no-pause graph-declared-terminal-only case: agent returned evidence present, raw/link.jsonl contains a raw:link-graph:* terminal closed-boundary row, no executed closure row, expected frontier_kind closure_pending and dashboard disp running/non-closed.",
+            "Add or update the executed-closure fixture so a raw:link:* closed-boundary row with building_lifecycle_state closed remains complete.",
+            "Add a mutation probe that replaces the fixed predicate with the current broken behavior, proving the declared graph terminal fixture turns closed and the checker fires RED."
+          ],
+          "relevant_current_structure": [
+            "support/operator/frontier_observation.py owns static frontier observation and states it is not process liveness, source truth, success judgment, quality judgment, or Movement authority.",
+            "observe_building_frontier initializes closure_pending, then only switches to complete through closed_boundary_after_latest_pause or the no-pause _closed_boundary_observed fallback.",
+            "support/operator/plan_graph.py:576-583 defines declared graph raw refs as raw:link-graph:*; these are declaration evidence, not execution closure evidence.",
+            "support/checkers/lib/kernel_checks.py:3405-3431 defines dashboard state projection cases including projection-mid-walk as closure_pending/running and projection-closed as complete/closed.",
+            "support/checkers/lib/kernel_checks.py:3503-3552 already has a RED probe for accidentally deriving closure from building_map.link_edges, but it does not pin raw/link.jsonl declared graph terminal rows.",
+            "support/checkers/profiles/read_side_projection_boundary.yaml:4-10 already includes dashboard_productization_projection, so the F13 checker pin can extend that existing family without opening a new standalone checker."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "unchanged_surfaces": [
+            "No link/, agent/, brick/, or project/ edits are needed for the repair surface.",
+            "No scheduler, queue, retry, timer, provider runtime, dashboard runtime, Slack/webhook/thread delivery, route selection, or Movement choice should be added.",
+            "No GateFact, Agent success/failure field, quality verdict, or source-truth surface should be introduced.",
+            "Existing S1 park, S2 submit, chat_session_parked, agent_incomplete, and link_paused branch behavior should remain unchanged because the edit is only inside closure-record recognition.",
+            "Existing dashboard display mapping can stay unchanged; the input frontier_kind should be corrected before projection."
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:01:f13-frontier-declared-edge-fallback-0612-design",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:dev",
+        "received_work": "brick-work:02:f13-frontier-declared-edge-fallback-0612-work",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:dev",
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "changed_files": [
+            "support/checkers/lib/kernel_checks.py",
+            "support/dashboard/public/dashboard-data.json",
+            "support/operator/frontier_observation.py"
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:f13-frontier-declared-edge-fallback-0612",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:f13-frontier-declared-edge-fallback-0612:agent-object:dev:output"
+          ],
+          "made_changes": [
+            "support/operator/frontier_observation.py: _closed_boundary_observed now ignores non-executed Link rows via raw_ref prefix raw:link:, sharing the same executed-link discipline as the after-latest-pause helper.",
+            "support/checkers/lib/kernel_checks.py: added a declared raw:link-graph terminal-edge mid-walk fixture and RED mutation probe; true executed closure fixture remains complete.",
+            "Generated ignored support/dashboard/public/dashboard-data.json with the admitted bake verb so the existing dashboard profile path gate could run."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "semantic correctness of file edits",
+            "notify-v2-vessel-guard-voice before/after real-ledger observation, because that Building root is absent from this checkout.",
+            "Exact byte-identical runtime outputs for every prior S1/S2 branch versus a saved baseline; source diff did not edit those branch bodies and checker coverage was observed.",
+            "Provider process liveness, source truth, success judgment, quality judgment, Movement authority, or caller/Link next Movement."
+          ],
+          "observed_evidence": [
+            "Before fix, temp declared-edge fixture observed frontier_kind=complete; after fix, the same fixture observed frontier_kind=closure_pending.",
+            "Focused dashboard_productization_projection kernel check inspected 44 targets; projection-declared-edge-mid-walk stayed closure_pending/running, and the filter-removal mutation fired RED.",
+            "Real ledger: notify-v2-vessel-guard-voice is missing in this checkout; f9-projection-states-0612 still observes complete from executed Link evidence.",
+            "chat_session_park_seam kernel check inspected 183 targets; agent_incomplete real roots still observed agent_incomplete.",
+            "compileall on changed Python files exit 0; git diff --check exit 0.",
+            "Full gate command PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all exit 0 in /private/tmp/brick-f13-gate.Zqo9mp/BRICK-wt-f13-copy."
+          ],
+          "output_excerpt": "{ \"made_changes\": [ \"support/operator/frontier_observation.py: _closed_boundary_observed now ignores non-executed Link rows via raw_ref prefix raw:link:, sharing the same executed-link discipline as the after-latest-pause helper.\", \"support/checkers/lib/kernel_checks.py: added a declared raw:link-graph terminal-edge mid-walk fixture and RED mutation probe; true executed closure fixture remains complete.\", \"Generated ignored support/dashboard/public/dashboard-data.json with the admitted bake verb so the existing dashboard profile path gate could run.\" ], \"observed_evidence\": [ \"Before fix, t...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "workspace write is limited by Brick-declared write_scope"
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "worktree_observation": {
+            "after_git_refs": {
+              "branch": "claude/track-f13",
+              "head": "bf199ac967e45c49bb70754b9248bce63b4478cd"
+            },
+            "after_git_status_paths": [
+              "support/checkers/lib/kernel_checks.py",
+              "support/operator/frontier_observation.py"
+            ],
+            "after_path_count": 2756,
+            "before_git_refs": {
+              "branch": "claude/track-f13",
+              "head": "bf199ac967e45c49bb70754b9248bce63b4478cd"
+            },
+            "before_git_status_paths": [],
+            "before_path_count": 2755,
+            "not_proven": [
+              "semantic correctness of file edits",
+              "complete diff attribution for pre-existing dirty paths"
+            ],
+            "observed_changed_files": [
+              "support/checkers/lib/kernel_checks.py",
+              "support/dashboard/public/dashboard-data.json",
+              "support/operator/frontier_observation.py"
+            ],
+            "proof_limits": [
+              "changed files are support evidence only",
+              "not source truth",
+              "not success judgment",
+              "not quality judgment",
+              "not Movement authority"
+            ],
+            "write_scope": {
+              "allowed_paths": [
+                "support/*"
+              ],
+              "forbidden_paths": [
+                "link/*",
+                "agent/*",
+                "brick/*",
+                "project/*",
+                ".git/*",
+                "AGENTS.md",
+                "pyproject.toml",
+                "uv.lock"
+              ]
+            }
+          }
+        }
+      },
+      "fact_ref": "agent-fact:02:f13-frontier-declared-edge-fallback-0612-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:qa",
+        "received_work": "brick-work:03:f13-frontier-declared-edge-fallback-0612-code-attack-qa",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:qa",
+          "attacked_work": [
+            "Brick candidate checked: the F13 work statement requires declared terminal graph edges not to close a mid-walk Building.",
+            "Agent candidate checked: QA lane remained read-only and returned support evidence only.",
+            "Link candidate checked: closure observation is limited to executed Link evidence by raw_ref discipline; no Movement was chosen.",
+            "Support surface checked: frontier_observation fallback and read-side dashboard/checker fixture."
+          ],
+          "blocked_or_missing_evidence": [
+            "Writable temporary directory or temp source copy is unavailable in this session.",
+            "project/brick-protocol/buildings/notify-v2-vessel-guard-voice is absent.",
+            "No current executable full-gate transcript exists from this QA run."
+          ],
+          "boundary_violations": [
+            "No mutation by this QA run.",
+            "No observed changed files outside support/.",
+            "No observed Agent/Brick/Link axis source edits.",
+            "No credential/session bodies observed or printed.",
+            "No commit, push, checkout, reset, merge, rebase, or stash run."
+          ],
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "checked_sources": [
+            "support/operator/frontier_observation.py:77-107",
+            "support/operator/frontier_observation.py:173-243",
+            "support/checkers/lib/kernel_checks.py:3405-3576",
+            "support/checkers/lib/kernel_checks.py:3647-3688",
+            "support/checkers/lib/kernel_checks.py:3899-3936",
+            "project/brick-protocol/buildings/f9-projection-states-0612/raw/link.jsonl:3"
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:f13-frontier-declared-edge-fallback-0612",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:f13-frontier-declared-edge-fallback-0612:agent-object:qa:output"
+          ],
+          "evidence_used": [
+            "git status --short",
+            "git diff --stat",
+            "git diff -- support/operator/frontier_observation.py",
+            "git diff -- support/checkers/lib/kernel_checks.py",
+            "rg over frontier/checker surfaces",
+            "nl -ba for frontier_observation.py and kernel_checks.py line evidence",
+            "pure python helper probes with PYTHONDONTWRITEBYTECODE=1 and PYTHONPATH=support/import_identity",
+            "observe_building_frontier on f9-projection-states-0612",
+            "git diff --check",
+            "python3 -m compileall -q support/operator/frontier_observation.py support/checkers/lib/kernel_checks.py"
+          ],
+          "failing_or_missing_probes": [
+            "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all failed before profile proof with No usable temporary directory found.",
+            "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --profile read-side-projection-boundary failed with Operation not permitted writing project/checker-projection-fixture-vessel.",
+            "Temp-drive zero-step graph Building proof was not run because the sandbox cannot create temp directories or files.",
+            "Real-ledger FIRE for project/brick-protocol/buildings/notify-v2-vessel-guard-voice was not run because that root is absent in this checkout."
+          ],
+          "negative_probe_observations": [
+            "Direct helper probe: raw:link-graph terminal edge plus map terminal edge did not close.",
+            "Direct helper probe: map-only terminal edge did not close.",
+            "Direct helper probe: raw:link terminal closed-boundary row did close.",
+            "Source-level checker FIRE probe is present, but could not be executed here because temp writes are unavailable."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Full check_profile --all green in a temp source copy.",
+            "read-side-projection-boundary profile green.",
+            "Temp-drive zero-step Building observe result.",
+            "notify-v2-vessel-guard-voice before/after frontier_kind.",
+            "Provider process liveness.",
+            "Semantic correctness of all future frontier observations.",
+            "Movement authority, success judgment, quality judgment, or source truth."
+          ],
+          "observed_evidence": [
+            "Worktree on /Users/smith/projects/BRICK-wt-f13 branch claude/track-f13 at bf199ac has two modified files: support/operator/frontier_observation.py and support/checkers/lib/kernel_checks.py.",
+            "support/operator/frontier_observation.py:173-243 applies the same _is_executed_link_record helper to _closed_boundary_raw_record_after_latest_pause and _closed_boundary_observed; the helper accepts only raw_ref values starting raw:link:.",
+            "support/checkers/lib/kernel_checks.py:3416-3419 expects projection-declared-edge-mid-walk to remain closure_pending/running, and lines 3673-3687 build that fixture with a non-terminal raw:link row plus a terminal raw:link-graph declared edge.",
+            "support/checkers/lib/kernel_checks.py:3508-3571 contains a FIRE mutation that reintroduces broad closed-target detection and requires the declared-edge mid-walk row to flip closed under the mutation.",
+            "Pure helper probe observed declared_graph_only False/False, map_only False/False, executed_closure True/True for _closed_boundary_observed and _closed_boundary_raw_record_after_latest_pause.",
+            "f9-projection-states-0612 observed frontier_kind complete with reason declared closed boundary observed in executed Link evidence; raw/link.jsonl line 3 carries raw_ref raw:link:03, building_lifecycle_state closed, and target building-boundary:f9-projection-states-0612-closed.",
+            "git diff --check passed; compileall for support/operator/frontier_observation.py and support/checkers/lib/kernel_checks.py passed with PYTHONDONTWRITEBYTECODE=1."
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ \"Worktree on /Users/smith/projects/BRICK-wt-f13 branch claude/track-f13 at bf199ac has two modified files: support/operator/frontier_observation.py and support/checkers/lib/kernel_checks.py.\", \"support/operator/frontier_observation.py:173-243 applies the same _is_executed_link_record helper to _closed_boundary_raw_record_after_latest_pause and _closed_boundary_observed; the helper accepts only raw_ref values starting raw:link:.\", \"support/checkers/lib/kernel_checks.py:3416-3419 expects projection-declared-edge-mid-walk to remain closure_pending/running, and lines 36...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "Support evidence only.",
+            "Checker/profile output is not source truth, success judgment, quality judgment, or Movement authority.",
+            "This QA return does not choose Link Movement.",
+            "This QA return does not classify project success or quality.",
+            "Read-only sandbox prevented temp/source-copy proof."
+          ],
+          "regression_risks": [
+            "Full profile evidence was not observed in this read-only sandbox, so integrated checker closure remains not_proven here.",
+            "The requested notify-v2-vessel-guard-voice real ledger root is absent from this checkout, so the reproduced real-ledger before/after claim was not re-observed.",
+            "_closed_boundary_observed still scans all raw Link records rather than records after the latest pause; a synthetic closure-before-pause plus resumed-nonclosure record returns True from the fallback helper. This is outside the stated no-pause F13 surface but remains a follow-up risk.",
+            "The structural key is raw_ref prefix raw:link:. Future schema drift that emits declared graph edges with that prefix would bypass this guard unless separately pinned."
+          ],
+          "remaining_delta": [
+            "Run the required full gate in a writable temp source copy.",
+            "Run the zero-step temp graph Building proof in a writable temp output_root.",
+            "Re-observe notify-v2-vessel-guard-voice in the workspace that contains that real ledger.",
+            "Consider a separate follow-up pin for closure-before-pause with resumed non-closure if that lifecycle shape is admitted."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default"
+        }
+      },
+      "fact_ref": "agent-fact:03:f13-frontier-declared-edge-fallback-0612-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:inspector",
+        "received_work": "brick-work:04:f13-frontier-declared-edge-fallback-0612-axis-attack-qa",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_axis_findings": [
+            "This inspector pass made no file edits and did not create AgentFact, status, verdict, score, credential, provider session, route, or Link decision fields.",
+            "Existing f9 Agent return plane has three agent-return rows and frontier observation reports no missing required files.",
+            "No provider SDK, hook execution, native subagent spawn, git mutation, or network use was observed in this pass."
+          ],
+          "agent_object_ref": "agent-object:inspector",
+          "attacked_scope": [
+            "F13 no-pause frontier fallback closure detection.",
+            "Declared graph terminal edge versus executed Link closure evidence.",
+            "Read-side dashboard/frontier checker pin for declared-edge mid-walk projection.",
+            "Earlier frontier branches for agent_incomplete / parked / paused ordering were code-inspected only."
+          ],
+          "blocked_or_missing_evidence": [
+            "archive/status-kernel/current-brick-operating-packet-0531.md and archive/status-kernel/brick-protocol-post-d-surface-recompile-0-plan-0530.md are absent in this checkout.",
+            "project/brick-protocol/buildings/notify-v2-vessel-guard-voice is absent in this checkout.",
+            "The sandbox/tool policy is read-only; temp Building creation and temp source-copy full gate were not performed.",
+            "Profile commands requiring temp writes are blocked by operation-not-permitted or no usable temporary directory."
+          ],
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "brick_axis_findings": [
+            "The declared work contract targets support/* only; observed dirty files remain under support/.",
+            "The checker fixture models the Brick work condition: Agent return exists, one non-terminal executed Link row exists, and a declared terminal graph edge points to the closed boundary.",
+            "No brick/, agent/, link/, or project/ tracked edit was observed in git diff --name-only."
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:f13-frontier-declared-edge-fallback-0612",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:f13-frontier-declared-edge-fallback-0612:agent-object:inspector:output"
+          ],
+          "evidence_used": [
+            "AGENTS.md read from the live checkout.",
+            "git status --short -> modified support/checkers/lib/kernel_checks.py and support/operator/frontier_observation.py.",
+            "git diff -- support/operator/frontier_observation.py.",
+            "git diff -- support/checkers/lib/kernel_checks.py.",
+            "nl -ba support/operator/frontier_observation.py lines 77-107 and 173-243.",
+            "nl -ba support/checkers/lib/kernel_checks.py lines 3405-3436, 3508-3574, 3647-3688, 3899-3936.",
+            "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 -c predicate repro -> old_unfiltered_fallback True, current_closed_boundary_observed False, current_after_latest_pause False.",
+            "observe_building_frontier on project/brick-protocol/buildings/f9-projection-states-0612 -> complete.",
+            "project/brick-protocol/buildings/f9-projection-states-0612/raw/link.jsonl line 3.",
+            "observe_building_frontier on project/brick-protocol/buildings/adapter-30-s1-park -> agent_incomplete.",
+            "check_profile.py --profile support/checkers/profiles/read_side_projection_boundary.yaml -> exit 1, operation not permitted creating project/checker-projection-fixture-vessel.",
+            "check_profile.py --all -> exit 1, no usable temporary directory.",
+            "direct run_dashboard_productization_projection -> exit 1 before state assertions, no usable temporary directory.",
+            "git diff --check -> exit 0."
+          ],
+          "link_axis_findings": [
+            "The repair keeps Link closure keyed to executed raw Link evidence plus closed-boundary target, not to declared graph edges.",
+            "Using raw_ref prefix raw:link: is structural for executed Link rows and excludes declared graph edges with raw:link-graph:.",
+            "The same executed-link helper is now shared by post-pause closure detection and no-pause fallback closure detection.",
+            "No new Movement literal, GateFact authority, route target selector, scheduler, queue, retry, or timer surface was observed."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Full check_profile.py --all green in a temp source copy.",
+            "Focused read_side_projection_boundary profile runtime green.",
+            "Runtime RED of the new checker mutation under this sandbox.",
+            "Temp-drive declared graph Building with zero walked steps observed through real files.",
+            "notify-v2-vessel-guard-voice real-ledger before/after observation.",
+            "Provider behavior, provider quality, tool or hook execution.",
+            "Source truth, success judgment, quality judgment, Movement authority.",
+            "Future Building correctness or complete absence of future support-authority leaks."
+          ],
+          "observed_evidence": [
+            "Live checkout: /Users/smith/projects/BRICK-wt-f13.",
+            "Dirty tracked files are support-only: support/operator/frontier_observation.py and support/checkers/lib/kernel_checks.py.",
+            "support/operator/frontier_observation.py now uses _is_executed_link_record(record) in both _closed_boundary_raw_record_after_latest_pause and _closed_boundary_observed; the helper requires raw_ref to start with raw:link:.",
+            "Declared graph closure rows use raw:link-graph: and are skipped by the current fallback predicate.",
+            "No-write predicate repro: old unfiltered fallback over a non-terminal raw:link row plus declared raw:link-graph closed row returned True; current _closed_boundary_observed returned False; current _closed_boundary_raw_record_after_latest_pause returned False.",
+            "support/checkers/lib/kernel_checks.py adds projection-declared-edge-mid-walk with expected frontier_kind closure_pending, board_state observed_running, disp running.",
+            "The checker mutation bad_closed_boundary_observed removes the executed-link filter and asserts projection-declared-edge-mid-walk becomes closed before the expected-state assertion fires RED.",
+            "Real f9-projection-states-0612 observation returned frontier_kind complete with reason declared closed boundary observed in executed Link evidence.",
+            "f9 raw/link.jsonl line 3 carries raw_ref raw:link:03, building_lifecycle_state closed, and target building-boundary:f9-projection-states-0612-closed.",
+            "adapter-30-s1-park observation still routes through the earlier agent_incomplete branch: frontier_kind agent_incomplete, reason adapter error evidence exists after Agent receipt and before returned AgentFact.",
+            "AST parse for support/operator/frontier_observation.py and support/checkers/lib/kernel_checks.py exited 0.",
+            "git diff --check exited 0."
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ \"Live checkout: /Users/smith/projects/BRICK-wt-f13.\", \"Dirty tracked files are support-only: support/operator/frontier_observation.py and support/checkers/lib/kernel_checks.py.\", \"support/operator/frontier_observation.py now uses _is_executed_link_record(record) in both _closed_boundary_raw_record_after_latest_pause and _closed_boundary_observed; the helper requires raw_ref to start with raw:link:.\", \"Declared graph closure rows use raw:link-graph: and are skipped by the current fallback predicate.\", \"No-write predicate repro: old unfiltered fallback over a non-term...",
+          "projection_authority_findings": [
+            "Dashboard/frontier projection remains support evidence only; the new fixture pins read-side display state but does not make projection source truth.",
+            "The f9 dashboard/ledger projection currently reads frontier_kind complete, board_state closed, disp closed from executed closure evidence.",
+            "The requested notify-v2-vessel-guard-voice real-ledger root is not present under project/brick-protocol/buildings in this checkout, so its before/after projection cannot be observed here."
+          ],
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "read-only inspection only",
+            "not provider-liveness proof",
+            "not complete checker coverage proof"
+          ],
+          "remaining_delta": [
+            "Run the new dashboard_productization_projection state fixture and mutation probe in a writable temp environment.",
+            "Run full check_profile.py --all in a temp source copy and record the copy path.",
+            "Run the requested real-ledger observe_building_frontier probe for notify-v2-vessel-guard-voice in a checkout where that root exists.",
+            "Keep the shared _is_executed_link_record helper as the single discipline for both closure helpers so fallback and post-pause paths cannot drift."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "support_leak_findings": [
+            "No support surface was observed choosing Movement or route target in the modified diff.",
+            "The fallback no longer lets support projection of declared graph edges become closure authority.",
+            "Focused/full checker execution remains blocked in this read-only environment, so runtime checker coverage is not fully observed here."
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:04:f13-frontier-declared-edge-fallback-0612-axis-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:04"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:inspector",
+        "received_work": "brick-work:05:f13-frontier-declared-edge-fallback-0612-evidence-integrity",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:inspector",
+          "blocked_or_missing_evidence": [
+            "Shell here-doc probe failed before Python start because the sandbox cannot create shell temp files.",
+            "read_side_projection_boundary profile blocked on Operation not permitted while creating project/checker-projection-fixture-vessel.",
+            "check_profile.py --all blocked on no usable temporary directory.",
+            "notify-v2-vessel-guard-voice root absent from project/brick-protocol/buildings."
+          ],
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "checker_overclaim_risks": [
+            "read_side_projection_boundary profile exited 1 because the sandbox rejected fixture creation at project/checker-projection-fixture-vessel.",
+            "check_profile.py --all exited 1 because no usable temporary directory was available.",
+            "The declared-edge checker pin is present in code, but its profile did not run green in this read-only sandbox.",
+            "S1 park, S2 submit, chat_session_parked, agent_incomplete, and link_paused branch byte-identity was not proven by execution here."
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:f13-frontier-declared-edge-fallback-0612",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:f13-frontier-declared-edge-fallback-0612:agent-object:inspector:output"
+          ],
+          "evidence_scope": [
+            "Current checkout only, read-only inspection.",
+            "Support files and persisted Building evidence were read; no files were edited, created, deleted, committed, pushed, or rewritten.",
+            "Evidence is support observation only and does not establish source truth, success, quality, or Movement authority."
+          ],
+          "evidence_used": [
+            "git status --short",
+            "git diff -- support/operator/frontier_observation.py support/checkers/lib/kernel_checks.py",
+            "git diff --check",
+            "rg over frontier_observation.py and support/checkers",
+            "nl -ba support/operator/frontier_observation.py",
+            "nl -ba support/checkers/lib/kernel_checks.py",
+            "observe_building_frontier read-only probe via PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 -c",
+            "check_profile.py --profile read_side_projection_boundary",
+            "check_profile.py --all",
+            "read-only inspection of f9-projection-states-0612 and frontier-evidence-honesty-0612 raw/link.jsonl"
+          ],
+          "missing_evidence": [
+            "Temp zero-step graph Building proof was not run because this sandbox cannot create temp files or fixture roots.",
+            "Real-ledger FIRE against project/brick-protocol/buildings/notify-v2-vessel-guard-voice was blocked because that root is missing.",
+            "Full gate in a temp source copy was not run because temp/source-copy creation is unavailable.",
+            "Independent model review evidence was not collected in this inspector pass."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "source truth",
+            "success judgment",
+            "quality judgment",
+            "Movement authority",
+            "provider process liveness",
+            "dashboard bake output in this sandbox",
+            "full checker profile green",
+            "real notify-v2-vessel-guard-voice before/after observation",
+            "future Building correctness",
+            "complete absence of future support-authority leaks"
+          ],
+          "observed_evidence": [
+            "Current worktree is dirty only in support/operator/frontier_observation.py and support/checkers/lib/kernel_checks.py.",
+            "support/operator/frontier_observation.py:173-187 and :215-243 currently route both closure helpers through _is_executed_link_record, which accepts only raw_ref values starting with raw:link:.",
+            "support/operator/frontier_observation.py:221-224 documents that building_map declared edges are retained only for signature compatibility and are not execution evidence.",
+            "support/checkers/lib/kernel_checks.py:3416-3420 adds projection-declared-edge-mid-walk with expected frontier_kind closure_pending, board_state observed_running, disp running.",
+            "support/checkers/lib/kernel_checks.py:3510-3562 adds a FIRE-style mutation that treats any closed target, including declared graph/map edges, as closed and expects the declared-edge mid-walk row to misproject closed under that mutation.",
+            "support/checkers/lib/kernel_checks.py:3673-3687 and :3918-3935 construct the declared terminal edge fixture with raw_ref raw:link-graph:* and declared_graph_edge true.",
+            "Read-only helper probe observed _closed_boundary_observed(declared raw:link-graph closure only) == False and _closed_boundary_observed(executed raw:link closure row present) == True.",
+            "observe_building_frontier on project/brick-protocol/buildings/f9-projection-states-0612 returned frontier_kind complete with reason declared closed boundary observed in executed Link evidence.",
+            "project/brick-protocol/buildings/notify-v2-vessel-guard-voice does not exist in this checkout.",
+            "git diff --check exited 0."
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ \"Current worktree is dirty only in support/operator/frontier_observation.py and support/checkers/lib/kernel_checks.py.\", \"support/operator/frontier_observation.py:173-187 and :215-243 currently route both closure helpers through _is_executed_link_record, which accepts only raw_ref values starting with raw:link:.\", \"support/operator/frontier_observation.py:221-224 documents that building_map declared edges are retained only for signature compatibility and are not execution evidence.\", \"support/checkers/lib/kernel_checks.py:3416-3420 adds projection-declared-edge-mid-...",
+          "persisted_evidence_roots": [
+            "support/operator/frontier_observation.py",
+            "support/checkers/lib/kernel_checks.py",
+            "support/checkers/module_registry.yaml",
+            "project/brick-protocol/buildings/f9-projection-states-0612",
+            "project/brick-protocol/buildings/frontier-evidence-honesty-0612"
+          ],
+          "proof_limit_findings": [
+            "Current code shape matches the requested structural key: executed closure evidence is raw_ref raw:link:*; declared graph edges are raw_ref raw:link-graph:*.",
+            "The sibling post-pause helper and the no-pause fallback now share the same executed-link predicate, reducing drift at the inspected seam.",
+            "The named truly-closed F9 ledger remains complete because it has an executed raw:link:03 closure row with building_lifecycle_state closed.",
+            "The nearby frontier-evidence-honesty ledger also remains complete from executed raw:link:06 closure evidence, not from later raw:link-graph declared edges."
+          ],
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "static read over current checkout",
+            "not route target choice",
+            "checker/profile results are support evidence only"
+          ],
+          "remaining_delta": [
+            "Run the declared temp zero-step graph fixture and full checker gate in a writable temp/source-copy environment.",
+            "Re-run observe_building_frontier against the real notify-v2-vessel-guard-voice ledger where that evidence root exists.",
+            "Keep any next Movement caller/Link supplied; this inspector return does not choose Movement or route target."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "stale_source_risks": [
+            "The inspected repair is uncommitted dirty worktree state, not a committed baseline.",
+            "The operator-verified notify-v2-vessel-guard-voice ledger named in the task is absent here, so that reproduced fact could not be re-read in this checkout.",
+            "Before/after behavior against pre-fix code was not executed; only current behavior plus diff evidence was observed."
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:05:f13-frontier-declared-edge-fallback-0612-evidence-integrity",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:05"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:coo",
+        "received_work": "brick-work:06:f13-frontier-declared-edge-fallback-0612-closure",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:coo",
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "cli_call_ref": "support-cli-call:adapter:codex-local:f13-frontier-declared-edge-fallback-0612",
+          "cli_version_text": "codex-cli 0.137.0",
+          "deferred_smith_review_queue": [
+            "Human/COO review needed after writable full-gate evidence exists.",
+            "Human/COO review needed if notify-v2 evidence cannot be located or differs from the reproduced fact.",
+            "Human/COO review needed before treating any follow-up lifecycle pin as in-scope F13 work."
+          ],
+          "evidence_refs": [
+            "support-packet:f13-frontier-declared-edge-fallback-0612:agent-object:coo:output"
+          ],
+          "narrowly_proven": [
+            "The current no-pause fallback no longer closes on raw:link-graph declared terminal edge rows in the direct helper probe.",
+            "The current post-pause helper and no-pause fallback share the same executed-link raw_ref prefix discipline.",
+            "A real executed closure row with raw_ref raw:link: and a closed boundary still observes complete in f9-projection-states-0612.",
+            "The inspected diff stays within support/* and does not edit brick/, agent/, link/, or project/ evidence.",
+            "Whitespace and Python parse checks passed for the touched support files."
+          ],
+          "next_target_candidates": [
+            "Candidate only, not Movement: verification continuation in a writable temp/source-copy environment for focused profile, full profile, mutation RED, and zero-step graph fixture.",
+            "Candidate only, not Movement: evidence collection against the real notify-v2-vessel-guard-voice ledger where that Building root exists.",
+            "Candidate only, not Movement: if those probes fail, return evidence to a declared repair boundary for frontier observation/checker repair."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Full check_profile.py --all green in a writable temp source copy.",
+            "Focused read_side_projection_boundary profile green in a writable environment.",
+            "Runtime RED of the new checker mutation under the profile runner.",
+            "Temp-drive graph Building declared and walked zero steps with frontier_kind not complete.",
+            "Real-ledger before/after observation for notify-v2-vessel-guard-voice.",
+            "Byte-identical behavior for every S1 park, S2 submit, chat_session_parked, agent_incomplete, and link_paused branch; only adapter-30-s1-park was directly observed here.",
+            "Provider behavior, provider quality, tool or hook execution, future Building correctness, complete future support-authority leak absence.",
+            "Source truth, success judgment, quality judgment, or Movement authority."
+          ],
+          "observed_evidence": [
+            "Live checkout is /Users/smith/projects/BRICK-wt-f13 on branch claude/track-f13 at bf199ac.",
+            "Dirty tracked files are support-only: support/operator/frontier_observation.py and support/checkers/lib/kernel_checks.py.",
+            "support/operator/frontier_observation.py now routes both post-pause and no-pause closure helpers through _is_executed_link_record, which accepts only raw_ref values starting raw:link:.",
+            "support/operator/frontier_observation.py keeps building_map only for helper signature compatibility; declared map edges are not treated as execution evidence.",
+            "support/checkers/lib/kernel_checks.py adds projection-declared-edge-mid-walk expecting frontier_kind closure_pending, board_state observed_running, disp running.",
+            "support/checkers/lib/kernel_checks.py adds a FIRE mutation that reintroduces broad closed-target detection and expects projection-declared-edge-mid-walk to misproject closed under the mutation.",
+            "Direct helper probe observed declared_graph_only fallback=false after_pause=false, nonterminal_plus_declared_graph fallback=false after_pause=false, executed_closure fallback=true after_pause=true.",
+            "observe_building_frontier on project/brick-protocol/buildings/f9-projection-states-0612 returned frontier_kind complete from executed Link evidence.",
+            "f9-projection-states-0612 raw/link.jsonl line 3 carries raw_ref raw:link:03, building_lifecycle_state closed, and target building-boundary:f9-projection-states-0612-closed.",
+            "observe_building_frontier on project/brick-protocol/buildings/adapter-30-s1-park returned frontier_kind agent_incomplete, preserving an earlier branch by observation.",
+            "observe_building_frontier on project/brick-protocol/buildings/frontier-evidence-honesty-0612 returned complete; its closed candidates include executed raw:link:06 and declared raw:link-graph:08, and the current helper observes closure through the executed raw:link row.",
+            "project/brick-protocol/buildings/notify-v2-vessel-guard-voice is absent in this checkout.",
+            "archive/status-kernel/current-brick-operating-packet-0531.md and archive/status-kernel/brick-protocol-post-d-surface-recompile-0-plan-0530.md are absent in this checkout; project/brick-protocol/PROGRESS.md is present and states it is a machine projection, not success, quality, source truth, or Movement authority.",
+            "git diff --check exited 0.",
+            "AST parse of support/operator/frontier_observation.py and support/checkers/lib/kernel_checks.py exited 0.",
+            "Focused read_side_projection_boundary profile exited 1 because the read-only sandbox rejected creating project/checker-projection-fixture-vessel.",
+            "check_profile.py --all exited 1 because no usable temporary directory was available."
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ \"Live checkout is /Users/smith/projects/BRICK-wt-f13 on branch claude/track-f13 at bf199ac.\", \"Dirty tracked files are support-only: support/operator/frontier_observation.py and support/checkers/lib/kernel_checks.py.\", \"support/operator/frontier_observation.py now routes both post-pause and no-pause closure helpers through _is_executed_link_record, which accepts only raw_ref values starting raw:link:.\", \"support/operator/frontier_observation.py keeps building_map only for helper signature compatibility; declared map edges are not treated as execution evidence.\", \"su...",
+          "parent_goal_delta_status": [
+            "The repair delta appears aligned with the F13 objective at the inspected support seam: declared graph terminal edges are excluded from closure observation, while executed closure rows remain accepted.",
+            "Closure cannot claim the parent proof complete because the required writable temp/source-copy gate and notify-v2 real-ledger FIRE evidence are missing in this sandbox."
+          ],
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "remaining_delta": [
+            "Run the focused profile and mutation probe in a writable environment.",
+            "Run full check_profile.py --all in a temp source copy and record the copy path.",
+            "Create or use the requested temp output_root graph fixture with zero walked steps and observe frontier_kind not complete.",
+            "Re-run observe_building_frontier against notify-v2-vessel-guard-voice in the checkout that contains that real ledger.",
+            "Optionally add a later separate lifecycle pin for closure-before-pause plus resumed non-closure if that shape is admitted."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "transition_concern_evidence": {
+            "binding": false,
+            "concern_kind": "verification_gap",
+            "concern_ref": "transition-concern:f13-frontier-declared-edge-fallback-0612-closure-verification-gap",
+            "not_proven": [
+              "full writable profile gate",
+              "notify-v2 real-ledger before/after observation",
+              "temp zero-step graph Building proof",
+              "runtime checker mutation RED"
+            ],
+            "proof_limits": [
+              "support evidence only",
+              "not source truth",
+              "not success judgment",
+              "not quality judgment",
+              "not Movement authority",
+              "non-binding Agent transition concern"
+            ],
+            "reason_refs": [
+              "support/operator/frontier_observation.py:173-243",
+              "support/checkers/lib/kernel_checks.py:3416-3419",
+              "support/checkers/lib/kernel_checks.py:3510-3573",
+              "work/step-outputs/f13-frontier-declared-edge-fallback-0612-code-attack-qa-attempt-1/step-output.json",
+              "work/step-outputs/f13-frontier-declared-edge-fallback-0612-axis-attack-qa-attempt-1/step-output.json",
+              "work/step-outputs/f13-frontier-declared-edge-fallback-0612-evidence-integrity-attempt-1/step-output.json"
+            ],
+            "related_boundary_refs": [
+              "brick-f13-frontier-declared-edge-fallback-0612-closure",
+              "brick-f13-frontier-declared-edge-fallback-0612-work"
+            ]
+          }
+        }
+      },
+      "fact_ref": "agent-fact:06:f13-frontier-declared-edge-fallback-0612-closure",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:06"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-12T09:19:40Z",
+  "id": "urn:bp:building:f13-frontier-declared-edge-fallback-0612::evidence/claim_trace/agent/returned_claims.json",
+  "recorded_at": "2026-06-12T09:19:40Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:f13-frontier-declared-edge-fallback-0612",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/agent/returned_claims.json",
+  "time": "2026-06-12T09:19:40Z",
+  "type": "bp.claim_trace"
+}

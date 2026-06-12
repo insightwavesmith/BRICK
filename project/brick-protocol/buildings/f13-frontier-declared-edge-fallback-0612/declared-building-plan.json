@@ -1,0 +1,515 @@
+{
+  "brick_steps": [
+    {
+      "completion_edge_ref": "edge:f13-frontier-declared-edge-fallback-0612-design-to-f13-frontier-declared-edge-fallback-0612-work",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-f13-frontier-declared-edge-fallback-0612-design",
+          "brick_work_ref": "work:f13-frontier-declared-edge-fallback-0612-design",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence,design_summary,relevant_current_structure,proposed_changes,unchanged_surfaces,axis_responsibility,invariants,edge_cases,checker_or_verifier_plan,candidate_file_changes,evidence_refs,not_proven",
+          "row_ref": "brick-row:f13-frontier-declared-edge-fallback-0612-design",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "design Brick for task-source:inline-statement: A mid-walk graph Building whose raw/link.jsonl contains ONLY declared plan edges (plus non-terminal executed rows) must NEVER observe frontier_kind=complete. Closure observation must key on EXECUTED closure evidence only."
+        },
+        {
+          "agent_object_ref": "agent-object:design-lead",
+          "axis": "Agent",
+          "row_ref": "agent-row:f13-frontier-declared-edge-fallback-0612-design"
+        }
+      ],
+      "step_ref": "f13-frontier-declared-edge-fallback-0612-design",
+      "step_template_ref": "building-step-template:design"
+    },
+    {
+      "completion_edge_ref": "edge:f13-frontier-declared-edge-fallback-0612-work-to-f13-frontier-declared-edge-fallback-0612-code-attack-qa",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-f13-frontier-declared-edge-fallback-0612-work",
+          "brick_work_ref": "work:f13-frontier-declared-edge-fallback-0612-work",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "made_changes, observed_evidence, not_proven",
+          "requires_brick_write_scope": true,
+          "row_ref": "brick-row:f13-frontier-declared-edge-fallback-0612-work",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "work Brick for task-source:inline-statement: A mid-walk graph Building whose raw/link.jsonl contains ONLY declared plan edges (plus non-terminal executed rows) must NEVER observe frontier_kind=complete. Closure observation must key on EXECUTED closure evidence only.",
+          "write_scope": {
+            "allowed_paths": [
+              "support/*"
+            ],
+            "forbidden_paths": [
+              "link/*",
+              "agent/*",
+              "brick/*",
+              "project/*",
+              ".git/*",
+              "AGENTS.md",
+              "pyproject.toml",
+              "uv.lock"
+            ]
+          }
+        },
+        {
+          "agent_object_ref": "agent-object:dev",
+          "axis": "Agent",
+          "row_ref": "agent-row:f13-frontier-declared-edge-fallback-0612-work"
+        }
+      ],
+      "step_ref": "f13-frontier-declared-edge-fallback-0612-work",
+      "step_template_ref": "building-step-template:work"
+    },
+    {
+      "completion_edge_ref": "edge:f13-frontier-declared-edge-fallback-0612-code-attack-qa-to-f13-frontier-declared-edge-fallback-0612-closure",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-f13-frontier-declared-edge-fallback-0612-code-attack-qa",
+          "brick_work_ref": "work:f13-frontier-declared-edge-fallback-0612-code-attack-qa",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, evidence_used, not_proven",
+          "row_ref": "brick-row:f13-frontier-declared-edge-fallback-0612-code-attack-qa",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "code_attack_qa Brick for task-source:inline-statement: A mid-walk graph Building whose raw/link.jsonl contains ONLY declared plan edges (plus non-terminal executed rows) must NEVER observe frontier_kind=complete. Closure observation must key on EXECUTED closure evidence only."
+        },
+        {
+          "agent_object_ref": "agent-object:qa",
+          "axis": "Agent",
+          "row_ref": "agent-row:f13-frontier-declared-edge-fallback-0612-code-attack-qa"
+        }
+      ],
+      "step_ref": "f13-frontier-declared-edge-fallback-0612-code-attack-qa",
+      "step_template_ref": "building-step-template:code-attack-qa"
+    },
+    {
+      "completion_edge_ref": "edge:f13-frontier-declared-edge-fallback-0612-axis-attack-qa-to-f13-frontier-declared-edge-fallback-0612-closure",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-f13-frontier-declared-edge-fallback-0612-axis-attack-qa",
+          "brick_work_ref": "work:f13-frontier-declared-edge-fallback-0612-axis-attack-qa",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence, attacked_scope, brick_axis_findings, agent_axis_findings, link_axis_findings, support_leak_findings, projection_authority_findings, evidence_used, not_proven",
+          "row_ref": "brick-row:f13-frontier-declared-edge-fallback-0612-axis-attack-qa",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "axis_attack_qa Brick for task-source:inline-statement: A mid-walk graph Building whose raw/link.jsonl contains ONLY declared plan edges (plus non-terminal executed rows) must NEVER observe frontier_kind=complete. Closure observation must key on EXECUTED closure evidence only."
+        },
+        {
+          "agent_object_ref": "agent-object:inspector",
+          "axis": "Agent",
+          "row_ref": "agent-row:f13-frontier-declared-edge-fallback-0612-axis-attack-qa"
+        }
+      ],
+      "step_ref": "f13-frontier-declared-edge-fallback-0612-axis-attack-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa"
+    },
+    {
+      "completion_edge_ref": "edge:f13-frontier-declared-edge-fallback-0612-evidence-integrity-to-f13-frontier-declared-edge-fallback-0612-closure",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-f13-frontier-declared-edge-fallback-0612-evidence-integrity",
+          "brick_work_ref": "work:f13-frontier-declared-edge-fallback-0612-evidence-integrity",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence, evidence_scope, persisted_evidence_roots, proof_limit_findings, stale_source_risks, checker_overclaim_risks, missing_evidence, evidence_used, not_proven",
+          "row_ref": "brick-row:f13-frontier-declared-edge-fallback-0612-evidence-integrity",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "evidence_integrity Brick for task-source:inline-statement: A mid-walk graph Building whose raw/link.jsonl contains ONLY declared plan edges (plus non-terminal executed rows) must NEVER observe frontier_kind=complete. Closure observation must key on EXECUTED closure evidence only."
+        },
+        {
+          "agent_object_ref": "agent-object:inspector",
+          "axis": "Agent",
+          "row_ref": "agent-row:f13-frontier-declared-edge-fallback-0612-evidence-integrity"
+        }
+      ],
+      "step_ref": "f13-frontier-declared-edge-fallback-0612-evidence-integrity",
+      "step_template_ref": "building-step-template:evidence-integrity"
+    },
+    {
+      "completion_edge_ref": "edge:f13-frontier-declared-edge-fallback-0612-closure-to-boundary",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-f13-frontier-declared-edge-fallback-0612-closure",
+          "brick_work_ref": "work:f13-frontier-declared-edge-fallback-0612-closure",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence",
+          "row_ref": "brick-row:f13-frontier-declared-edge-fallback-0612-closure",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "closure Brick for task-source:inline-statement: A mid-walk graph Building whose raw/link.jsonl contains ONLY declared plan edges (plus non-terminal executed rows) must NEVER observe frontier_kind=complete. Closure observation must key on EXECUTED closure evidence only."
+        },
+        {
+          "agent_object_ref": "agent-object:coo",
+          "axis": "Agent",
+          "row_ref": "agent-row:f13-frontier-declared-edge-fallback-0612-closure"
+        }
+      ],
+      "step_ref": "f13-frontier-declared-edge-fallback-0612-closure",
+      "step_template_ref": "building-step-template:closure"
+    }
+  ],
+  "building_id": "f13-frontier-declared-edge-fallback-0612",
+  "chain_preset_ref": "building-chain-preset:brick-protocol-engine-feature-hard",
+  "composition_mode": "caller_or_coo_declared_graph_composition",
+  "declared_by": "caller-claude-operator",
+  "execution_order": [
+    "f13-frontier-declared-edge-fallback-0612-design",
+    "f13-frontier-declared-edge-fallback-0612-work",
+    "f13-frontier-declared-edge-fallback-0612-code-attack-qa",
+    "f13-frontier-declared-edge-fallback-0612-axis-attack-qa",
+    "f13-frontier-declared-edge-fallback-0612-evidence-integrity",
+    "f13-frontier-declared-edge-fallback-0612-closure"
+  ],
+  "groups": [
+    {
+      "group_id": "group:f13-frontier-declared-edge-fallback-0612-fan-out",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:f13-frontier-declared-edge-fallback-0612-work-to-f13-frontier-declared-edge-fallback-0612-code-attack-qa",
+        "edge:f13-frontier-declared-edge-fallback-0612-work-to-f13-frontier-declared-edge-fallback-0612-axis-attack-qa",
+        "edge:f13-frontier-declared-edge-fallback-0612-work-to-f13-frontier-declared-edge-fallback-0612-evidence-integrity"
+      ]
+    },
+    {
+      "group_id": "group:f13-frontier-declared-edge-fallback-0612-fan-in",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:f13-frontier-declared-edge-fallback-0612-code-attack-qa-to-f13-frontier-declared-edge-fallback-0612-closure",
+        "edge:f13-frontier-declared-edge-fallback-0612-axis-attack-qa-to-f13-frontier-declared-edge-fallback-0612-closure",
+        "edge:f13-frontier-declared-edge-fallback-0612-evidence-integrity-to-f13-frontier-declared-edge-fallback-0612-closure"
+      ]
+    }
+  ],
+  "link_edges": [
+    {
+      "edge_ref": "edge:f13-frontier-declared-edge-fallback-0612-design-to-f13-frontier-declared-edge-fallback-0612-work",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition",
+            "link-gate:coo"
+          ],
+          "gate_sequence_policy": [
+            {
+              "gate_ref": "link-gate:default-transition",
+              "on_missing_required_facts": {
+                "action": "reroute",
+                "reason_refs": [
+                  "observation:default-transition-missing-required-facts"
+                ],
+                "required_target_budget": true,
+                "target_basis": "source_brick"
+              },
+              "on_sufficient": {
+                "action": "next",
+                "next_gate_ref": "link-gate:coo"
+              }
+            },
+            {
+              "gate_ref": "link-gate:coo",
+              "on_missing_required_facts": {
+                "action": "HOLD",
+                "pending_target_basis": "target_brick",
+                "reason_refs": [
+                  "observation:coo-gate-missing-required-facts"
+                ],
+                "required_disposition_owner": "coo"
+              },
+              "on_sufficient": {
+                "action": "forward"
+              }
+            }
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:f13-frontier-declared-edge-fallback-0612-design-to-f13-frontier-declared-edge-fallback-0612-work",
+          "target_ref": "brick-f13-frontier-declared-edge-fallback-0612-work"
+        }
+      ],
+      "source_step_ref": "f13-frontier-declared-edge-fallback-0612-design",
+      "target_step_ref": "f13-frontier-declared-edge-fallback-0612-work"
+    },
+    {
+      "edge_ref": "edge:f13-frontier-declared-edge-fallback-0612-work-to-f13-frontier-declared-edge-fallback-0612-code-attack-qa",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition"
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:f13-frontier-declared-edge-fallback-0612-work-to-f13-frontier-declared-edge-fallback-0612-code-attack-qa",
+          "target_ref": "brick-f13-frontier-declared-edge-fallback-0612-code-attack-qa"
+        }
+      ],
+      "source_step_ref": "f13-frontier-declared-edge-fallback-0612-work",
+      "target_step_ref": "f13-frontier-declared-edge-fallback-0612-code-attack-qa"
+    },
+    {
+      "edge_ref": "edge:f13-frontier-declared-edge-fallback-0612-work-to-f13-frontier-declared-edge-fallback-0612-axis-attack-qa",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition"
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:f13-frontier-declared-edge-fallback-0612-work-to-f13-frontier-declared-edge-fallback-0612-axis-attack-qa",
+          "target_ref": "brick-f13-frontier-declared-edge-fallback-0612-axis-attack-qa"
+        }
+      ],
+      "source_step_ref": "f13-frontier-declared-edge-fallback-0612-work",
+      "target_step_ref": "f13-frontier-declared-edge-fallback-0612-axis-attack-qa"
+    },
+    {
+      "edge_ref": "edge:f13-frontier-declared-edge-fallback-0612-work-to-f13-frontier-declared-edge-fallback-0612-evidence-integrity",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition"
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:f13-frontier-declared-edge-fallback-0612-work-to-f13-frontier-declared-edge-fallback-0612-evidence-integrity",
+          "target_ref": "brick-f13-frontier-declared-edge-fallback-0612-evidence-integrity"
+        }
+      ],
+      "source_step_ref": "f13-frontier-declared-edge-fallback-0612-work",
+      "target_step_ref": "f13-frontier-declared-edge-fallback-0612-evidence-integrity"
+    },
+    {
+      "edge_ref": "edge:f13-frontier-declared-edge-fallback-0612-code-attack-qa-to-f13-frontier-declared-edge-fallback-0612-closure",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition",
+            "link-gate:strict"
+          ],
+          "gate_concept_provenance": {
+            "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+            "tokens": [
+              "strict-evidence"
+            ]
+          },
+          "movement": "forward",
+          "row_ref": "link-row:edge:f13-frontier-declared-edge-fallback-0612-code-attack-qa-to-f13-frontier-declared-edge-fallback-0612-closure",
+          "target_ref": "brick-f13-frontier-declared-edge-fallback-0612-closure"
+        }
+      ],
+      "source_step_ref": "f13-frontier-declared-edge-fallback-0612-code-attack-qa",
+      "target_step_ref": "f13-frontier-declared-edge-fallback-0612-closure"
+    },
+    {
+      "edge_ref": "edge:f13-frontier-declared-edge-fallback-0612-axis-attack-qa-to-f13-frontier-declared-edge-fallback-0612-closure",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition",
+            "link-gate:strict"
+          ],
+          "gate_concept_provenance": {
+            "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+            "tokens": [
+              "strict-evidence"
+            ]
+          },
+          "movement": "forward",
+          "row_ref": "link-row:edge:f13-frontier-declared-edge-fallback-0612-axis-attack-qa-to-f13-frontier-declared-edge-fallback-0612-closure",
+          "target_ref": "brick-f13-frontier-declared-edge-fallback-0612-closure"
+        }
+      ],
+      "source_step_ref": "f13-frontier-declared-edge-fallback-0612-axis-attack-qa",
+      "target_step_ref": "f13-frontier-declared-edge-fallback-0612-closure"
+    },
+    {
+      "edge_ref": "edge:f13-frontier-declared-edge-fallback-0612-evidence-integrity-to-f13-frontier-declared-edge-fallback-0612-closure",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition",
+            "link-gate:strict"
+          ],
+          "gate_concept_provenance": {
+            "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+            "tokens": [
+              "strict-evidence"
+            ]
+          },
+          "movement": "forward",
+          "row_ref": "link-row:edge:f13-frontier-declared-edge-fallback-0612-evidence-integrity-to-f13-frontier-declared-edge-fallback-0612-closure",
+          "target_ref": "brick-f13-frontier-declared-edge-fallback-0612-closure"
+        }
+      ],
+      "source_step_ref": "f13-frontier-declared-edge-fallback-0612-evidence-integrity",
+      "target_step_ref": "f13-frontier-declared-edge-fallback-0612-closure"
+    },
+    {
+      "edge_ref": "edge:f13-frontier-declared-edge-fallback-0612-closure-to-boundary",
+      "rows": [
+        {
+          "axis": "Link",
+          "building_lifecycle": {
+            "reason": "declared closure boundary for f13-frontier-declared-edge-fallback-0612",
+            "state": "closed"
+          },
+          "declared_gate_refs": [
+            "link-gate:default-transition",
+            "link-gate:coo",
+            "link-gate:human"
+          ],
+          "gate_concept_provenance": {
+            "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+            "tokens": [
+              "coo-review",
+              "human-review"
+            ]
+          },
+          "gate_sequence_policy": [
+            {
+              "gate_ref": "link-gate:human",
+              "on_missing_required_facts": {
+                "action": "hold",
+                "pending_target_basis": "source_brick",
+                "reason_refs": [
+                  "observation:human-gate-disposition-missing"
+                ],
+                "required_disposition_owner": "caller-or-coo"
+              },
+              "on_sufficient": {
+                "action": "forward"
+              }
+            }
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:f13-frontier-declared-edge-fallback-0612-closure-to-boundary",
+          "target_ref": "building-boundary:f13-frontier-declared-edge-fallback-0612-closed"
+        }
+      ],
+      "source_step_ref": "f13-frontier-declared-edge-fallback-0612-closure"
+    }
+  ],
+  "materialization_rule": "caller_or_coo_declared_task_source_plus_graph_chain_preset",
+  "node_reroute_budgets": {
+    "brick-f13-frontier-declared-edge-fallback-0612-design": 1,
+    "brick-f13-frontier-declared-edge-fallback-0612-work": 1
+  },
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality"
+  ],
+  "owner_axis": "Brick",
+  "plan_ref": "building-plan:f13-frontier-declared-edge-fallback-0612",
+  "plan_shape": "graph",
+  "preset_expansion": {
+    "agent_object_refs": [
+      "agent-object:design-lead",
+      "agent-object:dev",
+      "agent-object:qa",
+      "agent-object:inspector",
+      "agent-object:inspector",
+      "agent-object:coo"
+    ],
+    "canonical_chain_preset_ref": "building-chain-preset:brick-protocol-engine-feature-hard",
+    "chain_preset_ref": "building-chain-preset:brick-protocol-engine-feature-hard",
+    "chain_preset_requires_graph": true,
+    "expanded_brick_spec_refs": [
+      "brick/templates/bricks/design/brick.md",
+      "brick/templates/bricks/work/brick.md",
+      "brick/templates/bricks/code-attack-qa/brick.md",
+      "brick/templates/bricks/axis-attack-qa/brick.md",
+      "brick/templates/bricks/evidence-integrity/brick.md",
+      "brick/templates/bricks/closure/brick.md"
+    ],
+    "expanded_brick_template_refs": [
+      "brick/templates/bricks/design/return.yaml",
+      "brick/templates/bricks/transition-concern-return.yaml",
+      "brick/templates/bricks/work/return.yaml",
+      "brick/templates/bricks/code-attack-qa/return.yaml",
+      "brick/templates/bricks/axis-attack-qa/return.yaml",
+      "brick/templates/bricks/evidence-integrity/return.yaml",
+      "brick/templates/bricks/closure/return.yaml"
+    ],
+    "expanded_step_template_refs": [
+      "building-step-template:design",
+      "building-step-template:work",
+      "building-step-template:code-attack-qa",
+      "building-step-template:axis-attack-qa",
+      "building-step-template:evidence-integrity",
+      "building-step-template:closure"
+    ],
+    "not_proven": [
+      "semantic fitness of selected shape",
+      "selected preset ref was not declared unless separately present"
+    ],
+    "proof_limits": [
+      "support records caller / COO declared graph composition only",
+      "not automatic preset selection",
+      "not automatic shape selection",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "selected_shape_ref": "building-shape:design-needed",
+    "selection_rule": "caller_or_coo_declared_only"
+  },
+  "project_ref": "project:brick-protocol",
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "route_policy_provenance": {
+    "allowed_provenance": [
+      "per-building",
+      "preset-default"
+    ],
+    "by_node": {
+      "f13-frontier-declared-edge-fallback-0612-closure": {
+        "closure_transition_target_policy": "preset-default"
+      },
+      "f13-frontier-declared-edge-fallback-0612-design": {
+        "node_reroute_budget": "preset-default"
+      },
+      "f13-frontier-declared-edge-fallback-0612-work": {
+        "node_reroute_budget": "preset-default"
+      }
+    },
+    "rule": "route reroute budget + closure routing policy are HUMAN Movement decisions; support records but never synthesizes them (provenance is preset-default for a reusable preset default or per-building for a per-Building override, NEVER support)"
+  },
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:default",
+  "selected_shape_ref": "building-shape:design-needed",
+  "selection_rule": "caller_or_coo_declared_only",
+  "task_source_hash": "aa72ee08f8abf6388ea2ac3af8eed594283c314750536c534001620a80fb0da2",
+  "task_source_hash_algorithm": "sha256",
+  "task_source_hash_basis": "utf-8 inline task_statement body at materialization time",
+  "task_source_ref": "task-source:inline-statement",
+  "task_statement": "# F13 \u2014 frontier \ud3f4\ubc31\uc774 \uadf8\ub798\ud504 \uc120\uc5b8\ud589\uc744 \uc2e4\ud589 \uc99d\uac70\ub85c \uc624\ub3c5 (\ubcf4\ud589\uc911 \ube4c\ub529\uc774 closed\ub85c \ud22c\uc601)\n\n## Reproduced fact (operator-verified, 2026-06-12T08:31Z)\nBuilding notify-v2-vessel-guard-voice was MID-WALK (walk process alive, code-attack-qa step\nin flight) yet bake_dashboard_data_json projected it state=closed/disp=closed.\nRoot cause chain, verified by hand on the real ledger:\n1. Graph plan declaration writes ALL declared plan edges into raw/link.jsonl at intake time,\n   INCLUDING the terminal edge {source_step_ref: ...-closure, target: building-boundary:<id>-closed}.\n   These rows carry declared_graph_edge: true, movement_source: \"declared graph Building Plan\n   Link edge\", raw_ref: \"raw:link-graph:NN:...\", and NO building_lifecycle_state.\n2. support/operator/frontier_observation.py observe_building_frontier falls through (no pause,\n   received==returned between steps) to _closed_boundary_observed(), which scans ALL raw link\n   records for a closed-boundary target WITHOUT filtering declared rows -> returns True from\n   the building's first minute -> frontier_kind=complete -> board closed -> dashboard closed.\n3. The SIBLING helper _closed_boundary_raw_record_after_latest_pause already has the correct\n   discipline: it skips records whose raw_ref does not start with \"raw:link:\" (declared graph\n   edges are \"raw:link-graph:\"). The fallback lacks exactly this filter.\n4. A REAL executed closure row (see f9-projection-states-0612 raw/link.jsonl last row) carries\n   building_lifecycle_state: \"closed\" and raw_ref \"raw:link:NN\". That is the true closure signal.\n\n## History (why this is F13, third strike on the same surface)\nF9 fixed two-way misprojection (crashed->running, midwalk->closed). F9B keyed closure on\nexecuted Link boundary evidence AFTER the latest pause. F13 is the remaining NO-PAUSE fallback\npath. Same-lens QA has missed this surface twice; the repair MUST land an independent negative\nchecker pin, not just the code fix.\n\n## Objective\nA mid-walk graph Building whose raw/link.jsonl contains ONLY declared plan edges (plus\nnon-terminal executed rows) must NEVER observe frontier_kind=complete. Closure observation must\nkey on EXECUTED closure evidence only.\n\n## Deliverables\n1. Fix _closed_boundary_observed in support/operator/frontier_observation.py to ignore declared\n   plan-edge rows. Design decision (justify in design step): filter by raw_ref \"raw:link:\"\n   prefix mirroring the sibling helper, by declared_graph_edge truthy, or require\n   building_lifecycle_state==\"closed\" on the closing record \u2014 pick the key that is structural\n   (present on every executed closure row, absent on every declared row) and apply the SAME\n   discipline to both helpers so they cannot drift apart.\n2. Checker pin (extend the existing frontier/projection checker family): a fixture graph\n   building with declared terminal edge + zero executed closure row -> frontier_kind MUST be\n   closure_pending (or another non-complete kind); mutate the filter out -> RED. A fixture with\n   a real executed closure row -> complete stays complete (no over-tightening).\n3. The fix must keep the S1 park / S2 submit / chat_session_parked / agent_incomplete /\n   link_paused branch behavior byte-identical (those branches precede the fallback).\n\n## Proof required (run, report honestly \u2014 claims only from execution)\n- Temp drive: declare a graph building in a temp output_root, walk ZERO steps, observe frontier\n  -> NOT complete (today it would be complete; show before/after).\n- Real-ledger FIRE: run observe_building_frontier against the REAL\n  project/brick-protocol/buildings/notify-v2-vessel-guard-voice root (READ-ONLY \u2014 do not write\n  into it) and report the observed frontier_kind before/after the fix.\n- Truly-closed regression: observe f9-projection-states-0612 (executed closure row present) ->\n  still complete.\n- Full gate: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3\n  support/checkers/check_profile.py --all -> exit 0, in a TEMP SOURCE COPY (say which copy).\n\n## Hard constraints (law)\n- write_scope support/* only; no link/, agent/, brick/, project/ edits; no pin weakening;\n  append-only history. No scheduler/queue/retry/timer. Plain-text refs only in returns \u2014 never\n  echo packet structures (handoff_refs etc.) into report fields.\n- Do not modify the in-flight notify-v2 building's evidence in any way.\n"
+}

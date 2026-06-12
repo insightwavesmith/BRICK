@@ -1,0 +1,12 @@
+# Movement · seq 25 · ["Link"]
+- adopted_transition_concern_refs: []
+- axis_scope: ["Link"]
+- declared_movement: "forward"
+- event_type: "Movement"
+- gate_review_event_ref: "sufficiency-fact-movement:02:f13-frontier-declared-edge-fallback-0612-work"
+- not_adopted_transition_concern_refs: []
+- run_segment: 2
+- sequence_index: 25
+- source_fact_ref: "movement-fact:02:f13-frontier-declared-edge-fallback-0612-work"
+- spine_schema_version: "spine-v1"
+- target_boundary_ref: "brick:brick-f13-frontier-declared-edge-fallback-0612-code-attack-qa"

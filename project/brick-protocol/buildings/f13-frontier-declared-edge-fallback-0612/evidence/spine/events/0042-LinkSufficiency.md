@@ -1,0 +1,12 @@
+# LinkSufficiency · seq 42 · ["Link"]
+- axis_scope: ["Link"]
+- checked_public_fact: "brick-comparison:f13-frontier-declared-edge-fallback-0612:f13-frontier-declared-edge-fallback-0612-axis-attack-qa"
+- event_type: "LinkSufficiency"
+- missing_required_facts: []
+- required_public_facts: ["BrickComparisonFact.required_return_shape_evidence","BrickComparisonFact.comparison_evidence","BrickComparisonFact.comparison_evidence.returned_field.observed_evidence","BrickComparisonFact.comparison_evidence.returned_field.attacked_scope","BrickComparisonFact.comparison_evidence.returned_field.brick_axis_findings","BrickComparisonFact.comparison_evidence.returned_field.agent_axis_findings","BrickComparisonFact.comparison_evidence.returned_field.link_axis_findings","BrickComparisonFact.comparison_evidence.returned_field.support_leak_findings","BrickComparisonFact.comparison_evidence.returned_field.projection_authority_findings","BrickComparisonFact.comparison_evidence.returned_field.evidence_used","BrickComparisonFact.comparison_evidence.returned_field.not_proven","BrickComparisonFact.comparison_evidence.returned_field.blocked_or_missing_evidence","BrickComparisonFact.comparison_evidence.returned_field.remaining_delta","BrickComparisonFact.comparison_evidence.returned_field.proof_limits","BrickComparisonFact.comparison_evidence.returned_field.evidence_used.repository_artifact_ref"]
+- run_segment: 2
+- sequence_index: 42
+- source_fact_ref: "sufficiency-fact-movement:04:f13-frontier-declared-edge-fallback-0612-axis-attack-qa"
+- spine_schema_version: "spine-v1"
+- stage: "movement"
+- sufficiency: "sufficient"

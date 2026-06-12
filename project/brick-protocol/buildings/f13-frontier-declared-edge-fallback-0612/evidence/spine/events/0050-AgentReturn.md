@@ -1,0 +1,13 @@
+# AgentReturn · seq 50 · ["Agent"]
+- agent_object_ref: "agent-object:inspector"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-f13-frontier-declared-edge-fallback-0612-evidence-integrity"
+- event_type: "AgentReturn"
+- observed_fields: ["received_work","returned"]
+- returned_fact_ref: "agent-fact:05:f13-frontier-declared-edge-fallback-0612-evidence-integrity"
+- route_request_ref: ""
+- run_segment: 2
+- sequence_index: 50
+- spine_schema_version: "spine-v1"
+- step_output_ref: "step-output:f13-frontier-declared-edge-fallback-0612-evidence-integrity:attempt-1"
+- step_ref: "f13-frontier-declared-edge-fallback-0612-evidence-integrity"
