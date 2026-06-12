@@ -18,7 +18,6 @@ Support recording shape only: NESTED evidence, no fourth axis or fact class.
 from __future__ import annotations
 
 import json
-import re
 from collections.abc import Mapping
 from dataclasses import dataclass, fields
 from pathlib import Path
@@ -34,6 +33,7 @@ from brick_protocol.support.operator.plan_validation import _task_source_ref_fro
 from brick_protocol.support.operator.primitives import (
     _merge_texts,
     _raw_ref,
+    _reject_session_like_text,
     _resource_slug,
     _step_fact_ref,
     _text_tuple,
@@ -551,12 +551,6 @@ def _adapter_error_observation(
     )
 
 
-_UUID_TEXT_RE = re.compile(
-    r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b"
-)
-_ULID_TEXT_RE = re.compile(r"\b[0-9A-HJKMNP-TV-Z]{26}\b")
-
-
 def _agent_adapter_request_work_envelope(
     adapter_request: AgentAdapterRequest,
 ) -> Mapping[str, Any]:
@@ -582,21 +576,6 @@ def _json_safe_envelope_value(value: Any) -> Any:
     if value is None or isinstance(value, (str, bool, int, float)):
         return value
     raise TypeError("work envelope contains non-JSON value")
-
-
-def _reject_session_like_text(label: str, value: Any) -> None:
-    if isinstance(value, Mapping):
-        for key, child in value.items():
-            _reject_session_like_text(f"{label}.{key}", child)
-        return
-    if isinstance(value, list):
-        for index, child in enumerate(value):
-            _reject_session_like_text(f"{label}[{index}]", child)
-        return
-    if isinstance(value, str) and (
-        _UUID_TEXT_RE.search(value) or _ULID_TEXT_RE.search(value)
-    ):
-        raise ValueError(f"{label} contains session-id-shaped text")
 
 
 def _chat_session_park_observation(

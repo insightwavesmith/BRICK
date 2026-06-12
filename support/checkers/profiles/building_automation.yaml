@@ -45,6 +45,12 @@ text_contains:
     texts:
       - write_adapter_error_frontier_evidence
       - write_chat_session_park_frontier_evidence
+  - path: support/operator/primitives.py
+    texts:
+      - _reject_session_like_text
+      - _iter_string_positions
+      - _SESSION_LIKE_UUID_TEXT_RE
+      - _SESSION_LIKE_ULID_TEXT_RE
   # ELEGANT-REFACTOR P3b: the adapter-error frontier writer + its trace-packet and
   # lifecycle builders moved into the adapter-error frontier emitter; the
   # building-map frontier packet moved into the building-map emitter; the plan
@@ -133,6 +139,11 @@ text_contains:
       - _chat_session_mutate_park_as_adapter_error
       - _chat_session_delete_work_envelope
       - _chat_session_assert_undeclared_adapter_rejects
+      - _chat_session_assert_envelope_session_key_rejects
+      - _chat_session_assert_key_scan_fire
+      - _chat_session_value_only_session_rejector
+      - _chat_session_probe_uuid_text
+      - _chat_session_probe_ulid_text
 text_absent:
   - path: support/checkers/check_profile.py
     texts:
