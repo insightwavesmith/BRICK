@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import base64
 import contextlib
 import hashlib
 import importlib
@@ -23,6 +24,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import urllib.request
 from collections import Counter
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, fields
@@ -3539,6 +3541,221 @@ def _dashboard_productization_assert_bake_shape_probe(repo: Path) -> int:
     return inspected
 
 
+def _dashboard_productization_captured_dashboard_request(
+    report_sinks: Any,
+    env: Mapping[str, str],
+) -> urllib.request.Request:
+    captured: list[urllib.request.Request] = []
+
+    def capture_sender(request: urllib.request.Request, timeout_seconds: float) -> tuple[int, bytes]:
+        if timeout_seconds <= 0:
+            raise ProfileError("dashboard IAP passport probe received non-positive timeout")
+        captured.append(request)
+        return (200, b'{"ok":true}')
+
+    presence = report_sinks._dashboard_environment_presence(env)
+    observation = report_sinks._post_dashboard_projection(
+        {"source_truth": False, "probe": "dashboard-iap-passport"},
+        url=env[report_sinks.DASHBOARD_INGEST_URL_ENV],
+        secret=env[report_sinks.DASHBOARD_INGEST_SECRET_ENV],
+        packet_ref="dashboard-iap-passport-probe",
+        proof_limits=("dashboard IAP passport offline checker probe only",),
+        environment_presence=presence,
+        env=env,
+        timeout_seconds=1.0,
+        sender=capture_sender,
+    )
+    if observation.delivery_status_class != "http_2xx":
+        raise ProfileError("dashboard IAP passport probe did not observe captured http_2xx")
+    if observation.environment_presence != presence:
+        raise ProfileError("dashboard IAP passport probe did not preserve env presence-only packet")
+    if len(captured) != 1:
+        raise ProfileError(f"dashboard IAP passport probe expected one captured request, observed {len(captured)}")
+    return captured[0]
+
+
+def _dashboard_productization_request_headers(request: urllib.request.Request) -> Mapping[str, str]:
+    return {key.lower(): value for key, value in request.header_items()}
+
+
+def _dashboard_productization_decode_jwt_segment(segment: str) -> Mapping[str, Any]:
+    padding = "=" * (-len(segment) % 4)
+    decoded = json.loads(base64.urlsafe_b64decode((segment + padding).encode("ascii")).decode("utf-8"))
+    if not isinstance(decoded, Mapping):
+        raise ProfileError("dashboard IAP passport JWT segment did not decode to an object")
+    return decoded
+
+
+def _dashboard_productization_assert_authorization_header(
+    headers: Mapping[str, str],
+    *,
+    expected_kid: str,
+    expected_audience: str,
+) -> None:
+    authorization = headers.get("authorization", "")
+    if not authorization.startswith("Bearer "):
+        raise ProfileError("dashboard IAP passport probe missing Bearer Authorization header")
+    token = authorization.removeprefix("Bearer ")
+    segments = token.split(".")
+    if len(segments) != 3 or any(not segment for segment in segments):
+        raise ProfileError("dashboard IAP passport JWT must have three non-empty dot segments")
+    header = _dashboard_productization_decode_jwt_segment(segments[0])
+    claims = _dashboard_productization_decode_jwt_segment(segments[1])
+    if header.get("kid") != expected_kid:
+        raise ProfileError("dashboard IAP passport JWT header kid did not match throwaway key id")
+    if header.get("alg") != "RS256" or header.get("typ") != "JWT":
+        raise ProfileError("dashboard IAP passport JWT header must be RS256 JWT")
+    if claims.get("aud") != expected_audience:
+        raise ProfileError("dashboard IAP passport JWT audience did not match exact ingest URL")
+    if claims.get("iss") != claims.get("sub") or claims.get("iss") != claims.get("email"):
+        raise ProfileError("dashboard IAP passport JWT iss/sub/email claims must match")
+    if not isinstance(claims.get("iat"), int) or not isinstance(claims.get("exp"), int):
+        raise ProfileError("dashboard IAP passport JWT iat/exp claims must be integer seconds")
+    if claims["exp"] - claims["iat"] != 600:
+        raise ProfileError("dashboard IAP passport JWT expiration must be iat+600")
+
+
+def _dashboard_productization_assert_absent_passport_headers(headers: Mapping[str, str]) -> None:
+    expected = {
+        "content-type": "application/json; charset=utf-8",
+        "x-ingest-secret": "probe-secret",
+    }
+    if headers != expected:
+        raise ProfileError(
+            "dashboard IAP passport absent-env headers drifted from legacy header set: "
+            f"{sorted(headers)}"
+        )
+
+
+def _dashboard_productization_throwaway_sa_env(report_sinks: Any, root: Path) -> tuple[Mapping[str, str], str, str]:
+    private_key_path = root / "throwaway-dashboard-iap.pem"
+    key_json_path = root / "throwaway-dashboard-iap.json"
+    generated = subprocess.run(
+        ["openssl", "genrsa", "-out", str(private_key_path), "2048"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if generated.returncode != 0:
+        raise ProfileError("dashboard IAP passport probe could not generate throwaway RSA key")
+    private_key = private_key_path.read_text(encoding="utf-8")
+    key_id = "throwaway-dashboard-iap-kid"
+    client_email = "dashboard-iap-passport-probe@example.invalid"
+    key_json_path.write_text(
+        json.dumps(
+            {
+                "client_email": client_email,
+                "private_key_id": key_id,
+                "private_key": private_key,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    ingest_url = "https://brick-dashboard-probe.example.invalid/ingest"
+    env = {
+        report_sinks.DASHBOARD_INGEST_URL_ENV: ingest_url,
+        report_sinks.DASHBOARD_INGEST_SECRET_ENV: "probe-secret",
+        report_sinks.DASHBOARD_SA_KEY_PATH_ENV: str(key_json_path),
+    }
+    return env, key_id, ingest_url
+
+
+def _dashboard_productization_assert_iap_passport_probe() -> int:
+    from support.operator import report_sinks
+
+    inspected = 0
+    with tempfile.TemporaryDirectory(prefix="bp-dashboard-iap-passport-") as tmp:
+        env, key_id, ingest_url = _dashboard_productization_throwaway_sa_env(report_sinks, Path(tmp))
+
+        request = _dashboard_productization_captured_dashboard_request(report_sinks, env)
+        headers = _dashboard_productization_request_headers(request)
+        _dashboard_productization_assert_authorization_header(
+            headers,
+            expected_kid=key_id,
+            expected_audience=ingest_url,
+        )
+        inspected += 1
+
+        absent_env = {
+            report_sinks.DASHBOARD_INGEST_URL_ENV: ingest_url,
+            report_sinks.DASHBOARD_INGEST_SECRET_ENV: "probe-secret",
+        }
+        absent_request = _dashboard_productization_captured_dashboard_request(report_sinks, absent_env)
+        _dashboard_productization_assert_absent_passport_headers(
+            _dashboard_productization_request_headers(absent_request)
+        )
+        inspected += 1
+
+        original_authorization = report_sinks._dashboard_iap_authorization_header
+
+        def removed_authorization(audience: str, env: Mapping[str, str]) -> str:
+            return ""
+
+        report_sinks._dashboard_iap_authorization_header = removed_authorization
+        try:
+            mutated_request = _dashboard_productization_captured_dashboard_request(report_sinks, env)
+            mutated_headers = _dashboard_productization_request_headers(mutated_request)
+            if mutated_headers.get("authorization") == headers.get("authorization"):
+                raise ProfileError("dashboard IAP passport mutation did not alter Authorization attachment")
+            try:
+                _dashboard_productization_assert_authorization_header(
+                    mutated_headers,
+                    expected_kid=key_id,
+                    expected_audience=ingest_url,
+                )
+            except ProfileError:
+                inspected += 1
+            else:
+                raise ProfileError("dashboard IAP passport FIRE probe did NOT fire when Authorization was removed")
+        finally:
+            report_sinks._dashboard_iap_authorization_header = original_authorization
+    return inspected
+
+
+def _dashboard_productization_assert_openssl_subprocess_scope(repo: Path) -> int:
+    report_sinks_path = repo / "support/operator/report_sinks.py"
+    tree = ast.parse(report_sinks_path.read_text(encoding="utf-8"))
+    subprocess_attrs: list[str] = []
+    run_calls: list[ast.Call] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id == "subprocess":
+            subprocess_attrs.append(node.attr)
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and isinstance(node.func.value, ast.Name)
+            and node.func.value.id == "subprocess"
+            and node.func.attr == "run"
+        ):
+            run_calls.append(node)
+    unexpected_attrs = sorted(set(subprocess_attrs) - {"PIPE", "run"})
+    if unexpected_attrs:
+        raise ProfileError(
+            "dashboard IAP passport subprocess scope admitted only subprocess.run/PIPE, "
+            f"observed {unexpected_attrs}"
+        )
+    if len(run_calls) != 1:
+        raise ProfileError(f"dashboard IAP passport expected exactly one subprocess.run, observed {len(run_calls)}")
+    call = run_calls[0]
+    command = call.args[0] if call.args else None
+    if not isinstance(command, ast.List) or len(command.elts) != 5:
+        raise ProfileError("dashboard IAP passport subprocess command must be a five-item argv list")
+    expected_prefix = ("openssl", "dgst", "-sha256", "-sign")
+    for index, expected in enumerate(expected_prefix):
+        item = command.elts[index]
+        if not isinstance(item, ast.Constant) or item.value != expected:
+            raise ProfileError("dashboard IAP passport subprocess command must be openssl dgst -sha256 -sign")
+    if not isinstance(command.elts[4], ast.Name) or command.elts[4].id != "key_file_path":
+        raise ProfileError("dashboard IAP passport subprocess key argument must be the local temp key file")
+    for keyword in call.keywords:
+        if keyword.arg == "shell" and isinstance(keyword.value, ast.Constant) and keyword.value.value is True:
+            raise ProfileError("dashboard IAP passport subprocess must not use shell=True")
+    return 1
+
+
 _DASHBOARD_STATE_CASE_EXPECTED: Mapping[str, Mapping[str, str]] = {
     "projection-closed": {
         "frontier_kind": "complete",
@@ -4117,6 +4334,8 @@ def run_dashboard_productization_projection(repo: Path) -> KernelResult:
         )
     inspected += _dashboard_productization_assert_literal_fire_probe()
     inspected += _dashboard_productization_assert_bake_shape_probe(repo)
+    inspected += _dashboard_productization_assert_openssl_subprocess_scope(repo)
+    inspected += _dashboard_productization_assert_iap_passport_probe()
     state_inspected, state_table = _dashboard_productization_assert_state_projection_cases(repo)
     inspected += state_inspected
 
@@ -4129,7 +4348,11 @@ def run_dashboard_productization_projection(repo: Path) -> KernelResult:
             "routes remain outside that guard, hardcoded deploy URL/project/org "
             "literals are rejected with FIRE probes, and bake_dashboard_data_json "
             "round-tripped a source_truth false packet with buildings list while "
-            "a mutated source_truth true packet fired RED. State projection table:\n"
+            "a mutated source_truth true packet fired RED. The dashboard IAP "
+            "passport pin observed Authorization only when BRICK_DASHBOARD_SA_KEY_PATH "
+            "was present, pinned the subprocess surface to openssl dgst -sha256 -sign, "
+            "and fired RED when Authorization attachment was removed. "
+            "State projection table:\n"
             f"{state_table}\n"
             "A mutated breakdown->running board-state derivation and a mutated "
             "closed-without-boundary derivation both fired RED."

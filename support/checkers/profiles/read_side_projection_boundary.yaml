@@ -258,6 +258,12 @@ text_contains:
       - def validate_slack_delivery_environment
       - def write_local_inbox_packet
       - def write_operator_wake_packet
+      - DASHBOARD_SA_KEY_PATH_ENV
+      - def _dashboard_openssl_sign_rs256
+      - openssl
+      - dgst
+      - "-sha256"
+      - "-sign"
       - def validate_operator_wake_targets
       - def _validate_packet_for_sink
       - def _validate_slack_packet
@@ -354,7 +360,9 @@ text_absent:
       - AgentFact(
   - path: support/operator/report_sinks.py
     texts:
-      - subprocess
+      - Popen
+      - shell=True
+      - check_output
       - requests
       - httpx
       - socket

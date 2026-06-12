@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import base64
 import json
 import os
+import subprocess
+import tempfile
+import time
 import urllib.error
 import urllib.request
 from collections.abc import Callable, Iterable, Mapping
@@ -24,6 +28,7 @@ SLACK_API_URL = "https://slack.com/api/chat.postMessage"
 DASHBOARD_SINK_REF = "report-sink:dashboard"
 DASHBOARD_INGEST_URL_ENV = "BRICK_DASHBOARD_INGEST_URL"
 DASHBOARD_INGEST_SECRET_ENV = "BRICK_DASHBOARD_INGEST_SECRET"
+DASHBOARD_SA_KEY_PATH_ENV = "BRICK_DASHBOARD_SA_KEY_PATH"
 ADMITTED_SINK_REFS = frozenset(
     {LOCAL_INBOX_SINK_REF, OPERATOR_WAKE_LOCAL_SINK_REF, SLACK_SINK_REF, DASHBOARD_SINK_REF}
 )
@@ -227,6 +232,7 @@ OPERATOR_WAKE_NOT_PROVEN: tuple[str, ...] = (
     "stale evidence race behavior",
 )
 SlackSender = Callable[[urllib.request.Request, float], tuple[int, bytes]]
+DashboardSender = Callable[[urllib.request.Request, float], tuple[int, bytes]]
 
 
 @dataclass(frozen=True)
@@ -278,6 +284,7 @@ def deliver_report_packet(
     allow_real_dashboard_delivery: bool = False,
     dashboard_timeout_seconds: float = 10.0,
     dashboard_env: Mapping[str, str] | None = None,
+    dashboard_sender: DashboardSender | None = None,
 ) -> tuple[ReportSinkObservation, ...]:
     """Fan out one already-rendered report packet to admitted sinks."""
 
@@ -341,6 +348,7 @@ def deliver_report_packet(
                         allow_real_delivery=allow_real_dashboard_delivery,
                         env=dashboard_env,
                         timeout_seconds=dashboard_timeout_seconds,
+                        sender=dashboard_sender,
                     )
                 )
             else:
@@ -350,6 +358,7 @@ def deliver_report_packet(
                         allow_real_delivery=allow_real_dashboard_delivery,
                         env=dashboard_env,
                         timeout_seconds=dashboard_timeout_seconds,
+                        sender=dashboard_sender,
                     )
                 )
             continue
@@ -513,6 +522,7 @@ def send_dashboard_building_delta(
     stale_days: int | None = None,
     env: Mapping[str, str] | None = None,
     timeout_seconds: float = 10.0,
+    sender: DashboardSender | None = None,
 ) -> ReportSinkObservation:
     """Project ONE building and POST it as a delta event to the dashboard ingest endpoint.
 
@@ -569,7 +579,9 @@ def send_dashboard_building_delta(
         packet_ref=packet_ref,
         proof_limits=DASHBOARD_DELTA_REAL_DELIVERY_PROOF_LIMITS,
         environment_presence=environment_presence,
+        env=env_map,
         timeout_seconds=timeout_seconds,
+        sender=sender,
     )
 
 
@@ -580,6 +592,7 @@ def send_dashboard_seed(
     stale_days: int | None = None,
     env: Mapping[str, str] | None = None,
     timeout_seconds: float = 10.0,
+    sender: DashboardSender | None = None,
 ) -> ReportSinkObservation:
     """Compute the full read-side snapshot and POST it once as a connect-time SEED.
 
@@ -627,7 +640,9 @@ def send_dashboard_seed(
         packet_ref=packet_ref,
         proof_limits=DASHBOARD_SEED_REAL_DELIVERY_PROOF_LIMITS,
         environment_presence=environment_presence,
+        env=env_map,
         timeout_seconds=timeout_seconds,
+        sender=sender,
     )
 
 
@@ -639,7 +654,9 @@ def _post_dashboard_projection(
     packet_ref: str,
     proof_limits: tuple[str, ...],
     environment_presence: Mapping[str, str],
+    env: Mapping[str, str],
     timeout_seconds: float,
+    sender: DashboardSender | None = None,
 ) -> ReportSinkObservation:
     """POST one read-side dashboard projection (delta or seed); record status class only.
 
@@ -649,19 +666,22 @@ def _post_dashboard_projection(
     """
 
     body = json.dumps(projection, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    headers = _dashboard_projection_headers(secret=secret, audience=url, env=env)
     request = urllib.request.Request(
         url,
         data=body,
         method="POST",
-        headers={
-            "Content-Type": "application/json; charset=utf-8",
-            "x-ingest-secret": secret,
-        },
+        headers=headers,
     )
     try:
-        with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
-            response_status = int(response.status)
-            response.read(4096)
+        if sender is not None:
+            response_status, response_body = sender(request, timeout_seconds)
+            response_status = int(response_status)
+            response_body[:4096]
+        else:
+            with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
+                response_status = int(response.status)
+                response.read(4096)
     except urllib.error.HTTPError as exc:
         response_status = int(exc.code)
         exc.read(4096)
@@ -699,7 +719,102 @@ def _dashboard_environment_presence(env: Mapping[str, str]) -> Mapping[str, str]
     return {
         DASHBOARD_INGEST_URL_ENV: "present" if env.get(DASHBOARD_INGEST_URL_ENV) else "absent",
         DASHBOARD_INGEST_SECRET_ENV: "present" if env.get(DASHBOARD_INGEST_SECRET_ENV) else "absent",
+        DASHBOARD_SA_KEY_PATH_ENV: "present" if env.get(DASHBOARD_SA_KEY_PATH_ENV) else "absent",
     }
+
+
+def _dashboard_projection_headers(
+    *,
+    secret: str,
+    audience: str,
+    env: Mapping[str, str],
+) -> Mapping[str, str]:
+    headers = {
+        "Content-Type": "application/json; charset=utf-8",
+        "x-ingest-secret": secret,
+    }
+    if env.get(DASHBOARD_SA_KEY_PATH_ENV):
+        headers["Authorization"] = _dashboard_iap_authorization_header(audience, env)
+    return headers
+
+
+def _dashboard_iap_authorization_header(audience: str, env: Mapping[str, str]) -> str:
+    key_path = env.get(DASHBOARD_SA_KEY_PATH_ENV)
+    if not key_path:
+        return ""
+    try:
+        key_data = json.loads(Path(key_path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError("dashboard service-account key JSON could not be read") from exc
+    if not isinstance(key_data, Mapping):
+        raise ValueError("dashboard service-account key JSON must be an object")
+
+    client_email = _dashboard_required_key_text(key_data.get("client_email"), "client_email")
+    private_key_id = _dashboard_required_key_text(key_data.get("private_key_id"), "private_key_id")
+    private_key = _dashboard_required_key_text(
+        key_data.get("private_key"),
+        "private_key",
+        preserve=True,
+    )
+
+    now = int(time.time())
+    header = {"alg": "RS256", "typ": "JWT", "kid": private_key_id}
+    claims = {
+        "iss": client_email,
+        "sub": client_email,
+        "email": client_email,
+        "aud": audience,
+        "iat": now,
+        "exp": now + 600,
+    }
+    signing_input = ".".join(
+        (
+            _dashboard_base64url_json(header),
+            _dashboard_base64url_json(claims),
+        )
+    )
+    signature = _dashboard_openssl_sign_rs256(signing_input.encode("ascii"), private_key)
+    return f"Bearer {signing_input}.{_dashboard_base64url_bytes(signature)}"
+
+
+def _dashboard_required_key_text(value: Any, label: str, *, preserve: bool = False) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"dashboard service-account key JSON missing {label}")
+    return value if preserve else value.strip()
+
+
+def _dashboard_base64url_json(value: Mapping[str, Any]) -> str:
+    encoded = json.dumps(value, separators=(",", ":"), sort_keys=True).encode("utf-8")
+    return _dashboard_base64url_bytes(encoded)
+
+
+def _dashboard_base64url_bytes(value: bytes) -> str:
+    return base64.urlsafe_b64encode(value).decode("ascii").rstrip("=")
+
+
+def _dashboard_openssl_sign_rs256(signing_input: bytes, private_key: str) -> bytes:
+    key_file_path = ""
+    try:
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False) as key_file:
+            key_file.write(private_key)
+            key_file_path = key_file.name
+        os.chmod(key_file_path, 0o600)
+        completed = subprocess.run(
+            ["openssl", "dgst", "-sha256", "-sign", key_file_path],
+            input=signing_input,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+    finally:
+        if key_file_path:
+            try:
+                Path(key_file_path).unlink()
+            except OSError:
+                pass
+    if completed.returncode != 0:
+        raise RuntimeError("dashboard service-account JWT signing failed")
+    return completed.stdout
 
 
 def validate_dashboard_delivery_environment(
