@@ -23,8 +23,12 @@ what was observed, what is narrowly proven, what remains, and where the work cou
 Do: assemble the closure from the carried evidence only. State `narrowly_proven` as the strictly
 evidence-backed slice (proof scope may narrow, but the objective scope must be carried forward).
 Name concrete future work in `remaining_delta` and `next_target_candidates`. Express
-`parent_goal_delta_status` as observation language (matched / closed / open / missing / unknown delta
-refs with evidence_refs) — **not** a percentage. Queue anything needing a human decision into
+`parent_goal_delta_status` as a MAPPING whose keys are ONLY the six allowed sub-fields from the
+return_template — `matched_delta_refs`, `closed_delta_refs`, `open_delta_refs`,
+`missing_delta_refs`, `unknown_delta_refs`, `evidence_refs` — each holding plain-text refs.
+Never place a `status`, verdict, or free-text key INSIDE this mapping (a sub-key containing
+`status` is a forbidden return key and the whole return is rejected); it is observation
+language, **not** a percentage or a verdict. Queue anything needing a human decision into
 `deferred_smith_review_queue`.
 
 Return: fill the `required_return_shape` from the return_template
