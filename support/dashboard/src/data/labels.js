@@ -75,3 +75,32 @@ export const OWNER = {
   caller: '호출자',
 }
 export const ownerKo = (o) => OWNER[o] || o
+
+// 빌딩 이벤트/알림 문구 → 한글. 정본은 label_map.json.
+export const EVENT = {
+  building_started: '시작',
+  intervention_required: '멈춤·개입 필요',
+  building_finished: '완료',
+  state_observed: '상태 관찰',
+}
+export const eventKo = (e) => EVENT[e] || e
+
+export const OBSERVED = {
+  observed_started: '시작',
+  observed_running: '진행 중',
+  observed_closed_boundary: '완료',
+  observed_paused: '멈춤·개입 필요',
+  observed_human_gate: '멈춤·개입 필요',
+  needs_disposition: '멈춤·개입 필요',
+  observed_checker_failed: '점검 필요',
+  observed_reporter_delivery_failed: '알림 확인 필요',
+}
+export const observedKo = (s) => OBSERVED[s] || s
+
+export const ACTION = {
+  building_started: '진행 상황 관찰',
+  intervention_required: '처분 필요',
+  building_finished: '알림 확인',
+  state_observed: '상태 확인',
+}
+export const actionKo = (a) => ACTION[a] || a

@@ -1901,6 +1901,9 @@ def _assert_reporter_label_parity(repo: Path) -> int:
         "STATE": "states",
         "DISP": "display_states",
         "OWNER": "disposition_owners",
+        "EVENT": "events",
+        "OBSERVED": "observed_board_states",
+        "ACTION": "actions",
     }
     inspected = 0
     for const_name, section in checks.items():
@@ -1964,6 +1967,7 @@ def _assert_reporter_message_shape(report_sinks: Any) -> tuple[str, int]:
         **_minimal_reporter_packet(),
         "report_id": "reporter-message-shape-probe",
         "building_id": "customer-language-probe",
+        "human_title": "알림 말투 점검",
         "observed_board_state": "observed_closed_boundary",
         "trigger_event_ref": "building-event:building_finished:customer-language-probe",
         "current_brick_ref": "brick-work",
@@ -1976,14 +1980,13 @@ def _assert_reporter_message_shape(report_sinks: Any) -> tuple[str, int]:
     text = report_sinks._slack_message_text(packet)
     lines = text.splitlines()
     required_fragments = (
-        "빌딩 알림",
-        "빌딩: customer-language-probe",
-        "상태: 완료",
-        "작업 단계: 작업",
-        "담당 역할: 워커",
-        "필요 조치: 알림 확인",
-        "운영 refs:",
-        "한계: support projection;",
+        "알림 말투 점검",
+        "→ 완료됐어요.",
+        "누구: 워커",
+        "다음: 알림 확인",
+        "ref: customer-language-probe",
+        "frontier=complete:event:building_finished",
+        "※ 상태 알림일 뿐",
     )
     for fragment in required_fragments:
         if fragment not in text:
@@ -1994,17 +1997,33 @@ def _assert_reporter_message_shape(report_sinks: Any) -> tuple[str, int]:
         "Link:",
         "work/step-outputs",
         "마지막 완료 step",
+        "step=-",
+        "brick=-",
+        "운영 refs:",
     )
     headline = "\n".join(lines[:6])
     for fragment in forbidden_headline_fragments:
         if fragment in headline:
             raise ProfileError(f"Slack message headline leaked {fragment!r}:\n{text}")
-    if sum(1 for line in lines if line.startswith("운영 refs:")) != 1:
-        raise ProfileError(f"Slack message must carry exactly one operator refs line:\n{text}")
-    return text, len(required_fragments) + len(forbidden_headline_fragments) + 1
+    if sum(1 for line in lines if line.startswith("ref: ")) != 1:
+        raise ProfileError(f"Slack message must carry exactly one compact ref line:\n{text}")
+    empty_probe = report_sinks._slack_message_text(
+        {
+            **packet,
+            "report_id": "reporter-message-empty-field-probe",
+            "current_brick_ref": "",
+            "last_completed_step_ref": "",
+            "frontier_ref": "project/brick-protocol/buildings/customer-language-probe#frontier:complete",
+        }
+    )
+    if "step=-" in empty_probe or "brick=-" in empty_probe:
+        raise ProfileError(f"Slack message leaked empty ref fields:\n{empty_probe}")
+    if sum(1 for line in empty_probe.splitlines() if line.startswith("ref: ")) != 1:
+        raise ProfileError(f"Slack empty-field probe must keep one compact ref line:\n{empty_probe}")
+    return text, len(required_fragments) + len(forbidden_headline_fragments) + 3
 
 
-def _assert_reporter_auto_wiring(repo: Path) -> tuple[str, str, int]:
+def _assert_reporter_auto_wiring(repo: Path, reporter: Any, report_sinks: Any) -> tuple[str, str, str, int]:
     from brick_protocol.support.operator.run import run_building_plan
     from brick_protocol.brick.work import parse_required_return_shape
 
@@ -2038,31 +2057,36 @@ def _assert_reporter_auto_wiring(repo: Path) -> tuple[str, str, int]:
             report_env={},
         )
         observations = tuple(getattr(result, "_report_event_observations", ()))
-        if len(observations) != 1:
+        if len(observations) != 2:
             raise ProfileError(
-                "auto-wiring without Slack env should emit exactly one terminal event observation"
+                "basic auto-wiring without Slack env should emit start and terminal observations"
             )
-        sink_refs = observations[0].get("report_packet", {}).get("sink_refs", [])
-        if sink_refs != ["report-sink:local-inbox"]:
-            raise ProfileError(f"auto-wiring without Slack env attempted unexpected sinks: {sink_refs}")
+        for observation in observations:
+            sink_refs = observation.get("report_packet", {}).get("sink_refs", [])
+            if sink_refs != ["report-sink:local-inbox"]:
+                raise ProfileError(
+                    f"auto-wiring without Slack env attempted unexpected sinks: {sink_refs}"
+                )
         inbox_packets = sorted((temp_repo / "project" / "brick-protocol" / "status" / "inbox").glob("*.json"))
-        if len(inbox_packets) != 1:
-            raise ProfileError("auto-wiring without Slack env did not write one local inbox packet")
+        if len(inbox_packets) != 2:
+            raise ProfileError("basic auto-wiring without Slack env did not write two local inbox packets")
         local_inbox_text = inbox_packets[0].read_text(encoding="utf-8")
-        inspected += 3
+        inspected += 4
 
-    sent_messages: list[str] = []
+    temp_sent_messages: list[str] = []
 
-    def _fake_slack_sender(request: Any, timeout_seconds: float) -> tuple[int, bytes]:
+    def _fake_temp_slack_sender(request: Any, timeout_seconds: float) -> tuple[int, bytes]:
         del timeout_seconds
         payload = json.loads(bytes(request.data or b"{}").decode("utf-8"))
-        sent_messages.append(str(payload.get("text") or ""))
+        temp_sent_messages.append(str(payload.get("text") or ""))
         return 200, b'{"ok":true}'
 
     with tempfile.TemporaryDirectory(prefix="bp-reporter-auto-wire-slack-") as tmpdir:
         temp_repo = Path(tmpdir)
         _copy_reporter_probe_agent_resources(repo, temp_repo)
         output_root = temp_repo / "project" / "brick-protocol" / "buildings"
+        repo_inbox = repo / "project" / "brick-protocol" / "status" / "inbox"
+        repo_inbox_before = sorted(path.name for path in repo_inbox.glob("*.json")) if repo_inbox.is_dir() else []
         fake_env = {
             "BRICK_REPORT_SLACK_BOT_TOKEN": "xoxb-redacted-probe",
             "BRICK_REPORT_SLACK_CHANNEL_ID": "CREDPROBE",
@@ -2075,21 +2099,108 @@ def _assert_reporter_auto_wiring(repo: Path) -> tuple[str, str, int]:
             adapter_cwd=repo,
             adapter_timeout_seconds=10,
             report_env=fake_env,
-            report_slack_sender=_fake_slack_sender,
+            report_slack_sender=_fake_temp_slack_sender,
+        )
+        observations = tuple(getattr(result, "_report_event_observations", ()))
+        if len(observations) != 2:
+            raise ProfileError("temp-root auto-wiring with fake Slack env emitted wrong event count")
+        for observation in observations:
+            sink_refs = observation.get("report_packet", {}).get("sink_refs", [])
+            if sink_refs != ["report-sink:local-inbox"]:
+                raise ProfileError(f"temp-root auto-wiring used external sinks: {sink_refs}")
+        if temp_sent_messages:
+            raise ProfileError(f"temp-root fake Slack sender was invoked: {len(temp_sent_messages)}")
+        repo_inbox_after = sorted(path.name for path in repo_inbox.glob("*.json")) if repo_inbox.is_dir() else []
+        if repo_inbox_after != repo_inbox_before:
+            raise ProfileError("temp-root auto-wiring touched the real repo inbox")
+        inspected += 5
+
+    real_sent_messages: list[str] = []
+
+    def _fake_real_slack_sender(request: Any, timeout_seconds: float) -> tuple[int, bytes]:
+        del timeout_seconds
+        payload = json.loads(bytes(request.data or b"{}").decode("utf-8"))
+        real_sent_messages.append(str(payload.get("text") or ""))
+        return 200, b'{"ok":true}'
+
+    with tempfile.TemporaryDirectory(prefix="bp-reporter-real-vessel-") as tmpdir:
+        temp_repo = Path(tmpdir)
+        _copy_reporter_probe_agent_resources(repo, temp_repo)
+        output_root = temp_repo / "project" / "brick-protocol" / "buildings"
+        fake_env = {
+            "BRICK_REPORT_SLACK_BOT_TOKEN": "xoxb-redacted-probe",
+            "BRICK_REPORT_SLACK_CHANNEL_ID": "CREDPROBE",
+        }
+        original_reporter_root = reporter.REPO_ROOT
+        try:
+            reporter.REPO_ROOT = temp_repo
+            result = run_building_plan(
+                _reporter_auto_wire_plan(
+                    "reporter-auto-wire-real-vessel",
+                    report_event_policy={
+                        "enabled": True,
+                        "mode": "basic",
+                        "event_kinds": ["building_finished"],
+                        "sink_refs": ["report-sink:local-inbox", "report-sink:slack"],
+                        "allow_real_slack_delivery": True,
+                    },
+                ),
+                output_root=output_root,
+                overwrite_existing=True,
+                local_callables={"callable:local:agent-invoke0-smoke": _brain},
+                adapter_cwd=repo,
+                adapter_timeout_seconds=10,
+                report_env=fake_env,
+                report_slack_sender=_fake_real_slack_sender,
+            )
+        finally:
+            reporter.REPO_ROOT = original_reporter_root
+        observations = tuple(getattr(result, "_report_event_observations", ()))
+        if len(observations) != 1:
+            raise ProfileError("real-vessel completion emitted wrong event count")
+        sink_refs = observations[0].get("report_packet", {}).get("sink_refs", [])
+        if sink_refs != ["report-sink:local-inbox", "report-sink:slack"]:
+            raise ProfileError(f"real-vessel completion used wrong sinks: {sink_refs}")
+        if len(real_sent_messages) != 1:
+            raise ProfileError(
+                f"real-vessel fake Slack sender count expected 1, observed {len(real_sent_messages)}"
+            )
+        inspected += 4
+
+    verbose_text = ""
+    with tempfile.TemporaryDirectory(prefix="bp-reporter-verbose-mode-") as tmpdir:
+        temp_repo = Path(tmpdir)
+        _copy_reporter_probe_agent_resources(repo, temp_repo)
+        output_root = temp_repo / "project" / "brick-protocol" / "buildings"
+        result = run_building_plan(
+            _reporter_auto_wire_plan(
+                "reporter-verbose-mode",
+                step_kinds=("design", "work"),
+                report_event_policy={
+                    "enabled": True,
+                    "mode": "verbose",
+                    "event_kinds": ["building_finished"],
+                    "sink_refs": ["report-sink:local-inbox"],
+                },
+            ),
+            output_root=output_root,
+            overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": _brain},
+            adapter_cwd=repo,
+            adapter_timeout_seconds=10,
+            report_env={},
         )
         observations = tuple(getattr(result, "_report_event_observations", ()))
         if len(observations) != 1:
-            raise ProfileError("auto-wiring with fake Slack env emitted wrong event count")
-        sink_refs = observations[0].get("report_packet", {}).get("sink_refs", [])
-        if sink_refs != ["report-sink:local-inbox", "report-sink:slack"]:
-            raise ProfileError(f"auto-wiring with fake Slack env used wrong sinks: {sink_refs}")
-        if len(sent_messages) != 1:
-            raise ProfileError(f"fake Slack sender call count expected 1, observed {len(sent_messages)}")
-        if "작업 단계: 작업" not in sent_messages[0] or "담당 역할: 워커" not in sent_messages[0]:
-            raise ProfileError(f"fake Slack message was not customer-language shaped:\n{sent_messages[0]}")
-        inspected += 4
+            raise ProfileError("verbose-mode temp drive emitted wrong event count")
+        packet = observations[0].get("report_packet", {})
+        verbose_text = report_sinks._slack_message_text(packet)
+        stage_lines = [line for line in verbose_text.splitlines() if line.startswith("단계: ")]
+        if stage_lines != ["단계: 설계", "단계: 작업"]:
+            raise ProfileError(f"verbose-mode message did not render per-step lines:\n{verbose_text}")
+        inspected += 3
 
-    return sent_messages[0], local_inbox_text, inspected
+    return real_sent_messages[0], local_inbox_text, verbose_text, inspected
 
 
 def _copy_reporter_probe_agent_resources(repo: Path, temp_repo: Path) -> None:
@@ -2098,37 +2209,45 @@ def _copy_reporter_probe_agent_resources(repo: Path, temp_repo: Path) -> None:
     shutil.copytree(source, target)
 
 
-def _reporter_auto_wire_plan(building_id: str) -> Mapping[str, Any]:
-    return {
-        "plan_ref": f"building-plan:{building_id}",
-        "owner_axis": "Brick",
-        "building_id": building_id,
-        "plan_shape": "linear",
-        "selected_adapter_ref": "adapter:local",
-        "steps": [
+def _reporter_auto_wire_plan(
+    building_id: str,
+    *,
+    step_kinds: Sequence[str] = ("work",),
+    report_event_policy: Mapping[str, Any] | None = None,
+) -> Mapping[str, Any]:
+    steps: list[Mapping[str, Any]] = []
+    for index, kind in enumerate(step_kinds):
+        step_ref = f"{building_id}-{kind}"
+        brick_instance_ref = f"brick-{kind}"
+        next_target = (
+            f"brick-{step_kinds[index + 1]}"
+            if index + 1 < len(step_kinds)
+            else f"building-boundary:{building_id}-closed"
+        )
+        steps.append(
             {
-                "step_ref": f"{building_id}-work",
-                "step_template_ref": "building-step-template:work",
+                "step_ref": step_ref,
+                "step_template_ref": f"building-step-template:{kind}",
                 "rows": [
                     {
                         "axis": "Brick",
-                        "row_ref": f"brick-row:{building_id}-work",
-                        "brick_work_ref": f"work:{building_id}-work",
-                        "brick_instance_ref": "brick-work",
+                        "row_ref": f"brick-row:{step_ref}",
+                        "brick_work_ref": f"work:{step_ref}",
+                        "brick_instance_ref": brick_instance_ref,
                         "work_statement": "Exercise reporter auto-wire notification projection.",
                         "comparison_rule": "Support observes notification projection only.",
                         "required_return_shape": "made_changes, observed_evidence, not_proven",
                     },
                     {
                         "axis": "Agent",
-                        "row_ref": f"agent-row:{building_id}-work",
+                        "row_ref": f"agent-row:{step_ref}",
                         "agent_object_ref": "agent-object:dev",
                     },
                     {
                         "axis": "Link",
-                        "row_ref": f"link-row:{building_id}-work",
+                        "row_ref": f"link-row:{step_ref}",
                         "movement": "forward",
-                        "target_ref": f"building-boundary:{building_id}-closed",
+                        "target_ref": next_target,
                         "building_lifecycle": {
                             "state": "closed",
                             "reason": "reporter auto-wire probe closed boundary",
@@ -2136,8 +2255,20 @@ def _reporter_auto_wire_plan(building_id: str) -> Mapping[str, Any]:
                     },
                 ],
             }
-        ],
+        )
+    plan: dict[str, Any] = {
+        "plan_ref": f"building-plan:{building_id}",
+        "owner_axis": "Brick",
+        "building_id": building_id,
+        "plan_shape": "linear",
+        "selected_adapter_ref": "adapter:local",
+        "task_source_ref": "task-source:inline-statement",
+        "task_statement": f"# {building_id}\n\nExercise reporter auto-wire notification projection.",
+        "steps": steps,
     }
+    if report_event_policy is not None:
+        plan["report_event_policy"] = dict(report_event_policy)
+    return plan
 
 
 def _assert_no_scheduler_constructs(repo: Path) -> int:
@@ -2187,7 +2318,12 @@ def run_reporter_notification_projection(repo: Path) -> KernelResult:
     report_sinks = importlib.import_module("brick_protocol.support.operator.report_sinks")
     label_parity_count = _assert_reporter_label_parity(repo)
     message_text, message_shape_count = _assert_reporter_message_shape(report_sinks)
-    auto_wire_message, auto_wire_inbox_text, auto_wire_count = _assert_reporter_auto_wiring(repo)
+    (
+        auto_wire_message,
+        auto_wire_inbox_text,
+        verbose_mode_text,
+        auto_wire_count,
+    ) = _assert_reporter_auto_wiring(repo, reporter, report_sinks)
     no_scheduler_count = _assert_no_scheduler_constructs(repo)
 
     observations = tuple(reporter.reporter_negative_probe_observations())
@@ -2341,7 +2477,7 @@ def run_reporter_notification_projection(repo: Path) -> KernelResult:
         try:
             report_sinks.deliver_report_packet(
                 packet,
-                sink_refs=["report-sink:slack"],
+                sink_refs=["report-sink:unadmitted"],
                 repo_root=tmp_repo,
                 overwrite_existing=True,
             )
@@ -2403,6 +2539,7 @@ def run_reporter_notification_projection(repo: Path) -> KernelResult:
             "a 5th sink requires the report_bus split, never a 5th sibling) inspected. "
             f"Specimen after renderer: {message_text!r}. "
             f"Temp auto-wire Slack text: {auto_wire_message!r}. "
+            f"Verbose-mode temp Slack text: {verbose_mode_text!r}. "
             f"Temp local inbox packet bytes: {len(auto_wire_inbox_text.encode('utf-8'))}."
         ),
     )
