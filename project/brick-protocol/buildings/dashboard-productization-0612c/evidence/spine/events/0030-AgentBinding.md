@@ -1,0 +1,12 @@
+# AgentBinding · seq 30 · ["Agent"]
+- agent_object_ref: "agent-object:qa"
+- agent_performer_ref: "agent-performer:agent-object:qa"
+- axis_scope: ["Agent"]
+- binding_role: "primary"
+- brick_instance_ref: "brick-dashboard-productization-0612c-code-attack-qa"
+- event_type: "AgentBinding"
+- run_segment: 2
+- sequence_index: 30
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/dashboard-productization-0612c-code-attack-qa-attempt-1/step-output.json"
+- step_ref: "dashboard-productization-0612c-code-attack-qa"

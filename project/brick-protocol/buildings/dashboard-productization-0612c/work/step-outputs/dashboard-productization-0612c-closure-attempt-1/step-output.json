@@ -1,0 +1,226 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:dashboard-productization-0612c::work/step-outputs/dashboard-productization-0612c-closure-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-dashboard-productization-0612c-closure",
+  "building_id": "dashboard-productization-0612c",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:06",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "gate_sequence_decision_record": {
+    "action": "hold",
+    "evidence_ref": "observation:gate-sequence-dashboard-productization-0612c-dashboard-productization-0612c-closure-link-gate-human-hold",
+    "gate_action_sequence": [
+      {
+        "action": "hold",
+        "evidence_ref": "observation:gate-sequence-dashboard-productization-0612c-dashboard-productization-0612c-closure-link-gate-human-hold",
+        "gate_ref": "link-gate:human",
+        "hold_reason": "gate_sequence_missing_required_facts:link-gate:human",
+        "pending_target_ref": "brick-dashboard-productization-0612c-closure",
+        "reason_refs": [
+          "observation:human-gate-disposition-missing"
+        ],
+        "target_brick_ref": ""
+      }
+    ],
+    "gate_ref": "link-gate:human",
+    "gate_results": [
+      {
+        "checked_public_fact": "brick-comparison:dashboard-productization-0612c:dashboard-productization-0612c-closure",
+        "gate_ref": "link-gate:human",
+        "missing_required_facts": [
+          "Link.route_decision_basis.human_review_refs"
+        ],
+        "required_public_facts": [
+          "Link.route_decision_basis.human_review_refs"
+        ],
+        "sufficiency": "missing_required_facts"
+      }
+    ],
+    "hold_reason": "gate_sequence_missing_required_facts:link-gate:human",
+    "pending_target_ref": "brick-dashboard-productization-0612c-closure",
+    "reason_refs": [
+      "observation:human-gate-disposition-missing"
+    ],
+    "required_disposition_owner": "caller-or-coo",
+    "target_brick_ref": ""
+  },
+  "generatedAtTime": "2026-06-12T05:29:28.008191Z",
+  "id": "urn:bp:building:dashboard-productization-0612c::work/step-outputs/dashboard-productization-0612c-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:06:dashboard-productization-0612c-closure",
+  "recorded_at": "2026-06-12T05:29:28.008191Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:coo",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:codex-local:dashboard-productization-0612c",
+    "cli_version_text": "codex-cli 0.137.0",
+    "deferred_smith_review_queue": [
+      "Decide whether external Google Fonts URLs are allowed for the target company shipment policy",
+      "Decide whether visible Link.jsx terms GateFact, Link Movement, active literal, and fan-out are acceptable or must be polished before closure",
+      "Decide whether the Agent roster must show all tool_policy_refs/write-capability evidence before shipping",
+      "Decide whether the missing archive/status-kernel packet files in this checkout are an accepted worktree gap or must be repaired"
+    ],
+    "evidence_refs": [
+      "support-packet:dashboard-productization-0612c:agent-object:coo:output"
+    ],
+    "narrowly_proven": [
+      "Current working-tree mutation scope observed as support-only; no observed brick/, agent/, link/, or project/ working-tree diff",
+      "Static production fail-closed branch for POST /ingest is present and locally pinned by checker snippets; static viewing, /dashboard-data.json, /events, and /healthz are outside that POST guard by code inspection",
+      "The support/operator bake verb exists and can compute a source_truth false packet with a buildings list in read-only mode; current local baked seed has the required JSON shape",
+      "The deploy document covers the requested recipe families and states the projection/source-truth boundary",
+      "Checker reachability is present for dashboard_productization_projection through profile YAML, KERNEL_CHECK_IDS/import, and run_kernel_check dispatch",
+      "Partial Python-only FIRE evidence was observed for mutated server copies; package path and diff whitespace checks were observed green as support evidence only"
+    ],
+    "next_target_candidates": [
+      "candidate only: if Smith requires the remaining implementation deltas closed now, declare a reroute to a work/repair Brick boundary carrying the three QA returns plus this closure concern, then replay declared QA lanes and closure-synthesis",
+      "candidate only: if Smith explicitly defers Google Fonts, Agent capability display, and residual Link wording, declare a writable verification lane for bake write plus full gate only",
+      "candidate only: if the archive packet absence matters for this worktree, collect or restore the missing AGENTS-governed operating packet refs before another closure attempt"
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "full gate green: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all exited 1 in this sandbox",
+      "tempfile-backed literal FIRE and bake-shape FIRE execution through the public profile runner",
+      "actual bake write execution in this closure lane; existing dashboard-data.json was read, not rewritten",
+      "Node/Vite build behavior, live HTTP /ingest behavior, SSE runtime behavior, Docker runtime behavior, Cloud Run/IAP behavior, reverse proxy behavior, or bare Node behavior",
+      "whether Google Fonts external URL literals are acceptable for another-company deployment behind its own access wall",
+      "complete UI label polish if protocol jargon must be removed from Link.jsx visible copy",
+      "complete Agent capability projection: dashboard_export.py currently truncates tool_policy_refs to the first policy for display",
+      "freshness of the local baked dashboard-data.json after future ledger changes",
+      "source truth, success judgment, quality judgment, Movement authority, provider quality, future Building correctness"
+    ],
+    "observed_evidence": [
+      "checkout=/Users/smith/projects/BRICK-wt-dash branch=claude/track-dash",
+      "git status observed modified/untracked paths only under support/checkers, support/dashboard, and support/operator/dashboard_export.py; git diff --name-only -- brick agent link project returned no paths",
+      "project/brick-protocol/buildings/dashboard-productization-0612c was not present in this checkout; the three QA returns were available only as incoming source_fact_bodies in the handoff packet",
+      "AGENTS-required archive packet filenames current-brick-operating-packet-0531.md and brick-protocol-post-d-surface-recompile-0-plan-0530.md were not found by rg --files in this checkout",
+      "support/dashboard/DEPLOY.md documents bake seed, Cloud Run plus IAP, generic Docker behind an authenticating reverse proxy, bare Node, INGEST_SECRET rotation, and scale-to-zero/projection limits",
+      "support/dashboard/server/index.mjs reads INGEST_SECRET from env, normalizes it, defines NODE_ENV production mode, and places ingestRefusesInProduction() before x-ingest-secret comparison on POST /ingest",
+      "support/operator/dashboard_export.py defines bake_dashboard_data_json(), validates source_truth false plus buildings list before writing support/dashboard/public/dashboard-data.json, and states support-only proof limits",
+      "support/checkers/check_profile.py admits and dispatches dashboard_productization_projection; support/checkers/profiles/read_side_projection_boundary.yaml pins dashboard docs/env/bake/checker text",
+      "Python-only probe: server static violations=[], mutated_server_red_cases=2, hardcoded literal violations=[], literal_inspected=25",
+      "Python-only probe: dashboard_export_packet validated source_truth false, buildings list, buildings=9, projects=1; existing support/dashboard/public/dashboard-data.json round-tripped as source_truth false, buildings list, buildings=9",
+      "git diff --check exited 0; check_package_path_admission.py exited 0 with 1483 inspected paths; changed/untracked path segment scan found no auth/token/secret/credential path segments",
+      "read_side_projection_boundary profile exited 1 because project/checker-projection-fixture-vessel could not be created in the read-only checkout; --all exited 1 because no usable temporary directory was available",
+      "support/dashboard/public/dashboard-data.json exists locally but git ls-files --error-unmatch returned nonzero, matching the gitignored projection-seed behavior",
+      "support/dashboard/src/pages/Link.jsx still contains visible terms GateFact, Link Movement, active literal, and fan-out; support/operator/dashboard_export.py still exports only tools[0] for Agent tool display; support/dashboard/index.html still references Google Fonts URLs that the checker currently allowlists",
+      "No node, npm, npx, or vite command was executed in this closure turn"
+    ],
+    "output_excerpt": "{\"observed_evidence\":[\"checkout=/Users/smith/projects/BRICK-wt-dash branch=claude/track-dash\",\"git status observed modified/untracked paths only under support/checkers, support/dashboard, and support/operator/dashboard_export.py; git diff --name-only -- brick agent link project returned no paths\",\"project/brick-protocol/buildings/dashboard-productization-0612c was not present in this checkout; the three QA returns were available only as incoming source_fact_bodies in the handoff packet\",\"AGENTS-required archive packet filenames current-brick-operating-packet-0531.md and brick-protocol-post-...",
+    "parent_goal_delta_status": {
+      "closure_candidate": "not closed by this support return alone; closure should not be treated as source truth, success, or quality judgment",
+      "observed_coverage_delta": "support/dashboard productization surfaces are present for deploy docs, env fail-closed static branch, support bake verb, checker pins, and partial label polish",
+      "open_delta": "implementation polish and writable-environment verification remain open"
+    },
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "remaining_delta": [
+      "Run the bake verb in a write-capable support verification lane and round-trip the newly written support/dashboard/public/dashboard-data.json",
+      "Run the full profile gate in an environment with a writable temp directory and writable checker fixture location",
+      "Either remove/self-host Google Fonts and remove the checker allowlist, or record Smith/company acceptance of those external font URLs",
+      "Polish Link.jsx residual visible jargon if Korean-primary label cleanup is intended to close here",
+      "Project all relevant Agent tool_policy_refs or add an explicit derived display field so leader read-write-scoped capability is not hidden while COO remains read-only",
+      "Keep public/dashboard-data.json as a bake artifact and ensure deployment recipes bake before build/deploy"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "transition_concern_evidence": {
+      "binding": false,
+      "concern_kind": "implementation_gap",
+      "concern_ref": "transition-concern:dashboard-productization-0612c-closure-open-deltas",
+      "not_proven": [
+        "full gate green",
+        "writable bake write proof",
+        "runtime/deploy behavior",
+        "complete label polish",
+        "complete Agent capability projection",
+        "company policy acceptance for external font URLs"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+        "does not choose route target or Link Movement"
+      ],
+      "reason_refs": [
+        "step-output:dashboard-productization-0612c-code-attack-qa:attempt-1",
+        "step-output:dashboard-productization-0612c-axis-attack-qa:attempt-1",
+        "step-output:dashboard-productization-0612c-evidence-integrity:attempt-1",
+        "support/dashboard/src/pages/Link.jsx:38",
+        "support/dashboard/src/pages/Link.jsx:59",
+        "support/dashboard/src/pages/Link.jsx:91",
+        "support/operator/dashboard_export.py:287-295",
+        "support/dashboard/index.html:7-9",
+        "support/checkers/lib/kernel_checks.py:2261-2264",
+        "profile:read_side_projection_boundary:exit-1:read-only-fixture-write-blocked",
+        "profile:all:exit-1:no-usable-tempdir"
+      ],
+      "related_boundary_refs": [
+        "brick-dashboard-productization-0612c-closure",
+        "brick-dashboard-productization-0612c-work",
+        "brick-dashboard-productization-0612c-code-attack-qa",
+        "brick-dashboard-productization-0612c-axis-attack-qa",
+        "brick-dashboard-productization-0612c-evidence-integrity"
+      ]
+    }
+  },
+  "returned_fact_ref": "agent-fact:06:dashboard-productization-0612c-closure",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:dashboard-productization-0612c",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:dashboard-productization-0612c-closure:attempt-1",
+  "step_ref": "dashboard-productization-0612c-closure",
+  "subject": "dashboard-productization-0612c-closure",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T05:29:28.008191Z",
+  "transition_concern_ref": "work/step-outputs/dashboard-productization-0612c-closure-attempt-1/transition-concern.json",
+  "type": "bp.step_output"
+}

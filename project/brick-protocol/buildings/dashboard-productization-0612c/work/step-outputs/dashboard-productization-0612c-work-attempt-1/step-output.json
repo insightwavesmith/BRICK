@@ -1,0 +1,189 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:dashboard-productization-0612c::work/step-outputs/dashboard-productization-0612c-work-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:dev",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-dashboard-productization-0612c-work",
+  "building_id": "dashboard-productization-0612c",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T05:10:17.854671Z",
+  "id": "urn:bp:building:dashboard-productization-0612c::work/step-outputs/dashboard-productization-0612c-work-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:dashboard-productization-0612c-work",
+  "recorded_at": "2026-06-12T05:10:17.854671Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:dev",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "changed_files": [
+      "support/checkers/check_package_path_admission.py",
+      "support/checkers/check_profile.py",
+      "support/checkers/lib/kernel_checks.py",
+      "support/checkers/profiles/read_side_projection_boundary.yaml",
+      "support/dashboard/DEPLOY.md",
+      "support/dashboard/index.html",
+      "support/dashboard/public/dashboard-data.json",
+      "support/dashboard/server/index.mjs",
+      "support/dashboard/src/data/labels.js",
+      "support/dashboard/src/pages/Link.jsx",
+      "support/operator/dashboard_export.py"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:dashboard-productization-0612c",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:dashboard-productization-0612c:agent-object:dev:output"
+    ],
+    "made_changes": [
+      "Added support/dashboard/DEPLOY.md with parameterized Cloud Run + IAP, generic Docker reverse proxy, bare Node, bake, rotation, and scale-to-zero notes.",
+      "Updated support/dashboard/server/index.mjs so production POST /ingest refuses when INGEST_SECRET is missing or dev-secret; static routes and SSE remain outside that guard.",
+      "Added bake_dashboard_data_json() and --bake-public in support/operator/dashboard_export.py.",
+      "Polished Link movement labels toward active forward/reroute language and added dashboard productization checker pins/FIRE probes."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "No real Docker build, npm build, Cloud Run deploy, IAP policy application, reverse-proxy run, browser render, /ingest request, or SSE request was executed.",
+      "No source truth, success judgment, quality judgment, or Movement authority is claimed.",
+      "Claude/Gemini review was not run; no model-review evidence used.",
+      "Next Movement is not supplied by Agent; caller/Link owns it."
+    ],
+    "observed_evidence": [
+      "Checkout: /Users/smith/projects/BRICK-wt-dash.",
+      "Changed files: support/dashboard/DEPLOY.md, support/dashboard/server/index.mjs, support/operator/dashboard_export.py, support/dashboard/src/data/labels.js, support/dashboard/src/pages/Link.jsx, support/dashboard/index.html, support/checkers/check_package_path_admission.py, support/checkers/check_profile.py, support/checkers/lib/kernel_checks.py, support/checkers/profiles/read_side_projection_boundary.yaml.",
+      "Bake command returned exit 0 and wrote ignored generated seed: support/dashboard/public/dashboard-data.json with source_truth False and buildings 9.",
+      "JSON round-trip probe returned exit 0: source_truth False and buildings list present.",
+      "Focused profile returned exit 0: read_side_projection_boundary reported dashboard_productization_projection FIRE for production ingest guard, hardcoded deploy literals, and bad bake packet.",
+      "Full gate returned exit 0: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all.",
+      "git diff --check returned exit 0.",
+      "No npm, npx, node, or vite command was executed.",
+      "Cloud Run/IAP docs checked from official Google docs: https://docs.cloud.google.com/run/docs/securing/identity-aware-proxy-cloud-run and https://docs.cloud.google.com/run/docs/configuring/min-instances."
+    ],
+    "output_excerpt": "{ \"made_changes\": [ \"Added support/dashboard/DEPLOY.md with parameterized Cloud Run + IAP, generic Docker reverse proxy, bare Node, bake, rotation, and scale-to-zero notes.\", \"Updated support/dashboard/server/index.mjs so production POST /ingest refuses when INGEST_SECRET is missing or dev-secret; static routes and SSE remain outside that guard.\", \"Added bake_dashboard_data_json() and --bake-public in support/operator/dashboard_export.py.\", \"Polished Link movement labels toward active forward/reroute language and added dashboard productization checker pins/FIRE probes.\" ], \"observed_evidenc...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "claude/track-dash",
+        "head": "59605f95e070b923a63e718d76567c3985ab697d"
+      },
+      "after_git_status_paths": [
+        "support/checkers/check_package_path_admission.py",
+        "support/checkers/check_profile.py",
+        "support/checkers/lib/kernel_checks.py",
+        "support/checkers/profiles/read_side_projection_boundary.yaml",
+        "support/dashboard/DEPLOY.md",
+        "support/dashboard/index.html",
+        "support/dashboard/server/index.mjs",
+        "support/dashboard/src/data/labels.js",
+        "support/dashboard/src/pages/Link.jsx",
+        "support/operator/dashboard_export.py"
+      ],
+      "after_path_count": 1275,
+      "before_git_refs": {
+        "branch": "claude/track-dash",
+        "head": "59605f95e070b923a63e718d76567c3985ab697d"
+      },
+      "before_git_status_paths": [],
+      "before_path_count": 1274,
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [
+        "support/checkers/check_package_path_admission.py",
+        "support/checkers/check_profile.py",
+        "support/checkers/lib/kernel_checks.py",
+        "support/checkers/profiles/read_side_projection_boundary.yaml",
+        "support/dashboard/DEPLOY.md",
+        "support/dashboard/index.html",
+        "support/dashboard/public/dashboard-data.json",
+        "support/dashboard/server/index.mjs",
+        "support/dashboard/src/data/labels.js",
+        "support/dashboard/src/pages/Link.jsx",
+        "support/operator/dashboard_export.py"
+      ],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "support/*"
+        ],
+        "forbidden_paths": [
+          "link/*",
+          "agent/*",
+          "brick/*",
+          "project/*",
+          ".git/*",
+          "AGENTS.md",
+          "pyproject.toml",
+          "uv.lock"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:02:dashboard-productization-0612c-work",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:dashboard-productization-0612c",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:dashboard-productization-0612c-work:attempt-1",
+  "step_ref": "dashboard-productization-0612c-work",
+  "subject": "dashboard-productization-0612c-work",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T05:10:17.854671Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

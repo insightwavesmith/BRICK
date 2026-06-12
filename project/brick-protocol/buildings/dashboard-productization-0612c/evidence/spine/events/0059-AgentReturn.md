@@ -1,0 +1,13 @@
+# AgentReturn · seq 59 · ["Agent"]
+- agent_object_ref: "agent-object:coo"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-dashboard-productization-0612c-closure"
+- event_type: "AgentReturn"
+- observed_fields: ["received_work","returned"]
+- returned_fact_ref: "agent-fact:06:dashboard-productization-0612c-closure"
+- route_request_ref: ""
+- run_segment: 2
+- sequence_index: 59
+- spine_schema_version: "spine-v1"
+- step_output_ref: "step-output:dashboard-productization-0612c-closure:attempt-1"
+- step_ref: "dashboard-productization-0612c-closure"

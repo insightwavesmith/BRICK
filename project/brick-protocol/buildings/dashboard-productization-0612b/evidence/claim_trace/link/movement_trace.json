@@ -1,0 +1,95 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:dashboard-productization-0612b::evidence/claim_trace/link/movement_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition",
+          "link-gate:coo"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:01:dashboard-productization-0612b-design",
+          "brick-comparison:01:dashboard-productization-0612b-design",
+          "sufficiency-fact-movement:01:dashboard-productization-0612b-design"
+        ],
+        "target_boundary_ref": "brick:brick-dashboard-productization-0612b-work"
+      },
+      "fact_ref": "movement-fact:01:dashboard-productization-0612b-design",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:dashboard-productization-0612b-design-to-dashboard-productization-0612b-work",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-dashboard-productization-0612b-design",
+        "target_boundary_ref": "brick-dashboard-productization-0612b-work"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-dashboard-productization-0612b-design-to-dashboard-productization-0612b-work",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:01:edge-dashboard-productization-0612b-design-to-dashboard-productization-0612b-work"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-12T04:52:18Z",
+  "id": "urn:bp:building:dashboard-productization-0612b::evidence/claim_trace/link/movement_trace.json",
+  "recorded_at": "2026-06-12T04:52:18Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:dashboard-productization-0612b",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/movement_trace.json",
+  "time": "2026-06-12T04:52:18Z",
+  "type": "bp.claim_trace"
+}

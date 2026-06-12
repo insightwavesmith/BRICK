@@ -1,0 +1,100 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:dashboard-productization-0612c::work/step-outputs/dashboard-productization-0612c-closure-attempt-1/transition-concern.json",
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "binding": false,
+  "building_id": "dashboard-productization-0612c",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-06-12T05:29:28.008191Z",
+  "id": "urn:bp:building:dashboard-productization-0612c::work/step-outputs/dashboard-productization-0612c-closure-attempt-1/transition-concern.json",
+  "link_role": "non-binding Agent transition concern evidence only",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "transition concern semantic correctness",
+    "Link disposition correctness",
+    "automatic repair/replay execution"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "transition_concern_evidence is Agent returned evidence only",
+    "not Link Movement",
+    "not Link target choice",
+    "not route policy matching",
+    "not route materialization",
+    "not automatic repair/replay execution",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-06-12T05:29:28.008191Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:dashboard-productization-0612c",
+  "specversion": "1.0",
+  "step_output_ref": "work/step-outputs/dashboard-productization-0612c-closure-attempt-1/step-output.json",
+  "step_ref": "dashboard-productization-0612c-closure",
+  "subject": "dashboard-productization-0612c-closure",
+  "time": "2026-06-12T05:29:28.008191Z",
+  "transition_boundary": "Agent concern only; Link may adopt, not adopt, or override",
+  "transition_concern_ref": "transition-concern:dashboard-productization-0612c-closure:attempt-1",
+  "transition_concern_returned": {
+    "binding": false,
+    "concern_kind": "implementation_gap",
+    "concern_ref": "transition-concern:dashboard-productization-0612c-closure-open-deltas",
+    "not_proven": [
+      "full gate green",
+      "writable bake write proof",
+      "runtime/deploy behavior",
+      "complete label polish",
+      "complete Agent capability projection",
+      "company policy acceptance for external font URLs"
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "does not choose route target or Link Movement"
+    ],
+    "reason_refs": [
+      "step-output:dashboard-productization-0612c-code-attack-qa:attempt-1",
+      "step-output:dashboard-productization-0612c-axis-attack-qa:attempt-1",
+      "step-output:dashboard-productization-0612c-evidence-integrity:attempt-1",
+      "support/dashboard/src/pages/Link.jsx:38",
+      "support/dashboard/src/pages/Link.jsx:59",
+      "support/dashboard/src/pages/Link.jsx:91",
+      "support/operator/dashboard_export.py:287-295",
+      "support/dashboard/index.html:7-9",
+      "support/checkers/lib/kernel_checks.py:2261-2264",
+      "profile:read_side_projection_boundary:exit-1:read-only-fixture-write-blocked",
+      "profile:all:exit-1:no-usable-tempdir"
+    ],
+    "related_boundary_refs": [
+      "brick-dashboard-productization-0612c-closure",
+      "brick-dashboard-productization-0612c-work",
+      "brick-dashboard-productization-0612c-code-attack-qa",
+      "brick-dashboard-productization-0612c-axis-attack-qa",
+      "brick-dashboard-productization-0612c-evidence-integrity"
+    ]
+  },
+  "type": "bp.step_output.transition_concern"
+}

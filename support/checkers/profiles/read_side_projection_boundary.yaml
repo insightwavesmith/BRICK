@@ -7,6 +7,7 @@ kernel_checks:
   - building_lifecycle_path_shape
   - building_map_graph
   - reporter_notification_projection
+  - dashboard_productization_projection
   - mcp_stdio_smoke
   - connect_config_launch
   - codex_projection_native
@@ -27,6 +28,7 @@ path_exists:
   - AGENTS.md
   - support/operator/reporter.py
   - support/operator/report_sinks.py
+  - support/dashboard/DEPLOY.md
   - project/brick-protocol/status/inbox
   - project/brick-protocol/status/inbox/.gitkeep
   - AGENTS.md
@@ -191,6 +193,31 @@ text_contains:
   - path: support/checkers/check_profile.py
     texts:
       - reporter_notification_projection
+      - dashboard_productization_projection
+  - path: support/operator/dashboard_export.py
+    texts:
+      - def bake_dashboard_data_json
+      - DEFAULT_DASHBOARD_PUBLIC_DATA_PATH
+      - dashboard bake packet source_truth must be false
+      - not scheduler/queue/retry runtime
+  - path: support/dashboard/server/index.mjs
+    texts:
+      - const RAW_INGEST_SECRET = process.env.INGEST_SECRET
+      - const IS_PRODUCTION = process.env.NODE_ENV === 'production'
+      - function ingestRefusesInProduction()
+      - NORMALIZED_INGEST_SECRET === 'dev-secret'
+      - if (ingestRefusesInProduction())
+  - path: support/dashboard/DEPLOY.md
+    texts:
+      - Cloud Run Plus IAP
+      - Generic Docker Behind An Authenticating Reverse Proxy
+      - Bare Node
+      - PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity
+      - python3 support/operator/dashboard_export.py --bake-public
+      - --min-instances=0
+      - x-ingest-secret
+      - missing or still equal to the development fallback
+      - The source of truth stays in the repo ledger
   # ELEGANT-REFACTOR P3a: run_reporter_notification_projection (and its output
   # strings) moved into the checker-runner sublayer; the location pin follows the
   # behavior-identical rehome (checker-pin-follows-rehome standard).

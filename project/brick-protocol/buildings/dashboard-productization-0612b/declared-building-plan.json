@@ -1,0 +1,515 @@
+{
+  "brick_steps": [
+    {
+      "completion_edge_ref": "edge:dashboard-productization-0612b-design-to-dashboard-productization-0612b-work",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-dashboard-productization-0612b-design",
+          "brick_work_ref": "work:dashboard-productization-0612b-design",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence,design_summary,relevant_current_structure,proposed_changes,unchanged_surfaces,axis_responsibility,invariants,edge_cases,checker_or_verifier_plan,candidate_file_changes,evidence_refs,not_proven",
+          "row_ref": "brick-row:dashboard-productization-0612b-design",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "design Brick for task-source:inline-statement: Make support/dashboard/ shippable to ANOTHER COMPANY: deployable behind THEIR OWN access wall with a documented recipe, no Smith/GCP specifics baked in. The app stays credential-free (protocol law) \u2014 the only app-level credential is the env"
+        },
+        {
+          "agent_object_ref": "agent-object:design-lead",
+          "axis": "Agent",
+          "row_ref": "agent-row:dashboard-productization-0612b-design"
+        }
+      ],
+      "step_ref": "dashboard-productization-0612b-design",
+      "step_template_ref": "building-step-template:design"
+    },
+    {
+      "completion_edge_ref": "edge:dashboard-productization-0612b-work-to-dashboard-productization-0612b-code-attack-qa",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-dashboard-productization-0612b-work",
+          "brick_work_ref": "work:dashboard-productization-0612b-work",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "made_changes, observed_evidence, not_proven",
+          "requires_brick_write_scope": true,
+          "row_ref": "brick-row:dashboard-productization-0612b-work",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "work Brick for task-source:inline-statement: Make support/dashboard/ shippable to ANOTHER COMPANY: deployable behind THEIR OWN access wall with a documented recipe, no Smith/GCP specifics baked in. The app stays credential-free (protocol law) \u2014 the only app-level credential is the env",
+          "write_scope": {
+            "allowed_paths": [
+              "support/*"
+            ],
+            "forbidden_paths": [
+              "link/*",
+              "agent/*",
+              "brick/*",
+              "project/*",
+              ".git/*",
+              "AGENTS.md",
+              "pyproject.toml",
+              "uv.lock"
+            ]
+          }
+        },
+        {
+          "agent_object_ref": "agent-object:dev",
+          "axis": "Agent",
+          "row_ref": "agent-row:dashboard-productization-0612b-work"
+        }
+      ],
+      "step_ref": "dashboard-productization-0612b-work",
+      "step_template_ref": "building-step-template:work"
+    },
+    {
+      "completion_edge_ref": "edge:dashboard-productization-0612b-code-attack-qa-to-dashboard-productization-0612b-closure",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-dashboard-productization-0612b-code-attack-qa",
+          "brick_work_ref": "work:dashboard-productization-0612b-code-attack-qa",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, evidence_used, not_proven",
+          "row_ref": "brick-row:dashboard-productization-0612b-code-attack-qa",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "code_attack_qa Brick for task-source:inline-statement: Make support/dashboard/ shippable to ANOTHER COMPANY: deployable behind THEIR OWN access wall with a documented recipe, no Smith/GCP specifics baked in. The app stays credential-free (protocol law) \u2014 the only app-level credential is the env"
+        },
+        {
+          "agent_object_ref": "agent-object:qa",
+          "axis": "Agent",
+          "row_ref": "agent-row:dashboard-productization-0612b-code-attack-qa"
+        }
+      ],
+      "step_ref": "dashboard-productization-0612b-code-attack-qa",
+      "step_template_ref": "building-step-template:code-attack-qa"
+    },
+    {
+      "completion_edge_ref": "edge:dashboard-productization-0612b-axis-attack-qa-to-dashboard-productization-0612b-closure",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-dashboard-productization-0612b-axis-attack-qa",
+          "brick_work_ref": "work:dashboard-productization-0612b-axis-attack-qa",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence, attacked_scope, brick_axis_findings, agent_axis_findings, link_axis_findings, support_leak_findings, projection_authority_findings, evidence_used, not_proven",
+          "row_ref": "brick-row:dashboard-productization-0612b-axis-attack-qa",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "axis_attack_qa Brick for task-source:inline-statement: Make support/dashboard/ shippable to ANOTHER COMPANY: deployable behind THEIR OWN access wall with a documented recipe, no Smith/GCP specifics baked in. The app stays credential-free (protocol law) \u2014 the only app-level credential is the env"
+        },
+        {
+          "agent_object_ref": "agent-object:inspector",
+          "axis": "Agent",
+          "row_ref": "agent-row:dashboard-productization-0612b-axis-attack-qa"
+        }
+      ],
+      "step_ref": "dashboard-productization-0612b-axis-attack-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa"
+    },
+    {
+      "completion_edge_ref": "edge:dashboard-productization-0612b-evidence-integrity-to-dashboard-productization-0612b-closure",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-dashboard-productization-0612b-evidence-integrity",
+          "brick_work_ref": "work:dashboard-productization-0612b-evidence-integrity",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence, evidence_scope, persisted_evidence_roots, proof_limit_findings, stale_source_risks, checker_overclaim_risks, missing_evidence, evidence_used, not_proven",
+          "row_ref": "brick-row:dashboard-productization-0612b-evidence-integrity",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "evidence_integrity Brick for task-source:inline-statement: Make support/dashboard/ shippable to ANOTHER COMPANY: deployable behind THEIR OWN access wall with a documented recipe, no Smith/GCP specifics baked in. The app stays credential-free (protocol law) \u2014 the only app-level credential is the env"
+        },
+        {
+          "agent_object_ref": "agent-object:inspector",
+          "axis": "Agent",
+          "row_ref": "agent-row:dashboard-productization-0612b-evidence-integrity"
+        }
+      ],
+      "step_ref": "dashboard-productization-0612b-evidence-integrity",
+      "step_template_ref": "building-step-template:evidence-integrity"
+    },
+    {
+      "completion_edge_ref": "edge:dashboard-productization-0612b-closure-to-boundary",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-dashboard-productization-0612b-closure",
+          "brick_work_ref": "work:dashboard-productization-0612b-closure",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence",
+          "row_ref": "brick-row:dashboard-productization-0612b-closure",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "closure Brick for task-source:inline-statement: Make support/dashboard/ shippable to ANOTHER COMPANY: deployable behind THEIR OWN access wall with a documented recipe, no Smith/GCP specifics baked in. The app stays credential-free (protocol law) \u2014 the only app-level credential is the env"
+        },
+        {
+          "agent_object_ref": "agent-object:coo",
+          "axis": "Agent",
+          "row_ref": "agent-row:dashboard-productization-0612b-closure"
+        }
+      ],
+      "step_ref": "dashboard-productization-0612b-closure",
+      "step_template_ref": "building-step-template:closure"
+    }
+  ],
+  "building_id": "dashboard-productization-0612b",
+  "chain_preset_ref": "building-chain-preset:brick-protocol-engine-feature-hard",
+  "composition_mode": "caller_or_coo_declared_graph_composition",
+  "declared_by": "caller-claude-operator",
+  "execution_order": [
+    "dashboard-productization-0612b-design",
+    "dashboard-productization-0612b-work",
+    "dashboard-productization-0612b-code-attack-qa",
+    "dashboard-productization-0612b-axis-attack-qa",
+    "dashboard-productization-0612b-evidence-integrity",
+    "dashboard-productization-0612b-closure"
+  ],
+  "groups": [
+    {
+      "group_id": "group:dashboard-productization-0612b-fan-out",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:dashboard-productization-0612b-work-to-dashboard-productization-0612b-code-attack-qa",
+        "edge:dashboard-productization-0612b-work-to-dashboard-productization-0612b-axis-attack-qa",
+        "edge:dashboard-productization-0612b-work-to-dashboard-productization-0612b-evidence-integrity"
+      ]
+    },
+    {
+      "group_id": "group:dashboard-productization-0612b-fan-in",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:dashboard-productization-0612b-code-attack-qa-to-dashboard-productization-0612b-closure",
+        "edge:dashboard-productization-0612b-axis-attack-qa-to-dashboard-productization-0612b-closure",
+        "edge:dashboard-productization-0612b-evidence-integrity-to-dashboard-productization-0612b-closure"
+      ]
+    }
+  ],
+  "link_edges": [
+    {
+      "edge_ref": "edge:dashboard-productization-0612b-design-to-dashboard-productization-0612b-work",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition",
+            "link-gate:coo"
+          ],
+          "gate_sequence_policy": [
+            {
+              "gate_ref": "link-gate:default-transition",
+              "on_missing_required_facts": {
+                "action": "reroute",
+                "reason_refs": [
+                  "observation:default-transition-missing-required-facts"
+                ],
+                "required_target_budget": true,
+                "target_basis": "source_brick"
+              },
+              "on_sufficient": {
+                "action": "next",
+                "next_gate_ref": "link-gate:coo"
+              }
+            },
+            {
+              "gate_ref": "link-gate:coo",
+              "on_missing_required_facts": {
+                "action": "HOLD",
+                "pending_target_basis": "target_brick",
+                "reason_refs": [
+                  "observation:coo-gate-missing-required-facts"
+                ],
+                "required_disposition_owner": "coo"
+              },
+              "on_sufficient": {
+                "action": "forward"
+              }
+            }
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:dashboard-productization-0612b-design-to-dashboard-productization-0612b-work",
+          "target_ref": "brick-dashboard-productization-0612b-work"
+        }
+      ],
+      "source_step_ref": "dashboard-productization-0612b-design",
+      "target_step_ref": "dashboard-productization-0612b-work"
+    },
+    {
+      "edge_ref": "edge:dashboard-productization-0612b-work-to-dashboard-productization-0612b-code-attack-qa",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition"
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:dashboard-productization-0612b-work-to-dashboard-productization-0612b-code-attack-qa",
+          "target_ref": "brick-dashboard-productization-0612b-code-attack-qa"
+        }
+      ],
+      "source_step_ref": "dashboard-productization-0612b-work",
+      "target_step_ref": "dashboard-productization-0612b-code-attack-qa"
+    },
+    {
+      "edge_ref": "edge:dashboard-productization-0612b-work-to-dashboard-productization-0612b-axis-attack-qa",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition"
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:dashboard-productization-0612b-work-to-dashboard-productization-0612b-axis-attack-qa",
+          "target_ref": "brick-dashboard-productization-0612b-axis-attack-qa"
+        }
+      ],
+      "source_step_ref": "dashboard-productization-0612b-work",
+      "target_step_ref": "dashboard-productization-0612b-axis-attack-qa"
+    },
+    {
+      "edge_ref": "edge:dashboard-productization-0612b-work-to-dashboard-productization-0612b-evidence-integrity",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition"
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:dashboard-productization-0612b-work-to-dashboard-productization-0612b-evidence-integrity",
+          "target_ref": "brick-dashboard-productization-0612b-evidence-integrity"
+        }
+      ],
+      "source_step_ref": "dashboard-productization-0612b-work",
+      "target_step_ref": "dashboard-productization-0612b-evidence-integrity"
+    },
+    {
+      "edge_ref": "edge:dashboard-productization-0612b-code-attack-qa-to-dashboard-productization-0612b-closure",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition",
+            "link-gate:strict"
+          ],
+          "gate_concept_provenance": {
+            "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+            "tokens": [
+              "strict-evidence"
+            ]
+          },
+          "movement": "forward",
+          "row_ref": "link-row:edge:dashboard-productization-0612b-code-attack-qa-to-dashboard-productization-0612b-closure",
+          "target_ref": "brick-dashboard-productization-0612b-closure"
+        }
+      ],
+      "source_step_ref": "dashboard-productization-0612b-code-attack-qa",
+      "target_step_ref": "dashboard-productization-0612b-closure"
+    },
+    {
+      "edge_ref": "edge:dashboard-productization-0612b-axis-attack-qa-to-dashboard-productization-0612b-closure",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition",
+            "link-gate:strict"
+          ],
+          "gate_concept_provenance": {
+            "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+            "tokens": [
+              "strict-evidence"
+            ]
+          },
+          "movement": "forward",
+          "row_ref": "link-row:edge:dashboard-productization-0612b-axis-attack-qa-to-dashboard-productization-0612b-closure",
+          "target_ref": "brick-dashboard-productization-0612b-closure"
+        }
+      ],
+      "source_step_ref": "dashboard-productization-0612b-axis-attack-qa",
+      "target_step_ref": "dashboard-productization-0612b-closure"
+    },
+    {
+      "edge_ref": "edge:dashboard-productization-0612b-evidence-integrity-to-dashboard-productization-0612b-closure",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition",
+            "link-gate:strict"
+          ],
+          "gate_concept_provenance": {
+            "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+            "tokens": [
+              "strict-evidence"
+            ]
+          },
+          "movement": "forward",
+          "row_ref": "link-row:edge:dashboard-productization-0612b-evidence-integrity-to-dashboard-productization-0612b-closure",
+          "target_ref": "brick-dashboard-productization-0612b-closure"
+        }
+      ],
+      "source_step_ref": "dashboard-productization-0612b-evidence-integrity",
+      "target_step_ref": "dashboard-productization-0612b-closure"
+    },
+    {
+      "edge_ref": "edge:dashboard-productization-0612b-closure-to-boundary",
+      "rows": [
+        {
+          "axis": "Link",
+          "building_lifecycle": {
+            "reason": "declared closure boundary for dashboard-productization-0612b",
+            "state": "closed"
+          },
+          "declared_gate_refs": [
+            "link-gate:default-transition",
+            "link-gate:coo",
+            "link-gate:human"
+          ],
+          "gate_concept_provenance": {
+            "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+            "tokens": [
+              "coo-review",
+              "human-review"
+            ]
+          },
+          "gate_sequence_policy": [
+            {
+              "gate_ref": "link-gate:human",
+              "on_missing_required_facts": {
+                "action": "hold",
+                "pending_target_basis": "source_brick",
+                "reason_refs": [
+                  "observation:human-gate-disposition-missing"
+                ],
+                "required_disposition_owner": "caller-or-coo"
+              },
+              "on_sufficient": {
+                "action": "forward"
+              }
+            }
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:dashboard-productization-0612b-closure-to-boundary",
+          "target_ref": "building-boundary:dashboard-productization-0612b-closed"
+        }
+      ],
+      "source_step_ref": "dashboard-productization-0612b-closure"
+    }
+  ],
+  "materialization_rule": "caller_or_coo_declared_task_source_plus_graph_chain_preset",
+  "node_reroute_budgets": {
+    "brick-dashboard-productization-0612b-design": 1,
+    "brick-dashboard-productization-0612b-work": 1
+  },
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality"
+  ],
+  "owner_axis": "Brick",
+  "plan_ref": "building-plan:dashboard-productization-0612b",
+  "plan_shape": "graph",
+  "preset_expansion": {
+    "agent_object_refs": [
+      "agent-object:design-lead",
+      "agent-object:dev",
+      "agent-object:qa",
+      "agent-object:inspector",
+      "agent-object:inspector",
+      "agent-object:coo"
+    ],
+    "canonical_chain_preset_ref": "building-chain-preset:brick-protocol-engine-feature-hard",
+    "chain_preset_ref": "building-chain-preset:brick-protocol-engine-feature-hard",
+    "chain_preset_requires_graph": true,
+    "expanded_brick_spec_refs": [
+      "brick/templates/bricks/design/brick.md",
+      "brick/templates/bricks/work/brick.md",
+      "brick/templates/bricks/code-attack-qa/brick.md",
+      "brick/templates/bricks/axis-attack-qa/brick.md",
+      "brick/templates/bricks/evidence-integrity/brick.md",
+      "brick/templates/bricks/closure/brick.md"
+    ],
+    "expanded_brick_template_refs": [
+      "brick/templates/bricks/design/return.yaml",
+      "brick/templates/bricks/transition-concern-return.yaml",
+      "brick/templates/bricks/work/return.yaml",
+      "brick/templates/bricks/code-attack-qa/return.yaml",
+      "brick/templates/bricks/axis-attack-qa/return.yaml",
+      "brick/templates/bricks/evidence-integrity/return.yaml",
+      "brick/templates/bricks/closure/return.yaml"
+    ],
+    "expanded_step_template_refs": [
+      "building-step-template:design",
+      "building-step-template:work",
+      "building-step-template:code-attack-qa",
+      "building-step-template:axis-attack-qa",
+      "building-step-template:evidence-integrity",
+      "building-step-template:closure"
+    ],
+    "not_proven": [
+      "semantic fitness of selected shape",
+      "selected preset ref was not declared unless separately present"
+    ],
+    "proof_limits": [
+      "support records caller / COO declared graph composition only",
+      "not automatic preset selection",
+      "not automatic shape selection",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "selected_shape_ref": "building-shape:design-needed",
+    "selection_rule": "caller_or_coo_declared_only"
+  },
+  "project_ref": "project:brick-protocol",
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "route_policy_provenance": {
+    "allowed_provenance": [
+      "per-building",
+      "preset-default"
+    ],
+    "by_node": {
+      "dashboard-productization-0612b-closure": {
+        "closure_transition_target_policy": "preset-default"
+      },
+      "dashboard-productization-0612b-design": {
+        "node_reroute_budget": "preset-default"
+      },
+      "dashboard-productization-0612b-work": {
+        "node_reroute_budget": "preset-default"
+      }
+    },
+    "rule": "route reroute budget + closure routing policy are HUMAN Movement decisions; support records but never synthesizes them (provenance is preset-default for a reusable preset default or per-building for a per-Building override, NEVER support)"
+  },
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:default",
+  "selected_shape_ref": "building-shape:design-needed",
+  "selection_rule": "caller_or_coo_declared_only",
+  "task_source_hash": "f008b04605bf7ac07154c4dca6bbc86a2984f7601417288c1eb52b0d6b9beda7",
+  "task_source_hash_algorithm": "sha256",
+  "task_source_hash_basis": "utf-8 inline task_statement body at materialization time",
+  "task_source_ref": "task-source:inline-statement",
+  "task_statement": "# Dashboard productization (attempt 2) \u2014 third-party deployable, auth-delegated, env-clean\n\nPRIOR ATTEMPT NOTE (dashboard-productization-0612, honest breakdown): the work step ran npm inside the working tree; a build artifact named node_modules/@babel/generator/lib/token-map.js tripped the always-forbidden path-segment guard (the word 'token' in a path segment) and the step was voided. THIS attempt must avoid that class entirely:\n- NEVER run npm install/ci/build inside the working tree. For build proof, COPY support/dashboard to a temp dir OUTSIDE the repo (e.g. mktemp -d), run npm there, report results, leave the worktree clean of artifacts.\n- NEVER create files whose path segments contain the words auth/token/secret/credential (e.g. name the deploy doc DEPLOY.md and use a section for delegated access, not a file named auth-*.md).\n\n## Objective\nMake support/dashboard/ shippable to ANOTHER COMPANY: deployable behind THEIR OWN access wall with a documented recipe, no Smith/GCP specifics baked in. The app stays credential-free (protocol law) \u2014 the only app-level credential is the env-only x-ingest-secret for POST /ingest.\n\n## Access structure (operator judgment \u2014 validate in design)\nNo login system in the app. Delegation pattern documented: reference = Cloud Run + IAP (works today); alternatives = Cloudflare Access, VPN/Tailscale, any authenticating reverse proxy. If the app assumes Google/GCP anywhere, make it deployment-neutral.\n\n## Verified current state (re-verify yourself)\n- server/index.mjs: POST /ingest (x-ingest-secret), GET /events SSE, GET /dashboard-data.json fallback, baked snapshot dist/dashboard-data.json at boot; PORT/INGEST_SECRET/DIST_DIR envs; secret default 'dev-secret'.\n- UI: Korean label layer complete (src/data/labels.js); pages \ud504\ub85c\uc81d\ud2b8/\ube4c\ub529/\ube0c\ub9ad/\uc5d0\uc774\uc804\ud2b8/\ub9c1\ud06c; participant picker.\n- Dockerfile: 2-stage, self-contained. Deploy reality: gcloud run deploy from source; seed = baked public/dashboard-data.json (programmatic ingest blocked by IAP for service accounts \u2014 document as known reference-deploy property).\n\n## Deliverables\n1. Deploy recipe doc support/dashboard/DEPLOY.md: (a) Cloud Run + IAP reference with exact commands; (b) generic Docker behind any reverse proxy (nginx snippet); (c) bare node. Include: baking a seed snapshot (dashboard_export_packet \u2192 public/dashboard-data.json), rotating INGEST_SECRET, scale-to-zero semantics (projection only; source of truth = repo ledger; re-bake any time).\n2. Env hygiene: NODE_ENV=production + missing-or-'dev-secret' INGEST_SECRET \u2192 /ingest refuses (fail closed); static viewing proceeds. No hardcoded org/project/URL literals in app code or docs (parameterize).\n3. Operator bake verb (support side): one function/CLI computing dashboard_export_packet and writing support/dashboard/public/dashboard-data.json in one step. Synchronous, no scheduler.\n4. UI polish: fix clear protocol-jargon leaks where a labels.js word exists. No redesign.\n5. Checker pins + FIRE: (a) lint pin for the fail-closed branch presence + forbidden hardcoded literals in support/dashboard config surfaces (mutated copy = RED); (b) bake verb output shape consumable by the server loader (probe); (c) full gate PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all \u2192 exit 0 (say which checkout/copy).\n\n## Hard constraints\n- NO login/account/session system; no credential storage beyond the single env secret.\n- No scheduler/queue/retry/polling. Append-only project/ untouched. No link/, agent/, brick/ edits. No pin weakening.\n- Write scope: support/* only. Korean UI primary; no i18n machinery.\n\n## Proof required (run, report honestly)\n- npm build in TEMP COPY succeeds (or exact sandbox reason if not runnable).\n- Bake verb round-trip: compute \u2192 write \u2192 node shape-check of the JSON.\n- Production fail-closed probe output. All FIRE outputs. Full gate exit code.\n"
+}

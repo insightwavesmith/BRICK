@@ -1,0 +1,12 @@
+# BrickInput · seq 29 · ["Brick"]
+- axis_scope: ["Brick"]
+- brick_instance_ref: "brick-dashboard-productization-0612c-code-attack-qa"
+- comparison_rule: "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickInput"
+- required_return_shape: "observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, evidence_used, not_proven"
+- run_segment: 2
+- sequence_index: 29
+- source_facts: ["task-source:inline-statement"]
+- spine_schema_version: "spine-v1"
+- step_ref: "dashboard-productization-0612c-code-attack-qa"
+- work_statement: "code_attack_qa Brick for task-source:inline-statement: Make support/dashboard/ shippable to ANOTHER COMPANY behind THEIR OWN access wall: documented deploy recipes, env hygiene, an operator bake verb, and label polish. App stays credential-free (protocol law) — the only app-level secret is env-"

@@ -8,28 +8,29 @@
 
 3축 프로토콜로 사람+AI 협업을 증거 기반으로 만드는 엔진을 제품화한다
 
-## 빌딩 집계 — 총 9개
+## 빌딩 집계 — 총 14개
 
 board_state 기준:
-- closed: 7
-- observed_running: 2
+- closed: 10
+- observed_running: 4
 
 frontier_kind 기준:
-- agent_incomplete: 1
+- agent_incomplete: 3
 - closure_pending: 1
-- complete: 7
+- complete: 10
 
 ## 최근 증거 빌딩 (last_evidence_at 상위 10)
 
+- dashboard-productization-0612c — 2026-06-12T05:34:32Z — closed
+- notify-customer-language-autowire-0612 — 2026-06-12T05:05:14Z — closed
+- adapter-30-s2-s3-submit-resume — 2026-06-12T05:05:14Z — closed
+- dashboard-productization-0612b — 2026-06-12T04:52:18Z — observed_running
+- dashboard-productization-0612 — 2026-06-12T04:00:54Z — observed_running
 - lane-tooling-three-tier-0612 — 2026-06-12T02:29:18Z — closed
 - grounding-ref-resolver-unify-0612 — 2026-06-12T02:19:08Z — closed
 - read-tier-unknown-token-guard-0612 — 2026-06-12T02:00:19Z — closed
 - lane-tooling-adversarial-review-0612 — 2026-06-12T01:24:10Z — closed
 - adapter-30-s1-park-2 — 2026-06-12T00:40:25Z — closed
-- s1-adversarial-review-loop-0612 — 2026-06-12T00:27:41Z — observed_running
-- frontier-evidence-honesty-0612 — 2026-06-11T22:26:12Z — closed
-- lint-precision-fix-0612 — 2026-06-11T17:43:36Z — closed
-- adapter-30-s1-park — 2026-06-11T17:28:04Z — observed_running
 
 ## 이 파일이 증명하지 않는 것
 

@@ -1,0 +1,164 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:dashboard-productization-0612c::work/step-outputs/dashboard-productization-0612c-axis-attack-qa-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:inspector",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-dashboard-productization-0612c-axis-attack-qa",
+  "building_id": "dashboard-productization-0612c",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:04",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T05:20:45.940828Z",
+  "id": "urn:bp:building:dashboard-productization-0612c::work/step-outputs/dashboard-productization-0612c-axis-attack-qa-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:04:dashboard-productization-0612c-axis-attack-qa",
+  "recorded_at": "2026-06-12T05:20:45.940828Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_axis_findings": [
+      "Projection fidelity drift observed: AGENTS.md:131-135 says write capability is read-write-scoped plus observed-write adapter, team leads carry it alongside dev, and COO stays read-only.",
+      "support/operator/dashboard_export.py:287-295 collapses each Agent Object tool_policy_refs list to only tools[0].",
+      "The baked dashboard agents currently show cto-lead, design-lead, pm-lead, and qa-lead as leader-coordination only, hiding their read-write-scoped ref; Agent.jsx plus labels.js therefore can under-display write capability for lead roles while still needing to keep COO read-only.",
+      "No Agent resource mutation observed in inspected diff."
+    ],
+    "agent_object_ref": "agent-object:inspector",
+    "attacked_scope": [
+      "support/dashboard deploy documentation, server env hygiene, label surfaces, client aggregate keys, and baked public data shape.",
+      "support/operator/dashboard_export.py bake/export projection.",
+      "support/checkers read-side projection profile and dashboard productization kernel wiring.",
+      "Git diff scope for forbidden brick/agent/link/project mutation and forbidden generated path segments."
+    ],
+    "blocked_or_missing_evidence": [
+      "Full gate blocker: profile runner rejected evidence with '[Errno 2] No usable temporary directory found' across /var folders, /tmp, /var/tmp, /usr/tmp, and the checkout.",
+      "Here-doc Python probes were blocked by zsh temp-file creation under the read-only sandbox; no-temp python3 -c probes were used instead.",
+      "Direct --bake-public execution was not run because it writes support/dashboard/public/dashboard-data.json and this Agent assignment is read-only.",
+      "No UI screenshot or browser proof was collected."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "brick_axis_findings": [
+      "No brick/ path mutation observed in inspected diff.",
+      "The bake verb is located under support/operator and writes a support/dashboard public projection seed; no new Brick fact class or Brick source-truth surface observed.",
+      "Task requested support-only productization; changed-file scope matched support/* surfaces in the inspected diff."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:dashboard-productization-0612c",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:dashboard-productization-0612c:agent-object:inspector:output"
+    ],
+    "evidence_used": [
+      "rg --files support/dashboard support/operator support/checkers project",
+      "git diff --name-only -- support/dashboard support/operator support/checkers",
+      "git diff --name-only -- brick agent link project",
+      "python3 read of support/dashboard/public/dashboard-data.json",
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all",
+      "No-temp checker helper probes: server static lint exit 0, mutated server FIRE probes count 2, hardcoded-literal scan inspected 25 files with violation_count 0.",
+      "Line evidence from AGENTS.md, support/dashboard/DEPLOY.md, support/dashboard/server/index.mjs, support/operator/dashboard_export.py, support/checkers/lib/kernel_checks.py, support/dashboard/index.html, support/dashboard/src/data/labels.js, support/dashboard/src/pages/Link.jsx, support/dashboard/src/pages/Agent.jsx, and support/dashboard/src/data/aggregate.js."
+    ],
+    "link_axis_findings": [
+      "support/dashboard/src/data/labels.js:42-50 labels active Link Movement as forward/reroute and marks return/stop as historical or lifecycle wording.",
+      "support/dashboard/src/pages/Link.jsx:8-10 aggregates reroute plus legacy return separately from lifecycle stop.",
+      "No link/ path mutation observed in inspected diff.",
+      "No support surface observed choosing a Link Movement or target."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Full check_profile.py --all green: command exited 1 before checks because no usable temporary directory was available.",
+      "Literal FIRE probes that require tempfile execution as part of the full kernel check.",
+      "Bake verb write path execution in this read-only assignment.",
+      "Node build, Vite build, browser rendering, SSE runtime behavior, or Cloud Run/IAP behavior.",
+      "Source truth, success judgment, quality judgment, Movement authority, provider quality, future Building correctness."
+    ],
+    "observed_evidence": [
+      "cwd observed as /Users/smith/projects/BRICK-wt-dash.",
+      "Diff scope observed under support/checkers, support/dashboard, and support/operator only; git diff --name-only -- brick agent link project returned no paths.",
+      "support/dashboard/server/index.mjs:14-17 reads INGEST_SECRET from env, normalizes it, and derives NODE_ENV production mode.",
+      "support/dashboard/server/index.mjs:39-41 defines production fail-closed behavior for missing or dev-secret INGEST_SECRET.",
+      "support/dashboard/server/index.mjs:107-112 applies the fail-closed guard before x-ingest-secret comparison on POST /ingest.",
+      "support/operator/dashboard_export.py:369-417 validates source_truth false and buildings list before the synchronous bake write verb.",
+      "Existing support/dashboard/public/dashboard-data.json read by python3: source_truth false, buildings is list, buildings count 9.",
+      "No node, npm, npx, or vite command was executed."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"cwd observed as /Users/smith/projects/BRICK-wt-dash.\", \"Diff scope observed under support/checkers, support/dashboard, and support/operator only; git diff --name-only -- brick agent link project returned no paths.\", \"support/dashboard/server/index.mjs:14-17 reads INGEST_SECRET from env, normalizes it, and derives NODE_ENV production mode.\", \"support/dashboard/server/index.mjs:39-41 defines production fail-closed behavior for missing or dev-secret INGEST_SECRET.\", \"support/dashboard/server/index.mjs:107-112 applies the fail-closed guard before x-ingest-secret compar...",
+    "projection_authority_findings": [
+      "support/dashboard/DEPLOY.md:3-8 states the dashboard is a support projection and not source truth, success judgment, quality judgment, Movement authority, scheduler, queue, retry loop, login system, or credential storage.",
+      "support/operator/dashboard_export.py:59-68 and 345-365 carry projection proof limits and source_truth false in the exported packet.",
+      "support/checkers/lib/kernel_checks.py:2480-2522 wires a dashboard_productization_projection kernel check with server lint, deploy literal scan, FIRE probes, and bake shape probe, but the full execution was tempdir-blocked in this sandbox."
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "Reviewer-readonly support evidence only.",
+      "No source truth claim.",
+      "No success or quality judgment.",
+      "No Link Movement or route target chosen.",
+      "Checker output and static probes are support evidence only.",
+      "Memory was used only to prompt composite-key and tempdir-risk checks; live repo evidence was re-read before reporting."
+    ],
+    "remaining_delta": [
+      "Decide whether no hardcoded URL means all external URLs; if yes, remove or self-host Google Fonts and remove the checker allowlist for fonts.",
+      "Project Agent tool_policy_refs without truncation, or add a derived capability field that marks read-write-scoped for dev and the four team leads while keeping COO read-only and avoiding effective-write authority wording.",
+      "Re-run PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all in an environment with a usable temporary directory.",
+      "Run the declared bake round-trip in a write-authorized support repair context, not from this read-only review."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "support_leak_findings": [
+      "Hardcoded external URL literals remain in support/dashboard/index.html:7-9 for Google Fonts. This conflicts with a strict reading of the task's no hardcoded URL literals and is also an external client dependency for a dashboard shipped behind another company's access wall.",
+      "The checker currently allowlists those Google Fonts URLs in support/checkers/lib/kernel_checks.py:2261-2264, so the hardcoded-literal guard will not catch that external dependency.",
+      "No node_modules or dist path appeared in inspected diff, and no changed path segment matched auth/token/secret/credential."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:04:dashboard-productization-0612c-axis-attack-qa",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:dashboard-productization-0612c",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:dashboard-productization-0612c-axis-attack-qa:attempt-1",
+  "step_ref": "dashboard-productization-0612c-axis-attack-qa",
+  "subject": "dashboard-productization-0612c-axis-attack-qa",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T05:20:45.940828Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

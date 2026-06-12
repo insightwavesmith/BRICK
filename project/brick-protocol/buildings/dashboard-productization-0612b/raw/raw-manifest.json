@@ -1,0 +1,93 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:dashboard-productization-0612b::raw/raw-manifest.json",
+  "building_id": "dashboard-productization-0612b",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "entries": [
+    {
+      "axis_owner": "Brick",
+      "content_shape": "jsonl Brick work rows",
+      "path": "raw/brick-work.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:brick:02"
+      ],
+      "record_role": "primary",
+      "source": "support/operator/run.py declared Brick rows before adapter exception observation"
+    },
+    {
+      "axis_owner": "Agent",
+      "content_shape": "jsonl Agent returned payload refs",
+      "path": "raw/agent-return.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:agent:01"
+      ],
+      "record_role": "primary",
+      "source": "support/operator/run.py run_building_plan closed AgentFact returns"
+    },
+    {
+      "axis_owner": "Link",
+      "content_shape": "jsonl Link transition rows and frontier absence rows",
+      "path": "raw/link.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:link:01",
+        "raw:link-frontier:02",
+        "raw:link-graph:01:edge-dashboard-productization-0612b-design-to-dashboard-productization-0612b-work"
+      ],
+      "record_role": "primary",
+      "source": "support/operator/run.py declared Link rows and frontier absence observations"
+    },
+    {
+      "axis_owner": "Agent",
+      "content_shape": "jsonl Agent receipt rows",
+      "path": "raw/agent-received.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:agent-received:01",
+        "raw:agent-received:02"
+      ],
+      "record_role": "primary",
+      "source": "support/operator/run.py Agent receipt observations before returned AgentFact"
+    },
+    {
+      "axis_owner": "Agent",
+      "content_shape": "jsonl adapter exception observation rows",
+      "path": "raw/adapter-error.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:adapter-error:02"
+      ],
+      "record_role": "primary",
+      "source": "support/operator/run.py adapter exception observation"
+    }
+  ],
+  "generatedAtTime": "2026-06-12T04:52:18Z",
+  "id": "urn:bp:building:dashboard-productization-0612b::raw/raw-manifest.json",
+  "raw_refs": [
+    "raw:brick:01",
+    "raw:agent:01",
+    "raw:link:01",
+    "raw:link-graph:01:edge-dashboard-productization-0612b-design-to-dashboard-productization-0612b-work",
+    "raw:brick:02",
+    "raw:agent-received:01",
+    "raw:agent-received:02",
+    "raw:adapter-error:02",
+    "raw:link-frontier:02"
+  ],
+  "recorded_at": "2026-06-12T04:52:18Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:dashboard-productization-0612b",
+  "specversion": "1.0",
+  "subject": "raw/raw-manifest.json",
+  "time": "2026-06-12T04:52:18Z",
+  "type": "bp.raw_manifest"
+}

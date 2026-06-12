@@ -2680,6 +2680,286 @@ def run_chat_session_park_seam(repo: Path) -> KernelResult:
     )
 
 
+_DASHBOARD_PRODUCTIZATION_TEXT_SUFFIXES = {
+    ".css",
+    ".html",
+    ".js",
+    ".jsx",
+    ".json",
+    ".md",
+    ".mjs",
+    ".yml",
+    ".yaml",
+}
+_DASHBOARD_PRODUCTIZATION_SKIP_PARTS = {"dist", "node_modules"}
+_DASHBOARD_PRODUCTIZATION_SKIP_RELATIVES = {
+    "support/dashboard/package-lock.json",
+    "support/dashboard/public/dashboard-data.json",
+}
+_DASHBOARD_ALLOWED_URL_PREFIXES = (
+    "https://fonts.googleapis.com",
+    "https://fonts.gstatic.com",
+    "http://brick_dashboard_upstream",
+)
+_DASHBOARD_ABSOLUTE_URL_RE = re.compile(r"https?://[^\s`'\"<>]+")
+_DASHBOARD_PROJECT_FLAG_RE = re.compile(r"--project(?:=|\s+)(?P<value>[\"']?[^\s\\]+)")
+_DASHBOARD_ARTIFACT_IMAGE_RE = re.compile(
+    r"\b[A-Za-z0-9-]+-docker\.pkg\.dev/(?P<project>[^/\s`'\"<>]+)/"
+)
+_DASHBOARD_RESOURCE_PROJECT_RE = re.compile(r"\bprojects/(?P<project>[^/\s`'\"<>]+)/")
+_DASHBOARD_ORG_RE = re.compile(r"\borganizations/[0-9]{4,}\b")
+_DASHBOARD_USER_HOME_RE = re.compile(r"/Users/[^\s`'\"]+")
+
+
+def _dashboard_placeholder_value(value: str) -> bool:
+    cleaned = value.strip().strip("'\"").strip(",;")
+    return (
+        not cleaned
+        or cleaned.startswith("$")
+        or cleaned.startswith("<")
+        or cleaned.startswith("{")
+        or "${" in cleaned
+        or cleaned.isupper()
+    )
+
+
+def _dashboard_url_allowed(value: str) -> bool:
+    cleaned = value.strip().rstrip(".,);")
+    return cleaned.startswith(_DASHBOARD_ALLOWED_URL_PREFIXES) or "${" in cleaned or "<" in cleaned
+
+
+def _dashboard_productization_server_violations(text: str) -> list[str]:
+    required_snippets = {
+        "production env branch": "const IS_PRODUCTION = process.env.NODE_ENV === 'production'",
+        "raw env-only ingest value": "const RAW_INGEST_SECRET = process.env.INGEST_SECRET",
+        "normalized ingest env": "const NORMALIZED_INGEST_SECRET = RAW_INGEST_SECRET && RAW_INGEST_SECRET.trim()",
+        "production dev fallback reject": "IS_PRODUCTION && (!NORMALIZED_INGEST_SECRET || NORMALIZED_INGEST_SECRET === 'dev-secret')",
+        "fail-closed helper": "function ingestRefusesInProduction()",
+        "POST fail-closed guard": "if (ingestRefusesInProduction())",
+        "header comparison": "req.headers['x-ingest-secret'] !== INGEST_SECRET",
+    }
+    violations = [
+        f"server/index.mjs missing {label}: {snippet!r}"
+        for label, snippet in required_snippets.items()
+        if snippet not in text
+    ]
+    post_marker = "if (url === '/ingest' && req.method === 'POST')"
+    fail_guard = "if (ingestRefusesInProduction())"
+    header_guard = "if (req.headers['x-ingest-secret'] !== INGEST_SECRET)"
+    try:
+        post_idx = text.index(post_marker)
+        fail_idx = text.index(fail_guard, post_idx)
+        header_idx = text.index(header_guard, post_idx)
+    except ValueError:
+        return violations
+    if not (post_idx < fail_idx < header_idx):
+        violations.append("server/index.mjs POST /ingest fail-closed guard must run before header comparison")
+    if "process.env.INGEST_SECRET || 'dev-secret'" in text:
+        violations.append("server/index.mjs must not default directly from process.env.INGEST_SECRET to dev-secret")
+    return violations
+
+
+def _dashboard_productization_validate_server_text(text: str) -> None:
+    violations = _dashboard_productization_server_violations(text)
+    if violations:
+        raise ProfileError(
+            "dashboard_productization_projection server lint rejected evidence:\n"
+            + "\n".join(f"- {violation}" for violation in violations)
+        )
+
+
+def _dashboard_productization_assert_mutated_server_rejects(text: str) -> int:
+    mutations: tuple[tuple[str, Callable[[str], str]], ...] = (
+        (
+            "missing dev fallback rejection",
+            lambda source: source.replace(
+                "NORMALIZED_INGEST_SECRET === 'dev-secret'",
+                "false",
+                1,
+            ),
+        ),
+        (
+            "POST guard disabled",
+            lambda source: source.replace(
+                "if (ingestRefusesInProduction())",
+                "if (false)",
+                1,
+            ),
+        ),
+    )
+    inspected = 0
+    for label, mutate in mutations:
+        inspected += 1
+        mutated = mutate(text)
+        if mutated == text:
+            raise ProfileError(f"dashboard_productization_projection mutation did not apply: {label}")
+        if not _dashboard_productization_server_violations(mutated):
+            raise ProfileError(
+                "dashboard_productization_projection FIRE probe did NOT fire for "
+                f"mutated server copy: {label}"
+            )
+    return inspected
+
+
+def _dashboard_productization_text_paths(repo: Path) -> list[Path]:
+    root = repo / "support" / "dashboard"
+    paths: list[Path] = []
+    for path in sorted(root.rglob("*")):
+        if not path.is_file():
+            continue
+        rel = to_posix(path.relative_to(repo))
+        if any(part in _DASHBOARD_PRODUCTIZATION_SKIP_PARTS for part in path.relative_to(root).parts):
+            continue
+        if rel in _DASHBOARD_PRODUCTIZATION_SKIP_RELATIVES:
+            continue
+        if path.suffix in _DASHBOARD_PRODUCTIZATION_TEXT_SUFFIXES or path.name.startswith("."):
+            paths.append(path)
+    return paths
+
+
+def _dashboard_productization_forbidden_literal_violations(repo: Path) -> tuple[list[str], int]:
+    violations: list[str] = []
+    inspected = 0
+    for path in _dashboard_productization_text_paths(repo):
+        rel = to_posix(path.relative_to(repo))
+        text = path.read_text(encoding="utf-8")
+        inspected += 1
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            for match in _DASHBOARD_ABSOLUTE_URL_RE.finditer(line):
+                if not _dashboard_url_allowed(match.group(0)):
+                    violations.append(f"{rel}:{lineno}: hardcoded absolute URL literal: {match.group(0)!r}")
+            for match in _DASHBOARD_PROJECT_FLAG_RE.finditer(line):
+                value = match.group("value")
+                if not _dashboard_placeholder_value(value):
+                    violations.append(f"{rel}:{lineno}: hardcoded --project value: {value!r}")
+            for match in _DASHBOARD_ARTIFACT_IMAGE_RE.finditer(line):
+                project = match.group("project")
+                if not _dashboard_placeholder_value(project):
+                    violations.append(f"{rel}:{lineno}: hardcoded Artifact Registry project segment: {project!r}")
+            for match in _DASHBOARD_RESOURCE_PROJECT_RE.finditer(line):
+                project = match.group("project")
+                if not _dashboard_placeholder_value(project):
+                    violations.append(f"{rel}:{lineno}: hardcoded resource project segment: {project!r}")
+            if _DASHBOARD_ORG_RE.search(line):
+                violations.append(f"{rel}:{lineno}: hardcoded organization literal")
+            if _DASHBOARD_USER_HOME_RE.search(line):
+                violations.append(f"{rel}:{lineno}: hardcoded user-home path literal")
+    return violations, inspected
+
+
+def _dashboard_productization_assert_literal_fire_probe() -> int:
+    probe_dir = Path("support/dashboard/DEPLOY.md")
+    probe_lines = {
+        "absolute-url": "gcloud run services describe --format='value(status.url)' https://service-hash-region.a.run.app",
+        "project-flag": "gcloud run deploy service --project hardcoded-project",
+        "artifact-project": "IMAGE=us-docker.pkg.dev/hardcoded-project/repo/service:tag",
+        "resource-project": "projects/hardcoded-project/locations/region/services/service",
+        "organization": "organizations/1234567890",
+        "user-home": "/Users/smith/project",
+    }
+    inspected = 0
+    for label, line in probe_lines.items():
+        inspected += 1
+        with tempfile.TemporaryDirectory(prefix="bp-dashboard-literal-fire-") as tmp:
+            probe_repo = Path(tmp)
+            target = probe_repo / probe_dir
+            target.parent.mkdir(parents=True)
+            target.write_text(line + "\n", encoding="utf-8")
+            violations, _ = _dashboard_productization_forbidden_literal_violations(probe_repo)
+            if not violations:
+                raise ProfileError(
+                    "dashboard_productization_projection literal FIRE probe did "
+                    f"NOT fire for {label}: {line!r}"
+                )
+    return inspected
+
+
+def _dashboard_productization_assert_bake_shape_probe(repo: Path) -> int:
+    from support.operator import dashboard_export
+
+    inspected = 0
+    with tempfile.TemporaryDirectory(prefix="bp-dashboard-bake-") as tmp:
+        out_path = Path(tmp) / "dashboard-data.json"
+        observation = dashboard_export.bake_dashboard_data_json(repo_root=repo, out_path=out_path)
+        packet = json.loads(out_path.read_text(encoding="utf-8"))
+        inspected += 1
+        if observation.get("source_truth") is not False or packet.get("source_truth") is not False:
+            raise ProfileError("dashboard bake probe wrote a source_truth true/non-false packet")
+        if not isinstance(packet.get("buildings"), list):
+            raise ProfileError("dashboard bake probe wrote a packet without a buildings list")
+        if observation.get("buildings") != len(packet.get("buildings", [])):
+            raise ProfileError("dashboard bake probe observation did not match written buildings length")
+
+        original = dashboard_export.dashboard_export_packet
+
+        def bad_packet(**_: Any) -> Mapping[str, Any]:
+            return {"source_truth": True, "buildings": []}
+
+        dashboard_export.dashboard_export_packet = bad_packet
+        try:
+            try:
+                dashboard_export.bake_dashboard_data_json(repo_root=repo, out_path=out_path)
+            except ValueError as exc:
+                if "source_truth" not in str(exc):
+                    raise ProfileError(
+                        "dashboard bake FIRE probe rejected bad packet for the wrong reason: "
+                        f"{exc}"
+                    ) from exc
+            else:
+                raise ProfileError(
+                    "dashboard bake FIRE probe did NOT reject a mutated source_truth true packet"
+                )
+        finally:
+            dashboard_export.dashboard_export_packet = original
+        inspected += 1
+    return inspected
+
+
+def run_dashboard_productization_projection(repo: Path) -> KernelResult:
+    """Dashboard deploy/env/bake guard for the support-only dashboard surface."""
+
+    required_paths = (
+        repo / "support/dashboard/DEPLOY.md",
+        repo / "support/dashboard/server/index.mjs",
+        repo / "support/dashboard/public/dashboard-data.json",
+    )
+    missing = [to_posix(path.relative_to(repo)) for path in required_paths if not path.exists()]
+    if missing:
+        raise ProfileError(
+            "dashboard_productization_projection missing required path(s): "
+            + ", ".join(missing)
+        )
+
+    inspected = 0
+    server_text = (repo / "support/dashboard/server/index.mjs").read_text(encoding="utf-8")
+    _dashboard_productization_validate_server_text(server_text)
+    inspected += 1
+    inspected += _dashboard_productization_assert_mutated_server_rejects(server_text)
+
+    literal_violations, literal_inspected = _dashboard_productization_forbidden_literal_violations(repo)
+    inspected += literal_inspected
+    if literal_violations:
+        raise ProfileError(
+            "dashboard_productization_projection hardcoded-literal lint rejected evidence:\n"
+            + "\n".join(f"- {violation}" for violation in literal_violations)
+        )
+    inspected += _dashboard_productization_assert_literal_fire_probe()
+    inspected += _dashboard_productization_assert_bake_shape_probe(repo)
+
+    return KernelResult(
+        check_id="dashboard_productization_projection",
+        inspected=inspected,
+        output=(
+            "dashboard productization projection passed: production POST /ingest "
+            "fails closed when INGEST_SECRET is missing or dev-secret, static/SSE "
+            "routes remain outside that guard, hardcoded deploy URL/project/org "
+            "literals are rejected with FIRE probes, and bake_dashboard_data_json "
+            "round-tripped a source_truth false packet with buildings list while "
+            "a mutated source_truth true packet fired RED."
+        ),
+    )
+
+
 def _chat_session_park_plan() -> Mapping[str, Any]:
     return {
         "plan_ref": "building-plan:chat-session-park-seam-case",

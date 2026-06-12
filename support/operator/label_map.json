@@ -57,7 +57,9 @@
   },
   "movements": {
     "forward": "전진",
-    "reroute": "재지정"
+    "reroute": "재지정",
+    "return": "재지정(과거 표기)",
+    "stop": "멈춤(수명주기)"
   },
   "states": {
     "closed": "완료",
