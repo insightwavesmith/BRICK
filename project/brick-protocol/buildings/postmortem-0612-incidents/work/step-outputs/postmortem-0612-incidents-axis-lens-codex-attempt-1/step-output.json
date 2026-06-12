@@ -1,0 +1,159 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:postmortem-0612-incidents::work/step-outputs/postmortem-0612-incidents-axis-lens-codex-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:inspector",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-postmortem-0612-incidents-axis-lens-codex",
+  "building_id": "postmortem-0612-incidents",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:04",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T22:47:22.729511Z",
+  "id": "urn:bp:building:postmortem-0612-incidents::work/step-outputs/postmortem-0612-incidents-axis-lens-codex-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:04:postmortem-0612-incidents-axis-lens-codex",
+  "recorded_at": "2026-06-12T22:47:22.729511Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_axis_findings": [
+      "F14 design raw/adapter-error.jsonl:1 records adapter:codex-local local_cli_timeout, TimeoutExpired, agent_fact_created=false.",
+      "IAP closure raw/adapter-error.jsonl:1 records ValueError: returned_value.parent_goal_delta_status contains forbidden return key 'status'.",
+      "F10 raw/adapter-error.jsonl:1 records ValueError: returned_value.handoff_refs contains forbidden return key 'movement'.",
+      "Provider-ladder, dashboard 0612, dashboard 0612b, and adapter-30 work steps all record adapter exceptions after Agent receipt and before AgentFact return.",
+      "Agent return validator recursively rejects forbidden keys via agent/return_fact.py:32-67 and support/connection/agent_adapter.py:1406-1415."
+    ],
+    "agent_object_ref": "agent-object:inspector",
+    "attacked_scope": [
+      "Read-only ledger/task/plan/template/checker inspection for the named 0612 incident roots plus f13 control and f10.",
+      "No files edited, no git mutation, no network, no npm/node execution, no credential/session bodies inspected."
+    ],
+    "blocked_or_missing_evidence": [
+      "archive/status-kernel/current-brick-operating-packet-0531.md and post-D plan path absent.",
+      "postmortem-0612-incidents root lacks evidence/claim_trace, raw-manifest, and evidence-manifest.",
+      "read_side_projection_boundary profile blocked by Operation not permitted creating checker fixture root.",
+      "No retained rollout for operator-note late-night timeout pattern; no live provider trace inspected.",
+      "No writable temp copy for reconciliation/full-gate proof."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "brick_axis_findings": [
+      "F14: task.md records an operator-verified raw_ref/manifest defect; current ledgers show the repair/reconciliation state, so original mismatch is historical support evidence, not live mismatch in this root.",
+      "IAP: closure contract allows parent_goal_delta_status, but global Agent return law forbids nested status; repeated closure errors suggest Agent return-shape violation with a secondary Brick wording risk around the field name.",
+      "dashboard-productization-0612: task required npm build in worktree, then write guard rejected support/dashboard/node_modules/.../token-map.js; primary contract/proof-process mismatch plus support guard.",
+      "dashboard-productization-0612b: retry task explicitly forbids in-worktree npm, yet same node_modules token path error recurs; primary Agent/process carryover or pre-existing artifact, with Brick retry instructions not sufficient by themselves.",
+      "adapter-30-s1-park: task label says park, but ledger error is write_observation_out_of_scope on support/checkers/check_building_lifecycle_path_shape.py; primary Brick write_scope pattern mismatch or mislabeled casualty, not proven chat-session park behavior.",
+      "F10: work return shape required handoff_refs, but returned handoff_refs carried movement; Brick field naming can invite Link terms unless constrained, but primary observed fault is Agent return shape."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:postmortem-0612-incidents",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:postmortem-0612-incidents:agent-object:inspector:output"
+    ],
+    "evidence_used": [
+      "AGENTS.md; project/brick-protocol/PROGRESS.md; project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md.",
+      "raw/adapter-error.jsonl, raw/link.jsonl, raw/agent-return.jsonl, raw/agent-received.jsonl, capture/events.jsonl, work/task.md, declared-building-plan.json for all named roots.",
+      "brick/templates/bricks/*/return.yaml; agent/return_fact.py; support/connection/agent_adapter.py; support/recording/step_outputs.py; support/operator/write_observation.py.",
+      "Commands: git status --short --branch; git diff --check; find/rg/jq/awk reads; check_profile.py --profile read_side_projection_boundary; check_profile.py --profile building_automation."
+    ],
+    "link_axis_findings": [
+      "Observed Link rows carry caller-declared forward movement and targets; this inspection found no support-authored Movement choice.",
+      "Provider-ladder/dashboard/adapter/F10 paused as adapter-error frontiers with agent_incomplete and caller-or-coo disposition pending or absent.",
+      "IAP and F14 closure rows resumed by coo-authored forward disposition; the rows themselves preserve not_proven for semantic correctness and process integrity.",
+      "F13 control contains executed closure raw:link:06 plus declared graph edges; no adapter-error row was observed in that control root."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "source truth, success judgment, quality judgment, Movement authority",
+      "provider quality or late-night provider degradation",
+      "operator-note 60-minute stall pattern, because no retained rollout was inspected here",
+      "full checker green or mutation RED in this read-only sandbox",
+      "real dashboard/IAP/network behavior",
+      "semantic correctness of any repaired implementation"
+    ],
+    "observed_evidence": [
+      "cwd=/Users/smith/projects/BRICK on main; git status shows untracked postmortem-0612-incidents building/inbox files and no tracked diff.",
+      "AGENTS.md was read; the referenced archive/status-kernel operating-packet files are absent in this checkout.",
+      "Targets exist: f14, iap, provider-ladder, dashboard 0612/0612b, adapter-30, f13 control, f10.",
+      "postmortem-0612-incidents currently has only raw/report-thread.jsonl; building_automation profile rejects missing evidence/raw/manifest paths.",
+      "read_side_projection_boundary profile is blocked by read-only fixture creation; git diff --check exits 0.",
+      "Current iap and f14 raw manifests include reconciled link-frontier, adapter-error, and agent-received refs."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"cwd=/Users/smith/projects/BRICK on main; git status shows untracked postmortem-0612-incidents building/inbox files and no tracked diff.\", \"AGENTS.md was read; the referenced archive/status-kernel operating-packet files are absent in this checkout.\", \"Targets exist: f14, iap, provider-ladder, dashboard 0612/0612b, adapter-30, f13 control, f10.\", \"postmortem-0612-incidents currently has only raw/report-thread.jsonl; building_automation profile rejects missing evidence/raw/manifest paths.\", \"read_side_projection_boundary profile is blocked by read-only fixture creatio...",
+    "projection_authority_findings": [
+      "project/brick-protocol/PROGRESS.md is machine-generated projection and states it is not source truth, success, quality, or Movement authority.",
+      "Dashboard/progress stopped or paused labels must be read through raw/link frontier evidence; f10 shows agent_incomplete from adapter error.",
+      "Current reconciled manifests prove only present raw_ref resolution in inspected roots, not semantic correctness or future dashboard truth."
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "read-only current-checkout inspection",
+      "checker output is support evidence only",
+      "projection freshness is not authority"
+    ],
+    "remaining_delta": [
+      "Complete/persist the postmortem building evidence root, then rerun building_automation/read-side profiles in a writable temp source copy.",
+      "Separate repair candidates: provider timeout/task split, nested forbidden-key return training, npm/temp-copy preflight, write_scope pattern repair for adapter-30, and support manifest reconciliation fixture coverage.",
+      "Keep any next Movement caller/Link supplied; this inspector return supplies no route target."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "support_leak_findings": [
+      "Write-observation guard rejected forbidden path segments such as token/credential and out-of-scope checker paths; those are support safety stops, not Link judgments.",
+      "F14/IAP manifest reconciliation is explicitly sourced to support/recording/raw_claim_trace.py, so it remains support evidence only.",
+      "Checker/profile failures in this pass are environment/evidence-root blockers, not protocol closure findings."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:04:postmortem-0612-incidents-axis-lens-codex",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:postmortem-0612-incidents",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:postmortem-0612-incidents-axis-lens-codex:attempt-1",
+  "step_ref": "postmortem-0612-incidents-axis-lens-codex",
+  "subject": "postmortem-0612-incidents-axis-lens-codex",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T22:47:22.729511Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

@@ -1,0 +1,12 @@
+# AgentReceipt · seq 42 · ["Agent"]
+- agent_object_ref: "agent-object:inspector"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-postmortem-0612-incidents-axis-lens-claude"
+- event_type: "AgentReceipt"
+- evidence_reference: "raw:agent:05"
+- received_work_ref: "brick-work:05:postmortem-0612-incidents-axis-lens-claude"
+- run_segment: 1
+- sequence_index: 42
+- source_fact_ref: "agent-fact:05:postmortem-0612-incidents-axis-lens-claude"
+- spine_schema_version: "spine-v1"
+- step_ref: "postmortem-0612-incidents-axis-lens-claude"

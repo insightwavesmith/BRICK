@@ -1,0 +1,12 @@
+# BrickInput · seq 4 · ["Brick"]
+- axis_scope: ["Brick"]
+- brick_instance_ref: "brick-postmortem-0612-incidents-inspect"
+- comparison_rule: "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickInput"
+- required_return_shape: "inspected_scope,matched_facts,missing_facts,mismatched_facts,boundary_findings,observed_evidence,not_proven"
+- run_segment: 1
+- sequence_index: 4
+- source_facts: ["task-source:inline-statement"]
+- spine_schema_version: "spine-v1"
+- step_ref: "postmortem-0612-incidents-inspect"
+- work_statement: "inspect Brick for task-source:inline-statement: # Evidence postmortem — 3-axis fault attribution, 0612 incidents"

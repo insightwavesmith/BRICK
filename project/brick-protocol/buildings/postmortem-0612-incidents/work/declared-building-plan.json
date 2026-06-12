@@ -1,0 +1,670 @@
+{
+  "building_id": "postmortem-0612-incidents",
+  "declared_plan_copy": {
+    "brick_steps": [
+      {
+        "completion_edge_ref": "edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-code-lens-codex",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-postmortem-0612-incidents-inspect",
+            "brick_work_ref": "work:postmortem-0612-incidents-inspect",
+            "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "inspected_scope,matched_facts,missing_facts,mismatched_facts,boundary_findings,observed_evidence,not_proven",
+            "row_ref": "brick-row:postmortem-0612-incidents-inspect",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "inspect Brick for task-source:inline-statement: # Evidence postmortem — 3-axis fault attribution, 0612 incidents"
+          },
+          {
+            "agent_object_ref": "agent-object:inspector",
+            "axis": "Agent",
+            "row_ref": "agent-row:postmortem-0612-incidents-inspect"
+          }
+        ],
+        "selected_adapter_ref": "adapter:codex-local",
+        "selected_model_ref": "model:default",
+        "step_ref": "postmortem-0612-incidents-inspect",
+        "step_template_ref": "building-step-template:inspect"
+      },
+      {
+        "completion_edge_ref": "edge:postmortem-0612-incidents-code-lens-codex-to-postmortem-0612-incidents-closure",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-postmortem-0612-incidents-code-lens-codex",
+            "brick_work_ref": "work:postmortem-0612-incidents-code-lens-codex",
+            "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, evidence_used, not_proven",
+            "row_ref": "brick-row:postmortem-0612-incidents-code-lens-codex",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "code_attack_qa Brick for task-source:inline-statement: # Evidence postmortem — 3-axis fault attribution, 0612 incidents"
+          },
+          {
+            "agent_object_ref": "agent-object:qa",
+            "axis": "Agent",
+            "row_ref": "agent-row:postmortem-0612-incidents-code-lens-codex"
+          }
+        ],
+        "selected_adapter_ref": "adapter:codex-local",
+        "selected_model_ref": "model:default",
+        "step_ref": "postmortem-0612-incidents-code-lens-codex",
+        "step_template_ref": "building-step-template:code-attack-qa"
+      },
+      {
+        "completion_edge_ref": "edge:postmortem-0612-incidents-code-lens-claude-to-postmortem-0612-incidents-closure",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-postmortem-0612-incidents-code-lens-claude",
+            "brick_work_ref": "work:postmortem-0612-incidents-code-lens-claude",
+            "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, evidence_used, not_proven",
+            "row_ref": "brick-row:postmortem-0612-incidents-code-lens-claude",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "code_attack_qa Brick for task-source:inline-statement: # Evidence postmortem — 3-axis fault attribution, 0612 incidents"
+          },
+          {
+            "agent_object_ref": "agent-object:qa",
+            "axis": "Agent",
+            "row_ref": "agent-row:postmortem-0612-incidents-code-lens-claude"
+          }
+        ],
+        "selected_adapter_ref": "adapter:claude-local",
+        "selected_model_ref": "model:claude:sonnet",
+        "step_ref": "postmortem-0612-incidents-code-lens-claude",
+        "step_template_ref": "building-step-template:code-attack-qa"
+      },
+      {
+        "completion_edge_ref": "edge:postmortem-0612-incidents-axis-lens-codex-to-postmortem-0612-incidents-closure",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-postmortem-0612-incidents-axis-lens-codex",
+            "brick_work_ref": "work:postmortem-0612-incidents-axis-lens-codex",
+            "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "observed_evidence, attacked_scope, brick_axis_findings, agent_axis_findings, link_axis_findings, support_leak_findings, projection_authority_findings, evidence_used, not_proven",
+            "row_ref": "brick-row:postmortem-0612-incidents-axis-lens-codex",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "axis_attack_qa Brick for task-source:inline-statement: # Evidence postmortem — 3-axis fault attribution, 0612 incidents"
+          },
+          {
+            "agent_object_ref": "agent-object:inspector",
+            "axis": "Agent",
+            "row_ref": "agent-row:postmortem-0612-incidents-axis-lens-codex"
+          }
+        ],
+        "selected_adapter_ref": "adapter:codex-local",
+        "selected_model_ref": "model:default",
+        "step_ref": "postmortem-0612-incidents-axis-lens-codex",
+        "step_template_ref": "building-step-template:axis-attack-qa"
+      },
+      {
+        "completion_edge_ref": "edge:postmortem-0612-incidents-axis-lens-claude-to-postmortem-0612-incidents-closure",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-postmortem-0612-incidents-axis-lens-claude",
+            "brick_work_ref": "work:postmortem-0612-incidents-axis-lens-claude",
+            "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "observed_evidence, attacked_scope, brick_axis_findings, agent_axis_findings, link_axis_findings, support_leak_findings, projection_authority_findings, evidence_used, not_proven",
+            "row_ref": "brick-row:postmortem-0612-incidents-axis-lens-claude",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "axis_attack_qa Brick for task-source:inline-statement: # Evidence postmortem — 3-axis fault attribution, 0612 incidents"
+          },
+          {
+            "agent_object_ref": "agent-object:inspector",
+            "axis": "Agent",
+            "row_ref": "agent-row:postmortem-0612-incidents-axis-lens-claude"
+          }
+        ],
+        "selected_adapter_ref": "adapter:claude-local",
+        "selected_model_ref": "model:claude:sonnet",
+        "step_ref": "postmortem-0612-incidents-axis-lens-claude",
+        "step_template_ref": "building-step-template:axis-attack-qa"
+      },
+      {
+        "completion_edge_ref": "edge:postmortem-0612-incidents-evidence-lens-codex-to-postmortem-0612-incidents-closure",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-postmortem-0612-incidents-evidence-lens-codex",
+            "brick_work_ref": "work:postmortem-0612-incidents-evidence-lens-codex",
+            "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "observed_evidence, evidence_scope, persisted_evidence_roots, proof_limit_findings, stale_source_risks, checker_overclaim_risks, missing_evidence, evidence_used, not_proven",
+            "row_ref": "brick-row:postmortem-0612-incidents-evidence-lens-codex",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "evidence_integrity Brick for task-source:inline-statement: # Evidence postmortem — 3-axis fault attribution, 0612 incidents"
+          },
+          {
+            "agent_object_ref": "agent-object:inspector",
+            "axis": "Agent",
+            "row_ref": "agent-row:postmortem-0612-incidents-evidence-lens-codex"
+          }
+        ],
+        "selected_adapter_ref": "adapter:codex-local",
+        "selected_model_ref": "model:default",
+        "step_ref": "postmortem-0612-incidents-evidence-lens-codex",
+        "step_template_ref": "building-step-template:evidence-integrity"
+      },
+      {
+        "completion_edge_ref": "edge:postmortem-0612-incidents-evidence-lens-claude-to-postmortem-0612-incidents-closure",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-postmortem-0612-incidents-evidence-lens-claude",
+            "brick_work_ref": "work:postmortem-0612-incidents-evidence-lens-claude",
+            "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "observed_evidence, evidence_scope, persisted_evidence_roots, proof_limit_findings, stale_source_risks, checker_overclaim_risks, missing_evidence, evidence_used, not_proven",
+            "row_ref": "brick-row:postmortem-0612-incidents-evidence-lens-claude",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "evidence_integrity Brick for task-source:inline-statement: # Evidence postmortem — 3-axis fault attribution, 0612 incidents"
+          },
+          {
+            "agent_object_ref": "agent-object:inspector",
+            "axis": "Agent",
+            "row_ref": "agent-row:postmortem-0612-incidents-evidence-lens-claude"
+          }
+        ],
+        "selected_adapter_ref": "adapter:claude-local",
+        "selected_model_ref": "model:claude:sonnet",
+        "step_ref": "postmortem-0612-incidents-evidence-lens-claude",
+        "step_template_ref": "building-step-template:evidence-integrity"
+      },
+      {
+        "completion_edge_ref": "edge:postmortem-0612-incidents-closure-to-boundary",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-postmortem-0612-incidents-closure",
+            "brick_work_ref": "work:postmortem-0612-incidents-closure",
+            "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence",
+            "row_ref": "brick-row:postmortem-0612-incidents-closure",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "closure Brick for task-source:inline-statement: # Evidence postmortem — 3-axis fault attribution, 0612 incidents"
+          },
+          {
+            "agent_object_ref": "agent-object:coo",
+            "axis": "Agent",
+            "row_ref": "agent-row:postmortem-0612-incidents-closure"
+          }
+        ],
+        "selected_adapter_ref": "adapter:codex-local",
+        "selected_model_ref": "model:default",
+        "step_ref": "postmortem-0612-incidents-closure",
+        "step_template_ref": "building-step-template:closure"
+      }
+    ],
+    "building_id": "postmortem-0612-incidents",
+    "chain_preset_ref": "building-chain-preset:postmortem-fleet",
+    "composition_mode": "caller_or_coo_declared_graph_composition",
+    "declared_by": "caller-claude-operator",
+    "execution_order": [
+      "postmortem-0612-incidents-inspect",
+      "postmortem-0612-incidents-code-lens-codex",
+      "postmortem-0612-incidents-code-lens-claude",
+      "postmortem-0612-incidents-axis-lens-codex",
+      "postmortem-0612-incidents-axis-lens-claude",
+      "postmortem-0612-incidents-evidence-lens-codex",
+      "postmortem-0612-incidents-evidence-lens-claude",
+      "postmortem-0612-incidents-closure"
+    ],
+    "groups": [
+      {
+        "group_id": "group:postmortem-0612-incidents-fan-out",
+        "group_role": "fan_out",
+        "member_ref_kind": "link_edge",
+        "member_refs": [
+          "edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-code-lens-codex",
+          "edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-code-lens-claude",
+          "edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-axis-lens-codex",
+          "edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-axis-lens-claude",
+          "edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-evidence-lens-codex",
+          "edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-evidence-lens-claude"
+        ]
+      },
+      {
+        "group_id": "group:postmortem-0612-incidents-fan-in",
+        "group_role": "fan_in",
+        "member_ref_kind": "link_edge",
+        "member_refs": [
+          "edge:postmortem-0612-incidents-code-lens-codex-to-postmortem-0612-incidents-closure",
+          "edge:postmortem-0612-incidents-code-lens-claude-to-postmortem-0612-incidents-closure",
+          "edge:postmortem-0612-incidents-axis-lens-codex-to-postmortem-0612-incidents-closure",
+          "edge:postmortem-0612-incidents-axis-lens-claude-to-postmortem-0612-incidents-closure",
+          "edge:postmortem-0612-incidents-evidence-lens-codex-to-postmortem-0612-incidents-closure",
+          "edge:postmortem-0612-incidents-evidence-lens-claude-to-postmortem-0612-incidents-closure"
+        ]
+      }
+    ],
+    "link_edges": [
+      {
+        "edge_ref": "edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-code-lens-codex",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:strict"
+            ],
+            "gate_concept_provenance": {
+              "declared_by": "building-chain-preset:postmortem-fleet",
+              "tokens": [
+                "strict-evidence"
+              ]
+            },
+            "movement": "forward",
+            "row_ref": "link-row:edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-code-lens-codex",
+            "target_ref": "brick-postmortem-0612-incidents-code-lens-codex"
+          }
+        ],
+        "source_step_ref": "postmortem-0612-incidents-inspect",
+        "target_step_ref": "postmortem-0612-incidents-code-lens-codex"
+      },
+      {
+        "edge_ref": "edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-code-lens-claude",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:strict"
+            ],
+            "gate_concept_provenance": {
+              "declared_by": "building-chain-preset:postmortem-fleet",
+              "tokens": [
+                "strict-evidence"
+              ]
+            },
+            "movement": "forward",
+            "row_ref": "link-row:edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-code-lens-claude",
+            "target_ref": "brick-postmortem-0612-incidents-code-lens-claude"
+          }
+        ],
+        "source_step_ref": "postmortem-0612-incidents-inspect",
+        "target_step_ref": "postmortem-0612-incidents-code-lens-claude"
+      },
+      {
+        "edge_ref": "edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-axis-lens-codex",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:strict"
+            ],
+            "gate_concept_provenance": {
+              "declared_by": "building-chain-preset:postmortem-fleet",
+              "tokens": [
+                "strict-evidence"
+              ]
+            },
+            "movement": "forward",
+            "row_ref": "link-row:edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-axis-lens-codex",
+            "target_ref": "brick-postmortem-0612-incidents-axis-lens-codex"
+          }
+        ],
+        "source_step_ref": "postmortem-0612-incidents-inspect",
+        "target_step_ref": "postmortem-0612-incidents-axis-lens-codex"
+      },
+      {
+        "edge_ref": "edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-axis-lens-claude",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:strict"
+            ],
+            "gate_concept_provenance": {
+              "declared_by": "building-chain-preset:postmortem-fleet",
+              "tokens": [
+                "strict-evidence"
+              ]
+            },
+            "movement": "forward",
+            "row_ref": "link-row:edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-axis-lens-claude",
+            "target_ref": "brick-postmortem-0612-incidents-axis-lens-claude"
+          }
+        ],
+        "source_step_ref": "postmortem-0612-incidents-inspect",
+        "target_step_ref": "postmortem-0612-incidents-axis-lens-claude"
+      },
+      {
+        "edge_ref": "edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-evidence-lens-codex",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:strict"
+            ],
+            "gate_concept_provenance": {
+              "declared_by": "building-chain-preset:postmortem-fleet",
+              "tokens": [
+                "strict-evidence"
+              ]
+            },
+            "movement": "forward",
+            "row_ref": "link-row:edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-evidence-lens-codex",
+            "target_ref": "brick-postmortem-0612-incidents-evidence-lens-codex"
+          }
+        ],
+        "source_step_ref": "postmortem-0612-incidents-inspect",
+        "target_step_ref": "postmortem-0612-incidents-evidence-lens-codex"
+      },
+      {
+        "edge_ref": "edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-evidence-lens-claude",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:strict"
+            ],
+            "gate_concept_provenance": {
+              "declared_by": "building-chain-preset:postmortem-fleet",
+              "tokens": [
+                "strict-evidence"
+              ]
+            },
+            "movement": "forward",
+            "row_ref": "link-row:edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-evidence-lens-claude",
+            "target_ref": "brick-postmortem-0612-incidents-evidence-lens-claude"
+          }
+        ],
+        "source_step_ref": "postmortem-0612-incidents-inspect",
+        "target_step_ref": "postmortem-0612-incidents-evidence-lens-claude"
+      },
+      {
+        "edge_ref": "edge:postmortem-0612-incidents-code-lens-codex-to-postmortem-0612-incidents-closure",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:strict"
+            ],
+            "gate_concept_provenance": {
+              "declared_by": "building-chain-preset:postmortem-fleet",
+              "tokens": [
+                "strict-evidence"
+              ]
+            },
+            "movement": "forward",
+            "row_ref": "link-row:edge:postmortem-0612-incidents-code-lens-codex-to-postmortem-0612-incidents-closure",
+            "target_ref": "brick-postmortem-0612-incidents-closure"
+          }
+        ],
+        "source_step_ref": "postmortem-0612-incidents-code-lens-codex",
+        "target_step_ref": "postmortem-0612-incidents-closure"
+      },
+      {
+        "edge_ref": "edge:postmortem-0612-incidents-code-lens-claude-to-postmortem-0612-incidents-closure",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:strict"
+            ],
+            "gate_concept_provenance": {
+              "declared_by": "building-chain-preset:postmortem-fleet",
+              "tokens": [
+                "strict-evidence"
+              ]
+            },
+            "movement": "forward",
+            "row_ref": "link-row:edge:postmortem-0612-incidents-code-lens-claude-to-postmortem-0612-incidents-closure",
+            "target_ref": "brick-postmortem-0612-incidents-closure"
+          }
+        ],
+        "source_step_ref": "postmortem-0612-incidents-code-lens-claude",
+        "target_step_ref": "postmortem-0612-incidents-closure"
+      },
+      {
+        "edge_ref": "edge:postmortem-0612-incidents-axis-lens-codex-to-postmortem-0612-incidents-closure",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:strict"
+            ],
+            "gate_concept_provenance": {
+              "declared_by": "building-chain-preset:postmortem-fleet",
+              "tokens": [
+                "strict-evidence"
+              ]
+            },
+            "movement": "forward",
+            "row_ref": "link-row:edge:postmortem-0612-incidents-axis-lens-codex-to-postmortem-0612-incidents-closure",
+            "target_ref": "brick-postmortem-0612-incidents-closure"
+          }
+        ],
+        "source_step_ref": "postmortem-0612-incidents-axis-lens-codex",
+        "target_step_ref": "postmortem-0612-incidents-closure"
+      },
+      {
+        "edge_ref": "edge:postmortem-0612-incidents-axis-lens-claude-to-postmortem-0612-incidents-closure",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:strict"
+            ],
+            "gate_concept_provenance": {
+              "declared_by": "building-chain-preset:postmortem-fleet",
+              "tokens": [
+                "strict-evidence"
+              ]
+            },
+            "movement": "forward",
+            "row_ref": "link-row:edge:postmortem-0612-incidents-axis-lens-claude-to-postmortem-0612-incidents-closure",
+            "target_ref": "brick-postmortem-0612-incidents-closure"
+          }
+        ],
+        "source_step_ref": "postmortem-0612-incidents-axis-lens-claude",
+        "target_step_ref": "postmortem-0612-incidents-closure"
+      },
+      {
+        "edge_ref": "edge:postmortem-0612-incidents-evidence-lens-codex-to-postmortem-0612-incidents-closure",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:strict"
+            ],
+            "gate_concept_provenance": {
+              "declared_by": "building-chain-preset:postmortem-fleet",
+              "tokens": [
+                "strict-evidence"
+              ]
+            },
+            "movement": "forward",
+            "row_ref": "link-row:edge:postmortem-0612-incidents-evidence-lens-codex-to-postmortem-0612-incidents-closure",
+            "target_ref": "brick-postmortem-0612-incidents-closure"
+          }
+        ],
+        "source_step_ref": "postmortem-0612-incidents-evidence-lens-codex",
+        "target_step_ref": "postmortem-0612-incidents-closure"
+      },
+      {
+        "edge_ref": "edge:postmortem-0612-incidents-evidence-lens-claude-to-postmortem-0612-incidents-closure",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:strict"
+            ],
+            "gate_concept_provenance": {
+              "declared_by": "building-chain-preset:postmortem-fleet",
+              "tokens": [
+                "strict-evidence"
+              ]
+            },
+            "movement": "forward",
+            "row_ref": "link-row:edge:postmortem-0612-incidents-evidence-lens-claude-to-postmortem-0612-incidents-closure",
+            "target_ref": "brick-postmortem-0612-incidents-closure"
+          }
+        ],
+        "source_step_ref": "postmortem-0612-incidents-evidence-lens-claude",
+        "target_step_ref": "postmortem-0612-incidents-closure"
+      },
+      {
+        "edge_ref": "edge:postmortem-0612-incidents-closure-to-boundary",
+        "rows": [
+          {
+            "axis": "Link",
+            "building_lifecycle": {
+              "reason": "declared closure boundary for postmortem-0612-incidents",
+              "state": "closed"
+            },
+            "declared_gate_refs": [
+              "link-gate:default-transition"
+            ],
+            "movement": "forward",
+            "row_ref": "link-row:edge:postmortem-0612-incidents-closure-to-boundary",
+            "target_ref": "building-boundary:postmortem-0612-incidents-closed"
+          }
+        ],
+        "source_step_ref": "postmortem-0612-incidents-closure"
+      }
+    ],
+    "materialization_rule": "caller_or_coo_declared_task_source_plus_graph_chain_preset",
+    "not_proven": [
+      "semantic fitness of selected shape",
+      "future Building run correctness",
+      "future Agent or provider quality"
+    ],
+    "owner_axis": "Brick",
+    "plan_ref": "building-plan:postmortem-0612-incidents",
+    "plan_shape": "graph",
+    "preset_expansion": {
+      "agent_object_refs": [
+        "agent-object:inspector",
+        "agent-object:qa",
+        "agent-object:qa",
+        "agent-object:inspector",
+        "agent-object:inspector",
+        "agent-object:inspector",
+        "agent-object:inspector",
+        "agent-object:coo"
+      ],
+      "canonical_chain_preset_ref": "building-chain-preset:postmortem-fleet",
+      "chain_preset_ref": "building-chain-preset:postmortem-fleet",
+      "chain_preset_requires_graph": true,
+      "expanded_brick_spec_refs": [
+        "brick/templates/bricks/inspect/brick.md",
+        "brick/templates/bricks/code-attack-qa/brick.md",
+        "brick/templates/bricks/axis-attack-qa/brick.md",
+        "brick/templates/bricks/evidence-integrity/brick.md",
+        "brick/templates/bricks/closure/brick.md"
+      ],
+      "expanded_brick_template_refs": [
+        "brick/templates/bricks/inspect/return.yaml",
+        "brick/templates/bricks/transition-concern-return.yaml",
+        "brick/templates/bricks/code-attack-qa/return.yaml",
+        "brick/templates/bricks/axis-attack-qa/return.yaml",
+        "brick/templates/bricks/evidence-integrity/return.yaml",
+        "brick/templates/bricks/closure/return.yaml"
+      ],
+      "expanded_step_template_refs": [
+        "building-step-template:inspect",
+        "building-step-template:code-attack-qa",
+        "building-step-template:code-attack-qa",
+        "building-step-template:axis-attack-qa",
+        "building-step-template:axis-attack-qa",
+        "building-step-template:evidence-integrity",
+        "building-step-template:evidence-integrity",
+        "building-step-template:closure"
+      ],
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "selected preset ref was not declared unless separately present"
+      ],
+      "proof_limits": [
+        "support records caller / COO declared graph composition only",
+        "not automatic preset selection",
+        "not automatic shape selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "selected_shape_ref": "building-shape:design-needed",
+      "selection_rule": "caller_or_coo_declared_only"
+    },
+    "proof_limits": [
+      "support evidence only",
+      "compose_building assembles caller / COO declared node and edge choices only",
+      "not automatic shape selection",
+      "not automatic Agent selection",
+      "not automatic gate selection",
+      "not support-chosen target",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "route_policy_provenance": {
+      "allowed_provenance": [
+        "per-building",
+        "preset-default"
+      ],
+      "by_node": {
+        "postmortem-0612-incidents-closure": {
+          "closure_transition_target_policy": "preset-default"
+        },
+        "postmortem-0612-incidents-inspect": {
+          "node_reroute_budget": "preset-default"
+        }
+      },
+      "rule": "route reroute budget + closure routing policy are HUMAN Movement decisions; support records but never synthesizes them (provenance is preset-default for a reusable preset default or per-building for a per-Building override, NEVER support)"
+    },
+    "selected_adapter_ref": "adapter:codex-local",
+    "selected_model_ref": "model:default",
+    "selected_shape_ref": "building-shape:design-needed",
+    "selection_rule": "caller_or_coo_declared_only",
+    "task_source_hash": "a084f6d020a71b9bad7536fd7cfd43d13484925555006d450f5af43773062ad9",
+    "task_source_hash_algorithm": "sha256",
+    "task_source_hash_basis": "utf-8 inline task_statement body at materialization time",
+    "task_source_ref": "task-source:inline-statement",
+    "task_statement": "# Evidence postmortem — 3-axis fault attribution, 0612 incidents\n\n(템플릿: project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md)\n\n## Targets (building roots, READ-ONLY — never modify; copy to temp if needed)\n- project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612\n  (incidents: design stall x2 60min-timeouts -> bounded statement walked 2min; F15 trace)\n- project/brick-protocol/buildings/iap-dashboard-sink-passport-0612\n  (incidents: closure return forbidden 'status' key x2; F14 inconsistency->reconciled history)\n- project/brick-protocol/buildings/provider-ladder-fleet-presets-0612 (afternoon adapter-error hold, abandoned)\n- project/brick-protocol/buildings/dashboard-productization-0612 (afternoon adapter-error hold)\n- project/brick-protocol/buildings/dashboard-productization-0612b (RETRY of the same task erroring again — the retry pattern itself is evidence)\n- project/brick-protocol/buildings/adapter-30-s1-park (adapter-error casualty mislabeled as park)\n- CONTROL: project/brick-protocol/buildings/f13-frontier-declared-edge-fallback-0612\n  (same preset, same day, clean walk — the baseline)\n- f10-grounding-demand-record-unify-0612 (dashboard shows 멈춤 — establish WHY from its ledger)\n\n## Evidence sources / Attribution method / Output shape / Hard constraints\nEXACTLY as the template (read it first). Per incident: owning_axis(Brick|Agent|Link|support)\n+ evidence_refs + repair_candidate + not_proven. Frequency patterns synthesized separately.\nOperator notes (NOT ledger evidence — appendix only): fleet-preset design stalled 25/29min\ntwice on 2026-06-12 night with ZERO output (no rollout retained — adapter --ephemeral, F18);\nsmall probes stayed fast; notify-v3 design also timed out. Late-night big-session provider\ndegradation is a candidate Agent-axis attribution the ledgers alone cannot prove.\n"
+  },
+  "kind": "declared_building_plan_provenance",
+  "not_proven": [
+    "declared plan semantic correctness",
+    "future Agent or provider behavior"
+  ],
+  "plan_hash": "c9aee3131345a3df0d1df13cdfa7f15011ab02ea3bab0c6742274e071dac377d",
+  "plan_hash_algorithm": "sha256",
+  "plan_hash_basis": "canonical sorted-key JSON of the pure declared-building-plan copy (runtime walker state excluded)",
+  "plan_ref": "building-plan:postmortem-0612-incidents",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ]
+}

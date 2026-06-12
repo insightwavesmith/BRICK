@@ -1,0 +1,1972 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:postmortem-0612-incidents::evidence/claim_trace/agent/returned_claims.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:inspector",
+        "received_work": "brick-work:01:postmortem-0612-incidents-inspect",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:inspector",
+          "blocked_or_missing_evidence": [
+            "No write-capable temp source copy was available or allowed in this pass.",
+            "No check_profile.py run was performed because the task and tool policy were read-only.",
+            "Operator-only notes about ephemeral/no-rollout stalls were not promoted into ledger proof.",
+            "No raw provider session bodies, setup tokens, credentials, or external logs were accessed."
+          ],
+          "boundary_findings": [
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/adapter-error.jsonl:1 raw:adapter-error:01",
+                "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/agent-received.jsonl:1 raw:agent-received:01",
+                "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/link.jsonl:15 raw:link-frontier:01",
+                "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/link.jsonl:6 raw:link:06"
+              ],
+              "incident": "F14 design step recorded local_cli_timeout at 2026-06-12T13:03:43Z, then later the retained root closed with the adapter-error frontier row preserved.",
+              "not_proven": [
+                "two 60-minute F14 design stalls from retained ledger",
+                "provider-wide degradation",
+                "semantic quality of the later design return"
+              ],
+              "owning_axis": "Agent",
+              "repair_candidate": "Keep timeout handling/provider retry separate from support raw_ref reconciliation; bounded design statements are a retry tactic, not proof of provider health.",
+              "secondary_axis": "support"
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/adapter-error.jsonl:1 raw:adapter-error:06",
+                "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/agent-received.jsonl:6 raw:agent-received:06",
+                "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/work/declared-building-plan.json:149",
+                "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/link.jsonl:6 raw:link:06"
+              ],
+              "incident": "IAP closure return was rejected because parent_goal_delta_status contained forbidden key status; current root later resumed and closed.",
+              "not_proven": [
+                "second status-key violation in target roots",
+                "that closure content was semantically correct",
+                "that the resumed forward disposition should be reused elsewhere"
+              ],
+              "owning_axis": "Agent",
+              "repair_candidate": "Closure-return prompt/schema hardening or retry with closed plain fields; do not treat this as Link Movement evidence.",
+              "secondary_axis": "Brick"
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/work/task.md:23-31",
+                "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/work/task.md:34-48",
+                "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/link.jsonl:15 raw:link-frontier:06",
+                "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/raw-manifest.json:65,76,92,127-134"
+              ],
+              "incident": "IAP/F14 adapter-error-to-closure path previously exposed claim_trace/raw-manifest disagreement; current IAP root shows reconciled raw refs.",
+              "not_proven": [
+                "original unreconciled IAP state, because the current root is already reconciled",
+                "complete absence of future raw_ref preservation leaks"
+              ],
+              "owning_axis": "support",
+              "repair_candidate": "Support recording/reconciliation surface: preserve or reconcile error-frontier and receipt refs through final rewrite; no new BAL fact class."
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/dashboard-productization-0612/work/task.md:30,34",
+                "project/brick-protocol/buildings/dashboard-productization-0612/raw/adapter-error.jsonl:1 raw:adapter-error:02",
+                "project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl:3 raw:link-frontier:02"
+              ],
+              "incident": "Dashboard productization first attempt tripped forbidden node_modules token-map path after worktree npm/build proof was requested.",
+              "not_proven": [
+                "whether npm install or npm build created the exact file",
+                "whether any worktree artifact remained after the hold"
+              ],
+              "owning_axis": "Brick",
+              "repair_candidate": "Contract/proof rewrite: require npm/build only in a temp copy outside the repo and keep write observation on.",
+              "secondary_axis": "Agent"
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/dashboard-productization-0612b/work/task.md:3-5,31",
+                "project/brick-protocol/buildings/dashboard-productization-0612b/raw/adapter-error.jsonl:1 raw:adapter-error:02",
+                "project/brick-protocol/buildings/dashboard-productization-0612b/raw/link.jsonl:3 raw:link-frontier:02"
+              ],
+              "incident": "Dashboard productization retry repeated the same node_modules token-map forbidden path despite explicit temp-copy instructions.",
+              "not_proven": [
+                "whether the second error came from new npm execution or stale artifact observation",
+                "provider quality"
+              ],
+              "owning_axis": "Agent",
+              "repair_candidate": "Retry only after clean worktree/node_modules check and temp-copy proof path; support may need a preflight guard for repo-local node_modules writes.",
+              "secondary_axis": "support"
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612/work/task.md:14",
+                "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612/work/declared-building-plan.json:45-54",
+                "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612/raw/adapter-error.jsonl:1 raw:adapter-error:02",
+                "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612/raw/link.jsonl:3 raw:link-frontier:02"
+              ],
+              "incident": "Provider ladder/fleet presets work step wrote or attempted to write project/status/inbox checker fixture output while write_scope forbade project/*.",
+              "not_proven": [
+                "semantic correctness of provider-ladder implementation",
+                "that the building was abandoned by Link disposition rather than left paused"
+              ],
+              "owning_axis": "support",
+              "repair_candidate": "Move checker/report fixture output to temp/output-root or suppress local inbox side effects during scoped work; do not broaden project/* write scope.",
+              "secondary_axis": "Agent"
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/adapter-30-s1-park/work/task.md:1-5,16-22",
+                "project/brick-protocol/buildings/adapter-30-s1-park/work/declared-building-plan.json:44-46",
+                "project/brick-protocol/buildings/adapter-30-s1-park/raw/adapter-error.jsonl:1 raw:adapter-error:02",
+                "project/brick-protocol/buildings/adapter-30-s1-park/raw/link.jsonl:10 raw:link-frontier:02"
+              ],
+              "incident": "adapter-30-s1-park work step was rejected for support/checkers/check_building_lifecycle_path_shape.py outside write_scope while the task was about a future park seam.",
+              "not_proven": [
+                "chat-session park behavior",
+                "reporter bell behavior for parked state",
+                "whether support/ prefix matching or the declaration form caused the rejection"
+              ],
+              "owning_axis": "Brick",
+              "repair_candidate": "Normalize or re-declare write_scope path shape before retry; do not classify this root as parked seam evidence.",
+              "secondary_axis": "support"
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612/declared-building-plan.json:75",
+                "project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612/raw/adapter-error.jsonl:1 raw:adapter-error:01",
+                "project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612/raw/link.jsonl:1 raw:link-frontier:01",
+                "project/brick-protocol/buildings/f10b-grounding-demand-record-unify/work/task.md:3-6"
+              ],
+              "incident": "F10 first attempt was paused because the Agent return echoed Link handoff structure: handoff_refs contained forbidden key movement.",
+              "not_proven": [
+                "that F10 first attempt did any usable implementation work",
+                "that F10b proof closes every future return-echo path"
+              ],
+              "owning_axis": "Agent",
+              "repair_candidate": "Use plain-text refs only in returns; keep Link packet structures out of AgentFact fields. F10b is the separate repair attempt.",
+              "secondary_axis": "Brick"
+            }
+          ],
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "cli_call_ref": "support-cli-call:adapter:codex-local:postmortem-0612-incidents",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:postmortem-0612-incidents:agent-object:inspector:output"
+          ],
+          "inspected_scope": {
+            "mode": "read-only inspector; no edits, no git mutation, no network, no checker run that could write temp/project files",
+            "read_only_commands": "git status --short; find; sed; nl; rg; python json parsing",
+            "repo_root": "/Users/smith/projects/BRICK",
+            "support_projection_read": "support/dashboard/public/dashboard-data.json:78-190 and 452-462",
+            "target_roots": [
+              "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612",
+              "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612",
+              "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612",
+              "project/brick-protocol/buildings/dashboard-productization-0612",
+              "project/brick-protocol/buildings/dashboard-productization-0612b",
+              "project/brick-protocol/buildings/adapter-30-s1-park",
+              "project/brick-protocol/buildings/f13-frontier-declared-edge-fallback-0612",
+              "project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612"
+            ],
+            "task_template": "project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md:19-57"
+          },
+          "matched_facts": [
+            "The postmortem template requires per-incident Brick/Agent/Link/support attribution from raw/link, raw/agent-return, raw/agent-received, raw/adapter-error, task, plan, step-output, and capture evidence: project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md:19-42.",
+            "All named target roots were present. The current worktree also has untracked postmortem-0612-incidents support output, but this inspection did not modify or rely on it.",
+            "Dashboard rows with disp=stopped are support projections of state=link_paused and frontier=agent_incomplete, not executed Link stop Movement: support/dashboard/public/dashboard-data.json:78-92,129-160,180-190,452-462.",
+            "The F13 control root records a declared closure row raw:link:06 with building_lifecycle_state=closed and Movement forward: project/brick-protocol/buildings/f13-frontier-declared-edge-fallback-0612/raw/link.jsonl:6.",
+            "The current IAP root is reconciled for the F14 support-recording defect: raw/raw-manifest.json includes raw:link-frontier:06, raw:adapter-error:06, and raw:agent-received:06: project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/raw-manifest.json:65-79,87-95,127-134."
+          ],
+          "mismatched_facts": [
+            "adapter-30-s1-park is not ledger evidence of a parked chat-session seam. Its raw adapter error is write_observation_out_of_scope, and its raw link frontier is agent_incomplete: project/brick-protocol/buildings/adapter-30-s1-park/raw/adapter-error.jsonl:1; project/brick-protocol/buildings/adapter-30-s1-park/raw/link.jsonl:10.",
+            "f10-grounding-demand-record-unify-0612 dashboard disp=stopped resolves to a work-step adapter exception caused by returned_value.handoff_refs containing forbidden key movement, not a Link stop row: support/dashboard/public/dashboard-data.json:180-190; project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612/raw/adapter-error.jsonl:1; project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612/raw/link.jsonl:1.",
+            "dashboard-productization-0612b was a retry that explicitly instructed npm/build proof outside the repo, yet the same node_modules token-map path was observed again: project/brick-protocol/buildings/dashboard-productization-0612b/work/task.md:3-5; project/brick-protocol/buildings/dashboard-productization-0612b/raw/adapter-error.jsonl:1."
+          ],
+          "missing_facts": [
+            "Only one retained status-key violation was found in the target ledgers: project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/adapter-error.jsonl:1. The source packet's status-key x2 count is not proven from these files.",
+            "Only one retained F14 local_cli_timeout row was found in the current F14 root: project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/adapter-error.jsonl:1. Extra operator notes about no-rollout provider stalls remain not_proven here.",
+            "No provider health probe, provider process integrity proof, or external rollout body was inspected.",
+            "No checker/profile run was executed because this pass was read-only and checkers may create temp/project artifacts."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "source truth",
+            "success judgment",
+            "quality judgment",
+            "Movement authority",
+            "provider quality or provider-wide degradation",
+            "future Building correctness",
+            "external notification delivery reliability",
+            "semantic correctness of resumed forward dispositions",
+            "full checker/profile green",
+            "complete absence of future support-authority leaks"
+          ],
+          "observed_evidence": [
+            "git status --short showed only untracked postmortem-0612-incidents root and matching inbox start event before inspection.",
+            "The exact status-key search found only iap-dashboard-sink-passport-0612/raw/adapter-error.jsonl:1 and its step-output mirror.",
+            "The exact movement-key search found f10-grounding-demand-record-unify-0612/raw/adapter-error.jsonl:1 and its step-output mirror.",
+            "The exact write-observation search found provider-ladder, dashboard-productization, dashboard-productization-0612b, and adapter-30-s1-park adapter-error rows.",
+            "No source was used as source truth; raw/projection/checker/model surfaces are treated as support evidence only."
+          ],
+          "output_excerpt": "{ \"inspected_scope\": { \"repo_root\": \"/Users/smith/projects/BRICK\", \"mode\": \"read-only inspector; no edits, no git mutation, no network, no checker run that could write temp/project files\", \"task_template\": \"project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md:19-57\", \"target_roots\": [ \"project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612\", \"project/brick-protocol/buildings/iap-dashboard-sink-passport-0612\", \"project/brick-protocol/buildings/provider-ladder-fleet-presets-0612\", \"project/brick-protocol/buildings/dashboard-productization-0612\",...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "read-only repository inspection only",
+            "no route target chosen",
+            "no file mutation",
+            "no git commit or push",
+            "no credential or provider session body accessed"
+          ],
+          "remaining_delta": [
+            "If closure requires proof beyond ledger attribution, run the relevant checker/profile gates in a writable temp copy and record exact exits.",
+            "For paused write-observation roots, inspect whether the attempted path came from Agent command behavior, support checker/report side effects, or write_scope declaration shape before selecting a repair surface.",
+            "For F14/IAP support-recording repair, keep future verification on raw_ref resolution through raw/raw-manifest.json for adapter-error frontier and receipt refs."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default"
+        }
+      },
+      "fact_ref": "agent-fact:01:postmortem-0612-incidents-inspect",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:qa",
+        "received_work": "brick-work:02:postmortem-0612-incidents-code-lens-codex",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:qa",
+          "attacked_work": {
+            "frequency_patterns": [
+              "Forbidden return-key failures repeated across closure/work returns: status in IAP closure, movement in F10 handoff_refs.",
+              "Write-observation guard trips repeated across support outputs: node_modules token path, project/status/inbox fixture path, and support/checkers path outside declared scope.",
+              "No target ledger evidence showed Link choosing the wrong Movement or target; observed Link rows were frontier observations or declared/executed forward rows."
+            ],
+            "incidents": [
+              {
+                "evidence_refs": [
+                  "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/adapter-error.jsonl:1 raw:adapter-error:01",
+                  "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/agent-received.jsonl:1 raw:agent-received:01",
+                  "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/link.jsonl:15 raw:link-frontier:01",
+                  "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/link.jsonl:6 raw:link:06"
+                ],
+                "incident": "F14 design step recorded local_cli_timeout at 2026-06-12T13:03:43Z, then later the same retained root recorded returned Agent rows and closed at raw:link:06.",
+                "not_proven": [
+                  "two F14 60-minute stalls from retained ledger",
+                  "provider-wide degradation",
+                  "semantic quality of later design return"
+                ],
+                "owning_axis": "Agent",
+                "repair_candidate": "Keep provider/adapter timeout handling separate from support raw_ref reconciliation; bounded retry wording is a tactic, not proof of provider health.",
+                "secondary_axis": "support"
+              },
+              {
+                "evidence_refs": [
+                  "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/adapter-error.jsonl:1 raw:adapter-error:06",
+                  "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/agent-received.jsonl:6 raw:agent-received:06",
+                  "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/link.jsonl:15 raw:link-frontier:06",
+                  "agent/return_fact.py:26-52",
+                  "support/connection/agent_adapter.py:1404-1412"
+                ],
+                "incident": "IAP closure return was rejected because parent_goal_delta_status contained forbidden nested key status; current root later resumed and closed.",
+                "not_proven": [
+                  "second status-key violation in target roots",
+                  "semantic correctness of closure content"
+                ],
+                "owning_axis": "Agent",
+                "repair_candidate": "Harden closure return prompt/schema around plain fields; do not treat this as Link Movement evidence.",
+                "secondary_axis": "Brick"
+              },
+              {
+                "evidence_refs": [
+                  "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/work/task.md:23-48",
+                  "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/raw-manifest.json:65-79",
+                  "raw-ref resolution probe: all eight target roots resolved"
+                ],
+                "incident": "IAP/F14 adapter-error-to-closure path previously exposed claim_trace/raw-manifest disagreement; current F14 and IAP roots now have resolving raw refs.",
+                "not_proven": [
+                  "original unreconciled IAP state in current checkout",
+                  "complete absence of future raw_ref preservation leaks"
+                ],
+                "owning_axis": "support",
+                "repair_candidate": "Keep repair on support recording/reconciliation: preserve or reconcile error-frontier and receipt refs through final rewrite; no new BAL fact class."
+              },
+              {
+                "evidence_refs": [
+                  "project/brick-protocol/buildings/dashboard-productization-0612/work/task.md:30-34",
+                  "project/brick-protocol/buildings/dashboard-productization-0612/raw/adapter-error.jsonl:1 raw:adapter-error:02",
+                  "project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl:3 raw:link-frontier:02",
+                  "support/operator/write_observation.py:279-299"
+                ],
+                "incident": "dashboard-productization-0612 first attempt tripped forbidden node_modules token-map path after worktree npm/build proof was requested.",
+                "not_proven": [
+                  "whether npm install or npm build created the exact file",
+                  "whether worktree artifact remained after hold"
+                ],
+                "owning_axis": "Brick",
+                "repair_candidate": "Contract/proof rewrite: require npm/build only in a temp copy outside the repo and keep write observation on.",
+                "secondary_axis": "Agent"
+              },
+              {
+                "evidence_refs": [
+                  "project/brick-protocol/buildings/dashboard-productization-0612b/work/task.md:3-5",
+                  "project/brick-protocol/buildings/dashboard-productization-0612b/raw/adapter-error.jsonl:1 raw:adapter-error:02",
+                  "project/brick-protocol/buildings/dashboard-productization-0612b/raw/link.jsonl:3 raw:link-frontier:02"
+                ],
+                "incident": "dashboard-productization-0612b repeated the same node_modules token-map forbidden path despite explicit temp-copy instructions.",
+                "not_proven": [
+                  "whether second error came from new npm execution or stale artifact observation",
+                  "provider quality"
+                ],
+                "owning_axis": "Agent",
+                "repair_candidate": "Retry only after clean worktree/node_modules preflight and temp-copy proof path; consider support preflight guard for repo-local node_modules writes.",
+                "secondary_axis": "support"
+              },
+              {
+                "evidence_refs": [
+                  "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612/work/task.md:14",
+                  "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612/raw/adapter-error.jsonl:1 raw:adapter-error:02",
+                  "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612/raw/link.jsonl:3 raw:link-frontier:02"
+                ],
+                "incident": "provider-ladder-fleet-presets work step wrote or attempted project/status/inbox checker fixture output while write_scope forbade project/*.",
+                "not_proven": [
+                  "semantic correctness of provider-ladder implementation",
+                  "that the building was abandoned rather than left paused"
+                ],
+                "owning_axis": "support",
+                "repair_candidate": "Move checker/report fixture output to temp/output-root or suppress local inbox side effects during scoped work; do not broaden project/* write scope.",
+                "secondary_axis": "Agent"
+              },
+              {
+                "evidence_refs": [
+                  "project/brick-protocol/buildings/adapter-30-s1-park/work/task.md:1-22",
+                  "project/brick-protocol/buildings/adapter-30-s1-park/raw/adapter-error.jsonl:1 raw:adapter-error:02",
+                  "project/brick-protocol/buildings/adapter-30-s1-park/raw/link.jsonl:10 raw:link-frontier:02",
+                  "support/operator/write_observation.py:279-299"
+                ],
+                "incident": "adapter-30-s1-park was rejected for support/checkers/check_building_lifecycle_path_shape.py outside write_scope while the task was about a future park seam.",
+                "not_proven": [
+                  "chat-session park behavior",
+                  "reporter bell behavior for parked state",
+                  "whether support/ prefix matching or declaration form caused rejection"
+                ],
+                "owning_axis": "Brick",
+                "repair_candidate": "Normalize or re-declare write_scope path shape before retry; do not classify this root as parked-seam evidence.",
+                "secondary_axis": "support"
+              },
+              {
+                "evidence_refs": [
+                  "project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612/declared-building-plan.json:75",
+                  "project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612/raw/adapter-error.jsonl:1 raw:adapter-error:01",
+                  "project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612/raw/link.jsonl:1 raw:link-frontier:01",
+                  "agent/return_fact.py:26-52"
+                ],
+                "incident": "F10 first attempt paused because Agent return echoed Link handoff structure: handoff_refs contained forbidden key movement.",
+                "not_proven": [
+                  "that F10 first attempt did usable implementation work",
+                  "that F10b closes every future return-echo path"
+                ],
+                "owning_axis": "Agent",
+                "repair_candidate": "Use plain-text refs only in returns; keep Link packet structures out of AgentFact fields.",
+                "secondary_axis": "Brick"
+              }
+            ]
+          },
+          "blocked_or_missing_evidence": [
+            "Writable temp directory/source copy for full profile and mutation probes.",
+            "Retained rollouts for operator-noted ephemeral provider stalls.",
+            "Provider health/process integrity evidence.",
+            "Original unreconciled IAP root state before reconciliation.",
+            "Any raw credentials, setup tokens, provider session bodies, or external logs; intentionally not accessed."
+          ],
+          "boundary_violations": [
+            "No Link Movement or target-selection violation was observed in the target ledgers.",
+            "Agent return-boundary violations observed: forbidden nested status and movement keys.",
+            "Brick contract/proof-boundary issues observed: dashboard first attempt asked for worktree npm/build proof; adapter-30 write_scope shape did not admit support/checkers child path under the observed matcher.",
+            "Support boundary issues observed: checker/reporter side effects under project/status/inbox and prior claim_trace/raw-manifest reconciliation surface."
+          ],
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "checked_sources": [
+            "AGENTS.md instruction packet and project/brick-protocol/PROGRESS.md projection.",
+            "project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md.",
+            "raw/link.jsonl, raw/agent-return.jsonl, raw/agent-received.jsonl, raw/adapter-error.jsonl, raw/raw-manifest.json, work/task.md, work/declared-building-plan.json, work/link-launch-policy.json, work/step-outputs, capture/events.jsonl for target roots.",
+            "agent/return_fact.py and support/connection/agent_adapter.py forbidden-return validation; support/operator/write_observation.py write-scope/path guard.",
+            "incoming inspector handoff: project/brick-protocol/buildings/postmortem-0612-incidents/work/step-outputs/postmortem-0612-incidents-inspect-attempt-1/step-output.json:65-193."
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:postmortem-0612-incidents",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:postmortem-0612-incidents:agent-object:qa:output"
+          ],
+          "evidence_used": [
+            "Commands used: rg, find, sed, nl, jq, targeted check_building_lifecycle_path_shape.py, raw-ref resolution shell/awk probe, and check_profile.py --profile core attempt.",
+            "No git commit, push, checkout, reset, merge, rebase, stash, edit, create, or delete operation was run.",
+            "Target lifecycle checker command: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_building_lifecycle_path_shape.py --target <target-root>.",
+            "Raw-ref probe compared evidence/claim_trace raw_ref/raw_refs against raw/raw-manifest raw_refs for each target root."
+          ],
+          "failing_or_missing_probes": [
+            "No mutation RED probes were run in this reviewer-readonly lane.",
+            "No temp source copy, compileall, or full check_profile.py --all proof was run because the sandbox has no writable temporary directory.",
+            "No provider health probe, raw provider session, external rollout body, credential body, or network evidence was inspected.",
+            "Operator-only notes about unretained ephemeral stalls remain appendix context only."
+          ],
+          "negative_probe_observations": [
+            "Targeted lifecycle path-shape checker exited 0 for each named target root.",
+            "Raw-ref resolution probe found all claim_trace raw refs resolve through raw-manifest for all eight target roots.",
+            "Repo-wide lifecycle path-shape checker exited 1 because the current wrapper root postmortem-0612-incidents lacks evidence/claim_trace and raw/raw-manifest files.",
+            "core profile exited 1 with No usable temporary directory found; this is an environment/tooling block, not a target-root attribution finding."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "source truth",
+            "success judgment",
+            "quality judgment",
+            "Movement authority",
+            "provider quality or provider-wide degradation",
+            "future Building correctness",
+            "semantic correctness of resumed forward dispositions",
+            "external notification/dashboard delivery reliability",
+            "complete absence of future support-authority leaks",
+            "status-key x2 and F14 timeout x2 from retained target ledgers"
+          ],
+          "observed_evidence": [
+            "Repo root was /Users/smith/projects/BRICK; target roots were read only and no files were edited.",
+            "The postmortem template requires per-incident Brick/Agent/Link/support attribution from raw/link, raw/agent-return, raw/agent-received, raw/adapter-error, task, plan, step-output, and capture evidence: project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md:19-57.",
+            "All eight named target roots were present. The wrapper root project/brick-protocol/buildings/postmortem-0612-incidents is skeletal/in-progress and caused repo-wide lifecycle checking to fail on missing evidence files.",
+            "Target-root lifecycle path-shape checker passed for all eight target roots. Direct claim_trace-to-raw-manifest probe found all claim_trace raw_refs resolve through raw-manifest in all eight target roots.",
+            "Control root f13-frontier-declared-edge-fallback-0612 has six Agent return rows and executed raw:link:06 with building_lifecycle_state=closed; no adapter-error row was observed there."
+          ],
+          "output_excerpt": "{\"observed_evidence\":[\"Repo root was /Users/smith/projects/BRICK; target roots were read only and no files were edited.\",\"The postmortem template requires per-incident Brick/Agent/Link/support attribution from raw/link, raw/agent-return, raw/agent-received, raw/adapter-error, task, plan, step-output, and capture evidence: project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md:19-57.\",\"All eight named target roots were present. The wrapper root project/brick-protocol/buildings/postmortem-0612-incidents is skeletal/in-progress and caused repo-wide lifecycle checking to...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "checker/profile pass is support evidence only",
+            "model/reviewer output is support evidence only"
+          ],
+          "regression_risks": [
+            "Treating dashboard disp=stopped as Link stop would misattribute agent_incomplete frontier rows as Movement.",
+            "Broadening write_scope to make incidents pass would mask support side effects and weaken scoped-write proof.",
+            "Classifying adapter-30-s1-park as parked-seam evidence would hide that no chat-session parked record was observed.",
+            "Assuming provider degradation from operator notes would overclaim beyond retained ledger evidence."
+          ],
+          "remaining_delta": [
+            "For F14/IAP support recording: keep reconciliation/preservation checks focused on support raw_ref derivation and final rewrite behavior.",
+            "For dashboard productization: require clean worktree and temp-copy npm/build proof before retry.",
+            "For provider-ladder/report sinks: redirect checker/report fixture output away from project/status/inbox during scoped work.",
+            "For adapter-30: repair write_scope declaration/path matching before treating S1 park evidence as meaningful.",
+            "For return-shape incidents: add prompt/schema pressure toward plain refs and no forbidden nested keys in returned payloads."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default"
+        }
+      },
+      "fact_ref": "agent-fact:02:postmortem-0612-incidents-code-lens-codex",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:qa",
+        "received_work": "brick-work:03:postmortem-0612-incidents-code-lens-claude",
+        "returned": {
+          "adapter_ref": "adapter:claude-local",
+          "agent_object_ref": "agent-object:qa",
+          "attacked_work": [
+            "3-axis attribution for adapter-30-s1-park (work step, 2026-06-11T17:28:04Z): write_observation_out_of_scope for support/checkers/ nested path",
+            "3-axis attribution for dashboard-productization-0612 (work step, 04:00:54Z): forbidden write to support/dashboard/node_modules",
+            "3-axis attribution for dashboard-productization-0612b (work step, 04:52:18Z): identical failure as 0612 — retry pattern without repair",
+            "3-axis attribution for f10-grounding (work step, 06:04:46Z): forbidden return key 'movement' in handoff_refs",
+            "3-axis attribution for provider-ladder-fleet-presets-0612 (work step, 06:23:34Z): forbidden write to project/brick-protocol/status/inbox — outside declared write_scope",
+            "3-axis attribution for iap-dashboard-sink-passport-0612 closure (10:11:03Z error + 10:53:29Z successful retry): forbidden 'status' key in first run; second run passed with string value",
+            "Verification of F14's claimed frontier_trace/raw-manifest inconsistency in iap-dashboard-sink-passport-0612: whether raw:link-frontier:06 is absent from raw-manifest and link.jsonl as F14's task states",
+            "3-axis attribution for f14 design timeout (13:03:43Z): local_cli_timeout; operator note 'x2' vs single ledger row",
+            "Frequency pattern across all incidents"
+          ],
+          "blocked_or_missing_evidence": [
+            "f14 design step output: absent (agent_fact_created=false, no step-output JSON recorded); cannot inspect scope the agent saw, stall duration, or partial work",
+            "f10-grounding: no raw/agent-return.jsonl rows observed (only adapter-error); no design step output confirmed; prior-step outputs not read",
+            "adapter-30-s1-park building-intake.json and preset-expansion.json: not read; actual write_scope parameter at intake vs task.md expected scope unconfirmed",
+            "provider-ladder-fleet-presets-0612 design step output (raw/agent-return.jsonl): not read; cannot trace whether design step instructed the work step to emit status/inbox events",
+            "IAP building first closure attempt return body: not retained (agent_fact_created=false); parent_goal_delta_status shape in the first failed run is unknown",
+            "Any building ledger for notify-v2 or notify-v3 design: operator notes reference these timeouts but they are not listed as target buildings and no ledger was found",
+            "f13 individual step outputs: only glob-scanned; spine events counted but design/work/closure step-outputs not read — control baseline confirmed at file-existence level only",
+            "IAP raw/link.jsonl line 15 full content: grep confirmed presence of raw:link-frontier:06 but the full row structure was not read"
+          ],
+          "boundary_violations": [
+            "iap-dashboard-sink-passport-0612 closure first attempt: adapter_exception — 'returned_value.parent_goal_delta_status contains forbidden return key \"status\"'; the field parent_goal_delta_status IS required by raw:brick:06 required_return_shape; the violation is that the first attempt returned the value as a nested dict with an internal 'status' key instead of a string — Agent-axis return shape deviation; Brick contract correctly declared the field but did not constrain the value type",
+            "f10-grounding: 'returned_value.handoff_refs contains forbidden return key \"movement\"' — Link vocabulary ('movement') was embedded in an Agent return field; Agent-axis boundary: Link vocabulary must not appear in Agent returns",
+            "provider-ladder-fleet-presets-0612: Agent wrote to project/brick-protocol/status/inbox — path not in declared write_scope ('support/*, brick/templates/*, brick/building_plans/*, agent/objects/*'); Agent-axis write outside Brick-declared boundary",
+            "dashboard-productization-0612 and 0612b: Agent wrote to support/dashboard/node_modules — always-forbidden path; Agent-axis; note that node_modules cannot be admitted by write_scope even if listed",
+            "adapter-30-s1-park: write_observation_out_of_scope for support/checkers/ nested path — if write_scope was 'support/*' (non-recursive), any path under support/checkers/ is excluded; Brick-axis: write_scope declaration gap (non-recursive glob treats support/* as one level only, not as support/**/*)"
+          ],
+          "brain_surface_ref": "brain-surface:claude-code-local-cli",
+          "checked_sources": [
+            "project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md",
+            "project/brick-protocol/buildings/adapter-30-s1-park/raw/adapter-error.jsonl",
+            "project/brick-protocol/buildings/adapter-30-s1-park/work/task.md",
+            "project/brick-protocol/buildings/dashboard-productization-0612/raw/adapter-error.jsonl",
+            "project/brick-protocol/buildings/dashboard-productization-0612b/raw/adapter-error.jsonl",
+            "project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612/raw/adapter-error.jsonl",
+            "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612/raw/adapter-error.jsonl",
+            "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612/capture/events.jsonl (lines 1-12)",
+            "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612/work/task.md",
+            "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/adapter-error.jsonl",
+            "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/agent-return.jsonl",
+            "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/agent-received.jsonl",
+            "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/brick-work.jsonl",
+            "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/raw-manifest.json",
+            "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/link.jsonl (grep only: pattern=link-frontier)",
+            "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/evidence/claim_trace/link/frontier_trace.json",
+            "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/work/step-outputs/iap-dashboard-sink-passport-0612-closure-attempt-1/adapter-error.json",
+            "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/work/step-outputs/iap-dashboard-sink-passport-0612-closure-attempt-1/step-output.json",
+            "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/work/step-outputs/iap-dashboard-sink-passport-0612-closure-attempt-1/transition-concern.json",
+            "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/adapter-error.jsonl",
+            "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/agent-received.jsonl",
+            "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/work/step-outputs/f14-claim-trace-manifest-adapter-error-0612-design-attempt-1/adapter-error.json",
+            "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/work/task.md",
+            "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/evidence/claim_trace/link/frontier_trace.json",
+            "project/brick-protocol/buildings/f13-frontier-declared-edge-fallback-0612/ (glob: spine events, no adapter-error file found)"
+          ],
+          "cli_call_ref": "support-cli-call:adapter:claude-local:postmortem-0612-incidents",
+          "cli_version_text": "2.1.165 (Claude Code)",
+          "evidence_refs": [
+            "support-packet:postmortem-0612-incidents:agent-object:qa:output"
+          ],
+          "evidence_used": [
+            "raw/adapter-error.jsonl from all 7 target buildings (adapter-30-s1-park, dashboard-productization-0612, dashboard-productization-0612b, f10-grounding, provider-ladder-fleet-presets-0612, iap-dashboard-sink-passport-0612, f14-claim-trace-manifest-adapter-error-0612)",
+            "work/step-outputs/*/adapter-error.json from f14 and iap buildings",
+            "iap-dashboard-sink-passport-0612/work/step-outputs/closure-attempt-1/step-output.json",
+            "iap-dashboard-sink-passport-0612/work/step-outputs/closure-attempt-1/transition-concern.json",
+            "iap-dashboard-sink-passport-0612/raw/agent-return.jsonl (all 6 rows)",
+            "iap-dashboard-sink-passport-0612/raw/agent-received.jsonl (all 6 rows)",
+            "iap-dashboard-sink-passport-0612/raw/brick-work.jsonl (all 6 rows)",
+            "iap-dashboard-sink-passport-0612/raw/raw-manifest.json",
+            "iap-dashboard-sink-passport-0612/raw/link.jsonl (grep: pattern=link-frontier)",
+            "iap-dashboard-sink-passport-0612/evidence/claim_trace/link/frontier_trace.json",
+            "f14/raw/agent-received.jsonl",
+            "f14/evidence/claim_trace/link/frontier_trace.json",
+            "provider-ladder-fleet-presets-0612/capture/events.jsonl (lines 1-12)",
+            "work/task.md from f14, provider-ladder-fleet-presets-0612, adapter-30-s1-park",
+            "project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md",
+            "Glob file-tree scans for all target buildings and f13 control"
+          ],
+          "failing_or_missing_probes": [
+            "f14 design step: TIMED OUT (local_cli_timeout) at 13:03:43Z; agent_fact_created=false; zero design output retained; frontier_trace shows agent_incomplete; no design return to inspect",
+            "f10-grounding: work step adapter-error only (forbidden return key); no step-output, no closure, no subsequent steps evidenced; building walk incomplete",
+            "dashboard-productization-0612: work step adapter-error only; no step-output; building walk incomplete",
+            "dashboard-productization-0612b: same — work step adapter-error only; no step-output",
+            "provider-ladder-fleet-presets-0612: work step adapter-error only; no step-output beyond adapter-error.json; building walk incomplete",
+            "adapter-30-s1-park: work step adapter-error only; no step-output",
+            "checker_RED verification for F14 claim: check_building_lifecycle_path_shape.py was not run against IAP building from this read-only QA lane — RED/GREEN state is unverified; current files appear consistent (contradicting F14's described state)",
+            "F14 'x2 design timeout' second event: only one adapter-error row (raw:adapter-error:01) in f14 ledger; second timeout is not evidenced by a raw record"
+          ],
+          "negative_probe_observations": [
+            "f13-frontier-declared-edge-fallback-0612 (CONTROL, same day, same preset): no adapter-error files found in glob; spine events 0001–0050+ recorded — confirms small bounded tasks completed without incident on 2026-06-12, consistent with provider-degradation being a candidate only for large/late-night sessions",
+            "iap-dashboard-sink-passport-0612/raw/raw-manifest.json: raw:link-frontier:06 IS present at lines 65 and 127 — the F14 task's claim that 'raw-manifest has no entry' for the frontier row is NOT observed in the current file state",
+            "iap-dashboard-sink-passport-0612/raw/link.jsonl: grep finds raw:link-frontier:06 at line 15 — the F14 task's claim that 'final raw/link.jsonl no longer contains that row' is NOT observed in the current file state",
+            "iap-dashboard-sink-passport-0612/raw/raw-manifest.json: raw:agent-received:06 IS listed (lines 87-92) — the F14 task's claim that 'raw-manifest lists no such entry' for raw:agent-received:06 is NOT observed in the current file state",
+            "iap-dashboard-sink-passport-0612/raw/agent-return.jsonl#6: parent_goal_delta_status is a STRING — no nested 'status' key visible in the persisted second-closure return; adapter correctly accepted this shape"
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Second F14 design timeout: operator notes say 'x2 60min-timeouts'; only one adapter-error row (raw:adapter-error:01) in f14 ledger; second timeout is not evidenced by a ledger record",
+            "IAP closure 'x2' forbidden-status: task source says 'closure return forbidden status key x2'; only one adapter-error row (raw:adapter-error:06) in IAP ledger; 'x2' is not evidenced by ledger",
+            "First IAP closure return value shape: agent_fact_created=false for the first closure attempt; whether parent_goal_delta_status was a nested dict (with internal 'status') or some other structure cannot be confirmed from retained evidence",
+            "F14 checker RED claim: F14 task says building_lifecycle_path_shape REDs for IAP ('raw_ref does not resolve through raw manifest'); current IAP files show raw:link-frontier:06 IS present in both raw-manifest.json and link.jsonl — the described inconsistency is not observed in current file state; checker was not executed from this QA lane",
+            "Whether IAP building evidence was manually reconciled by operator or auto-reconciled by the final writer at 10:53:29Z after the second closure run; no file-history access",
+            "Provider-degradation as causal mechanism for F14 timeout: adapter-error records TimeoutExpired but does not log elapsed time or provider metrics; degradation is a candidate (operator notes + late-night timing + f13 control shows small tasks fast) but is unproven",
+            "Why provider-ladder-fleet-presets-0612 work step attempted to write to status/inbox: connection between design step output and that specific write not traced; design step output not read",
+            "What write_scope was actually declared in adapter-30-s1-park building-intake.json or preset-expansion.json (task.md states expected scope but building-intake not read)",
+            "Whether dashboard-productization-0612b changed anything before retry vs 0612 (no intake diff performed; only adapter-errors compared)",
+            "Notify-v2 and notify-v3 design timeouts mentioned in operator notes: no building ledger for these targets listed or found",
+            "f10-grounding '멈춤' dashboard state: dashboard-display reasons not traced; only the adapter-error row observed; prior design step (if any) not inspected"
+          ],
+          "observed_evidence": [
+            "adapter-30-s1-park/raw/adapter-error.jsonl#1 (2026-06-11T17:28:04Z): error_kind=adapter_exception, exception_type=ValueError, message='write_observation_out_of_scope: effective write observed path outside write_scope: support/checkers/check_building_lifecycle_path_shape.py'; step=adapter-30-s1-park-work; agent-object=dev",
+            "dashboard-productization-0612/raw/adapter-error.jsonl#1 (2026-06-12T04:00:54Z): error_kind=adapter_exception, exception_type=ValueError, message='effective write observed forbidden path: support/dashboard/node_modules/@babel/generator/lib/token-map.js'; step=dashboard-productization-0612-work; agent-object=dev",
+            "dashboard-productization-0612b/raw/adapter-error.jsonl#1 (2026-06-12T04:52:18Z): identical message — same forbidden path support/dashboard/node_modules/@babel/generator/lib/token-map.js — 52 minutes after 0612; step=dashboard-productization-0612b-work",
+            "f10-grounding-demand-record-unify-0612/raw/adapter-error.jsonl#1 (2026-06-12T06:04:46Z): error_kind=adapter_exception, exception_type=ValueError, message='returned_value.handoff_refs contains forbidden return key \"movement\"'; step=f10-grounding-work; agent-object=dev",
+            "provider-ladder-fleet-presets-0612/raw/adapter-error.jsonl#1 (2026-06-12T06:23:34Z): error_kind=adapter_exception, exception_type=ValueError, message='effective write observed forbidden path: project/brick-protocol/status/inbox/checker-projection-fixture-vessel-clean-yard-read-side-projection-building-building-finished-event-2026-06-12T06-21-04-898264-00-00.json'; step=provider-ladder-fleet-presets-0612-work; agent-object=dev",
+            "provider-ladder-fleet-presets-0612/capture/events.jsonl: design step completed and forwarded (events: brick_compared, link_transfer, link_movement=forward all recorded at 06:23:34Z); work step opened, agent-received, then adapter-exception — design passed, only work failed",
+            "iap-dashboard-sink-passport-0612/raw/adapter-error.jsonl#1 (2026-06-12T10:11:03Z): error_kind=adapter_exception, exception_type=ValueError, message='returned_value.parent_goal_delta_status contains forbidden return key \"status\"'; step=iap-dashboard-sink-passport-0612-closure; agent-object=coo; agent_fact_created=false",
+            "iap-dashboard-sink-passport-0612/raw/brick-work.jsonl#6: required_return_shape for closure step includes 'parent_goal_delta_status' — this field IS declared in the Brick contract",
+            "iap-dashboard-sink-passport-0612/raw/agent-return.jsonl#6 (2026-06-12T10:53:29Z): subsequent closure run recorded; parent_goal_delta_status returned as a STRING ('The support diff statically...'); no internal 'status' key; agent_object=coo",
+            "iap-dashboard-sink-passport-0612/raw/agent-received.jsonl: 6 rows; row #6 timestamped 10:11:03Z, carries adapter_error_ref — receipt for the first (failed) closure attempt",
+            "iap-dashboard-sink-passport-0612/evidence/claim_trace/link/frontier_trace.json: recorded at 10:11:03Z; fact_ref='link-frontier:06:...-closure'; raw_refs=['raw:link-frontier:06']; frontier_kind=agent_incomplete",
+            "iap-dashboard-sink-passport-0612/raw/raw-manifest.json (recorded 10:53:29Z): raw:link-frontier:06 IS present at line 65 (in link.jsonl entry) and line 127 (top-level raw_refs); raw:agent-received:06 IS present in agent-received entry",
+            "iap-dashboard-sink-passport-0612/raw/link.jsonl: grep confirms raw:link-frontier:06 present at line 15 — the frontier row was NOT dropped from link.jsonl in the current file state",
+            "f14-claim-trace-manifest-adapter-error-0612/raw/adapter-error.jsonl#1 (2026-06-12T13:03:43Z): error_kind=local_cli_timeout, exception_type=TimeoutExpired; step=f14-design-attempt-1; agent-object=design-lead; agent_fact_created=false; message_excerpt shows codex exec CLI command truncated at /var/folders/hm/...",
+            "f14-claim-trace-manifest-adapter-error-0612/raw/agent-received.jsonl: exactly ONE row (raw:agent-received:01); only one design attempt in ledger",
+            "f14/work/task.md: declares 'Operator pre-analysis VERIFIED'; bounded reading list of 5 source files; describes IAP building as the broken real root; states building_lifecycle_path_shape REDs because 'raw_ref does not resolve through raw manifest'",
+            "f13-frontier-declared-edge-fallback-0612 (CONTROL): spine events present from 0001 through 0050+; no adapter-error files found in glob; same-day and same-preset — confirms bounded tasks walked cleanly on 2026-06-12"
+          ],
+          "output_excerpt": "I now have sufficient evidence to compose the required return. Here is the QA evidence output: ```json { \"observed_evidence\": [ \"adapter-30-s1-park/raw/adapter-error.jsonl#1 (2026-06-11T17:28:04Z): error_kind=adapter_exception, exception_type=ValueError, message='write_observation_out_of_scope: effective write observed path outside write_scope: support/checkers/check_building_lifecycle_path_shape.py'; step=adapter-30-s1-park-work; agent-object=dev\", \"dashboard-productization-0612/raw/adapter-error.jsonl#1 (2026-06-12T04:00:54Z): error_kind=adapter_exception, exception_type=ValueError, messa...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "Support evidence only; not source truth, not success judgment, not quality judgment, not Movement authority",
+            "Adapter error messages are read from persisted ledger files; actual agent return bodies for failed attempts are not retained (agent_fact_created=false in all incidents)",
+            "Checker execution (check_building_lifecycle_path_shape, check_profile.py) was not run from this read-only QA lane; RED/GREEN state claims cannot be verified here",
+            "Operator notes (x2 timeouts, design stalled 25/29min, late-night degradation) are not ledger rows; they are cited as candidate context only, not as evidenced facts",
+            "The IAP frontier_trace/raw-manifest inconsistency described in F14 task.md is NOT currently observable in the IAP building files; F14 may have been written from an earlier file state or from a theoretical analysis of the support recording code; this QA pass cannot determine which without file-history access",
+            "No git mutations, hook execution, network calls, or file writes were performed in this review"
+          ],
+          "regression_risks": [
+            "write_scope glob grammar: 'support/*' does not cover nested paths (support/checkers/, support/recording/, etc.); any Brick declaration using a single-level glob remains at risk of the same OOB rejection — observed in adapter-30-s1-park",
+            "node_modules write always-forbidden: any work step that runs npm/node install in a support/dashboard context will produce the same forbidden-path adapter-error regardless of write_scope; dashboard-productization 0612 and 0612b show this recurs without constraint in the task",
+            "Retry-as-new-building without root-cause repair: dashboard-productization-0612 → 0612b issued an identical retry 52 minutes later with no write_scope or task change; the retry pattern is itself a risk signal for any blocked building",
+            "Forbidden return key scanning: any agent that returns a nested dict with 'status', 'movement', or other reserved key anywhere in the return tree triggers adapter rejection; future closure bricks using complex return shapes must validate that no internal key matches the forbidden set",
+            "Agent writing to status/inbox: provider-ladder-fleet-presets work step attempted to emit a system-event to status/inbox — if future work steps internally invoke building-finished or notification mechanics, they risk the same forbidden-path error",
+            "Large-session codex timeout: F14 design step timed out on a bounded 5-file reading task (late-night provider degradation candidate per operator notes); any codex session with large context or late-night timing is at risk without a bounded timeout fallback"
+          ],
+          "remaining_delta": [
+            "Read adapter-30-s1-park/work/building-intake.json to confirm the actual write_scope parameter; compare against task.md expected scope to determine whether Brick-axis (mis-declared) or Brick-axis (not declared) attribution holds",
+            "Read provider-ladder-fleet-presets-0612/raw/agent-return.jsonl (design step output) to trace whether design instructed work step to emit a status/inbox event",
+            "Run check_building_lifecycle_path_shape.py against iap-dashboard-sink-passport-0612 in a writable/admitted lane to confirm or deny RED — this is the key open claim from F14's task that contradicts the current file state",
+            "Read iap-dashboard-sink-passport-0612/raw/link.jsonl line 15 in full to confirm the frontier row structure and verify it is a valid adapter-error-frontier record",
+            "If notify-v2 and notify-v3 design timeout buildings exist, locate and add their adapter-error evidence to the frequency pattern analysis",
+            "Read f10-grounding prior steps (declared-building-plan.json, step-outputs) to establish whether a design step ran and whether it instructed the wrong return shape for handoff_refs"
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:claude:sonnet"
+        }
+      },
+      "fact_ref": "agent-fact:03:postmortem-0612-incidents-code-lens-claude",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:inspector",
+        "received_work": "brick-work:04:postmortem-0612-incidents-axis-lens-codex",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_axis_findings": [
+            "F14 design raw/adapter-error.jsonl:1 records adapter:codex-local local_cli_timeout, TimeoutExpired, agent_fact_created=false.",
+            "IAP closure raw/adapter-error.jsonl:1 records ValueError: returned_value.parent_goal_delta_status contains forbidden return key 'status'.",
+            "F10 raw/adapter-error.jsonl:1 records ValueError: returned_value.handoff_refs contains forbidden return key 'movement'.",
+            "Provider-ladder, dashboard 0612, dashboard 0612b, and adapter-30 work steps all record adapter exceptions after Agent receipt and before AgentFact return.",
+            "Agent return validator recursively rejects forbidden keys via agent/return_fact.py:32-67 and support/connection/agent_adapter.py:1406-1415."
+          ],
+          "agent_object_ref": "agent-object:inspector",
+          "attacked_scope": [
+            "Read-only ledger/task/plan/template/checker inspection for the named 0612 incident roots plus f13 control and f10.",
+            "No files edited, no git mutation, no network, no npm/node execution, no credential/session bodies inspected."
+          ],
+          "blocked_or_missing_evidence": [
+            "archive/status-kernel/current-brick-operating-packet-0531.md and post-D plan path absent.",
+            "postmortem-0612-incidents root lacks evidence/claim_trace, raw-manifest, and evidence-manifest.",
+            "read_side_projection_boundary profile blocked by Operation not permitted creating checker fixture root.",
+            "No retained rollout for operator-note late-night timeout pattern; no live provider trace inspected.",
+            "No writable temp copy for reconciliation/full-gate proof."
+          ],
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "brick_axis_findings": [
+            "F14: task.md records an operator-verified raw_ref/manifest defect; current ledgers show the repair/reconciliation state, so original mismatch is historical support evidence, not live mismatch in this root.",
+            "IAP: closure contract allows parent_goal_delta_status, but global Agent return law forbids nested status; repeated closure errors suggest Agent return-shape violation with a secondary Brick wording risk around the field name.",
+            "dashboard-productization-0612: task required npm build in worktree, then write guard rejected support/dashboard/node_modules/.../token-map.js; primary contract/proof-process mismatch plus support guard.",
+            "dashboard-productization-0612b: retry task explicitly forbids in-worktree npm, yet same node_modules token path error recurs; primary Agent/process carryover or pre-existing artifact, with Brick retry instructions not sufficient by themselves.",
+            "adapter-30-s1-park: task label says park, but ledger error is write_observation_out_of_scope on support/checkers/check_building_lifecycle_path_shape.py; primary Brick write_scope pattern mismatch or mislabeled casualty, not proven chat-session park behavior.",
+            "F10: work return shape required handoff_refs, but returned handoff_refs carried movement; Brick field naming can invite Link terms unless constrained, but primary observed fault is Agent return shape."
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:postmortem-0612-incidents",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:postmortem-0612-incidents:agent-object:inspector:output"
+          ],
+          "evidence_used": [
+            "AGENTS.md; project/brick-protocol/PROGRESS.md; project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md.",
+            "raw/adapter-error.jsonl, raw/link.jsonl, raw/agent-return.jsonl, raw/agent-received.jsonl, capture/events.jsonl, work/task.md, declared-building-plan.json for all named roots.",
+            "brick/templates/bricks/*/return.yaml; agent/return_fact.py; support/connection/agent_adapter.py; support/recording/step_outputs.py; support/operator/write_observation.py.",
+            "Commands: git status --short --branch; git diff --check; find/rg/jq/awk reads; check_profile.py --profile read_side_projection_boundary; check_profile.py --profile building_automation."
+          ],
+          "link_axis_findings": [
+            "Observed Link rows carry caller-declared forward movement and targets; this inspection found no support-authored Movement choice.",
+            "Provider-ladder/dashboard/adapter/F10 paused as adapter-error frontiers with agent_incomplete and caller-or-coo disposition pending or absent.",
+            "IAP and F14 closure rows resumed by coo-authored forward disposition; the rows themselves preserve not_proven for semantic correctness and process integrity.",
+            "F13 control contains executed closure raw:link:06 plus declared graph edges; no adapter-error row was observed in that control root."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "source truth, success judgment, quality judgment, Movement authority",
+            "provider quality or late-night provider degradation",
+            "operator-note 60-minute stall pattern, because no retained rollout was inspected here",
+            "full checker green or mutation RED in this read-only sandbox",
+            "real dashboard/IAP/network behavior",
+            "semantic correctness of any repaired implementation"
+          ],
+          "observed_evidence": [
+            "cwd=/Users/smith/projects/BRICK on main; git status shows untracked postmortem-0612-incidents building/inbox files and no tracked diff.",
+            "AGENTS.md was read; the referenced archive/status-kernel operating-packet files are absent in this checkout.",
+            "Targets exist: f14, iap, provider-ladder, dashboard 0612/0612b, adapter-30, f13 control, f10.",
+            "postmortem-0612-incidents currently has only raw/report-thread.jsonl; building_automation profile rejects missing evidence/raw/manifest paths.",
+            "read_side_projection_boundary profile is blocked by read-only fixture creation; git diff --check exits 0.",
+            "Current iap and f14 raw manifests include reconciled link-frontier, adapter-error, and agent-received refs."
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ \"cwd=/Users/smith/projects/BRICK on main; git status shows untracked postmortem-0612-incidents building/inbox files and no tracked diff.\", \"AGENTS.md was read; the referenced archive/status-kernel operating-packet files are absent in this checkout.\", \"Targets exist: f14, iap, provider-ladder, dashboard 0612/0612b, adapter-30, f13 control, f10.\", \"postmortem-0612-incidents currently has only raw/report-thread.jsonl; building_automation profile rejects missing evidence/raw/manifest paths.\", \"read_side_projection_boundary profile is blocked by read-only fixture creatio...",
+          "projection_authority_findings": [
+            "project/brick-protocol/PROGRESS.md is machine-generated projection and states it is not source truth, success, quality, or Movement authority.",
+            "Dashboard/progress stopped or paused labels must be read through raw/link frontier evidence; f10 shows agent_incomplete from adapter error.",
+            "Current reconciled manifests prove only present raw_ref resolution in inspected roots, not semantic correctness or future dashboard truth."
+          ],
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "read-only current-checkout inspection",
+            "checker output is support evidence only",
+            "projection freshness is not authority"
+          ],
+          "remaining_delta": [
+            "Complete/persist the postmortem building evidence root, then rerun building_automation/read-side profiles in a writable temp source copy.",
+            "Separate repair candidates: provider timeout/task split, nested forbidden-key return training, npm/temp-copy preflight, write_scope pattern repair for adapter-30, and support manifest reconciliation fixture coverage.",
+            "Keep any next Movement caller/Link supplied; this inspector return supplies no route target."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "support_leak_findings": [
+            "Write-observation guard rejected forbidden path segments such as token/credential and out-of-scope checker paths; those are support safety stops, not Link judgments.",
+            "F14/IAP manifest reconciliation is explicitly sourced to support/recording/raw_claim_trace.py, so it remains support evidence only.",
+            "Checker/profile failures in this pass are environment/evidence-root blockers, not protocol closure findings."
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:04:postmortem-0612-incidents-axis-lens-codex",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:04"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:inspector",
+        "received_work": "brick-work:05:postmortem-0612-incidents-axis-lens-claude",
+        "returned": {
+          "adapter_ref": "adapter:claude-local",
+          "agent_axis_findings": [
+            "F14 (design stall): adapter:codex-local timed out (TimeoutExpired) at the design step. The codex CLI process was invoked with --sandbox read-only --ephemeral --output-last-message. No agent output was returned (agent_fact_created=false). Primary agent-axis evidence: local_cli_timeout is an adapter-layer failure, not a return-shape failure.",
+            "IAP closure (forbidden 'status' key): agent-object:coo returned parent_goal_delta_status as a top-level key in its closure return. COO is the declared performer for the closure step. The COO used this field name despite the adapter's forbidden-key enforcement. This is an Agent-axis return-shape violation: the returned payload contained a forbidden key.",
+            "IAP QA/inspector probes incomplete: agent-object:qa (code-attack-qa) and agent-object:inspector (evidence-integrity) both reported that the focused checker and mutation RED could not be executed because no writable temporary directory was available in their sandbox environments. This is an Agent-axis execution constraint, not a Brick contract failure.",
+            "dashboard-productization-0612/b: agent-object:dev invoked npm/node (or equivalent) inside the worktree, generating support/dashboard/node_modules/ files. The retry produced the identical error, indicating the agent did not adapt strategy between runs.",
+            "adapter-30-s1-park: agent-object:dev attempted to write support/checkers/check_building_lifecycle_path_shape.py outside its declared write_scope. The error prefix write_observation_out_of_scope confirms the adapter's scope guard fired, not a filesystem permission error.",
+            "f10 (forbidden 'movement' key): agent-object:dev placed 'movement' key inside handoff_refs in its work return. 'movement' is a Link-vocabulary key forbidden in Agent returns per closed AgentFact discipline. This is an Agent-axis boundary violation: the Agent returned Link-domain vocabulary.",
+            "provider-ladder-fleet-presets-0612: agent-object:dev ran a process that wrote to project/brick-protocol/status/inbox/ (checker fixture vessel path). This is outside declared write_scope. The fact that the path contains a timestamp-named fixture file confirms the agent ran a full checker invocation that created projection fixtures."
+          ],
+          "agent_object_ref": "agent-object:inspector",
+          "attacked_scope": "Declared building roots: f14-claim-trace-manifest-adapter-error-0612, iap-dashboard-sink-passport-0612, provider-ladder-fleet-presets-0612, dashboard-productization-0612, dashboard-productization-0612b, adapter-30-s1-park, f13-frontier-declared-edge-fallback-0612 (control), f10-grounding-demand-record-unify-0612. Read-only inspection of raw/, work/task.md, work/step-outputs/, capture/events.jsonl, evidence/claim_trace/ per declared template method. No files edited.",
+          "blocked_or_missing_evidence": [
+            "F14 second design-stall adapter-error record: if there were truly two 60min timeouts, only one is in raw/adapter-error.jsonl. Second stall evidence is absent; possibly lost to ephemeral adapter mode.",
+            "IAP second closure-failure record: raw/adapter-error.jsonl for iap contains 1 line; 'x2' pattern not confirmed by raw evidence.",
+            "F10 work/task.md: not read in this pass (Glob showed no task.md for f10-grounding-demand-record-unify-0612); the Brick contract for f10 was not inspected — cannot determine if the Brick template induced the 'movement' key return.",
+            "adapter-30-s1-park declared-building-plan.json / link-launch-policy.json: write_scope declaration not read; scope violation attributed from adapter-error message only.",
+            "F15 building root: referenced in F14 task.md as 'F15 trace' but no f15-* building was in the target list and none was searched.",
+            "provider-ladder-fleet-presets night stalls: building has no adapter-error for the pre-build ephemeral sessions; those records were not retained (adapter --ephemeral flag).",
+            "raw/agent-return.jsonl for provider-ladder-fleet-presets-0612: file exists per Glob but was not read — design agent return not inspected.",
+            "work/declared-building-plan.json for any building: write_scope was not read from the plan files."
+          ],
+          "brain_surface_ref": "brain-surface:claude-code-local-cli",
+          "brick_axis_findings": [
+            "F14 (design stall): task.md scope is broad — 4 source modules to read + 3 deliverables (fix writers + reconciliation verb + checker pin) + proof in single design step. The operator notes that a bounded statement walked in 2min vs 60min stall; suggests the original task weight was a contributing factor alongside provider performance.",
+            "IAP closure (forbidden 'status' key): The closure Brick step (brick-iap-dashboard-sink-passport-0612-closure) accepted COO returns with parent_goal_delta_status at the top level. The adapter's forbidden-key validator rejected the key because it contains 'status'. The closing Brick or building plan did not explicitly prohibit parent_goal_delta_status by name, creating ambiguity for COO. The template pattern (MEMORY.md: 'COO 직접' closure pattern) appears to have included this field.",
+            "adapter-30-s1-park (write-scope mismatch): task.md deliverable 5 explicitly requires editing support/checkers/check_building_lifecycle_path_shape.py, but that path was not included in the building's declared write_scope; the task contract (Brick) and the write_scope (Brick enforcement layer) were not aligned.",
+            "dashboard-productization-0612/b (node_modules): The task required npm/node execution on the dashboard, which generates node_modules. The write_scope (support/*) may have covered node_modules by glob, but the adapter's forbidden-path enforcement blocked it. The task did not specify a temp-copy or separate npm step strategy; the Brick did not account for the node_modules write path.",
+            "f10 (forbidden 'movement' key): If the work Brick task statement or pattern instructed the dev to return handoff guidance including a 'movement' key in handoff_refs, the Brick template may have induced the violation. This cannot be confirmed without inspecting the work Brick template for f10.",
+            "provider-ladder-fleet-presets-0612 (checker fixture write): the task required running full-gate checker which internally creates checker-projection-fixture-vessel in project/brick-protocol/status/inbox/; this path was outside the declared write_scope. The Brick did not declare the fixture path or instruct temp-copy execution."
+          ],
+          "cli_call_ref": "support-cli-call:adapter:claude-local:postmortem-0612-incidents",
+          "cli_version_text": "2.1.165 (Claude Code)",
+          "evidence_refs": [
+            "support-packet:postmortem-0612-incidents:agent-object:inspector:output"
+          ],
+          "evidence_used": [
+            "project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md (template — read first)",
+            "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/adapter-error.jsonl",
+            "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/agent-received.jsonl",
+            "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/work/task.md",
+            "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/work/step-outputs/f14-claim-trace-manifest-adapter-error-0612-design-attempt-1/adapter-error.json",
+            "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/work/ (Glob)",
+            "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/adapter-error.jsonl",
+            "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/agent-return.jsonl (6 lines)",
+            "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/capture/events.jsonl (30 lines)",
+            "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/work/step-outputs/iap-dashboard-sink-passport-0612-closure-attempt-1/adapter-error.json",
+            "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612/raw/adapter-error.jsonl",
+            "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612/work/task.md",
+            "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612/ (Glob)",
+            "project/brick-protocol/buildings/dashboard-productization-0612/raw/adapter-error.jsonl",
+            "project/brick-protocol/buildings/dashboard-productization-0612/ (Glob)",
+            "project/brick-protocol/buildings/dashboard-productization-0612b/raw/adapter-error.jsonl",
+            "project/brick-protocol/buildings/dashboard-productization-0612b/ (Glob)",
+            "project/brick-protocol/buildings/adapter-30-s1-park/raw/adapter-error.jsonl",
+            "project/brick-protocol/buildings/adapter-30-s1-park/work/task.md",
+            "project/brick-protocol/buildings/adapter-30-s1-park/ (Glob)",
+            "project/brick-protocol/buildings/f13-frontier-declared-edge-fallback-0612/ (Glob — no adapter-error.jsonl in raw/)",
+            "project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612/raw/adapter-error.jsonl",
+            "project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612/ (Glob)"
+          ],
+          "link_axis_findings": [
+            "All hold states were recorded as adapter-error frontiers, not as incorrect Link gate or Movement decisions. No false-hold (gate erroneously blocking a valid return) or false-pass (gate releasing an invalid return) was observed in the ledger evidence.",
+            "IAP building: Link movements in capture/events.jsonl are all 'forward' with reason_ref=caller-supplied-link-facts; Link did not choose Movement; no erroneous Link gate action was observed.",
+            "adapter-30-s1-park: the building name implies a park disposition but the actual recorded frontier is adapter-error, not a parked frontier. If the building was relabeled as 'park' externally (by the operator), that mislabeling is outside the Link evidence layer — no park record shape was observed in the building's own raw evidence.",
+            "f10 (movement key): the forbidden 'movement' key appeared in handoff_refs of the agent's return, NOT in Link records themselves. The Link did not execute; the adapter caught the violation at the return-validation layer before any Link event was recorded.",
+            "No reroute, budget exhaustion, false gate, or Link event mismatch was identified across the scoped buildings."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Whether F14 design truly stalled twice (x2): only 1 adapter-error entry recorded; operator note says x2 but second attempt evidence is absent from this building's raw stream — the second stall may have occurred in a pre-build ephemeral Codex session with no ledger record.",
+            "Whether IAP closure failed twice (x2): only 1 entry in iap adapter-error.jsonl; the second instance of the forbidden-status-key pattern is not confirmed by ledger evidence from the inspected buildings.",
+            "The root cause of provider-ladder-fleet-presets-0612 night-session stalls (25/29min ZERO output): these stalls were in ephemeral sessions (adapter --ephemeral) and no adapter-error records exist for them; late-night large-context provider degradation is a candidate attribution but cannot be proven from ledger records alone.",
+            "Notify-v3 design timeout: no notify-v3 building root was present in the target list; not proven from building evidence.",
+            "The write_scope declaration text for each building (not read from declared-building-plan.json or link-launch-policy.json directly in this pass); scope violations are attributed from adapter-error messages only.",
+            "Whether a second closure attempt for IAP was made before the observed adapter-error or after (sequence ambiguity from raw_ref=raw:adapter-error:06 numbering).",
+            "F14 task claim that a bounded statement walked in 2min: no separate building recording that second walk was found; operator note only.",
+            "Semantic correctness of any agent implementation (Brick discipline: not a quality judgment lane).",
+            "Provider quality, runtime behavior, Codex/Claude native sync, MCP projection behavior, hook execution, source truth, success judgment, quality judgment, Movement authority."
+          ],
+          "observed_evidence": [
+            {
+              "adapter_30_s1_park": {
+                "building_state": "design step completed; work step errored with write_scope violation; spine+evidence present; hold state",
+                "mislabeling_observation": "building ID is 'adapter-30-s1-park' suggesting a park/waiting state, but the building's actual state is an adapter-error hold; no park record or park frontier branch was observed in this building's own evidence",
+                "task_scope": "work/task.md: S1 park seam deliverable 5 explicitly requires adding paths to check_building_lifecycle_path_shape.py — but that file was outside write_scope",
+                "work_step_adapter_error": "raw/adapter-error.jsonl#1: error_kind=adapter_exception, exception_type=ValueError, message_excerpt='write_observation_out_of_scope: effective write observed path outside write_scope: support/checkers/check_building_lifecycle_path_shape.py', agent=agent-object:dev, step=work, attempt-1, raw_ref=raw:adapter-error:02, 2026-06-11T17:28:04Z"
+              },
+              "dashboard_productization_0612": {
+                "building_state": "design step completed (step-output.json exists); work step errored; spine+evidence present; hold state",
+                "work_step_adapter_error": "raw/adapter-error.jsonl#1: error_kind=adapter_exception, exception_type=ValueError, message_excerpt='effective write observed forbidden path: support/dashboard/node_modules/@babel/generator/lib/token-map.js', agent=agent-object:dev, step=work, attempt-1, raw_ref=raw:adapter-error:02, 2026-06-12T04:00:54Z"
+              },
+              "dashboard_productization_0612b": {
+                "building_state": "design step completed; work step errored; hold state",
+                "retry_pattern": "same task, same agent, same forbidden path, different building ID (-0612 vs -0612b); retry produced identical error — constraint not addressed between attempts",
+                "work_step_adapter_error": "raw/adapter-error.jsonl#1: IDENTICAL message_excerpt to dashboard-productization-0612 — 'effective write observed forbidden path: support/dashboard/node_modules/@babel/generator/lib/token-map.js', agent=agent-object:dev, 2026-06-12T04:52:18Z (52min after original)"
+              },
+              "f10_grounding_demand_record_unify_0612": {
+                "building_state": "work step errored at first raw (raw:adapter-error:01 — no design step adapter error); only work/step-outputs/.../adapter-error.json found; no design step-output found in glob",
+                "dashboard_stop_explanation": "The 'movement' key in handoff_refs is a Link-vocabulary forbidden key in Agent returns; the adapter rejected the return; building holds at work step; no forward movement recorded → dashboard correctly shows멈춤 (stopped/hold state)",
+                "work_step_adapter_error": "raw/adapter-error.jsonl#1: error_kind=adapter_exception, exception_type=ValueError, message_excerpt='returned_value.handoff_refs contains forbidden return key movement', agent=agent-object:dev, step=work, attempt-1, raw_ref=raw:adapter-error:01, 2026-06-12T06:04:46Z"
+              },
+              "f13_frontier_declared_edge_fallback_0612": {
+                "control_building": "Glob shows 50+ spine events (0001-PresetExpansion through at least 0050-AgentReturn); no adapter-error.jsonl found at raw/ level in directory listing",
+                "full_walk_confirmed": "Multiple step cycles visible in spine events; building appears to have walked cleanly",
+                "no_adapter_error_in_glob": "No raw/adapter-error.jsonl surfaced in f13 glob results; no work/step-outputs/.../adapter-error.json observed"
+              },
+              "f14_claim_trace_manifest_adapter_error_0612": {
+                "building_walk_completed": "work/step-outputs/ contains design, work, code-attack-qa, axis-attack-qa, evidence-integrity, closure directories — the building finished after the timeout",
+                "design_adapter_error_file": "work/step-outputs/f14-claim-trace-manifest-adapter-error-0612-design-attempt-1/adapter-error.json: confirms TimeoutExpired, received_work_ref=brick-work:01:...-design, agent_fact_created=false",
+                "design_step_adapter_error": "raw/adapter-error.jsonl#1: error_kind=local_cli_timeout, exception_type=TimeoutExpired, adapter:codex-local, model:codex:default, 2026-06-12T13:03:43Z, step=f14-claim-trace-manifest-adapter-error-0612-design, attempt-1, raw_ref=raw:adapter-error:01",
+                "f15_trace_reference": "task.md mentions 'F15 trace' as a related incident reference — no F15 building root was found in glob results",
+                "only_one_adapter_error_in_raw_stream": "raw/adapter-error.jsonl contains exactly 1 line; operator note says 'x2 60min-timeouts' but only 1 is recorded",
+                "task_scope": "work/task.md: bounded reading list of 4 modules, 3 deliverables (fix writers + reconciliation verb + checker pin), proof required, real root at iap-dashboard-sink-passport-0612 to be reconciled on temp copy"
+              },
+              "iap_dashboard_sink_passport_0612": {
+                "closure_adapter_error": "raw/adapter-error.jsonl#1: error_kind=adapter_exception, exception_type=ValueError, message_excerpt='returned_value.parent_goal_delta_status contains forbidden return key status', agent=agent-object:coo, step=iap-dashboard-sink-passport-0612-closure, attempt-1, raw_ref=raw:adapter-error:06, 2026-06-12T10:11:03Z",
+                "closure_error_file": "work/step-outputs/iap-dashboard-sink-passport-0612-closure-attempt-1/adapter-error.json: confirms ValueError, received_work_ref=brick-work:06:...-closure, agent_fact_created=false",
+                "coo_closure_return_captured": "raw/agent-return.jsonl line 6: agent-object:coo returned parent_goal_delta_status key at top level of returned dict; confirmed by step_ref=iap-dashboard-sink-passport-0612-closure",
+                "full_walk_captured": "capture/events.jsonl: 6 step walk — design, work, code-attack-qa, axis-attack-qa, evidence-integrity, closure all have agent_received + agent_returned + brick_compared + link_transfer + link_movement events; building completed despite closure adapter-error (building was persisted post-reconciliation)",
+                "inspector_probe_failures": "raw/agent-return.jsonl line 5 (inspector): blocked_or_missing_evidence=['PYTHONDONTWRITEBYTECODE=1 ... check_profile.py --profile read-side-projection-boundary -> exit 1: Operation not permitted creating project/checker-projection-fixture-vessel', '_dashboard_productization_assert_iap_passport_probe() -> exit 1: no usable temporary directory']",
+                "only_one_closure_adapter_error_in_stream": "raw/adapter-error.jsonl contains 1 line; operator note says 'x2' closure forbidden-key; second attempt or second building not confirmed by this stream",
+                "qa_probes_not_fully_executed": "raw/agent-return.jsonl line 3 (qa): failing_or_missing_probes=['read_side_projection_boundary profile exited 1 — sandbox could not create project/checker-projection-fixture-vessel', full temp copy gate not run, mutation RED not executed — no writable temp dir']",
+                "transition_concern_in_closure": "work/step-outputs/iap-dashboard-sink-passport-0612-closure-attempt-1/transition-concern.json exists: concern_kind=verification_gap, not_proven=[focused checker green, mutation RED, full temp copy gate, compileall, real IAP E2E]"
+              },
+              "operator_notes_not_in_ledger": {
+                "fleet_preset_25_29min_stalls_night_session": "Operator notes two separate 25/29min Codex fleet-preset design stalls with ZERO output on 2026-06-12 night; adapter --ephemeral flag means those sessions' state was not retained (F18); no corresponding adapter-error records found in provider-ladder-fleet-presets-0612 raw stream for night-session stalls",
+                "notify_v3_design_timeout": "Operator notes notify-v3 design also timed out; no notify-v3 building root found in the target list; this incident is outside the scoped building roots",
+                "small_probes_fast": "Operator observation that small probes stayed fast — consistent with late-night large-context provider degradation hypothesis, not small-probe failure"
+              },
+              "provider_ladder_fleet_presets_0612": {
+                "building_state": "spine exists with 19 events; evidence_manifest.json exists; raw/agent-return.jsonl exists — building holds after work-step error; no work or closure step-output recorded",
+                "design_step_output_exists": "work/step-outputs/provider-ladder-fleet-presets-0612-design-attempt-1/step-output.json exists — design step completed; work step failed",
+                "task_scope": "work/task.md: per-step LLM selection, lane preference, fleet presets (recon-fleet + review-fleet), pins+FIRE, full gate; write_scope=support/*, brick/templates/*, brick/building_plans/*, agent/objects/*",
+                "work_step_adapter_error": "raw/adapter-error.jsonl#1: error_kind=adapter_exception, exception_type=ValueError, message_excerpt='effective write observed forbidden path: project/brick-protocol/status/inbox/checker-projection-fixture-vessel-clean-yard-read-side-projection-building-building-finished-event-2026-06-12T06-21-04-898264-00-00.json', agent=agent-object:dev, step=work, attempt-1, raw_ref=raw:adapter-error:02, 2026-06-12T06:23:34Z",
+                "work_step_adapter_error_file": "work/step-outputs/provider-ladder-fleet-presets-0612-work-attempt-1/adapter-error.json exists"
+              }
+            }
+          ],
+          "output_excerpt": "Now I have sufficient evidence to produce the required return. Here is the JSON output: ```json { \"observed_evidence\": { \"f14_claim_trace_manifest_adapter_error_0612\": { \"design_step_adapter_error\": \"raw/adapter-error.jsonl#1: error_kind=local_cli_timeout, exception_type=TimeoutExpired, adapter:codex-local, model:codex:default, 2026-06-12T13:03:43Z, step=f14-claim-trace-manifest-adapter-error-0612-design, attempt-1, raw_ref=raw:adapter-error:01\", \"design_adapter_error_file\": \"work/step-outputs/f14-claim-trace-manifest-adapter-error-0612-design-attempt-1/adapter-error.json: confirms TimeoutE...",
+          "projection_authority_findings": [
+            "No Agent return in the inspected buildings claimed source truth, success judgment, quality judgment, or Movement authority — all returns contained explicit not_proven and proof_limits fields.",
+            "IAP building agent-return.jsonl line 6 (COO): returned parent_goal_delta_status is a string field intended as parent-goal tracking. The COO did not claim Movement authority. The forbidden-key rejection was a name-collision with the forbidden 'status' substring, not a substantive authority claim.",
+            "IAP building capture/events.jsonl: brick_compared events carry unknown=true, indicating the support layer did not assert comparison outcomes.",
+            "f13 (control): no adapter-error observed; clean walk; confirms the preset and recording infrastructure are capable of clean walks under the same day and preset conditions."
+          ],
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "support evidence only — not source truth",
+            "not provider-runtime proof",
+            "not hook or tool execution proof",
+            "all axis attributions are narrowly derived from observed raw/adapter-error.jsonl entries, raw/agent-return.jsonl fields, and work/task.md scope descriptions only",
+            "secondary axis attributions are inferred from corroboration of multiple evidence sources; they are observations, not verdicts",
+            "operator notes in task-source:inline-statement are treated as appendix context only — not ledger evidence",
+            "this inspector return does not choose Link Movement, does not claim source truth, does not judge success or quality, and does not hold Movement authority"
+          ],
+          "remaining_delta": [
+            {
+              "frequency_patterns": [
+                "Write-scope violations (3 buildings: provider-ladder-fleet-presets, adapter-30-s1-park, dashboard-productization-0612/b): Brick write_scope declarations systematically do not account for all files that the task's deliverables require agents to touch. Pattern suggests write_scope should be validated against task deliverables before building dispatch.",
+                "Forbidden-key return violations (2 confirmed incidents: iap closure 'status', f10 'movement'): Agents returning vocabulary from excluded domains (Link keys, status fields). Both are Agent-axis violations; in iap the Brick template may have induced it. Pattern suggests the forbidden-key set needs to be explicitly listed in task instructions, not assumed to be known from protocol alone.",
+                "Large-session Agent timeout (1 confirmed in raw + operator-noted ephemeral stalls): F14 design timed out at 2026-06-12T13:03:43Z; operator notes fleet-preset stalls (unrecorded, ephemeral) on the same night. Small probes stayed fast. Pattern consistent with late-night provider degradation at large context, but Brick task weight is a contributing factor."
+              ],
+              "per_incident": [
+                {
+                  "evidence_refs": [
+                    "raw/adapter-error.jsonl#1",
+                    "work/step-outputs/f14-claim-trace-manifest-adapter-error-0612-design-attempt-1/adapter-error.json"
+                  ],
+                  "incident": "F14 design step local_cli_timeout at 2026-06-12T13:03:43Z",
+                  "not_proven": [
+                    "Second stall evidence; provider session degradation vs task-weight as primary cause; ephemeral pre-build sessions"
+                  ],
+                  "owning_axis": "Agent",
+                  "repair_candidate": "Split design from implementation; use bounded task statements per step; validate per-step scope weight before dispatch",
+                  "secondary_axis": "Brick"
+                },
+                {
+                  "evidence_refs": [
+                    "raw/adapter-error.jsonl#1 (raw:adapter-error:06)",
+                    "work/step-outputs/iap-dashboard-sink-passport-0612-closure-attempt-1/adapter-error.json",
+                    "raw/agent-return.jsonl#6"
+                  ],
+                  "incident": "IAP closure step ValueError — parent_goal_delta_status contains forbidden return key 'status' at 2026-06-12T10:11:03Z",
+                  "not_proven": [
+                    "Whether x2 means two closure attempts on this building or occurrence in two buildings; second adapter-error not in raw stream"
+                  ],
+                  "owning_axis": "Brick",
+                  "repair_candidate": "Explicitly add parent_goal_delta_status to the closure Brick's forbidden-key list or rename the field to avoid the 'status' substring; update COO closure template",
+                  "secondary_axis": "Agent"
+                },
+                {
+                  "evidence_refs": [
+                    "f14-claim-trace-manifest-adapter-error-0612/work/task.md (operator-verified defect description)",
+                    "iap-dashboard-sink-passport-0612 declared as the real root for reconciliation"
+                  ],
+                  "incident": "IAP building claim_trace/manifest inconsistency (adapter-error frontier rows not in final raw manifest — gate RED)",
+                  "not_proven": [
+                    "Whether the reconciliation described in F14 task.md was executed and merged; F14 has completed its walk but merge/push evidence is not in building files"
+                  ],
+                  "owning_axis": "support",
+                  "repair_candidate": "F14 building is the designated repair: fix write_raw_and_claim_trace to preserve error-frontier rows, add reconciliation verb, add checker fixture for adapter-error→closure path"
+                },
+                {
+                  "evidence_refs": [
+                    "raw/adapter-error.jsonl#1"
+                  ],
+                  "incident": "provider-ladder-fleet-presets-0612 work step ValueError — checker-projection-fixture-vessel write to project/ scope at 2026-06-12T06:23:34Z",
+                  "not_proven": [
+                    "Whether design step output correctly declared the full implementation; design step-output not read"
+                  ],
+                  "owning_axis": "Brick",
+                  "repair_candidate": "Declare project/brick-protocol/status/inbox/ fixture path in write_scope OR instruct agent to run checker in a temp source copy outside the worktree (as already established in iap and f14 proof patterns)",
+                  "secondary_axis": "Agent"
+                },
+                {
+                  "evidence_refs": [
+                    "raw/adapter-error.jsonl#1"
+                  ],
+                  "incident": "dashboard-productization-0612 work step ValueError — node_modules write at 2026-06-12T04:00:54Z",
+                  "not_proven": [
+                    "Exact write_scope declaration; whether node_modules is globally forbidden by adapter or only outside scope"
+                  ],
+                  "owning_axis": "Agent",
+                  "repair_candidate": "Add explicit npm/node prohibition or temp-directory strategy to the task/Brick; add support/dashboard/node_modules/ to forbidden-path list or use temp copy for npm",
+                  "secondary_axis": "Brick"
+                },
+                {
+                  "evidence_refs": [
+                    "raw/adapter-error.jsonl#1 (building: dashboard-productization-0612b)"
+                  ],
+                  "incident": "dashboard-productization-0612b work step ValueError — identical node_modules write at 2026-06-12T04:52:18Z (retry of dashboard-productization-0612)",
+                  "not_proven": [
+                    "Whether operator-level instruction to retry was given without constraint change; retry decision evidence not in building files"
+                  ],
+                  "owning_axis": "Agent",
+                  "repair_candidate": "The retry pattern itself is the evidence: the Brick task was reissued unchanged; the constraint that broke the first run was not addressed before retry. Repair requires fixing the task or adapter strategy before retrying",
+                  "secondary_axis": "Brick"
+                },
+                {
+                  "evidence_refs": [
+                    "raw/adapter-error.jsonl#1"
+                  ],
+                  "incident": "adapter-30-s1-park work step ValueError — write outside write_scope: support/checkers/check_building_lifecycle_path_shape.py at 2026-06-11T17:28:04Z",
+                  "not_proven": [
+                    "Exact write_scope text from declared-building-plan.json; whether the mislabeling as 'park' was an operator label or a system inference"
+                  ],
+                  "owning_axis": "Brick",
+                  "repair_candidate": "Add support/checkers/check_building_lifecycle_path_shape.py to write_scope declaration for this building class, OR split checker-allowlist additions into a separate narrowly-scoped building step",
+                  "secondary_axis": "Agent"
+                },
+                {
+                  "evidence_refs": [
+                    "raw/adapter-error.jsonl#1"
+                  ],
+                  "incident": "f10-grounding-demand-record-unify-0612 work step ValueError — handoff_refs contains forbidden return key 'movement' at 2026-06-12T06:04:46Z; building shows stopped on dashboard",
+                  "not_proven": [
+                    "f10 work/task.md not read; whether the Brick template induced the 'movement' key; whether there was a prior design step that set up the handoff pattern"
+                  ],
+                  "owning_axis": "Agent",
+                  "repair_candidate": "Dev agent must not use 'movement' or any Link-vocabulary key in Agent return payloads; update agent instructions or work Brick template to explicitly list 'movement' as a forbidden key in handoff_refs",
+                  "secondary_axis": "Brick"
+                }
+              ]
+            }
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:claude:sonnet",
+          "support_leak_findings": [
+            "IAP building: three inspector/QA runs confirmed that checker fixture-vessel creation (project/checker-projection-fixture-vessel) was blocked by the read-only sandbox; this is a support surface constraint surfacing as a gap in proof coverage, not a support content leak.",
+            "provider-ladder-fleet-presets-0612: the adapter-error message_excerpt contains the full path of the checker-projection-fixture-vessel file including a timestamp — this is a path string in an error message, not a credential or key material leak.",
+            "No credential bodies, JWT strings, private key bytes, or provider session identifiers were observed printed in any adapter-error message_excerpt inspected.",
+            "f10 (movement key): 'movement' appearing in handoff_refs of an Agent return is a Link-vocabulary leak into the Agent axis — the Agent asserted Link semantics. This is a support-seam discipline violation recorded in the adapter-error evidence."
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:05:postmortem-0612-incidents-axis-lens-claude",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:05"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:inspector",
+        "received_work": "brick-work:06:postmortem-0612-incidents-evidence-lens-codex",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:inspector",
+          "blocked_or_missing_evidence": [
+            "Checker/full-gate proof blocked by no usable temporary directory.",
+            "No raw provider/session bodies inspected by law.",
+            "No retained rollout for operator-note ephemeral stalls.",
+            "No writable temp copy for reconciliation or mutation probes."
+          ],
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "checker_overclaim_risks": [
+            "No checker green claim is available because the profile runner could not allocate temp.",
+            "Model/lens outputs under postmortem-0612-incidents are support evidence only.",
+            "The static raw-ref probe does not prove semantic correctness, provider health, or future absence of support-recording leaks."
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:postmortem-0612-incidents",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:postmortem-0612-incidents:agent-object:inspector:output"
+          ],
+          "evidence_scope": [
+            "Read-only local inspection of named Building roots, task template, raw ledgers, claim_trace/manifests, declared plans, current postmortem lens outputs, and support validators.",
+            "No files edited, no git mutation, no network, no provider session body, no credentials, no npm/node execution."
+          ],
+          "evidence_used": [
+            "project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md",
+            "raw/adapter-error.jsonl, raw/agent-received.jsonl, raw/agent-return.jsonl, raw/link.jsonl, raw/raw-manifest.json, work/task.md, work/declared-building-plan.json for target roots",
+            "agent/return_fact.py and support/connection/agent_adapter.py return-key validators",
+            "support/operator/write_observation.py path-scope validator",
+            "commands: git status --short; find; rg; jq; nl; python3 static raw_ref key probe; PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all"
+          ],
+          "missing_evidence": [
+            "retained evidence for second F14 60-minute timeout",
+            "retained evidence for second IAP status-key rejection",
+            "F15 Building root or trace",
+            "provider process/session diagnostics",
+            "writable temp-copy full gate",
+            "live dashboard/provider observations"
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "source truth",
+            "success judgment",
+            "quality judgment",
+            "Movement authority",
+            "provider quality",
+            "future Building correctness",
+            "complete future support-authority leak absence",
+            "operator-note-only late-night provider degradation"
+          ],
+          "observed_evidence": [
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/adapter-error.jsonl:1 raw:adapter-error:01",
+                "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/agent-received.jsonl:1 raw:agent-received:01",
+                "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/link.jsonl:15 raw:link-frontier:01",
+                "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/link.jsonl:6 raw:link:06"
+              ],
+              "incident": "F14 retained root records one design-step local_cli_timeout at 2026-06-12T13:03:43Z, then later records six Agent returns and a closure Link row.",
+              "not_proven": [
+                "two 60-minute F14 stalls from retained ledger",
+                "F15 trace",
+                "provider-wide degradation"
+              ],
+              "owning_axis": "Agent",
+              "repair_candidate": "Keep provider/adapter timeout handling separate from support raw-ref reconciliation; collect retained rollout/process evidence before attributing provider-wide degradation.",
+              "secondary_axis": "support"
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/adapter-error.jsonl:1 raw:adapter-error:06",
+                "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/agent-received.jsonl:6 raw:agent-received:06",
+                "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/work/declared-building-plan.json:149",
+                "agent/return_fact.py:32-67",
+                "support/connection/agent_adapter.py:1406-1412",
+                "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/link.jsonl:15 raw:link-frontier:06",
+                "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/link.jsonl:6 raw:link:06"
+              ],
+              "incident": "IAP closure first attempt was rejected because parent_goal_delta_status contained forbidden nested key status; current root later resumed and recorded closure.",
+              "not_proven": [
+                "second status-key violation in retained target roots",
+                "semantic correctness of closure content"
+              ],
+              "owning_axis": "Agent",
+              "repair_candidate": "Harden closure-return schema/prompt around plain scalar fields; consider Brick wording/type constraint for parent_goal_delta_status.",
+              "secondary_axis": "Brick"
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/work/task.md:24-31",
+                "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/raw-manifest.json:65",
+                "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/raw-manifest.json:76",
+                "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/raw-manifest.json:92",
+                "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/raw-manifest.json:127-134"
+              ],
+              "incident": "F14 task records an earlier IAP claim_trace/raw-manifest mismatch after adapter-error-to-closure; current IAP and F14 manifests now include the relevant frontier and receipt refs.",
+              "not_proven": [
+                "original unreconciled IAP state in current checkout",
+                "future absence of raw-ref preservation leaks"
+              ],
+              "owning_axis": "support",
+              "repair_candidate": "Keep repair on support recording/reconciliation: preserve or reconcile error-frontier and receipt refs through final rewrite."
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612/raw/adapter-error.jsonl:1 raw:adapter-error:02",
+                "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612/raw/link.jsonl:3 raw:link-frontier:02",
+                "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612/work/task.md:14",
+                "support/operator/write_observation.py:271-300"
+              ],
+              "incident": "provider-ladder-fleet-presets-0612 work step was stopped by write observation on project/brick-protocol/status/inbox while declared write scope excluded project.",
+              "not_proven": [
+                "exact command that emitted the inbox fixture",
+                "night provider-stall pattern from this retained ledger"
+              ],
+              "owning_axis": "support",
+              "repair_candidate": "Move projection/checker artifact emission to temp or admitted support paths before retrying; do not widen project writes without a separate declaration.",
+              "secondary_axis": "Agent"
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/dashboard-productization-0612/work/task.md:34",
+                "project/brick-protocol/buildings/dashboard-productization-0612/raw/adapter-error.jsonl:1 raw:adapter-error:02",
+                "project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl:3 raw:link-frontier:02",
+                "support/operator/write_observation.py:278-300"
+              ],
+              "incident": "dashboard-productization-0612 first attempt hit support/dashboard/node_modules/@babel/generator/lib/token-map.js after the task requested npm build in the worktree.",
+              "not_proven": [
+                "whether npm install or build created the exact file",
+                "whether artifact residue remained after the hold"
+              ],
+              "owning_axis": "Brick",
+              "repair_candidate": "Use temp-copy build proof outside the repo; the retry task already encodes that contract correction.",
+              "secondary_axis": "support"
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/dashboard-productization-0612b/work/task.md:3-5",
+                "project/brick-protocol/buildings/dashboard-productization-0612b/work/task.md:31",
+                "project/brick-protocol/buildings/dashboard-productization-0612b/raw/adapter-error.jsonl:1 raw:adapter-error:02",
+                "project/brick-protocol/buildings/dashboard-productization-0612b/raw/link.jsonl:3 raw:link-frontier:02"
+              ],
+              "incident": "dashboard-productization-0612b repeated the same node_modules token-map write-observation after the retry task explicitly forbade in-worktree npm and path segments such as token.",
+              "not_proven": [
+                "whether the forbidden file pre-existed",
+                "whether the Agent reran npm in the repo"
+              ],
+              "owning_axis": "Agent",
+              "repair_candidate": "Preflight worktree artifact paths and enforce temp-copy build execution before another retry.",
+              "secondary_axis": "support"
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/adapter-30-s1-park/raw/adapter-error.jsonl:1 raw:adapter-error:02",
+                "project/brick-protocol/buildings/adapter-30-s1-park/raw/link.jsonl:10 raw:link-frontier:02",
+                "project/brick-protocol/buildings/adapter-30-s1-park/work/declared-building-plan.json:44-49",
+                "project/brick-protocol/buildings/adapter-30-s1-park/work/task.md:21"
+              ],
+              "incident": "adapter-30-s1-park is labeled as park work, but retained ledger records adapter-error/write_observation_out_of_scope on support/checkers/check_building_lifecycle_path_shape.py, not a parked frontier.",
+              "not_proven": [
+                "actual chat-session park seam behavior",
+                "park frontier projection"
+              ],
+              "owning_axis": "Brick",
+              "repair_candidate": "Repair write-scope/path-admission declaration before treating this root as evidence for chat-session park behavior.",
+              "secondary_axis": "support"
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612/raw/adapter-error.jsonl:1 raw:adapter-error:01",
+                "project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612/raw/link.jsonl:1 raw:link-frontier:01",
+                "project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612/work/building-work.json:50",
+                "agent/return_fact.py:32-67"
+              ],
+              "incident": "f10-grounding-demand-record-unify-0612 dashboard stop is explained by forbidden Link vocabulary: returned_value.handoff_refs contained movement.",
+              "not_proven": [
+                "semantic correctness of the interrupted work",
+                "caller/COO disposition after the frontier"
+              ],
+              "owning_axis": "Agent",
+              "repair_candidate": "Constrain handoff_refs to address-only evidence; keep Movement wording out of Agent returns.",
+              "secondary_axis": "Brick"
+            }
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ { \"incident\": \"F14 retained root records one design-step local_cli_timeout at 2026-06-12T13:03:43Z, then later records six Agent returns and a closure Link row.\", \"owning_axis\": \"Agent\", \"secondary_axis\": \"support\", \"evidence_refs\": [\"project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/adapter-error.jsonl:1 raw:adapter-error:01\", \"project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/agent-received.jsonl:1 raw:agent-received:01\", \"project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/...",
+          "persisted_evidence_roots": [
+            "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612",
+            "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612",
+            "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612",
+            "project/brick-protocol/buildings/dashboard-productization-0612",
+            "project/brick-protocol/buildings/dashboard-productization-0612b",
+            "project/brick-protocol/buildings/adapter-30-s1-park",
+            "project/brick-protocol/buildings/f13-frontier-declared-edge-fallback-0612",
+            "project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612",
+            "project/brick-protocol/buildings/postmortem-0612-incidents"
+          ],
+          "proof_limit_findings": [
+            "Static raw_ref/raw_refs key probe found zero unresolved claim_trace key refs in the inspected roots; this is support evidence only.",
+            "check_profile.py --all was attempted and rejected because no usable temporary directory was available.",
+            "F13 control root has no raw/adapter-error.jsonl, has six raw Agent return rows, and records raw:link:06 closure; this is a control observation, not source truth or quality judgment."
+          ],
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "no Link Movement selected by this Agent return"
+          ],
+          "remaining_delta": [
+            "Collect retained rollout/process evidence before promoting provider-degradation attribution.",
+            "Run full profile gate and focused reconciliation checks in a temp-capable environment.",
+            "If another retry is declared, preflight write-scope and forbidden-path artifacts before Agent work starts.",
+            "Separate current reconciled IAP/F14 evidence from historical mismatch text in any closure handoff."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "stale_source_risks": [
+            "F14 task text preserves an older IAP mismatch; current IAP manifest is reconciled.",
+            "postmortem-0612-incidents and related inbox packets are untracked in current git status.",
+            "Memory was used only for routing context and may be stale; current repo evidence controlled the findings."
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:06:postmortem-0612-incidents-evidence-lens-codex",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:06"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:inspector",
+        "received_work": "brick-work:07:postmortem-0612-incidents-evidence-lens-claude",
+        "returned": {
+          "adapter_ref": "adapter:claude-local",
+          "agent_object_ref": "agent-object:inspector",
+          "blocked_or_missing_evidence": [
+            "provider session logs — excluded by law (credentials/raw provider sessions)",
+            "F18 ephemeral session rollout — adapter:codex-local --ephemeral produces no persisted rollout; no files exist to read",
+            "fleet preset and notify-v3 stall evidence — operator notes only; no named target building ledgers for these sessions",
+            "raw/link.jsonl for f14, f10, provider-ladder, dashboard-0612, dashboard-0612b, adapter-30-s1-park (files exist but not read in this session)",
+            "adapter-30-s1-park raw:adapter-error:01 source — file has 1 entry (numbered :02); no corresponding :01 file found",
+            "pre-repair state of F14 raw-manifest.json — overwritten by ad04a71 repair; not accessible",
+            "dashboard-0612b work/task.md — file exists but not read; task statement comparison against 0612 not performed"
+          ],
+          "brain_surface_ref": "brain-surface:claude-code-local-cli",
+          "checker_overclaim_risks": [
+            "A checker comparing frontier_trace.json raw_refs against raw-manifest.json raw_refs would show GREEN for F14 in current state (consistent post-repair) — correct for repaired state but would miss the pre-repair inconsistency class; checker must also verify repair commit reference (ad04a71) exists and post-dates the frontier_trace timestamp",
+            "A checker verifying 'no adapter-error.jsonl in raw/' for F13 (control) would correctly report no adapter errors; absence of the file does not confirm all steps completed without any holds — only that no adapter exceptions were recorded",
+            "A checker on write_scope violations using only message_excerpt cannot distinguish Brick-axis (declaration too narrow) from Agent-axis (explicit boundary cross); the check must compare the written path against the declared allowed_paths and forbidden_paths directly",
+            "A checker counting return shape violations from raw/adapter-error.jsonl across target buildings would find raw:adapter-error:02 in provider-ladder, dashboard-0612, dashboard-0612b, and adapter-30-s1-park — but these are write_scope violations (ValueError), not return shape violations; the checker must filter by message_excerpt pattern to correctly separate violation families",
+            "A checker that trusts work-queue-0612.md as ledger truth would mark F10 as complete; this would miss the building-level adapter error evidence showing work step incomplete — work queue is a planning document, not a building ledger"
+          ],
+          "cli_call_ref": "support-cli-call:adapter:claude-local:postmortem-0612-incidents",
+          "cli_version_text": "2.1.165 (Claude Code)",
+          "evidence_refs": [
+            "support-packet:postmortem-0612-incidents:agent-object:inspector:output"
+          ],
+          "evidence_scope": {
+            "excluded_by_scope": [
+              "provider session logs, auth tokens, credentials, raw provider sessions",
+              "raw/link.jsonl for f14, f10, provider-ladder, dashboard-0612, dashboard-0612b, adapter-30-s1-park, f13",
+              "raw/agent-return.jsonl for all buildings",
+              "work/declared-building-plan.json write_scope for dashboard-0612b and f10",
+              "work/task.md for f14, iap, f10, dashboard-0612, dashboard-0612b, f13",
+              "brick/templates/bricks/ closure spec (required_return_shape prose)",
+              "support/recording/ source code",
+              "git diff / commit history",
+              "f13 evidence spine event content (files present; content not read)",
+              "f14 capture/events.jsonl (read in prior session; not re-read)"
+            ],
+            "included": [
+              "raw/adapter-error.jsonl for all 8 target buildings",
+              "raw/link.jsonl for iap-dashboard-sink-passport-0612 (all 15 rows)",
+              "raw/raw-manifest.json for f14-claim-trace-manifest-adapter-error-0612",
+              "work/declared-building-plan.json write_scope sections for f14, dashboard-0612, adapter-30-s1-park, provider-ladder",
+              "work/task.md for adapter-30-s1-park",
+              "work/step-outputs/*/adapter-error.json and transition-concern.json for iap closure attempt-1",
+              "evidence/claim_trace/link/frontier_trace.json for f14 and f10",
+              "status/inbox intervention-required events (×2) and building-started event presence for f14",
+              "f13 raw/ directory listing confirming absence of adapter-error.jsonl",
+              "status/kernel/work-queue-0612.md",
+              "status/kernel/evidence-postmortem-task-template-0612.md"
+            ]
+          },
+          "evidence_used": [
+            "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/adapter-error.jsonl#1 (raw:adapter-error:01)",
+            "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/evidence/claim_trace/link/frontier_trace.json (raw:link-frontier:01)",
+            "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/raw-manifest.json",
+            "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/work/declared-building-plan.json (write_scope)",
+            "project/brick-protocol/status/inbox/brick-protocol-f14-...-intervention-required-event-2026-06-12T13-07-42-968837-00-00.json",
+            "project/brick-protocol/status/inbox/brick-protocol-f14-...-intervention-required-event-2026-06-12T13-53-54-358727-00-00.json",
+            "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/adapter-error.jsonl#1 (raw:adapter-error:06)",
+            "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/link.jsonl (rows 6 and 15)",
+            "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/work/step-outputs/iap-dashboard-sink-passport-0612-closure-attempt-1/adapter-error.json",
+            "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/work/step-outputs/iap-dashboard-sink-passport-0612-closure-attempt-1/transition-concern.json",
+            "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612/raw/adapter-error.jsonl#1 (raw:adapter-error:02)",
+            "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612/work/declared-building-plan.json (write_scope.forbidden_paths includes project/*)",
+            "project/brick-protocol/buildings/dashboard-productization-0612/raw/adapter-error.jsonl#1 (raw:adapter-error:02)",
+            "project/brick-protocol/buildings/dashboard-productization-0612/work/declared-building-plan.json (write_scope.allowed_paths:['support/*'])",
+            "project/brick-protocol/buildings/dashboard-productization-0612b/raw/adapter-error.jsonl#1 (raw:adapter-error:02)",
+            "project/brick-protocol/buildings/adapter-30-s1-park/raw/adapter-error.jsonl#1 (raw:adapter-error:02)",
+            "project/brick-protocol/buildings/adapter-30-s1-park/work/declared-building-plan.json (write_scope.allowed_paths:['support/','brick/building_plans/'])",
+            "project/brick-protocol/buildings/adapter-30-s1-park/work/task.md (checker deliverables declared)",
+            "project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612/raw/adapter-error.jsonl#1 (raw:adapter-error:01)",
+            "project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612/evidence/claim_trace/link/frontier_trace.json",
+            "project/brick-protocol/buildings/f13-frontier-declared-edge-fallback-0612/raw/ (Glob — no adapter-error.jsonl confirmed absent)",
+            "project/brick-protocol/status/kernel/work-queue-0612.md",
+            "project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md"
+          ],
+          "missing_evidence": [
+            "raw/link.jsonl for f14, f10, provider-ladder, dashboard-0612, dashboard-0612b, adapter-30-s1-park, f13 — hold/resume lifecycle, transition records, and gate behavior not inspected for these buildings",
+            "work/declared-building-plan.json write_scope for dashboard-0612b and f10 — Brick-axis attribution for these buildings relies on analogical evidence from 0612 and F14 respectively, not direct declaration comparison",
+            "work/task.md for f14, iap, f10, dashboard-0612, dashboard-0612b, f13 — task weight and prose analysis for Brick-axis secondary attributions not performed",
+            "brick/templates/bricks/ closure brick spec — required_return_shape and template prose that may induce 'status' key not directly read; Brick secondary attribution for IAP remains candidate only",
+            "f13 evidence spine event content — walk timing, step durations, gate behavior not available for control baseline comparison",
+            "adapter-30-s1-park source of raw:adapter-error:01 (raw/adapter-error.jsonl has :02; :01 origin not found in any file read)"
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "provider degradation on 0612 night as cause of F14 design timeouts — operator note only; no ledger probe records",
+            "fleet preset design stall ×2 (25/29min ZERO output) — operator note only; adapter:codex-local --ephemeral F18 produced no persisted rollout; no evidence files exist for these sessions",
+            "notify-v3 design timeout — operator note only; not a named target building",
+            "whether closure template prose directly caused return shape violations (IAP 'status', F10 'movement') — Brick secondary is candidate; template spec not read",
+            "F10 building resolution — work queue says complete; ledger says incomplete; which source is current is not determinable from files read in this session",
+            "whether the third return shape violation in work queue '2/3회' maps to any of the 8 target buildings",
+            "exact fnmatch implementation semantics in the adapter (Python standard fnmatch assumed based on memory notes; not confirmed from adapter source)",
+            "semantic correctness of any agent output (quality judgment — excluded by task constraint)",
+            "whether any building's outcome constitutes completion or incompletion (success/failure judgment — excluded by task constraint)",
+            "Movement authority for any building (excluded by task constraint)",
+            "content of agent return values for any step (bodies scrubbed; message_excerpt only available)"
+          ],
+          "observed_evidence": [
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/adapter-error.jsonl#1 (raw:adapter-error:01, error_kind:local_cli_timeout, exception_type:TimeoutExpired, step_ref:...-design, generatedAtTime:2026-06-12T13:03:43Z)",
+                "project/brick-protocol/status/inbox/brick-protocol-f14-...-intervention-required-event-2026-06-12T13-07-42-968837-00-00.json (observed_board_state:observed_paused, required_disposition_owner:coo)",
+                "project/brick-protocol/status/inbox/brick-protocol-f14-...-intervention-required-event-2026-06-12T13-53-54-358727-00-00.json (observed_board_state:observed_paused, required_disposition_owner:caller-or-coo)",
+                "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/evidence/claim_trace/link/frontier_trace.json (frontier_kind:agent_incomplete, observed_boundary_ref:brick-f14-...-design, reason_refs:[adapter-error:...-design:attempt-1], generatedAtTime:2026-06-12T13:03:43Z)"
+              ],
+              "incident": "F14 design step TimeoutExpired ×2 — adapter:codex-local raised TimeoutExpired (local_cli_timeout) on design step of f14-claim-trace-manifest-adapter-error-0612; 3 building-start events (2026-06-12T11:01, 12:03, 13:04) and 2 intervention-required holds (13:07:42 and 13:53:54) recorded; agent_fact_created: false on attempt recorded at 13:03:43Z",
+              "not_proven": [
+                "provider degradation as contributing cause (operator note; no ledger probe records for attempt-1 or attempt-2 timing)",
+                "whether attempts 1 and 2 both timed out or differed from attempt 3",
+                "whether smaller task_statement would have avoided timeout without provider degradation"
+              ],
+              "owning_axis": "Agent",
+              "repair_candidate": "Work queue item 0 — F15/F16 error path hardening; bounded reading list in task_statement (operator note, not ledger evidence)",
+              "secondary_axis": "Brick (task scope size — candidate only; no alternative-task baseline in this ledger)"
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/evidence/claim_trace/link/frontier_trace.json (raw_refs:[raw:link-frontier:01], generatedAtTime:2026-06-12T13:03:43Z)",
+                "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/raw-manifest.json (entries.Link.raw_refs includes raw:link-frontier:01; generatedAtTime:2026-06-12T14:04:11Z — post-repair)",
+                "project/brick-protocol/status/kernel/work-queue-0612.md: 'claim_trace/매니페스트 불일치 수리(보존 방식)+재조정 동사+체커 핀 — ad04a71'"
+              ],
+              "incident": "F14 support recording inconsistency class — after adapter-error hold then successful resume, frontier_trace.json retained raw:link-frontier:01 from failed design attempt; current raw-manifest.json (generatedAtTime 2026-06-12T14:04:11Z) DOES include raw:link-frontier:01 in Link section — ledger reflects post-repair state; pre-repair inconsistency not directly visible",
+              "not_proven": [
+                "pre-repair ledger state (files reflect repaired state only)",
+                "whether raw/link.jsonl contains a row for raw:link-frontier:01 (link.jsonl not read)",
+                "whether earlier buildings closed before ad04a71 carry the unremediated inconsistency"
+              ],
+              "owning_axis": "support",
+              "repair_candidate": "Repaired per work queue ad04a71; detection candidate: checker pin on frontier_trace raw_refs ⊆ raw-manifest raw_refs"
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/adapter-error.jsonl#1 (raw:adapter-error:06, error_kind:adapter_exception, exception_type:ValueError, message_excerpt:returned_value.parent_goal_delta_status contains forbidden return key 'status')",
+                "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/work/step-outputs/iap-dashboard-sink-passport-0612-closure-attempt-1/adapter-error.json (received_work_ref:brick-work:06:...-closure)",
+                "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/link.jsonl#15 (frontier_kind:agent_incomplete, transition_record_created:false, raw:link-frontier:06)",
+                "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/link.jsonl#6 (transition_lifecycle_state:resumed, building_lifecycle_state:closed, transition_author_ref:coo:claude-operator)",
+                "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/work/step-outputs/iap-dashboard-sink-passport-0612-closure-attempt-1/transition-concern.json (concern_kind:verification_gap, binding:false)"
+              ],
+              "incident": "IAP closure return shape violation — agent-object:coo returned parent_goal_delta_status containing forbidden key 'status' at iap-dashboard-sink-passport-0612 closure step; 2026-06-12T10:11:03Z; building held (frontier agent_incomplete, transition_record_created:false); COO resumed at 10:53:29Z; building_lifecycle_state: closed",
+              "not_proven": [
+                "what template prose induced the 'status' key (template diff not visible in this ledger)",
+                "semantic content of the COO agent's returned parent_goal_delta_status value",
+                "whether verification gaps in transition-concern.json were addressed before COO disposition"
+              ],
+              "owning_axis": "Agent",
+              "repair_candidate": "Work queue 0b — closure template prose fix to prevent 'status' key induction in parent_goal_delta_status value",
+              "secondary_axis": "Brick (closure template prose may induce 'status' key; work queue item 0b pending)"
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/adapter-error.jsonl (1 entry; raw_ref raw:adapter-error:06 is cross-stream sequence number)",
+                "project/brick-protocol/status/kernel/work-queue-0612.md: 'parent_goal_delta_status 값 안에 status 키 유도 방지 힌트 (codex 2/3회 양식 위반 실측)'"
+              ],
+              "incident": "Return shape violation count cross-reference — IAP (forbidden 'status' key in parent_goal_delta_status) + F10 (forbidden 'movement' key in handoff_refs) = 2 confirmed return shape violations across 0612 target buildings; work queue 0b cites 'codex 2/3회 양식 위반 실측'; IAP raw/adapter-error.jsonl confirmed 1 entry only (raw:adapter-error:06 numbering follows cross-stream sequence, not error count within file)",
+              "not_proven": [
+                "whether work queue '2/3회' count includes violations outside the 8 target buildings",
+                "exact identity of the 3rd violation if one exists"
+              ],
+              "owning_axis": "support (cross-building count observation only)",
+              "repair_candidate": "N/A — count observation only"
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612/raw/adapter-error.jsonl#1 (raw:adapter-error:02, error_kind:adapter_exception, exception_type:ValueError, message_excerpt:effective write observed forbidden path: project/brick-protocol/status/inbox/checker-projection-fixture-...)",
+                "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612/work/declared-building-plan.json write_scope.forbidden_paths includes 'project/*'"
+              ],
+              "incident": "Provider-ladder-fleet-presets-0612 work step write to forbidden project/ path — agent-object:dev wrote to project/brick-protocol/status/inbox/checker-projection-fixture-... (explicitly in declared forbidden_paths:['project/*']); 2026-06-12T06:23:34Z; building on intervention-required hold",
+              "not_proven": [
+                "what triggered the agent to attempt writing an inbox event (a support-recording function) during the work step",
+                "whether this was triggered by an explicit agent decision or implicit tool call"
+              ],
+              "owning_axis": "Agent",
+              "repair_candidate": "Work queue item 0 — close stop on 3 old error-hold buildings; Brick review: consider whether task prose implies support-recording writes that should be explicitly called out as agent-out-of-scope"
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/dashboard-productization-0612/raw/adapter-error.jsonl#1 (raw:adapter-error:02, error_kind:adapter_exception, exception_type:ValueError, message_excerpt:effective write observed forbidden path: support/dashboard/node_modules/@babel/generator/lib/token-map.js)",
+                "project/brick-protocol/buildings/dashboard-productization-0612/work/declared-building-plan.json write_scope.allowed_paths:['support/*'] — fnmatch 'support/*' matches support/dashboard but NOT support/dashboard/node_modules/... (depth>1)"
+              ],
+              "incident": "Dashboard-productization-0612 work step write_scope violation (node_modules) — agent-object:dev ran npm install causing writes to support/dashboard/node_modules/@babel/generator/lib/token-map.js; declared write_scope allowed_paths:['support/*'] covers direct children of support/ only; node_modules path is at depth >1; 2026-06-12T04:00:54Z",
+              "not_proven": [
+                "whether task.md explicitly instructed npm install",
+                "whether fnmatch semantics in the adapter match Python standard fnmatch (not confirmed from spec)"
+              ],
+              "owning_axis": "Brick",
+              "repair_candidate": "Declare recursive write_scope pattern (e.g. support/dashboard/**) or pre-install node_modules before write-scope-monitored session; see memory write_scope glob grammar trap note",
+              "secondary_axis": "Agent (ran npm install without recognizing write_scope depth boundary)"
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/dashboard-productization-0612b/raw/adapter-error.jsonl#1 (raw:adapter-error:02, identical message_excerpt, generatedAtTime:2026-06-12T04:52:18Z)"
+              ],
+              "incident": "Dashboard-productization-0612b — identical retry write_scope violation; same message_excerpt as 0612 (support/dashboard/node_modules/@babel/generator/...); 2026-06-12T04:52:18Z; no write_scope correction between retries; retry pattern without fix is itself Brick-axis evidence",
+              "not_proven": [
+                "whether 0612b task statement was modified before re-issue (task.md not read for 0612b)",
+                "whether any operator action was taken between 0612 and 0612b to address root cause"
+              ],
+              "owning_axis": "Brick",
+              "repair_candidate": "Same as 0612; ledger difference between 0612 and 0612b = only timestamp; root cause unchanged",
+              "secondary_axis": "Agent (same as 0612)"
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/adapter-30-s1-park/raw/adapter-error.jsonl#1 (raw:adapter-error:02, write_observation_out_of_scope, support/checkers/check_building_lifecycle_path_shape.py, 2026-06-11T17:28:04Z)",
+                "project/brick-protocol/buildings/adapter-30-s1-park/work/declared-building-plan.json write_scope.allowed_paths:['support/', 'brick/building_plans/'] — 'support/' has no glob; memory note confirms directory-type pattern excludes all children",
+                "project/brick-protocol/buildings/adapter-30-s1-park/work/task.md (declares checker deliverables including 'reporter bell, checker pins' as required output)"
+              ],
+              "incident": "Adapter-30-s1-park work step write_scope violation (checker deliverable path) — agent-object:dev wrote to support/checkers/check_building_lifecycle_path_shape.py; declared write_scope allowed_paths:['support/', 'brick/building_plans/']; 'support/' is directory-pattern (no glob star) — per documented fnmatch behavior, matches the directory entry only, NOT any files within it; 2026-06-11T17:28:04Z; note: building name refers to PARK seam (S1 of chat-session adapter implementation), NOT a parked/abandoned state",
+              "not_proven": [
+                "whether there was a prior event numbered raw:adapter-error:01 in this building (file has 1 entry but raw_ref is ':02')",
+                "whether building is awaiting re-issue or was explicitly closed by operator"
+              ],
+              "owning_axis": "Brick",
+              "repair_candidate": "Declare 'support/checkers/*' (or 'support/**') in write_scope; run fnmatch FIRE probe before issuing building (per memory write_scope glob grammar trap note); the 'support/' → 'support/*' gap is the same family as the note in memory"
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612/raw/adapter-error.jsonl#1 (raw:adapter-error:01, error_kind:adapter_exception, exception_type:ValueError, message_excerpt:returned_value.handoff_refs contains forbidden return key 'movement', 2026-06-12T06:04:46Z)",
+                "project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612/evidence/claim_trace/link/frontier_trace.json (frontier_kind:agent_incomplete, transition_record_created:false, disposition_record_created:false, reason_refs:[adapter-error:...-work:attempt-1])"
+              ],
+              "incident": "F10-grounding-demand-record-unify-0612 멈춤 — agent-object:dev returned handoff_refs containing forbidden Link-vocabulary key 'movement'; ValueError at work step; 2026-06-12T06:04:46Z; frontier_trace records agent_incomplete with transition_record_created:false and disposition_record_created:false; dashboard shows building frozen; work queue lists f10 as 'included in bf199ac wave' — inconsistent with ledger evidence",
+              "not_proven": [
+                "how work queue lists f10 as complete while ledger shows work step adapter error with no AgentFact (two sources inconsistent — not resolved from files read)",
+                "whether COO/operator took any disposition action after frontier observation",
+                "semantic content of the handoff_refs value returned"
+              ],
+              "owning_axis": "Agent",
+              "repair_candidate": "Work queue 0b — return shape template fix preventing closed-vocabulary key induction; F10 specific: task.md should explicitly constrain handoff_refs to non-Link-vocabulary refs; building requires re-issue after root cause repair",
+              "secondary_axis": "Brick (task.md for F10 not read; whether it explicitly prohibited 'movement' in handoff_refs is unknown; link closed vocabulary constraint expected from related task.md precedents but not confirmed for this specific brick)"
+            },
+            {
+              "evidence_refs": [
+                "project/brick-protocol/buildings/f13-frontier-declared-edge-fallback-0612/raw/ Glob result: raw-manifest.json, brick-work.jsonl, agent-return.jsonl, link.jsonl — NO adapter-error.jsonl",
+                "project/brick-protocol/buildings/f13-frontier-declared-edge-fallback-0612/evidence/spine/events/ (50+ events: PresetExpansion through Frontier sequence; content not read)",
+                "project/brick-protocol/status/kernel/work-queue-0612.md: 'f13 완료·머지·푸시 origin/main 2005c07; 변이 RED 체커 핀 동봉, 운영자 FIRE 6종 직접 실행 green'"
+              ],
+              "incident": "F13-frontier-declared-edge-fallback-0612 — CONTROL baseline; same adapter (adapter:codex-local), same chain preset (building-chain-preset:brick-protocol-engine-feature-hard), same day (2026-06-12); NO adapter-error.jsonl present in raw/; 50+ evidence spine events recorded; work queue confirms completed and merged (origin/main 2005c07)",
+              "not_proven": [
+                "spine event content, walk timing, step durations (not read)",
+                "whether any non-adapter-error holds occurred during the walk"
+              ],
+              "owning_axis": "N/A (control — no incident observed)",
+              "repair_candidate": "N/A"
+            },
+            {
+              "evidence_refs": [
+                "iap raw:adapter-error:06; f10 raw:adapter-error:01; work-queue-0612.md item 0b"
+              ],
+              "frequency_pattern": "Return shape violation family — 2 confirmed instances in 0612 target buildings: (1) IAP closure, forbidden key 'status' in parent_goal_delta_status (agent-object:coo, adapter:codex-local); (2) F10 work, forbidden key 'movement' in handoff_refs (agent-object:dev, adapter:codex-local); both error_kind:adapter_exception, exception_type:ValueError; work queue 0b cites 2/3 occurrences; Brick secondary axis in both (template prose candidate — not confirmed)",
+              "frequency_pattern_axis": "Agent primary, Brick secondary (candidate)"
+            },
+            {
+              "evidence_refs": [
+                "adapter-30-s1-park raw:adapter-error:02; dashboard-0612 raw:adapter-error:02; dashboard-0612b raw:adapter-error:02; provider-ladder raw:adapter-error:02; adapter-30-s1-park declared-building-plan.json write_scope; dashboard-0612 declared-building-plan.json write_scope; provider-ladder declared-building-plan.json write_scope"
+              ],
+              "frequency_pattern": "Write_scope violation family — 4 instances across 0612 and adjacent target buildings: (1) adapter-30-s1-park 2026-06-11: 'support/' no-glob pattern, checker path excluded; (2) dashboard-0612 04:00: 'support/*' too shallow for node_modules depth; (3) dashboard-0612b 04:52: identical retry; (4) provider-ladder 06:23: agent crossed explicitly forbidden project/ boundary; (1)(2)(3) = Brick-axis (declaration gap); (4) = Agent-axis (explicit boundary violation); node_modules pattern repeated unchanged in (3) = strongest Brick-axis repeat signal",
+              "frequency_pattern_axis": "Brick primary for (1)(2)(3); Agent primary for (4)"
+            }
+          ],
+          "output_excerpt": "I now have complete evidence from all target buildings. Here is the required single JSON object: ```json { \"observed_evidence\": [ { \"incident\": \"F14 design step TimeoutExpired ×2 — adapter:codex-local raised TimeoutExpired (local_cli_timeout) on design step of f14-claim-trace-manifest-adapter-error-0612; 3 building-start events (2026-06-12T11:01, 12:03, 13:04) and 2 intervention-required holds (13:07:42 and 13:53:54) recorded; agent_fact_created: false on attempt recorded at 13:03:43Z\", \"owning_axis\": \"Agent\", \"secondary_axis\": \"Brick (task scope size — candidate only; no alternative-task b...",
+          "persisted_evidence_roots": [
+            "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612",
+            "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612",
+            "project/brick-protocol/buildings/provider-ladder-fleet-presets-0612",
+            "project/brick-protocol/buildings/dashboard-productization-0612",
+            "project/brick-protocol/buildings/dashboard-productization-0612b",
+            "project/brick-protocol/buildings/adapter-30-s1-park",
+            "project/brick-protocol/buildings/f13-frontier-declared-edge-fallback-0612",
+            "project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612",
+            "project/brick-protocol/status/inbox/ (f14 intervention-required and building-started events)",
+            "project/brick-protocol/status/kernel/work-queue-0612.md"
+          ],
+          "proof_limit_findings": [
+            "F14 timeout: raw/adapter-error.jsonl records only attempt-3 (generatedAtTime 13:03:43Z); 3 building-start inbox events confirm 3 starts but adapter error records only the final stall; whether attempts 1 and 2 also timed out or terminated differently is not derivable from these files alone",
+            "F14 manifest: raw-manifest.json was generated at 14:04:11Z (post-repair); frontier_trace.json at 13:03:43Z (pre-repair time); both now include raw:link-frontier:01; the pre-repair inconsistency state is not directly observable",
+            "IAP x2 confirmation: raw/adapter-error.jsonl has 1 entry; raw:adapter-error:06 numbering is cross-stream sequence, not error count; 'x2' is resolved as IAP (1) + F10 (1) = 2 total across target buildings",
+            "Write_scope attribution: Brick-axis attributions for dashboard-0612, dashboard-0612b, and adapter-30-s1-park are supported by declared-building-plan.json write_scope declarations read in this session (direct evidence); provider-ladder Agent-axis is supported by declared forbidden_paths list (direct evidence)",
+            "F10 멈춤: work queue and building ledger are inconsistent (work queue 'complete in bf199ac wave'; ledger shows no AgentFact, no disposition record); resolution requires reading raw/link.jsonl for f10 (not read); the 멈춤 is explained by the adapter error but the work queue note introduces a stale source risk",
+            "Frequency count: IAP + F10 = 2 confirmed return shape violations; work queue '2/3회' suggests a possible 3rd instance; the 3rd is not identifiable from the 8 target buildings' adapter-error.jsonl files read"
+          ],
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "This analysis reads only static evidence files from persisted building ledgers; it does not observe provider runtime, process liveness, or network state",
+            "All raw_refs are from adapter-recorded observation — support evidence only; not source truth",
+            "agent_fact_created: false on all adapter errors means no AgentFact was produced; agent return values are not available for inspection",
+            "message_excerpt fields contain partial error messages only; full exception bodies are scrubbed",
+            "work-queue-0612.md is a planning/declaration document authored by operator — its listings are declarations, not building ledger truth; building ledgers supersede work queue text where inconsistent",
+            "Operator notes (fleet preset stall, notify-v3 timeout, small-probe speed, late-night provider degradation) are appendix context — not ledger evidence and not used for axis attribution in this analysis",
+            "All axis attributions are evidence-grounded candidates supported by error_kind, exception_type, message_excerpt, and declared write_scope — they are not verdicts; disposition authority belongs to caller/COO",
+            "This analysis does not claim source truth, does not judge success or quality, does not choose Link Movement"
+          ],
+          "remaining_delta": [
+            "raw/link.jsonl not read for f14, f10, provider-ladder, dashboard-0612, dashboard-0612b, adapter-30-s1-park — hold/resume lifecycle, stop-record presence, and gate behavior unverified for these buildings; work queue item 0 references 'stop 마감' for these 3 held buildings",
+            "write_scope declaration not compared for dashboard-0612b and f10 — Brick-axis secondary for these relies on analogical reasoning",
+            "F10 work queue vs ledger inconsistency unresolved — requires reading f10 raw/link.jsonl for any disposition or resolution records",
+            "F13 spine event timing not read — control baseline comparison on walk duration not possible",
+            "Closure brick template prose not read — Brick secondary axis for IAP and F10 return shape violations remains unconfirmed candidate",
+            "adapter-30-s1-park :01 raw_ref origin not located — prior event context unknown"
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:claude:sonnet",
+          "stale_source_risks": [
+            "F14 raw-manifest.json reflects post-repair state (generatedAtTime 14:04:11Z, post ad04a71); current files show consistent frontier_trace ↔ manifest; pre-repair inconsistency is not observable in current ledger",
+            "work-queue-0612.md lists f10 as 'included in bf199ac wave' (declared complete) while f10 building ledger shows work step adapter error, agent_fact_created: false, disposition_record_created: false; these two sources are inconsistent — the work queue may have been updated without a corresponding building close record, or the resolution occurred outside normal building lifecycle",
+            "dashboard-0612b task.md not read; 'identical retry without fix' attribution assumes task was re-issued unchanged; if the task was modified, the Brick-axis primary attribution for 0612b should be re-examined",
+            "adapter-30-s1-park raw:adapter-error:02 (not :01) implies a prior event numbered :01 somewhere in this building; no file containing raw:adapter-error:01 for this building was found in this session; the prior event's nature is unknown",
+            "IAP transition-concern.json (binding: false, verification_gap): concern items include missing support/dashboard/public/dashboard-data.json and unverified E2E acceptance; whether these were addressed before building closed is not recorded in files read — only that COO disposed forward (link.jsonl#6 transition_lifecycle_state:resumed)"
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:07:postmortem-0612-incidents-evidence-lens-claude",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:07"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:coo",
+        "received_work": "brick-work:08:postmortem-0612-incidents-closure",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:coo",
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "cli_call_ref": "support-cli-call:adapter:codex-local:postmortem-0612-incidents",
+          "cli_version_text": "codex-cli 0.137.0",
+          "deferred_smith_review_queue": [
+            "Choose whether to first close the postmortem evidence-root shape gap or open one of the incident-family repair Buildings.",
+            "Decide whether F14 operator-note-only x2 timeout and notify-v3/fleet-preset ephemeral stalls should get a separate evidence-retention Building.",
+            "Decide whether parent_goal_delta_status remains an admitted top-level closure field name with scalar-only value constraints or should be renamed in a later governed contract change.",
+            "Decide whether adapter-30-s1-park should be relabeled in human backlog as write_scope casualty rather than park-seam evidence."
+          ],
+          "evidence_refs": [
+            "support-packet:postmortem-0612-incidents:agent-object:coo:output"
+          ],
+          "narrowly_proven": [
+            "Retained ledger evidence proves one F14 design-step adapter timeout in the named root, not the operator-note x2 timeout pattern.",
+            "Retained ledger evidence proves one IAP closure return rejection for nested status wording and one F10 work return rejection for Link vocabulary movement inside Agent return data.",
+            "Retained ledger evidence proves repeated write-observation stops across project/status/inbox, support/dashboard/node_modules, and support/checkers paths; the exact owning repair surface differs by incident and must stay incident-specific.",
+            "Current F14 and IAP roots contain later closure Link rows after earlier adapter-error frontier rows; this proves retained-path reconciliation exists in the current checkout, not semantic correctness.",
+            "Current postmortem root is not implementation-closed as a complete evidence root because the profile rejects missing evidence and raw manifest paths.",
+            "No inspected target ledger showed Link choosing a new Movement or target; observed Link rows are caller-declared forward rows or adapter-error frontiers."
+          ],
+          "next_target_candidates": [
+            "Declared repair Building candidate for Agent return-shape hardening: closure parent_goal_delta_status scalar-only guard and F10 handoff_refs address-only guard, with negative probes for nested status and movement.",
+            "Declared repair Building candidate for dashboard productization retry hygiene: clean worktree artifact preflight plus temp-copy npm/build proof, with support/dashboard/node_modules forbidden in repo.",
+            "Declared repair Building candidate for provider-ladder checker/report side effects: move projection/checker fixture output to temp or an admitted output root before retry, without widening project/* write scope.",
+            "Declared repair Building candidate for adapter-30: normalize or redeclare write_scope path shape before treating the root as park-seam evidence.",
+            "Declared evidence Building candidate for F14/provider stalls: collect retained rollout/process evidence for timeout claims before attributing provider-wide degradation."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "source truth",
+            "success judgment",
+            "quality judgment",
+            "Movement authority",
+            "provider quality or late-night provider degradation",
+            "two F14 60-minute stalls from retained ledgers",
+            "second IAP status-key violation from retained target roots",
+            "notify-v3 or fleet-preset ephemeral stall evidence; no retained rollout was inspected",
+            "F15 trace or any F15 building root",
+            "semantic correctness of repaired F14 or IAP outputs",
+            "future absence of return-shape leaks or support-recording leaks",
+            "checker green for the postmortem building root",
+            "full temp-copy gate proof",
+            "dashboard or production runtime behavior",
+            "complete correctness of any next repair plan"
+          ],
+          "observed_evidence": [
+            "cwd=/Users/smith/projects/BRICK; git status shows main tracking origin/main with untracked postmortem-0612-incidents building/inbox artifacts and no tracked diff reported by git diff --check.",
+            "AGENTS named archive/status-kernel/current-brick-operating-packet-0531.md and archive/status-kernel/brick-protocol-post-d-surface-recompile-0-plan-0530.md are absent in this checkout.",
+            "project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md defines this as a read-only evidence-postmortem over raw/link.jsonl, raw/agent-return.jsonl, raw/agent-received.jsonl, raw/adapter-error.jsonl, work/task.md, declared plans, step outputs, and capture events.",
+            "postmortem-0612-incidents contains six fan-in lens step-output.json files plus inspect, and only raw/report-thread.jsonl under raw; no evidence/claim_trace or raw/raw-manifest is present.",
+            "building_automation profile rejected the current postmortem root for missing evidence/, claim_trace files, evidence-manifest.json, and raw/raw-manifest.json; this is a path-shape support check, not source truth or quality judgment.",
+            "F14 retained ledger records one local_cli_timeout at raw:adapter-error:01 for f14-claim-trace-manifest-adapter-error-0612-design, agent_fact_created=false, and raw:link-frontier:01 agent_incomplete; the same root later records raw:link:06 closure forward to building-boundary:f14-claim-trace-manifest-adapter-error-0612-closed.",
+            "IAP retained ledger records raw:adapter-error:06 on iap-dashboard-sink-passport-0612-closure: returned_value.parent_goal_delta_status contains forbidden return key status; it also records raw:link-frontier:06 agent_incomplete and later raw:link:06 closure forward to building-boundary:iap-dashboard-sink-passport-0612-closed.",
+            "F10 retained ledger records raw:adapter-error:01 on f10-grounding-demand-record-unify-0612-work: returned_value.handoff_refs contains forbidden return key movement; raw:link-frontier:01 records agent_incomplete.",
+            "provider-ladder-fleet-presets-0612 records raw:adapter-error:02 for forbidden write to project/brick-protocol/status/inbox; dashboard-productization-0612 and dashboard-productization-0612b record raw:adapter-error:02 for support/dashboard/node_modules/@babel/generator/lib/token-map.js; adapter-30-s1-park records raw:adapter-error:02 write_observation_out_of_scope for support/checkers/check_building_lifecycle_path_shape.py.",
+            "F13 control root has no raw/adapter-error.jsonl and records raw:link:06 closure forward to building-boundary:f13-frontier-declared-edge-fallback-0612-closed.",
+            "agent/return_fact.py lines 32-67 include forbidden return keys including movement, status, target, success, failure, quality, credential, secret, session, and setup_token; support/connection/agent_adapter.py lines 1406-1415 recursively rejects forbidden keys in returned payloads; support/operator/write_observation.py lines 271-300 rejects forbidden path segments and out-of-scope writes.",
+            "The six incoming lenses converge on the same families: Agent return-shape violations, Brick contract/proof-process mismatches, support recording/projection side effects, and no observed Link-owned wrong Movement or target selection in the inspected ledgers."
+          ],
+          "output_excerpt": "{\"observed_evidence\":[\"cwd=/Users/smith/projects/BRICK; git status shows main tracking origin/main with untracked postmortem-0612-incidents building/inbox artifacts and no tracked diff reported by git diff --check.\",\"AGENTS named archive/status-kernel/current-brick-operating-packet-0531.md and archive/status-kernel/brick-protocol-post-d-surface-recompile-0-plan-0530.md are absent in this checkout.\",\"project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md defines this as a read-only evidence-postmortem over raw/link.jsonl, raw/agent-return.jsonl, raw/agent-received.jso...",
+          "parent_goal_delta_status": "support-evidence closure synthesis returned; incident families are attributed with proof limits, while profile-closed evidence root and next repair declarations remain open",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "remaining_delta": [
+            "Persist or regenerate the postmortem building evidence root so evidence/claim_trace, evidence-manifest.json, and raw/raw-manifest.json exist, then rerun the relevant profile from a writable temp copy.",
+            "Split repair candidates by evidence family: closure/F10 return-shape schema and prompt hardening; dashboard npm temp-copy and preflight guard; provider-ladder checker/report fixture output isolation; adapter-30 write_scope/path declaration repair; F14 provider-timeout evidence retention and bounded task strategy.",
+            "Keep F13 as the clean control baseline for this incident family: same day, same fan-in pattern, no raw/adapter-error.jsonl, closure raw:link:06 present.",
+            "Do not treat dashboard labels, progress projection counts, model lens agreement, or checker output as source truth, success, quality, or Movement authority."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "transition_concern_evidence": {
+            "binding": false,
+            "concern_kind": "verification_gap",
+            "concern_ref": "transition-concern:postmortem-0612-incidents-closure-evidence-root-gap",
+            "not_proven": [
+              "profile-closed postmortem evidence root",
+              "full temp-copy gate proof",
+              "future Building correctness",
+              "source truth",
+              "success judgment",
+              "quality judgment",
+              "Movement authority"
+            ],
+            "proof_limits": [
+              "support evidence only",
+              "read-only current-checkout inspection",
+              "model lens outputs are support evidence only",
+              "checker/profile output is support evidence only",
+              "not a Link Movement choice"
+            ],
+            "reason_refs": [
+              "project/brick-protocol/buildings/postmortem-0612-incidents/work/step-outputs/postmortem-0612-incidents-code-lens-codex-attempt-1/step-output.json",
+              "project/brick-protocol/buildings/postmortem-0612-incidents/work/step-outputs/postmortem-0612-incidents-evidence-lens-codex-attempt-1/step-output.json",
+              "support/checkers/check_profile.py --profile building_automation rejected missing postmortem evidence/root manifest paths",
+              "project/brick-protocol/buildings/f14-claim-trace-manifest-adapter-error-0612/raw/adapter-error.jsonl:raw:adapter-error:01",
+              "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612/raw/adapter-error.jsonl:raw:adapter-error:06",
+              "project/brick-protocol/buildings/f10-grounding-demand-record-unify-0612/raw/adapter-error.jsonl:raw:adapter-error:01"
+            ],
+            "related_boundary_refs": [
+              "brick-postmortem-0612-incidents-closure",
+              "brick-f14-claim-trace-manifest-adapter-error-0612-design",
+              "brick-iap-dashboard-sink-passport-0612-closure",
+              "brick-f10-grounding-demand-record-unify-0612-work"
+            ]
+          }
+        }
+      },
+      "fact_ref": "agent-fact:08:postmortem-0612-incidents-closure",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:08"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-12T23:21:48Z",
+  "id": "urn:bp:building:postmortem-0612-incidents::evidence/claim_trace/agent/returned_claims.json",
+  "recorded_at": "2026-06-12T23:21:48Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:postmortem-0612-incidents",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/agent/returned_claims.json",
+  "time": "2026-06-12T23:21:48Z",
+  "type": "bp.claim_trace"
+}

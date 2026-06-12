@@ -1,0 +1,13 @@
+# AgentReturn · seq 61 · ["Agent"]
+- agent_object_ref: "agent-object:inspector"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-postmortem-0612-incidents-evidence-lens-claude"
+- event_type: "AgentReturn"
+- observed_fields: ["received_work","returned"]
+- returned_fact_ref: "agent-fact:07:postmortem-0612-incidents-evidence-lens-claude"
+- route_request_ref: ""
+- run_segment: 1
+- sequence_index: 61
+- spine_schema_version: "spine-v1"
+- step_output_ref: "step-output:postmortem-0612-incidents-evidence-lens-claude:attempt-1"
+- step_ref: "postmortem-0612-incidents-evidence-lens-claude"

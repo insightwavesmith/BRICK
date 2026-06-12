@@ -1,0 +1,12 @@
+# Movement · seq 45 · ["Link"]
+- adopted_transition_concern_refs: []
+- axis_scope: ["Link"]
+- declared_movement: "forward"
+- event_type: "Movement"
+- gate_review_event_ref: "sufficiency-fact-movement:05:postmortem-0612-incidents-axis-lens-claude"
+- not_adopted_transition_concern_refs: []
+- run_segment: 1
+- sequence_index: 45
+- source_fact_ref: "movement-fact:05:postmortem-0612-incidents-axis-lens-claude"
+- spine_schema_version: "spine-v1"
+- target_boundary_ref: "brick:brick-postmortem-0612-incidents-closure"

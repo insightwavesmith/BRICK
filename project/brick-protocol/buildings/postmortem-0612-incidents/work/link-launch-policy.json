@@ -1,0 +1,181 @@
+{
+  "building_id": "postmortem-0612-incidents",
+  "declared_gate_refs": [
+    "link-gate:default-transition",
+    "link-gate:strict"
+  ],
+  "kind": "link_launch_policy_provenance",
+  "launch_rows": [
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-code-lens-codex",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "postmortem-0612-incidents-inspect",
+      "target_ref": "brick-postmortem-0612-incidents-code-lens-codex"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-code-lens-claude",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "postmortem-0612-incidents-inspect",
+      "target_ref": "brick-postmortem-0612-incidents-code-lens-claude"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-axis-lens-codex",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "postmortem-0612-incidents-inspect",
+      "target_ref": "brick-postmortem-0612-incidents-axis-lens-codex"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-axis-lens-claude",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "postmortem-0612-incidents-inspect",
+      "target_ref": "brick-postmortem-0612-incidents-axis-lens-claude"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-evidence-lens-codex",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "postmortem-0612-incidents-inspect",
+      "target_ref": "brick-postmortem-0612-incidents-evidence-lens-codex"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:postmortem-0612-incidents-inspect-to-postmortem-0612-incidents-evidence-lens-claude",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "postmortem-0612-incidents-inspect",
+      "target_ref": "brick-postmortem-0612-incidents-evidence-lens-claude"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:postmortem-0612-incidents-code-lens-codex-to-postmortem-0612-incidents-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "postmortem-0612-incidents-code-lens-codex",
+      "target_ref": "brick-postmortem-0612-incidents-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:postmortem-0612-incidents-code-lens-claude-to-postmortem-0612-incidents-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "postmortem-0612-incidents-code-lens-claude",
+      "target_ref": "brick-postmortem-0612-incidents-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:postmortem-0612-incidents-axis-lens-codex-to-postmortem-0612-incidents-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "postmortem-0612-incidents-axis-lens-codex",
+      "target_ref": "brick-postmortem-0612-incidents-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:postmortem-0612-incidents-axis-lens-claude-to-postmortem-0612-incidents-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "postmortem-0612-incidents-axis-lens-claude",
+      "target_ref": "brick-postmortem-0612-incidents-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:postmortem-0612-incidents-evidence-lens-codex-to-postmortem-0612-incidents-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "postmortem-0612-incidents-evidence-lens-codex",
+      "target_ref": "brick-postmortem-0612-incidents-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:postmortem-0612-incidents-evidence-lens-claude-to-postmortem-0612-incidents-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "postmortem-0612-incidents-evidence-lens-claude",
+      "target_ref": "brick-postmortem-0612-incidents-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:postmortem-0612-incidents-closure-to-boundary",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "postmortem-0612-incidents-closure",
+      "target_ref": "building-boundary:postmortem-0612-incidents-closed"
+    }
+  ],
+  "max_attempts_by_boundary": {},
+  "node_reroute_budgets": {
+    "brick-postmortem-0612-incidents-inspect": 1
+  },
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "plan_ref": "building-plan:postmortem-0612-incidents",
+  "plan_shape": "graph",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support evidence only",
+    "P3 records launch parameters only; P4 owns Carry budget evidence"
+  ],
+  "selected_shape_ref": "building-shape:design-needed"
+}

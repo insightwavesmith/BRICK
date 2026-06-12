@@ -1,0 +1,12 @@
+# AgentBinding · seq 59 · ["Agent"]
+- agent_object_ref: "agent-object:inspector"
+- agent_performer_ref: "agent-performer:agent-object:inspector"
+- axis_scope: ["Agent"]
+- binding_role: "primary"
+- brick_instance_ref: "brick-postmortem-0612-incidents-evidence-lens-claude"
+- event_type: "AgentBinding"
+- run_segment: 1
+- sequence_index: 59
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/postmortem-0612-incidents-evidence-lens-claude-attempt-1/step-output.json"
+- step_ref: "postmortem-0612-incidents-evidence-lens-claude"

@@ -1,0 +1,59 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:postmortem-0612-incidents::work/building-work.json",
+  "building_id": "postmortem-0612-incidents",
+  "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-06-12T23:21:47Z",
+  "id": "urn:bp:building:postmortem-0612-incidents::work/building-work.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "plan_ref": "building-plan:postmortem-0612-incidents",
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-06-12T23:21:47Z",
+  "required_return_shape": "inspected_scope,matched_facts,missing_facts,mismatched_facts,boundary_findings,observed_evidence,not_proven",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:postmortem-0612-incidents",
+  "source_facts": [
+    "task-source:inline-statement"
+  ],
+  "specversion": "1.0",
+  "step_refs": [
+    "postmortem-0612-incidents-inspect",
+    "postmortem-0612-incidents-code-lens-codex",
+    "postmortem-0612-incidents-code-lens-claude",
+    "postmortem-0612-incidents-axis-lens-codex",
+    "postmortem-0612-incidents-axis-lens-claude",
+    "postmortem-0612-incidents-evidence-lens-codex",
+    "postmortem-0612-incidents-evidence-lens-claude",
+    "postmortem-0612-incidents-closure"
+  ],
+  "subject": "work/building-work.json",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T23:21:47Z",
+  "type": "bp.building_work",
+  "work_statement": "inspect Brick for task-source:inline-statement: # Evidence postmortem — 3-axis fault attribution, 0612 incidents"
+}

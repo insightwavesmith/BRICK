@@ -1,0 +1,20 @@
+# PresetExpansion · seq 1 · ["Brick"]
+- axis_scope: ["Brick"]
+- building_id: "postmortem-0612-incidents"
+- canonical_chain_preset_ref: "building-chain-preset:postmortem-fleet"
+- chain_preset_catalog_scope: "common"
+- chain_preset_catalog_source: "common_chain_presets"
+- chain_preset_ref: "building-chain-preset:postmortem-fleet"
+- common_basis_ref: ""
+- compat_chain_preset_ref: ""
+- composition_mode: "caller_or_coo_declared_graph_composition"
+- event_type: "PresetExpansion"
+- expanded_brick_template_refs: ["brick/templates/bricks/inspect/return.yaml","brick/templates/bricks/transition-concern-return.yaml","brick/templates/bricks/code-attack-qa/return.yaml","brick/templates/bricks/axis-attack-qa/return.yaml","brick/templates/bricks/evidence-integrity/return.yaml","brick/templates/bricks/closure/return.yaml"]
+- expanded_step_template_refs: ["building-step-template:inspect","building-step-template:code-attack-qa","building-step-template:axis-attack-qa","building-step-template:evidence-integrity","building-step-template:closure"]
+- plan_ref: "building-plan:postmortem-0612-incidents"
+- run_segment: 1
+- selected_preset_ref: "building-chain-preset:postmortem-fleet"
+- selected_shape_ref: "building-shape:design-needed"
+- sequence_index: 1
+- shape_catalog_ref: "brick-template-catalog:split-p3b-p4"
+- spine_schema_version: "spine-v1"
