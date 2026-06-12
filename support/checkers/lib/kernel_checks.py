@@ -4398,7 +4398,16 @@ _SESSION_ID_SCAN_SUFFIXES = (".md", ".json", ".jsonl", ".txt")
 # session-id lines. Any future entry here requires the same discipline the
 # history repo used: path -> tuple of sha256[:16] digests of the EXACT
 # offending line content (a ceiling, not a pin — see run_agent_session_id_redaction).
-_SESSION_ID_LEGACY_ALLOWLIST: dict[str, tuple[str, ...]] = {}
+_SESSION_ID_LEGACY_ALLOWLIST: dict[str, tuple[str, ...]] = {
+    # 0612 (F11 evidence, frozen): building adapter-30-s2-s3-submit-resume's QA
+    # honestly DESCRIBED its negative probe and embedded the RFC example UUID
+    # (123e4567-...) in the probe text — not a real session id. The same
+    # observation also reports the F11 gap (UUID accepted in dict-KEY position
+    # by the submission rejector), queued for repair. Two lines, digest-frozen.
+    "project/brick-protocol/buildings/adapter-30-s2-s3-submit-resume/evidence/claim_trace/agent/returned_claims.json": ("8cdb07e6a732f184",),
+    "project/brick-protocol/buildings/adapter-30-s2-s3-submit-resume/work/step-outputs/adapter-30-s2-s3-submit-resume-code-attack-qa-attempt-1/step-output.json": ("d55e8f20f0e2107a",),
+    "project/brick-protocol/buildings/adapter-30-s2-s3-submit-resume/raw/agent-return.jsonl": ("be1f92f79aac6848",),
+}
 
 
 def _session_line_digest(line: str) -> str:

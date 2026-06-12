@@ -1031,7 +1031,16 @@ REPOSITORY_ARTIFACT_REF_SUFFIX = "repository_artifact_ref"
 # building is grandfathered BY ID; any other building with unresolvable
 # grounding refs stays RED.
 PRE_GROUNDING_LAW_BUILDING_IDS: frozenset[str] = frozenset(
-    {"lane-tooling-three-tier-0612"}
+    {
+        "lane-tooling-three-tier-0612",
+        # LAW-TRANSITION (0612, F10 queued): the notify building ran while the
+        # grounding law was BITING unevenly — its review gates RECORDED the
+        # grounding fact ref without DEMANDING it for the return shapes its QA
+        # used (gate forwarded; resolver cannot resolve). Registered as the
+        # second and LAST dated transition id; the demand/record consistency
+        # repair (F10) closes this class for every future building.
+        "notify-customer-language-autowire-0612",
+    }
 )
 VIRTUAL_REPOSITORY_ARTIFACT_RETURN_FIELDS = frozenset(
     {
