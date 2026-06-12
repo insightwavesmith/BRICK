@@ -24,6 +24,9 @@ edit, write, or fix.
 Do: identify what matches, what is missing or mismatched, and any axis/boundary violations,
 each tied to the evidence you actually inspected. Optional `transition_concern_evidence` is
 **non-binding** — it is evidence a Link disposition *may* adopt, never a Movement decision you make.
+`evidence_used` MUST include inspected repository artifact references (file paths such as
+`support/...`, `brick/...`, `agent/...`, `link/...`, `project/...`, or diff hunks actually read).
+Packet-only labels are not enough for this grounding requirement.
 
 Return: fill the `required_return_shape` from the return_template
 (`brick/templates/bricks/review/return.yaml`):

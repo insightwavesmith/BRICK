@@ -31,6 +31,15 @@ ADAPTER_CLAUDE_LOCAL = "adapter:claude-local"
 ADAPTER_GEMINI_LOCAL = "adapter:gemini-local"
 ADAPTER_CHAT_SESSION = "adapter:chat-session"
 READ_WRITE_TOOL_POLICY_REF = "tool-policy:read-write-scoped"
+REVIEWER_READONLY_TOOL_POLICY_REF = "tool-policy:reviewer-readonly"
+LEADER_COORDINATION_TOOL_POLICY_REF = "tool-policy:leader-coordination"
+READ_ONLY_TOOL_POLICY_REFS = frozenset(
+    {
+        REVIEWER_READONLY_TOOL_POLICY_REF,
+        LEADER_COORDINATION_TOOL_POLICY_REF,
+    }
+)
+KNOWN_TOOL_POLICY_REFS = READ_ONLY_TOOL_POLICY_REFS | frozenset({READ_WRITE_TOOL_POLICY_REF})
 ADAPTER_CAPABILITY_READ = "read"
 ADAPTER_CAPABILITY_WRITE = "write"
 ADAPTER_CAPABILITY_REVIEW = "review"
@@ -166,6 +175,16 @@ _CLAUDE_NONINTERACTIVE_SYSTEM_PROMPT = (
     "actions such as ExitPlanMode, and do not ask follow-up questions. "
     "Return concise text matching the requested return shape. "
     "Do not claim source truth, success judgment, quality judgment, or Movement authority."
+)
+_CLAUDE_READ_ONLY_SYSTEM_PROMPT = (
+    "You are a non-interactive Brick Protocol support evidence reviewer. "
+    "You MAY use only read-only repository tools (Read, Grep, Glob) to inspect "
+    "files, diffs, and declared evidence. Do not edit or write files, do not run "
+    "git mutations, do not call hooks or provider SDKs, do not use network beyond "
+    "the provider itself, do not enter or discuss plan-mode actions such as "
+    "ExitPlanMode, and do not ask follow-up questions. Return concise text matching "
+    "the requested return shape. Do not claim source truth, success judgment, "
+    "quality judgment, or Movement authority."
 )
 _CLAUDE_SCOPED_WRITE_SYSTEM_PROMPT = (
     "You are a non-interactive Brick Protocol worker agent. "
@@ -502,6 +521,27 @@ def agent_request_effective_write(request: AgentAdapterRequest) -> bool:
         and READ_WRITE_TOOL_POLICY_REF in request.tool_policy_refs
         and _adapter_ref_supports_observed_write(request.adapter_ref)
     )
+
+
+def agent_request_read_tier(request: AgentAdapterRequest) -> bool:
+    """Return whether this non-write request admits read-only repo inspection.
+
+    The admitted read tier is intentionally narrower than generic adapter read
+    capability: it opens only for review/coordination tool-policy refs and only
+    on adapters whose invocation can express a read-only repo-inspection shape.
+    Ambiguous requests fail closed to the none tier.
+    """
+
+    if not isinstance(request, AgentAdapterRequest):
+        raise TypeError("request must be AgentAdapterRequest")
+    if agent_request_effective_write(request):
+        return False
+    tool_policy_refs = set(request.tool_policy_refs)
+    if any(ref not in KNOWN_TOOL_POLICY_REFS for ref in tool_policy_refs):
+        return False
+    if not tool_policy_refs.intersection(READ_ONLY_TOOL_POLICY_REFS):
+        return False
+    return request.adapter_ref in {ADAPTER_CODEX_LOCAL, ADAPTER_CLAUDE_LOCAL}
 
 
 def project_model_ref_to_cli_arg(adapter_ref: str, selected_model_ref: str = "") -> str:
@@ -1002,6 +1042,12 @@ def _claude_cli_invocation(request: AgentAdapterRequest) -> dict[str, str]:
             "tools": tools,
             "system_prompt": _CLAUDE_SCOPED_WRITE_SYSTEM_PROMPT,
         }
+    if agent_request_read_tier(request):
+        return {
+            "permission_mode": "plan",
+            "tools": "Read,Grep,Glob",
+            "system_prompt": _CLAUDE_READ_ONLY_SYSTEM_PROMPT,
+        }
     return {
         "permission_mode": "plan",
         "tools": "",
@@ -1093,9 +1139,26 @@ def _build_prompt(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
                 "Return non-judgmental support evidence only.",
             )
         )
+    elif agent_request_read_tier(request):
+        admitted = ", ".join(sorted(READ_ONLY_TOOL_POLICY_REFS))
+        rules.extend(
+            (
+                "You may use read-only repository inspection tools only: read files, inspect diffs, search with grep/glob, and run checker commands.",
+                f"Read tier is admitted only by these Agent tool policies: {admitted}.",
+                "Do not edit, create, delete, or write files.",
+                "Do not run git mutations, including commit, push, checkout, reset, merge, rebase, or stash.",
+                "Do not execute hooks or provider SDKs.",
+                "Do not use network beyond the selected provider itself.",
+                "Return non-judgmental support evidence only.",
+            )
+        )
     else:
         rules.append("Do not use tools or hooks.")
     if spec.adapter_ref == ADAPTER_GEMINI_LOCAL:
+        if set(request.tool_policy_refs).intersection(READ_ONLY_TOOL_POLICY_REFS):
+            rules.append(
+                "Documented adapter limit: adapter:gemini-local remains in the none tier; this support policy does not express repository read-only tools safely."
+            )
         rules.extend(
             (
                 "Do not call exit_plan_mode or any plan-finalization tool.",
@@ -1199,7 +1262,7 @@ def _merge_structured_return_fields(
     extracted: Mapping[str, Any],
 ) -> None:
     for key, value in extracted.items():
-        if key in {"not_proven", "proof_limits"} and key in returned:
+        if key in {"evidence_refs", "not_proven", "proof_limits"} and key in returned:
             returned[key] = list(_merge_texts(returned[key], value))
             continue
         if key not in returned:
@@ -1677,11 +1740,16 @@ __all__ = [
     "LocalCliCompleted",
     "LocalCliProbe",
     "LocalCliSpec",
+    "KNOWN_TOOL_POLICY_REFS",
+    "LEADER_COORDINATION_TOOL_POLICY_REF",
+    "READ_ONLY_TOOL_POLICY_REFS",
     "READ_WRITE_TOOL_POLICY_REF",
+    "REVIEWER_READONLY_TOOL_POLICY_REF",
     "adapter_capabilities",
     "adapter_has_capability",
     "adapter_is_write_capable",
     "agent_request_effective_write",
+    "agent_request_read_tier",
     "connect_agent_brain",
     "local_cli_adapter_refs",
     "preflight_provider",

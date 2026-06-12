@@ -1,0 +1,12 @@
+# BrickInput · seq 47 · ["Brick"]
+- axis_scope: ["Brick"]
+- brick_instance_ref: "brick-lane-tooling-three-tier-0612-evidence-integrity"
+- comparison_rule: "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickInput"
+- required_return_shape: "observed_evidence, evidence_scope, persisted_evidence_roots, proof_limit_findings, stale_source_risks, checker_overclaim_risks, missing_evidence, evidence_used, not_proven"
+- run_segment: 2
+- sequence_index: 47
+- source_facts: ["task-source:inline-statement"]
+- spine_schema_version: "spine-v1"
+- step_ref: "lane-tooling-three-tier-0612-evidence-integrity"
+- work_statement: "evidence_integrity Brick for task-source:inline-statement: Replace the binary tool rule in the adapter instruction rendering with a three-tier model so reviewer/leader/design lanes can actually READ the artifact they are reviewing, and require review returns to be grounded in inspected artifacts. T"

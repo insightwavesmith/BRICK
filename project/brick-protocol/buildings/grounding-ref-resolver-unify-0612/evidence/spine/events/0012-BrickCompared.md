@@ -1,0 +1,15 @@
+# BrickCompared · seq 12 · ["Brick"]
+- alias_fact_refs: ["brick-comparison:grounding-ref-resolver-unify-0612:grounding-ref-resolver-unify-0612-work"]
+- axis_scope: ["Brick"]
+- comparison_evidence: ["adapter returned value is available for Brick comparison observation","required_return_fields: received_work_ref, made_changes, changed_files, observed_evidence, commands_run, blocked_or_missing_evidence, handoff_refs, not_proven","observed_return_fields: adapter_ref, agent_object_ref, blocked_or_missing_evidence, brain_surface_ref, changed_files, cli_call_ref, cli_version_text, commands_run, evidence_refs, handoff_refs, made_changes, not_proven, observed_evidence, output_excerpt, proof_limits, received_work_ref, returned_summary, selected_model_ref, worktree_observation","missing_return_fields: none"]
+- comparison_observation: "contract observation only; not success judgment"
+- comparison_rule: "Observe declared task source and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickCompared"
+- forbidden_shortcut_evidence: ["support/run did not classify Agent return","support/run did not judge success or quality","support/run used caller-supplied Link facts"]
+- observed_match_kind: "matched"
+- required_return_shape_evidence: "received_work_ref,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven"
+- run_segment: 1
+- sequence_index: 12
+- source_fact_ref: "brick-comparison:01:grounding-ref-resolver-unify-0612-work"
+- spine_schema_version: "spine-v1"
+- work_reference: "work Brick for task-source:inline-statement: Narrow self-consistency repair (operator-reproduced via check_profile.py --all): the lane-tooling grounding feature records a required public fact ref 'BrickComparisonFact.comparison_evidence.returned_field.evidence_used.repository_artifact_ref' in link sufficiency traces (appended by run.py/gate_sequence for review/design shapes), but check_building_lifecycle_path_shape's public-fact reference RESOLVER cannot resolve that dotted path — evidence_used is a LIST OF STRINGS, so the trailing '.repository_artifact_ref' leaf does not exist structurally. Result: the two newest buildings (lane-tooling-adversarial-review-0612, read-tier-unknown-token-guard-0612) turn the yard RED:"

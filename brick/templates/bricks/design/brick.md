@@ -21,6 +21,9 @@ Input: the prior Brick's report (carried via the Link edge) plus this node's dec
 change is shaped, which axis owns each responsibility, the invariants it must hold, the edge cases
 it must survive, and the checker/verifier that would enforce it. Name `candidate_file_changes` as
 *proposed* targets only — do not edit, create, or mutate any file.
+`evidence_refs` MUST include inspected repository artifact references (file paths such as
+`support/...`, `brick/...`, `agent/...`, `link/...`, `project/...`, or diff hunks actually read).
+Packet-only labels are not enough for this grounding requirement.
 
 Return: fill the `required_return_shape` from the return_template
 (`brick/templates/bricks/design/return.yaml`):

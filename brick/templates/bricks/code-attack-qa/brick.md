@@ -25,6 +25,9 @@ hunt for the cases that break it, not the ones that confirm it.
 Do: read the implementation and its returned evidence; design and run negative probes and
 regression probes; record which probes failed or could not be run; note boundary violations
 against the declared contract; capture the exact evidence (commands, outputs, refs) you relied on.
+`evidence_used` MUST include inspected repository artifact references (file paths such as
+`support/...`, `brick/...`, `agent/...`, `link/...`, `project/...`, or diff hunks actually read).
+Packet-only labels are not enough for this grounding requirement.
 
 Return: fill the `required_return_shape` from the return_template
 (`brick/templates/bricks/code-attack-qa/return.yaml`):

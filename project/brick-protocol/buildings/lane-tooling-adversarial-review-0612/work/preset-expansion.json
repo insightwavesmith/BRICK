@@ -1,0 +1,67 @@
+{
+  "agent_binding_declarations": [
+    {
+      "agent_object_ref": "agent-object:qa-lead",
+      "row_ref": "lane-tooling-adversarial-review-0612-review:agent",
+      "step_ref": "lane-tooling-adversarial-review-0612-review"
+    },
+    {
+      "agent_object_ref": "agent-object:coo",
+      "row_ref": "lane-tooling-adversarial-review-0612-closure:agent",
+      "step_ref": "lane-tooling-adversarial-review-0612-closure"
+    }
+  ],
+  "building_id": "lane-tooling-adversarial-review-0612",
+  "canonical_chain_preset_ref": "building-chain-preset:quick-check",
+  "chain_preset_catalog_scope": "common",
+  "chain_preset_catalog_source": "common_chain_presets",
+  "chain_preset_ref": "building-chain-preset:quick-check",
+  "common_basis_ref": "",
+  "compat_chain_preset_ref": "",
+  "composition_mode": "caller_or_coo_declared_linear_composition",
+  "expanded_brick_spec_refs": [
+    "brick/templates/bricks/review/brick.md",
+    "brick/templates/bricks/closure/brick.md"
+  ],
+  "expanded_brick_template_refs": [
+    "brick/templates/bricks/review/return.yaml",
+    "brick/templates/bricks/transition-concern-return.yaml",
+    "brick/templates/bricks/closure/return.yaml"
+  ],
+  "expanded_step_template_refs": [
+    "building-step-template:review",
+    "building-step-template:closure"
+  ],
+  "kind": "preset_expansion_provenance",
+  "not_proven": [
+    "semantic fitness of selected chain preset",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "plan_ref": "building-plan:lane-tooling-adversarial-review-0612",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "chain preset is a caller / COO selection candidate only",
+    "not automatic shape selection",
+    "not Building Plan authoring from task text",
+    "no write-need step exists on this route, so no caller write_scope is required",
+    "support materializes caller / COO declared task source and preset only",
+    "not automatic preset selection"
+  ],
+  "selected_preset_ref": "building-chain-preset:quick-check",
+  "selected_shape_ref": "",
+  "shape_catalog_ref": "brick-template-catalog:split-p3b-p4"
+}

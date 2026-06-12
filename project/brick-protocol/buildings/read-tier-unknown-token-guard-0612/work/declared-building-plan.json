@@ -1,0 +1,209 @@
+{
+  "building_id": "read-tier-unknown-token-guard-0612",
+  "declared_plan_copy": {
+    "building_id": "read-tier-unknown-token-guard-0612",
+    "chain_preset_ref": "building-chain-preset:fast-fix",
+    "composition_mode": "caller_or_coo_declared_linear_composition",
+    "declared_by": "caller-claude-operator",
+    "materialization_rule": "caller_or_coo_declared_task_source_plus_linear_chain_preset",
+    "not_proven": [
+      "semantic fitness of selected chain preset",
+      "future Building run correctness",
+      "future Agent or provider quality"
+    ],
+    "owner_axis": "Brick",
+    "plan_ref": "building-plan:read-tier-unknown-token-guard-0612",
+    "plan_shape": "linear",
+    "project_ref": "project:brick-protocol",
+    "proof_limits": [
+      "task source is pre-run input evidence, not an automatic plan selector",
+      "chain preset is a caller / COO selection candidate only",
+      "not automatic shape selection",
+      "not Building Plan authoring from task text",
+      "support materializes caller / COO declared task source and preset only",
+      "not automatic preset selection",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "selected_adapter_ref": "adapter:codex-local",
+    "selected_model_ref": "model:default",
+    "selected_shape_ref": "building-shape:reviewable-work",
+    "step_template_expansion": {
+      "expanded_brick_spec_refs": [
+        "brick/templates/bricks/work/brick.md",
+        "brick/templates/bricks/code-attack-qa/brick.md",
+        "brick/templates/bricks/closure/brick.md"
+      ],
+      "expanded_brick_template_refs": [
+        "brick/templates/bricks/work/return.yaml",
+        "brick/templates/bricks/transition-concern-return.yaml",
+        "brick/templates/bricks/code-attack-qa/return.yaml",
+        "brick/templates/bricks/closure/return.yaml"
+      ],
+      "expanded_step_template_refs": [
+        "building-step-template:work",
+        "building-step-template:code-attack-qa",
+        "building-step-template:closure"
+      ],
+      "expansion_rule": "step templates expand only after caller / COO selected chain, shape, and target refs",
+      "not_proven": [
+        "semantic fitness of selected chain preset or step template",
+        "future Building run correctness",
+        "future Agent or provider quality"
+      ],
+      "proof_limits": [
+        "step template expansion support rendering only",
+        "not automatic shape selection",
+        "not target inference",
+        "not Movement choice",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "registry_ref": "brick-template-catalog:split-p3b-p4",
+      "selection_rule": "caller_or_coo_declared_only"
+    },
+    "steps": [
+      {
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-work",
+            "brick_work_ref": "work:read-tier-unknown-token-guard-0612-work",
+            "comparison_rule": "Observe declared task source and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "received_work_ref,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven",
+            "requires_brick_write_scope": true,
+            "row_ref": "brick-row:read-tier-unknown-token-guard-0612-work",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "work Brick for task-source:inline-statement: Narrow fail-closed repair, reproduced by the operator and found by the in-chain review building lane-tooling-adversarial-review-0612:",
+            "write_scope": {
+              "allowed_paths": [
+                "support/*"
+              ],
+              "forbidden_paths": [
+                "link/*",
+                "agent/*",
+                "project/*",
+                ".git/*",
+                "brick/*",
+                "AGENTS.md",
+                "pyproject.toml",
+                "uv.lock"
+              ]
+            }
+          },
+          {
+            "agent_object_ref": "agent-object:dev",
+            "axis": "Agent",
+            "row_ref": "read-tier-unknown-token-guard-0612-work:agent"
+          },
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition"
+            ],
+            "movement": "forward",
+            "row_ref": "read-tier-unknown-token-guard-0612-work:link",
+            "target_ref": "brick-code-attack-qa"
+          }
+        ],
+        "step_ref": "read-tier-unknown-token-guard-0612-work",
+        "step_template_ref": "building-step-template:work"
+      },
+      {
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-code-attack-qa",
+            "brick_work_ref": "work:read-tier-unknown-token-guard-0612-code-attack-qa",
+            "comparison_rule": "Observe declared task source and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "observed_evidence,attacked_work,checked_sources,regression_risks,negative_probe_observations,failing_or_missing_probes,boundary_violations,transition_concern_evidence,evidence_used,not_proven",
+            "row_ref": "brick-row:read-tier-unknown-token-guard-0612-code-attack-qa",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "code_attack_qa Brick for task-source:inline-statement: Narrow fail-closed repair, reproduced by the operator and found by the in-chain review building lane-tooling-adversarial-review-0612:"
+          },
+          {
+            "agent_object_ref": "agent-object:qa",
+            "axis": "Agent",
+            "row_ref": "read-tier-unknown-token-guard-0612-code-attack-qa:agent"
+          },
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition"
+            ],
+            "movement": "forward",
+            "row_ref": "read-tier-unknown-token-guard-0612-code-attack-qa:link",
+            "target_ref": "brick-closure"
+          }
+        ],
+        "step_ref": "read-tier-unknown-token-guard-0612-code-attack-qa",
+        "step_template_ref": "building-step-template:code-attack-qa"
+      },
+      {
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-closure",
+            "brick_work_ref": "work:read-tier-unknown-token-guard-0612-closure",
+            "comparison_rule": "Observe declared task source and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence",
+            "row_ref": "brick-row:read-tier-unknown-token-guard-0612-closure",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "closure Brick for task-source:inline-statement: Narrow fail-closed repair, reproduced by the operator and found by the in-chain review building lane-tooling-adversarial-review-0612:"
+          },
+          {
+            "agent_object_ref": "agent-object:coo",
+            "axis": "Agent",
+            "row_ref": "read-tier-unknown-token-guard-0612-closure:agent"
+          },
+          {
+            "axis": "Link",
+            "building_lifecycle": {
+              "reason": "declared closure boundary for read-tier-unknown-token-guard-0612",
+              "state": "closed"
+            },
+            "declared_gate_refs": [
+              "link-gate:default-transition"
+            ],
+            "movement": "forward",
+            "row_ref": "read-tier-unknown-token-guard-0612-closure:link",
+            "target_ref": "building-boundary:read-tier-unknown-token-guard-0612-closed"
+          }
+        ],
+        "step_ref": "read-tier-unknown-token-guard-0612-closure",
+        "step_template_ref": "building-step-template:closure"
+      }
+    ],
+    "task_source_hash": "3e17f1b3802b9a95a87bd72e9d85be1a294b0b0b6c02c44ac4c5fef4f5174180",
+    "task_source_hash_algorithm": "sha256",
+    "task_source_hash_basis": "utf-8 inline task_statement body at materialization time",
+    "task_source_ref": "task-source:inline-statement",
+    "task_statement": "Narrow fail-closed repair, reproduced by the operator and found by the in-chain review building lane-tooling-adversarial-review-0612:\n\nFINDING: agent_request_read_tier (support/connection/agent_adapter.py ~525-540) admits the READ tier when tool_policy_refs merely INTERSECTS the known read-only set — a request carrying tool-policy:reviewer-readonly PLUS an UNKNOWN token (e.g. tool-policy:unknown) still enters the read tier. The lane-tooling design invariant says: unknown policy vocabulary or ANY ambiguity must resolve to the none tier (fail closed). Repro: direct AgentAdapterRequest with tool_policy_refs=('tool-policy:reviewer-readonly','tool-policy:unknown') -> agent_request_read_tier returns True.\n\nREQUIRED: the read tier must be admitted ONLY when EVERY tool_policy_ref on the request belongs to the closed admitted vocabulary (the read-only set plus the other legitimately known policy tokens such as read-write-scoped and leader-coordination) AND the existing conditions hold; any token outside the known vocabulary -> none tier. Do not change write-tier logic. Keep gemini none.\n\nPROOF (run, report honestly): (1) the repro above now returns False; (2) a pure reviewer-readonly non-write request still returns True (read tier); (3) a leader-coordination non-write request still reaches read tier; (4) write tier unchanged (effective-write probe still True with scope+policy); (5) extend the existing lane-tooling checker pin with the unknown-token FIRE case (mutated renderer admitting unknown -> RED); (6) PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all -> report real exit code (temp source copy acceptable if the live yard blocks tempdir checks — say which you ran).\n\nConstraints: support/* only; fails-closed; no pin weakening; no link/ or agent/ edits.\n"
+  },
+  "kind": "declared_building_plan_provenance",
+  "not_proven": [
+    "declared plan semantic correctness",
+    "future Agent or provider behavior"
+  ],
+  "plan_hash": "33fa32527607e2a013108cc98b1f967da52ae9a17147664bc95fba2eb120af82",
+  "plan_hash_algorithm": "sha256",
+  "plan_hash_basis": "canonical sorted-key JSON of the pure declared-building-plan copy (runtime walker state excluded)",
+  "plan_ref": "building-plan:read-tier-unknown-token-guard-0612",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ]
+}

@@ -1,0 +1,12 @@
+# AgentReceipt · seq 15 · ["Agent"]
+- agent_object_ref: "agent-object:qa"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-code-attack-qa"
+- event_type: "AgentReceipt"
+- evidence_reference: "raw:agent:02"
+- received_work_ref: "brick-work:02:read-tier-unknown-token-guard-0612-code-attack-qa"
+- run_segment: 1
+- sequence_index: 15
+- source_fact_ref: "agent-fact:02:read-tier-unknown-token-guard-0612-code-attack-qa"
+- spine_schema_version: "spine-v1"
+- step_ref: "read-tier-unknown-token-guard-0612-code-attack-qa"

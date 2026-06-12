@@ -1,0 +1,12 @@
+# BrickInput · seq 13 · ["Brick"]
+- axis_scope: ["Brick"]
+- brick_instance_ref: "brick-code-attack-qa"
+- comparison_rule: "Observe declared task source and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickInput"
+- required_return_shape: "observed_evidence,attacked_work,checked_sources,regression_risks,negative_probe_observations,failing_or_missing_probes,boundary_violations,transition_concern_evidence,evidence_used,not_proven"
+- run_segment: 1
+- sequence_index: 13
+- source_facts: ["task-source:inline-statement"]
+- spine_schema_version: "spine-v1"
+- step_ref: "grounding-ref-resolver-unify-0612-code-attack-qa"
+- work_statement: "code_attack_qa Brick for task-source:inline-statement: Narrow self-consistency repair (operator-reproduced via check_profile.py --all): the lane-tooling grounding feature records a required public fact ref 'BrickComparisonFact.comparison_evidence.returned_field.evidence_used.repository_artifact_ref' in link sufficiency traces (appended by run.py/gate_sequence for review/design shapes), but check_building_lifecycle_path_shape's public-fact reference RESOLVER cannot resolve that dotted path — evidence_used is a LIST OF STRINGS, so the trailing '.repository_artifact_ref' leaf does not exist structurally. Result: the two newest buildings (lane-tooling-adversarial-review-0612, read-tier-unknown-token-guard-0612) turn the yard RED:"

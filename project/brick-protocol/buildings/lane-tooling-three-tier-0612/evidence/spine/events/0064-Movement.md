@@ -1,0 +1,12 @@
+# Movement · seq 64 · ["Link"]
+- adopted_transition_concern_refs: []
+- axis_scope: ["Link"]
+- declared_movement: "forward"
+- event_type: "Movement"
+- gate_review_event_ref: "sufficiency-fact-movement:06:lane-tooling-three-tier-0612-closure"
+- not_adopted_transition_concern_refs: []
+- run_segment: 2
+- sequence_index: 64
+- source_fact_ref: "movement-fact:06:lane-tooling-three-tier-0612-closure"
+- spine_schema_version: "spine-v1"
+- target_boundary_ref: "brick:building-boundary:lane-tooling-three-tier-0612-closed"

@@ -1,0 +1,199 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:lane-tooling-three-tier-0612::work/step-outputs/lane-tooling-three-tier-0612-closure-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-lane-tooling-three-tier-0612-closure",
+  "building_id": "lane-tooling-three-tier-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:06",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "gate_sequence_decision_record": {
+    "action": "hold",
+    "evidence_ref": "observation:gate-sequence-lane-tooling-three-tier-0612-lane-tooling-three-tier-0612-closure-link-gate-human-hold",
+    "gate_action_sequence": [
+      {
+        "action": "hold",
+        "evidence_ref": "observation:gate-sequence-lane-tooling-three-tier-0612-lane-tooling-three-tier-0612-closure-link-gate-human-hold",
+        "gate_ref": "link-gate:human",
+        "hold_reason": "gate_sequence_missing_required_facts:link-gate:human",
+        "pending_target_ref": "brick-lane-tooling-three-tier-0612-closure",
+        "reason_refs": [
+          "observation:human-gate-disposition-missing"
+        ],
+        "target_brick_ref": ""
+      }
+    ],
+    "gate_ref": "link-gate:human",
+    "gate_results": [
+      {
+        "checked_public_fact": "brick-comparison:lane-tooling-three-tier-0612:lane-tooling-three-tier-0612-closure",
+        "gate_ref": "link-gate:human",
+        "missing_required_facts": [
+          "Link.route_decision_basis.human_review_refs"
+        ],
+        "required_public_facts": [
+          "Link.route_decision_basis.human_review_refs"
+        ],
+        "sufficiency": "missing_required_facts"
+      }
+    ],
+    "hold_reason": "gate_sequence_missing_required_facts:link-gate:human",
+    "pending_target_ref": "brick-lane-tooling-three-tier-0612-closure",
+    "reason_refs": [
+      "observation:human-gate-disposition-missing"
+    ],
+    "required_disposition_owner": "caller-or-coo",
+    "target_brick_ref": ""
+  },
+  "generatedAtTime": "2026-06-12T01:07:48.083553Z",
+  "id": "urn:bp:building:lane-tooling-three-tier-0612::work/step-outputs/lane-tooling-three-tier-0612-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:06:lane-tooling-three-tier-0612-closure",
+  "recorded_at": "2026-06-12T01:07:48.083553Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:coo",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:codex-local:lane-tooling-three-tier-0612",
+    "cli_version_text": "codex-cli 0.137.0",
+    "deferred_smith_review_queue": [
+      "Confirm whether to reroute to a read-capable repair boundary because the current QA fan-in was structurally tool-less.",
+      "Confirm whether the next declared boundary should preserve the same lane-tooling-three-tier objective and replay all QA lanes after implementation evidence exists."
+    ],
+    "evidence_refs": [
+      "support-packet:lane-tooling-three-tier-0612:agent-object:coo:output"
+    ],
+    "narrowly_proven": [
+      "The received fan-in evidence is packet-grounded only, not repository-artifact-grounded.",
+      "The requested closure cannot honestly claim three-tier rendering is live from the supplied incoming returns.",
+      "The requested closure cannot honestly claim artifact-grounding enforcement or checker RED/GREEN proof from the supplied incoming returns."
+    ],
+    "next_target_candidates": [
+      "caller_or_coo_declared_read_capable_repair_boundary",
+      "caller_or_coo_declared_read_enabled_verification_boundary",
+      "caller_or_coo_declared_replay_of_work_plus_QA_lanes_after_repair"
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "three-tier adapter rendering implemented",
+      "reviewer-readonly non-write requests render read-tier rules",
+      "leader-coordination/design non-write requests render read-tier rules",
+      "read tier excludes edit/write/git permissions",
+      "claude-local read-only tool-list rendering",
+      "gemini-local no-tools limit documented in live code",
+      "QA/review/design Brick specs require inspected repository artifact refs",
+      "ungrounded QA/review/design returns fail comparison sufficiency",
+      "requested FIRE pins demonstrated RED on mutated copies",
+      "check_profile.py --all exit 0",
+      "chat_session_park_seam and profile sweep green",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority"
+    ],
+    "observed_evidence": [
+      "All three incoming QA/evidence-integrity returns report that packet rules forbade tools or hooks.",
+      "The code-attack QA return did not inspect repository files, diffs, checker outputs, fixtures, implementation artifacts, or mutated-copy RED evidence.",
+      "The axis-attack QA return identifies the same structural tension: reviewer-readonly policy text admits scoped reading, while the packet-level rule forbids all tools.",
+      "The evidence-integrity return marks live adapter behavior, policy vocabulary, template grounding, comparison insufficiency, FIRE pins, and all-profile checker output as not_proven.",
+      "No incoming return provides repository-artifact-grounded evidence for the requested three-tier adapter repair."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"All three incoming QA/evidence-integrity returns report that packet rules forbade tools or hooks.\", \"The code-attack QA return did not inspect repository files, diffs, checker outputs, fixtures, implementation artifacts, or mutated-copy RED evidence.\", \"The axis-attack QA return identifies the same structural tension: reviewer-readonly policy text admits scoped reading, while the packet-level rule forbids all tools.\", \"The evidence-integrity return marks live adapter behavior, policy vocabulary, template grounding, comparison insufficiency, FIRE pins, and all-profi...",
+    "parent_goal_delta_status": "open_not_proven_from_received_evidence_only",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "remaining_delta": [
+      "Run or reroute to a read-capable repair/verification boundary that may inspect live files and checker output.",
+      "Inspect support/connection/agent_adapter.py, agent tool-policy files, affected Brick templates, comparison/checker surfaces, and profile registrations.",
+      "Demonstrate the packet-rendering pin, tier-safety pin, grounding pin, and full profile sweep with actual command outcomes.",
+      "Preserve fail-closed none tier on ambiguity and prove no write capability leaks into non-write read tier."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "transition_concern_evidence": {
+      "binding": false,
+      "concern_kind": "verification_gap",
+      "concern_ref": "transition-concern:lane-tooling-three-tier-0612-tool-less-fanin",
+      "not_proven": [
+        "live implementation",
+        "artifact-grounded review",
+        "checker FIRE proof",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "reason_refs": [
+        "work/step-outputs/lane-tooling-three-tier-0612-code-attack-qa-attempt-1/step-output.json",
+        "work/step-outputs/lane-tooling-three-tier-0612-axis-attack-qa-attempt-1/step-output.json",
+        "work/step-outputs/lane-tooling-three-tier-0612-evidence-integrity-attempt-1/step-output.json"
+      ],
+      "related_boundary_refs": [
+        "brick-lane-tooling-three-tier-0612-code-attack-qa",
+        "brick-lane-tooling-three-tier-0612-axis-attack-qa",
+        "brick-lane-tooling-three-tier-0612-evidence-integrity",
+        "brick-lane-tooling-three-tier-0612-closure"
+      ]
+    }
+  },
+  "returned_fact_ref": "agent-fact:06:lane-tooling-three-tier-0612-closure",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:lane-tooling-three-tier-0612",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:lane-tooling-three-tier-0612-closure:attempt-1",
+  "step_ref": "lane-tooling-three-tier-0612-closure",
+  "subject": "lane-tooling-three-tier-0612-closure",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T01:07:48.083553Z",
+  "transition_concern_ref": "work/step-outputs/lane-tooling-three-tier-0612-closure-attempt-1/transition-concern.json",
+  "type": "bp.step_output"
+}

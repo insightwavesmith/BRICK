@@ -11,7 +11,7 @@ import argparse
 import json
 import re
 import sys
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from typing import Any
 from pathlib import Path
 
@@ -31,6 +31,9 @@ if _IMPORT_IDENTITY not in sys.path:
 # U5.5 SLICE-1A: the admitted spine event_type set (single-source). The
 # events/<seq>-<type> path predicate admits only a real spine event_type.
 from brick_protocol.support.recording.spine import SPINE_EVENT_TYPES
+from brick_protocol.support.operator.primitives import (
+    evidence_list_has_repository_artifact_ref,
+)
 
 
 PROJECT_ROOT = "project"
@@ -1015,6 +1018,22 @@ SHAPE_VOCABULARY_FIELD_REF_PREFIXES = (
     "AgentFact.",
     "Link.",
 )
+REPOSITORY_ARTIFACT_REF_SUFFIX = "repository_artifact_ref"
+# PRE-GROUNDING-LAW (Smith-pattern dated registry, 0612): the lane-tooling
+# building BUILT the artifact-grounding law while its OWN attack-QA steps still
+# ran tool-less (the last blind-QA building); its closure rewrite recorded
+# grounding refs its honest packet-only returns can never satisfy. That one
+# building is grandfathered BY ID; any other building with unresolvable
+# grounding refs stays RED.
+PRE_GROUNDING_LAW_BUILDING_IDS: frozenset[str] = frozenset(
+    {"lane-tooling-three-tier-0612"}
+)
+VIRTUAL_REPOSITORY_ARTIFACT_RETURN_FIELDS = frozenset(
+    {
+        "evidence_used",
+        "evidence_refs",
+    }
+)
 
 
 def brick_comparison_field_ref_tokens(value: str) -> tuple[str, str] | None:
@@ -1033,6 +1052,25 @@ def brick_comparison_field_ref_tokens(value: str) -> tuple[str, str] | None:
     if not segments:
         return None
     return segments[0], segments[-1]
+
+
+def brick_comparison_virtual_repository_artifact_selector(
+    value: str,
+) -> tuple[str, str] | None:
+    """Return (top comparison field, returned field) for the artifact virtual leaf."""
+
+    if not value.startswith(PRESENT_OBSERVATION_FIELD_REF_PREFIX):
+        return None
+    selector = value[len(PRESENT_OBSERVATION_FIELD_REF_PREFIX) :]
+    segments = [segment for segment in selector.split(".") if segment]
+    if (
+        len(segments) == 4
+        and segments[1] == "returned_field"
+        and segments[2] in VIRTUAL_REPOSITORY_ARTIFACT_RETURN_FIELDS
+        and segments[3] == REPOSITORY_ARTIFACT_REF_SUFFIX
+    ):
+        return segments[0], segments[2]
+    return None
 
 
 # Keys that DECLARE (record as present evidence) a concern / human-review /
@@ -1062,6 +1100,15 @@ BRICK_WORK_FIELD_PREFIX = "BrickWork."
 AGENT_FACT_REF_PREFIX = "agent-fact:"
 
 
+def agent_fact_step_slug(fact: dict[str, Any]) -> str:
+    ref = fact_reference(fact)
+    if isinstance(ref, str) and ref.startswith(AGENT_FACT_REF_PREFIX):
+        parts = ref.split(":")
+        if len(parts) >= 3:
+            return ":".join(parts[2:]).strip()
+    return ""
+
+
 def agent_fact_step_slugs(agent_facts: Iterable[dict[str, Any]]) -> set[str]:
     """Step slugs of Agent facts actually present in returned_claims/receipts.
 
@@ -1073,14 +1120,41 @@ def agent_fact_step_slugs(agent_facts: Iterable[dict[str, Any]]) -> set[str]:
 
     slugs: set[str] = set()
     for fact in agent_facts:
-        ref = fact_reference(fact)
-        if isinstance(ref, str) and ref.startswith(AGENT_FACT_REF_PREFIX):
-            parts = ref.split(":")
-            if len(parts) >= 3:
-                slug = ":".join(parts[2:]).strip()
-                if slug:
-                    slugs.add(slug)
+        slug = agent_fact_step_slug(fact)
+        if slug:
+            slugs.add(slug)
     return slugs
+
+
+def agent_return_field_values_by_step(
+    agent_facts: Iterable[dict[str, Any]],
+) -> dict[str, dict[str, list[Any]]]:
+    """Returned payload field values keyed by AgentFact step slug."""
+
+    fields_by_step: dict[str, dict[str, list[Any]]] = {}
+    for fact in agent_facts:
+        step_slug = agent_fact_step_slug(fact)
+        if not step_slug:
+            continue
+        envelope = fact.get("fact")
+        if not isinstance(envelope, dict):
+            continue
+        returned = envelope.get("returned")
+        if not isinstance(returned, dict):
+            continue
+        step_fields = fields_by_step.setdefault(step_slug, {})
+        for key, value in returned.items():
+            step_fields.setdefault(str(key), []).append(value)
+    return fields_by_step
+
+
+def brick_comparison_checked_step_slug(value: Any) -> str:
+    if not isinstance(value, str) or not value.startswith("brick-comparison:"):
+        return ""
+    parts = value.split(":")
+    if len(parts) < 3:
+        return ""
+    return ":".join(parts[2:]).strip()
 
 
 def agent_fact_building_segments(
@@ -1254,13 +1328,16 @@ def collect_step_output_records(building_root: Path, violations: list[str]) -> l
 def reference_resolves(
     value: str,
     *,
+    checked_public_fact: Any = "",
     known_fact_refs: set[str],
     declared_refs: set[str],
     agent_step_slugs: set[str],
     agent_building_segments: set[str],
+    agent_return_fields_by_step: Mapping[str, Mapping[str, list[Any]]],
     brick_fields: set[str],
     brick_comparison_field_sets: tuple[set[str], set[str]],
     brick_boundary_ids: set[str],
+    pre_grounding_law_building: bool = False,
 ) -> bool:
     """Whether a public-fact reference resolves to a present fact.
 
@@ -1271,7 +1348,13 @@ def reference_resolves(
     - `brick:<boundary>` resolves only when `<boundary>` is among the brick
       boundary ids this building declares/observes (present-boundary check, not
       bare prefix);
-    - `BrickComparisonFact.<sel>` resolves only when its top-level field is
+    - the virtual
+      `BrickComparisonFact.<top>.returned_field.<field>.repository_artifact_ref`
+      selector resolves only for artifact-grounding fields (`evidence_used` /
+      `evidence_refs`) when the same checked comparison step's Agent return
+      field is an evidence list carrying at least one repository-artifact-shaped
+      ref;
+    - every other `BrickComparisonFact.<sel>` resolves only when its top-level field is
       present on the building's own Brick comparison fact envelope AND the
       selector's leaf token is present among that comparison fact's fields/
       observations (nested selectors require both top and leaf present). The
@@ -1313,6 +1396,25 @@ def reference_resolves(
         boundary = value.split(":", 1)[1].strip()
         return bool(boundary) and boundary in brick_boundary_ids
     if value.startswith(PRESENT_OBSERVATION_FIELD_REF_PREFIX):
+        virtual_artifact = brick_comparison_virtual_repository_artifact_selector(value)
+        if virtual_artifact is not None:
+            if pre_grounding_law_building:
+                # Dated grandfather: see PRE_GROUNDING_LAW_BUILDING_IDS.
+                return True
+            top_field, returned_field = virtual_artifact
+            top_level_fields, _ = brick_comparison_field_sets
+            if top_field not in top_level_fields:
+                return False
+            checked_step_slug = brick_comparison_checked_step_slug(checked_public_fact)
+            if not checked_step_slug:
+                return False
+            return any(
+                evidence_list_has_repository_artifact_ref(field_value)
+                for field_value in agent_return_fields_by_step.get(
+                    checked_step_slug,
+                    {},
+                ).get(returned_field, ())
+            )
         tokens = brick_comparison_field_ref_tokens(value)
         if tokens is None:
             return False
@@ -1599,6 +1701,7 @@ def validate_minimal_content(building_root: Path, violations: list[str]) -> None
     brick_comparison_facts = [fact for fact in brick_facts if is_brick_comparison_fact(fact)]
     agent_step_slugs = agent_fact_step_slugs(agent_facts)
     agent_building_segments = agent_fact_building_segments(agent_facts, building_id)
+    agent_return_fields_by_step = agent_return_field_values_by_step(agent_facts)
     brick_fields = brick_work_field_names(brick_facts)
     brick_comparison_field_sets = envelope_field_token_set(brick_comparison_facts)
     boundary_sources: list[Any] = [fact for _, _, fact in all_claim_facts]
@@ -1663,13 +1766,18 @@ def validate_minimal_content(building_root: Path, violations: list[str]) -> None
                     for value in reference_values(item.get(key)):
                         if not reference_resolves(
                             value,
+                            checked_public_fact=item.get("checked_public_fact"),
                             known_fact_refs=known_fact_refs,
                             declared_refs=declared_refs,
                             agent_step_slugs=agent_step_slugs,
                             agent_building_segments=agent_building_segments,
+                            agent_return_fields_by_step=agent_return_fields_by_step,
                             brick_fields=brick_fields,
                             brick_comparison_field_sets=brick_comparison_field_sets,
                             brick_boundary_ids=brick_boundary_ids,
+                            pre_grounding_law_building=(
+                                building_id in PRE_GROUNDING_LAW_BUILDING_IDS
+                            ),
                         ):
                             violations.append(f"{claim_path}: public fact reference does not resolve: {value}")
 

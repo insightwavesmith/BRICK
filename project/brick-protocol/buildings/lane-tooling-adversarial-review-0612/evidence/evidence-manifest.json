@@ -1,0 +1,87 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:lane-tooling-adversarial-review-0612::evidence/evidence-manifest.json",
+  "building_id": "lane-tooling-adversarial-review-0612",
+  "building_map_ref": "work/building-map.json",
+  "claim_trace_refs": [
+    "evidence/claim_trace/brick/work_contract.json",
+    "evidence/claim_trace/agent/returned_claims.json",
+    "evidence/claim_trace/link/transfer_trace.json",
+    "evidence/claim_trace/link/carry_trace.json",
+    "evidence/claim_trace/link/sufficiency_trace.json",
+    "evidence/claim_trace/link/movement_trace.json"
+  ],
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "declaration_evidence_refs": [
+    "work/task.md",
+    "work/building-intake.json",
+    "work/preset-expansion.json",
+    "work/declared-building-plan.json",
+    "work/link-launch-policy.json"
+  ],
+  "evidence_generation": "u5_5_live",
+  "generatedAtTime": "2026-06-12T01:24:10Z",
+  "id": "urn:bp:building:lane-tooling-adversarial-review-0612::evidence/evidence-manifest.json",
+  "not_proven": [
+    "semantic fitness of selected chain preset",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "not proven: source truth",
+    "not proven: success judgment",
+    "not proven: quality judgment",
+    "not proven: Movement authority"
+  ],
+  "plan_ref": "building-plan:lane-tooling-adversarial-review-0612",
+  "plan_snapshot": {
+    "plan_hash": "ec93ca5535000bc052a33175026b0cbd306a131e5ef9ddb716333989f1a2c171",
+    "plan_hash_algorithm": "sha256",
+    "plan_hash_basis": "canonical sorted-key JSON of the declared plan body",
+    "plan_ref": "building-plan:lane-tooling-adversarial-review-0612",
+    "plan_rows_copy": "{\"building_id\":\"lane-tooling-adversarial-review-0612\",\"chain_preset_ref\":\"building-chain-preset:quick-check\",\"composition_mode\":\"caller_or_coo_declared_linear_composition\",\"declared_by\":\"caller-claude-operator\",\"materialization_rule\":\"caller_or_coo_declared_task_source_plus_linear_chain_preset\",\"not_proven\":[\"semantic fitness of selected chain preset\",\"future Building run correctness\",\"future Agent or provider quality\"],\"owner_axis\":\"Brick\",\"plan_ref\":\"building-plan:lane-tooling-adversarial-review-0612\",\"plan_shape\":\"linear\",\"project_ref\":\"project:brick-protocol\",\"proof_limits\":[\"chain preset is a caller / COO selection candidate only\",\"not automatic shape selection\",\"not Building Plan authoring from task text\",\"no write-need step exists on this route, so no caller write_scope is required\",\"support materializes caller / COO declared task source and preset only\",\"not automatic preset selection\",\"not source truth\",\"not success judgment\",\"not quality judgment\",\"not Movement authority\"],\"selected_adapter_ref\":\"adapter:codex-local\",\"selected_model_ref\":\"model:default\",\"selected_shape_ref\":null,\"step_template_expansion\":{\"expanded_brick_spec_refs\":[\"brick/templates/bricks/review/brick.md\",\"brick/templates/bricks/closure/brick.md\"],\"expanded_brick_template_refs\":[\"brick/templates/bricks/review/return.yaml\",\"brick/templates/bricks/transition-concern-return.yaml\",\"brick/templates/bricks/closure/return.yaml\"],\"expanded_step_template_refs\":[\"building-step-template:review\",\"building-step-template:closure\"],\"expansion_rule\":\"step templates expand only after caller / COO selected chain, shape, and target refs\",\"not_proven\":[\"semantic fitness of selected chain preset or step template\",\"future Building run correctness\",\"future Agent or provider quality\"],\"proof_limits\":[\"step template expansion support rendering only\",\"not automatic shape selection\",\"not target inference\",\"not Movement choice\",\"not source truth\",\"not success judgment\",\"not quality judgment\",\"not Movement authority\"],\"registry_ref\":\"brick-template-catalog:split-p3b-p4\",\"selection_rule\":\"caller_or_coo_declared_only\"},\"steps\":[{\"rows\":[{\"axis\":\"Brick\",\"brick_instance_ref\":\"brick-review\",\"brick_work_ref\":\"work:lane-tooling-adversarial-review-0612-review\",\"comparison_rule\":\"Observe declared task source and Brick contract only; do not choose Movement or judge success/quality.\",\"required_return_shape\":\"observed_evidence,checked_work,checked_sources,observed_matches,missing_or_mismatched_facts,boundary_violations,evidence_used,transition_concern_evidence,narrowly_proven,not_proven\",\"row_ref\":\"brick-row:lane-tooling-adversarial-review-0612-review\",\"source_facts\":[\"task-source:inline-statement\"],\"work_statement\":\"review Brick for task-source:inline-statement: ADVERSARIAL REVIEW (read-only) of the UNCOMMITTED working-tree diff vs HEAD (git diff): the lane tool-policy three-tier repair. It claims: (1) a closed tier decision write/read/none with ambiguity failing closed to none; (2) write tier behavior unchanged; (3) read tier for reviewer-readonly / leader-coordination / no-write lead steps renders READ-ONLY inspection rules (files, search, diff, checker run) with NO edit/write/git permissions; (4) gemini stays none (documented); (5) QA/review/design brick contracts now REQUIRE repository-artifact references in returned evidence, and packet-only returns become missing required facts at comparison.\"},{\"agent_object_ref\":\"agent-object:qa-lead\",\"axis\":\"Agent\",\"row_ref\":\"lane-tooling-adversarial-review-0612-review:agent\"},{\"axis\":\"Link\",\"declared_gate_refs\":[\"link-gate:default-transition\"],\"movement\":\"forward\",\"row_ref\":\"lane-tooling-adversarial-review-0612-review:link\",\"target_ref\":\"brick-closure\"}],\"step_ref\":\"lane-tooling-adversarial-review-0612-review\",\"step_template_ref\":\"building-step-template:review\"},{\"rows\":[{\"axis\":\"Brick\",\"brick_instance_ref\":\"brick-closure\",\"brick_work_ref\":\"work:lane-tooling-adversarial-review-0612-closure\",\"comparison_rule\":\"Observe declared task source and Brick contract only; do not choose Movement or judge success/quality.\",\"required_return_shape\":\"observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence\",\"row_ref\":\"brick-row:lane-tooling-adversarial-review-0612-closure\",\"source_facts\":[\"task-source:inline-statement\"],\"work_statement\":\"closure Brick for task-source:inline-statement: ADVERSARIAL REVIEW (read-only) of the UNCOMMITTED working-tree diff vs HEAD (git diff): the lane tool-policy three-tier repair. It claims: (1) a closed tier decision write/read/none with ambiguity failing closed to none; (2) write tier behavior unchanged; (3) read tier for reviewer-readonly / leader-coordination / no-write lead steps renders READ-ONLY inspection rules (files, search, diff, checker run) with NO edit/write/git permissions; (4) gemini stays none (documented); (5) QA/review/design brick contracts now REQUIRE repository-artifact references in returned evidence, and packet-only returns become missing required facts at comparison.\"},{\"agent_object_ref\":\"agent-object:coo\",\"axis\":\"Agent\",\"row_ref\":\"lane-tooling-adversarial-review-0612-closure:agent\"},{\"axis\":\"Link\",\"building_lifecycle\":{\"reason\":\"declared closure boundary for lane-tooling-adversarial-review-0612\",\"state\":\"closed\"},\"declared_gate_refs\":[\"link-gate:default-transition\"],\"movement\":\"forward\",\"row_ref\":\"lane-tooling-adversarial-review-0612-closure:link\",\"target_ref\":\"building-boundary:lane-tooling-adversarial-review-0612-closed\"}],\"step_ref\":\"lane-tooling-adversarial-review-0612-closure\",\"step_template_ref\":\"building-step-template:closure\"}],\"task_source_hash\":\"3b0696f386d462fb2a32692ca51fcc69a700981f39940aa7a426de068241d111\",\"task_source_hash_algorithm\":\"sha256\",\"task_source_hash_basis\":\"utf-8 inline task_statement body at materialization time\",\"task_source_ref\":\"task-source:inline-statement\",\"task_statement\":\"ADVERSARIAL REVIEW (read-only) of the UNCOMMITTED working-tree diff vs HEAD (git diff): the lane tool-policy three-tier repair. It claims: (1) a closed tier decision write/read/none with ambiguity failing closed to none; (2) write tier behavior unchanged; (3) read tier for reviewer-readonly / leader-coordination / no-write lead steps renders READ-ONLY inspection rules (files, search, diff, checker run) with NO edit/write/git permissions; (4) gemini stays none (documented); (5) QA/review/design brick contracts now REQUIRE repository-artifact references in returned evidence, and packet-only returns become missing required facts at comparison.\\nATTACK: (a) any path where the read tier leaks edit/write/git permission wording or capability — this is the catastrophic mode, hunt it hardest (mutate conditions mentally across all 8 agent objects x write/no-write steps); (b) the tier admission set — can an unknown/ambiguous policy reach read instead of none; (c) grounding side effects — does any legitimate lane/step (closure, coo review, parked chat-session work) now fail comparison unfairly; (d) regressions to the chat-session park seam or effective-write validation; (e) checker pins — would each FIRE mutation actually fire RED. Read the actual diff and cite file:line for every finding. Verdict line first: HOLDS or BROKEN, then findings with concrete repro. Honest uncertainty beats invented findings.\\n\"}",
+    "proof_limits": [
+      "evidence copy only",
+      "not source truth"
+    ]
+  },
+  "proof_limits": [
+    "chain preset is a caller / COO selection candidate only",
+    "not automatic shape selection",
+    "not Building Plan authoring from task text",
+    "no write-need step exists on this route, so no caller write_scope is required",
+    "support materializes caller / COO declared task source and preset only",
+    "not automatic preset selection",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "raw_manifest_ref": "raw/raw-manifest.json",
+  "raw_stream_refs": [
+    "raw/brick-work.jsonl",
+    "raw/agent-return.jsonl",
+    "raw/link.jsonl"
+  ],
+  "recorded_at": "2026-06-12T01:24:10Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:lane-tooling-adversarial-review-0612",
+  "specversion": "1.0",
+  "step_output_refs": [
+    "work/step-outputs/lane-tooling-adversarial-review-0612-review-attempt-1/step-output.json",
+    "work/step-outputs/lane-tooling-adversarial-review-0612-closure-attempt-1/step-output.json"
+  ],
+  "subject": "evidence/evidence-manifest.json",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T01:24:10Z",
+  "type": "bp.evidence_manifest"
+}

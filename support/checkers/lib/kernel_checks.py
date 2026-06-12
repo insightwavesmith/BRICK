@@ -725,6 +725,19 @@ def _agent_instruction_packet_probe(repo: Path) -> Mapping[str, Any]:
     return packet
 
 
+def _agent_instruction_packet_for_role(repo: Path, role: str) -> Mapping[str, Any]:
+    resources = importlib.import_module("brick_protocol.support.connection.agent_resources")
+    packet = resources.render_agent_instruction_packet(role, repo_root=repo)
+    expected_ref = f"agent-object:{role}"
+    if not isinstance(packet, Mapping):
+        raise ProfileError(f"{role} instruction packet renderer did not return a mapping")
+    if packet.get("kind") != "agent-instruction-packet":
+        raise ProfileError(f"{role} instruction packet kind drifted")
+    if packet.get("agent_object_ref") != expected_ref or packet.get("role") != role:
+        raise ProfileError(f"{role} instruction packet did not preserve Agent Object identity")
+    return packet
+
+
 def _agent_adapter_request_instruction_packet_probe(
     adapter: Any,
     instruction_packet: Mapping[str, Any],
@@ -961,6 +974,317 @@ def _agent_effective_write_probe(
     return 11
 
 
+def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
+    qa_packet = _agent_instruction_packet_for_role(repo, "qa")
+    cto_packet = _agent_instruction_packet_for_role(repo, "cto-lead")
+    dev_packet = _agent_instruction_packet_for_role(repo, "dev")
+    expected_known_policies = {
+        adapter.LEADER_COORDINATION_TOOL_POLICY_REF,
+        adapter.READ_WRITE_TOOL_POLICY_REF,
+        adapter.REVIEWER_READONLY_TOOL_POLICY_REF,
+    }
+    if set(adapter.KNOWN_TOOL_POLICY_REFS) != expected_known_policies:
+        raise ProfileError(
+            "read-tier known tool-policy vocabulary drifted; observed "
+            f"{sorted(adapter.KNOWN_TOOL_POLICY_REFS)!r}"
+        )
+
+    reviewer_request = adapter.AgentAdapterRequest(
+        building_id="agent-read-tier-reviewer-probe",
+        agent_object_ref="agent-object:qa",
+        adapter_ref=adapter.ADAPTER_CODEX_LOCAL,
+        brick_instance_ref="brick-review",
+        next_brick_instance_ref="brick-closure",
+        tool_policy_refs=(adapter.REVIEWER_READONLY_TOOL_POLICY_REF,),
+        required_return_shape="observed_evidence, evidence_used, not_proven",
+        agent_instruction_packet=qa_packet,
+    )
+    if not adapter.agent_request_read_tier(reviewer_request):
+        raise ProfileError("reviewer-readonly non-write codex request did not enter read tier")
+    reviewer_prompt = json.loads(
+        adapter._build_prompt(
+            reviewer_request,
+            adapter._LOCAL_CLI_SPECS[adapter.ADAPTER_CODEX_LOCAL],
+        )
+    )
+    reviewer_rules = list(reviewer_prompt.get("rules", []))
+    if "Do not use tools or hooks." in reviewer_rules:
+        raise ProfileError("read-tier codex reviewer prompt still rendered the none-tier no-tools rule")
+    expected_read_rule = (
+        "You may use read-only repository inspection tools only: read files, inspect diffs, "
+        "search with grep/glob, and run checker commands."
+    )
+    if expected_read_rule not in reviewer_rules:
+        raise ProfileError("read-tier codex reviewer prompt did not expose repository inspection rule")
+    forbidden_write_permission_phrases = (
+        "You may edit files only inside",
+        "write_scope.allowed_paths",
+        "Read, Grep, Glob, Edit, Write",
+    )
+    for phrase in forbidden_write_permission_phrases:
+        if any(phrase in rule for rule in reviewer_rules):
+            raise ProfileError(
+                "read-tier codex reviewer prompt leaked write-tier permission phrase "
+                f"{phrase!r}"
+            )
+
+    unknown_policy_request = adapter.AgentAdapterRequest(
+        building_id="agent-read-tier-unknown-policy-probe",
+        agent_object_ref="agent-object:qa",
+        adapter_ref=adapter.ADAPTER_CODEX_LOCAL,
+        brick_instance_ref="brick-review",
+        next_brick_instance_ref="brick-closure",
+        tool_policy_refs=(adapter.REVIEWER_READONLY_TOOL_POLICY_REF, "tool-policy:unknown"),
+        required_return_shape="observed_evidence, evidence_used, not_proven",
+        agent_instruction_packet=qa_packet,
+    )
+    if adapter.agent_request_read_tier(unknown_policy_request):
+        raise ProfileError("reviewer-readonly plus unknown tool policy entered read tier")
+    unknown_policy_prompt = json.loads(
+        adapter._build_prompt(
+            unknown_policy_request,
+            adapter._LOCAL_CLI_SPECS[adapter.ADAPTER_CODEX_LOCAL],
+        )
+    )
+    if "Do not use tools or hooks." not in unknown_policy_prompt.get("rules", []):
+        raise ProfileError("unknown tool policy request did not fail closed to none tier")
+    if expected_read_rule in unknown_policy_prompt.get("rules", []):
+        raise ProfileError("unknown tool policy request still rendered read-tier inspection rule")
+
+    leader_request = adapter.AgentAdapterRequest(
+        building_id="agent-read-tier-leader-probe",
+        agent_object_ref="agent-object:cto-lead",
+        adapter_ref=adapter.ADAPTER_CLAUDE_LOCAL,
+        brick_instance_ref="brick-design",
+        next_brick_instance_ref="brick-work",
+        tool_policy_refs=(
+            adapter.LEADER_COORDINATION_TOOL_POLICY_REF,
+            adapter.READ_WRITE_TOOL_POLICY_REF,
+        ),
+        required_return_shape="observed_evidence, evidence_refs, not_proven",
+        agent_instruction_packet=cto_packet,
+    )
+    if not adapter.agent_request_read_tier(leader_request):
+        raise ProfileError("leader-coordination non-write claude request did not enter read tier")
+    leader_knobs = adapter._claude_cli_invocation(leader_request)
+    if leader_knobs["permission_mode"] != "plan":
+        raise ProfileError("read-tier claude request must stay in plan permission mode")
+    leader_tools = [tool.strip() for tool in leader_knobs["tools"].split(",") if tool.strip()]
+    if leader_tools != ["Read", "Grep", "Glob"]:
+        raise ProfileError(f"read-tier claude tools must be Read/Grep/Glob only, got {leader_tools}")
+    if "Edit" in leader_tools or "Write" in leader_tools:
+        raise ProfileError("read-tier claude request leaked Edit/Write tools")
+    if leader_knobs["system_prompt"] != adapter._CLAUDE_READ_ONLY_SYSTEM_PROMPT:
+        raise ProfileError("read-tier claude request did not use the read-only system prompt")
+
+    dev_nonwrite_request = adapter.AgentAdapterRequest(
+        building_id="agent-read-tier-dev-none-probe",
+        agent_object_ref="agent-object:dev",
+        adapter_ref=adapter.ADAPTER_CODEX_LOCAL,
+        brick_instance_ref="brick-readonly-worker",
+        next_brick_instance_ref="brick-closure",
+        tool_policy_refs=(adapter.READ_WRITE_TOOL_POLICY_REF,),
+        agent_instruction_packet=dev_packet,
+    )
+    if adapter.agent_request_read_tier(dev_nonwrite_request):
+        raise ProfileError("read-write-scoped alone must not enter the read tier without write_scope")
+    dev_prompt = json.loads(
+        adapter._build_prompt(
+            dev_nonwrite_request,
+            adapter._LOCAL_CLI_SPECS[adapter.ADAPTER_CODEX_LOCAL],
+        )
+    )
+    if "Do not use tools or hooks." not in dev_prompt.get("rules", []):
+        raise ProfileError("ambiguous non-write worker request did not fail closed to none tier")
+
+    gemini_request = adapter.AgentAdapterRequest(
+        building_id="agent-read-tier-gemini-limit-probe",
+        agent_object_ref="agent-object:qa",
+        adapter_ref=adapter.ADAPTER_GEMINI_LOCAL,
+        brick_instance_ref="brick-review",
+        next_brick_instance_ref="brick-closure",
+        tool_policy_refs=(adapter.REVIEWER_READONLY_TOOL_POLICY_REF,),
+        agent_instruction_packet=qa_packet,
+    )
+    if adapter.agent_request_read_tier(gemini_request):
+        raise ProfileError("gemini-local must not enter read tier until read-only tools are expressible")
+    gemini_prompt = json.loads(
+        adapter._build_prompt(
+            gemini_request,
+            adapter._LOCAL_CLI_SPECS[adapter.ADAPTER_GEMINI_LOCAL],
+        )
+    )
+    gemini_rules = list(gemini_prompt.get("rules", []))
+    if "Do not use tools or hooks." not in gemini_rules:
+        raise ProfileError("gemini-local documented limit must stay in none-tier no-tools prompt")
+    if not any("adapter:gemini-local remains in the none tier" in rule for rule in gemini_rules):
+        raise ProfileError("gemini-local read-tier limit was not documented in the prompt")
+
+    return 13
+
+
+def _artifact_grounding_probe(repo: Path) -> int:
+    from brick_protocol.link.movement import make_movement_fact
+    from brick_protocol.link.transition import make_transition_fact
+    from brick_protocol.support.operator.run import (
+        complete_agent_run_from_prepared,
+        prepare_agent_run_from_step_rows,
+    )
+
+    cases = (
+        (
+            "code-attack-qa",
+            "agent-object:qa",
+            "observed_evidence, attacked_work, checked_sources, regression_risks, "
+            "negative_probe_observations, failing_or_missing_probes, boundary_violations, "
+            "evidence_used, not_proven",
+            {
+                "observed_evidence": ["packet-only review observed"],
+                "attacked_work": ["prior packet"],
+                "checked_sources": ["support-packet:prior-output"],
+                "regression_risks": [],
+                "negative_probe_observations": [],
+                "failing_or_missing_probes": [],
+                "boundary_violations": [],
+                "evidence_used": ["support-packet:prior-output"],
+                "not_proven": [],
+            },
+            {
+                "observed_evidence": ["repository artifact read"],
+                "attacked_work": ["prior packet"],
+                "checked_sources": ["support/connection/agent_adapter.py:1087"],
+                "regression_risks": [],
+                "negative_probe_observations": [],
+                "failing_or_missing_probes": [],
+                "boundary_violations": [],
+                "evidence_used": ["support/connection/agent_adapter.py:1087"],
+                "not_proven": [],
+            },
+            "evidence_used.repository_artifact_ref",
+        ),
+        (
+            "design",
+            "agent-object:design-lead",
+            "observed_evidence, design_summary, relevant_current_structure, proposed_changes, "
+            "unchanged_surfaces, axis_responsibility, invariants, edge_cases, "
+            "checker_or_verifier_plan, candidate_file_changes, evidence_refs, not_proven",
+            {
+                "observed_evidence": ["packet-only design observed"],
+                "design_summary": "probe design",
+                "relevant_current_structure": ["support packet only"],
+                "proposed_changes": [],
+                "unchanged_surfaces": [],
+                "axis_responsibility": [],
+                "invariants": [],
+                "edge_cases": [],
+                "checker_or_verifier_plan": [],
+                "candidate_file_changes": [],
+                "evidence_refs": ["support-packet:design-intake"],
+                "not_proven": [],
+            },
+            {
+                "observed_evidence": ["repository artifact read"],
+                "design_summary": "probe design",
+                "relevant_current_structure": ["brick/templates/bricks/design/brick.md:20"],
+                "proposed_changes": [],
+                "unchanged_surfaces": [],
+                "axis_responsibility": [],
+                "invariants": [],
+                "edge_cases": [],
+                "checker_or_verifier_plan": [],
+                "candidate_file_changes": [],
+                "evidence_refs": ["brick/templates/bricks/design/brick.md:20"],
+                "not_proven": [],
+            },
+            "evidence_refs.repository_artifact_ref",
+        ),
+    )
+
+    inspected = 0
+    for kind, agent_ref, required_shape, missing_return, grounded_return, grounding_field in cases:
+        fixture = {
+            "building_id": f"artifact-grounding-{kind}",
+            "step_rows": {
+                "step_ref": f"artifact-grounding-{kind}",
+                "rows": [
+                    {
+                        "axis": "Brick",
+                        "row_ref": f"brick-row:artifact-grounding-{kind}",
+                        "brick_instance_ref": f"brick-artifact-grounding-{kind}",
+                        "brick_work_ref": f"work:artifact-grounding-{kind}",
+                        "work_statement": f"{kind} Brick artifact grounding probe",
+                        "comparison_rule": "Repo artifact grounding is required for review/design evidence.",
+                        "required_return_shape": required_shape,
+                    },
+                    {
+                        "axis": "Agent",
+                        "row_ref": f"agent-row:artifact-grounding-{kind}",
+                        "agent_object_ref": agent_ref,
+                    },
+                    {
+                        "axis": "Link",
+                        "row_ref": f"link-row:artifact-grounding-{kind}",
+                        "movement": "forward",
+                        "target_ref": f"brick-artifact-grounding-{kind}-closure",
+                        "declared_gate_refs": ["link-gate:default-transition"],
+                    },
+                ],
+            },
+        }
+        prepared = prepare_agent_run_from_step_rows(fixture)
+        link_fact = make_movement_fact(
+            "forward",
+            reason="artifact grounding checker probe",
+            handoff_target_fact=f"brick:{prepared.next_brick_instance_ref}",
+        )
+        transition_fact = make_transition_fact(
+            "forward",
+            target_fact=f"brick:{prepared.next_brick_instance_ref}",
+            handoff_reference=f"checker:artifact-grounding:{kind}",
+        )
+        missing_completion = complete_agent_run_from_prepared(
+            prepared,
+            returned_value=missing_return,
+            link_fact=link_fact,
+            transition_fact=transition_fact,
+        )
+        if grounding_field not in missing_completion.brick_comparison.missing_return_fields():
+            raise ProfileError(
+                f"artifact grounding probe {kind}: packet-only return did not mark "
+                f"{grounding_field} missing"
+            )
+        movement_gate = missing_completion.crossing_record.movement_gate_fact
+        expected_missing_fact = (
+            "BrickComparisonFact.comparison_evidence.returned_field."
+            f"{grounding_field}"
+        )
+        if movement_gate is None or expected_missing_fact not in movement_gate.missing_required_facts:
+            raise ProfileError(
+                f"artifact grounding probe {kind}: Link gate did not observe missing "
+                f"required fact {expected_missing_fact}"
+            )
+
+        grounded_completion = complete_agent_run_from_prepared(
+            prepared,
+            returned_value=grounded_return,
+            link_fact=link_fact,
+            transition_fact=transition_fact,
+        )
+        if grounding_field in grounded_completion.brick_comparison.missing_return_fields():
+            raise ProfileError(
+                f"artifact grounding probe {kind}: repository artifact ref still "
+                f"marked {grounding_field} missing"
+            )
+        grounded_gate = grounded_completion.crossing_record.movement_gate_fact
+        if grounded_gate is None or grounded_gate.missing_required_facts:
+            raise ProfileError(
+                f"artifact grounding probe {kind}: grounded return still produced "
+                f"missing_required_facts {getattr(grounded_gate, 'missing_required_facts', None)!r}"
+            )
+        inspected += 2
+    return inspected
+
+
 def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
     _ensure_import_identity(repo)
     adapter = importlib.import_module("brick_protocol.support.connection.agent_adapter")
@@ -1011,6 +1335,8 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
     if prompt.get("agent_instruction_packet", {}).get("kind") != "agent-instruction-packet":
         raise ProfileError("adapter prompt did not carry Agent instruction packet")
     effective_write_inspected = _agent_effective_write_probe(repo, adapter, instruction_packet)
+    read_tier_inspected = _agent_read_tier_probe(repo, adapter)
+    artifact_grounding_inspected = _artifact_grounding_probe(repo)
 
     # REHOME (checker consolidation): assert the FULL return-field vocabulary the
     # retiring provider_json_return_smoke profile single-sourced (several tokens
@@ -1064,12 +1390,16 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
 
     return KernelResult(
         check_id="agent_adapter_return_shape",
-        inspected=6 + effective_write_inspected,
+        inspected=6
+        + effective_write_inspected
+        + read_tier_inspected
+        + artifact_grounding_inspected,
         output=(
             "agent adapter return shape passed: no_changes_reason waiver "
             "extraction, Brick comparison waiver, prompt projection, runtime "
             "Agent instruction packet rendering, and AgentAdapterRequest "
-            "injection plus effective_write probes inspected."
+            "injection plus effective_write, read-tier rendering, tier-safety, "
+            "and artifact-grounding probes inspected."
         ),
     )
 

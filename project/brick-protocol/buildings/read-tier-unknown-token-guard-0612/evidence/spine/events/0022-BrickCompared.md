@@ -1,0 +1,15 @@
+# BrickCompared · seq 22 · ["Brick"]
+- alias_fact_refs: ["brick-comparison:read-tier-unknown-token-guard-0612:read-tier-unknown-token-guard-0612-code-attack-qa"]
+- axis_scope: ["Brick"]
+- comparison_evidence: ["adapter returned value is available for Brick comparison observation","required_return_fields: observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, transition_concern_evidence, evidence_used, not_proven, evidence_used.repository_artifact_ref","observed_return_fields: adapter_ref, agent_object_ref, attacked_work, boundary_violations, brain_surface_ref, checked_sources, cli_call_ref, cli_version_text, evidence_refs, evidence_used, failing_or_missing_probes, negative_probe_observations, not_proven, observed_evidence, output_excerpt, proof_limits, regression_risks, returned_summary, selected_model_ref, transition_concern_evidence","missing_return_fields: none","artifact_grounding: evidence_used includes inspected repository artifact reference"]
+- comparison_observation: "contract observation only; not success judgment"
+- comparison_rule: "Observe declared task source and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickCompared"
+- forbidden_shortcut_evidence: ["support/run did not classify Agent return","support/run did not judge success or quality","support/run used caller-supplied Link facts"]
+- observed_match_kind: "matched"
+- required_return_shape_evidence: "observed_evidence,attacked_work,checked_sources,regression_risks,negative_probe_observations,failing_or_missing_probes,boundary_violations,transition_concern_evidence,evidence_used,not_proven"
+- run_segment: 1
+- sequence_index: 22
+- source_fact_ref: "brick-comparison:02:read-tier-unknown-token-guard-0612-code-attack-qa"
+- spine_schema_version: "spine-v1"
+- work_reference: "code_attack_qa Brick for task-source:inline-statement: Narrow fail-closed repair, reproduced by the operator and found by the in-chain review building lane-tooling-adversarial-review-0612:"

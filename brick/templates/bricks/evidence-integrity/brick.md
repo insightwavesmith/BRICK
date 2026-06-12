@@ -20,6 +20,9 @@ Input: the prior Brick's report (carried via the Link edge) plus this node's dec
 `work_statement`. Inspect the persisted evidence — its roots, what it actually proves, where a
 source may be stale, and where a checker or report may overclaim beyond the evidence it holds.
 Read only; do not edit, run mutating commands, or decide what the source truth *is*.
+`evidence_used` MUST include inspected repository artifact references (file paths such as
+`support/...`, `brick/...`, `agent/...`, `link/...`, `project/...`, or diff hunks actually read).
+Packet-only labels are not enough for this grounding requirement.
 
 Return: fill the `required_return_shape` from the return_template
 (`brick/templates/bricks/evidence-integrity/return.yaml`):

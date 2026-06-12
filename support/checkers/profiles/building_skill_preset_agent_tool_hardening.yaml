@@ -127,6 +127,21 @@ text_contains:
       - _RETURN_WAIVER_FIELDS_BY_REQUIRED
       - return_field_waivers
       - no_changes_reason
+      - READ_ONLY_TOOL_POLICY_REFS
+      - def agent_request_read_tier
+      - read-only repository inspection tools only
+      - adapter:gemini-local remains in the none tier
+  - path: support/operator/plan_validation.py
+    texts:
+      - evidence_used.repository_artifact_ref
+      - evidence_refs.repository_artifact_ref
+      - artifact_grounding_missing
+  - path: brick/templates/bricks/code-attack-qa/brick.md
+    texts:
+      - "`evidence_used` MUST include inspected repository artifact references"
+  - path: brick/templates/bricks/design/brick.md
+    texts:
+      - "`evidence_refs` MUST include inspected repository artifact references"
   - path: support/operator/run.py
     texts:
       - validate_agent_refs

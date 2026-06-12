@@ -22,6 +22,9 @@ Input: the prior Brick's report (carried via the Link edge) plus this node's dec
 owning axis (Brick measures, Link gates Movement, Agent performs), whether `support` has absorbed
 authority it should not own, whether any projection overclaims beyond persisted evidence, and
 whether the cited evidence roots actually back the claims.
+`evidence_used` MUST include inspected repository artifact references (file paths such as
+`support/...`, `brick/...`, `agent/...`, `link/...`, `project/...`, or diff hunks actually read).
+Packet-only labels are not enough for this grounding requirement.
 
 Return: fill the `required_return_shape` from the return_template
 (`brick/templates/bricks/axis-attack-qa/return.yaml`):

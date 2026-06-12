@@ -56,6 +56,7 @@ from brick_protocol.support.operator.primitives import (
     _TRANSITION_LIFECYCLE_KEY,
     _TRANSITION_LIFECYCLE_PROGRESS_STATES,
     _TRANSITION_LIFECYCLE_STATES,
+    evidence_list_has_repository_artifact_ref,
     _looks_like_agent_endpoint,
     _mapping,
     _merge_texts,
@@ -73,6 +74,11 @@ from brick_protocol.support.operator.primitives import (
     _validate_no_payload_forbidden,
 )
 from brick_protocol.support.connection.agent_adapter import _OBSERVED_WRITE_ADAPTER_REFS
+
+_ARTIFACT_GROUNDING_REVIEW_FIELD = "evidence_used"
+_ARTIFACT_GROUNDING_DESIGN_FIELD = "evidence_refs"
+_ARTIFACT_GROUNDING_REVIEW_FACT = "evidence_used.repository_artifact_ref"
+_ARTIFACT_GROUNDING_DESIGN_FACT = "evidence_refs.repository_artifact_ref"
 
 _GATE_SEQUENCE_STEP_ALLOWED_KEYS: frozenset[str] = frozenset(
     {
@@ -532,7 +538,7 @@ def _comparison_fact_from_observation(
     returned_value: Any | None = None,
 ) -> BrickComparisonFact:
     if value is None:
-        return BrickComparisonFact.from_returned_value(
+        comparison = BrickComparisonFact.from_returned_value(
             work_reference=prepared.brick_work.work_statement,
             required_fields=_required_agent_return_fields_for_brick_handoff(prepared),
             returned_value=returned_value,
@@ -544,39 +550,132 @@ def _comparison_fact_from_observation(
                 "support/run used caller-supplied Link facts",
             ),
         )
-    if isinstance(value, BrickComparisonFact):
-        return value
-    mapping = _require_mapping_value("comparison_observation", value)
-    _validate_no_payload_forbidden("comparison_observation", mapping, _RETURN_FORBIDDEN_KEYS)
-    return BrickComparisonFact.from_parts(
-        work_reference=_optional_text_value(mapping.get("work_reference"))
-        or prepared.brick_work.work_statement,
-        comparison_evidence=_text_tuple(
-            "comparison_observation.comparison_evidence",
-            mapping.get(
-                "comparison_evidence",
-                "adapter returned value is available for Brick comparison observation",
-            ),
-        ),
-        observed_match_kind=_optional_text_value(mapping.get("observed_match_kind"))
-        or "unknown",
-        comparison_rule=_optional_text_value(mapping.get("comparison_rule"))
-        or prepared.brick_work.comparison_rule,
-        required_return_shape_evidence=_optional_text_value(
-            mapping.get("required_return_shape_evidence")
-        )
-        or prepared.brick_work.required_return_shape,
-        forbidden_shortcut_evidence=_text_tuple(
-            "comparison_observation.forbidden_shortcut_evidence",
-            mapping.get(
-                "forbidden_shortcut_evidence",
-                (
-                    "support/run did not classify Agent return",
-                    "support/run did not judge success or quality",
+    elif isinstance(value, BrickComparisonFact):
+        comparison = value
+    else:
+        mapping = _require_mapping_value("comparison_observation", value)
+        _validate_no_payload_forbidden("comparison_observation", mapping, _RETURN_FORBIDDEN_KEYS)
+        comparison = BrickComparisonFact.from_parts(
+            work_reference=_optional_text_value(mapping.get("work_reference"))
+            or prepared.brick_work.work_statement,
+            comparison_evidence=_text_tuple(
+                "comparison_observation.comparison_evidence",
+                mapping.get(
+                    "comparison_evidence",
+                    "adapter returned value is available for Brick comparison observation",
                 ),
             ),
+            observed_match_kind=_optional_text_value(mapping.get("observed_match_kind"))
+            or "unknown",
+            comparison_rule=_optional_text_value(mapping.get("comparison_rule"))
+            or prepared.brick_work.comparison_rule,
+            required_return_shape_evidence=_optional_text_value(
+                mapping.get("required_return_shape_evidence")
+            )
+            or prepared.brick_work.required_return_shape,
+            forbidden_shortcut_evidence=_text_tuple(
+                "comparison_observation.forbidden_shortcut_evidence",
+                mapping.get(
+                    "forbidden_shortcut_evidence",
+                    (
+                        "support/run did not classify Agent return",
+                        "support/run did not judge success or quality",
+                    ),
+                ),
+            ),
+        )
+    return _comparison_with_artifact_grounding(prepared, comparison, returned_value)
+
+
+def _comparison_with_artifact_grounding(
+    prepared: AgentRunPreparationRecord,
+    comparison: BrickComparisonFact,
+    returned_value: Any | None,
+) -> BrickComparisonFact:
+    evidence_field = _artifact_grounding_evidence_field(prepared)
+    if not evidence_field:
+        return comparison
+    grounding_field = (
+        _ARTIFACT_GROUNDING_DESIGN_FACT
+        if evidence_field == _ARTIFACT_GROUNDING_DESIGN_FIELD
+        else _ARTIFACT_GROUNDING_REVIEW_FACT
+    )
+    has_grounding = _returned_field_has_repo_artifact_ref(returned_value, evidence_field)
+    required_fields = tuple(dict.fromkeys((*comparison.required_return_fields(), grounding_field)))
+    missing_fields = list(comparison.missing_return_fields())
+    if has_grounding:
+        missing_fields = [field for field in missing_fields if field != grounding_field]
+    elif grounding_field not in missing_fields:
+        missing_fields.append(grounding_field)
+    comparison_evidence = _replace_comparison_evidence_fields(
+        comparison.comparison_evidence,
+        prefix="required_return_fields:",
+        fields=required_fields,
+    )
+    comparison_evidence = _replace_comparison_evidence_fields(
+        comparison_evidence,
+        prefix="missing_return_fields:",
+        fields=tuple(dict.fromkeys(missing_fields)),
+    )
+    comparison_evidence = (
+        *comparison_evidence,
+        (
+            f"artifact_grounding: {evidence_field} includes inspected repository artifact reference"
+            if has_grounding
+            else f"artifact_grounding_missing: {evidence_field} lacks inspected repository artifact reference"
         ),
     )
+    return BrickComparisonFact.from_parts(
+        work_reference=comparison.work_reference,
+        comparison_evidence=comparison_evidence,
+        observed_match_kind="missing" if missing_fields else comparison.observed_match_kind,
+        comparison_rule=comparison.comparison_rule,
+        required_return_shape_evidence=comparison.required_return_shape_evidence,
+        forbidden_shortcut_evidence=comparison.forbidden_shortcut_evidence,
+    )
+
+
+def _artifact_grounding_evidence_field(prepared: AgentRunPreparationRecord) -> str:
+    fields = set(parse_required_return_shape(prepared.brick_work.required_return_shape))
+    review_shapes = (
+        {"attacked_work", _ARTIFACT_GROUNDING_REVIEW_FIELD},
+        {"attacked_scope", _ARTIFACT_GROUNDING_REVIEW_FIELD},
+        {"evidence_scope", _ARTIFACT_GROUNDING_REVIEW_FIELD},
+        {"checked_work", _ARTIFACT_GROUNDING_REVIEW_FIELD},
+    )
+    if any(shape.issubset(fields) for shape in review_shapes):
+        return _ARTIFACT_GROUNDING_REVIEW_FIELD
+    if {"design_summary", _ARTIFACT_GROUNDING_DESIGN_FIELD}.issubset(fields):
+        return _ARTIFACT_GROUNDING_DESIGN_FIELD
+    return ""
+
+
+def _returned_field_has_repo_artifact_ref(returned_value: Any | None, field_name: str) -> bool:
+    if not isinstance(returned_value, Mapping):
+        return False
+    return evidence_list_has_repository_artifact_ref(returned_value.get(field_name))
+
+
+def _replace_comparison_evidence_fields(
+    comparison_evidence: tuple[str, ...],
+    *,
+    prefix: str,
+    fields: tuple[str, ...],
+) -> tuple[str, ...]:
+    replacement = f"{prefix} " + (", ".join(fields) if fields else "none")
+    replaced = False
+    lines: list[str] = []
+    for line in comparison_evidence:
+        if line.startswith(prefix):
+            if not replaced:
+                lines.append(replacement)
+                replaced = True
+            continue
+        lines.append(line)
+    if not replaced:
+        lines.append(replacement)
+    return tuple(lines)
+
 
 def _required_agent_return_fields_for_brick_handoff(
     prepared: AgentRunPreparationRecord,

@@ -1,0 +1,9 @@
+Narrow fail-closed repair, reproduced by the operator and found by the in-chain review building lane-tooling-adversarial-review-0612:
+
+FINDING: agent_request_read_tier (support/connection/agent_adapter.py ~525-540) admits the READ tier when tool_policy_refs merely INTERSECTS the known read-only set — a request carrying tool-policy:reviewer-readonly PLUS an UNKNOWN token (e.g. tool-policy:unknown) still enters the read tier. The lane-tooling design invariant says: unknown policy vocabulary or ANY ambiguity must resolve to the none tier (fail closed). Repro: direct AgentAdapterRequest with tool_policy_refs=('tool-policy:reviewer-readonly','tool-policy:unknown') -> agent_request_read_tier returns True.
+
+REQUIRED: the read tier must be admitted ONLY when EVERY tool_policy_ref on the request belongs to the closed admitted vocabulary (the read-only set plus the other legitimately known policy tokens such as read-write-scoped and leader-coordination) AND the existing conditions hold; any token outside the known vocabulary -> none tier. Do not change write-tier logic. Keep gemini none.
+
+PROOF (run, report honestly): (1) the repro above now returns False; (2) a pure reviewer-readonly non-write request still returns True (read tier); (3) a leader-coordination non-write request still reaches read tier; (4) write tier unchanged (effective-write probe still True with scope+policy); (5) extend the existing lane-tooling checker pin with the unknown-token FIRE case (mutated renderer admitting unknown -> RED); (6) PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all -> report real exit code (temp source copy acceptable if the live yard blocks tempdir checks — say which you ran).
+
+Constraints: support/* only; fails-closed; no pin weakening; no link/ or agent/ edits.

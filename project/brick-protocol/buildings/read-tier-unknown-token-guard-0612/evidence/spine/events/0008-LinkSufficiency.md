@@ -1,0 +1,12 @@
+# LinkSufficiency · seq 8 · ["Link"]
+- axis_scope: ["Link"]
+- checked_public_fact: "brick-comparison:read-tier-unknown-token-guard-0612:read-tier-unknown-token-guard-0612-work"
+- event_type: "LinkSufficiency"
+- missing_required_facts: []
+- required_public_facts: ["BrickComparisonFact.required_return_shape_evidence","BrickComparisonFact.comparison_evidence","BrickComparisonFact.comparison_evidence.returned_field.received_work_ref","BrickComparisonFact.comparison_evidence.returned_field.made_changes","BrickComparisonFact.comparison_evidence.returned_field.changed_files","BrickComparisonFact.comparison_evidence.returned_field.observed_evidence","BrickComparisonFact.comparison_evidence.returned_field.commands_run","BrickComparisonFact.comparison_evidence.returned_field.blocked_or_missing_evidence","BrickComparisonFact.comparison_evidence.returned_field.handoff_refs","BrickComparisonFact.comparison_evidence.returned_field.not_proven"]
+- run_segment: 1
+- sequence_index: 8
+- source_fact_ref: "sufficiency-fact-movement:01:read-tier-unknown-token-guard-0612-work"
+- spine_schema_version: "spine-v1"
+- stage: "movement"
+- sufficiency: "sufficient"

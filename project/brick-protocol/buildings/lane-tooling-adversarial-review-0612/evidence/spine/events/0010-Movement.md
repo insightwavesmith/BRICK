@@ -1,0 +1,12 @@
+# Movement · seq 10 · ["Link"]
+- adopted_transition_concern_refs: []
+- axis_scope: ["Link"]
+- declared_movement: "forward"
+- event_type: "Movement"
+- gate_review_event_ref: "sufficiency-fact-movement:01:lane-tooling-adversarial-review-0612-review"
+- not_adopted_transition_concern_refs: []
+- run_segment: 1
+- sequence_index: 10
+- source_fact_ref: "movement-fact:01:lane-tooling-adversarial-review-0612-review"
+- spine_schema_version: "spine-v1"
+- target_boundary_ref: "brick:brick-closure"

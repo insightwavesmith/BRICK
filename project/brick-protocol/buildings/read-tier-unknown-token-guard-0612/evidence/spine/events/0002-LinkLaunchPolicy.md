@@ -1,0 +1,14 @@
+# LinkLaunchPolicy · seq 2 · ["Link"]
+- axis_scope: ["Link"]
+- building_id: "read-tier-unknown-token-guard-0612"
+- declared_gate_refs: ["link-gate:default-transition"]
+- event_type: "LinkLaunchPolicy"
+- launch_rows: [{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"","route_replay_plan":{},"step_ref":"read-tier-unknown-token-guard-0612-work","target_boundary_ref":"brick-code-attack-qa"},{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"","route_replay_plan":{},"step_ref":"read-tier-unknown-token-guard-0612-code-attack-qa","target_boundary_ref":"brick-closure"},{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"","route_replay_plan":{},"step_ref":"read-tier-unknown-token-guard-0612-closure","target_boundary_ref":"building-boundary:read-tier-unknown-token-guard-0612-closed"}]
+- max_attempts_by_boundary: {}
+- node_reroute_budgets: {}
+- plan_ref: "building-plan:read-tier-unknown-token-guard-0612"
+- plan_shape: "linear"
+- run_segment: 1
+- selected_shape_ref: "building-shape:reviewable-work"
+- sequence_index: 2
+- spine_schema_version: "spine-v1"

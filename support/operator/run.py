@@ -1542,8 +1542,9 @@ def _declared_movement_gate_fact(
             prepared.step_rows.link_row,
             ("route_decision_basis", "override_refs"),
         ),
-        base_required_return_fields=_required_return_shape_fields(
-            prepared.brick_work.required_return_shape
+        base_required_return_fields=_base_required_return_fields_for_gate(
+            prepared,
+            brick_comparison,
         ),
         checked_public_fact=checked,
         evidence_reference=checked,
@@ -1560,6 +1561,17 @@ def _brick_comparison_missing_return_fields(
     brick_comparison: BrickComparisonFact,
 ) -> tuple[str, ...]:
     return brick_comparison.missing_return_fields()
+
+
+def _base_required_return_fields_for_gate(
+    prepared: AgentRunPreparationRecord,
+    brick_comparison: BrickComparisonFact,
+) -> tuple[str, ...]:
+    fields = list(_required_return_shape_fields(prepared.brick_work.required_return_shape))
+    for field_name in brick_comparison.required_return_fields():
+        if field_name.endswith(".repository_artifact_ref") and field_name not in fields:
+            fields.append(field_name)
+    return tuple(fields)
 
 
 def _brick_comparison_fields_from_evidence(

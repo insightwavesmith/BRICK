@@ -1109,7 +1109,7 @@ def _building_intake_seam_callable(request: Any) -> Mapping[str, Any]:
                 "related_boundary_refs": ["building-boundary:building-intake-seam-no-reroute"],
             }
         elif label in _PRESET_COMPLETION_LIST_RETURN_FIELDS:
-            returned[label] = [f"{label}: building-intake-seam deterministic evidence"]
+            returned[label] = _deterministic_completion_list(label, "building-intake-seam")
         else:
             returned[label] = f"{label}: building-intake-seam deterministic evidence"
     returned.setdefault("observed_evidence", ["building-intake-seam deterministic evidence"])
@@ -3029,7 +3029,7 @@ def _preset_completion_command_runner(completed_cls: type[Any]) -> Callable[[Seq
                     "not_proven": ["semantic correctness"],
                 }
             elif label in _PRESET_COMPLETION_LIST_RETURN_FIELDS:
-                returned[label] = [f"{label}: deterministic preset completion evidence"]
+                returned[label] = _deterministic_completion_list(label, "preset-completion")
             else:
                 returned[label] = f"{label}: deterministic preset completion evidence"
         returned.setdefault("observed_evidence", ["deterministic preset completion evidence"])
@@ -3105,6 +3105,23 @@ _PRESET_COMPLETION_LIST_RETURN_FIELDS = frozenset(
         "worker_assignments",
     }
 )
+
+_PRESET_COMPLETION_REPO_ARTIFACT_FIELDS = frozenset(
+    {
+        "checked_sources",
+        "evidence_refs",
+        "evidence_used",
+        "relevant_current_structure",
+    }
+)
+
+
+def _deterministic_completion_list(label: str, source: str) -> list[str]:
+    if label in _PRESET_COMPLETION_REPO_ARTIFACT_FIELDS:
+        return [
+            f"{label}: {source} deterministic evidence from support/checkers/lib/case_runners.py"
+        ]
+    return [f"{label}: {source} deterministic evidence"]
 
 
 def _return_labels_from_cli_prompt(prompt: str) -> tuple[str, ...]:

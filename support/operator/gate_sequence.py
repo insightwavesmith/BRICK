@@ -79,9 +79,7 @@ def run_gate_sequence_policy(
     checked = f"brick-comparison:{step_result.building_id}:{step_result.preparation.step_rows.step_ref}"
     gate_results = _declared_sequence_gate_results(
         policy=policy,
-        base_required_return_fields=parse_required_return_shape(
-            comparison.required_return_shape_evidence
-        ),
+        base_required_return_fields=_base_required_return_fields_for_gate_sequence(comparison),
         missing_return_fields=comparison.missing_return_fields(),
         observed_match_kind=comparison.observed_match_kind,
         human_review_present=_link_row_has_non_empty_list(
@@ -247,6 +245,14 @@ def run_gate_sequence_policy(
         gate_results=gate_results,
         gate_action_sequence=tuple(action_steps),
     )
+
+
+def _base_required_return_fields_for_gate_sequence(comparison: Any) -> tuple[str, ...]:
+    fields = list(parse_required_return_shape(comparison.required_return_shape_evidence))
+    for field_name in comparison.required_return_fields():
+        if field_name.endswith(".repository_artifact_ref") and field_name not in fields:
+            fields.append(field_name)
+    return tuple(fields)
 
 
 def gate_sequence_decision_to_record(

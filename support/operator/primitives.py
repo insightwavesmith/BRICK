@@ -197,6 +197,11 @@ _RAW_SECRET_PATTERNS = (
     re.compile(r"\bAIza[A-Za-z0-9_-]{12,}"),
     re.compile(r"-----BEGIN [A-Z ]+PRIVATE KEY-----"),
 )
+_REPOSITORY_ARTIFACT_REF_RE = re.compile(
+    r"(?:(?:^|[\s`\"'(\[])(?:[ab]/)?"
+    r"(?:AGENTS\.md|pyproject\.toml|uv\.lock|support/|brick/|agent/|link/|project/)"
+    r"[^\s`\"')\],;]*)|(?:^|\n)@@[^\n]*(?:support/|brick/|agent/|link/|project/)"
+)
 _GRAPH_PROFILE = "planning-v0"
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _DEFAULT_AGENT_OBJECT_ROOT = _REPO_ROOT / "agent" / "objects"
@@ -484,6 +489,17 @@ def _merge_texts(*values: Any) -> tuple[str, ...]:
             if item not in merged:
                 merged.append(item)
     return tuple(merged)
+
+
+def evidence_list_has_repository_artifact_ref(value: Any) -> bool:
+    """True when an evidence ref list contains an inspected repo artifact ref."""
+
+    if not isinstance(value, (list, tuple)):
+        return False
+    return any(
+        isinstance(item, str) and bool(_REPOSITORY_ARTIFACT_REF_RE.search(item))
+        for item in value
+    )
 
 
 def _raw_ref(kind: str, index: int) -> str:

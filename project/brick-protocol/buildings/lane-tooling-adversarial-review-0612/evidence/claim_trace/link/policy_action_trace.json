@@ -1,0 +1,21 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:lane-tooling-adversarial-review-0612::evidence/claim_trace/link/policy_action_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [],
+  "generatedAtTime": "2026-06-12T01:24:10Z",
+  "id": "urn:bp:building:lane-tooling-adversarial-review-0612::evidence/claim_trace/link/policy_action_trace.json",
+  "recorded_at": "2026-06-12T01:24:10Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:lane-tooling-adversarial-review-0612",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/policy_action_trace.json",
+  "time": "2026-06-12T01:24:10Z",
+  "type": "bp.claim_trace"
+}
