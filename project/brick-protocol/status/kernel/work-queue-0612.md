@@ -3,12 +3,14 @@
 선언일 뿐 실행 아님 (스케줄러 아님). 각 항목은 빌딩으로 착수될 때 이 문서에서 지워지고
 그 빌딩의 장부가 진실이 된다. 갱신 주체 = 운영자, 승인 = Smith.
 
-## 진행 중 (빌딩으로 가동, 0612)
-- notify-v2-vessel-guard-voice — 알림 2차(대기열 0번) + F12 가드(대기열 7번) 묶음 — 보행 중
-- f13-frontier-declared-edge-fallback-0612 — frontier 폴백이 그래프 선언행을 closed로 오독
-  (F9/F9B 후 3번째 동일표면; notify-v2 보행 중 closed 투영으로 발견, 0612) — 보행 중
+## 진행 중 (빌딩으로 가동)
+- (없음 — 0612 저녁 기준)
 
 ## 완료 (0612, 빌딩 닫힘·머지됨)
+- f13-frontier-declared-edge-fallback-0612 — frontier 폴백이 그래프 선언행을 closed로 오독
+  (F9/F9B 후 3번째 동일표면) — 폐장·머지·푸시 origin/main 2005c07 (0612 저녁);
+  변이 RED 체커 핀 동봉, 운영자 FIRE 6종 직접 실행 green
+- notify-v2-vessel-guard-voice — 알림 2차(0번) + F12 가드(7번) 묶음 — 폐장·머지 ec6ddfd (0612 낮)
 - f9 / f10 / f11 / onboarding(C3) / provider-ladder(D) — origin/main bf199ac 웨이브에 포함
 
 ## 대기 (빌딩 미착수)
@@ -28,9 +30,8 @@
    전체 빌딩 장부를 다중렌즈 분석(무효패턴·QA품질·게이트행동·비용) → 개선 대기열 도출
    (claude 렌즈 1 포함; 함대 preset의 첫 실전을 자기 회고로)
 
-7. (→ notify-v2-vessel-guard-voice 빌딩으로 착수됨, 0번과 묶음) F12 벨 자기간섭+헛벨 —
-   외부 싱크는 진짜 그릇(project/) 소속 빌딩만, 임시 output_root 빌딩은 자기 루트
-   우편함까지만. 수리 후 열쇠 재활성화(~/.brick/report.env.disabled → report.env).
+7. (완료 — notify-v2 빌딩에 묶여 머지됨, 0612) F12 벨 자기간섭+헛벨 가드.
+   열쇠 재활성화됨(~/.brick/report.env 활성).
 
 ## 닫힌 결정 (참조)
 - 박제(임포터)는 유지하되 "빌딩 밖 작업 후 사후신고" 패턴은 금지 (Smith 0612)
