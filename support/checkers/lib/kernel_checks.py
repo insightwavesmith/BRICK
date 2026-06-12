@@ -2496,6 +2496,8 @@ def run_chat_session_park_seam(repo: Path) -> KernelResult:
             raise ProfileError(f"chat_session_park_seam minted non-word token: {token!r}")
         if _SESSION_ID_UUID_RE.search(token) or _SESSION_ID_ULID_RE.search(token):
             raise ProfileError(f"chat_session_park_seam minted session-shaped token: {token!r}")
+        uuid_probe = _chat_session_probe_uuid_text()
+        ulid_probe = _chat_session_probe_ulid_text()
         _chat_session_assert_second_claim_rejects(run_module, dynamic_root)
         _chat_session_assert_resume_rejects(
             run_module,
@@ -2530,11 +2532,70 @@ def run_chat_session_park_seam(repo: Path) -> KernelResult:
             token=token,
             returned={
                 "made_changes": ["uuid negative"],
-                "observed_evidence": ["123e4567-e89b-12d3-a456-426614174000"],
+                "observed_evidence": [uuid_probe],
                 "not_proven": ["not resumed"],
             },
             expected="session-id-shaped text",
             label="uuid-shaped submitted text",
+        )
+        _chat_session_assert_submit_rejects(
+            run_module,
+            dynamic_root,
+            token=token,
+            returned={
+                uuid_probe: "session-shaped key must be rejected",
+                "made_changes": ["uuid key negative"],
+                "observed_evidence": ["ordinary value"],
+                "not_proven": ["not resumed"],
+            },
+            expected="session-id-shaped text",
+            label="uuid-shaped submitted key",
+        )
+        _chat_session_assert_submit_rejects(
+            run_module,
+            dynamic_root,
+            token=token,
+            returned={
+                ulid_probe: "session-shaped key must be rejected",
+                "made_changes": ["ulid key negative"],
+                "observed_evidence": ["ordinary value"],
+                "not_proven": ["not resumed"],
+            },
+            expected="session-id-shaped text",
+            label="ulid-shaped submitted key",
+        )
+        _chat_session_assert_submit_rejects(
+            run_module,
+            dynamic_root,
+            token=token,
+            returned={
+                "made_changes": ["nested key negative"],
+                "observed_evidence": [{"outer": [{"ordinary": "value"}, {uuid_probe: "blocked"}]}],
+                "not_proven": ["not resumed"],
+            },
+            expected="session-id-shaped text",
+            label="nested submitted key",
+        )
+        _chat_session_assert_submit_rejects(
+            run_module,
+            dynamic_root,
+            token=token,
+            returned={
+                "made_changes": ["nested value negative"],
+                "observed_evidence": [{"outer": ["ordinary", {"inner": ulid_probe}]}],
+                "not_proven": ["not resumed"],
+            },
+            expected="session-id-shaped text",
+            label="nested submitted value",
+        )
+        _chat_session_assert_envelope_session_key_rejects(uuid_probe)
+        fire_buildings_root = temp_repo / "project" / "brick-protocol" / "chat-session-fire-buildings"
+        fire_buildings_root.mkdir(parents=True)
+        _chat_session_assert_key_scan_fire(
+            run_module,
+            buildings_root=fire_buildings_root,
+            temp_repo=temp_repo,
+            uuid_probe=uuid_probe,
         )
         submitted = run_module.submit_chat_session_return(
             dynamic_root,
@@ -2542,6 +2603,7 @@ def run_chat_session_park_seam(repo: Path) -> KernelResult:
             returned={
                 "made_changes": ["checker wrote passive submission"],
                 "observed_evidence": ["claim token matched and payload stayed passive"],
+                "task-source": "ordinary hyphenated key accepted",
                 "not_proven": ["provider quality", "semantic correctness"],
             },
         )
@@ -2584,7 +2646,7 @@ def run_chat_session_park_seam(repo: Path) -> KernelResult:
                 "chat_session_park_seam resumed Building did not observe complete frontier: "
                 f"{after_resume.get('frontier_kind')!r}"
             )
-        inspected += 10
+        inspected += 17
 
         paths = lifecycle_shape.collect_directory_paths(buildings_root)
         lifecycle_violations = _chat_session_lifecycle_violations(buildings_root)
@@ -2670,7 +2732,8 @@ def run_chat_session_park_seam(repo: Path) -> KernelResult:
             "chat-session S2/S3 seam passed: linear chat-session plans rejected, "
             "dynamic graph park wrote work-envelope.json + parked.json + raw park evidence, "
             "atomic claim minted a word-form token and second claim rejected, no-claim/"
-            "no-submission/token-mismatch/forbidden-key/session-id submissions rejected "
+            "no-submission/token-mismatch/forbidden-key/session-id value/key/nested "
+            "submissions and session-shaped envelope keys rejected "
             "before resume, passive submission did not compute gates, resume consumed "
             "the submitted return, replayed through the graph walker, ran the next "
             "adapter:local step, lifecycle/path checks accepted claim.json and "
@@ -3300,6 +3363,96 @@ def _chat_session_assert_second_claim_rejects(run_module: Any, building_root: Pa
     raise ProfileError("chat_session_park_seam second claim did not reject")
 
 
+def _chat_session_probe_uuid_text() -> str:
+    return "-".join(("123e4567", "e89b", "42d3", "a456", "426614174000"))
+
+
+def _chat_session_probe_ulid_text() -> str:
+    return "".join(("01ARZ3", "NDEK", "TSV4", "RRFF", "Q69G", "5FAV"))
+
+
+def _chat_session_assert_envelope_session_key_rejects(uuid_probe: str) -> None:
+    from brick_protocol.support.connection.agent_adapter import AgentAdapterRequest
+    from support.recording import adapter_error_frontier
+
+    request = AgentAdapterRequest(
+        building_id="chat-session-envelope-key-case",
+        agent_object_ref="agent-object:dev",
+        adapter_ref="adapter:chat-session",
+        brick_instance_ref="brick-chat-session-envelope-key-case",
+        next_brick_instance_ref="building-boundary:chat-session-envelope-key-case",
+        source_fact_bodies={uuid_probe: "ordinary body"},
+    )
+    try:
+        adapter_error_frontier._agent_adapter_request_work_envelope(request)
+    except ValueError as exc:
+        if "session-id-shaped text" not in str(exc):
+            raise ProfileError(
+                "chat_session_park_seam envelope session-key rejected with wrong reason: "
+                f"{exc}"
+            ) from exc
+        return
+    raise ProfileError("chat_session_park_seam envelope session-shaped key did not reject")
+
+
+def _chat_session_assert_key_scan_fire(
+    run_module: Any,
+    *,
+    buildings_root: Path,
+    temp_repo: Path,
+    uuid_probe: str,
+) -> None:
+    fire_root, _ = _chat_session_drive_park(
+        run_module,
+        _chat_session_park_graph_plan(building_id="chat-session-key-scan-fire-case"),
+        buildings_root=buildings_root,
+        temp_repo=temp_repo,
+        walker_mode="dynamic",
+        label="key-scan-fire",
+    )
+    claim = run_module.claim_chat_session_envelope(
+        fire_root,
+        lane_ref="lane:key-scan-fire-checker",
+    )
+    token = str(claim.get("claim_token") or "")
+    original_rejector = run_module._reject_session_like_text
+    run_module._reject_session_like_text = _chat_session_value_only_session_rejector
+    try:
+        try:
+            run_module.submit_chat_session_return(
+                fire_root,
+                claim_token=token,
+                returned={
+                    uuid_probe: "mutated key-skip walker would admit this",
+                    "made_changes": ["key-skip FIRE"],
+                    "observed_evidence": ["ordinary value"],
+                    "not_proven": ["not resumed"],
+                },
+            )
+        except ValueError as exc:
+            raise ProfileError(
+                "chat_session_park_seam FIRE did not expose key-skip mutation: "
+                f"{exc}"
+            ) from exc
+    finally:
+        run_module._reject_session_like_text = original_rejector
+
+
+def _chat_session_value_only_session_rejector(label: str, value: Any) -> None:
+    if isinstance(value, Mapping):
+        for key, child in value.items():
+            _chat_session_value_only_session_rejector(f"{label}.{key}", child)
+        return
+    if isinstance(value, list):
+        for index, child in enumerate(value):
+            _chat_session_value_only_session_rejector(f"{label}[{index}]", child)
+        return
+    if isinstance(value, str) and (
+        _SESSION_ID_UUID_RE.search(value) or _SESSION_ID_ULID_RE.search(value)
+    ):
+        raise ValueError(f"{label} contains session-id-shaped text")
+
+
 def _chat_session_assert_submit_rejects(
     run_module: Any,
     building_root: Path,
@@ -3552,7 +3705,7 @@ def _chat_session_assert_mutated_lifecycle_rejects(
 def _chat_session_mutate_envelope_uuid(building_root: Path) -> None:
     envelope_path = _chat_session_single_step_output_dir(building_root) / "work-envelope.json"
     envelope = dict(_chat_session_json_object(envelope_path))
-    envelope["building_session_ref"] = "123e4567-e89b-12d3-a456-426614174000"
+    envelope["building_session_ref"] = _chat_session_probe_uuid_text()
     _chat_session_write_json_object(envelope_path, envelope)
 
 
@@ -4443,8 +4596,8 @@ def _session_id_redaction_fire_probe() -> None:
     # the probe RED. A single combined line would let one family die silently
     # behind another.
     family_leaks = {
-        "bare-uuid": "subagent row 123e4567-e89b-42d3-a456-426614174000",
-        "bare-ulid": "subagent row 01HXF1REPR0BE0F1REPR0BE042",
+        "bare-uuid": "subagent row " + _chat_session_probe_uuid_text(),
+        "bare-ulid": "subagent row " + _chat_session_probe_ulid_text(),
         "keyed-session": "conversation_id: abc123def456ghi",
         "value-token": "transport sess_a1b2c3d4e5f6g7",
     }

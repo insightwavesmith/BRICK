@@ -197,6 +197,10 @@ _RAW_SECRET_PATTERNS = (
     re.compile(r"\bAIza[A-Za-z0-9_-]{12,}"),
     re.compile(r"-----BEGIN [A-Z ]+PRIVATE KEY-----"),
 )
+_SESSION_LIKE_UUID_TEXT_RE = re.compile(
+    r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b"
+)
+_SESSION_LIKE_ULID_TEXT_RE = re.compile(r"\b[0-9A-HJKMNP-TV-Z]{26}\b")
 _REPOSITORY_ARTIFACT_REF_RE = re.compile(
     r"(?:(?:^|[\s`\"'(\[])(?:[ab]/)?"
     r"(?:AGENTS\.md|pyproject\.toml|uv\.lock|support/|brick/|agent/|link/|project/)"
@@ -557,6 +561,24 @@ def _validate_no_payload_forbidden(
     elif isinstance(value, str):
         if any(pattern.search(value) for pattern in _RAW_SECRET_PATTERNS):
             raise ValueError(f"{name} contains raw credential-looking text")
+
+def _reject_session_like_text(label: str, value: Any) -> None:
+    for position_label, text in _iter_string_positions(label, value):
+        if _SESSION_LIKE_UUID_TEXT_RE.search(text) or _SESSION_LIKE_ULID_TEXT_RE.search(text):
+            raise ValueError(f"{position_label} contains session-id-shaped text")
+
+def _iter_string_positions(label: str, value: Any):
+    if isinstance(value, Mapping):
+        for key, child in value.items():
+            child_label = f"{label}.{key}" if isinstance(key, str) and key.strip() else f"{label}.<key>"
+            if isinstance(key, str):
+                yield f"{label}.<key>", key
+            yield from _iter_string_positions(child_label, child)
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            yield from _iter_string_positions(f"{label}[{index}]", child)
+    elif isinstance(value, str):
+        yield label, value
 
 def _looks_like_agent_endpoint(value: str) -> bool:
     lowered = value.strip().lower()

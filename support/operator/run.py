@@ -148,6 +148,7 @@ from brick_protocol.support.operator.primitives import (
     _require_mapping_value,
     _require_only_keys,
     _required_text,
+    _reject_session_like_text,
     _resource_slug,
     _step_fact_ref,
     _text_tuple,
@@ -254,10 +255,6 @@ def _chat_session_park_frontier_transition_lifecycle(
 
 
 _CHAT_SESSION_TOKEN_RE = re.compile(r"[a-z]+(?:-[a-z]+){3,7}\Z")
-_CHAT_SESSION_UUID_RE = re.compile(
-    r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b"
-)
-_CHAT_SESSION_ULID_RE = re.compile(r"\b[0-9A-HJKMNP-TV-Z]{26}\b")
 _CHAT_SESSION_TOKEN_WORDS = (
     "amber",
     "basil",
@@ -679,18 +676,7 @@ def _validate_chat_session_submission_return(
 
 
 def _reject_chat_session_session_text(label: str, value: Any) -> None:
-    if isinstance(value, Mapping):
-        for key, child in value.items():
-            _reject_chat_session_session_text(f"{label}.{key}", child)
-        return
-    if isinstance(value, list):
-        for index, child in enumerate(value):
-            _reject_chat_session_session_text(f"{label}[{index}]", child)
-        return
-    if isinstance(value, str) and (
-        _CHAT_SESSION_UUID_RE.search(value) or _CHAT_SESSION_ULID_RE.search(value)
-    ):
-        raise ValueError(f"{label} contains session-id-shaped text")
+    _reject_session_like_text(label, value)
 
 
 def _read_chat_session_optional_json(path: Path) -> Mapping[str, Any] | None:
