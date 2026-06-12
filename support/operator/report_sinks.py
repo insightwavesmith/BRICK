@@ -6,13 +6,14 @@ import json
 import os
 import urllib.error
 import urllib.request
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+LABEL_MAP_PATH = REPO_ROOT / "support" / "operator" / "label_map.json"
 DEFAULT_INBOX_ROOT = REPO_ROOT / "project" / "brick-protocol" / "status" / "inbox"
 LOCAL_INBOX_SINK_REF = "report-sink:local-inbox"
 OPERATOR_WAKE_LOCAL_SINK_REF = "report-sink:operator-wake-local"
@@ -34,6 +35,8 @@ SLACK_REQUIRED_PACKET_FIELDS = (
     "report_kind",
     "observed_board_state",
     "trigger_event_ref",
+    "current_work_kind",
+    "current_lane",
     "frontier_ref",
     "evidence_root_refs",
     "evidence_refs_present",
@@ -209,6 +212,7 @@ OPERATOR_WAKE_NOT_PROVEN: tuple[str, ...] = (
     "external side effect behavior",
     "stale evidence race behavior",
 )
+SlackSender = Callable[[urllib.request.Request, float], tuple[int, bytes]]
 
 
 @dataclass(frozen=True)
@@ -255,8 +259,11 @@ def deliver_report_packet(
     overwrite_existing: bool = False,
     allow_real_slack_delivery: bool = False,
     slack_timeout_seconds: float = 10.0,
+    slack_env: Mapping[str, str] | None = None,
+    slack_sender: SlackSender | None = None,
     allow_real_dashboard_delivery: bool = False,
     dashboard_timeout_seconds: float = 10.0,
+    dashboard_env: Mapping[str, str] | None = None,
 ) -> tuple[ReportSinkObservation, ...]:
     """Fan out one already-rendered report packet to admitted sinks."""
 
@@ -290,7 +297,9 @@ def deliver_report_packet(
                 send_slack_report_packet(
                     packet,
                     allow_real_delivery=allow_real_slack_delivery,
+                    env=slack_env,
                     timeout_seconds=slack_timeout_seconds,
+                    sender=slack_sender,
                 )
             )
             continue
@@ -310,6 +319,7 @@ def deliver_report_packet(
                         project_ref=packet_project_ref,
                         repo_root=repo,
                         allow_real_delivery=allow_real_dashboard_delivery,
+                        env=dashboard_env,
                         timeout_seconds=dashboard_timeout_seconds,
                     )
                 )
@@ -318,6 +328,7 @@ def deliver_report_packet(
                     send_dashboard_seed(
                         repo_root=repo,
                         allow_real_delivery=allow_real_dashboard_delivery,
+                        env=dashboard_env,
                         timeout_seconds=dashboard_timeout_seconds,
                     )
                 )
@@ -394,6 +405,7 @@ def send_slack_report_packet(
     allow_real_delivery: bool = False,
     env: Mapping[str, str] | None = None,
     timeout_seconds: float = 10.0,
+    sender: SlackSender | None = None,
 ) -> ReportSinkObservation:
     """Post one report packet to Slack only after explicit caller admission."""
 
@@ -434,9 +446,11 @@ def send_slack_report_packet(
         },
     )
     try:
-        with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
-            response_status = int(response.status)
-            response_body = response.read(65536)
+        response_status, response_body = (
+            sender(request, timeout_seconds)
+            if sender is not None
+            else _send_urllib_request(request, timeout_seconds)
+        )
     except urllib.error.HTTPError as exc:
         response_status = int(exc.code)
         response_body = exc.read(65536)
@@ -825,6 +839,10 @@ def _validate_slack_packet(packet: Mapping[str, Any]) -> None:
     _required_text(packet.get("report_kind"), "report_kind")
     _required_text(packet.get("observed_board_state"), "observed_board_state")
     _required_text(packet.get("trigger_event_ref"), "trigger_event_ref")
+    if not isinstance(packet.get("current_work_kind"), str):
+        raise ValueError("Slack report packet current_work_kind must be a string")
+    if not isinstance(packet.get("current_lane"), str):
+        raise ValueError("Slack report packet current_lane must be a string")
     _required_text(packet.get("frontier_ref"), "frontier_ref")
     _string_list(packet.get("evidence_root_refs"), "evidence_root_refs")
     _string_list(packet.get("sink_refs"), "sink_refs")
@@ -921,68 +939,124 @@ def _slack_message_text(packet: Mapping[str, Any]) -> str:
     source_ref = str(packet.get("building_id") or packet.get("portfolio_id") or "").strip()
     if not source_ref:
         source_ref = _required_text(packet.get("report_id"), "report_id")
-    event_label = _slack_event_label(packet)
-    brick_line = _slack_brick_line(packet, source_ref)
-    agent_line = _slack_agent_line(packet)
-    link_line = _slack_link_line(packet)
+    event_kind = _slack_event_kind(packet)
+    event_label = _slack_event_label(packet, event_kind=event_kind)
+    work_kind = str(packet.get("current_work_kind") or "").strip()
+    lane = str(packet.get("current_lane") or "").strip()
+    work_label = _label_value("brick_kinds", work_kind, field="ko") or work_kind or "확인 필요"
+    lane_label = _label_value("lanes", lane) or lane or "확인 필요"
+    action_line = _slack_action_line(packet, event_kind=event_kind)
+    operator_refs = _slack_operator_refs_line(packet)
     return "\n".join(
         (
-            "브릭 빌딩 알림",
-            f"상태: {event_label}",
+            "빌딩 알림",
             f"빌딩: {source_ref}",
-            f"Brick: {brick_line}",
-            f"Agent: {agent_line}",
-            f"Link: {link_line}",
-            "한계: support 알림이며 source truth / 성공판정 / 품질판정 / Movement 권한이 아님",
+            f"상태: {event_label}",
+            f"작업 단계: {work_label}",
+            f"담당 역할: {lane_label}",
+            f"필요 조치: {action_line}",
+            f"운영 refs: {operator_refs}",
+            "한계: support projection; source truth/성공판정/품질판정/Movement 권한 아님",
         )
     )
 
 
-def _slack_event_label(packet: Mapping[str, Any]) -> str:
+def _slack_event_kind(packet: Mapping[str, Any]) -> str:
     trigger = str(packet.get("trigger_event_ref") or "")
     if "building_started" in trigger:
-        return "시작"
+        return "building_started"
     if "intervention_required" in trigger:
-        return "개입 필요"
+        return "intervention_required"
     if "building_finished" in trigger:
-        return "종료"
+        return "building_finished"
     state = str(packet.get("observed_board_state") or "")
     if state == "observed_started":
-        return "시작"
+        return "building_started"
     if state in {"observed_paused", "observed_human_gate", "needs_disposition"}:
-        return "개입 필요"
+        return "intervention_required"
     if state == "observed_closed_boundary":
-        return "종료"
-    return "상태 관찰"
+        return "building_finished"
+    return "state_observed"
 
 
-def _slack_brick_line(packet: Mapping[str, Any], source_ref: str) -> str:
-    current_brick = str(packet.get("current_brick_ref") or "").strip()
-    if current_brick:
-        return current_brick
-    return source_ref
+def _slack_event_label(packet: Mapping[str, Any], *, event_kind: str) -> str:
+    label = _label_value("events", event_kind)
+    if label:
+        return label
+    state = str(packet.get("observed_board_state") or "")
+    return _label_value("observed_board_states", state) or "상태 관찰"
 
 
-def _slack_agent_line(packet: Mapping[str, Any]) -> str:
-    last_completed = str(packet.get("last_completed_step_ref") or "").strip()
-    if last_completed:
-        return f"마지막 완료 step {last_completed}"
-    return "아직 완료 step 없음"
-
-
-def _slack_link_line(packet: Mapping[str, Any]) -> str:
-    state = str(packet.get("observed_board_state") or "").strip()
+def _slack_action_line(packet: Mapping[str, Any], *, event_kind: str) -> str:
+    action = _label_value("actions", event_kind) or _label_value("actions", "state_observed")
+    if event_kind != "intervention_required":
+        return action or "상태 확인"
     owner = str(packet.get("required_disposition_owner") or "").strip()
-    frontier_ref = _required_text(packet.get("frontier_ref"), "frontier_ref")
-    if state in {"observed_paused", "observed_human_gate", "needs_disposition"}:
-        if owner:
-            return f"HOLD; 판단 주체 {owner}; {frontier_ref}"
-        return f"HOLD; {frontier_ref}"
-    if state == "observed_closed_boundary":
-        return f"닫힌 경계 관찰; {frontier_ref}"
-    if state == "observed_started":
-        return f"시작 이후 아직 다음 상태 없음; {frontier_ref}"
-    return frontier_ref
+    owner_label = _label_value("disposition_owners", owner) or owner
+    if owner_label:
+        return f"{owner_label} {action or '처분 필요'}"
+    return action or "처분 필요"
+
+
+def _slack_operator_refs_line(packet: Mapping[str, Any]) -> str:
+    brick_ref = _short_ref(str(packet.get("current_brick_ref") or "").strip())
+    step_ref = _short_step_ref(str(packet.get("last_completed_step_ref") or "").strip())
+    frontier_ref = _short_frontier_ref(_required_text(packet.get("frontier_ref"), "frontier_ref"))
+    return f"brick={brick_ref}; step={step_ref}; frontier={frontier_ref}"
+
+
+def _short_ref(value: str) -> str:
+    if not value:
+        return "-"
+    return value if len(value) <= 72 else f"...{value[-69:]}"
+
+
+def _short_step_ref(value: str) -> str:
+    if not value:
+        return "-"
+    path = Path(value)
+    if path.name == "step-output.json" and path.parent.name:
+        return _short_ref(path.parent.name)
+    return _short_ref(path.name or value)
+
+
+def _short_frontier_ref(value: str) -> str:
+    if "#frontier:" in value:
+        return _short_ref(value.split("#frontier:", 1)[1])
+    return _short_ref(value)
+
+
+def _label_value(section: str, key: str, *, field: str | None = None) -> str:
+    key = str(key or "").strip()
+    if not key:
+        return ""
+    value = _label_map().get(section, {})
+    if not isinstance(value, Mapping):
+        return ""
+    item = value.get(key)
+    if isinstance(item, str):
+        return item
+    if isinstance(item, Mapping) and field:
+        field_value = item.get(field)
+        if isinstance(field_value, str):
+            return field_value
+    return ""
+
+
+def _label_map() -> Mapping[str, Any]:
+    try:
+        value = json.loads(LABEL_MAP_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return value if isinstance(value, Mapping) else {}
+
+
+def _send_urllib_request(
+    request: urllib.request.Request,
+    timeout_seconds: float,
+) -> tuple[int, bytes]:
+    with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
+        return int(response.status), response.read(65536)
 
 
 def _http_status_class(status_code: int) -> str:

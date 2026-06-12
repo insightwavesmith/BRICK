@@ -1,5 +1,5 @@
-// 도메인 라벨 단일 소스. 실데이터의 영문 키 → 화면용 한글.
-// (데이터(dashboard-data.json)는 영문 키 그대로 두고, 표시만 여기서 번역한다.)
+// 화면용 한글 라벨. 정본 데이터는 support/operator/label_map.json이고,
+// reporter_notification_projection 커널 체크가 이 미러와의 parity를 검증한다.
 
 // 브릭 종류 → 한글/아이콘. 키 = brick/templates/bricks/<kind>
 export const BRICK = {
@@ -40,7 +40,7 @@ export const toolKo = (t) => TOOL[t] || t || '—'
 export const canWrite = (t) => t === 'read-write-scoped'
 
 // 움직임(movement) → 한글
-export const MOVEMENT = { forward: '전진', stop: '멈춤', return: '되돌림' }
+export const MOVEMENT = { forward: '전진', reroute: '재지정' }
 export const movementKo = (m) => MOVEMENT[m] || m || '—'
 
 // 보드 상태(raw) → 한글
@@ -72,7 +72,6 @@ export const dispKo = (s) => DISP[s] || s || '상태 불명'
 export const OWNER = {
   'caller-or-coo': '호출자 또는 COO',
   coo: 'COO',
-  human: '운영자',
   caller: '호출자',
 }
 export const ownerKo = (o) => OWNER[o] || o

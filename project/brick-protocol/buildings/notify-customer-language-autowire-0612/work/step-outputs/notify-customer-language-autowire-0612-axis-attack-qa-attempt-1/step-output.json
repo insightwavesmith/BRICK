@@ -1,0 +1,179 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:notify-customer-language-autowire-0612::work/step-outputs/notify-customer-language-autowire-0612-axis-attack-qa-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:inspector",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-notify-customer-language-autowire-0612-axis-attack-qa",
+  "building_id": "notify-customer-language-autowire-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:04",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T04:20:15.948989Z",
+  "id": "urn:bp:building:notify-customer-language-autowire-0612::work/step-outputs/notify-customer-language-autowire-0612-axis-attack-qa-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:04:notify-customer-language-autowire-0612-axis-attack-qa",
+  "recorded_at": "2026-06-12T04:20:15.948989Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_axis_findings": [
+      "Matched: current_lane is projected by resolving the declared agent_object_ref and reading the Agent Object lane only.",
+      "Matched: report packets remain projection packets, not AgentFact; reporter proof limits state report packet is not AgentFact.",
+      "Matched: validate_report_packet rejects forbidden nested fields including credential, setup token, auth body, message_text, movement_choice, target_choice, driver_input, scheduler, queue, retry, and raw secret fields.",
+      "Matched: Slack credential values are read only inside send_slack_report_packet after explicit allow_real_delivery and environment lookup; observations record presence/status classes rather than credential bodies."
+    ],
+    "agent_object_ref": "agent-object:inspector",
+    "attacked_scope": [
+      "Notification productization task-source:inline-statement.",
+      "Customer-language Slack message projection in support/operator/report_sinks.py.",
+      "Building event packet rendering and policy fan-out in support/operator/reporter.py.",
+      "Auto-wiring seam observations in support/operator/run.py and support/operator/walker_kernel.py.",
+      "Canonical label data and parity checker surfaces: support/operator/label_map.json, support/dashboard/src/data/labels.js, support/checkers/lib/kernel_checks.py, support/checkers/profiles/read_side_projection_boundary.yaml."
+    ],
+    "blocked_or_missing_evidence": [
+      "Reviewer-readonly policy and read-only filesystem block temp-drive proof that writes local inbox files.",
+      "The first in-memory render attempt using a shell here-doc failed because zsh could not create a temp file in this read-only environment; it was rerun successfully as python3 -c.",
+      "Full check_profile --all was not run because the relevant reporter auto-wire checker uses tempfile, copytree, run_building_plan, and local inbox writes.",
+      "No Claude/Gemini/model review evidence was collected in this inspector lane."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "brick_axis_findings": [
+      "Matched: work kind is projected from declared step_template_ref, not selected by reporter support code.",
+      "Matched: no tracked brick/ edits observed in git status.",
+      "Matched with caveat: canonical label map is support/operator data, not Brick source truth; support/checkers/check_package_path_admission.py includes support/operator/label_map.json as an admitted support path.",
+      "Missing evidence: support/operator/label_map.json is untracked in this checkout, so its final admission/tracking state is not proven by this read-only inspection."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:notify-customer-language-autowire-0612",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:notify-customer-language-autowire-0612:agent-object:inspector:output"
+    ],
+    "evidence_used": [
+      "Commands: pwd; git rev-parse --show-toplevel; git status --short; rg over reporter/report_sinks/run/walker/checker/labels surfaces; awk file line inspection; git diff --check; git diff --name-only.",
+      "Read-only Python command rendered _slack_message_text with a specimen-like packet and produced the after text recorded above.",
+      "Read-only Python command executed _assert_reporter_label_parity, _assert_reporter_message_shape, and _assert_no_scheduler_constructs through local support.checkers import path; output was label_parity_count=7, message_shape_assertions=14, no_scheduler_files=4.",
+      "No Building evidence root was produced by this inspector return."
+    ],
+    "link_axis_findings": [
+      "Matched: no tracked link/ edits observed.",
+      "Matched: report packet rendering carries current_brick_ref, last_completed_step_ref, frontier_ref, and required_disposition_owner as projected evidence, not Link Movement or target selection.",
+      "Matched: run.py and walker_kernel.py emit notification events after evidence_write is produced, then record notification observations separately.",
+      "Matched: _emit_building_event_best_effort catches notification exceptions and returns source_truth false observation packets instead of breaking the Building evidence write.",
+      "Not proven: actual terminal auto-wiring behavior was not temp-driven in this reviewer-readonly lane."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority",
+      "full PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all",
+      "auto-wiring temp run with local inbox packet written",
+      "fake Slack sender invoked exactly once during a terminal event",
+      "dashboard delta delivery with env present",
+      "external Slack delivery reliability",
+      "reader noticed notification",
+      "future support-authority leak absence beyond inspected current surfaces",
+      "tracked/admitted final state of untracked support/operator/label_map.json"
+    ],
+    "observed_evidence": [
+      "Checkout observed at /Users/smith/projects/BRICK-wt-notify; git status shows modified support/checkers/check_package_path_admission.py, support/checkers/lib/kernel_checks.py, support/checkers/profiles/read_side_projection_boundary.yaml, support/dashboard/src/data/labels.js, support/operator/report_sinks.py, support/operator/reporter.py, support/operator/run.py, support/operator/walker_kernel.py, and untracked support/operator/label_map.json.",
+      "support/operator/label_map.json:1-107 defines a closed Korean label data map with schema brick-report-label-map/v1, brick_kinds, lanes, tool_policies, movements, states, display_states, disposition_owners, events, observed_board_states, and actions.",
+      "support/dashboard/src/data/labels.js:1-77 states support/operator/label_map.json is canonical and mirrors the same dashboard label sections.",
+      "support/operator/reporter.py:332-433 renders Building event report packets with current_work_kind, current_lane, source_truth false, proof_limits, not_proven, and validate_report_packet.",
+      "support/operator/reporter.py:1422-1461 derives current_work_kind/current_lane from declared Building plan evidence, step_template_ref, and Agent Object lane; missing evidence is carried as not_proven rather than invented.",
+      "support/operator/reporter.py:1464-1578 reads declared-building-plan.json, declaration_provenance.declared_plan_copy, Brick rows, Agent rows, step_template_ref, and Agent Object lane; this is a projection of declared refs.",
+      "support/operator/report_sinks.py:938-960 composes Slack text with human headline fields: building, state, work stage, role, needed action, one operator refs line, and compact proof-limit line.",
+      "Rendered before specimen supplied by task: 브릭 빌딩 알림 / 상태: 종료 / 빌딩: building-event-reporter-hook-0-0603-slack-auto-smoke / Brick: building-boundary:...-closed / Agent: 마지막 완료 step work/step-outputs/...-attempt-1/step-output.json / Link: 닫힌 경계 관찰; project/...#frontier:complete:event:building_finished / 한계: support 알림이며 ...",
+      "Rendered after specimen from in-memory renderer: 빌딩 알림\n빌딩: building-event-reporter-hook-0-0603-slack-auto-smoke\n상태: 완료\n작업 단계: 작업\n담당 역할: 워커\n필요 조치: 알림 확인\n운영 refs: brick=...-boundary:building-event-reporter-hook-0-0603-slack-auto-smoke-closed; step=final-complete-attempt-1; frontier=complete:event:building_finished\n한계: support projection; source truth/성공판정/품질판정/Movement 권한 아님",
+      "Read-only static checker helper output: label_parity_count=7, message_shape_assertions=14, no_scheduler_files=4; message text carried 작업 단계: 작업 and 담당 역할: 워커.",
+      "git diff --check exited 0 with no output."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"Checkout observed at /Users/smith/projects/BRICK-wt-notify; git status shows modified support/checkers/check_package_path_admission.py, support/checkers/lib/kernel_checks.py, support/checkers/profiles/read_side_projection_boundary.yaml, support/dashboard/src/data/labels.js, support/operator/report_sinks.py, support/operator/reporter.py, support/operator/run.py, support/operator/walker_kernel.py, and untracked support/operator/label_map.json.\", \"support/operator/label_map.json:1-107 defines a closed Korean label data map with schema brick-report-label-map/v1, brick_...",
+    "projection_authority_findings": [
+      "Matched: report packets require source_truth false and carry proof limits saying not source truth, not quality judgment, not Movement authority, and not route target choice.",
+      "Matched: Slack headline removes Brick/Agent/Link protocol headline labels and raw step-output path from the first six lines; raw refs remain in one short operator refs line.",
+      "Matched: label parity is pinned by support/checkers/lib/kernel_checks.py _assert_reporter_label_parity and read-side profile text pins.",
+      "Matched: message shape is pinned by _assert_reporter_message_shape, including required Korean human fields and forbidden headline fragments.",
+      "Not proven: full reporter_notification_projection profile execution was not run because its auto-wire and inbox probes write temp files."
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "Codex inspector support evidence only.",
+      "Read-only repository inspection; no files edited, created, deleted, committed, pushed, checked out, reset, merged, rebased, or stashed.",
+      "Checker output here is partial static support evidence only.",
+      "Rendered Slack text is projection evidence only.",
+      "Not source truth.",
+      "Not success judgment.",
+      "Not quality judgment.",
+      "Not Movement authority."
+    ],
+    "remaining_delta": [
+      "Writer or verification lane should track/admit support/operator/label_map.json, then run the write-producing FIRE checks in a writable checkout.",
+      "Run full profile gate and capture outputs: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all.",
+      "Run the auto-wire proof with slack env absent and with fake env plus injected sender; collect local-inbox path, sent composed message, and one-send count.",
+      "Inspector supplies no Link Movement recommendation."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "support_leak_findings": [
+      "Matched: report_event_policy_from_plan defaults absent policy to local inbox plus env-gated Slack/dashboard sinks; absent env removes external sinks before delivery.",
+      "Matched: send_slack_report_packet refuses real Slack without allow_real_slack_delivery=True and returns not_attempted_missing_environment when required env is absent.",
+      "Matched: static no-scheduler AST helper covers reporter.py, report_sinks.py, run.py, and walker_kernel.py and passed for 4 files.",
+      "Caveat: rg finds existing dynamic walker names such as attempt_queue and scheduled_fan_steps in walker_kernel.py; the AST no-scheduler pin did not flag scheduler/runtime constructs, but this inspector did not perform semantic review of every walker queue variable."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:04:notify-customer-language-autowire-0612-axis-attack-qa",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:notify-customer-language-autowire-0612",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:notify-customer-language-autowire-0612-axis-attack-qa:attempt-1",
+  "step_ref": "notify-customer-language-autowire-0612-axis-attack-qa",
+  "subject": "notify-customer-language-autowire-0612-axis-attack-qa",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T04:20:15.948989Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

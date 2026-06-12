@@ -1,0 +1,262 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:notify-customer-language-autowire-0612::work/step-outputs/notify-customer-language-autowire-0612-design-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:design-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-notify-customer-language-autowire-0612-design",
+  "building_id": "notify-customer-language-autowire-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "gate_sequence_decision_record": {
+    "action": "hold",
+    "evidence_ref": "observation:gate-sequence-notify-customer-language-autowire-0612-notify-customer-language-autowire-0612-design-link-gate-coo-hold",
+    "gate_action_sequence": [
+      {
+        "action": "next",
+        "evidence_ref": "observation:gate-sequence-notify-customer-language-autowire-0612-notify-customer-language-autowire-0612-design-link-gate-default-transition-next",
+        "gate_ref": "link-gate:default-transition",
+        "hold_reason": "",
+        "pending_target_ref": "",
+        "reason_refs": [
+          "observation:gate-sequence-notify-customer-language-autowire-0612-notify-customer-language-autowire-0612-design-link-gate-default-transition-next"
+        ],
+        "target_brick_ref": ""
+      },
+      {
+        "action": "hold",
+        "evidence_ref": "observation:gate-sequence-notify-customer-language-autowire-0612-notify-customer-language-autowire-0612-design-link-gate-coo-hold",
+        "gate_ref": "link-gate:coo",
+        "hold_reason": "gate_sequence_missing_required_facts:link-gate:coo",
+        "pending_target_ref": "brick-notify-customer-language-autowire-0612-work",
+        "reason_refs": [
+          "observation:coo-gate-missing-required-facts"
+        ],
+        "target_brick_ref": ""
+      }
+    ],
+    "gate_ref": "link-gate:coo",
+    "gate_results": [
+      {
+        "checked_public_fact": "brick-comparison:notify-customer-language-autowire-0612:notify-customer-language-autowire-0612-design",
+        "gate_ref": "link-gate:default-transition",
+        "missing_required_facts": [],
+        "required_public_facts": [
+          "BrickComparisonFact.required_return_shape_evidence",
+          "BrickComparisonFact.comparison_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.observed_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.design_summary",
+          "BrickComparisonFact.comparison_evidence.returned_field.relevant_current_structure",
+          "BrickComparisonFact.comparison_evidence.returned_field.proposed_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.unchanged_surfaces",
+          "BrickComparisonFact.comparison_evidence.returned_field.axis_responsibility",
+          "BrickComparisonFact.comparison_evidence.returned_field.invariants",
+          "BrickComparisonFact.comparison_evidence.returned_field.edge_cases",
+          "BrickComparisonFact.comparison_evidence.returned_field.checker_or_verifier_plan",
+          "BrickComparisonFact.comparison_evidence.returned_field.candidate_file_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_refs",
+          "BrickComparisonFact.comparison_evidence.returned_field.not_proven",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_refs.repository_artifact_ref"
+        ],
+        "sufficiency": "sufficient"
+      },
+      {
+        "checked_public_fact": "brick-comparison:notify-customer-language-autowire-0612:notify-customer-language-autowire-0612-design",
+        "gate_ref": "link-gate:coo",
+        "missing_required_facts": [
+          "Link.route_decision_basis.override_refs"
+        ],
+        "required_public_facts": [
+          "Link.route_decision_basis.override_refs"
+        ],
+        "sufficiency": "missing_required_facts"
+      }
+    ],
+    "hold_reason": "gate_sequence_missing_required_facts:link-gate:coo",
+    "pending_target_ref": "brick-notify-customer-language-autowire-0612-work",
+    "reason_refs": [
+      "observation:coo-gate-missing-required-facts"
+    ],
+    "required_disposition_owner": "coo",
+    "target_brick_ref": ""
+  },
+  "generatedAtTime": "2026-06-12T03:39:36.902404Z",
+  "id": "urn:bp:building:notify-customer-language-autowire-0612::work/step-outputs/notify-customer-language-autowire-0612-design-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:notify-customer-language-autowire-0612-design",
+  "recorded_at": "2026-06-12T03:39:36.902404Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:design-lead",
+    "axis_responsibility": [
+      "Brick: owns work kind through declared step_template_ref and Brick template catalog; notification only labels that declared fact.",
+      "Agent: owns performer identity and lane through Agent Object; notification only projects the resolved lane/role label.",
+      "Link: owns frontier, disposition owner, Movement, and route; notification only labels observed frontier/disposition facts and chooses no Movement.",
+      "Support: reporter/report_sinks/run/walker surfaces may render and deliver support projections only, after evidence is recorded.",
+      "This return supplies no next Movement recommendation and no success or quality judgment."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "candidate_file_changes": [
+      "support/checkers/check_package_path_admission.py: admit support/operator/label_map.json under the reporter notification projection target set.",
+      "support/operator/label_map.json: new canonical closed label data.",
+      "support/operator/reporter.py: projected current_work_kind/current_lane/current_agent_role and default/best-effort event policy helpers.",
+      "support/operator/report_sinks.py: customer-language Slack text, label lookup, injected Slack sender test seam.",
+      "support/operator/run.py: after-evidence best-effort event wiring for linear runs/holds.",
+      "support/operator/walker_kernel.py: after-evidence best-effort event wiring for dynamic runs/resumes/holds.",
+      "support/dashboard/src/data/labels.js: align displayed maps with canonical data, preserving existing exported helper names.",
+      "support/checkers/lib/kernel_checks.py: add label parity, message shape, auto-wiring, and no-scheduler probes into reporter_notification_projection.",
+      "support/checkers/profiles/read_side_projection_boundary.yaml: update path/text pins for the new label map and customer-language renderer expectations."
+    ],
+    "checker_or_verifier_plan": [
+      "Label parity pin: load support/operator/label_map.json and compare dashboard labels.js exported label maps; missing or mismatched key/value goes RED.",
+      "Message shape pin: render the specimen packet; headline lines must include human building/status/stage/role/action fields and must not include work/step-outputs or full protocol refs; mutate renderer back to current Agent line shape and expect RED.",
+      "Auto-wiring pin: temp run with Slack env absent writes a local-inbox packet and does not invoke injected Slack sender; fake Slack env plus injected sender invokes exactly once per terminal/held event.",
+      "No-scheduler pin: AST/checker scan touched notification seams for threading, queue.Queue, Timer, sched, sleep, retry-loop constructs, and new report scheduler/queue modules.",
+      "Full gate after implementation: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:notify-customer-language-autowire-0612",
+    "cli_version_text": "codex-cli 0.137.0",
+    "design_summary": [
+      "Narrow design delta: add a canonical support-only Korean label map, project declared work kind and lane into report packets, render customer-language Slack text, and default-wire one synchronous best-effort notification call after recorded evidence exists.",
+      "Candidate after-text shape, not implemented/proven here: \"브릭 알림\\n빌딩: <human building label>\\n상태: 완료|시작|멈춤·개입 필요\\n단계: 작업|설계|검수|마감\\n담당: 리더|워커|리뷰어\\n필요한 조치: 없음|호출자 또는 COO 처분 필요\\n운영자 ref: brick=<short ref>; step=<short ref>; frontier=<short ref>\\n한계: support 알림이며 source truth / 성공판정 / 품질판정 / Movement 권한이 아님\".",
+      "Raw protocol refs should remain at most one short secondary operator line and never appear in the headline fields."
+    ],
+    "edge_cases": [
+      "Missing building-map or declared-building-plan evidence: render building_id/status from available packet facts, leave work kind/lane blank or unknown, and add not_proven.",
+      "Graph plans and linear plans need both steps and brick_steps readers for step_template_ref and agent_object_ref matching.",
+      "Resume should not re-emit building_started; terminal or held event is enough unless a recorded start frontier exists.",
+      "Duplicate local-inbox report_id or sink exception must be caught at notification seam and surfaced as support observation.",
+      "Explicit report_event_policy sink refs should stay admitted-ref validated; absent policy uses default local-inbox plus env-gated sinks.",
+      "Dashboard labels.js currently has stale-looking movement/owner entries relative to active AGENTS language; parity work must separate active labels from historical display aliases."
+    ],
+    "evidence_refs": [
+      "support-packet:notify-customer-language-autowire-0612:agent-object:design-lead:output",
+      "support/operator/report_sinks.py:920-938 current Slack message text shape",
+      "support/operator/report_sinks.py:959-982 current Brick/Agent/Link line helpers",
+      "support/operator/reporter.py:175-239 current opt-in report event policy",
+      "support/operator/reporter.py:256-340 current event packet fields",
+      "support/operator/run.py:429-460 current policy-gated started event before walk",
+      "support/operator/run.py:597-623 current policy-gated terminal event after accumulated evidence write",
+      "support/operator/walker_kernel.py:1145-1161 current dynamic started event policy gate",
+      "support/operator/walker_kernel.py:2259-2285 current dynamic terminal event policy gate",
+      "support/recording/building_map_emit.py:67-80 and 99-191 current building-map row emission",
+      "support/recording/declaration_packets.py:328-410 and 809-823 declared template/agent evidence packets",
+      "support/dashboard/src/data/labels.js:4-78 existing dashboard label maps",
+      "support/checkers/lib/kernel_checks.py:1885-2093 current reporter_notification_projection probes",
+      "support/checkers/check_package_path_admission.py:230-233 and 1603-1607 current admitted reporter target set",
+      "support/checkers/module_registry.yaml:1036-1055 and 1302-1304 current reporter/report_sinks boundary and sink ceiling",
+      "support/connection/agent_resources.py:402-427 provider-neutral Agent Object resolver"
+    ],
+    "invariants": [
+      "Closed vocabulary only; unknown labels become visible fallback plus not_proven, not inferred labels.",
+      "Report packets remain source_truth false and keep proof_limits/not_proven.",
+      "Slack headline fields must not contain work/step-outputs paths, full frontier paths, credentials, channel ids, or token-shaped values.",
+      "Notification failure is recorded as support observation only and does not alter Building lifecycle evidence.",
+      "Checker/profile pass remains support evidence only."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "No files were edited in this design return.",
+      "Full checker profile and FIRE probes were not run after an implementation because no implementation was performed.",
+      "The AGENTS-referenced current operating packet files were not observed at their exact archive/status-kernel paths in this checkout.",
+      "Actual new renderer before/after output is not proven until implemented and rendered.",
+      "Actual Slack delivery, dashboard delivery, reader notice, and production reliability remain not_proven.",
+      "Semantic fitness of every Korean label for future Building kinds remains not_proven.",
+      "Vite runtime import of a canonical JSON outside support/dashboard root is not proven; this design therefore uses checker parity rather than relying on that import path.",
+      "No Claude/Gemini model review evidence was used in this read-only return."
+    ],
+    "observed_evidence": [
+      "Repo root observed as /Users/smith/projects/BRICK-wt-notify; git status --short returned no entries.",
+      "The AGENTS-referenced archive packet paths archive/status-kernel/current-brick-operating-packet-0531.md and archive/status-kernel/brick-protocol-post-d-surface-recompile-0-plan-0530.md were not present at those exact paths.",
+      "Current Slack renderer probe output still uses protocol-shaped headlines: \"브릭 빌딩 알림\\n상태: 종료\\n빌딩: building-event-reporter-hook-0-0603-slack-auto-smoke\\nBrick: building-boundary:probe-closed\\nAgent: 마지막 완료 step work/step-outputs/probe-step-attempt-1/step-output.json\\nLink: 닫힌 경계 관찰; project/brick-protocol/buildings/probe#frontier:complete:event:building_finished\\n한계: support 알림이며 source truth / 성공판정 / 품질판정 / Movement 권한이 아님\".",
+      "report_event_policy_from_plan currently returns None for absent policy, and run.py / walker_kernel.py emit Building events only when a policy exists; absent-policy default auto-wiring is not the current observed behavior.",
+      "render_building_event_report_packet carries building_id, current_brick_ref, last_completed_step_ref, frontier_ref, required_disposition_owner, and sink_refs, but not current_work_kind or current_lane.",
+      "No canonical support/operator label_map file or notification-specific checker file was found; the existing label source is support/dashboard/src/data/labels.js."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"Repo root observed as /Users/smith/projects/BRICK-wt-notify; git status --short returned no entries.\", \"The AGENTS-referenced archive packet paths archive/status-kernel/current-brick-operating-packet-0531.md and archive/status-kernel/brick-protocol-post-d-surface-recompile-0-plan-0530.md were not present at those exact paths.\", \"Current Slack renderer probe output still uses protocol-shaped headlines: \\\"브릭 빌딩 알림\\\\n상태: 종료\\\\n빌딩: building-event-reporter-hook-0-0603-slack-auto-smoke\\\\nBrick: building-boundary:probe-closed\\\\nAgent: 마지막 완료 step work/step-outputs/probe-st...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "proposed_changes": [
+      "Admit and add support/operator/label_map.json as the canonical closed data map with schema, locale ko, brick_kind, agent_lane, agent_role, building_event_kind, observed_board_state, disposition_owner, and active link_movement labels; structure it so an en locale can be added later without adding i18n machinery.",
+      "Keep active Link movement labels to forward/reroute only; if historical dashboard display needs stop/return/human, put those under clearly named legacy display maps and do not feed them into active Slack headline fields.",
+      "Extend reporter.py packet rendering to derive current_work_kind from declared step_template_ref and current_lane/current_agent_role from the declared agent_object_ref resolved through Agent resources; add evidence refs for the map/declared-plan basis and fall back to not_proven when missing.",
+      "Update report_sinks.py Slack composition to use the canonical map, render human headline fields, keep one operator-ref line, and reject raw step-output paths in headline lines.",
+      "Add a default event policy helper for the run seam: local-inbox always; slack only when BRICK_REPORT_SLACK_BOT_TOKEN and BRICK_REPORT_SLACK_CHANNEL_ID are present; dashboard only when dashboard env is present; explicit enabled:false still disables.",
+      "Wire run.py and walker_kernel.py through a synchronous best-effort helper after evidence writes; catch notification exceptions into support observations so notification projection never blocks the Building evidence write.",
+      "Add an injected Slack sender seam for checker probes while keeping the default urllib path; do not add a provider SDK, queue, scheduler, retry loop, thread, or new sink."
+    ],
+    "relevant_current_structure": [
+      "support/operator/report_sinks.py already owns admitted fan-out to local-inbox, operator-wake-local, slack, and dashboard sinks.",
+      "Slack real delivery already requires explicit allow_real_delivery and environment presence; missing Slack env returns a not-attempted observation.",
+      "Local inbox writes project/brick-protocol/status/inbox packets and validates source_truth false.",
+      "Building-map emission records Brick instances, Agent bindings, and Link edges, but step_template_ref and lane are available through declared-plan/declaration-provenance evidence rather than direct map row fields.",
+      "Agent lane can be resolved provider-neutrally from agent/objects via support/connection/agent_resources.py::resolve_agent_object.",
+      "Existing reporter_notification_projection kernel check already executes negative probes, local inbox write, operator wake write, event hook probes, forbidden-field rejects, and sink ceiling checks."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "unchanged_surfaces": [
+      "No link/ edits, no new Movement literal, no GateFact creation, and no Link route choice.",
+      "No agent/ resource meaning change; Agent resources remain source for performer identity/lane only.",
+      "No Brick template vocabulary change; development remains 개발 배분 and work remains 작업.",
+      "No new sink beyond the existing four admitted sink refs.",
+      "No project/ mutation in this read-only design return.",
+      "No credential/session/token bodies in packets, observations, or returned evidence."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:01:notify-customer-language-autowire-0612-design",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:notify-customer-language-autowire-0612",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:notify-customer-language-autowire-0612-design:attempt-1",
+  "step_ref": "notify-customer-language-autowire-0612-design",
+  "subject": "notify-customer-language-autowire-0612-design",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T03:39:36.902404Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

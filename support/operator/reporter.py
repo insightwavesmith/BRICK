@@ -3,12 +3,17 @@
 from __future__ import annotations
 
 import json
+import os
 from collections.abc import Iterable, Mapping
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from brick_protocol.link.transition import TRANSITION_LIFECYCLE_DISPOSITION_OWNERS
+from brick_protocol.support.connection.agent_resources import (
+    AgentResourceError,
+    resolve_agent_object,
+)
 from brick_protocol.support.operator.building_operation import observe_building_frontier
 from brick_protocol.support.recording.capture import (
     REPO_ROOT as _CAPTURE_REPO_ROOT,
@@ -18,9 +23,15 @@ from brick_protocol.support.recording.capture import (
 )
 from brick_protocol.support.operator.report_sinks import (
     ADMITTED_SINK_REFS,
+    DASHBOARD_INGEST_SECRET_ENV,
+    DASHBOARD_INGEST_URL_ENV,
+    DASHBOARD_SINK_REF,
     LOCAL_INBOX_SINK_REF,
     OPERATOR_WAKE_LOCAL_SINK_REF,
+    SLACK_BOT_TOKEN_ENV,
+    SLACK_CHANNEL_ID_ENV,
     SLACK_SINK_REF,
+    SlackSender,
     deliver_report_packet,
     dry_run_report_packet as dry_run_sink_report_packet,
     validate_operator_wake_targets,
@@ -97,6 +108,8 @@ REQUIRED_REPORT_PACKET_FIELDS = (
     "observed_board_state",
     "trigger_event_ref",
     "current_brick_ref",
+    "current_work_kind",
+    "current_lane",
     "last_completed_step_ref",
     "frontier_ref",
     "evidence_root_refs",
@@ -155,14 +168,23 @@ BUILDING_EVENT_FRONTIER_KINDS = {
     "chat_session_parked": "intervention_required",
 }
 BUILDING_EVENT_PROOF_LIMITS: tuple[str, ...] = (
-    "opt-in Building event notification support hook only",
-    "not global default delivery",
+    "Building event notification support projection only",
+    "default delivery is synchronous and best-effort",
     "not source truth",
     "not success judgment",
     "not quality judgment",
     "not Movement authority",
     "not route target choice",
     "not scheduler / queue / retry runtime",
+)
+DEFAULT_BUILDING_EVENT_KINDS: tuple[str, ...] = (
+    "building_finished",
+    "intervention_required",
+)
+DEFAULT_BUILDING_EVENT_SINK_REFS: tuple[str, ...] = (
+    LOCAL_INBOX_SINK_REF,
+    SLACK_SINK_REF,
+    DASHBOARD_SINK_REF,
 )
 BUILDING_EVENT_NOT_PROVEN: tuple[str, ...] = (
     "event delivery reliability",
@@ -173,11 +195,15 @@ BUILDING_EVENT_NOT_PROVEN: tuple[str, ...] = (
 
 
 def report_event_policy_from_plan(plan: Mapping[str, Any]) -> Mapping[str, Any] | None:
-    """Return a validated opt-in event policy, or None when undeclared/disabled."""
+    """Return a validated event policy.
+
+    An absent policy defaults to local inbox plus env-gated external sinks.
+    A declared disabled policy remains an explicit no-event declaration.
+    """
 
     raw_policy = plan.get("report_event_policy")
     if raw_policy is None:
-        return None
+        return _default_report_event_policy()
     if not isinstance(raw_policy, Mapping):
         raise ValueError("report_event_policy must be a mapping when supplied")
     forbidden = sorted(set(_nested_keys(raw_policy)) & FORBIDDEN_REPORT_PACKET_FIELDS)
@@ -210,12 +236,17 @@ def report_event_policy_from_plan(plan: Mapping[str, Any]) -> Mapping[str, Any] 
     allow_real_slack_delivery = raw_policy.get("allow_real_slack_delivery", False)
     if not isinstance(allow_real_slack_delivery, bool):
         raise ValueError("report_event_policy.allow_real_slack_delivery must be a boolean")
+    allow_real_dashboard_delivery = raw_policy.get("allow_real_dashboard_delivery", False)
+    if not isinstance(allow_real_dashboard_delivery, bool):
+        raise ValueError("report_event_policy.allow_real_dashboard_delivery must be a boolean")
 
     return {
         "enabled": True,
         "event_kinds": list(event_kinds),
         "sink_refs": list(sink_refs),
         "allow_real_slack_delivery": allow_real_slack_delivery,
+        "allow_real_dashboard_delivery": allow_real_dashboard_delivery,
+        "environment_gated_sink_refs": [],
         "proof_limits": list(
             _merge_texts(
                 BUILDING_EVENT_PROOF_LIMITS,
@@ -237,6 +268,51 @@ def report_event_policy_from_plan(plan: Mapping[str, Any]) -> Mapping[str, Any] 
             )
         ),
     }
+
+
+def _default_report_event_policy() -> Mapping[str, Any]:
+    return {
+        "enabled": True,
+        "event_kinds": list(DEFAULT_BUILDING_EVENT_KINDS),
+        "sink_refs": list(DEFAULT_BUILDING_EVENT_SINK_REFS),
+        "allow_real_slack_delivery": True,
+        "allow_real_dashboard_delivery": True,
+        "environment_gated_sink_refs": [SLACK_SINK_REF, DASHBOARD_SINK_REF],
+        "defaulted_from_absent_policy": True,
+        "proof_limits": list(BUILDING_EVENT_PROOF_LIMITS),
+        "not_proven": list(BUILDING_EVENT_NOT_PROVEN),
+    }
+
+
+def _event_policy_sink_refs(
+    policy: Mapping[str, Any],
+    *,
+    slack_env: Mapping[str, str] | None = None,
+    dashboard_env: Mapping[str, str] | None = None,
+) -> list[str]:
+    refs = [str(item).strip() for item in policy.get("sink_refs", ()) if str(item).strip()]
+    if not refs:
+        refs = [LOCAL_INBOX_SINK_REF]
+    gated = {str(item).strip() for item in policy.get("environment_gated_sink_refs", ())}
+    if SLACK_SINK_REF in refs and SLACK_SINK_REF in gated and not _slack_environment_ready(slack_env):
+        refs = [ref for ref in refs if ref != SLACK_SINK_REF]
+    if (
+        DASHBOARD_SINK_REF in refs
+        and DASHBOARD_SINK_REF in gated
+        and not _dashboard_environment_ready(dashboard_env)
+    ):
+        refs = [ref for ref in refs if ref != DASHBOARD_SINK_REF]
+    return refs or [LOCAL_INBOX_SINK_REF]
+
+
+def _slack_environment_ready(env: Mapping[str, str] | None = None) -> bool:
+    env_map = os.environ if env is None else env
+    return bool(env_map.get(SLACK_BOT_TOKEN_ENV) and env_map.get(SLACK_CHANNEL_ID_ENV))
+
+
+def _dashboard_environment_ready(env: Mapping[str, str] | None = None) -> bool:
+    env_map = os.environ if env is None else env
+    return bool(env_map.get(DASHBOARD_INGEST_URL_ENV) and env_map.get(DASHBOARD_INGEST_SECRET_ENV))
 
 
 def building_event_kind_from_frontier(
@@ -284,6 +360,20 @@ def render_building_event_report_packet(
     frontier_kind = str(frontier.get("frontier_kind") or "")
     missing_files = tuple(str(item) for item in frontier.get("missing_required_files", ()))
     source_id = _required_text(building_id or _building_id(root, building_map), "building_id")
+    projected_current_brick_ref = current_brick_ref or _current_brick_ref(
+        building_map, frontier_kind
+    )
+    projected_last_completed_step_ref = (
+        last_completed_step_ref or _last_completed_step_ref(building_map)
+    )
+    projected_facts = _current_declared_projection(
+        repo,
+        root,
+        building_map,
+        frontier_kind=frontier_kind,
+        current_brick_ref=projected_current_brick_ref,
+        last_completed_step_ref=projected_last_completed_step_ref,
+    )
     # DECISIONS-WIRE AUTO-ON (Smith 0611): Building event packets derive the
     # vessel from the building root PATH too — same inverse seam, same
     # legacy-unchanged behavior for non-vessel roots.
@@ -298,10 +388,10 @@ def render_building_event_report_packet(
         "observed_board_state": BUILDING_EVENT_OBSERVED_STATES[event_kind],
         "trigger_event_ref": trigger_event_ref
         or f"building-event:{event_kind}:{source_id}",
-        "current_brick_ref": current_brick_ref
-        or _current_brick_ref(building_map, frontier_kind),
-        "last_completed_step_ref": last_completed_step_ref
-        or _last_completed_step_ref(building_map),
+        "current_brick_ref": projected_current_brick_ref,
+        "current_work_kind": str(projected_facts.get("current_work_kind") or ""),
+        "current_lane": str(projected_facts.get("current_lane") or ""),
+        "last_completed_step_ref": projected_last_completed_step_ref,
         "frontier_ref": _building_event_frontier_ref(
             repo,
             root,
@@ -323,6 +413,7 @@ def render_building_event_report_packet(
                 REPORTER_NOT_PROVEN,
                 BUILDING_EVENT_NOT_PROVEN,
                 frontier.get("not_proven"),
+                projected_facts.get("not_proven"),
                 not_proven,
                 (f"missing evidence ref: {item}" for item in missing_files),
             )
@@ -359,6 +450,11 @@ def emit_building_event_report_packet(
     overwrite_existing: bool = False,
     allow_real_slack_delivery: bool = False,
     slack_timeout_seconds: float = 10.0,
+    slack_env: Mapping[str, str] | None = None,
+    slack_sender: SlackSender | None = None,
+    allow_real_dashboard_delivery: bool = False,
+    dashboard_timeout_seconds: float = 10.0,
+    dashboard_env: Mapping[str, str] | None = None,
     proof_limits: Iterable[str] | str | None = None,
     not_proven: Iterable[str] | str | None = None,
 ) -> Mapping[str, Any]:
@@ -388,6 +484,11 @@ def emit_building_event_report_packet(
         overwrite_existing=overwrite_existing,
         allow_real_slack_delivery=allow_real_slack_delivery,
         slack_timeout_seconds=slack_timeout_seconds,
+        slack_env=slack_env,
+        slack_sender=slack_sender,
+        allow_real_dashboard_delivery=allow_real_dashboard_delivery,
+        dashboard_timeout_seconds=dashboard_timeout_seconds,
+        dashboard_env=dashboard_env,
     )
     return {
         "report_packet": dict(packet),
@@ -408,6 +509,9 @@ def emit_building_event_for_policy(
     repo_root: Path | str = REPO_ROOT,
     inbox_root: str | Path | None = None,
     overwrite_existing: bool = False,
+    slack_env: Mapping[str, str] | None = None,
+    slack_sender: SlackSender | None = None,
+    dashboard_env: Mapping[str, str] | None = None,
 ) -> Mapping[str, Any] | None:
     """Emit an event only when the caller-declared policy admits that kind."""
 
@@ -416,17 +520,26 @@ def emit_building_event_for_policy(
     event_kinds = tuple(str(item) for item in policy.get("event_kinds", ()))
     if event_kind not in event_kinds:
         return None
+    sink_refs = _event_policy_sink_refs(
+        policy,
+        slack_env=slack_env,
+        dashboard_env=dashboard_env,
+    )
     return emit_building_event_report_packet(
         event_kind=event_kind,
         building_id=building_id,
         building_root=building_root,
         current_brick_ref=current_brick_ref,
         last_completed_step_ref=last_completed_step_ref,
-        sink_refs=policy.get("sink_refs"),
+        sink_refs=sink_refs,
         repo_root=repo_root,
         inbox_root=inbox_root,
         overwrite_existing=overwrite_existing,
         allow_real_slack_delivery=bool(policy.get("allow_real_slack_delivery")),
+        slack_env=slack_env,
+        slack_sender=slack_sender,
+        allow_real_dashboard_delivery=bool(policy.get("allow_real_dashboard_delivery")),
+        dashboard_env=dashboard_env,
         proof_limits=policy.get("proof_limits"),
         not_proven=policy.get("not_proven"),
     )
@@ -621,6 +734,9 @@ def validate_report_packet(packet: Mapping[str, Any]) -> None:
                 "report packet project_ref must look like 'project:<id>' with a "
                 f"[-_a-z0-9] slug id when present, got {raw_project_ref!r}"
             )
+    for projected_field in ("current_work_kind", "current_lane"):
+        if not isinstance(packet.get(projected_field), str):
+            raise ValueError(f"report packet {projected_field} must be a string")
     _required_text(packet.get("report_id"), "report_id")
     _require_list(packet.get("evidence_root_refs"), "evidence_root_refs")
     _require_list(packet.get("sink_refs"), "sink_refs")
@@ -858,9 +974,17 @@ def reporter_event_hook_probe_observations() -> tuple[Mapping[str, Any], ...]:
         )
 
     append(
-        "no_policy_no_event",
-        passed=report_event_policy_from_plan({}) is None,
-        accepted=False,
+        "absent_policy_defaults_to_local_env_gated_sinks",
+        passed=(
+            isinstance(report_event_policy_from_plan({}), Mapping)
+            and report_event_policy_from_plan({}).get("event_kinds")
+            == ["building_finished", "intervention_required"]
+            and report_event_policy_from_plan({}).get("sink_refs")
+            == [LOCAL_INBOX_SINK_REF, SLACK_SINK_REF, DASHBOARD_SINK_REF]
+            and report_event_policy_from_plan({}).get("environment_gated_sink_refs")
+            == [SLACK_SINK_REF, DASHBOARD_SINK_REF]
+        ),
+        accepted=True,
     )
     append(
         "disabled_policy_no_event",
@@ -1114,9 +1238,20 @@ def _building_report_packet(
     frontier_kind = str(frontier.get("frontier_kind") or "unknown")
     missing_files = tuple(str(item) for item in frontier.get("missing_required_files", ()))
     evidence_refs_present = not missing_files and bool(building_map)
+    current_brick_ref = _current_brick_ref(building_map, frontier_kind)
+    last_completed_step_ref = _last_completed_step_ref(building_map)
+    projected_facts = _current_declared_projection(
+        repo,
+        root,
+        building_map,
+        frontier_kind=frontier_kind,
+        current_brick_ref=current_brick_ref,
+        last_completed_step_ref=last_completed_step_ref,
+    )
     not_proven = _merge_texts(
         REPORTER_NOT_PROVEN,
         frontier.get("not_proven"),
+        projected_facts.get("not_proven"),
         (f"missing evidence ref: {item}" for item in missing_files),
     )
     packet = {
@@ -1126,8 +1261,10 @@ def _building_report_packet(
         "portfolio_id": "",
         "observed_board_state": _FRONTIER_TO_OBSERVED_STATE.get(frontier_kind, "observed_running"),
         "trigger_event_ref": trigger_event_ref,
-        "current_brick_ref": _current_brick_ref(building_map, frontier_kind),
-        "last_completed_step_ref": _last_completed_step_ref(building_map),
+        "current_brick_ref": current_brick_ref,
+        "current_work_kind": str(projected_facts.get("current_work_kind") or ""),
+        "current_lane": str(projected_facts.get("current_lane") or ""),
+        "last_completed_step_ref": last_completed_step_ref,
         "frontier_ref": f"{_rel(repo, root)}#frontier:{frontier_kind}",
         "evidence_root_refs": [_rel(repo, root)],
         "evidence_refs_present": evidence_refs_present,
@@ -1171,6 +1308,8 @@ def _portfolio_report_packet(
         "observed_board_state": _FRONTIER_TO_OBSERVED_STATE.get(frontier_kind, "observed_running"),
         "trigger_event_ref": trigger_event_ref,
         "current_brick_ref": "",
+        "current_work_kind": "",
+        "current_lane": "",
         "last_completed_step_ref": "",
         "frontier_ref": f"{_rel(repo, path)}#frontier:{frontier_kind}",
         "evidence_root_refs": [_rel(repo, path)],
@@ -1197,6 +1336,8 @@ def _minimal_valid_probe_packet() -> Mapping[str, Any]:
         "observed_board_state": "observed_running",
         "trigger_event_ref": "observation:probe",
         "current_brick_ref": "brick:probe",
+        "current_work_kind": "work",
+        "current_lane": "worker",
         "last_completed_step_ref": "",
         "frontier_ref": "project/brick-protocol/buildings/probe#frontier:closure_pending",
         "evidence_root_refs": ["project/brick-protocol/buildings/probe"],
@@ -1276,6 +1417,165 @@ def _last_completed_step_ref(building_map: Mapping[str, Any]) -> str:
         if isinstance(value, str):
             return value
     return ""
+
+
+def _current_declared_projection(
+    repo: Path,
+    root: Path,
+    building_map: Mapping[str, Any],
+    *,
+    frontier_kind: str,
+    current_brick_ref: str,
+    last_completed_step_ref: str,
+) -> Mapping[str, Any]:
+    plan = _declared_plan_for_building(root, building_map)
+    if not plan:
+        return {
+            "current_work_kind": "",
+            "current_lane": "",
+            "not_proven": ["declared plan evidence for notification labels was not readable"],
+        }
+    work_brick_ref = _current_work_brick_ref(building_map, frontier_kind, current_brick_ref)
+    step = _declared_step_for_brick_ref(plan, work_brick_ref)
+    if step is None:
+        step_ref = _step_ref_from_step_output_ref(last_completed_step_ref)
+        step = _declared_step_for_step_ref(plan, step_ref)
+    if step is None:
+        return {
+            "current_work_kind": "",
+            "current_lane": "",
+            "not_proven": ["declared step for notification labels was not resolved"],
+        }
+    work_kind = _step_template_kind(str(step.get("step_template_ref") or ""))
+    agent_object_ref = _agent_object_ref_from_step(step)
+    lane, lane_not_proven = _agent_lane_for_ref(agent_object_ref, repo)
+    not_proven = []
+    if not work_kind:
+        not_proven.append("declared step_template_ref for notification label was not resolved")
+    if lane_not_proven:
+        not_proven.extend(lane_not_proven)
+    return {
+        "current_work_kind": work_kind,
+        "current_lane": lane,
+        "not_proven": not_proven,
+    }
+
+
+def _declared_plan_for_building(
+    root: Path,
+    building_map: Mapping[str, Any],
+) -> Mapping[str, Any]:
+    for path in (
+        root / "work" / "declared-building-plan.json",
+        root / "declared-building-plan.json",
+    ):
+        packet = _read_json_mapping(path)
+        plan = packet.get("declared_plan_copy") if isinstance(packet.get("declared_plan_copy"), Mapping) else packet
+        if _declared_steps(plan):
+            return plan
+    provenance = building_map.get("declaration_provenance")
+    if isinstance(provenance, Mapping):
+        plan = provenance.get("declared_plan_copy")
+        if isinstance(plan, Mapping) and _declared_steps(plan):
+            return plan
+    return {}
+
+
+def _declared_steps(plan: Mapping[str, Any]) -> tuple[Mapping[str, Any], ...]:
+    raw_steps = plan.get("steps")
+    if not isinstance(raw_steps, list):
+        raw_steps = plan.get("brick_steps")
+    if not isinstance(raw_steps, list):
+        return ()
+    return tuple(step for step in raw_steps if isinstance(step, Mapping))
+
+
+def _current_work_brick_ref(
+    building_map: Mapping[str, Any],
+    frontier_kind: str,
+    current_brick_ref: str,
+) -> str:
+    edges = _mapping_list(building_map.get("link_edges"))
+    if edges and frontier_kind == "complete":
+        value = edges[-1].get("source_brick_instance_ref")
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    if current_brick_ref.strip():
+        return current_brick_ref.strip()
+    if edges:
+        value = edges[-1].get("source_brick_instance_ref")
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return ""
+
+
+def _declared_step_for_brick_ref(
+    plan: Mapping[str, Any],
+    brick_ref: str,
+) -> Mapping[str, Any] | None:
+    if not brick_ref:
+        return None
+    for step in _declared_steps(plan):
+        brick_row = _axis_row(step, "Brick")
+        if str(brick_row.get("brick_instance_ref") or "").strip() == brick_ref:
+            return step
+    return None
+
+
+def _declared_step_for_step_ref(
+    plan: Mapping[str, Any],
+    step_ref: str,
+) -> Mapping[str, Any] | None:
+    if not step_ref:
+        return None
+    for step in _declared_steps(plan):
+        if str(step.get("step_ref") or "").strip() == step_ref:
+            return step
+    return None
+
+
+def _axis_row(step: Mapping[str, Any], axis: str) -> Mapping[str, Any]:
+    rows = step.get("rows")
+    if not isinstance(rows, list):
+        return {}
+    for row in rows:
+        if isinstance(row, Mapping) and str(row.get("axis") or "").strip() == axis:
+            return row
+    return {}
+
+
+def _step_template_kind(step_template_ref: str) -> str:
+    prefix = "building-step-template:"
+    return step_template_ref.removeprefix(prefix).strip() if step_template_ref.startswith(prefix) else ""
+
+
+def _agent_object_ref_from_step(step: Mapping[str, Any]) -> str:
+    agent_row = _axis_row(step, "Agent")
+    return str(agent_row.get("agent_object_ref") or "").strip()
+
+
+def _agent_lane_for_ref(agent_object_ref: str, repo: Path) -> tuple[str, tuple[str, ...]]:
+    if not agent_object_ref:
+        return "", ("declared Agent Object ref for notification lane was not resolved",)
+    try:
+        packet = resolve_agent_object(agent_object_ref, repo_root=repo)
+    except AgentResourceError as exc:
+        return "", (f"Agent Object lane projection unresolved: {exc}",)
+    agent_object = packet.get("agent_object")
+    if isinstance(agent_object, Mapping):
+        lane = agent_object.get("lane")
+        if isinstance(lane, str) and lane.strip():
+            return lane.strip(), ()
+    return "", ("Agent Object lane projection returned no lane",)
+
+
+def _step_ref_from_step_output_ref(step_output_ref: str) -> str:
+    if not step_output_ref:
+        return ""
+    parent_name = Path(step_output_ref).parent.name
+    if "-attempt-" in parent_name:
+        return parent_name.rsplit("-attempt-", 1)[0]
+    return parent_name
 
 
 def _required_disposition_owner(frontier: Mapping[str, Any]) -> str:

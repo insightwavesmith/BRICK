@@ -1,0 +1,14 @@
+# TransitionConcern · seq 60 · ["Agent","Link"]
+- agent_object_ref: "agent-object:coo"
+- alias_fact_refs: ["transition-concern:notify-customer-language-autowire-0612-closure-remaining-delta"]
+- attempt_index: 1
+- axis_scope: ["Agent","Link"]
+- binding: false
+- event_type: "TransitionConcern"
+- run_segment: 2
+- sequence_index: 60
+- source_fact_ref: "transition-concern:notify-customer-language-autowire-0612-closure:attempt-1"
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/notify-customer-language-autowire-0612-closure-attempt-1/step-output.json"
+- step_ref: "notify-customer-language-autowire-0612-closure"
+- transition_concern_returned: {"binding":false,"concern_kind":"implementation_gap","concern_ref":"transition-concern:notify-customer-language-autowire-0612-closure-remaining-delta","not_proven":["single-step customer-language labels","resume notification injection proof","building_started after-evidence boundary","full FIRE execution"],"proof_limits":["non-binding closure synthesis evidence only","not source truth","not success judgment","not quality judgment","not Movement authority","not route target choice"],"reason_refs":["support/operator/run.py:354","support/operator/run.py:689","support/operator/walker_kernel.py:1223","support/operator/reporter.py:1422","support/checkers/lib/kernel_checks.py:2007"],"related_boundary_refs":["brick-notify-customer-language-autowire-0612-work","brick-notify-customer-language-autowire-0612-code-attack-qa","brick-notify-customer-language-autowire-0612-axis-attack-qa","brick-notify-customer-language-autowire-0612-evidence-integrity","brick-notify-customer-language-autowire-0612-closure"]}

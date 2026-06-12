@@ -1,0 +1,190 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:notify-customer-language-autowire-0612::work/step-outputs/notify-customer-language-autowire-0612-work-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:dev",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-notify-customer-language-autowire-0612-work",
+  "building_id": "notify-customer-language-autowire-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T04:10:30.400373Z",
+  "id": "urn:bp:building:notify-customer-language-autowire-0612::work/step-outputs/notify-customer-language-autowire-0612-work-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:notify-customer-language-autowire-0612-work",
+  "recorded_at": "2026-06-12T04:10:30.400373Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:dev",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "changed_files": [
+      "support/checkers/check_package_path_admission.py",
+      "support/checkers/lib/kernel_checks.py",
+      "support/checkers/profiles/read_side_projection_boundary.yaml",
+      "support/dashboard/src/data/labels.js",
+      "support/operator/label_map.json",
+      "support/operator/report_sinks.py",
+      "support/operator/reporter.py",
+      "support/operator/run.py",
+      "support/operator/walker_kernel.py"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:notify-customer-language-autowire-0612",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:notify-customer-language-autowire-0612:agent-object:dev:output"
+    ],
+    "made_changes": [
+      "Changed files: support/operator/label_map.json, support/dashboard/src/data/labels.js, support/operator/reporter.py, support/operator/report_sinks.py, support/operator/run.py, support/operator/walker_kernel.py, support/checkers/lib/kernel_checks.py, support/checkers/check_package_path_admission.py, support/checkers/profiles/read_side_projection_boundary.yaml.",
+      "Added canonical Korean label data and dashboard parity pin.",
+      "Slack text now uses customer-language headline fields: building, status, work stage, role, action, one compact operator refs line, and proof-limit line.",
+      "Reporter packets now carry current_work_kind and current_lane projected from declared plan/building-map evidence.",
+      "run.py and walker_kernel.py now emit best-effort render-to-deliver notifications after evidence writes; absent Slack/dashboard env keeps delivery to local inbox only.",
+      "Checker pins now cover label parity, Slack message shape, auto-wiring, fake Slack sender invocation, local-inbox write, and no scheduler/thread/queue constructs."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "Not source truth, not success judgment, not quality judgment, not Movement authority.",
+      "Real Slack API delivery, real dashboard delivery, and reader-noticed notification behavior are not proven; fake sender and env-gating were proven.",
+      "run_building_once notification behavior was wired but not separately temp-driven by a dedicated behavioral checker.",
+      "Default auto-wire proof covers terminal/intervention events; building_started remains policy-admitted, not proven as a default event.",
+      "AGENTS.md referenced archive/status-kernel/current-brick-operating-packet-0531.md and archive/status-kernel/brick-protocol-post-d-surface-recompile-0-plan-0530.md, but those files were not present in this checkout.",
+      "Future Building correctness, provider quality, repeated provider reliability, and complete absence of future support-authority leaks remain not_proven."
+    ],
+    "observed_evidence": [
+      "Checkout: /Users/smith/projects/BRICK-wt-notify.",
+      "Before specimen: 브릭 빌딩 알림 / 상태: 종료 / 빌딩: building-event-reporter-hook-0-0603-slack-auto-smoke / Brick: building-boundary:...-closed / Agent: 마지막 완료 step work/step-outputs/...-attempt-1/step-output.json / Link: 닫힌 경계 관찰; project/...#frontier:complete:event:building_finished / 한계: support 알림이며 ...",
+      "After renderer: 빌딩 알림\n빌딩: customer-language-probe\n상태: 완료\n작업 단계: 작업\n담당 역할: 워커\n필요 조치: 알림 확인\n운영 refs: brick=brick-work; step=customer-language-probe-work-attempt-1; frontier=complete:event:building_finished\n한계: support projection; source truth/성공판정/품질판정/Movement 권한 아님",
+      "Temp fake Slack message: 빌딩 알림\n빌딩: reporter-auto-wire-fake-slack\n상태: 완료\n작업 단계: 작업\n담당 역할: 워커\n필요 조치: 알림 확인\n운영 refs: brick=building-boundary:reporter-auto-wire-fake-slack-closed; step=reporter-auto-wire-fake-slack-work-attempt-1; frontier=complete:event:building_finished\n한계: support projection; source truth/성공판정/품질판정/Movement 권한 아님",
+      "Focused gate passed: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --profile support/checkers/profiles/read_side_projection_boundary.yaml.",
+      "Full gate passed: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all.",
+      "Compile passed: PYTHONDONTWRITEBYTECODE=1 python3 -m compileall -q support.",
+      "Whitespace gate passed: git diff --check.",
+      "One earlier command was corrected: check_profile.py --check reporter_notification_projection is not a valid CLI form.",
+      "Generated verification inbox packets and __pycache__ directories were removed; final git status shows only support/* changes.",
+      "Review/model evidence disposition: no Claude/Gemini review was delegated in this DEV turn; checker output is support evidence only."
+    ],
+    "output_excerpt": "{ \"made_changes\": [ \"Changed files: support/operator/label_map.json, support/dashboard/src/data/labels.js, support/operator/reporter.py, support/operator/report_sinks.py, support/operator/run.py, support/operator/walker_kernel.py, support/checkers/lib/kernel_checks.py, support/checkers/check_package_path_admission.py, support/checkers/profiles/read_side_projection_boundary.yaml.\", \"Added canonical Korean label data and dashboard parity pin.\", \"Slack text now uses customer-language headline fields: building, status, work stage, role, action, one compact operator refs line, and proof-limit li...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "claude/track-notify",
+        "head": "59605f95e070b923a63e718d76567c3985ab697d"
+      },
+      "after_git_status_paths": [
+        "support/checkers/check_package_path_admission.py",
+        "support/checkers/lib/kernel_checks.py",
+        "support/checkers/profiles/read_side_projection_boundary.yaml",
+        "support/dashboard/src/data/labels.js",
+        "support/operator/label_map.json",
+        "support/operator/report_sinks.py",
+        "support/operator/reporter.py",
+        "support/operator/run.py",
+        "support/operator/walker_kernel.py"
+      ],
+      "after_path_count": 1274,
+      "before_git_refs": {
+        "branch": "claude/track-notify",
+        "head": "59605f95e070b923a63e718d76567c3985ab697d"
+      },
+      "before_git_status_paths": [],
+      "before_path_count": 1273,
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [
+        "support/checkers/check_package_path_admission.py",
+        "support/checkers/lib/kernel_checks.py",
+        "support/checkers/profiles/read_side_projection_boundary.yaml",
+        "support/dashboard/src/data/labels.js",
+        "support/operator/label_map.json",
+        "support/operator/report_sinks.py",
+        "support/operator/reporter.py",
+        "support/operator/run.py",
+        "support/operator/walker_kernel.py"
+      ],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "support/*"
+        ],
+        "forbidden_paths": [
+          "link/*",
+          "agent/*",
+          "brick/*",
+          "project/*",
+          ".git/*",
+          "AGENTS.md",
+          "pyproject.toml",
+          "uv.lock"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:02:notify-customer-language-autowire-0612-work",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:notify-customer-language-autowire-0612",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:notify-customer-language-autowire-0612-work:attempt-1",
+  "step_ref": "notify-customer-language-autowire-0612-work",
+  "subject": "notify-customer-language-autowire-0612-work",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T04:10:30.400373Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}
