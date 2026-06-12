@@ -4,9 +4,13 @@
 그 빌딩의 장부가 진실이 된다. 갱신 주체 = 운영자, 승인 = Smith.
 
 ## 진행 중 (빌딩으로 가동)
-- (없음 — 0612 저녁 기준)
+- (없음 — 0612 밤 기준)
 
 ## 완료 (0612, 빌딩 닫힘·머지됨)
+- iap-dashboard-sink-passport-0612 — 대시보드 싱크 IAP 통행증(SA서명 JWT Authorization,
+  키env 게이트) — 코드 e8f38fd, 증거 ad04a71; 실물 E2E http_2xx; 대기열 1번 마감
+- f14-claim-trace-manifest-adapter-error-0612 — 어댑터-에러 홀드 후 폐장 시 claim_trace/
+  매니페스트 불일치 수리(보존 방식)+재조정 동사+체커 핀 — ad04a71; iap·f14 실루트 재조정 완료
 - f13-frontier-declared-edge-fallback-0612 — frontier 폴백이 그래프 선언행을 closed로 오독
   (F9/F9B 후 3번째 동일표면) — 폐장·머지·푸시 origin/main 2005c07 (0612 저녁);
   변이 RED 체커 핀 동봉, 운영자 FIRE 6종 직접 실행 green
@@ -14,10 +18,11 @@
 - f9 / f10 / f11 / onboarding(C3) / provider-ladder(D) — origin/main bf199ac 웨이브에 포함
 
 ## 대기 (빌딩 미착수)
-1. 대시보드 델타 IAP 통행증 — **인프라 풀림(0612 실측)**: SA 개인키 서명 JWT +
-   aud=정확한 endpoint URL(경로 포함)로 POST /ingest 200, 브라우저 즉시 델타 수신.
-   남은 것 = report_sinks dashboard 싱크 Authorization 헤더 배선(작은 빌딩,
-   notify-v2 머지 후 — 같은 표면 충돌 방지). 레시피 = 운영자 기억 + DEPLOY.md 반영 예정.
+0. 어댑터-에러 경로 다지기 — F15(첫 스텝 에러 시 출생증명서 미기록→재개 불가;
+   우회=overwrite 재발주) + F16(종이-stop 부재: 에러홀드 stop이 멈춘 스텝을 LIVE 재실행)
+   + 옛 에러홀드 3동(provider-ladder, dashboard-productization ×2) stop 마감 묶음 (0612 실측)
+0b. 폐장 템플릿 소수선 — parent_goal_delta_status 값 안에 'status' 키 유도 방지 힌트
+   (codex 2/3회 양식 위반 실측; Smith 승인 0612)
 2. 제품판 깃헙 릴리스 — 태그 + 동네 제외 내보내기 + 새 클론 → install.sh → 첫 빌딩 실측 (운영자 직접)
    + 배포 버튼 2종(버셀=정적 사진 모드 / Docker호스트=실시간 모드) README 박기
    + AI-실행가능 온보딩 검증: 그쪽 운영자 AI가 문서만 보고 설치~대시보드까지 가는가
