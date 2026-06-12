@@ -12,9 +12,11 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
-from brick_protocol.brick.work import parse_required_return_shape
 from brick_protocol.link.gate import GateFact, evaluate_declared_movement_gate
 from brick_protocol.support.operator.contracts import BuildingRunSupportResult
+from brick_protocol.support.operator.plan_validation import (
+    _artifact_grounding_required_return_fields,
+)
 from brick_protocol.support.operator.primitives import _optional_text_value
 
 
@@ -248,11 +250,10 @@ def run_gate_sequence_policy(
 
 
 def _base_required_return_fields_for_gate_sequence(comparison: Any) -> tuple[str, ...]:
-    fields = list(parse_required_return_shape(comparison.required_return_shape_evidence))
-    for field_name in comparison.required_return_fields():
-        if field_name.endswith(".repository_artifact_ref") and field_name not in fields:
-            fields.append(field_name)
-    return tuple(fields)
+    return _artifact_grounding_required_return_fields(
+        comparison.required_return_shape_evidence,
+        comparison.required_return_fields(),
+    )
 
 
 def gate_sequence_decision_to_record(

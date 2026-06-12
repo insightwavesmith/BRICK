@@ -67,6 +67,10 @@ from brick_protocol.support.recording.claims_common import (
 _TRANSITION_LIFECYCLE_CARRY_BUDGET_EVIDENCE_FIELD = (
     "transition_lifecycle_carry_budget_evidence_ref"
 )
+_RETURNED_FIELD_PUBLIC_FACT_PREFIX = (
+    "BrickComparisonFact.comparison_evidence.returned_field."
+)
+_REPOSITORY_ARTIFACT_REF_SUFFIX = ".repository_artifact_ref"
 
 
 def _graph_link_raw_records(
@@ -304,7 +308,7 @@ def _gate_receipt_claim_body(
         "ordinal": ordinal,
         "sufficiency": sufficiency,
         "checked_public_fact": gate_fact.checked_public_fact,
-        "required_public_facts": list(gate_fact.required_public_facts),
+        "required_public_facts": _resolvable_required_public_facts(gate_fact),
         "missing_required_facts": list(gate_fact.missing_required_facts),
     }
 
@@ -452,11 +456,31 @@ def _gate_fact_claim_body(gate_fact: GateFact) -> Mapping[str, Any]:
         "stage": gate_fact.stage,
         "sufficiency": gate_fact.sufficiency,
         "checked_public_fact": gate_fact.checked_public_fact,
-        "required_public_facts": list(gate_fact.required_public_facts),
+        "required_public_facts": _resolvable_required_public_facts(gate_fact),
         "missing_required_facts": list(gate_fact.missing_required_facts),
         "reason": gate_fact.reason,
         "evidence_reference": gate_fact.evidence_reference,
     }
+
+
+def _resolvable_required_public_facts(gate_fact: GateFact) -> list[str]:
+    missing = set(gate_fact.missing_required_facts)
+    return [
+        public_fact
+        for public_fact in gate_fact.required_public_facts
+        if not _is_missing_repository_artifact_selector(public_fact, missing)
+    ]
+
+
+def _is_missing_repository_artifact_selector(
+    public_fact: str,
+    missing_required_facts: set[str],
+) -> bool:
+    return (
+        public_fact in missing_required_facts
+        and public_fact.startswith(_RETURNED_FIELD_PUBLIC_FACT_PREFIX)
+        and public_fact.endswith(_REPOSITORY_ARTIFACT_REF_SUFFIX)
+    )
 
 
 def _gate_claim_items(crossing_record: MinimalCrossingRecord) -> tuple[tuple[str, GateFact], ...]:
