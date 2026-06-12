@@ -761,6 +761,25 @@ def _chat_session_frontier_history_snapshot(root: Path) -> Mapping[str, Any]:
     }
 
 
+def _adapter_error_frontier_history_snapshot(root: Path) -> Mapping[str, Any]:
+    return {
+        "agent_received_raw_refs": _chat_session_raw_refs_from_jsonl(
+            root / "raw" / "agent-received.jsonl"
+        ),
+        "adapter_error_raw_refs": _chat_session_raw_refs_from_jsonl(
+            root / "raw" / "adapter-error.jsonl"
+        ),
+        "link_frontier_records": tuple(
+            record
+            for record in _chat_session_jsonl_objects(root / "raw" / "link.jsonl")
+            if any(
+                ref.startswith("raw:link-frontier:")
+                for ref in _chat_session_raw_refs_from_value(record)
+            )
+        ),
+    }
+
+
 def _preserve_chat_session_frontier_history_after_resume(
     root: Path,
     snapshot: Mapping[str, Any],
@@ -829,6 +848,61 @@ def _preserve_chat_session_frontier_history_after_resume(
         entries,
         path="raw/link.jsonl",
         source="support/operator/run.py declared Link rows and preserved chat-session frontier rows",
+        content_shape="jsonl Link transition rows and frontier absence rows",
+        axis_owner="Link",
+        raw_refs=_chat_session_raw_refs_for_manifest_entry(root / "raw" / "link.jsonl"),
+    )
+    manifest["raw_refs"] = raw_refs
+    manifest["entries"] = entries
+    _write_json_atomic(manifest_path, manifest)
+
+
+def _preserve_adapter_error_frontier_history_after_resume(
+    root: Path,
+    snapshot: Mapping[str, Any],
+) -> None:
+    _preserve_chat_session_link_frontier_records(root, snapshot)
+    manifest_path = root / "raw" / "raw-manifest.json"
+    if not manifest_path.is_file():
+        return
+    manifest = dict(_read_chat_session_json_object(manifest_path))
+    entries_value = manifest.get("entries")
+    entries = [dict(entry) for entry in entries_value if isinstance(entry, Mapping)] if isinstance(entries_value, list) else []
+    raw_refs_value = manifest.get("raw_refs")
+    raw_refs = [str(ref) for ref in raw_refs_value if isinstance(ref, str)] if isinstance(raw_refs_value, list) else []
+
+    agent_refs = [str(ref) for ref in snapshot.get("agent_received_raw_refs", ()) if isinstance(ref, str)]
+    adapter_error_refs = [str(ref) for ref in snapshot.get("adapter_error_raw_refs", ()) if isinstance(ref, str)]
+    link_frontier_refs = [
+        ref
+        for record in snapshot.get("link_frontier_records", ())
+        if isinstance(record, Mapping)
+        for ref in _chat_session_raw_refs_from_value(record)
+        if ref.startswith("raw:link-frontier:")
+    ]
+    for ref in [*agent_refs, *adapter_error_refs, *link_frontier_refs]:
+        if ref not in raw_refs:
+            raw_refs.append(ref)
+    _merge_chat_session_manifest_entry(
+        entries,
+        path="raw/agent-received.jsonl",
+        source="support/operator/run.py preserved adapter-error receipt rows across resume",
+        content_shape="jsonl Agent receipt rows",
+        axis_owner="Agent",
+        raw_refs=agent_refs,
+    )
+    _merge_chat_session_manifest_entry(
+        entries,
+        path="raw/adapter-error.jsonl",
+        source="support/operator/run.py preserved adapter exception rows across resume",
+        content_shape="jsonl adapter exception observation rows",
+        axis_owner="Agent",
+        raw_refs=adapter_error_refs,
+    )
+    _merge_chat_session_manifest_entry(
+        entries,
+        path="raw/link.jsonl",
+        source="support/operator/run.py declared Link rows and preserved adapter-error frontier rows",
         content_shape="jsonl Link transition rows and frontier absence rows",
         axis_owner="Link",
         raw_refs=_chat_session_raw_refs_for_manifest_entry(root / "raw" / "link.jsonl"),
@@ -1455,7 +1529,8 @@ def resume_building_plan(
             adapter_timeout_seconds=adapter_timeout_seconds,
             checked_proof_limits=checked_proof_limits,
         )
-    return _resume_dynamic_graph_walker(
+    frontier_history = _adapter_error_frontier_history_snapshot(root)
+    result = _resume_dynamic_graph_walker(
         root,
         output_root=root.parent,
         overwrite_existing=overwrite_existing,
@@ -1473,6 +1548,8 @@ def resume_building_plan(
         chat_session_park_frontier_exception=ChatSessionParkFrontierEvidenceWritten,
         repo_root=_REPO_ROOT,
     )
+    _preserve_adapter_error_frontier_history_after_resume(root, frontier_history)
+    return result
 
 
 def _resume_chat_session_parked_building_plan(

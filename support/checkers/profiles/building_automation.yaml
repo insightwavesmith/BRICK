@@ -5,6 +5,7 @@ kernel_checks:
   - building_lifecycle_path_shape
   - building_map_graph
   - chat_session_park_seam
+  - adapter_error_frontier_manifest_consistency
 path_exists:
   - support/operator/run.py
   - agent/performance.py

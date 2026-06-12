@@ -2971,6 +2971,253 @@ def run_reporter_notification_projection(repo: Path) -> KernelResult:
     )
 
 
+def run_adapter_error_frontier_manifest_consistency(repo: Path) -> KernelResult:
+    """Pin adapter-error frontier raw_ref resolution after final closure rewrite."""
+
+    from support.checkers import check_building_lifecycle_path_shape as lifecycle_shape
+    from support.operator import run as run_module
+    from support.recording.raw_claim_trace import reconcile_claim_trace_raw_manifest_from_raw
+
+    del repo
+    with tempfile.TemporaryDirectory(prefix="bp-adapter-error-frontier-manifest-") as tmp:
+        root = Path(tmp) / "adapter-error-frontier-manifest-case"
+        _adapter_error_manifest_write_broken_fixture(root)
+
+        red_violations: list[str] = []
+        lifecycle_shape.validate_minimal_content(root, red_violations)
+        if not any("raw_ref does not resolve through raw manifest" in item for item in red_violations):
+            raise ProfileError(
+                "adapter_error_frontier_manifest_consistency FIRE did not observe "
+                "unresolved claim_trace raw_refs before reconciliation"
+            )
+
+        written = reconcile_claim_trace_raw_manifest_from_raw(root)
+        green_violations: list[str] = []
+        lifecycle_shape.validate_minimal_content(root, green_violations)
+        if green_violations:
+            raise ProfileError(
+                "adapter_error_frontier_manifest_consistency lifecycle checker rejected "
+                "reconciled fixture:\n"
+                + "\n".join(f"- {violation}" for violation in green_violations)
+            )
+
+        manifest = json.loads((root / "raw" / "raw-manifest.json").read_text(encoding="utf-8"))
+        refs = {
+            str(ref)
+            for entry in manifest.get("entries", [])
+            if isinstance(entry, Mapping)
+            for ref in entry.get("raw_refs", [])
+            if isinstance(ref, str)
+        }
+        for ref in ("raw:agent-received:02", "raw:adapter-error:02", "raw:link-frontier:02"):
+            if ref not in refs:
+                raise ProfileError(
+                    "adapter_error_frontier_manifest_consistency reconciled manifest "
+                    f"does not carry {ref}"
+                )
+
+        preserve_root = Path(tmp) / "adapter-error-frontier-preserve-case"
+        _adapter_error_manifest_write_broken_fixture(preserve_root)
+        _adapter_error_manifest_write_jsonl(
+            preserve_root / "raw" / "link.jsonl",
+            [
+                {
+                    "raw_ref": "raw:link:01",
+                    "raw_refs": ["raw:link:01"],
+                    "step_ref": f"{preserve_root.name}-work",
+                },
+                _adapter_error_manifest_link_frontier_record(preserve_root.name),
+            ],
+        )
+        snapshot = run_module._adapter_error_frontier_history_snapshot(preserve_root)
+        _adapter_error_manifest_write_jsonl(
+            preserve_root / "raw" / "link.jsonl",
+            [
+                {
+                    "raw_ref": "raw:link:01",
+                    "raw_refs": ["raw:link:01"],
+                    "step_ref": f"{preserve_root.name}-work",
+                }
+            ],
+        )
+        run_module._preserve_adapter_error_frontier_history_after_resume(preserve_root, snapshot)
+        preserve_violations: list[str] = []
+        lifecycle_shape.validate_minimal_content(preserve_root, preserve_violations)
+        if preserve_violations:
+            raise ProfileError(
+                "adapter_error_frontier_manifest_consistency lifecycle checker rejected "
+                "preserved final-writer fixture:\n"
+                + "\n".join(f"- {violation}" for violation in preserve_violations)
+            )
+
+    return KernelResult(
+        check_id="adapter_error_frontier_manifest_consistency",
+        inspected=len(written) + 3,
+        output=(
+            "adapter-error frontier manifest consistency passed: synthetic "
+            "adapter-error->closure fixture fired RED before reconciliation and "
+            "the same lifecycle raw_ref resolver accepted both the reconciled root "
+            "and the final-writer preserve root."
+        ),
+    )
+
+
+def _adapter_error_manifest_write_broken_fixture(root: Path) -> None:
+    case_id = root.name
+    _adapter_error_manifest_write_jsonl(
+        root / "raw" / "brick-work.jsonl",
+        [{"raw_ref": "raw:brick:01", "raw_refs": ["raw:brick:01"], "step_ref": f"{case_id}-work"}],
+    )
+    _adapter_error_manifest_write_jsonl(
+        root / "raw" / "agent-return.jsonl",
+        [{"raw_ref": "raw:agent:01", "raw_refs": ["raw:agent:01"], "step_ref": f"{case_id}-work"}],
+    )
+    _adapter_error_manifest_write_jsonl(
+        root / "raw" / "agent-received.jsonl",
+        [
+            {
+                "agent_object_ref": "agent-object:coo",
+                "raw_ref": "raw:agent-received:02",
+                "raw_refs": ["raw:agent-received:02"],
+                "received_work_ref": f"brick-work:02:{case_id}-closure",
+                "step_ref": f"{case_id}-closure",
+            }
+        ],
+    )
+    _adapter_error_manifest_write_jsonl(
+        root / "raw" / "adapter-error.jsonl",
+        [
+            {
+                "adapter_error_ref": f"adapter-error:{case_id}-closure:attempt-1",
+                "agent_fact_created": False,
+                "brick_instance_ref": f"brick-{case_id}-closure",
+                "raw_ref": "raw:adapter-error:02",
+                "raw_refs": ["raw:adapter-error:02"],
+                "step_ref": f"{case_id}-closure",
+            }
+        ],
+    )
+    _adapter_error_manifest_write_jsonl(
+        root / "raw" / "link.jsonl",
+        [{"raw_ref": "raw:link:01", "raw_refs": ["raw:link:01"], "step_ref": f"{case_id}-work"}],
+    )
+    _adapter_error_manifest_write_json(
+        root / "raw" / "raw-manifest.json",
+        {
+            "building_id": case_id,
+            "raw_refs": ["raw:brick:01", "raw:agent:01", "raw:link:01"],
+            "entries": [
+                _adapter_error_manifest_entry("raw/brick-work.jsonl", "Brick", ["raw:brick:01"]),
+                _adapter_error_manifest_entry("raw/agent-return.jsonl", "Agent", ["raw:agent:01"]),
+                _adapter_error_manifest_entry("raw/link.jsonl", "Link", ["raw:link:01"]),
+            ],
+        },
+    )
+    _adapter_error_manifest_write_json(
+        root / "evidence" / "evidence-manifest.json",
+        {"building_id": case_id, "proof_limits": ["support evidence only"]},
+    )
+    _adapter_error_manifest_write_claim(
+        root / "evidence" / "claim_trace" / "brick" / "work_contract.json",
+        "Brick",
+        "brick-work:01",
+        "raw:brick:01",
+        {"work_statement": "fixture work"},
+    )
+    _adapter_error_manifest_write_claim(
+        root / "evidence" / "claim_trace" / "agent" / "returned_claims.json",
+        "Agent",
+        "agent-fact:01",
+        "raw:agent:01",
+        {"received_work": "brick-work:01", "returned_payload_ref": "fixture:return"},
+    )
+    _adapter_error_manifest_write_claim(
+        root / "evidence" / "claim_trace" / "agent" / "receipt_trace.json",
+        "Agent",
+        "agent-receipt:02",
+        "raw:agent-received:02",
+        {"receipt_role": "Agent received declared work before adapter exception observation"},
+    )
+    for rel, fact_ref, raw_ref in (
+        ("transfer_trace.json", "link-transfer:01", "raw:link:01"),
+        ("carry_trace.json", "link-carry:01", "raw:link:01"),
+        ("sufficiency_trace.json", "link-sufficiency:01", "raw:link:01"),
+        ("movement_trace.json", "link-movement:01", "raw:link:01"),
+        ("frontier_trace.json", "link-frontier:02", "raw:link-frontier:02"),
+    ):
+        _adapter_error_manifest_write_claim(
+            root / "evidence" / "claim_trace" / "link" / rel,
+            "Link",
+            fact_ref,
+            raw_ref,
+            {"frontier_kind": "agent_incomplete"} if rel == "frontier_trace.json" else {"link_ref": fact_ref},
+        )
+
+
+def _adapter_error_manifest_link_frontier_record(case_id: str) -> dict[str, Any]:
+    return {
+        "adapter_error_ref": f"adapter-error:{case_id}-closure:attempt-1",
+        "frontier_kind": "agent_incomplete",
+        "observed_boundary_ref": f"brick-{case_id}-closure",
+        "raw_ref": "raw:link-frontier:02",
+        "raw_refs": ["raw:link-frontier:02"],
+        "step_ref": f"{case_id}-closure",
+        "transition_record_created": False,
+    }
+
+
+def _adapter_error_manifest_entry(path: str, axis_owner: str, raw_refs: Sequence[str]) -> dict[str, Any]:
+    return {
+        "path": path,
+        "source": "support/checkers synthetic fixture",
+        "content_shape": "jsonl fixture rows",
+        "proof_limit": "support evidence only",
+        "axis_owner": axis_owner,
+        "record_role": "primary",
+        "raw_refs": list(raw_refs),
+    }
+
+
+def _adapter_error_manifest_write_claim(
+    path: Path,
+    axis: str,
+    fact_ref: str,
+    raw_ref: str,
+    fact: Mapping[str, Any],
+) -> None:
+    _adapter_error_manifest_write_json(
+        path,
+        {
+            "facts": [
+                {
+                    "axis": axis,
+                    "fact": dict(fact),
+                    "fact_ref": fact_ref,
+                    "raw_refs": [raw_ref],
+                    "proof_limits": ["support evidence only"],
+                    "not_proven": ["checker fixture only"],
+                }
+            ]
+        },
+    )
+
+
+def _adapter_error_manifest_write_json(path: Path, value: Mapping[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def _adapter_error_manifest_write_jsonl(path: Path, values: Sequence[Mapping[str, Any]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "".join(
+            json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True) + "\n"
+            for value in values
+        ),
+        encoding="utf-8",
+    )
+
+
 def run_chat_session_park_seam(repo: Path) -> KernelResult:
     """Exercise the chat-session PARK/CLAIM/SUBMIT/RESUME seam over temp roots.
 
