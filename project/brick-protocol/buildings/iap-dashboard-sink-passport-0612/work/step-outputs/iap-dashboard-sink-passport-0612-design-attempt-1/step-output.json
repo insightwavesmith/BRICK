@@ -1,0 +1,310 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:iap-dashboard-sink-passport-0612::work/step-outputs/iap-dashboard-sink-passport-0612-design-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:design-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-iap-dashboard-sink-passport-0612-design",
+  "building_id": "iap-dashboard-sink-passport-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "gate_sequence_decision_record": {
+    "action": "hold",
+    "evidence_ref": "observation:gate-sequence-iap-dashboard-sink-passport-0612-iap-dashboard-sink-passport-0612-design-link-gate-coo-hold",
+    "gate_action_sequence": [
+      {
+        "action": "next",
+        "evidence_ref": "observation:gate-sequence-iap-dashboard-sink-passport-0612-iap-dashboard-sink-passport-0612-design-link-gate-default-transition-next",
+        "gate_ref": "link-gate:default-transition",
+        "hold_reason": "",
+        "pending_target_ref": "",
+        "reason_refs": [
+          "observation:gate-sequence-iap-dashboard-sink-passport-0612-iap-dashboard-sink-passport-0612-design-link-gate-default-transition-next"
+        ],
+        "target_brick_ref": ""
+      },
+      {
+        "action": "hold",
+        "evidence_ref": "observation:gate-sequence-iap-dashboard-sink-passport-0612-iap-dashboard-sink-passport-0612-design-link-gate-coo-hold",
+        "gate_ref": "link-gate:coo",
+        "hold_reason": "gate_sequence_missing_required_facts:link-gate:coo",
+        "pending_target_ref": "brick-iap-dashboard-sink-passport-0612-work",
+        "reason_refs": [
+          "observation:coo-gate-missing-required-facts"
+        ],
+        "target_brick_ref": ""
+      }
+    ],
+    "gate_ref": "link-gate:coo",
+    "gate_results": [
+      {
+        "checked_public_fact": "brick-comparison:iap-dashboard-sink-passport-0612:iap-dashboard-sink-passport-0612-design",
+        "gate_ref": "link-gate:default-transition",
+        "missing_required_facts": [],
+        "required_public_facts": [
+          "BrickComparisonFact.required_return_shape_evidence",
+          "BrickComparisonFact.comparison_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.observed_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.design_summary",
+          "BrickComparisonFact.comparison_evidence.returned_field.relevant_current_structure",
+          "BrickComparisonFact.comparison_evidence.returned_field.proposed_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.unchanged_surfaces",
+          "BrickComparisonFact.comparison_evidence.returned_field.axis_responsibility",
+          "BrickComparisonFact.comparison_evidence.returned_field.invariants",
+          "BrickComparisonFact.comparison_evidence.returned_field.edge_cases",
+          "BrickComparisonFact.comparison_evidence.returned_field.checker_or_verifier_plan",
+          "BrickComparisonFact.comparison_evidence.returned_field.candidate_file_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_refs",
+          "BrickComparisonFact.comparison_evidence.returned_field.not_proven",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_refs.repository_artifact_ref"
+        ],
+        "sufficiency": "sufficient"
+      },
+      {
+        "checked_public_fact": "brick-comparison:iap-dashboard-sink-passport-0612:iap-dashboard-sink-passport-0612-design",
+        "gate_ref": "link-gate:coo",
+        "missing_required_facts": [
+          "Link.route_decision_basis.override_refs"
+        ],
+        "required_public_facts": [
+          "Link.route_decision_basis.override_refs"
+        ],
+        "sufficiency": "missing_required_facts"
+      }
+    ],
+    "hold_reason": "gate_sequence_missing_required_facts:link-gate:coo",
+    "pending_target_ref": "brick-iap-dashboard-sink-passport-0612-work",
+    "reason_refs": [
+      "observation:coo-gate-missing-required-facts"
+    ],
+    "required_disposition_owner": "coo",
+    "target_brick_ref": ""
+  },
+  "generatedAtTime": "2026-06-12T09:47:56.887840Z",
+  "id": "urn:bp:building:iap-dashboard-sink-passport-0612::work/step-outputs/iap-dashboard-sink-passport-0612-design-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:iap-dashboard-sink-passport-0612-design",
+  "recorded_at": "2026-06-12T09:47:56.887840Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:design-lead",
+    "axis_responsibility": {
+      "Admission": "The required openssl subprocess conflicts with the current profile's blanket `subprocess` absence pin; the checker/profile update must come before or with implementation and stay narrowly scoped.",
+      "Agent": "This design-lead return is support evidence only in closed AgentFact style; it does not classify success, failure, approval, or quality.",
+      "Brick": "Owns the declared work contract: support dashboard sink attaches an optional IAP passport while preserving absent-env behavior and no new dependencies.",
+      "Evidence": "Observed file content, command outputs, and future checker results are support evidence only, not source truth or quality proof.",
+      "Link": "No Movement, route target, gate sufficiency, or transition disposition is chosen here. Transport Authorization is not Link Movement authority.",
+      "Support": "`support/operator/report_sinks.py`, `support/checkers/lib/kernel_checks.py`, `support/checkers/profiles/read_side_projection_boundary.yaml`, and `support/dashboard/DEPLOY.md` are the candidate support surfaces."
+    },
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "candidate_file_changes": [
+      "support/operator/report_sinks.py",
+      "support/checkers/lib/kernel_checks.py",
+      "support/checkers/profiles/read_side_projection_boundary.yaml",
+      "support/dashboard/DEPLOY.md"
+    ],
+    "checker_or_verifier_plan": [
+      "First update the checker/profile contract: narrow the current `subprocess` absence pin so it permits only the openssl signer helper and keeps all scheduler/runtime/network-library bans.",
+      "Add an offline kernel probe that creates a temp RSA key with `openssl genrsa`, builds a throwaway service-account JSON in a temp dir, sets env with URL, ingest secret, and `BRICK_DASHBOARD_SA_KEY_PATH`, monkeypatches/captures the dashboard transport, and calls the dashboard send path without touching the network.",
+      "The key-present probe should assert Authorization is present, starts with `Bearer `, has three JWT dot segments, decoded header `kid` equals the throwaway key id, decoded claims `aud` equals the configured ingest URL exactly, `iss` and `sub` equal the throwaway client email, and `exp - iat == 600`.",
+      "Add an absent-key probe with URL and secret only; assert no Authorization header and assert the captured header set equals today's headers: `Content-Type` and `x-ingest-secret` only.",
+      "Add a mutation/RED probe for Authorization attachment removal. Acceptable implementation shapes: source-mutate the temp copy to remove the Authorization insertion and rerun the focused probe, or monkeypatch the helper to return an empty header with key env present and require the probe to fail loudly.",
+      "Add a secrets discipline probe: no observation packet, checker output, or captured printable assertion should contain private key bytes, JWT string, env values, or response body.",
+      "Run focused profile family after implementation: `PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --profile read_side_projection_boundary`.",
+      "Run changed-file compile check after implementation: `PYTHONDONTWRITEBYTECODE=1 python3 -m compileall support/operator/report_sinks.py support/checkers/lib/kernel_checks.py`.",
+      "Run `git diff --check`.",
+      "For full gate, use a temporary source copy, run `bake_dashboard_data_json()` or the admitted bake verb in that copy first, then run `PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all`.",
+      "Do not call the real dashboard, Cloud Run, IAP, IAM, Slack, npm, node, or any network endpoint from checker or proof runs."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:iap-dashboard-sink-passport-0612",
+    "cli_version_text": "codex-cli 0.137.0",
+    "design_summary": "Design the change as a narrow support-sink passport attachment, not as a dashboard runtime or Link/Agent/Brick authority change. Keep `report-sink:dashboard` on the existing `support/operator/report_sinks.py` seam. When `BRICK_DASHBOARD_SA_KEY_PATH` is absent, preserve the exact current dashboard POST headers. When present, sign one per-send RS256 JWT from the machine-local service-account JSON and attach it only as the transport `Authorization: Bearer <JWT>` header for the outgoing dashboard POST. Do not store, log, cache, return, fixture, or project the key bytes or JWT.",
+    "edge_cases": [
+      "The service-account JSON path is not itself a PEM path; using openssl requires an ephemeral PEM extraction or a different admitted key-path contract. The inline task names JSON, so the design chooses ephemeral PEM extraction outside the repo with immediate unlink.",
+      "If the key env is present but the JSON lacks `client_email`, `private_key_id`, or `private_key`, the send should not proceed without Authorization and should record only a class-level not-attempted observation.",
+      "If the configured ingest URL omits `/ingest`, the JWT audience will be signed for the wrong audience; the checker should assert that whatever URL is configured is copied exactly into `aud`, not normalized.",
+      "Clock skew can affect `iat` and `exp`; the offline checker should assert relative shape and `exp - iat == 600`, while live acceptance remains operator E2E evidence.",
+      "`Authorization` is forbidden in report packet fields, but this change uses a transient transport header. Checkers should keep packet-field redaction intact and separately allow the transport header in the captured request object.",
+      "Header casing in `urllib.request.Request` can normalize; the checker should inspect header items case-insensitively while still requiring the semantic Authorization header.",
+      "The checker must not print the captured JWT. It should split/decode in memory, assert header/payload fields, and discard the token.",
+      "The full profile currently forbids `subprocess` in `report_sinks.py`; if left unchanged, a correct openssl implementation will fail the profile."
+    ],
+    "evidence_refs": [
+      "support-packet:iap-dashboard-sink-passport-0612:agent-object:design-lead:output",
+      "AGENTS.md:45",
+      "AGENTS.md:63",
+      "AGENTS.md:65",
+      "AGENTS.md:69",
+      "AGENTS.md:522",
+      "AGENTS.md:534",
+      "AGENTS.md:550",
+      "AGENTS.md:554",
+      "project/brick-protocol/status/kernel/work-queue-0612.md:16",
+      "project/brick-protocol/status/kernel/work-queue-0612.md:17",
+      "project/brick-protocol/status/kernel/work-queue-0612.md:19",
+      "project/brick-protocol/PROGRESS.md:1",
+      "project/brick-protocol/PROGRESS.md:5",
+      "support/operator/report_sinks.py:24",
+      "support/operator/report_sinks.py:25",
+      "support/operator/report_sinks.py:26",
+      "support/operator/report_sinks.py:507",
+      "support/operator/report_sinks.py:535",
+      "support/operator/report_sinks.py:565",
+      "support/operator/report_sinks.py:576",
+      "support/operator/report_sinks.py:597",
+      "support/operator/report_sinks.py:623",
+      "support/operator/report_sinks.py:634",
+      "support/operator/report_sinks.py:651",
+      "support/operator/report_sinks.py:656",
+      "support/operator/report_sinks.py:698",
+      "support/operator/report_sinks.py:1139",
+      "support/operator/reporter.py:322",
+      "support/checkers/profiles/read_side_projection_boundary.yaml:1",
+      "support/checkers/profiles/read_side_projection_boundary.yaml:4",
+      "support/checkers/profiles/read_side_projection_boundary.yaml:46",
+      "support/checkers/profiles/read_side_projection_boundary.yaml:239",
+      "support/checkers/profiles/read_side_projection_boundary.yaml:328",
+      "support/checkers/profiles/read_side_projection_boundary.yaml:355",
+      "support/checkers/lib/kernel_checks.py:2698",
+      "support/checkers/lib/kernel_checks.py:2913",
+      "support/checkers/lib/kernel_checks.py:2937",
+      "support/checkers/lib/kernel_checks.py:4090",
+      "support/dashboard/DEPLOY.md:42",
+      "support/dashboard/DEPLOY.md:44",
+      "support/dashboard/DEPLOY.md:72",
+      "support/dashboard/DEPLOY.md:82",
+      "support/dashboard/DEPLOY.md:102",
+      "cmd: git status --short --branch",
+      "cmd: rg search for BRICK_DASHBOARD_SA_KEY_PATH returned no implementation",
+      "cmd: find archive reported no archive directory in this checkout"
+    ],
+    "invariants": [
+      "Absent `BRICK_DASHBOARD_SA_KEY_PATH` means no Authorization header and byte-equivalent current dashboard request headers.",
+      "Present `BRICK_DASHBOARD_SA_KEY_PATH` means attach exactly one `Authorization: Bearer <JWT>` transport header per dashboard POST.",
+      "JWT `aud` must equal the exact configured ingest URL, including path such as `/ingest`.",
+      "Signing is stateless per send: no IAM call, no network signing call, no token cache, no scheduler, no retry loop.",
+      "No new Python dependency is introduced; use stdlib plus the local `openssl` executable only.",
+      "Private key bytes, JWT strings, env values, and response bodies are never logged, recorded, returned, committed, or placed in fixtures.",
+      "Observations may record only env presence strings and delivery/status classes.",
+      "The dashboard sink remains support-only and does not become source truth, success judgment, quality judgment, Movement authority, route input, or target selector."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "No implementation was performed in this design pass.",
+      "No checker, compileall, diff-check, mutation, temp-copy full gate, or live E2E proof was run in this pass.",
+      "The operator-stated Cloud Run/IAP behavior is treated as inline task evidence, not independently revalidated here.",
+      "Actual IAP acceptance, service-account key correctness, Cloud Run deployment behavior, browser delta receipt, network reliability, and provider quality remain not_proven by this Agent return.",
+      "OpenSSL availability and exact version behavior on future machines remain not_proven until the implementation checker runs there.",
+      "Future absence of support-authority leaks beyond the inspected surfaces remains not_proven.",
+      "The missing AGENTS-listed archive operating packet remains not_observed in this checkout.",
+      "Codex native sync, Claude native sync, MCP projection behavior, tool or hook execution, source truth, success judgment, quality judgment, and Movement authority are not proven."
+    ],
+    "observed_evidence": [
+      "No files were edited in this read-only design pass.",
+      "`git status --short --branch` observed branch `claude/track-iap` and no short-status file changes.",
+      "`AGENTS.md` declares dashboards, reporters, projections, generated output, tests, and checkers as support/evidence/projection surfaces only, not source truth, success judgment, quality judgment, Movement authority, target selector, route inventor, or fourth axis.",
+      "`AGENTS.md` lists `support/operator/report_sinks.py` as an admitted support operator surface and says support mechanics must not own Brick, Agent, or Link meaning.",
+      "The AGENTS-listed `archive/status-kernel/current-brick-operating-packet-0531.md` was not present because this checkout has no `archive/` directory.",
+      "`project/brick-protocol/status/kernel/work-queue-0612.md` records the dashboard IAP passport item as queued and names the remaining work as `report_sinks` dashboard sink Authorization header wiring.",
+      "`support/operator/report_sinks.py` currently defines only `BRICK_DASHBOARD_INGEST_URL` and `BRICK_DASHBOARD_INGEST_SECRET` for the dashboard sink env contract.",
+      "`send_dashboard_building_delta()` and `send_dashboard_seed()` both compute URL and secret from env, require both, then flow into `_post_dashboard_projection()`.",
+      "`_post_dashboard_projection()` currently builds request headers with only `Content-Type` and `x-ingest-secret`; no dashboard `Authorization` header path was observed.",
+      "`_dashboard_environment_presence()` currently records only URL and ingest-secret presence strings.",
+      "`support/operator/reporter.py::_dashboard_environment_ready()` gates dashboard sink inclusion on URL plus ingest secret only.",
+      "`support/checkers/profiles/read_side_projection_boundary.yaml` includes `reporter_notification_projection` and `dashboard_productization_projection` kernel checks and pins `support/operator/report_sinks.py` as an existing admitted surface.",
+      "The same profile currently has `text_absent` entries forbidding `subprocess` in `support/operator/report_sinks.py`, which conflicts with the inline task's required openssl subprocess signer unless that pin is narrowed first.",
+      "`support/checkers/lib/kernel_checks.py::run_reporter_notification_projection()` already checks forbidden secret-shaped sink fields, unadmitted sinks, the four-sink ceiling, and no-scheduler constructs.",
+      "`support/dashboard/DEPLOY.md` documents Cloud Run plus IAP, ingest secret rotation, and projection/source-truth boundaries, but no `BRICK_DASHBOARD_SA_KEY_PATH` env contract was observed.",
+      "Repository search found no existing `BRICK_DASHBOARD_SA_KEY_PATH` implementation."
+    ],
+    "output_excerpt": "{\"observed_evidence\":[\"No files were edited in this read-only design pass.\",\"`git status --short --branch` observed branch `claude/track-iap` and no short-status file changes.\",\"`AGENTS.md` declares dashboards, reporters, projections, generated output, tests, and checkers as support/evidence/projection surfaces only, not source truth, success judgment, quality judgment, Movement authority, target selector, route inventor, or fourth axis.\",\"`AGENTS.md` lists `support/operator/report_sinks.py` as an admitted support operator surface and says support mechanics must not own Brick, Agent, or Lin...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "proposed_changes": [
+      "In `support/operator/report_sinks.py`, add `DASHBOARD_SA_KEY_PATH_ENV = \"BRICK_DASHBOARD_SA_KEY_PATH\"`.",
+      "Extend `_dashboard_environment_presence()` to include `BRICK_DASHBOARD_SA_KEY_PATH` with only `present` or `absent`; never include env values.",
+      "Add a private helper that returns no header when the key path env is absent and otherwise builds a compact JWT with header `{alg:RS256, typ:JWT, kid:<private_key_id>}` and claims `{iss:<client_email>, sub:<client_email>, aud:<exact ingest url>, iat:now, exp:now+600}`.",
+      "Use base64url without padding and compact JSON for the JWT signing input.",
+      "Because the env path points to service-account JSON but `openssl dgst -sha256 -sign` expects a PEM key file, the helper should read `private_key` from that JSON, write it only to a 0600 temporary PEM outside the repo, run openssl with the signing input on stdin, then unlink the temporary PEM in `finally`. No key bytes or JWT text should enter logs, fixtures, observations, or returns.",
+      "Pass the optional Authorization header into `_post_dashboard_projection()` and add it to the request headers only when the helper returns one. When absent, the header mapping must remain exactly the current `Content-Type` plus `x-ingest-secret`.",
+      "Change `_post_dashboard_projection()` to use the existing `_send_urllib_request()` transport helper so the checker can capture request headers offline without network. This mirrors the Slack sender seam without adding a scheduler, retry, queue, or provider runtime.",
+      "On malformed key JSON or signing failure with key env present, prefer a no-network observation such as `delivery_status_class=\"not_attempted_iap_passport_error\"` and a provider/status class name only. Do not silently send an IAP-targeted request without the requested Authorization header.",
+      "Do not change `reporter._dashboard_environment_ready()` to require `BRICK_DASHBOARD_SA_KEY_PATH`; the key path is optional by design and absent-env behavior must stay compatible with IAP-off deployments.",
+      "Update `support/dashboard/DEPLOY.md` with the publisher-side env contract: URL, ingest secret, optional SA key path, exact audience including `/ingest`, and secret/JWT non-recording rule.",
+      "Update `support/checkers/profiles/read_side_projection_boundary.yaml` by replacing the blanket `subprocess` text-absence ban for `report_sinks.py` with a narrow signer allowance plus explicit bans on `shell=True`, `os.system`, `requests`, `httpx`, `socket`, `HTTPServer`, `sqlite`, `webhook`, `Thread`, `Queue`, scheduler, retry, and token cache constructs.",
+      "Add the offline IAP passport pin to the existing reporter/dashboard kernel-check family in `support/checkers/lib/kernel_checks.py`, not a new standalone checker."
+    ],
+    "relevant_current_structure": [
+      "`support/operator/report_sinks.py` owns dashboard sink constants, env reads, delivery observation packets, delta/seed send functions, `_post_dashboard_projection()`, `_dashboard_environment_presence()`, and the shared `_send_urllib_request()` transport helper.",
+      "`support/operator/reporter.py` filters event sink refs before delivery; dashboard readiness currently means URL plus ingest secret, which should remain sufficient so IAP-off deployments still work and the key path remains optional.",
+      "`support/checkers/profiles/read_side_projection_boundary.yaml` is the consolidated profile for read-side projection and reporter/dashboard boundaries; this is the right profile to update rather than adding a standalone checker file.",
+      "`support/checkers/lib/kernel_checks.py` already implements the relevant reporter/dashboard kernel-check family and can host the offline IAP passport pin plus mutation probe.",
+      "`support/dashboard/DEPLOY.md` is the existing operator-facing deploy recipe surface and can document the new machine-local env key without becoming source truth."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "unchanged_surfaces": [
+      "No `brick/`, `agent/`, `link/`, or `project/` edits are needed for this design.",
+      "No new sink ref is needed; `ADMITTED_SINK_REFS` should remain the four Smith-ratified sinks.",
+      "No new module, folder, fact class, Movement literal, GateFact, scheduler, queue, retry, timer, token cache, provider runtime, database, webhook, or dashboard server surface should be added.",
+      "`BRICK_DASHBOARD_INGEST_URL` and `BRICK_DASHBOARD_INGEST_SECRET` remain required for real dashboard delivery.",
+      "IAP-off deployments remain supported when `BRICK_DASHBOARD_SA_KEY_PATH` is absent.",
+      "Dashboard packets and report observations remain support projections only and must not carry Authorization headers, JWTs, private keys, env values, or credential bodies."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:01:iap-dashboard-sink-passport-0612-design",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:iap-dashboard-sink-passport-0612",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:iap-dashboard-sink-passport-0612-design:attempt-1",
+  "step_ref": "iap-dashboard-sink-passport-0612-design",
+  "subject": "iap-dashboard-sink-passport-0612-design",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T09:47:56.887840Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

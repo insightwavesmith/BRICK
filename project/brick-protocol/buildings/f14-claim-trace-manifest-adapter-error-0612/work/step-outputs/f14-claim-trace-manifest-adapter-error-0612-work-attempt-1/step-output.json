@@ -1,0 +1,170 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:f14-claim-trace-manifest-adapter-error-0612::work/step-outputs/f14-claim-trace-manifest-adapter-error-0612-work-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:dev",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-f14-claim-trace-manifest-adapter-error-0612-work",
+  "building_id": "f14-claim-trace-manifest-adapter-error-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T13:20:53.231949Z",
+  "id": "urn:bp:building:f14-claim-trace-manifest-adapter-error-0612::work/step-outputs/f14-claim-trace-manifest-adapter-error-0612-work-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:f14-claim-trace-manifest-adapter-error-0612-work",
+  "recorded_at": "2026-06-12T13:20:53.231949Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:dev",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "changed_files": [
+      "support/checkers/check_profile.py",
+      "support/checkers/lib/kernel_checks.py",
+      "support/checkers/profiles/building_automation.yaml",
+      "support/operator/run.py",
+      "support/recording/raw_claim_trace.py"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:f14-claim-trace-manifest-adapter-error-0612",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:f14-claim-trace-manifest-adapter-error-0612:agent-object:dev:output"
+    ],
+    "made_changes": [
+      "support/operator/run.py: preserves adapter-error frontier raw history across generic resume final rewrites by restoring raw/link.jsonl frontier rows and raw/raw-manifest.json entries.",
+      "support/recording/raw_claim_trace.py: added reconcile_claim_trace_raw_manifest_from_raw(building_root) for already-written roots; it derives only from that root's raw/*.jsonl and refuses unresolved/non-supported repairs.",
+      "support/checkers/lib/kernel_checks.py, support/checkers/check_profile.py, support/checkers/profiles/building_automation.yaml: added adapter_error_frontier_manifest_consistency kernel check with RED-before-reconcile and GREEN-after-reconcile/preserve probes."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "No source truth, success judgment, quality judgment, or Movement authority claimed.",
+      "The real iap-dashboard-sink-passport-0612 root was not modified; only temp copies were reconciled.",
+      "Provider behavior, repeated provider reliability, and production runtime are not proven.",
+      "External Claude/Gemini model review was not run in this work step.",
+      "Future support-authority leaks outside the checked surfaces are not proven absent."
+    ],
+    "observed_evidence": [
+      "Focused profile GREEN: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --profile building_automation.",
+      "Mutation RED observed inside adapter_error_frontier_manifest_consistency: synthetic adapter-error->closure fixture produced raw_ref does not resolve through raw manifest before reconciliation.",
+      "Temp real-root copy reconciled: /private/tmp/f14-iap-reconcile.1nGHYs/iap-dashboard-sink-passport-0612; before_unresolved=2, written=2, after_violations=0.",
+      "Full gate GREEN in temp source copy after bake_dashboard_data_json(): /private/tmp/f14-source-copy.8trowD/src; command used support/dashboard/public/dashboard-data.json then check_profile.py --all exit 0.",
+      "compileall GREEN: PYTHONPYCACHEPREFIX=/private/tmp/f14-compileall-pyc PYTHONDONTWRITEBYTECODE=1 python3 -m compileall -q support.",
+      "git diff --check GREEN.",
+      "Changed files are limited to support/*; no link/, agent/, brick/, project/, .git, AGENTS.md, pyproject.toml, or uv.lock edits."
+    ],
+    "output_excerpt": "{ \"made_changes\": [ \"support/operator/run.py: preserves adapter-error frontier raw history across generic resume final rewrites by restoring raw/link.jsonl frontier rows and raw/raw-manifest.json entries.\", \"support/recording/raw_claim_trace.py: added reconcile_claim_trace_raw_manifest_from_raw(building_root) for already-written roots; it derives only from that root's raw/*.jsonl and refuses unresolved/non-supported repairs.\", \"support/checkers/lib/kernel_checks.py, support/checkers/check_profile.py, support/checkers/profiles/building_automation.yaml: added adapter_error_frontier_manifest_c...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "claude/track-f14",
+        "head": "e8f38fd9026a501e21adaee34218063ec99fed51"
+      },
+      "after_git_status_paths": [
+        "support/checkers/check_profile.py",
+        "support/checkers/lib/kernel_checks.py",
+        "support/checkers/profiles/building_automation.yaml",
+        "support/operator/run.py",
+        "support/recording/raw_claim_trace.py"
+      ],
+      "after_path_count": 3105,
+      "before_git_refs": {
+        "branch": "claude/track-f14",
+        "head": "e8f38fd9026a501e21adaee34218063ec99fed51"
+      },
+      "before_git_status_paths": [],
+      "before_path_count": 3105,
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [
+        "support/checkers/check_profile.py",
+        "support/checkers/lib/kernel_checks.py",
+        "support/checkers/profiles/building_automation.yaml",
+        "support/operator/run.py",
+        "support/recording/raw_claim_trace.py"
+      ],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "support/*"
+        ],
+        "forbidden_paths": [
+          "link/*",
+          "agent/*",
+          "brick/*",
+          "project/*",
+          ".git/*",
+          "AGENTS.md",
+          "pyproject.toml",
+          "uv.lock"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:02:f14-claim-trace-manifest-adapter-error-0612-work",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:f14-claim-trace-manifest-adapter-error-0612",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:f14-claim-trace-manifest-adapter-error-0612-work:attempt-1",
+  "step_ref": "f14-claim-trace-manifest-adapter-error-0612-work",
+  "subject": "f14-claim-trace-manifest-adapter-error-0612-work",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T13:20:53.231949Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

@@ -1,0 +1,12 @@
+# AgentReceipt · seq 22 · ["Agent"]
+- agent_object_ref: "agent-object:dev"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-f14-claim-trace-manifest-adapter-error-0612-work"
+- event_type: "AgentReceipt"
+- evidence_reference: "raw:agent:02"
+- received_work_ref: "brick-work:02:f14-claim-trace-manifest-adapter-error-0612-work"
+- run_segment: 2
+- sequence_index: 22
+- source_fact_ref: "agent-fact:02:f14-claim-trace-manifest-adapter-error-0612-work"
+- spine_schema_version: "spine-v1"
+- step_ref: "f14-claim-trace-manifest-adapter-error-0612-work"

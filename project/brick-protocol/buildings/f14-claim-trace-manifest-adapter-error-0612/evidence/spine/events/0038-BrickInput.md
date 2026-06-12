@@ -1,0 +1,12 @@
+# BrickInput · seq 38 · ["Brick"]
+- axis_scope: ["Brick"]
+- brick_instance_ref: "brick-f14-claim-trace-manifest-adapter-error-0612-axis-attack-qa"
+- comparison_rule: "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickInput"
+- required_return_shape: "observed_evidence, attacked_scope, brick_axis_findings, agent_axis_findings, link_axis_findings, support_leak_findings, projection_authority_findings, evidence_used, not_proven"
+- run_segment: 2
+- sequence_index: 38
+- source_facts: ["task-source:inline-statement"]
+- spine_schema_version: "spine-v1"
+- step_ref: "f14-claim-trace-manifest-adapter-error-0612-axis-attack-qa"
+- work_statement: "axis_attack_qa Brick for task-source:inline-statement: # F14 — adapter-error 경유 폐장 빌딩의 claim_trace/manifest 불일치 (게이트 RED)"

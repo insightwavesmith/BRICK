@@ -1,0 +1,161 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:iap-dashboard-sink-passport-0612::work/step-outputs/iap-dashboard-sink-passport-0612-axis-attack-qa-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:inspector",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-iap-dashboard-sink-passport-0612-axis-attack-qa",
+  "building_id": "iap-dashboard-sink-passport-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:04",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T10:02:21.415156Z",
+  "id": "urn:bp:building:iap-dashboard-sink-passport-0612::work/step-outputs/iap-dashboard-sink-passport-0612-axis-attack-qa-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:04:iap-dashboard-sink-passport-0612-axis-attack-qa",
+  "recorded_at": "2026-06-12T10:02:21.415156Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_axis_findings": [
+      "No Agent resource files were modified.",
+      "ReportSinkObservation records environment_presence and HTTP status classes; it does not record JWT strings, private key bytes, env values, provider session ids, or credential bodies in the observed code path.",
+      "support/operator/report_sinks.py:63-102 continues to forbid packet fields such as authorization, bearer_token, credential, headers, secret, setup_token, token, movement_choice, target_choice, and route_target."
+    ],
+    "agent_object_ref": "agent-object:inspector",
+    "attacked_scope": [
+      "Declared task scope: report-sink:dashboard IAP passport Authorization header wiring, env presence observation, offline checker pin, support/* only.",
+      "Observed diff scope stays inside support/* and does not modify brick/, agent/, link/, or project/.",
+      "The review was static/read-only except git diff --check and AST parse; no dashboard network call was made."
+    ],
+    "blocked_or_missing_evidence": [
+      "Current inspector/tool policy is reviewer-readonly; the focused checker and full gate create temp files and were not run from this lane.",
+      "A shell here-document AST-parse attempt was blocked by read-only temp-file restrictions before Python ran; the same AST parse was retried with python3 -c and exited 0.",
+      "building_session_ref is empty, so no Building evidence root/capture/raw packet was inspected.",
+      "No real dashboard or network proof was attempted; the task states the real IAP E2E send is operator FIRE after merge."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "brick_axis_findings": [
+      "Observed implementation matches the Brick work contract at support-sink level: env-present path adds Authorization, env-absent header set remains the two legacy dashboard request headers by checker expectation.",
+      "Observed code keeps the signing behavior stateless per send; no token cache, scheduler, queue, retry, or timer surface was observed in the changed files.",
+      "The checker pin is placed in the existing read-side/dashboard productization family rather than a new standalone checker file."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:iap-dashboard-sink-passport-0612",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:iap-dashboard-sink-passport-0612:agent-object:inspector:output"
+    ],
+    "evidence_used": [
+      "Commands: git status --short; git diff --name-only; git diff --check; git diff for the three modified files; rg over dashboard/IAP/report_sinks/checker terms; rg -l for private-key markers; python3 -c AST parse.",
+      "Files inspected: support/operator/report_sinks.py; support/checkers/lib/kernel_checks.py; support/checkers/profiles/read_side_projection_boundary.yaml.",
+      "No Claude/Gemini/model review evidence was used as source evidence."
+    ],
+    "link_axis_findings": [
+      "No link/ files were modified.",
+      "No new Movement literal, route target, GateFact, TransitionFact, carry fact, or Link decision surface was observed in the diff.",
+      "Dashboard delivery remains a support sink observation; it does not choose Movement or route."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Focused read_side_projection_boundary or dashboard_productization_projection profile execution in this lane.",
+      "Mutation RED execution in this lane.",
+      "Full temp source copy gate after bake_dashboard_data_json in this lane.",
+      "compileall execution in this lane.",
+      "OpenSSL availability and real signature verification in an execution lane.",
+      "Actual Cloud Run IAP acceptance, dashboard reader update, network/provider reliability, or production readiness.",
+      "Complete absence of ignored or machine-local key material outside the searched repo-visible files.",
+      "Future support-authority leaks beyond the currently inspected diff."
+    ],
+    "observed_evidence": [
+      "git status observed modified files only under support/: support/operator/report_sinks.py, support/checkers/lib/kernel_checks.py, support/checkers/profiles/read_side_projection_boundary.yaml.",
+      "support/operator/report_sinks.py:28-31 declares dashboard sink env refs including BRICK_DASHBOARD_SA_KEY_PATH.",
+      "support/operator/report_sinks.py:516-585 and 588-646 route both dashboard delta and seed sends through _post_dashboard_projection with the env map.",
+      "support/operator/report_sinks.py:718-723 records dashboard env presence as present/absent only.",
+      "support/operator/report_sinks.py:726-777 attaches Authorization only when BRICK_DASHBOARD_SA_KEY_PATH is present, with RS256 JWT header/claim shape using the configured ingest URL as audience.",
+      "support/operator/report_sinks.py:795-817 uses openssl dgst -sha256 -sign through subprocess.run and unlinks the temporary key file path afterward.",
+      "support/checkers/lib/kernel_checks.py:3544-3715 adds an offline captured-transport IAP passport probe for present-env, absent-env, and removed-Authorization mutation.",
+      "support/checkers/lib/kernel_checks.py:3718-3756 adds an AST subprocess-scope pin for report_sinks.py.",
+      "support/checkers/profiles/read_side_projection_boundary.yaml:4-10 includes dashboard_productization_projection in the focused read-side profile.",
+      "git diff --check exited 0 with no output.",
+      "python3 -c AST parse exited 0 for support/operator/report_sinks.py and support/checkers/lib/kernel_checks.py.",
+      "rg -l for private-key markers observed matches only in support/operator/report_sinks.py and support/checkers/lib/kernel_checks.py; no key material was printed."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"git status observed modified files only under support/: support/operator/report_sinks.py, support/checkers/lib/kernel_checks.py, support/checkers/profiles/read_side_projection_boundary.yaml.\", \"support/operator/report_sinks.py:28-31 declares dashboard sink env refs including BRICK_DASHBOARD_SA_KEY_PATH.\", \"support/operator/report_sinks.py:516-585 and 588-646 route both dashboard delta and seed sends through _post_dashboard_projection with the env map.\", \"support/operator/report_sinks.py:718-723 records dashboard env presence as present/absent only.\", \"support/opera...",
+    "projection_authority_findings": [
+      "Dashboard sink proof limits in support/operator/report_sinks.py:170-192 still state not source truth, not success judgment, not quality judgment, not Movement authority, and not route input.",
+      "Dashboard projection source_truth false checks remain present for delta and seed packets at support/operator/report_sinks.py:571-572 and 634-635.",
+      "No observed projection write-back into Brick, Agent, or Link source-truth surfaces."
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "provider-neutral support evidence only",
+      "read-only inspector observation",
+      "not provider credential proof",
+      "not dashboard delivery proof"
+    ],
+    "remaining_delta": [
+      "Run the implementation proof lane in a writable/temp-capable environment: compileall on changed files, focused dashboard/read-side checker, explicit mutation RED observation, then full temp source copy gate after bake_dashboard_data_json.",
+      "Keep the real dashboard/IAP send outside checker proof and reserve it for the operator FIRE after merge.",
+      "No Link Movement is chosen by this inspector return."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "support_leak_findings": [
+      "No observed new support module, queue, scheduler, webhook, database, HTTP server, requests/httpx/socket dependency, or provider runtime surface in the changed files.",
+      "The profile no longer text-bans the word subprocess in report_sinks.py, but the replacement pin narrows allowed use to exactly subprocess.run/PIPE plus profile text_absent bans for Popen, shell=True, and check_output.",
+      "The checker uses captured transport for the IAP passport request path; no network call is visible in the new checker probe."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:04:iap-dashboard-sink-passport-0612-axis-attack-qa",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:iap-dashboard-sink-passport-0612",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:iap-dashboard-sink-passport-0612-axis-attack-qa:attempt-1",
+  "step_ref": "iap-dashboard-sink-passport-0612-axis-attack-qa",
+  "subject": "iap-dashboard-sink-passport-0612-axis-attack-qa",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T10:02:21.415156Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

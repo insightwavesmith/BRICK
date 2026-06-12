@@ -1,0 +1,143 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:iap-dashboard-sink-passport-0612::raw/raw-manifest.json",
+  "building_id": "iap-dashboard-sink-passport-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "entries": [
+    {
+      "axis_owner": "Brick",
+      "content_shape": "jsonl Brick work rows",
+      "path": "raw/brick-work.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:brick:02",
+        "raw:brick:03",
+        "raw:brick:04",
+        "raw:brick:05",
+        "raw:brick:06"
+      ],
+      "record_role": "primary",
+      "source": "support/recording/raw_claim_trace.py reconciled from root raw streams"
+    },
+    {
+      "axis_owner": "Agent",
+      "content_shape": "jsonl Agent returned payload refs",
+      "path": "raw/agent-return.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:agent:01",
+        "raw:agent:02",
+        "raw:agent:03",
+        "raw:agent:04",
+        "raw:agent:05",
+        "raw:agent:06"
+      ],
+      "record_role": "primary",
+      "source": "support/recording/raw_claim_trace.py reconciled from root raw streams"
+    },
+    {
+      "axis_owner": "Link",
+      "content_shape": "jsonl Link transition rows and frontier absence rows",
+      "path": "raw/link.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:link:01",
+        "raw:link:02",
+        "raw:link:03",
+        "raw:link:04",
+        "raw:link:05",
+        "raw:link:06",
+        "raw:link-graph:01:edge-iap-dashboard-sink-passport-0612-design-to-iap-dashboard-sink-passport-0612-work",
+        "raw:link-graph:02:edge-iap-dashboard-sink-passport-0612-work-to-iap-dashboard-sink-passport-0612-code-attack-qa",
+        "raw:link-graph:03:edge-iap-dashboard-sink-passport-0612-work-to-iap-dashboard-sink-passport-0612-axis-attack-qa",
+        "raw:link-graph:04:edge-iap-dashboard-sink-passport-0612-work-to-iap-dashboard-sink-passport-0612-evidence-integrity",
+        "raw:link-graph:05:edge-iap-dashboard-sink-passport-0612-code-attack-qa-to-iap-dashboard-sink-passport-0612-closure",
+        "raw:link-graph:06:edge-iap-dashboard-sink-passport-0612-axis-attack-qa-to-iap-dashboard-sink-passport-0612-closure",
+        "raw:link-graph:07:edge-iap-dashboard-sink-passport-0612-evidence-integrity-to-iap-dashboard-sink-passport-0612-closure",
+        "raw:link-graph:08:edge-iap-dashboard-sink-passport-0612-closure-to-boundary",
+        "raw:link-frontier:06"
+      ],
+      "record_role": "primary",
+      "source": "support/recording/raw_claim_trace.py reconciled from root raw streams"
+    },
+    {
+      "axis_owner": "Agent",
+      "content_shape": "jsonl adapter exception observation rows",
+      "path": "raw/adapter-error.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:adapter-error:06"
+      ],
+      "record_role": "primary",
+      "source": "support/recording/raw_claim_trace.py reconciled from root raw streams"
+    },
+    {
+      "axis_owner": "Agent",
+      "content_shape": "jsonl Agent receipt rows",
+      "path": "raw/agent-received.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:agent-received:01",
+        "raw:agent-received:02",
+        "raw:agent-received:03",
+        "raw:agent-received:04",
+        "raw:agent-received:05",
+        "raw:agent-received:06"
+      ],
+      "record_role": "primary",
+      "source": "support/recording/raw_claim_trace.py reconciled from root raw streams"
+    }
+  ],
+  "generatedAtTime": "2026-06-12T10:53:29Z",
+  "id": "urn:bp:building:iap-dashboard-sink-passport-0612::raw/raw-manifest.json",
+  "raw_refs": [
+    "raw:brick:01",
+    "raw:brick:02",
+    "raw:brick:03",
+    "raw:brick:04",
+    "raw:brick:05",
+    "raw:brick:06",
+    "raw:agent:01",
+    "raw:agent:02",
+    "raw:agent:03",
+    "raw:agent:04",
+    "raw:agent:05",
+    "raw:agent:06",
+    "raw:link:01",
+    "raw:link:02",
+    "raw:link:03",
+    "raw:link:04",
+    "raw:link:05",
+    "raw:link:06",
+    "raw:link-graph:01:edge-iap-dashboard-sink-passport-0612-design-to-iap-dashboard-sink-passport-0612-work",
+    "raw:link-graph:02:edge-iap-dashboard-sink-passport-0612-work-to-iap-dashboard-sink-passport-0612-code-attack-qa",
+    "raw:link-graph:03:edge-iap-dashboard-sink-passport-0612-work-to-iap-dashboard-sink-passport-0612-axis-attack-qa",
+    "raw:link-graph:04:edge-iap-dashboard-sink-passport-0612-work-to-iap-dashboard-sink-passport-0612-evidence-integrity",
+    "raw:link-graph:05:edge-iap-dashboard-sink-passport-0612-code-attack-qa-to-iap-dashboard-sink-passport-0612-closure",
+    "raw:link-graph:06:edge-iap-dashboard-sink-passport-0612-axis-attack-qa-to-iap-dashboard-sink-passport-0612-closure",
+    "raw:link-graph:07:edge-iap-dashboard-sink-passport-0612-evidence-integrity-to-iap-dashboard-sink-passport-0612-closure",
+    "raw:link-graph:08:edge-iap-dashboard-sink-passport-0612-closure-to-boundary",
+    "raw:link-frontier:06",
+    "raw:adapter-error:06",
+    "raw:agent-received:01",
+    "raw:agent-received:02",
+    "raw:agent-received:03",
+    "raw:agent-received:04",
+    "raw:agent-received:05",
+    "raw:agent-received:06"
+  ],
+  "recorded_at": "2026-06-12T10:53:29Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:iap-dashboard-sink-passport-0612",
+  "specversion": "1.0",
+  "subject": "raw/raw-manifest.json",
+  "time": "2026-06-12T10:53:29Z",
+  "type": "bp.raw_manifest"
+}

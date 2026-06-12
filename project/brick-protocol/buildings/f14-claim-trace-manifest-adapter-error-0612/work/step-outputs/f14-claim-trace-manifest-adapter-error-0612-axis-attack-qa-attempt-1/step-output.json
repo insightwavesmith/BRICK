@@ -1,0 +1,174 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:f14-claim-trace-manifest-adapter-error-0612::work/step-outputs/f14-claim-trace-manifest-adapter-error-0612-axis-attack-qa-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:inspector",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-f14-claim-trace-manifest-adapter-error-0612-axis-attack-qa",
+  "building_id": "f14-claim-trace-manifest-adapter-error-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:04",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T13:49:08.718007Z",
+  "id": "urn:bp:building:f14-claim-trace-manifest-adapter-error-0612::work/step-outputs/f14-claim-trace-manifest-adapter-error-0612-axis-attack-qa-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:04:f14-claim-trace-manifest-adapter-error-0612-axis-attack-qa",
+  "recorded_at": "2026-06-12T13:49:08.718007Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_axis_findings": [
+      "Adapter-error receipt history is preserved as Agent evidence via raw/agent-received.jsonl and raw/adapter-error.jsonl manifest entries.",
+      "The reconciliation verb refuses unresolved claim_trace raw_refs, including non-derivable Agent refs, instead of fabricating Agent return facts.",
+      "No agent/ resource edits were observed."
+    ],
+    "agent_object_ref": "agent-object:inspector",
+    "attacked_scope": [
+      "adapter-error frontier final-rewrite consistency",
+      "reconciliation verb shape",
+      "checker pin presence",
+      "support-only edit boundary",
+      "declared broken-root availability"
+    ],
+    "blocked_or_missing_evidence": [
+      "project/brick-protocol/buildings/iap-dashboard-sink-passport-0612 is absent in /Users/smith/projects/BRICK-wt-f14.",
+      "The sandbox is read-only and has no usable temporary directory for checker temp roots.",
+      "Here-doc execution was blocked by shell temp-file creation; AST parse was rerun with python -c and exited 0.",
+      "compileall was not run because standard compileall writes bytecode/cache files.",
+      "No temp copy of the source tree or real Building root could be created in this lane."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "brick_axis_findings": [
+      "No brick/ edits were observed in git diff --name-only.",
+      "The repair surfaces observed are support recording/checker/operator files, not Brick template or Building Plan authority.",
+      "The reconciliation manifest writer labels raw/brick-work.jsonl as Brick-owned evidence, but does not observedly change Brick work contracts."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:f14-claim-trace-manifest-adapter-error-0612",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:f14-claim-trace-manifest-adapter-error-0612:agent-object:inspector:output"
+    ],
+    "evidence_used": [
+      "support/recording/adapter_error_frontier.py lines 984-1048 and 1265-1305",
+      "support/recording/raw_claim_trace.py lines 18-229 and 376-664",
+      "support/recording/lifecycle_emit.py lines 172-216",
+      "support/operator/run.py lines 764-912, 915-1029, 1498-1552, and 1600-1657",
+      "support/checkers/check_profile.py diff for kernel id registration",
+      "support/checkers/lib/kernel_checks.py lines 2974-3175",
+      "support/checkers/profiles/building_automation.yaml lines 1-8",
+      "read-only commands: git status --short, git diff --name-only, git diff --check, AST parse, check_profile.py --all, check_profile.py --profile building_automation, find for the declared iap root"
+    ],
+    "link_axis_findings": [
+      "The candidate final-writer discipline is preserve-error-frontier-rows: prior raw:link-frontier refs are kept in raw/link.jsonl and raw/raw-manifest.json after resume.",
+      "The reconciliation verb may synthesize a missing raw/link.jsonl frontier row only when a matching raw:adapter-error:NN row exists; it marks transition_record_created false and does not declare Movement.",
+      "No new Movement literal or route target selection was observed in the inspected F14 changes."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "compileall green",
+      "focused checker green",
+      "mutation RED by execution",
+      "full check_profile.py --all green",
+      "bake_dashboard_data_json precondition",
+      "temp source copy proof",
+      "temp copy reconciliation of the real iap-dashboard-sink-passport-0612 root",
+      "real-root path-shape invariant after reconciliation",
+      "resume_building_plan end-to-end adapter-error hold then coo-forward closure behavior",
+      "future Building correctness",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority"
+    ],
+    "observed_evidence": [
+      "Changed files observed by git diff --name-only are support-only: support/checkers/check_profile.py, support/checkers/lib/kernel_checks.py, support/checkers/profiles/building_automation.yaml, support/operator/run.py, support/recording/raw_claim_trace.py.",
+      "support/operator/run.py:764 snapshots adapter-error frontier history from raw/agent-received.jsonl, raw/adapter-error.jsonl, and raw/link.jsonl frontier rows before resume.",
+      "support/operator/run.py:860 merges saved adapter-error receipt, adapter-error, and link-frontier refs back into raw/raw-manifest.json after resume.",
+      "support/operator/run.py:1498 wires that preservation after _resume_dynamic_graph_walker in resume_building_plan.",
+      "support/recording/raw_claim_trace.py:376 adds reconcile_claim_trace_raw_manifest_from_raw; it reads only the given root raw/ and evidence/claim_trace/ surfaces, derives missing link-frontier rows only from matching adapter-error raw rows, refuses unresolved claim refs, and rebuilds raw/raw-manifest.json.",
+      "support/checkers/profiles/building_automation.yaml:8 includes adapter_error_frontier_manifest_consistency.",
+      "support/checkers/lib/kernel_checks.py:2974 defines a checker fixture that observes RED before reconciliation and checks reconciled/preserved roots through the lifecycle path-shape resolver.",
+      "Declared real root project/brick-protocol/buildings/iap-dashboard-sink-passport-0612 is not present in this checkout.",
+      "git diff --check exited 0.",
+      "AST parse over the bounded writer/caller files exited 0.",
+      "check_profile.py --all and --profile building_automation both rejected evidence because no usable temporary directory is available in this read-only sandbox."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"Changed files observed by git diff --name-only are support-only: support/checkers/check_profile.py, support/checkers/lib/kernel_checks.py, support/checkers/profiles/building_automation.yaml, support/operator/run.py, support/recording/raw_claim_trace.py.\", \"support/operator/run.py:764 snapshots adapter-error frontier history from raw/agent-received.jsonl, raw/adapter-error.jsonl, and raw/link.jsonl frontier rows before resume.\", \"support/operator/run.py:860 merges saved adapter-error receipt, adapter-error, and link-frontier refs back into raw/raw-manifest.json afte...",
+    "projection_authority_findings": [
+      "Checker/profile evidence remains support evidence only.",
+      "No dashboard, reporter, provider runtime, scheduler, queue, retry, source-truth, success-judgment, or quality-judgment authority was observed in the F14 support diffs."
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "read-only Inspector support evidence only",
+      "no file edits performed",
+      "no git mutation performed",
+      "no provider SDK or hook execution performed",
+      "checker output is support evidence only"
+    ],
+    "remaining_delta": [
+      "Add or observe proof that the checker catches removal of the resume_building_plan preservation call, not only private helper behavior.",
+      "Run the declared reconciliation on a temp copy of the real iap root once that root and a writable temp area are available.",
+      "Run the focused checker, mutation RED probe, compileall-compatible proof, git diff --check, and full gate in a writable temp source copy."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "support_leak_findings": [
+      "No edits outside support/ were observed.",
+      "The reconciliation verb writes inside the supplied Building root only by construction, but this was not executed on a temp copy in this sandbox.",
+      "Checker coverage gap observed: the new kernel check directly calls private preservation helpers; it does not exercise resume_building_plan end-to-end, so omission of the resume_building_plan preservation call is not proven RED by the inspected checker text."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:04:f14-claim-trace-manifest-adapter-error-0612-axis-attack-qa",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:f14-claim-trace-manifest-adapter-error-0612",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:f14-claim-trace-manifest-adapter-error-0612-axis-attack-qa:attempt-1",
+  "step_ref": "f14-claim-trace-manifest-adapter-error-0612-axis-attack-qa",
+  "subject": "f14-claim-trace-manifest-adapter-error-0612-axis-attack-qa",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T13:49:08.718007Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}
