@@ -1064,6 +1064,77 @@ def _build_resume_disposition_observation(
     )
 
 
+def _emit_building_event_best_effort(
+    policy: Mapping[str, Any] | None,
+    *,
+    event_kind: str,
+    building_id: str,
+    building_root: Path | str,
+    repo_root: Path,
+    current_brick_ref: str = "",
+    overwrite_existing: bool,
+    report_env: Mapping[str, str] | None = None,
+    report_slack_sender: Any | None = None,
+) -> Mapping[str, Any] | None:
+    if not event_kind:
+        return None
+    try:
+        return emit_building_event_for_policy(
+            policy,
+            event_kind=event_kind,
+            building_id=building_id,
+            building_root=building_root,
+            current_brick_ref=current_brick_ref,
+            repo_root=_report_repo_root_for_building_root(building_root, fallback_repo=repo_root),
+            overwrite_existing=overwrite_existing,
+            slack_env=report_env,
+            slack_sender=report_slack_sender,
+            dashboard_env=report_env,
+        )
+    except Exception as exc:  # noqa: BLE001 - notification must never break evidence write.
+        return {
+            "report_event_observation": "delivery_exception_observed",
+            "event_kind": event_kind,
+            "building_id": building_id,
+            "delivery_status_class": "exception_observed",
+            "provider_response_status_class": exc.__class__.__name__,
+            "reason": str(exc),
+            "source_truth": False,
+            "proof_limits": [
+                "support notification observation only",
+                "notification exception was not allowed to break Building evidence write",
+                "not source truth",
+                "not success judgment",
+                "not quality judgment",
+                "not Movement authority",
+            ],
+            "not_proven": [
+                "event delivery reliability",
+                "reader noticed event notification",
+            ],
+        }
+
+
+def _report_repo_root_for_building_root(
+    building_root: Path | str,
+    *,
+    fallback_repo: Path,
+) -> Path:
+    root = Path(building_root).resolve()
+    try:
+        root.relative_to(fallback_repo)
+        return fallback_repo
+    except ValueError:
+        pass
+    parts = root.parts
+    for index, part in enumerate(parts):
+        if part == "project" and index + 2 < len(parts) and parts[index + 2] == "buildings":
+            return Path(*parts[:index]) if index else Path(".").resolve()
+    if root.parent.name == "buildings":
+        return root.parent.parent
+    return root.parent
+
+
 def _run_dynamic_graph_walker(
     plan: Mapping[str, Any],
     *,
@@ -1082,6 +1153,8 @@ def _run_dynamic_graph_walker(
     chat_session_park_frontier_exception,
     repo_root: Path | str = _REPO_ROOT,
     resume_seed: "ResumeSeed | None" = None,
+    report_env: Mapping[str, str] | None = None,
+    report_slack_sender: Any | None = None,
 ) -> BuildingPlanSupportResult:
     """Walk a declared graph plan with runtime, gate-adopted, budgeted reroute.
 
@@ -1148,13 +1221,15 @@ def _run_dynamic_graph_walker(
     # forward walk emits it once at first run). Only the terminal event is emitted
     # below after the resumed walk reaches completion / the next HOLD.
     if resume_seed is None:
-        started_event = emit_building_event_for_policy(
+        started_event = _emit_building_event_best_effort(
             report_event_policy,
             event_kind="building_started",
             building_id=building_id,
             building_root=building_root,
             current_brick_ref=brick_ref_by_step.get(forward_order[0], ""),
             repo_root=repo_root_path,
+            report_env=report_env,
+            report_slack_sender=report_slack_sender,
             overwrite_existing=overwrite_existing,
         )
         if started_event is not None:
@@ -1409,12 +1484,14 @@ def _run_dynamic_graph_walker(
                         evidence_write.lifecycle_write.root,
                         repo_root=repo_root_path,
                     )
-                    terminal_event = emit_building_event_for_policy(
+                    terminal_event = _emit_building_event_best_effort(
                         report_event_policy,
                         event_kind=terminal_event_kind,
                         building_id=building_id,
                         building_root=evidence_write.lifecycle_write.root,
                         repo_root=repo_root_path,
+                        report_env=report_env,
+                        report_slack_sender=report_slack_sender,
                         overwrite_existing=overwrite_existing,
                     )
                     if terminal_event is not None:
@@ -2273,12 +2350,14 @@ def _run_dynamic_graph_walker(
             evidence_write.lifecycle_write.root,
             repo_root=repo_root_path,
         )
-        terminal_event = emit_building_event_for_policy(
+        terminal_event = _emit_building_event_best_effort(
             report_event_policy,
             event_kind=terminal_event_kind,
             building_id=building_id,
             building_root=evidence_write.lifecycle_write.root,
             repo_root=repo_root_path,
+            report_env=report_env,
+            report_slack_sender=report_slack_sender,
             overwrite_existing=overwrite_existing,
         )
         if terminal_event is not None:

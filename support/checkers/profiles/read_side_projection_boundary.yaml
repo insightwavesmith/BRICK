@@ -166,7 +166,9 @@ text_contains:
       - bad_unadmitted_sink_ref
       - bad_slack_channel_id_field
       - bad_slack_bot_token_field
-      - no_policy_no_event
+      - absent_policy_defaults_to_local_env_gated_sinks
+      - current_work_kind
+      - current_lane
       - valid_opt_in_policy
       - bad_step_completed_event
       - not driver input
@@ -197,6 +199,10 @@ text_contains:
       - reporter negative probe(s)
       - owner vocabulary probe(s)
       - delivery wake probe(s)
+      - label parity map(s)
+      - Slack message shape assertion(s)
+      - auto-wire assertion(s)
+      - no-scheduler source file(s)
       - local inbox write
       - operator wake write
       - event hook probe(s)
@@ -204,6 +210,7 @@ text_contains:
       - unadmitted sink reject
   - path: support/operator/report_sinks.py
     texts:
+      - LABEL_MAP_PATH
       - LOCAL_INBOX_SINK_REF
       - OPERATOR_WAKE_LOCAL_SINK_REF
       - SLACK_SINK_REF
@@ -218,6 +225,7 @@ text_contains:
       - '"complete"'
       - def deliver_report_packet
       - def dry_run_report_packet
+      - def _slack_message_text
       - def send_slack_report_packet
       - def validate_slack_delivery_environment
       - def write_local_inbox_packet
@@ -225,10 +233,10 @@ text_contains:
       - def validate_operator_wake_targets
       - def _validate_packet_for_sink
       - def _validate_slack_packet
-      - 브릭 빌딩 알림
-      - 상태
-      - Agent
-      - Link
+      - 빌딩 알림
+      - 작업 단계
+      - 담당 역할
+      - 운영 refs
       - project/brick-protocol/status/inbox
       - report sink packet source_truth must be false
       - validates admitted sink refs without writing local status inbox packets
@@ -240,6 +248,17 @@ text_contains:
       - raw_secret
       - not automatic resume
       - not route input
+  - path: support/operator/label_map.json
+    texts:
+      - brick-report-label-map/v1
+      - 작업
+      - 워커
+      - 멈춤·개입 필요
+  - path: support/dashboard/src/data/labels.js
+    texts:
+      - support/operator/label_map.json
+      - reroute
+      - 호출자 또는 COO
   - path: AGENTS.md
     texts:
       - support/operator/evidence_assembly.py

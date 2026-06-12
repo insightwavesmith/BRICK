@@ -228,6 +228,7 @@ BAR_V2_OPERATOR_TARGETS = {
 }
 
 REPORTER_NOTIFICATION_PROJECTION0_TARGETS = {
+    "support/operator/label_map.json",
     "support/operator/reporter.py",
     "support/operator/report_sinks.py",
 }

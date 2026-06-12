@@ -242,11 +242,14 @@ def run_building_once(
     adapter_cwd: Path | str | None = None,
     adapter_timeout_seconds: int = 120,
     proof_limits: Iterable[str] | str | None = None,
+    report_env: Mapping[str, str] | None = None,
+    report_slack_sender: Any | None = None,
 ) -> BuildingRunSupportResult:
     """Run one declared Building step and write support projections."""
 
     packet = _fixture_mapping(fixture)
     _validate_no_payload_forbidden("fixture", packet, _FORBIDDEN_PAYLOAD_KEYS)
+    report_event_policy = report_event_policy_from_plan(packet)
     # FIX-C (codex review 0611) TASK-SOURCE ADMISSION on the SINGLE-STEP
     # surface, parity with run_building_plan strictness (P11b): a declared
     # task_source_ref that is a repo path and does not resolve to an existing
@@ -300,6 +303,21 @@ def run_building_once(
                 failed_preparation=parked.prepared,
             ),
         )
+        if report_event_policy:
+            terminal_event_kind = building_event_kind_from_frontier(
+                evidence_write.lifecycle_write.root,
+                repo_root=_REPO_ROOT,
+            )
+            _emit_building_event_best_effort(
+                report_event_policy,
+                event_kind=terminal_event_kind,
+                building_id=prepared.building_id,
+                building_root=evidence_write.lifecycle_write.root,
+                current_brick_ref=parked.prepared.brick_instance_ref,
+                report_env=report_env,
+                report_slack_sender=report_slack_sender,
+                overwrite_existing=overwrite_existing,
+            )
         raise ChatSessionParkFrontierEvidenceWritten(
             "chat-session park frontier evidence written before AgentFact returned",
             building_id=prepared.building_id,
@@ -338,7 +356,7 @@ def run_building_once(
         output_root=output_root,
         overwrite_existing=overwrite_existing,
     )
-    return BuildingRunSupportResult(
+    result = BuildingRunSupportResult(
         building_id=prepared.building_id,
         preparation=prepared,
         adapter_result=adapter_result,
@@ -360,6 +378,25 @@ def run_building_once(
             completion.not_proven,
         ),
     )
+    if report_event_policy:
+        terminal_event_kind = building_event_kind_from_frontier(
+            evidence_write.lifecycle_write.root,
+            repo_root=_REPO_ROOT,
+        )
+        terminal_event = _emit_building_event_best_effort(
+            report_event_policy,
+            event_kind=terminal_event_kind,
+            building_id=prepared.building_id,
+            building_root=evidence_write.lifecycle_write.root,
+            current_brick_ref=prepared.brick_instance_ref,
+            last_completed_step_ref=prepared.step_rows.step_ref,
+            report_env=report_env,
+            report_slack_sender=report_slack_sender,
+            overwrite_existing=overwrite_existing,
+        )
+        if terminal_event is not None:
+            object.__setattr__(result, "_report_event_observations", (terminal_event,))
+    return result
 
 
 def run_building_plan(
@@ -372,6 +409,8 @@ def run_building_plan(
     adapter_cwd: Path | str | None = None,
     adapter_timeout_seconds: int = 120,
     proof_limits: Iterable[str] | str | None = None,
+    report_env: Mapping[str, str] | None = None,
+    report_slack_sender: Any | None = None,
     walker_mode: str = "linear",
 ) -> BuildingPlanSupportResult:
     """Walk declared Building plan steps and write one accumulated Building root.
@@ -409,6 +448,8 @@ def run_building_plan(
             write_chat_session_park_frontier=write_chat_session_park_frontier_evidence,
             chat_session_park_frontier_exception=ChatSessionParkFrontierEvidenceWritten,
             repo_root=_REPO_ROOT,
+            report_env=report_env,
+            report_slack_sender=report_slack_sender,
         )
     if _optional_text_from_mapping(packet, "plan_shape") == "graph":
         raise ValueError(
@@ -447,13 +488,14 @@ def run_building_plan(
         overwrite_existing=overwrite_existing,
     )
     report_event_observations: list[Mapping[str, Any]] = []
-    started_event = emit_building_event_for_policy(
+    started_event = _emit_building_event_best_effort(
         report_event_policy,
         event_kind="building_started",
         building_id=building_id,
         building_root=building_root,
         current_brick_ref=_first_brick_instance_ref_from_steps(steps_value),
-        repo_root=_REPO_ROOT,
+        report_env=report_env,
+        report_slack_sender=report_slack_sender,
         overwrite_existing=overwrite_existing,
     )
     if started_event is not None:
@@ -534,12 +576,13 @@ def run_building_plan(
                     evidence_write.lifecycle_write.root,
                     repo_root=_REPO_ROOT,
                 )
-                terminal_event = emit_building_event_for_policy(
+                terminal_event = _emit_building_event_best_effort(
                     report_event_policy,
                     event_kind=terminal_event_kind,
                     building_id=building_id,
                     building_root=evidence_write.lifecycle_write.root,
-                    repo_root=_REPO_ROOT,
+                    report_env=report_env,
+                    report_slack_sender=report_slack_sender,
                     overwrite_existing=overwrite_existing,
                 )
                 if terminal_event is not None:
@@ -611,12 +654,13 @@ def run_building_plan(
             evidence_write.lifecycle_write.root,
             repo_root=_REPO_ROOT,
         )
-        terminal_event = emit_building_event_for_policy(
+        terminal_event = _emit_building_event_best_effort(
             report_event_policy,
             event_kind=terminal_event_kind,
             building_id=building_id,
             building_root=evidence_write.lifecycle_write.root,
-            repo_root=_REPO_ROOT,
+            report_env=report_env,
+            report_slack_sender=report_slack_sender,
             overwrite_existing=overwrite_existing,
         )
         if terminal_event is not None:
@@ -902,6 +946,74 @@ def _first_brick_instance_ref_from_steps(steps: Sequence[Any]) -> str:
             if isinstance(value, str) and value.strip():
                 return value.strip()
     return ""
+
+
+def _emit_building_event_best_effort(
+    policy: Mapping[str, Any] | None,
+    *,
+    event_kind: str,
+    building_id: str,
+    building_root: Path | str,
+    current_brick_ref: str = "",
+    last_completed_step_ref: str = "",
+    overwrite_existing: bool,
+    report_env: Mapping[str, str] | None = None,
+    report_slack_sender: Any | None = None,
+) -> Mapping[str, Any] | None:
+    if not event_kind:
+        return None
+    try:
+        return emit_building_event_for_policy(
+            policy,
+            event_kind=event_kind,
+            building_id=building_id,
+            building_root=building_root,
+            current_brick_ref=current_brick_ref,
+            last_completed_step_ref=last_completed_step_ref,
+            repo_root=_report_repo_root_for_building_root(building_root),
+            overwrite_existing=overwrite_existing,
+            slack_env=report_env,
+            slack_sender=report_slack_sender,
+            dashboard_env=report_env,
+        )
+    except Exception as exc:  # noqa: BLE001 - notification must never break evidence write.
+        return {
+            "report_event_observation": "delivery_exception_observed",
+            "event_kind": event_kind,
+            "building_id": building_id,
+            "delivery_status_class": "exception_observed",
+            "provider_response_status_class": exc.__class__.__name__,
+            "reason": str(exc),
+            "source_truth": False,
+            "proof_limits": [
+                "support notification observation only",
+                "notification exception was not allowed to break Building evidence write",
+                "not source truth",
+                "not success judgment",
+                "not quality judgment",
+                "not Movement authority",
+            ],
+            "not_proven": [
+                "event delivery reliability",
+                "reader noticed event notification",
+            ],
+        }
+
+
+def _report_repo_root_for_building_root(building_root: Path | str) -> Path:
+    root = Path(building_root).resolve()
+    try:
+        root.relative_to(_REPO_ROOT)
+        return _REPO_ROOT
+    except ValueError:
+        pass
+    parts = root.parts
+    for index, part in enumerate(parts):
+        if part == "project" and index + 2 < len(parts) and parts[index + 2] == "buildings":
+            return Path(*parts[:index]) if index else Path(".").resolve()
+    if root.parent.name == "buildings":
+        return root.parent.parent
+    return root.parent
 
 
 def _write_step_output_on_step_close(
