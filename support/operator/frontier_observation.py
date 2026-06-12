@@ -217,6 +217,15 @@ def _closed_boundary_observed(
     link_records: Sequence[Mapping[str, Any]],
     building_map: Mapping[str, Any],
 ) -> bool:
+    """Return whether executed Link evidence reached a closed boundary.
+
+    ``building_map`` is retained for the public helper signature, but declared
+    map edges are not execution evidence. A mid-walk Building can already carry
+    its declared terminal edge in the map; only raw Link records can close the
+    read-side frontier.
+    """
+
+    _ = building_map
     for record in reversed(link_records):
         target = str(
             record.get("target_brick_instance_ref")
@@ -225,14 +234,6 @@ def _closed_boundary_observed(
         )
         if _is_closed_boundary_ref(target):
             return True
-    link_edges = building_map.get("link_edges")
-    if isinstance(link_edges, list):
-        for edge in link_edges:
-            if not isinstance(edge, Mapping):
-                continue
-            target = str(edge.get("target_brick_instance_ref") or "")
-            if _is_closed_boundary_ref(target):
-                return True
     return False
 
 

@@ -44,7 +44,9 @@ DEFAULT_DASHBOARD_PUBLIC_DATA_PATH = Path("support/dashboard/public/dashboard-da
 STALE_DAYS_DEFAULT = 7
 WRITE_BRICK_KINDS = frozenset({"work"})
 
-# observed_running 을 frontier_kind + 나이로 세분한 표시 상태
+# observed_running 을 frontier_kind + 나이로 세분한 표시 상태. Non-stale
+# closure_pending remains an open in-progress display state; stale pending keeps
+# the archived_stale projection.
 DISP_ORDER = (
     "running",
     "closure_pending",
@@ -129,7 +131,7 @@ def _disp_state(row: Mapping[str, Any], gen_dt: datetime, stale_days: int) -> st
             ad = _age_days(row.get("last_evidence_at"), gen_dt)
             if ad is not None and ad >= stale_days:
                 return "archived_stale"
-            return "closure_pending"
+            return "running"
         return "running"
     if board == "link_paused":
         return "stopped"
