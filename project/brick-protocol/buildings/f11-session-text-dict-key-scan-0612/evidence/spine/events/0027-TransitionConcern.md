@@ -1,0 +1,14 @@
+# TransitionConcern · seq 27 · ["Agent","Link"]
+- agent_object_ref: "agent-object:coo"
+- alias_fact_refs: ["transition-concern:f11-session-text-dict-key-scan-0612-closure-verification-gap"]
+- attempt_index: 1
+- axis_scope: ["Agent","Link"]
+- binding: false
+- event_type: "TransitionConcern"
+- run_segment: 1
+- sequence_index: 27
+- source_fact_ref: "transition-concern:f11-session-text-dict-key-scan-0612-closure:attempt-1"
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/f11-session-text-dict-key-scan-0612-closure-attempt-1/step-output.json"
+- step_ref: "f11-session-text-dict-key-scan-0612-closure"
+- transition_concern_returned: {"binding":false,"concern_kind":"verification_gap","concern_ref":"transition-concern:f11-session-text-dict-key-scan-0612-closure-verification-gap","not_proven":["full profile green","executed key-skip FIRE RED","lifecycle checker key scanning","persisted F11 evidence root"],"proof_limits":["support evidence only","read-only inspection","not source truth","not success judgment","not quality judgment","not Movement authority"],"reason_refs":["support/checkers/check_profile.py --all blocked by no usable temporary directory","support/checkers/check_profile.py --profile building_automation blocked by no usable temporary directory","support/checkers/check_building_lifecycle_path_shape.py:1003-1007 scans text_values and direct probe missed session-shaped mapping keys","project/brick-protocol/buildings/f11-session-text-dict-key-scan-0612 not observed"],"related_boundary_refs":["brick-f11-session-text-dict-key-scan-0612-work","brick-f11-session-text-dict-key-scan-0612-closure"]}

@@ -1,0 +1,61 @@
+{
+  "building_id": "onboarding-legacy-scrub-0612",
+  "checker_summary_ref": "",
+  "current_brick_ref": "brick-onboarding-legacy-scrub-0612-work",
+  "current_lane": "worker",
+  "current_work_kind": "work",
+  "evidence_refs_present": true,
+  "evidence_root_refs": [
+    "project/brick-protocol/buildings/onboarding-legacy-scrub-0612"
+  ],
+  "frontier_ref": "project/brick-protocol/buildings/onboarding-legacy-scrub-0612#frontier:link_paused:event:intervention_required",
+  "generated_at": "2026-06-12T05:50:53.919497+00:00",
+  "last_completed_step_ref": "",
+  "not_proven": [
+    "delivery reliability",
+    "stale evidence snapshot behavior",
+    "semantic correctness of observed frontier",
+    "whether caller or COO should act on disposition evidence",
+    "external notification behavior",
+    "real provider thread wake behavior",
+    "production readiness",
+    "event delivery reliability",
+    "reader noticed event notification",
+    "parallel runtime timing",
+    "whether a provider process is currently alive",
+    "semantic correctness of current frontier",
+    "whether caller/COO should resume, reroute, or close",
+    "future Building outcome"
+  ],
+  "observed_board_state": "observed_paused",
+  "portfolio_id": "",
+  "project_ref": "project:brick-protocol",
+  "proof_limits": [
+    "support projection only",
+    "reads existing Building or portfolio evidence only",
+    "report packet is not AgentFact",
+    "report packet is not Link transfer / carry / Movement",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "not route target choice",
+    "not driver input",
+    "operator wake target is provider-neutral local projection only",
+    "Building event notification support projection only",
+    "default delivery is synchronous and best-effort",
+    "not scheduler / queue / retry runtime",
+    "support frontier observation only",
+    "static evidence files only",
+    "not process liveness",
+    "not pause/resume authority"
+  ],
+  "report_id": "brick-protocol-onboarding-legacy-scrub-0612-intervention-required-event-2026-06-12T05-50-53-919497-00-00",
+  "report_kind": "building_frontier",
+  "required_disposition_owner": "coo",
+  "sink_refs": [
+    "report-sink:local-inbox"
+  ],
+  "source_truth": false,
+  "trigger_event_ref": "building-event:intervention_required:onboarding-legacy-scrub-0612"
+}

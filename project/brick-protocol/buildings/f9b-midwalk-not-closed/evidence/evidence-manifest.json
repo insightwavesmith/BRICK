@@ -1,0 +1,89 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:f9b-midwalk-not-closed::evidence/evidence-manifest.json",
+  "building_id": "f9b-midwalk-not-closed",
+  "building_map_ref": "work/building-map.json",
+  "claim_trace_refs": [
+    "evidence/claim_trace/brick/work_contract.json",
+    "evidence/claim_trace/agent/returned_claims.json",
+    "evidence/claim_trace/link/transfer_trace.json",
+    "evidence/claim_trace/link/carry_trace.json",
+    "evidence/claim_trace/link/sufficiency_trace.json",
+    "evidence/claim_trace/link/movement_trace.json"
+  ],
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "declaration_evidence_refs": [
+    "work/task.md",
+    "work/building-intake.json",
+    "work/preset-expansion.json",
+    "work/declared-building-plan.json",
+    "work/link-launch-policy.json"
+  ],
+  "evidence_generation": "u5_5_live",
+  "generatedAtTime": "2026-06-12T06:19:33Z",
+  "id": "urn:bp:building:f9b-midwalk-not-closed::evidence/evidence-manifest.json",
+  "not_proven": [
+    "semantic fitness of selected chain preset",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "not proven: source truth",
+    "not proven: success judgment",
+    "not proven: quality judgment",
+    "not proven: Movement authority"
+  ],
+  "plan_ref": "building-plan:f9b-midwalk-not-closed",
+  "plan_snapshot": {
+    "plan_hash": "87867170e65a2d926caf3f38601b84fe78870757f1562ff07fccea2374a039e1",
+    "plan_hash_algorithm": "sha256",
+    "plan_hash_basis": "canonical sorted-key JSON of the declared plan body",
+    "plan_ref": "building-plan:f9b-midwalk-not-closed",
+    "plan_rows_copy": "{\"building_id\":\"f9b-midwalk-not-closed\",\"chain_preset_ref\":\"building-chain-preset:fast-fix\",\"composition_mode\":\"caller_or_coo_declared_linear_composition\",\"declared_by\":\"caller-claude-operator\",\"materialization_rule\":\"caller_or_coo_declared_task_source_plus_linear_chain_preset\",\"not_proven\":[\"semantic fitness of selected chain preset\",\"future Building run correctness\",\"future Agent or provider quality\"],\"owner_axis\":\"Brick\",\"plan_ref\":\"building-plan:f9b-midwalk-not-closed\",\"plan_shape\":\"linear\",\"project_ref\":\"project:brick-protocol\",\"proof_limits\":[\"task source is pre-run input evidence, not an automatic plan selector\",\"chain preset is a caller / COO selection candidate only\",\"not automatic shape selection\",\"not Building Plan authoring from task text\",\"support materializes caller / COO declared task source and preset only\",\"not automatic preset selection\",\"not source truth\",\"not success judgment\",\"not quality judgment\",\"not Movement authority\"],\"selected_adapter_ref\":\"adapter:codex-local\",\"selected_model_ref\":\"model:default\",\"selected_shape_ref\":\"building-shape:reviewable-work\",\"step_template_expansion\":{\"expanded_brick_spec_refs\":[\"brick/templates/bricks/work/brick.md\",\"brick/templates/bricks/code-attack-qa/brick.md\",\"brick/templates/bricks/closure/brick.md\"],\"expanded_brick_template_refs\":[\"brick/templates/bricks/work/return.yaml\",\"brick/templates/bricks/transition-concern-return.yaml\",\"brick/templates/bricks/code-attack-qa/return.yaml\",\"brick/templates/bricks/closure/return.yaml\"],\"expanded_step_template_refs\":[\"building-step-template:work\",\"building-step-template:code-attack-qa\",\"building-step-template:closure\"],\"expansion_rule\":\"step templates expand only after caller / COO selected chain, shape, and target refs\",\"not_proven\":[\"semantic fitness of selected chain preset or step template\",\"future Building run correctness\",\"future Agent or provider quality\"],\"proof_limits\":[\"step template expansion support rendering only\",\"not automatic shape selection\",\"not target inference\",\"not Movement choice\",\"not source truth\",\"not success judgment\",\"not quality judgment\",\"not Movement authority\"],\"registry_ref\":\"brick-template-catalog:split-p3b-p4\",\"selection_rule\":\"caller_or_coo_declared_only\"},\"steps\":[{\"rows\":[{\"axis\":\"Brick\",\"brick_instance_ref\":\"brick-work\",\"brick_work_ref\":\"work:f9b-midwalk-not-closed-work\",\"comparison_rule\":\"Observe declared task source and Brick contract only; do not choose Movement or judge success/quality.\",\"required_return_shape\":\"received_work_ref,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven\",\"requires_brick_write_scope\":true,\"row_ref\":\"brick-row:f9b-midwalk-not-closed-work\",\"source_facts\":[\"task-source:inline-statement\"],\"work_statement\":\"work Brick for task-source:inline-statement: # F9B: mid-walk buildings still project 'closed' (the remaining half of F9)\",\"write_scope\":{\"allowed_paths\":[\"support/*\"],\"forbidden_paths\":[\"link/*\",\"agent/*\",\"brick/*\",\"project/*\",\".git/*\",\"AGENTS.md\",\"pyproject.toml\",\"uv.lock\"]}},{\"agent_object_ref\":\"agent-object:dev\",\"axis\":\"Agent\",\"row_ref\":\"f9b-midwalk-not-closed-work:agent\"},{\"axis\":\"Link\",\"declared_gate_refs\":[\"link-gate:default-transition\"],\"movement\":\"forward\",\"row_ref\":\"f9b-midwalk-not-closed-work:link\",\"target_ref\":\"brick-code-attack-qa\"}],\"step_ref\":\"f9b-midwalk-not-closed-work\",\"step_template_ref\":\"building-step-template:work\"},{\"rows\":[{\"axis\":\"Brick\",\"brick_instance_ref\":\"brick-code-attack-qa\",\"brick_work_ref\":\"work:f9b-midwalk-not-closed-code-attack-qa\",\"comparison_rule\":\"Observe declared task source and Brick contract only; do not choose Movement or judge success/quality.\",\"required_return_shape\":\"observed_evidence,attacked_work,checked_sources,regression_risks,negative_probe_observations,failing_or_missing_probes,boundary_violations,transition_concern_evidence,evidence_used,not_proven\",\"row_ref\":\"brick-row:f9b-midwalk-not-closed-code-attack-qa\",\"source_facts\":[\"task-source:inline-statement\"],\"work_statement\":\"code_attack_qa Brick for task-source:inline-statement: # F9B: mid-walk buildings still project 'closed' (the remaining half of F9)\"},{\"agent_object_ref\":\"agent-object:qa\",\"axis\":\"Agent\",\"row_ref\":\"f9b-midwalk-not-closed-code-attack-qa:agent\"},{\"axis\":\"Link\",\"declared_gate_refs\":[\"link-gate:default-transition\"],\"movement\":\"forward\",\"row_ref\":\"f9b-midwalk-not-closed-code-attack-qa:link\",\"target_ref\":\"brick-closure\"}],\"step_ref\":\"f9b-midwalk-not-closed-code-attack-qa\",\"step_template_ref\":\"building-step-template:code-attack-qa\"},{\"rows\":[{\"axis\":\"Brick\",\"brick_instance_ref\":\"brick-closure\",\"brick_work_ref\":\"work:f9b-midwalk-not-closed-closure\",\"comparison_rule\":\"Observe declared task source and Brick contract only; do not choose Movement or judge success/quality.\",\"required_return_shape\":\"observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence\",\"row_ref\":\"brick-row:f9b-midwalk-not-closed-closure\",\"source_facts\":[\"task-source:inline-statement\"],\"work_statement\":\"closure Brick for task-source:inline-statement: # F9B: mid-walk buildings still project 'closed' (the remaining half of F9)\"},{\"agent_object_ref\":\"agent-object:coo\",\"axis\":\"Agent\",\"row_ref\":\"f9b-midwalk-not-closed-closure:agent\"},{\"axis\":\"Link\",\"building_lifecycle\":{\"reason\":\"declared closure boundary for f9b-midwalk-not-closed\",\"state\":\"closed\"},\"declared_gate_refs\":[\"link-gate:default-transition\"],\"movement\":\"forward\",\"row_ref\":\"f9b-midwalk-not-closed-closure:link\",\"target_ref\":\"building-boundary:f9b-midwalk-not-closed-closed\"}],\"step_ref\":\"f9b-midwalk-not-closed-closure\",\"step_template_ref\":\"building-step-template:closure\"}],\"task_source_hash\":\"f5af7e3db981aad2e5ffbc3f7abf070cb1879461e52da8fc19ba697b179b131a\",\"task_source_hash_algorithm\":\"sha256\",\"task_source_hash_basis\":\"utf-8 inline task_statement body at materialization time\",\"task_source_ref\":\"task-source:inline-statement\",\"task_statement\":\"# F9B: mid-walk buildings still project 'closed' (the remaining half of F9)\\n\\nPRIOR BUILDING (f9-projection-states-0612, closed): fixed the breakdown direction — fossils and\\nadapter-error buildings now project 'stopped' (operator-verified on the real yard). But the\\nOTHER direction the task demanded is still broken, operator-reproduced JUST NOW on the live\\nyard via dashboard_export_packet: buildings that are MID-WALK (onboarding-legacy-scrub-0612 and\\nprovider-ladder-fleet-presets-0612 — both had a codex step ACTIVELY RUNNING at probe time, with\\ncompleted early steps and NO closure boundary recorded) projected display state 'closed'.\\n\\nREQUIRED: a building whose evidence shows completed steps but NO closure boundary fact and NO\\nbreakdown frontier must project as the running/in-progress family — NEVER closed. Find where the\\nclosed-state derivation keys (support/operator/ledger_projection.py and/or dashboard_export.py —\\nsuspect: it may infer closed from last forward movement or from step-output presence instead of\\nan explicit closure boundary fact) and key it on the EXPLICIT closure boundary evidence only.\\nDo not regress the breakdown->stopped fix or parked->waiting_review.\\n\\nPROOF: build a temp mid-walk-shaped fixture (completed step outputs, no closure boundary, no\\nbreakdown) -> projection must print running family; re-run the four-state table (closed /\\nbreakdown / fossil / parked) unchanged. FIRE: a mutated derivation inferring closed without the\\nclosure boundary -> RED (extend the projection pin). Full gate -> exit 0 (say which checkout).\\nConstraints: support/* only; closed vocabulary; no pin weakening; plain-text refs only in your\\nreturn (no packet echo).\\n\"}",
+    "proof_limits": [
+      "evidence copy only",
+      "not source truth"
+    ]
+  },
+  "proof_limits": [
+    "task source is pre-run input evidence, not an automatic plan selector",
+    "chain preset is a caller / COO selection candidate only",
+    "not automatic shape selection",
+    "not Building Plan authoring from task text",
+    "support materializes caller / COO declared task source and preset only",
+    "not automatic preset selection",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "raw_manifest_ref": "raw/raw-manifest.json",
+  "raw_stream_refs": [
+    "raw/brick-work.jsonl",
+    "raw/agent-return.jsonl",
+    "raw/link.jsonl"
+  ],
+  "recorded_at": "2026-06-12T06:19:33Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:f9b-midwalk-not-closed",
+  "specversion": "1.0",
+  "step_output_refs": [
+    "work/step-outputs/f9b-midwalk-not-closed-work-attempt-1/step-output.json",
+    "work/step-outputs/f9b-midwalk-not-closed-code-attack-qa-attempt-1/step-output.json",
+    "work/step-outputs/f9b-midwalk-not-closed-closure-attempt-1/step-output.json"
+  ],
+  "subject": "evidence/evidence-manifest.json",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T06:19:33Z",
+  "type": "bp.evidence_manifest"
+}

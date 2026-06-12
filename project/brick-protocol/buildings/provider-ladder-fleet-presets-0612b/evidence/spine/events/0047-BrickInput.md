@@ -1,0 +1,12 @@
+# BrickInput · seq 47 · ["Brick"]
+- axis_scope: ["Brick"]
+- brick_instance_ref: "brick-provider-ladder-fleet-presets-0612b-evidence-integrity"
+- comparison_rule: "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickInput"
+- required_return_shape: "observed_evidence, evidence_scope, persisted_evidence_roots, proof_limit_findings, stale_source_risks, checker_overclaim_risks, missing_evidence, evidence_used, not_proven"
+- run_segment: 2
+- sequence_index: 47
+- source_facts: ["task-source:inline-statement"]
+- spine_schema_version: "spine-v1"
+- step_ref: "provider-ladder-fleet-presets-0612b-evidence-integrity"
+- work_statement: "evidence_integrity Brick for task-source:inline-statement: Open the BUILDER-side path for per-step provider/model selection (the ENGINE already honors step-level selected_adapter_ref/selected_model_ref — plan_validation.py:156-163 falls back step->plan; verified) and add fleet presets so recon/revi"

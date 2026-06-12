@@ -1,0 +1,73 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:f10b-grounding-demand-record-unify::raw/raw-manifest.json",
+  "building_id": "f10b-grounding-demand-record-unify",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "entries": [
+    {
+      "axis_owner": "Brick",
+      "content_shape": "jsonl Brick work rows",
+      "path": "raw/brick-work.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:brick:02",
+        "raw:brick:03"
+      ],
+      "record_role": "primary",
+      "source": "support/operator/run.py run_building_plan declared Brick rows"
+    },
+    {
+      "axis_owner": "Agent",
+      "content_shape": "jsonl Agent returned payload refs",
+      "path": "raw/agent-return.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:agent:01",
+        "raw:agent:02",
+        "raw:agent:03"
+      ],
+      "record_role": "primary",
+      "source": "support/operator/run.py run_building_plan closed AgentFact returns"
+    },
+    {
+      "axis_owner": "Link",
+      "content_shape": "jsonl Link Movement and transition refs",
+      "path": "raw/link.jsonl",
+      "proof_limit": "support evidence only",
+      "raw_refs": [
+        "raw:link:01",
+        "raw:link:02",
+        "raw:link:03"
+      ],
+      "record_role": "primary",
+      "source": "support/operator/run.py run_building_plan declared Link rows"
+    }
+  ],
+  "generatedAtTime": "2026-06-12T06:22:49Z",
+  "id": "urn:bp:building:f10b-grounding-demand-record-unify::raw/raw-manifest.json",
+  "raw_refs": [
+    "raw:brick:01",
+    "raw:agent:01",
+    "raw:link:01",
+    "raw:brick:02",
+    "raw:agent:02",
+    "raw:link:02",
+    "raw:brick:03",
+    "raw:agent:03",
+    "raw:link:03"
+  ],
+  "recorded_at": "2026-06-12T06:22:49Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:f10b-grounding-demand-record-unify",
+  "specversion": "1.0",
+  "subject": "raw/raw-manifest.json",
+  "time": "2026-06-12T06:22:49Z",
+  "type": "bp.raw_manifest"
+}

@@ -8,29 +8,30 @@
 
 3축 프로토콜로 사람+AI 협업을 증거 기반으로 만드는 엔진을 제품화한다
 
-## 빌딩 집계 — 총 14개
+## 빌딩 집계 — 총 22개
 
 board_state 기준:
-- closed: 10
-- observed_running: 4
+- closed: 16
+- link_paused: 5
+- observed_running: 1
 
 frontier_kind 기준:
-- agent_incomplete: 3
+- agent_incomplete: 5
 - closure_pending: 1
-- complete: 10
+- complete: 16
 
 ## 최근 증거 빌딩 (last_evidence_at 상위 10)
 
+- provider-ladder-fleet-presets-0612b — 2026-06-12T07:58:01Z — closed
+- onboarding-legacy-scrub-0612 — 2026-06-12T06:43:00Z — closed
+- provider-ladder-fleet-presets-0612 — 2026-06-12T06:23:34Z — link_paused
+- f10b-grounding-demand-record-unify — 2026-06-12T06:22:49Z — closed
+- f9b-midwalk-not-closed — 2026-06-12T06:19:33Z — closed
+- f9-projection-states-0612 — 2026-06-12T06:04:47Z — closed
+- f10-grounding-demand-record-unify-0612 — 2026-06-12T06:04:46Z — link_paused
+- f11-session-text-dict-key-scan-0612 — 2026-06-12T06:01:49Z — closed
 - dashboard-productization-0612c — 2026-06-12T05:34:32Z — closed
 - notify-customer-language-autowire-0612 — 2026-06-12T05:05:14Z — closed
-- adapter-30-s2-s3-submit-resume — 2026-06-12T05:05:14Z — closed
-- dashboard-productization-0612b — 2026-06-12T04:52:18Z — observed_running
-- dashboard-productization-0612 — 2026-06-12T04:00:54Z — observed_running
-- lane-tooling-three-tier-0612 — 2026-06-12T02:29:18Z — closed
-- grounding-ref-resolver-unify-0612 — 2026-06-12T02:19:08Z — closed
-- read-tier-unknown-token-guard-0612 — 2026-06-12T02:00:19Z — closed
-- lane-tooling-adversarial-review-0612 — 2026-06-12T01:24:10Z — closed
-- adapter-30-s1-park-2 — 2026-06-12T00:40:25Z — closed
 
 ## 이 파일이 증명하지 않는 것
 

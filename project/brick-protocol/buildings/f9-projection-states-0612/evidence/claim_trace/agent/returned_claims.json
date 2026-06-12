@@ -1,0 +1,498 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:f9-projection-states-0612::evidence/claim_trace/agent/returned_claims.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:dev",
+        "received_work": "brick-work:01:f9-projection-states-0612-work",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:dev",
+          "blocked_or_missing_evidence": [
+            "AGENTS.md-referenced archive/status-kernel/current-brick-operating-packet-0531.md was absent in this checkout.",
+            "AGENTS.md-referenced archive/status-kernel/brick-protocol-post-d-surface-recompile-0-plan-0530.md was absent in this checkout.",
+            "support/dashboard/public/dashboard-data.json is .gitignored; it was regenerated for the existing dashboard_productization_projection path requirement but is not a tracked changed file."
+          ],
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "changed_files": [
+            "support/checkers/lib/kernel_checks.py",
+            "support/dashboard/public/dashboard-data.json",
+            "support/operator/dashboard_export.py",
+            "support/operator/frontier_observation.py",
+            "support/operator/ledger_projection.py"
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:f9-projection-states-0612",
+          "cli_version_text": "codex-cli 0.137.0",
+          "commands_run": [
+            "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --profile support/checkers/profiles/read_side_projection_boundary.yaml",
+            "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 - <<'PY' ... _dashboard_productization_assert_state_projection_cases(...) ... PY",
+            "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/operator/dashboard_export.py --bake-public",
+            "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all",
+            "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 -m compileall -q support/operator/frontier_observation.py support/operator/ledger_projection.py support/operator/dashboard_export.py support/checkers/lib/kernel_checks.py",
+            "git diff --check",
+            "git status --short"
+          ],
+          "evidence_refs": [
+            "support-packet:f9-projection-states-0612:agent-object:dev:output"
+          ],
+          "handoff_refs": [
+            "support/checkers/lib/kernel_checks.py::_dashboard_productization_assert_state_projection_cases",
+            "support/checkers/profiles/read_side_projection_boundary.yaml",
+            "support/operator/ledger_projection.py::_project_ledger_board_state",
+            "support/operator/frontier_observation.py::_closed_boundary_observed",
+            "support/operator/dashboard_export.py::_disp_state"
+          ],
+          "made_changes": [
+            "Changed frontier closure observation so declared building-map terminal edges do not close a Building; only raw Link closed-boundary evidence closes the read-side frontier.",
+            "Changed ledger board-state derivation so agent_incomplete projects to the existing link_paused/stopped family, and empty fossil-shaped closure_pending evidence projects to unknown instead of running.",
+            "Changed dashboard display derivation so non-stale closure_pending under observed_running displays as running, while stale pending still maps to archived_stale.",
+            "Added dashboard_productization_projection temp-fixture coverage for closed, mid-walk, adapter-error, fossil, and parked states, plus a FIRE mutation for breakdown->running."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "semantic correctness of file edits",
+            "source truth",
+            "success judgment",
+            "quality judgment",
+            "Movement authority",
+            "semantic correctness of every historical Building frontier beyond the pinned projection cases",
+            "provider process liveness",
+            "dashboard UI runtime behavior beyond read-side packet projection",
+            "future absence of support-authority leaks outside audited current surfaces"
+          ],
+          "observed_evidence": [
+            "Checker-only RED before implementation: read_side_projection_boundary rejected projection-mid-walk as complete/closed, projection-adapter-error as observed_running/running, and projection-fossil as observed_running/closure_pending.",
+            "Temp fixture table printed after fix:\nbuilding_id\tfrontier_kind\tboard_state\tdisp\nprojection-adapter-error\tagent_incomplete\tlink_paused\tstopped\nprojection-closed\tcomplete\tclosed\tclosed\nprojection-fossil\tclosure_pending\tunknown\tunknown\nprojection-mid-walk\tclosure_pending\tobserved_running\trunning\nprojection-parked\tchat_session_parked\twaiting_review\treview",
+            "Live projection after fix: adapter-30-s1-park, dashboard-productization-0612, and dashboard-productization-0612b now project agent_incomplete/link_paused/stopped.",
+            "Live projection counters after fix: ledger {'link_paused': 3, 'closed': 10, 'observed_running': 1}; dashboard {'running': 1, 'closure_pending': 0, 'archived_stale': 0, 'stopped': 3, 'review': 0, 'incomplete': 0, 'closed': 10, 'unknown': 0}.",
+            "Full gate in /Users/smith/projects/BRICK-wt-f9 exited 0.",
+            "No Claude/Gemini model review evidence was produced or admitted; checker output remains support evidence only, not source truth, success judgment, quality judgment, or Movement authority.",
+            "Final git status showed only support/* source edits; checker-generated project/status inbox packets were removed after verification."
+          ],
+          "output_excerpt": "{ \"received_work_ref\": \"support-packet:f9-projection-states-0612:agent-object:dev:input\", \"made_changes\": [ \"Changed frontier closure observation so declared building-map terminal edges do not close a Building; only raw Link closed-boundary evidence closes the read-side frontier.\", \"Changed ledger board-state derivation so agent_incomplete projects to the existing link_paused/stopped family, and empty fossil-shaped closure_pending evidence projects to unknown instead of running.\", \"Changed dashboard display derivation so non-stale closure_pending under observed_running displays as running, ...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "workspace write is limited by Brick-declared write_scope"
+          ],
+          "received_work_ref": "support-packet:f9-projection-states-0612:agent-object:dev:input",
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "worktree_observation": {
+            "after_git_refs": {
+              "branch": "claude/track-f9",
+              "head": "59635b14e270e7342940a57dbcb95dfb6bf86211"
+            },
+            "after_git_status_paths": [
+              "support/checkers/lib/kernel_checks.py",
+              "support/operator/dashboard_export.py",
+              "support/operator/frontier_observation.py",
+              "support/operator/ledger_projection.py"
+            ],
+            "after_path_count": 1930,
+            "before_git_refs": {
+              "branch": "claude/track-f9",
+              "head": "59635b14e270e7342940a57dbcb95dfb6bf86211"
+            },
+            "before_git_status_paths": [],
+            "before_path_count": 1929,
+            "not_proven": [
+              "semantic correctness of file edits",
+              "complete diff attribution for pre-existing dirty paths"
+            ],
+            "observed_changed_files": [
+              "support/checkers/lib/kernel_checks.py",
+              "support/dashboard/public/dashboard-data.json",
+              "support/operator/dashboard_export.py",
+              "support/operator/frontier_observation.py",
+              "support/operator/ledger_projection.py"
+            ],
+            "proof_limits": [
+              "changed files are support evidence only",
+              "not source truth",
+              "not success judgment",
+              "not quality judgment",
+              "not Movement authority"
+            ],
+            "write_scope": {
+              "allowed_paths": [
+                "support/*"
+              ],
+              "forbidden_paths": [
+                "link/*",
+                "agent/*",
+                "brick/*",
+                "project/*",
+                ".git/*",
+                "AGENTS.md",
+                "pyproject.toml",
+                "uv.lock"
+              ]
+            }
+          }
+        }
+      },
+      "fact_ref": "agent-fact:01:f9-projection-states-0612-work",
+      "not_proven": [
+        "semantic fitness of selected chain preset",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "task source is pre-run input evidence, not an automatic plan selector",
+        "chain preset is a caller / COO selection candidate only",
+        "not automatic shape selection",
+        "not Building Plan authoring from task text",
+        "support materializes caller / COO declared task source and preset only",
+        "not automatic preset selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:qa",
+        "received_work": "brick-work:02:f9-projection-states-0612-code-attack-qa",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:qa",
+          "attacked_work": [
+            "Attacked the F9 read-side state derivation across ledger board_state, dashboard disp, frontier closure observation, and the checker pin.",
+            "No mutation was made by this QA pass; repository inspection and commands were read-only."
+          ],
+          "boundary_violations": [],
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "checked_sources": [
+            "support/operator/ledger_projection.py:420-562",
+            "support/operator/dashboard_export.py:47-70 and 124-142",
+            "support/operator/frontier_observation.py:51-144 and 216-245",
+            "support/checkers/lib/kernel_checks.py:2918-3391",
+            "support/checkers/profiles/read_side_projection_boundary.yaml:4-10",
+            "support/checkers/check_profile.py:120-181 and 506-511",
+            "support/dashboard/public/dashboard-data.json projected rows",
+            "project/brick-protocol/PROGRESS.md stale projection observation"
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:f9-projection-states-0612",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:f9-projection-states-0612:agent-object:qa:output"
+          ],
+          "evidence_used": [
+            "git status --short",
+            "git diff --stat / --name-only / --check",
+            "rg searches for projection/frontier/dashboard/checker wiring",
+            "nl/sed reads of the changed support files",
+            "project_orchestration_ledger_packet(repo_root=Path.cwd()) live row probe",
+            "dashboard_export_packet(repo_root=Path.cwd()) live row probe",
+            "observe_building_frontier live row probe",
+            "AST parse and import smoke for changed Python modules"
+          ],
+          "failing_or_missing_probes": [
+            "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --profile support/checkers/profiles/read_side_projection_boundary.yaml exited 1: Operation not permitted creating project/checker-projection-fixture-vessel.",
+            "Direct run_dashboard_productization_projection(Path.cwd()) exited 1 before assertions: Python reported no usable temporary directory.",
+            "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all exited 1: no usable temporary directory in /var/folders, /tmp, /var/tmp, /usr/tmp, or the checkout.",
+            "Requested full gate was therefore not observed in this checkout/session."
+          ],
+          "negative_probe_observations": [
+            "Code-inspected FIRE probe in support/checkers/lib/kernel_checks.py mutates _project_ledger_board_state so agent_incomplete returns observed_running, then expects the state assertion to fail.",
+            "Direct non-temp helper probe printed: closed complete/closed/closed; mid-walk closure_pending/observed_running/running; adapter-error agent_incomplete/link_paused/stopped; fossil closure_pending/unknown/unknown; parked chat_session_parked/waiting_review/review.",
+            "Full runtime RED observation for the mutated derivation was not available under this sandbox."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "source truth",
+            "success judgment",
+            "quality judgment",
+            "Movement authority",
+            "full checker profile green in this sandbox",
+            "temp-fixture checker execution",
+            "future dashboard UI/browser rendering",
+            "semantic correctness of stale PROGRESS consumers",
+            "provider behavior or process liveness"
+          ],
+          "observed_evidence": [
+            "Worktree changed files are support-only: support/checkers/lib/kernel_checks.py, support/operator/dashboard_export.py, support/operator/frontier_observation.py, support/operator/ledger_projection.py.",
+            "support/operator/ledger_projection.py now passes the observed frontier payload into _project_ledger_board_state; agent_incomplete maps to link_paused, closure_pending maps to observed_running only when agent_return_records or link_records are positive, otherwise unknown.",
+            "support/operator/dashboard_export.py maps board_state link_paused to disp stopped and non-stale closure_pending/observed_running to disp running; no new display literal was observed.",
+            "support/operator/frontier_observation.py no longer treats declared building-map closed edges as executed closure evidence; raw Link records are required for closure observation.",
+            "support/checkers/lib/kernel_checks.py adds five generated state cases: closed, mid-walk, adapter-error, fossil, parked; it also adds a FIRE mutation where agent_incomplete maps to observed_running and must be rejected.",
+            "Live projection rows observed: adapter-30-s1-park, dashboard-productization-0612, and dashboard-productization-0612b project as agent_incomplete -> link_paused -> stopped; s1-adversarial-review-loop-0612 projects as closure_pending -> observed_running -> running.",
+            "support/dashboard/public/dashboard-data.json already reflects stopped for the three adapter-error rows, but project/brick-protocol/PROGRESS.md is stale and still shows observed_running: 4 plus dashboard-productization-0612/0612b as observed_running.",
+            "git diff --check exited 0; import smoke exited 0; AST parse of the four changed Python files exited 0."
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ \"Worktree changed files are support-only: support/checkers/lib/kernel_checks.py, support/operator/dashboard_export.py, support/operator/frontier_observation.py, support/operator/ledger_projection.py.\", \"support/operator/ledger_projection.py now passes the observed frontier payload into _project_ledger_board_state; agent_incomplete maps to link_paused, closure_pending maps to observed_running only when agent_return_records or link_records are positive, otherwise unknown.\", \"support/operator/dashboard_export.py maps board_state link_paused to disp stopped and non-stal...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "regression_risks": [
+            "Full checker/profile execution was not observed because this session has no writable temp directory; the new temp-fixture state table and FIRE probe are code-inspected but not runtime-proven here.",
+            "project/brick-protocol/PROGRESS.md remains stale relative to current ledger/dashboard projection output; any consumer reading that projection file can still see old observed_running counts until regenerated.",
+            "_project_ledger_board_state(frontier_kind='closure_pending', frontier=None) still returns observed_running for legacy direct callers; current ledger row construction passes frontier, and no closure_pending one-argument caller was found."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "transition_concern_evidence": {
+            "binding": false,
+            "concern_kind": "verification_gap",
+            "concern_ref": "transition-concern:f9-projection-states-0612-temp-fixture-gate-not-observed",
+            "not_proven": [
+              "full check_profile --all green",
+              "runtime execution of the new temp-fixture state table",
+              "runtime RED of the breakdown->running mutation",
+              "fresh PROGRESS projection after the code change"
+            ],
+            "proof_limits": [
+              "support evidence only",
+              "does not choose Movement",
+              "does not judge source truth, success, or quality"
+            ],
+            "reason_refs": [
+              "command:check_profile_read_side_projection_boundary:exit1:operation-not-permitted",
+              "command:run_dashboard_productization_projection:exit1:no-usable-temporary-directory",
+              "command:check_profile_all:exit1:no-usable-temporary-directory",
+              "file:project/brick-protocol/PROGRESS.md:stale-observed-running-count"
+            ],
+            "related_boundary_refs": [
+              "brick-code-attack-qa",
+              "brick-work"
+            ]
+          }
+        }
+      },
+      "fact_ref": "agent-fact:02:f9-projection-states-0612-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected chain preset",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "task source is pre-run input evidence, not an automatic plan selector",
+        "chain preset is a caller / COO selection candidate only",
+        "not automatic shape selection",
+        "not Building Plan authoring from task text",
+        "support materializes caller / COO declared task source and preset only",
+        "not automatic preset selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:coo",
+        "received_work": "brick-work:03:f9-projection-states-0612-closure",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:coo",
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "cli_call_ref": "support-cli-call:adapter:codex-local:f9-projection-states-0612",
+          "cli_version_text": "codex-cli 0.137.0",
+          "deferred_smith_review_queue": [
+            "Decide whether this closure can proceed on repo-diff plus direct read-only probes, or must wait for writable full-gate evidence.",
+            "Decide whether missing F9 Building evidence root is acceptable for this closure packet.",
+            "Decide whether dashboard-productization-0612c being currently closed reflects later evidence or still needs a separate fossil/mid-walk live audit."
+          ],
+          "evidence_refs": [
+            "support-packet:f9-projection-states-0612:agent-object:coo:output"
+          ],
+          "narrowly_proven": [
+            "In the current dirty checkout, the read-side support code no longer projects adapter-error/agent_incomplete rows as running through the direct ledger/dashboard path observed here.",
+            "The current board-state helper covers the required closed-vocabulary families for agent_incomplete, fossil-shaped closure_pending, progress-shaped closure_pending, and chat_session_parked.",
+            "The mid-walk closed-boundary defect is addressed at the helper level: declared building-map terminal edges alone no longer count as closure evidence.",
+            "A checker pin for the five requested state fixtures and a breakdown->running FIRE mutation is present and wired into dashboard_productization_projection.",
+            "Whitespace-only diff hygiene is clean by git diff --check."
+          ],
+          "next_target_candidates": [
+            "verification-boundary: rerun read_side_projection_boundary and --all in a writable checkout",
+            "evidence-boundary: attach or create the persisted f9-projection-states-0612 Building evidence root through the admitted Building flow",
+            "projection-boundary: refresh PROGRESS/dashboard export after checker evidence exists"
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Full gate not proven: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all did not run to exit 0 in this read-only sandbox.",
+            "read_side_projection_boundary profile pass not proven: the profile attempted to create checker fixture project evidence and was blocked by filesystem permissions.",
+            "The checker's temp fixture table and FIRE mutation were inspected in code but not executed to green in this environment.",
+            "F9 persisted Building evidence root is missing or not present in this checkout, so closure cannot cite capture/raw/claim_trace/building-map evidence for f9-projection-states-0612.",
+            "The AGENTS-referenced current operating packet paths under archive/status-kernel were not present in this checkout.",
+            "project/brick-protocol/PROGRESS.md freshness is not proven because projection regeneration would require writes.",
+            "dashboard-productization-0612c is currently observed as complete/closed/closed in live projection; a live mid-walk 4/6 state was not observed here, only the repaired helper behavior and checker fixture expectation.",
+            "No source truth, success judgment, quality judgment, Movement authority, provider behavior, or future Building correctness is proven."
+          ],
+          "observed_evidence": [
+            "checkout=/Users/smith/projects/BRICK-wt-f9",
+            "changed_files=support/operator/ledger_projection.py, support/operator/dashboard_export.py, support/operator/frontier_observation.py, support/checkers/lib/kernel_checks.py",
+            "building_or_support_evidence_root=project/brick-protocol/buildings/f9-projection-states-0612 was not found; no F9 task/intake/plan/status artifact found under project/brick-protocol",
+            "support/operator/ledger_projection.py:435-544 now derives board_state from frontier data, maps agent_incomplete to link_paused, maps closure_pending with work progress to observed_running, and maps closure_pending with no work progress to unknown",
+            "support/operator/frontier_observation.py:83-107 recognizes chat_session_parked before agent_incomplete, recognizes agent_incomplete before closure, and only closes after executed Link evidence",
+            "support/operator/frontier_observation.py:216-237 now ignores building-map declared closed edges as closure evidence and requires raw Link target evidence",
+            "support/operator/dashboard_export.py:124-142 maps observed_running/closure_pending to running when non-stale, link_paused to stopped, waiting_review to review, evidence_incomplete to incomplete, and fallback to unknown",
+            "support/checkers/lib/kernel_checks.py:2918-2944 defines fixture expectations for closed, mid-walk, adapter-error, fossil, and parked projection states",
+            "support/checkers/lib/kernel_checks.py:2947-3015 adds temp fixture projection checks and a FIRE mutation where agent_incomplete -> observed_running must be rejected",
+            "support/checkers/lib/kernel_checks.py:3374-3390 wires the state projection table and breakdown->running FIRE note into dashboard_productization_projection",
+            "direct projection table: adapter-30-s1-park agent_incomplete/link_paused/stopped; dashboard-productization-0612 agent_incomplete/link_paused/stopped; dashboard-productization-0612b agent_incomplete/link_paused/stopped; dashboard-productization-0612c complete/closed/closed",
+            "direct board-state probe: agent_incomplete -> link_paused; closure_pending with progress -> observed_running; closure_pending with no progress -> unknown; chat_session_parked -> waiting_review",
+            "direct closed-boundary probe: building-map-only closed edge returned False; raw Link closed target returned True",
+            "command git diff --check exited 0",
+            "command check_profile.py --profile read_side_projection_boundary was attempted and blocked by read-only filesystem when creating project/checker-projection-fixture-vessel",
+            "command check_profile.py --all was attempted and blocked by absence of a writable temporary directory",
+            "project/brick-protocol/PROGRESS.md is not regenerated in this sandbox and still reflects an older machine projection",
+            "model_review_evidence_disposition=no external Claude/Gemini review observed or used in this closure return"
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ \"checkout=/Users/smith/projects/BRICK-wt-f9\", \"changed_files=support/operator/ledger_projection.py, support/operator/dashboard_export.py, support/operator/frontier_observation.py, support/checkers/lib/kernel_checks.py\", \"building_or_support_evidence_root=project/brick-protocol/buildings/f9-projection-states-0612 was not found; no F9 task/intake/plan/status artifact found under project/brick-protocol\", \"support/operator/ledger_projection.py:435-544 now derives board_state from frontier data, maps agent_incomplete to link_paused, maps closure_pending with work progres...",
+          "parent_goal_delta_status": "The support diff appears aligned with the requested read-side projection repair, but closure remains verification-limited because the profile/full gate and F9 persisted evidence root are blocked or missing in this read-only checkout.",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "remaining_delta": [
+            "Run the full gate in a writable checkout: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all.",
+            "Run the read_side_projection_boundary profile in a writable checkout and retain the printed state projection table as support evidence.",
+            "Locate or record the f9-projection-states-0612 Building evidence root if this closure needs persisted Building evidence rather than repo-diff support evidence.",
+            "Regenerate PROGRESS/dashboard projections only through admitted projection verbs after the code/checker gate is accepted.",
+            "Clarify whether the missing archive/status-kernel operating packet files are expected in BRICK-wt-f9."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "transition_concern_evidence": {
+            "binding": false,
+            "concern_kind": "verification_gap",
+            "concern_ref": "transition-concern:f9-projection-states-0612-closure-verification-gap",
+            "not_proven": [
+              "full checker profile execution",
+              "persisted F9 Building evidence root",
+              "fresh regenerated PROGRESS/dashboard projection"
+            ],
+            "proof_limits": [
+              "non-binding Agent return evidence only",
+              "not source truth",
+              "not success judgment",
+              "not quality judgment",
+              "not Movement authority"
+            ],
+            "reason_refs": [
+              "command:check_profile--all:tempdir-blocked",
+              "command:check_profile--profile-read_side_projection_boundary:fixture-write-blocked",
+              "evidence:project/brick-protocol/buildings/f9-projection-states-0612:not_found"
+            ],
+            "related_boundary_refs": [
+              "brick-code-attack-qa",
+              "brick-closure"
+            ]
+          }
+        }
+      },
+      "fact_ref": "agent-fact:03:f9-projection-states-0612-closure",
+      "not_proven": [
+        "semantic fitness of selected chain preset",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "task source is pre-run input evidence, not an automatic plan selector",
+        "chain preset is a caller / COO selection candidate only",
+        "not automatic shape selection",
+        "not Building Plan authoring from task text",
+        "support materializes caller / COO declared task source and preset only",
+        "not automatic preset selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-12T06:04:47Z",
+  "id": "urn:bp:building:f9-projection-states-0612::evidence/claim_trace/agent/returned_claims.json",
+  "recorded_at": "2026-06-12T06:04:47Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:f9-projection-states-0612",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/agent/returned_claims.json",
+  "time": "2026-06-12T06:04:47Z",
+  "type": "bp.claim_trace"
+}

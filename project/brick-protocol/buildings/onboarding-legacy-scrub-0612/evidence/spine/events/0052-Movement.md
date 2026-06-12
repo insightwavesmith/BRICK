@@ -1,0 +1,12 @@
+# Movement · seq 52 · ["Link"]
+- adopted_transition_concern_refs: []
+- axis_scope: ["Link"]
+- declared_movement: "forward"
+- event_type: "Movement"
+- gate_review_event_ref: "sufficiency-fact-movement:05:onboarding-legacy-scrub-0612-evidence-integrity"
+- not_adopted_transition_concern_refs: []
+- run_segment: 2
+- sequence_index: 52
+- source_fact_ref: "movement-fact:05:onboarding-legacy-scrub-0612-evidence-integrity"
+- spine_schema_version: "spine-v1"
+- target_boundary_ref: "brick:brick-onboarding-legacy-scrub-0612-closure"

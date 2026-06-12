@@ -1,0 +1,95 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:provider-ladder-fleet-presets-0612::evidence/claim_trace/link/movement_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition",
+          "link-gate:coo"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:01:provider-ladder-fleet-presets-0612-design",
+          "brick-comparison:01:provider-ladder-fleet-presets-0612-design",
+          "sufficiency-fact-movement:01:provider-ladder-fleet-presets-0612-design"
+        ],
+        "target_boundary_ref": "brick:brick-provider-ladder-fleet-presets-0612-work"
+      },
+      "fact_ref": "movement-fact:01:provider-ladder-fleet-presets-0612-design",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:provider-ladder-fleet-presets-0612-design-to-provider-ladder-fleet-presets-0612-work",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-provider-ladder-fleet-presets-0612-design",
+        "target_boundary_ref": "brick-provider-ladder-fleet-presets-0612-work"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-provider-ladder-fleet-presets-0612-design-to-provider-ladder-fleet-presets-0612-work",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:01:edge-provider-ladder-fleet-presets-0612-design-to-provider-ladder-fleet-presets-0612-work"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-12T06:23:34Z",
+  "id": "urn:bp:building:provider-ladder-fleet-presets-0612::evidence/claim_trace/link/movement_trace.json",
+  "recorded_at": "2026-06-12T06:23:34Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:provider-ladder-fleet-presets-0612",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/movement_trace.json",
+  "time": "2026-06-12T06:23:34Z",
+  "type": "bp.claim_trace"
+}

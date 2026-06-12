@@ -1,0 +1,198 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:f11-session-text-dict-key-scan-0612::work/step-outputs/f11-session-text-dict-key-scan-0612-work-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:dev",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-work",
+  "building_id": "f11-session-text-dict-key-scan-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T05:55:21.880479Z",
+  "id": "urn:bp:building:f11-session-text-dict-key-scan-0612::work/step-outputs/f11-session-text-dict-key-scan-0612-work-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected chain preset",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "task source is pre-run input evidence, not an automatic plan selector",
+    "chain preset is a caller / COO selection candidate only",
+    "not automatic shape selection",
+    "not Building Plan authoring from task text",
+    "support materializes caller / COO declared task source and preset only",
+    "not automatic preset selection",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:f11-session-text-dict-key-scan-0612-work",
+  "recorded_at": "2026-06-12T05:55:21.880479Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:dev",
+    "blocked_or_missing_evidence": [
+      "No remaining blocker. First --all run reported missing ignored support/dashboard/public/dashboard-data.json; the admitted bake command produced it and the rerun exited 0.",
+      "No Claude/Gemini model review used; checker/profile evidence only."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "changed_files": [
+      "support/checkers/lib/kernel_checks.py",
+      "support/checkers/profiles/building_automation.yaml",
+      "support/dashboard/public/dashboard-data.json",
+      "support/operator/primitives.py",
+      "support/operator/run.py",
+      "support/recording/adapter_error_frontier.py"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:f11-session-text-dict-key-scan-0612",
+    "cli_version_text": "codex-cli 0.137.0",
+    "commands_run": [
+      "python3 -m py_compile support/operator/primitives.py support/operator/run.py support/recording/adapter_error_frontier.py support/checkers/lib/kernel_checks.py -> exit 0",
+      "python3 support/checkers/check_profile.py --profile building_automation -> exit 0",
+      "git diff --check -> exit 0",
+      "python3 -m compileall -q support -> exit 0",
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/operator/dashboard_export.py --bake-public -> exit 0, source_truth False, buildings 14",
+      "python3 support/checkers/check_profile.py --all -> exit 0",
+      "rg UUID/ULID-shaped literal scan over touched support surfaces -> no matches"
+    ],
+    "evidence_refs": [
+      "support-packet:f11-session-text-dict-key-scan-0612:agent-object:dev:output"
+    ],
+    "handoff_refs": {
+      "next_movement": "not chosen by Agent; caller/Link disposition only",
+      "support_evidence_root": "support/checkers/check_profile.py --all on /Users/smith/projects/BRICK-wt-f11"
+    },
+    "made_changes": [
+      "Unified chat-session session-shaped text rejection on one recursive support walker that scans mapping keys, mapping values, list items, and nested positions.",
+      "Made run.py and adapter_error_frontier.py use the shared walker.",
+      "Extended chat_session_park_seam probes for UUID key, ULID key, nested key/value rejection, envelope key rejection, task-source style acceptance, and key-skip FIRE mutation."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority",
+      "provider quality",
+      "semantic correctness of future submitted returns beyond the rejector guard",
+      "future dashboard seed freshness after later ledger changes",
+      "complete absence of future support-authority leaks"
+    ],
+    "observed_evidence": [
+      "/Users/smith/projects/BRICK-wt-f11 checkout used.",
+      "building-automation profile passed and reports session-id value/key/nested submissions plus envelope keys rejected.",
+      "Full support/checkers/check_profile.py --all exited 0 after admitted dashboard seed bake.",
+      "No committed UUID/ULID-shaped probe literals observed in touched support/operator, support/recording, and kernel checker/profile files by regex scan.",
+      "git status shows only the five tracked support/* edits; dashboard-data.json is ignored support projection evidence."
+    ],
+    "output_excerpt": "{\"received_work_ref\":\"support-packet:f11-session-text-dict-key-scan-0612:agent-object:dev:input\",\"made_changes\":[\"Unified chat-session session-shaped text rejection on one recursive support walker that scans mapping keys, mapping values, list items, and nested positions.\",\"Made run.py and adapter_error_frontier.py use the shared walker.\",\"Extended chat_session_park_seam probes for UUID key, ULID key, nested key/value rejection, envelope key rejection, task-source style acceptance, and key-skip FIRE mutation.\"],\"changed_files\":[\"support/operator/primitives.py\",\"support/operator/run.py\",\"supp...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "received_work_ref": "support-packet:f11-session-text-dict-key-scan-0612:agent-object:dev:input",
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "claude/track-f11",
+        "head": "59635b14e270e7342940a57dbcb95dfb6bf86211"
+      },
+      "after_git_status_paths": [
+        "support/checkers/lib/kernel_checks.py",
+        "support/checkers/profiles/building_automation.yaml",
+        "support/operator/primitives.py",
+        "support/operator/run.py",
+        "support/recording/adapter_error_frontier.py"
+      ],
+      "after_path_count": 1930,
+      "before_git_refs": {
+        "branch": "claude/track-f11",
+        "head": "59635b14e270e7342940a57dbcb95dfb6bf86211"
+      },
+      "before_git_status_paths": [],
+      "before_path_count": 1929,
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [
+        "support/checkers/lib/kernel_checks.py",
+        "support/checkers/profiles/building_automation.yaml",
+        "support/dashboard/public/dashboard-data.json",
+        "support/operator/primitives.py",
+        "support/operator/run.py",
+        "support/recording/adapter_error_frontier.py"
+      ],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "support/*"
+        ],
+        "forbidden_paths": [
+          "link/*",
+          "agent/*",
+          "brick/*",
+          "project/*",
+          ".git/*",
+          "AGENTS.md",
+          "pyproject.toml",
+          "uv.lock"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:01:f11-session-text-dict-key-scan-0612-work",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:f11-session-text-dict-key-scan-0612",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:f11-session-text-dict-key-scan-0612-work:attempt-1",
+  "step_ref": "f11-session-text-dict-key-scan-0612-work",
+  "subject": "f11-session-text-dict-key-scan-0612-work",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T05:55:21.880479Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

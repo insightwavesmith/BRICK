@@ -1,0 +1,169 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:f9b-midwalk-not-closed::work/step-outputs/f9b-midwalk-not-closed-closure-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-closure",
+  "building_id": "f9b-midwalk-not-closed",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:03",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T06:19:33.638111Z",
+  "id": "urn:bp:building:f9b-midwalk-not-closed::work/step-outputs/f9b-midwalk-not-closed-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected chain preset",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "task source is pre-run input evidence, not an automatic plan selector",
+    "chain preset is a caller / COO selection candidate only",
+    "not automatic shape selection",
+    "not Building Plan authoring from task text",
+    "support materializes caller / COO declared task source and preset only",
+    "not automatic preset selection",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:03:f9b-midwalk-not-closed-closure",
+  "recorded_at": "2026-06-12T06:19:33.638111Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:coo",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:codex-local:f9b-midwalk-not-closed",
+    "cli_version_text": "codex-cli 0.137.0",
+    "deferred_smith_review_queue": [
+      "Decide whether partial closure evidence is enough for this Building or whether to require the full temp-fixture gate first.",
+      "Decide whether PROGRESS.md should be regenerated in a separate write-capable step.",
+      "Decide whether the absent status-kernel files and absent original live-yard buildings are expected for this worktree."
+    ],
+    "evidence_refs": [
+      "support-packet:f9b-midwalk-not-closed:agent-object:coo:output"
+    ],
+    "narrowly_proven": [
+      "The current diff removes the observed support shortcut that could infer closed from declared building-map terminal edges without executed raw Link closed-boundary evidence.",
+      "A current checkout Building with returned/link evidence but no closed boundary projects to the running family, not closed.",
+      "The prior breakdown direction is preserved in current yard observation: agent_incomplete rows project to link_paused/stopped, not running.",
+      "The parked mapping remains pinned in the added expected case as chat_session_parked -> waiting_review/review.",
+      "Static whitespace and target-file bytecode parsing checks did not reject the current diff."
+    ],
+    "next_target_candidates": [
+      "caller/Link-supplied target remains brick-closure for recording this closure evidence",
+      "non-binding candidate: reroute to a verification Brick with temp/write capability for full checker execution",
+      "non-binding candidate: forward only if caller/COO accepts the explicit proof limits above"
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Full read_side_projection_boundary profile exit 0 is not proven in this read-only/no-temp sandbox.",
+      "dashboard_productization_projection full kernel exit 0 is not proven because its temp FIRE probes could not create a temp directory.",
+      "The added temp mid-walk fixture table and FIRE probes were inspected in code but not executed to completion here.",
+      "The task-named live-yard buildings onboarding-legacy-scrub-0612 and provider-ladder-fleet-presets-0612 were not observable in this checkout.",
+      "Stored project/brick-protocol/PROGRESS.md freshness is not proven after the projection change; render-only output differs from the saved file.",
+      "AGENTS.md referenced archive/status-kernel/current-brick-operating-packet-0531.md and archive/status-kernel/brick-protocol-post-d-surface-recompile-0-plan-0530.md, but those files were not observed in this checkout.",
+      "No Claude/Gemini model review evidence was run or used as authority.",
+      "No source truth, success judgment, quality judgment, Movement authority, or provider liveness is proven."
+    ],
+    "observed_evidence": [
+      "checkout: /Users/smith/projects/BRICK-wt-f9; branch claude/track-f9; dirty files observed before inspection: support/checkers/lib/kernel_checks.py, support/operator/dashboard_export.py, support/operator/frontier_observation.py, support/operator/ledger_projection.py",
+      "changed files/stat observed by git diff --stat: 4 files, 524 insertions, 16 deletions",
+      "frontier_observation.py:216-237 now ignores declared building_map link_edges for closure and only treats raw Link records targeting a closed boundary as closed evidence",
+      "ledger_projection.py:512-544 now maps complete->closed, agent_incomplete->link_paused, closure_pending with agent_return_records or link_records->observed_running, closure_pending without work progress->unknown",
+      "dashboard_export.py:124-142 now displays non-stale observed_running/closure_pending as running, link_paused as stopped, waiting_review as review",
+      "kernel_checks.py:2918-3444 adds expected projection cases for closed, mid-walk, adapter-error, fossil, parked, plus FIRE probes for breakdown->running and closed-without-boundary derivation",
+      "current project evidence root inspected: project/brick-protocol/buildings has 14 Building roots; no project/brick-protocol/buildings/f9b-midwalk-not-closed root observed",
+      "task-named live-yard buildings onboarding-legacy-scrub-0612 and provider-ladder-fleet-presets-0612 were not present in this checkout's dashboard_export_packet or ledger packet",
+      "current yard mid-walk-shaped exemplar s1-adversarial-review-loop-0612: frontier_kind closure_pending, board_state observed_running, dashboard disp running, reason 'evidence root has returned Agent facts and no closed boundary observation'",
+      "current yard adapter-error rows dashboard-productization-0612, dashboard-productization-0612b, adapter-30-s1-park project as agent_incomplete/link_paused/stopped",
+      "render_project_progress('project:brick-protocol') read-only output now shows closed 10, link_paused 3, observed_running 1; stored PROGRESS.md still shows observed_running 4",
+      "commands with exit 0: git diff --check; PYTHONPATH=support/import_identity:. python3 -m compileall -q support/operator/frontier_observation.py support/operator/ledger_projection.py support/operator/dashboard_export.py support/checkers/lib/kernel_checks.py",
+      "commands blocked by read-only/no-temp environment: check_profile.py --profile read_side_projection_boundary rejected creating project/checker-projection-fixture-vessel; run_dashboard_productization_projection and the state fixture probe failed with no usable temporary directory"
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"checkout: /Users/smith/projects/BRICK-wt-f9; branch claude/track-f9; dirty files observed before inspection: support/checkers/lib/kernel_checks.py, support/operator/dashboard_export.py, support/operator/frontier_observation.py, support/operator/ledger_projection.py\", \"changed files/stat observed by git diff --stat: 4 files, 524 insertions, 16 deletions\", \"frontier_observation.py:216-237 now ignores declared building_map link_edges for closure and only treats raw Link records targeting a closed boundary as closed evidence\", \"ledger_projection.py:512-544 now maps com...",
+    "parent_goal_delta_status": "partial support evidence only: the core closed-state derivation appears repaired in code and current yard projection, but full gate and original live-yard reproduction remain not_proven",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "remaining_delta": [
+      "Run the full read_side_projection_boundary profile in a writable/temp-capable verification step.",
+      "Run dashboard_productization_projection and confirm the state table plus both FIRE mutations execute RED.",
+      "If required, regenerate project/brick-protocol/PROGRESS.md through the admitted progress projection verb in a write-capable Building.",
+      "Probe the original live yard containing onboarding-legacy-scrub-0612 and provider-ladder-fleet-presets-0612 if that yard is outside this worktree."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "transition_concern_evidence": {
+      "binding": false,
+      "concern_kind": "verification_gap",
+      "concern_ref": "transition-concern:f9b-midwalk-not-closed-verification-gap",
+      "not_proven": [
+        "full checker gate",
+        "temp fixture execution",
+        "original live-yard named-building reproduction"
+      ],
+      "proof_limits": [
+        "non-binding Agent return evidence only",
+        "does not choose Movement",
+        "does not choose target",
+        "does not judge success or quality"
+      ],
+      "reason_refs": [
+        "command:check_profile.py --profile read_side_projection_boundary exit1 operation-not-permitted fixture creation",
+        "command:run_dashboard_productization_projection exit1 no-usable-temporary-directory",
+        "project/brick-protocol/buildings:f9b-midwalk-not-closed not_observed",
+        "project/brick-protocol/buildings:onboarding-legacy-scrub-0612 not_observed",
+        "project/brick-protocol/buildings:provider-ladder-fleet-presets-0612 not_observed"
+      ],
+      "related_boundary_refs": [
+        "brick-code-attack-qa",
+        "brick-closure"
+      ]
+    }
+  },
+  "returned_fact_ref": "agent-fact:03:f9b-midwalk-not-closed-closure",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:f9b-midwalk-not-closed",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:f9b-midwalk-not-closed-closure:attempt-1",
+  "step_ref": "f9b-midwalk-not-closed-closure",
+  "subject": "f9b-midwalk-not-closed-closure",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T06:19:33.638111Z",
+  "transition_concern_ref": "work/step-outputs/f9b-midwalk-not-closed-closure-attempt-1/transition-concern.json",
+  "type": "bp.step_output"
+}

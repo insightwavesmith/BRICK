@@ -1,0 +1,524 @@
+{
+  "brick_steps": [
+    {
+      "completion_edge_ref": "edge:provider-ladder-fleet-presets-0612-design-to-provider-ladder-fleet-presets-0612-work",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-provider-ladder-fleet-presets-0612-design",
+          "brick_work_ref": "work:provider-ladder-fleet-presets-0612-design",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence,design_summary,relevant_current_structure,proposed_changes,unchanged_surfaces,axis_responsibility,invariants,edge_cases,checker_or_verifier_plan,candidate_file_changes,evidence_refs,not_proven",
+          "row_ref": "brick-row:provider-ladder-fleet-presets-0612-design",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "design Brick for task-source:inline-statement: Open the BUILDER-side path for per-step provider/model selection (the ENGINE already honors step-level selected_adapter_ref/selected_model_ref \u2014 plan_validation.py:156-163 falls back step->plan; verified) and add fleet presets so recon/revi"
+        },
+        {
+          "agent_object_ref": "agent-object:design-lead",
+          "axis": "Agent",
+          "row_ref": "agent-row:provider-ladder-fleet-presets-0612-design"
+        }
+      ],
+      "step_ref": "provider-ladder-fleet-presets-0612-design",
+      "step_template_ref": "building-step-template:design"
+    },
+    {
+      "completion_edge_ref": "edge:provider-ladder-fleet-presets-0612-work-to-provider-ladder-fleet-presets-0612-code-attack-qa",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-provider-ladder-fleet-presets-0612-work",
+          "brick_work_ref": "work:provider-ladder-fleet-presets-0612-work",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "made_changes, observed_evidence, not_proven",
+          "requires_brick_write_scope": true,
+          "row_ref": "brick-row:provider-ladder-fleet-presets-0612-work",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "work Brick for task-source:inline-statement: Open the BUILDER-side path for per-step provider/model selection (the ENGINE already honors step-level selected_adapter_ref/selected_model_ref \u2014 plan_validation.py:156-163 falls back step->plan; verified) and add fleet presets so recon/revi",
+          "write_scope": {
+            "allowed_paths": [
+              "support/*",
+              "brick/templates/*",
+              "brick/building_plans/*",
+              "agent/objects/*"
+            ],
+            "forbidden_paths": [
+              "link/*",
+              "agent/prompts/*",
+              "project/*",
+              ".git/*",
+              "README.md",
+              "brick/building.py",
+              "brick/building.yaml",
+              "brick/work.py",
+              "brick/work.yaml",
+              "brick/comparison.py",
+              "brick/comparison.yaml",
+              "AGENTS.md",
+              "pyproject.toml",
+              "uv.lock"
+            ]
+          }
+        },
+        {
+          "agent_object_ref": "agent-object:dev",
+          "axis": "Agent",
+          "row_ref": "agent-row:provider-ladder-fleet-presets-0612-work"
+        }
+      ],
+      "step_ref": "provider-ladder-fleet-presets-0612-work",
+      "step_template_ref": "building-step-template:work"
+    },
+    {
+      "completion_edge_ref": "edge:provider-ladder-fleet-presets-0612-code-attack-qa-to-provider-ladder-fleet-presets-0612-closure",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-provider-ladder-fleet-presets-0612-code-attack-qa",
+          "brick_work_ref": "work:provider-ladder-fleet-presets-0612-code-attack-qa",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, evidence_used, not_proven",
+          "row_ref": "brick-row:provider-ladder-fleet-presets-0612-code-attack-qa",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "code_attack_qa Brick for task-source:inline-statement: Open the BUILDER-side path for per-step provider/model selection (the ENGINE already honors step-level selected_adapter_ref/selected_model_ref \u2014 plan_validation.py:156-163 falls back step->plan; verified) and add fleet presets so recon/revi"
+        },
+        {
+          "agent_object_ref": "agent-object:qa",
+          "axis": "Agent",
+          "row_ref": "agent-row:provider-ladder-fleet-presets-0612-code-attack-qa"
+        }
+      ],
+      "step_ref": "provider-ladder-fleet-presets-0612-code-attack-qa",
+      "step_template_ref": "building-step-template:code-attack-qa"
+    },
+    {
+      "completion_edge_ref": "edge:provider-ladder-fleet-presets-0612-axis-attack-qa-to-provider-ladder-fleet-presets-0612-closure",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-provider-ladder-fleet-presets-0612-axis-attack-qa",
+          "brick_work_ref": "work:provider-ladder-fleet-presets-0612-axis-attack-qa",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence, attacked_scope, brick_axis_findings, agent_axis_findings, link_axis_findings, support_leak_findings, projection_authority_findings, evidence_used, not_proven",
+          "row_ref": "brick-row:provider-ladder-fleet-presets-0612-axis-attack-qa",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "axis_attack_qa Brick for task-source:inline-statement: Open the BUILDER-side path for per-step provider/model selection (the ENGINE already honors step-level selected_adapter_ref/selected_model_ref \u2014 plan_validation.py:156-163 falls back step->plan; verified) and add fleet presets so recon/revi"
+        },
+        {
+          "agent_object_ref": "agent-object:inspector",
+          "axis": "Agent",
+          "row_ref": "agent-row:provider-ladder-fleet-presets-0612-axis-attack-qa"
+        }
+      ],
+      "step_ref": "provider-ladder-fleet-presets-0612-axis-attack-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa"
+    },
+    {
+      "completion_edge_ref": "edge:provider-ladder-fleet-presets-0612-evidence-integrity-to-provider-ladder-fleet-presets-0612-closure",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-provider-ladder-fleet-presets-0612-evidence-integrity",
+          "brick_work_ref": "work:provider-ladder-fleet-presets-0612-evidence-integrity",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence, evidence_scope, persisted_evidence_roots, proof_limit_findings, stale_source_risks, checker_overclaim_risks, missing_evidence, evidence_used, not_proven",
+          "row_ref": "brick-row:provider-ladder-fleet-presets-0612-evidence-integrity",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "evidence_integrity Brick for task-source:inline-statement: Open the BUILDER-side path for per-step provider/model selection (the ENGINE already honors step-level selected_adapter_ref/selected_model_ref \u2014 plan_validation.py:156-163 falls back step->plan; verified) and add fleet presets so recon/revi"
+        },
+        {
+          "agent_object_ref": "agent-object:inspector",
+          "axis": "Agent",
+          "row_ref": "agent-row:provider-ladder-fleet-presets-0612-evidence-integrity"
+        }
+      ],
+      "step_ref": "provider-ladder-fleet-presets-0612-evidence-integrity",
+      "step_template_ref": "building-step-template:evidence-integrity"
+    },
+    {
+      "completion_edge_ref": "edge:provider-ladder-fleet-presets-0612-closure-to-boundary",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-provider-ladder-fleet-presets-0612-closure",
+          "brick_work_ref": "work:provider-ladder-fleet-presets-0612-closure",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence",
+          "row_ref": "brick-row:provider-ladder-fleet-presets-0612-closure",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "closure Brick for task-source:inline-statement: Open the BUILDER-side path for per-step provider/model selection (the ENGINE already honors step-level selected_adapter_ref/selected_model_ref \u2014 plan_validation.py:156-163 falls back step->plan; verified) and add fleet presets so recon/revi"
+        },
+        {
+          "agent_object_ref": "agent-object:coo",
+          "axis": "Agent",
+          "row_ref": "agent-row:provider-ladder-fleet-presets-0612-closure"
+        }
+      ],
+      "step_ref": "provider-ladder-fleet-presets-0612-closure",
+      "step_template_ref": "building-step-template:closure"
+    }
+  ],
+  "building_id": "provider-ladder-fleet-presets-0612",
+  "chain_preset_ref": "building-chain-preset:brick-protocol-engine-feature-hard",
+  "composition_mode": "caller_or_coo_declared_graph_composition",
+  "declared_by": "caller-claude-operator",
+  "execution_order": [
+    "provider-ladder-fleet-presets-0612-design",
+    "provider-ladder-fleet-presets-0612-work",
+    "provider-ladder-fleet-presets-0612-code-attack-qa",
+    "provider-ladder-fleet-presets-0612-axis-attack-qa",
+    "provider-ladder-fleet-presets-0612-evidence-integrity",
+    "provider-ladder-fleet-presets-0612-closure"
+  ],
+  "groups": [
+    {
+      "group_id": "group:provider-ladder-fleet-presets-0612-fan-out",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:provider-ladder-fleet-presets-0612-work-to-provider-ladder-fleet-presets-0612-code-attack-qa",
+        "edge:provider-ladder-fleet-presets-0612-work-to-provider-ladder-fleet-presets-0612-axis-attack-qa",
+        "edge:provider-ladder-fleet-presets-0612-work-to-provider-ladder-fleet-presets-0612-evidence-integrity"
+      ]
+    },
+    {
+      "group_id": "group:provider-ladder-fleet-presets-0612-fan-in",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:provider-ladder-fleet-presets-0612-code-attack-qa-to-provider-ladder-fleet-presets-0612-closure",
+        "edge:provider-ladder-fleet-presets-0612-axis-attack-qa-to-provider-ladder-fleet-presets-0612-closure",
+        "edge:provider-ladder-fleet-presets-0612-evidence-integrity-to-provider-ladder-fleet-presets-0612-closure"
+      ]
+    }
+  ],
+  "link_edges": [
+    {
+      "edge_ref": "edge:provider-ladder-fleet-presets-0612-design-to-provider-ladder-fleet-presets-0612-work",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition",
+            "link-gate:coo"
+          ],
+          "gate_sequence_policy": [
+            {
+              "gate_ref": "link-gate:default-transition",
+              "on_missing_required_facts": {
+                "action": "reroute",
+                "reason_refs": [
+                  "observation:default-transition-missing-required-facts"
+                ],
+                "required_target_budget": true,
+                "target_basis": "source_brick"
+              },
+              "on_sufficient": {
+                "action": "next",
+                "next_gate_ref": "link-gate:coo"
+              }
+            },
+            {
+              "gate_ref": "link-gate:coo",
+              "on_missing_required_facts": {
+                "action": "HOLD",
+                "pending_target_basis": "target_brick",
+                "reason_refs": [
+                  "observation:coo-gate-missing-required-facts"
+                ],
+                "required_disposition_owner": "coo"
+              },
+              "on_sufficient": {
+                "action": "forward"
+              }
+            }
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:provider-ladder-fleet-presets-0612-design-to-provider-ladder-fleet-presets-0612-work",
+          "target_ref": "brick-provider-ladder-fleet-presets-0612-work"
+        }
+      ],
+      "source_step_ref": "provider-ladder-fleet-presets-0612-design",
+      "target_step_ref": "provider-ladder-fleet-presets-0612-work"
+    },
+    {
+      "edge_ref": "edge:provider-ladder-fleet-presets-0612-work-to-provider-ladder-fleet-presets-0612-code-attack-qa",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition"
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:provider-ladder-fleet-presets-0612-work-to-provider-ladder-fleet-presets-0612-code-attack-qa",
+          "target_ref": "brick-provider-ladder-fleet-presets-0612-code-attack-qa"
+        }
+      ],
+      "source_step_ref": "provider-ladder-fleet-presets-0612-work",
+      "target_step_ref": "provider-ladder-fleet-presets-0612-code-attack-qa"
+    },
+    {
+      "edge_ref": "edge:provider-ladder-fleet-presets-0612-work-to-provider-ladder-fleet-presets-0612-axis-attack-qa",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition"
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:provider-ladder-fleet-presets-0612-work-to-provider-ladder-fleet-presets-0612-axis-attack-qa",
+          "target_ref": "brick-provider-ladder-fleet-presets-0612-axis-attack-qa"
+        }
+      ],
+      "source_step_ref": "provider-ladder-fleet-presets-0612-work",
+      "target_step_ref": "provider-ladder-fleet-presets-0612-axis-attack-qa"
+    },
+    {
+      "edge_ref": "edge:provider-ladder-fleet-presets-0612-work-to-provider-ladder-fleet-presets-0612-evidence-integrity",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition"
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:provider-ladder-fleet-presets-0612-work-to-provider-ladder-fleet-presets-0612-evidence-integrity",
+          "target_ref": "brick-provider-ladder-fleet-presets-0612-evidence-integrity"
+        }
+      ],
+      "source_step_ref": "provider-ladder-fleet-presets-0612-work",
+      "target_step_ref": "provider-ladder-fleet-presets-0612-evidence-integrity"
+    },
+    {
+      "edge_ref": "edge:provider-ladder-fleet-presets-0612-code-attack-qa-to-provider-ladder-fleet-presets-0612-closure",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition",
+            "link-gate:strict"
+          ],
+          "gate_concept_provenance": {
+            "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+            "tokens": [
+              "strict-evidence"
+            ]
+          },
+          "movement": "forward",
+          "row_ref": "link-row:edge:provider-ladder-fleet-presets-0612-code-attack-qa-to-provider-ladder-fleet-presets-0612-closure",
+          "target_ref": "brick-provider-ladder-fleet-presets-0612-closure"
+        }
+      ],
+      "source_step_ref": "provider-ladder-fleet-presets-0612-code-attack-qa",
+      "target_step_ref": "provider-ladder-fleet-presets-0612-closure"
+    },
+    {
+      "edge_ref": "edge:provider-ladder-fleet-presets-0612-axis-attack-qa-to-provider-ladder-fleet-presets-0612-closure",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition",
+            "link-gate:strict"
+          ],
+          "gate_concept_provenance": {
+            "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+            "tokens": [
+              "strict-evidence"
+            ]
+          },
+          "movement": "forward",
+          "row_ref": "link-row:edge:provider-ladder-fleet-presets-0612-axis-attack-qa-to-provider-ladder-fleet-presets-0612-closure",
+          "target_ref": "brick-provider-ladder-fleet-presets-0612-closure"
+        }
+      ],
+      "source_step_ref": "provider-ladder-fleet-presets-0612-axis-attack-qa",
+      "target_step_ref": "provider-ladder-fleet-presets-0612-closure"
+    },
+    {
+      "edge_ref": "edge:provider-ladder-fleet-presets-0612-evidence-integrity-to-provider-ladder-fleet-presets-0612-closure",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition",
+            "link-gate:strict"
+          ],
+          "gate_concept_provenance": {
+            "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+            "tokens": [
+              "strict-evidence"
+            ]
+          },
+          "movement": "forward",
+          "row_ref": "link-row:edge:provider-ladder-fleet-presets-0612-evidence-integrity-to-provider-ladder-fleet-presets-0612-closure",
+          "target_ref": "brick-provider-ladder-fleet-presets-0612-closure"
+        }
+      ],
+      "source_step_ref": "provider-ladder-fleet-presets-0612-evidence-integrity",
+      "target_step_ref": "provider-ladder-fleet-presets-0612-closure"
+    },
+    {
+      "edge_ref": "edge:provider-ladder-fleet-presets-0612-closure-to-boundary",
+      "rows": [
+        {
+          "axis": "Link",
+          "building_lifecycle": {
+            "reason": "declared closure boundary for provider-ladder-fleet-presets-0612",
+            "state": "closed"
+          },
+          "declared_gate_refs": [
+            "link-gate:default-transition",
+            "link-gate:coo",
+            "link-gate:human"
+          ],
+          "gate_concept_provenance": {
+            "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+            "tokens": [
+              "coo-review",
+              "human-review"
+            ]
+          },
+          "gate_sequence_policy": [
+            {
+              "gate_ref": "link-gate:human",
+              "on_missing_required_facts": {
+                "action": "hold",
+                "pending_target_basis": "source_brick",
+                "reason_refs": [
+                  "observation:human-gate-disposition-missing"
+                ],
+                "required_disposition_owner": "caller-or-coo"
+              },
+              "on_sufficient": {
+                "action": "forward"
+              }
+            }
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:provider-ladder-fleet-presets-0612-closure-to-boundary",
+          "target_ref": "building-boundary:provider-ladder-fleet-presets-0612-closed"
+        }
+      ],
+      "source_step_ref": "provider-ladder-fleet-presets-0612-closure"
+    }
+  ],
+  "materialization_rule": "caller_or_coo_declared_task_source_plus_graph_chain_preset",
+  "node_reroute_budgets": {
+    "brick-provider-ladder-fleet-presets-0612-design": 1,
+    "brick-provider-ladder-fleet-presets-0612-work": 1
+  },
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality"
+  ],
+  "owner_axis": "Brick",
+  "plan_ref": "building-plan:provider-ladder-fleet-presets-0612",
+  "plan_shape": "graph",
+  "preset_expansion": {
+    "agent_object_refs": [
+      "agent-object:design-lead",
+      "agent-object:dev",
+      "agent-object:qa",
+      "agent-object:inspector",
+      "agent-object:inspector",
+      "agent-object:coo"
+    ],
+    "canonical_chain_preset_ref": "building-chain-preset:brick-protocol-engine-feature-hard",
+    "chain_preset_ref": "building-chain-preset:brick-protocol-engine-feature-hard",
+    "chain_preset_requires_graph": true,
+    "expanded_brick_spec_refs": [
+      "brick/templates/bricks/design/brick.md",
+      "brick/templates/bricks/work/brick.md",
+      "brick/templates/bricks/code-attack-qa/brick.md",
+      "brick/templates/bricks/axis-attack-qa/brick.md",
+      "brick/templates/bricks/evidence-integrity/brick.md",
+      "brick/templates/bricks/closure/brick.md"
+    ],
+    "expanded_brick_template_refs": [
+      "brick/templates/bricks/design/return.yaml",
+      "brick/templates/bricks/transition-concern-return.yaml",
+      "brick/templates/bricks/work/return.yaml",
+      "brick/templates/bricks/code-attack-qa/return.yaml",
+      "brick/templates/bricks/axis-attack-qa/return.yaml",
+      "brick/templates/bricks/evidence-integrity/return.yaml",
+      "brick/templates/bricks/closure/return.yaml"
+    ],
+    "expanded_step_template_refs": [
+      "building-step-template:design",
+      "building-step-template:work",
+      "building-step-template:code-attack-qa",
+      "building-step-template:axis-attack-qa",
+      "building-step-template:evidence-integrity",
+      "building-step-template:closure"
+    ],
+    "not_proven": [
+      "semantic fitness of selected shape",
+      "selected preset ref was not declared unless separately present"
+    ],
+    "proof_limits": [
+      "support records caller / COO declared graph composition only",
+      "not automatic preset selection",
+      "not automatic shape selection",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "selected_shape_ref": "building-shape:design-needed",
+    "selection_rule": "caller_or_coo_declared_only"
+  },
+  "project_ref": "project:brick-protocol",
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "route_policy_provenance": {
+    "allowed_provenance": [
+      "per-building",
+      "preset-default"
+    ],
+    "by_node": {
+      "provider-ladder-fleet-presets-0612-closure": {
+        "closure_transition_target_policy": "preset-default"
+      },
+      "provider-ladder-fleet-presets-0612-design": {
+        "node_reroute_budget": "preset-default"
+      },
+      "provider-ladder-fleet-presets-0612-work": {
+        "node_reroute_budget": "preset-default"
+      }
+    },
+    "rule": "route reroute budget + closure routing policy are HUMAN Movement decisions; support records but never synthesizes them (provenance is preset-default for a reusable preset default or per-building for a per-Building override, NEVER support)"
+  },
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:default",
+  "selected_shape_ref": "building-shape:design-needed",
+  "selection_rule": "caller_or_coo_declared_only",
+  "task_source_hash": "4e6e5c5c6b7bfccbfeb0f69d9b2e423d3fc7f0dcf8a0f2d5b5c3e4bfc4772a9f",
+  "task_source_hash_algorithm": "sha256",
+  "task_source_hash_basis": "utf-8 inline task_statement body at materialization time",
+  "task_source_ref": "task-source:inline-statement",
+  "task_statement": "# D: Provider ladder + fleet presets \u2014 per-step LLM selection and mixed-provider fleets\n\n## Objective\nOpen the BUILDER-side path for per-step provider/model selection (the ENGINE already honors step-level selected_adapter_ref/selected_model_ref \u2014 plan_validation.py:156-163 falls back step->plan; verified) and add fleet presets so recon/review fan-outs run as buildings with mixed lanes.\n\n## Deliverables\n1. **Intake/preset per-step declaration**: a preset step entry (and/or intent override keyed by step_template_ref) may declare selected_adapter_ref and selected_model_ref; the materializer (support/operator/composition.py \u2014 today it stamps ONE building-wide adapter, ~line 280) stamps them per-step. Building-wide value stays the default for undeclared steps. Capability law unchanged: a step's lane must declare that adapter in its agent object adapter_refs (the existing loud reject \u2014 keep it biting; add a FIRE case for a per-step adapter the lane does not declare).\n2. **Lane preference (optional tier)**: agent objects may declare ONE preferred_adapter_ref (agent/objects/*.yaml \u2014 additive key); resolution ladder: step declaration > lane preference > building default. Validate preference is within the lane's declared adapter_refs (loud reject otherwise). Update the projection checkers if they pin the agent yaml closed key set.\n3. **Fleet presets** (brick/templates/presets/): 'recon-fleet' \u2014 fan-out N read-only survey steps (reviewer/inspector lanes, read tier) -> fan-in synthesis step -> closure; 'review-fleet' \u2014 fan-out adversarial review lenses -> fan-in verdict synthesis -> closure. Both graph-shaped with gate profiles consistent with house compliant presets (fan-in-wait-all + strict-evidence; reroute lanes per C1 rule: any preset declaring inspection gates must declare repeat lanes \u2014 follow the 4 compliant presets' shape). Default lanes codex; one lens MAY be claude-local per the provider policy (declare it in the preset as the example of per-step selection).\n4. **Pins + FIRE**: per-step adapter stamped into the declared plan (mutated materializer ignoring step declaration -> RED); undeclared-capability per-step adapter -> loud reject; preference outside adapter_refs -> reject; fleet presets pass the catalog/restructure checkers; C1 rule holds for the new presets.\n5. Full gate -> exit 0 (say which checkout/copy).\n\n## Constraints\nWrite scope: support/*, brick/templates/*, brick/building_plans/*, agent/objects/* (additive key only). No link/ edits; no new Link vocabulary; no scheduler. Engine walk order unchanged (sequential walking accepted; no parallel runtime). No pin weakening. Provider policy context: builds default codex; claude reserved for at most one review lens.\n"
+}

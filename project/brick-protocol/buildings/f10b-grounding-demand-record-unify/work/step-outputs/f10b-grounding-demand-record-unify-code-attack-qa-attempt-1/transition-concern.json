@@ -1,0 +1,90 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:f10b-grounding-demand-record-unify::work/step-outputs/f10b-grounding-demand-record-unify-code-attack-qa-attempt-1/transition-concern.json",
+  "agent_object_ref": "agent-object:qa",
+  "attempt_index": 1,
+  "binding": false,
+  "building_id": "f10b-grounding-demand-record-unify",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-06-12T06:17:59.586098Z",
+  "id": "urn:bp:building:f10b-grounding-demand-record-unify::work/step-outputs/f10b-grounding-demand-record-unify-code-attack-qa-attempt-1/transition-concern.json",
+  "link_role": "non-binding Agent transition concern evidence only",
+  "not_proven": [
+    "semantic fitness of selected chain preset",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "transition concern semantic correctness",
+    "Link disposition correctness",
+    "automatic repair/replay execution"
+  ],
+  "proof_limits": [
+    "task source is pre-run input evidence, not an automatic plan selector",
+    "chain preset is a caller / COO selection candidate only",
+    "not automatic shape selection",
+    "not Building Plan authoring from task text",
+    "support materializes caller / COO declared task source and preset only",
+    "not automatic preset selection",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "transition_concern_evidence is Agent returned evidence only",
+    "not Link Movement",
+    "not Link target choice",
+    "not route policy matching",
+    "not route materialization",
+    "not automatic repair/replay execution",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-06-12T06:17:59.586098Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:f10b-grounding-demand-record-unify",
+  "specversion": "1.0",
+  "step_output_ref": "work/step-outputs/f10b-grounding-demand-record-unify-code-attack-qa-attempt-1/step-output.json",
+  "step_ref": "f10b-grounding-demand-record-unify-code-attack-qa",
+  "subject": "f10b-grounding-demand-record-unify-code-attack-qa",
+  "time": "2026-06-12T06:17:59.586098Z",
+  "transition_boundary": "Agent concern only; Link may adopt, not adopt, or override",
+  "transition_concern_ref": "transition-concern:f10b-grounding-demand-record-unify-code-attack-qa:attempt-1",
+  "transition_concern_returned": {
+    "binding": false,
+    "concern_kind": "verification_gap",
+    "concern_ref": "transition-concern:f10b-full-profile-tempdir-not-observed",
+    "not_proven": [
+      "full check_profile --all exit 0 in /Users/smith/projects/BRICK-wt-f10",
+      "current operating packet file presence in this checkout",
+      "future consumers will not bypass claim-body filtering and read raw gate sequence required_public_facts as resolver-facing refs"
+    ],
+    "proof_limits": [
+      "QA support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "reason_refs": [
+      "cmd:check_profile_all:no-usable-temporary-directory",
+      "cmd:building_skill_profile:no-usable-temporary-directory",
+      "file:archive/status-kernel/current-brick-operating-packet-0531.md:not_observed"
+    ],
+    "related_boundary_refs": [
+      "brick-code-attack-qa"
+    ]
+  },
+  "type": "bp.step_output.transition_concern"
+}

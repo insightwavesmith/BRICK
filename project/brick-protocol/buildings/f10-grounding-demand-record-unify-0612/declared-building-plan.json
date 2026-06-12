@@ -1,0 +1,190 @@
+{
+  "building_id": "f10-grounding-demand-record-unify-0612",
+  "chain_preset_ref": "building-chain-preset:fast-fix",
+  "composition_mode": "caller_or_coo_declared_linear_composition",
+  "declared_by": "caller-claude-operator",
+  "materialization_rule": "caller_or_coo_declared_task_source_plus_linear_chain_preset",
+  "not_proven": [
+    "semantic fitness of selected chain preset",
+    "future Building run correctness",
+    "future Agent or provider quality"
+  ],
+  "owner_axis": "Brick",
+  "plan_ref": "building-plan:f10-grounding-demand-record-unify-0612",
+  "plan_shape": "linear",
+  "project_ref": "project:brick-protocol",
+  "proof_limits": [
+    "task source is pre-run input evidence, not an automatic plan selector",
+    "chain preset is a caller / COO selection candidate only",
+    "not automatic shape selection",
+    "not Building Plan authoring from task text",
+    "support materializes caller / COO declared task source and preset only",
+    "not automatic preset selection",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:default",
+  "selected_shape_ref": "building-shape:reviewable-work",
+  "step_template_expansion": {
+    "expanded_brick_spec_refs": [
+      "brick/templates/bricks/work/brick.md",
+      "brick/templates/bricks/code-attack-qa/brick.md",
+      "brick/templates/bricks/closure/brick.md"
+    ],
+    "expanded_brick_template_refs": [
+      "brick/templates/bricks/work/return.yaml",
+      "brick/templates/bricks/transition-concern-return.yaml",
+      "brick/templates/bricks/code-attack-qa/return.yaml",
+      "brick/templates/bricks/closure/return.yaml"
+    ],
+    "expanded_step_template_refs": [
+      "building-step-template:work",
+      "building-step-template:code-attack-qa",
+      "building-step-template:closure"
+    ],
+    "expansion_rule": "step templates expand only after caller / COO selected chain, shape, and target refs",
+    "not_proven": [
+      "semantic fitness of selected chain preset or step template",
+      "future Building run correctness",
+      "future Agent or provider quality"
+    ],
+    "proof_limits": [
+      "step template expansion support rendering only",
+      "not automatic shape selection",
+      "not target inference",
+      "not Movement choice",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "registry_ref": "brick-template-catalog:split-p3b-p4",
+    "selection_rule": "caller_or_coo_declared_only"
+  },
+  "steps": [
+    {
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-work",
+          "brick_work_ref": "work:f10-grounding-demand-record-unify-0612-work",
+          "comparison_rule": "Observe declared task source and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "received_work_ref,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven",
+          "requires_brick_write_scope": true,
+          "row_ref": "brick-row:f10-grounding-demand-record-unify-0612-work",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "work Brick for task-source:inline-statement: # F10: review gates RECORD the grounding fact ref without DEMANDING it (demand/record split)",
+          "write_scope": {
+            "allowed_paths": [
+              "support/*"
+            ],
+            "forbidden_paths": [
+              "link/*",
+              "agent/*",
+              "brick/*",
+              "project/*",
+              ".git/*",
+              "AGENTS.md",
+              "pyproject.toml",
+              "uv.lock"
+            ]
+          }
+        },
+        {
+          "agent_object_ref": "agent-object:dev",
+          "axis": "Agent",
+          "row_ref": "f10-grounding-demand-record-unify-0612-work:agent"
+        },
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition"
+          ],
+          "movement": "forward",
+          "row_ref": "f10-grounding-demand-record-unify-0612-work:link",
+          "target_ref": "brick-code-attack-qa"
+        }
+      ],
+      "step_ref": "f10-grounding-demand-record-unify-0612-work",
+      "step_template_ref": "building-step-template:work"
+    },
+    {
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-code-attack-qa",
+          "brick_work_ref": "work:f10-grounding-demand-record-unify-0612-code-attack-qa",
+          "comparison_rule": "Observe declared task source and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence,attacked_work,checked_sources,regression_risks,negative_probe_observations,failing_or_missing_probes,boundary_violations,transition_concern_evidence,evidence_used,not_proven",
+          "row_ref": "brick-row:f10-grounding-demand-record-unify-0612-code-attack-qa",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "code_attack_qa Brick for task-source:inline-statement: # F10: review gates RECORD the grounding fact ref without DEMANDING it (demand/record split)"
+        },
+        {
+          "agent_object_ref": "agent-object:qa",
+          "axis": "Agent",
+          "row_ref": "f10-grounding-demand-record-unify-0612-code-attack-qa:agent"
+        },
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition"
+          ],
+          "movement": "forward",
+          "row_ref": "f10-grounding-demand-record-unify-0612-code-attack-qa:link",
+          "target_ref": "brick-closure"
+        }
+      ],
+      "step_ref": "f10-grounding-demand-record-unify-0612-code-attack-qa",
+      "step_template_ref": "building-step-template:code-attack-qa"
+    },
+    {
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-closure",
+          "brick_work_ref": "work:f10-grounding-demand-record-unify-0612-closure",
+          "comparison_rule": "Observe declared task source and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence",
+          "row_ref": "brick-row:f10-grounding-demand-record-unify-0612-closure",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "closure Brick for task-source:inline-statement: # F10: review gates RECORD the grounding fact ref without DEMANDING it (demand/record split)"
+        },
+        {
+          "agent_object_ref": "agent-object:coo",
+          "axis": "Agent",
+          "row_ref": "f10-grounding-demand-record-unify-0612-closure:agent"
+        },
+        {
+          "axis": "Link",
+          "building_lifecycle": {
+            "reason": "declared closure boundary for f10-grounding-demand-record-unify-0612",
+            "state": "closed"
+          },
+          "declared_gate_refs": [
+            "link-gate:default-transition"
+          ],
+          "movement": "forward",
+          "row_ref": "f10-grounding-demand-record-unify-0612-closure:link",
+          "target_ref": "building-boundary:f10-grounding-demand-record-unify-0612-closed"
+        }
+      ],
+      "step_ref": "f10-grounding-demand-record-unify-0612-closure",
+      "step_template_ref": "building-step-template:closure"
+    }
+  ],
+  "task_source_hash": "2bc1b690f7c5ff86d94c29906544f2445b1340f142937405a16d41c64a1d3881",
+  "task_source_hash_algorithm": "sha256",
+  "task_source_hash_basis": "utf-8 inline task_statement body at materialization time",
+  "task_source_ref": "task-source:inline-statement",
+  "task_statement": "# F10: review gates RECORD the grounding fact ref without DEMANDING it (demand/record split)\n\nObserved: notify-customer-language-autowire-0612 closed with review QA returns whose evidence_used carried NO repository artifacts, yet its sufficiency traces RECORD 'BrickComparisonFact...evidence_used.repository_artifact_ref' \u2014 the gate forwarded (no demand) while the lifecycle resolver cannot resolve the recorded ref. Two dated registry entries (PRE_GROUNDING_LAW_BUILDING_IDS in check_building_lifecycle_path_shape.py) currently grandfather this transition; YOUR repair closes the class so no third entry is ever needed.\n\nREQUIRED: unify demand and record through ONE predicate/source (house principle): a gate that RECORDS the grounding fact ref must have DEMANDED it (missing artifacts -> missing required facts -> the declared gate behavior fires: hold/reroute per policy), and a gate that does not demand for a given return shape must NOT record the ref. Inspect support/operator/run.py (~1545-1574), gate_sequence.py (~80-83, 250-255), plan_validation.py grounding fact declaration (~78-87, 596-656) and make the demand-set and record-set provably identical (single shared function both sides call).\nPROOF: temp drives: (a) review return WITHOUT artifacts -> gate reports missing required fact (does NOT forward silently) and no unresolvable ref is recorded; (b) review return WITH artifacts -> forwards and the recorded ref resolves; (c) non-review shape -> no grounding demand, no grounding ref recorded. FIRE: mutate the shared predicate out of one side -> checker RED (add/extend pin).\nFull gate -> exit 0 (say which checkout/copy). Constraints: support/* only; fails-closed; no pin weakening; do not touch the two dated registry entries (history).\n"
+}

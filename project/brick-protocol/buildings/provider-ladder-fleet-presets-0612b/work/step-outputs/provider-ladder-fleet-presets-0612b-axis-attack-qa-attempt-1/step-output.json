@@ -1,0 +1,188 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:provider-ladder-fleet-presets-0612b::work/step-outputs/provider-ladder-fleet-presets-0612b-axis-attack-qa-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:inspector",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-provider-ladder-fleet-presets-0612b-axis-attack-qa",
+  "building_id": "provider-ladder-fleet-presets-0612b",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:04",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T07:05:09.247635Z",
+  "id": "urn:bp:building:provider-ladder-fleet-presets-0612b::work/step-outputs/provider-ladder-fleet-presets-0612b-axis-attack-qa-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:04:provider-ladder-fleet-presets-0612b-axis-attack-qa",
+  "recorded_at": "2026-06-12T07:05:09.247635Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_axis_findings": [
+      "preferred_adapter_ref is admitted as an additive Agent Object key and is validated against adapter_refs in support/connection/agent_resources.py.",
+      "pm-lead declares preferred_adapter_ref adapter:codex-local and its adapter_refs include adapter:codex-local.",
+      "Step adapter selection validates selected adapters against the resolved Agent Object adapter_refs.",
+      "No credential, setup token, provider session body, success/failure, or quality field was observed in the added Agent Object surface."
+    ],
+    "agent_object_ref": "agent-object:inspector",
+    "attacked_scope": [
+      "provider/model ladder in support/operator/composition.py and support/operator/plan_rendering.py",
+      "preferred_adapter_ref admission in agent resources, primitives, contracts, and run packet parsing",
+      "new recon-fleet and review-fleet preset declarations",
+      "new checker/profile pins for per-step adapter stamping, undeclared adapter rejection, and preferred adapter rejection",
+      "authority-leak scan over changed support/Brick/Agent surfaces"
+    ],
+    "blocked_or_missing_evidence": [
+      "Profile runner and catalog checker both rejected before running because no usable temporary directory exists in the read-only sandbox.",
+      "Prior-attempt full-gate temp-copy evidence was not present in the inspected task packet.",
+      "No Claude/Gemini model review was run in this inspector lane.",
+      "No full-gate temp source copy could be created by this read-only reviewer."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "brick_axis_findings": [
+      "No observed new Brick fact class or Movement vocabulary in the inspected diff.",
+      "Fleet presets are Brick template declarations under brick/templates/presets and carry graph shape, declared target_word rows, gate_concept_profile, node_reroute_budgets, closure_transition_target_policy, and proof_limits.",
+      "Materialized review-fleet and recon-fleet both produced graph plans with declared fan_out and fan_in groups in the live read-only probes.",
+      "Per-step selected_adapter_ref and selected_model_ref are stamped on materialized Brick steps when declared by the preset."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:provider-ladder-fleet-presets-0612b",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:provider-ladder-fleet-presets-0612b:agent-object:inspector:output"
+    ],
+    "evidence_used": [
+      "AGENTS.md",
+      "project/brick-protocol/PROGRESS.md",
+      "git status --short",
+      "git diff --stat",
+      "support/operator/composition.py",
+      "support/operator/plan_rendering.py",
+      "support/operator/plan_validation.py",
+      "support/operator/run.py",
+      "support/operator/contracts.py",
+      "support/operator/primitives.py",
+      "support/connection/agent_resources.py",
+      "agent/objects/pm-lead.yaml",
+      "agent/objects/qa.yaml",
+      "agent/objects/inspector.yaml",
+      "brick/templates/presets/recon-fleet.md",
+      "brick/templates/presets/review-fleet.md",
+      "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml",
+      "support/checkers/profiles/structure_template_integrity.yaml",
+      "support/checkers/lib/case_runners.py",
+      "support/checkers/lib/rule_runners.py",
+      "PYTHONDONTWRITEBYTECODE=1 python3 -c AST parse",
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 -c materialize/render probes"
+    ],
+    "link_axis_findings": [
+      "Materialized Link rows used Movement forward only in the live probes.",
+      "No link/ files were changed.",
+      "review-fleet materialized strict gates on fan-in review lanes and default-transition on the terminal closure boundary.",
+      "recon-fleet materialized default-transition plus strict gates on inspect/fan-in rows and default-transition on the terminal closure boundary.",
+      "No observed support-chosen target: targets came from preset target_word graph expansion and terminal boundary construction."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Full gate in a temp source copy exit 0",
+      "support/checkers/check_profile.py --all",
+      "building_skill_preset_agent_tool_hardening full profile pass",
+      "brick template catalog restructure checker pass",
+      "provider availability or provider quality",
+      "Codex/Claude native sync",
+      "future Building correctness",
+      "runtime walker execution of the new fleet plans",
+      "semantic fitness of recon-fleet/review-fleet for every future task",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority"
+    ],
+    "observed_evidence": [
+      "Worktree has modified support/operator, support/connection, support/checkers, agent/objects/pm-lead.yaml, plus new brick/templates/presets/recon-fleet.md and review-fleet.md.",
+      "AST parse of 9 touched Python files returned ast-parse-ok.",
+      "Live read-only materializer probe for review-fleet returned graph shape, five brick_steps, per-step adapters [codex, claude, codex, codex, codex], and per-step models [default, claude:sonnet, default, default, default].",
+      "Live read-only negative probe for per-step adapter:chat-session on code-attack-qa rejected with: selected_adapter_ref adapter:chat-session must be referenced by Agent Object agent-object:qa.",
+      "Live read-only render probe for pm-lead preference stamped adapter:codex-local and model:default over plan default adapter:local/model:claude:sonnet.",
+      "Direct Agent resource probe rejected preferred_adapter_ref outside adapter_refs.",
+      "Full profile/catalog checker execution was blocked by read-only sandbox temp-dir absence, not by observed checker assertion failure."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"Worktree has modified support/operator, support/connection, support/checkers, agent/objects/pm-lead.yaml, plus new brick/templates/presets/recon-fleet.md and review-fleet.md.\", \"AST parse of 9 touched Python files returned ast-parse-ok.\", \"Live read-only materializer probe for review-fleet returned graph shape, five brick_steps, per-step adapters [codex, claude, codex, codex, codex], and per-step models [default, claude:sonnet, default, default, default].\", \"Live read-only negative probe for per-step adapter:chat-session on code-attack-qa rejected with: selected_ad...",
+    "projection_authority_findings": [
+      "project/brick-protocol/PROGRESS.md states it is a machine projection and does not judge success, quality, completion, source truth, or Movement authority.",
+      "No projection freshness or dashboard state was used as source truth for this review."
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "read-only inspector support evidence only",
+      "does not mutate files",
+      "does not choose Link Movement",
+      "does not judge source truth",
+      "does not judge success",
+      "does not judge quality",
+      "checker pass not proven under current sandbox"
+    ],
+    "remaining_delta": [
+      "Run the full gate only in a temp source copy outside the repo when write access to a temp directory is available.",
+      "Record the temp-copy path and checker command output as support evidence.",
+      "Treat current live probes as narrow support evidence for materializer stamping and fail-closed adapter validation only."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "support_leak_findings": [
+      "No new scheduler, queue, retry runtime, credential/session storage, retired write adapter, source-truth claim, success judgment, quality judgment, target selector, or Movement authority wording was observed in the scanned changed diff.",
+      "Support code resolves, validates, and stamps declared provider/model selections; observed evidence did not show support judging provider quality or Agent return quality.",
+      "Checker/profile pass is not proven because temp-dir creation is unavailable in this sandbox."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:04:provider-ladder-fleet-presets-0612b-axis-attack-qa",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:provider-ladder-fleet-presets-0612b",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:provider-ladder-fleet-presets-0612b-axis-attack-qa:attempt-1",
+  "step_ref": "provider-ladder-fleet-presets-0612b-axis-attack-qa",
+  "subject": "provider-ladder-fleet-presets-0612b-axis-attack-qa",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T07:05:09.247635Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

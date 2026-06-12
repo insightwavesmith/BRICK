@@ -1,0 +1,11 @@
+# LinkCarry · seq 21 · ["Link"]
+- absent_fact_type: "CarryFact"
+- axis_scope: ["Link"]
+- caller_supplied: false
+- event_type: "LinkCarry"
+- run_segment: 1
+- sequence_index: 21
+- source_fact_ref: "absence:link-carry:02:f11-session-text-dict-key-scan-0612-code-attack-qa"
+- spine_schema_version: "spine-v1"
+- support_created_bal_fact: false
+- trace_role: "absence_placeholder"

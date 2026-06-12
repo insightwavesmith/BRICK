@@ -1,0 +1,171 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:f11-session-text-dict-key-scan-0612::work/step-outputs/f11-session-text-dict-key-scan-0612-closure-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-closure",
+  "building_id": "f11-session-text-dict-key-scan-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:03",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T06:01:49.071656Z",
+  "id": "urn:bp:building:f11-session-text-dict-key-scan-0612::work/step-outputs/f11-session-text-dict-key-scan-0612-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected chain preset",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "task source is pre-run input evidence, not an automatic plan selector",
+    "chain preset is a caller / COO selection candidate only",
+    "not automatic shape selection",
+    "not Building Plan authoring from task text",
+    "support materializes caller / COO declared task source and preset only",
+    "not automatic preset selection",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:03:f11-session-text-dict-key-scan-0612-closure",
+  "recorded_at": "2026-06-12T06:01:49.071656Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:coo",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:codex-local:f11-session-text-dict-key-scan-0612",
+    "cli_version_text": "codex-cli 0.137.0",
+    "deferred_smith_review_queue": [
+      "Decide whether lifecycle checker key-scan repair is required inside F11 or should be a separate checker-backstop Brick.",
+      "Provide or approve a writable temp proof environment for profile/FIRE execution.",
+      "Decide whether the inline F11 task needs a persisted Building root before closure evidence is treated as complete."
+    ],
+    "evidence_refs": [
+      "support-packet:f11-session-text-dict-key-scan-0612:agent-object:coo:output"
+    ],
+    "narrowly_proven": [
+      "The current dirty runtime guard path for chat-session submissions and chat-session work envelopes rejects UUID/ULID-shaped text in string keys, string values, list items, and nested positions.",
+      "The runtime rejector owner is unified for run.py and adapter_error_frontier.py through support/operator/primitives.py::_reject_session_like_text.",
+      "The direct false-positive probe for ordinary hyphenated key task-source passed.",
+      "Checker text now contains key-position and nested-position probes plus a value-only mutated-walker FIRE hook, but that checker was not executed in this sandbox.",
+      "The observed file changes are confined to support/* surfaces."
+    ],
+    "next_target_candidates": [
+      "brick-f11-session-text-dict-key-scan-0612-work as a repair/replay candidate if lifecycle checker key scanning is required before closure.",
+      "brick-f11-session-text-dict-key-scan-0612-closure after writable-temp profile execution and any lifecycle-backstop disposition."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Full check_profile.py --all green on this checkout.",
+      "building_automation profile green on this checkout.",
+      "Execution of chat_session_park_seam after the key-scan mutation additions.",
+      "Mutated walker that skips keys producing RED in an executed checker run.",
+      "Lifecycle checker support backstop scanning mapping keys.",
+      "Persisted F11 Building evidence root.",
+      "Provider behavior, provider quality, future Building correctness, source truth, success judgment, quality judgment, and Movement authority."
+    ],
+    "observed_evidence": [
+      "Read-only closure inspection ran in /Users/smith/projects/BRICK-wt-f11 at HEAD 59635b14e270e7342940a57dbcb95dfb6bf86211; this Agent did not edit, create, delete, commit, push, checkout, reset, merge, rebase, or stash files.",
+      "Dirty support-only diff observed: support/operator/primitives.py, support/operator/run.py, support/recording/adapter_error_frontier.py, support/checkers/lib/kernel_checks.py, and support/checkers/profiles/building_automation.yaml.",
+      "No persisted project/brick-protocol/buildings/f11-session-text-dict-key-scan-0612 evidence root was observed; F11 is present here as inline task input plus dirty support diff.",
+      "Upstream adapter-30 evidence records the motivating defect: project/brick-protocol/buildings/adapter-30-s2-s3-submit-resume/work/step-outputs/adapter-30-s2-s3-submit-resume-code-attack-qa-attempt-1/step-output.json reports UUID-shaped dict keys were accepted by operator/lifecycle guards.",
+      "support/operator/primitives.py now defines _reject_session_like_text over _iter_string_positions; the walker yields string mapping keys, mapping values, list items, and nested string values, with UUID/ULID regex checks in one support helper.",
+      "support/operator/run.py imports _reject_session_like_text and _reject_chat_session_session_text delegates to it; support/recording/adapter_error_frontier.py imports the same helper and applies it to work_envelope.",
+      "Direct no-write probe exited 0: UUID-shaped dict key, ULID-shaped dict key, nested dict/list key, and nested dict/list value were rejected through both primitives._reject_session_like_text and run._reject_chat_session_session_text.",
+      "Direct no-write probe exited 0: ordinary hyphenated key task-source and ordinary text were accepted.",
+      "Direct no-write probe exited 0: adapter_error_frontier._agent_adapter_request_work_envelope rejected a UUID-shaped source_fact_bodies key through work_envelope.source_fact_bodies.<key>.",
+      "support/checkers/lib/kernel_checks.py adds runtime-constructed UUID/ULID probe helpers, submitted UUID/ULID key negatives, nested key/value negatives, envelope session-key rejection, and _chat_session_assert_key_scan_fire with a value-only mutated rejector.",
+      "support/checkers/profiles/building_automation.yaml pins the shared helper names and the new chat_session_park_seam key-scan probe helpers.",
+      "git diff --check exited 0.",
+      "No-write compile probe over support/operator/primitives.py, support/operator/run.py, support/recording/adapter_error_frontier.py, and support/checkers/lib/kernel_checks.py exited 0.",
+      "check_profile.py --profile building_automation and check_profile.py --all both exited 1 before checker execution because this read-only sandbox has no usable temporary directory.",
+      "support/checkers/check_building_lifecycle_path_shape.py has_session_identifier_text still uses text_values; direct no-write probe returned False for UUID-shaped key, False for ULID-shaped key, False for nested session-shaped key, True for nested session-shaped value, and False for ordinary task-source key."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"Read-only closure inspection ran in /Users/smith/projects/BRICK-wt-f11 at HEAD 59635b14e270e7342940a57dbcb95dfb6bf86211; this Agent did not edit, create, delete, commit, push, checkout, reset, merge, rebase, or stash files.\", \"Dirty support-only diff observed: support/operator/primitives.py, support/operator/run.py, support/recording/adapter_error_frontier.py, support/checkers/lib/kernel_checks.py, and support/checkers/profiles/building_automation.yaml.\", \"No persisted project/brick-protocol/buildings/f11-session-text-dict-key-scan-0612 evidence root was observed; ...",
+    "parent_goal_delta_status": "partial_on_runtime_guard: the submission/envelope runtime leak path is narrowly repaired in the current dirty support diff, but closure remains open on full-gate execution and lifecycle checker key-scan backstop.",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "remaining_delta": [
+      "Run building_automation and check_profile.py --all in an environment with a writable temporary directory.",
+      "Either repair support/checkers/check_building_lifecycle_path_shape.py so session identifier scanning includes mapping keys, or explicitly declare that lifecycle checker key-scan backstop is outside F11 closure.",
+      "Record or materialize F11 evidence if the Building requires a persisted project evidence root.",
+      "Use executed checker output, not checker text presence, before claiming the key-skip FIRE is closed."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "transition_concern_evidence": {
+      "binding": false,
+      "concern_kind": "verification_gap",
+      "concern_ref": "transition-concern:f11-session-text-dict-key-scan-0612-closure-verification-gap",
+      "not_proven": [
+        "full profile green",
+        "executed key-skip FIRE RED",
+        "lifecycle checker key scanning",
+        "persisted F11 evidence root"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "read-only inspection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "reason_refs": [
+        "support/checkers/check_profile.py --all blocked by no usable temporary directory",
+        "support/checkers/check_profile.py --profile building_automation blocked by no usable temporary directory",
+        "support/checkers/check_building_lifecycle_path_shape.py:1003-1007 scans text_values and direct probe missed session-shaped mapping keys",
+        "project/brick-protocol/buildings/f11-session-text-dict-key-scan-0612 not observed"
+      ],
+      "related_boundary_refs": [
+        "brick-f11-session-text-dict-key-scan-0612-work",
+        "brick-f11-session-text-dict-key-scan-0612-closure"
+      ]
+    }
+  },
+  "returned_fact_ref": "agent-fact:03:f11-session-text-dict-key-scan-0612-closure",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:f11-session-text-dict-key-scan-0612",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:f11-session-text-dict-key-scan-0612-closure:attempt-1",
+  "step_ref": "f11-session-text-dict-key-scan-0612-closure",
+  "subject": "f11-session-text-dict-key-scan-0612-closure",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T06:01:49.071656Z",
+  "transition_concern_ref": "work/step-outputs/f11-session-text-dict-key-scan-0612-closure-attempt-1/transition-concern.json",
+  "type": "bp.step_output"
+}

@@ -1,0 +1,52 @@
+{
+  "building_id": "f9b-midwalk-not-closed",
+  "composition_mode": "caller_or_coo_declared_linear_composition",
+  "declaration_evidence_refs": [
+    "work/task.md",
+    "work/building-intake.json",
+    "work/preset-expansion.json",
+    "work/declared-building-plan.json",
+    "work/link-launch-policy.json"
+  ],
+  "declared_by": "caller-claude-operator",
+  "kind": "building_intake_provenance",
+  "not_proven": [
+    "semantic fitness of selected chain preset",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "plan_ref": "building-plan:f9b-midwalk-not-closed",
+  "plan_shape": "linear",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "task source is pre-run input evidence, not an automatic plan selector",
+    "chain preset is a caller / COO selection candidate only",
+    "not automatic shape selection",
+    "not Building Plan authoring from task text",
+    "support materializes caller / COO declared task source and preset only",
+    "not automatic preset selection"
+  ],
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:default",
+  "selected_preset_ref": "building-chain-preset:fast-fix",
+  "selected_shape_ref": "building-shape:reviewable-work",
+  "task_source_hash": "f5af7e3db981aad2e5ffbc3f7abf070cb1879461e52da8fc19ba697b179b131a",
+  "task_source_hash_algorithm": "sha256",
+  "task_source_hash_basis": "utf-8 inline task_statement body at materialization time",
+  "task_source_hash_state": "matched",
+  "task_source_ref": "task-source:inline-statement"
+}

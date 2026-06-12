@@ -1040,6 +1040,13 @@ PRE_GROUNDING_LAW_BUILDING_IDS: frozenset[str] = frozenset(
         # second and LAST dated transition id; the demand/record consistency
         # repair (F10) closes this class for every future building.
         "notify-customer-language-autowire-0612",
+        # TRANSITION WINDOW CLOSURE (0612): these two walked DURING the wave
+        # that BUILT the demand/record unification (f10b) — i.e. with the
+        # pre-f10b gate that recorded grounding refs without demanding them.
+        # With f10b merged the gate demands what it records, so this class is
+        # structurally closed: no building after this commit can need an entry.
+        "f9-projection-states-0612",
+        "provider-ladder-fleet-presets-0612b",
     }
 )
 VIRTUAL_REPOSITORY_ARTIFACT_RETURN_FIELDS = frozenset(

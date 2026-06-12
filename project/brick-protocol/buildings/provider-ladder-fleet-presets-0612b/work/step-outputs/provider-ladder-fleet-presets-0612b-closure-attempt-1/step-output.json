@@ -1,0 +1,232 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:provider-ladder-fleet-presets-0612b::work/step-outputs/provider-ladder-fleet-presets-0612b-closure-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-provider-ladder-fleet-presets-0612b-closure",
+  "building_id": "provider-ladder-fleet-presets-0612b",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:06",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "gate_sequence_decision_record": {
+    "action": "hold",
+    "evidence_ref": "observation:gate-sequence-provider-ladder-fleet-presets-0612b-provider-ladder-fleet-presets-0612b-closure-link-gate-human-hold",
+    "gate_action_sequence": [
+      {
+        "action": "hold",
+        "evidence_ref": "observation:gate-sequence-provider-ladder-fleet-presets-0612b-provider-ladder-fleet-presets-0612b-closure-link-gate-human-hold",
+        "gate_ref": "link-gate:human",
+        "hold_reason": "gate_sequence_missing_required_facts:link-gate:human",
+        "pending_target_ref": "brick-provider-ladder-fleet-presets-0612b-closure",
+        "reason_refs": [
+          "observation:human-gate-disposition-missing"
+        ],
+        "target_brick_ref": ""
+      }
+    ],
+    "gate_ref": "link-gate:human",
+    "gate_results": [
+      {
+        "checked_public_fact": "brick-comparison:provider-ladder-fleet-presets-0612b:provider-ladder-fleet-presets-0612b-closure",
+        "gate_ref": "link-gate:human",
+        "missing_required_facts": [
+          "Link.route_decision_basis.human_review_refs"
+        ],
+        "required_public_facts": [
+          "Link.route_decision_basis.human_review_refs"
+        ],
+        "sufficiency": "missing_required_facts"
+      }
+    ],
+    "hold_reason": "gate_sequence_missing_required_facts:link-gate:human",
+    "pending_target_ref": "brick-provider-ladder-fleet-presets-0612b-closure",
+    "reason_refs": [
+      "observation:human-gate-disposition-missing"
+    ],
+    "required_disposition_owner": "caller-or-coo",
+    "target_brick_ref": ""
+  },
+  "generatedAtTime": "2026-06-12T07:13:41.037824Z",
+  "id": "urn:bp:building:provider-ladder-fleet-presets-0612b::work/step-outputs/provider-ladder-fleet-presets-0612b-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:06:provider-ladder-fleet-presets-0612b-closure",
+  "recorded_at": "2026-06-12T07:13:41.037824Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:coo",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:codex-local:provider-ladder-fleet-presets-0612b",
+    "cli_version_text": "codex-cli 0.137.0",
+    "deferred_smith_review_queue": [
+      "Whether to treat the current untracked recon-fleet.md and review-fleet.md as intended admission candidates.",
+      "Whether the missing AGENTS.md-referenced archive packet files are expected in this BRICK-wt-d checkout or should be recorded as a checkout/package gap.",
+      "Whether closure should wait for temp-copy check_profile.py --all evidence before any forward disposition."
+    ],
+    "evidence_refs": [
+      "support-packet:provider-ladder-fleet-presets-0612b:agent-object:coo:output"
+    ],
+    "narrowly_proven": [
+      "Current WIP code can materialize the two new fleet preset files in-memory with per-step provider/model stamps matching the declared preset data.",
+      "Current WIP code rejects a per-step adapter declaration when the selected lane Agent Object does not declare that adapter_ref.",
+      "Current WIP Agent resource validation rejects preferred_adapter_ref outside adapter_refs.",
+      "Current WIP linear declared-step rendering applies pm-lead lane preference before building default provider/model selection.",
+      "No Link root file mutation was observed in the current worktree status.",
+      "No repo inbox bell packet was observed from the read-only probes I ran.",
+      "git diff --check and AST parse are clean support observations only; they do not close the full checker gate."
+    ],
+    "next_target_candidates": [
+      "Candidate evidence boundary: temp-copy full-gate verification for provider-ladder-fleet-presets-0612b.",
+      "Candidate evidence boundary: persisted Building evidence root inspection after the WIP files are admitted.",
+      "Candidate review queue item: Smith/caller disposition on whether untracked fleet presets are to be admitted before rerun."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Full gate in a temp source copy outside the repo exit 0.",
+      "support/checkers/check_profile.py --all result for this WIP.",
+      "Focused profile execution results for the new checker/profile cases in this sandbox.",
+      "Committed or admitted status of untracked recon-fleet.md and review-fleet.md.",
+      "Persisted Building evidence root for provider-ladder-fleet-presets-0612b.",
+      "Archive current operating packet files at AGENTS.md-listed paths in this checkout.",
+      "Provider availability, model availability, provider quality, or brain surface behavior for Codex or Claude.",
+      "Runtime walker execution of the new fleet plans.",
+      "Future semantic fitness of recon-fleet or review-fleet for arbitrary tasks.",
+      "Complete absence of future support-authority leaks beyond the scanned WIP surfaces.",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority"
+    ],
+    "observed_evidence": [
+      "cwd=/Users/smith/projects/BRICK-wt-d; repo root observed; HEAD=59635b1.",
+      "AGENTS.md keeps Brick/Agent/Link as the only axes and says support/checkers/projections are evidence only, not source truth, success judgment, quality judgment, or Movement authority.",
+      "AGENTS.md lists active adapter refs as adapter:local, adapter:codex-local, adapter:claude-local, adapter:gemini-local; selected_model_ref is Building Plan / step selection, not Agent identity or provider proof.",
+      "AGENTS.md-referenced archive/status-kernel/current-brick-operating-packet-0531.md and archive/status-kernel/brick-protocol-post-d-surface-recompile-0-plan-0530.md were not present at those paths in this checkout.",
+      "project/brick-protocol/PROGRESS.md is machine-generated from Building evidence and currently lists 14 buildings; provider-ladder-fleet-presets-0612b is not listed.",
+      "git status shows 13 modified tracked files and two untracked preset files: brick/templates/presets/recon-fleet.md and brick/templates/presets/review-fleet.md.",
+      "No link/ files are modified in git status; link/movement.py still admits only forward and reroute; link/gate.py still states GateFact does not choose Movement, destination, route, hold state, success, or quality.",
+      "support/operator/plan_rendering.py resolves step provider selection by ladder: step declaration > Agent Object preferred_adapter_ref > building default, and validates selected_adapter_ref against the Agent Object adapter_refs.",
+      "support/operator/composition.py reads step_selection_overrides, rejects unused override refs, merges selected_adapter_ref/selected_model_ref into preset steps, and stamps selected_adapter_ref/selected_model_ref into graph brick_steps only when resolved at step level.",
+      "support/connection/agent_resources.py admits preferred_adapter_ref as an Agent Object key and rejects preferred_adapter_ref outside adapter_refs.",
+      "agent/objects/pm-lead.yaml declares preferred_adapter_ref adapter:codex-local and includes adapter:codex-local in adapter_refs.",
+      "recon-fleet.md declares a common graph preset with codex-local/default on all five steps, strict-evidence + fan-in-wait-all, and proof limits saying provider/model selection is not provider availability proof.",
+      "review-fleet.md declares a common graph preset with one claude-local / model:claude:sonnet code-attack-qa lens and codex-local/default elsewhere.",
+      "building_skill_preset_agent_tool_hardening.yaml includes new path pins for both fleet presets, a review-fleet materialize case with expected per-step adapter/model vectors, a per-step adapter-not-in-agent-object reject case, and an agent_preferred_adapter_rejects case.",
+      "git diff --check exited 0 with no output.",
+      "AST parse over 10 changed Python files exited 0.",
+      "In-memory materializer probe observed recon-fleet as graph with fan_out/fan_in groups, all five brick_steps stamped adapter:codex-local/model:default.",
+      "In-memory materializer probe observed review-fleet as graph with per-step adapters [adapter:codex-local, adapter:claude-local, adapter:codex-local, adapter:codex-local, adapter:codex-local] and models [model:default, model:claude:sonnet, model:default, model:default, model:default].",
+      "In-memory Link-row extraction for both fleet presets observed seven declared Link rows with movement forward and declared gate refs from default-transition / strict according to preset expansion.",
+      "In-memory PM lane preference probe rendered agent-object:pm-lead with selected_adapter_ref adapter:codex-local and selected_model_ref model:default despite plan default adapter:local/model:claude:sonnet.",
+      "In-memory invalid per-step adapter probe rejected adapter:chat-session for code-attack-qa because it is not referenced by Agent Object agent-object:qa.",
+      "In-memory invalid preferred_adapter_ref probe rejected adapter:codex-local when adapter_refs contained only adapter:local.",
+      "find observed no project/brick-protocol/buildings/provider-ladder-fleet-presets-0612b root; project/brick-protocol/status/inbox contains only .gitkeep.",
+      "git ls-files --error-unmatch reports both new fleet preset files are not known to git."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"cwd=/Users/smith/projects/BRICK-wt-d; repo root observed; HEAD=59635b1.\", \"AGENTS.md keeps Brick/Agent/Link as the only axes and says support/checkers/projections are evidence only, not source truth, success judgment, quality judgment, or Movement authority.\", \"AGENTS.md lists active adapter refs as adapter:local, adapter:codex-local, adapter:claude-local, adapter:gemini-local; selected_model_ref is Building Plan / step selection, not Agent identity or provider proof.\", \"AGENTS.md-referenced archive/status-kernel/current-brick-operating-packet-0531.md and archive/s...",
+    "parent_goal_delta_status": [
+      "Builder-side per-step provider/model declaration path is present and exercised in current WIP support code and in-memory probes.",
+      "Fleet preset declarations are present as files and materialize as graph plans, but their untracked status and missing full temp-copy gate keep the parent goal open as support evidence.",
+      "No Agent-supplied success, quality, or Movement judgment is made here."
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "remaining_delta": [
+      "Run the full gate only from a temp source copy outside /Users/smith/projects/BRICK-wt-d and record the temp copy path plus exit code.",
+      "Record or create the persisted Building evidence root for provider-ladder-fleet-presets-0612b if the caller/COO wants this closure to become Building evidence.",
+      "Bring the two fleet preset files into the declared/admitted file set before treating them as stable project evidence.",
+      "Run the relevant profile-backed FIRE cases for per-step stamping, invalid per-step adapter rejection, invalid preferred_adapter_ref rejection, fleet catalog checks, and fan-in gate behavior when a writable temp source copy is available."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "transition_concern_evidence": {
+      "binding": false,
+      "concern_kind": "verification_gap",
+      "concern_ref": "transition-concern:provider-ladder-fleet-presets-0612b-closure-verification-gap",
+      "not_proven": [
+        "full gate in temp source copy exit 0",
+        "persisted Building evidence root",
+        "committed/admitted status of untracked fleet presets"
+      ],
+      "proof_limits": [
+        "non-binding closure support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "reason_refs": [
+        "task-source:inline-statement",
+        "work/step-outputs/provider-ladder-fleet-presets-0612b-code-attack-qa-attempt-1/step-output.json",
+        "work/step-outputs/provider-ladder-fleet-presets-0612b-axis-attack-qa-attempt-1/step-output.json",
+        "work/step-outputs/provider-ladder-fleet-presets-0612b-evidence-integrity-attempt-1/step-output.json",
+        "command:git-status-short",
+        "command:git-diff-check",
+        "command:ast-parse-changed-python",
+        "command:in-memory-materializer-probes",
+        "missing:project/brick-protocol/buildings/provider-ladder-fleet-presets-0612b",
+        "missing:temp-copy-check-profile-all"
+      ],
+      "related_boundary_refs": [
+        "brick-provider-ladder-fleet-presets-0612b-closure",
+        "brick-provider-ladder-fleet-presets-0612b-code-attack-qa",
+        "brick-provider-ladder-fleet-presets-0612b-axis-attack-qa",
+        "brick-provider-ladder-fleet-presets-0612b-evidence-integrity"
+      ]
+    }
+  },
+  "returned_fact_ref": "agent-fact:06:provider-ladder-fleet-presets-0612b-closure",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:provider-ladder-fleet-presets-0612b",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:provider-ladder-fleet-presets-0612b-closure:attempt-1",
+  "step_ref": "provider-ladder-fleet-presets-0612b-closure",
+  "subject": "provider-ladder-fleet-presets-0612b-closure",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T07:13:41.037824Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

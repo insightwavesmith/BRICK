@@ -1,0 +1,247 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:provider-ladder-fleet-presets-0612b::work/step-outputs/provider-ladder-fleet-presets-0612b-design-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:design-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-provider-ladder-fleet-presets-0612b-design",
+  "building_id": "provider-ladder-fleet-presets-0612b",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "gate_sequence_decision_record": {
+    "action": "hold",
+    "evidence_ref": "observation:gate-sequence-provider-ladder-fleet-presets-0612b-provider-ladder-fleet-presets-0612b-design-link-gate-coo-hold",
+    "gate_action_sequence": [
+      {
+        "action": "next",
+        "evidence_ref": "observation:gate-sequence-provider-ladder-fleet-presets-0612b-provider-ladder-fleet-presets-0612b-design-link-gate-default-transition-next",
+        "gate_ref": "link-gate:default-transition",
+        "hold_reason": "",
+        "pending_target_ref": "",
+        "reason_refs": [
+          "observation:gate-sequence-provider-ladder-fleet-presets-0612b-provider-ladder-fleet-presets-0612b-design-link-gate-default-transition-next"
+        ],
+        "target_brick_ref": ""
+      },
+      {
+        "action": "hold",
+        "evidence_ref": "observation:gate-sequence-provider-ladder-fleet-presets-0612b-provider-ladder-fleet-presets-0612b-design-link-gate-coo-hold",
+        "gate_ref": "link-gate:coo",
+        "hold_reason": "gate_sequence_missing_required_facts:link-gate:coo",
+        "pending_target_ref": "brick-provider-ladder-fleet-presets-0612b-work",
+        "reason_refs": [
+          "observation:coo-gate-missing-required-facts"
+        ],
+        "target_brick_ref": ""
+      }
+    ],
+    "gate_ref": "link-gate:coo",
+    "gate_results": [
+      {
+        "checked_public_fact": "brick-comparison:provider-ladder-fleet-presets-0612b:provider-ladder-fleet-presets-0612b-design",
+        "gate_ref": "link-gate:default-transition",
+        "missing_required_facts": [],
+        "required_public_facts": [
+          "BrickComparisonFact.required_return_shape_evidence",
+          "BrickComparisonFact.comparison_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.observed_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.design_summary",
+          "BrickComparisonFact.comparison_evidence.returned_field.relevant_current_structure",
+          "BrickComparisonFact.comparison_evidence.returned_field.proposed_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.unchanged_surfaces",
+          "BrickComparisonFact.comparison_evidence.returned_field.axis_responsibility",
+          "BrickComparisonFact.comparison_evidence.returned_field.invariants",
+          "BrickComparisonFact.comparison_evidence.returned_field.edge_cases",
+          "BrickComparisonFact.comparison_evidence.returned_field.checker_or_verifier_plan",
+          "BrickComparisonFact.comparison_evidence.returned_field.candidate_file_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_refs",
+          "BrickComparisonFact.comparison_evidence.returned_field.not_proven",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_refs.repository_artifact_ref"
+        ],
+        "sufficiency": "sufficient"
+      },
+      {
+        "checked_public_fact": "brick-comparison:provider-ladder-fleet-presets-0612b:provider-ladder-fleet-presets-0612b-design",
+        "gate_ref": "link-gate:coo",
+        "missing_required_facts": [
+          "Link.route_decision_basis.override_refs"
+        ],
+        "required_public_facts": [
+          "Link.route_decision_basis.override_refs"
+        ],
+        "sufficiency": "missing_required_facts"
+      }
+    ],
+    "hold_reason": "gate_sequence_missing_required_facts:link-gate:coo",
+    "pending_target_ref": "brick-provider-ladder-fleet-presets-0612b-work",
+    "reason_refs": [
+      "observation:coo-gate-missing-required-facts"
+    ],
+    "required_disposition_owner": "coo",
+    "target_brick_ref": ""
+  },
+  "generatedAtTime": "2026-06-12T06:33:08.887627Z",
+  "id": "urn:bp:building:provider-ladder-fleet-presets-0612b::work/step-outputs/provider-ladder-fleet-presets-0612b-design-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:provider-ladder-fleet-presets-0612b-design",
+  "recorded_at": "2026-06-12T06:33:08.887627Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:design-lead",
+    "axis_responsibility": {
+      "Agent": "Owns Agent Object adapter_refs and optional preferred_adapter_ref as capability metadata only.",
+      "Brick": "Owns preset step declarations, Building Plan step rows, required return shapes, and fleet route shape.",
+      "Link": "Owns gate sufficiency, fan-in frontier observation, Movement, and transition facts; no new Link vocabulary is needed.",
+      "Support": "Reads declared Brick/Agent data, stamps it into plans, validates shape/capability, and records evidence without choosing route or judging quality."
+    },
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "candidate_file_changes": [
+      "support/operator/composition.py",
+      "support/operator/plan_rendering.py",
+      "support/connection/agent_resources.py",
+      "support/operator/native_dispatch.py",
+      "support/checkers/lib/case_runners.py",
+      "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml",
+      "brick/templates/presets/recon-fleet.md",
+      "brick/templates/presets/review-fleet.md",
+      "agent/objects/*.yaml"
+    ],
+    "checker_or_verifier_plan": [
+      "Extend existing `materialize_building_intent_case` assertions to check ordered per-step adapter/model stamps for linear and graph presets.",
+      "Add FIRE cases: materializer ignores step adapter -> RED; per-step adapter not declared by lane Agent Object -> loud reject; preferred_adapter_ref outside adapter_refs -> loud reject.",
+      "Add fleet preset cases asserting graph shape, fan-out/fan-in groups, strict-evidence gate placement, fan-in-wait-all frontier concept, and no Link vocabulary additions.",
+      "If repeated lanes are admitted, add positive explicit-repeat and negative missing-repeat-key cases.",
+      "Run focused profile in-tree only if it writes nothing; run full `check_profile.py --all` only in a temp source copy outside the repo."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:provider-ladder-fleet-presets-0612b",
+    "cli_version_text": "codex-cli 0.137.0",
+    "design_summary": "Open the builder-side provider ladder by resolving provider selection per materialized step as declared data: step declaration > Agent Object preferred_adapter_ref > building default. Stamp the resolved adapter/model onto the declared step only when it differs from or must override plan-level fallback, and validate the selected adapter against the resolved Agent Object adapter_refs before the plan can run.",
+    "edge_cases": [
+      "A top-level provider-specific model with a different lane-preferred adapter should reject unless the step declares a compatible model or uses `model:default`.",
+      "A per-step adapter for a lane that does not declare that adapter must reject before run.",
+      "`preferred_adapter_ref` outside `adapter_refs` must reject at Agent resource resolution.",
+      "Current graph materializer derives node ids from step-template kind; repeated same-kind fleet lanes need an explicit unique lane key or they collide.",
+      "The AGENTS-referenced current operating packet paths are absent in this checkout, so packet confirmation is not proven."
+    ],
+    "evidence_refs": [
+      "support-packet:provider-ladder-fleet-presets-0612b:agent-object:design-lead:output",
+      "support/operator/plan_validation.py:156",
+      "support/operator/run.py:2891",
+      "support/operator/composition.py:278",
+      "support/operator/composition.py:831",
+      "support/operator/composition.py:1213",
+      "support/operator/composition.py:1577",
+      "support/operator/composition.py:2147",
+      "support/operator/composition.py:2406",
+      "support/connection/agent_resources.py:118",
+      "support/connection/agent_resources.py:242",
+      "brick/templates/presets/recon-fleet.md:1",
+      "brick/templates/presets/review-fleet.md:1",
+      "link/gate.yaml:91"
+    ],
+    "invariants": [
+      "Step selected_adapter_ref overrides Agent preference and building default.",
+      "Agent preferred_adapter_ref overrides building default only when no step adapter is declared.",
+      "Every final selected_adapter_ref must be declared by the resolved Agent Object adapter_refs.",
+      "selected_model_ref must either be `model:default` or match the selected adapter provider grammar.",
+      "A provider/model stamp is selection data only; it is not provider login, model availability, source truth, success, quality, or Movement authority."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "No checker command was run in this read-only design step.",
+      "Full gate green in a temp source copy is not proven here.",
+      "The untracked fleet preset files are observed local candidates, not admitted source truth.",
+      "Provider availability, provider quality, and model availability are not proven.",
+      "Runtime parallel execution is not proven or required.",
+      "Source truth, success judgment, quality judgment, and Movement authority are not claimed."
+    ],
+    "observed_evidence": [
+      "Repository inspection was read-only; `git status --short` shows untracked `brick/templates/presets/recon-fleet.md` and `brick/templates/presets/review-fleet.md` already present.",
+      "Engine admission already reads `selected_adapter_ref` and `selected_model_ref` from step first, then plan fallback.",
+      "Compact builder materialization currently stamps only building-wide adapter/model; linear `_materializer_declared_step` returns no step-level adapter/model, and graph `_materializer_graph_node` does not copy raw preset step adapter/model into nodes.",
+      "Direct declared step-template rendering already has a step-level adapter/model carry seam, so the repair can reuse the existing declared-plan shape.",
+      "Agent Object schema currently rejects unknown keys, so `preferred_adapter_ref` requires resolver/checker admission before adding it to `agent/objects/*.yaml`."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"Repository inspection was read-only; `git status --short` shows untracked `brick/templates/presets/recon-fleet.md` and `brick/templates/presets/review-fleet.md` already present.\", \"Engine admission already reads `selected_adapter_ref` and `selected_model_ref` from step first, then plan fallback.\", \"Compact builder materialization currently stamps only building-wide adapter/model; linear `_materializer_declared_step` returns no step-level adapter/model, and graph `_materializer_graph_node` does not copy raw preset step adapter/model into nodes.\", \"Direct declared st...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "proposed_changes": [
+      "Add a support helper that resolves final step adapter/model from raw preset step, resolved Agent Object, and building defaults; reject when the final adapter is not in that Agent Object's `adapter_refs`.",
+      "Use that helper in linear preset materialization, graph preset materialization, and direct graph composition so per-step declarations cannot be dropped before plan validation.",
+      "Admit optional `preferred_adapter_ref` in `support/connection/agent_resources.py`; require it to be one clean adapter ref already present in the same Agent Object `adapter_refs`.",
+      "For fleet presets, admit `recon-fleet` and `review-fleet` as common graph presets; keep the Claude provider example as a step-level review lens only.",
+      "If true repeated N lanes of the same step template are required, add an explicit preset step lane key such as `step_instance_ref` for unique node/step refs; otherwise keep current fleet lenses on distinct reviewer templates."
+    ],
+    "relevant_current_structure": [
+      "Brick presets live in `brick/templates/presets/*.md` frontmatter and are loaded verbatim into the chain preset registry.",
+      "Graph fleet presets are already supported structurally through `target_word` fan-out/fan-in markers, graph groups, and `fan-in-wait-all` frontier observation.",
+      "Link gate vocabulary already maps `strict-evidence` to `link-gate:strict`; `fan-in-wait-all` is not a GateFact literal.",
+      "Run admission still enforces that selected adapter must be referenced by the Agent Object.",
+      "Model refs are adapter-scoped grammar and provider availability remains outside proof."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "unchanged_surfaces": [
+      "No `link/` edit, no new Movement literal, no new GateFact literal, and no route target invention.",
+      "No scheduler, queue, retry runtime, provider runtime, or runtime parallelism claim.",
+      "No write-capability law change: effective write remains Brick write_scope need plus Agent policy plus adapter capability plus write observation.",
+      "No model-specific Agent identity and no provider availability proof.",
+      "Checkers and materializers remain support evidence only, not source truth or quality judgment."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:01:provider-ladder-fleet-presets-0612b-design",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:provider-ladder-fleet-presets-0612b",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:provider-ladder-fleet-presets-0612b-design:attempt-1",
+  "step_ref": "provider-ladder-fleet-presets-0612b-design",
+  "subject": "provider-ladder-fleet-presets-0612b-design",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T06:33:08.887627Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

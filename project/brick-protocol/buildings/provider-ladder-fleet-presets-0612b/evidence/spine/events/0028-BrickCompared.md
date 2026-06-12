@@ -1,0 +1,15 @@
+# BrickCompared · seq 28 · ["Brick"]
+- alias_fact_refs: ["brick-comparison:provider-ladder-fleet-presets-0612b:provider-ladder-fleet-presets-0612b-work"]
+- axis_scope: ["Brick"]
+- comparison_evidence: ["adapter returned value is available for Brick comparison observation","required_return_fields: made_changes, observed_evidence, not_proven","observed_return_fields: adapter_ref, agent_object_ref, brain_surface_ref, changed_files, cli_call_ref, cli_version_text, evidence_refs, made_changes, not_proven, observed_evidence, output_excerpt, proof_limits, returned_summary, selected_model_ref, worktree_observation","missing_return_fields: none"]
+- comparison_observation: "contract observation only; not success judgment"
+- comparison_rule: "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickCompared"
+- forbidden_shortcut_evidence: ["support/run did not classify Agent return","support/run did not judge success or quality","support/run used caller-supplied Link facts"]
+- observed_match_kind: "matched"
+- required_return_shape_evidence: "made_changes, observed_evidence, not_proven"
+- run_segment: 2
+- sequence_index: 28
+- source_fact_ref: "brick-comparison:02:provider-ladder-fleet-presets-0612b-work"
+- spine_schema_version: "spine-v1"
+- work_reference: "work Brick for task-source:inline-statement: Open the BUILDER-side path for per-step provider/model selection (the ENGINE already honors step-level selected_adapter_ref/selected_model_ref — plan_validation.py:156-163 falls back step->plan; verified) and add fleet presets so recon/revi"

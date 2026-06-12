@@ -1,0 +1,486 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:f10b-grounding-demand-record-unify::evidence/claim_trace/agent/returned_claims.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:dev",
+        "received_work": "brick-work:01:f10b-grounding-demand-record-unify-work",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:dev",
+          "blocked_or_missing_evidence": [
+            "archive/status-kernel/current-brick-operating-packet-0531.md and archive/status-kernel/brick-protocol-post-d-surface-recompile-0-plan-0530.md were not present in this checkout path.",
+            "No Claude/Gemini review was run in this dev step.",
+            "Workspace check_profile runs created project/status/inbox fixture files; those generated files were removed, and final status is support-only.",
+            "support/dashboard/public/dashboard-data.json is ignored by git status but exists as a generated support projection seed required by the full profile gate."
+          ],
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "changed_files": [
+            "support/dashboard/public/dashboard-data.json"
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:f10b-grounding-demand-record-unify",
+          "cli_version_text": "codex-cli 0.137.0",
+          "commands_run": [
+            "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/operator/dashboard_export.py --bake-public -> exit 0",
+            "PYTHONDONTWRITEBYTECODE=1 TMPDIR=/private/tmp PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --profile support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml -> exit 0",
+            "PYTHONDONTWRITEBYTECODE=1 TMPDIR=/private/tmp PYTHONPATH=support/import_identity python3 - <<'PY' ... _artifact_grounding_probe(Path.cwd()) ... PY -> exit 0, output 6",
+            "temp-copy sabotage at /private/tmp/brick-f10-sabotage.YarO6O/repo mutating gate_sequence helper bypass -> expected RED exit 1",
+            "PYTHONDONTWRITEBYTECODE=1 TMPDIR=/private/tmp PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all in /private/tmp/brick-f10-fullgate.sKq31V/repo -> exit 0",
+            "PYTHONDONTWRITEBYTECODE=1 TMPDIR=/private/tmp PYTHONPATH=support/import_identity python3 -m compileall -q support/operator support/checkers/lib support/recording -> exit 0",
+            "git diff --check -> exit 0"
+          ],
+          "evidence_refs": [
+            "support-packet:f10b-grounding-demand-record-unify:agent-object:dev:output"
+          ],
+          "handoff_refs": [
+            "temp-copy:/private/tmp/brick-f10-fullgate.sKq31V/repo",
+            "temp-copy:/private/tmp/brick-f10-sabotage.YarO6O/repo"
+          ],
+          "made_changes": true,
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "semantic correctness of file edits",
+            "source truth",
+            "success judgment",
+            "quality judgment",
+            "Movement authority",
+            "provider quality",
+            "hook execution",
+            "provider SDK behavior",
+            "future Building correctness",
+            "semantic correctness beyond checked artifact-grounding demand/record cases",
+            "complete absence of future support-authority leaks"
+          ],
+          "observed_evidence": [
+            "support/operator/plan_validation.py now single-sources artifact grounding field selection through _artifact_grounding_required_return_fields for review/design shapes and filters non-matching repository_artifact_ref facts.",
+            "support/operator/run.py and support/operator/gate_sequence.py both call the same helper for gate required-return fields.",
+            "support/recording/claims_link.py omits missing repository-artifact selectors from recorded required_public_facts while preserving them under missing_required_facts, so missing artifacts are demanded without recording an unresolvable required ref.",
+            "support/checkers/lib/kernel_checks.py artifact-grounding probe covers review without artifacts -> hold/missing, review/design with artifacts -> forward/resolved, and non-review evidence_used shape -> no demand/no record.",
+            "Direct _artifact_grounding_probe returned 6.",
+            "Temp-copy sabotage of gate_sequence helper bypass went RED: gate sequence action 'forward', expected 'hold'.",
+            "Final temp-copy full gate at /private/tmp/brick-f10-fullgate.sKq31V/repo exited 0.",
+            "Final git status shows only support tracked modifications after removing checker-created project inbox fixture files."
+          ],
+          "output_excerpt": "{\"received_work_ref\":\"support-packet:f10b-grounding-demand-record-unify:agent-object:dev:input\",\"made_changes\":true,\"changed_files\":[\"support/operator/plan_validation.py\",\"support/operator/run.py\",\"support/operator/gate_sequence.py\",\"support/recording/claims_link.py\",\"support/checkers/lib/kernel_checks.py\",\"support/dashboard/public/dashboard-data.json (ignored generated support projection seed, source_truth false, 14 buildings)\"],\"observed_evidence\":[\"support/operator/plan_validation.py now single-sources artifact grounding field selection through _artifact_grounding_required_return_fields ...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "workspace write is limited by Brick-declared write_scope"
+          ],
+          "received_work_ref": "support-packet:f10b-grounding-demand-record-unify:agent-object:dev:input",
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "worktree_observation": {
+            "after_git_refs": {
+              "branch": "claude/track-f10",
+              "head": "59635b14e270e7342940a57dbcb95dfb6bf86211"
+            },
+            "after_git_status_paths": [
+              "support/checkers/lib/kernel_checks.py",
+              "support/operator/gate_sequence.py",
+              "support/operator/plan_validation.py",
+              "support/operator/run.py",
+              "support/recording/claims_link.py"
+            ],
+            "after_path_count": 1930,
+            "before_git_refs": {
+              "branch": "claude/track-f10",
+              "head": "59635b14e270e7342940a57dbcb95dfb6bf86211"
+            },
+            "before_git_status_paths": [
+              "support/checkers/lib/kernel_checks.py",
+              "support/operator/gate_sequence.py",
+              "support/operator/plan_validation.py",
+              "support/operator/run.py",
+              "support/recording/claims_link.py"
+            ],
+            "before_path_count": 1929,
+            "not_proven": [
+              "semantic correctness of file edits",
+              "complete diff attribution for pre-existing dirty paths"
+            ],
+            "observed_changed_files": [
+              "support/dashboard/public/dashboard-data.json"
+            ],
+            "proof_limits": [
+              "changed files are support evidence only",
+              "not source truth",
+              "not success judgment",
+              "not quality judgment",
+              "not Movement authority"
+            ],
+            "write_scope": {
+              "allowed_paths": [
+                "support/*"
+              ],
+              "forbidden_paths": [
+                "link/*",
+                "agent/*",
+                "brick/*",
+                "project/*",
+                ".git/*",
+                "AGENTS.md",
+                "pyproject.toml",
+                "uv.lock"
+              ]
+            }
+          }
+        }
+      },
+      "fact_ref": "agent-fact:01:f10b-grounding-demand-record-unify-work",
+      "not_proven": [
+        "semantic fitness of selected chain preset",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "task source is pre-run input evidence, not an automatic plan selector",
+        "chain preset is a caller / COO selection candidate only",
+        "not automatic shape selection",
+        "not Building Plan authoring from task text",
+        "support materializes caller / COO declared task source and preset only",
+        "not automatic preset selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:qa",
+        "received_work": "brick-work:02:f10b-grounding-demand-record-unify-code-attack-qa",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:qa",
+          "attacked_work": [
+            "Attacked demand/record unification across plan_validation, run, gate_sequence, claims_link, and checker kernel probes.",
+            "Observed review/design missing-artifact cases are expected to hold through missing_required_facts; grounded cases are expected to forward through resolved required_public_facts; non-review evidence_used shape is expected to demand and record no repository_artifact_ref.",
+            "Current lifecycle resolver scans required_public_facts as public fact refs, not missing_required_facts, so filtering missing repository artifact selectors from claim-body required_public_facts is the relevant resolver protection."
+          ],
+          "boundary_violations": [],
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "checked_sources": [
+            "task-source:inline-statement",
+            "project/brick-protocol/PROGRESS.md:1",
+            "support/operator/plan_validation.py:78",
+            "support/operator/plan_validation.py:603",
+            "support/operator/plan_validation.py:678",
+            "support/operator/run.py:105",
+            "support/operator/run.py:2581",
+            "support/operator/gate_sequence.py:15",
+            "support/operator/gate_sequence.py:252",
+            "support/recording/claims_link.py:453",
+            "support/recording/claims_link.py:466",
+            "support/checkers/lib/kernel_checks.py:1128",
+            "support/checkers/lib/kernel_checks.py:1289",
+            "support/checkers/lib/kernel_checks.py:1383",
+            "support/checkers/lib/kernel_checks.py:1536",
+            "support/checkers/lib/kernel_checks.py:1640",
+            "support/checkers/check_building_lifecycle_path_shape.py:1027",
+            "support/checkers/check_building_lifecycle_path_shape.py:1412",
+            "support/checkers/check_building_lifecycle_path_shape.py:1845",
+            "link/gate.py:180"
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:f10b-grounding-demand-record-unify",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:f10b-grounding-demand-record-unify:agent-object:qa:output"
+          ],
+          "evidence_used": [
+            "support/operator/plan_validation.py:678",
+            "support/operator/run.py:2581",
+            "support/operator/gate_sequence.py:252",
+            "support/recording/claims_link.py:453",
+            "support/checkers/lib/kernel_checks.py:1128",
+            "support/checkers/check_building_lifecycle_path_shape.py:1027",
+            "link/gate.py:180",
+            "project/brick-protocol/PROGRESS.md:1"
+          ],
+          "failing_or_missing_probes": [
+            "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all exited 1: no usable temporary directory found in /tmp, /var/tmp, /usr/tmp, or the checkout.",
+            "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --profile support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml exited 1 for the same tempdir reason.",
+            "archive/status-kernel/current-brick-operating-packet-0531.md was not present in this checkout; PROGRESS.md was observed instead as a machine projection."
+          ],
+          "negative_probe_observations": [
+            "Sabotage probe mutating support.operator.run side only produced expected ProfileError: code-attack-qa missing-return movement-gate required fields drifted from shared helper; evidence_used.repository_artifact_ref was expected.",
+            "Sabotage probe mutating support.operator.gate_sequence side only produced expected ProfileError: code-attack-qa missing-return gate sequence action was forward, expected hold.",
+            "Non-review probe is included in _artifact_grounding_probe as non-review-evidence-used with grounding_field empty."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Full gate command exit 0 is not proven because this environment has no writable temporary directory.",
+            "No source truth, success, quality, or Movement authority is claimed.",
+            "No model review evidence was used beyond this Codex QA inspection.",
+            "No files were edited, created, deleted, committed, pushed, checked out, reset, merged, rebased, or stashed by this QA pass."
+          ],
+          "observed_evidence": [
+            "Checkout inspected: /Users/smith/projects/BRICK-wt-f10.",
+            "Changed files observed by git status: support/checkers/lib/kernel_checks.py, support/operator/gate_sequence.py, support/operator/plan_validation.py, support/operator/run.py, support/recording/claims_link.py; all are under support/.",
+            "Shared helper observed at support/operator/plan_validation.py:678: _artifact_grounding_required_return_fields derives the artifact-grounding demand from required_return_shape and filters mismatched repository_artifact_ref fields.",
+            "Both gate consumers call the shared helper: support/operator/run.py:2581 and support/operator/gate_sequence.py:252.",
+            "Resolver-facing Link claim bodies filter missing repository artifact selectors out of required_public_facts while preserving them under missing_required_facts: support/recording/claims_link.py:453 and support/recording/claims_link.py:466.",
+            "Grandfather registry still contains only lane-tooling-three-tier-0612 and notify-customer-language-autowire-0612.",
+            "In-process artifact grounding probe returned 6.",
+            "In-process agent_adapter_return_shape kernel returned check_id agent_adapter_return_shape, inspected 36, with artifact-grounding probes inspected.",
+            "git diff --check exited 0."
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ \"Checkout inspected: /Users/smith/projects/BRICK-wt-f10.\", \"Changed files observed by git status: support/checkers/lib/kernel_checks.py, support/operator/gate_sequence.py, support/operator/plan_validation.py, support/operator/run.py, support/recording/claims_link.py; all are under support/.\", \"Shared helper observed at support/operator/plan_validation.py:678: _artifact_grounding_required_return_fields derives the artifact-grounding demand from required_return_shape and filters mismatched repository_artifact_ref fields.\", \"Both gate consumers call the shared helper: ...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "regression_risks": [
+            "Full profile green is not observed in this read-only sandbox because check_profile.py requires a writable temp directory.",
+            "Raw gate_sequence_decision_to_record still serializes demanded missing selectors in gate_results.required_public_facts; current claim-trace projection filters resolver-facing required_public_facts, but future consumers must not treat the raw record as directly resolvable public-fact refs.",
+            "The shared helper is a private support function imported across support modules; future refactors need the existing kernel sabotage probes to remain active so one side cannot silently fork the predicate."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "transition_concern_evidence": {
+            "binding": false,
+            "concern_kind": "verification_gap",
+            "concern_ref": "transition-concern:f10b-full-profile-tempdir-not-observed",
+            "not_proven": [
+              "full check_profile --all exit 0 in /Users/smith/projects/BRICK-wt-f10",
+              "current operating packet file presence in this checkout",
+              "future consumers will not bypass claim-body filtering and read raw gate sequence required_public_facts as resolver-facing refs"
+            ],
+            "proof_limits": [
+              "QA support evidence only",
+              "not source truth",
+              "not success judgment",
+              "not quality judgment",
+              "not Movement authority"
+            ],
+            "reason_refs": [
+              "cmd:check_profile_all:no-usable-temporary-directory",
+              "cmd:building_skill_profile:no-usable-temporary-directory",
+              "file:archive/status-kernel/current-brick-operating-packet-0531.md:not_observed"
+            ],
+            "related_boundary_refs": [
+              "brick-code-attack-qa"
+            ]
+          }
+        }
+      },
+      "fact_ref": "agent-fact:02:f10b-grounding-demand-record-unify-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected chain preset",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "task source is pre-run input evidence, not an automatic plan selector",
+        "chain preset is a caller / COO selection candidate only",
+        "not automatic shape selection",
+        "not Building Plan authoring from task text",
+        "support materializes caller / COO declared task source and preset only",
+        "not automatic preset selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:coo",
+        "received_work": "brick-work:03:f10b-grounding-demand-record-unify-closure",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:coo",
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "cli_call_ref": "support-cli-call:adapter:codex-local:f10b-grounding-demand-record-unify",
+          "cli_version_text": "codex-cli 0.137.0",
+          "deferred_smith_review_queue": [
+            "Decide whether process-local FIRE proof is enough for this read-only closure or whether a writable checkout must perform file-level sabotage.",
+            "Decide whether the support/recording/claims_link.py filtering behavior matches the intended meaning of no unresolvable ref recorded."
+          ],
+          "evidence_refs": [
+            "support-packet:f10b-grounding-demand-record-unify:agent-object:coo:output"
+          ],
+          "narrowly_proven": [
+            "The current diff makes review/design artifact-grounding demand and gate recording derive from one support helper, _artifact_grounding_required_return_fields.",
+            "A review return without inspected repository artifacts is demanded as missing and reaches the declared gate hold branch in the direct probe.",
+            "A review return with inspected repository artifacts resolves the grounding selector and reaches the declared forward branch in the direct probe.",
+            "A non-review shape that happens to contain evidence_used does not demand or record repository_artifact_ref in the direct probe.",
+            "The current kernel probe detects one-sided drift at the run movement-gate side or the gate-sequence side under process-local monkeypatch.",
+            "No new grandfather building id was added to PRE_GROUNDING_LAW_BUILDING_IDS in the observed checkout."
+          ],
+          "next_target_candidates": [
+            "candidate only: caller/COO may review this evidence and decide whether the closure Brick can continue on the declared road",
+            "candidate only: if full-profile proof is mandatory, rerun the checker gate with a writable temporary directory before the next declared boundary"
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Full PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all exit 0 was not observed because the sandbox exposes no usable temporary directory.",
+            "The building_skill_preset_agent_tool_hardening profile runner exit 0 was not observed for the same tempdir reason.",
+            "A real file-mutating FIRE case was not performed because this closure lane and filesystem are read-only; only process-local monkeypatch sabotage was observed.",
+            "No compileall proof was run; AST parse is narrower than bytecode compilation.",
+            "No source truth, success judgment, quality judgment, provider behavior, or Link Movement authority is claimed."
+          ],
+          "observed_evidence": [
+            "checkout: /Users/smith/projects/BRICK-wt-f10, branch claude/track-f10, head 59635b1",
+            "changed files observed by git diff --stat: support/checkers/lib/kernel_checks.py, support/operator/gate_sequence.py, support/operator/plan_validation.py, support/operator/run.py, support/recording/claims_link.py; 424 insertions, 57 deletions",
+            "plan_validation.py:78-94 and 603-693 define the shared artifact-grounding shape/fact helper; run.py:105-108 and 2581-2588 call it for movement gates; gate_sequence.py:17-19 and 252-256 call it for gate-sequence gates",
+            "claims_link.py:295-313 and 453-483 filter missing repository-artifact selectors out of resolvable required_public_facts while preserving them under missing_required_facts",
+            "kernel_checks.py:1128-1586 now probes review missing-artifact, review grounded-artifact, design grounded-artifact path, and non-review evidence_used path against movement gate, gate-sequence record, and claim bodies",
+            "PRE_GROUNDING_LAW_BUILDING_IDS remained exactly lane-tooling-three-tier-0612 and notify-customer-language-autowire-0612; no third dated registry entry was observed",
+            "direct probe: review without repository artifact produced missing evidence_used.repository_artifact_ref, gate_sequence_action hold, and claim required_has_expected_grounding false / missing_has_expected_grounding true",
+            "direct probe: review with repository artifact produced no missing_return_fields, gate_sequence_action forward, and claim required_has_expected_grounding true / missing_has_expected_grounding false",
+            "direct probe: non-review required_return_shape with evidence_used produced expected_required_fields observed_evidence,evidence_used,not_proven and no repository_artifact_ref claim refs",
+            "process-local FIRE probe: baseline was movement_gate_missing_has_expected true and gate_sequence_action hold; breaking run-side helper made movement_gate_missing_has_expected false; breaking gate-sequence helper made gate_sequence_action forward",
+            "commands run: git status --short; git diff; targeted Python probe; run_agent_adapter_return_shape kernel check; check_profile.py --all; check_profile.py --profile building_skill_preset_agent_tool_hardening; git diff --check; AST parse; grandfather registry parse",
+            "command result: run_agent_adapter_return_shape inspected 36 targets and returned exit 0; git diff --check exit 0; AST parse over changed Python files exit 0",
+            "command result: check_profile.py --all and the targeted profile runner both stopped before profile proof with No usable temporary directory found",
+            "review/model evidence disposition: no Claude/Gemini review was invoked in this closure; local command output and file inspection are support evidence only",
+            "Building evidence root: project/**/f10* root not observed in this read-only checkout"
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ \"checkout: /Users/smith/projects/BRICK-wt-f10, branch claude/track-f10, head 59635b1\", \"changed files observed by git diff --stat: support/checkers/lib/kernel_checks.py, support/operator/gate_sequence.py, support/operator/plan_validation.py, support/operator/run.py, support/recording/claims_link.py; 424 insertions, 57 deletions\", \"plan_validation.py:78-94 and 603-693 define the shared artifact-grounding shape/fact helper; run.py:105-108 and 2581-2588 call it for movement gates; gate_sequence.py:17-19 and 252-256 call it for gate-sequence gates\", \"claims_link.py:295-...",
+          "parent_goal_delta_status": "F10 closure candidate is supported by targeted local evidence: demand and record are unified for the observed gate paths, but parent closure remains limited by the blocked full-profile runner and lack of real file-mutation FIRE.",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "remaining_delta": [
+            "Uncommitted support changes remain in five files and require normal writable-run verification before merge or closure stamping.",
+            "If strict closure requires profile-run proof, rerun --all in an environment with a usable tempdir.",
+            "claims_link.py changes are support-recording behavior and should remain reviewed as part of the same grounding repair surface."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "transition_concern_evidence": {
+            "binding": false,
+            "concern_kind": "verification_gap",
+            "concern_ref": "transition-concern:f10b-readonly-full-gate-tempdir-blocked",
+            "not_proven": [
+              "full profile runner exit 0",
+              "file-level sabotage RED"
+            ],
+            "proof_limits": [
+              "read-only sandbox",
+              "process-local probe only"
+            ],
+            "reason_refs": [
+              "command:check_profile.py --all:no-usable-temporary-directory",
+              "command:check_profile.py --profile building_skill_preset_agent_tool_hardening:no-usable-temporary-directory"
+            ],
+            "related_boundary_refs": [
+              "brick-code-attack-qa",
+              "brick-closure"
+            ]
+          }
+        }
+      },
+      "fact_ref": "agent-fact:03:f10b-grounding-demand-record-unify-closure",
+      "not_proven": [
+        "semantic fitness of selected chain preset",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "task source is pre-run input evidence, not an automatic plan selector",
+        "chain preset is a caller / COO selection candidate only",
+        "not automatic shape selection",
+        "not Building Plan authoring from task text",
+        "support materializes caller / COO declared task source and preset only",
+        "not automatic preset selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-12T06:22:49Z",
+  "id": "urn:bp:building:f10b-grounding-demand-record-unify::evidence/claim_trace/agent/returned_claims.json",
+  "recorded_at": "2026-06-12T06:22:49Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:f10b-grounding-demand-record-unify",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/agent/returned_claims.json",
+  "time": "2026-06-12T06:22:49Z",
+  "type": "bp.claim_trace"
+}

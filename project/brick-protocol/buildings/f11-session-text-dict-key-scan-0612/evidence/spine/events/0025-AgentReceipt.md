@@ -1,0 +1,12 @@
+# AgentReceipt · seq 25 · ["Agent"]
+- agent_object_ref: "agent-object:coo"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-closure"
+- event_type: "AgentReceipt"
+- evidence_reference: "raw:agent:03"
+- received_work_ref: "brick-work:03:f11-session-text-dict-key-scan-0612-closure"
+- run_segment: 1
+- sequence_index: 25
+- source_fact_ref: "agent-fact:03:f11-session-text-dict-key-scan-0612-closure"
+- spine_schema_version: "spine-v1"
+- step_ref: "f11-session-text-dict-key-scan-0612-closure"

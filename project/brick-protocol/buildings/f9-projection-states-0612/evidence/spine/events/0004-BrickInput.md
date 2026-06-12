@@ -1,0 +1,12 @@
+# BrickInput · seq 4 · ["Brick"]
+- axis_scope: ["Brick"]
+- brick_instance_ref: "brick-work"
+- comparison_rule: "Observe declared task source and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickInput"
+- required_return_shape: "received_work_ref,made_changes,changed_files,observed_evidence,commands_run,blocked_or_missing_evidence,handoff_refs,not_proven"
+- run_segment: 1
+- sequence_index: 4
+- source_facts: ["task-source:inline-statement"]
+- spine_schema_version: "spine-v1"
+- step_ref: "f9-projection-states-0612-work"
+- work_statement: "work Brick for task-source:inline-statement: # F9: ledger/dashboard projection misstates non-happy buildings (both directions)"

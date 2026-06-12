@@ -1,0 +1,197 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:f10b-grounding-demand-record-unify::work/step-outputs/f10b-grounding-demand-record-unify-work-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:dev",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-work",
+  "building_id": "f10b-grounding-demand-record-unify",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T06:14:07.509258Z",
+  "id": "urn:bp:building:f10b-grounding-demand-record-unify::work/step-outputs/f10b-grounding-demand-record-unify-work-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected chain preset",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "task source is pre-run input evidence, not an automatic plan selector",
+    "chain preset is a caller / COO selection candidate only",
+    "not automatic shape selection",
+    "not Building Plan authoring from task text",
+    "support materializes caller / COO declared task source and preset only",
+    "not automatic preset selection",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:f10b-grounding-demand-record-unify-work",
+  "recorded_at": "2026-06-12T06:14:07.509258Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:dev",
+    "blocked_or_missing_evidence": [
+      "archive/status-kernel/current-brick-operating-packet-0531.md and archive/status-kernel/brick-protocol-post-d-surface-recompile-0-plan-0530.md were not present in this checkout path.",
+      "No Claude/Gemini review was run in this dev step.",
+      "Workspace check_profile runs created project/status/inbox fixture files; those generated files were removed, and final status is support-only.",
+      "support/dashboard/public/dashboard-data.json is ignored by git status but exists as a generated support projection seed required by the full profile gate."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "changed_files": [
+      "support/dashboard/public/dashboard-data.json"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:f10b-grounding-demand-record-unify",
+    "cli_version_text": "codex-cli 0.137.0",
+    "commands_run": [
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/operator/dashboard_export.py --bake-public -> exit 0",
+      "PYTHONDONTWRITEBYTECODE=1 TMPDIR=/private/tmp PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --profile support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml -> exit 0",
+      "PYTHONDONTWRITEBYTECODE=1 TMPDIR=/private/tmp PYTHONPATH=support/import_identity python3 - <<'PY' ... _artifact_grounding_probe(Path.cwd()) ... PY -> exit 0, output 6",
+      "temp-copy sabotage at /private/tmp/brick-f10-sabotage.YarO6O/repo mutating gate_sequence helper bypass -> expected RED exit 1",
+      "PYTHONDONTWRITEBYTECODE=1 TMPDIR=/private/tmp PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all in /private/tmp/brick-f10-fullgate.sKq31V/repo -> exit 0",
+      "PYTHONDONTWRITEBYTECODE=1 TMPDIR=/private/tmp PYTHONPATH=support/import_identity python3 -m compileall -q support/operator support/checkers/lib support/recording -> exit 0",
+      "git diff --check -> exit 0"
+    ],
+    "evidence_refs": [
+      "support-packet:f10b-grounding-demand-record-unify:agent-object:dev:output"
+    ],
+    "handoff_refs": [
+      "temp-copy:/private/tmp/brick-f10-fullgate.sKq31V/repo",
+      "temp-copy:/private/tmp/brick-f10-sabotage.YarO6O/repo"
+    ],
+    "made_changes": true,
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority",
+      "provider quality",
+      "hook execution",
+      "provider SDK behavior",
+      "future Building correctness",
+      "semantic correctness beyond checked artifact-grounding demand/record cases",
+      "complete absence of future support-authority leaks"
+    ],
+    "observed_evidence": [
+      "support/operator/plan_validation.py now single-sources artifact grounding field selection through _artifact_grounding_required_return_fields for review/design shapes and filters non-matching repository_artifact_ref facts.",
+      "support/operator/run.py and support/operator/gate_sequence.py both call the same helper for gate required-return fields.",
+      "support/recording/claims_link.py omits missing repository-artifact selectors from recorded required_public_facts while preserving them under missing_required_facts, so missing artifacts are demanded without recording an unresolvable required ref.",
+      "support/checkers/lib/kernel_checks.py artifact-grounding probe covers review without artifacts -> hold/missing, review/design with artifacts -> forward/resolved, and non-review evidence_used shape -> no demand/no record.",
+      "Direct _artifact_grounding_probe returned 6.",
+      "Temp-copy sabotage of gate_sequence helper bypass went RED: gate sequence action 'forward', expected 'hold'.",
+      "Final temp-copy full gate at /private/tmp/brick-f10-fullgate.sKq31V/repo exited 0.",
+      "Final git status shows only support tracked modifications after removing checker-created project inbox fixture files."
+    ],
+    "output_excerpt": "{\"received_work_ref\":\"support-packet:f10b-grounding-demand-record-unify:agent-object:dev:input\",\"made_changes\":true,\"changed_files\":[\"support/operator/plan_validation.py\",\"support/operator/run.py\",\"support/operator/gate_sequence.py\",\"support/recording/claims_link.py\",\"support/checkers/lib/kernel_checks.py\",\"support/dashboard/public/dashboard-data.json (ignored generated support projection seed, source_truth false, 14 buildings)\"],\"observed_evidence\":[\"support/operator/plan_validation.py now single-sources artifact grounding field selection through _artifact_grounding_required_return_fields ...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "received_work_ref": "support-packet:f10b-grounding-demand-record-unify:agent-object:dev:input",
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "claude/track-f10",
+        "head": "59635b14e270e7342940a57dbcb95dfb6bf86211"
+      },
+      "after_git_status_paths": [
+        "support/checkers/lib/kernel_checks.py",
+        "support/operator/gate_sequence.py",
+        "support/operator/plan_validation.py",
+        "support/operator/run.py",
+        "support/recording/claims_link.py"
+      ],
+      "after_path_count": 1930,
+      "before_git_refs": {
+        "branch": "claude/track-f10",
+        "head": "59635b14e270e7342940a57dbcb95dfb6bf86211"
+      },
+      "before_git_status_paths": [
+        "support/checkers/lib/kernel_checks.py",
+        "support/operator/gate_sequence.py",
+        "support/operator/plan_validation.py",
+        "support/operator/run.py",
+        "support/recording/claims_link.py"
+      ],
+      "before_path_count": 1929,
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [
+        "support/dashboard/public/dashboard-data.json"
+      ],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "support/*"
+        ],
+        "forbidden_paths": [
+          "link/*",
+          "agent/*",
+          "brick/*",
+          "project/*",
+          ".git/*",
+          "AGENTS.md",
+          "pyproject.toml",
+          "uv.lock"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:01:f10b-grounding-demand-record-unify-work",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:f10b-grounding-demand-record-unify",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:f10b-grounding-demand-record-unify-work:attempt-1",
+  "step_ref": "f10b-grounding-demand-record-unify-work",
+  "subject": "f10b-grounding-demand-record-unify-work",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T06:14:07.509258Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

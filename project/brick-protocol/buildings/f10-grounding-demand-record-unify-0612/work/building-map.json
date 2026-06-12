@@ -1,0 +1,145 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:f10-grounding-demand-record-unify-0612::work/building-map.json",
+  "agent_bindings": [
+    {
+      "agent_binding_id": "binding:01:f10-grounding-demand-record-unify-0612-work",
+      "agent_performer_ref": "agent-performer:agent-object:dev",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-work",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "proof_limits": [
+        "task source is pre-run input evidence, not an automatic plan selector",
+        "chain preset is a caller / COO selection candidate only",
+        "not automatic shape selection",
+        "not Building Plan authoring from task text",
+        "support materializes caller / COO declared task source and preset only",
+        "not automatic preset selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent-received:01",
+        "raw:adapter-error:01"
+      ],
+      "step_output_ref": "work/step-outputs/f10-grounding-demand-record-unify-0612-work-attempt-1/adapter-error.json"
+    }
+  ],
+  "brick_instances": [
+    {
+      "agent_binding_refs": [
+        "binding:01:f10-grounding-demand-record-unify-0612-work"
+      ],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-work",
+      "brick_work_ref": "work:f10-grounding-demand-record-unify-0612-work",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "proof_limits": [
+        "task source is pre-run input evidence, not an automatic plan selector",
+        "chain preset is a caller / COO selection candidate only",
+        "not automatic shape selection",
+        "not Building Plan authoring from task text",
+        "support materializes caller / COO declared task source and preset only",
+        "not automatic preset selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent-received:01"
+      ]
+    }
+  ],
+  "building_id": "f10-grounding-demand-record-unify-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "frontier_observation": {
+    "adapter_error_ref": "adapter-error:f10-grounding-demand-record-unify-0612-work:attempt-1",
+    "frontier_kind": "agent_incomplete",
+    "proof_limits": [
+      "graph support projection only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ]
+  },
+  "generatedAtTime": "2026-06-12T06:04:46Z",
+  "groups": [],
+  "id": "urn:bp:building:f10-grounding-demand-record-unify-0612::work/building-map.json",
+  "kind": "building_graph_map",
+  "link_edges": [],
+  "not_proven": [
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "not proven: source truth",
+    "not proven: success judgment",
+    "not proven: quality judgment",
+    "not proven: Movement authority",
+    "provider or local callable behavior after the adapter exception",
+    "semantic correctness of the interrupted work",
+    "caller/COO disposition after frontier observation"
+  ],
+  "profile": "planning-v0",
+  "proof_limits": [
+    "task source is pre-run input evidence, not an automatic plan selector",
+    "chain preset is a caller / COO selection candidate only",
+    "not automatic shape selection",
+    "not Building Plan authoring from task text",
+    "support materializes caller / COO declared task source and preset only",
+    "not automatic preset selection",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "raw_refs": [
+    "raw:brick:01",
+    "raw:agent-received:01",
+    "raw:adapter-error:01",
+    "raw:link-frontier:01"
+  ],
+  "recorded_at": "2026-06-12T06:04:46Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:f10-grounding-demand-record-unify-0612",
+  "specversion": "1.0",
+  "subject": "work/building-map.json",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T06:04:46Z",
+  "type": "bp.building_graph_map"
+}

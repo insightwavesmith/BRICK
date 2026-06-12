@@ -1,0 +1,212 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:f11-session-text-dict-key-scan-0612::work/step-outputs/f11-session-text-dict-key-scan-0612-code-attack-qa-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-code-attack-qa",
+  "building_id": "f11-session-text-dict-key-scan-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T05:58:20.476536Z",
+  "id": "urn:bp:building:f11-session-text-dict-key-scan-0612::work/step-outputs/f11-session-text-dict-key-scan-0612-code-attack-qa-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected chain preset",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "task source is pre-run input evidence, not an automatic plan selector",
+    "chain preset is a caller / COO selection candidate only",
+    "not automatic shape selection",
+    "not Building Plan authoring from task text",
+    "support materializes caller / COO declared task source and preset only",
+    "not automatic preset selection",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:f11-session-text-dict-key-scan-0612-code-attack-qa",
+  "recorded_at": "2026-06-12T05:58:20.476536Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:qa",
+    "attacked_work": {
+      "branch": "claude/track-f11",
+      "changed_files": [
+        "support/checkers/lib/kernel_checks.py",
+        "support/checkers/profiles/building_automation.yaml",
+        "support/operator/primitives.py",
+        "support/operator/run.py",
+        "support/recording/adapter_error_frontier.py"
+      ],
+      "checkout": "/Users/smith/projects/BRICK-wt-f11",
+      "support_surface": [
+        "support/operator/primitives.py",
+        "support/operator/run.py",
+        "support/recording/adapter_error_frontier.py",
+        "support/checkers/lib/kernel_checks.py",
+        "support/checkers/profiles/building_automation.yaml"
+      ],
+      "work_statement": "F11 chat-session leak rejector misses UUID/ULID-shaped text in dict key position."
+    },
+    "boundary_violations": [
+      {
+        "evidence": "support/operator/run.py:654-659 calls _validate_no_payload_forbidden before _reject_chat_session_session_text; support/operator/primitives.py:550-557 builds recursive error labels from raw mapping keys.",
+        "observation": "A session-shaped dict key can be echoed in an earlier forbidden-key validation error before the session-like rejector gets control.",
+        "proof_limit": "Observed by direct private-helper probe only; full seam checker was blocked by temp-directory unavailability.",
+        "ref": "boundary-observation:f11-session-text-dict-key-scan-0612-validator-order"
+      }
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "checked_sources": [
+      "AGENTS.md instruction packet supplied in the task context.",
+      "task-source:inline-statement supplied in the work packet.",
+      "support/operator/primitives.py:200-203",
+      "support/operator/primitives.py:550-568",
+      "support/operator/run.py:646-659",
+      "support/operator/run.py:678-679",
+      "support/recording/adapter_error_frontier.py:554-565",
+      "support/checkers/lib/kernel_checks.py:2499-2607",
+      "support/checkers/lib/kernel_checks.py:3366-3438",
+      "support/checkers/profiles/building_automation.yaml:48-53",
+      "support/checkers/profiles/building_automation.yaml:135-146"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:f11-session-text-dict-key-scan-0612",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:f11-session-text-dict-key-scan-0612:agent-object:qa:output"
+    ],
+    "evidence_used": [
+      "git status --short",
+      "git rev-parse --show-toplevel",
+      "git branch --show-current",
+      "git diff -- support/operator/run.py support/recording/adapter_error_frontier.py support/checkers/lib/kernel_checks.py support/checkers/profiles/building_automation.yaml support/operator/primitives.py",
+      "rg over support for _reject_session_like_text and chat_session_park_seam references",
+      "nl -ba inspections of the changed support/checker files",
+      "PYTHONDONTWRITEBYTECODE=1 python3 -c runtime probes for primitive, envelope, ordering, and key-skip mutant behavior",
+      "PYTHONDONTWRITEBYTECODE=1 python3 -m support.checkers.check_profile --repo . --profile support/checkers/profiles/building_automation.yaml",
+      "PYTHONDONTWRITEBYTECODE=1 python3 -m support.checkers.check_profile --repo . --all",
+      "git diff --check"
+    ],
+    "failing_or_missing_probes": [
+      "Full gate exit 0 was not observed for /Users/smith/projects/BRICK-wt-f11 because tempfile creation is unavailable in the read-only sandbox.",
+      "chat_session_park_seam could not execute its temp Building roots, so its integrated key/value/nested/FIRE coverage is not proven in this run.",
+      "No provider behavior, hook execution, or runtime session behavior was exercised."
+    ],
+    "negative_probe_observations": [
+      "Direct primitive probes: UUID key rejected, ULID key rejected, nested key rejected, nested value rejected, task-source ordinary key accepted.",
+      "Direct envelope probe: AgentAdapterRequest source_fact_bodies with a runtime-constructed UUID-shaped key rejected with session-id-shaped text and did not echo the probe.",
+      "Ordering probe: _validate_chat_session_submission_return with a runtime-constructed UUID-shaped key containing a nested forbidden status key rejected without the session-id-shaped reason and echoed the probe in the exception text.",
+      "Mutation probe: replacing run.py _reject_session_like_text with the value-only checker mutant caused a UUID-shaped key to be accepted.",
+      "Checker gate probes: building_automation and --all both exited 1 with no usable temporary directory.",
+      "Whitespace probe: git diff --check exited 0."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority",
+      "full gate exit 0",
+      "chat_session_park_seam integrated checker behavior",
+      "all-profile checker behavior",
+      "provider quality",
+      "future Building correctness",
+      "complete absence of session-like text echo beyond the probed submission ordering case"
+    ],
+    "observed_evidence": [
+      "Checkout observed: /Users/smith/projects/BRICK-wt-f11 on branch claude/track-f11 with five modified support/checker files.",
+      "The active implementation moves session-like text scanning into support/operator/primitives.py:_reject_session_like_text and imports it from support/operator/run.py and support/recording/adapter_error_frontier.py.",
+      "Runtime probes observed rejection for UUID-shaped dict key, ULID-shaped dict key, nested dict key, nested list/dict value, and envelope source_fact_bodies key without echoing the constructed probe token.",
+      "Runtime probe observed legitimate ordinary text with task-source style hyphenated key accepted.",
+      "A key-skip mutant of the run.py rejector accepted a runtime-constructed UUID-shaped key, matching the intended RED condition for the FIRE probe.",
+      "git diff --check exited 0.",
+      "The full building_automation profile and --all profile gate did not run to completion in this sandbox because Python reported no usable temporary directory."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"Checkout observed: /Users/smith/projects/BRICK-wt-f11 on branch claude/track-f11 with five modified support/checker files.\", \"The active implementation moves session-like text scanning into support/operator/primitives.py:_reject_session_like_text and imports it from support/operator/run.py and support/recording/adapter_error_frontier.py.\", \"Runtime probes observed rejection for UUID-shaped dict key, ULID-shaped dict key, nested dict key, nested list/dict value, and envelope source_fact_bodies key without echoing the constructed probe token.\", \"Runtime probe observe...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "regression_risks": [
+      "support/operator/run.py validates forbidden payload keys before the session-like text scan. A payload with a session-shaped key and a nested forbidden key rejects for the forbidden-key reason first, and the observed exception text echoed the runtime-constructed session-shaped key.",
+      "The full chat_session_park_seam and all-profile gate remain unobserved in this sandbox because checker execution needs a writable temporary directory.",
+      "The checker adds positive envelope key rejection but the observed key-skip FIRE mutation was exercised against the run.py submission path, not independently against adapter_error_frontier.py."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "transition_concern_evidence": {
+      "binding": false,
+      "concern_kind": "implementation_gap",
+      "concern_ref": "transition-concern:f11-session-text-dict-key-scan-validator-order",
+      "not_proven": [
+        "full chat_session_park_seam exit 0",
+        "all profile gate exit 0",
+        "provider behavior",
+        "future Building correctness",
+        "complete absence of session-shaped key echo on all error paths"
+      ],
+      "proof_limits": [
+        "read-only QA observation only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "reason_refs": [
+        "support/operator/run.py:654-659",
+        "support/operator/primitives.py:550-568",
+        "direct-probe:submission_uuid_key_with_forbidden_child"
+      ],
+      "related_boundary_refs": [
+        "brick-code-attack-qa",
+        "brick-work"
+      ]
+    }
+  },
+  "returned_fact_ref": "agent-fact:02:f11-session-text-dict-key-scan-0612-code-attack-qa",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:f11-session-text-dict-key-scan-0612",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:f11-session-text-dict-key-scan-0612-code-attack-qa:attempt-1",
+  "step_ref": "f11-session-text-dict-key-scan-0612-code-attack-qa",
+  "subject": "f11-session-text-dict-key-scan-0612-code-attack-qa",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T05:58:20.476536Z",
+  "transition_concern_ref": "work/step-outputs/f11-session-text-dict-key-scan-0612-code-attack-qa-attempt-1/transition-concern.json",
+  "type": "bp.step_output"
+}

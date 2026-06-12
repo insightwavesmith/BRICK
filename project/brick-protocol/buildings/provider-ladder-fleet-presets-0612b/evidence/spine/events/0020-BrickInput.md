@@ -1,0 +1,12 @@
+# BrickInput · seq 20 · ["Brick"]
+- axis_scope: ["Brick"]
+- brick_instance_ref: "brick-provider-ladder-fleet-presets-0612b-work"
+- comparison_rule: "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickInput"
+- required_return_shape: "made_changes, observed_evidence, not_proven"
+- run_segment: 2
+- sequence_index: 20
+- source_facts: ["task-source:inline-statement"]
+- spine_schema_version: "spine-v1"
+- step_ref: "provider-ladder-fleet-presets-0612b-work"
+- work_statement: "work Brick for task-source:inline-statement: Open the BUILDER-side path for per-step provider/model selection (the ENGINE already honors step-level selected_adapter_ref/selected_model_ref — plan_validation.py:156-163 falls back step->plan; verified) and add fleet presets so recon/revi"

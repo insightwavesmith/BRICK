@@ -1,0 +1,143 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:f9b-midwalk-not-closed::evidence/claim_trace/link/transfer_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "absent_fact_type": "TransferFact",
+        "caller_supplied": false,
+        "statement": "caller did not supply a Link TransferFact; support/operator/run.py did not create one",
+        "support_created_bal_fact": false,
+        "trace_role": "absence_placeholder"
+      },
+      "fact_ref": "absence:link-transfer:01:f9b-midwalk-not-closed-work",
+      "not_proven": [
+        "semantic fitness of selected chain preset",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "task source is pre-run input evidence, not an automatic plan selector",
+        "chain preset is a caller / COO selection candidate only",
+        "not automatic shape selection",
+        "not Building Plan authoring from task text",
+        "support materializes caller / COO declared task source and preset only",
+        "not automatic preset selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "absent_fact_type": "TransferFact",
+        "caller_supplied": false,
+        "statement": "caller did not supply a Link TransferFact; support/operator/run.py did not create one",
+        "support_created_bal_fact": false,
+        "trace_role": "absence_placeholder"
+      },
+      "fact_ref": "absence:link-transfer:02:f9b-midwalk-not-closed-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected chain preset",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "task source is pre-run input evidence, not an automatic plan selector",
+        "chain preset is a caller / COO selection candidate only",
+        "not automatic shape selection",
+        "not Building Plan authoring from task text",
+        "support materializes caller / COO declared task source and preset only",
+        "not automatic preset selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:02"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "absent_fact_type": "TransferFact",
+        "caller_supplied": false,
+        "statement": "caller did not supply a Link TransferFact; support/operator/run.py did not create one",
+        "support_created_bal_fact": false,
+        "trace_role": "absence_placeholder"
+      },
+      "fact_ref": "absence:link-transfer:03:f9b-midwalk-not-closed-closure",
+      "not_proven": [
+        "semantic fitness of selected chain preset",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "task source is pre-run input evidence, not an automatic plan selector",
+        "chain preset is a caller / COO selection candidate only",
+        "not automatic shape selection",
+        "not Building Plan authoring from task text",
+        "support materializes caller / COO declared task source and preset only",
+        "not automatic preset selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:03"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-12T06:19:33Z",
+  "id": "urn:bp:building:f9b-midwalk-not-closed::evidence/claim_trace/link/transfer_trace.json",
+  "recorded_at": "2026-06-12T06:19:33Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:f9b-midwalk-not-closed",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/transfer_trace.json",
+  "time": "2026-06-12T06:19:33Z",
+  "type": "bp.claim_trace"
+}

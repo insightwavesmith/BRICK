@@ -1,0 +1,185 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:f9b-midwalk-not-closed::work/step-outputs/f9b-midwalk-not-closed-work-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:dev",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-work",
+  "building_id": "f9b-midwalk-not-closed",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T06:12:52.022087Z",
+  "id": "urn:bp:building:f9b-midwalk-not-closed::work/step-outputs/f9b-midwalk-not-closed-work-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected chain preset",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "task source is pre-run input evidence, not an automatic plan selector",
+    "chain preset is a caller / COO selection candidate only",
+    "not automatic shape selection",
+    "not Building Plan authoring from task text",
+    "support materializes caller / COO declared task source and preset only",
+    "not automatic preset selection",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:f9b-midwalk-not-closed-work",
+  "recorded_at": "2026-06-12T06:12:52.022087Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:dev",
+    "blocked_or_missing_evidence": [
+      "archive/status-kernel/current-brick-operating-packet-0531.md and archive/status-kernel/brick-protocol-post-d-surface-recompile-0-plan-0530.md were not present at those literal paths in this checkout.",
+      "Live ids onboarding-legacy-scrub-0612 and provider-ladder-fleet-presets-0612 were not present in this checkout dashboard_export_packet, so exact live-row proof for those ids is not observed here."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "changed_files": [
+      "support/checkers/lib/kernel_checks.py"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:f9b-midwalk-not-closed",
+    "cli_version_text": "codex-cli 0.137.0",
+    "commands_run": [
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --profile support/checkers/profiles/read_side_projection_boundary.yaml -> exit 0",
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all -> exit 0",
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 -m compileall -q support -> exit 0",
+      "git diff --check -> exit 0",
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 - <<'PY' run_dashboard_productization_projection(Path.cwd()).output -> exit 0",
+      "git status --short -> support/checkers/lib/kernel_checks.py, support/operator/dashboard_export.py, support/operator/frontier_observation.py, support/operator/ledger_projection.py only"
+    ],
+    "evidence_refs": [
+      "support-packet:f9b-midwalk-not-closed:agent-object:dev:output"
+    ],
+    "handoff_refs": {},
+    "made_changes": true,
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority",
+      "provider process liveness",
+      "semantic correctness of any Building work",
+      "future Building correctness",
+      "complete absence of future support-authority leaks beyond the audited current surfaces"
+    ],
+    "observed_evidence": [
+      "Closure frontier now keys on executed raw Link boundary evidence; declared building-map terminal edges alone no longer close a mid-walk Building.",
+      "ledger board_state now maps closure_pending with work progress to observed_running and agent_incomplete to link_paused; fossil closure_pending with no progress remains unknown.",
+      "dashboard display maps non-stale observed_running closure_pending to running; link_paused remains stopped and chat_session_parked remains review.",
+      "State table: projection-closed complete/closed/closed; projection-adapter-error agent_incomplete/link_paused/stopped; projection-fossil closure_pending/unknown/unknown; projection-mid-walk closure_pending/observed_running/running; projection-parked chat_session_parked/waiting_review/review.",
+      "FIRE probes: mutated breakdown->running derivation fired RED; mutated closed-without-boundary derivation fired RED.",
+      "Full gate exit 0 on /Users/smith/projects/BRICK-wt-f9; generated local inbox packets from the gate were removed, final git status shows support-only tracked diffs."
+    ],
+    "output_excerpt": "{\"received_work_ref\":\"support-packet:f9b-midwalk-not-closed:agent-object:dev:input\",\"made_changes\":true,\"changed_files\":[\"support/operator/frontier_observation.py\",\"support/operator/ledger_projection.py\",\"support/operator/dashboard_export.py\",\"support/checkers/lib/kernel_checks.py\"],\"observed_evidence\":[\"Closure frontier now keys on executed raw Link boundary evidence; declared building-map terminal edges alone no longer close a mid-walk Building.\",\"ledger board_state now maps closure_pending with work progress to observed_running and agent_incomplete to link_paused; fossil closure_pending ...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "received_work_ref": "support-packet:f9b-midwalk-not-closed:agent-object:dev:input",
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "claude/track-f9",
+        "head": "59635b14e270e7342940a57dbcb95dfb6bf86211"
+      },
+      "after_git_status_paths": [
+        "support/checkers/lib/kernel_checks.py",
+        "support/operator/dashboard_export.py",
+        "support/operator/frontier_observation.py",
+        "support/operator/ledger_projection.py"
+      ],
+      "after_path_count": 1930,
+      "before_git_refs": {
+        "branch": "claude/track-f9",
+        "head": "59635b14e270e7342940a57dbcb95dfb6bf86211"
+      },
+      "before_git_status_paths": [
+        "support/checkers/lib/kernel_checks.py",
+        "support/operator/dashboard_export.py",
+        "support/operator/frontier_observation.py",
+        "support/operator/ledger_projection.py"
+      ],
+      "before_path_count": 1930,
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [
+        "support/checkers/lib/kernel_checks.py"
+      ],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "support/*"
+        ],
+        "forbidden_paths": [
+          "link/*",
+          "agent/*",
+          "brick/*",
+          "project/*",
+          ".git/*",
+          "AGENTS.md",
+          "pyproject.toml",
+          "uv.lock"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:01:f9b-midwalk-not-closed-work",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:f9b-midwalk-not-closed",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:f9b-midwalk-not-closed-work:attempt-1",
+  "step_ref": "f9b-midwalk-not-closed-work",
+  "subject": "f9b-midwalk-not-closed-work",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T06:12:52.022087Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

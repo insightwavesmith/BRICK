@@ -1,0 +1,167 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:provider-ladder-fleet-presets-0612b::work/step-outputs/provider-ladder-fleet-presets-0612b-code-attack-qa-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-provider-ladder-fleet-presets-0612b-code-attack-qa",
+  "building_id": "provider-ladder-fleet-presets-0612b",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:03",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T07:00:18.547883Z",
+  "id": "urn:bp:building:provider-ladder-fleet-presets-0612b::work/step-outputs/provider-ladder-fleet-presets-0612b-code-attack-qa-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:03:provider-ladder-fleet-presets-0612b-code-attack-qa",
+  "recorded_at": "2026-06-12T07:00:18.547883Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:qa",
+    "attacked_work": [
+      "Builder-side per-step adapter/model selection.",
+      "Agent Object preferred_adapter_ref admission.",
+      "Fleet preset graph materialization for recon-fleet and review-fleet.",
+      "Capability reject path for per-step adapter not declared by the lane Agent Object."
+    ],
+    "blocked_or_missing_evidence": [
+      "Writable temp space for checker harness and full temp-copy gate.",
+      "Recorded Building evidence root for provider-ladder-fleet-presets-0612b.",
+      "Recorded delegated model-review evidence."
+    ],
+    "boundary_violations": [],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "checked_sources": [
+      "AGENTS.md instruction packet supplied in prompt.",
+      "project/brick-protocol/PROGRESS.md:1-25.",
+      "support/operator/composition.py.",
+      "support/operator/plan_rendering.py.",
+      "support/operator/plan_validation.py:156-164.",
+      "support/operator/run.py:2896-2903.",
+      "support/connection/agent_resources.py.",
+      "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml:743-822, 894-906, 3163-3179, 3357-3384.",
+      "brick/templates/presets/recon-fleet.md.",
+      "brick/templates/presets/review-fleet.md."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:provider-ladder-fleet-presets-0612b",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:provider-ladder-fleet-presets-0612b:agent-object:qa:output"
+    ],
+    "evidence_used": [
+      "git status --short.",
+      "git diff --stat and git diff --name-only.",
+      "rg/nl/sed inspections of changed files.",
+      "python3 -c direct materialize_building_intent and render_declared_step_template_plan probes.",
+      "git diff --check.",
+      "find/rg lookup for provider-ladder-fleet-presets evidence roots."
+    ],
+    "failing_or_missing_probes": [
+      "PYTHONDONTWRITEBYTECODE=1 python3 support/checkers/check_profile.py --profile support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml was blocked: no usable temporary directory.",
+      "PYTHONDONTWRITEBYTECODE=1 python3 support/checkers/check_profile.py --profile support/checkers/profiles/structure_template_integrity.yaml was blocked for the same temp-dir reason.",
+      "PYTHONDONTWRITEBYTECODE=1 python3 support/checkers/check_brick_template_catalog_restructure.py was blocked for the same temp-dir reason.",
+      "No project/brick-protocol evidence root for provider-ladder-fleet-presets-0612b was found by rg/find in this pass.",
+      "No Claude/Gemini model-review evidence was produced or consumed in this QA pass."
+    ],
+    "negative_probe_observations": [
+      "step_selection_overrides with adapter:chat-session for code-attack-qa rejected: selected adapter must be referenced by Agent Object agent-object:qa.",
+      "Unused override for building-step-template:work in review-fleet rejected as not in selected preset.",
+      "Invalid preferred_adapter_ref outside adapter_refs rejected by Agent resource validator.",
+      "adapter:codex-local with model:claude:sonnet rejected at adapter model projection with provider mismatch."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority",
+      "full checker gate in temp copy exit 0",
+      "profile --all result",
+      "future Building correctness",
+      "provider/model availability",
+      "runtime Agent adapter execution",
+      "complete absence of future support-authority leaks"
+    ],
+    "observed_evidence": [
+      "Changed files observed: 13 tracked files plus new brick/templates/presets/recon-fleet.md and review-fleet.md.",
+      "support/operator/plan_rendering.py:307-344 implements step declaration > lane preference > building default adapter ladder; support/operator/plan_rendering.py:413-428 validates adapter membership in Agent Object adapter_refs.",
+      "support/operator/composition.py:220-235 and 1472-1495 carry step_selection_overrides into linear and graph materialization; support/operator/composition.py:2596-2605 stamps per-step adapter/model only when resolved at step level.",
+      "agent/objects/pm-lead.yaml:31-35 declares preferred_adapter_ref adapter:codex-local; support/connection/agent_resources.py:300-307 rejects preferences outside adapter_refs.",
+      "brick/templates/presets/review-fleet.md:1-48 declares one claude-local review lens; recon-fleet.md:1-48 declares codex-local read-only survey lanes.",
+      "Read-only direct probes observed review-fleet adapters [codex, claude, codex, codex, codex], recon-fleet all codex, and override of code-attack-qa to codex.",
+      "AST parse for 10 changed Python files exited 0; git diff --check exited 0."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"Changed files observed: 13 tracked files plus new brick/templates/presets/recon-fleet.md and review-fleet.md.\", \"support/operator/plan_rendering.py:307-344 implements step declaration > lane preference > building default adapter ladder; support/operator/plan_rendering.py:413-428 validates adapter membership in Agent Object adapter_refs.\", \"support/operator/composition.py:220-235 and 1472-1495 carry step_selection_overrides into linear and graph materialization; support/operator/composition.py:2596-2605 stamps per-step adapter/model only when resolved at step level....",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "Read-only QA support evidence only.",
+      "Checker/direct probe output is not source truth, success judgment, quality judgment, or Movement authority.",
+      "No files were edited by this QA pass.",
+      "Temp-dir blocked commands are not checker failures of the work; they are missing support evidence in this sandbox."
+    ],
+    "regression_risks": [
+      "Full gate was not observed because this read-only sandbox cannot create the required temp source copy.",
+      "Changed profiles could not run here because the profile harness requires a usable temp directory.",
+      "Detailed profile materialization coverage was added for review-fleet; recon-fleet adapter/model vector was direct-probed but not profile-proven in this pass.",
+      "Provider runtime execution, model availability, and provider quality were not observed."
+    ],
+    "remaining_delta": [
+      "No Agent-supplied Movement. Evidence delta is to run the full gate in a temp source copy outside the repo and record the resulting Building/support evidence.",
+      "Add or observe a profile-backed recon-fleet adapter/model vector case if symmetric fleet preset pinning is required beyond the direct smoke."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default"
+  },
+  "returned_fact_ref": "agent-fact:03:provider-ladder-fleet-presets-0612b-code-attack-qa",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:provider-ladder-fleet-presets-0612b",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:provider-ladder-fleet-presets-0612b-code-attack-qa:attempt-1",
+  "step_ref": "provider-ladder-fleet-presets-0612b-code-attack-qa",
+  "subject": "provider-ladder-fleet-presets-0612b-code-attack-qa",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T07:00:18.547883Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

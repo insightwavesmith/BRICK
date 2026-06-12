@@ -1,0 +1,64 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:f10-grounding-demand-record-unify-0612::evidence/claim_trace/link/frontier_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "disposition_record_created": false,
+        "frontier_kind": "agent_incomplete",
+        "frontier_role": "Link transition not recorded because Agent returned evidence is absent",
+        "observed_boundary_ref": "brick-work",
+        "reason_refs": [
+          "adapter-error:f10-grounding-demand-record-unify-0612-work:attempt-1"
+        ],
+        "transition_record_created": false
+      },
+      "fact_ref": "link-frontier:01:f10-grounding-demand-record-unify-0612-work",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "proof_limits": [
+        "task source is pre-run input evidence, not an automatic plan selector",
+        "chain preset is a caller / COO selection candidate only",
+        "not automatic shape selection",
+        "not Building Plan authoring from task text",
+        "support materializes caller / COO declared task source and preset only",
+        "not automatic preset selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-frontier:01"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-12T06:04:46Z",
+  "id": "urn:bp:building:f10-grounding-demand-record-unify-0612::evidence/claim_trace/link/frontier_trace.json",
+  "recorded_at": "2026-06-12T06:04:46Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:f10-grounding-demand-record-unify-0612",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/frontier_trace.json",
+  "time": "2026-06-12T06:04:46Z",
+  "type": "bp.claim_trace"
+}

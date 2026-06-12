@@ -1,0 +1,12 @@
+# AgentReceipt · seq 49 · ["Agent"]
+- agent_object_ref: "agent-object:inspector"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-onboarding-legacy-scrub-0612-evidence-integrity"
+- event_type: "AgentReceipt"
+- evidence_reference: "raw:agent:05"
+- received_work_ref: "brick-work:05:onboarding-legacy-scrub-0612-evidence-integrity"
+- run_segment: 2
+- sequence_index: 49
+- source_fact_ref: "agent-fact:05:onboarding-legacy-scrub-0612-evidence-integrity"
+- spine_schema_version: "spine-v1"
+- step_ref: "onboarding-legacy-scrub-0612-evidence-integrity"

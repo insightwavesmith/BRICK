@@ -1,0 +1,185 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:onboarding-legacy-scrub-0612::work/step-outputs/onboarding-legacy-scrub-0612-evidence-integrity-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:inspector",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-onboarding-legacy-scrub-0612-evidence-integrity",
+  "building_id": "onboarding-legacy-scrub-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:05",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T06:14:04.782012Z",
+  "id": "urn:bp:building:onboarding-legacy-scrub-0612::work/step-outputs/onboarding-legacy-scrub-0612-evidence-integrity-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:05:onboarding-legacy-scrub-0612-evidence-integrity",
+  "recorded_at": "2026-06-12T06:14:04.782012Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:inspector",
+    "blocked_or_missing_evidence": [
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all exited 1: no usable temporary directory found",
+      "run_product_no_smith_residue exited 1 at tempfile.TemporaryDirectory for the same tempdir reason",
+      "zsh heredoc probes were blocked because the shell could not create a temp file",
+      "read-only/reviewer policy prevented applying any doc or checker repair"
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "checker_overclaim_risks": [
+      "Any claim that the full gate is green would overclaim; the observed full-gate command exited 1 due tempdir unavailability",
+      "Any claim that product_no_smith_residue FIRE probes ran here would overclaim; run_product_no_smith_residue stopped at tempfile.TemporaryDirectory",
+      "The no-Smith checker scans README.md, support/docs/spec, and agent/prompts; if install.sh is treated as a shipped product surface for this invariant, checker coverage is narrower than the product surface",
+      "install_script_lint explicitly limits itself to structure/safety and should not be used as fresh-machine install proof"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:onboarding-legacy-scrub-0612",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:onboarding-legacy-scrub-0612:agent-object:inspector:output"
+    ],
+    "evidence_scope": [
+      "read-only inspection of current working tree only",
+      "task source was the inline ONBOARDING-LEGACY-SCRUB-0612 statement",
+      "no installer was run against the live machine",
+      "no network clone, uv sync install journey, provider-auth journey, or real first Building was executed",
+      "Brick evidence inspected: declared scrub list, required return shape, changed product/support surfaces",
+      "Agent evidence inspected: inspector/reviewer-readonly instruction packet shape",
+      "Link evidence inspected: no link_handoff_refs supplied and no Movement chosen here"
+    ],
+    "evidence_used": [
+      "AGENTS.md",
+      "project/brick-protocol/PROGRESS.md",
+      "git status --short --branch",
+      "git diff --stat",
+      "git diff --check",
+      "git diff for changed C3 files",
+      "rg scans for /Users/smith and insightwavesmith",
+      "support/checkers/lib/kernel_checks.py no-Smith and install-script functions",
+      "support/operator/onboard.py",
+      "support/operator/project_creation.py",
+      "support/docs/references/project-charter-template.md"
+    ],
+    "missing_evidence": [
+      "writable temp directory for check_profile --all and temp-copy FIRE probes",
+      "full gate exit 0 in this checkout or a clean copy",
+      "actual fresh clone -> install -> first Building walkthrough evidence",
+      "onboard_smoke temp-output Building evidence",
+      "current operating packet files referenced by AGENTS.md",
+      "model review evidence, if required by the enclosing Building policy"
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority",
+      "full checker profile closure",
+      "temp-copy FIRE RED behavior in this sandbox",
+      "fresh-machine install reliability",
+      "provider auth or provider quality",
+      "first Building execution evidence",
+      "complete absence of Smith residue outside the scoped scanned surfaces",
+      "that ignored __pycache__ state was unchanged before and after Python inspection"
+    ],
+    "observed_evidence": [
+      "checkout=/Users/smith/projects/BRICK-wt-c3; branch evidence from git status: claude/track-c3 with modified README.md, agent/prompts/coo.md, support/checkers/*, support/docs/spec/README.md, support/onboarding/install.sh, and untracked support/docs/references/project-charter-template.md",
+      "README.md:10-11 parameterizes clone as {OWNER}/BRICK while keeping insightwavesmith/BRICK as a labeled current working example",
+      "support/docs/spec/README.md:1164-1260 replaces the inspected /Users/smith starter-kit paths with <starter-kit-checkout>/ placeholders",
+      "agent/prompts/coo.md:58-68 keeps the Korean COO chain and adds concise English equivalents alongside it",
+      "support/docs/references/project-charter-template.md:1-72 is a company-neutral English charter template covering why_exists, why_now, direction, done_means, out_of_scope, and managers",
+      "support/operator/project_creation.py:75-85 and 135-148 show project creation expects the same charter slot family the new template documents",
+      "support/onboarding/install.sh:4-17 documents {OWNER}/BRICK and BRICK_REPO; lines 48 and 118-123 implement BRICK_REPO only when a fresh clone target is missing; lines 140-162 run uv sync, onboard doctor, and print checker/onboard next steps",
+      "support/operator/onboard.py:816-849 defines onboard doctor as diagnosis-only; main(['doctor']) returned exit 0 in this checkout while reporting gh unauthenticated and local/codex/claude/gemini preflight rows",
+      "run_onboard('local', run_example=False) returned host=local, ok=True, preflight_readiness=ready, example_ran=False, and handoff text mentioning support.operator.driver.run_building_intake",
+      "read-only product-surface collector inspected 11 files under README.md, support/docs/spec, and agent/prompts and returned zero /Users/smith or disallowed insightwavesmith violations",
+      "rg found no /Users/smith literals in README.md, support/docs/spec, agent/prompts, support/onboarding/install.sh, or the new charter template",
+      "rg found insightwavesmith only as labeled working examples in README.md and support/onboarding/install.sh",
+      "git diff --check exited 0"
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"checkout=/Users/smith/projects/BRICK-wt-c3; branch evidence from git status: claude/track-c3 with modified README.md, agent/prompts/coo.md, support/checkers/*, support/docs/spec/README.md, support/onboarding/install.sh, and untracked support/docs/references/project-charter-template.md\", \"README.md:10-11 parameterizes clone as {OWNER}/BRICK while keeping insightwavesmith/BRICK as a labeled current working example\", \"support/docs/spec/README.md:1164-1260 replaces the inspected /Users/smith starter-kit paths with <starter-kit-checkout>/ placeholders\", \"agent/prompts/c...",
+    "persisted_evidence_roots": [
+      "working tree paths: README.md, support/docs/spec/README.md, agent/prompts/coo.md, support/onboarding/install.sh, support/checkers/check_profile.py, support/checkers/lib/kernel_checks.py, support/checkers/profiles/read_side_projection_boundary.yaml, support/docs/references/project-charter-template.md",
+      "project/brick-protocol/PROGRESS.md observed as machine-generated projection only",
+      "no Building evidence root or building_session_ref was supplied in the packet",
+      "archive/status-kernel/current-brick-operating-packet-0531.md and archive/status-kernel/brick-protocol-post-d-surface-recompile-0-plan-0530.md were not present in this checkout"
+    ],
+    "proof_limit_findings": [
+      "check_profile.py --all did not produce gate evidence because Python could not find any writable temporary directory",
+      "run_install_script_lint returned a KernelResult for structure/safety only; it does not prove real clone, uv sync, provider auth, or fresh-machine install",
+      "onboard doctor exit 0 is diagnosis evidence only and reported gh auth missing in this environment",
+      "run_onboard local no-example evidence proves only non-example flow shape, not a first Building run",
+      "product-surface collector evidence covers current text only; temp-copy FIRE mutation evidence was not observed"
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "provider-neutral Brick Protocol support evidence only",
+      "checker output, rg output, and local CLI probes are support evidence only",
+      "no git commit, push, checkout, reset, merge, rebase, stash, file edit, file delete, or installer execution was intentionally performed"
+    ],
+    "remaining_delta": [
+      "rerun the declared full gate in a checkout/copy with a writable temp directory",
+      "decide whether support/onboarding/install.sh should be inside the no-Smith product-surface checker or explicitly outside it with a recorded working-example allowance",
+      "consider documenting or preflighting curl for the uv-install branch",
+      "collect fresh clone -> install -> first Building evidence separately; this return does not choose Link Movement"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "stale_source_risks": [
+      "AGENTS.md points to archive/status-kernel files that are absent in this checkout, so current operating-packet evidence is missing here",
+      "support/onboarding/install.sh still contains insightwavesmith working examples at lines 9, 17, and 121; these appear labeled, but the product_no_smith_residue checker does not scan install.sh",
+      "support/onboarding/install.sh installs uv via curl at line 93, but the script does not preflight command -v curl before that branch",
+      "README timing claims such as 2 minutes or first example within 30 seconds were not re-measured here"
+    ]
+  },
+  "returned_fact_ref": "agent-fact:05:onboarding-legacy-scrub-0612-evidence-integrity",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:onboarding-legacy-scrub-0612",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:onboarding-legacy-scrub-0612-evidence-integrity:attempt-1",
+  "step_ref": "onboarding-legacy-scrub-0612-evidence-integrity",
+  "subject": "onboarding-legacy-scrub-0612-evidence-integrity",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T06:14:04.782012Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

@@ -1,0 +1,14 @@
+# TransitionConcern · seq 17 · ["Agent","Link"]
+- agent_object_ref: "agent-object:qa"
+- alias_fact_refs: ["transition-concern:f9-projection-states-0612-temp-fixture-gate-not-observed"]
+- attempt_index: 1
+- axis_scope: ["Agent","Link"]
+- binding: false
+- event_type: "TransitionConcern"
+- run_segment: 1
+- sequence_index: 17
+- source_fact_ref: "transition-concern:f9-projection-states-0612-code-attack-qa:attempt-1"
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/f9-projection-states-0612-code-attack-qa-attempt-1/step-output.json"
+- step_ref: "f9-projection-states-0612-code-attack-qa"
+- transition_concern_returned: {"binding":false,"concern_kind":"verification_gap","concern_ref":"transition-concern:f9-projection-states-0612-temp-fixture-gate-not-observed","not_proven":["full check_profile --all green","runtime execution of the new temp-fixture state table","runtime RED of the breakdown->running mutation","fresh PROGRESS projection after the code change"],"proof_limits":["support evidence only","does not choose Movement","does not judge source truth, success, or quality"],"reason_refs":["command:check_profile_read_side_projection_boundary:exit1:operation-not-permitted","command:run_dashboard_productization_projection:exit1:no-usable-temporary-directory","command:check_profile_all:exit1:no-usable-temporary-directory","file:project/brick-protocol/PROGRESS.md:stale-observed-running-count"],"related_boundary_refs":["brick-code-attack-qa","brick-work"]}
