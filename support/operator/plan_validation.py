@@ -79,6 +79,19 @@ _ARTIFACT_GROUNDING_REVIEW_FIELD = "evidence_used"
 _ARTIFACT_GROUNDING_DESIGN_FIELD = "evidence_refs"
 _ARTIFACT_GROUNDING_REVIEW_FACT = "evidence_used.repository_artifact_ref"
 _ARTIFACT_GROUNDING_DESIGN_FACT = "evidence_refs.repository_artifact_ref"
+_ARTIFACT_GROUNDING_FACT_BY_EVIDENCE_FIELD = {
+    _ARTIFACT_GROUNDING_REVIEW_FIELD: _ARTIFACT_GROUNDING_REVIEW_FACT,
+    _ARTIFACT_GROUNDING_DESIGN_FIELD: _ARTIFACT_GROUNDING_DESIGN_FACT,
+}
+_ARTIFACT_GROUNDING_FACTS = frozenset(
+    _ARTIFACT_GROUNDING_FACT_BY_EVIDENCE_FIELD.values()
+)
+_ARTIFACT_GROUNDING_REVIEW_SHAPES = (
+    {"attacked_work", _ARTIFACT_GROUNDING_REVIEW_FIELD},
+    {"attacked_scope", _ARTIFACT_GROUNDING_REVIEW_FIELD},
+    {"evidence_scope", _ARTIFACT_GROUNDING_REVIEW_FIELD},
+    {"checked_work", _ARTIFACT_GROUNDING_REVIEW_FIELD},
+)
 
 _GATE_SEQUENCE_STEP_ALLOWED_KEYS: frozenset[str] = frozenset(
     {
@@ -595,13 +608,12 @@ def _comparison_with_artifact_grounding(
     evidence_field = _artifact_grounding_evidence_field(prepared)
     if not evidence_field:
         return comparison
-    grounding_field = (
-        _ARTIFACT_GROUNDING_DESIGN_FACT
-        if evidence_field == _ARTIFACT_GROUNDING_DESIGN_FIELD
-        else _ARTIFACT_GROUNDING_REVIEW_FACT
-    )
+    grounding_field = _ARTIFACT_GROUNDING_FACT_BY_EVIDENCE_FIELD[evidence_field]
     has_grounding = _returned_field_has_repo_artifact_ref(returned_value, evidence_field)
-    required_fields = tuple(dict.fromkeys((*comparison.required_return_fields(), grounding_field)))
+    required_fields = _artifact_grounding_required_return_fields(
+        comparison.required_return_shape_evidence,
+        comparison.required_return_fields(),
+    )
     missing_fields = list(comparison.missing_return_fields())
     if has_grounding:
         missing_fields = [field for field in missing_fields if field != grounding_field]
@@ -636,18 +648,49 @@ def _comparison_with_artifact_grounding(
 
 
 def _artifact_grounding_evidence_field(prepared: AgentRunPreparationRecord) -> str:
-    fields = set(parse_required_return_shape(prepared.brick_work.required_return_shape))
-    review_shapes = (
-        {"attacked_work", _ARTIFACT_GROUNDING_REVIEW_FIELD},
-        {"attacked_scope", _ARTIFACT_GROUNDING_REVIEW_FIELD},
-        {"evidence_scope", _ARTIFACT_GROUNDING_REVIEW_FIELD},
-        {"checked_work", _ARTIFACT_GROUNDING_REVIEW_FIELD},
+    return _artifact_grounding_evidence_field_for_required_return_shape(
+        prepared.brick_work.required_return_shape
     )
-    if any(shape.issubset(fields) for shape in review_shapes):
+
+
+def _artifact_grounding_evidence_field_for_required_return_shape(
+    required_return_shape: Any,
+) -> str:
+    fields = set(parse_required_return_shape(required_return_shape))
+    if any(shape.issubset(fields) for shape in _ARTIFACT_GROUNDING_REVIEW_SHAPES):
         return _ARTIFACT_GROUNDING_REVIEW_FIELD
     if {"design_summary", _ARTIFACT_GROUNDING_DESIGN_FIELD}.issubset(fields):
         return _ARTIFACT_GROUNDING_DESIGN_FIELD
     return ""
+
+
+def _artifact_grounding_fact_for_required_return_shape(
+    required_return_shape: Any,
+) -> str:
+    evidence_field = _artifact_grounding_evidence_field_for_required_return_shape(
+        required_return_shape
+    )
+    if not evidence_field:
+        return ""
+    return _ARTIFACT_GROUNDING_FACT_BY_EVIDENCE_FIELD[evidence_field]
+
+
+def _artifact_grounding_required_return_fields(
+    required_return_shape: Any,
+    required_fields: Iterable[str] = (),
+) -> tuple[str, ...]:
+    fields = list(parse_required_return_shape(required_return_shape))
+    grounding_field = _artifact_grounding_fact_for_required_return_shape(
+        required_return_shape
+    )
+    for field_name in required_fields:
+        if field_name in _ARTIFACT_GROUNDING_FACTS and field_name != grounding_field:
+            continue
+        if field_name not in fields:
+            fields.append(field_name)
+    if grounding_field and grounding_field not in fields:
+        fields.append(grounding_field)
+    return tuple(fields)
 
 
 def _returned_field_has_repo_artifact_ref(returned_value: Any | None, field_name: str) -> bool:

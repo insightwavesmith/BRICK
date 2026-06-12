@@ -1126,12 +1126,259 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
 
 
 def _artifact_grounding_probe(repo: Path) -> int:
+    from brick_protocol.support.connection.agent_adapter import (
+        ADAPTER_LOCAL,
+        AgentAdapterRequest,
+        AgentAdapterResult,
+    )
     from brick_protocol.link.movement import make_movement_fact
     from brick_protocol.link.transition import make_transition_fact
+    from brick_protocol.support.operator.contracts import BuildingRunSupportResult
+    from brick_protocol.support.operator.gate_sequence import (
+        gate_sequence_decision_to_record,
+        run_gate_sequence_policy,
+    )
+    from brick_protocol.support.operator.plan_validation import (
+        _artifact_grounding_required_return_fields,
+    )
     from brick_protocol.support.operator.run import (
         complete_agent_run_from_prepared,
         prepare_agent_run_from_step_rows,
     )
+    from brick_protocol.support.recording.claims_link import (
+        _gate_fact_claim_body,
+        _gate_receipt_claim_body,
+    )
+    from brick_protocol.support.recording.building_map import BuildingMapWriteResult
+    from brick_protocol.support.recording.capture import BuildingLifecycleWriteResult
+
+    returned_field_prefix = "BrickComparisonFact.comparison_evidence.returned_field."
+
+    def gate_returned_fields(required_public_facts: Sequence[str]) -> tuple[str, ...]:
+        return tuple(
+            item.removeprefix(returned_field_prefix)
+            for item in required_public_facts
+            if item.startswith(returned_field_prefix)
+        )
+
+    def assert_gate_fields_match_helper(
+        *,
+        kind: str,
+        label: str,
+        required_public_facts: Sequence[str],
+        missing_required_facts: Sequence[str],
+        expected_required_fields: Sequence[str],
+        expected_missing_fields: Sequence[str],
+    ) -> None:
+        observed_required = gate_returned_fields(required_public_facts)
+        observed_missing = gate_returned_fields(missing_required_facts)
+        if observed_required != tuple(expected_required_fields):
+            raise ProfileError(
+                f"artifact grounding probe {kind} {label}: gate required fields "
+                f"drifted from shared helper: observed {observed_required!r}, "
+                f"expected {tuple(expected_required_fields)!r}"
+            )
+        if observed_missing != tuple(expected_missing_fields):
+            raise ProfileError(
+                f"artifact grounding probe {kind} {label}: gate missing fields "
+                f"drifted from shared helper: observed {observed_missing!r}, "
+                f"expected {tuple(expected_missing_fields)!r}"
+            )
+
+    def assert_recorded_claim_grounding_refs(
+        *,
+        kind: str,
+        label: str,
+        claim_body: Mapping[str, Any],
+        grounding_field: str,
+        expected_action: str,
+    ) -> None:
+        required_public_facts = tuple(claim_body.get("required_public_facts", ()))
+        missing_required_facts = tuple(claim_body.get("missing_required_facts", ()))
+        if not grounding_field:
+            leaked = tuple(
+                fact
+                for fact in (*required_public_facts, *missing_required_facts)
+                if fact.endswith(".repository_artifact_ref")
+            )
+            if leaked:
+                raise ProfileError(
+                    f"artifact grounding probe {kind} {label}: non-review claim "
+                    f"recorded repository artifact ref(s) {leaked!r}"
+                )
+            return
+        expected_public_fact = f"{returned_field_prefix}{grounding_field}"
+        if expected_action == "hold":
+            if expected_public_fact in required_public_facts:
+                raise ProfileError(
+                    f"artifact grounding probe {kind} {label}: missing repository "
+                    f"artifact selector was recorded as resolvable required fact "
+                    f"{expected_public_fact}"
+                )
+            if expected_public_fact not in missing_required_facts:
+                raise ProfileError(
+                    f"artifact grounding probe {kind} {label}: missing repository "
+                    f"artifact selector was not recorded as demanded missing fact "
+                    f"{expected_public_fact}"
+                )
+            return
+        if expected_public_fact not in required_public_facts:
+            raise ProfileError(
+                f"artifact grounding probe {kind} {label}: grounded repository "
+                f"artifact selector was not recorded as required fact {expected_public_fact}"
+            )
+        if expected_public_fact in missing_required_facts:
+            raise ProfileError(
+                f"artifact grounding probe {kind} {label}: grounded repository "
+                f"artifact selector was also recorded missing {expected_public_fact}"
+            )
+
+    def gate_sequence_decision(
+        *,
+        step: Mapping[str, Any],
+        prepared: Any,
+        completion: Any,
+        returned_value: Any,
+    ) -> Any:
+        adapter_request = AgentAdapterRequest(
+            building_id=prepared.building_id,
+            agent_object_ref=prepared.agent_object.object_ref,
+            adapter_ref=ADAPTER_LOCAL,
+            brick_instance_ref=prepared.brick_instance_ref,
+            next_brick_instance_ref=prepared.next_brick_instance_ref,
+            tool_policy_refs=prepared.agent_object.tool_policy_refs,
+        )
+        adapter_result = AgentAdapterResult(
+            request=adapter_request,
+            returned_value=returned_value,
+        )
+        step_result = BuildingRunSupportResult(
+            building_id=prepared.building_id,
+            preparation=prepared,
+            adapter_result=adapter_result,
+            completion=completion,
+            lifecycle_write=BuildingLifecycleWriteResult(root=Path(), written_files=()),
+            building_map_write=BuildingMapWriteResult(
+                root=Path(),
+                path=Path(),
+                written_files=(),
+            ),
+            written_files=(),
+            capture_event_types=(),
+            building_map_packet=completion.building_map_packet,
+            proof_limits=(),
+            not_proven=(),
+        )
+        return run_gate_sequence_policy(
+            step=step,
+            step_result=step_result,
+            source_brick_ref=prepared.brick_instance_ref,
+            target_brick_ref=prepared.next_brick_instance_ref,
+        )
+
+    def assert_completion_and_gate_sequence(
+        *,
+        kind: str,
+        grounding_field: str,
+        expected_action: str,
+        prepared: Any,
+        completion: Any,
+        returned_value: Any,
+        step: Mapping[str, Any],
+    ) -> None:
+        expected_required_fields = _artifact_grounding_required_return_fields(
+            completion.brick_comparison.required_return_shape_evidence,
+            completion.brick_comparison.required_return_fields(),
+        )
+        expected_missing_fields = tuple(
+            field
+            for field in completion.brick_comparison.missing_return_fields()
+            if field in expected_required_fields
+        )
+        movement_gate = completion.crossing_record.movement_gate_fact
+        if movement_gate is None:
+            raise ProfileError(f"artifact grounding probe {kind}: missing movement gate")
+        assert_gate_fields_match_helper(
+            kind=kind,
+            label="movement-gate",
+            required_public_facts=movement_gate.required_public_facts,
+            missing_required_facts=movement_gate.missing_required_facts,
+            expected_required_fields=expected_required_fields,
+            expected_missing_fields=expected_missing_fields,
+        )
+        assert_recorded_claim_grounding_refs(
+            kind=kind,
+            label="movement-claim",
+            claim_body=_gate_fact_claim_body(movement_gate),
+            grounding_field=grounding_field,
+            expected_action=expected_action,
+        )
+        decision = gate_sequence_decision(
+            step=step,
+            prepared=prepared,
+            completion=completion,
+            returned_value=returned_value,
+        )
+        if decision.action != expected_action:
+            raise ProfileError(
+                f"artifact grounding probe {kind}: gate sequence action "
+                f"{decision.action!r}, expected {expected_action!r}"
+            )
+        record = gate_sequence_decision_to_record(decision)
+        if not isinstance(record, Mapping):
+            raise ProfileError(f"artifact grounding probe {kind}: missing gate sequence record")
+        gate_results = record.get("gate_results")
+        if not isinstance(gate_results, list) or len(gate_results) != 1:
+            raise ProfileError(
+                f"artifact grounding probe {kind}: expected one gate sequence result, "
+                f"observed {gate_results!r}"
+            )
+        gate_record = gate_results[0]
+        if not isinstance(gate_record, Mapping):
+            raise ProfileError(
+                f"artifact grounding probe {kind}: gate sequence result is not a mapping"
+            )
+        gate_ref, gate_fact = decision.gate_results[0]
+        assert_gate_fields_match_helper(
+            kind=kind,
+            label="gate-sequence-record",
+            required_public_facts=tuple(gate_record.get("required_public_facts", ())),
+            missing_required_facts=tuple(gate_record.get("missing_required_facts", ())),
+            expected_required_fields=expected_required_fields,
+            expected_missing_fields=expected_missing_fields,
+        )
+        assert_recorded_claim_grounding_refs(
+            kind=kind,
+            label="gate-receipt-claim",
+            claim_body=_gate_receipt_claim_body(gate_ref, 1, gate_fact),
+            grounding_field=grounding_field,
+            expected_action=expected_action,
+        )
+        if grounding_field:
+            expected_public_fact = f"{returned_field_prefix}{grounding_field}"
+            required_public_facts = tuple(gate_record.get("required_public_facts", ()))
+            missing_required_facts = tuple(gate_record.get("missing_required_facts", ()))
+            if expected_action == "hold" and expected_public_fact not in missing_required_facts:
+                raise ProfileError(
+                    f"artifact grounding probe {kind}: missing artifact did not demand "
+                    f"{expected_public_fact}"
+                )
+            if expected_action == "forward" and (
+                expected_public_fact not in required_public_facts
+                or expected_public_fact in missing_required_facts
+            ):
+                raise ProfileError(
+                    f"artifact grounding probe {kind}: grounded artifact record did not "
+                    f"carry resolved {expected_public_fact}"
+                )
+        elif any(
+            field.endswith(".repository_artifact_ref")
+            for field in (*expected_required_fields, *expected_missing_fields)
+        ):
+            raise ProfileError(
+                f"artifact grounding probe {kind}: non-review shape demanded "
+                "repository artifact grounding"
+            )
 
     cases = (
         (
@@ -1200,37 +1447,67 @@ def _artifact_grounding_probe(repo: Path) -> int:
             },
             "evidence_refs.repository_artifact_ref",
         ),
+        (
+            "non-review-evidence-used",
+            "agent-object:dev",
+            "observed_evidence, evidence_used, not_proven",
+            {
+                "observed_evidence": ["ordinary evidence observed"],
+                "evidence_used": ["support-packet:ordinary"],
+                "not_proven": [],
+            },
+            {
+                "observed_evidence": ["ordinary evidence observed"],
+                "evidence_used": ["support/connection/agent_adapter.py:1087"],
+                "not_proven": [],
+            },
+            "",
+        ),
     )
 
     inspected = 0
     for kind, agent_ref, required_shape, missing_return, grounded_return, grounding_field in cases:
-        fixture = {
-            "building_id": f"artifact-grounding-{kind}",
-            "step_rows": {
-                "step_ref": f"artifact-grounding-{kind}",
-                "rows": [
+        step_ref = f"artifact-grounding-{kind}"
+        rows = [
+            {
+                "axis": "Brick",
+                "row_ref": f"brick-row:artifact-grounding-{kind}",
+                "brick_instance_ref": f"brick-artifact-grounding-{kind}",
+                "brick_work_ref": f"work:artifact-grounding-{kind}",
+                "work_statement": f"{kind} Brick artifact grounding probe",
+                "comparison_rule": "Repo artifact grounding is required for review/design evidence.",
+                "required_return_shape": required_shape,
+            },
+            {
+                "axis": "Agent",
+                "row_ref": f"agent-row:artifact-grounding-{kind}",
+                "agent_object_ref": agent_ref,
+            },
+            {
+                "axis": "Link",
+                "row_ref": f"link-row:artifact-grounding-{kind}",
+                "movement": "forward",
+                "target_ref": f"brick-artifact-grounding-{kind}-closure",
+                "declared_gate_refs": ["link-gate:default-transition"],
+                "gate_sequence_policy": [
                     {
-                        "axis": "Brick",
-                        "row_ref": f"brick-row:artifact-grounding-{kind}",
-                        "brick_instance_ref": f"brick-artifact-grounding-{kind}",
-                        "brick_work_ref": f"work:artifact-grounding-{kind}",
-                        "work_statement": f"{kind} Brick artifact grounding probe",
-                        "comparison_rule": "Repo artifact grounding is required for review/design evidence.",
-                        "required_return_shape": required_shape,
-                    },
-                    {
-                        "axis": "Agent",
-                        "row_ref": f"agent-row:artifact-grounding-{kind}",
-                        "agent_object_ref": agent_ref,
-                    },
-                    {
-                        "axis": "Link",
-                        "row_ref": f"link-row:artifact-grounding-{kind}",
-                        "movement": "forward",
-                        "target_ref": f"brick-artifact-grounding-{kind}-closure",
-                        "declared_gate_refs": ["link-gate:default-transition"],
-                    },
+                        "gate_ref": "link-gate:default-transition",
+                        "on_missing_required_facts": {
+                            "action": "HOLD",
+                            "required_disposition_owner": "caller-or-coo",
+                            "pending_target_basis": "target_brick",
+                        },
+                        "on_sufficient": {"action": "forward"},
+                    }
                 ],
+            },
+        ]
+        step = {"step_ref": step_ref, "rows": rows}
+        fixture = {
+            "building_id": step_ref,
+            "step_rows": {
+                "step_ref": step_ref,
+                "rows": rows,
             },
         }
         prepared = prepare_agent_run_from_step_rows(fixture)
@@ -1251,16 +1528,29 @@ def _artifact_grounding_probe(repo: Path) -> int:
             transition_fact=transition_fact,
         )
         if grounding_field not in missing_completion.brick_comparison.missing_return_fields():
-            raise ProfileError(
-                f"artifact grounding probe {kind}: packet-only return did not mark "
-                f"{grounding_field} missing"
-            )
+            if grounding_field:
+                raise ProfileError(
+                    f"artifact grounding probe {kind}: packet-only return did not mark "
+                    f"{grounding_field} missing"
+                )
+        expected_missing_action = "hold" if grounding_field else "forward"
+        assert_completion_and_gate_sequence(
+            kind=f"{kind}:missing-return",
+            grounding_field=grounding_field,
+            expected_action=expected_missing_action,
+            prepared=prepared,
+            completion=missing_completion,
+            returned_value=missing_return,
+            step=step,
+        )
         movement_gate = missing_completion.crossing_record.movement_gate_fact
         expected_missing_fact = (
             "BrickComparisonFact.comparison_evidence.returned_field."
             f"{grounding_field}"
         )
-        if movement_gate is None or expected_missing_fact not in movement_gate.missing_required_facts:
+        if grounding_field and (
+            movement_gate is None or expected_missing_fact not in movement_gate.missing_required_facts
+        ):
             raise ProfileError(
                 f"artifact grounding probe {kind}: Link gate did not observe missing "
                 f"required fact {expected_missing_fact}"
@@ -1272,11 +1562,20 @@ def _artifact_grounding_probe(repo: Path) -> int:
             link_fact=link_fact,
             transition_fact=transition_fact,
         )
-        if grounding_field in grounded_completion.brick_comparison.missing_return_fields():
+        if grounding_field and grounding_field in grounded_completion.brick_comparison.missing_return_fields():
             raise ProfileError(
                 f"artifact grounding probe {kind}: repository artifact ref still "
                 f"marked {grounding_field} missing"
             )
+        assert_completion_and_gate_sequence(
+            kind=f"{kind}:grounded-return",
+            grounding_field=grounding_field,
+            expected_action="forward",
+            prepared=prepared,
+            completion=grounded_completion,
+            returned_value=grounded_return,
+            step=step,
+        )
         grounded_gate = grounded_completion.crossing_record.movement_gate_fact
         if grounded_gate is None or grounded_gate.missing_required_facts:
             raise ProfileError(

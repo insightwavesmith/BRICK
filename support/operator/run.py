@@ -104,6 +104,7 @@ from brick_protocol.support.operator.walker_frontier import (
 )
 from brick_protocol.support.operator.plan_validation import (
     _agent_run_handoff_packet,
+    _artifact_grounding_required_return_fields,
     _caller_link_facts,
     _comparison_fact_from_observation,
     _incoming_link_handoff_refs,
@@ -2567,11 +2568,10 @@ def _base_required_return_fields_for_gate(
     prepared: AgentRunPreparationRecord,
     brick_comparison: BrickComparisonFact,
 ) -> tuple[str, ...]:
-    fields = list(_required_return_shape_fields(prepared.brick_work.required_return_shape))
-    for field_name in brick_comparison.required_return_fields():
-        if field_name.endswith(".repository_artifact_ref") and field_name not in fields:
-            fields.append(field_name)
-    return tuple(fields)
+    return _artifact_grounding_required_return_fields(
+        prepared.brick_work.required_return_shape,
+        brick_comparison.required_return_fields(),
+    )
 
 
 def _brick_comparison_fields_from_evidence(
