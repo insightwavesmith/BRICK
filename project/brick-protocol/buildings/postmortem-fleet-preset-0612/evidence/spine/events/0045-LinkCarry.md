@@ -1,0 +1,11 @@
+# LinkCarry · seq 45 · ["Link"]
+- absent_fact_type: "CarryFact"
+- axis_scope: ["Link"]
+- caller_supplied: false
+- event_type: "LinkCarry"
+- run_segment: 2
+- sequence_index: 45
+- source_fact_ref: "absence:link-carry:04:postmortem-fleet-preset-0612-axis-attack-qa"
+- spine_schema_version: "spine-v1"
+- support_created_bal_fact: false
+- trace_role: "absence_placeholder"

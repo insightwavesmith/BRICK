@@ -1,0 +1,12 @@
+# BrickInput · seq 20 · ["Brick"]
+- axis_scope: ["Brick"]
+- brick_instance_ref: "brick-notify-v3-brick-grain-thread-0612-work"
+- comparison_rule: "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickInput"
+- required_return_shape: "made_changes, observed_evidence, not_proven"
+- run_segment: 2
+- sequence_index: 20
+- source_facts: ["task-source:inline-statement"]
+- spine_schema_version: "spine-v1"
+- step_ref: "notify-v3-brick-grain-thread-0612-work"
+- work_statement: "work Brick for task-source:inline-statement: # notify-v3 — brick-grain Slack notifications: one thread per building, one reply per incident"

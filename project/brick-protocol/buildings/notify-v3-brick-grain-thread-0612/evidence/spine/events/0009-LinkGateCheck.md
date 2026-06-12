@@ -1,0 +1,11 @@
+# LinkGateCheck · seq 9 · ["Link"]
+- axis_scope: ["Link"]
+- checked_public_fact: "brick-comparison:notify-v3-brick-grain-thread-0612:notify-v3-brick-grain-thread-0612-design"
+- event_type: "LinkGateCheck"
+- gate_ref: "link-gate:default-transition"
+- ordinal: 1
+- run_segment: 1
+- sequence_index: 9
+- source_fact_ref: "gate-receipt-fact-1:01:notify-v3-brick-grain-thread-0612-design"
+- spine_schema_version: "spine-v1"
+- sufficiency: "sufficient"

@@ -1,0 +1,12 @@
+# AgentBinding · seq 30 · ["Agent"]
+- agent_object_ref: "agent-object:qa"
+- agent_performer_ref: "agent-performer:agent-object:qa"
+- axis_scope: ["Agent"]
+- binding_role: "primary"
+- brick_instance_ref: "brick-notify-v3-brick-grain-thread-0612-code-attack-qa"
+- event_type: "AgentBinding"
+- run_segment: 2
+- sequence_index: 30
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/notify-v3-brick-grain-thread-0612-code-attack-qa-attempt-1/step-output.json"
+- step_ref: "notify-v3-brick-grain-thread-0612-code-attack-qa"

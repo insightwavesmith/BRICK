@@ -1,0 +1,11 @@
+# LinkCarry · seq 15 · ["Link"]
+- absent_fact_type: "CarryFact"
+- axis_scope: ["Link"]
+- caller_supplied: false
+- event_type: "LinkCarry"
+- run_segment: 1
+- sequence_index: 15
+- source_fact_ref: "absence:link-carry:01:notify-v3-brick-grain-thread-0612-design"
+- spine_schema_version: "spine-v1"
+- support_created_bal_fact: false
+- trace_role: "absence_placeholder"

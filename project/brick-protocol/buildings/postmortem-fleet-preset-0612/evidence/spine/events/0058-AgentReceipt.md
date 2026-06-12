@@ -1,0 +1,12 @@
+# AgentReceipt · seq 58 · ["Agent"]
+- agent_object_ref: "agent-object:coo"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-postmortem-fleet-preset-0612-closure"
+- event_type: "AgentReceipt"
+- evidence_reference: "raw:agent:06"
+- received_work_ref: "brick-work:06:postmortem-fleet-preset-0612-closure"
+- run_segment: 2
+- sequence_index: 58
+- source_fact_ref: "agent-fact:06:postmortem-fleet-preset-0612-closure"
+- spine_schema_version: "spine-v1"
+- step_ref: "postmortem-fleet-preset-0612-closure"

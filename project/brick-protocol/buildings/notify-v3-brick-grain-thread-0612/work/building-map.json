@@ -1,0 +1,824 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:notify-v3-brick-grain-thread-0612::work/building-map.json",
+  "agent_bindings": [
+    {
+      "agent_binding_id": "binding:01:notify-v3-brick-grain-thread-0612-design",
+      "agent_performer_ref": "agent-performer:agent-object:design-lead",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-design",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:01:notify-v3-brick-grain-thread-0612-design"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ],
+      "step_output_ref": "work/step-outputs/notify-v3-brick-grain-thread-0612-design-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:02:notify-v3-brick-grain-thread-0612-work",
+      "agent_performer_ref": "agent-performer:agent-object:dev",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:02:notify-v3-brick-grain-thread-0612-work"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ],
+      "step_output_ref": "work/step-outputs/notify-v3-brick-grain-thread-0612-work-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:03:notify-v3-brick-grain-thread-0612-code-attack-qa",
+      "agent_performer_ref": "agent-performer:agent-object:qa",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:03:notify-v3-brick-grain-thread-0612-code-attack-qa"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ],
+      "step_output_ref": "work/step-outputs/notify-v3-brick-grain-thread-0612-code-attack-qa-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:04:notify-v3-brick-grain-thread-0612-axis-attack-qa",
+      "agent_performer_ref": "agent-performer:agent-object:inspector",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-axis-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:04:notify-v3-brick-grain-thread-0612-axis-attack-qa"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:04"
+      ],
+      "step_output_ref": "work/step-outputs/notify-v3-brick-grain-thread-0612-axis-attack-qa-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:05:notify-v3-brick-grain-thread-0612-evidence-integrity",
+      "agent_performer_ref": "agent-performer:agent-object:inspector",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-evidence-integrity",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:05:notify-v3-brick-grain-thread-0612-evidence-integrity"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:05"
+      ],
+      "step_output_ref": "work/step-outputs/notify-v3-brick-grain-thread-0612-evidence-integrity-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:06:notify-v3-brick-grain-thread-0612-closure",
+      "agent_performer_ref": "agent-performer:agent-object:coo",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:06:notify-v3-brick-grain-thread-0612-closure"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:06"
+      ],
+      "step_output_ref": "work/step-outputs/notify-v3-brick-grain-thread-0612-closure-attempt-1/step-output.json"
+    }
+  ],
+  "brick_instances": [
+    {
+      "agent_binding_refs": [
+        "binding:01:notify-v3-brick-grain-thread-0612-design"
+      ],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-notify-v3-brick-grain-thread-0612-design",
+      "brick_work_ref": "work:notify-v3-brick-grain-thread-0612-design",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01",
+        "raw:link:01"
+      ]
+    },
+    {
+      "agent_binding_refs": [
+        "binding:02:notify-v3-brick-grain-thread-0612-work"
+      ],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-notify-v3-brick-grain-thread-0612-work",
+      "brick_work_ref": "work:notify-v3-brick-grain-thread-0612-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01",
+        "raw:link:01"
+      ]
+    },
+    {
+      "agent_binding_refs": [
+        "binding:03:notify-v3-brick-grain-thread-0612-code-attack-qa"
+      ],
+      "attempt_index": 2,
+      "brick_instance_id": "brick-notify-v3-brick-grain-thread-0612-code-attack-qa",
+      "brick_work_ref": "work:notify-v3-brick-grain-thread-0612-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02",
+        "raw:link:02"
+      ]
+    },
+    {
+      "agent_binding_refs": [
+        "binding:06:notify-v3-brick-grain-thread-0612-closure"
+      ],
+      "attempt_index": 3,
+      "brick_instance_id": "brick-notify-v3-brick-grain-thread-0612-closure",
+      "brick_work_ref": "work:notify-v3-brick-grain-thread-0612-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03",
+        "raw:link:03"
+      ]
+    },
+    {
+      "agent_binding_refs": [
+        "binding:04:notify-v3-brick-grain-thread-0612-axis-attack-qa"
+      ],
+      "attempt_index": 4,
+      "brick_instance_id": "brick-notify-v3-brick-grain-thread-0612-axis-attack-qa",
+      "brick_work_ref": "work:notify-v3-brick-grain-thread-0612-axis-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:04",
+        "raw:agent:04",
+        "raw:link:04"
+      ]
+    },
+    {
+      "agent_binding_refs": [
+        "binding:05:notify-v3-brick-grain-thread-0612-evidence-integrity"
+      ],
+      "attempt_index": 5,
+      "brick_instance_id": "brick-notify-v3-brick-grain-thread-0612-evidence-integrity",
+      "brick_work_ref": "work:notify-v3-brick-grain-thread-0612-evidence-integrity",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:05",
+        "raw:agent:05",
+        "raw:link:05"
+      ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 6,
+      "brick_instance_id": "building-boundary:notify-v3-brick-grain-thread-0612-closed",
+      "brick_work_ref": "building-boundary:notify-v3-brick-grain-thread-0612-closed",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:06",
+        "raw:agent:06",
+        "raw:link:06"
+      ]
+    }
+  ],
+  "building_id": "notify-v3-brick-grain-thread-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "declaration_provenance": {
+    "building_id": "notify-v3-brick-grain-thread-0612",
+    "composition_mode": "caller_or_coo_declared_graph_composition",
+    "declaration_evidence_refs": [
+      "work/task.md",
+      "work/building-intake.json",
+      "work/preset-expansion.json",
+      "work/declared-building-plan.json",
+      "work/link-launch-policy.json"
+    ],
+    "declared_by": "caller-claude-operator",
+    "declared_gate_refs": [
+      "link-gate:default-transition",
+      "link-gate:coo",
+      "link-gate:strict",
+      "link-gate:human"
+    ],
+    "expanded_brick_spec_refs": [
+      "brick/templates/bricks/design/brick.md",
+      "brick/templates/bricks/work/brick.md",
+      "brick/templates/bricks/code-attack-qa/brick.md",
+      "brick/templates/bricks/axis-attack-qa/brick.md",
+      "brick/templates/bricks/evidence-integrity/brick.md",
+      "brick/templates/bricks/closure/brick.md"
+    ],
+    "expanded_brick_template_refs": [
+      "brick/templates/bricks/design/return.yaml",
+      "brick/templates/bricks/transition-concern-return.yaml",
+      "brick/templates/bricks/work/return.yaml",
+      "brick/templates/bricks/code-attack-qa/return.yaml",
+      "brick/templates/bricks/axis-attack-qa/return.yaml",
+      "brick/templates/bricks/evidence-integrity/return.yaml",
+      "brick/templates/bricks/closure/return.yaml"
+    ],
+    "expanded_step_template_refs": [
+      "building-step-template:design",
+      "building-step-template:work",
+      "building-step-template:code-attack-qa",
+      "building-step-template:axis-attack-qa",
+      "building-step-template:evidence-integrity",
+      "building-step-template:closure"
+    ],
+    "not_proven": [
+      "semantic fitness of selected shape",
+      "future Building run correctness",
+      "future Agent or provider quality",
+      "brain surface behavior",
+      "credential validity",
+      "runtime or scheduler behavior",
+      "tool or hook execution",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority"
+    ],
+    "plan_ref": "building-plan:notify-v3-brick-grain-thread-0612",
+    "plan_shape": "graph",
+    "proof_limits": [
+      "support declaration provenance evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "support evidence only"
+    ],
+    "selected_preset_ref": "building-chain-preset:brick-protocol-engine-feature-hard",
+    "selected_shape_ref": "building-shape:design-needed",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T22:20:37Z",
+  "groups": [
+    {
+      "group_id": "group:notify-v3-brick-grain-thread-0612-fan-out",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:notify-v3-brick-grain-thread-0612-work-to-notify-v3-brick-grain-thread-0612-code-attack-qa",
+        "edge:notify-v3-brick-grain-thread-0612-work-to-notify-v3-brick-grain-thread-0612-axis-attack-qa",
+        "edge:notify-v3-brick-grain-thread-0612-work-to-notify-v3-brick-grain-thread-0612-evidence-integrity"
+      ],
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [],
+      "sibling_independence": []
+    },
+    {
+      "group_id": "group:notify-v3-brick-grain-thread-0612-fan-in",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:notify-v3-brick-grain-thread-0612-code-attack-qa-to-notify-v3-brick-grain-thread-0612-closure",
+        "edge:notify-v3-brick-grain-thread-0612-axis-attack-qa-to-notify-v3-brick-grain-thread-0612-closure",
+        "edge:notify-v3-brick-grain-thread-0612-evidence-integrity-to-notify-v3-brick-grain-thread-0612-closure"
+      ],
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [],
+      "sibling_independence": []
+    }
+  ],
+  "id": "urn:bp:building:notify-v3-brick-grain-thread-0612::work/building-map.json",
+  "kind": "building_graph_map",
+  "link_edges": [
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:01:notify-v3-brick-grain-thread-0612-design",
+        "brick-comparison:01:notify-v3-brick-grain-thread-0612-design",
+        "movement-fact:01:notify-v3-brick-grain-thread-0612-design"
+      ],
+      "link_edge_id": "edge:notify-v3-brick-grain-thread-0612-design-to-notify-v3-brick-grain-thread-0612-work",
+      "movement_fact_ref": "movement-fact:01:notify-v3-brick-grain-thread-0612-design",
+      "public_fact_refs": [
+        "agent-fact:01:notify-v3-brick-grain-thread-0612-design",
+        "brick-comparison:01:notify-v3-brick-grain-thread-0612-design",
+        "movement-fact:01:notify-v3-brick-grain-thread-0612-design"
+      ],
+      "source_brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-design",
+      "step_output_ref": "work/step-outputs/notify-v3-brick-grain-thread-0612-design-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-work",
+      "transition_fact_ref": "transition-fact:01:notify-v3-brick-grain-thread-0612-design"
+    },
+    {
+      "edge_role": "fan_out",
+      "input_public_fact_refs": [
+        "agent-fact:02:notify-v3-brick-grain-thread-0612-work",
+        "brick-comparison:02:notify-v3-brick-grain-thread-0612-work",
+        "movement-fact:02:notify-v3-brick-grain-thread-0612-work"
+      ],
+      "link_edge_id": "edge:notify-v3-brick-grain-thread-0612-work-to-notify-v3-brick-grain-thread-0612-code-attack-qa",
+      "movement_fact_ref": "movement-fact:02:notify-v3-brick-grain-thread-0612-work",
+      "public_fact_refs": [
+        "agent-fact:02:notify-v3-brick-grain-thread-0612-work",
+        "brick-comparison:02:notify-v3-brick-grain-thread-0612-work",
+        "movement-fact:02:notify-v3-brick-grain-thread-0612-work"
+      ],
+      "source_brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-work",
+      "step_output_ref": "work/step-outputs/notify-v3-brick-grain-thread-0612-work-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-code-attack-qa",
+      "transition_fact_ref": "transition-fact:02:notify-v3-brick-grain-thread-0612-work"
+    },
+    {
+      "edge_role": "fan_in",
+      "input_public_fact_refs": [
+        "agent-fact:03:notify-v3-brick-grain-thread-0612-code-attack-qa",
+        "brick-comparison:03:notify-v3-brick-grain-thread-0612-code-attack-qa",
+        "movement-fact:03:notify-v3-brick-grain-thread-0612-code-attack-qa"
+      ],
+      "link_edge_id": "edge:notify-v3-brick-grain-thread-0612-code-attack-qa-to-notify-v3-brick-grain-thread-0612-closure",
+      "movement_fact_ref": "movement-fact:03:notify-v3-brick-grain-thread-0612-code-attack-qa",
+      "public_fact_refs": [
+        "agent-fact:03:notify-v3-brick-grain-thread-0612-code-attack-qa",
+        "brick-comparison:03:notify-v3-brick-grain-thread-0612-code-attack-qa",
+        "movement-fact:03:notify-v3-brick-grain-thread-0612-code-attack-qa"
+      ],
+      "source_brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-code-attack-qa",
+      "step_output_ref": "work/step-outputs/notify-v3-brick-grain-thread-0612-code-attack-qa-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-closure",
+      "transition_fact_ref": "transition-fact:03:notify-v3-brick-grain-thread-0612-code-attack-qa"
+    },
+    {
+      "edge_role": "fan_in",
+      "input_public_fact_refs": [
+        "agent-fact:04:notify-v3-brick-grain-thread-0612-axis-attack-qa",
+        "brick-comparison:04:notify-v3-brick-grain-thread-0612-axis-attack-qa",
+        "movement-fact:04:notify-v3-brick-grain-thread-0612-axis-attack-qa"
+      ],
+      "link_edge_id": "edge:notify-v3-brick-grain-thread-0612-axis-attack-qa-to-notify-v3-brick-grain-thread-0612-closure",
+      "movement_fact_ref": "movement-fact:04:notify-v3-brick-grain-thread-0612-axis-attack-qa",
+      "public_fact_refs": [
+        "agent-fact:04:notify-v3-brick-grain-thread-0612-axis-attack-qa",
+        "brick-comparison:04:notify-v3-brick-grain-thread-0612-axis-attack-qa",
+        "movement-fact:04:notify-v3-brick-grain-thread-0612-axis-attack-qa"
+      ],
+      "source_brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-axis-attack-qa",
+      "step_output_ref": "work/step-outputs/notify-v3-brick-grain-thread-0612-axis-attack-qa-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-closure",
+      "transition_fact_ref": "transition-fact:04:notify-v3-brick-grain-thread-0612-axis-attack-qa"
+    },
+    {
+      "edge_role": "fan_in",
+      "input_public_fact_refs": [
+        "agent-fact:05:notify-v3-brick-grain-thread-0612-evidence-integrity",
+        "brick-comparison:05:notify-v3-brick-grain-thread-0612-evidence-integrity",
+        "movement-fact:05:notify-v3-brick-grain-thread-0612-evidence-integrity"
+      ],
+      "link_edge_id": "edge:notify-v3-brick-grain-thread-0612-evidence-integrity-to-notify-v3-brick-grain-thread-0612-closure",
+      "movement_fact_ref": "movement-fact:05:notify-v3-brick-grain-thread-0612-evidence-integrity",
+      "public_fact_refs": [
+        "agent-fact:05:notify-v3-brick-grain-thread-0612-evidence-integrity",
+        "brick-comparison:05:notify-v3-brick-grain-thread-0612-evidence-integrity",
+        "movement-fact:05:notify-v3-brick-grain-thread-0612-evidence-integrity"
+      ],
+      "source_brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-evidence-integrity",
+      "step_output_ref": "work/step-outputs/notify-v3-brick-grain-thread-0612-evidence-integrity-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-closure",
+      "transition_fact_ref": "transition-fact:05:notify-v3-brick-grain-thread-0612-evidence-integrity"
+    },
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:06:notify-v3-brick-grain-thread-0612-closure",
+        "brick-comparison:06:notify-v3-brick-grain-thread-0612-closure",
+        "movement-fact:06:notify-v3-brick-grain-thread-0612-closure"
+      ],
+      "link_edge_id": "edge:notify-v3-brick-grain-thread-0612-closure-to-boundary",
+      "movement_fact_ref": "movement-fact:06:notify-v3-brick-grain-thread-0612-closure",
+      "public_fact_refs": [
+        "agent-fact:06:notify-v3-brick-grain-thread-0612-closure",
+        "brick-comparison:06:notify-v3-brick-grain-thread-0612-closure",
+        "movement-fact:06:notify-v3-brick-grain-thread-0612-closure"
+      ],
+      "source_brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-closure",
+      "step_output_ref": "work/step-outputs/notify-v3-brick-grain-thread-0612-closure-attempt-1/step-output.json",
+      "target_brick_instance_ref": "building-boundary:notify-v3-brick-grain-thread-0612-closed",
+      "transition_fact_ref": "transition-fact:06:notify-v3-brick-grain-thread-0612-closure"
+    },
+    {
+      "edge_role": "fan_out",
+      "input_public_fact_refs": [
+        "agent-fact:02:notify-v3-brick-grain-thread-0612-work",
+        "movement-fact:graph-edge:edge-notify-v3-brick-grain-thread-0612-work-to-notify-v3-brick-grain-thread-0612-axis-attack-qa"
+      ],
+      "link_edge_id": "edge:notify-v3-brick-grain-thread-0612-work-to-notify-v3-brick-grain-thread-0612-axis-attack-qa",
+      "movement_fact_ref": "movement-fact:graph-edge:edge-notify-v3-brick-grain-thread-0612-work-to-notify-v3-brick-grain-thread-0612-axis-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "public_fact_refs": [
+        "agent-fact:02:notify-v3-brick-grain-thread-0612-work",
+        "movement-fact:graph-edge:edge-notify-v3-brick-grain-thread-0612-work-to-notify-v3-brick-grain-thread-0612-axis-attack-qa"
+      ],
+      "raw_refs": [
+        "raw:link-graph:03:edge-notify-v3-brick-grain-thread-0612-work-to-notify-v3-brick-grain-thread-0612-axis-attack-qa"
+      ],
+      "source_brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-work",
+      "target_brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-axis-attack-qa",
+      "transition_fact_ref": "transition-fact:graph-edge:edge-notify-v3-brick-grain-thread-0612-work-to-notify-v3-brick-grain-thread-0612-axis-attack-qa"
+    },
+    {
+      "edge_role": "fan_out",
+      "input_public_fact_refs": [
+        "agent-fact:02:notify-v3-brick-grain-thread-0612-work",
+        "movement-fact:graph-edge:edge-notify-v3-brick-grain-thread-0612-work-to-notify-v3-brick-grain-thread-0612-evidence-integrity"
+      ],
+      "link_edge_id": "edge:notify-v3-brick-grain-thread-0612-work-to-notify-v3-brick-grain-thread-0612-evidence-integrity",
+      "movement_fact_ref": "movement-fact:graph-edge:edge-notify-v3-brick-grain-thread-0612-work-to-notify-v3-brick-grain-thread-0612-evidence-integrity",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "public_fact_refs": [
+        "agent-fact:02:notify-v3-brick-grain-thread-0612-work",
+        "movement-fact:graph-edge:edge-notify-v3-brick-grain-thread-0612-work-to-notify-v3-brick-grain-thread-0612-evidence-integrity"
+      ],
+      "raw_refs": [
+        "raw:link-graph:04:edge-notify-v3-brick-grain-thread-0612-work-to-notify-v3-brick-grain-thread-0612-evidence-integrity"
+      ],
+      "source_brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-work",
+      "target_brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-evidence-integrity",
+      "transition_fact_ref": "transition-fact:graph-edge:edge-notify-v3-brick-grain-thread-0612-work-to-notify-v3-brick-grain-thread-0612-evidence-integrity"
+    }
+  ],
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "profile": "planning-v0",
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "raw_refs": [
+    "raw:brick:01",
+    "raw:agent:01",
+    "raw:link:01",
+    "raw:brick:02",
+    "raw:agent:02",
+    "raw:link:02",
+    "raw:brick:03",
+    "raw:agent:03",
+    "raw:link:03",
+    "raw:brick:04",
+    "raw:agent:04",
+    "raw:link:04",
+    "raw:brick:05",
+    "raw:agent:05",
+    "raw:link:05",
+    "raw:brick:06",
+    "raw:agent:06",
+    "raw:link:06"
+  ],
+  "recorded_at": "2026-06-12T22:20:37Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:notify-v3-brick-grain-thread-0612",
+  "specversion": "1.0",
+  "subject": "work/building-map.json",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T22:20:37Z",
+  "type": "bp.building_graph_map"
+}

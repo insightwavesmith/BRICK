@@ -1,0 +1,189 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:notify-v3-brick-grain-thread-0612::work/step-outputs/notify-v3-brick-grain-thread-0612-code-attack-qa-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-notify-v3-brick-grain-thread-0612-code-attack-qa",
+  "building_id": "notify-v3-brick-grain-thread-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:03",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T16:57:14.169988Z",
+  "id": "urn:bp:building:notify-v3-brick-grain-thread-0612::work/step-outputs/notify-v3-brick-grain-thread-0612-code-attack-qa-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:03:notify-v3-brick-grain-thread-0612-code-attack-qa",
+  "recorded_at": "2026-06-12T16:57:14.169988Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:qa",
+    "attacked_work": [
+      "notify-v3 brick-grain Slack notification implementation and checker pins in the declared support/operator and support/checkers surfaces.",
+      "Thread parent observation, Slack thread_ts attachment, brick-grain event policy, run/walker emission seams, disposition reply shape, F12 vessel guard, and no-scheduler guard."
+    ],
+    "blocked_or_missing_evidence": [
+      "Filesystem was read-only, so commands requiring __pycache__, project fixture, or temp/source-copy writes were blocked.",
+      "No standalone support/checkers/profiles/reporter_notification_projection.yaml exists in this checkout; reporter_notification_projection is folded into read_side_projection_boundary.yaml.",
+      "No writable temp directory was available for --all or temp-copy gate proof.",
+      "No model-review evidence was provided or generated in this reviewer-readonly pass."
+    ],
+    "boundary_violations": [
+      "No modified brick/, agent/, link/, or project/ paths were observed by git diff --name-only.",
+      "support/operator/walker_resume.py is modified even though it was not in the bounded reading list; the minimal observed diff only threads report_env and report_slack_sender into the dynamic resume walker.",
+      "No scheduler, queue, retry service, timer, new sink, dependency file, credential body, token cache, source-truth field, success field, quality field, or Movement-choice field was observed in the checked implementation surfaces."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "checked_sources": [
+      "support/operator/reporter.py",
+      "support/operator/report_sinks.py",
+      "support/operator/run.py",
+      "support/operator/walker_kernel.py",
+      "support/checkers/lib/kernel_checks.py",
+      "support/operator/walker_resume.py minimal diff only, because it was a modified support path outside the bounded reading list"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:notify-v3-brick-grain-thread-0612",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:notify-v3-brick-grain-thread-0612:agent-object:qa:output"
+    ],
+    "evidence_used": [
+      "git status --short",
+      "git diff --stat",
+      "git diff --name-only",
+      "git diff --check",
+      "rg and nl reads over the declared files",
+      "PYTHONDONTWRITEBYTECODE=1 python3 -m compileall -q .",
+      "python3 support/checkers/check_profile.py --profile reporter_notification_projection",
+      "PYTHONDONTWRITEBYTECODE=1 python3 support/checkers/check_profile.py --profile read_side_projection_boundary",
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all",
+      "temp-free python compile() over all *.py",
+      "temp-free AST no-scheduler reproduction over four support/operator files"
+    ],
+    "failing_or_missing_probes": [
+      "PYTHONDONTWRITEBYTECODE=1 python3 -m compileall -q . exit 1 because compileall attempted __pycache__ writes and the filesystem is read-only.",
+      "python3 support/checkers/check_profile.py --profile reporter_notification_projection exit 1: profile not found.",
+      "PYTHONDONTWRITEBYTECODE=1 python3 support/checkers/check_profile.py --profile read_side_projection_boundary exit 1: Operation not permitted creating project/checker-projection-fixture-vessel.",
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all exit 1: no usable temporary directory found.",
+      "Full gate in TEMP SOURCE COPY was not run; the sandbox did not permit temp/source-copy writes.",
+      "bake_dashboard_data_json() before --all was not run.",
+      "Mutation RED for removing thread_ts was not executed; only the static checker pin was observed.",
+      "No real Slack post was attempted."
+    ],
+    "negative_probe_observations": [
+      "Thread attachment is pinned by support/checkers/lib/kernel_checks.py:2756-2763, which would fail if the captured brick_returned payload lacked thread_ts.",
+      "Missing parent thread record is pinned fail-closed by support/checkers/lib/kernel_checks.py:2781-2817 with not_attempted_missing_thread_ts and no sender call.",
+      "Disposition thread_ts is pinned only through manual packet rendering at support/checkers/lib/kernel_checks.py:2830-2857.",
+      "F12 temp-root vessel guard for all new brick-grain kinds is pinned at support/checkers/lib/kernel_checks.py:2872-2909.",
+      "No-scheduler AST guard covers reporter.py, report_sinks.py, run.py, and walker_kernel.py at support/checkers/lib/kernel_checks.py:2983-3021; a temp-free reproduction passed."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority",
+      "full checker/profile closure",
+      "focused reporter profile green",
+      "mutation RED execution",
+      "full temp-source-copy gate",
+      "dashboard bake freshness",
+      "real Slack delivery reliability",
+      "thread wake reliability",
+      "run_building_once brick-grain coverage",
+      "actual receipt-vs-return timestamp fidelity",
+      "declared-position numbering under reroute/retry/fan-in",
+      "fan-in 합류 대기/성립 reply wording",
+      "hold-resume disposition_applied through the real walker path",
+      "adapter-error retry append behavior"
+    ],
+    "observed_evidence": [
+      "git diff --name-only observed only support/* modified paths: support/checkers/lib/kernel_checks.py, support/operator/report_sinks.py, support/operator/reporter.py, support/operator/run.py, support/operator/walker_kernel.py, support/operator/walker_resume.py.",
+      "support/operator/reporter.py:156-170 and 217-325 add BRICK_REPORT_GRAIN handling and additive brick-grain event kinds while preserving building-grain default event kinds.",
+      "support/operator/report_sinks.py:479-519 posts only brick_returned and disposition_applied as Slack thread replies; brick_received and gate_passed are status-only non-posts.",
+      "support/operator/report_sinks.py:1058-1127 records and reads raw/report-thread.jsonl containing channel_ref and message_ts only.",
+      "support/operator/run.py:1365-1377 and support/operator/walker_kernel.py:1753-1766 emit brick_received, brick_returned, and gate_passed after step-output write.",
+      "support/operator/walker_kernel.py:1793-1805 emits disposition_applied when a resume_seed reaches the held occurrence.",
+      "git diff --check exit 0.",
+      "Temp-free Python syntax compile over *.py exit 0: SYNTAX_COMPILE_OK.",
+      "Static reproduction of the no-scheduler AST rule over reporter.py, report_sinks.py, run.py, walker_kernel.py exit 0: NO_SCHEDULER_STATIC_OK inspected=4."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"git diff --name-only observed only support/* modified paths: support/checkers/lib/kernel_checks.py, support/operator/report_sinks.py, support/operator/reporter.py, support/operator/run.py, support/operator/walker_kernel.py, support/operator/walker_resume.py.\", \"support/operator/reporter.py:156-170 and 217-325 add BRICK_REPORT_GRAIN handling and additive brick-grain event kinds while preserving building-grain default event kinds.\", \"support/operator/report_sinks.py:479-519 posts only brick_returned and disposition_applied as Slack thread replies; brick_received and ...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "read-only QA pass",
+      "checker output is support evidence only",
+      "static inspection is not runtime delivery proof"
+    ],
+    "regression_risks": [
+      "run_building_once still emits only the terminal building event after write_single_building_evidence at support/operator/run.py:1158-1200; _emit_brick_grain_step_events is not called on that public surface. If run_building_once is in scope, brick-grain replies are missing there.",
+      "The receipt/return/gate times are collapsed: run.py and walker_kernel.py emit brick_received, brick_returned, and gate_passed together after step-output write, and both helpers set received_at and returned_at from the same recorded_at value at run.py:1992-1998 and walker_kernel.py:1157-1164. This does not prove emission at the distinct receipt, return, and Link transition write seams.",
+      "Dynamic walker numbering uses len(step_results)+1 at support/operator/walker_kernel.py:1759-1761, which is execution order, not declared sequence position. Reroute, retry, or fan-in re-entry can render the wrong circled prefix.",
+      "Fan-in wording is not implemented in the thread reply gate note. The gate-note helpers at run.py:2003-2008 and walker_kernel.py:1168-1173 only render 홀드 or 통과→다음스텝, while fan-in wait can hold before a step reply at walker_kernel.py:1473-1498. 합류 대기/성립 is not covered.",
+      "The checker’s disposition_applied probe manually renders a disposition packet at support/checkers/lib/kernel_checks.py:2830-2853 rather than exercising a real hold-resume walker seam, so the declared hold-resume delivery path is not proven.",
+      "The checker’s brick-grain happy path is a single run_building_plan probe at support/checkers/lib/kernel_checks.py:2716-2734; it does not cover run_building_once, dynamic declared-position numbering, fan-in wording, or adapter-error retry append behavior."
+    ],
+    "remaining_delta": [
+      "If caller/COO declares a repair Brick, decide whether run_building_once must carry brick-grain events and add coverage or explicitly exclude it.",
+      "Separate or explicitly admit the collapsed received_at/returned_at timing model; current implementation does not prove distinct seam times.",
+      "Derive the circled prefix from declared sequence position for dynamic/retry/reroute paths.",
+      "Add fan-in gate-note rendering and checker coverage for 합류 대기/성립.",
+      "Replace the manual disposition_applied checker probe with a real hold-resume walker probe.",
+      "Add writable-temp proof for focused folded profile, mutation RED, bake_dashboard_data_json(), and --all."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default"
+  },
+  "returned_fact_ref": "agent-fact:03:notify-v3-brick-grain-thread-0612-code-attack-qa",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:notify-v3-brick-grain-thread-0612",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:notify-v3-brick-grain-thread-0612-code-attack-qa:attempt-1",
+  "step_ref": "notify-v3-brick-grain-thread-0612-code-attack-qa",
+  "subject": "notify-v3-brick-grain-thread-0612-code-attack-qa",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T16:57:14.169988Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

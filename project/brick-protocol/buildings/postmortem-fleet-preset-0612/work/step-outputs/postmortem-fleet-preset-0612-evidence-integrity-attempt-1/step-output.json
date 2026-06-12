@@ -1,0 +1,89 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:postmortem-fleet-preset-0612::work/step-outputs/postmortem-fleet-preset-0612-evidence-integrity-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:inspector",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-postmortem-fleet-preset-0612-evidence-integrity",
+  "building_id": "postmortem-fleet-preset-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:05",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T16:55:51.497336Z",
+  "id": "urn:bp:building:postmortem-fleet-preset-0612::work/step-outputs/postmortem-fleet-preset-0612-evidence-integrity-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:05:postmortem-fleet-preset-0612-evidence-integrity",
+  "recorded_at": "2026-06-12T16:55:51.497336Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:inspector",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:codex-local:postmortem-fleet-preset-0612",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:postmortem-fleet-preset-0612:agent-object:inspector:output"
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work"
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"worktree has modified support/operator/composition.py, support/checkers/check_brick_template_catalog_restructure.py, support/checkers/lib/case_runners.py, support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml, support/checkers/profiles/structure_template_integrity.yaml; brick/templates/presets/postmortem-fleet.md is untracked.\", \"support/operator/composition.py:1563-1583 derives node_id from step_alias when present and from step_template_ref slug otherwise.\", \"support/operator/composition.py:1615-1636 raises ValueError for repeated step_template...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default"
+  },
+  "returned_fact_ref": "agent-fact:05:postmortem-fleet-preset-0612-evidence-integrity",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:postmortem-fleet-preset-0612",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:postmortem-fleet-preset-0612-evidence-integrity:attempt-1",
+  "step_ref": "postmortem-fleet-preset-0612-evidence-integrity",
+  "subject": "postmortem-fleet-preset-0612-evidence-integrity",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T16:55:51.497336Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

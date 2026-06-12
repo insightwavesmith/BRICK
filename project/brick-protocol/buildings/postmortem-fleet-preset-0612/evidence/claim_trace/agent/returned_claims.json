@@ -1,0 +1,847 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:postmortem-fleet-preset-0612::evidence/claim_trace/agent/returned_claims.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:design-lead",
+        "received_work": "brick-work:01:postmortem-fleet-preset-0612-design",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:design-lead",
+          "axis_responsibility": {
+            "Agent": "Receives declared selected_adapter_ref data per row; adapter split is declared evidence, not provider availability or quality proof.",
+            "Brick": "Owns the preset row shape, repeated work-lens declaration, step_template_ref contract, and optional step_alias as work-composition identity text.",
+            "Link": "Owns gate sufficiency and Movement; fan-in-wait-all and strict-evidence remain declared gate concepts, not support-selected Movement.",
+            "Support": "May materialize declared rows, normalize aliases, reject duplicate node ids, and run checker/smoke evidence without authoring route targets."
+          },
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "candidate_file_changes": [
+            "support/operator/composition.py",
+            "brick/templates/presets/postmortem-fleet.md",
+            "support/checkers/lib/kernel_checks.py only if this worktree's active checker family is actually there; the named checker/profile wiring was not observed in that exact file during this read"
+          ],
+          "checker_or_verifier_plan": [
+            "Checker-first: add negative fixtures before implementation for repeated template without alias and colliding aliases, expecting ValueError with row and node_id detail.",
+            "Add mutation RED that removes or bypasses the node-id collision guard and observes the duplicate/collision fixture passing incorrectly.",
+            "Add postmortem-fleet materialize smoke using materialize_building_intent with no walk; assert eight distinct node_ids and the codex/claude selected_adapter_ref split.",
+            "Run compileall and git diff --check.",
+            "Run focused checker/profile coverage for the catalog/template family and collision probes.",
+            "Run the full gate from a temp source copy only after implementation."
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:postmortem-fleet-preset-0612",
+          "cli_version_text": "codex-cli 0.137.0",
+          "design_summary": "The prescribed design is structurally coherent: add optional row-local step_alias for graph node identity only, require every repeated step_template_ref row to carry a distinguishing alias, retain step_template_ref for template and brick resolution, and fail closed on duplicate node ids with row-specific ValueError detail. The postmortem-fleet preset should mirror recon-fleet while expanding the three QA lens kinds into codex and claude aliased rows, yielding eight graph nodes.",
+          "edge_cases": [
+            "A present step_alias that slugifies to empty should reject.",
+            "Two aliases that slugify to the same value should reject.",
+            "An alias colliding with another row's unaliased template slug should reject via duplicate node_id.",
+            "One aliased and one unaliased row sharing the same step_template_ref should reject because repeated templates require aliases on all repeated rows.",
+            "Alias-aware targeting for duplicated templates is not admitted by this task; closure_transition_target_policy should not target duplicated lens templates until a separate key is admitted.",
+            "node_reroute_budgets remains keyed by step_template_ref; postmortem-fleet avoids duplicate-budget ambiguity by budgeting only inspect."
+          ],
+          "evidence_refs": [
+            "support-packet:postmortem-fleet-preset-0612:agent-object:design-lead:output",
+            "support/operator/composition.py:1463",
+            "support/operator/composition.py:1561",
+            "support/operator/composition.py:1568",
+            "support/operator/composition.py:1597",
+            "support/operator/composition.py:1624",
+            "support/operator/composition.py:1637",
+            "support/operator/composition.py:1679",
+            "support/operator/composition.py:1727",
+            "support/operator/composition.py:1889",
+            "support/operator/composition.py:1932",
+            "support/operator/plan_rendering.py:965",
+            "support/operator/plan_rendering.py:997",
+            "support/operator/plan_rendering.py:1015",
+            "brick/templates/presets/recon-fleet.md:7",
+            "brick/templates/presets/recon-fleet.md:33",
+            "brick/templates/presets/recon-fleet.md:36",
+            "brick/templates/presets/recon-fleet.md:38",
+            "brick/templates/presets/recon-fleet.md:44"
+          ],
+          "invariants": [
+            "A repeated step_template_ref is admissible only when each repeated row has a non-empty step_alias after normalization.",
+            "step_alias affects node identity and labels only.",
+            "step_alias must not change step_template_ref, brick_spec_ref, required_return_shape, selected_adapter_ref, Movement, gate refs, or closure policy meaning.",
+            "Every materialized node_id must be unique.",
+            "Duplicate identity must fail loudly before graph evidence is treated as usable.",
+            "postmortem-fleet should materialize to eight distinct nodes: inspect, six lens aliases, and closure."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "No files were edited.",
+            "No materialize smoke was run.",
+            "No compileall, git diff --check, focused checker, mutation RED, or temp-copy full gate was run in this design-only return.",
+            "The exact current checker implementation location is not proven from support/checkers/lib/kernel_checks.py because the requested checker-family strings were not observed there.",
+            "C1 repeat-lane compliance was not independently verified from additional compliant presets under the read constraint.",
+            "Provider availability, provider quality, source truth, success judgment, quality judgment, Movement authority, and future Building correctness are not proven."
+          ],
+          "observed_evidence": [
+            "support/operator/composition.py currently builds graph node ids from building_slug plus _materializer_step_template_slug(step_template_ref), so repeated step_template_ref rows collide at node_id unless identity input changes.",
+            "The same node_ids list feeds graph edges, fan-out/fan-in groups, terminal boundary edge, and completion_edge_ref assignment; duplicate node ids can therefore corrupt graph identity silently before an explicit guard is added.",
+            "support/operator/plan_rendering.py stores preset frontmatter as dict(fm), preserving row-local keys through the preset registry without a loader schema change.",
+            "brick/templates/presets/recon-fleet.md supplies the mirror structure: inspect, three fan-in lenses, closure, strict-evidence plus fan-in-wait-all, inspect reroute budget, closure policy, and proof_limits.",
+            "No matching brick_template_catalog_restructure or structure-template-integrity wiring was observed inside the exact declared file support/checkers/lib/kernel_checks.py during the focused read."
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ \"support/operator/composition.py currently builds graph node ids from building_slug plus _materializer_step_template_slug(step_template_ref), so repeated step_template_ref rows collide at node_id unless identity input changes.\", \"The same node_ids list feeds graph edges, fan-out/fan-in groups, terminal boundary edge, and completion_edge_ref assignment; duplicate node ids can therefore corrupt graph identity silently before an explicit guard is added.\", \"support/operator/plan_rendering.py stores preset frontmatter as dict(fm), preserving row-local keys through the pr...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "proposed_changes": [
+            "In support/operator/composition.py, compute kind_slug from _composition_slug(step_alias) when step_alias is present; otherwise keep the current template slug behavior.",
+            "Before or during node construction, detect repeated step_template_ref groups and reject any repeated-template row missing step_alias.",
+            "After node id derivation, reject duplicate node ids with a ValueError naming colliding row indexes, step_template_ref values, step_alias values, and node_id.",
+            "Add brick/templates/presets/postmortem-fleet.md with inspect, code-attack-qa x2, axis-attack-qa x2, evidence-integrity x2, and closure; all six lens rows target fan_in_final_gate and use codex/claude adapter split by alias.",
+            "Extend checker coverage with duplicate-template/no-alias rejection, colliding-alias rejection, materialize smoke observing eight node ids and adapter split, and mutation RED for removing the collision guard."
+          ],
+          "relevant_current_structure": [
+            "_materializer_graph_declaration resolves step_template_ref before node construction and currently derives node_id from the template slug.",
+            "_materializer_step_template_slug strips building-step-template: and slugifies the template tail.",
+            "_chain_presets_from_presets reads every presets/*.md frontmatter file and stores the full mapping, so step_alias can flow to composition as raw_step data.",
+            "closure_transition_target_policy still resolves target_step_template_ref to building_slug plus template slug; this is acceptable for the prescribed postmortem-fleet policy because it targets inspect, not a duplicated lens template."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "unchanged_surfaces": [
+            "No Link Movement literal changes.",
+            "No Link gate authority changes.",
+            "No Agent Object, prompt, hook, discipline, or tool-policy changes.",
+            "No project evidence/status writes in this design step.",
+            "No scheduler, queue, retry, provider runtime, dependency, pyproject, uv.lock, .git, or AGENTS.md changes.",
+            "Template and brick resolution remain owned by step_template_ref and brick_spec_ref, not by step_alias."
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:01:postmortem-fleet-preset-0612-design",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:dev",
+        "received_work": "brick-work:02:postmortem-fleet-preset-0612-work",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:dev",
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "changed_files": [
+            "brick/templates/presets/postmortem-fleet.md",
+            "support/checkers/check_brick_template_catalog_restructure.py",
+            "support/checkers/lib/case_runners.py",
+            "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml",
+            "support/checkers/profiles/structure_template_integrity.yaml",
+            "support/operator/composition.py"
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:postmortem-fleet-preset-0612",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:postmortem-fleet-preset-0612:agent-object:dev:output"
+          ],
+          "made_changes": [
+            "Added optional `step_alias` node identity handling in `support/operator/composition.py`; repeated step templates now require aliases and alias slug collisions raise loudly before graph edges are built.",
+            "Added `brick/templates/presets/postmortem-fleet.md` with inspect -> six Codex/Claude QA lenses -> closure.",
+            "Extended catalog and materializer checker coverage in `support/checkers/*` and updated preset count/profile pins."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "semantic correctness of file edits",
+            "source truth",
+            "success judgment",
+            "quality judgment",
+            "Movement authority",
+            "provider availability or provider quality",
+            "runtime walk of `postmortem-fleet`",
+            "future Building correctness",
+            "Codex/Claude native projection sync"
+          ],
+          "observed_evidence": [
+            "No-walk materialize smoke produced 8 nodes: inspect codex, code codex/claude, axis codex/claude, evidence codex/claude, closure codex.",
+            "`python3 support/checkers/check_profile.py --profile support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml` exit 0.",
+            "`python3 support/checkers/check_profile.py --profile support/checkers/profiles/structure_template_integrity.yaml` exit 0; catalog checker reported 36 FIRE fixtures rejected and 23 live catalog docs inspected.",
+            "Collision-guard mutation RED in `/tmp/brick-postmortem-red.eM4iye`: focused profile exit 1 after the guard was disabled.",
+            "`python3 -m compileall -q support brick` exit 0; `git diff --check` exit 0.",
+            "Temp-copy full gate in `/tmp/brick-postmortem-main-gate.3msFU9`: dashboard bake exit 0, `check_profile.py --all` exit 0.",
+            "No live `project/` artifacts remain; final status shows only intended `brick/templates/*` and `support/*` changes.",
+            "Review/model evidence disposition: no Claude/Gemini review used; checker output is support evidence only.",
+            "Next Movement: not chosen by Agent; preserve caller/Link disposition."
+          ],
+          "output_excerpt": "{ \"made_changes\": [ \"Added optional `step_alias` node identity handling in `support/operator/composition.py`; repeated step templates now require aliases and alias slug collisions raise loudly before graph edges are built.\", \"Added `brick/templates/presets/postmortem-fleet.md` with inspect -> six Codex/Claude QA lenses -> closure.\", \"Extended catalog and materializer checker coverage in `support/checkers/*` and updated preset count/profile pins.\" ], \"observed_evidence\": [ \"No-walk materialize smoke produced 8 nodes: inspect codex, code codex/claude, axis codex/claude, evidence codex/claude,...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "workspace write is limited by Brick-declared write_scope"
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "worktree_observation": {
+            "after_git_refs": {
+              "branch": "claude/track-fleet",
+              "head": "9bff3c4bcf2a49214c4410e394d74b4f2bbfd774"
+            },
+            "after_git_status_paths": [
+              "brick/templates/presets/postmortem-fleet.md",
+              "support/checkers/check_brick_template_catalog_restructure.py",
+              "support/checkers/lib/case_runners.py",
+              "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml",
+              "support/checkers/profiles/structure_template_integrity.yaml",
+              "support/operator/composition.py"
+            ],
+            "after_path_count": 3467,
+            "before_git_refs": {
+              "branch": "claude/track-fleet",
+              "head": "9bff3c4bcf2a49214c4410e394d74b4f2bbfd774"
+            },
+            "before_git_status_paths": [],
+            "before_path_count": 3466,
+            "not_proven": [
+              "semantic correctness of file edits",
+              "complete diff attribution for pre-existing dirty paths"
+            ],
+            "observed_changed_files": [
+              "brick/templates/presets/postmortem-fleet.md",
+              "support/checkers/check_brick_template_catalog_restructure.py",
+              "support/checkers/lib/case_runners.py",
+              "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml",
+              "support/checkers/profiles/structure_template_integrity.yaml",
+              "support/operator/composition.py"
+            ],
+            "proof_limits": [
+              "changed files are support evidence only",
+              "not source truth",
+              "not success judgment",
+              "not quality judgment",
+              "not Movement authority"
+            ],
+            "write_scope": {
+              "allowed_paths": [
+                "brick/templates/*",
+                "support/*"
+              ],
+              "forbidden_paths": [
+                "link/*",
+                "agent/*",
+                "project/*",
+                "brick/building.py",
+                "brick/building.yaml",
+                "brick/work.py",
+                "brick/work.yaml",
+                "brick/comparison.py",
+                "brick/comparison.yaml",
+                ".git/*",
+                "AGENTS.md",
+                "pyproject.toml",
+                "uv.lock"
+              ]
+            }
+          }
+        }
+      },
+      "fact_ref": "agent-fact:02:postmortem-fleet-preset-0612-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:qa",
+        "received_work": "brick-work:03:postmortem-fleet-preset-0612-code-attack-qa",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:qa",
+          "attacked_work": [
+            "Brick candidate: preset row identity and graph Building composition for repeated step_template_ref rows.",
+            "Agent candidate: declared per-step selected_adapter_ref and selected_model_ref only; no provider availability or quality was exercised.",
+            "Link candidate: declared graph Link edges, movement literals, target refs, gate refs, and fan-in/fan-out group projection.",
+            "Support surface: composition materializer, catalog checker, profile runner case scaffolding, and preset/catalog profiles."
+          ],
+          "blocked_or_missing_evidence": [
+            "Temporary-directory allocation failed with: No usable temporary directory found in ['/var/folders/hm/3b5ry_rn3y18jk6bgy7w7z140000gn/T/', '/tmp', '/var/tmp', '/usr/tmp', '/Users/smith/projects/BRICK-wt-fleet'].",
+            "The sandbox is read-only, so no temp source copy, bytecode compilation output, or checker temp fixtures could be created.",
+            "No external model review evidence was collected in this reviewer run."
+          ],
+          "boundary_violations": [
+            "No modified link/, agent/, project/, AGENTS.md, pyproject.toml, or uv.lock paths were observed in git status.",
+            "No support-created Movement target selection was observed in the smoke; graph targets came from declared preset shape.",
+            "Candidate contract gap: non-slug step_alias text is accepted and normalized despite the task wording 'plain slug text'."
+          ],
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "checked_sources": [
+            "support/operator/composition.py",
+            "support/operator/plan_rendering.py",
+            "brick/templates/presets/recon-fleet.md",
+            "brick/templates/presets/postmortem-fleet.md",
+            "support/checkers/check_brick_template_catalog_restructure.py",
+            "support/checkers/lib/case_runners.py",
+            "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml",
+            "support/checkers/profiles/structure_template_integrity.yaml"
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:postmortem-fleet-preset-0612",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:postmortem-fleet-preset-0612:agent-object:qa:output"
+          ],
+          "evidence_used": [
+            "pwd; git status --short; git diff --stat; git diff --check.",
+            "rg and nl/sed inspection over composition.py, plan_rendering.py, recon-fleet.md, postmortem-fleet.md, checker files, and profiles.",
+            "PYTHONDONTWRITEBYTECODE=1 python3 -c materialize_building_intent smoke for building-chain-preset:postmortem-fleet.",
+            "PYTHONDONTWRITEBYTECODE=1 python3 -c manual in-memory patched preset probes for missing_alias, colliding_alias, and non_slug_alias.",
+            "PYTHONDONTWRITEBYTECODE=1 python3 -c temp-free catalog _live_state/_validate_state p8-active probe.",
+            "PYTHONDONTWRITEBYTECODE=1 python3 -c ast.parse over touched Python files."
+          ],
+          "failing_or_missing_probes": [
+            "PYTHONDONTWRITEBYTECODE=1 python3 support/checkers/check_profile.py --profile support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml exited 1 with no usable temporary directory.",
+            "PYTHONDONTWRITEBYTECODE=1 python3 support/checkers/check_profile.py --profile support/checkers/profiles/structure_template_integrity.yaml exited 1 with no usable temporary directory.",
+            "PYTHONDONTWRITEBYTECODE=1 python3 support/checkers/check_brick_template_catalog_restructure.py --repo . --mode p8-active exited 1 with no usable temporary directory.",
+            "compileall was not run because it writes bytecode and this reviewer lane is no-write; ast.parse was used only as temp-free syntax evidence.",
+            "Full gate in TEMP SOURCE COPY was not run because the environment has no usable temporary directory and filesystem permissions are read-only.",
+            "No actual profile-run mutation RED was observed; only manual in-memory RED probes were observed."
+          ],
+          "negative_probe_observations": [
+            "missing_alias probe produced: ValueError: chain preset step_alias node identity collision: step_alias required for repeated step_template_ref building-step-template:code-attack-qa ... node_id collision ...",
+            "colliding_alias probe produced: ValueError: chain preset step_alias node identity collision: node_id collision qa-reject-colliding-alias-code-lens ...",
+            "non_slug_alias probe accepted aliases 'Code Lens Codex' and 'Code Lens Claude' and materialized slugged step refs, so slug grammar is not fail-closed."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "source truth",
+            "success judgment",
+            "quality judgment",
+            "Movement authority",
+            "provider availability",
+            "provider quality",
+            "Codex native sync",
+            "Claude native sync",
+            "MCP projection behavior",
+            "future Building correctness",
+            "full profile runner coverage",
+            "full temp-copy gate",
+            "compileall",
+            "semantic fitness of the postmortem-fleet preset",
+            "complete absence of future support-authority leaks"
+          ],
+          "observed_evidence": [
+            "Worktree observed at /Users/smith/projects/BRICK-wt-fleet. Modified paths are support/checkers/check_brick_template_catalog_restructure.py, support/checkers/lib/case_runners.py, support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml, support/checkers/profiles/structure_template_integrity.yaml, support/operator/composition.py; untracked path is brick/templates/presets/postmortem-fleet.md.",
+            "support/operator/composition.py:1558-1636 derives node_id from step_alias when present, otherwise from step_template_ref, then raises ValueError after the node loop for repeated templates missing aliases or duplicate node_id collisions.",
+            "support/operator/plan_rendering.py:965-1023 stores preset frontmatter as dict(fm), so steps[] row keys such as step_alias flow through without loader changes.",
+            "brick/templates/presets/postmortem-fleet.md declares 8 steps: inspect, six aliased QA lens rows, and closure; Codex and Claude adapter refs split across the six lens rows; strict-evidence and fan-in-wait-all are declared.",
+            "No-walk materialize smoke emitted 8 graph nodes with expected adapter/model split: inspect codex/default; code-lens-codex codex/default; code-lens-claude claude/sonnet; axis-lens-codex codex/default; axis-lens-claude claude/sonnet; evidence-lens-codex codex/default; evidence-lens-claude claude/sonnet; closure codex/default.",
+            "No-walk materialize smoke emitted 13 Link edges and group_roles ['fan_out', 'fan_in']; internal edges carried forward movement with default-transition plus strict gates, terminal edge carried default-transition.",
+            "Manual in-memory RED probe using materialize_building_intent.__globals__ observed ValueError for repeated code-attack-qa rows without step_alias.",
+            "Manual in-memory RED probe using materialize_building_intent.__globals__ observed ValueError for colliding step_alias values.",
+            "Temp-free catalog live-state validation returned catalog_live_state_violation_count 0.",
+            "git diff --check exited 0. ast.parse over touched Python files reported ast ok."
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ \"Worktree observed at /Users/smith/projects/BRICK-wt-fleet. Modified paths are support/checkers/check_brick_template_catalog_restructure.py, support/checkers/lib/case_runners.py, support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml, support/checkers/profiles/structure_template_integrity.yaml, support/operator/composition.py; untracked path is brick/templates/presets/postmortem-fleet.md.\", \"support/operator/composition.py:1558-1636 derives node_id from step_alias when present, otherwise from step_template_ref, then raises ValueError after the nod...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "This return is provider-neutral support evidence only.",
+            "Checker output and manual probes are not source truth, success judgment, quality judgment, Movement authority, provider proof, or complete coverage proof.",
+            "No Link Movement was chosen here.",
+            "No files were edited, created, deleted, committed, pushed, checked out, reset, merged, rebased, or stashed by this reviewer run."
+          ],
+          "regression_risks": [
+            "step_alias is described as plain slug text, but the materializer and catalog checker currently normalize non-slug alias text through _composition_slug instead of rejecting it.",
+            "The actual check_profile profile cases did not run in this environment because tempfile allocation is unavailable; manual probes do not prove the profile runner integration path.",
+            "The new preset is untracked in git status, so closure evidence should not rely only on git diff --stat.",
+            "Provider/model split is declared data only; no adapter execution or provider availability was observed."
+          ],
+          "remaining_delta": [
+            "Decide whether 'plain slug text' requires strict alias regex rejection; if yes, add materializer and catalog checker rejection plus a profile fixture.",
+            "Run the two focused profiles, actual mutation RED, compileall, and full temp-copy --all gate in a writable temp-capable environment.",
+            "Ensure brick/templates/presets/postmortem-fleet.md is tracked before closure evidence is assembled."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default"
+        }
+      },
+      "fact_ref": "agent-fact:03:postmortem-fleet-preset-0612-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:inspector",
+        "received_work": "brick-work:04:postmortem-fleet-preset-0612-axis-attack-qa",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_axis_findings": [
+            "Per-step selected_adapter_ref and selected_model_ref remain declared row data in the preset/materialized brick_steps.",
+            "No agent/ resource files were changed in observed git status.",
+            "The mixed codex/claude split is observed as adapter/model declaration data only; it does not prove provider availability or provider behavior."
+          ],
+          "agent_object_ref": "agent-object:inspector",
+          "attacked_scope": [
+            "Brick preset contract for brick/templates/presets/postmortem-fleet.md.",
+            "Graph node identity seam in support/operator/composition.py::_materializer_graph_declaration.",
+            "Preset loader pass-through in support/operator/plan_rendering.py::_chain_presets_from_presets.",
+            "Catalog/profile checker pins in support/checkers/check_brick_template_catalog_restructure.py, support/checkers/lib/case_runners.py, and the two touched checker profiles.",
+            "No Building walk, provider call, hook execution, commit, push, or file mutation was performed."
+          ],
+          "blocked_or_missing_evidence": [
+            "python3 support/checkers/check_brick_template_catalog_restructure.py --repo . --mode p8-active exited 1 because no usable temporary directory was available.",
+            "python3 support/checkers/check_profile.py --profile support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml exited 1 for the same no-usable-temporary-directory condition.",
+            "python3 support/checkers/check_profile.py --profile support/checkers/profiles/structure_template_integrity.yaml exited 1 through the same temp-dir blocker.",
+            "compileall was not run because this read-only sandbox cannot safely write bytecode caches; AST parse was used only as read-only syntax evidence.",
+            "Full gate in TEMP SOURCE COPY was not run because the sandbox has no writable temp/source-copy path."
+          ],
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "brick_axis_findings": [
+            "postmortem-fleet declares 8 route rows: inspect, paired code-attack-qa, paired axis-attack-qa, paired evidence-integrity, and closure.",
+            "Repeated Brick step templates are distinguished by step_alias in the new preset, and template/brick resolution still uses step_template_ref plus brick_spec_ref rather than alias.",
+            "composition.py derives node identity from _composition_slug(step_alias) when present, otherwise from the step template slug, then rejects repeated templates without aliases and duplicate node ids after the node loop.",
+            "Checker/profile fixtures include a postmortem-fleet materialization smoke and reject cases for missing aliases and colliding aliases.",
+            "Remaining Brick-contract delta: if 'plain slug text' requires already-slug-shaped input, current code does not hard-reject non-slug step_alias text; it normalizes it."
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:postmortem-fleet-preset-0612",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:postmortem-fleet-preset-0612:agent-object:inspector:output"
+          ],
+          "evidence_used": [
+            "AGENTS.md instructions supplied in the user packet.",
+            "support/operator/composition.py lines 135-248, 1463-1742, 1776-1782, and 2999-3006.",
+            "support/operator/plan_rendering.py lines 965-1037.",
+            "brick/templates/presets/recon-fleet.md lines 1-55.",
+            "brick/templates/presets/postmortem-fleet.md lines 1-77.",
+            "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml lines 822-890 and 963-1028.",
+            "support/checkers/profiles/structure_template_integrity.yaml lines 1-120.",
+            "support/checkers/check_brick_template_catalog_restructure.py lines 1-7, 408-422, 840-950, and 2083-2091.",
+            "support/checkers/lib/case_runners.py diff/read evidence for patched preset-step reject scaffolding.",
+            "Commands: git status --short, git diff --check, git diff --stat, read-only materialize smoke, direct negative probes, non-slug alias probe, and AST parse."
+          ],
+          "link_axis_findings": [
+            "postmortem-fleet declares gate_concept_profile strict-evidence and fan-in-wait-all, matching the current frame where fan-in-wait-all is graph/frontier observation rather than a GateFact literal.",
+            "Materialized first fan-out Link row carried movement=forward, target_ref=brick-postmortem-fleet-smoke-0612-code-lens-codex, declared_gate_refs=[link-gate:default-transition, link-gate:strict], and gate_concept_provenance declared_by=building-chain-preset:postmortem-fleet.",
+            "Materialized terminal boundary Link row carried movement=forward, target_ref=building-boundary:postmortem-fleet-smoke-0612-closed, and declared_gate_refs=[link-gate:default-transition].",
+            "No observed Link row uses adapter/model data as target identity."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Full check_profile.py --all gate.",
+            "Full temp source copy gate.",
+            "compileall execution.",
+            "Checker/profile green state in this sandbox.",
+            "Collision mutation probe with code removal.",
+            "Runtime Building walk.",
+            "Provider availability or provider quality.",
+            "Codex native sync, Claude native sync, MCP projection behavior.",
+            "Future Building correctness.",
+            "Source truth, success judgment, quality judgment, Movement authority."
+          ],
+          "observed_evidence": [
+            "Repo grounded at /Users/smith/projects/BRICK-wt-fleet; git status shows modified support/operator/composition.py, support/checkers/check_brick_template_catalog_restructure.py, support/checkers/lib/case_runners.py, support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml, support/checkers/profiles/structure_template_integrity.yaml, and untracked brick/templates/presets/postmortem-fleet.md.",
+            "git diff --check exited 0.",
+            "Read-only AST parse of changed/declared Python files exited 0 for 5 files.",
+            "Read-only materialize_building_intent smoke for building-chain-preset:postmortem-fleet produced plan_shape=graph, 8 brick_steps, and 13 link_edges.",
+            "Materialized step/adaptor table: inspect codex/default; code-lens-codex codex/default; code-lens-claude claude/sonnet; axis-lens-codex codex/default; axis-lens-claude claude/sonnet; evidence-lens-codex codex/default; evidence-lens-claude claude/sonnet; closure codex/default.",
+            "Direct negative probe for repeated building-step-template:code-attack-qa without step_alias raised ValueError containing step_alias required for repeated step_template_ref.",
+            "Direct negative probe for colliding step_alias values raised ValueError containing node_id collision.",
+            "Direct non-slug alias probe accepted aliases like 'Code Lens One!' and normalized them to node ids such as nonslug-alias-code-lens-one."
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ \"Repo grounded at /Users/smith/projects/BRICK-wt-fleet; git status shows modified support/operator/composition.py, support/checkers/check_brick_template_catalog_restructure.py, support/checkers/lib/case_runners.py, support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml, support/checkers/profiles/structure_template_integrity.yaml, and untracked brick/templates/presets/postmortem-fleet.md.\", \"git diff --check exited 0.\", \"Read-only AST parse of changed/declared Python files exited 0 for 5 files.\", \"Read-only materialize_building_intent smoke for bui...",
+          "projection_authority_findings": [
+            "No projection freshness, Codex native sync, Claude native sync, MCP projection, provider quality, or dashboard rendering was inspected as authority.",
+            "selected_model_ref values are treated as declared data, not model availability proof.",
+            "No source-truth, success, quality, or Movement authority was assigned to checkers, model/provider refs, or this inspector return."
+          ],
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "This is provider-neutral support evidence only.",
+            "This return does not claim source truth.",
+            "This return does not judge success or quality.",
+            "This return does not choose Link Movement.",
+            "Checker output, materialization smoke, and direct probes are support evidence only.",
+            "Memory was used only as routing/context for the strict-evidence plus fan-in-wait-all review frame; current repo observations control this return."
+          ],
+          "remaining_delta": [
+            "Decide whether step_alias must be strict slug input. If yes, add an explicit slug-shape reject in materializer and catalog checker, plus a negative fixture for non-slug alias text.",
+            "Rerun temp-backed focused profiles and full --all in a writable temp source copy before treating gate evidence as closed.",
+            "If required by the Brick, add or collect the mutation-removed collision-check RED evidence outside this read-only sandbox."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "support_leak_findings": [
+            "Observed changes are confined to support/* and brick/templates/presets/* plus checker profiles; no observed mutation to link/*, agent/*, project/*, AGENTS.md, pyproject.toml, uv.lock, or .git/*.",
+            "support/operator/composition.py comments and behavior keep route policy/budget values copied from preset or per-building declarations, not support-invented defaults.",
+            "Checker additions are support evidence only; they do not choose Movement, judge quality, or write source truth.",
+            "Temp-backed checker execution is blocked in this sandbox, so full checker closure is not observed here."
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:04:postmortem-fleet-preset-0612-axis-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:04"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:inspector",
+        "received_work": "brick-work:05:postmortem-fleet-preset-0612-evidence-integrity",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:inspector",
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "cli_call_ref": "support-cli-call:adapter:codex-local:postmortem-fleet-preset-0612",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:postmortem-fleet-preset-0612:agent-object:inspector:output"
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work"
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ \"worktree has modified support/operator/composition.py, support/checkers/check_brick_template_catalog_restructure.py, support/checkers/lib/case_runners.py, support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml, support/checkers/profiles/structure_template_integrity.yaml; brick/templates/presets/postmortem-fleet.md is untracked.\", \"support/operator/composition.py:1563-1583 derives node_id from step_alias when present and from step_template_ref slug otherwise.\", \"support/operator/composition.py:1615-1636 raises ValueError for repeated step_template...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default"
+        }
+      },
+      "fact_ref": "agent-fact:05:postmortem-fleet-preset-0612-evidence-integrity",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:05"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:coo",
+        "received_work": "brick-work:06:postmortem-fleet-preset-0612-closure",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:coo",
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "cli_call_ref": "support-cli-call:adapter:codex-local:postmortem-fleet-preset-0612",
+          "cli_version_text": "codex-cli 0.137.0",
+          "deferred_smith_review_queue": [
+            "Decide whether non-slug step_alias normalization is acceptable or whether plain slug text requires strict fail-closed validation.",
+            "Decide whether to collect the missing temp-copy full gate before any merge/close step.",
+            "Confirm whether supplied incoming QA packets are sufficient for this closure synthesis despite the absent local Building evidence root."
+          ],
+          "evidence_refs": [
+            "support-packet:postmortem-fleet-preset-0612:agent-object:coo:output"
+          ],
+          "narrowly_proven": [
+            "The current materializer no longer silently collapses duplicate graph node ids for repeated step_template_ref rows when aliases are missing or colliding; it raises a loud ValueError in the observed direct probes.",
+            "The new postmortem-fleet preset is discoverable by the loader and materializes without walking into 8 distinct graph step refs with declared per-step adapter/model rows.",
+            "The checker/profile edits add support pins for postmortem-fleet materialization, repeated-template missing-alias rejection, colliding-alias rejection, preset count 20, and structure-template presence/text coverage.",
+            "The observed change scope stays within support/* and brick/templates/presets/*."
+          ],
+          "next_target_candidates": [
+            "If strict slug text is binding: candidate follow-up work boundary for step_alias slug-shape rejection plus checker fixture, then rerun focused profiles and full temp-copy gate.",
+            "If normalization is acceptable by Smith/COO disposition: candidate verification boundary to rerun focused profiles, mutation RED, compileall, and full temp-copy --all gate in a writable temp-capable environment.",
+            "Candidate evidence-assembly boundary to track the untracked postmortem-fleet preset and persist the final proof table after the gate rerun."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Full support/checkers/check_profile.py --all gate.",
+            "Full gate in a temp source copy.",
+            "compileall execution.",
+            "Actual focused profile green state through check_profile.py.",
+            "Actual checker fire-fixture RED through the profile runner.",
+            "Mutation RED from removing the collision check in source code.",
+            "Strict slug grammar for step_alias input.",
+            "Runtime Building walk.",
+            "Provider availability, provider behavior, or provider quality for codex/claude lanes.",
+            "Codex native sync, Claude native sync, MCP projection behavior.",
+            "Future Building correctness.",
+            "Source truth, success judgment, quality judgment, Movement authority."
+          ],
+          "observed_evidence": [
+            "Repo grounded at /Users/smith/projects/BRICK-wt-fleet.",
+            "git status --short shows modified support/checkers/check_brick_template_catalog_restructure.py, support/checkers/lib/case_runners.py, support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml, support/checkers/profiles/structure_template_integrity.yaml, support/operator/composition.py, and untracked brick/templates/presets/postmortem-fleet.md.",
+            "No modified link/, agent/, project/, AGENTS.md, pyproject.toml, uv.lock, or .git path was observed.",
+            "git diff --check exited 0.",
+            "AST parse of the three changed Python files exited 0.",
+            "support/operator/plan_rendering.py stores preset frontmatter as dict(fm), so step_alias flows through the preset loader without a loader change.",
+            "support/operator/composition.py now derives graph node identity from step_alias when present, otherwise from step_template_ref slug, and raises ValueError after the node loop for repeated templates missing aliases or duplicate node_id collisions.",
+            "brick/templates/presets/postmortem-fleet.md declares 8 steps: inspect, paired code-attack-qa, paired axis-attack-qa, paired evidence-integrity, and closure; the six lens rows carry codex/claude adapter split; gate_concept_profile declares strict-evidence and fan-in-wait-all.",
+            "No-walk materialize_building_intent smoke for building-chain-preset:postmortem-fleet produced plan_shape=graph, 8 brick_steps, 13 link_edges, fan_out and fan_in groups, and the expected codex/claude adapter/model split.",
+            "Direct in-memory negative probe for repeated code-attack-qa rows without step_alias raised ValueError containing step_alias required for repeated step_template_ref.",
+            "Direct in-memory negative probe for colliding step_alias values raised ValueError containing node_id collision.",
+            "Direct non-slug alias probe accepted aliases such as Code Lens One! and normalized them into slugged node ids, so strict slug input is not enforced.",
+            "Temp-free catalog _live_state/_validate_state p8-active probe reported 0 violations.",
+            "Focused profile/checker commands exited 1 because no usable temporary directory was available.",
+            "No local project/brick-protocol/buildings/postmortem-fleet-preset-0612 evidence root was found; incoming code-attack-qa, axis-attack-qa, and evidence-integrity returns were available from the supplied packet only."
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ \"Repo grounded at /Users/smith/projects/BRICK-wt-fleet.\", \"git status --short shows modified support/checkers/check_brick_template_catalog_restructure.py, support/checkers/lib/case_runners.py, support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml, support/checkers/profiles/structure_template_integrity.yaml, support/operator/composition.py, and untracked brick/templates/presets/postmortem-fleet.md.\", \"No modified link/, agent/, project/, AGENTS.md, pyproject.toml, uv.lock, or .git path was observed.\", \"git diff --check exited 0.\", \"AST parse of th...",
+          "parent_goal_delta_status": {
+            "delta_summary": "Core node-identity behavior is observed in no-walk probes, but closure remains bounded by the strict slug ambiguity and unavailable temp-copy/profile gates.",
+            "observed_lanes": [
+              "code-attack-qa",
+              "axis-attack-qa",
+              "evidence-integrity"
+            ],
+            "state": "evidence_open"
+          },
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "remaining_delta": [
+            "Smith/COO disposition is needed on whether the task phrase plain slug text is binding as strict alias syntax. If yes, the implementation needs a follow-up work Brick to reject non-slug step_alias text in materializer and catalog checker, plus a negative fixture.",
+            "The temp-backed checker/profile gates need rerun in a writable temp-capable source copy before gate evidence is closed.",
+            "brick/templates/presets/postmortem-fleet.md is still untracked in this worktree observation.",
+            "The actual Building evidence root for postmortem-fleet-preset-0612 was not present locally, so this closure synthesis relies on supplied incoming lane packets plus current repo probes."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "transition_concern_evidence": {
+            "binding": false,
+            "concern_kind": "verification_gap",
+            "concern_ref": "transition-concern:postmortem-fleet-preset-0612-closure-verification-gap",
+            "not_proven": [
+              "full temp-copy gate",
+              "focused profile green state",
+              "strict slug alias policy",
+              "source truth",
+              "success judgment",
+              "quality judgment",
+              "Movement authority"
+            ],
+            "proof_limits": [
+              "non-binding Agent return evidence only",
+              "support evidence only",
+              "does not choose Movement",
+              "does not choose route target",
+              "does not judge success or quality"
+            ],
+            "reason_refs": [
+              "repo:/Users/smith/projects/BRICK-wt-fleet",
+              "command:git-diff-check-exit-0",
+              "command:materialize-postmortem-fleet-smoke-8-nodes",
+              "command:missing-alias-negative-probe-valueerror",
+              "command:colliding-alias-negative-probe-valueerror",
+              "command:non-slug-alias-probe-accepted-normalized",
+              "command:focused-profile-tempdir-blocked",
+              "packet:postmortem-fleet-preset-0612-code-attack-qa",
+              "packet:postmortem-fleet-preset-0612-axis-attack-qa",
+              "packet:postmortem-fleet-preset-0612-evidence-integrity"
+            ],
+            "related_boundary_refs": [
+              "brick-postmortem-fleet-preset-0612-closure",
+              "brick-postmortem-fleet-preset-0612-work",
+              "building-boundary:postmortem-fleet-preset-0612"
+            ]
+          }
+        }
+      },
+      "fact_ref": "agent-fact:06:postmortem-fleet-preset-0612-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:06"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-12T22:20:06Z",
+  "id": "urn:bp:building:postmortem-fleet-preset-0612::evidence/claim_trace/agent/returned_claims.json",
+  "recorded_at": "2026-06-12T22:20:06Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:postmortem-fleet-preset-0612",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/agent/returned_claims.json",
+  "time": "2026-06-12T22:20:06Z",
+  "type": "bp.claim_trace"
+}

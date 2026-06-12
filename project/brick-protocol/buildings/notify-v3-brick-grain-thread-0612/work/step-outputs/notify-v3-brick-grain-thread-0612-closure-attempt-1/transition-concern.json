@@ -1,0 +1,96 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:notify-v3-brick-grain-thread-0612::work/step-outputs/notify-v3-brick-grain-thread-0612-closure-attempt-1/transition-concern.json",
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "binding": false,
+  "building_id": "notify-v3-brick-grain-thread-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-06-12T17:06:53.639195Z",
+  "id": "urn:bp:building:notify-v3-brick-grain-thread-0612::work/step-outputs/notify-v3-brick-grain-thread-0612-closure-attempt-1/transition-concern.json",
+  "link_role": "non-binding Agent transition concern evidence only",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "transition concern semantic correctness",
+    "Link disposition correctness",
+    "automatic repair/replay execution"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "transition_concern_evidence is Agent returned evidence only",
+    "not Link Movement",
+    "not Link target choice",
+    "not route policy matching",
+    "not route materialization",
+    "not automatic repair/replay execution",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-06-12T17:06:53.639195Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:notify-v3-brick-grain-thread-0612",
+  "specversion": "1.0",
+  "step_output_ref": "work/step-outputs/notify-v3-brick-grain-thread-0612-closure-attempt-1/step-output.json",
+  "step_ref": "notify-v3-brick-grain-thread-0612-closure",
+  "subject": "notify-v3-brick-grain-thread-0612-closure",
+  "time": "2026-06-12T17:06:53.639195Z",
+  "transition_boundary": "Agent concern only; Link may adopt, not adopt, or override",
+  "transition_concern_ref": "transition-concern:notify-v3-brick-grain-thread-0612-closure:attempt-1",
+  "transition_concern_returned": {
+    "binding": false,
+    "concern_kind": "verification_gap",
+    "concern_ref": "transition-concern:notify-v3-closure-proof-gaps-0612",
+    "not_proven": [
+      "focused profile green",
+      "mutation RED",
+      "temp-source-copy full gate",
+      "exact seam timing",
+      "fan-in wording",
+      "real hold-resume proof"
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "does not choose route or target"
+    ],
+    "reason_refs": [
+      "support/operator/run.py:1356-1377",
+      "support/operator/run.py:1968-1999",
+      "support/operator/walker_kernel.py:1744-1767",
+      "support/operator/walker_kernel.py:1176-1205",
+      "support/operator/report_sinks.py:496-518",
+      "support/checkers/lib/kernel_checks.py:2716-2910",
+      "command:check_profile:read_side_projection_boundary:blocked-read-only-fixture",
+      "command:check_profile:all:blocked-no-usable-temporary-directory"
+    ],
+    "related_boundary_refs": [
+      "brick-notify-v3-brick-grain-thread-0612-closure",
+      "brick-notify-v3-brick-grain-thread-0612-code-attack-qa",
+      "brick-notify-v3-brick-grain-thread-0612-axis-attack-qa",
+      "brick-notify-v3-brick-grain-thread-0612-evidence-integrity"
+    ]
+  },
+  "type": "bp.step_output.transition_concern"
+}

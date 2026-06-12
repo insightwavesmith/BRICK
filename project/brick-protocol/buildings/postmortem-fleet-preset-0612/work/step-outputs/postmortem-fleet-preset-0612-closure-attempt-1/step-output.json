@@ -1,0 +1,225 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:postmortem-fleet-preset-0612::work/step-outputs/postmortem-fleet-preset-0612-closure-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-postmortem-fleet-preset-0612-closure",
+  "building_id": "postmortem-fleet-preset-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:06",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "gate_sequence_decision_record": {
+    "action": "hold",
+    "evidence_ref": "observation:gate-sequence-postmortem-fleet-preset-0612-postmortem-fleet-preset-0612-closure-link-gate-human-hold",
+    "gate_action_sequence": [
+      {
+        "action": "hold",
+        "evidence_ref": "observation:gate-sequence-postmortem-fleet-preset-0612-postmortem-fleet-preset-0612-closure-link-gate-human-hold",
+        "gate_ref": "link-gate:human",
+        "hold_reason": "gate_sequence_missing_required_facts:link-gate:human",
+        "pending_target_ref": "brick-postmortem-fleet-preset-0612-closure",
+        "reason_refs": [
+          "observation:human-gate-disposition-missing"
+        ],
+        "target_brick_ref": ""
+      }
+    ],
+    "gate_ref": "link-gate:human",
+    "gate_results": [
+      {
+        "checked_public_fact": "brick-comparison:postmortem-fleet-preset-0612:postmortem-fleet-preset-0612-closure",
+        "gate_ref": "link-gate:human",
+        "missing_required_facts": [
+          "Link.route_decision_basis.human_review_refs"
+        ],
+        "required_public_facts": [
+          "Link.route_decision_basis.human_review_refs"
+        ],
+        "sufficiency": "missing_required_facts"
+      }
+    ],
+    "hold_reason": "gate_sequence_missing_required_facts:link-gate:human",
+    "pending_target_ref": "brick-postmortem-fleet-preset-0612-closure",
+    "reason_refs": [
+      "observation:human-gate-disposition-missing"
+    ],
+    "required_disposition_owner": "caller-or-coo",
+    "target_brick_ref": ""
+  },
+  "generatedAtTime": "2026-06-12T16:58:29.315676Z",
+  "id": "urn:bp:building:postmortem-fleet-preset-0612::work/step-outputs/postmortem-fleet-preset-0612-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:06:postmortem-fleet-preset-0612-closure",
+  "recorded_at": "2026-06-12T16:58:29.315676Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:coo",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:codex-local:postmortem-fleet-preset-0612",
+    "cli_version_text": "codex-cli 0.137.0",
+    "deferred_smith_review_queue": [
+      "Decide whether non-slug step_alias normalization is acceptable or whether plain slug text requires strict fail-closed validation.",
+      "Decide whether to collect the missing temp-copy full gate before any merge/close step.",
+      "Confirm whether supplied incoming QA packets are sufficient for this closure synthesis despite the absent local Building evidence root."
+    ],
+    "evidence_refs": [
+      "support-packet:postmortem-fleet-preset-0612:agent-object:coo:output"
+    ],
+    "narrowly_proven": [
+      "The current materializer no longer silently collapses duplicate graph node ids for repeated step_template_ref rows when aliases are missing or colliding; it raises a loud ValueError in the observed direct probes.",
+      "The new postmortem-fleet preset is discoverable by the loader and materializes without walking into 8 distinct graph step refs with declared per-step adapter/model rows.",
+      "The checker/profile edits add support pins for postmortem-fleet materialization, repeated-template missing-alias rejection, colliding-alias rejection, preset count 20, and structure-template presence/text coverage.",
+      "The observed change scope stays within support/* and brick/templates/presets/*."
+    ],
+    "next_target_candidates": [
+      "If strict slug text is binding: candidate follow-up work boundary for step_alias slug-shape rejection plus checker fixture, then rerun focused profiles and full temp-copy gate.",
+      "If normalization is acceptable by Smith/COO disposition: candidate verification boundary to rerun focused profiles, mutation RED, compileall, and full temp-copy --all gate in a writable temp-capable environment.",
+      "Candidate evidence-assembly boundary to track the untracked postmortem-fleet preset and persist the final proof table after the gate rerun."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Full support/checkers/check_profile.py --all gate.",
+      "Full gate in a temp source copy.",
+      "compileall execution.",
+      "Actual focused profile green state through check_profile.py.",
+      "Actual checker fire-fixture RED through the profile runner.",
+      "Mutation RED from removing the collision check in source code.",
+      "Strict slug grammar for step_alias input.",
+      "Runtime Building walk.",
+      "Provider availability, provider behavior, or provider quality for codex/claude lanes.",
+      "Codex native sync, Claude native sync, MCP projection behavior.",
+      "Future Building correctness.",
+      "Source truth, success judgment, quality judgment, Movement authority."
+    ],
+    "observed_evidence": [
+      "Repo grounded at /Users/smith/projects/BRICK-wt-fleet.",
+      "git status --short shows modified support/checkers/check_brick_template_catalog_restructure.py, support/checkers/lib/case_runners.py, support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml, support/checkers/profiles/structure_template_integrity.yaml, support/operator/composition.py, and untracked brick/templates/presets/postmortem-fleet.md.",
+      "No modified link/, agent/, project/, AGENTS.md, pyproject.toml, uv.lock, or .git path was observed.",
+      "git diff --check exited 0.",
+      "AST parse of the three changed Python files exited 0.",
+      "support/operator/plan_rendering.py stores preset frontmatter as dict(fm), so step_alias flows through the preset loader without a loader change.",
+      "support/operator/composition.py now derives graph node identity from step_alias when present, otherwise from step_template_ref slug, and raises ValueError after the node loop for repeated templates missing aliases or duplicate node_id collisions.",
+      "brick/templates/presets/postmortem-fleet.md declares 8 steps: inspect, paired code-attack-qa, paired axis-attack-qa, paired evidence-integrity, and closure; the six lens rows carry codex/claude adapter split; gate_concept_profile declares strict-evidence and fan-in-wait-all.",
+      "No-walk materialize_building_intent smoke for building-chain-preset:postmortem-fleet produced plan_shape=graph, 8 brick_steps, 13 link_edges, fan_out and fan_in groups, and the expected codex/claude adapter/model split.",
+      "Direct in-memory negative probe for repeated code-attack-qa rows without step_alias raised ValueError containing step_alias required for repeated step_template_ref.",
+      "Direct in-memory negative probe for colliding step_alias values raised ValueError containing node_id collision.",
+      "Direct non-slug alias probe accepted aliases such as Code Lens One! and normalized them into slugged node ids, so strict slug input is not enforced.",
+      "Temp-free catalog _live_state/_validate_state p8-active probe reported 0 violations.",
+      "Focused profile/checker commands exited 1 because no usable temporary directory was available.",
+      "No local project/brick-protocol/buildings/postmortem-fleet-preset-0612 evidence root was found; incoming code-attack-qa, axis-attack-qa, and evidence-integrity returns were available from the supplied packet only."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"Repo grounded at /Users/smith/projects/BRICK-wt-fleet.\", \"git status --short shows modified support/checkers/check_brick_template_catalog_restructure.py, support/checkers/lib/case_runners.py, support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml, support/checkers/profiles/structure_template_integrity.yaml, support/operator/composition.py, and untracked brick/templates/presets/postmortem-fleet.md.\", \"No modified link/, agent/, project/, AGENTS.md, pyproject.toml, uv.lock, or .git path was observed.\", \"git diff --check exited 0.\", \"AST parse of th...",
+    "parent_goal_delta_status": {
+      "delta_summary": "Core node-identity behavior is observed in no-walk probes, but closure remains bounded by the strict slug ambiguity and unavailable temp-copy/profile gates.",
+      "observed_lanes": [
+        "code-attack-qa",
+        "axis-attack-qa",
+        "evidence-integrity"
+      ],
+      "state": "evidence_open"
+    },
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "remaining_delta": [
+      "Smith/COO disposition is needed on whether the task phrase plain slug text is binding as strict alias syntax. If yes, the implementation needs a follow-up work Brick to reject non-slug step_alias text in materializer and catalog checker, plus a negative fixture.",
+      "The temp-backed checker/profile gates need rerun in a writable temp-capable source copy before gate evidence is closed.",
+      "brick/templates/presets/postmortem-fleet.md is still untracked in this worktree observation.",
+      "The actual Building evidence root for postmortem-fleet-preset-0612 was not present locally, so this closure synthesis relies on supplied incoming lane packets plus current repo probes."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "transition_concern_evidence": {
+      "binding": false,
+      "concern_kind": "verification_gap",
+      "concern_ref": "transition-concern:postmortem-fleet-preset-0612-closure-verification-gap",
+      "not_proven": [
+        "full temp-copy gate",
+        "focused profile green state",
+        "strict slug alias policy",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "non-binding Agent return evidence only",
+        "support evidence only",
+        "does not choose Movement",
+        "does not choose route target",
+        "does not judge success or quality"
+      ],
+      "reason_refs": [
+        "repo:/Users/smith/projects/BRICK-wt-fleet",
+        "command:git-diff-check-exit-0",
+        "command:materialize-postmortem-fleet-smoke-8-nodes",
+        "command:missing-alias-negative-probe-valueerror",
+        "command:colliding-alias-negative-probe-valueerror",
+        "command:non-slug-alias-probe-accepted-normalized",
+        "command:focused-profile-tempdir-blocked",
+        "packet:postmortem-fleet-preset-0612-code-attack-qa",
+        "packet:postmortem-fleet-preset-0612-axis-attack-qa",
+        "packet:postmortem-fleet-preset-0612-evidence-integrity"
+      ],
+      "related_boundary_refs": [
+        "brick-postmortem-fleet-preset-0612-closure",
+        "brick-postmortem-fleet-preset-0612-work",
+        "building-boundary:postmortem-fleet-preset-0612"
+      ]
+    }
+  },
+  "returned_fact_ref": "agent-fact:06:postmortem-fleet-preset-0612-closure",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:postmortem-fleet-preset-0612",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:postmortem-fleet-preset-0612-closure:attempt-1",
+  "step_ref": "postmortem-fleet-preset-0612-closure",
+  "subject": "postmortem-fleet-preset-0612-closure",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T16:58:29.315676Z",
+  "transition_concern_ref": "work/step-outputs/postmortem-fleet-preset-0612-closure-attempt-1/transition-concern.json",
+  "type": "bp.step_output"
+}

@@ -1,0 +1,249 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:postmortem-fleet-preset-0612::work/step-outputs/postmortem-fleet-preset-0612-design-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:design-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-postmortem-fleet-preset-0612-design",
+  "building_id": "postmortem-fleet-preset-0612",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "gate_sequence_decision_record": {
+    "action": "hold",
+    "evidence_ref": "observation:gate-sequence-postmortem-fleet-preset-0612-postmortem-fleet-preset-0612-design-link-gate-coo-hold",
+    "gate_action_sequence": [
+      {
+        "action": "next",
+        "evidence_ref": "observation:gate-sequence-postmortem-fleet-preset-0612-postmortem-fleet-preset-0612-design-link-gate-default-transition-next",
+        "gate_ref": "link-gate:default-transition",
+        "hold_reason": "",
+        "pending_target_ref": "",
+        "reason_refs": [
+          "observation:gate-sequence-postmortem-fleet-preset-0612-postmortem-fleet-preset-0612-design-link-gate-default-transition-next"
+        ],
+        "target_brick_ref": ""
+      },
+      {
+        "action": "hold",
+        "evidence_ref": "observation:gate-sequence-postmortem-fleet-preset-0612-postmortem-fleet-preset-0612-design-link-gate-coo-hold",
+        "gate_ref": "link-gate:coo",
+        "hold_reason": "gate_sequence_missing_required_facts:link-gate:coo",
+        "pending_target_ref": "brick-postmortem-fleet-preset-0612-work",
+        "reason_refs": [
+          "observation:coo-gate-missing-required-facts"
+        ],
+        "target_brick_ref": ""
+      }
+    ],
+    "gate_ref": "link-gate:coo",
+    "gate_results": [
+      {
+        "checked_public_fact": "brick-comparison:postmortem-fleet-preset-0612:postmortem-fleet-preset-0612-design",
+        "gate_ref": "link-gate:default-transition",
+        "missing_required_facts": [],
+        "required_public_facts": [
+          "BrickComparisonFact.required_return_shape_evidence",
+          "BrickComparisonFact.comparison_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.observed_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.design_summary",
+          "BrickComparisonFact.comparison_evidence.returned_field.relevant_current_structure",
+          "BrickComparisonFact.comparison_evidence.returned_field.proposed_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.unchanged_surfaces",
+          "BrickComparisonFact.comparison_evidence.returned_field.axis_responsibility",
+          "BrickComparisonFact.comparison_evidence.returned_field.invariants",
+          "BrickComparisonFact.comparison_evidence.returned_field.edge_cases",
+          "BrickComparisonFact.comparison_evidence.returned_field.checker_or_verifier_plan",
+          "BrickComparisonFact.comparison_evidence.returned_field.candidate_file_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_refs",
+          "BrickComparisonFact.comparison_evidence.returned_field.not_proven",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_refs.repository_artifact_ref"
+        ],
+        "sufficiency": "sufficient"
+      },
+      {
+        "checked_public_fact": "brick-comparison:postmortem-fleet-preset-0612:postmortem-fleet-preset-0612-design",
+        "gate_ref": "link-gate:coo",
+        "missing_required_facts": [
+          "Link.route_decision_basis.override_refs"
+        ],
+        "required_public_facts": [
+          "Link.route_decision_basis.override_refs"
+        ],
+        "sufficiency": "missing_required_facts"
+      }
+    ],
+    "hold_reason": "gate_sequence_missing_required_facts:link-gate:coo",
+    "pending_target_ref": "brick-postmortem-fleet-preset-0612-work",
+    "reason_refs": [
+      "observation:coo-gate-missing-required-facts"
+    ],
+    "required_disposition_owner": "coo",
+    "target_brick_ref": ""
+  },
+  "generatedAtTime": "2026-06-12T16:27:01.789700Z",
+  "id": "urn:bp:building:postmortem-fleet-preset-0612::work/step-outputs/postmortem-fleet-preset-0612-design-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:postmortem-fleet-preset-0612-design",
+  "recorded_at": "2026-06-12T16:27:01.789700Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:design-lead",
+    "axis_responsibility": {
+      "Agent": "Receives declared selected_adapter_ref data per row; adapter split is declared evidence, not provider availability or quality proof.",
+      "Brick": "Owns the preset row shape, repeated work-lens declaration, step_template_ref contract, and optional step_alias as work-composition identity text.",
+      "Link": "Owns gate sufficiency and Movement; fan-in-wait-all and strict-evidence remain declared gate concepts, not support-selected Movement.",
+      "Support": "May materialize declared rows, normalize aliases, reject duplicate node ids, and run checker/smoke evidence without authoring route targets."
+    },
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "candidate_file_changes": [
+      "support/operator/composition.py",
+      "brick/templates/presets/postmortem-fleet.md",
+      "support/checkers/lib/kernel_checks.py only if this worktree's active checker family is actually there; the named checker/profile wiring was not observed in that exact file during this read"
+    ],
+    "checker_or_verifier_plan": [
+      "Checker-first: add negative fixtures before implementation for repeated template without alias and colliding aliases, expecting ValueError with row and node_id detail.",
+      "Add mutation RED that removes or bypasses the node-id collision guard and observes the duplicate/collision fixture passing incorrectly.",
+      "Add postmortem-fleet materialize smoke using materialize_building_intent with no walk; assert eight distinct node_ids and the codex/claude selected_adapter_ref split.",
+      "Run compileall and git diff --check.",
+      "Run focused checker/profile coverage for the catalog/template family and collision probes.",
+      "Run the full gate from a temp source copy only after implementation."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:postmortem-fleet-preset-0612",
+    "cli_version_text": "codex-cli 0.137.0",
+    "design_summary": "The prescribed design is structurally coherent: add optional row-local step_alias for graph node identity only, require every repeated step_template_ref row to carry a distinguishing alias, retain step_template_ref for template and brick resolution, and fail closed on duplicate node ids with row-specific ValueError detail. The postmortem-fleet preset should mirror recon-fleet while expanding the three QA lens kinds into codex and claude aliased rows, yielding eight graph nodes.",
+    "edge_cases": [
+      "A present step_alias that slugifies to empty should reject.",
+      "Two aliases that slugify to the same value should reject.",
+      "An alias colliding with another row's unaliased template slug should reject via duplicate node_id.",
+      "One aliased and one unaliased row sharing the same step_template_ref should reject because repeated templates require aliases on all repeated rows.",
+      "Alias-aware targeting for duplicated templates is not admitted by this task; closure_transition_target_policy should not target duplicated lens templates until a separate key is admitted.",
+      "node_reroute_budgets remains keyed by step_template_ref; postmortem-fleet avoids duplicate-budget ambiguity by budgeting only inspect."
+    ],
+    "evidence_refs": [
+      "support-packet:postmortem-fleet-preset-0612:agent-object:design-lead:output",
+      "support/operator/composition.py:1463",
+      "support/operator/composition.py:1561",
+      "support/operator/composition.py:1568",
+      "support/operator/composition.py:1597",
+      "support/operator/composition.py:1624",
+      "support/operator/composition.py:1637",
+      "support/operator/composition.py:1679",
+      "support/operator/composition.py:1727",
+      "support/operator/composition.py:1889",
+      "support/operator/composition.py:1932",
+      "support/operator/plan_rendering.py:965",
+      "support/operator/plan_rendering.py:997",
+      "support/operator/plan_rendering.py:1015",
+      "brick/templates/presets/recon-fleet.md:7",
+      "brick/templates/presets/recon-fleet.md:33",
+      "brick/templates/presets/recon-fleet.md:36",
+      "brick/templates/presets/recon-fleet.md:38",
+      "brick/templates/presets/recon-fleet.md:44"
+    ],
+    "invariants": [
+      "A repeated step_template_ref is admissible only when each repeated row has a non-empty step_alias after normalization.",
+      "step_alias affects node identity and labels only.",
+      "step_alias must not change step_template_ref, brick_spec_ref, required_return_shape, selected_adapter_ref, Movement, gate refs, or closure policy meaning.",
+      "Every materialized node_id must be unique.",
+      "Duplicate identity must fail loudly before graph evidence is treated as usable.",
+      "postmortem-fleet should materialize to eight distinct nodes: inspect, six lens aliases, and closure."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "No files were edited.",
+      "No materialize smoke was run.",
+      "No compileall, git diff --check, focused checker, mutation RED, or temp-copy full gate was run in this design-only return.",
+      "The exact current checker implementation location is not proven from support/checkers/lib/kernel_checks.py because the requested checker-family strings were not observed there.",
+      "C1 repeat-lane compliance was not independently verified from additional compliant presets under the read constraint.",
+      "Provider availability, provider quality, source truth, success judgment, quality judgment, Movement authority, and future Building correctness are not proven."
+    ],
+    "observed_evidence": [
+      "support/operator/composition.py currently builds graph node ids from building_slug plus _materializer_step_template_slug(step_template_ref), so repeated step_template_ref rows collide at node_id unless identity input changes.",
+      "The same node_ids list feeds graph edges, fan-out/fan-in groups, terminal boundary edge, and completion_edge_ref assignment; duplicate node ids can therefore corrupt graph identity silently before an explicit guard is added.",
+      "support/operator/plan_rendering.py stores preset frontmatter as dict(fm), preserving row-local keys through the preset registry without a loader schema change.",
+      "brick/templates/presets/recon-fleet.md supplies the mirror structure: inspect, three fan-in lenses, closure, strict-evidence plus fan-in-wait-all, inspect reroute budget, closure policy, and proof_limits.",
+      "No matching brick_template_catalog_restructure or structure-template-integrity wiring was observed inside the exact declared file support/checkers/lib/kernel_checks.py during the focused read."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"support/operator/composition.py currently builds graph node ids from building_slug plus _materializer_step_template_slug(step_template_ref), so repeated step_template_ref rows collide at node_id unless identity input changes.\", \"The same node_ids list feeds graph edges, fan-out/fan-in groups, terminal boundary edge, and completion_edge_ref assignment; duplicate node ids can therefore corrupt graph identity silently before an explicit guard is added.\", \"support/operator/plan_rendering.py stores preset frontmatter as dict(fm), preserving row-local keys through the pr...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "proposed_changes": [
+      "In support/operator/composition.py, compute kind_slug from _composition_slug(step_alias) when step_alias is present; otherwise keep the current template slug behavior.",
+      "Before or during node construction, detect repeated step_template_ref groups and reject any repeated-template row missing step_alias.",
+      "After node id derivation, reject duplicate node ids with a ValueError naming colliding row indexes, step_template_ref values, step_alias values, and node_id.",
+      "Add brick/templates/presets/postmortem-fleet.md with inspect, code-attack-qa x2, axis-attack-qa x2, evidence-integrity x2, and closure; all six lens rows target fan_in_final_gate and use codex/claude adapter split by alias.",
+      "Extend checker coverage with duplicate-template/no-alias rejection, colliding-alias rejection, materialize smoke observing eight node ids and adapter split, and mutation RED for removing the collision guard."
+    ],
+    "relevant_current_structure": [
+      "_materializer_graph_declaration resolves step_template_ref before node construction and currently derives node_id from the template slug.",
+      "_materializer_step_template_slug strips building-step-template: and slugifies the template tail.",
+      "_chain_presets_from_presets reads every presets/*.md frontmatter file and stores the full mapping, so step_alias can flow to composition as raw_step data.",
+      "closure_transition_target_policy still resolves target_step_template_ref to building_slug plus template slug; this is acceptable for the prescribed postmortem-fleet policy because it targets inspect, not a duplicated lens template."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "unchanged_surfaces": [
+      "No Link Movement literal changes.",
+      "No Link gate authority changes.",
+      "No Agent Object, prompt, hook, discipline, or tool-policy changes.",
+      "No project evidence/status writes in this design step.",
+      "No scheduler, queue, retry, provider runtime, dependency, pyproject, uv.lock, .git, or AGENTS.md changes.",
+      "Template and brick resolution remain owned by step_template_ref and brick_spec_ref, not by step_alias."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:01:postmortem-fleet-preset-0612-design",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:postmortem-fleet-preset-0612",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:postmortem-fleet-preset-0612-design:attempt-1",
+  "step_ref": "postmortem-fleet-preset-0612-design",
+  "subject": "postmortem-fleet-preset-0612-design",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T16:27:01.789700Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}
