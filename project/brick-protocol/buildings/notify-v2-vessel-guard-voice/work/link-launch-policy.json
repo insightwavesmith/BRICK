@@ -1,0 +1,128 @@
+{
+  "building_id": "notify-v2-vessel-guard-voice",
+  "declared_gate_refs": [
+    "link-gate:default-transition",
+    "link-gate:coo",
+    "link-gate:strict",
+    "link-gate:human"
+  ],
+  "kind": "link_launch_policy_provenance",
+  "launch_rows": [
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:coo"
+      ],
+      "edge_ref": "edge:notify-v2-vessel-guard-voice-design-to-notify-v2-vessel-guard-voice-work",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "notify-v2-vessel-guard-voice-design",
+      "target_ref": "brick-notify-v2-vessel-guard-voice-work"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:notify-v2-vessel-guard-voice-work-to-notify-v2-vessel-guard-voice-code-attack-qa",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "notify-v2-vessel-guard-voice-work",
+      "target_ref": "brick-notify-v2-vessel-guard-voice-code-attack-qa"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:notify-v2-vessel-guard-voice-work-to-notify-v2-vessel-guard-voice-axis-attack-qa",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "notify-v2-vessel-guard-voice-work",
+      "target_ref": "brick-notify-v2-vessel-guard-voice-axis-attack-qa"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:notify-v2-vessel-guard-voice-work-to-notify-v2-vessel-guard-voice-evidence-integrity",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "notify-v2-vessel-guard-voice-work",
+      "target_ref": "brick-notify-v2-vessel-guard-voice-evidence-integrity"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:notify-v2-vessel-guard-voice-code-attack-qa-to-notify-v2-vessel-guard-voice-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "notify-v2-vessel-guard-voice-code-attack-qa",
+      "target_ref": "brick-notify-v2-vessel-guard-voice-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:notify-v2-vessel-guard-voice-axis-attack-qa-to-notify-v2-vessel-guard-voice-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "notify-v2-vessel-guard-voice-axis-attack-qa",
+      "target_ref": "brick-notify-v2-vessel-guard-voice-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:notify-v2-vessel-guard-voice-evidence-integrity-to-notify-v2-vessel-guard-voice-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "notify-v2-vessel-guard-voice-evidence-integrity",
+      "target_ref": "brick-notify-v2-vessel-guard-voice-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:coo",
+        "link-gate:human"
+      ],
+      "edge_ref": "edge:notify-v2-vessel-guard-voice-closure-to-boundary",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "notify-v2-vessel-guard-voice-closure",
+      "target_ref": "building-boundary:notify-v2-vessel-guard-voice-closed"
+    }
+  ],
+  "max_attempts_by_boundary": {},
+  "node_reroute_budgets": {
+    "brick-notify-v2-vessel-guard-voice-design": 1,
+    "brick-notify-v2-vessel-guard-voice-work": 1
+  },
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "plan_ref": "building-plan:notify-v2-vessel-guard-voice",
+  "plan_shape": "graph",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support evidence only",
+    "P3 records launch parameters only; P4 owns Carry budget evidence"
+  ],
+  "selected_shape_ref": "building-shape:design-needed"
+}

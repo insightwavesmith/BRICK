@@ -1,0 +1,12 @@
+# LinkSufficiency · seq 33 · ["Link"]
+- axis_scope: ["Link"]
+- checked_public_fact: "brick-comparison:notify-v2-vessel-guard-voice:notify-v2-vessel-guard-voice-code-attack-qa"
+- event_type: "LinkSufficiency"
+- missing_required_facts: ["BrickComparisonFact.comparison_evidence.returned_field.evidence_used.repository_artifact_ref"]
+- required_public_facts: ["BrickComparisonFact.required_return_shape_evidence","BrickComparisonFact.comparison_evidence","BrickComparisonFact.comparison_evidence.returned_field.observed_evidence","BrickComparisonFact.comparison_evidence.returned_field.attacked_work","BrickComparisonFact.comparison_evidence.returned_field.checked_sources","BrickComparisonFact.comparison_evidence.returned_field.regression_risks","BrickComparisonFact.comparison_evidence.returned_field.negative_probe_observations","BrickComparisonFact.comparison_evidence.returned_field.failing_or_missing_probes","BrickComparisonFact.comparison_evidence.returned_field.boundary_violations","BrickComparisonFact.comparison_evidence.returned_field.evidence_used","BrickComparisonFact.comparison_evidence.returned_field.not_proven","BrickComparisonFact.comparison_evidence.returned_field.blocked_or_missing_evidence","BrickComparisonFact.comparison_evidence.returned_field.remaining_delta","BrickComparisonFact.comparison_evidence.returned_field.proof_limits"]
+- run_segment: 2
+- sequence_index: 33
+- source_fact_ref: "sufficiency-fact-movement:03:notify-v2-vessel-guard-voice-code-attack-qa"
+- spine_schema_version: "spine-v1"
+- stage: "movement"
+- sufficiency: "missing_required_facts"

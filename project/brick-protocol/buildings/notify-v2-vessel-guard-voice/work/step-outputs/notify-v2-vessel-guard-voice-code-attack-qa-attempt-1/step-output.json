@@ -1,0 +1,156 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:notify-v2-vessel-guard-voice::work/step-outputs/notify-v2-vessel-guard-voice-code-attack-qa-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-notify-v2-vessel-guard-voice-code-attack-qa",
+  "building_id": "notify-v2-vessel-guard-voice",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:03",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T08:32:53.585208Z",
+  "id": "urn:bp:building:notify-v2-vessel-guard-voice::work/step-outputs/notify-v2-vessel-guard-voice-code-attack-qa-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:03:notify-v2-vessel-guard-voice-code-attack-qa",
+  "recorded_at": "2026-06-12T08:32:53.585208Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:qa",
+    "attacked_work": [
+      "Attacked F12 real-vessel-only external delivery guard, local inbox rooting, Slack message human voice shape, stage mode dial, label parity, and checker/probe coverage.",
+      "Primary code surfaces attacked: support/operator/reporter.py, support/operator/report_sinks.py, support/checkers/lib/kernel_checks.py, support/onboarding/*-hooks close-recording dashboard delta path."
+    ],
+    "blocked_or_missing_evidence": [
+      "The environment is read-only and the QA tool policy forbids creating a temp source copy, so I did not run the full gate that creates temp files/building roots.",
+      "No Claude/Gemini model review evidence was run or observed for this QA pass.",
+      "No persisted notify-v2-vessel-guard-voice Building evidence root was present to inspect."
+    ],
+    "boundary_violations": [
+      "External dashboard delta is not fully real-vessel-only because support/onboarding/codex-hooks/codex-close-recording.py and support/onboarding/claude-hooks/close-recording.py bypass the new reporter/report_sinks packet guard.",
+      "The checker profile currently text-pins external_delivery_allowed and _packet_allows_external_delivery, but the critical sink-level guard needs an executed negative probe, not only a source-text pin."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "checked_sources": [
+      "support/operator/reporter.py:389-405,539-566,1239-1265",
+      "support/operator/report_sinks.py:309-337,428-438,507-573,860-878,1012-1033",
+      "support/checkers/lib/kernel_checks.py:2038-2203,2533-2543",
+      "support/checkers/profiles/read_side_projection_boundary.yaml:228-246",
+      "support/onboarding/codex-hooks/codex-close-recording.py:141-167",
+      "support/onboarding/claude-hooks/close-recording.py:136-168",
+      "support/operator/dashboard_export.py:368-443"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:notify-v2-vessel-guard-voice",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:notify-v2-vessel-guard-voice:agent-object:qa:output"
+    ],
+    "evidence_used": [
+      "Read-only repo inspection with rg, git status, git diff, nl/sed file reads.",
+      "git diff --check -> exit 0.",
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 -c <renderer-and-guard-smoke> -> exit 0.",
+      "Attempted here-doc Python smoke failed because the read-only sandbox prevented shell temp-file creation; reran as python -c."
+    ],
+    "failing_or_missing_probes": [
+      "Missing executed probe: deliver_report_packet(packet with building_id and external_delivery_allowed=false, sink_refs=[slack,dashboard]) must return not_attempted_non_real_vessel for both and must not call fake sender/poster.",
+      "Missing executed probe: direct send_dashboard_building_delta or close-recording hook path for a non-real-vessel handle output_root must not post dashboard delta and must not do legacy un-narrowed lookup.",
+      "Missing mutation proof: removing report_sinks._packet_allows_external_delivery checks should go RED. Current auto-wire temp probe can remain green if reporter filtering stays in place.",
+      "Missing recorded before/after specimen evidence in the repo: checker output includes Specimen after renderer, but I did not observe before/after verbatim evidence for this notify-v2 Building."
+    ],
+    "negative_probe_observations": [
+      "Observed current Slack direct guard smoke: external_delivery_allowed=false prevented fake sender invocation.",
+      "Observed checker temp-root auto-wire probe shape: it asserts report_packet.sink_refs == [report-sink:local-inbox], which means it does not exercise report_sinks.deliver_report_packet with external sink refs still present.",
+      "Observed real-vessel positive probe is simulated by monkeypatching reporter.REPO_ROOT to the temp repo; that can prove temp-source-copy style behavior, but it does not cover the direct onboarding dashboard delta bypass."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Full check_profile.py --all in a temp source copy",
+      "Slack real provider delivery",
+      "Dashboard real provider delivery",
+      "Dashboard direct hook behavior under live env",
+      "Mutation RED for guard removal",
+      "No future support-authority leaks",
+      "Source truth",
+      "Success judgment",
+      "Quality judgment",
+      "Movement authority"
+    ],
+    "observed_evidence": [
+      "Worktree is branch claude/track-notify with modified files limited to support/checkers/check_recording_checker_derived_contract.py, support/checkers/lib/kernel_checks.py, support/checkers/profiles/read_side_projection_boundary.yaml, support/dashboard/src/data/labels.js, support/operator/report_sinks.py, support/operator/reporter.py.",
+      "git diff --check exited 0.",
+      "Current renderer smoke for the specimen shape produced: 🧱 Notification v2 - real-vessel-only bell (F12) + human voice + stage dial\n→ 멈췄어요. 살펴봐 주세요.\n누구: 워커\n다음: 호출자 또는 COO 처분 필요\nref: notify-v2-vessel-guard-voice · brick=brick-notify-v2-vessel-guard-voice-work · frontier=link_paused\n※ 상태 알림일 뿐 source truth/성공·품질·Movement 판단 아님",
+      "Sink-level Slack guard smoke with external_delivery_allowed=false returned delivery_status_class=not_attempted_non_real_vessel and fake sender call count 0.",
+      "No persisted project/brick-protocol/buildings/notify-v2-vessel-guard-voice evidence root was observed."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"Worktree is branch claude/track-notify with modified files limited to support/checkers/check_recording_checker_derived_contract.py, support/checkers/lib/kernel_checks.py, support/checkers/profiles/read_side_projection_boundary.yaml, support/dashboard/src/data/labels.js, support/operator/report_sinks.py, support/operator/reporter.py.\", \"git diff --check exited 0.\", \"Current renderer smoke for the specimen shape produced: 🧱 Notification v2 - real-vessel-only bell (F12) + human voice + stage dial\\n→ 멈췄어요. 살펴봐 주세요.\\n누구: 워커\\n다음: 호출자 또는 COO 처분 필요\\nref: notify-v2-vessel-g...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "read-only QA observation"
+    ],
+    "regression_risks": [
+      "Dashboard delta still has a direct external path outside report packet fan-out: both onboarding close-recording hooks call send_dashboard_building_delta(child_id, project_ref=project_ref, allow_real_delivery=True). If project_ref_for_building_root(handle.output_root) returns None for a temp/legacy root, the call remains legacy un-narrowed rather than halted.",
+      "send_dashboard_building_delta itself gates only on allow_real_delivery and dashboard env, then projects by ledger lookup. It has no building-root or external_delivery_allowed guard, so the dashboard half of the F12 rule is not closed at the sink boundary.",
+      "Current temp-root auto-wire checker proves reporter-side sink filtering, but not the sink-level guard if Slack/dashboard refs still reach deliver_report_packet."
+    ],
+    "remaining_delta": [
+      "Guard the direct dashboard delta path or route it through the same real-vessel packet/seam guard.",
+      "Add executed negative probes for sink-level Slack and dashboard external guard removal.",
+      "Record before/after specimen text and the temp-copy full-gate command output in the Building evidence once a write-capable verification lane is assigned."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default"
+  },
+  "returned_fact_ref": "agent-fact:03:notify-v2-vessel-guard-voice-code-attack-qa",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:notify-v2-vessel-guard-voice",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:notify-v2-vessel-guard-voice-code-attack-qa:attempt-1",
+  "step_ref": "notify-v2-vessel-guard-voice-code-attack-qa",
+  "subject": "notify-v2-vessel-guard-voice-code-attack-qa",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T08:32:53.585208Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

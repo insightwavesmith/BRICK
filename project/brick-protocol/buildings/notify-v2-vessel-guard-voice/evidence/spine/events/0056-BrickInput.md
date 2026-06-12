@@ -1,0 +1,12 @@
+# BrickInput · seq 56 · ["Brick"]
+- axis_scope: ["Brick"]
+- brick_instance_ref: "brick-notify-v2-vessel-guard-voice-closure"
+- comparison_rule: "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickInput"
+- required_return_shape: "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence"
+- run_segment: 2
+- sequence_index: 56
+- source_facts: ["task-source:inline-statement"]
+- spine_schema_version: "spine-v1"
+- step_ref: "notify-v2-vessel-guard-voice-closure"
+- work_statement: "closure Brick for task-source:inline-statement: # Notification v2 — real-vessel-only bell (F12) + human voice + stage dial"

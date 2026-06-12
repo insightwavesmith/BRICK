@@ -1,0 +1,14 @@
+# TransitionConcern · seq 60 · ["Agent","Link"]
+- agent_object_ref: "agent-object:coo"
+- alias_fact_refs: ["transition-concern:notify-v2-vessel-guard-voice-closure:verification-gap"]
+- attempt_index: 1
+- axis_scope: ["Agent","Link"]
+- binding: false
+- event_type: "TransitionConcern"
+- run_segment: 2
+- sequence_index: 60
+- source_fact_ref: "transition-concern:notify-v2-vessel-guard-voice-closure:attempt-1"
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/notify-v2-vessel-guard-voice-closure-attempt-1/step-output.json"
+- step_ref: "notify-v2-vessel-guard-voice-closure"
+- transition_concern_returned: {"binding":false,"concern_kind":"verification_gap","concern_ref":"transition-concern:notify-v2-vessel-guard-voice-closure:verification-gap","not_proven":["full gate green","mutation FIRE closure","direct dashboard close-hook real-vessel-only proof"],"proof_limits":["support evidence only","non-binding Agent return evidence","not source truth","not success judgment","not quality judgment","not Movement authority"],"reason_refs":["command:check_profile-read-side-projection-boundary:operation-not-permitted","command:check_profile-all:no-usable-temporary-directory","file:support/onboarding/codex-hooks/codex-close-recording.py","file:support/onboarding/claude-hooks/close-recording.py","incoming:notify-v2-vessel-guard-voice-code-attack-qa"],"related_boundary_refs":["brick-notify-v2-vessel-guard-voice-closure","brick-notify-v2-vessel-guard-voice-work","brick-notify-v2-vessel-guard-voice-evidence-integrity"]}

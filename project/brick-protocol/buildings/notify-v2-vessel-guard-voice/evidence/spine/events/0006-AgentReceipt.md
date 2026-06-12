@@ -1,0 +1,12 @@
+# AgentReceipt · seq 6 · ["Agent"]
+- agent_object_ref: "agent-object:design-lead"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-notify-v2-vessel-guard-voice-design"
+- event_type: "AgentReceipt"
+- evidence_reference: "raw:agent:01"
+- received_work_ref: "brick-work:01:notify-v2-vessel-guard-voice-design"
+- run_segment: 1
+- sequence_index: 6
+- source_fact_ref: "agent-fact:01:notify-v2-vessel-guard-voice-design"
+- spine_schema_version: "spine-v1"
+- step_ref: "notify-v2-vessel-guard-voice-design"

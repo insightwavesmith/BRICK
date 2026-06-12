@@ -1,0 +1,163 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:notify-v2-vessel-guard-voice::work/step-outputs/notify-v2-vessel-guard-voice-axis-attack-qa-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:inspector",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-notify-v2-vessel-guard-voice-axis-attack-qa",
+  "building_id": "notify-v2-vessel-guard-voice",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:04",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T08:38:15.018564Z",
+  "id": "urn:bp:building:notify-v2-vessel-guard-voice::work/step-outputs/notify-v2-vessel-guard-voice-axis-attack-qa-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:04:notify-v2-vessel-guard-voice-axis-attack-qa",
+  "recorded_at": "2026-06-12T08:38:15.018564Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_axis_findings": [
+      "No Agent resource files changed.",
+      "Reporter lane wording derives through Agent Object lane projection when plan evidence is readable; it does not alter AgentFact shape.",
+      "No success, failure, quality, credential, or provider session field was observed in returned packet/rendering probes."
+    ],
+    "agent_object_ref": "agent-object:inspector",
+    "attacked_scope": [
+      "Notification v2 support slice only: reporter.py, report_sinks.py, read-side projection checker/profile pins, dashboard label parity mirror.",
+      "No link/, agent/, brick/, project/, AGENTS.md, scheduler, queue, retry, timer, thread, credential body, or provider session mutation observed in git diff."
+    ],
+    "blocked_or_missing_evidence": [
+      "Filesystem sandbox is read-only and has no usable temporary directory; tempfile.TemporaryDirectory fails with FileNotFoundError over /var/folders, /tmp, /var/tmp, /usr/tmp, and repo root.",
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all failed because no usable temporary directory exists.",
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --profile read_side_projection_boundary failed when it attempted to create project/checker-projection-fixture-vessel.",
+      "reporter_event_hook_probe_observations could not complete because reporter_vessel_auto_derivation_probe_observations uses tempfile.TemporaryDirectory.",
+      "AGENTS-referenced archive/status-kernel/current-brick-operating-packet-0531.md and archive/status-kernel/brick-protocol-post-d-surface-recompile-0-plan-0530.md are absent in this worktree."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "brick_axis_findings": [
+      "Brick work contract is preserved as task/reporting requirements; implementation remains in support projection code.",
+      "Stage dial is plan/policy-declared by report_event_policy.mode, not automatic Brick shape selection.",
+      "Human title is read from work/task.md first line with fallback to building_id; this is projection rendering, not Brick source truth."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:notify-v2-vessel-guard-voice",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:notify-v2-vessel-guard-voice:agent-object:inspector:output"
+    ],
+    "evidence_used": [
+      "support/operator/reporter.py lines 200-293, 341-570, 1210-1265, 1519-1663.",
+      "support/operator/report_sinks.py lines 267-357, 422-504, 844-878, 985-1090.",
+      "support/checkers/lib/kernel_checks.py lines 1889-2023, 2026-2203, 2315-2545.",
+      "support/operator/label_map.json lines 1-107 and support/dashboard/src/data/labels.js lines 1-106.",
+      "Commands: git status --short --branch; git diff --check; compileall touched Python files; targeted python -c render/guard/probe calls; check_profile.py --profile read_side_projection_boundary; check_profile.py --all."
+    ],
+    "link_axis_findings": [
+      "No link/ files changed and no Movement literal was added.",
+      "Reporter event kinds remain notification policy vocabulary, not Link Movement.",
+      "Support rejects step_completed as an unadmitted Building event kind; no new Link route target or Movement authority observed."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Full check_profile.py --all green.",
+      "Temp source copy full gate.",
+      "Mutated guard-removal RED/FIRE evidence.",
+      "Verbose-mode temp drive through run_building_plan.",
+      "Real Slack or dashboard provider delivery reliability.",
+      "Reader noticed notification.",
+      "Production readiness.",
+      "Source truth, success judgment, quality judgment, or Movement authority.",
+      "Claude/Gemini review evidence.",
+      "Archive/current operating packet evidence in this checkout."
+    ],
+    "observed_evidence": [
+      "Worktree branch claude/track-notify has modified files only under support/: support/checkers/check_recording_checker_derived_contract.py, support/checkers/lib/kernel_checks.py, support/checkers/profiles/read_side_projection_boundary.yaml, support/dashboard/src/data/labels.js, support/operator/report_sinks.py, support/operator/reporter.py.",
+      "support/operator/reporter.py defines report_event_policy mode basic|verbose, default mode basic, and default event_kinds ['building_started','intervention_required','building_finished'].",
+      "Real-vessel guard observation: project/brick-protocol/buildings/frontier-evidence-honesty-0612 rendered project_ref project:brick-protocol and external_delivery_allowed True; /tmp/bp-fixture/buildings/temp-fixture rendered project_ref None and external_delivery_allowed False.",
+      "Delivery guard probe: external_delivery_allowed False with Slack sink produced not_attempted_non_real_vessel and fake sender call count 0; changing only the flag to True invoked fake sender once.",
+      "Before specimen from task source: 브릭 빌딩 알림 / 상태: 멈춤·개입 필요 / 작업 단계: 작업 / 담당 역할: 워커 / 필요 조치: 호출자 또는 COO 처분 필요 / 운영 refs: ... step=-; ... / 한계: ...",
+      "After rendered specimen: 🧱 Notification v2 - real-vessel-only bell (F12) + human voice + stage dial\n→ 멈췄어요. 살펴봐 주세요.\n누구: 워커\n다음: 호출자 또는 COO 처분 필요\nref: notify-v2-vessel-guard-voice · brick=brick-work · frontier=link_paused\n※ 상태 알림일 뿐 source truth/성공·품질·Movement 판단 아님",
+      "Empty-field hiding probe removed brick=- and step=- while preserving one compact ref line.",
+      "Verbose render probe with completed_step_kinds ['design','work'] produced 단계: 설계 and 단계: 작업.",
+      "Partial verifier commands observed green: compileall on touched Python files, git diff --check, label parity count 10, Slack message shape assertion count 18, no-scheduler source scan count 4, reporter negative probes 11/11 rejected, delivery/wake probes 12/12 passed.",
+      "Unadmitted event probe rejected step_completed with ValueError: unadmitted Building event kind(s): ['step_completed']."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"Worktree branch claude/track-notify has modified files only under support/: support/checkers/check_recording_checker_derived_contract.py, support/checkers/lib/kernel_checks.py, support/checkers/profiles/read_side_projection_boundary.yaml, support/dashboard/src/data/labels.js, support/operator/report_sinks.py, support/operator/reporter.py.\", \"support/operator/reporter.py defines report_event_policy mode basic|verbose, default mode basic, and default event_kinds ['building_started','intervention_required','building_finished'].\", \"Real-vessel guard observation: projec...",
+    "projection_authority_findings": [
+      "Slack text keeps the proof-limit line: 상태 알림일 뿐 source truth/성공·품질·Movement 판단 아님.",
+      "validate/report sink probes reject authority-bearing fields including source_truth true, movement_choice, target_choice, success, complete, raw_secret, resume_route, and unadmitted sink refs.",
+      "Checker/profile green, rendered text, and sink observations remain support evidence only."
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "read-only Inspector support evidence only",
+      "checker/profile output is support evidence only",
+      "memory was used only as search context, not as repo truth"
+    ],
+    "remaining_delta": [
+      "Run the required full gate in a writable temp source copy and name that copy.",
+      "Run the mutation/FIRE cases for guard removal, empty-field hiding, verbose temp drive, and label parity.",
+      "Consider tightening or documenting direct-render packet semantics so non-real packets do not appear externally deliverable to packet-only readers.",
+      "No next Movement chosen by this inspector return."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "support_leak_findings": [
+      "External delivery is guarded twice: reporter filters external sink refs for non-real roots in emit_building_event_for_policy, and report_sinks blocks Slack/dashboard when packet.external_delivery_allowed is not True.",
+      "Local inbox writes are still sink behavior under report_sinks; direct temp-root delivery was not executed because the sandbox cannot write temp or repo files.",
+      "Direct render_building_event_report_packet can still show requested external sink_refs on a non-real root packet, but delivery guard blocks sender invocation; this is an observation-risk for packet readers, not an observed delivery leak."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:04:notify-v2-vessel-guard-voice-axis-attack-qa",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:notify-v2-vessel-guard-voice",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:notify-v2-vessel-guard-voice-axis-attack-qa:attempt-1",
+  "step_ref": "notify-v2-vessel-guard-voice-axis-attack-qa",
+  "subject": "notify-v2-vessel-guard-voice-axis-attack-qa",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T08:38:15.018564Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

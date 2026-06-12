@@ -1,0 +1,12 @@
+# Movement · seq 52 · ["Link"]
+- adopted_transition_concern_refs: []
+- axis_scope: ["Link"]
+- declared_movement: "forward"
+- event_type: "Movement"
+- gate_review_event_ref: "sufficiency-fact-movement:05:notify-v2-vessel-guard-voice-evidence-integrity"
+- not_adopted_transition_concern_refs: []
+- run_segment: 2
+- sequence_index: 52
+- source_fact_ref: "movement-fact:05:notify-v2-vessel-guard-voice-evidence-integrity"
+- spine_schema_version: "spine-v1"
+- target_boundary_ref: "brick:brick-notify-v2-vessel-guard-voice-closure"

@@ -1,0 +1,261 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:notify-v2-vessel-guard-voice::work/step-outputs/notify-v2-vessel-guard-voice-design-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:design-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-notify-v2-vessel-guard-voice-design",
+  "building_id": "notify-v2-vessel-guard-voice",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "gate_sequence_decision_record": {
+    "action": "hold",
+    "evidence_ref": "observation:gate-sequence-notify-v2-vessel-guard-voice-notify-v2-vessel-guard-voice-design-link-gate-coo-hold",
+    "gate_action_sequence": [
+      {
+        "action": "next",
+        "evidence_ref": "observation:gate-sequence-notify-v2-vessel-guard-voice-notify-v2-vessel-guard-voice-design-link-gate-default-transition-next",
+        "gate_ref": "link-gate:default-transition",
+        "hold_reason": "",
+        "pending_target_ref": "",
+        "reason_refs": [
+          "observation:gate-sequence-notify-v2-vessel-guard-voice-notify-v2-vessel-guard-voice-design-link-gate-default-transition-next"
+        ],
+        "target_brick_ref": ""
+      },
+      {
+        "action": "hold",
+        "evidence_ref": "observation:gate-sequence-notify-v2-vessel-guard-voice-notify-v2-vessel-guard-voice-design-link-gate-coo-hold",
+        "gate_ref": "link-gate:coo",
+        "hold_reason": "gate_sequence_missing_required_facts:link-gate:coo",
+        "pending_target_ref": "brick-notify-v2-vessel-guard-voice-work",
+        "reason_refs": [
+          "observation:coo-gate-missing-required-facts"
+        ],
+        "target_brick_ref": ""
+      }
+    ],
+    "gate_ref": "link-gate:coo",
+    "gate_results": [
+      {
+        "checked_public_fact": "brick-comparison:notify-v2-vessel-guard-voice:notify-v2-vessel-guard-voice-design",
+        "gate_ref": "link-gate:default-transition",
+        "missing_required_facts": [],
+        "required_public_facts": [
+          "BrickComparisonFact.required_return_shape_evidence",
+          "BrickComparisonFact.comparison_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.observed_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.design_summary",
+          "BrickComparisonFact.comparison_evidence.returned_field.relevant_current_structure",
+          "BrickComparisonFact.comparison_evidence.returned_field.proposed_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.unchanged_surfaces",
+          "BrickComparisonFact.comparison_evidence.returned_field.axis_responsibility",
+          "BrickComparisonFact.comparison_evidence.returned_field.invariants",
+          "BrickComparisonFact.comparison_evidence.returned_field.edge_cases",
+          "BrickComparisonFact.comparison_evidence.returned_field.checker_or_verifier_plan",
+          "BrickComparisonFact.comparison_evidence.returned_field.candidate_file_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_refs",
+          "BrickComparisonFact.comparison_evidence.returned_field.not_proven",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_refs.repository_artifact_ref"
+        ],
+        "sufficiency": "sufficient"
+      },
+      {
+        "checked_public_fact": "brick-comparison:notify-v2-vessel-guard-voice:notify-v2-vessel-guard-voice-design",
+        "gate_ref": "link-gate:coo",
+        "missing_required_facts": [
+          "Link.route_decision_basis.override_refs"
+        ],
+        "required_public_facts": [
+          "Link.route_decision_basis.override_refs"
+        ],
+        "sufficiency": "missing_required_facts"
+      }
+    ],
+    "hold_reason": "gate_sequence_missing_required_facts:link-gate:coo",
+    "pending_target_ref": "brick-notify-v2-vessel-guard-voice-work",
+    "reason_refs": [
+      "observation:coo-gate-missing-required-facts"
+    ],
+    "required_disposition_owner": "coo",
+    "target_brick_ref": ""
+  },
+  "generatedAtTime": "2026-06-12T08:11:46.549752Z",
+  "id": "urn:bp:building:notify-v2-vessel-guard-voice::work/step-outputs/notify-v2-vessel-guard-voice-design-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:notify-v2-vessel-guard-voice-design",
+  "recorded_at": "2026-06-12T08:11:46.549752Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:design-lead",
+    "axis_responsibility": {
+      "Agent": "Agent returned facts are only observed; the message does not add Agent status or verdict fields.",
+      "Brick": "Work/task.md supplies the human title and Building Plan supplies work composition; notification text does not redefine work.",
+      "Evidence": "Checker/profile results and notification packets remain support evidence, not source truth or closure proof.",
+      "Link": "Frontier, disposition owner, Movement, and handoff meaning remain Link/caller-owned; reporter only renders observed state.",
+      "Support": "reporter/report_sinks/run/walker wiring filters sinks, renders packets, and records delivery observations."
+    },
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "candidate_file_changes": [
+      "support/operator/reporter.py: add real-vessel external eligibility helper, mode validation, basic default including building_started, stage-line packet projection, and new negative probes.",
+      "support/operator/report_sinks.py: replace Slack text formatter, hide empty refs, load title/stage/status/action labels from label_map, and keep credential/body redaction behavior.",
+      "support/operator/run.py: thread real-vessel sink filtering and verbose stage observations through the existing best-effort event seam.",
+      "support/operator/walker_kernel.py: mirror run.py event filtering/stage behavior for dynamic walks and resumes without re-emitting started on resume.",
+      "support/operator/label_map.json: add only missing Korean status/action/stage sentence labels if existing events/actions are insufficient.",
+      "support/checkers/lib/kernel_checks.py and support/checkers/profiles/read_side_projection_boundary.yaml: pin real-vessel guard, message voice, verbose mode, label parity, no-scheduler, no-new-sink, and no-authority-leak probes."
+    ],
+    "checker_or_verifier_plan": [
+      "Extend reporter_notification_projection checker before implementation: temp fixture completion with fake Slack/dashboard senders observes sender count 0, repo inbox untouched, fixture inbox only.",
+      "Add real-vessel temp source-copy drive: completion under source-copy project/<vessel>/buildings invokes fake sender exactly once when env and policy allow it.",
+      "Add mutated-guard RED probe: disabling the real-vessel guard causes the fixture sender-count assertion to fail.",
+      "Update message-shape specimen pin with before/after text, empty-field hiding, exactly one ref line, and proof-limit line.",
+      "Add verbose-mode temp drive over a multi-step Building and assert rendered completed-step lines use canonical label_map brick kind labels.",
+      "Keep or extend label parity pin if new label_map sections are introduced.",
+      "Final gate after implementation: run PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all in a writable temp source copy and report the copy path."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:notify-v2-vessel-guard-voice",
+    "cli_version_text": "codex-cli 0.137.0",
+    "design_summary": "Design the change as a support-only notification projection repair: external sinks are real-vessel-only by the buildings_root_for/project_ref_for_building_root seam, message text becomes compact Korean human voice, and the stage dial is a declarable report_event_policy mode with basic as default.",
+    "edge_cases": [
+      "Temp source-copy real-vessel root versus temp output fixture root must be distinguished.",
+      "Parked/chat-session and human gate frontiers both map to intervention_required.",
+      "Missing or unreadable work/task.md falls back to building_id.",
+      "Missing Slack/dashboard env still filters those sinks before attempted delivery.",
+      "Explicit mismatched project_ref remains a loud reject.",
+      "Notification failure must not write into or void the Building's observed evidence tree."
+    ],
+    "evidence_refs": [
+      "support-packet:notify-v2-vessel-guard-voice:agent-object:design-lead:output",
+      "AGENTS.md:63",
+      "AGENTS.md:81",
+      "AGENTS.md:868",
+      "support/operator/reporter.py:156",
+      "support/operator/reporter.py:197",
+      "support/operator/reporter.py:273",
+      "support/operator/reporter.py:332",
+      "support/operator/reporter.py:501",
+      "support/operator/reporter.py:960",
+      "support/operator/report_sinks.py:402",
+      "support/operator/report_sinks.py:699",
+      "support/operator/report_sinks.py:938",
+      "support/operator/report_sinks.py:1001",
+      "support/recording/capture.py:49",
+      "support/recording/capture.py:72",
+      "support/operator/run.py:470",
+      "support/operator/run.py:491",
+      "support/operator/walker_kernel.py:1218",
+      "support/checkers/lib/kernel_checks.py:1962",
+      "support/checkers/lib/kernel_checks.py:2007",
+      "support/checkers/lib/kernel_checks.py:2184",
+      "support/operator/label_map.json:85"
+    ],
+    "invariants": [
+      "External sinks fire only for real-vessel Building roots resolved through the canonical seam.",
+      "Fixture/temp completions never invoke Slack/dashboard senders even when env vars and fake senders are present.",
+      "Empty fields are hidden; specifically step=- must not appear.",
+      "Exactly one compact ref line is rendered.",
+      "Every message keeps a short projection-not-judgment line.",
+      "Verbose mode is declarable; this vessel remains basic default."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "No implementation was made in this read-only design turn.",
+      "Full checker green is not observed because the sandbox had no usable temporary directory.",
+      "Archive packet paths named by AGENTS.md were not present in this worktree at archive/status-kernel/current-brick-operating-packet-0531.md or archive/status-kernel/brick-protocol-post-d-surface-recompile-0-plan-0530.md.",
+      "Real Slack/dashboard delivery reliability is not proven.",
+      "Reader noticed notification is not proven.",
+      "Semantic correctness of future stage wording is not proven.",
+      "Future Building correctness, provider behavior, source truth, success judgment, quality judgment, and Movement authority are not proven."
+    ],
+    "observed_evidence": [
+      "Repository observed at /Users/smith/projects/BRICK-wt-notify on branch claude/track-notify; no file edits were made.",
+      "AGENTS.md says support/reporters/projections are evidence only and must not become source truth, success judgment, quality judgment, Movement authority, target selector, or scheduler/queue/retry runtime.",
+      "Current report_event_policy default is event_kinds=['building_finished','intervention_required']; building_started is admitted but excluded from the default basic policy.",
+      "run.py and walker_kernel.py already call building_started at run start, so the missing default policy entry is enough to suppress the basic start bell.",
+      "Current Slack specimen before renderer: \"빌딩 알림\\n빌딩: notify-v2-vessel-guard-voice\\n상태: 멈춤·개입 필요\\n작업 단계: 작업\\n담당 역할: 워커\\n필요 조치: 호출자 또는 COO 처분 필요\\n운영 refs: brick=brick-notify-v2-vessel-guard-voice-work; step=-; frontier=link_paused:event:intervention_required\\n한계: support projection; source truth/성공판정/품질판정/Movement 권한 아님\"",
+      "Seam probe: project_ref_for_building_root(real buildings_root_for('project:brick-protocol') child) returned project:brick-protocol; a temp path under /tmp/probe-repo/project/brick-protocol/buildings returns project:brick-protocol only when repo_root is the temp repo, so external delivery must anchor to the real source-copy REPO_ROOT seam.",
+      "Full checker command attempted: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all. It exited 1 because this sandbox has no usable temporary directory, so full gate green is not observed."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"Repository observed at /Users/smith/projects/BRICK-wt-notify on branch claude/track-notify; no file edits were made.\", \"AGENTS.md says support/reporters/projections are evidence only and must not become source truth, success judgment, quality judgment, Movement authority, target selector, or scheduler/queue/retry runtime.\", \"Current report_event_policy default is event_kinds=['building_finished','intervention_required']; building_started is admitted but excluded from the default basic policy.\", \"run.py and walker_kernel.py already call building_started at run start...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "proposed_changes": {
+      "basic_policy": "Change DEFAULT_BUILDING_EVENT_KINDS to building_started, intervention_required, building_finished. Leave the current vessel config at the basic default.",
+      "human_voice": "Replace _slack_message_text with a compact formatter using task title from work/task.md first non-empty line, fallback building_id, canonical label_map labels, omitted empty fields, one compact ref line, and the short proof-limit line.",
+      "local_inbox_scope": "For non-real fixture roots, keep local-inbox delivery rooted in the fixture/source-copy repo passed to the run, never the operator checkout status/inbox and never inside the observed Building tree.",
+      "message_specimen_after_candidate": "🧱 Notification v2 — real-vessel-only bell (F12) + human voice + stage dial\\n→ 멈췄어요 — 살펴봐 주세요\\n\\n누구: 워커\\n다음: 호출자 또는 COO 처분 필요\\nref: notify-v2-vessel-guard-voice · frontier=link_paused:event:intervention_required\\n※ 상태 알림일 뿐 판단 아님",
+      "real_vessel_guard": "Add a reporter-side helper that classifies external delivery eligibility only when the building root is under the active source-copy buildings_root_for(project_ref) round-trip. Temp fixture roots may still render/write their own local inbox packet, but Slack/dashboard sender paths are filtered out before delivery.",
+      "stage_dial": "Add report_event_policy.mode with admitted values basic and verbose. basic derives the three lifecycle events. verbose keeps those events and renders one completed-step line per observed completed step using brick kind labels; do not admit step_completed as a new event kind."
+    },
+    "relevant_current_structure": {
+      "capture.py": "Owns buildings_root_for and project_ref_for_building_root; this is the correct seam for real-vessel membership.",
+      "kernel_checks.py": "Current reporter checker pins message shape and auto-wire behavior, but currently expects fake Slack from temp fixture roots.",
+      "report_sinks.py": "Owns sink fan-out, Slack/dashboard gated delivery, local inbox writes, label_map loading, and the current stiff Slack formatter.",
+      "reporter.py": "Owns report_event_policy, event packet rendering, vessel auto-derivation probes, and Building event hook probes.",
+      "run.py_and_walker_kernel.py": "Already emit start and terminal Building events best-effort; notification exceptions are captured without breaking Building evidence writes."
+    },
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "unchanged_surfaces": [
+      "No link/, agent/, brick/, or project/ edits are part of this design.",
+      "No new sink ref, scheduler, queue, retry, timer, thread, webhook, database, provider runtime, Movement literal, GateFact, route target selector, success judgment, or quality judgment.",
+      "Slack/dashboard credential bodies remain environment-only and are not recorded.",
+      "Reporter remains support projection evidence only."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:01:notify-v2-vessel-guard-voice-design",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:notify-v2-vessel-guard-voice",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:notify-v2-vessel-guard-voice-design:attempt-1",
+  "step_ref": "notify-v2-vessel-guard-voice-design",
+  "subject": "notify-v2-vessel-guard-voice-design",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T08:11:46.549752Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}
