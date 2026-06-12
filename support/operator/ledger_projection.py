@@ -433,7 +433,7 @@ def _project_orchestration_ledger_row(
     link_records = _jsonl_records(building_root / "raw" / "link.jsonl")
     latest_link = _latest_mapping(link_records)
     frontier_kind = str(frontier.get("frontier_kind") or "unknown")
-    board_state = _project_ledger_board_state(frontier_kind)
+    board_state = _project_ledger_board_state(frontier_kind, frontier)
     link_disposition = _project_ledger_link_disposition(frontier.get("latest_transition_lifecycle"))
     last_evidence_at = _project_ledger_last_evidence_at(link_records)
     return {
@@ -509,7 +509,10 @@ def _latest_mapping(value: Any) -> Mapping[str, Any]:
     return {}
 
 
-def _project_ledger_board_state(frontier_kind: str) -> str:
+def _project_ledger_board_state(
+    frontier_kind: str,
+    frontier: Mapping[str, Any] | None = None,
+) -> str:
     if frontier_kind == "complete":
         return "closed"
     if frontier_kind == "human_review_waiting":
@@ -520,9 +523,25 @@ def _project_ledger_board_state(frontier_kind: str) -> str:
         return "link_paused"
     if frontier_kind == "evidence_incomplete":
         return "evidence_incomplete"
-    if frontier_kind in {"agent_incomplete", "closure_pending"}:
-        return "observed_running"
+    if frontier_kind == "agent_incomplete":
+        return "link_paused"
+    if frontier_kind == "closure_pending":
+        if frontier is None or _project_ledger_frontier_has_work_progress(frontier):
+            return "observed_running"
+        return "unknown"
     return "unknown"
+
+
+def _project_ledger_frontier_has_work_progress(frontier: Mapping[str, Any]) -> bool:
+    counts = frontier.get("observed_counts")
+    if not isinstance(counts, Mapping):
+        return False
+
+    def _positive_count(key: str) -> bool:
+        value = counts.get(key)
+        return isinstance(value, int) and value > 0
+
+    return _positive_count("agent_return_records") or _positive_count("link_records")
 
 
 def _project_ledger_next_action(frontier_kind: str) -> str:
@@ -535,7 +554,7 @@ def _project_ledger_next_action(frontier_kind: str) -> str:
     if frontier_kind == "link_paused":
         return "caller or COO Link disposition evidence is needed"
     if frontier_kind == "agent_incomplete":
-        return "observe returned Agent evidence or a later declared lifecycle record"
+        return "inspect Agent incomplete or adapter-error frontier evidence"
     if frontier_kind == "evidence_incomplete":
         return "inspect missing evidence files before projection use"
     if frontier_kind == "closure_pending":

@@ -2978,6 +2978,487 @@ def _dashboard_productization_assert_bake_shape_probe(repo: Path) -> int:
     return inspected
 
 
+_DASHBOARD_STATE_CASE_EXPECTED: Mapping[str, Mapping[str, str]] = {
+    "projection-closed": {
+        "frontier_kind": "complete",
+        "board_state": "closed",
+        "disp": "closed",
+    },
+    "projection-mid-walk": {
+        "frontier_kind": "closure_pending",
+        "board_state": "observed_running",
+        "disp": "running",
+    },
+    "projection-adapter-error": {
+        "frontier_kind": "agent_incomplete",
+        "board_state": "link_paused",
+        "disp": "stopped",
+    },
+    "projection-fossil": {
+        "frontier_kind": "closure_pending",
+        "board_state": "unknown",
+        "disp": "unknown",
+    },
+    "projection-parked": {
+        "frontier_kind": "chat_session_parked",
+        "board_state": "waiting_review",
+        "disp": "review",
+    },
+}
+
+
+def _dashboard_productization_assert_state_projection_cases(
+    repo: Path,
+) -> tuple[int, str]:
+    """Pin non-happy read-side state derivation over generated fixture roots.
+
+    The fixture roots are support-checker inputs only. They exercise already
+    admitted ledger/dashboard projections and do not write project evidence.
+    """
+
+    from brick_protocol.support.operator import frontier_observation
+    from support.operator import dashboard_export, ledger_projection
+
+    inspected = 0
+    with tempfile.TemporaryDirectory(prefix="bp-dashboard-state-projection-") as tmp:
+        temp_repo = Path(tmp) / "repo"
+        buildings_root = temp_repo / "project" / "brick-protocol" / "buildings"
+        buildings_root.mkdir(parents=True)
+        _chat_session_write_temp_project_declaration(temp_repo)
+        for case_id in _DASHBOARD_STATE_CASE_EXPECTED:
+            _dashboard_state_write_fixture(buildings_root / case_id, case_id)
+
+        ledger = ledger_projection.project_orchestration_ledger_packet(repo_root=temp_repo)
+        dashboard = dashboard_export.dashboard_export_packet(repo_root=temp_repo)
+        table = _dashboard_state_projection_table(ledger, dashboard)
+        _dashboard_state_assert_expected(table, label="fixture")
+        inspected += len(table)
+
+        original_board_state = ledger_projection._project_ledger_board_state
+        original_dashboard_packet = dashboard_export.project_orchestration_ledger_packet
+
+        def bad_board_state(frontier_kind: str, *args: Any, **kwargs: Any) -> str:
+            if frontier_kind == "agent_incomplete":
+                return "observed_running"
+            return original_board_state(frontier_kind, *args, **kwargs)
+
+        ledger_projection._project_ledger_board_state = bad_board_state
+        try:
+            mutated_ledger = ledger_projection.project_orchestration_ledger_packet(
+                repo_root=temp_repo
+            )
+            dashboard_export.project_orchestration_ledger_packet = (
+                lambda **_: mutated_ledger
+            )
+            mutated_dashboard = dashboard_export.dashboard_export_packet(repo_root=temp_repo)
+            mutated_table = _dashboard_state_projection_table(
+                mutated_ledger,
+                mutated_dashboard,
+            )
+            adapter_row = {
+                str(row.get("building_id")): row for row in mutated_table
+            }.get("projection-adapter-error")
+            if not adapter_row or adapter_row.get("disp") != "running":
+                raise ProfileError(
+                    "dashboard_productization_projection FIRE mutation did not apply: "
+                    f"adapter-error row was {adapter_row!r}"
+                )
+            try:
+                _dashboard_state_assert_expected(mutated_table, label="mutated")
+            except ProfileError:
+                inspected += 1
+            else:
+                raise ProfileError(
+                    "dashboard_productization_projection FIRE probe did NOT fire "
+                    "for breakdown->running board-state mutation"
+                )
+        finally:
+            ledger_projection._project_ledger_board_state = original_board_state
+            dashboard_export.project_orchestration_ledger_packet = original_dashboard_packet
+
+        original_closed_boundary_observed = frontier_observation._closed_boundary_observed
+
+        def bad_closed_boundary_observed(
+            link_records: Sequence[Mapping[str, Any]],
+            building_map: Mapping[str, Any],
+        ) -> bool:
+            if original_closed_boundary_observed(link_records, building_map):
+                return True
+            link_edges = building_map.get("link_edges")
+            if isinstance(link_edges, list):
+                for edge in link_edges:
+                    if not isinstance(edge, Mapping):
+                        continue
+                    target = str(edge.get("target_brick_instance_ref") or "")
+                    if frontier_observation._is_closed_boundary_ref(target):
+                        return True
+            return False
+
+        frontier_observation._closed_boundary_observed = bad_closed_boundary_observed
+        try:
+            mutated_ledger = ledger_projection.project_orchestration_ledger_packet(
+                repo_root=temp_repo
+            )
+            dashboard_export.project_orchestration_ledger_packet = (
+                lambda **_: mutated_ledger
+            )
+            mutated_dashboard = dashboard_export.dashboard_export_packet(repo_root=temp_repo)
+            mutated_table = _dashboard_state_projection_table(
+                mutated_ledger,
+                mutated_dashboard,
+            )
+            mid_walk_row = {
+                str(row.get("building_id")): row for row in mutated_table
+            }.get("projection-mid-walk")
+            if not mid_walk_row or mid_walk_row.get("disp") != "closed":
+                raise ProfileError(
+                    "dashboard_productization_projection FIRE mutation did not apply: "
+                    f"mid-walk row was {mid_walk_row!r}"
+                )
+            try:
+                _dashboard_state_assert_expected(mutated_table, label="closed-boundary-mutated")
+            except ProfileError:
+                inspected += 1
+            else:
+                raise ProfileError(
+                    "dashboard_productization_projection FIRE probe did NOT fire "
+                    "for closed-without-boundary mutation"
+                )
+        finally:
+            frontier_observation._closed_boundary_observed = original_closed_boundary_observed
+            dashboard_export.project_orchestration_ledger_packet = original_dashboard_packet
+
+    return inspected, _dashboard_state_format_table(table)
+
+
+def _dashboard_state_projection_table(
+    ledger: Mapping[str, Any],
+    dashboard: Mapping[str, Any],
+) -> list[Mapping[str, str]]:
+    dashboard_rows = {
+        str(row.get("id")): row
+        for row in dashboard.get("buildings", [])
+        if isinstance(row, Mapping)
+    }
+    table: list[Mapping[str, str]] = []
+    for row in ledger.get("rows", []):
+        if not isinstance(row, Mapping):
+            continue
+        building_id = str(row.get("building_id") or "")
+        if building_id not in _DASHBOARD_STATE_CASE_EXPECTED:
+            continue
+        dashboard_row = dashboard_rows.get(building_id, {})
+        table.append(
+            {
+                "building_id": building_id,
+                "frontier_kind": str(row.get("frontier_kind") or ""),
+                "board_state": str(row.get("board_state") or ""),
+                "disp": str(dashboard_row.get("disp") or ""),
+            }
+        )
+    return sorted(table, key=lambda item: item["building_id"])
+
+
+def _dashboard_state_assert_expected(
+    table: Sequence[Mapping[str, str]],
+    *,
+    label: str,
+) -> None:
+    rows = {str(row.get("building_id")): row for row in table}
+    missing = sorted(set(_DASHBOARD_STATE_CASE_EXPECTED) - set(rows))
+    if missing:
+        raise ProfileError(
+            f"dashboard_productization_projection {label} state table missing "
+            f"case(s): {', '.join(missing)}"
+        )
+    violations: list[str] = []
+    for building_id, expected in _DASHBOARD_STATE_CASE_EXPECTED.items():
+        row = rows[building_id]
+        for key, expected_value in expected.items():
+            if row.get(key) != expected_value:
+                violations.append(
+                    f"{building_id}.{key}: expected {expected_value!r}, "
+                    f"observed {row.get(key)!r}"
+                )
+    if violations:
+        raise ProfileError(
+            f"dashboard_productization_projection {label} state table rejected:\n"
+            + "\n".join(f"- {violation}" for violation in violations)
+        )
+
+
+def _dashboard_state_format_table(table: Sequence[Mapping[str, str]]) -> str:
+    lines = ["building_id\tfrontier_kind\tboard_state\tdisp"]
+    for row in table:
+        lines.append(
+            "\t".join(
+                str(row.get(key, ""))
+                for key in ("building_id", "frontier_kind", "board_state", "disp")
+            )
+        )
+    return "\n".join(lines)
+
+
+def _dashboard_state_write_fixture(building_root: Path, case_id: str) -> None:
+    if case_id == "projection-closed":
+        _dashboard_state_write_complete_fixture(
+            building_root,
+            raw_link_records=[
+                _dashboard_state_link_record(
+                    case_id,
+                    target_ref=f"building-boundary:{case_id}-closed",
+                )
+            ],
+            map_target_ref=f"building-boundary:{case_id}-closed",
+        )
+        return
+    if case_id == "projection-mid-walk":
+        _dashboard_state_write_complete_fixture(
+            building_root,
+            raw_link_records=[
+                _dashboard_state_link_record(
+                    case_id,
+                    target_ref=f"brick:{case_id}:next",
+                )
+            ],
+            map_target_ref=f"building-boundary:{case_id}-closed",
+        )
+        return
+    if case_id == "projection-adapter-error":
+        _dashboard_state_write_frontier_fixture(building_root, case_id)
+        return
+    if case_id == "projection-fossil":
+        _dashboard_state_write_complete_fixture(
+            building_root,
+            raw_agent_return_records=[],
+            raw_link_records=[],
+            map_target_ref=f"brick:{case_id}:unknown-next",
+        )
+        return
+    if case_id == "projection-parked":
+        _dashboard_state_write_parked_fixture(building_root, case_id)
+        return
+    raise ProfileError(f"unknown dashboard state fixture case: {case_id}")
+
+
+def _dashboard_state_write_complete_fixture(
+    building_root: Path,
+    *,
+    raw_link_records: Sequence[Mapping[str, Any]],
+    map_target_ref: str,
+    raw_agent_return_records: Sequence[Mapping[str, Any]] | None = None,
+) -> None:
+    case_id = building_root.name
+    _dashboard_state_write_common_files(
+        building_root,
+        case_id,
+        map_target_ref=map_target_ref,
+    )
+    raw = building_root / "raw"
+    agent_returns = (
+        raw_agent_return_records
+        if raw_agent_return_records is not None
+        else [_dashboard_state_agent_return_record(case_id)]
+    )
+    _dashboard_state_write_jsonl(raw / "agent-return.jsonl", agent_returns)
+    _dashboard_state_write_jsonl(raw / "link.jsonl", raw_link_records)
+    for rel in (
+        "evidence/claim_trace/agent/returned_claims.json",
+        "evidence/claim_trace/link/transfer_trace.json",
+        "evidence/claim_trace/link/carry_trace.json",
+        "evidence/claim_trace/link/sufficiency_trace.json",
+        "evidence/claim_trace/link/movement_trace.json",
+    ):
+        _dashboard_state_write_json(
+            building_root / rel,
+            {"facts": [{"ref": f"{case_id}:{rel}"}]},
+        )
+
+
+def _dashboard_state_write_frontier_fixture(building_root: Path, case_id: str) -> None:
+    _dashboard_state_write_common_files(
+        building_root,
+        case_id,
+        map_target_ref=f"brick:{case_id}:blocked-next",
+    )
+    raw = building_root / "raw"
+    _dashboard_state_write_jsonl(
+        raw / "agent-received.jsonl",
+        [{"received_work_ref": f"work:{case_id}"}],
+    )
+    _dashboard_state_write_jsonl(
+        raw / "adapter-error.jsonl",
+        [{"adapter_error_ref": f"adapter-error:{case_id}"}],
+    )
+    _dashboard_state_write_jsonl(
+        raw / "link.jsonl",
+        [
+            _dashboard_state_link_record(
+                case_id,
+                target_ref=f"brick:{case_id}:blocked-next",
+            )
+        ],
+    )
+    step_dir = building_root / "work" / "step-outputs" / f"{case_id}-attempt-1"
+    _dashboard_state_write_json(
+        step_dir / "adapter-error.json",
+        {"adapter_error_ref": f"adapter-error:{case_id}"},
+    )
+    for rel in (
+        "evidence/claim_trace/agent/receipt_trace.json",
+        "evidence/claim_trace/link/frontier_trace.json",
+    ):
+        _dashboard_state_write_json(
+            building_root / rel,
+            {"facts": [{"ref": f"{case_id}:{rel}"}]},
+        )
+
+
+def _dashboard_state_write_parked_fixture(building_root: Path, case_id: str) -> None:
+    _dashboard_state_write_common_files(
+        building_root,
+        case_id,
+        map_target_ref=f"brick:{case_id}:parked-next",
+    )
+    raw = building_root / "raw"
+    _dashboard_state_write_jsonl(
+        raw / "agent-received.jsonl",
+        [{"received_work_ref": f"work:{case_id}"}],
+    )
+    _dashboard_state_write_jsonl(
+        raw / "chat-session-park.jsonl",
+        [{"parked_ref": f"parked:{case_id}"}],
+    )
+    _dashboard_state_write_jsonl(
+        raw / "link.jsonl",
+        [
+            {
+                **_dashboard_state_link_record(
+                    case_id,
+                    target_ref=f"brick:{case_id}:parked-next",
+                ),
+                "frontier_kind": "chat_session_parked",
+                "transition_lifecycle_state": "paused",
+                "transition_lifecycle_progress_state": "in_progress",
+                "transition_lifecycle_paused_at_ref": f"raw:link:{case_id}:parked",
+                "transition_lifecycle_required_disposition_owner": "caller-or-coo",
+            }
+        ],
+    )
+    step_dir = building_root / "work" / "step-outputs" / f"{case_id}-attempt-1"
+    _dashboard_state_write_json(
+        step_dir / "work-envelope.json",
+        {"adapter_ref": "adapter:chat-session"},
+    )
+    _dashboard_state_write_json(step_dir / "parked.json", {"parked_ref": f"parked:{case_id}"})
+    for rel in (
+        "evidence/claim_trace/agent/receipt_trace.json",
+        "evidence/claim_trace/link/frontier_trace.json",
+    ):
+        _dashboard_state_write_json(
+            building_root / rel,
+            {"facts": [{"ref": f"{case_id}:{rel}"}]},
+        )
+
+
+def _dashboard_state_write_common_files(
+    building_root: Path,
+    case_id: str,
+    *,
+    map_target_ref: str,
+) -> None:
+    _dashboard_state_write_jsonl(
+        building_root / "capture" / "events.jsonl",
+        [{"event_ref": f"event:{case_id}:fixture"}],
+    )
+    _dashboard_state_write_json(
+        building_root / "raw" / "raw-manifest.json",
+        {"kind": "raw_manifest"},
+    )
+    _dashboard_state_write_jsonl(
+        building_root / "raw" / "brick-work.jsonl",
+        [{"brick_work_ref": f"work:{case_id}"}],
+    )
+    _dashboard_state_write_json(
+        building_root / "evidence" / "evidence-manifest.json",
+        {"kind": "evidence_manifest"},
+    )
+    _dashboard_state_write_json(
+        building_root / "evidence" / "claim_trace" / "brick" / "work_contract.json",
+        {"facts": [{"brick_work_ref": f"work:{case_id}"}]},
+    )
+    _dashboard_state_write_json(
+        building_root / "work" / "building-work.json",
+        {
+            "plan_ref": f"building-plan:{case_id}",
+            "task_source_ref": f"task-source:{case_id}",
+        },
+    )
+    _dashboard_state_write_json(
+        building_root / "work" / "building-map.json",
+        {
+            "kind": "building_map",
+            "task_source_ref": f"task-source:{case_id}",
+            "brick_instances": [
+                {
+                    "brick_instance_ref": f"brick:{case_id}:work",
+                    "brick_instance_id": f"brick:{case_id}:work",
+                    "attempt_index": 1,
+                }
+            ],
+            "agent_bindings": [
+                {
+                    "agent_binding_id": f"agent-binding:{case_id}",
+                    "brick_instance_ref": f"brick:{case_id}:work",
+                    "agent_performer_ref": "agent-object:dev",
+                    "step_output_ref": f"work/step-outputs/{case_id}-attempt-1/step-output.json",
+                }
+            ],
+            "link_edges": [
+                {
+                    "link_edge_id": f"link-edge:{case_id}",
+                    "source_brick_instance_ref": f"brick:{case_id}:work",
+                    "target_brick_instance_ref": map_target_ref,
+                    "edge_role": "fixture",
+                }
+            ],
+            "groups": [],
+        },
+    )
+
+
+def _dashboard_state_agent_return_record(case_id: str) -> Mapping[str, Any]:
+    return {
+        "received_work": {"received_work_ref": f"work:{case_id}"},
+        "returned": {"observed_evidence": [f"fixture:{case_id}"]},
+    }
+
+
+def _dashboard_state_link_record(case_id: str, *, target_ref: str) -> Mapping[str, Any]:
+    return {
+        "raw_ref": f"raw:link:{case_id}",
+        "recorded_at": "2026-06-12T00:00:00Z",
+        "step_ref": f"step:{case_id}",
+        "source_brick_instance_ref": f"brick:{case_id}:work",
+        "target_brick_instance_ref": target_ref,
+        "movement": "forward",
+    }
+
+
+def _dashboard_state_write_json(path: Path, value: Mapping[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(dict(value), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+
+def _dashboard_state_write_jsonl(path: Path, records: Sequence[Mapping[str, Any]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lines = [json.dumps(dict(record), sort_keys=True) for record in records]
+    path.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+
+
 def run_dashboard_productization_projection(repo: Path) -> KernelResult:
     """Dashboard deploy/env/bake guard for the support-only dashboard surface."""
 
@@ -3008,6 +3489,8 @@ def run_dashboard_productization_projection(repo: Path) -> KernelResult:
         )
     inspected += _dashboard_productization_assert_literal_fire_probe()
     inspected += _dashboard_productization_assert_bake_shape_probe(repo)
+    state_inspected, state_table = _dashboard_productization_assert_state_projection_cases(repo)
+    inspected += state_inspected
 
     return KernelResult(
         check_id="dashboard_productization_projection",
@@ -3018,7 +3501,10 @@ def run_dashboard_productization_projection(repo: Path) -> KernelResult:
             "routes remain outside that guard, hardcoded deploy URL/project/org "
             "literals are rejected with FIRE probes, and bake_dashboard_data_json "
             "round-tripped a source_truth false packet with buildings list while "
-            "a mutated source_truth true packet fired RED."
+            "a mutated source_truth true packet fired RED. State projection table:\n"
+            f"{state_table}\n"
+            "A mutated breakdown->running board-state derivation and a mutated "
+            "closed-without-boundary derivation both fired RED."
         ),
     )
 
