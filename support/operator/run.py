@@ -1362,6 +1362,19 @@ def run_building_plan(
                 task_source_ref=task_source_ref,
                 overwrite_existing=overwrite_existing,
             )
+            report_event_observations.extend(
+                _emit_brick_grain_step_events(
+                    report_event_policy,
+                    building_id=building_id,
+                    building_root=building_root,
+                    step_result=step_result,
+                    completed_step_results=step_results,
+                    gate_sequence_decision=gate_sequence_decision,
+                    report_env=report_env,
+                    report_slack_sender=report_slack_sender,
+                    overwrite_existing=overwrite_existing,
+                )
+            )
         except _AdapterRunParked as parked:
             evidence_write = write_chat_session_park_frontier_evidence(
                 building_id=building_id,
@@ -1504,6 +1517,8 @@ def resume_building_plan(
     adapter_cwd: Path | str | None = None,
     adapter_timeout_seconds: int = 120,
     proof_limits: Iterable[str] | str | None = None,
+    report_env: Mapping[str, str] | None = None,
+    report_slack_sender: Any | None = None,
 ) -> BuildingPlanSupportResult:
     """Resume a held dynamic Building from written evidence and a disposition row.
 
@@ -1528,6 +1543,8 @@ def resume_building_plan(
             adapter_cwd=adapter_cwd,
             adapter_timeout_seconds=adapter_timeout_seconds,
             checked_proof_limits=checked_proof_limits,
+            report_env=report_env,
+            report_slack_sender=report_slack_sender,
         )
     frontier_history = _adapter_error_frontier_history_snapshot(root)
     result = _resume_dynamic_graph_walker(
@@ -1547,6 +1564,8 @@ def resume_building_plan(
         write_chat_session_park_frontier=write_chat_session_park_frontier_evidence,
         chat_session_park_frontier_exception=ChatSessionParkFrontierEvidenceWritten,
         repo_root=_REPO_ROOT,
+        report_env=report_env,
+        report_slack_sender=report_slack_sender,
     )
     _preserve_adapter_error_frontier_history_after_resume(root, frontier_history)
     return result
@@ -1561,6 +1580,8 @@ def _resume_chat_session_parked_building_plan(
     adapter_cwd: Path | str | None,
     adapter_timeout_seconds: int,
     checked_proof_limits: tuple[str, ...],
+    report_env: Mapping[str, str] | None = None,
+    report_slack_sender: Any | None = None,
 ) -> BuildingPlanSupportResult:
     plan, evidence = _read_written_dynamic_plan(root)
     if not evidence.get("held"):
@@ -1652,6 +1673,8 @@ def _resume_chat_session_parked_building_plan(
         chat_session_park_frontier_exception=ChatSessionParkFrontierEvidenceWritten,
         repo_root=_REPO_ROOT,
         resume_seed=seed,
+        report_env=report_env,
+        report_slack_sender=report_slack_sender,
     )
     _preserve_chat_session_frontier_history_after_resume(root, frontier_history)
     return result
@@ -1914,6 +1937,77 @@ def _first_brick_instance_ref_from_steps(steps: Sequence[Any]) -> str:
     return ""
 
 
+def _report_policy_uses_brick_grain(policy: Mapping[str, Any] | None) -> bool:
+    return bool(policy and policy.get("report_event_grain") == "brick")
+
+
+def _emit_brick_grain_step_events(
+    policy: Mapping[str, Any] | None,
+    *,
+    building_id: str,
+    building_root: Path | str,
+    step_result: BuildingRunSupportResult,
+    completed_step_results: Sequence[BuildingRunSupportResult],
+    gate_sequence_decision: GateSequenceDecision,
+    report_env: Mapping[str, str] | None,
+    report_slack_sender: Any | None,
+    overwrite_existing: bool,
+) -> tuple[Mapping[str, Any], ...]:
+    if not _report_policy_uses_brick_grain(policy):
+        return ()
+    step_ref = step_result.preparation.step_rows.step_ref
+    attempt_index = _step_attempt_index(completed_step_results, step_ref)
+    step_index = len(completed_step_results) + 1
+    context = _brick_grain_step_context(
+        step_result,
+        step_index=step_index,
+        gate_sequence_decision=gate_sequence_decision,
+    )
+    last_completed_step_ref = f"{_step_output_dir_ref(step_ref, attempt_index)}/step-output.json"
+    observations: list[Mapping[str, Any]] = []
+    for event_kind in ("brick_received", "brick_returned", "gate_passed"):
+        event = _emit_building_event_best_effort(
+            policy,
+            event_kind=event_kind,
+            building_id=building_id,
+            building_root=building_root,
+            current_brick_ref=step_result.preparation.brick_instance_ref,
+            last_completed_step_ref=last_completed_step_ref,
+            report_env=report_env,
+            report_slack_sender=report_slack_sender,
+            overwrite_existing=overwrite_existing,
+            event_context={**context, "event_stage": event_kind},
+        )
+        if event is not None:
+            observations.append(event)
+    return tuple(observations)
+
+
+def _brick_grain_step_context(
+    step_result: BuildingRunSupportResult,
+    *,
+    step_index: int,
+    gate_sequence_decision: GateSequenceDecision,
+) -> Mapping[str, Any]:
+    recorded_at = step_result.recorded_at or _per_step_recorded_at()
+    return {
+        "step_ref": step_result.preparation.step_rows.step_ref,
+        "sequence_index": step_index,
+        "received_at": recorded_at,
+        "returned_at": recorded_at,
+        "returned_summary": "반환 기록됨",
+        "gate_note": _brick_grain_gate_note(gate_sequence_decision),
+    }
+
+
+def _brick_grain_gate_note(gate_sequence_decision: GateSequenceDecision) -> str:
+    if gate_sequence_decision.action == "hold":
+        return "홀드"
+    if gate_sequence_decision.action == "reroute":
+        return "통과→다음스텝"
+    return "통과→다음스텝"
+
+
 def _emit_building_event_best_effort(
     policy: Mapping[str, Any] | None,
     *,
@@ -1925,6 +2019,7 @@ def _emit_building_event_best_effort(
     overwrite_existing: bool,
     report_env: Mapping[str, str] | None = None,
     report_slack_sender: Any | None = None,
+    event_context: Mapping[str, Any] | None = None,
 ) -> Mapping[str, Any] | None:
     if not event_kind:
         return None
@@ -1941,6 +2036,7 @@ def _emit_building_event_best_effort(
             slack_env=report_env,
             slack_sender=report_slack_sender,
             dashboard_env=report_env,
+            event_context=event_context,
         )
     except Exception as exc:  # noqa: BLE001 - notification must never break evidence write.
         return {

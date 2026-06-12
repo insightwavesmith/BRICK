@@ -82,6 +82,8 @@ def _resume_dynamic_graph_walker(
     write_chat_session_park_frontier,
     chat_session_park_frontier_exception,
     repo_root: Path | str,
+    report_env: Mapping[str, str] | None = None,
+    report_slack_sender: Any | None = None,
 ) -> BuildingPlanSupportResult:
     """Resume a held dynamic walk by REHYDRATING + DELEGATING to the FORWARD walk.
 
@@ -337,6 +339,8 @@ def _resume_dynamic_graph_walker(
         chat_session_park_frontier_exception=chat_session_park_frontier_exception,
         repo_root=repo_root,
         resume_seed=seed,
+        report_env=report_env,
+        report_slack_sender=report_slack_sender,
     )
 
 

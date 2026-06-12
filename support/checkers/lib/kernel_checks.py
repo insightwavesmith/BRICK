@@ -2629,6 +2629,289 @@ def _assert_reporter_auto_wiring(repo: Path, reporter: Any, report_sinks: Any) -
     return real_sent_messages[0], local_inbox_text, verbose_text, inspected
 
 
+def _assert_reporter_brick_grain_threading(
+    repo: Path,
+    reporter: Any,
+    report_sinks: Any,
+) -> tuple[str, str, int]:
+    from brick_protocol.support.operator.run import run_building_plan
+    from brick_protocol.brick.work import parse_required_return_shape
+
+    inspected = 0
+
+    def _brain(request: Any) -> Mapping[str, Any]:
+        returned: dict[str, Any] = {}
+        for label in parse_required_return_shape(request.required_return_shape):
+            if label == "made_changes":
+                returned[label] = ["brick grain probe change"]
+            elif label == "observed_evidence":
+                returned[label] = ["brick grain probe evidence"]
+            elif label == "not_proven":
+                returned[label] = ["semantic correctness of brick grain probe work"]
+            else:
+                returned[label] = f"probe value for {label}"
+        return returned
+
+    building_policy = reporter.report_event_policy_from_plan(
+        {
+            "report_event_policy": {
+                "enabled": True,
+                "grain": "building",
+            }
+        }
+    )
+    if building_policy.get("event_kinds") != [
+        "building_started",
+        "intervention_required",
+        "building_finished",
+    ]:
+        raise ProfileError("building grain policy did not preserve the three existing event kinds")
+    brick_policy = reporter.report_event_policy_from_plan(
+        {
+            "report_event_policy": {
+                "enabled": True,
+                "grain": "brick",
+            }
+        }
+    )
+    expected_brick_events = [
+        "building_started",
+        "intervention_required",
+        "building_finished",
+        "brick_received",
+        "brick_returned",
+        "gate_passed",
+        "disposition_applied",
+    ]
+    if brick_policy.get("event_kinds") != expected_brick_events:
+        raise ProfileError(
+            "brick grain policy did not extend event kinds additively: "
+            f"{brick_policy.get('event_kinds')!r}"
+        )
+    inspected += 2
+
+    sent_payloads: list[Mapping[str, Any]] = []
+
+    def _fake_thread_slack_sender(request: Any, timeout_seconds: float) -> tuple[int, bytes]:
+        del timeout_seconds
+        payload = json.loads(bytes(request.data or b"{}").decode("utf-8"))
+        sent_payloads.append(payload)
+        if payload.get("thread_ts"):
+            return 200, b'{"ok":true}'
+        return 200, b'{"ok":true,"ts":"1718200000.000100","channel":"CREDPROBE"}'
+
+    fake_env = {
+        "BRICK_REPORT_SLACK_BOT_TOKEN": "xoxb-redacted-probe",
+        "BRICK_REPORT_SLACK_CHANNEL_ID": "CREDPROBE",
+    }
+    brick_reply_text = ""
+    disposition_reply_text = ""
+    with tempfile.TemporaryDirectory(prefix="bp-reporter-brick-grain-") as tmpdir:
+        temp_repo = Path(tmpdir)
+        _copy_reporter_probe_agent_resources(repo, temp_repo)
+        output_root = temp_repo / "project" / "brick-protocol" / "buildings"
+        original_reporter_root = reporter.REPO_ROOT
+        try:
+            reporter.REPO_ROOT = temp_repo
+            result = run_building_plan(
+                _reporter_auto_wire_plan(
+                    "reporter-brick-grain-thread",
+                    report_event_policy={
+                        "enabled": True,
+                        "mode": "basic",
+                        "grain": "brick",
+                        "sink_refs": ["report-sink:slack"],
+                        "allow_real_slack_delivery": True,
+                    },
+                ),
+                output_root=output_root,
+                overwrite_existing=True,
+                local_callables={"callable:local:agent-invoke0-smoke": _brain},
+                adapter_cwd=repo,
+                adapter_timeout_seconds=10,
+                report_env=fake_env,
+                report_slack_sender=_fake_thread_slack_sender,
+            )
+        finally:
+            reporter.REPO_ROOT = original_reporter_root
+
+        root = output_root / "reporter-brick-grain-thread"
+        thread_path = root / "raw" / "report-thread.jsonl"
+        if not thread_path.is_file():
+            raise ProfileError("brick grain parent Slack ts was not recorded in raw/report-thread.jsonl")
+        thread_text = thread_path.read_text(encoding="utf-8")
+        if "1718200000.000100" not in thread_text or "CREDPROBE" not in thread_text:
+            raise ProfileError("brick grain thread record did not preserve ts + channel ref")
+
+        observations = tuple(getattr(result, "_report_event_observations", ()))
+        trigger_refs = [
+            str(observation.get("report_packet", {}).get("trigger_event_ref") or "")
+            for observation in observations
+            if isinstance(observation, Mapping)
+        ]
+        for event_kind in ("brick_received", "brick_returned", "gate_passed"):
+            if not any(event_kind in trigger for trigger in trigger_refs):
+                raise ProfileError(f"brick grain did not emit {event_kind} support event")
+
+        thread_payloads = [payload for payload in sent_payloads if payload.get("thread_ts")]
+        if len(thread_payloads) != 1:
+            raise ProfileError(
+                f"brick grain expected exactly one per-step Slack thread reply, got {len(thread_payloads)}"
+            )
+        reply = thread_payloads[0]
+        if reply.get("thread_ts") != "1718200000.000100":
+            raise ProfileError(f"brick grain reply carried wrong thread_ts: {reply!r}")
+        brick_reply_text = str(reply.get("text") or "")
+        for fragment in ("①", "받음(", "반환(", "게이트 결과(", "ref: reporter-brick-grain-thread"):
+            if fragment not in brick_reply_text:
+                raise ProfileError(
+                    f"brick grain Slack reply missing fragment {fragment!r}:\n{brick_reply_text}"
+                )
+        if not re.search(r"받음\(\d{2}:\d{2}\).*반환\(\d{2}:\d{2}", brick_reply_text):
+            raise ProfileError(f"brick grain Slack reply did not render KST HH:MM times:\n{brick_reply_text}")
+        inspected += 5
+
+        missing_thread_payloads: list[Mapping[str, Any]] = []
+
+        def _should_not_send(request: Any, timeout_seconds: float) -> tuple[int, bytes]:
+            del timeout_seconds
+            missing_thread_payloads.append(json.loads(bytes(request.data or b"{}").decode("utf-8")))
+            return 200, b'{"ok":true}'
+
+        original_reporter_root = reporter.REPO_ROOT
+        reporter.REPO_ROOT = temp_repo
+        missing_thread_root = output_root / "missing-thread-case"
+        missing_thread_root.mkdir(parents=True)
+        try:
+            missing_packet = reporter.render_building_event_report_packet(
+                event_kind="brick_returned",
+                building_id="missing-thread-case",
+                building_root=missing_thread_root,
+                current_brick_ref="brick-work",
+                last_completed_step_ref="work/step-outputs/missing-thread-case-work-attempt-1/step-output.json",
+                sink_refs=["report-sink:slack"],
+                repo_root=temp_repo,
+                generated_at="2026-06-12T00:00:00+00:00",
+                event_context={
+                    "step_ref": "missing-thread-case-work",
+                    "sequence_index": 1,
+                    "received_at": "2026-06-12T00:00:00+00:00",
+                    "returned_at": "2026-06-12T00:01:00+00:00",
+                    "gate_note": "통과→다음스텝",
+                },
+            )
+            missing_observation = report_sinks.send_slack_report_packet(
+                missing_packet,
+                repo_root=temp_repo,
+                allow_real_delivery=True,
+                env=fake_env,
+                sender=_should_not_send,
+            )
+        finally:
+            reporter.REPO_ROOT = original_reporter_root
+        if missing_observation.delivery_status_class != "not_attempted_missing_thread_ts":
+            raise ProfileError(
+                "brick grain missing-thread Slack send did not fail closed as not_attempted"
+            )
+        if missing_thread_payloads:
+            raise ProfileError("brick grain missing-thread probe still called Slack sender")
+
+        disposition_payloads: list[Mapping[str, Any]] = []
+
+        def _fake_disposition_sender(request: Any, timeout_seconds: float) -> tuple[int, bytes]:
+            del timeout_seconds
+            payload = json.loads(bytes(request.data or b"{}").decode("utf-8"))
+            disposition_payloads.append(payload)
+            return 200, b'{"ok":true}'
+
+        original_reporter_root = reporter.REPO_ROOT
+        reporter.REPO_ROOT = temp_repo
+        try:
+            disposition_packet = reporter.render_building_event_report_packet(
+                event_kind="disposition_applied",
+                building_id="reporter-brick-grain-thread",
+                building_root=root,
+                current_brick_ref="brick-work",
+                last_completed_step_ref="work/step-outputs/reporter-brick-grain-thread-work-attempt-1/step-output.json",
+                sink_refs=["report-sink:slack"],
+                repo_root=temp_repo,
+                generated_at="2026-06-12T00:02:00+00:00",
+                event_context={
+                    "disposition_action": "forward",
+                    "disposition_author_ref": "coo:checker",
+                    "applied_at": "2026-06-12T00:02:00+00:00",
+                },
+            )
+        finally:
+            reporter.REPO_ROOT = original_reporter_root
+        disposition_observation = report_sinks.send_slack_report_packet(
+            disposition_packet,
+            repo_root=temp_repo,
+            allow_real_delivery=True,
+            env=fake_env,
+            sender=_fake_disposition_sender,
+        )
+        if disposition_observation.delivered is not True or len(disposition_payloads) != 1:
+            raise ProfileError("disposition_applied probe did not send exactly one thread reply")
+        if disposition_payloads[0].get("thread_ts") != "1718200000.000100":
+            raise ProfileError("disposition_applied reply did not carry recorded thread_ts")
+        disposition_reply_text = str(disposition_payloads[0].get("text") or "")
+        if "⤷ coo 도장" not in disposition_reply_text:
+            raise ProfileError(
+                f"disposition_applied reply did not render coo stamp:\n{disposition_reply_text}"
+            )
+        inspected += 4
+
+        temp_root_payloads: list[Mapping[str, Any]] = []
+
+        def _temp_root_sender(request: Any, timeout_seconds: float) -> tuple[int, bytes]:
+            del timeout_seconds
+            temp_root_payloads.append(json.loads(bytes(request.data or b"{}").decode("utf-8")))
+            return 200, b'{"ok":true,"ts":"1718200000.000200","channel":"CREDPROBE"}'
+
+        non_vessel_root = Path(tmpdir) / "non-vessel-building-root"
+        non_vessel_root.mkdir()
+        temp_root_policy = reporter.report_event_policy_from_plan(
+            {
+                "report_event_policy": {
+                    "enabled": True,
+                    "grain": "brick",
+                    "sink_refs": ["report-sink:slack"],
+                    "allow_real_slack_delivery": True,
+                }
+            }
+        )
+        for event_kind in (
+            "brick_received",
+            "brick_returned",
+            "gate_passed",
+            "disposition_applied",
+        ):
+            observation = reporter.emit_building_event_for_policy(
+                temp_root_policy,
+                event_kind=event_kind,
+                building_id=f"temp-root-{event_kind}",
+                building_root=non_vessel_root,
+                current_brick_ref="brick-work",
+                last_completed_step_ref=f"work/step-outputs/temp-root-{event_kind}/step-output.json",
+                repo_root=temp_repo,
+                slack_env=fake_env,
+                slack_sender=_temp_root_sender,
+                event_context={"sequence_index": 1},
+            )
+            if observation is not None:
+                raise ProfileError(
+                    f"brick grain F12 vessel guard leaked external sink for {event_kind}"
+                )
+        if temp_root_payloads:
+            raise ProfileError(
+                "brick grain F12 vessel guard invoked Slack sender for temp-root building"
+            )
+        inspected += 4
+
+    return brick_reply_text, disposition_reply_text, inspected
+
+
 def _copy_reporter_probe_agent_resources(repo: Path, temp_repo: Path) -> None:
     source = repo / "agent"
     target = temp_repo / "agent"
@@ -2750,6 +3033,11 @@ def run_reporter_notification_projection(repo: Path) -> KernelResult:
         verbose_mode_text,
         auto_wire_count,
     ) = _assert_reporter_auto_wiring(repo, reporter, report_sinks)
+    (
+        brick_grain_text,
+        disposition_text,
+        brick_grain_count,
+    ) = _assert_reporter_brick_grain_threading(repo, reporter, report_sinks)
     no_scheduler_count = _assert_no_scheduler_constructs(repo)
 
     observations = tuple(reporter.reporter_negative_probe_observations())
@@ -2946,6 +3234,7 @@ def run_reporter_notification_projection(repo: Path) -> KernelResult:
             + label_parity_count
             + message_shape_count
             + auto_wire_count
+            + brick_grain_count
             + no_scheduler_count
             + 6
         ),
@@ -2958,6 +3247,7 @@ def run_reporter_notification_projection(repo: Path) -> KernelResult:
             f"{label_parity_count} label parity map(s), "
             f"{message_shape_count} Slack message shape assertion(s), "
             f"{auto_wire_count} auto-wire assertion(s), "
+            f"{brick_grain_count} brick-grain thread assertion(s), "
             f"{no_scheduler_count} no-scheduler source file(s), "
             "local inbox write, operator wake write, forbidden field rejects, "
             "unadmitted sink reject, and the G6 sink ceiling (4 ratified sinks: "
@@ -2966,6 +3256,8 @@ def run_reporter_notification_projection(repo: Path) -> KernelResult:
             f"Specimen after renderer: {message_text!r}. "
             f"Temp auto-wire Slack text: {auto_wire_message!r}. "
             f"Verbose-mode temp Slack text: {verbose_mode_text!r}. "
+            f"Brick-grain Slack text: {brick_grain_text!r}. "
+            f"Disposition Slack text: {disposition_text!r}. "
             f"Temp local inbox packet bytes: {len(auto_wire_inbox_text.encode('utf-8'))}."
         ),
     )
