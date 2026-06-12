@@ -486,7 +486,11 @@ def _run_frontier_operator_evidence(repo: Path, walker_chk: Any):
         except Exception as exc:  # noqa: BLE001 - the frontier path raises after writing evidence
             building_root = getattr(exc, "building_root", None)
             if building_root is None:
-                roots = [path for path in Path(tmp).iterdir() if path.is_dir()]
+                roots = [
+                    path
+                    for path in Path(tmp).iterdir()
+                    if path.is_dir() and (path / "work" / "building-map.json").is_file()
+                ]
                 if len(roots) == 1:
                     building_root = roots[0]
         if building_root is None:

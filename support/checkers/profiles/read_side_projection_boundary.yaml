@@ -261,10 +261,13 @@ text_contains:
       - def validate_operator_wake_targets
       - def _validate_packet_for_sink
       - def _validate_slack_packet
-      - 빌딩 알림
-      - 작업 단계
-      - 담당 역할
-      - 운영 refs
+      - external_delivery_allowed
+      - not_attempted_non_real_vessel
+      - def _packet_allows_external_delivery
+      - 누구
+      - 다음
+      - 'ref:'
+      - 상태 알림일 뿐
       - project/brick-protocol/status/inbox
       - report sink packet source_truth must be false
       - validates admitted sink refs without writing local status inbox packets

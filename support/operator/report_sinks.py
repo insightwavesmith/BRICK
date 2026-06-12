@@ -194,6 +194,20 @@ DASHBOARD_SINK_NOT_PROVEN: tuple[str, ...] = (
     "real-time freshness beyond post moment",
     "production readiness",
 )
+EXTERNAL_GUARD_PROOF_LIMITS: tuple[str, ...] = (
+    "real-vessel external delivery guard support observation only",
+    "does not call external notification provider",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "not route input",
+)
+EXTERNAL_GUARD_NOT_PROVEN: tuple[str, ...] = (
+    "external notification behavior",
+    "reader noticed packet",
+    "production readiness",
+)
 OPERATOR_WAKE_PROOF_LIMITS: tuple[str, ...] = (
     "provider-neutral operator wake projection only",
     "writes local status inbox wake packets only",
@@ -293,6 +307,9 @@ def deliver_report_packet(
             )
             continue
         if sink_ref == SLACK_SINK_REF:
+            if not _packet_allows_external_delivery(packet):
+                observations.append(_external_guard_observation(sink_ref, packet))
+                continue
             observations.append(
                 send_slack_report_packet(
                     packet,
@@ -309,6 +326,9 @@ def deliver_report_packet(
             # by the (separate) per-event trigger wiring.
             building_id = str(packet.get("building_id") or "").strip()
             if building_id:
+                if not _packet_allows_external_delivery(packet):
+                    observations.append(_external_guard_observation(sink_ref, packet))
+                    continue
                 # PROJECT-0 S4-B: an OPTIONAL packet project_ref narrows the
                 # delta to one vessel (building_id uniqueness is per-vessel);
                 # without it an id living in 2+ vessels fails closed downstream.
@@ -412,6 +432,8 @@ def send_slack_report_packet(
     _validate_packet_for_sink(packet)
     _validate_slack_packet(packet)
     packet_ref = _required_text(packet.get("report_id"), "report_id")
+    if not _packet_allows_external_delivery(packet):
+        return _external_guard_observation(SLACK_SINK_REF, packet)
     if not allow_real_delivery:
         raise ValueError("real Slack delivery requires allow_real_slack_delivery=True")
 
@@ -829,6 +851,31 @@ def _validate_packet_for_sink(packet: Mapping[str, Any]) -> None:
         raise ValueError(f"report sink packet includes forbidden field(s): {forbidden}")
     if "operator_wake_targets" in packet:
         _operator_wake_targets(packet)
+    if "external_delivery_allowed" in packet and not isinstance(
+        packet.get("external_delivery_allowed"), bool
+    ):
+        raise ValueError("report sink packet external_delivery_allowed must be a boolean")
+
+
+def _packet_allows_external_delivery(packet: Mapping[str, Any]) -> bool:
+    if str(packet.get("building_id") or "").strip():
+        return packet.get("external_delivery_allowed") is True
+    return True
+
+
+def _external_guard_observation(
+    sink_ref: str, packet: Mapping[str, Any]
+) -> ReportSinkObservation:
+    return ReportSinkObservation(
+        sink_ref=sink_ref,
+        delivered=False,
+        packet_ref=_required_text(packet.get("report_id"), "report_id"),
+        written_path="",
+        proof_limits=EXTERNAL_GUARD_PROOF_LIMITS,
+        not_proven=EXTERNAL_GUARD_NOT_PROVEN,
+        delivery_status_class="not_attempted_non_real_vessel",
+        provider_response_status_class="not_attempted",
+    )
 
 
 def _validate_slack_packet(packet: Mapping[str, Any]) -> None:
@@ -940,25 +987,50 @@ def _slack_message_text(packet: Mapping[str, Any]) -> str:
     if not source_ref:
         source_ref = _required_text(packet.get("report_id"), "report_id")
     event_kind = _slack_event_kind(packet)
-    event_label = _slack_event_label(packet, event_kind=event_kind)
     work_kind = str(packet.get("current_work_kind") or "").strip()
     lane = str(packet.get("current_lane") or "").strip()
-    work_label = _label_value("brick_kinds", work_kind, field="ko") or work_kind or "확인 필요"
     lane_label = _label_value("lanes", lane) or lane or "확인 필요"
     action_line = _slack_action_line(packet, event_kind=event_kind)
-    operator_refs = _slack_operator_refs_line(packet)
-    return "\n".join(
-        (
-            "빌딩 알림",
-            f"빌딩: {source_ref}",
-            f"상태: {event_label}",
-            f"작업 단계: {work_label}",
-            f"담당 역할: {lane_label}",
-            f"필요 조치: {action_line}",
-            f"운영 refs: {operator_refs}",
-            "한계: support projection; source truth/성공판정/품질판정/Movement 권한 아님",
-        )
-    )
+    lines = [
+        f"🧱 {_slack_human_title(packet, fallback=source_ref)}",
+        f"→ {_slack_status_sentence(packet, event_kind=event_kind)}",
+        f"누구: {lane_label}",
+        f"다음: {action_line or '없음'}",
+    ]
+    lines.extend(_slack_stage_lines(packet))
+    lines.append(f"ref: {_slack_ref_line(packet, source_ref=source_ref)}")
+    lines.append("※ 상태 알림일 뿐 source truth/성공·품질·Movement 판단 아님")
+    return "\n".join(lines)
+
+
+def _slack_human_title(packet: Mapping[str, Any], *, fallback: str) -> str:
+    title = str(packet.get("human_title") or "").strip()
+    return title or fallback
+
+
+def _slack_status_sentence(packet: Mapping[str, Any], *, event_kind: str) -> str:
+    if event_kind == "building_started":
+        return "시작했어요."
+    if event_kind == "intervention_required":
+        return "멈췄어요. 살펴봐 주세요."
+    if event_kind == "building_finished":
+        return "완료됐어요."
+    label = _slack_event_label(packet, event_kind=event_kind)
+    return f"{label} 상태를 봤어요."
+
+
+def _slack_stage_lines(packet: Mapping[str, Any]) -> tuple[str, ...]:
+    raw_kinds = packet.get("completed_step_kinds")
+    if not isinstance(raw_kinds, list):
+        return ()
+    lines: list[str] = []
+    for raw_kind in raw_kinds:
+        kind = str(raw_kind or "").strip()
+        if not kind:
+            continue
+        label = _label_value("brick_kinds", kind, field="ko") or kind
+        lines.append(f"단계: {label}")
+    return tuple(lines)
 
 
 def _slack_event_kind(packet: Mapping[str, Any]) -> str:
@@ -1003,6 +1075,19 @@ def _slack_operator_refs_line(packet: Mapping[str, Any]) -> str:
     step_ref = _short_step_ref(str(packet.get("last_completed_step_ref") or "").strip())
     frontier_ref = _short_frontier_ref(_required_text(packet.get("frontier_ref"), "frontier_ref"))
     return f"brick={brick_ref}; step={step_ref}; frontier={frontier_ref}"
+
+
+def _slack_ref_line(packet: Mapping[str, Any], *, source_ref: str) -> str:
+    parts = [source_ref]
+    brick_ref = _short_ref(str(packet.get("current_brick_ref") or "").strip())
+    if brick_ref != "-":
+        parts.append(f"brick={brick_ref}")
+    step_ref = _short_step_ref(str(packet.get("last_completed_step_ref") or "").strip())
+    if step_ref != "-":
+        parts.append(f"step={step_ref}")
+    frontier_ref = _short_frontier_ref(_required_text(packet.get("frontier_ref"), "frontier_ref"))
+    parts.append(f"frontier={frontier_ref}")
+    return " · ".join(parts)
 
 
 def _short_ref(value: str) -> str:

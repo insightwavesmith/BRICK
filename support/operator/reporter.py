@@ -156,6 +156,7 @@ _FRONTIER_TO_OBSERVED_STATE = {
 BUILDING_EVENT_KINDS = frozenset(
     {"building_started", "intervention_required", "building_finished"}
 )
+REPORT_EVENT_MODES = frozenset({"basic", "verbose"})
 BUILDING_EVENT_OBSERVED_STATES = {
     "building_started": "observed_started",
     "intervention_required": "observed_paused",
@@ -178,9 +179,11 @@ BUILDING_EVENT_PROOF_LIMITS: tuple[str, ...] = (
     "not scheduler / queue / retry runtime",
 )
 DEFAULT_BUILDING_EVENT_KINDS: tuple[str, ...] = (
-    "building_finished",
+    "building_started",
     "intervention_required",
+    "building_finished",
 )
+EXTERNAL_BUILDING_EVENT_SINK_REFS = frozenset({SLACK_SINK_REF, DASHBOARD_SINK_REF})
 DEFAULT_BUILDING_EVENT_SINK_REFS: tuple[str, ...] = (
     LOCAL_INBOX_SINK_REF,
     SLACK_SINK_REF,
@@ -215,10 +218,14 @@ def report_event_policy_from_plan(plan: Mapping[str, Any]) -> Mapping[str, Any] 
     if enabled is not True:
         raise ValueError("report_event_policy.enabled must be true or false")
 
+    mode = str(raw_policy.get("mode") or "basic").strip()
+    if mode not in REPORT_EVENT_MODES:
+        raise ValueError(f"unadmitted report_event_policy.mode: {mode}")
+
     event_kinds = _policy_text_tuple(
         raw_policy.get("event_kinds"),
         "report_event_policy.event_kinds",
-        default=tuple(sorted(BUILDING_EVENT_KINDS)),
+        default=DEFAULT_BUILDING_EVENT_KINDS,
     )
     unadmitted_events = sorted(set(event_kinds) - BUILDING_EVENT_KINDS)
     if unadmitted_events:
@@ -242,6 +249,7 @@ def report_event_policy_from_plan(plan: Mapping[str, Any]) -> Mapping[str, Any] 
 
     return {
         "enabled": True,
+        "mode": mode,
         "event_kinds": list(event_kinds),
         "sink_refs": list(sink_refs),
         "allow_real_slack_delivery": allow_real_slack_delivery,
@@ -273,6 +281,7 @@ def report_event_policy_from_plan(plan: Mapping[str, Any]) -> Mapping[str, Any] 
 def _default_report_event_policy() -> Mapping[str, Any]:
     return {
         "enabled": True,
+        "mode": "basic",
         "event_kinds": list(DEFAULT_BUILDING_EVENT_KINDS),
         "sink_refs": list(DEFAULT_BUILDING_EVENT_SINK_REFS),
         "allow_real_slack_delivery": True,
@@ -341,6 +350,7 @@ def render_building_event_report_packet(
     required_disposition_owner: str = "",
     sink_refs: Iterable[str] | None = None,
     repo_root: Path | str = REPO_ROOT,
+    stage_mode: str = "basic",
     generated_at: str | None = None,
     proof_limits: Iterable[str] | str | None = None,
     not_proven: Iterable[str] | str | None = None,
@@ -353,6 +363,7 @@ def render_building_event_report_packet(
     root = _building_event_root(repo, building_root)
     timestamp = generated_at or datetime.now(timezone.utc).isoformat()
     refs = tuple(sink_refs or (LOCAL_INBOX_SINK_REF,))
+    checked_stage_mode = _report_event_mode(stage_mode)
     building_map = _read_json_mapping(root / "work" / "building-map.json")
     frontier: Mapping[str, Any] = {}
     if root.exists():
@@ -378,6 +389,7 @@ def render_building_event_report_packet(
     # vessel from the building root PATH too — same inverse seam, same
     # legacy-unchanged behavior for non-vessel roots.
     project_ref, vessel_segment = _resolved_vessel(repo, root, None)
+    external_delivery_allowed = _building_root_is_real_vessel(repo, root)
     packet = {
         "report_id": _building_event_report_id(
             f"{vessel_segment}{source_id}", event_kind, timestamp
@@ -385,6 +397,9 @@ def render_building_event_report_packet(
         "report_kind": "building_frontier",
         "building_id": source_id,
         "portfolio_id": "",
+        "human_title": _human_title(root, source_id),
+        "report_event_mode": checked_stage_mode,
+        "external_delivery_allowed": external_delivery_allowed,
         "observed_board_state": BUILDING_EVENT_OBSERVED_STATES[event_kind],
         "trigger_event_ref": trigger_event_ref
         or f"building-event:{event_kind}:{source_id}",
@@ -429,6 +444,8 @@ def render_building_event_report_packet(
     }
     if project_ref is not None:
         packet["project_ref"] = project_ref
+    if checked_stage_mode == "verbose":
+        packet["completed_step_kinds"] = list(_completed_step_kinds(root, building_map))
     validate_report_packet(packet)
     return packet
 
@@ -455,6 +472,7 @@ def emit_building_event_report_packet(
     allow_real_dashboard_delivery: bool = False,
     dashboard_timeout_seconds: float = 10.0,
     dashboard_env: Mapping[str, str] | None = None,
+    stage_mode: str = "basic",
     proof_limits: Iterable[str] | str | None = None,
     not_proven: Iterable[str] | str | None = None,
 ) -> Mapping[str, Any]:
@@ -472,6 +490,7 @@ def emit_building_event_report_packet(
         required_disposition_owner=required_disposition_owner,
         sink_refs=sink_refs,
         repo_root=repo,
+        stage_mode=stage_mode,
         generated_at=generated_at,
         proof_limits=proof_limits,
         not_proven=not_proven,
@@ -520,11 +539,16 @@ def emit_building_event_for_policy(
     event_kinds = tuple(str(item) for item in policy.get("event_kinds", ()))
     if event_kind not in event_kinds:
         return None
+    repo = Path(repo_root).resolve()
+    root = _building_event_root(repo, building_root)
     sink_refs = _event_policy_sink_refs(
         policy,
         slack_env=slack_env,
         dashboard_env=dashboard_env,
     )
+    sink_refs = _sink_refs_for_building_event_root(sink_refs, repo=repo, root=root)
+    if not sink_refs:
+        return None
     return emit_building_event_report_packet(
         event_kind=event_kind,
         building_id=building_id,
@@ -532,7 +556,7 @@ def emit_building_event_for_policy(
         current_brick_ref=current_brick_ref,
         last_completed_step_ref=last_completed_step_ref,
         sink_refs=sink_refs,
-        repo_root=repo_root,
+        repo_root=repo,
         inbox_root=inbox_root,
         overwrite_existing=overwrite_existing,
         allow_real_slack_delivery=bool(policy.get("allow_real_slack_delivery")),
@@ -540,6 +564,7 @@ def emit_building_event_for_policy(
         slack_sender=slack_sender,
         allow_real_dashboard_delivery=bool(policy.get("allow_real_dashboard_delivery")),
         dashboard_env=dashboard_env,
+        stage_mode=str(policy.get("mode") or "basic"),
         proof_limits=policy.get("proof_limits"),
         not_proven=policy.get("not_proven"),
     )
@@ -978,11 +1003,12 @@ def reporter_event_hook_probe_observations() -> tuple[Mapping[str, Any], ...]:
         passed=(
             isinstance(report_event_policy_from_plan({}), Mapping)
             and report_event_policy_from_plan({}).get("event_kinds")
-            == ["building_finished", "intervention_required"]
+            == ["building_started", "intervention_required", "building_finished"]
             and report_event_policy_from_plan({}).get("sink_refs")
             == [LOCAL_INBOX_SINK_REF, SLACK_SINK_REF, DASHBOARD_SINK_REF]
             and report_event_policy_from_plan({}).get("environment_gated_sink_refs")
             == [SLACK_SINK_REF, DASHBOARD_SINK_REF]
+            and report_event_policy_from_plan({}).get("mode") == "basic"
         ),
         accepted=True,
     )
@@ -1213,6 +1239,32 @@ def _resolved_vessel(
     return derived, f"{vessel_root.parent.name}-"
 
 
+def _building_root_is_real_vessel(repo: Path, root: Path) -> bool:
+    if repo.resolve() != REPO_ROOT.resolve():
+        return False
+    project_ref = project_ref_for_building_root(root, repo_root=repo)
+    if project_ref is None:
+        return False
+    vessel_root = repo / buildings_root_for(project_ref).relative_to(_CAPTURE_REPO_ROOT)
+    try:
+        root.resolve().relative_to(vessel_root.resolve())
+    except ValueError:
+        return False
+    return True
+
+
+def _sink_refs_for_building_event_root(
+    sink_refs: Iterable[str],
+    *,
+    repo: Path,
+    root: Path,
+) -> list[str]:
+    refs = [str(ref).strip() for ref in sink_refs if str(ref).strip()]
+    if _building_root_is_real_vessel(repo, root):
+        return refs
+    return [ref for ref in refs if ref not in EXTERNAL_BUILDING_EVENT_SINK_REFS]
+
+
 def _building_report_packet(
     repo: Path,
     building_root: str | Path,
@@ -1235,6 +1287,7 @@ def _building_report_packet(
     # THE single inverse seam (see _resolved_vessel). Explicit refs still win
     # and still fail-close on mismatch; non-vessel roots stay legacy packets.
     project_ref, vessel_segment = _resolved_vessel(repo, root, project_ref)
+    external_delivery_allowed = _building_root_is_real_vessel(repo, root)
     frontier_kind = str(frontier.get("frontier_kind") or "unknown")
     missing_files = tuple(str(item) for item in frontier.get("missing_required_files", ()))
     evidence_refs_present = not missing_files and bool(building_map)
@@ -1259,6 +1312,8 @@ def _building_report_packet(
         "report_kind": report_kind,
         "building_id": building_id,
         "portfolio_id": "",
+        "human_title": _human_title(root, building_id),
+        "external_delivery_allowed": external_delivery_allowed,
         "observed_board_state": _FRONTIER_TO_OBSERVED_STATE.get(frontier_kind, "observed_running"),
         "trigger_event_ref": trigger_event_ref,
         "current_brick_ref": current_brick_ref,
@@ -1461,6 +1516,24 @@ def _current_declared_projection(
     }
 
 
+def _completed_step_kinds(root: Path, building_map: Mapping[str, Any]) -> tuple[str, ...]:
+    plan = _declared_plan_for_building(root, building_map)
+    if not plan:
+        return ()
+    kinds: list[str] = []
+    for edge in _mapping_list(building_map.get("link_edges")):
+        step_ref = str(edge.get("source_step_ref") or "").strip()
+        if not step_ref:
+            step_ref = _step_ref_from_step_output_ref(str(edge.get("step_output_ref") or ""))
+        step = _declared_step_for_step_ref(plan, step_ref)
+        if step is None:
+            continue
+        kind = _step_template_kind(str(step.get("step_template_ref") or ""))
+        if kind:
+            kinds.append(kind)
+    return tuple(kinds)
+
+
 def _declared_plan_for_building(
     root: Path,
     building_map: Mapping[str, Any],
@@ -1567,6 +1640,27 @@ def _agent_lane_for_ref(agent_object_ref: str, repo: Path) -> tuple[str, tuple[s
         if isinstance(lane, str) and lane.strip():
             return lane.strip(), ()
     return "", ("Agent Object lane projection returned no lane",)
+
+
+def _human_title(root: Path, fallback: str) -> str:
+    title_path = root / "work" / "task.md"
+    try:
+        first_line = title_path.read_text(encoding="utf-8").splitlines()[0]
+    except (IndexError, OSError):
+        return fallback
+    title = first_line.strip()
+    while title.startswith("#"):
+        title = title[1:].strip()
+    if title == "Building Task Source Evidence":
+        return fallback
+    return title or fallback
+
+
+def _report_event_mode(value: Any) -> str:
+    mode = str(value or "basic").strip()
+    if mode not in REPORT_EVENT_MODES:
+        raise ValueError(f"unadmitted report event mode: {mode}")
+    return mode
 
 
 def _step_ref_from_step_output_ref(step_output_ref: str) -> str:
