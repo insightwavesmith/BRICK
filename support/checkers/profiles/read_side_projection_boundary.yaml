@@ -13,6 +13,7 @@ kernel_checks:
   - codex_projection_native
   - claude_projection_native
   - install_script_lint
+  - product_no_smith_residue
 path_exists:
   - support/onboarding/install.sh
   - brick/building_plans/fixture-retired-adapter-plan-0.yaml

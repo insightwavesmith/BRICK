@@ -1162,7 +1162,7 @@ brick-protocol-tsk-1-project-seed-package-0521.md
 ```
 
 It records the candidate external starter-kit project boundary after TSK-0.
-TSK-1 does not create `/Users/smith/projects/brick-team-starter-kit/`, starter
+TSK-1 does not create `<starter-kit-checkout>/`, starter
 kit files, templates, prompts, handoff examples, runtime/provider/scheduler/
 sync/dashboard/storage/wiki, or source truth / success judgment / quality
 judgment / Movement authority.
@@ -1175,7 +1175,7 @@ brick-protocol-tsk-2-authoring-pack-0521.md
 ```
 
 It admits the exact external Team Starter Kit wrapper files under
-`/Users/smith/projects/brick-team-starter-kit/`. TSK-2 keeps first real
+`<starter-kit-checkout>/`. TSK-2 keeps first real
 Building evidence, runtime/provider/scheduler/sync/dashboard/storage/wiki,
 source truth / success judgment / quality judgment / Movement authority, and
 new protocol contracts closed.
@@ -1188,7 +1188,7 @@ brick-protocol-tsk-3-first-real-building-0521.md
 ```
 
 It admits the first real starter-kit Building: creating
-`/Users/smith/projects/brick-team-starter-kit/FIRST_USE.md` and project-local
+`<starter-kit-checkout>/FIRST_USE.md` and project-local
 Building evidence under the external starter-kit project. TSK-3 keeps repeated
 self-dogfood, team rollout, runtime/provider/scheduler/sync/dashboard/storage/
 wiki, source truth / success judgment / quality judgment / Movement authority,
@@ -1202,8 +1202,8 @@ brick-protocol-tsk-4-repeated-self-dogfood-0521.md
 ```
 
 It admits repeated starter-kit self-dogfood: creating
-`/Users/smith/projects/brick-team-starter-kit/USE_CASES.md`,
-`/Users/smith/projects/brick-team-starter-kit/FRICTION_LOG.md`, and two
+`<starter-kit-checkout>/USE_CASES.md`,
+`<starter-kit-checkout>/FRICTION_LOG.md`, and two
 project-local Building evidence packets under the external starter-kit project.
 TSK-4 keeps TEAM-0, TEAM-1, DASH-0, runtime/provider/scheduler/sync/dashboard/
 storage/wiki, source truth / success judgment / quality judgment / Movement
@@ -1218,8 +1218,8 @@ brick-protocol-team-0-team-local-trial-0521.md
 ```
 
 It admits local-first team trial guidance and privacy-boundary guidance:
-`/Users/smith/projects/brick-team-starter-kit/TEAM_LOCAL_TRIAL.md`,
-`/Users/smith/projects/brick-team-starter-kit/PRIVACY_BOUNDARY.md`, and two
+`<starter-kit-checkout>/TEAM_LOCAL_TRIAL.md`,
+`<starter-kit-checkout>/PRIVACY_BOUNDARY.md`, and two
 project-local Building evidence packets under the external starter-kit project.
 TEAM-0 keeps TEAM-1, DASH-0, runtime/provider/scheduler/sync/dashboard/storage/
 wiki, source truth / success judgment / quality judgment / Movement authority,
@@ -1235,8 +1235,8 @@ brick-protocol-team-1-multi-local-evidence-projection-0521.md
 ```
 
 It admits claim-trace-first export guidance and multi-local projection guidance:
-`/Users/smith/projects/brick-team-starter-kit/CLAIM_TRACE_EXPORT.md`,
-`/Users/smith/projects/brick-team-starter-kit/MULTI_LOCAL_PROJECTION.md`, and
+`<starter-kit-checkout>/CLAIM_TRACE_EXPORT.md`,
+`<starter-kit-checkout>/MULTI_LOCAL_PROJECTION.md`, and
 two project-local Building evidence packets under the external starter-kit
 project. TEAM-1 keeps DASH-0, runtime/provider/scheduler/sync/dashboard/
 storage/wiki, central storage owner, source truth / success judgment / quality
@@ -1255,8 +1255,8 @@ brick-protocol-dash-0-dashboard-projection-admission-0521.md
 ```
 
 It admits dashboard projection guidance and read-only viewer boundary guidance:
-`/Users/smith/projects/brick-team-starter-kit/DASHBOARD_PROJECTION.md`,
-`/Users/smith/projects/brick-team-starter-kit/VIEWER_BOUNDARY.md`, and two
+`<starter-kit-checkout>/DASHBOARD_PROJECTION.md`,
+`<starter-kit-checkout>/VIEWER_BOUNDARY.md`, and two
 project-local Building evidence packets under the external starter-kit project.
 DASH-0 keeps dashboard application implementation, runtime/provider/scheduler/
 sync/storage/wiki, central storage owner, source truth / success judgment /
