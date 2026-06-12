@@ -238,14 +238,15 @@ REPORTER_NOTIFICATION_PROJECTION0_TARGETS = {
 # EVENT DELTA). The dashboard SINK lives in the already-admitted report_sinks.py
 # (report-sink:dashboard, delta + connect seed). The dashboard RUNTIME (React +
 # SSE server) is the vendored support/dashboard surface admitted ONLY via
-# is_dashboard_surface_path (scoped: that subtree, web-source extensions + the two
-# root config files; node_modules / dist / generated data stay residue-filtered).
+# is_dashboard_surface_path (scoped: that subtree, web-source extensions, root
+# config files, and the deployment doc; node_modules / dist / generated data stay
+# residue-filtered).
 DASHBOARD_EXPORT0_TARGETS = {
     "support/operator/dashboard_export.py",
 }
 DASHBOARD_SURFACE_ROOT = "support/dashboard"
 DASHBOARD_SURFACE_ROOT_FILES = {"Dockerfile", ".dockerignore", ".gcloudignore", ".gitignore"}
-DASHBOARD_SURFACE_FILE_EXTS = (".jsx", ".js", ".mjs", ".css", ".html", ".json")
+DASHBOARD_SURFACE_FILE_EXTS = (".jsx", ".js", ".mjs", ".css", ".html", ".json", ".md")
 
 # ELEGANT-REFACTOR P3c (engine blueprint 0531 §5 / detail-design §D-3 Opt B): the
 # dynamic graph walker god-module's separable concerns were lifted into
@@ -904,8 +905,9 @@ def is_dashboard_surface_path(path: str, *, is_dir: bool) -> bool:
 
     A self-contained React + SSE-server surface under support/dashboard. Its JS
     deps / build output / generated data are residue-filtered (ignored_repo_path),
-    so what remains here is source: dirs plus files with a web-source extension or
-    the two root config files. Owns no crossing, judges nothing, runs no engine.
+    so what remains here is source: dirs plus files with a web-source/doc
+    extension or the root config files. Owns no crossing, judges nothing, runs
+    no engine.
     """
 
     parts = path_tail(path, DASHBOARD_SURFACE_ROOT)

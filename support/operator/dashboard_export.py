@@ -40,6 +40,7 @@ from brick_protocol.support.operator.ledger_projection import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_DASHBOARD_PUBLIC_DATA_PATH = Path("support/dashboard/public/dashboard-data.json")
 STALE_DAYS_DEFAULT = 7
 WRITE_BRICK_KINDS = frozenset({"work"})
 
@@ -365,6 +366,57 @@ def dashboard_export_packet(
     }
 
 
+def _validate_dashboard_bake_packet(packet: Mapping[str, Any]) -> Mapping[str, Any]:
+    """Fail closed before writing the baked static seed file."""
+
+    if not isinstance(packet, Mapping):
+        raise ValueError("dashboard bake packet must be a mapping")
+    if packet.get("source_truth") is not False:
+        raise ValueError("dashboard bake packet source_truth must be false")
+    if not isinstance(packet.get("buildings"), list):
+        raise ValueError("dashboard bake packet must carry a buildings list")
+    return packet
+
+
+def bake_dashboard_data_json(
+    *,
+    repo_root: Path | str = REPO_ROOT,
+    out_path: Path | str | None = None,
+    stale_days: int = STALE_DAYS_DEFAULT,
+) -> dict[str, Any]:
+    """Bake the read-side dashboard seed into support/dashboard/public.
+
+    This is a synchronous support/operator projection verb only. It computes
+    ``dashboard_export_packet`` from already-written evidence and writes the
+    Vite public seed file in one step; it opens no scheduler, queue, retry loop,
+    runtime authority, source-truth surface, or Movement authority.
+    """
+
+    repo = Path(repo_root).resolve()
+    target = Path(out_path) if out_path is not None else repo / DEFAULT_DASHBOARD_PUBLIC_DATA_PATH
+    packet = _validate_dashboard_bake_packet(
+        dashboard_export_packet(repo_root=repo, stale_days=stale_days)
+    )
+    text = json.dumps(packet, ensure_ascii=False, indent=2)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(text + "\n", encoding="utf-8")
+    return {
+        "path": str(target),
+        "source_truth": packet.get("source_truth"),
+        "buildings": len(packet.get("buildings", [])),
+        "generatedAt": packet.get("generatedAt"),
+        "proof_limits": [
+            "support read-side projection only",
+            "writes static dashboard seed only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "not scheduler/queue/retry runtime",
+        ],
+    }
+
+
 def dashboard_building_delta(
     building_id: str,
     *,
@@ -451,6 +503,11 @@ def _main(argv: list[str] | None = None) -> int:
     parser.add_argument("--repo-root", default=str(REPO_ROOT))
     parser.add_argument("--stale-days", type=int, default=STALE_DAYS_DEFAULT)
     parser.add_argument(
+        "--bake-public",
+        action="store_true",
+        help="write support/dashboard/public/dashboard-data.json from dashboard_export_packet",
+    )
+    parser.add_argument(
         "--building-id",
         default="",
         help="if set, emit a single-building delta instead of the full snapshot",
@@ -461,6 +518,18 @@ def _main(argv: list[str] | None = None) -> int:
         help="vessel narrowing for --building-id (required when the id exists in 2+ vessels)",
     )
     args = parser.parse_args(argv)
+    if args.bake_public:
+        observation = bake_dashboard_data_json(
+            repo_root=args.repo_root,
+            out_path=args.out or None,
+            stale_days=args.stale_days,
+        )
+        print(
+            "baked {path} | buildings {buildings} | source_truth {source_truth}".format(
+                **observation
+            )
+        )
+        return 0
     if args.building_id:
         packet = dashboard_building_delta(
             args.building_id,

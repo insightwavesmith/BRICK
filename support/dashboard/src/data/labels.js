@@ -39,8 +39,14 @@ export const TOOL = {
 export const toolKo = (t) => TOOL[t] || t || '—'
 export const canWrite = (t) => t === 'read-write-scoped'
 
-// 움직임(movement) → 한글
-export const MOVEMENT = { forward: '전진', stop: '멈춤', return: '되돌림' }
+// Link Movement → 한글. return/stop은 과거/수명주기 표시용 별칭일 뿐
+// active Movement literal은 forward/reroute이다.
+export const MOVEMENT = {
+  forward: '전진',
+  reroute: '재라우팅',
+  return: '재라우팅(과거 표기)',
+  stop: '멈춤(수명주기)',
+}
 export const movementKo = (m) => MOVEMENT[m] || m || '—'
 
 // 보드 상태(raw) → 한글

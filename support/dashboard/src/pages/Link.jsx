@@ -1,10 +1,13 @@
 import { useDashboard } from '../data/useDashboard.js'
-import { ownerKo } from '../data/labels.js'
+import { movementKo, ownerKo } from '../data/labels.js'
 
 export default function LinkPage() {
   const d = useDashboard()
   if (!d) return <main className="max-w-7xl mx-auto px-6 py-12 text-black/50 font-bold">불러오는 중…</main>
   const mv = d.links?.movement || {}
+  const forwardCount = mv.forward || 0
+  const rerouteCount = (mv.reroute || 0) + (mv.return || 0)
+  const lifecycleStopCount = mv.stop || 0
   const fan = d.links?.fan || {}
   const disp = d.links?.dispositions || {}
   const dispEntries = Object.entries(disp)
@@ -26,20 +29,20 @@ export default function LinkPage() {
           <div>
             <div className="flex items-center space-x-3 mb-4">
               <span className="material-symbols-outlined text-3xl text-black">fact_check</span>
-              <h2 className="font-headline font-extrabold text-2xl tracking-tight">충분성 (Sufficiency)</h2>
+              <h2 className="font-headline font-extrabold text-2xl tracking-tight">게이트 충분성</h2>
             </div>
             <div className="space-y-4 font-body">
-              <p className="text-gray-700">다음 단계로 넘기기 전, 필요한 사실(증거)이 모두 모였는지 검증합니다. 부족하면 전진 대신 멈춤으로 갑니다.</p>
+              <p className="text-gray-700">다음 브릭으로 넘기기 전, 필요한 공개 사실이 모였는지 관찰합니다. 부족하면 전진하지 않고 보류 상태로 남습니다.</p>
               <div className="p-4 bg-gray-50 border-2 border-black border-dashed text-sm">
                 <span className="font-bold block mb-1">집계 위치</span>
-                멈춤 여부는 아래 ‘움직임’에 함께 집계됩니다(이 스냅샷엔 충분성 단독 카운터 없음).
+                이 스냅샷에는 GateFact 단독 카운터가 없고, 보류는 빌딩 상태 집계에서 봅니다.
               </div>
             </div>
           </div>
           <div className="mt-6 pt-6 border-t-2 border-black flex justify-between items-end">
             <div className="font-headline font-bold">
-              <span className="text-gray-600 block text-sm">멈춤(전진 보류)</span>
-              <span className="text-3xl text-crimson">{mv.stop || 0}<span className="text-lg">건</span></span>
+              <span className="text-gray-600 block text-sm">수명주기 멈춤 표기</span>
+              <span className="text-3xl text-crimson">{lifecycleStopCount}<span className="text-lg">건</span></span>
             </div>
             <p className="text-gray-400 text-xs font-medium uppercase tracking-wider text-right self-end">설정 · 차후 지원</p>
           </div>
@@ -50,28 +53,28 @@ export default function LinkPage() {
           <div>
             <div className="flex items-center space-x-3 mb-4">
               <span className="material-symbols-outlined text-3xl text-black">arrow_forward</span>
-              <h2 className="font-headline font-extrabold text-2xl tracking-tight">움직임 (Movement)</h2>
+              <h2 className="font-headline font-extrabold text-2xl tracking-tight">링크 이동</h2>
             </div>
             <div className="space-y-4 font-body">
-              <p className="text-gray-700">각 빌딩의 가장 최근 링크 판정입니다. 전진 · 되돌림 · 멈춤 셋 중 하나입니다.</p>
+              <p className="text-gray-700">각 빌딩의 가장 최근 Link Movement 관찰값입니다. active literal은 전진과 재라우팅입니다.</p>
               <div className="p-4 bg-gray-50 border-2 border-black border-dashed text-sm">
-                <span className="font-bold block mb-1">로직</span>사전에 정의된 경로 규칙에 따라 브릭을 전송하거나 멈춥니다.
+                <span className="font-bold block mb-1">로직</span>선언된 경로 규칙에 따라 브릭 사이 이동만 관찰합니다.
               </div>
             </div>
           </div>
           <div className="mt-6 pt-6 border-t-2 border-black">
             <div className="flex justify-between items-end space-x-2">
               <div className="font-headline font-bold flex-1">
-                <span className="text-gray-600 block text-sm">전진</span>
-                <span className="text-2xl md:text-3xl text-black">{mv.forward || 0}<span className="text-sm md:text-lg">건</span></span>
+                <span className="text-gray-600 block text-sm">{movementKo('forward')}</span>
+                <span className="text-2xl md:text-3xl text-black">{forwardCount}<span className="text-sm md:text-lg">건</span></span>
               </div>
               <div className="font-headline font-bold flex-1 text-center">
-                <span className="text-gray-600 block text-sm">되돌림</span>
-                <span className="text-2xl md:text-3xl text-black">{mv.return || 0}<span className="text-sm md:text-lg">건</span></span>
+                <span className="text-gray-600 block text-sm">{movementKo('reroute')}</span>
+                <span className="text-2xl md:text-3xl text-black">{rerouteCount}<span className="text-sm md:text-lg">건</span></span>
               </div>
               <div className="font-headline font-bold flex-1 text-right">
-                <span className="text-crimson block text-sm">멈춤</span>
-                <span className="text-2xl md:text-3xl text-crimson">{mv.stop || 0}<span className="text-sm md:text-lg">건</span></span>
+                <span className="text-crimson block text-sm">{movementKo('stop')}</span>
+                <span className="text-2xl md:text-3xl text-crimson">{lifecycleStopCount}<span className="text-sm md:text-lg">건</span></span>
               </div>
             </div>
           </div>
@@ -82,7 +85,7 @@ export default function LinkPage() {
           <div>
             <div className="flex items-center space-x-3 mb-4">
               <span className="material-symbols-outlined text-3xl text-black">merge_type</span>
-              <h2 className="font-headline font-extrabold text-2xl tracking-tight">합류 (Fan-in)</h2>
+              <h2 className="font-headline font-extrabold text-2xl tracking-tight">합류</h2>
             </div>
             <div className="space-y-4 font-body">
               <p className="text-gray-700">여러 갈래(병렬)의 브릭이 모두 도착해야 다음 단계가 열립니다. 분기(fan-out)로 갈라진 뒤 한 점으로 모입니다.</p>
@@ -108,7 +111,7 @@ export default function LinkPage() {
           <div>
             <div className="flex items-center space-x-3 mb-4">
               <span className="material-symbols-outlined text-3xl text-black">front_hand</span>
-              <h2 className="font-headline font-extrabold text-2xl tracking-tight">보류 (HOLD)</h2>
+              <h2 className="font-headline font-extrabold text-2xl tracking-tight">보류</h2>
             </div>
             <div className="space-y-4 font-body">
               <p className="text-gray-700">운영자 또는 호출자의 최종 처분이 내려질 때까지 넘김을 보관합니다.</p>

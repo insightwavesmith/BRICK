@@ -3,7 +3,7 @@
 //   2) POST /ingest  — 발행 측이 seed/delta(또는 legacy full) 밀어넣음 (공유 시크릿 인증)
 //   3) GET  /events  — SSE. 연결 즉시 참가자별 seed + 이후 seed/delta 푸시
 // 참가자별로 보관(다인용). 빌딩 델타는 그 참가자 packet 의 buildings 만 교체(집계는 클라가 재계산).
-// 원본(진실)은 로컬 엔진. 이 서버는 "받아서 비추는" 거울일 뿐.
+// 원본은 repo ledger / Building evidence. 이 서버는 받아서 비추는 projection일 뿐.
 import http from 'node:http'
 import { stat, readFile } from 'node:fs/promises'
 import { createReadStream } from 'node:fs'
@@ -11,7 +11,10 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const PORT = process.env.PORT || 8080
-const INGEST_SECRET = process.env.INGEST_SECRET || 'dev-secret'
+const RAW_INGEST_SECRET = process.env.INGEST_SECRET
+const NORMALIZED_INGEST_SECRET = RAW_INGEST_SECRET && RAW_INGEST_SECRET.trim()
+const INGEST_SECRET = NORMALIZED_INGEST_SECRET || 'dev-secret'
+const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 const DIST = process.env.DIST_DIR || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist')
 
 const participants = {} // ref -> { ref, label, packet }
@@ -31,6 +34,10 @@ function sseFrame(event, jsonStr) {
 function broadcast(event, jsonStr) {
   const frame = sseFrame(event, jsonStr)
   for (const res of clients) { try { res.write(frame) } catch { /* 끊김 무시 */ } }
+}
+
+function ingestRefusesInProduction() {
+  return IS_PRODUCTION && (!NORMALIZED_INGEST_SECRET || NORMALIZED_INGEST_SECRET === 'dev-secret')
 }
 
 // 빌딩 델타 1건을 packet 에 병합 (집계는 안 건드림 — 클라가 재계산)
@@ -98,6 +105,10 @@ const server = http.createServer(async (req, res) => {
 
   // 발행 측 → seed / delta / legacy-full 수신
   if (url === '/ingest' && req.method === 'POST') {
+    if (ingestRefusesInProduction()) {
+      res.writeHead(503).end('ingest disabled: set INGEST_SECRET')
+      return
+    }
     if (req.headers['x-ingest-secret'] !== INGEST_SECRET) { res.writeHead(401).end('unauthorized'); return }
     try {
       const body = await readBody(req)
@@ -164,5 +175,6 @@ try {
 }
 
 server.listen(PORT, () => {
-  console.log(`[surface-server] :${PORT} (secret ${INGEST_SECRET === 'dev-secret' ? 'DEV' : 'set'})`)
+  const ingestMode = ingestRefusesInProduction() ? 'disabled' : INGEST_SECRET === 'dev-secret' ? 'dev' : 'configured'
+  console.log(`[surface-server] :${PORT} (ingest ${ingestMode})`)
 })

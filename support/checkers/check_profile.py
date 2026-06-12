@@ -131,6 +131,7 @@ from support.checkers.lib.kernel_checks import (
     run_codex_projection_native,
     run_claude_projection_native,
     run_agent_session_id_redaction,
+    run_dashboard_productization_projection,
 )
 
 
@@ -177,6 +178,7 @@ KERNEL_CHECK_IDS = {
     "evidence_spine_projection",
     "pin_estate_integrity",
     "agent_session_id_redaction",
+    "dashboard_productization_projection",
 }
 RULE_KEYS = {
     "path_exists",
@@ -501,6 +503,12 @@ def run_kernel_check(repo: Path, check_id: str) -> KernelResult:
         # from merely text-pinning the presence of probe functions while never
         # observing that authority-leaking packets and unadmitted sinks reject.
         return run_reporter_notification_projection(repo)
+    if check_id == "dashboard_productization_projection":
+        # Executes the dashboard productization guard IN-PROCESS: production
+        # /ingest fail-closed static lint with mutated-copy FIRE, deploy literal
+        # hygiene with synthetic hardcoded project/URL probes, and the synchronous
+        # bake verb round-trip with a source_truth mutation RED case.
+        return run_dashboard_productization_projection(repo)
     if check_id == "chat_session_park_seam":
         # Executes the chat-session S1 PARK seam IN-PROCESS over a temp project
         # Building root: declared adapter:chat-session must write a closed
