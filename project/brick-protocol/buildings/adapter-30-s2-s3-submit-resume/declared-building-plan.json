@@ -1,0 +1,522 @@
+{
+  "brick_steps": [
+    {
+      "completion_edge_ref": "edge:adapter-30-s2-s3-submit-resume-design-to-adapter-30-s2-s3-submit-resume-work",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-adapter-30-s2-s3-submit-resume-design",
+          "brick_work_ref": "work:adapter-30-s2-s3-submit-resume-design",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence,design_summary,relevant_current_structure,proposed_changes,unchanged_surfaces,axis_responsibility,invariants,edge_cases,checker_or_verifier_plan,candidate_file_changes,evidence_refs,not_proven",
+          "row_ref": "brick-row:adapter-30-s2-s3-submit-resume-design",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "design Brick for task-source:inline-statement: Complete the chat-session adapter's engine surface. S1 (park) is DONE and committed: a chat-session step records a closed work envelope (work/step-outputs/<step>/work-envelope.json) + a distinct park record (parked.json) + raw/chat-session-"
+        },
+        {
+          "agent_object_ref": "agent-object:design-lead",
+          "axis": "Agent",
+          "row_ref": "agent-row:adapter-30-s2-s3-submit-resume-design"
+        }
+      ],
+      "step_ref": "adapter-30-s2-s3-submit-resume-design",
+      "step_template_ref": "building-step-template:design"
+    },
+    {
+      "completion_edge_ref": "edge:adapter-30-s2-s3-submit-resume-work-to-adapter-30-s2-s3-submit-resume-code-attack-qa",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-adapter-30-s2-s3-submit-resume-work",
+          "brick_work_ref": "work:adapter-30-s2-s3-submit-resume-work",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "made_changes, observed_evidence, not_proven",
+          "requires_brick_write_scope": true,
+          "row_ref": "brick-row:adapter-30-s2-s3-submit-resume-work",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "work Brick for task-source:inline-statement: Complete the chat-session adapter's engine surface. S1 (park) is DONE and committed: a chat-session step records a closed work envelope (work/step-outputs/<step>/work-envelope.json) + a distinct park record (parked.json) + raw/chat-session-",
+          "write_scope": {
+            "allowed_paths": [
+              "support/*",
+              "brick/building_plans/*"
+            ],
+            "forbidden_paths": [
+              "link/*",
+              "agent/*",
+              "project/*",
+              ".git/*",
+              "brick/templates/*",
+              "brick/building.py",
+              "brick/building.yaml",
+              "brick/work.py",
+              "brick/work.yaml",
+              "brick/comparison.py",
+              "brick/comparison.yaml",
+              "AGENTS.md",
+              "pyproject.toml",
+              "uv.lock"
+            ]
+          }
+        },
+        {
+          "agent_object_ref": "agent-object:dev",
+          "axis": "Agent",
+          "row_ref": "agent-row:adapter-30-s2-s3-submit-resume-work"
+        }
+      ],
+      "step_ref": "adapter-30-s2-s3-submit-resume-work",
+      "step_template_ref": "building-step-template:work"
+    },
+    {
+      "completion_edge_ref": "edge:adapter-30-s2-s3-submit-resume-code-attack-qa-to-adapter-30-s2-s3-submit-resume-closure",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-adapter-30-s2-s3-submit-resume-code-attack-qa",
+          "brick_work_ref": "work:adapter-30-s2-s3-submit-resume-code-attack-qa",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, evidence_used, not_proven",
+          "row_ref": "brick-row:adapter-30-s2-s3-submit-resume-code-attack-qa",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "code_attack_qa Brick for task-source:inline-statement: Complete the chat-session adapter's engine surface. S1 (park) is DONE and committed: a chat-session step records a closed work envelope (work/step-outputs/<step>/work-envelope.json) + a distinct park record (parked.json) + raw/chat-session-"
+        },
+        {
+          "agent_object_ref": "agent-object:qa",
+          "axis": "Agent",
+          "row_ref": "agent-row:adapter-30-s2-s3-submit-resume-code-attack-qa"
+        }
+      ],
+      "step_ref": "adapter-30-s2-s3-submit-resume-code-attack-qa",
+      "step_template_ref": "building-step-template:code-attack-qa"
+    },
+    {
+      "completion_edge_ref": "edge:adapter-30-s2-s3-submit-resume-axis-attack-qa-to-adapter-30-s2-s3-submit-resume-closure",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-adapter-30-s2-s3-submit-resume-axis-attack-qa",
+          "brick_work_ref": "work:adapter-30-s2-s3-submit-resume-axis-attack-qa",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence, attacked_scope, brick_axis_findings, agent_axis_findings, link_axis_findings, support_leak_findings, projection_authority_findings, evidence_used, not_proven",
+          "row_ref": "brick-row:adapter-30-s2-s3-submit-resume-axis-attack-qa",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "axis_attack_qa Brick for task-source:inline-statement: Complete the chat-session adapter's engine surface. S1 (park) is DONE and committed: a chat-session step records a closed work envelope (work/step-outputs/<step>/work-envelope.json) + a distinct park record (parked.json) + raw/chat-session-"
+        },
+        {
+          "agent_object_ref": "agent-object:inspector",
+          "axis": "Agent",
+          "row_ref": "agent-row:adapter-30-s2-s3-submit-resume-axis-attack-qa"
+        }
+      ],
+      "step_ref": "adapter-30-s2-s3-submit-resume-axis-attack-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa"
+    },
+    {
+      "completion_edge_ref": "edge:adapter-30-s2-s3-submit-resume-evidence-integrity-to-adapter-30-s2-s3-submit-resume-closure",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-adapter-30-s2-s3-submit-resume-evidence-integrity",
+          "brick_work_ref": "work:adapter-30-s2-s3-submit-resume-evidence-integrity",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence, evidence_scope, persisted_evidence_roots, proof_limit_findings, stale_source_risks, checker_overclaim_risks, missing_evidence, evidence_used, not_proven",
+          "row_ref": "brick-row:adapter-30-s2-s3-submit-resume-evidence-integrity",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "evidence_integrity Brick for task-source:inline-statement: Complete the chat-session adapter's engine surface. S1 (park) is DONE and committed: a chat-session step records a closed work envelope (work/step-outputs/<step>/work-envelope.json) + a distinct park record (parked.json) + raw/chat-session-"
+        },
+        {
+          "agent_object_ref": "agent-object:inspector",
+          "axis": "Agent",
+          "row_ref": "agent-row:adapter-30-s2-s3-submit-resume-evidence-integrity"
+        }
+      ],
+      "step_ref": "adapter-30-s2-s3-submit-resume-evidence-integrity",
+      "step_template_ref": "building-step-template:evidence-integrity"
+    },
+    {
+      "completion_edge_ref": "edge:adapter-30-s2-s3-submit-resume-closure-to-boundary",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-adapter-30-s2-s3-submit-resume-closure",
+          "brick_work_ref": "work:adapter-30-s2-s3-submit-resume-closure",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence",
+          "row_ref": "brick-row:adapter-30-s2-s3-submit-resume-closure",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "closure Brick for task-source:inline-statement: Complete the chat-session adapter's engine surface. S1 (park) is DONE and committed: a chat-session step records a closed work envelope (work/step-outputs/<step>/work-envelope.json) + a distinct park record (parked.json) + raw/chat-session-"
+        },
+        {
+          "agent_object_ref": "agent-object:coo",
+          "axis": "Agent",
+          "row_ref": "agent-row:adapter-30-s2-s3-submit-resume-closure"
+        }
+      ],
+      "step_ref": "adapter-30-s2-s3-submit-resume-closure",
+      "step_template_ref": "building-step-template:closure"
+    }
+  ],
+  "building_id": "adapter-30-s2-s3-submit-resume",
+  "chain_preset_ref": "building-chain-preset:brick-protocol-engine-feature-hard",
+  "composition_mode": "caller_or_coo_declared_graph_composition",
+  "declared_by": "caller-claude-operator",
+  "execution_order": [
+    "adapter-30-s2-s3-submit-resume-design",
+    "adapter-30-s2-s3-submit-resume-work",
+    "adapter-30-s2-s3-submit-resume-code-attack-qa",
+    "adapter-30-s2-s3-submit-resume-axis-attack-qa",
+    "adapter-30-s2-s3-submit-resume-evidence-integrity",
+    "adapter-30-s2-s3-submit-resume-closure"
+  ],
+  "groups": [
+    {
+      "group_id": "group:adapter-30-s2-s3-submit-resume-fan-out",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:adapter-30-s2-s3-submit-resume-work-to-adapter-30-s2-s3-submit-resume-code-attack-qa",
+        "edge:adapter-30-s2-s3-submit-resume-work-to-adapter-30-s2-s3-submit-resume-axis-attack-qa",
+        "edge:adapter-30-s2-s3-submit-resume-work-to-adapter-30-s2-s3-submit-resume-evidence-integrity"
+      ]
+    },
+    {
+      "group_id": "group:adapter-30-s2-s3-submit-resume-fan-in",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:adapter-30-s2-s3-submit-resume-code-attack-qa-to-adapter-30-s2-s3-submit-resume-closure",
+        "edge:adapter-30-s2-s3-submit-resume-axis-attack-qa-to-adapter-30-s2-s3-submit-resume-closure",
+        "edge:adapter-30-s2-s3-submit-resume-evidence-integrity-to-adapter-30-s2-s3-submit-resume-closure"
+      ]
+    }
+  ],
+  "link_edges": [
+    {
+      "edge_ref": "edge:adapter-30-s2-s3-submit-resume-design-to-adapter-30-s2-s3-submit-resume-work",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition",
+            "link-gate:coo"
+          ],
+          "gate_sequence_policy": [
+            {
+              "gate_ref": "link-gate:default-transition",
+              "on_missing_required_facts": {
+                "action": "reroute",
+                "reason_refs": [
+                  "observation:default-transition-missing-required-facts"
+                ],
+                "required_target_budget": true,
+                "target_basis": "source_brick"
+              },
+              "on_sufficient": {
+                "action": "next",
+                "next_gate_ref": "link-gate:coo"
+              }
+            },
+            {
+              "gate_ref": "link-gate:coo",
+              "on_missing_required_facts": {
+                "action": "HOLD",
+                "pending_target_basis": "target_brick",
+                "reason_refs": [
+                  "observation:coo-gate-missing-required-facts"
+                ],
+                "required_disposition_owner": "coo"
+              },
+              "on_sufficient": {
+                "action": "forward"
+              }
+            }
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:adapter-30-s2-s3-submit-resume-design-to-adapter-30-s2-s3-submit-resume-work",
+          "target_ref": "brick-adapter-30-s2-s3-submit-resume-work"
+        }
+      ],
+      "source_step_ref": "adapter-30-s2-s3-submit-resume-design",
+      "target_step_ref": "adapter-30-s2-s3-submit-resume-work"
+    },
+    {
+      "edge_ref": "edge:adapter-30-s2-s3-submit-resume-work-to-adapter-30-s2-s3-submit-resume-code-attack-qa",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition"
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:adapter-30-s2-s3-submit-resume-work-to-adapter-30-s2-s3-submit-resume-code-attack-qa",
+          "target_ref": "brick-adapter-30-s2-s3-submit-resume-code-attack-qa"
+        }
+      ],
+      "source_step_ref": "adapter-30-s2-s3-submit-resume-work",
+      "target_step_ref": "adapter-30-s2-s3-submit-resume-code-attack-qa"
+    },
+    {
+      "edge_ref": "edge:adapter-30-s2-s3-submit-resume-work-to-adapter-30-s2-s3-submit-resume-axis-attack-qa",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition"
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:adapter-30-s2-s3-submit-resume-work-to-adapter-30-s2-s3-submit-resume-axis-attack-qa",
+          "target_ref": "brick-adapter-30-s2-s3-submit-resume-axis-attack-qa"
+        }
+      ],
+      "source_step_ref": "adapter-30-s2-s3-submit-resume-work",
+      "target_step_ref": "adapter-30-s2-s3-submit-resume-axis-attack-qa"
+    },
+    {
+      "edge_ref": "edge:adapter-30-s2-s3-submit-resume-work-to-adapter-30-s2-s3-submit-resume-evidence-integrity",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition"
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:adapter-30-s2-s3-submit-resume-work-to-adapter-30-s2-s3-submit-resume-evidence-integrity",
+          "target_ref": "brick-adapter-30-s2-s3-submit-resume-evidence-integrity"
+        }
+      ],
+      "source_step_ref": "adapter-30-s2-s3-submit-resume-work",
+      "target_step_ref": "adapter-30-s2-s3-submit-resume-evidence-integrity"
+    },
+    {
+      "edge_ref": "edge:adapter-30-s2-s3-submit-resume-code-attack-qa-to-adapter-30-s2-s3-submit-resume-closure",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition",
+            "link-gate:strict"
+          ],
+          "gate_concept_provenance": {
+            "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+            "tokens": [
+              "strict-evidence"
+            ]
+          },
+          "movement": "forward",
+          "row_ref": "link-row:edge:adapter-30-s2-s3-submit-resume-code-attack-qa-to-adapter-30-s2-s3-submit-resume-closure",
+          "target_ref": "brick-adapter-30-s2-s3-submit-resume-closure"
+        }
+      ],
+      "source_step_ref": "adapter-30-s2-s3-submit-resume-code-attack-qa",
+      "target_step_ref": "adapter-30-s2-s3-submit-resume-closure"
+    },
+    {
+      "edge_ref": "edge:adapter-30-s2-s3-submit-resume-axis-attack-qa-to-adapter-30-s2-s3-submit-resume-closure",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition",
+            "link-gate:strict"
+          ],
+          "gate_concept_provenance": {
+            "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+            "tokens": [
+              "strict-evidence"
+            ]
+          },
+          "movement": "forward",
+          "row_ref": "link-row:edge:adapter-30-s2-s3-submit-resume-axis-attack-qa-to-adapter-30-s2-s3-submit-resume-closure",
+          "target_ref": "brick-adapter-30-s2-s3-submit-resume-closure"
+        }
+      ],
+      "source_step_ref": "adapter-30-s2-s3-submit-resume-axis-attack-qa",
+      "target_step_ref": "adapter-30-s2-s3-submit-resume-closure"
+    },
+    {
+      "edge_ref": "edge:adapter-30-s2-s3-submit-resume-evidence-integrity-to-adapter-30-s2-s3-submit-resume-closure",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition",
+            "link-gate:strict"
+          ],
+          "gate_concept_provenance": {
+            "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+            "tokens": [
+              "strict-evidence"
+            ]
+          },
+          "movement": "forward",
+          "row_ref": "link-row:edge:adapter-30-s2-s3-submit-resume-evidence-integrity-to-adapter-30-s2-s3-submit-resume-closure",
+          "target_ref": "brick-adapter-30-s2-s3-submit-resume-closure"
+        }
+      ],
+      "source_step_ref": "adapter-30-s2-s3-submit-resume-evidence-integrity",
+      "target_step_ref": "adapter-30-s2-s3-submit-resume-closure"
+    },
+    {
+      "edge_ref": "edge:adapter-30-s2-s3-submit-resume-closure-to-boundary",
+      "rows": [
+        {
+          "axis": "Link",
+          "building_lifecycle": {
+            "reason": "declared closure boundary for adapter-30-s2-s3-submit-resume",
+            "state": "closed"
+          },
+          "declared_gate_refs": [
+            "link-gate:default-transition",
+            "link-gate:coo",
+            "link-gate:human"
+          ],
+          "gate_concept_provenance": {
+            "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+            "tokens": [
+              "coo-review",
+              "human-review"
+            ]
+          },
+          "gate_sequence_policy": [
+            {
+              "gate_ref": "link-gate:human",
+              "on_missing_required_facts": {
+                "action": "hold",
+                "pending_target_basis": "source_brick",
+                "reason_refs": [
+                  "observation:human-gate-disposition-missing"
+                ],
+                "required_disposition_owner": "caller-or-coo"
+              },
+              "on_sufficient": {
+                "action": "forward"
+              }
+            }
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:adapter-30-s2-s3-submit-resume-closure-to-boundary",
+          "target_ref": "building-boundary:adapter-30-s2-s3-submit-resume-closed"
+        }
+      ],
+      "source_step_ref": "adapter-30-s2-s3-submit-resume-closure"
+    }
+  ],
+  "materialization_rule": "caller_or_coo_declared_task_source_plus_graph_chain_preset",
+  "node_reroute_budgets": {
+    "brick-adapter-30-s2-s3-submit-resume-design": 1,
+    "brick-adapter-30-s2-s3-submit-resume-work": 3
+  },
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality"
+  ],
+  "owner_axis": "Brick",
+  "plan_ref": "building-plan:adapter-30-s2-s3-submit-resume",
+  "plan_shape": "graph",
+  "preset_expansion": {
+    "agent_object_refs": [
+      "agent-object:design-lead",
+      "agent-object:dev",
+      "agent-object:qa",
+      "agent-object:inspector",
+      "agent-object:inspector",
+      "agent-object:coo"
+    ],
+    "canonical_chain_preset_ref": "building-chain-preset:brick-protocol-engine-feature-hard",
+    "chain_preset_ref": "building-chain-preset:brick-protocol-engine-feature-hard",
+    "chain_preset_requires_graph": true,
+    "expanded_brick_spec_refs": [
+      "brick/templates/bricks/design/brick.md",
+      "brick/templates/bricks/work/brick.md",
+      "brick/templates/bricks/code-attack-qa/brick.md",
+      "brick/templates/bricks/axis-attack-qa/brick.md",
+      "brick/templates/bricks/evidence-integrity/brick.md",
+      "brick/templates/bricks/closure/brick.md"
+    ],
+    "expanded_brick_template_refs": [
+      "brick/templates/bricks/design/return.yaml",
+      "brick/templates/bricks/transition-concern-return.yaml",
+      "brick/templates/bricks/work/return.yaml",
+      "brick/templates/bricks/code-attack-qa/return.yaml",
+      "brick/templates/bricks/axis-attack-qa/return.yaml",
+      "brick/templates/bricks/evidence-integrity/return.yaml",
+      "brick/templates/bricks/closure/return.yaml"
+    ],
+    "expanded_step_template_refs": [
+      "building-step-template:design",
+      "building-step-template:work",
+      "building-step-template:code-attack-qa",
+      "building-step-template:axis-attack-qa",
+      "building-step-template:evidence-integrity",
+      "building-step-template:closure"
+    ],
+    "not_proven": [
+      "semantic fitness of selected shape",
+      "selected preset ref was not declared unless separately present"
+    ],
+    "proof_limits": [
+      "support records caller / COO declared graph composition only",
+      "not automatic preset selection",
+      "not automatic shape selection",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "selected_shape_ref": "building-shape:design-needed",
+    "selection_rule": "caller_or_coo_declared_only"
+  },
+  "project_ref": "project:brick-protocol",
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "route_policy_provenance": {
+    "allowed_provenance": [
+      "per-building",
+      "preset-default"
+    ],
+    "by_node": {
+      "adapter-30-s2-s3-submit-resume-closure": {
+        "closure_transition_target_policy": "preset-default"
+      },
+      "adapter-30-s2-s3-submit-resume-design": {
+        "node_reroute_budget": "per-building"
+      },
+      "adapter-30-s2-s3-submit-resume-work": {
+        "node_reroute_budget": "per-building"
+      }
+    },
+    "rule": "route reroute budget + closure routing policy are HUMAN Movement decisions; support records but never synthesizes them (provenance is preset-default for a reusable preset default or per-building for a per-Building override, NEVER support)"
+  },
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:default",
+  "selected_shape_ref": "building-shape:design-needed",
+  "selection_rule": "caller_or_coo_declared_only",
+  "task_source_hash": "dd9a59090652641acba85a69262ad4937774ac0a587692e1a90b119631d7f7f6",
+  "task_source_hash_algorithm": "sha256",
+  "task_source_hash_basis": "utf-8 inline task_statement body at materialization time",
+  "task_source_ref": "task-source:inline-statement",
+  "task_statement": "# Chat-session adapter S2 SUBMIT + S3 RESUME \u2014 the remaining engine seams (adapter #30, seams 2-3 of 3)\n\n## Objective\nComplete the chat-session adapter's engine surface. S1 (park) is DONE and committed: a chat-session step records a closed work envelope (work/step-outputs/<step>/work-envelope.json) + a distinct park record (parked.json) + raw/chat-session-park.jsonl + an addressable hold row, observes chat_session_parked, and stops fails-closed. This building adds: S2 \u2014 a live session CLAIMS the parked envelope atomically and SUBMITS its work as a passive file; S3 \u2014 the engine RESUMES a parked building when (and only when) a valid claim + submission exist, replays completed steps from record, consumes the submission as the step's return through uncompromising door validation, and walks on with gates computed at re-entry. After this building, a real chat session can be a formal performer end-to-end (dogfood-ready).\n\n## Context you need (all real, verify in repo)\n- S1 surfaces: support/connection/agent_adapter.py (adapter:chat-session, typed park), support/recording/chat_session_park.py + adapter_error_frontier.py (park evidence writers), walker_kernel/walker_frontier (dynamic park), run.py (linear park + parked-resume early reject: 'parked building resume is the S2/S3 submit/claim surface'). That early reject is the exact seam S3 replaces with a real admission branch.\n- Resume machinery: support/operator/walker_resume.py (_read_disposition_row, hold identity matching, replay from recorded step outputs).\n- Session-leak law: UUID/ULID-shaped text is rejected before evidence writes (adapter_error_frontier._reject_session_like_text, lifecycle checker session-identifier scans). Claude session ids are UUIDs \u2014 they must never enter the ledger.\n- RETURNED_FORBIDDEN_KEYS discipline: the workflow importer's envelope-tolerant boundary is HARNESS-TRANSPORT-ONLY; a session's direct submission gets NO tolerance \u2014 forbidden keys are rejected verbatim, never laundered/stripped.\n\n## S2 deliverables \u2014 claim and submit\n1. **Atomic exclusive claim**: a claim verb/surface (operator-callable function, no CLI/server) that claims a parked step's envelope using an ATOMIC filesystem primitive (O_EXCL create or atomic rename). Second claimant -> loud reject naming the existing claim. The claim writes a ledger-visible fact: \"lane claimed envelope with token T\".\n2. **Word-form claim token**: the claim mints a token made of WORDS (e.g. hyphenated word tuples) \u2014 explicitly NOT UUID/ULID-shaped (the leak guards must never fire on our own tokens). The token is the submission's admission key.\n3. **Submission = passive file write**: the session writes its returned payload + the claim token into the claimed slot (a declared path shape next to the envelope). Submitting triggers NO engine action \u2014 no walking, no gate computation, nothing. (Gate-forgery impossibility is structural: computation happens only at S3 re-entry.)\n4. **Claim release = human disposition only**: no timers, no expiry. An operator/COO disposition can invalidate a claim loudly (recorded), freeing the slot.\n\n## S3 deliverables \u2014 resume\n5. **New resume admission branch for parked buildings**: resume authority = (claimed envelope + submission carrying the MATCHING token). Replace the current early reject with this branch; a parked building WITHOUT a valid claim+submission still fails closed with the current explicit reason.\n6. **Door validation at re-entry, before any evidence write**: the submission must satisfy the closed return discipline \u2014 RETURNED_FORBIDDEN_KEYS verbatim reject (no tolerance, no laundering), UUID/ULID-shaped token reject, required return shape of the parked Brick honored, claim-token match. Any violation -> loud reject, building stays parked, nothing written to evidence except (optionally) a support observation of the rejected attempt.\n7. **Full replay walk**: completed steps replay from recorded step outputs (never re-invoke providers); the parked step consumes the validated submission as its agent return; the walk continues LIVE from the next step with gates computed through the existing completion seams.\n8. **Graph-plan law**: a plan containing a chat-session step MUST be a graph plan \u2014 enforce fail-closed at plan admission/validation (a linear plan with a chat-session adapter -> loud reject; linear replay would re-invoke completed providers, which is forbidden).\n\n## Checker pins + FIRE (each demonstrated RED on a mutated/negative case)\n- Claim atomicity: two concurrent claims -> exactly one wins, second loudly rejected; removing the atomic guard -> RED.\n- Token form: a minted token matching UUID/ULID shapes -> RED (self-test the minter).\n- Door: submission carrying a forbidden key ('status','success','result',...) -> rejected VERBATIM (assert the rejected payload is unmodified \u2014 laundering = RED); submission containing a UUID-shaped string -> rejected BEFORE evidence write; token mismatch/absent -> rejected.\n- Resume admission: parked + no claim -> fail closed; claim + no submission -> fail closed; valid claim+submission -> resumes and the walk's next step runs.\n- Graph law: linear plan + chat-session step -> rejected at admission.\n- Path admission: any new file shapes (claim record, submission slot) admitted in BOTH path checkers; omission from either -> RED.\n- Full gate: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all -> exit 0 (temp source copy acceptable for tempdir-blocked sandboxes \u2014 report which you ran and the real code).\n\n## Proof required (run, report honestly \u2014 claims only from execution)\nEND-TO-END TEMP DRIVE (the centerpiece): in a temp output_root, declare a graph building with a chat-session step (agent-object:dev declares the capability) -> S1 parks -> CLAIM it (show the token and the ledger fact) -> second claim attempt loudly rejected -> SUBMIT a valid payload with the token -> RESUME -> completed steps replay from record, the chat step's return is the submission, the walk continues and gates compute -> building proceeds/closes. Then the negative drives listed above. Report each with the actual command/probe output.\n\n## Hard constraints (law)\n- No scheduler / queue / retry / timer / polling. Everything is operator- or session-initiated, synchronous, fails-closed.\n- Link closed vocabulary untouched; no link/ edits; no new Movement/state literals; park/claim/submit live in support records + derived observations.\n- Submission can NEVER trigger engine computation; gates compute only at re-entry.\n- No credential/session text in any record; word-form tokens only.\n- Append-only history; no pin weakening; project/ untouched.\n- This building carries a work reroute budget of 3: if attack-QA finds defects, expect in-building repair rounds \u2014 honest partial returns with exact gaps beat green-looking claims.\n\n## Desired Output\nWorking S2+S3 (claim/submit/resume) with the end-to-end temp drive transcript, all negative drives, FIRE results, and the full-gate exit code \u2014 each from actual execution.\n"
+}

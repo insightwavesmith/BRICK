@@ -809,6 +809,30 @@ class ResumeSeed:
     disposition_row_provenance: Mapping[str, Any] = dataclasses.field(
         default_factory=dict
     )
+    # Chat-session S2/S3 uses the same replay machinery to consume a validated
+    # passive submission at the parked step, but that authority is the
+    # claim+submission admission key, not a human/COO Link disposition row.
+    # Default False preserves generic resume behavior.
+    skip_lifecycle_stamp: bool = False
+    resume_authority_ref: str = ""
+
+
+_REPLAY_GATE_COMPUTE_LIVE = "__brick_protocol_compute_live_gate_at_reentry__"
+
+
+def replay_gate_compute_live_record() -> Mapping[str, Any]:
+    """Sentinel gate record for a submitted parked step.
+
+    The record is in-memory only. It tells the resume seed to validate the
+    submitted return through replay, then compute the gate at re-entry instead
+    of reading an at-time gate record that cannot exist for a parked step.
+    """
+
+    return {"support_replay_gate": _REPLAY_GATE_COMPUTE_LIVE}
+
+
+def _replay_gate_record_requests_live_compute(value: Any) -> bool:
+    return isinstance(value, Mapping) and value.get("support_replay_gate") == _REPLAY_GATE_COMPUTE_LIVE
 
 
 def _step_declares_gate_sequence_policy(step: Mapping[str, Any]) -> bool:
@@ -1026,18 +1050,31 @@ def _build_resume_disposition_observation(
 
     action = resume_seed.disposition_action
     target = resume_seed.pending_target_ref
-    applied = {
-        "raise": "budget_raised_and_held_landing_reentered",
-        "forward": "forwarded_past_held_gate_without_reroute_landing",
-        "stop": "closed_by_human_or_coo_disposition",
-    }[action]
+    if resume_seed.skip_lifecycle_stamp and action == "forward":
+        applied = "chat_session_submission_consumed_and_walk_continued"
+    else:
+        applied = {
+            "raise": "budget_raised_and_held_landing_reentered",
+            "forward": "forwarded_past_held_gate_without_reroute_landing",
+            "stop": "closed_by_human_or_coo_disposition",
+        }[action]
     increment = (
         int(resume_seed.budget_delta.get(target, 0)) if action == "raise" else 0
     )
     not_proven = (
         ["ended-by-disposition", *RESUME_NOT_PROVEN]
         if action == "stop"
-        else list(RESUME_NOT_PROVEN)
+        else list(
+            _merge_texts(
+                RESUME_NOT_PROVEN,
+                (
+                    "chat-session claim/submission semantic correctness",
+                    "chat-session performer quality",
+                )
+                if resume_seed.skip_lifecycle_stamp
+                else (),
+            )
+        )
     )
     return build_resume_observation(
         resumed_from=resume_seed.paused_at_ref,
@@ -1397,6 +1434,7 @@ def _run_dynamic_graph_walker(
                     fan_in_wait_all_observations=fan_in_wait_all_observations,
                     has_fan_groups=has_fan_groups,
                     write_chat_session_park_frontier=write_chat_session_park_frontier,
+                    declaration_plan=plan,
                     resume_observations=_resume_observations_for_frontier(
                         resume_seed,
                         disposition_applied=disposition_applied,
@@ -1470,6 +1508,16 @@ def _run_dynamic_graph_walker(
         # no-action GateSequenceDecision so the loop control reads it like the
         # forward walk's run_gate_sequence_policy() no-policy result.
         if is_replay:
+            if _replay_gate_record_requests_live_compute(recorded_gate_record):
+                gate_sequence_decision = run_gate_sequence_policy(
+                    step=step,
+                    step_result=step_result,
+                    source_brick_ref=brick_ref_by_step[step_ref],
+                    target_brick_ref=step_result.preparation.next_brick_instance_ref,
+                )
+                step_result = dataclasses.replace(
+                    step_result, gate_sequence_decision=gate_sequence_decision
+                )
             # FAIL-CLOSED gap-5: a replayed step that DECLARED a non-empty
             # gate_sequence_policy MUST have a recorded gate decision to read back.
             # If it is absent (None) the policy's AT-TIME decision was lost, and
@@ -1477,7 +1525,7 @@ def _run_dynamic_graph_walker(
             # a policy step as no-policy (divergence: a recorded HOLD/forward gate
             # decision would vanish). Raise instead -- only a genuinely no-policy
             # step legitimately has a None recorded decision.
-            if (
+            elif (
                 step_result.gate_sequence_decision is None
                 and _step_declares_gate_sequence_policy(step)
             ):
@@ -1487,11 +1535,12 @@ def _run_dynamic_graph_walker(
                     "decision to read back; refusing to silently treat a policy step as "
                     "no-action (would drop the recorded gate decision and diverge)"
                 )
-            gate_sequence_decision = (
-                step_result.gate_sequence_decision
-                if step_result.gate_sequence_decision is not None
-                else GateSequenceDecision()
-            )
+            else:
+                gate_sequence_decision = (
+                    step_result.gate_sequence_decision
+                    if step_result.gate_sequence_decision is not None
+                    else GateSequenceDecision()
+                )
         else:
             gate_sequence_decision = run_gate_sequence_policy(
                 step=step,
@@ -2182,7 +2231,10 @@ def _run_dynamic_graph_walker(
                 "never reached -- refusing to silently claim the disposition was applied"
             )
         resume_observations = list(resume_seed.existing_resume_observations)
-        if resume_seed.disposition_action in {"raise", "forward"}:
+        if (
+            resume_seed.disposition_action in {"raise", "forward"}
+            and not resume_seed.skip_lifecycle_stamp
+        ):
             step_results = _stamp_resumed_lifecycle_on_held_source(
                 step_results,
                 resume_seed=resume_seed,

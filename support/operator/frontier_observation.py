@@ -77,10 +77,13 @@ def observe_building_frontier(
     frontier_kind = _FRONTIER_CLOSURE_PENDING
     frontier_reason = "evidence root has returned Agent facts and no closed boundary observation"
     latest_lifecycle = _latest_transition_lifecycle_record(link_records)
+    closed_boundary_after_latest_pause = _closed_boundary_raw_record_after_latest_pause(
+        link_records
+    )
     if status.missing_files:
         frontier_kind = _FRONTIER_EVIDENCE_INCOMPLETE
         frontier_reason = "required evidence files are missing"
-    elif chat_session_park_records or parked_step_output_count:
+    elif not agent_return_records and (chat_session_park_records or parked_step_output_count):
         frontier_kind = _FRONTIER_CHAT_SESSION_PARKED
         frontier_reason = "chat-session park evidence exists before returned AgentFact"
     elif len(agent_received_records) > len(agent_return_records):
@@ -90,6 +93,9 @@ def observe_building_frontier(
             if adapter_error_records
             else "agent received evidence exists without matching returned evidence"
         )
+    elif closed_boundary_after_latest_pause:
+        frontier_kind = _FRONTIER_COMPLETE
+        frontier_reason = "declared closed boundary observed in executed Link evidence"
     elif latest_lifecycle.get("transition_lifecycle_state") == "paused":
         frontier_kind = _FRONTIER_LINK_PAUSED
         frontier_reason = "declared Link transition_lifecycle.state is paused"
@@ -162,6 +168,25 @@ def _latest_transition_lifecycle_record(records: Sequence[Mapping[str, Any]]) ->
                 if record.get(key) not in (None, "")
             }
     return {}
+
+
+def _closed_boundary_raw_record_after_latest_pause(records: Sequence[Mapping[str, Any]]) -> bool:
+    latest_pause_index = -1
+    for index, record in enumerate(records):
+        if record.get("transition_lifecycle_state") == "paused":
+            latest_pause_index = index
+    for record in reversed(records[latest_pause_index + 1 :]):
+        raw_ref = str(record.get("raw_ref") or "")
+        if not raw_ref.startswith("raw:link:"):
+            continue
+        target = str(
+            record.get("target_brick_instance_ref")
+            or record.get("target")
+            or ""
+        )
+        if _is_closed_boundary_ref(target):
+            return True
+    return False
 
 
 def _parked_step_output_count(root: Path) -> int:

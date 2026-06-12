@@ -1,0 +1,12 @@
+# BrickInput · seq 56 · ["Brick"]
+- axis_scope: ["Brick"]
+- brick_instance_ref: "brick-adapter-30-s2-s3-submit-resume-closure"
+- comparison_rule: "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickInput"
+- required_return_shape: "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence"
+- run_segment: 2
+- sequence_index: 56
+- source_facts: ["task-source:inline-statement"]
+- spine_schema_version: "spine-v1"
+- step_ref: "adapter-30-s2-s3-submit-resume-closure"
+- work_statement: "closure Brick for task-source:inline-statement: Complete the chat-session adapter's engine surface. S1 (park) is DONE and committed: a chat-session step records a closed work envelope (work/step-outputs/<step>/work-envelope.json) + a distinct park record (parked.json) + raw/chat-session-"

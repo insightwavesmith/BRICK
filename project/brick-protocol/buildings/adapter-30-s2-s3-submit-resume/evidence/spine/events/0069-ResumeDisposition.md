@@ -1,0 +1,17 @@
+# ResumeDisposition · seq 69 · ["Link"]
+- applied: "forwarded_past_held_gate_without_reroute_landing"
+- axis_scope: ["Link"]
+- budget_increment: 0
+- disposition_action: "forward"
+- event_type: "ResumeDisposition"
+- node_budget: 3
+- node_landings: 0
+- not_proven: ["adapter:local resume probes only unless caller uses another adapter","parallel runtime execution","full process-integrity across resumed provider processes","semantic correctness of the human/COO disposition"]
+- paused_at_ref: "link-transition:reroute-hold-adapter-30-s2-s3-submit-resume-01-brick-adapter-30-s2-s3-submit-resume-work-src-adapter-30-s2-s3-submit-resume-design-depth-0-attempt-0"
+- pending_target_ref: "brick-adapter-30-s2-s3-submit-resume-work"
+- proof_limits: ["support evidence only","dynamic walker walks declared gate-adopted agent-proposed routes only","support authors no route or Movement","not source truth","not success judgment","not quality judgment","not Movement authority"]
+- resume_ordinal: 0
+- resumed_from: "link-transition:reroute-hold-adapter-30-s2-s3-submit-resume-01-brick-adapter-30-s2-s3-submit-resume-work-src-adapter-30-s2-s3-submit-resume-design-depth-0-attempt-0"
+- run_segment: 2
+- sequence_index: 69
+- spine_schema_version: "spine-v1"

@@ -1177,6 +1177,8 @@ def is_project_building_lifecycle_path(path: str, *, is_dir: bool) -> bool:
             "adapter-error.json",
             "work-envelope.json",
             "parked.json",
+            "claim.json",
+            "submission.json",
         }
         and slug_part(tail[2])
     ):

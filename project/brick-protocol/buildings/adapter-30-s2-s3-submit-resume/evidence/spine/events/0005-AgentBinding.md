@@ -1,0 +1,12 @@
+# AgentBinding · seq 5 · ["Agent"]
+- agent_object_ref: "agent-object:design-lead"
+- agent_performer_ref: "agent-performer:agent-object:design-lead"
+- axis_scope: ["Agent"]
+- binding_role: "primary"
+- brick_instance_ref: "brick-adapter-30-s2-s3-submit-resume-design"
+- event_type: "AgentBinding"
+- run_segment: 1
+- sequence_index: 5
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/adapter-30-s2-s3-submit-resume-design-attempt-1/step-output.json"
+- step_ref: "adapter-30-s2-s3-submit-resume-design"

@@ -31,6 +31,7 @@ if _IMPORT_IDENTITY not in sys.path:
 # U5.5 SLICE-1A: the admitted spine event_type set (single-source). The
 # events/<seq>-<type> path predicate admits only a real spine event_type.
 from brick_protocol.support.recording.spine import SPINE_EVENT_TYPES
+from brick_protocol.agent.return_fact import RETURNED_FORBIDDEN_KEYS
 from brick_protocol.support.operator.primitives import (
     evidence_list_has_repository_artifact_ref,
 )
@@ -183,7 +184,11 @@ STEP_OUTPUT_RECORD_NAMES = {
     "adapter-error.json",
     "work-envelope.json",
     "parked.json",
+    "claim.json",
+    "submission.json",
 }
+CHAT_SESSION_CLAIM_STATES = {"claimed", "released"}
+CHAT_SESSION_TOKEN_RE = re.compile(r"[a-z]+(?:-[a-z]+){3,7}")
 AXIS_OWNER_LITERALS = {"Brick", "Agent", "Link"}
 RAW_RECORD_ROLES = {"primary", "support", "review"}
 RAW_MANIFEST_REQUIRED_TEXT_FIELDS = {
@@ -1581,6 +1586,59 @@ def validate_chat_session_park_files(building_root: Path, violations: list[str])
             violations.append(f"{envelope_path}: work envelope adapter_ref must be adapter:chat-session")
         if has_sensitive_text(envelope) or has_session_identifier_text(envelope):
             violations.append(f"{envelope_path}: work envelope must not contain credential/session text")
+    validate_chat_session_claim_submission_files(building_root, violations)
+
+
+def validate_chat_session_claim_submission_files(building_root: Path, violations: list[str]) -> None:
+    step_outputs = building_root / "work" / "step-outputs"
+    for claim_path in sorted(step_outputs.glob("*/claim.json")):
+        claim = parse_json_file(claim_path, violations)
+        if not isinstance(claim, dict):
+            violations.append(f"{claim_path}: claim record must be a JSON object")
+            continue
+        if claim.get("kind") != "chat_session_claim_record":
+            violations.append(f"{claim_path}: claim record kind must be chat_session_claim_record")
+        if claim.get("schema_version") != "chat-session-claim-record-0":
+            violations.append(f"{claim_path}: claim record schema_version mismatch")
+        state = claim.get("claim_state")
+        if state not in CHAT_SESSION_CLAIM_STATES:
+            violations.append(f"{claim_path}: claim_state must be claimed or released")
+        token = claim.get("claim_token")
+        if not isinstance(token, str) or not CHAT_SESSION_TOKEN_RE.fullmatch(token):
+            violations.append(f"{claim_path}: claim_token must be a lower-case word tuple")
+        if not isinstance(claim.get("lane_ref"), str) or not claim.get("lane_ref"):
+            violations.append(f"{claim_path}: claim record requires lane_ref")
+        if has_sensitive_text(claim) or has_session_identifier_text(claim):
+            violations.append(f"{claim_path}: claim record must not contain credential/session text")
+
+    forbidden_return_keys = set(RETURNED_FORBIDDEN_KEYS)
+    for submission_path in sorted(step_outputs.glob("*/submission.json")):
+        submission = parse_json_file(submission_path, violations)
+        if not isinstance(submission, dict):
+            violations.append(f"{submission_path}: submission record must be a JSON object")
+            continue
+        if submission.get("kind") != "chat_session_submission_record":
+            violations.append(f"{submission_path}: submission record kind must be chat_session_submission_record")
+        if submission.get("schema_version") != "chat-session-submission-record-0":
+            violations.append(f"{submission_path}: submission record schema_version mismatch")
+        token = submission.get("claim_token")
+        if not isinstance(token, str) or not CHAT_SESSION_TOKEN_RE.fullmatch(token):
+            violations.append(f"{submission_path}: claim_token must be a lower-case word tuple")
+        returned = submission.get("returned")
+        if not isinstance(returned, dict):
+            violations.append(f"{submission_path}: submission returned payload must be a JSON object")
+        elif has_any_key(returned, forbidden_return_keys):
+            violations.append(
+                f"{submission_path}: submission returned payload must not contain closed "
+                "AgentFact forbidden keys"
+            )
+        if has_sensitive_text(submission) or has_session_identifier_text(submission):
+            violations.append(f"{submission_path}: submission record must not contain credential/session text")
+        claim_path = submission_path.parent / "claim.json"
+        if claim_path.is_file():
+            claim = parse_json_file(claim_path, violations)
+            if isinstance(claim, dict) and claim.get("claim_token") != token:
+                violations.append(f"{submission_path}: submission claim_token must match claim.json")
 
 
 def validate_minimal_content(building_root: Path, violations: list[str]) -> None:

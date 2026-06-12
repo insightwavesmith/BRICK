@@ -1,0 +1,24 @@
+# LinkCarry · seq 68 · ["Link"]
+- axis_scope: ["Link"]
+- budget_exhausted: false
+- budget_kind: "node_reroute_budget"
+- budget_missing: true
+- budget_scope: "target_brick_node"
+- budget_source_refs: ["work/declared-building-plan.json#node_reroute_budgets"]
+- carry_budget_evidence_ref: "evidence/claim_trace/link/carry_trace.json#carry-budget:adapter-30-s2-s3-submit-resume:node:brick-adapter-30-s2-s3-submit-resume-closure"
+- declared_budget: null
+- disposition_required: true
+- event_type: "LinkCarry"
+- exhaustion_record_refs: ["reroute-hold:adapter-30-s2-s3-submit-resume:01:brick-adapter-30-s2-s3-submit-resume-closure"]
+- exhaustion_status: "not_observed"
+- not_proven: ["semantic correctness of the reroute or replay budget","caller/COO disposition after a HOLD","future provider/runtime behavior","Link node_reroute_budget was not declared for this target"]
+- observed_reroute_landings: 0
+- observed_step_attempt_count: 1
+- proof_limits: ["Link Carry budget evidence only","records declared and observed carry budget facts only","not source truth","not success judgment","not quality judgment","not Movement authority"]
+- run_segment: 2
+- sequence_index: 68
+- source_fact_ref: "carry-budget:adapter-30-s2-s3-submit-resume:node:brick-adapter-30-s2-s3-submit-resume-closure"
+- spine_schema_version: "spine-v1"
+- support_created_bal_fact: false
+- target_boundary_ref: "brick-adapter-30-s2-s3-submit-resume-closure"
+- trace_role: "carry_budget_observation"

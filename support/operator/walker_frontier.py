@@ -172,6 +172,7 @@ def _write_dynamic_chat_session_park_frontier(
     fan_in_wait_all_observations: list[Mapping[str, Any]],
     has_fan_groups: bool,
     write_chat_session_park_frontier,
+    declaration_plan: Mapping[str, Any] | None = None,
     resume_observations: list[Mapping[str, Any]] | None = None,
 ):
     """Write chat-session park frontier evidence for dynamic walks.
@@ -220,6 +221,7 @@ def _write_dynamic_chat_session_park_frontier(
         frontier_transition_lifecycle=_chat_session_park_paused_lifecycle(
             frontier_hold_record
         ),
+        declaration_plan=declaration_plan,
     )
 
 

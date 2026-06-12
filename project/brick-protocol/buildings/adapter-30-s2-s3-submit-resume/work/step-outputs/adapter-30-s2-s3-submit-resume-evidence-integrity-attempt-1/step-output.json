@@ -1,0 +1,183 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:adapter-30-s2-s3-submit-resume::work/step-outputs/adapter-30-s2-s3-submit-resume-evidence-integrity-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:inspector",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-adapter-30-s2-s3-submit-resume-evidence-integrity",
+  "building_id": "adapter-30-s2-s3-submit-resume",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:05",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-12T03:26:48.554570Z",
+  "id": "urn:bp:building:adapter-30-s2-s3-submit-resume::work/step-outputs/adapter-30-s2-s3-submit-resume-evidence-integrity-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:05:adapter-30-s2-s3-submit-resume-evidence-integrity",
+  "recorded_at": "2026-06-12T03:26:48.554570Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:inspector",
+    "blocked_or_missing_evidence": [
+      "check_profile.py --all was blocked by absence of a usable temporary directory in this read-only session.",
+      "building_automation profile is blocked by current untracked Building-map graph errors before it can stand as focused S2/S3 closure evidence.",
+      "The current evidence root is internally inconsistent: later step-output files exist without matching raw agent-return rows, manifest entries, building-map bindings, or spine events.",
+      "The AGENTS-referenced operating packet paths are missing from this checkout."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "checker_overclaim_risks": [
+      "observe_building_frontier reports complete from closed-boundary Link evidence while the raw Agent-return plane and building map are incomplete for later steps.",
+      "building_map_graph rejects the current Building map: unresolved fan-out/fan-in member_refs and target endpoints that do not resolve to brick_instance_id.",
+      "The current checker kernel performs a sequential second-claim rejection; true concurrent two-claim atomicity was not observed here.",
+      "No atomic-guard-removal sabotage RED was observed here.",
+      "Pre-resume manifest visibility for raw/chat-session-claim.jsonl and raw/chat-session-submission.jsonl remains not proven from current persisted evidence."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:adapter-30-s2-s3-submit-resume",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:adapter-30-s2-s3-submit-resume:agent-object:inspector:output"
+    ],
+    "evidence_scope": [
+      "Live checkout at /Users/smith/projects/BRICK on 2026-06-12.",
+      "Static source inspection, persisted project evidence inspection, and read-only checker commands.",
+      "No provider SDKs, hooks, git mutations, network, or file writes were used by this inspector turn.",
+      "Model review evidence was not collected in this inspector turn."
+    ],
+    "evidence_used": [
+      "git status --short --branch",
+      "sed reads of brick-protocol-inspector and brick-three-axis-attribution skills",
+      "rg searches over support/operator, support/checkers, support/recording, project evidence",
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_building_lifecycle_path_shape.py --target project/brick-protocol/buildings/adapter-30-s2-s3-submit-resume -> exit 0",
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_package_path_admission.py -> exit 0",
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_building_map_graph.py --target project/brick-protocol/buildings/adapter-30-s2-s3-submit-resume/work/building-map.json -> exit 1",
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --profile support/checkers/profiles/building_automation.yaml -> exit 1",
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all -> exit 1, no usable temporary directory",
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 -m compileall -q brick agent link support -> exit 0",
+      "git diff --check -> exit 0"
+    ],
+    "missing_evidence": [
+      "No current-session end-to-end temp drive transcript with park -> claim token -> second-claim reject -> submit -> resume -> follow-up gate computation.",
+      "No current-session full check_profile.py --all green.",
+      "No current-session true concurrent claim probe.",
+      "No current-session sabotage proof that removing the atomic guard makes a checker go RED.",
+      "No Claude/Gemini review evidence in this turn.",
+      "No persisted claim/submission/park files in the adapter-30-s2-s3-submit-resume Building root."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority",
+      "provider behavior or provider quality",
+      "future Building correctness",
+      "semantic correctness of S2/S3 implementation",
+      "full-gate green on this live checkout",
+      "actual S2/S3 end-to-end temp drive in this inspector session",
+      "true concurrent claim atomicity",
+      "atomic-guard sabotage RED",
+      "complete absence of future support-authority leaks"
+    ],
+    "observed_evidence": [
+      "Read-only inspection only; no files were edited.",
+      "Dirty worktree observed: modified support/checkers/check_building_lifecycle_path_shape.py, support/checkers/check_package_path_admission.py, support/checkers/lib/kernel_checks.py, support/operator/frontier_observation.py, support/operator/run.py, support/operator/walker_frontier.py, support/operator/walker_kernel.py, support/recording/adapter_error_frontier.py; untracked project/brick-protocol/buildings/adapter-30-s2-s3-submit-resume/.",
+      "support/operator/run.py exposes claim_chat_session_envelope, submit_chat_session_return, release_chat_session_claim, and a parked-building resume branch.",
+      "Claim path uses an O_EXCL .claim-update.lock and writes claim.json with atomic replace; submission.json uses O_EXCL create.",
+      "Submission validation rejects closed AgentFact forbidden keys, UUID/ULID-shaped text, missing required return fields, and token mismatch before submission write.",
+      "Graph law is represented in run_building_plan: linear adapter:chat-session plans reject before walking.",
+      "support/checkers/lib/kernel_checks.py includes a chat_session_park_seam temp drive covering no-claim, no-submission, token mismatch, forbidden status key, UUID-shaped submitted text, passive submission not moving frontier, resume consuming submitted return, and follow-up adapter:local.",
+      "Current persisted Building root has no claim.json, submission.json, parked.json, work-envelope.json, raw/chat-session-claim.jsonl, or raw/chat-session-submission.jsonl.",
+      "Current persisted Building root has four step-output.json files, but raw/agent-return.jsonl has one row and work/building-map.json has one Agent binding.",
+      "observe_building_frontier reports frontier_kind=complete for adapter-30-s2-s3-submit-resume, while observed_counts show agent_return_records=1, link_records=10, chat_session_park_records=0, parked_step_output_records=0, work_envelope_records=0.",
+      "project/brick-protocol/PROGRESS.md does not list adapter-30-s2-s3-submit-resume."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"Read-only inspection only; no files were edited.\", \"Dirty worktree observed: modified support/checkers/check_building_lifecycle_path_shape.py, support/checkers/check_package_path_admission.py, support/checkers/lib/kernel_checks.py, support/operator/frontier_observation.py, support/operator/run.py, support/operator/walker_frontier.py, support/operator/walker_kernel.py, support/recording/adapter_error_frontier.py; untracked project/brick-protocol/buildings/adapter-30-s2-s3-submit-resume/.\", \"support/operator/run.py exposes claim_chat_session_envelope, submit_chat_ses...",
+    "persisted_evidence_roots": [
+      "project/brick-protocol/buildings/adapter-30-s2-s3-submit-resume/",
+      "project/brick-protocol/buildings/adapter-30-s2-s3-submit-resume/work/task.md",
+      "project/brick-protocol/buildings/adapter-30-s2-s3-submit-resume/work/step-outputs/",
+      "project/brick-protocol/buildings/adapter-30-s2-s3-submit-resume/raw/",
+      "project/brick-protocol/buildings/adapter-30-s2-s3-submit-resume/evidence/spine/",
+      "project/brick-protocol/PROGRESS.md"
+    ],
+    "proof_limit_findings": [
+      "Code surfaces for S2/S3 are observable, but code presence is not runtime proof.",
+      "Checker code for S2/S3 is observable, but the chat_session_park_seam temp drive did not execute in this read-only session.",
+      "compileall and git diff whitespace checks passed as support evidence only.",
+      "Lifecycle path shape passed for the current Building root as path-shape evidence only.",
+      "Focused building_automation profile did not reach closure because building_map_graph rejected the current untracked Building evidence root.",
+      "Frontier complete is a support projection only and is not source truth, success judgment, quality judgment, or Movement authority."
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "no Link Movement chosen by this Agent return"
+    ],
+    "remaining_delta": [
+      "Repair or separate the malformed untracked adapter-30-s2-s3-submit-resume Building evidence root before using focused/full profiles as closure evidence.",
+      "Run chat_session_park_seam and check_profile.py --all in an environment with a writable temp root.",
+      "Add or execute a true concurrent two-claim probe and an atomic-guard sabotage RED case.",
+      "Close the raw-manifest visibility question for pre-resume claim/submission support rows.",
+      "Refresh or regenerate project/brick-protocol/PROGRESS.md only through the admitted projection path after evidence is coherent."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "stale_source_risks": [
+      "AGENTS.md-referenced archive/status-kernel/current-brick-operating-packet-0531.md and archive/status-kernel/brick-protocol-post-d-surface-recompile-0-plan-0530.md were not present in this checkout.",
+      "Current Building root contains later step-output files that are not reflected in raw/agent-return.jsonl, raw/raw-manifest.json, work/building-map.json, or the 19-event spine.",
+      "PROGRESS.md appears stale relative to the untracked adapter-30-s2-s3-submit-resume Building root.",
+      "Persisted worker/QA returns claim earlier temp-drive evidence, but that transcript is not present as claim/submission/park evidence in the current Building root."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:05:adapter-30-s2-s3-submit-resume-evidence-integrity",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:adapter-30-s2-s3-submit-resume",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:adapter-30-s2-s3-submit-resume-evidence-integrity:attempt-1",
+  "step_ref": "adapter-30-s2-s3-submit-resume-evidence-integrity",
+  "subject": "adapter-30-s2-s3-submit-resume-evidence-integrity",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-12T03:26:48.554570Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

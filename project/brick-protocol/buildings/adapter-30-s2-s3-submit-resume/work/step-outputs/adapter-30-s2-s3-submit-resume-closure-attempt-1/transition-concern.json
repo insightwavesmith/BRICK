@@ -1,0 +1,92 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:adapter-30-s2-s3-submit-resume::work/step-outputs/adapter-30-s2-s3-submit-resume-closure-attempt-1/transition-concern.json",
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "binding": false,
+  "building_id": "adapter-30-s2-s3-submit-resume",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-06-12T03:47:27.065153Z",
+  "id": "urn:bp:building:adapter-30-s2-s3-submit-resume::work/step-outputs/adapter-30-s2-s3-submit-resume-closure-attempt-1/transition-concern.json",
+  "link_role": "non-binding Agent transition concern evidence only",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "transition concern semantic correctness",
+    "Link disposition correctness",
+    "automatic repair/replay execution"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "transition_concern_evidence is Agent returned evidence only",
+    "not Link Movement",
+    "not Link target choice",
+    "not route policy matching",
+    "not route materialization",
+    "not automatic repair/replay execution",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-06-12T03:47:27.065153Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:adapter-30-s2-s3-submit-resume",
+  "specversion": "1.0",
+  "step_output_ref": "work/step-outputs/adapter-30-s2-s3-submit-resume-closure-attempt-1/step-output.json",
+  "step_ref": "adapter-30-s2-s3-submit-resume-closure",
+  "subject": "adapter-30-s2-s3-submit-resume-closure",
+  "time": "2026-06-12T03:47:27.065153Z",
+  "transition_boundary": "Agent concern only; Link may adopt, not adopt, or override",
+  "transition_concern_ref": "transition-concern:adapter-30-s2-s3-submit-resume-closure:attempt-1",
+  "transition_concern_returned": {
+    "binding": false,
+    "concern_kind": "implementation_gap",
+    "concern_ref": "transition-concern:adapter-30-s2-s3-submit-resume-closure-implementation-gap",
+    "not_proven": [
+      "end-to-end temp-drive proof",
+      "true concurrent atomicity",
+      "atomic-guard sabotage RED",
+      "complete session-key leak guard",
+      "graph-law coverage for brick_steps",
+      "full profile green"
+    ],
+    "proof_limits": [
+      "non-binding closure evidence only",
+      "read-only inspection",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "reason_refs": [
+      "support/operator/run.py:_reject_chat_session_session_text accepts UUID-shaped mapping keys",
+      "support/checkers/check_building_lifecycle_path_shape.py:has_session_identifier_text accepts UUID-shaped mapping keys",
+      "support/operator/run.py:_plan_declares_chat_session_adapter returns false for brick_steps adapter:chat-session",
+      "project/brick-protocol/buildings/adapter-30-s2-s3-submit-resume/work/building-map.json rejected by check_building_map_graph.py",
+      "run_chat_session_park_seam blocked by no usable temporary directory",
+      "check_profile.py --all blocked by no usable temporary directory"
+    ],
+    "related_boundary_refs": [
+      "brick-adapter-30-s2-s3-submit-resume-work",
+      "brick-adapter-30-s2-s3-submit-resume-closure"
+    ]
+  },
+  "type": "bp.step_output.transition_concern"
+}

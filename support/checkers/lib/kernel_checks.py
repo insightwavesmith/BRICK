@@ -2095,17 +2095,22 @@ def run_reporter_notification_projection(repo: Path) -> KernelResult:
 
 
 def run_chat_session_park_seam(repo: Path) -> KernelResult:
-    """Exercise the S1 chat-session PARK seam over a temp Building root.
+    """Exercise the chat-session PARK/CLAIM/SUBMIT/RESUME seam over temp roots.
 
     This is support-checker evidence only. It proves the runner writes the
-    support records and stops before an AgentFact; it does not prove S2 submit,
-    S3 resume, provider quality, or reader behavior.
+    support records, admits passive claim/submission, and resumes through the
+    graph walker; it does not prove provider quality or reader behavior.
     """
 
     from support.checkers import check_building_lifecycle_path_shape as lifecycle_shape
     from support.checkers import check_package_path_admission as path_admission
     from support.operator import run as run_module
-    from support.operator import dashboard_export, ledger_projection, progress_projection
+    from support.operator import (
+        dashboard_export,
+        frontier_observation,
+        ledger_projection,
+        progress_projection,
+    )
 
     inspected = 0
     with tempfile.TemporaryDirectory(prefix="bp-chat-session-park-seam-") as tmpdir:
@@ -2125,14 +2130,12 @@ def run_chat_session_park_seam(repo: Path) -> KernelResult:
             temp_repo=temp_repo,
         )
         inspected += 2
-        linear_root, linear_written = _chat_session_drive_park(
+        _chat_session_assert_linear_plan_rejects(
             run_module,
-            _chat_session_park_plan(),
             buildings_root=buildings_root,
             temp_repo=temp_repo,
-            walker_mode="linear",
-            label="linear",
         )
+        inspected += 1
         dynamic_root, dynamic_written = _chat_session_drive_park(
             run_module,
             _chat_session_park_graph_plan(),
@@ -2141,17 +2144,133 @@ def run_chat_session_park_seam(repo: Path) -> KernelResult:
             walker_mode="dynamic",
             label="dynamic",
         )
+        no_claim_root, _no_claim_written = _chat_session_drive_park(
+            run_module,
+            _chat_session_park_graph_plan(building_id="chat-session-park-no-claim-case"),
+            buildings_root=buildings_root,
+            temp_repo=temp_repo,
+            walker_mode="dynamic",
+            label="no-claim",
+        )
         inspected += 2
-        for label, building_root, written_files in (
-            ("linear", linear_root, linear_written),
-            ("dynamic", dynamic_root, dynamic_written),
-        ):
-            inspected += _chat_session_assert_park_evidence(
-                building_root,
-                written_files=written_files,
-                temp_repo=temp_repo,
-                label=label,
+        inspected += _chat_session_assert_park_evidence(
+            dynamic_root,
+            written_files=dynamic_written,
+            temp_repo=temp_repo,
+            label="dynamic",
+        )
+        inspected += _chat_session_assert_park_evidence(
+            no_claim_root,
+            written_files=_no_claim_written,
+            temp_repo=temp_repo,
+            label="no-claim",
+        )
+
+        _chat_session_assert_resume_rejects(
+            run_module,
+            no_claim_root,
+            temp_repo=temp_repo,
+            expected="parked building resume requires active chat-session claim",
+            label="parked no claim",
+        )
+        claim = run_module.claim_chat_session_envelope(
+            dynamic_root,
+            lane_ref="lane:checker",
+        )
+        token = str(claim.get("claim_token") or "")
+        if not re.fullmatch(r"[a-z]+(?:-[a-z]+){3,7}", token):
+            raise ProfileError(f"chat_session_park_seam minted non-word token: {token!r}")
+        if _SESSION_ID_UUID_RE.search(token) or _SESSION_ID_ULID_RE.search(token):
+            raise ProfileError(f"chat_session_park_seam minted session-shaped token: {token!r}")
+        _chat_session_assert_second_claim_rejects(run_module, dynamic_root)
+        _chat_session_assert_resume_rejects(
+            run_module,
+            dynamic_root,
+            temp_repo=temp_repo,
+            expected="parked building resume requires chat-session submission",
+            label="claim no submission",
+        )
+        _chat_session_assert_submit_rejects(
+            run_module,
+            dynamic_root,
+            token=token,
+            returned={"status": "done", "observed_evidence": ["bad"]},
+            expected="forbidden key 'status'",
+            label="forbidden status key",
+        )
+        _chat_session_assert_submit_rejects(
+            run_module,
+            dynamic_root,
+            token="amber-basil-cedar-copper" if token != "amber-basil-cedar-copper" else "amber-basil-cedar-delta",
+            returned={
+                "made_changes": ["wrong token"],
+                "observed_evidence": ["wrong token"],
+                "not_proven": ["not resumed"],
+            },
+            expected="claim_token does not match",
+            label="token mismatch",
+        )
+        _chat_session_assert_submit_rejects(
+            run_module,
+            dynamic_root,
+            token=token,
+            returned={
+                "made_changes": ["uuid negative"],
+                "observed_evidence": ["123e4567-e89b-12d3-a456-426614174000"],
+                "not_proven": ["not resumed"],
+            },
+            expected="session-id-shaped text",
+            label="uuid-shaped submitted text",
+        )
+        submitted = run_module.submit_chat_session_return(
+            dynamic_root,
+            claim_token=token,
+            returned={
+                "made_changes": ["checker wrote passive submission"],
+                "observed_evidence": ["claim token matched and payload stayed passive"],
+                "not_proven": ["provider quality", "semantic correctness"],
+            },
+        )
+        if submitted.get("returned", {}).get("observed_evidence") != [
+            "claim token matched and payload stayed passive"
+        ]:
+            raise ProfileError("chat_session_park_seam submission returned payload drifted")
+        before_resume = frontier_observation.observe_building_frontier(
+            dynamic_root,
+            repo_root=temp_repo,
+        )
+        if before_resume.get("frontier_kind") != "chat_session_parked":
+            raise ProfileError(
+                "chat_session_park_seam passive submission triggered frontier movement: "
+                f"{before_resume.get('frontier_kind')!r}"
             )
+        if (dynamic_root / "raw" / "agent-return.jsonl").exists():
+            raise ProfileError("chat_session_park_seam passive submission wrote agent-return evidence")
+        original_runner_repo = run_module._REPO_ROOT
+        try:
+            run_module._REPO_ROOT = temp_repo
+            resumed = run_module.resume_building_plan(dynamic_root, overwrite_existing=True)
+        finally:
+            run_module._REPO_ROOT = original_runner_repo
+        if len(resumed.step_results) != 2:
+            raise ProfileError(
+                "chat_session_park_seam expected resumed graph to close chat step plus "
+                f"follow-up step, observed {len(resumed.step_results)}"
+            )
+        if resumed.step_results[0].adapter_result.returned_value != submitted.get("returned"):
+            raise ProfileError("chat_session_park_seam chat step did not consume submitted return")
+        if resumed.step_results[1].adapter_result.request.adapter_ref != "adapter:local":
+            raise ProfileError("chat_session_park_seam follow-up step did not run live adapter:local")
+        after_resume = frontier_observation.observe_building_frontier(
+            dynamic_root,
+            repo_root=temp_repo,
+        )
+        if after_resume.get("frontier_kind") != "complete":
+            raise ProfileError(
+                "chat_session_park_seam resumed Building did not observe complete frontier: "
+                f"{after_resume.get('frontier_kind')!r}"
+            )
+        inspected += 10
 
         paths = lifecycle_shape.collect_directory_paths(buildings_root)
         lifecycle_violations = _chat_session_lifecycle_violations(buildings_root)
@@ -2180,9 +2299,9 @@ def run_chat_session_park_seam(repo: Path) -> KernelResult:
             for row in dashboard.get("buildings", [])
             if isinstance(row, Mapping) and row.get("frontier") == "chat_session_parked"
         ]
-        if len(parked_dashboard_rows) != 2:
+        if len(parked_dashboard_rows) != 1:
             raise ProfileError(
-                "chat_session_park_seam dashboard_export did not project both parked "
+                "chat_session_park_seam dashboard_export did not project the remaining parked "
                 f"Buildings, observed {len(parked_dashboard_rows)}"
             )
         for row in parked_dashboard_rows:
@@ -2196,48 +2315,53 @@ def run_chat_session_park_seam(repo: Path) -> KernelResult:
             "project:brick-protocol",
             repo_root=temp_repo,
         )
-        if "- waiting_review: 2" not in progress:
+        if "- waiting_review: 1" not in progress:
             raise ProfileError(
                 "chat_session_park_seam PROGRESS projection did not count parked "
                 "Buildings under waiting_review"
             )
         inspected += 3
 
-        for building_root in (linear_root, dynamic_root):
-            _chat_session_assert_mutated_lifecycle_rejects(
-                building_root,
-                "envelope session-like identifier",
-                lambda root: _chat_session_mutate_envelope_uuid(root),
-            )
-            _chat_session_assert_mutated_lifecycle_rejects(
-                building_root,
-                "adapter-error-shaped park record",
-                lambda root: _chat_session_mutate_park_as_adapter_error(root),
-            )
-            _chat_session_assert_mutated_lifecycle_rejects(
-                building_root,
-                "missing work-envelope path",
-                lambda root: _chat_session_delete_work_envelope(root),
-            )
-            inspected += 3
+        _chat_session_assert_mutated_lifecycle_rejects(
+            no_claim_root,
+            "envelope session-like identifier",
+            lambda root: _chat_session_mutate_envelope_uuid(root),
+        )
+        _chat_session_assert_mutated_lifecycle_rejects(
+            no_claim_root,
+            "adapter-error-shaped park record",
+            lambda root: _chat_session_mutate_park_as_adapter_error(root),
+        )
+        _chat_session_assert_mutated_lifecycle_rejects(
+            no_claim_root,
+            "missing work-envelope path",
+            lambda root: _chat_session_delete_work_envelope(root),
+        )
+        _chat_session_assert_mutated_lifecycle_rejects(
+            dynamic_root,
+            "submission forbidden returned key",
+            lambda root: _chat_session_mutate_submission_forbidden_key(root),
+        )
+        _chat_session_assert_mutated_lifecycle_rejects(
+            dynamic_root,
+            "submission token mismatch",
+            lambda root: _chat_session_mutate_submission_token(root),
+        )
+        inspected += 5
 
     return KernelResult(
         check_id="chat_session_park_seam",
         inspected=inspected,
         output=(
-            "chat-session PARK seam passed: linear and dynamic graph runner paths "
-            "raised ChatSessionParkFrontierEvidenceWritten, wrote closed "
-            "work-envelope.json + distinct parked.json + raw/chat-session-park.jsonl, "
-            "stopped before AgentFact, lifecycle and package path admission accepted "
-            "generated evidence, frontier observed chat_session_parked before "
-            "incomplete, reporter mapped it to intervention_required/"
-            "needs_disposition, ledger mapped it to waiting_review, dashboard "
-            "rendered it as review, PROGRESS counted waiting_review, run-surface "
-            "operator wake packets were emitted, undeclared Agent Object "
-            "chat-session adapter selection rejected before park, dynamic typed-exception guard "
-            "would fire RED on a raw _AdapterRunParked leak, and six mutated "
-            "evidence copies fired RED (linear+dynamic session-like envelope, "
-            "adapter-error-shaped park record, missing envelope path)."
+            "chat-session S2/S3 seam passed: linear chat-session plans rejected, "
+            "dynamic graph park wrote work-envelope.json + parked.json + raw park evidence, "
+            "atomic claim minted a word-form token and second claim rejected, no-claim/"
+            "no-submission/token-mismatch/forbidden-key/session-id submissions rejected "
+            "before resume, passive submission did not compute gates, resume consumed "
+            "the submitted return, replayed through the graph walker, ran the next "
+            "adapter:local step, lifecycle/path checks accepted claim.json and "
+            "submission.json, dashboard/PROGRESS kept only the unsubmitted parked "
+            "Building in waiting_review, and mutated claim/submission/path negatives fired RED."
         ),
     )
 
@@ -2284,23 +2408,26 @@ def _chat_session_park_plan() -> Mapping[str, Any]:
     }
 
 
-def _chat_session_park_graph_plan() -> Mapping[str, Any]:
+def _chat_session_park_graph_plan(
+    *,
+    building_id: str = "chat-session-park-seam-dynamic-case",
+) -> Mapping[str, Any]:
     return {
-        "plan_ref": "building-plan:chat-session-park-seam-dynamic-case",
+        "plan_ref": f"building-plan:{building_id}",
         "owner_axis": "Brick",
-        "building_id": "chat-session-park-seam-dynamic-case",
+        "building_id": building_id,
         "plan_shape": "graph",
-        "selected_adapter_ref": "adapter:chat-session",
         "report_event_policy": {
             "enabled": True,
             "event_kinds": ["building_started", "intervention_required"],
             "sink_refs": ["report-sink:local-inbox", "report-sink:operator-wake-local"],
         },
-        "execution_order": ["chat-session-park-dynamic-work"],
+        "execution_order": ["chat-session-park-dynamic-work", "chat-session-followup-work"],
         "brick_steps": [
             {
                 "step_ref": "chat-session-park-dynamic-work",
-                "completion_edge_ref": "edge:chat-session-park-dynamic-work-to-boundary",
+                "selected_adapter_ref": "adapter:chat-session",
+                "completion_edge_ref": "edge:chat-session-park-dynamic-work-to-followup",
                 "rows": [
                     {
                         "axis": "Brick",
@@ -2317,16 +2444,50 @@ def _chat_session_park_graph_plan() -> Mapping[str, Any]:
                         "agent_object_ref": "agent-object:dev",
                     },
                 ],
+            },
+            {
+                "step_ref": "chat-session-followup-work",
+                "selected_adapter_ref": "adapter:local",
+                "completion_edge_ref": "edge:chat-session-followup-work-to-boundary",
+                "rows": [
+                    {
+                        "axis": "Brick",
+                        "row_ref": "brick-row:chat-session-followup-work",
+                        "brick_work_ref": "work:chat-session-followup-work",
+                        "brick_instance_ref": "brick-chat-session-followup-work",
+                        "work_statement": "Exercise live follow-up after chat-session submission.",
+                        "comparison_rule": "Support observes follow-up invocation only.",
+                        "required_return_shape": "returned_summary, adapter_ref",
+                    },
+                    {
+                        "axis": "Agent",
+                        "row_ref": "agent-row:chat-session-followup-work",
+                        "agent_object_ref": "agent-object:dev",
+                    },
+                ],
             }
         ],
         "link_edges": [
             {
-                "edge_ref": "edge:chat-session-park-dynamic-work-to-boundary",
+                "edge_ref": "edge:chat-session-park-dynamic-work-to-followup",
                 "source_step_ref": "chat-session-park-dynamic-work",
+                "target_step_ref": "chat-session-followup-work",
                 "rows": [
                     {
                         "axis": "Link",
                         "row_ref": "link-row:chat-session-park-dynamic-work",
+                        "movement": "forward",
+                        "target_ref": "brick-chat-session-followup-work",
+                    }
+                ],
+            },
+            {
+                "edge_ref": "edge:chat-session-followup-work-to-boundary",
+                "source_step_ref": "chat-session-followup-work",
+                "rows": [
+                    {
+                        "axis": "Link",
+                        "row_ref": "link-row:chat-session-followup-work",
                         "movement": "forward",
                         "target_ref": "building-boundary:chat-session-park-dynamic-closed",
                     }
@@ -2380,7 +2541,7 @@ def _chat_session_assert_undeclared_adapter_rejects(
                 plan,
                 output_root=buildings_root,
                 overwrite_existing=True,
-                walker_mode="linear",
+                walker_mode="dynamic",
             )
         except run_module.ChatSessionParkFrontierEvidenceWritten as exc:
             raise ProfileError(
@@ -2416,11 +2577,44 @@ def _chat_session_assert_undeclared_adapter_rejects(
         run_module._REPO_ROOT = original_runner_repo
 
 
+def _chat_session_assert_linear_plan_rejects(
+    run_module: Any,
+    *,
+    buildings_root: Path,
+    temp_repo: Path,
+) -> None:
+    original_runner_repo = run_module._REPO_ROOT
+    try:
+        run_module._REPO_ROOT = temp_repo
+        try:
+            run_module.run_building_plan(
+                _chat_session_park_plan(),
+                output_root=buildings_root,
+                overwrite_existing=True,
+                walker_mode="linear",
+            )
+        except ValueError as exc:
+            if "linear chat-session replay is not admitted" not in str(exc):
+                raise ProfileError(
+                    "chat_session_park_seam linear graph-law reject had wrong reason: "
+                    f"{exc}"
+                ) from exc
+            return
+        except Exception as exc:  # noqa: BLE001
+            raise ProfileError(
+                "chat_session_park_seam linear graph-law expected ValueError, "
+                f"observed {type(exc).__name__}: {exc}"
+            ) from exc
+        raise ProfileError("chat_session_park_seam linear chat-session plan did not reject")
+    finally:
+        run_module._REPO_ROOT = original_runner_repo
+
+
 def _chat_session_plan_with_agent(agent_object_ref: str, *, building_id: str) -> Mapping[str, Any]:
-    plan = json.loads(json.dumps(_chat_session_park_plan()))
+    plan = json.loads(json.dumps(_chat_session_park_graph_plan(building_id=building_id)))
     plan["building_id"] = building_id
     plan["plan_ref"] = f"building-plan:{building_id}"
-    step = plan["steps"][0]
+    step = plan["brick_steps"][0]
     step["step_ref"] = f"{building_id}-work"
     for row in step["rows"]:
         if row.get("axis") == "Agent":
@@ -2430,9 +2624,9 @@ def _chat_session_plan_with_agent(agent_object_ref: str, *, building_id: str) ->
             row["row_ref"] = f"brick-row:{building_id}-work"
             row["brick_work_ref"] = f"work:{building_id}-work"
             row["brick_instance_ref"] = f"brick-{building_id}-work"
-        elif row.get("axis") == "Link":
-            row["row_ref"] = f"link-row:{building_id}-work"
-            row["target_ref"] = f"brick-{building_id}-closure"
+    plan["execution_order"][0] = step["step_ref"]
+    plan["link_edges"][0]["source_step_ref"] = step["step_ref"]
+    plan["link_edges"][0]["rows"][0]["row_ref"] = f"link-row:{building_id}-work"
     return plan
 
 
@@ -2495,6 +2689,79 @@ def _chat_session_drive_park(
             f"chat_session_park_seam {label} path expected the runner to stop with "
             "ChatSessionParkFrontierEvidenceWritten, but it returned normally"
         )
+    finally:
+        run_module._REPO_ROOT = original_runner_repo
+
+
+def _chat_session_assert_second_claim_rejects(run_module: Any, building_root: Path) -> None:
+    try:
+        run_module.claim_chat_session_envelope(building_root, lane_ref="lane:second-checker")
+    except FileExistsError as exc:
+        if "already claimed" not in str(exc):
+            raise ProfileError(
+                "chat_session_park_seam second claim rejected with wrong reason: "
+                f"{exc}"
+            ) from exc
+        return
+    raise ProfileError("chat_session_park_seam second claim did not reject")
+
+
+def _chat_session_assert_submit_rejects(
+    run_module: Any,
+    building_root: Path,
+    *,
+    token: str,
+    returned: Mapping[str, Any],
+    expected: str,
+    label: str,
+) -> None:
+    before = (building_root / "work" / "step-outputs")
+    submission_count = len(list(before.glob("*/submission.json")))
+    try:
+        run_module.submit_chat_session_return(
+            building_root,
+            claim_token=token,
+            returned=returned,
+        )
+    except ValueError as exc:
+        if expected not in str(exc):
+            raise ProfileError(
+                f"chat_session_park_seam {label} rejected with wrong reason: {exc}"
+            ) from exc
+        after_count = len(list(before.glob("*/submission.json")))
+        if after_count != submission_count:
+            raise ProfileError(
+                f"chat_session_park_seam {label} wrote submission evidence after reject"
+            )
+        return
+    raise ProfileError(f"chat_session_park_seam {label} submit did not reject")
+
+
+def _chat_session_assert_resume_rejects(
+    run_module: Any,
+    building_root: Path,
+    *,
+    temp_repo: Path,
+    expected: str,
+    label: str,
+) -> None:
+    original_runner_repo = run_module._REPO_ROOT
+    try:
+        run_module._REPO_ROOT = temp_repo
+        try:
+            run_module.resume_building_plan(building_root, overwrite_existing=True)
+        except ValueError as exc:
+            if expected not in str(exc):
+                raise ProfileError(
+                    f"chat_session_park_seam {label} resume rejected with wrong reason: {exc}"
+                ) from exc
+            return
+        except Exception as exc:  # noqa: BLE001
+            raise ProfileError(
+                f"chat_session_park_seam {label} resume expected ValueError, "
+                f"observed {type(exc).__name__}: {exc}"
+            ) from exc
+        raise ProfileError(f"chat_session_park_seam {label} resume did not reject")
     finally:
         run_module._REPO_ROOT = original_runner_repo
 
@@ -2706,6 +2973,36 @@ def _chat_session_mutate_park_as_adapter_error(building_root: Path) -> None:
 def _chat_session_delete_work_envelope(building_root: Path) -> None:
     envelope_path = _chat_session_single_step_output_dir(building_root) / "work-envelope.json"
     envelope_path.unlink()
+
+
+def _chat_session_mutate_submission_forbidden_key(building_root: Path) -> None:
+    submission_path = _chat_session_submission_path(building_root)
+    submission = dict(_chat_session_json_object(submission_path))
+    returned = dict(submission.get("returned") or {})
+    returned["status"] = "done"
+    submission["returned"] = returned
+    _chat_session_write_json_object(submission_path, submission)
+
+
+def _chat_session_mutate_submission_token(building_root: Path) -> None:
+    submission_path = _chat_session_submission_path(building_root)
+    submission = dict(_chat_session_json_object(submission_path))
+    submission["claim_token"] = "amber-basil-cedar-copper"
+    claim_path = submission_path.parent / "claim.json"
+    claim = _chat_session_json_object(claim_path)
+    if claim.get("claim_token") == submission["claim_token"]:
+        submission["claim_token"] = "amber-basil-cedar-delta"
+    _chat_session_write_json_object(submission_path, submission)
+
+
+def _chat_session_submission_path(building_root: Path) -> Path:
+    matches = sorted((building_root / "work" / "step-outputs").glob("*/submission.json"))
+    if len(matches) != 1:
+        raise ProfileError(
+            "chat_session_park_seam expected exactly one submission.json, "
+            f"observed {len(matches)}"
+        )
+    return matches[0]
 
 
 def _chat_session_slug(value: str) -> str:
