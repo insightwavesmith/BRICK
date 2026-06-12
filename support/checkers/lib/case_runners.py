@@ -276,6 +276,23 @@ def run_materialize_building_intent_case(repo: Path, profile: Mapping[str, Any])
                     f"materialize_building_intent_case rejected {relative}: "
                     f"step_refs expected {expected_steps!r}, observed {observed_steps!r}"
                 )
+        for expected_key, step_key in (
+            ("selected_adapter_refs_by_step", "selected_adapter_ref"),
+            ("selected_model_refs_by_step", "selected_model_ref"),
+        ):
+            expected_step_values = require_string_list(
+                expected.get(expected_key, []),
+                f"materialize_building_intent_case.expected.{expected_key}",
+            )
+            if not expected_step_values:
+                continue
+            observed_step_values = _materialized_step_values(plan, step_key)
+            if observed_step_values != expected_step_values:
+                raise ProfileError(
+                    f"materialize_building_intent_case rejected {relative}: "
+                    f"{expected_key} expected {expected_step_values!r}, "
+                    f"observed {observed_step_values!r}"
+                )
         expected_targets = require_string_list(
             expected.get("target_refs", []),
             "materialize_building_intent_case.expected.target_refs",
@@ -3260,6 +3277,19 @@ def _link_rows_list_field(plan: Mapping[str, Any], key: str) -> list[list[Any]]:
     return observed
 
 
+def _materialized_step_values(plan: Mapping[str, Any], key: str) -> list[str]:
+    sources = (
+        plan.get("brick_steps", [])
+        if plan.get("plan_shape") == "graph"
+        else plan.get("steps", [])
+    )
+    return [
+        str(step.get(key))
+        for step in sources or []
+        if isinstance(step, Mapping) and step.get(key) is not None
+    ]
+
+
 def _link_rows_in_declared_order(plan: Mapping[str, Any]) -> list[Mapping[str, Any]]:
     """Every Link row in declared row order (both plan shapes)."""
 
@@ -3451,6 +3481,13 @@ def run_declared_step_template_plan_case(repo: Path, profile: Mapping[str, Any])
             raise ProfileError(
                 f"declared_step_template_plan_case rejected {relative}: declared_gate_refs mismatch"
             )
+        step = require_mapping(steps[0], f"{relative}: steps[0]")
+        for key in ("selected_adapter_ref", "selected_model_ref"):
+            if key in expected and step.get(key) != expected[key]:
+                raise ProfileError(
+                    f"declared_step_template_plan_case rejected {relative}: "
+                    f"{key} expected {expected[key]!r}, observed {step.get(key)!r}"
+                )
         # Optional: assert the stamped Agent row (proves a same-NEED author override
         # changes the agent the linear path stamps -- finding-2 regression net).
         if "agent_object_ref" in expected:

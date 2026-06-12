@@ -22,6 +22,8 @@ path_exists:
   - brick/templates/presets/app-feature-inspected.md
   - brick/templates/presets/docs-simple-review.md
   - brick/templates/presets/portfolio-sequence.md
+  - brick/templates/presets/recon-fleet.md
+  - brick/templates/presets/review-fleet.md
   - support/connection/agent_resources.py
   - support/connection/agent_adapter.py
   - support/operator/building_operation.py
@@ -738,6 +740,85 @@ materialize_building_intent_case:
           - work/link-launch-policy.json
         task_source_hash_present: true
         task_source_hash_state: matched
+  - label: materialize-building-intent:review-fleet-per-step-provider-ladder
+    document:
+      plan_ref: building-plan:materialize-review-fleet-provider-ladder
+      building_id: materialize-review-fleet-provider-ladder
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:review-fleet
+      selected_adapter_ref: adapter:local
+      selected_model_ref: model:default
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: materialize-review-fleet-provider-ladder
+      chain_preset_ref: building-chain-preset:review-fleet
+      selected_adapter_ref: adapter:local
+      task_source_ref: brick/templates/tasks/source-template.md
+      plan_shape: graph
+      step_refs:
+        - materialize-review-fleet-provider-ladder-design
+        - materialize-review-fleet-provider-ladder-code-attack-qa
+        - materialize-review-fleet-provider-ladder-axis-attack-qa
+        - materialize-review-fleet-provider-ladder-evidence-integrity
+        - materialize-review-fleet-provider-ladder-closure
+      selected_adapter_refs_by_step:
+        - adapter:codex-local
+        - adapter:claude-local
+        - adapter:codex-local
+        - adapter:codex-local
+        - adapter:codex-local
+      selected_model_refs_by_step:
+        - model:default
+        - model:claude:sonnet
+        - model:default
+        - model:default
+        - model:default
+      target_refs:
+        - brick-materialize-review-fleet-provider-ladder-code-attack-qa
+        - brick-materialize-review-fleet-provider-ladder-axis-attack-qa
+        - brick-materialize-review-fleet-provider-ladder-evidence-integrity
+        - brick-materialize-review-fleet-provider-ladder-closure
+        - brick-materialize-review-fleet-provider-ladder-closure
+        - brick-materialize-review-fleet-provider-ladder-closure
+        - building-boundary:materialize-review-fleet-provider-ladder-closed
+      declared_gate_refs_by_row:
+        - link-gate:default-transition
+        - link-gate:default-transition
+        - link-gate:default-transition
+        - "link-gate:default-transition, link-gate:strict"
+        - "link-gate:default-transition, link-gate:strict"
+        - "link-gate:default-transition, link-gate:strict"
+        - link-gate:default-transition
+      gate_sequence_policy_gate_refs_by_row:
+        - ""
+        - ""
+        - ""
+        - ""
+        - ""
+        - ""
+        - ""
+      gate_concept_provenance_by_row:
+        - ""
+        - ""
+        - ""
+        - strict-evidence
+        - strict-evidence
+        - strict-evidence
+        - ""
+      gate_concept_provenance_declared_by: building-chain-preset:review-fleet
+      group_roles:
+        - fan_out
+        - fan_in
+      task_source_hash_present: true
+      assert_materialized_return_shapes: true
+      assert_route_policy_provenance: true
+      route_policy_provenance:
+        materialize-review-fleet-provider-ladder-design:
+          node_reroute_budget: preset-default
+        materialize-review-fleet-provider-ladder-closure:
+          closure_transition_target_policy: preset-default
 materialize_building_intent_rejects:
   - label: materialize-building-intent:missing-task-source-ref
     expected_message: task_source_ref must not be blank
@@ -810,6 +891,19 @@ materialize_building_intent_rejects:
           - support/operator/**
         forbidden_paths:
           - .git/**
+  - label: materialize-building-intent:per-step-adapter-not-in-agent-object
+    expected_message: must be referenced by Agent Object
+    document:
+      plan_ref: building-plan:materialize-per-step-adapter-not-in-agent-object
+      building_id: materialize-per-step-adapter-not-in-agent-object
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:review-fleet
+      selected_adapter_ref: adapter:local
+      selected_model_ref: model:default
+      step_selection_overrides:
+        - step_template_ref: building-step-template:code-attack-qa
+          selected_adapter_ref: adapter:chat-session
   - label: materialize-building-intent:unsafe-task-source-ref
     expected_message: task_source_ref must be a safe repo-relative path
     document:
@@ -909,7 +1003,7 @@ preset_building_completion_case:
         - coo:all-presets-completion-smoke
       human_review_refs:
         - human-review:all-presets-completion-smoke
-    expected_preset_count: 17
+    expected_preset_count: 19
     expected_frontier_kind: complete
     expected_portfolio_frontier_kind: complete
     expected_preset_refs:
@@ -929,7 +1023,9 @@ preset_building_completion_case:
       - building-chain-preset:high-risk-change-inspected
       - building-chain-preset:portfolio-sequence
       - building-chain-preset:quick-check
+      - building-chain-preset:recon-fleet
       - building-chain-preset:research-report
+      - building-chain-preset:review-fleet
     expected_portfolio_refs:
       - building-chain-preset:brick-protocol-portfolio-driver
       - building-chain-preset:portfolio-sequence
@@ -2941,6 +3037,7 @@ agent_resource_boundary:
     hooks_execution_opened: false
   - role: pm-lead
     lane: leader
+    preferred_adapter_ref: adapter:codex-local
     required_hook_refs:
       - hook:leader-write-need-gate
       - hook:unsafe-mutation-guard
@@ -3066,6 +3163,20 @@ agent_resource_retired_ref_rejects:
   - ref_field: hook_refs
     retired_ref: hook:leader-no-code
     expected_message: "retired hook ref hook:leader-no-code: use hook:leader-write-need-gate"
+agent_preferred_adapter_rejects:
+  - expected_message: preferred_adapter_ref must be one of adapter_refs
+    agent_object:
+      lane: reviewer
+      hook_refs:
+        - hook:instruction-chain-read
+        - hook:reviewer-no-mutation
+        - hook:unsafe-mutation-guard
+        - hook:resource-ref-redaction
+      tool_policy_refs:
+        - tool-policy:reviewer-readonly
+      adapter_refs:
+        - adapter:local
+      preferred_adapter_ref: adapter:codex-local
 declared_step_template_plan_case:
   - label: default-parity-omit-adapter
     document:
@@ -3244,6 +3355,33 @@ declared_step_template_plan_case:
       movement: forward
       target_ref: brick-inspect
       agent_object_ref: agent-object:inspector
+      declared_gate_refs:
+        - link-gate:default-transition
+  - label: declared-step-template-plan-case:plan-preferred-adapter
+    document:
+      plan_ref: building-plan:building-skill-preset-agent-tool-hardening-plan-preferred-adapter
+      building_id: building-skill-preset-agent-tool-hardening-plan-preferred-adapter
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: coo
+      selected_adapter_ref: adapter:local
+      selected_model_ref: model:claude:sonnet
+      steps:
+        - step_ref: hardening-plan-preferred-adapter
+          step_template_ref: building-step-template:plan
+          link: closure
+          brick:
+            row_ref: brick-row:hardening-plan-preferred-adapter
+            brick_work_ref: work:hardening-plan-preferred-adapter
+            brick_instance_ref: brick-plan-preferred-adapter
+            work_statement: Render PM provider preference stamping.
+            comparison_rule: Return PM planning evidence without provider judgment.
+            required_return_shape: observed_evidence, not_proven
+    expected:
+      movement: forward
+      target_ref: brick-closure
+      agent_object_ref: agent-object:pm-lead
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
       declared_gate_refs:
         - link-gate:default-transition
 declared_step_template_plan_rejects:

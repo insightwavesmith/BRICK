@@ -34,11 +34,13 @@ from brick_protocol.support.operator.project_declaration import load_project_dec
 from brick_protocol.support.recording.capture import buildings_root_for
 from brick_protocol.support.operator.plan_rendering import (
     RETIRED_STEP_TEMPLATE_REFS,
+    _clean_selected_adapter_ref,
     _declared_step_from_step_template,
     _is_caller_or_coo_declaration,
     _load_shape_registry,
     _parse_compact_link_expression,
     _resolve_agent_for_need,
+    _step_adapter_and_model_selection,
     _validate_declared_plan_projection,
     render_declared_building_plan,
 )
@@ -215,6 +217,7 @@ def materialize_building_intent(
     source_facts = _materializer_source_facts(intent, task_source_ref)
     write_scope = _materializer_write_scope(intent)
     task_summary = _materializer_task_summary(task_body, task_source_ref)
+    step_selection_overrides = _materializer_step_selection_overrides(intent)
     if _chain_preset_requires_graph(preset):
         rendered = _materializer_graph_plan(
             intent,
@@ -228,6 +231,7 @@ def materialize_building_intent(
             task_source_ref=task_source_ref,
             source_facts=source_facts,
             write_scope=write_scope,
+            step_selection_overrides=step_selection_overrides,
         )
         rendered["task_source_hash"] = task_source_hash
         rendered["task_source_hash_algorithm"] = "sha256"
@@ -244,6 +248,7 @@ def materialize_building_intent(
         return rendered
 
     chain_steps = tuple(_chain_preset_steps(preset))
+    _materializer_reject_unused_step_selection_overrides(chain_steps, step_selection_overrides)
     declared_steps = [
         _materializer_declared_step(
             index,
@@ -257,6 +262,7 @@ def materialize_building_intent(
             is_terminal_step=index == len(chain_steps) - 1,
             gate_concept_tokens=_materializer_gate_concept_tokens(preset),
             chain_preset_ref=chain_preset_ref,
+            step_selection_overrides=step_selection_overrides,
         )
         for index, raw_step in enumerate(chain_steps)
     ]
@@ -361,6 +367,14 @@ def render_declared_step_template_plan(
     # the loader only extracts shape_refs for a now-dropped set check). The registry
     # is still loaded for step_templates / chain_presets resolution below.
     registry = _load_shape_registry(repo)
+    plan_selected_adapter_ref = _clean_selected_adapter_ref(
+        "selected_adapter_ref",
+        intent.get("selected_adapter_ref", "adapter:local"),
+    )
+    plan_selected_model_ref = _clean_text(
+        "selected_model_ref",
+        intent.get("selected_model_ref", "model:default"),
+    )
 
     raw_chain_preset_ref = intent.get("chain_preset_ref", "")
     if not isinstance(raw_chain_preset_ref, str):
@@ -387,12 +401,14 @@ def render_declared_step_template_plan(
         if not isinstance(raw_step, Mapping):
             raise TypeError(f"intent.steps[{index}] must be an object")
         declared_steps.append(
-                _declared_step_from_step_template(
-                    index,
-                    raw_step,
-                    registry["step_templates"],
-                    repo,
-                )
+            _declared_step_from_step_template(
+                index,
+                raw_step,
+                registry["step_templates"],
+                repo,
+                plan_selected_adapter_ref=plan_selected_adapter_ref,
+                plan_selected_model_ref=plan_selected_model_ref,
+            )
         )
 
     rendered = render_declared_building_plan(
@@ -403,8 +419,8 @@ def render_declared_step_template_plan(
             # TASK-BY-TEXT (0611): pass through unchanged; the renderer carries
             # a non-None statement verbatim and validation enforces coupling.
             "task_statement": intent.get("task_statement"),
-            "selected_adapter_ref": intent.get("selected_adapter_ref", "adapter:local"),
-            "selected_model_ref": intent.get("selected_model_ref", "model:default"),
+            "selected_adapter_ref": plan_selected_adapter_ref,
+            "selected_model_ref": plan_selected_model_ref,
             "plan_shape": intent.get("plan_shape"),
             "proof_limits": intent.get("proof_limits")
             or [
@@ -678,6 +694,111 @@ def _materializer_write_scope(intent: Mapping[str, Any]) -> Mapping[str, Any] | 
     return dict(_mapping_value("write_scope", raw_write_scope))
 
 
+_STEP_SELECTION_OVERRIDE_KEYS = frozenset(
+    {"step_template_ref", "selected_adapter_ref", "selected_model_ref"}
+)
+
+
+def _materializer_step_selection_overrides(
+    intent: Mapping[str, Any],
+) -> Mapping[str, Mapping[str, Any]]:
+    """Read caller-declared per-template provider/model overrides.
+
+    The preferred input shape is a mapping keyed by step_template_ref. The list
+    form is also admitted for checker profiles and simple authoring surfaces
+    that avoid colon-bearing mapping keys.
+    """
+
+    raw = intent.get("step_selection_overrides")
+    if raw is None:
+        return {}
+    overrides: dict[str, Mapping[str, Any]] = {}
+
+    def _store(raw_ref: Any, raw_row: Any, label: str) -> None:
+        step_template_ref = _clean_text(f"{label}.step_template_ref", raw_ref)
+        row = dict(_mapping_value(label, raw_row))
+        extra = sorted(set(row) - _STEP_SELECTION_OVERRIDE_KEYS)
+        if extra:
+            raise ValueError(
+                "step_selection_overrides may declare only step_template_ref, "
+                f"selected_adapter_ref, and selected_model_ref; observed {extra}"
+            )
+        declared_ref = row.get("step_template_ref")
+        if declared_ref is not None and _clean_text(
+            f"{label}.step_template_ref",
+            declared_ref,
+        ) != step_template_ref:
+            raise ValueError("step_selection_overrides step_template_ref key must match row")
+        if (
+            "selected_adapter_ref" not in row
+            and "selected_model_ref" not in row
+        ):
+            raise ValueError(
+                "step_selection_overrides row must declare selected_adapter_ref "
+                "and/or selected_model_ref"
+            )
+        if step_template_ref in overrides:
+            raise ValueError(
+                "step_selection_overrides must declare at most one row for "
+                f"{step_template_ref}"
+            )
+        overrides[step_template_ref] = {
+            key: value for key, value in row.items() if key != "step_template_ref"
+        }
+
+    if isinstance(raw, Mapping):
+        for raw_ref, raw_row in raw.items():
+            _store(raw_ref, raw_row, f"step_selection_overrides.{raw_ref}")
+        return overrides
+    if isinstance(raw, Sequence) and not isinstance(raw, (str, bytes)):
+        for index, raw_row in enumerate(raw):
+            row = _mapping_value(f"step_selection_overrides[{index}]", raw_row)
+            _store(
+                row.get("step_template_ref"),
+                row,
+                f"step_selection_overrides[{index}]",
+            )
+        return overrides
+    raise ValueError("step_selection_overrides must be a mapping or an array")
+
+
+def _materializer_reject_unused_step_selection_overrides(
+    steps: Sequence[Mapping[str, Any]],
+    overrides: Mapping[str, Mapping[str, Any]],
+) -> None:
+    if not overrides:
+        return
+    declared_step_refs = {
+        _clean_text(
+            "chain preset step_template_ref",
+            step.get("step_template_ref", ""),
+        )
+        for step in steps
+        if isinstance(step, Mapping)
+    }
+    missing = sorted(set(overrides) - declared_step_refs)
+    if missing:
+        raise ValueError(
+            "step_selection_overrides references step_template_ref not in selected "
+            f"preset: {missing}"
+        )
+
+
+def _materializer_preset_step_with_selection_override(
+    raw_preset_step: Mapping[str, Any],
+    step_template_ref: str,
+    overrides: Mapping[str, Mapping[str, Any]],
+) -> Mapping[str, Any]:
+    override = overrides.get(step_template_ref)
+    if not override:
+        return raw_preset_step
+    merged = dict(raw_preset_step)
+    for key in ("selected_adapter_ref", "selected_model_ref"):
+        if key in override:
+            merged[key] = override[key]
+    return merged
+
+
 def _materializer_texts(*sources: Any) -> tuple[str, ...]:
     values: list[str] = []
     for source in sources:
@@ -735,12 +856,18 @@ def _materializer_declared_step(
     is_terminal_step: bool = False,
     gate_concept_tokens: Sequence[str] = (),
     chain_preset_ref: str = "",
+    step_selection_overrides: Mapping[str, Mapping[str, Any]] | None = None,
 ) -> Mapping[str, Any]:
     if not isinstance(raw_preset_step, Mapping):
         raise TypeError(f"chain preset steps[{index}] must be an object")
     step_template_ref = _clean_text(
         f"chain preset steps[{index}].step_template_ref",
         raw_preset_step.get("step_template_ref", ""),
+    )
+    raw_preset_step = _materializer_preset_step_with_selection_override(
+        raw_preset_step,
+        step_template_ref,
+        step_selection_overrides or {},
     )
     step_templates = registry.get("step_templates", {})
     if not isinstance(step_templates, Mapping):
@@ -831,6 +958,16 @@ def _materializer_declared_step(
     return {
         "step_ref": step_ref,
         "step_template_ref": step_template_ref,
+        **(
+            {"selected_adapter_ref": raw_preset_step.get("selected_adapter_ref")}
+            if raw_preset_step.get("selected_adapter_ref") is not None
+            else {}
+        ),
+        **(
+            {"selected_model_ref": raw_preset_step.get("selected_model_ref")}
+            if raw_preset_step.get("selected_model_ref") is not None
+            else {}
+        ),
         "brick": brick,
         "link": link,
     }
@@ -1181,6 +1318,7 @@ def _materializer_graph_plan(
     task_source_ref: str,
     source_facts: Sequence[str],
     write_scope: Mapping[str, Any] | None,
+    step_selection_overrides: Mapping[str, Mapping[str, Any]],
 ) -> Mapping[str, Any]:
     # Per-Building OVERRIDE (config cascade): the caller/COO MAY declare route
     # policy values on the intent that beat the preset default. Support reads them
@@ -1198,6 +1336,7 @@ def _materializer_graph_plan(
         override_reroute_budgets=intent.get("node_reroute_budgets"),
         override_closure_policy=intent.get("closure_transition_target_policy"),
         chain_preset_ref=chain_preset_ref,
+        step_selection_overrides=step_selection_overrides,
     )
     plan = dict(
         compose_building(
@@ -1333,8 +1472,24 @@ def _materializer_graph_declaration(
     override_reroute_budgets: Any = None,
     override_closure_policy: Any = None,
     chain_preset_ref: str = "",
+    step_selection_overrides: Mapping[str, Mapping[str, Any]] | None = None,
 ) -> Mapping[str, list[Mapping[str, Any]]]:
-    steps = list(_chain_preset_steps(preset))
+    raw_steps = list(_chain_preset_steps(preset))
+    selection_overrides = step_selection_overrides or {}
+    _materializer_reject_unused_step_selection_overrides(raw_steps, selection_overrides)
+    steps = []
+    for index, raw_step in enumerate(raw_steps):
+        step_template_ref = _clean_text(
+            f"chain preset steps[{index}].step_template_ref",
+            raw_step.get("step_template_ref", ""),
+        )
+        steps.append(
+            _materializer_preset_step_with_selection_override(
+                raw_step,
+                step_template_ref,
+                selection_overrides,
+            )
+        )
     fan_out_index = _materializer_graph_fan_out_index(steps)
     if fan_out_index is None:
         raise ValueError("graph preset materialization requires a declared fan-out target word")
@@ -1636,6 +1791,10 @@ def _materializer_graph_node(
             )
         node["node_reroute_budget"] = declared_reroute_budget
         node["node_reroute_budget_provenance"] = declared_reroute_budget_provenance
+    if raw_preset_step.get("selected_adapter_ref") is not None:
+        node["selected_adapter_ref"] = raw_preset_step.get("selected_adapter_ref")
+    if raw_preset_step.get("selected_model_ref") is not None:
+        node["selected_model_ref"] = raw_preset_step.get("selected_model_ref")
     # A: the fan-in closure routing policy is COPIED from a HUMAN-declared
     # closure_transition_target_policy (preset default OR per-Building override). It
     # MUST be declared by one of them (fail closed in the cascade reader); support
@@ -1958,6 +2117,14 @@ def compose_building(
                 "selection_rule: caller_or_coo_declared_only",
             )
         )
+    plan_selected_adapter_ref = _clean_selected_adapter_ref(
+        "selected_adapter_ref",
+        selected_adapter_ref,
+    )
+    plan_selected_model_ref = _clean_text(
+        "selected_model_ref",
+        selected_model_ref,
+    )
 
     (
         selected_chain_preset_ref,
@@ -2110,6 +2277,29 @@ def compose_building(
                     f"agent_object_ref is not admitted: {agent_object_ref}",
                 )
             )
+        step_selected_adapter_ref: str | None = None
+        step_selected_model_ref: str | None = None
+        if agent_object_ref and agent_object_ref in admitted_agent_refs:
+            try:
+                (
+                    step_selected_adapter_ref,
+                    step_selected_model_ref,
+                ) = _step_adapter_and_model_selection(
+                    repo,
+                    raw_step=raw_node,
+                    agent_object_ref=agent_object_ref,
+                    plan_selected_adapter_ref=plan_selected_adapter_ref,
+                    plan_selected_model_ref=plan_selected_model_ref,
+                    label=node_id,
+                )
+            except ValueError as exc:
+                problems.append(
+                    CompositionProblem(
+                        "unknown_step_template/agent",
+                        node_id,
+                        str(exc),
+                    )
+                )
 
         node_record = {
             "node_id": node_id,
@@ -2144,8 +2334,8 @@ def compose_building(
                 value=raw_node.get("closure_transition_target_policy"),
                 provenance=raw_node.get("closure_transition_target_policy_provenance"),
             ),
-            "selected_adapter_ref": raw_node.get("selected_adapter_ref"),
-            "selected_model_ref": raw_node.get("selected_model_ref"),
+            "selected_adapter_ref": step_selected_adapter_ref,
+            "selected_model_ref": step_selected_model_ref,
         }
         node_records.append(node_record)
         for endpoint in (node_id, node_record["step_ref"], brick_ref):
@@ -2435,8 +2625,8 @@ def compose_building(
         "building_id": building_id.strip() if building_id else "composed-graph",
         "plan_shape": "graph",
         "composition_mode": "caller_or_coo_declared_graph_composition",
-        "selected_adapter_ref": _clean_text("selected_adapter_ref", selected_adapter_ref),
-        "selected_model_ref": _clean_text("selected_model_ref", selected_model_ref),
+        "selected_adapter_ref": plan_selected_adapter_ref,
+        "selected_model_ref": plan_selected_model_ref,
         "selected_shape_ref": shape_ref,
         "declared_by": declared_by_text,
         "selection_rule": "caller_or_coo_declared_only",

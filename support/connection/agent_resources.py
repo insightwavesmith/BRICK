@@ -127,6 +127,7 @@ _AGENT_OBJECT_KEYS = frozenset(
         "tool_policy_refs",
         "discipline_refs",
         "adapter_refs",
+        "preferred_adapter_ref",
     }
 )
 _REF_FIELDS = (
@@ -267,6 +268,7 @@ def _validate_agent_authority(role: str, agent_object: Mapping[str, Any], path: 
     hook_refs = set(agent_object.get("hook_refs", []))
     tool_policy_refs = set(agent_object.get("tool_policy_refs", []))
     adapter_refs = set(agent_object.get("adapter_refs", []))
+    preferred_adapter_ref = agent_object.get("preferred_adapter_ref")
     retired_adapters = sorted(adapter_refs & _RETIRED_WRITE_ADAPTER_REFS)
     if retired_adapters:
         raise AgentResourceError(
@@ -295,6 +297,15 @@ def _validate_agent_authority(role: str, agent_object: Mapping[str, Any], path: 
     unknown_adapters = sorted(adapter_refs - _ALLOWED_ADAPTER_REFS)
     if unknown_adapters:
         raise AgentResourceError(f"{path}: unknown adapter_refs: {', '.join(unknown_adapters)}")
+    if preferred_adapter_ref is not None:
+        if not isinstance(preferred_adapter_ref, str) or not preferred_adapter_ref.strip():
+            raise AgentResourceError(f"{path}: preferred_adapter_ref must be non-empty text")
+        preferred_adapter_ref = preferred_adapter_ref.strip()
+        if preferred_adapter_ref not in adapter_refs:
+            raise AgentResourceError(
+                f"{path}: preferred_adapter_ref must be one of adapter_refs: "
+                f"{preferred_adapter_ref}"
+            )
     write_capable_adapter_refs = sorted(
         adapter_ref
         for adapter_ref in adapter_refs

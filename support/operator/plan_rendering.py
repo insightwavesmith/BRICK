@@ -152,6 +152,9 @@ def _declared_step_from_step_template(
     raw_step: Mapping[str, Any],
     step_templates: Mapping[str, Mapping[str, Any]],
     repo: Path,
+    *,
+    plan_selected_adapter_ref: str = "adapter:local",
+    plan_selected_model_ref: str = "model:default",
 ) -> Mapping[str, Any]:
     step_ref = _clean_text(f"steps[{index}].step_ref", raw_step.get("step_ref", ""))
     step_template = _lookup_declared_step_template(index, raw_step, step_templates)
@@ -199,14 +202,6 @@ def _declared_step_from_step_template(
             raise ValueError("development / cto / forward must resolve to agent-object:cto-lead")
         if "write_scope" in brick:
             raise ValueError("development / cto / forward is CTO assignment only; write_scope belongs to later dev worker Brick")
-    # main (6/4): clean selected_adapter_ref so retired write adapters are rejected.
-    selected_adapter_ref = raw_step.get("selected_adapter_ref")
-    if selected_adapter_ref is not None:
-        selected_adapter_ref = _clean_selected_adapter_ref(
-            f"steps[{index}].selected_adapter_ref",
-            selected_adapter_ref,
-        )
-
     # branch (U2-4): author agent override (mirrors the graph path's
     # _resolve_agent_for_need in composition.compose_building). Default = the
     # template's NEED<->CAPABILITY match. A node MAY override it with a step-level
@@ -228,7 +223,16 @@ def _declared_step_from_step_template(
             step_template["role_need"],
             bool(step_template["write_need"]),
             declared_override=declared_override,
-        )
+                        )
+
+    selected_adapter_ref, selected_model_ref = _step_adapter_and_model_selection(
+        repo,
+        raw_step=raw_step,
+        agent_object_ref=agent_object_ref,
+        plan_selected_adapter_ref=plan_selected_adapter_ref,
+        plan_selected_model_ref=plan_selected_model_ref,
+        label=f"steps[{index}]",
+    )
 
     link["movement"] = movement
     link["target_ref"] = target_ref
@@ -239,7 +243,7 @@ def _declared_step_from_step_template(
         "step_ref": step_ref,
         "step_template_ref": step_template["step_template_ref"],
         "selected_adapter_ref": selected_adapter_ref,
-        "selected_model_ref": raw_step.get("selected_model_ref"),
+        "selected_model_ref": selected_model_ref,
         "brick": brick,
         "agent": {
             "row_ref": raw_step.get("agent_row_ref", f"{step_ref}:agent"),
@@ -293,6 +297,135 @@ def _clean_selected_adapter_ref(label: str, value: str) -> str:
     if selected in _RETIRED_WRITE_ADAPTER_REFS:
         raise ValueError(f"{selected} is retired and not admitted as an active adapter")
     return selected
+
+
+_STEP_ADAPTER_SOURCE_BUILDING_DEFAULT = "building-default"
+_STEP_ADAPTER_SOURCE_STEP_DECLARATION = "step-declaration"
+_STEP_ADAPTER_SOURCE_LANE_PREFERENCE = "lane-preference"
+
+
+def _step_adapter_and_model_selection(
+    repo: Path,
+    *,
+    raw_step: Mapping[str, Any],
+    agent_object_ref: str,
+    plan_selected_adapter_ref: str,
+    plan_selected_model_ref: str,
+    label: str,
+) -> tuple[str | None, str | None]:
+    """Resolve step-level provider selection without authoring Agent identity.
+
+    Ladder: explicit step declaration > Agent Object preferred_adapter_ref >
+    building-level declaration. The building-level fallback is validated against
+    the Agent Object but not re-stamped on the step, preserving the existing
+    step->plan fallback shape. A step/pref adapter stamp gets a step-level
+    model: explicit step model when declared, otherwise model:default so it does
+    not accidentally inherit a provider-specific building model.
+    """
+
+    selected_adapter_ref, adapter_source = _step_selected_adapter_ref(
+        repo,
+        raw_step=raw_step,
+        agent_object_ref=agent_object_ref,
+        plan_selected_adapter_ref=plan_selected_adapter_ref,
+        label=label,
+    )
+    selected_model_ref = _step_selected_model_ref(
+        raw_step,
+        adapter_source=adapter_source,
+        plan_selected_model_ref=plan_selected_model_ref,
+        label=label,
+    )
+    rendered_adapter_ref = (
+        selected_adapter_ref
+        if adapter_source != _STEP_ADAPTER_SOURCE_BUILDING_DEFAULT
+        else None
+    )
+    return rendered_adapter_ref, selected_model_ref
+
+
+def _step_selected_adapter_ref(
+    repo: Path,
+    *,
+    raw_step: Mapping[str, Any],
+    agent_object_ref: str,
+    plan_selected_adapter_ref: str,
+    label: str,
+) -> tuple[str, str]:
+    raw_step_adapter = raw_step.get("selected_adapter_ref")
+    if raw_step_adapter is not None:
+        selected = _clean_selected_adapter_ref(
+            f"{label}.selected_adapter_ref",
+            raw_step_adapter,
+        )
+        source = _STEP_ADAPTER_SOURCE_STEP_DECLARATION
+    else:
+        agent_object = _agent_object_for_selection(repo, agent_object_ref, label=label)
+        preferred = agent_object.get("preferred_adapter_ref")
+        if preferred is not None:
+            selected = _clean_selected_adapter_ref(
+                f"{agent_object_ref}.preferred_adapter_ref",
+                preferred,
+            )
+            source = _STEP_ADAPTER_SOURCE_LANE_PREFERENCE
+        else:
+            selected = _clean_selected_adapter_ref(
+                "selected_adapter_ref",
+                plan_selected_adapter_ref,
+            )
+            source = _STEP_ADAPTER_SOURCE_BUILDING_DEFAULT
+    _validate_step_adapter_ref(repo, agent_object_ref, selected, label=label)
+    return selected, source
+
+
+def _step_selected_model_ref(
+    raw_step: Mapping[str, Any],
+    *,
+    adapter_source: str,
+    plan_selected_model_ref: str,
+    label: str,
+) -> str | None:
+    raw_step_model = raw_step.get("selected_model_ref")
+    if raw_step_model is not None:
+        return _clean_text(f"{label}.selected_model_ref", raw_step_model)
+    if adapter_source != _STEP_ADAPTER_SOURCE_BUILDING_DEFAULT:
+        return "model:default"
+    _clean_text("selected_model_ref", plan_selected_model_ref)
+    return None
+
+
+def _agent_object_for_selection(
+    repo: Path,
+    agent_object_ref: str,
+    *,
+    label: str,
+) -> Mapping[str, Any]:
+    try:
+        resolution = resolve_agent_object(agent_object_ref, repo_root=repo)
+    except ValueError as exc:
+        raise ValueError(f"{label}: agent_object_ref is not admitted: {agent_object_ref}") from exc
+    agent_object = resolution.get("agent_object")
+    if not isinstance(agent_object, Mapping):
+        raise ValueError(f"{label}: Agent Object resolution returned no object")
+    return agent_object
+
+
+def _validate_step_adapter_ref(
+    repo: Path,
+    agent_object_ref: str,
+    selected_adapter_ref: str,
+    *,
+    label: str,
+) -> None:
+    agent_object = _agent_object_for_selection(repo, agent_object_ref, label=label)
+    adapter_refs = agent_object.get("adapter_refs")
+    if not isinstance(adapter_refs, Sequence) or isinstance(adapter_refs, (str, bytes)):
+        raise ValueError(f"{label}: Agent Object adapter_refs must be an array")
+    if selected_adapter_ref not in {str(item).strip() for item in adapter_refs}:
+        raise ValueError(
+            f"{label}.selected_adapter_ref {selected_adapter_ref} must be referenced "
+            f"by Agent Object {agent_object_ref}"
+        )
 
 
 def _lookup_declared_step_template(
