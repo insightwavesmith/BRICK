@@ -3,13 +3,18 @@
 #
 # Usage (on a fresh machine) -- there is NO hosted installer URL; get the
 # script from the repository first, with your own gh/git login:
-#   gh repo clone insightwavesmith/BRICK ~/BRICK
+#   gh repo clone {OWNER}/BRICK ~/BRICK
 #   sh ~/BRICK/support/onboarding/install.sh
-# (or: git clone https://github.com/insightwavesmith/BRICK.git
-#  then run support/onboarding/install.sh from the checkout)
+# Replace {OWNER} with your GitHub org/user. Current working example:
+#   gh repo clone insightwavesmith/BRICK ~/BRICK
+# (or: git clone https://github.com/{OWNER}/BRICK.git, then run
+#  support/onboarding/install.sh from the checkout)
 # Cloned somewhere other than $HOME/BRICK? Set BRICK_HOME to that path
 # first (e.g. BRICK_HOME=/path/to/your/clone sh install.sh) -- the default
 # target is $HOME/BRICK.
+# Running the script before the target checkout exists? Set BRICK_REPO first
+# (e.g. BRICK_REPO={OWNER}/BRICK sh install.sh; current working example:
+# BRICK_REPO=insightwavesmith/BRICK sh install.sh).
 #
 # WHAT IT DOES (each step is plain and idempotent):
 #   1. checks python3 (>= 3.11) is present
@@ -40,7 +45,7 @@
 
 set -eu
 
-REPO_SLUG="insightwavesmith/BRICK"
+REPO_SLUG="${BRICK_REPO:-}"
 # uv run resolves the synced .venv (where brick-protocol + PyYAML live); a
 # bare python3 outside the venv raises ModuleNotFoundError.
 ONBOARD_ENTRY="uv run python3 -m brick_protocol.support.operator.onboard codex"
@@ -56,6 +61,7 @@ main() {
                 "하는 일: python3 확인 -> uv 준비 -> 내 gh/git 로그인으로 저장소 받기 -> uv sync -> 다음 안내" \
                 "" \
                 "설치 위치는 BRICK_HOME 환경변수로 바꿀 수 있어요 (기본값: \$HOME/BRICK)." \
+                "새 org/user 포크라면 BRICK_REPO={OWNER}/BRICK 로 받을 저장소를 바꿀 수 있어요." \
                 "토큰이나 비밀번호는 이 스크립트에 들어 있지 않아요. 내 gh/git 로그인을 그대로 씁니다." \
                 "" \
                 "그냥 실행하려면 옵션 없이 다시 실행하세요."
@@ -109,6 +115,12 @@ main() {
         printf '%s\n' "3) 이미 받아둔 저장소가 있어서 최신으로 갱신할게요 (fast-forward)..."
         git -C "$target" pull --ff-only
     else
+        if [ -z "$REPO_SLUG" ]; then
+            printf '%s\n' \
+                "받을 저장소를 모르겠어요. 먼저 BRICK_REPO={OWNER}/BRICK 를 지정해 주세요." \
+                "  - 예: BRICK_REPO=insightwavesmith/BRICK sh support/onboarding/install.sh" >&2
+            return 1
+        fi
         if ! command -v gh >/dev/null 2>&1; then
             printf '%s\n' \
                 "gh CLI가 없어요. 비공개 저장소라 gh 로그인이 필요해요." \
@@ -120,7 +132,7 @@ main() {
                 "GitHub 로그인이 안 돼 있어요. 'gh auth login' 을 실행한 뒤 다시 실행해 주세요." >&2
             return 1
         fi
-        printf '%s\n' "3) 저장소를 받을게요 (내 gh 로그인 사용)..."
+        printf '%s\n' "3) 저장소를 받을게요 (내 gh 로그인 사용: $REPO_SLUG)..."
         gh repo clone "$REPO_SLUG" "$target"
     fi
     printf '%s\n' "3) 저장소 준비 완료 ✅ ($target)"

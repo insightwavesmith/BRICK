@@ -55,16 +55,16 @@ Claude master-sequence, engine detail, startup surface, or run call, pin the
 COO-first operating chain:
 
 ```text
-사용자 요청 해석
--> task intake 질문
--> task.md 후보
--> task.md 확정
--> catalog_scope 후보
--> preset vs manual 후보
--> route_family_case_analysis
--> graph_movement_case_analysis
--> fan_in_first_candidate
--> startup path 후보
+사용자 요청 해석 / interpret the user request
+-> task intake 질문 / ask the task-intake question
+-> task.md 후보 / draft task.md candidate
+-> task.md 확정 / confirm task.md
+-> catalog_scope 후보 / propose catalog_scope candidate
+-> preset vs manual 후보 / compare preset vs manual candidate
+-> route_family_case_analysis / analyze route-family case
+-> graph_movement_case_analysis / analyze graph-movement case
+-> fan_in_first_candidate / identify fan-in-first candidate
+-> startup path 후보 / propose startup path candidate
 ```
 
 Claude master-sequence, engine sequence notes, and other model/operator

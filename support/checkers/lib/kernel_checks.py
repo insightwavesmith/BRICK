@@ -2073,6 +2073,131 @@ def run_install_script_lint(repo: Path) -> KernelResult:
     )
 
 
+_NO_SMITH_RESIDUE_SURFACES = (
+    "README.md",
+    "support/docs/spec",
+    "agent/prompts",
+)
+
+
+def _no_smith_residue_text_paths(repo: Path) -> tuple[Path, ...]:
+    paths: list[Path] = []
+    for surface in _NO_SMITH_RESIDUE_SURFACES:
+        root = repo / surface
+        if not root.exists():
+            continue
+        if root.is_file():
+            paths.append(root)
+            continue
+        paths.extend(
+            path
+            for path in sorted(root.rglob("*"))
+            if path.is_file() and path.suffix in {".md", ".txt"}
+        )
+    return tuple(paths)
+
+
+def _no_smith_residue_allowed_org_line(rel: str, line: str) -> bool:
+    return (
+        rel == "README.md"
+        and "insightwavesmith/BRICK" in line
+        and ("현재 동작 예" in line or "working example" in line.lower())
+    )
+
+
+def _collect_no_smith_residue_violations(repo: Path) -> tuple[list[str], int]:
+    violations: list[str] = []
+    inspected = 0
+    for path in _no_smith_residue_text_paths(repo):
+        rel = to_posix(path.relative_to(repo))
+        inspected += 1
+        for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+            if "/Users/smith" in line:
+                violations.append(f"{rel}:{lineno}: hardcoded Smith user-home path")
+            if "insightwavesmith" in line.lower() and not _no_smith_residue_allowed_org_line(rel, line):
+                violations.append(f"{rel}:{lineno}: hardcoded Smith GitHub org")
+    return violations, inspected
+
+
+def _copy_no_smith_residue_surfaces(repo: Path, probe_repo: Path) -> None:
+    for surface in _NO_SMITH_RESIDUE_SURFACES:
+        source = repo / surface
+        target = probe_repo / surface
+        if not source.exists():
+            continue
+        if source.is_file():
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, target)
+        else:
+            shutil.copytree(source, target)
+
+
+def _no_smith_residue_fire_probe(repo: Path) -> int:
+    probes = (
+        (
+            "user-home",
+            Path("support/docs/spec/README.md"),
+            "synthetic probe path: /Users/smith/projects/BRICK\n",
+            "hardcoded Smith user-home path",
+        ),
+        (
+            "org",
+            Path("agent/prompts/coo.md"),
+            "synthetic probe clone: gh repo clone insightwavesmith/BRICK ~/BRICK\n",
+            "hardcoded Smith GitHub org",
+        ),
+    )
+    inspected = 0
+    for label, target_rel, line, expected in probes:
+        inspected += 1
+        with tempfile.TemporaryDirectory(prefix="bp-no-smith-residue-fire-") as tmp:
+            probe_repo = Path(tmp)
+            _copy_no_smith_residue_surfaces(repo, probe_repo)
+            target = probe_repo / target_rel
+            if not target.is_file():
+                raise ProfileError(
+                    f"product_no_smith_residue FIRE probe target missing for {label}: "
+                    f"{to_posix(target_rel)}"
+                )
+            with target.open("a", encoding="utf-8") as handle:
+                handle.write(line)
+            violations, _ = _collect_no_smith_residue_violations(probe_repo)
+            if not any(expected in violation for violation in violations):
+                raise ProfileError(
+                    "product_no_smith_residue FIRE probe did NOT fire for "
+                    f"{label}: {line.strip()!r}"
+                )
+    return inspected
+
+
+def run_product_no_smith_residue(repo: Path) -> KernelResult:
+    """Product-surface lint for Smith local residue.
+
+    Scans the shipped newcomer-facing surfaces named by ONBOARDING-LEGACY-SCRUB:
+    root README, support/docs/spec, and agent/prompts. The only admitted
+    ``insightwavesmith/BRICK`` occurrence there is the root README's explicit
+    working-example note next to the parameterized ``{OWNER}/BRICK`` command.
+    """
+
+    violations, inspected = _collect_no_smith_residue_violations(repo)
+    if violations:
+        raise ProfileError(
+            "product_no_smith_residue rejected shipped-surface residue:\n"
+            + "\n".join(f"- {violation}" for violation in violations)
+        )
+    inspected += _no_smith_residue_fire_probe(repo)
+    return KernelResult(
+        check_id="product_no_smith_residue",
+        inspected=inspected,
+        output=(
+            "product no-Smith-residue scan passed: README.md, support/docs/spec, "
+            "and agent/prompts carry no /Users/smith literal and no hardcoded "
+            "insightwavesmith org outside the README working-example allowance; "
+            "temp-copy FIRE probes for both forbidden families fired RED."
+        ),
+    )
+
+
 def _minimal_operator_wake_target() -> Mapping[str, Any]:
     return {
         "target_ref": "operator-wake-target:local-active-operator",

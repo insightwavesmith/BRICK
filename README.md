@@ -7,7 +7,8 @@ Brick Protocol is a three-axis work protocol for human-agent work: Brick = the w
 ```bash
 # 1) 받기 + 설치 — 내 gh 로그인 사용 (호스팅된 설치 URL은 없어요)
 #    기본 위치는 $HOME/BRICK; 다른 곳에 받았다면 BRICK_HOME=/path/to/clone 지정
-gh repo clone insightwavesmith/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh
+#    {OWNER}를 내 GitHub org/user로 바꾸세요. 현재 동작 예: insightwavesmith/BRICK
+gh repo clone {OWNER}/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh
 # 2) 온보딩 위자드 (codex | claude | gemini | local)
 cd ~/BRICK && uv run python3 -m brick_protocol.support.operator.onboard codex
 ```

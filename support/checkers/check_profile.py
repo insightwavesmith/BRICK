@@ -124,6 +124,7 @@ from support.checkers.lib.kernel_checks import (
     run_provider_preflight,
     run_onboard_smoke,
     run_install_script_lint,
+    run_product_no_smith_residue,
     run_reporter_notification_projection,
     run_chat_session_park_seam,
     run_mcp_stdio_smoke,
@@ -164,6 +165,7 @@ KERNEL_CHECK_IDS = {
     "provider_preflight",
     "onboard_smoke",
     "install_script_lint",
+    "product_no_smith_residue",
     "reporter_notification_projection",
     "chat_session_park_seam",
     "mcp_stdio_smoke",
@@ -498,6 +500,13 @@ def run_kernel_check(repo: Path, check_id: str) -> KernelResult:
         # non-zero. PROOF LIMIT: structure/safety only -- it does NOT prove a real
         # fresh-machine install (clone/uv sync/provider auth = manual / Phase-4).
         return run_install_script_lint(repo)
+    if check_id == "product_no_smith_residue":
+        # ONBOARDING-LEGACY-SCRUB-0612. Scans shipped newcomer-facing surfaces
+        # (README.md, support/docs/spec, agent/prompts) for Smith local residue:
+        # no /Users/smith literal and no hardcoded insightwavesmith org outside
+        # the README working-example allowance. Runs temp-copy FIRE probes for
+        # both forbidden families; a non-firing probe makes --all exit non-zero.
+        return run_product_no_smith_residue(repo)
     if check_id == "reporter_notification_projection":
         # Executes reporter validation probes IN-PROCESS. This keeps the profile
         # from merely text-pinning the presence of probe functions while never
