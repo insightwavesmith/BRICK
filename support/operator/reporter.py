@@ -1043,17 +1043,23 @@ def reporter_event_hook_probe_observations() -> tuple[Mapping[str, Any], ...]:
             }
         )
 
+    previous_grain = os.environ.pop(REPORT_GRAIN_ENV, None)
+    try:
+        default_policy = report_event_policy_from_plan({})
+    finally:
+        if previous_grain is not None:
+            os.environ[REPORT_GRAIN_ENV] = previous_grain
     append(
         "absent_policy_defaults_to_local_env_gated_sinks",
         passed=(
-            isinstance(report_event_policy_from_plan({}), Mapping)
-            and report_event_policy_from_plan({}).get("event_kinds")
+            isinstance(default_policy, Mapping)
+            and default_policy.get("event_kinds")
             == ["building_started", "intervention_required", "building_finished"]
-            and report_event_policy_from_plan({}).get("sink_refs")
+            and default_policy.get("sink_refs")
             == [LOCAL_INBOX_SINK_REF, SLACK_SINK_REF, DASHBOARD_SINK_REF]
-            and report_event_policy_from_plan({}).get("environment_gated_sink_refs")
+            and default_policy.get("environment_gated_sink_refs")
             == [SLACK_SINK_REF, DASHBOARD_SINK_REF]
-            and report_event_policy_from_plan({}).get("mode") == "basic"
+            and default_policy.get("mode") == "basic"
         ),
         accepted=True,
     )
@@ -1069,6 +1075,7 @@ def reporter_event_hook_probe_observations() -> tuple[Mapping[str, Any], ...]:
             {
                 "report_event_policy": {
                     "enabled": True,
+                    "grain": "building",
                     "sink_refs": [SLACK_SINK_REF],
                     "event_kinds": [
                         "building_started",

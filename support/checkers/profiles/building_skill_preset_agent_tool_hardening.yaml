@@ -14,6 +14,7 @@ path_exists:
   - agent/tool_policies/read-write-scoped.yaml
   - agent/tool_policies/reviewer-readonly.yaml
   - brick/templates/shapes/catalog.yaml
+  - brick/templates/reroute-defaults.yaml
   - brick/templates/presets/fast-fix.md
   - brick/templates/presets/design-build-parallel.md
   - brick/templates/presets/high-risk-change-inspected.md
@@ -229,10 +230,10 @@ text_absent:
       - closure-synthesis means final close
       - partial QA reuse without consumed_input_refs
 materialize_building_intent_case:
-  - label: materialize-building-intent:fast-fix-linear
+  - label: materialize-building-intent:fast-fix-sequential-graph
     document:
-      plan_ref: building-plan:materialize-fast-fix-linear
-      building_id: materialize-fast-fix-linear
+      plan_ref: building-plan:materialize-fast-fix-sequential-graph
+      building_id: materialize-fast-fix-sequential-graph
       declared_by: coo
       task_source_ref: brick/templates/tasks/source-template.md
       chain_preset_ref: building-chain-preset:fast-fix
@@ -247,18 +248,25 @@ materialize_building_intent_case:
       not_proven:
         - checker fixture task source only
     expected:
-      building_id: materialize-fast-fix-linear
+      building_id: materialize-fast-fix-sequential-graph
       chain_preset_ref: building-chain-preset:fast-fix
       selected_adapter_ref: adapter:codex-local
       task_source_ref: brick/templates/tasks/source-template.md
+      plan_shape: graph
       step_refs:
-        - materialize-fast-fix-linear-work
-        - materialize-fast-fix-linear-code-attack-qa
-        - materialize-fast-fix-linear-closure
+        - materialize-fast-fix-sequential-graph-work
+        - materialize-fast-fix-sequential-graph-code-attack-qa
+        - materialize-fast-fix-sequential-graph-closure
       target_refs:
-        - brick-code-attack-qa
-        - brick-closure
-        - building-boundary:materialize-fast-fix-linear-closed
+        - brick-materialize-fast-fix-sequential-graph-code-attack-qa
+        - brick-materialize-fast-fix-sequential-graph-closure
+        - building-boundary:materialize-fast-fix-sequential-graph-closed
+      node_reroute_budgets:
+        brick-materialize-fast-fix-sequential-graph-work: 5
+      assert_route_policy_provenance: true
+      route_policy_provenance:
+        materialize-fast-fix-sequential-graph-work:
+          node_reroute_budget: preset-default
       task_source_hash_present: true
       declaration_evidence:
         work_files:
@@ -302,14 +310,21 @@ materialize_building_intent_case:
       chain_preset_ref: building-chain-preset:fast-fix
       selected_adapter_ref: adapter:codex-local
       task_source_ref: brick/templates/tasks/source-template.md
+      plan_shape: graph
       step_refs:
         - source-template-fast-fix-work
         - source-template-fast-fix-code-attack-qa
         - source-template-fast-fix-closure
       target_refs:
-        - brick-code-attack-qa
-        - brick-closure
+        - brick-source-template-fast-fix-code-attack-qa
+        - brick-source-template-fast-fix-closure
         - building-boundary:source-template-fast-fix-closed
+      node_reroute_budgets:
+        brick-source-template-fast-fix-work: 5
+      assert_route_policy_provenance: true
+      route_policy_provenance:
+        source-template-fast-fix-work:
+          node_reroute_budget: preset-default
       task_source_hash_present: true
       declaration_evidence:
         work_files:
@@ -419,11 +434,23 @@ materialize_building_intent_case:
       chain_preset_ref: building-chain-preset:governed-change-review
       selected_adapter_ref: adapter:local
       task_source_ref: brick/templates/tasks/source-template.md
+      plan_shape: graph
       step_refs:
         - materialize-governed-gate-wiring-design
         - materialize-governed-gate-wiring-axis-attack-qa
         - materialize-governed-gate-wiring-code-attack-qa
         - materialize-governed-gate-wiring-closure
+      target_refs:
+        - brick-materialize-governed-gate-wiring-axis-attack-qa
+        - brick-materialize-governed-gate-wiring-code-attack-qa
+        - brick-materialize-governed-gate-wiring-closure
+        - building-boundary:materialize-governed-gate-wiring-closed
+      node_reroute_budgets:
+        brick-materialize-governed-gate-wiring-design: 5
+      assert_route_policy_provenance: true
+      route_policy_provenance:
+        materialize-governed-gate-wiring-design:
+          node_reroute_budget: preset-default
       declared_gate_refs_by_row:
         - link-gate:default-transition
         - "link-gate:default-transition, link-gate:strict"
@@ -575,6 +602,49 @@ materialize_building_intent_case:
           node_reroute_budget: preset-default
         materialize-design-build-parallel-graph-override-closure:
           closure_transition_target_policy: per-building
+  - label: materialize-building-intent:design-build-parallel-graph-constitutional-default
+    strip_preset_ref: building-chain-preset:design-build-parallel
+    strip_preset_keys:
+      - node_reroute_budgets
+    document:
+      plan_ref: building-plan:materialize-design-build-parallel-graph-constitutional-default
+      building_id: materialize-design-build-parallel-graph-constitutional-default
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:design-build-parallel
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+          - .claude/**
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: materialize-design-build-parallel-graph-constitutional-default
+      chain_preset_ref: building-chain-preset:design-build-parallel
+      plan_shape: graph
+      node_reroute_budgets:
+        brick-materialize-design-build-parallel-graph-constitutional-default-design: 1
+        brick-materialize-design-build-parallel-graph-constitutional-default-work: 1
+        brick-materialize-design-build-parallel-graph-constitutional-default-code-attack-qa: 1
+        brick-materialize-design-build-parallel-graph-constitutional-default-axis-attack-qa: 1
+        brick-materialize-design-build-parallel-graph-constitutional-default-closure: 1
+      assert_route_policy_provenance: true
+      route_policy_provenance:
+        materialize-design-build-parallel-graph-constitutional-default-design:
+          node_reroute_budget: constitutional-default
+        materialize-design-build-parallel-graph-constitutional-default-work:
+          node_reroute_budget: constitutional-default
+        materialize-design-build-parallel-graph-constitutional-default-code-attack-qa:
+          node_reroute_budget: constitutional-default
+        materialize-design-build-parallel-graph-constitutional-default-axis-attack-qa:
+          node_reroute_budget: constitutional-default
+        materialize-design-build-parallel-graph-constitutional-default-closure:
+          node_reroute_budget: constitutional-default
+          closure_transition_target_policy: preset-default
   - label: materialize-building-intent:engine-feature-hard-graph
     document:
       plan_ref: building-plan:materialize-engine-feature-hard-graph
@@ -1095,24 +1165,6 @@ materialize_building_intent_rejects:
           - support/operator/**
         forbidden_paths:
           - .git/**
-  - label: materialize-building-intent:graph-preset-missing-reroute-budget-fails-closed
-    expected_message: closure_transition_target_policy_unbudgeted_target
-    strip_preset_ref: building-chain-preset:design-build-parallel
-    strip_preset_keys:
-      - node_reroute_budgets
-    document:
-      plan_ref: building-plan:materialize-missing-reroute-budget
-      building_id: materialize-missing-reroute-budget
-      declared_by: coo
-      task_source_ref: brick/templates/tasks/source-template.md
-      chain_preset_ref: building-chain-preset:design-build-parallel
-      selected_adapter_ref: adapter:codex-local
-      selected_model_ref: model:default
-      write_scope:
-        allowed_paths:
-          - support/operator/**
-        forbidden_paths:
-          - .git/**
 preset_building_completion_case:
   - label: all-current-presets-slack-alert
     task_source_ref: brick/templates/tasks/slack-alert-all-presets-task.md
@@ -1178,12 +1230,12 @@ building_intake_seam_case:
   # the REAL wired [default-transition, coo, human] gates. WITH the caller-declared
   # disposition facts (route_decision_basis) the walk must COMPLETE -- the human
   # gate must not over-block once the human disposition fact exists.
-  - label: building-intake-seam-linear-adapter-local
+  - label: building-intake-seam-graph-adapter-local
     task_source_ref: brick/templates/tasks/source-template.md
     chain_preset_ref: building-chain-preset:governed-change-review
     selected_adapter_ref: adapter:local
-    expected_plan_shape: linear
-    expected_walker_mode: linear
+    expected_plan_shape: graph
+    expected_walker_mode: dynamic
     expected_frontier_kind: complete
     route_decision_basis:
       override_refs:
@@ -1212,8 +1264,8 @@ building_intake_seam_case:
     task_statement: "온보딩 화면의 환영 문구를 한 줄로 다듬어 주세요. 맥락: 첫 화면이 너무 딱딱하다는 피드백."
     chain_preset_ref: building-chain-preset:governed-change-review
     selected_adapter_ref: adapter:local
-    expected_plan_shape: linear
-    expected_walker_mode: linear
+    expected_plan_shape: graph
+    expected_walker_mode: dynamic
     expected_frontier_kind: complete
     route_decision_basis:
       override_refs:
@@ -1237,11 +1289,10 @@ building_intake_seam_case:
     task_source_ref: brick/templates/tasks/source-template.md
     chain_preset_ref: building-chain-preset:governed-change-review
     selected_adapter_ref: adapter:local
-    expected_plan_shape: linear
-    expected_walker_mode: linear
+    expected_plan_shape: graph
+    expected_walker_mode: dynamic
     expected_frontier_kind: link_paused
     expected_required_disposition_owner: caller-or-coo
-    expected_hold_gate_ref: link-gate:human
     expected_missing_required_fact: Link.route_decision_basis.human_review_refs
     route_decision_basis:
       override_refs:

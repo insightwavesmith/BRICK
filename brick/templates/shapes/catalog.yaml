@@ -66,6 +66,8 @@ physical_template_classification:
   shared_base:
     - path: brick/templates/building-design-contract.yaml
       reason: Building-level human<->COO design-contract table (templates root since T-FLATTEN 0611; building-level by design, so deliberately NOT a brick sheet under bricks/).
+    - path: brick/templates/reroute-defaults.yaml
+      reason: Smith-declared constitutional fallback node_reroute_budget for graph presets that omit their own budget map.
     - path: brick/templates/tasks/source-template.md
       reason: Existing task-source template for Brick intake evidence.
     - path: brick/templates/tasks/slack-alert-all-presets-task.md

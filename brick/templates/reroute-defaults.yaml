@@ -1,0 +1,11 @@
+declared_by: smith
+provenance: constitutional-default
+default_node_reroute_budget: 5
+proof_limits:
+  - human-declared fallback for graph presets that omit node_reroute_budgets
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - semantic fitness of the default budget for future graph presets

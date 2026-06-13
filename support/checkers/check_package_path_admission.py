@@ -735,8 +735,13 @@ def is_template0_brick_template_path(path: str, is_dir: bool) -> bool:
         # T-FLATTEN (0611): templates-root CLOSED set — the building-level
         # human<->COO design-contract table (building-level by design, so
         # deliberately NOT a brick sheet under bricks/) + the stranger's-map
-        # README. Exactly these two filenames; no root file class opens up.
-        return parts[2] in {"building-design-contract.yaml", "README.md"}
+        # README, and Smith-declared reroute defaults. Exactly these filenames;
+        # no root file class opens up.
+        return parts[2] in {
+            "building-design-contract.yaml",
+            "README.md",
+            "reroute-defaults.yaml",
+        }
     if parts[:3] == ["brick", "templates", "tasks"]:
         return (
             len(parts) == 4

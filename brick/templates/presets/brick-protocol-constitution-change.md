@@ -22,6 +22,8 @@ gate_concept_profile:
   - strict-evidence
   - coo-review
   - human-review
+node_reroute_budgets:
+  building-step-template:design: 5
 proof_limits:
   - this is a Brick Protocol dogfood variant over common templates
   - human-review remains exceptional and explicitly declared when needed

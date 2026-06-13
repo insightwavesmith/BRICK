@@ -21,6 +21,8 @@ gate_concept_profile:
   - strict-evidence
   - coo-review
   - human-review
+node_reroute_budgets:
+  building-step-template:design: 5
 proof_limits:
   - human-review remains exceptional and explicitly declared when needed
   - change wording is not active until admitted by the governing Building

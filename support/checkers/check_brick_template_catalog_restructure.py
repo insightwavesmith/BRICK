@@ -69,9 +69,14 @@ ADMITTED_PHYSICAL_TEMPLATE_DIRS = {
 ADMITTED_TEMPLATE_ROOT_FILES = {
     "brick/templates/bricks/transition-concern-return.yaml",
     "brick/templates/building-design-contract.yaml",
+    "brick/templates/reroute-defaults.yaml",
 }
 ADMITTED_TEMPLATE_SUFFIXES = {".yaml", ".json"}
 TASK_TEMPLATE_SUFFIXES = {".md"}
+QA_STEP_TEMPLATE_REFS = {
+    "building-step-template:axis-attack-qa",
+    "building-step-template:code-attack-qa",
+}
 # CLEAN-YARD v3 (Smith 0611): the archive/brick-templates mirror left for the
 # frozen museum repo and the ARCHIVE FALLBACK is PRUNED -- the product repo
 # ships zero standing declaration packets, so a template ref resolves ONLY at
@@ -846,6 +851,20 @@ def _validate_chain_preset_references(
                     "chain preset must declare at least one step",
                 )
             )
+        if any(
+            _text(_as_mapping(step).get("step_template_ref")) in QA_STEP_TEMPLATE_REFS
+            for step in steps
+        ):
+            budgets = row.get("node_reroute_budgets")
+            if not isinstance(budgets, Mapping) or not budgets:
+                violations.append(
+                    CatalogViolation(
+                        "qa_preset_missing_reroute_policy",
+                        location,
+                        "QA-bearing chain presets must declare non-empty node_reroute_budgets "
+                        "so transition_concern_evidence can reland within a bounded budget",
+                    )
+                )
         step_template_rows: dict[str, list[tuple[str, bool]]] = {}
         identity_rows: dict[str, list[str]] = {}
         for index, raw_step in enumerate(steps):
@@ -1706,10 +1725,12 @@ def _live_state(repo: Path) -> Mapping[str, Any]:
 
 def _synthetic_base(temp_root: Path) -> Mapping[str, Any]:
     physical_files = {
+        "brick/templates/bricks/code-attack-qa/return.yaml",
         "brick/templates/bricks/work/return.yaml",
         "brick/templates/bricks/closure/return.yaml",
     }
     brick_spec_files = {
+        "brick/templates/bricks/code-attack-qa/brick.md",
         "brick/templates/bricks/work/brick.md",
         "brick/templates/bricks/closure/brick.md",
     }
@@ -1760,6 +1781,14 @@ def _synthetic_base(temp_root: Path) -> Mapping[str, Any]:
                     "brick_contract": "fixture work contract",
                     "brick_spec_ref": "brick/templates/bricks/work/brick.md",
                     "brick_template_refs": ["brick-template:work-return"],
+                },
+                {
+                    "step_template_ref": "building-step-template:code-attack-qa",
+                    "agent_object_ref": "agent-object:qa",
+                    "link_word": "forward",
+                    "brick_contract": "fixture code attack QA contract",
+                    "brick_spec_ref": "brick/templates/bricks/code-attack-qa/brick.md",
+                    "brick_template_refs": ["brick-template:code-attack-qa-return"],
                 },
                 {
                     "step_template_ref": "building-step-template:closure",
@@ -1856,11 +1885,15 @@ def _synthetic_base(temp_root: Path) -> Mapping[str, Any]:
             "portfolio-policy",
             "human-review",
         },
-        "agent_object_refs": {"agent-object:dev", "agent-object:coo"},
+        "agent_object_refs": {"agent-object:dev", "agent-object:qa", "agent-object:coo"},
         "physical_files": physical_files,
         "brick_spec_files": brick_spec_files,
         "archived_template_files": archived_template_files,
         "physical_template_docs": {
+            "brick/templates/bricks/code-attack-qa/return.yaml": {
+                "template_ref": "brick-template:code-attack-qa-return",
+                "required_return_shape": ["observed_evidence", "not_proven"],
+            },
             "brick/templates/bricks/work/return.yaml": {
                 "template_ref": "brick-template:work-return",
                 "required_return_shape": ["made_changes", "not_proven"],
@@ -1872,6 +1905,7 @@ def _synthetic_base(temp_root: Path) -> Mapping[str, Any]:
             },
         },
         "brick_template_ref_map": {
+            "brick-template:code-attack-qa-return": "brick/templates/bricks/code-attack-qa/return.yaml",
             "brick-template:work-return": "brick/templates/bricks/work/return.yaml",
             "brick-template:closure-return": "brick/templates/bricks/closure/return.yaml",
         },
@@ -2100,6 +2134,11 @@ def _run_fire_fixtures() -> tuple[int, list[str]]:
             "invalid_chain_target_word",
             None,
         ),
+        "qa_preset_missing_reroute_policy": (
+            "qa_preset_missing_reroute_policy",
+            "qa_preset_missing_reroute_policy",
+            None,
+        ),
         # presets/ source fixture (U3 re-home): a COMMON-scope presets/<name>.md
         # whose step_template_ref does not resolve must RED, proving the checker
         # validates the presets/ source rows (not only the dogfood ones).
@@ -2287,6 +2326,21 @@ def _run_fire_fixtures() -> tuple[int, list[str]]:
                 _first_dogfood_preset(state)["gate_concept_profile"] = ["unknown-concept"]
             elif mutation == "invalid_chain_target_word":
                 _first_dogfood_preset(state)["steps"][0]["target_word"] = "forward"
+            elif mutation == "qa_preset_missing_reroute_policy":
+                row = _first_common_preset(state)
+                row["steps"] = [
+                    {
+                        "step_template_ref": "building-step-template:work",
+                        "brick_spec_ref": "brick/templates/bricks/work/brick.md",
+                        "target_word": "code_attack_qa",
+                    },
+                    {
+                        "step_template_ref": "building-step-template:code-attack-qa",
+                        "brick_spec_ref": "brick/templates/bricks/code-attack-qa/brick.md",
+                        "target_word": "closure",
+                    },
+                ]
+                row.pop("node_reroute_budgets", None)
             elif mutation == "presets_common_invalid_chain_step_template_ref":
                 _first_common_preset(state)["steps"][0]["step_template_ref"] = "building-step-template:missing"
             elif mutation == "invalid_chain_preset_catalog_scope":

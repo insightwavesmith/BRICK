@@ -522,6 +522,16 @@ def patched_argv(argv: list[str]) -> Any:
         sys.argv = previous
 
 
+@contextlib.contextmanager
+def _without_report_grain_env() -> Any:
+    previous = os.environ.pop("BRICK_REPORT_GRAIN", None)
+    try:
+        yield
+    finally:
+        if previous is not None:
+            os.environ["BRICK_REPORT_GRAIN"] = previous
+
+
 def call_main(check_id: str, module_name: str, argv: list[str] | None) -> KernelResult:
     module = importlib.import_module(module_name)
     with captured_output() as (out, err):
@@ -2550,15 +2560,16 @@ def _assert_reporter_auto_wiring(repo: Path, reporter: Any, report_sinks: Any) -
         _copy_reporter_probe_agent_resources(repo, temp_repo)
         output_root = temp_repo / "project" / "brick-protocol" / "buildings"
         no_env_plan = _reporter_auto_wire_plan("reporter-auto-wire-no-env")
-        result = run_building_plan(
-            no_env_plan,
-            output_root=output_root,
-            overwrite_existing=True,
-            local_callables={"callable:local:agent-invoke0-smoke": _brain},
-            adapter_cwd=repo,
-            adapter_timeout_seconds=10,
-            report_env={},
-        )
+        with _without_report_grain_env():
+            result = run_building_plan(
+                no_env_plan,
+                output_root=output_root,
+                overwrite_existing=True,
+                local_callables={"callable:local:agent-invoke0-smoke": _brain},
+                adapter_cwd=repo,
+                adapter_timeout_seconds=10,
+                report_env={},
+            )
         observations = tuple(getattr(result, "_report_event_observations", ()))
         if len(observations) != 2:
             raise ProfileError(
@@ -2594,16 +2605,17 @@ def _assert_reporter_auto_wiring(repo: Path, reporter: Any, report_sinks: Any) -
             "BRICK_REPORT_SLACK_BOT_TOKEN": "xoxb-redacted-probe",
             "BRICK_REPORT_SLACK_CHANNEL_ID": "CREDPROBE",
         }
-        result = run_building_plan(
-            _reporter_auto_wire_plan("reporter-auto-wire-fake-slack"),
-            output_root=output_root,
-            overwrite_existing=True,
-            local_callables={"callable:local:agent-invoke0-smoke": _brain},
-            adapter_cwd=repo,
-            adapter_timeout_seconds=10,
-            report_env=fake_env,
-            report_slack_sender=_fake_temp_slack_sender,
-        )
+        with _without_report_grain_env():
+            result = run_building_plan(
+                _reporter_auto_wire_plan("reporter-auto-wire-fake-slack"),
+                output_root=output_root,
+                overwrite_existing=True,
+                local_callables={"callable:local:agent-invoke0-smoke": _brain},
+                adapter_cwd=repo,
+                adapter_timeout_seconds=10,
+                report_env=fake_env,
+                report_slack_sender=_fake_temp_slack_sender,
+            )
         observations = tuple(getattr(result, "_report_event_observations", ()))
         if len(observations) != 2:
             raise ProfileError("temp-root auto-wiring with fake Slack env emitted wrong event count")
@@ -2643,6 +2655,7 @@ def _assert_reporter_auto_wiring(repo: Path, reporter: Any, report_sinks: Any) -
                     report_event_policy={
                         "enabled": True,
                         "mode": "basic",
+                        "grain": "building",
                         "event_kinds": ["building_finished"],
                         "sink_refs": ["report-sink:local-inbox", "report-sink:slack"],
                         "allow_real_slack_delivery": True,
@@ -2682,6 +2695,7 @@ def _assert_reporter_auto_wiring(repo: Path, reporter: Any, report_sinks: Any) -
                 report_event_policy={
                     "enabled": True,
                     "mode": "verbose",
+                    "grain": "building",
                     "event_kinds": ["building_finished"],
                     "sink_refs": ["report-sink:local-inbox"],
                 },
@@ -5667,6 +5681,7 @@ def _chat_session_park_plan() -> Mapping[str, Any]:
         "selected_adapter_ref": "adapter:chat-session",
         "report_event_policy": {
             "enabled": True,
+            "grain": "building",
             "event_kinds": ["building_started", "intervention_required"],
             "sink_refs": ["report-sink:local-inbox", "report-sink:operator-wake-local"],
         },
@@ -5711,6 +5726,7 @@ def _chat_session_park_graph_plan(
         "plan_shape": "graph",
         "report_event_policy": {
             "enabled": True,
+            "grain": "building",
             "event_kinds": ["building_started", "intervention_required"],
             "sink_refs": ["report-sink:local-inbox", "report-sink:operator-wake-local"],
         },

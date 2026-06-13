@@ -200,7 +200,23 @@ def run_materialize_building_intent_case(repo: Path, profile: Mapping[str, Any])
     for item in items:
         mapping = require_mapping(item, "materialize_building_intent_case item")
         case, relative = _profile_case_document(repo, mapping, "materialize_building_intent_case")
-        plan = materialize_building_intent(case, repo_root=repo)
+        strip_keys = _materialize_reject_strip_preset_keys(mapping)
+        if strip_keys:
+            strip_preset_ref = require_string(
+                mapping.get("strip_preset_ref"),
+                "materialize_building_intent_case.strip_preset_ref",
+            )
+            with _stripped_chain_preset_keys(
+                materialize_building_intent, strip_preset_ref, strip_keys
+            ) as strip_probe:
+                plan = materialize_building_intent(case, repo_root=repo)
+                if not strip_probe:
+                    raise ProfileError(
+                        "materialize_building_intent_case strip_preset_ref not in "
+                        f"catalog: {strip_preset_ref} ({relative})"
+                    )
+        else:
+            plan = materialize_building_intent(case, repo_root=repo)
         graph_context = None
         validation_plan = plan
         if plan.get("plan_shape") == "graph":
@@ -488,7 +504,11 @@ def run_materialize_building_intent_case(repo: Path, profile: Mapping[str, Any])
     return count
 
 
-_ROUTE_POLICY_PROVENANCE_VALUES = ("preset-default", "per-building")
+_ROUTE_POLICY_PROVENANCE_VALUES = (
+    "constitutional-default",
+    "preset-default",
+    "per-building",
+)
 
 
 def _check_materialized_route_policy_provenance(
@@ -506,8 +526,9 @@ def _check_materialized_route_policy_provenance(
 
       * A node carries ``node_reroute_budget`` or
         ``closure_transition_target_policy`` but its provenance is missing /
-        support-synthesized / not in {preset-default, per-building} -- i.e. support
-        injected a value with no HUMAN provenance trail.
+        support-synthesized / not in {constitutional-default, preset-default,
+        per-building} -- i.e. support injected a value with no HUMAN provenance
+        trail.
       * The recorded ``route_policy_provenance.by_node`` references a node that
         carries no such value, or omits a node that carries one (the provenance
         record and the carried values must agree exactly).
@@ -1487,6 +1508,7 @@ def run_building_intake_seam_case(repo: Path, profile: Mapping[str, Any]) -> int
             "chain_preset_ref": chain_preset_ref,
             "selected_adapter_ref": selected_adapter_ref,
             "selected_model_ref": "model:default",
+            "report_event_policy": {"enabled": False},
             "proof_limits": [
                 "building-intake seam checker support evidence only",
                 "not provider behavior",
@@ -1993,6 +2015,7 @@ def run_intake_project_vessel_case(repo: Path, profile: Mapping[str, Any]) -> in
             "selected_adapter_ref": "adapter:local",
             "selected_model_ref": "model:default",
             "project_ref": project_ref,
+            "report_event_policy": {"enabled": False},
             "proof_limits": [
                 "intake project-vessel checker support evidence only",
                 "not source truth",
@@ -2962,7 +2985,7 @@ def _run_preset_completion_portfolio(
 ) -> None:
     slug = _preset_slug(portfolio_ref)
     plan_dir = tmp / "portfolio-child-plans" / slug
-    candidates: list[tuple[str, Path]] = []
+    candidates: list[tuple[str, Path, str]] = []
     for index, child_suffix in enumerate(("a", "b"), start=1):
         child_building_id = f"{_case_slug(label)}-{slug}-child-{child_suffix}"
         child_plan = materialize_building_intent(
@@ -2981,9 +3004,10 @@ def _run_preset_completion_portfolio(
         plan_path = plan_dir / f"{child_suffix}.json"
         plan_path.parent.mkdir(parents=True, exist_ok=True)
         plan_path.write_text(json.dumps(child_plan, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        candidates.append((f"building-boundary:{slug}-child-{child_suffix}", plan_path))
+        walker_mode = "dynamic" if child_plan.get("plan_shape") == "graph" else "linear"
+        candidates.append((f"building-boundary:{slug}-child-{child_suffix}", plan_path, walker_mode))
 
-    candidate_refs = [candidate_ref for candidate_ref, _path in candidates]
+    candidate_refs = [candidate_ref for candidate_ref, _path, _walker_mode in candidates]
     packet = {
         "portfolio_ref": f"portfolio:{_case_slug(label)}-{slug}",
         "declared_by": f"coo:{_case_slug(label)}",
@@ -2998,9 +3022,9 @@ def _run_preset_completion_portfolio(
             {
                 "candidate_ref": candidate_ref,
                 "building_plan_ref": str(path),
-                "walker_mode": "linear",
+                "walker_mode": walker_mode,
             }
-            for candidate_ref, path in candidates
+            for candidate_ref, path, walker_mode in candidates
         ],
         "static_order": candidate_refs,
         "portfolio_transition_budget": {
@@ -3085,9 +3109,14 @@ def _run_preset_completion_portfolio(
                 f"preset_building_completion_case rejected {label}/{portfolio_ref}: "
                 f"declared_plan_copy is not a plan mapping in {recorded_plan_path}"
             )
+        row_groups = (
+            recorded_plan.get("link_edges")
+            if recorded_plan.get("plan_shape") == "graph"
+            else recorded_plan.get("steps")
+        )
         closing_rows = [
             row
-            for group in (recorded_plan.get("steps") or [])
+            for group in (row_groups or [])
             if isinstance(group, Mapping)
             for row in (group.get("rows") or [])
             if isinstance(row, Mapping)
@@ -3635,8 +3664,9 @@ def run_compose_building_case(repo: Path, profile: Mapping[str, Any]) -> int:
     # NOT auto-labeled per-building. This probes the resolver guard DIRECTLY (the
     # compose_building direct-caller intake stamps per-building EXPLICITLY before the
     # resolver sees it, so the guard itself is the only thing rejecting a truly
-    # unprovenanced value). The legitimate preset-default | per-building paths still
-    # resolve verbatim. Revert the guard (back to `return "per-building"` for
+    # unprovenanced value). The legitimate constitutional-default | preset-default |
+    # per-building paths still resolve verbatim. Revert the guard (back to
+    # `return "per-building"` for
     # absent/blank) and this probe goes RED.
     from support.operator.composition import _composition_resolve_route_policy_provenance
 
@@ -3653,7 +3683,7 @@ def run_compose_building_case(repo: Path, profile: Mapping[str, Any]) -> int:
                 f"provenance ({absent!r}) was not REJECTED fail-closed (it must not "
                 "be auto-labeled per-building)"
             )
-    for human in ("preset-default", "per-building"):
+    for human in ("constitutional-default", "preset-default", "per-building"):
         if _composition_resolve_route_policy_provenance(
             "probe-node", "node_reroute_budget", human
         ) != human:
@@ -3661,6 +3691,17 @@ def run_compose_building_case(repo: Path, profile: Mapping[str, Any]) -> int:
                 "compose_building_case provenance probe: legitimate HUMAN provenance "
                 f"{human!r} was not resolved verbatim"
             )
+    try:
+        _composition_resolve_route_policy_provenance(
+            "probe-node", "node_reroute_budget", "support"
+        )
+    except ValueError:
+        pass
+    else:
+        raise ProfileError(
+            "compose_building_case provenance probe: route-policy provenance "
+            "'support' was not REJECTED fail-closed"
+        )
 
     # FAIL-CLOSED Movement-action probe (Smith ruling, same axis-law as provenance):
     # a closure_transition_target_policy row that declares a target_ref but NO explicit

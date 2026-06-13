@@ -37,6 +37,7 @@ from brick_protocol.support.operator.plan_rendering import (
     _clean_selected_adapter_ref,
     _declared_step_from_step_template,
     _is_caller_or_coo_declaration,
+    _load_yaml_mapping,
     _load_shape_registry,
     _parse_compact_link_expression,
     _resolve_agent_for_need,
@@ -47,6 +48,8 @@ from brick_protocol.support.operator.plan_rendering import (
 
 
 GRAPH_CHAIN_TARGET_MARKERS = ("parallel", "fan_in")
+REROUTE_DEFAULTS_PATH = Path("brick/templates/reroute-defaults.yaml")
+ROUTE_POLICY_PROVENANCE_CONSTITUTIONAL_DEFAULT = "constitutional-default"
 UNSUPPORTED_MATERIALIZER_TARGET_WORDS = ("child_building_runs", "portfolio_closure")
 # Composition-authorship vocabulary literal for LINEAR plans (single source;
 # B4-REPAIR 0611). Stamped by render_declared_step_template_plan below (X1
@@ -1328,6 +1331,7 @@ def _materializer_graph_plan(
     graph = _materializer_graph_declaration(
         preset,
         registry,
+        repo=repo,
         building_id=building_id,
         task_summary=task_summary,
         task_source_ref=task_source_ref,
@@ -1464,6 +1468,7 @@ def _materializer_graph_declaration(
     preset: Mapping[str, Any],
     registry: Mapping[str, Any],
     *,
+    repo: Path,
     building_id: str,
     task_summary: str,
     task_source_ref: str,
@@ -1492,7 +1497,19 @@ def _materializer_graph_declaration(
         )
     fan_out_index = _materializer_graph_fan_out_index(steps)
     if fan_out_index is None:
-        raise ValueError("graph preset materialization requires a declared fan-out target word")
+        return _materializer_sequential_graph_declaration(
+            steps,
+            preset,
+            registry,
+            repo=repo,
+            building_id=building_id,
+            task_summary=task_summary,
+            task_source_ref=task_source_ref,
+            source_facts=source_facts,
+            write_scope=write_scope,
+            override_reroute_budgets=override_reroute_budgets,
+            chain_preset_ref=chain_preset_ref,
+        )
     if len(steps) < fan_out_index + 3:
         raise ValueError("graph preset materialization requires fan-out branches and closure")
     # The closing synthesizer is the TERMINAL step by POSITION (last index). The name
@@ -1528,18 +1545,16 @@ def _materializer_graph_declaration(
     #     (provenance "per-building"); else the preset's (provenance
     #     "preset-default"). Support synthesizes neither.
     building_slug = _composition_slug(building_id)
-    preset_budgets = _materializer_preset_reroute_budgets(preset)
-    override_budgets = _materializer_reroute_budgets(
-        override_reroute_budgets,
-        source_label="per-building override",
+    # Per-KEY cascade: override wins per key; provenance recorded per key. The
+    # constitutional default tier opens only when the preset carries no budget map
+    # of its own, preserving already-budgeted graph presets byte-for-byte.
+    declared_budgets, budget_provenance, default_budget = (
+        _materializer_reroute_budget_cascade(
+            preset,
+            repo=repo,
+            override_reroute_budgets=override_reroute_budgets,
+        )
     )
-    # Per-KEY cascade: override wins per key; provenance recorded per key.
-    declared_budgets: dict[str, int] = dict(preset_budgets)
-    declared_budgets.update(override_budgets)
-    budget_provenance: dict[str, str] = {
-        key: ("per-building" if key in override_budgets else "preset-default")
-        for key in declared_budgets
-    }
 
     # Whole-policy cascade: override replaces preset entirely.
     if override_closure_policy is not None:
@@ -1589,6 +1604,11 @@ def _materializer_graph_declaration(
             (source_label, step_alias is not None)
         )
         node_ids.append(node_id)
+        node_budget = declared_budgets.get(step_template_ref)
+        node_budget_provenance = budget_provenance.get(step_template_ref)
+        if node_budget is None and default_budget is not None:
+            node_budget = default_budget
+            node_budget_provenance = ROUTE_POLICY_PROVENANCE_CONSTITUTIONAL_DEFAULT
         node = _materializer_graph_node(
             index,
             raw_step,
@@ -1601,8 +1621,8 @@ def _materializer_graph_declaration(
             write_scope=write_scope,
             fan_in_source=index in branch_indices,
             fan_in_target=index == closure_index,
-            declared_reroute_budget=declared_budgets.get(step_template_ref),
-            declared_reroute_budget_provenance=budget_provenance.get(step_template_ref),
+            declared_reroute_budget=node_budget,
+            declared_reroute_budget_provenance=node_budget_provenance,
             declared_closure_policy=(
                 declared_closure_policy if index == closure_index else None
             ),
@@ -1742,6 +1762,166 @@ def _materializer_graph_declaration(
     return {"nodes": nodes, "edges": edges, "groups": groups}
 
 
+def _materializer_sequential_graph_declaration(
+    steps: Sequence[Mapping[str, Any]],
+    preset: Mapping[str, Any],
+    registry: Mapping[str, Any],
+    *,
+    repo: Path,
+    building_id: str,
+    task_summary: str,
+    task_source_ref: str,
+    source_facts: Sequence[str],
+    write_scope: Mapping[str, Any] | None,
+    override_reroute_budgets: Any = None,
+    chain_preset_ref: str = "",
+) -> Mapping[str, list[Mapping[str, Any]]]:
+    if not steps:
+        raise ValueError("graph preset materialization requires at least one step")
+
+    building_slug = _composition_slug(building_id)
+    declared_budgets, budget_provenance, default_budget = (
+        _materializer_reroute_budget_cascade(
+            preset,
+            repo=repo,
+            override_reroute_budgets=override_reroute_budgets,
+        )
+    )
+    nodes: list[Mapping[str, Any]] = []
+    node_ids: list[str] = []
+    node_id_sources: dict[str, list[str]] = {}
+    step_template_sources: dict[str, list[tuple[str, bool]]] = {}
+    step_template_counts = Counter(
+        _clean_text(
+            f"chain preset steps[{index}].step_template_ref",
+            raw_step.get("step_template_ref", ""),
+        )
+        for index, raw_step in enumerate(steps)
+    )
+    for index, raw_step in enumerate(steps):
+        step_template_ref = _clean_text(
+            f"chain preset steps[{index}].step_template_ref",
+            raw_step.get("step_template_ref", ""),
+        )
+        step_template = _materializer_step_template(registry, step_template_ref)
+        _validate_declared_brick_spec_ref(raw_step, step_template, label=f"chain preset steps[{index}]")
+        step_alias = _materializer_step_alias(raw_step, index)
+        kind_slug = (
+            _composition_slug(step_alias)
+            if step_alias is not None
+            else _materializer_step_template_slug(step_template_ref)
+        )
+        node_id = f"{building_slug}-{kind_slug}"
+        source_label = f"steps[{index}] {step_template_ref}"
+        if step_alias is not None:
+            source_label = f"{source_label} step_alias={step_alias}"
+        node_id_sources.setdefault(node_id, []).append(source_label)
+        step_template_sources.setdefault(step_template_ref, []).append(
+            (source_label, step_alias is not None)
+        )
+        node_ids.append(node_id)
+        node_budget = declared_budgets.get(step_template_ref)
+        node_budget_provenance = budget_provenance.get(step_template_ref)
+        if node_budget is None and default_budget is not None:
+            node_budget = default_budget
+            node_budget_provenance = ROUTE_POLICY_PROVENANCE_CONSTITUTIONAL_DEFAULT
+        nodes.append(
+            _materializer_graph_node(
+                index,
+                raw_step,
+                step_template,
+                step_template_ref=step_template_ref,
+                node_id=node_id,
+                task_summary=task_summary,
+                task_source_ref=task_source_ref,
+                source_facts=source_facts,
+                write_scope=write_scope,
+                fan_in_source=False,
+                fan_in_target=False,
+                declared_reroute_budget=node_budget,
+                declared_reroute_budget_provenance=node_budget_provenance,
+                declared_closure_policy=None,
+                declared_closure_policy_provenance=None,
+            )
+        )
+
+    alias_problems: list[str] = []
+    for step_template_ref, sources in sorted(step_template_sources.items()):
+        if step_template_counts[step_template_ref] <= 1:
+            continue
+        missing_alias_sources = [
+            source_label for source_label, has_alias in sources if not has_alias
+        ]
+        if missing_alias_sources:
+            alias_problems.append(
+                f"step_alias required for repeated step_template_ref {step_template_ref}: "
+                + ", ".join(missing_alias_sources)
+            )
+    for node_id, sources in sorted(node_id_sources.items()):
+        if len(sources) > 1:
+            alias_problems.append(
+                f"node_id collision {node_id}: " + ", ".join(sources)
+            )
+    if alias_problems:
+        raise ValueError(
+            "chain preset step_alias node identity collision: "
+            + "; ".join(alias_problems)
+        )
+
+    edges: list[Mapping[str, Any]] = []
+    completion_edge_by_node: dict[str, str] = {}
+    for source_index in range(0, len(steps) - 1):
+        edge = _materializer_graph_edge(
+            node_ids[source_index],
+            node_ids[source_index + 1],
+            preset=preset,
+            registry=registry,
+            source_step=steps[source_index],
+            target_step=steps[source_index + 1],
+            chain_preset_ref=chain_preset_ref,
+        )
+        edges.append(edge)
+        completion_edge_by_node[node_ids[source_index]] = str(edge["edge_ref"])
+    terminal_index = len(steps) - 1
+    terminal_edge: dict[str, Any] = {
+        "edge_ref": f"edge:{node_ids[terminal_index]}-to-boundary",
+        "source": node_ids[terminal_index],
+        "target": f"building-boundary:{_composition_slug(building_id)}-closed",
+        "movement": "forward",
+        "building_lifecycle": {
+            "state": "closed",
+            "reason": f"declared closure boundary for {building_id}",
+        },
+    }
+    terminal_profile_gate_translations = _materializer_profile_gate_translations(
+        _materializer_gate_concept_tokens(preset),
+        qa_row=False,
+        final_transition_row=True,
+    )
+    terminal_profile_gate_refs = tuple(
+        ref for _token, ref in terminal_profile_gate_translations
+    )
+    if terminal_profile_gate_refs:
+        terminal_edge["declared_gate_refs"] = [
+            DEFAULT_LINK_GATE_REF,
+            *terminal_profile_gate_refs,
+        ]
+        terminal_edge["gate_concept_provenance"] = _materializer_gate_concept_provenance(
+            terminal_profile_gate_translations,
+            chain_preset_ref=chain_preset_ref,
+        )
+        if GATE_CONCEPT_TOKEN_GATE_REFS["human-review"] in terminal_profile_gate_refs:
+            terminal_edge["gate_sequence_policy"] = _materializer_human_gate_hold_policy()
+    edges.append(terminal_edge)
+    completion_edge_by_node[node_ids[terminal_index]] = str(terminal_edge["edge_ref"])
+    for node in nodes:
+        if isinstance(node, dict):
+            edge_ref = completion_edge_by_node.get(str(node.get("node_id", "")))
+            if edge_ref:
+                node["completion_edge_ref"] = edge_ref
+    return {"nodes": nodes, "edges": edges, "groups": []}
+
+
 def _materializer_graph_fan_out_index(steps: Sequence[Mapping[str, Any]]) -> int | None:
     for index, raw_step in enumerate(steps):
         target_word = str(raw_step.get("target_word", "")).strip().lower()
@@ -1833,14 +2013,16 @@ def _materializer_graph_node(
     # the run-time provider projection of a read-only step opens no write.
     # B: per-node reroute budget is COPIED from a HUMAN-declared budget map (preset
     # default OR per-Building override), never defaulted by support. Its PROVENANCE
-    # (preset-default | per-building) is stamped alongside the value so an auditor
+    # (constitutional-default | preset-default | per-building) is stamped alongside
+    # the value so an auditor
     # can confirm support did not inject it. Provenance must NEVER be "support" and
     # must NEVER be absent when a value is present (fail closed below).
     if declared_reroute_budget is not None:
-        if declared_reroute_budget_provenance not in ("preset-default", "per-building"):
+        if declared_reroute_budget_provenance not in _ROUTE_POLICY_PROVENANCE_VALUES:
             raise ValueError(
                 "node_reroute_budget requires HUMAN provenance "
-                "(preset-default | per-building); support must not synthesize it"
+                "(constitutional-default | preset-default | per-building); "
+                "support must not synthesize it"
             )
         node["node_reroute_budget"] = declared_reroute_budget
         node["node_reroute_budget_provenance"] = declared_reroute_budget_provenance
@@ -1851,8 +2033,8 @@ def _materializer_graph_node(
     # A: the fan-in closure routing policy is COPIED from a HUMAN-declared
     # closure_transition_target_policy (preset default OR per-Building override). It
     # MUST be declared by one of them (fail closed in the cascade reader); support
-    # synthesizes nothing. Its PROVENANCE (preset-default | per-building) is stamped
-    # alongside the policy for the same audit reason.
+    # synthesizes nothing. Its PROVENANCE is stamped alongside the policy for the
+    # same audit reason.
     if fan_in_target:
         if declared_closure_policy is None:
             raise ValueError(
@@ -1860,10 +2042,11 @@ def _materializer_graph_node(
                 "closure_transition_target_policy for the fan-in closure node; "
                 "support must not synthesize the route author's policy"
             )
-        if declared_closure_policy_provenance not in ("preset-default", "per-building"):
+        if declared_closure_policy_provenance not in _ROUTE_POLICY_PROVENANCE_VALUES:
             raise ValueError(
                 "closure_transition_target_policy requires HUMAN provenance "
-                "(preset-default | per-building); support must not synthesize it"
+                "(constitutional-default | preset-default | per-building); "
+                "support must not synthesize it"
             )
         node["closure_transition_target_policy"] = dict(declared_closure_policy)
         node["closure_transition_target_policy_provenance"] = declared_closure_policy_provenance
@@ -1975,6 +2158,51 @@ def _materializer_preset_reroute_budgets(
         preset.get("node_reroute_budgets"),
         source_label="graph preset",
     )
+
+
+def _materializer_constitutional_default_reroute_budget(repo: Path) -> int:
+    payload = _load_yaml_mapping(
+        repo / REROUTE_DEFAULTS_PATH,
+        "Brick reroute defaults",
+    )
+    declared_by = str(payload.get("declared_by", "")).strip()
+    provenance = str(payload.get("provenance", "")).strip()
+    if declared_by != "smith":
+        raise ValueError("reroute defaults must declare declared_by: smith")
+    if provenance != ROUTE_POLICY_PROVENANCE_CONSTITUTIONAL_DEFAULT:
+        raise ValueError(
+            "reroute defaults must declare provenance: "
+            + ROUTE_POLICY_PROVENANCE_CONSTITUTIONAL_DEFAULT
+        )
+    budget = payload.get("default_node_reroute_budget")
+    if isinstance(budget, bool) or not isinstance(budget, int) or budget <= 0:
+        raise ValueError("reroute defaults default_node_reroute_budget must be a positive int")
+    return budget
+
+
+def _materializer_reroute_budget_cascade(
+    preset: Mapping[str, Any],
+    *,
+    repo: Path,
+    override_reroute_budgets: Any,
+) -> tuple[dict[str, int], dict[str, str], int | None]:
+    preset_budgets = _materializer_preset_reroute_budgets(preset)
+    override_budgets = _materializer_reroute_budgets(
+        override_reroute_budgets,
+        source_label="per-building override",
+    )
+    declared_budgets: dict[str, int] = dict(preset_budgets)
+    declared_budgets.update(override_budgets)
+    budget_provenance: dict[str, str] = {
+        key: ("per-building" if key in override_budgets else "preset-default")
+        for key in declared_budgets
+    }
+    default_budget = (
+        None
+        if preset_budgets
+        else _materializer_constitutional_default_reroute_budget(repo)
+    )
+    return declared_budgets, budget_provenance, default_budget
 
 
 def _materializer_closure_policy(
@@ -2528,7 +2756,7 @@ def compose_building(
                     "declared graph nodes must match the selected chain preset step templates",
                 )
             )
-        if _chain_preset_requires_graph(chain_preset):
+        if _chain_preset_requires_fan_in_groups(chain_preset):
             group_roles = (
                 {
                     str(group.get("group_role", "")).strip()
@@ -2613,7 +2841,7 @@ def compose_building(
                     )
                 )
 
-    if chain_preset is not None and _chain_preset_requires_graph(chain_preset):
+    if chain_preset is not None and _chain_preset_requires_fan_in_groups(chain_preset):
         problems.extend(
             _composition_hard_graph_contract_problems(
                 node_records=node_records,
@@ -2803,6 +3031,12 @@ def _composition_chain_preset(
 
 
 def _chain_preset_requires_graph(preset: Mapping[str, Any]) -> bool:
+    if "node_reroute_budgets" in preset:
+        return True
+    return _chain_preset_requires_fan_in_groups(preset)
+
+
+def _chain_preset_requires_fan_in_groups(preset: Mapping[str, Any]) -> bool:
     for raw_step in _chain_preset_steps(preset):
         target_word = str(raw_step.get("target_word", "")).strip().lower()
         if any(marker in target_word for marker in GRAPH_CHAIN_TARGET_MARKERS):
@@ -3191,7 +3425,9 @@ def _composition_node_reroute_budgets(
     return budgets
 
 
-_ROUTE_POLICY_PROVENANCE_VALUES: frozenset[str] = frozenset({"preset-default", "per-building"})
+_ROUTE_POLICY_PROVENANCE_VALUES: frozenset[str] = frozenset(
+    {ROUTE_POLICY_PROVENANCE_CONSTITUTIONAL_DEFAULT, "preset-default", "per-building"}
+)
 
 
 def _composition_direct_caller_provenance(*, value: Any, provenance: Any) -> Any:
@@ -3254,10 +3490,11 @@ def _composition_resolve_route_policy_provenance(
     FAIL-CLOSED (Smith ruling): EVERY route-policy value must carry an EXPLICIT
     HUMAN provenance. Two cases (support NEVER synthesizes the VALUE; this only
     labels its origin):
-      * preset-default | per-building -> recorded verbatim (the materializer
-        stamped it from the preset default or a per-Building override; the
-        compose_building direct-caller intake stamps "per-building" explicitly for
-        a value declared directly on the node).
+      * constitutional-default | preset-default | per-building -> recorded
+        verbatim (the materializer stamped it from the Smith-declared reroute
+        defaults file, preset default, or a per-Building override; the
+        compose_building direct-caller intake stamps "per-building" explicitly
+        for a value declared directly on the node).
       * absent (None / "") | "support" | any other token -> FAIL CLOSED. An absent
         provenance can no longer be auto-labeled per-building: a value with no
         explicit HUMAN provenance trail (or one literally claiming support, or an
@@ -3270,9 +3507,10 @@ def _composition_resolve_route_policy_provenance(
         return text
     raise ValueError(
         f"node {node_id} carries {field} with non-HUMAN provenance {provenance!r} "
-        "(must be preset-default | per-building; absent/blank provenance is rejected "
-        "fail-closed -- every route-policy value must carry explicit HUMAN "
-        "provenance); support must not inject or mislabel a Movement policy value"
+        "(must be constitutional-default | preset-default | per-building; "
+        "absent/blank provenance is rejected fail-closed -- every route-policy "
+        "value must carry explicit HUMAN provenance); support must not inject or "
+        "mislabel a Movement policy value"
     )
 
 
@@ -3282,8 +3520,9 @@ def _composition_route_policy_provenance(
     """Record per-node PROVENANCE for the route-policy values (A + B).
 
     For every node carrying a reroute budget and/or a closure routing policy, the
-    declared value's PROVENANCE (preset-default | per-building) is recorded so an
-    auditor can confirm support did not synthesize it. The provenance is read off
+    declared value's PROVENANCE (constitutional-default | preset-default |
+    per-building) is recorded so an auditor can confirm support did not synthesize
+    it. The provenance is read off
     the node the materializer stamped; support records it verbatim and NEVER writes
     a "support" value. A value carried with no/invalid provenance is a FAIL-CLOSED
     bug (support would have injected it) -- the materializer already rejects that,
@@ -3326,7 +3565,8 @@ def _composition_route_policy_provenance(
         "rule": (
             "route reroute budget + closure routing policy are HUMAN Movement "
             "decisions; support records but never synthesizes them (provenance is "
-            "preset-default for a reusable preset default or per-building for a "
+            "constitutional-default for Smith-declared reroute defaults, "
+            "preset-default for a reusable preset default, or per-building for a "
             "per-Building override, NEVER support)"
         ),
     }

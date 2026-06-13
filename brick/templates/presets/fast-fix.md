@@ -14,6 +14,8 @@ steps:
   - step_template_ref: building-step-template:closure
     brick_spec_ref: brick/templates/bricks/closure/brick.md
     target_word: closure
+node_reroute_budgets:
+  building-step-template:work: 5
 proof_limits:
   - task source is pre-run input evidence, not an automatic plan selector
   - chain preset is a caller / COO selection candidate only

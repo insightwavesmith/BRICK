@@ -262,6 +262,9 @@ def run_building_intake(
         )
 
     plan = materialize_building_intent(intent, repo_root=repo)
+    if "report_event_policy" in intent:
+        policy = intent.get("report_event_policy")
+        plan["report_event_policy"] = dict(policy) if isinstance(policy, Mapping) else policy
 
     plan_shape = str(plan.get("plan_shape") or "")
     walker_mode = _walker_mode_for_plan_shape(plan_shape)
