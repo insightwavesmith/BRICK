@@ -149,14 +149,8 @@ _RETURN_JSON_FIELDS = frozenset({"transition_concern_evidence"})
 _RETURN_WAIVER_FIELDS_BY_REQUIRED = {
     "made_changes": ("no_changes_reason",),
 }
-_RAW_SECRET_PATTERNS = (
-    re.compile(r"\bsk-[A-Za-z0-9_-]{12,}"),
-    re.compile(r"\bxoxb-[A-Za-z0-9_-]{12,}"),
-    re.compile(r"\bghp_[A-Za-z0-9_]{12,}"),
-    re.compile(r"\bgho_[A-Za-z0-9_]{12,}"),
-    re.compile(r"\bgithub_pat_[A-Za-z0-9_]{12,}"),
-    re.compile(r"\bAIza[A-Za-z0-9_-]{12,}"),
-    re.compile(r"-----BEGIN [A-Z ]+PRIVATE KEY-----"),
+from brick_protocol.support.connection.secret_text import (
+    RAW_SECRET_PATTERNS as _RAW_SECRET_PATTERNS,
 )
 _RAW_SESSION_PATTERNS = (
     re.compile(r"\bsess[_-][A-Za-z0-9_-]{12,}\b"),  # sess_ and sess- (OpenAI)

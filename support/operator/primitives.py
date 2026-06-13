@@ -189,14 +189,8 @@ INLINE_TASK_SOURCE_REF = "task-source:inline-statement"
 # over this many UTF-8 bytes must be landed as a repo file + task_source_ref
 # instead of being smuggled inline onto every plan/evidence copy.
 INLINE_TASK_STATEMENT_MAX_BYTES = 65536
-_RAW_SECRET_PATTERNS = (
-    re.compile(r"\bsk-[A-Za-z0-9_-]{12,}"),
-    re.compile(r"\bxoxb-[A-Za-z0-9_-]{12,}"),
-    re.compile(r"\bghp_[A-Za-z0-9_]{12,}"),
-    re.compile(r"\bgho_[A-Za-z0-9_]{12,}"),
-    re.compile(r"\bgithub_pat_[A-Za-z0-9_]{12,}"),
-    re.compile(r"\bAIza[A-Za-z0-9_-]{12,}"),
-    re.compile(r"-----BEGIN [A-Z ]+PRIVATE KEY-----"),
+from brick_protocol.support.connection.secret_text import (
+    RAW_SECRET_PATTERNS as _RAW_SECRET_PATTERNS,
 )
 _SESSION_LIKE_UUID_TEXT_RE = re.compile(
     r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b"

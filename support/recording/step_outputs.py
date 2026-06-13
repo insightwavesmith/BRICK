@@ -20,15 +20,7 @@ from brick_protocol.support.recording.contracts import (
     StepOutputObservation,
 )
 
-_RAW_SECRET_MARKERS: tuple[str, ...] = (
-    "sk-",
-    "xoxb-",
-    "ghp_",
-    "gho_",
-    "github_pat_",
-    "AIza",
-    "-----BEGIN ",
-)
+from brick_protocol.support.connection.secret_text import contains_raw_secret_text
 
 
 def write_step_outputs(
@@ -480,7 +472,7 @@ def _validate_no_payload_forbidden(
         for index, child in enumerate(value):
             _validate_no_payload_forbidden(f"{name}[{index}]", child, forbidden_keys)
     elif isinstance(value, str):
-        if any(marker in value for marker in _RAW_SECRET_MARKERS):
+        if contains_raw_secret_text(value):
             raise ValueError(f"{name} contains raw credential-looking text")
 
 

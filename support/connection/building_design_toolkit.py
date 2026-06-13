@@ -23,14 +23,7 @@ _DESIGN_RESOURCE_PATHS = {
     "task_source_template": Path("brick/templates/tasks/source-template.md"),
     "human_ai_design_contract": Path("brick/templates/building-design-contract.yaml"),
 }
-_RAW_SECRET_MARKERS = (
-    "xoxb-",
-    "ghp_",
-    "gho_",
-    "github_pat_",
-    "-----BEGIN ",
-)
-_OPENAI_KEY_PATTERN = re.compile(r"sk-[A-Za-z0-9_-]{20,}")
+from brick_protocol.support.connection.secret_text import contains_raw_secret_text
 _PROOF_LIMITS = (
     "support design context evidence only",
     "Brick meaning remains owned by brick/",
@@ -374,11 +367,8 @@ def _read_design_resource(path: Path) -> str:
 
 
 def _reject_secret_text(path: Path, text: str) -> None:
-    if _OPENAI_KEY_PATTERN.search(text):
+    if contains_raw_secret_text(text):
         raise BuildingDesignToolkitError(f"design resource contains raw credential-looking text: {path}")
-    for marker in _RAW_SECRET_MARKERS:
-        if marker in text:
-            raise BuildingDesignToolkitError(f"design resource contains raw credential-looking text: {path}")
 
 
 def _shape_catalog_resource(repo: Path) -> dict[str, Any]:

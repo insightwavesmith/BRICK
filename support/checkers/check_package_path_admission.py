@@ -127,6 +127,15 @@ BUILDING_DESIGN_TOOLKIT0_TARGETS = {
     "support/connection/building_design_toolkit.py",
 }
 
+# F8-SECRET-SCAN-SINGLE-SOURCE-0: the single source of raw-credential ("raw
+# secret") regex patterns (RAW_SECRET_PATTERNS + contains_raw_secret_text),
+# consumed by the four credential-rejection sites (agent_adapter.py,
+# primitives.py, step_outputs.py, building_design_toolkit.py). A leaf connection
+# module importing only re; owns no crossing, judges nothing.
+SECRET_TEXT0_TARGETS = {
+    "support/connection/secret_text.py",
+}
+
 # CONNECT-GENERATOR-0: the read-only MCP connect-config generator that emits a
 # portable codex/claude config computed from the user's own checkout.
 CONNECT_GENERATOR0_TARGETS = {
@@ -1585,6 +1594,9 @@ def allowed_path(path: str) -> bool:
         return True
 
     if clean in BUILDING_DESIGN_TOOLKIT0_TARGETS:
+        return True
+
+    if clean in SECRET_TEXT0_TARGETS:
         return True
 
     if clean in CONNECT_GENERATOR0_TARGETS:
