@@ -41,10 +41,11 @@
       "raw_refs": [
         "raw:link:01",
         "raw:link-frontier:02",
-        "raw:link-graph:01:edge-dashboard-productization-0612-design-to-dashboard-productization-0612-work"
+        "raw:link-graph:01:edge-dashboard-productization-0612-design-to-dashboard-productization-0612-work",
+        "raw:link:02"
       ],
       "record_role": "primary",
-      "source": "support/operator/run.py declared Link rows and frontier absence observations"
+      "source": "support/operator/run.py declared Link rows and preserved adapter-error frontier rows"
     },
     {
       "axis_owner": "Agent",
@@ -56,7 +57,7 @@
         "raw:agent-received:02"
       ],
       "record_role": "primary",
-      "source": "support/operator/run.py Agent receipt observations before returned AgentFact"
+      "source": "support/operator/run.py preserved adapter-error receipt rows across resume"
     },
     {
       "axis_owner": "Agent",
@@ -67,7 +68,7 @@
         "raw:adapter-error:02"
       ],
       "record_role": "primary",
-      "source": "support/operator/run.py adapter exception observation"
+      "source": "support/operator/run.py preserved adapter exception rows across resume"
     }
   ],
   "generatedAtTime": "2026-06-12T04:00:54Z",
@@ -81,7 +82,8 @@
     "raw:agent-received:01",
     "raw:agent-received:02",
     "raw:adapter-error:02",
-    "raw:link-frontier:02"
+    "raw:link-frontier:02",
+    "raw:link:02"
   ],
   "recorded_at": "2026-06-12T04:00:54Z",
   "schema_version": "graph-ready-v1",
