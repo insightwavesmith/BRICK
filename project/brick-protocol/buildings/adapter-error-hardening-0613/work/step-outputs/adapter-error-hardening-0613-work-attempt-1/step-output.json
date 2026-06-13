@@ -1,0 +1,179 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:adapter-error-hardening-0613::work/step-outputs/adapter-error-hardening-0613-work-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:dev",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-adapter-error-hardening-0613-work",
+  "building_id": "adapter-error-hardening-0613",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-13T01:11:06.461690Z",
+  "id": "urn:bp:building:adapter-error-hardening-0613::work/step-outputs/adapter-error-hardening-0613-work-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:adapter-error-hardening-0613-work",
+  "recorded_at": "2026-06-13T01:11:06.461690Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:dev",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "changed_files": [
+      "support/checkers/lib/kernel_checks.py"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:adapter-error-hardening-0613",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:adapter-error-hardening-0613:agent-object:dev:output"
+    ],
+    "made_changes": [
+      "Changed support/operator/run.py and support/operator/walker_kernel.py to materialize work/declared-building-plan.json before adapter calls and clear stale claim_trace/raw-manifest data on overwrite.",
+      "Changed support/operator/walker_resume.py and support/operator/frontier_observation.py so stop on adapter-error hold is paper-only and observes closed frontier without Agent replay.",
+      "Changed support/connection/agent_adapter.py so codex --ephemeral is emitted only when BRICK_CODEX_EPHEMERAL=1.",
+      "Added adapter_error_path_hardening checker coverage in support/checkers/check_profile.py, support/checkers/lib/kernel_checks.py, and support/checkers/profiles/building_automation.yaml."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority",
+      "provider quality or provider process integrity",
+      "semantic correctness of any paper-stopped work",
+      "that the named stale holds should be stopped rather than moved by caller/COO",
+      "archive/status-kernel/current-brick-operating-packet-0531.md and archive/status-kernel/brick-protocol-post-d-surface-recompile-0-plan-0530.md were absent in this checkout"
+    ],
+    "observed_evidence": [
+      "support evidence root: support/checkers/lib/kernel_checks.py::run_adapter_error_path_hardening; final temp source copy: /tmp/brick-adapter-error-hardening-final-gate-7lzcdx/source.",
+      "python3 -m compileall support: exit 0.",
+      "git diff --check: exit 0.",
+      "python3 support/checkers/check_profile.py --profile building_automation: exit 0; adapter_error_path_hardening observed F15/F16/F18/F19 and F16/F19 mutation probes fired RED.",
+      "Final temp-copy bake: python3 support/operator/dashboard_export.py --bake-public wrote support/dashboard/public/dashboard-data.json in the temp copy with source_truth False.",
+      "Final temp-copy full gate: python3 support/checkers/check_profile.py --all exit 0.",
+      "after-merge operator note: provider-ladder-fleet-presets-0612, dashboard-productization-0612, dashboard-productization-0612b, adapter-30-s1-park, and f10-grounding-demand-record-unify-0612 become paper-stoppable by human/COO stop disposition when their held frontier is adapter-error; this return does not author those dispositions.",
+      "review/model evidence disposition: no Claude/Gemini review was used; checker/profile output is support evidence only."
+    ],
+    "output_excerpt": "{ \"made_changes\": [ \"Changed support/operator/run.py and support/operator/walker_kernel.py to materialize work/declared-building-plan.json before adapter calls and clear stale claim_trace/raw-manifest data on overwrite.\", \"Changed support/operator/walker_resume.py and support/operator/frontier_observation.py so stop on adapter-error hold is paper-only and observes closed frontier without Agent replay.\", \"Changed support/connection/agent_adapter.py so codex --ephemeral is emitted only when BRICK_CODEX_EPHEMERAL=1.\", \"Added adapter_error_path_hardening checker coverage in support/checkers/che...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "claude/track-f14",
+        "head": "5fba6aac1d00150c3f96e800a6fa8d9dfd34838a"
+      },
+      "after_git_status_paths": [
+        "support/checkers/check_profile.py",
+        "support/checkers/lib/kernel_checks.py",
+        "support/checkers/profiles/building_automation.yaml",
+        "support/connection/agent_adapter.py",
+        "support/operator/frontier_observation.py",
+        "support/operator/run.py",
+        "support/operator/walker_kernel.py",
+        "support/operator/walker_resume.py"
+      ],
+      "after_path_count": 3105,
+      "before_git_refs": {
+        "branch": "claude/track-f14",
+        "head": "5fba6aac1d00150c3f96e800a6fa8d9dfd34838a"
+      },
+      "before_git_status_paths": [
+        "support/checkers/check_profile.py",
+        "support/checkers/lib/kernel_checks.py",
+        "support/checkers/profiles/building_automation.yaml",
+        "support/connection/agent_adapter.py",
+        "support/operator/frontier_observation.py",
+        "support/operator/run.py",
+        "support/operator/walker_kernel.py",
+        "support/operator/walker_resume.py"
+      ],
+      "before_path_count": 3105,
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [
+        "support/checkers/lib/kernel_checks.py"
+      ],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "support/*"
+        ],
+        "forbidden_paths": [
+          "link/*",
+          "agent/*",
+          "brick/*",
+          "project/*",
+          ".git/*",
+          "AGENTS.md",
+          "pyproject.toml",
+          "uv.lock"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:02:adapter-error-hardening-0613-work",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:adapter-error-hardening-0613",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:adapter-error-hardening-0613-work:attempt-1",
+  "step_ref": "adapter-error-hardening-0613-work",
+  "subject": "adapter-error-hardening-0613-work",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-13T01:11:06.461690Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

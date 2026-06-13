@@ -1,0 +1,163 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:adapter-error-hardening-0613::work/step-outputs/adapter-error-hardening-0613-evidence-integrity-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:inspector",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-adapter-error-hardening-0613-evidence-integrity",
+  "building_id": "adapter-error-hardening-0613",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:05",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-13T01:44:54.372044Z",
+  "id": "urn:bp:building:adapter-error-hardening-0613::work/step-outputs/adapter-error-hardening-0613-evidence-integrity-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:05:adapter-error-hardening-0613-evidence-integrity",
+  "recorded_at": "2026-06-13T01:44:54.372044Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:inspector",
+    "blocked_or_missing_evidence": [
+      "Sandbox is read-only and has no usable temp directory, so checker profiles requiring tempfile and full temp-copy gates cannot execute.",
+      "Shell here-doc temp creation is also blocked; AST/import checks were run through python -c instead.",
+      "No project evidence root for this building was available to inspect."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "checker_overclaim_risks": [
+      "adapter_error_path_hardening is registered in check_profile.py and building_automation.yaml, but not executed in this sandbox.",
+      "F16 mutation RED in checker source is a synthetic resume-wrapper adapter call, not an exact old-code replay fixture.",
+      "F19 mutation RED patches walker_kernel._clear_overwrite_claim_trace_manifest, so it pins the dynamic walker copy; the linear run.py duplicate is not mutation-pinned by that observed source path.",
+      "Checker green, mutation RED, compileall, and full temp source-copy gate remain unproven here."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:adapter-error-hardening-0613",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:adapter-error-hardening-0613:agent-object:inspector:output"
+    ],
+    "evidence_scope": [
+      "Read-only inspector pass over current worktree only.",
+      "Support evidence only; no source truth, success, quality, or Movement judgment.",
+      "No file mutation, git mutation, provider SDK execution, credential/session body access, or network use."
+    ],
+    "evidence_used": [
+      "git status --short --branch; git worktree list --porcelain; git diff --name-only/stat/numstat; git diff --check.",
+      "rg/nl/sed inspection of changed support files and declaration/frontier writers.",
+      "PYTHONDONTWRITEBYTECODE=1 python3 -c AST parse of changed Python files.",
+      "PYTHONDONTWRITEBYTECODE=1 python3 -c import smoke for check_profile, kernel_checks, agent_adapter, run, walker_kernel, walker_resume.",
+      "Attempted PYTHONDONTWRITEBYTECODE=1 python3 support/checkers/check_profile.py --profile building_automation; rejected for no usable temp directory."
+    ],
+    "missing_evidence": [
+      "Writable temp directory or writable temp source copy.",
+      "Executed focused profile output for adapter_error_path_hardening.",
+      "Executed check_profile.py --all output from a temp source copy.",
+      "Executed compileall output.",
+      "Persisted Building evidence root for adapter-error-hardening-0613.",
+      "Claude/Gemini/model review evidence."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority",
+      "provider behavior",
+      "semantic correctness of stopped work",
+      "future Building correctness",
+      "full gate green",
+      "mutation RED execution in this environment",
+      "after-merge stale holds paper-stoppable in live operation"
+    ],
+    "observed_evidence": [
+      "cwd=/Users/smith/projects/BRICK-wt-f14; branch=claude/track-f14; HEAD=5fba6aa; dirty files are support-only: check_profile.py, kernel_checks.py, building_automation.yaml, agent_adapter.py, frontier_observation.py, run.py, walker_kernel.py, walker_resume.py.",
+      "No tracked diffs observed outside support/. No current project/brick-protocol/buildings/*adapter-error-hardening-0613* evidence root was found.",
+      "F15/F17 source path observed: run.py and walker_kernel.py materialize declaration evidence before building_started and before first adapter call; declaration_packets.py writes work/task.md, building-intake.json, preset-expansion.json, declared-building-plan.json, link-launch-policy.json.",
+      "F16 source path observed: walker_resume.py branches adapter-error stop with no recorded returns to paper-stop evidence, records provider_invoked false / no AgentFact replay, and frontier_observation.py classifies a closed boundary after latest pause before agent-incomplete.",
+      "F18 source path observed: agent_adapter.py adds --ephemeral only when BRICK_CODEX_EPHEMERAL=1.",
+      "F19 source path observed: run.py and walker_kernel.py clear evidence/claim_trace and raw/raw-manifest.json on overwrite before relaunch."
+    ],
+    "output_excerpt": "{\"observed_evidence\":[\"cwd=/Users/smith/projects/BRICK-wt-f14; branch=claude/track-f14; HEAD=5fba6aa; dirty files are support-only: check_profile.py, kernel_checks.py, building_automation.yaml, agent_adapter.py, frontier_observation.py, run.py, walker_kernel.py, walker_resume.py.\",\"No tracked diffs observed outside support/. No current project/brick-protocol/buildings/*adapter-error-hardening-0613* evidence root was found.\",\"F15/F17 source path observed: run.py and walker_kernel.py materialize declaration evidence before building_started and before first adapter call; declaration_packets.py...",
+    "persisted_evidence_roots": [
+      "worktree:/Users/smith/projects/BRICK-wt-f14",
+      "code surfaces: support/operator/run.py, support/operator/walker_kernel.py, support/operator/walker_resume.py, support/operator/frontier_observation.py, support/connection/agent_adapter.py, support/checkers/*",
+      "blocked: no writable temp/source-copy root available in this sandbox"
+    ],
+    "proof_limit_findings": [
+      "git diff --check exited 0.",
+      "AST parse and import smoke over changed Python modules exited 0.",
+      "Focused building_automation profile did not run: profile runner rejected evidence because no usable temporary directory was available, including /tmp and the repo root.",
+      "compileall and full temp-copy --all gate were not run because this environment is read-only/no-temp."
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "read-only inspection",
+      "checker source inspection is not checker execution",
+      "memory context may be stale unless reverified against current files"
+    ],
+    "remaining_delta": [
+      "Run focused building_automation and full --all from a writable temp source copy, with compileall and git diff --check.",
+      "Execute and record F16/F19 mutation REDs rather than relying on source inspection.",
+      "Decide whether duplicated run.py/walker_kernel.py helpers should be consolidated or parity-pinned before closure.",
+      "After merge and executed proof, the operator note can state that provider-ladder-fleet-presets-0612, dashboard-productization-0612/-0612b, adapter-30-s1-park, and f10-grounding-demand-record-unify-0612 are paper-stoppable; this pass does not prove that live state."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "stale_source_risks": [
+      "AGENTS-referenced archive/status-kernel/current-brick-operating-packet-0531.md and post-d plan path were not present in this checkout by direct read and file search.",
+      "New overwrite/declaration helpers exist in two copies, run.py and walker_kernel.py; parity can drift unless later consolidated or pinned in both paths.",
+      "Memory only routed context; current worktree evidence above controls this return."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:05:adapter-error-hardening-0613-evidence-integrity",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:adapter-error-hardening-0613",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:adapter-error-hardening-0613-evidence-integrity:attempt-1",
+  "step_ref": "adapter-error-hardening-0613-evidence-integrity",
+  "subject": "adapter-error-hardening-0613-evidence-integrity",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-13T01:44:54.372044Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

@@ -1,0 +1,11 @@
+# LinkGateCheck · seq 10 · ["Link"]
+- axis_scope: ["Link"]
+- checked_public_fact: "brick-comparison:adapter-error-hardening-0613:adapter-error-hardening-0613-design"
+- event_type: "LinkGateCheck"
+- gate_ref: "link-gate:coo"
+- ordinal: 2
+- run_segment: 1
+- sequence_index: 10
+- source_fact_ref: "gate-receipt-fact-2:01:adapter-error-hardening-0613-design"
+- spine_schema_version: "spine-v1"
+- sufficiency: "missing_required_facts"

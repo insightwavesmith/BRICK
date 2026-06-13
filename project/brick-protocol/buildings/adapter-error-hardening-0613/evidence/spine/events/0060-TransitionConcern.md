@@ -1,0 +1,14 @@
+# TransitionConcern · seq 60 · ["Agent","Link"]
+- agent_object_ref: "agent-object:coo"
+- alias_fact_refs: ["transition-concern:adapter-error-hardening-0613:f16-held-step-paper-stop"]
+- attempt_index: 1
+- axis_scope: ["Agent","Link"]
+- binding: false
+- event_type: "TransitionConcern"
+- run_segment: 2
+- sequence_index: 60
+- source_fact_ref: "transition-concern:adapter-error-hardening-0613-closure:attempt-1"
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/adapter-error-hardening-0613-closure-attempt-1/step-output.json"
+- step_ref: "adapter-error-hardening-0613-closure"
+- transition_concern_returned: {"binding":false,"concern_kind":"implementation_gap","concern_ref":"transition-concern:adapter-error-hardening-0613:f16-held-step-paper-stop","not_proven":["runtime execution of the multi-step adapter-error stop fixture","mutation RED for restoring live rerun at the held adapter-error step","full temp source-copy gate"],"proof_limits":["support evidence only","read-only source inspection plus limited commands","not source truth","not success judgment","not quality judgment","not Movement authority"],"reason_refs":["support/operator/walker_resume.py:209-226","support/operator/walker_kernel.py:900-938","support/operator/walker_kernel.py:1517-1544","support/checkers/lib/kernel_checks.py:3135-3201","work/step-outputs/adapter-error-hardening-0613-code-attack-qa-attempt-1/step-output.json"],"related_boundary_refs":["brick-adapter-error-hardening-0613-closure","brick-adapter-error-hardening-0613-work","brick-adapter-error-hardening-0613-code-attack-qa"]}

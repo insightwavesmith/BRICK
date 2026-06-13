@@ -1,0 +1,13 @@
+# AgentReturn · seq 32 · ["Agent"]
+- agent_object_ref: "agent-object:qa"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-adapter-error-hardening-0613-code-attack-qa"
+- event_type: "AgentReturn"
+- observed_fields: ["received_work","returned"]
+- returned_fact_ref: "agent-fact:03:adapter-error-hardening-0613-code-attack-qa"
+- route_request_ref: ""
+- run_segment: 2
+- sequence_index: 32
+- spine_schema_version: "spine-v1"
+- step_output_ref: "step-output:adapter-error-hardening-0613-code-attack-qa:attempt-1"
+- step_ref: "adapter-error-hardening-0613-code-attack-qa"
