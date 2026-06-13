@@ -3437,6 +3437,7 @@ def run_adapter_error_path_hardening(repo: Path) -> KernelResult:
     from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
     from brick_protocol.support.operator import run as run_module
     from brick_protocol.support.operator import walker_kernel
+    from brick_protocol.support.operator import walker_resume
     from brick_protocol.support.operator.frontier_observation import observe_building_frontier
     from brick_protocol.support.operator.walker_hold import _hold_paused_at_ref
     from support.checkers import check_building_lifecycle_path_shape as lifecycle_shape
@@ -3570,6 +3571,105 @@ def run_adapter_error_path_hardening(repo: Path) -> KernelResult:
             raise ProfileError("adapter_error_path_hardening F16 mutation made no adapter call")
         inspected += len(mutation_calls)
 
+        legacy_root = output_root / "adapter-error-hardening-legacy-stop"
+        _write_adapter_error_frontier_fixture(
+            run_module,
+            repo=repo,
+            output_root=output_root,
+            building_id=legacy_root.name,
+            first_adapter_ref="adapter:local",
+            followup_adapter_ref="adapter:codex-local",
+            local_callables={"callable:local:agent-invoke0-smoke": _hardening_local_brain},
+        )
+        _rewrite_adapter_error_hold_as_legacy_reason_refs(legacy_root)
+        _append_adapter_error_stop_disposition(legacy_root)
+        legacy_calls: list[tuple[str, ...]] = []
+
+        def legacy_runner(
+            args: Sequence[str],
+            cwd: Path,
+            timeout_seconds: int,
+        ) -> LocalCliCompleted:
+            del cwd, timeout_seconds
+            call = tuple(str(arg) for arg in args)
+            legacy_calls.append(call)
+            raise RuntimeError("legacy stop path attempted live adapter invocation")
+
+        legacy_resumed = run_module.resume_building_plan(
+            legacy_root,
+            local_callables={"callable:local:agent-invoke0-smoke": _hardening_local_brain},
+            command_runner=legacy_runner,
+            adapter_cwd=repo,
+            adapter_timeout_seconds=5,
+        )
+        if legacy_calls:
+            raise ProfileError("adapter_error_path_hardening F16b legacy stop invoked adapter")
+        if legacy_resumed.step_results:
+            raise ProfileError("adapter_error_path_hardening F16b legacy paper stop replayed step results")
+        legacy_frontier = observe_building_frontier(legacy_root, repo_root=repo)
+        if legacy_frontier.get("frontier_kind") != "complete":
+            raise ProfileError(
+                "adapter_error_path_hardening F16b legacy paper stop did not observe "
+                f"complete frontier: {legacy_frontier.get('frontier_kind')!r}"
+            )
+        inspected += 4
+
+        mutation_legacy_root = output_root / "adapter-error-hardening-legacy-mutated-stop"
+        _write_adapter_error_frontier_fixture(
+            run_module,
+            repo=repo,
+            output_root=output_root,
+            building_id=mutation_legacy_root.name,
+            first_adapter_ref="adapter:local",
+            followup_adapter_ref="adapter:codex-local",
+            local_callables={"callable:local:agent-invoke0-smoke": _hardening_local_brain},
+        )
+        _rewrite_adapter_error_hold_as_legacy_reason_refs(mutation_legacy_root)
+        _append_adapter_error_stop_disposition(mutation_legacy_root)
+        original_adapter_error_predicate = walker_resume._adapter_error_hold_without_return
+        mutation_legacy_calls: list[tuple[str, ...]] = []
+
+        def mutation_legacy_runner(
+            args: Sequence[str],
+            cwd: Path,
+            timeout_seconds: int,
+        ) -> LocalCliCompleted:
+            del cwd, timeout_seconds
+            call = tuple(str(arg) for arg in args)
+            mutation_legacy_calls.append(call)
+            raise RuntimeError("legacy flat-field-only predicate attempted live adapter invocation")
+
+        def flat_field_only_predicate(hold_record: Mapping[str, Any]) -> bool:
+            return hold_record.get("hold_reason") == "adapter_error_frontier"
+
+        try:
+            walker_resume._adapter_error_hold_without_return = flat_field_only_predicate
+            try:
+                run_module.resume_building_plan(
+                    mutation_legacy_root,
+                    local_callables={
+                        "callable:local:agent-invoke0-smoke": _hardening_local_brain
+                    },
+                    command_runner=mutation_legacy_runner,
+                    adapter_cwd=repo,
+                    adapter_timeout_seconds=5,
+                )
+            except RuntimeError:
+                pass
+            else:
+                raise ProfileError(
+                    "adapter_error_path_hardening F16b legacy flat-field-only "
+                    "mutation did not fire RED"
+                )
+        finally:
+            walker_resume._adapter_error_hold_without_return = original_adapter_error_predicate
+        if not mutation_legacy_calls:
+            raise ProfileError(
+                "adapter_error_path_hardening F16b legacy flat-field-only mutation "
+                "made no adapter call"
+            )
+        inspected += len(mutation_legacy_calls)
+
         _assert_codex_ephemeral_env_dial(repo)
         inspected += 2
 
@@ -3656,8 +3756,9 @@ def run_adapter_error_path_hardening(repo: Path) -> KernelResult:
             "adapter-error hardening passed: birth certificate existed before first "
             "codex adapter probe, resume no longer birth-certificate-refuses the "
             "first-step adapter-error root, stop disposition paper-closed without "
-            "adapter invocation, codex --ephemeral is env-gated, overwrite cleared "
-            "stale claim_trace/raw manifest refs, and F16/F19 mutation probes fired RED."
+            "adapter invocation for flat and legacy reason-ref holds, codex --ephemeral "
+            "is env-gated, overwrite cleared stale claim_trace/raw manifest refs, and "
+            "F16/F16b/F19 mutation probes fired RED."
         ),
     )
 
@@ -3666,6 +3767,7 @@ def _adapter_error_hardening_graph_plan(
     building_id: str,
     *,
     first_adapter_ref: str,
+    followup_adapter_ref: str = "adapter:local",
 ) -> Mapping[str, Any]:
     plan = json.loads(json.dumps(_chat_session_park_graph_plan(building_id=building_id)))
     plan.pop("report_event_policy", None)
@@ -3683,6 +3785,7 @@ def _adapter_error_hardening_graph_plan(
             row["row_ref"] = f"agent-row:{building_id}-work"
     followup = plan["brick_steps"][1]
     followup["step_ref"] = f"{building_id}-followup"
+    followup["selected_adapter_ref"] = followup_adapter_ref
     followup["completion_edge_ref"] = f"edge:{building_id}-followup-to-boundary"
     for row in followup["rows"]:
         if row.get("axis") == "Brick":
@@ -3728,6 +3831,9 @@ def _write_adapter_error_frontier_fixture(
     repo: Path,
     output_root: Path,
     building_id: str,
+    first_adapter_ref: str = "adapter:codex-local",
+    followup_adapter_ref: str = "adapter:local",
+    local_callables: Mapping[str, Any] | None = None,
 ) -> None:
     root = output_root / building_id
 
@@ -3748,10 +3854,12 @@ def _write_adapter_error_frontier_fixture(
         run_module.run_building_plan(
             _adapter_error_hardening_graph_plan(
                 building_id,
-                first_adapter_ref="adapter:codex-local",
+                first_adapter_ref=first_adapter_ref,
+                followup_adapter_ref=followup_adapter_ref,
             ),
             output_root=output_root,
             overwrite_existing=True,
+            local_callables=local_callables,
             command_runner=failing_runner,
             adapter_cwd=repo,
             adapter_timeout_seconds=5,
@@ -3764,6 +3872,129 @@ def _write_adapter_error_frontier_fixture(
         raise ProfileError("adapter_error_path_hardening expected adapter frontier halt")
     if not root.is_dir():
         raise ProfileError(f"adapter_error_path_hardening fixture root missing: {root}")
+
+
+def _rewrite_adapter_error_hold_as_legacy_reason_refs(root: Path) -> None:
+    from brick_protocol.support.operator.walker_hold import _hold_paused_at_ref
+
+    manifest_path = root / "evidence" / "evidence-manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if not isinstance(manifest, Mapping):
+        raise ProfileError("adapter_error_path_hardening legacy fixture manifest is not a mapping")
+    snapshot_value = manifest.get("plan_snapshot")
+    if not isinstance(snapshot_value, Mapping):
+        raise ProfileError("adapter_error_path_hardening legacy fixture lacks plan_snapshot")
+    snapshot = dict(snapshot_value)
+    plan_rows_copy = snapshot.get("plan_rows_copy")
+    if not isinstance(plan_rows_copy, str):
+        raise ProfileError("adapter_error_path_hardening legacy fixture lacks plan_rows_copy")
+    plan_copy = json.loads(plan_rows_copy)
+    if not isinstance(plan_copy, Mapping):
+        raise ProfileError("adapter_error_path_hardening legacy fixture plan copy is not a mapping")
+    plan_dict = dict(plan_copy)
+    evidence_value = plan_dict.get("dynamic_walker_evidence")
+    if not isinstance(evidence_value, Mapping):
+        raise ProfileError("adapter_error_path_hardening legacy fixture lacks dynamic evidence")
+    evidence = dict(evidence_value)
+    hold_value = evidence.get("hold")
+    if not isinstance(hold_value, Mapping):
+        raise ProfileError("adapter_error_path_hardening legacy fixture lacks hold record")
+    legacy_hold = dict(hold_value)
+    if legacy_hold.get("hold_reason") != "adapter_error_frontier":
+        raise ProfileError("adapter_error_path_hardening legacy fixture source hold is not adapter-error")
+
+    source_step_ref = str(legacy_hold.get("source_step_ref") or f"{root.name}-work")
+    source_brick_ref = str(legacy_hold.get("source_brick_ref") or f"brick-{source_step_ref}")
+    pending_target_ref = str(
+        legacy_hold.get("pending_target_ref")
+        or legacy_hold.get("target_brick")
+        or source_brick_ref
+    )
+    attempt_number = legacy_hold.get("attempt_number")
+    attempt = attempt_number if isinstance(attempt_number, int) and not isinstance(attempt_number, bool) else 1
+    reason_refs = [
+        f"observation:adapter-error-frontier:{source_step_ref}",
+        "observation:reroute-hold-reason-adapter_error_frontier",
+    ]
+    legacy_hold.pop("hold_reason", None)
+    legacy_hold["transition_lifecycle_reason_refs"] = list(reason_refs)
+    evidence["hold"] = legacy_hold
+    plan_dict["dynamic_walker_evidence"] = evidence
+    snapshot["plan_rows_copy"] = json.dumps(
+        plan_dict,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+    manifest["plan_snapshot"] = snapshot
+    manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+    legacy_raw_ref = "raw:link-frontier:legacy-01"
+    legacy_paused_at_ref = _hold_paused_at_ref(legacy_hold)
+    legacy_row = {
+        "@context": {
+            "bp": "urn:bp:",
+            "ce": "https://cloudevents.io/spec/v1.0/",
+            "prov": "http://www.w3.org/ns/prov#",
+            "xsd": "http://www.w3.org/2001/XMLSchema#",
+        },
+        "@id": f"urn:bp:building:{root.name}::raw/link.jsonl#legacy-01",
+        "adapter_error_ref": f"adapter-error:{source_step_ref}:attempt-{attempt}",
+        "building_id": root.name,
+        "datacontenttype": "application/json",
+        "dataschema": "urn:bp:schema:graph-ready-v1",
+        "frontier_kind": "agent_incomplete",
+        "generatedAtTime": "2026-06-12T04:00:54Z",
+        "id": f"urn:bp:building:{root.name}::raw/link.jsonl#legacy-01",
+        "observed_boundary_ref": source_brick_ref,
+        "raw_ref": legacy_raw_ref,
+        "raw_refs": [legacy_raw_ref],
+        "recorded_at": "2026-06-12T04:00:54Z",
+        "schema_version": "graph-ready-v1",
+        "source": f"urn:bp:building:{root.name}",
+        "source_brick_instance_ref": source_brick_ref,
+        "specversion": "1.0",
+        "step_ref": source_step_ref,
+        "subject": source_step_ref,
+        "target_brick_instance_ref": pending_target_ref,
+        "time": "2026-06-12T04:00:54Z",
+        "transition_lifecycle_from_brick_ref": source_brick_ref,
+        "transition_lifecycle_not_proven": [
+            "semantic correctness of the agent-proposed reroute",
+            "parallel runtime execution (P-walker-2 fan-in/fan-out out of scope here)",
+            "scheduler / queue / retry behavior",
+            "caller/COO disposition after a HOLD",
+            "adapter:local resume probes only unless caller uses another adapter",
+            "parallel runtime execution",
+            "full process-integrity across resumed provider processes",
+            "semantic correctness of the human/COO disposition",
+        ],
+        "transition_lifecycle_paused_at_ref": legacy_paused_at_ref,
+        "transition_lifecycle_pending_target_ref": pending_target_ref,
+        "transition_lifecycle_progress_state": "in_progress",
+        "transition_lifecycle_proof_limits": [
+            "support evidence only",
+            "dynamic walker walks declared gate-adopted agent-proposed routes only",
+            "support authors no route or Movement",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ],
+        "transition_lifecycle_reason_refs": list(reason_refs),
+        "transition_lifecycle_required_disposition_owner": "caller-or-coo",
+        "transition_lifecycle_state": "paused",
+        "transition_record_created": False,
+        "type": "bp.raw.link",
+    }
+    with (root / "raw" / "link.jsonl").open("a", encoding="utf-8") as handle:
+        handle.write(
+            json.dumps(legacy_row, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+            + "\n"
+        )
 
 
 def _append_adapter_error_stop_disposition(root: Path) -> None:

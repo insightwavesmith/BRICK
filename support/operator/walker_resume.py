@@ -208,23 +208,24 @@ def _resume_dynamic_graph_walker(
     )
     author_ref = _optional_text_value(disposition.get("author_ref")) or "human:unknown"
 
+    if action == "stop" and _adapter_error_hold_without_return(hold_record):
+        return _paper_stop_adapter_error_hold(
+            root,
+            declared_plan=declared_plan,
+            plan_ref=_optional_text_value(plan.get("plan_ref"))
+            or _optional_text_value(declared_plan.get("plan_ref"))
+            or "building-plan:anonymous",
+            evidence=evidence,
+            hold_record=hold_record,
+            disposition=disposition,
+            paused_at_ref=paused_at_ref,
+            pending_target=pending_target,
+            author_ref=author_ref,
+            checked_proof_limits=checked_proof_limits,
+        )
+
     recorded_returns = _recorded_agent_returns(root)
     if not recorded_returns:
-        if action == "stop" and _adapter_error_hold_without_return(hold_record):
-            return _paper_stop_adapter_error_hold(
-                root,
-                declared_plan=declared_plan,
-                plan_ref=_optional_text_value(plan.get("plan_ref"))
-                or _optional_text_value(declared_plan.get("plan_ref"))
-                or "building-plan:anonymous",
-                evidence=evidence,
-                hold_record=hold_record,
-                disposition=disposition,
-                paused_at_ref=paused_at_ref,
-                pending_target=pending_target,
-                author_ref=author_ref,
-                checked_proof_limits=checked_proof_limits,
-            )
         raise ValueError("held Building evidence carries no recorded Agent returns to replay")
     # Per step_ref FIFO of recorded returns + AT-TIME gate records, in REALIZED
     # order, so the forward loop REPLAYS the k-th visit with the k-th recorded
@@ -433,7 +434,15 @@ def _require_budget_exhaustion_raise(
 
 
 def _adapter_error_hold_without_return(hold_record: Mapping[str, Any]) -> bool:
-    return _optional_text_value(hold_record.get("hold_reason")) == "adapter_error_frontier"
+    if _optional_text_value(hold_record.get("hold_reason")) == "adapter_error_frontier":
+        return True
+    reason_refs = hold_record.get("transition_lifecycle_reason_refs")
+    if not isinstance(reason_refs, list):
+        return False
+    return any(
+        isinstance(ref, str) and "adapter_error_frontier" in ref
+        for ref in reason_refs
+    )
 
 
 def _paper_stop_adapter_error_hold(
