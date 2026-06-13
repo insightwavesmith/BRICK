@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import dataclasses
 import json
+import shutil
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, Callable
@@ -62,6 +63,9 @@ from brick_protocol.support.operator.reporter import (
     building_event_kind_from_frontier,
     emit_building_event_for_policy,
     report_event_policy_from_plan,
+)
+from brick_protocol.support.recording.declaration_packets import (
+    _write_declaration_work_evidence,
 )
 from brick_protocol.support.recording.step_outputs import _step_output_manifest_ref
 from brick_protocol.support.operator.walker_common import (
@@ -377,6 +381,45 @@ def _preflight_step_output_building_root(
                 "or pass overwrite_existing=True"
             )
     return root
+
+
+def _clear_overwrite_claim_trace_manifest(root: Path) -> None:
+    if not root.exists() or not root.is_dir():
+        return
+    claim_trace = root / "evidence" / "claim_trace"
+    if claim_trace.exists():
+        if claim_trace.is_symlink() or claim_trace.is_file():
+            claim_trace.unlink()
+        else:
+            shutil.rmtree(claim_trace)
+    raw_manifest = root / "raw" / "raw-manifest.json"
+    if raw_manifest.exists():
+        raw_manifest.unlink()
+
+
+def _materialize_initial_declaration_evidence(
+    building_root: Path,
+    *,
+    building_id: str,
+    plan_ref: str,
+    plan: Mapping[str, Any],
+    declaration_plan: Mapping[str, Any],
+    graph_context: Mapping[str, Any] | None,
+    task_source_ref: str | None,
+    proof_limits: tuple[str, ...],
+) -> None:
+    building_root.mkdir(parents=True, exist_ok=True)
+    _write_declaration_work_evidence(
+        building_root,
+        building_id=building_id,
+        plan_ref=plan_ref,
+        plan=plan,
+        declaration_plan=declaration_plan,
+        graph_context=graph_context,
+        task_source_ref=task_source_ref,
+        proof_limits=proof_limits,
+        not_proven=_merge_texts(plan.get("not_proven")),
+    )
 
 
 def _brick_source_facts(step: Mapping[str, Any]) -> tuple[str, ...]:
@@ -1235,6 +1278,18 @@ def _run_dynamic_graph_walker(
         overwrite_existing=overwrite_existing,
     )
     task_source_ref = _task_source_ref_from_plan(linear_plan)
+    if overwrite_existing:
+        _clear_overwrite_claim_trace_manifest(building_root)
+    _materialize_initial_declaration_evidence(
+        building_root,
+        building_id=building_id,
+        plan_ref=plan_ref,
+        plan=linear_plan,
+        declaration_plan=plan,
+        graph_context=graph_context,
+        task_source_ref=task_source_ref,
+        proof_limits=checked_proof_limits,
+    )
 
     linear_steps = linear_plan["steps"]
     if not isinstance(linear_steps, list) or not linear_steps:

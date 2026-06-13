@@ -3062,6 +3062,457 @@ def run_adapter_error_frontier_manifest_consistency(repo: Path) -> KernelResult:
     )
 
 
+def run_adapter_error_path_hardening(repo: Path) -> KernelResult:
+    """Pin F15/F16/F18/F19 adapter-error hardening invariants."""
+
+    from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
+    from brick_protocol.support.operator import run as run_module
+    from brick_protocol.support.operator import walker_kernel
+    from brick_protocol.support.operator.frontier_observation import observe_building_frontier
+    from brick_protocol.support.operator.walker_hold import _hold_paused_at_ref
+    from support.checkers import check_building_lifecycle_path_shape as lifecycle_shape
+
+    inspected = 0
+    with tempfile.TemporaryDirectory(prefix="bp-adapter-error-hardening-") as tmp:
+        output_root = Path(tmp) / "buildings"
+        error_building_id = "adapter-error-hardening-first-step"
+        root = output_root / error_building_id
+        cli_calls: list[tuple[str, ...]] = []
+
+        def failing_codex_runner(
+            args: Sequence[str],
+            cwd: Path,
+            timeout_seconds: int,
+        ) -> LocalCliCompleted:
+            del cwd, timeout_seconds
+            call = tuple(str(arg) for arg in args)
+            cli_calls.append(call)
+            birth_certificate = root / "work" / "declared-building-plan.json"
+            if not birth_certificate.is_file():
+                raise ProfileError(
+                    "adapter_error_path_hardening F15/F17: first adapter boundary "
+                    "was reached before work/declared-building-plan.json existed"
+                )
+            if "--version" in call:
+                return LocalCliCompleted(call, 0, "codex test-version", "")
+            return LocalCliCompleted(call, 1, "", "adapter boom")
+
+        try:
+            run_module.run_building_plan(
+                _adapter_error_hardening_graph_plan(
+                    error_building_id,
+                    first_adapter_ref="adapter:codex-local",
+                ),
+                output_root=output_root,
+                overwrite_existing=True,
+                command_runner=failing_codex_runner,
+                adapter_cwd=repo,
+                adapter_timeout_seconds=5,
+                walker_mode="dynamic",
+            )
+        except RuntimeError as exc:
+            if "dynamic adapter exception frontier evidence written" not in str(exc):
+                raise
+        else:
+            raise ProfileError("adapter_error_path_hardening expected adapter frontier halt")
+        inspected += len(cli_calls) + 1
+        if not cli_calls:
+            raise ProfileError("adapter_error_path_hardening did not reach codex adapter probe")
+        if not (root / "work" / "declared-building-plan.json").is_file():
+            raise ProfileError("adapter_error_path_hardening root lacks birth certificate")
+        try:
+            run_module.resume_building_plan(root, command_runner=failing_codex_runner)
+        except ValueError as exc:
+            if "birth-certificate" in str(exc):
+                raise ProfileError(
+                    "adapter_error_path_hardening resume still refused the first-step "
+                    "adapter-error root for missing birth certificate"
+                ) from exc
+        else:
+            raise ProfileError("adapter_error_path_hardening resume without disposition did not hold")
+        inspected += 1
+
+        _append_adapter_error_stop_disposition(root)
+        before_resume_calls = len(cli_calls)
+        resumed = run_module.resume_building_plan(
+            root,
+            command_runner=failing_codex_runner,
+            adapter_cwd=repo,
+            adapter_timeout_seconds=5,
+        )
+        if len(cli_calls) != before_resume_calls:
+            raise ProfileError("adapter_error_path_hardening F16 stop invoked adapter")
+        if resumed.step_results:
+            raise ProfileError("adapter_error_path_hardening F16 paper stop replayed step results")
+        frontier = observe_building_frontier(root, repo_root=repo)
+        if frontier.get("frontier_kind") != "complete":
+            raise ProfileError(
+                "adapter_error_path_hardening F16 paper stop did not observe complete "
+                f"frontier: {frontier.get('frontier_kind')!r}"
+            )
+        inspected += 3
+
+        mutation_root = output_root / "adapter-error-hardening-mutated-stop"
+        _write_adapter_error_frontier_fixture(
+            run_module,
+            repo=repo,
+            output_root=output_root,
+            building_id=mutation_root.name,
+        )
+        _append_adapter_error_stop_disposition(mutation_root)
+        original_resume = run_module._resume_dynamic_graph_walker
+        mutation_calls: list[tuple[str, ...]] = []
+
+        def mutation_runner(
+            args: Sequence[str],
+            cwd: Path,
+            timeout_seconds: int,
+        ) -> LocalCliCompleted:
+            del cwd, timeout_seconds
+            call = tuple(str(arg) for arg in args)
+            mutation_calls.append(call)
+            raise RuntimeError("mutated stop path attempted live adapter invocation")
+
+        def mutated_resume(*args: Any, **kwargs: Any) -> Any:
+            runner = kwargs.get("command_runner")
+            if runner is not None:
+                runner(("codex", "exec", "mutated-live-rerun"), Path("."), 1)
+            return original_resume(*args, **kwargs)
+
+        try:
+            run_module._resume_dynamic_graph_walker = mutated_resume
+            try:
+                run_module.resume_building_plan(
+                    mutation_root,
+                    command_runner=mutation_runner,
+                    adapter_cwd=repo,
+                    adapter_timeout_seconds=5,
+                )
+            except RuntimeError as exc:
+                if "mutated stop path attempted live adapter invocation" not in str(exc):
+                    raise
+            else:
+                raise ProfileError(
+                    "adapter_error_path_hardening F16 mutation did not fire RED"
+                )
+        finally:
+            run_module._resume_dynamic_graph_walker = original_resume
+        if not mutation_calls:
+            raise ProfileError("adapter_error_path_hardening F16 mutation made no adapter call")
+        inspected += len(mutation_calls)
+
+        _assert_codex_ephemeral_env_dial(repo)
+        inspected += 2
+
+        overwrite_root = output_root / "adapter-error-hardening-overwrite"
+        _write_adapter_error_frontier_fixture(
+            run_module,
+            repo=repo,
+            output_root=output_root,
+            building_id=overwrite_root.name,
+        )
+        if not (overwrite_root / "evidence" / "claim_trace" / "link" / "frontier_trace.json").is_file():
+            raise ProfileError("adapter_error_path_hardening overwrite seed lacked frontier trace")
+        run_module.run_building_plan(
+            _adapter_error_hardening_graph_plan(
+                overwrite_root.name,
+                first_adapter_ref="adapter:local",
+            ),
+            output_root=output_root,
+            overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": _hardening_local_brain},
+            adapter_cwd=repo,
+            adapter_timeout_seconds=5,
+            walker_mode="dynamic",
+        )
+        if (overwrite_root / "evidence" / "claim_trace" / "link" / "frontier_trace.json").exists():
+            raise ProfileError("adapter_error_path_hardening F19 stale frontier_trace survived")
+        manifest = json.loads(
+            (overwrite_root / "raw" / "raw-manifest.json").read_text(encoding="utf-8")
+        )
+        manifest_refs = {
+            str(ref)
+            for ref in manifest.get("raw_refs", [])
+            if isinstance(ref, str)
+        }
+        if any(ref.startswith("raw:link-frontier:") for ref in manifest_refs):
+            raise ProfileError("adapter_error_path_hardening F19 stale link-frontier ref survived")
+        violations: list[str] = []
+        lifecycle_shape.validate_minimal_content(overwrite_root, violations)
+        if violations:
+            raise ProfileError(
+                "adapter_error_path_hardening F19 overwrite root failed lifecycle shape:\n"
+                + "\n".join(f"- {violation}" for violation in violations)
+            )
+        inspected += 4
+
+        mutation_overwrite_root = output_root / "adapter-error-hardening-overwrite-mutated"
+        _write_adapter_error_frontier_fixture(
+            run_module,
+            repo=repo,
+            output_root=output_root,
+            building_id=mutation_overwrite_root.name,
+        )
+        original_clear = walker_kernel._clear_overwrite_claim_trace_manifest
+        try:
+            walker_kernel._clear_overwrite_claim_trace_manifest = lambda root: None
+            run_module.run_building_plan(
+                _adapter_error_hardening_graph_plan(
+                    mutation_overwrite_root.name,
+                    first_adapter_ref="adapter:local",
+                ),
+                output_root=output_root,
+                overwrite_existing=True,
+                local_callables={"callable:local:agent-invoke0-smoke": _hardening_local_brain},
+                adapter_cwd=repo,
+                adapter_timeout_seconds=5,
+                walker_mode="dynamic",
+            )
+        finally:
+            walker_kernel._clear_overwrite_claim_trace_manifest = original_clear
+        if not (
+            mutation_overwrite_root
+            / "evidence"
+            / "claim_trace"
+            / "link"
+            / "frontier_trace.json"
+        ).exists():
+            raise ProfileError("adapter_error_path_hardening F19 mutation did not fire RED")
+        inspected += 1
+
+    return KernelResult(
+        check_id="adapter_error_path_hardening",
+        inspected=inspected,
+        output=(
+            "adapter-error hardening passed: birth certificate existed before first "
+            "codex adapter probe, resume no longer birth-certificate-refuses the "
+            "first-step adapter-error root, stop disposition paper-closed without "
+            "adapter invocation, codex --ephemeral is env-gated, overwrite cleared "
+            "stale claim_trace/raw manifest refs, and F16/F19 mutation probes fired RED."
+        ),
+    )
+
+
+def _adapter_error_hardening_graph_plan(
+    building_id: str,
+    *,
+    first_adapter_ref: str,
+) -> Mapping[str, Any]:
+    plan = json.loads(json.dumps(_chat_session_park_graph_plan(building_id=building_id)))
+    plan.pop("report_event_policy", None)
+    first_step = plan["brick_steps"][0]
+    first_step["selected_adapter_ref"] = first_adapter_ref
+    first_step["step_ref"] = f"{building_id}-work"
+    first_step["completion_edge_ref"] = f"edge:{building_id}-work-to-followup"
+    for row in first_step["rows"]:
+        if row.get("axis") == "Brick":
+            row["row_ref"] = f"brick-row:{building_id}-work"
+            row["brick_work_ref"] = f"work:{building_id}-work"
+            row["brick_instance_ref"] = f"brick-{building_id}-work"
+            row["work_statement"] = "Adapter-error hardening fixture first step."
+        if row.get("axis") == "Agent":
+            row["row_ref"] = f"agent-row:{building_id}-work"
+    followup = plan["brick_steps"][1]
+    followup["step_ref"] = f"{building_id}-followup"
+    followup["completion_edge_ref"] = f"edge:{building_id}-followup-to-boundary"
+    for row in followup["rows"]:
+        if row.get("axis") == "Brick":
+            row["row_ref"] = f"brick-row:{building_id}-followup"
+            row["brick_work_ref"] = f"work:{building_id}-followup"
+            row["brick_instance_ref"] = f"brick-{building_id}-followup"
+        if row.get("axis") == "Agent":
+            row["row_ref"] = f"agent-row:{building_id}-followup"
+    plan["execution_order"] = [first_step["step_ref"], followup["step_ref"]]
+    plan["link_edges"] = [
+        {
+            "edge_ref": first_step["completion_edge_ref"],
+            "source_step_ref": first_step["step_ref"],
+            "target_step_ref": followup["step_ref"],
+            "rows": [
+                {
+                    "axis": "Link",
+                    "row_ref": f"link-row:{building_id}-work",
+                    "movement": "forward",
+                    "target_ref": f"brick-{building_id}-followup",
+                }
+            ],
+        },
+        {
+            "edge_ref": followup["completion_edge_ref"],
+            "source_step_ref": followup["step_ref"],
+            "rows": [
+                {
+                    "axis": "Link",
+                    "row_ref": f"link-row:{building_id}-followup",
+                    "movement": "forward",
+                    "target_ref": f"building-boundary:{building_id}-closed",
+                }
+            ],
+        },
+    ]
+    return plan
+
+
+def _write_adapter_error_frontier_fixture(
+    run_module: Any,
+    *,
+    repo: Path,
+    output_root: Path,
+    building_id: str,
+) -> None:
+    root = output_root / building_id
+
+    def failing_runner(
+        args: Sequence[str],
+        cwd: Path,
+        timeout_seconds: int,
+    ) -> Any:
+        from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
+
+        del cwd, timeout_seconds
+        call = tuple(str(arg) for arg in args)
+        if "--version" in call:
+            return LocalCliCompleted(call, 0, "codex test-version", "")
+        return LocalCliCompleted(call, 1, "", "adapter boom")
+
+    try:
+        run_module.run_building_plan(
+            _adapter_error_hardening_graph_plan(
+                building_id,
+                first_adapter_ref="adapter:codex-local",
+            ),
+            output_root=output_root,
+            overwrite_existing=True,
+            command_runner=failing_runner,
+            adapter_cwd=repo,
+            adapter_timeout_seconds=5,
+            walker_mode="dynamic",
+        )
+    except RuntimeError as exc:
+        if "dynamic adapter exception frontier evidence written" not in str(exc):
+            raise
+    else:
+        raise ProfileError("adapter_error_path_hardening expected adapter frontier halt")
+    if not root.is_dir():
+        raise ProfileError(f"adapter_error_path_hardening fixture root missing: {root}")
+
+
+def _append_adapter_error_stop_disposition(root: Path) -> None:
+    from brick_protocol.support.operator.walker_hold import _hold_paused_at_ref
+
+    evidence_manifest = json.loads(
+        (root / "evidence" / "evidence-manifest.json").read_text(encoding="utf-8")
+    )
+    plan_copy = json.loads(evidence_manifest["plan_snapshot"]["plan_rows_copy"])
+    evidence = plan_copy["dynamic_walker_evidence"]
+    hold_record = evidence["hold"]
+    paused_at_ref = _hold_paused_at_ref(hold_record)
+    raw_ref = "raw:link-disposition:01"
+    row = {
+        "raw_ref": raw_ref,
+        "raw_refs": [raw_ref],
+        "transition_author_ref": "human:adapter-error-hardening-checker",
+        "transition_lifecycle_state": "resumed",
+        "transition_lifecycle_progress_state": "in_progress",
+        "transition_lifecycle_paused_at_ref": paused_at_ref,
+        "transition_lifecycle_resumed_from_ref": paused_at_ref,
+        "transition_lifecycle_pending_target_ref": hold_record["pending_target_ref"],
+        "transition_lifecycle_required_disposition_owner": "caller-or-coo",
+        "transition_lifecycle_disposition_action": "stop",
+        "transition_lifecycle_reason_refs": [
+            f"checker:adapter-error-hardening:{root.name}:stop"
+        ],
+    }
+    link_path = root / "raw" / "link.jsonl"
+    with link_path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(row, ensure_ascii=False, separators=(",", ":"), sort_keys=True) + "\n")
+
+
+def _assert_codex_ephemeral_env_dial(repo: Path) -> None:
+    from brick_protocol.support.connection import agent_adapter
+    from brick_protocol.support.connection.agent_adapter import (
+        AgentAdapterRequest,
+        LocalCliCompleted,
+    )
+
+    spec = agent_adapter._local_cli_spec("adapter:codex-local")
+    request = AgentAdapterRequest(
+        building_id="adapter-error-hardening-ephemeral",
+        agent_object_ref="agent-object:dev",
+        adapter_ref="adapter:codex-local",
+        brick_instance_ref="brick-ephemeral",
+        next_brick_instance_ref="building-boundary:ephemeral-closed",
+        work_statement="Check codex ephemeral argv.",
+        required_return_shape="made_changes, observed_evidence, not_proven",
+    )
+
+    def runner(args: Sequence[str], cwd: Path, timeout_seconds: int) -> LocalCliCompleted:
+        del cwd, timeout_seconds
+        call = tuple(str(arg) for arg in args)
+        return LocalCliCompleted(
+            call,
+            0,
+            json.dumps(
+                {
+                    "made_changes": [],
+                    "observed_evidence": ["argv captured"],
+                    "not_proven": ["provider behavior"],
+                }
+            ),
+            "",
+        )
+
+    old = os.environ.get("BRICK_CODEX_EPHEMERAL")
+    try:
+        os.environ.pop("BRICK_CODEX_EPHEMERAL", None)
+        absent = agent_adapter._invoke_local_cli(
+            spec,
+            request,
+            "prompt",
+            cwd=repo,
+            timeout_seconds=5,
+            command_runner=runner,
+        )
+        if "--ephemeral" in absent.args:
+            raise ProfileError("BRICK_CODEX_EPHEMERAL absent still emitted --ephemeral")
+        os.environ["BRICK_CODEX_EPHEMERAL"] = "1"
+        enabled = agent_adapter._invoke_local_cli(
+            spec,
+            request,
+            "prompt",
+            cwd=repo,
+            timeout_seconds=5,
+            command_runner=runner,
+        )
+        if "--ephemeral" not in enabled.args:
+            raise ProfileError("BRICK_CODEX_EPHEMERAL=1 did not emit --ephemeral")
+    finally:
+        if old is None:
+            os.environ.pop("BRICK_CODEX_EPHEMERAL", None)
+        else:
+            os.environ["BRICK_CODEX_EPHEMERAL"] = old
+
+
+def _hardening_local_brain(request: Any) -> Mapping[str, Any]:
+    from brick_protocol.brick.work import parse_required_return_shape
+
+    returned: dict[str, Any] = {}
+    for label in parse_required_return_shape(request.required_return_shape):
+        if label == "made_changes":
+            returned[label] = ["adapter-error hardening local fixture"]
+        elif label == "observed_evidence":
+            returned[label] = [f"observed {request.brick_instance_ref}"]
+        elif label == "not_proven":
+            returned[label] = ["semantic correctness of fixture work"]
+        elif label == "adapter_ref":
+            returned[label] = request.adapter_ref
+        elif label == "returned_summary":
+            returned[label] = "adapter-error hardening local return"
+        else:
+            returned[label] = f"fixture value for {label}"
+    return returned
+
+
 def _adapter_error_manifest_write_broken_fixture(root: Path) -> None:
     case_id = root.name
     _adapter_error_manifest_write_jsonl(
@@ -4804,6 +5255,8 @@ def _chat_session_assert_undeclared_adapter_rejects(
                     "chat_session_park_seam undeclared Agent Object wrote park evidence "
                     "after adapter admission rejected"
                 )
+            if root.exists():
+                shutil.rmtree(root)
             return
         except Exception as exc:  # noqa: BLE001 - checker reports unexpected leak type
             raise ProfileError(

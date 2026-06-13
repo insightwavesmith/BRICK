@@ -13,6 +13,7 @@ import json
 import os
 import re
 import secrets
+import shutil
 import subprocess
 
 from datetime import datetime, timezone
@@ -166,6 +167,9 @@ from brick_protocol.support.recording.capture import (
     DEFAULT_BUILDINGS_ROOT,
     graph_ready_json_object,
     graph_ready_timestamp,
+)
+from brick_protocol.support.recording.declaration_packets import (
+    _write_declaration_work_evidence,
 )
 from brick_protocol.support.recording.contracts import StepOutputObservation
 from brick_protocol.support.recording.step_outputs import (
@@ -1296,6 +1300,18 @@ def run_building_plan(
         building_id,
         overwrite_existing=overwrite_existing,
     )
+    if overwrite_existing:
+        _clear_overwrite_claim_trace_manifest(building_root)
+    _materialize_initial_declaration_evidence(
+        building_root,
+        building_id=building_id,
+        plan_ref=plan_ref,
+        plan=packet,
+        declaration_plan=declaration_plan,
+        graph_context=graph_context,
+        task_source_ref=task_source_ref,
+        proof_limits=checked_proof_limits,
+    )
     report_event_observations: list[Mapping[str, Any]] = []
     started_event = _emit_building_event_best_effort(
         report_event_policy,
@@ -1896,6 +1912,47 @@ def _preflight_step_output_building_root(
                 "or pass overwrite_existing=True"
             )
     return root
+
+
+def _clear_overwrite_claim_trace_manifest(root: Path) -> None:
+    """Clear stale derived raw/claim indexes before an overwrite relaunch."""
+
+    if not root.exists() or not root.is_dir():
+        return
+    claim_trace = root / "evidence" / "claim_trace"
+    if claim_trace.exists():
+        if claim_trace.is_symlink() or claim_trace.is_file():
+            claim_trace.unlink()
+        else:
+            shutil.rmtree(claim_trace)
+    raw_manifest = root / "raw" / "raw-manifest.json"
+    if raw_manifest.exists():
+        raw_manifest.unlink()
+
+
+def _materialize_initial_declaration_evidence(
+    building_root: Path,
+    *,
+    building_id: str,
+    plan_ref: str,
+    plan: Mapping[str, Any],
+    declaration_plan: Mapping[str, Any],
+    graph_context: Mapping[str, Any] | None,
+    task_source_ref: str | None,
+    proof_limits: tuple[str, ...],
+) -> None:
+    building_root.mkdir(parents=True, exist_ok=True)
+    _write_declaration_work_evidence(
+        building_root,
+        building_id=building_id,
+        plan_ref=plan_ref,
+        plan=plan,
+        declaration_plan=declaration_plan,
+        graph_context=graph_context,
+        task_source_ref=task_source_ref,
+        proof_limits=proof_limits,
+        not_proven=_merge_texts(plan.get("not_proven")),
+    )
 
 
 def _first_brick_instance_ref_from_steps(steps: Sequence[Any]) -> str:

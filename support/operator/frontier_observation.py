@@ -86,6 +86,9 @@ def observe_building_frontier(
     elif not agent_return_records and (chat_session_park_records or parked_step_output_count):
         frontier_kind = _FRONTIER_CHAT_SESSION_PARKED
         frontier_reason = "chat-session park evidence exists before returned AgentFact"
+    elif closed_boundary_after_latest_pause:
+        frontier_kind = _FRONTIER_COMPLETE
+        frontier_reason = "declared closed boundary observed after paused frontier disposition"
     elif len(agent_received_records) > len(agent_return_records):
         frontier_kind = _FRONTIER_AGENT_INCOMPLETE
         frontier_reason = (
@@ -93,9 +96,6 @@ def observe_building_frontier(
             if adapter_error_records
             else "agent received evidence exists without matching returned evidence"
         )
-    elif closed_boundary_after_latest_pause:
-        frontier_kind = _FRONTIER_COMPLETE
-        frontier_reason = "declared closed boundary observed in executed Link evidence"
     elif latest_lifecycle.get("transition_lifecycle_state") == "paused":
         frontier_kind = _FRONTIER_LINK_PAUSED
         frontier_reason = "declared Link transition_lifecycle.state is paused"

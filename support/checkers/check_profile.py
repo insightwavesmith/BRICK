@@ -129,6 +129,7 @@ from support.checkers.lib.kernel_checks import (
     run_reporter_notification_projection,
     run_chat_session_park_seam,
     run_adapter_error_frontier_manifest_consistency,
+    run_adapter_error_path_hardening,
     run_mcp_stdio_smoke,
     run_connect_config_launch,
     run_codex_projection_native,
@@ -171,6 +172,7 @@ KERNEL_CHECK_IDS = {
     "reporter_notification_projection",
     "chat_session_park_seam",
     "adapter_error_frontier_manifest_consistency",
+    "adapter_error_path_hardening",
     "mcp_stdio_smoke",
     "connect_config_launch",
     "codex_projection_native",
@@ -533,6 +535,8 @@ def run_kernel_check(repo: Path, check_id: str) -> KernelResult:
         return run_chat_session_park_seam(repo)
     if check_id == "adapter_error_frontier_manifest_consistency":
         return run_adapter_error_frontier_manifest_consistency(repo)
+    if check_id == "adapter_error_path_hardening":
+        return run_adapter_error_path_hardening(repo)
     if check_id == "mcp_stdio_smoke":
         # Execution smoke: bare-launches support/connection/mcp_projection.py with
         # a CLEAN env (no PYTHONPATH) like a real MCP host and asserts it answers
