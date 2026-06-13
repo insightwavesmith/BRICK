@@ -1,0 +1,11 @@
+# LinkCarry · seq 54 · ["Link"]
+- absent_fact_type: "CarryFact"
+- axis_scope: ["Link"]
+- caller_supplied: false
+- event_type: "LinkCarry"
+- run_segment: 2
+- sequence_index: 54
+- source_fact_ref: "absence:link-carry:05:release-v010-clean-repo-0613-evidence-integrity"
+- spine_schema_version: "spine-v1"
+- support_created_bal_fact: false
+- trace_role: "absence_placeholder"

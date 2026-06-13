@@ -1,0 +1,330 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:release-v010-clean-repo-0613::evidence/claim_trace/link/sufficiency_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "caller_or_declared": true,
+        "checked_public_fact": "brick-comparison:release-v010-clean-repo-0613:release-v010-clean-repo-0613-design",
+        "evidence_reference": "brick-comparison:release-v010-clean-repo-0613:release-v010-clean-repo-0613-design",
+        "missing_required_facts": [
+          "Link.route_decision_basis.override_refs"
+        ],
+        "reason": "combined movement gate derived from ordered per-gate GateFact results: link-gate:default-transition, link-gate:coo",
+        "required_public_facts": [
+          "BrickComparisonFact.required_return_shape_evidence",
+          "BrickComparisonFact.comparison_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.observed_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.design_summary",
+          "BrickComparisonFact.comparison_evidence.returned_field.relevant_current_structure",
+          "BrickComparisonFact.comparison_evidence.returned_field.proposed_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.unchanged_surfaces",
+          "BrickComparisonFact.comparison_evidence.returned_field.axis_responsibility",
+          "BrickComparisonFact.comparison_evidence.returned_field.invariants",
+          "BrickComparisonFact.comparison_evidence.returned_field.edge_cases",
+          "BrickComparisonFact.comparison_evidence.returned_field.checker_or_verifier_plan",
+          "BrickComparisonFact.comparison_evidence.returned_field.candidate_file_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_refs",
+          "BrickComparisonFact.comparison_evidence.returned_field.not_proven",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_refs.repository_artifact_ref",
+          "Link.route_decision_basis.override_refs"
+        ],
+        "stage": "movement",
+        "sufficiency": "missing_required_facts"
+      },
+      "fact_ref": "sufficiency-fact-movement:01:release-v010-clean-repo-0613-design",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "caller_or_declared": true,
+        "checked_public_fact": "brick-comparison:release-v010-clean-repo-0613:release-v010-clean-repo-0613-work",
+        "evidence_reference": "brick-comparison:release-v010-clean-repo-0613:release-v010-clean-repo-0613-work",
+        "missing_required_facts": [],
+        "reason": "combined movement gate derived from ordered per-gate GateFact results: link-gate:default-transition",
+        "required_public_facts": [
+          "BrickComparisonFact.required_return_shape_evidence",
+          "BrickComparisonFact.comparison_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.made_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.observed_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.not_proven"
+        ],
+        "stage": "movement",
+        "sufficiency": "sufficient"
+      },
+      "fact_ref": "sufficiency-fact-movement:02:release-v010-clean-repo-0613-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:02"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "caller_or_declared": true,
+        "checked_public_fact": "brick-comparison:release-v010-clean-repo-0613:release-v010-clean-repo-0613-code-attack-qa",
+        "evidence_reference": "brick-comparison:release-v010-clean-repo-0613:release-v010-clean-repo-0613-code-attack-qa",
+        "missing_required_facts": [],
+        "reason": "combined movement gate derived from ordered per-gate GateFact results: link-gate:default-transition, link-gate:strict",
+        "required_public_facts": [
+          "BrickComparisonFact.required_return_shape_evidence",
+          "BrickComparisonFact.comparison_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.observed_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.attacked_work",
+          "BrickComparisonFact.comparison_evidence.returned_field.checked_sources",
+          "BrickComparisonFact.comparison_evidence.returned_field.regression_risks",
+          "BrickComparisonFact.comparison_evidence.returned_field.negative_probe_observations",
+          "BrickComparisonFact.comparison_evidence.returned_field.failing_or_missing_probes",
+          "BrickComparisonFact.comparison_evidence.returned_field.boundary_violations",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_used",
+          "BrickComparisonFact.comparison_evidence.returned_field.not_proven",
+          "BrickComparisonFact.comparison_evidence.returned_field.blocked_or_missing_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.remaining_delta",
+          "BrickComparisonFact.comparison_evidence.returned_field.proof_limits",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_used.repository_artifact_ref"
+        ],
+        "stage": "movement",
+        "sufficiency": "sufficient"
+      },
+      "fact_ref": "sufficiency-fact-movement:03:release-v010-clean-repo-0613-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:03"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "caller_or_declared": true,
+        "checked_public_fact": "brick-comparison:release-v010-clean-repo-0613:release-v010-clean-repo-0613-axis-attack-qa",
+        "evidence_reference": "brick-comparison:release-v010-clean-repo-0613:release-v010-clean-repo-0613-axis-attack-qa",
+        "missing_required_facts": [],
+        "reason": "combined movement gate derived from ordered per-gate GateFact results: link-gate:default-transition, link-gate:strict",
+        "required_public_facts": [
+          "BrickComparisonFact.required_return_shape_evidence",
+          "BrickComparisonFact.comparison_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.observed_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.attacked_scope",
+          "BrickComparisonFact.comparison_evidence.returned_field.brick_axis_findings",
+          "BrickComparisonFact.comparison_evidence.returned_field.agent_axis_findings",
+          "BrickComparisonFact.comparison_evidence.returned_field.link_axis_findings",
+          "BrickComparisonFact.comparison_evidence.returned_field.support_leak_findings",
+          "BrickComparisonFact.comparison_evidence.returned_field.projection_authority_findings",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_used",
+          "BrickComparisonFact.comparison_evidence.returned_field.not_proven",
+          "BrickComparisonFact.comparison_evidence.returned_field.blocked_or_missing_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.remaining_delta",
+          "BrickComparisonFact.comparison_evidence.returned_field.proof_limits",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_used.repository_artifact_ref"
+        ],
+        "stage": "movement",
+        "sufficiency": "sufficient"
+      },
+      "fact_ref": "sufficiency-fact-movement:04:release-v010-clean-repo-0613-axis-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:04"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "caller_or_declared": true,
+        "checked_public_fact": "brick-comparison:release-v010-clean-repo-0613:release-v010-clean-repo-0613-evidence-integrity",
+        "evidence_reference": "brick-comparison:release-v010-clean-repo-0613:release-v010-clean-repo-0613-evidence-integrity",
+        "missing_required_facts": [],
+        "reason": "combined movement gate derived from ordered per-gate GateFact results: link-gate:default-transition, link-gate:strict",
+        "required_public_facts": [
+          "BrickComparisonFact.required_return_shape_evidence",
+          "BrickComparisonFact.comparison_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.observed_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_scope",
+          "BrickComparisonFact.comparison_evidence.returned_field.persisted_evidence_roots",
+          "BrickComparisonFact.comparison_evidence.returned_field.proof_limit_findings",
+          "BrickComparisonFact.comparison_evidence.returned_field.stale_source_risks",
+          "BrickComparisonFact.comparison_evidence.returned_field.checker_overclaim_risks",
+          "BrickComparisonFact.comparison_evidence.returned_field.missing_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_used",
+          "BrickComparisonFact.comparison_evidence.returned_field.not_proven",
+          "BrickComparisonFact.comparison_evidence.returned_field.blocked_or_missing_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.remaining_delta",
+          "BrickComparisonFact.comparison_evidence.returned_field.proof_limits",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_used.repository_artifact_ref"
+        ],
+        "stage": "movement",
+        "sufficiency": "sufficient"
+      },
+      "fact_ref": "sufficiency-fact-movement:05:release-v010-clean-repo-0613-evidence-integrity",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:05"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "caller_or_declared": true,
+        "checked_public_fact": "brick-comparison:release-v010-clean-repo-0613:release-v010-clean-repo-0613-closure",
+        "evidence_reference": "brick-comparison:release-v010-clean-repo-0613:release-v010-clean-repo-0613-closure",
+        "missing_required_facts": [
+          "Link.route_decision_basis.override_refs",
+          "Link.route_decision_basis.human_review_refs"
+        ],
+        "reason": "combined movement gate derived from ordered per-gate GateFact results: link-gate:default-transition, link-gate:coo, link-gate:human",
+        "required_public_facts": [
+          "BrickComparisonFact.required_return_shape_evidence",
+          "BrickComparisonFact.comparison_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.observed_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.narrowly_proven",
+          "BrickComparisonFact.comparison_evidence.returned_field.not_proven",
+          "BrickComparisonFact.comparison_evidence.returned_field.remaining_delta",
+          "BrickComparisonFact.comparison_evidence.returned_field.parent_goal_delta_status",
+          "BrickComparisonFact.comparison_evidence.returned_field.next_target_candidates",
+          "BrickComparisonFact.comparison_evidence.returned_field.deferred_smith_review_queue",
+          "BrickComparisonFact.comparison_evidence.returned_field.transition_concern_evidence",
+          "Link.route_decision_basis.override_refs",
+          "Link.route_decision_basis.human_review_refs"
+        ],
+        "stage": "movement",
+        "sufficiency": "missing_required_facts"
+      },
+      "fact_ref": "sufficiency-fact-movement:06:release-v010-clean-repo-0613-closure",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:06"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-13T01:37:48Z",
+  "id": "urn:bp:building:release-v010-clean-repo-0613::evidence/claim_trace/link/sufficiency_trace.json",
+  "recorded_at": "2026-06-13T01:37:48Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:release-v010-clean-repo-0613",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/sufficiency_trace.json",
+  "time": "2026-06-13T01:37:48Z",
+  "type": "bp.claim_trace"
+}

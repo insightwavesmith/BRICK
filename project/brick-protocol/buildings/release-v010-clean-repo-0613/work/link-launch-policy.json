@@ -1,0 +1,128 @@
+{
+  "building_id": "release-v010-clean-repo-0613",
+  "declared_gate_refs": [
+    "link-gate:default-transition",
+    "link-gate:coo",
+    "link-gate:strict",
+    "link-gate:human"
+  ],
+  "kind": "link_launch_policy_provenance",
+  "launch_rows": [
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:coo"
+      ],
+      "edge_ref": "edge:release-v010-clean-repo-0613-design-to-release-v010-clean-repo-0613-work",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "release-v010-clean-repo-0613-design",
+      "target_ref": "brick-release-v010-clean-repo-0613-work"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:release-v010-clean-repo-0613-work-to-release-v010-clean-repo-0613-code-attack-qa",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "release-v010-clean-repo-0613-work",
+      "target_ref": "brick-release-v010-clean-repo-0613-code-attack-qa"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:release-v010-clean-repo-0613-work-to-release-v010-clean-repo-0613-axis-attack-qa",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "release-v010-clean-repo-0613-work",
+      "target_ref": "brick-release-v010-clean-repo-0613-axis-attack-qa"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:release-v010-clean-repo-0613-work-to-release-v010-clean-repo-0613-evidence-integrity",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "release-v010-clean-repo-0613-work",
+      "target_ref": "brick-release-v010-clean-repo-0613-evidence-integrity"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:release-v010-clean-repo-0613-code-attack-qa-to-release-v010-clean-repo-0613-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "release-v010-clean-repo-0613-code-attack-qa",
+      "target_ref": "brick-release-v010-clean-repo-0613-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:release-v010-clean-repo-0613-axis-attack-qa-to-release-v010-clean-repo-0613-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "release-v010-clean-repo-0613-axis-attack-qa",
+      "target_ref": "brick-release-v010-clean-repo-0613-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:release-v010-clean-repo-0613-evidence-integrity-to-release-v010-clean-repo-0613-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "release-v010-clean-repo-0613-evidence-integrity",
+      "target_ref": "brick-release-v010-clean-repo-0613-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:coo",
+        "link-gate:human"
+      ],
+      "edge_ref": "edge:release-v010-clean-repo-0613-closure-to-boundary",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "release-v010-clean-repo-0613-closure",
+      "target_ref": "building-boundary:release-v010-clean-repo-0613-closed"
+    }
+  ],
+  "max_attempts_by_boundary": {},
+  "node_reroute_budgets": {
+    "brick-release-v010-clean-repo-0613-design": 1,
+    "brick-release-v010-clean-repo-0613-work": 1
+  },
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "plan_ref": "building-plan:release-v010-clean-repo-0613",
+  "plan_shape": "graph",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support evidence only",
+    "P3 records launch parameters only; P4 owns Carry budget evidence"
+  ],
+  "selected_shape_ref": "building-shape:design-needed"
+}

@@ -1,0 +1,194 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:release-v010-clean-repo-0613::work/step-outputs/release-v010-clean-repo-0613-work-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:dev",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-release-v010-clean-repo-0613-work",
+  "building_id": "release-v010-clean-repo-0613",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-13T01:23:19.163263Z",
+  "id": "urn:bp:building:release-v010-clean-repo-0613::work/step-outputs/release-v010-clean-repo-0613-work-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:release-v010-clean-repo-0613-work",
+  "recorded_at": "2026-06-13T01:23:19.163263Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:dev",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "changed_files": [
+      "README.md",
+      "support/checkers/check_package_path_admission.py",
+      "support/checkers/check_profile.py",
+      "support/checkers/check_project_declaration.py",
+      "support/checkers/lib/kernel_checks.py",
+      "support/checkers/profiles/read_side_projection_boundary.yaml",
+      "support/dashboard/DEPLOY.md",
+      "support/docs/references/quickstart.md",
+      "support/onboarding/release_export.sh",
+      "support/operator/ledger_projection.py"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:release-v010-clean-repo-0613",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:release-v010-clean-repo-0613:agent-object:dev:output"
+    ],
+    "made_changes": [
+      "Added support/onboarding/release_export.sh as the clean public release export verb; it excludes project/ and brick_protocol.egg-info/, creates a fresh output git repo with one initial commit, and prints remote/tag/push follow-up commands without pushing.",
+      "Added release_export_exclusion to the support checker kernel, check_profile dispatch, path admission, and read_side_projection_boundary profile, including a mutation RED probe for removing project/ from the exclusion list.",
+      "Updated README.md, support/docs/references/quickstart.md, and support/dashboard/DEPLOY.md with AI-runnable onboarding, status inbox watch loop, release export, Vercel static, and Docker realtime instructions with expected output and failure signals.",
+      "Updated support/operator/ledger_projection.py and support/checkers/check_project_declaration.py so absent project/ or status-only project scaffolds are treated as empty support projection state, while real undeclared vessels with buildings/declarations still reject."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority",
+      "real public repo push/tag execution",
+      "Vercel deployment behavior",
+      "Docker host or Cloud Run runtime behavior",
+      "npm build behavior in this worktree",
+      "fresh-machine network clone or provider auth behavior",
+      "provider quality or provider process reliability",
+      "future operator behavior outside the checked export/profile surfaces"
+    ],
+    "observed_evidence": [
+      "Focused pins green: install_script_lint, product_no_smith_residue, and release_export_exclusion.",
+      "External mutation RED observed after removing project/ from release_export.sh: release_export_exclusion rejected the export verb.",
+      "Release export proof path: /private/tmp/brick-release-export.NLKSwM; copied 282 files, excluded 3801 project/ entries, excluded roots were project/ and brick_protocol.egg-info/, initial commit 7dd2a54, no project/ before bake or before check_profile.",
+      "Clean export bake proof: bake_dashboard_data_json() wrote support/dashboard/public/dashboard-data.json with source_truth False and buildings 0.",
+      "Clean export gate: env -u BRICK_REPORT_GRAIN ... check_profile.py --all exited 0 in /private/tmp/brick-release-export.NLKSwM.",
+      "Final temp source copy gate: /private/tmp/brick-release-source-final.K9ExQx/repo baked dashboard-data.json with source_truth False and 29 buildings, then check_profile.py --all exited 0.",
+      "git diff --check exited 0; live checkout has only README.md and support/* edits plus new support/onboarding/release_export.sh.",
+      "No Claude/Gemini model review evidence was run or used; checker output is support evidence only."
+    ],
+    "output_excerpt": "{ \"made_changes\": [ \"Added support/onboarding/release_export.sh as the clean public release export verb; it excludes project/ and brick_protocol.egg-info/, creates a fresh output git repo with one initial commit, and prints remote/tag/push follow-up commands without pushing.\", \"Added release_export_exclusion to the support checker kernel, check_profile dispatch, path admission, and read_side_projection_boundary profile, including a mutation RED probe for removing project/ from the exclusion list.\", \"Updated README.md, support/docs/references/quickstart.md, and support/dashboard/DEPLOY.md wi...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "claude/track-release",
+        "head": "3dbd7d3c0fdfccfaaa7db7ddad58ba63e1876c90"
+      },
+      "after_git_status_paths": [
+        "README.md",
+        "support/checkers/check_package_path_admission.py",
+        "support/checkers/check_profile.py",
+        "support/checkers/check_project_declaration.py",
+        "support/checkers/lib/kernel_checks.py",
+        "support/checkers/profiles/read_side_projection_boundary.yaml",
+        "support/dashboard/DEPLOY.md",
+        "support/docs/references/quickstart.md",
+        "support/onboarding/release_export.sh",
+        "support/operator/ledger_projection.py"
+      ],
+      "after_path_count": 4083,
+      "before_git_refs": {
+        "branch": "claude/track-release",
+        "head": "3dbd7d3c0fdfccfaaa7db7ddad58ba63e1876c90"
+      },
+      "before_git_status_paths": [],
+      "before_path_count": 4082,
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [
+        "README.md",
+        "support/checkers/check_package_path_admission.py",
+        "support/checkers/check_profile.py",
+        "support/checkers/check_project_declaration.py",
+        "support/checkers/lib/kernel_checks.py",
+        "support/checkers/profiles/read_side_projection_boundary.yaml",
+        "support/dashboard/DEPLOY.md",
+        "support/docs/references/quickstart.md",
+        "support/onboarding/release_export.sh",
+        "support/operator/ledger_projection.py"
+      ],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "README.md",
+          "support/*"
+        ],
+        "forbidden_paths": [
+          "link/*",
+          "agent/*",
+          "brick/*",
+          "project/*",
+          ".git/*",
+          "AGENTS.md",
+          "pyproject.toml",
+          "uv.lock"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:02:release-v010-clean-repo-0613-work",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:release-v010-clean-repo-0613",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:release-v010-clean-repo-0613-work:attempt-1",
+  "step_ref": "release-v010-clean-repo-0613-work",
+  "subject": "release-v010-clean-repo-0613-work",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-13T01:23:19.163263Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

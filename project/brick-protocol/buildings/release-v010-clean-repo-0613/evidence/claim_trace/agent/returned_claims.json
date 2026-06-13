@@ -1,0 +1,999 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:release-v010-clean-repo-0613::evidence/claim_trace/agent/returned_claims.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:design-lead",
+        "received_work": "brick-work:01:release-v010-clean-repo-0613-design",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:design-lead",
+          "axis_responsibility": {
+            "Agent": "This return is design-lead support evidence only, not approval or quality judgment.",
+            "Brick": "The work contract is release v0.1.0 clean-repo preparation and AI-runnable onboarding docs.",
+            "Evidence": "Proof should be temp output dirs and temp source copy gates, not standing project/ release contents.",
+            "Link": "No Movement or route target is chosen here.",
+            "Support": "Export verb, docs, dashboard bake instructions, and checker pins live under support/ and README."
+          },
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "candidate_file_changes": [
+            "support/onboarding/release_export.sh add",
+            "README.md edit",
+            "support/docs/references/quickstart.md edit",
+            "support/docs/references/setup.md edit",
+            "support/dashboard/DEPLOY.md edit",
+            "support/onboarding/install.sh comment/example cleanup only if needed for the single working-example rule",
+            "support/checkers/lib/kernel_checks.py edit",
+            "support/checkers/check_profile.py edit",
+            "support/checkers/profiles/read_side_projection_boundary.yaml edit"
+          ],
+          "checker_or_verifier_plan": [
+            "Focused current pins: run install_script_lint and product_no_smith_residue.",
+            "New pin: add release_export_exclusion_pin in support/checkers/lib/kernel_checks.py, whitelist/dispatch it in support/checkers/check_profile.py, and include it in read_side_projection_boundary.",
+            "New pin RED: mutate a temp copy of release_export.sh to remove project/ from the exclusion list and require ProfileError.",
+            "Export proof: from a writable temp source copy representing HEAD, run support/onboarding/release_export.sh /tmp/<release-out>; assert no project/ and no brick_protocol.egg-info/ in output.",
+            "Exported-tree proof: in the exported tree, run bake_dashboard_data_json(), then PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all with no project/ present before bake/onboard-created evidence.",
+            "Full gate: in a temp source copy, bake first, then run check_profile.py --all and git diff --check."
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:release-v010-clean-repo-0613",
+          "cli_version_text": "codex-cli 0.137.0",
+          "design_summary": "Design the release prep as a support/onboarding export verb plus documentation and checker pins. Use support/onboarding/release_export.sh, not a new Python operator module, because this is an operator-facing packaging command parallel to install.sh and does not need to expand the public brick_protocol.support.operator import surface.",
+          "edge_cases": [
+            "Dirty source worktree: because the verb exports HEAD, proof before merge should run from a temp source copy with a local temp commit or be run after merge.",
+            "No global git identity: export verb should set local output-repo identity or emit a clear failure signal before commit.",
+            "Existing output dir: reject unless empty to avoid mixing release contents.",
+            "project/ already absent: export verification should still pass.",
+            "support/dashboard/public/dashboard-data.json absent before bake: docs and proof must bake before profile gate.",
+            "Read-only or no temp directory: full profile/FIRE probes cannot run, as observed in this session."
+          ],
+          "evidence_refs": [
+            "support-packet:release-v010-clean-repo-0613:agent-object:design-lead:output",
+            "README.md",
+            "support/onboarding/install.sh",
+            "support/dashboard/DEPLOY.md",
+            "support/dashboard/Dockerfile",
+            "support/dashboard/server/index.mjs",
+            "support/docs/references/quickstart.md",
+            "support/docs/references/setup.md",
+            "support/checkers/check_profile.py --help with PYTHONPATH=support/import_identity",
+            "support/checkers/profiles/read_side_projection_boundary.yaml",
+            "support/checkers/lib/kernel_checks.py run_install_script_lint / run_product_no_smith_residue / run_dashboard_productization_projection",
+            "brick_protocol.support.operator.dashboard_export.dashboard_export_packet"
+          ],
+          "invariants": [
+            "Exported release tree contains no project/ and no brick_protocol.egg-info/.",
+            "Export ships without project/ scaffold; first onboard/building creates the vessel.",
+            "Export verb never pushes, tags, or contacts network.",
+            "Checker pin has a real RED mutation when project/ exclusion is removed.",
+            "Docs show expected output and failure signals, not only happy-path commands.",
+            "Dashboard bake output remains projection seed only and source_truth false.",
+            "One insightwavesmith working-example allowance only; all reusable commands use {OWNER}."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "No file edits were made in this read-only design pass.",
+            "Full --all gate was not proven because the environment cannot write checker fixture/temp paths.",
+            "product_no_smith_residue full FIRE probe was not proven because no usable temporary directory was available.",
+            "Export verb behavior is not proven until implemented and run in a writable temp output dir.",
+            "Clean exported tree checker gate with no project/ is not proven in this session.",
+            "Vercel, Docker host, Cloud Run, IAP, provider behavior, source truth, success judgment, quality judgment, and Movement authority are not proven."
+          ],
+          "observed_evidence": [
+            "README has quickstart but no deploy section for Vercel-static versus Docker-realtime paths.",
+            "support/onboarding/install.sh is parametric with BRICK_REPO/BRICK_HOME, uses set -eu, main \"$@\" last-line anti-truncation, and currently contains extra insightwavesmith examples in comments.",
+            "support/dashboard/DEPLOY.md documents bake, Cloud Run/IAP, generic Docker, and bare Node; it does not yet present the requested two-button release deploy story.",
+            "support/dashboard/Dockerfile is two-stage node:22-slim and exposes port 8080; server/index.mjs requires NODE_ENV=production plus non-dev INGEST_SECRET for real POST /ingest.",
+            "quickstart/setup explain first Building execution but do not give command/expected-output/failure-signal for every operator step and do not include the status inbox watch-loop standard.",
+            "check_profile.py --help works only with PYTHONPATH=support/import_identity and exposes --repo, --profile, --all, --self-test.",
+            "run_install_script_lint observed green in this read-only session.",
+            "dashboard_export_packet observed source_truth false with a buildings list.",
+            "read_side_projection_boundary profile and product_no_smith_residue FIRE probes were blocked by this managed read-only environment because they need writable temp/project fixture space."
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ \"README has quickstart but no deploy section for Vercel-static versus Docker-realtime paths.\", \"support/onboarding/install.sh is parametric with BRICK_REPO/BRICK_HOME, uses set -eu, main \\\"$@\\\" last-line anti-truncation, and currently contains extra insightwavesmith examples in comments.\", \"support/dashboard/DEPLOY.md documents bake, Cloud Run/IAP, generic Docker, and bare Node; it does not yet present the requested two-button release deploy story.\", \"support/dashboard/Dockerfile is two-stage node:22-slim and exposes port 8080; server/index.mjs requires NODE_ENV=pro...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "proposed_changes": [
+            "Add support/onboarding/release_export.sh. It should require an output dir, export tracked HEAD contents, remove or exclude project/ and brick_protocol.egg-info/, verify both are absent, initialize a fresh git repo in the output dir, create one initial commit, and print remote/tag commands for v0.1.0 without executing push or tag.",
+            "Make the export verb fail closed for existing non-empty output dirs, missing git, non-repository source, unresolved HEAD, and post-export presence of excluded paths.",
+            "Have the export verb print source HEAD, output path, excluded paths, initial commit hash, and exact follow-up commands using {OWNER}/BRICK placeholders.",
+            "Update README.md with a Korean Deploy section: Vercel static photo mode = bake dashboard data, build dashboard dist, deploy static dist; Docker realtime = Dockerfile/server with NODE_ENV=production, INGEST_SECRET, optional IAP pointer to DEPLOY.md.",
+            "Normalize GitHub examples so only one working example line retains insightwavesmith/BRICK; all other commands use {OWNER}/BRICK.",
+            "Update quickstart.md and setup.md so clone, install, doctor, first Building, checker gate, dashboard bake, and inbox watch each have command, expected output line, and failure signal.",
+            "Add the operator-session standard as a local status inbox watch loop for project/brick-protocol/status/inbox after first onboard creates the vessel.",
+            "Update support/dashboard/DEPLOY.md to split static Vercel/photo mode from Docker realtime mode while preserving Cloud Run/IAP as the detailed authenticated Docker-host path.",
+            "Add a small checker pin for release_export exclusion: project/ must appear in the export exclusion list and a temp mutation that removes it must go RED."
+          ],
+          "relevant_current_structure": [
+            "Release-facing docs are README.md, support/docs/references/quickstart.md, support/docs/references/setup.md, and support/dashboard/DEPLOY.md.",
+            "Existing onboarding shell style lives in support/onboarding/install.sh.",
+            "Existing productization checks are whitelisted in support/checkers/check_profile.py, implemented in support/checkers/lib/kernel_checks.py, and referenced by support/checkers/profiles/read_side_projection_boundary.yaml.",
+            "Dashboard bake surface is brick_protocol.support.operator.dashboard_export.bake_dashboard_data_json and writes support/dashboard/public/dashboard-data.json.",
+            "project/ is current local evidence/status only and is excluded from the public release tree."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "unchanged_surfaces": [
+            "No brick/*, agent/*, link/*, project/*, AGENTS.md, pyproject.toml, uv.lock, .git mutation.",
+            "No dashboard server/runtime behavior change required.",
+            "No npm/node execution in the worktree for proof; Vercel build commands remain documentation.",
+            "No push, tag, remote creation, scheduler, queue, retry runtime, provider SDK, or network checker behavior."
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:01:release-v010-clean-repo-0613-design",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:dev",
+        "received_work": "brick-work:02:release-v010-clean-repo-0613-work",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:dev",
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "changed_files": [
+            "README.md",
+            "support/checkers/check_package_path_admission.py",
+            "support/checkers/check_profile.py",
+            "support/checkers/check_project_declaration.py",
+            "support/checkers/lib/kernel_checks.py",
+            "support/checkers/profiles/read_side_projection_boundary.yaml",
+            "support/dashboard/DEPLOY.md",
+            "support/docs/references/quickstart.md",
+            "support/onboarding/release_export.sh",
+            "support/operator/ledger_projection.py"
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:release-v010-clean-repo-0613",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:release-v010-clean-repo-0613:agent-object:dev:output"
+          ],
+          "made_changes": [
+            "Added support/onboarding/release_export.sh as the clean public release export verb; it excludes project/ and brick_protocol.egg-info/, creates a fresh output git repo with one initial commit, and prints remote/tag/push follow-up commands without pushing.",
+            "Added release_export_exclusion to the support checker kernel, check_profile dispatch, path admission, and read_side_projection_boundary profile, including a mutation RED probe for removing project/ from the exclusion list.",
+            "Updated README.md, support/docs/references/quickstart.md, and support/dashboard/DEPLOY.md with AI-runnable onboarding, status inbox watch loop, release export, Vercel static, and Docker realtime instructions with expected output and failure signals.",
+            "Updated support/operator/ledger_projection.py and support/checkers/check_project_declaration.py so absent project/ or status-only project scaffolds are treated as empty support projection state, while real undeclared vessels with buildings/declarations still reject."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "semantic correctness of file edits",
+            "source truth",
+            "success judgment",
+            "quality judgment",
+            "Movement authority",
+            "real public repo push/tag execution",
+            "Vercel deployment behavior",
+            "Docker host or Cloud Run runtime behavior",
+            "npm build behavior in this worktree",
+            "fresh-machine network clone or provider auth behavior",
+            "provider quality or provider process reliability",
+            "future operator behavior outside the checked export/profile surfaces"
+          ],
+          "observed_evidence": [
+            "Focused pins green: install_script_lint, product_no_smith_residue, and release_export_exclusion.",
+            "External mutation RED observed after removing project/ from release_export.sh: release_export_exclusion rejected the export verb.",
+            "Release export proof path: /private/tmp/brick-release-export.NLKSwM; copied 282 files, excluded 3801 project/ entries, excluded roots were project/ and brick_protocol.egg-info/, initial commit 7dd2a54, no project/ before bake or before check_profile.",
+            "Clean export bake proof: bake_dashboard_data_json() wrote support/dashboard/public/dashboard-data.json with source_truth False and buildings 0.",
+            "Clean export gate: env -u BRICK_REPORT_GRAIN ... check_profile.py --all exited 0 in /private/tmp/brick-release-export.NLKSwM.",
+            "Final temp source copy gate: /private/tmp/brick-release-source-final.K9ExQx/repo baked dashboard-data.json with source_truth False and 29 buildings, then check_profile.py --all exited 0.",
+            "git diff --check exited 0; live checkout has only README.md and support/* edits plus new support/onboarding/release_export.sh.",
+            "No Claude/Gemini model review evidence was run or used; checker output is support evidence only."
+          ],
+          "output_excerpt": "{ \"made_changes\": [ \"Added support/onboarding/release_export.sh as the clean public release export verb; it excludes project/ and brick_protocol.egg-info/, creates a fresh output git repo with one initial commit, and prints remote/tag/push follow-up commands without pushing.\", \"Added release_export_exclusion to the support checker kernel, check_profile dispatch, path admission, and read_side_projection_boundary profile, including a mutation RED probe for removing project/ from the exclusion list.\", \"Updated README.md, support/docs/references/quickstart.md, and support/dashboard/DEPLOY.md wi...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "workspace write is limited by Brick-declared write_scope"
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "worktree_observation": {
+            "after_git_refs": {
+              "branch": "claude/track-release",
+              "head": "3dbd7d3c0fdfccfaaa7db7ddad58ba63e1876c90"
+            },
+            "after_git_status_paths": [
+              "README.md",
+              "support/checkers/check_package_path_admission.py",
+              "support/checkers/check_profile.py",
+              "support/checkers/check_project_declaration.py",
+              "support/checkers/lib/kernel_checks.py",
+              "support/checkers/profiles/read_side_projection_boundary.yaml",
+              "support/dashboard/DEPLOY.md",
+              "support/docs/references/quickstart.md",
+              "support/onboarding/release_export.sh",
+              "support/operator/ledger_projection.py"
+            ],
+            "after_path_count": 4083,
+            "before_git_refs": {
+              "branch": "claude/track-release",
+              "head": "3dbd7d3c0fdfccfaaa7db7ddad58ba63e1876c90"
+            },
+            "before_git_status_paths": [],
+            "before_path_count": 4082,
+            "not_proven": [
+              "semantic correctness of file edits",
+              "complete diff attribution for pre-existing dirty paths"
+            ],
+            "observed_changed_files": [
+              "README.md",
+              "support/checkers/check_package_path_admission.py",
+              "support/checkers/check_profile.py",
+              "support/checkers/check_project_declaration.py",
+              "support/checkers/lib/kernel_checks.py",
+              "support/checkers/profiles/read_side_projection_boundary.yaml",
+              "support/dashboard/DEPLOY.md",
+              "support/docs/references/quickstart.md",
+              "support/onboarding/release_export.sh",
+              "support/operator/ledger_projection.py"
+            ],
+            "proof_limits": [
+              "changed files are support evidence only",
+              "not source truth",
+              "not success judgment",
+              "not quality judgment",
+              "not Movement authority"
+            ],
+            "write_scope": {
+              "allowed_paths": [
+                "README.md",
+                "support/*"
+              ],
+              "forbidden_paths": [
+                "link/*",
+                "agent/*",
+                "brick/*",
+                "project/*",
+                ".git/*",
+                "AGENTS.md",
+                "pyproject.toml",
+                "uv.lock"
+              ]
+            }
+          }
+        }
+      },
+      "fact_ref": "agent-fact:02:release-v010-clean-repo-0613-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:qa",
+        "received_work": "brick-work:03:release-v010-clean-repo-0613-code-attack-qa",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:qa",
+          "attacked_work": [
+            "Export verb behavior against clean public repo requirements.",
+            "Checker pin coverage for project/ exclusion and manual publication shape.",
+            "Docs for clone -> install -> first Building -> dashboard with expected outputs and failure signals.",
+            "Deploy docs for Vercel static and Docker realtime paths.",
+            "Empty or absent project/ compatibility changes in project declaration and ledger projection support code.",
+            "Smith residue replacement on newcomer-facing surfaces."
+          ],
+          "blocked_or_missing_evidence": [
+            "No persisted project/brick-protocol/buildings/*release* evidence root was found.",
+            "No writer-supplied temp export path or full-gate transcript was observed in this checkout.",
+            "Filesystem sandbox is read-only and prevented temp-copy/export/bake/full-gate proof.",
+            "No Claude/Gemini/model review evidence was used."
+          ],
+          "boundary_violations": [
+            "Support contract concern: release_export.sh claims the release tree is built from HEAD, but implementation copies working-tree and untracked-unignored content.",
+            "Support checker concern: markerless project/<id> directories are silently skipped, widening the requested empty/status-only project tolerance into a broader project-vessel blind spot.",
+            "No Brick, Agent, Link, project, AGENTS.md, pyproject.toml, or uv.lock file edits were observed in git status."
+          ],
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "checked_sources": [
+            "README.md:16-29",
+            "README.md:75-139",
+            "support/onboarding/release_export.sh:61-175",
+            "support/docs/references/quickstart.md:25-75",
+            "support/dashboard/DEPLOY.md:42-69",
+            "support/dashboard/DEPLOY.md:155-223",
+            "support/checkers/lib/kernel_checks.py:2083-2152",
+            "support/checkers/lib/kernel_checks.py:2155-2277",
+            "support/checkers/check_project_declaration.py:90-97",
+            "support/checkers/check_project_declaration.py:322-330",
+            "support/operator/ledger_projection.py:63-69",
+            "support/operator/ledger_projection.py:161-170",
+            "support/checkers/profiles/read_side_projection_boundary.yaml:15-20"
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:release-v010-clean-repo-0613",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:release-v010-clean-repo-0613:agent-object:qa:output"
+          ],
+          "evidence_used": [
+            "git status --short --untracked-files=all",
+            "git diff -- README.md support/onboarding/release_export.sh support/dashboard/DEPLOY.md support/docs/references/quickstart.md",
+            "git diff -- support/checkers/check_profile.py support/checkers/lib/kernel_checks.py support/checkers/check_project_declaration.py support/operator/ledger_projection.py support/checkers/profiles/read_side_projection_boundary.yaml",
+            "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 -c run_release_export_exclusion",
+            "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 -c run_install_script_lint",
+            "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 -c _collect_no_smith_residue_violations",
+            "git diff --check",
+            "sh support/onboarding/release_export.sh --help",
+            "sh support/onboarding/release_export.sh"
+          ],
+          "failing_or_missing_probes": [
+            "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --profile support/checkers/profiles/read_side_projection_boundary.yaml exited 1 because the read-only sandbox rejected creating project/checker-projection-fixture-vessel.",
+            "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all exited 1 because no writable temporary directory was available.",
+            "run_product_no_smith_residue could not complete its FIRE probes because tempfile could not allocate a writable directory.",
+            "The export verb was not run to a temp output dir; this QA tool policy and sandbox do not permit creating, copying, committing, or baking files.",
+            "No exported-tree check_profile.py --all result with project/ absent was observed.",
+            "No full gate in a temp source copy was observed."
+          ],
+          "negative_probe_observations": [
+            "run_release_export_exclusion reported that removing project from EXCLUDE_PATHS fired RED.",
+            "sh support/onboarding/release_export.sh --help exited 0 and printed usage.",
+            "sh support/onboarding/release_export.sh with no --output exited 2 and printed usage.",
+            "git diff --check exited 0.",
+            "Direct no-Smith-residue violation collection returned inspected=11 and violations=[]."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "source truth",
+            "success judgment",
+            "quality judgment",
+            "Movement authority",
+            "export verb runtime behavior in a writable temp directory",
+            "clean exported tree has no project/ with check_profile.py --all exit 0",
+            "full profile gate green",
+            "product_no_smith_residue FIRE probes green",
+            "Vercel build",
+            "Docker build or runtime behavior",
+            "provider quality",
+            "future Building correctness"
+          ],
+          "observed_evidence": [
+            "Checkout observed at /Users/smith/projects/BRICK-wt-release on branch claude/track-release.",
+            "Changed/untracked paths observed: README.md, support/checkers/check_package_path_admission.py, support/checkers/check_profile.py, support/checkers/check_project_declaration.py, support/checkers/lib/kernel_checks.py, support/checkers/profiles/read_side_projection_boundary.yaml, support/dashboard/DEPLOY.md, support/docs/references/quickstart.md, support/operator/ledger_projection.py, and untracked support/onboarding/release_export.sh.",
+            "support/onboarding/release_export.sh declares EXCLUDE_PATHS for project and brick_protocol.egg-info, creates a fresh git repo in the output directory, makes one initial commit, and prints remote/tag/push follow-up commands without invoking git push.",
+            "README.md and support/docs/references/quickstart.md now include command / expected output / failure signal onboarding lines plus a status inbox watch loop.",
+            "README.md and support/dashboard/DEPLOY.md now document Vercel static photo and Docker realtime paths with NODE_ENV=production and INGEST_SECRET expectations.",
+            "support/checkers/check_profile.py registers release_export_exclusion; support/checkers/profiles/read_side_projection_boundary.yaml includes it and pins support/onboarding/release_export.sh path existence.",
+            "Focused read-only kernel call run_release_export_exclusion inspected 2 and reported the project exclusion mutation RED.",
+            "run_install_script_lint inspected 1 and reported pass.",
+            "Direct no-Smith-residue scan inspected 11 newcomer-facing text surfaces and returned no violations; its temp FIRE half was not runnable in this sandbox.",
+            "git diff --check exited 0.",
+            "Existing repo still has project/ present with 3801 tracked files and about 27M; git ls-files brick_protocol.egg-info returned 0."
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ \"Checkout observed at /Users/smith/projects/BRICK-wt-release on branch claude/track-release.\", \"Changed/untracked paths observed: README.md, support/checkers/check_package_path_admission.py, support/checkers/check_profile.py, support/checkers/check_project_declaration.py, support/checkers/lib/kernel_checks.py, support/checkers/profiles/read_side_projection_boundary.yaml, support/dashboard/DEPLOY.md, support/docs/references/quickstart.md, support/operator/ledger_projection.py, and untracked support/onboarding/release_export.sh.\", \"support/onboarding/release_export.sh...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "QA return is support evidence only.",
+            "Checker output is support evidence only.",
+            "No file edits, commits, pushes, checkout/reset/merge/rebase/stash, npm, Docker, or network actions were run by this QA pass.",
+            "This return does not choose Link Movement, route target, success, quality, or approval."
+          ],
+          "regression_risks": [
+            "support/onboarding/release_export.sh does not actually export from HEAD: it uses git ls-files --cached --others --exclude-standard and copies files from the working tree with shutil.copy2, so dirty tracked edits and untracked unignored files can be shipped.",
+            "The release_export_exclusion pin only checks literal EXCLUDE_PATHS and printed follow-up commands; it does not detect the from-HEAD gap or accidental untracked-file inclusion.",
+            "support/checkers/check_project_declaration.py and support/operator/ledger_projection.py now skip any project/<id> directory with none of README.md, project.json, or buildings, not only an empty/status-only scaffold; arbitrary markerless project residue could become invisible to the checker and ledger.",
+            "The new project-declaration probe covers only project/brick-protocol/status/inbox, not a nonempty markerless project/<id> directory.",
+            "The documented dashboard bake command writes support/dashboard/public/dashboard-data.json; it was not executed here because this QA lane is read-only."
+          ],
+          "remaining_delta": [
+            "Repair the export verb so the release tree is truly from HEAD, or fail closed on dirty tracked and untracked-unignored files before export; add a RED probe for dirty/untracked inclusion.",
+            "Narrow the project scaffold tolerance to the exact absent/empty/status-only case and add a RED probe for arbitrary markerless project/<id> residue.",
+            "Run the export verb in a writable temp dir, then in the exported tree verify no project/ exists, bake dashboard data, and run check_profile.py --all.",
+            "Run read_side_projection_boundary, product_no_smith_residue, release_export_exclusion, and the full gate in a writable temp source copy and record the temp paths."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default"
+        }
+      },
+      "fact_ref": "agent-fact:03:release-v010-clean-repo-0613-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:inspector",
+        "received_work": "brick-work:04:release-v010-clean-repo-0613-axis-attack-qa",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_axis_findings": [
+            "matched: inspector packet is reviewer-readonly and this return uses only the required fields.",
+            "matched: no credential bodies, setup tokens, raw provider sessions, or provider-specific session ids were printed.",
+            "matched: no native subagent or provider SDK execution was used.",
+            "mismatched side effect: compileall/import inspection produced ignored __pycache__ files, which is outside the no-write reviewer intent even though no tracked file changed."
+          ],
+          "agent_object_ref": "agent-object:inspector",
+          "attacked_scope": [
+            "release-v010-clean-repo-0613 export verb and release docs",
+            "README and support/docs/references quickstart onboarding instructions",
+            "support/dashboard deploy documentation for static and realtime modes",
+            "checker admission and pins around install_script_lint, release_export_exclusion, and product_no_smith_residue",
+            "support evidence only; no npm, Docker, network, git push, git tag, or export execution was performed"
+          ],
+          "blocked_or_missing_evidence": [
+            "Reviewer packet forbids file creation, so the export verb and full temp-copy gates were not run.",
+            "A shell heredoc checker attempt was blocked by sandbox temp-file creation: zsh reported cannot create temp file for here document.",
+            "No Claude/Gemini model review evidence was collected in this inspector pass.",
+            "release_export.sh is not tracked in the inspected worktree, so HEAD-based release proof is blocked until it is admitted into git history."
+          ],
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "brick_axis_findings": [
+            "matched: task work contract is release export plus deploy docs plus AI-runnable onboarding, and the live edits are in README.md and support/* surfaces.",
+            "matched: no tracked modifications were observed under link/*, agent/*, brick/*, project/*, AGENTS.md, pyproject.toml, or uv.lock.",
+            "mismatched: the deliverable says the export builds a clean tree from HEAD, but the verb copies dirty working-tree contents and untracked unignored files.",
+            "mismatched: support/onboarding/release_export.sh is currently untracked, so it is not in HEAD in the inspected worktree.",
+            "matched as text evidence only: docs state no project/ ships in export and first onboard/run creates the local vessel."
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:release-v010-clean-repo-0613",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:release-v010-clean-repo-0613:agent-object:inspector:output"
+          ],
+          "evidence_used": [
+            "git status --short --branch",
+            "rg --files over README.md, support/onboarding, support/dashboard, support/docs/references, support/checkers",
+            "nl -ba README.md, support/onboarding/release_export.sh, support/docs/references/quickstart.md, support/dashboard/DEPLOY.md",
+            "rg over release_export, deploy, owner, inbox, and checker pin terms",
+            "PYTHONDONTWRITEBYTECODE=1 python3 direct calls for run_install_script_lint and run_release_export_exclusion",
+            "PYTHONDONTWRITEBYTECODE=1 python3 direct calls for _collect_no_smith_residue_violations, find_violations, and project_orchestration_ledger_packet",
+            "git diff --check",
+            "git ls-files project and brick_protocol.egg-info"
+          ],
+          "link_axis_findings": [
+            "matched: no Link Movement or route target was chosen by this inspection.",
+            "matched: release_export.sh prints git remote/tag/push follow-up commands but does not execute push or tag in the inspected text.",
+            "not observed: no declared Link handoff refs or runtime handoff rows were supplied in the packet."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "export verb run to a temp output dir",
+            "exported tree contains no project/ under actual execution",
+            "exported tree checker --all exit 0 with no project/ present",
+            "bake_dashboard_data_json in the exported tree",
+            "full temp source copy gate",
+            "full product_no_smith_residue temp-copy FIRE probes",
+            "full check_profile.py --all",
+            "fresh clone install and first Building onboarding",
+            "Vercel build, Docker build, Docker run, Cloud Run, IAP, or real ingest behavior",
+            "release output is HEAD-only",
+            "absence of future untracked local residue in public export",
+            "source truth",
+            "success judgment",
+            "quality judgment",
+            "Movement authority"
+          ],
+          "observed_evidence": [
+            "git status observed branch claude/track-release with modified README.md and support/* files; support/onboarding/release_export.sh is untracked.",
+            "README.md lines 75-139 add Release Export plus Vercel Static Photo and Docker Realtime deploy paths with expected output and failure signal text.",
+            "support/docs/references/quickstart.md lines 25-75 add an AI-runnable onboarding checklist with command, expected output, failure signal, and status inbox watch loop.",
+            "support/dashboard/DEPLOY.md lines 42-69 add the Vercel Static Photo path; lines 155-219 retain Docker/Bare Node realtime paths with INGEST_SECRET production guidance.",
+            "support/onboarding/release_export.sh declares EXCLUDE_PATHS = project and brick_protocol.egg-info, initializes a fresh git repo in the output dir, commits once, and prints remote/tag/push commands without executing push or tag.",
+            "support/onboarding/release_export.sh also uses git ls-files --cached --others --exclude-standard and copies working-tree file contents, so its input is not strictly HEAD-only.",
+            "support/checkers/check_profile.py admits release_export_exclusion; support/checkers/profiles/read_side_projection_boundary.yaml pins the kernel check and path_exists for support/onboarding/release_export.sh.",
+            "Focused read-only kernel calls returned exit 0 for install_script_lint inspected=1 and release_export_exclusion inspected=2; release_export_exclusion reported the project/ removal mutation fired RED.",
+            "Read-only Smith-residue collection inspected 11 files and returned no violations; rg found only README.md line 10 carrying the admitted insightwavesmith/BRICK working-example line in the scanned surfaces.",
+            "check_project_declaration.find_violations inspected 1 current project vessel and returned no violations; ledger projection read row_count=29 and projects=1 in this worktree.",
+            "git diff --check returned exit 0. A compileall command returned exit 0 but created ignored __pycache__ artifacts under support/checkers, support/checkers/lib, and support/operator.",
+            "git ls-files project counted 3801 tracked project/ paths in the source worktree; git ls-files brick_protocol.egg-info counted 0 tracked paths."
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ \"git status observed branch claude/track-release with modified README.md and support/* files; support/onboarding/release_export.sh is untracked.\", \"README.md lines 75-139 add Release Export plus Vercel Static Photo and Docker Realtime deploy paths with expected output and failure signal text.\", \"support/docs/references/quickstart.md lines 25-75 add an AI-runnable onboarding checklist with command, expected output, failure signal, and status inbox watch loop.\", \"support/dashboard/DEPLOY.md lines 42-69 add the Vercel Static Photo path; lines 155-219 retain Docker/Bare...",
+          "projection_authority_findings": [
+            "matched: README, quickstart, and DEPLOY repeatedly describe dashboard output as support projection and not source truth, success judgment, quality judgment, or Movement authority.",
+            "matched: dashboard deploy docs require source_truth False in baked packets.",
+            "watch item: DEPLOY prose saying source of truth stays in repo ledger/written Building evidence should be reviewed against the active constitution before closure."
+          ],
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "read-only inspection except observed ignored pycache side effects",
+            "checker output is not source truth",
+            "checker output is not success judgment",
+            "checker output is not quality judgment",
+            "checker output is not Movement authority",
+            "no network proof",
+            "no provider proof",
+            "no publication proof"
+          ],
+          "remaining_delta": [
+            "Track/admit support/onboarding/release_export.sh before any HEAD-based release proof.",
+            "Change the export verb or add a guard so release input is HEAD-only, or explicitly require a clean worktree and exclude --others.",
+            "Add a checker pin for the HEAD-only or clean-worktree invariant and for no executed push/tag side effects, not just printed follow-up strings.",
+            "Run the required temp export, bake_dashboard_data_json, exported-tree check_profile.py --all, and temp source-copy gate after write-capable repair work.",
+            "Run the full product_no_smith_residue FIRE probes after temp writes are allowed.",
+            "Review DEPLOY source-truth wording for support/projection authority drift.",
+            "Clean or ignore the generated __pycache__ side effects under a write-authorized cleanup step."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "support_leak_findings": [
+            "release_export.sh can carry untracked unignored local files into the public export because it uses --others and copies from the working tree.",
+            "release_export_exclusion pins literal exclusions and manual follow-up strings, but it does not prove the export output tree, HEAD-only input, absence of untracked residue, or absence of secrets in generated output.",
+            "product_no_smith_residue full FIRE probes were not run; only the read-only collection phase was observed.",
+            "support/dashboard/DEPLOY.md retains source-truth wording for repo ledger and written Building evidence; that may be authority wording drift under the supplied AGENTS.md rule that project/support evidence is not source truth.",
+            "Ignored __pycache__ artifacts now exist under support/checkers, support/checkers/lib, and support/operator from verification command side effects."
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:04:release-v010-clean-repo-0613-axis-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:04"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:inspector",
+        "received_work": "brick-work:05:release-v010-clean-repo-0613-evidence-integrity",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:inspector",
+          "blocked_or_missing_evidence": [
+            "Managed read-only filesystem blocked here-doc temp creation and checker temp directories.",
+            "read_side_projection_boundary profile failed with Operation not permitted creating project/checker-projection-fixture-vessel.",
+            "check_project_declaration.py failed because Python tempfile found no usable temporary directory.",
+            "release_export.sh was not run because it creates an output directory and initializes a git repo, which is outside this inspector lane’s no-write constraint.",
+            "No npm/node execution was performed, matching the task hard constraint for this lane."
+          ],
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "checker_overclaim_risks": [
+            "release_export_exclusion does not reject --others, dirty worktree export, staged-vs-HEAD drift, or untracked public files outside project/ and brick_protocol.egg-info.",
+            "read_side_projection_boundary profile did not complete here; it exited 1 after attempting to create project/checker-projection-fixture-vessel in the read-only sandbox.",
+            "check_project_declaration.py did not complete here; it exited 1 because no usable temporary directory was available for its FIRE probes.",
+            "The non-mutating Smith-residue scan found 0 violations, but the checker’s synthetic RED probes require temp writes and were not executed in this lane."
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:release-v010-clean-repo-0613",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:release-v010-clean-repo-0613:agent-object:inspector:output"
+          ],
+          "evidence_scope": [
+            "Read-only inspector support evidence from current checkout only.",
+            "No file edits, commits, pushes, network publication, provider SDKs, hooks, npm, Docker, Vercel, or dashboard build execution were performed.",
+            "Brick evidence scope: inline task source and changed README/support surfaces.",
+            "Agent evidence scope: inspector lane with reviewer-readonly tool policy; no closed downstream AgentFact or model-review return was observed beyond this response.",
+            "Link evidence scope: no declared Movement, route target, or handoff evidence was chosen or modified."
+          ],
+          "evidence_used": [
+            "git status --short; git diff --name-only; git diff --stat; git diff --check.",
+            "Read support/onboarding/release_export.sh lines 1-176.",
+            "Read README.md lines 1-120, support/docs/references/quickstart.md lines 1-95, support/dashboard/DEPLOY.md lines 1-95, support/dashboard/server/index.mjs lines 1-110, support/dashboard/Dockerfile lines 1-16.",
+            "Read support/checkers/lib/kernel_checks.py lines 1960-2160, support/checkers/profiles/read_side_projection_boundary.yaml lines 1-45, support/operator/ledger_projection.py lines 50-140, support/checkers/check_project_declaration.py lines 80-110 and 310-332.",
+            "Ran sh -n support/onboarding/release_export.sh; sh support/onboarding/release_export.sh --help.",
+            "Ran focused Python checks for install_script_lint and release_export_exclusion; ran non-mutating _collect_no_smith_residue_violations; ran AST parse over modified Python files.",
+            "Attempted check_profile.py --profile read_side_projection_boundary and check_project_declaration.py; both blocked by filesystem/temp write restrictions."
+          ],
+          "missing_evidence": [
+            "Actual export command run to a temp output directory.",
+            "Inspection of the exported tree proving no project/ and no brick_protocol.egg-info/.",
+            "check_profile.py --all executed inside the exported tree with no project/ present.",
+            "dashboard bake in the exported tree before checker gate.",
+            "Full gate in a temp source copy of this worktree.",
+            "Evidence that the export source is HEAD-only or a deliberate clean working tree contract.",
+            "Tracked/staged evidence for support/onboarding/release_export.sh.",
+            "Model review evidence from Claude/Gemini was not observed in this inspector pass."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Clean public release tree from HEAD.",
+            "No project/ in an actual exported tree.",
+            "No untracked local residue in an actual exported tree.",
+            "Single initial commit content of exported tree.",
+            "Tag v0.1.0 readiness.",
+            "Fresh clone install behavior.",
+            "First Building from text in a clean export.",
+            "Dashboard bake in a clean export.",
+            "check_profile.py --all in exported tree.",
+            "Full temp-source-copy gate.",
+            "Codex native sync.",
+            "Claude native sync.",
+            "MCP projection behavior.",
+            "Provider quality.",
+            "Tool or hook execution.",
+            "Future Building correctness.",
+            "Source truth.",
+            "Success judgment.",
+            "Quality judgment.",
+            "Movement authority."
+          ],
+          "observed_evidence": [
+            "cwd observed as /Users/smith/projects/BRICK-wt-release.",
+            "git status shows mutations only in README.md and support/* plus untracked support/onboarding/release_export.sh; no link/*, agent/*, brick/*, project/*, AGENTS.md, pyproject.toml, or uv.lock mutation observed.",
+            "support/onboarding/release_export.sh exists in the working tree, has sh syntax accepted by sh -n, declares EXCLUDE_PATHS = project and brick_protocol.egg-info, rejects output inside the source checkout, creates a fresh git repo with one initial commit, and prints remote/tag/push follow-up commands without executing push/tag.",
+            "release_export.sh builds its file list with git ls-files --cached --others --exclude-standard and copies working-tree file contents, so the observed implementation is not limited to HEAD contents.",
+            "support/onboarding/release_export.sh is currently untracked; git ls-files --error-unmatch reports release_export_tracked=no.",
+            "README.md documents release export, no-project export behavior, Vercel static photo deploy, Docker realtime deploy, and status inbox watch lines.",
+            "support/docs/references/quickstart.md has command / expected / failure signal lines for clone+install, doctor, first Building from text, dashboard snapshot, checker gate, and inbox watch.",
+            "support/dashboard/DEPLOY.md documents Vercel static photo mode and expected/failure signals; support/dashboard/server/index.mjs refuses production ingest when INGEST_SECRET is absent or dev-secret; Dockerfile sets NODE_ENV=production.",
+            "support/checkers/lib/kernel_checks.py adds release_export_exclusion checking literal exclusions and manual follow-up command text; support/checkers/check_profile.py wires the check id; read_side_projection_boundary.yaml includes release_export_exclusion and no longer requires project/brick-protocol/status/inbox path_exists.",
+            "support/checkers/check_project_declaration.py and support/operator/ledger_projection.py now ignore status-only project scaffolds lacking README.md, project.json, or buildings markers.",
+            "git ls-files project reports 3801 tracked project files; git ls-files brick_protocol.egg-info reports 0 tracked files.",
+            "git diff --check exited 0; AST parse of modified Python files exited 0; install_script_lint exited 0 inspected=1; release_export_exclusion exited 0 inspected=2; non-mutating product_no_smith_residue collector inspected=11 with 0 violations."
+          ],
+          "output_excerpt": "{\"observed_evidence\":[\"cwd observed as /Users/smith/projects/BRICK-wt-release.\",\"git status shows mutations only in README.md and support/* plus untracked support/onboarding/release_export.sh; no link/*, agent/*, brick/*, project/*, AGENTS.md, pyproject.toml, or uv.lock mutation observed.\",\"support/onboarding/release_export.sh exists in the working tree, has sh syntax accepted by sh -n, declares EXCLUDE_PATHS = project and brick_protocol.egg-info, rejects output inside the source checkout, creates a fresh git repo with one initial commit, and prints remote/tag/push follow-up commands withou...",
+          "persisted_evidence_roots": [
+            "Current local evidence root exists at project/brick-protocol with tracked project files; it is intended to be excluded from release export.",
+            "No exported temp tree or clean-clone evidence root was created or observed in this read-only lane.",
+            "No new project/ evidence root was written by this inspector pass."
+          ],
+          "proof_limit_findings": [
+            "The new release_export_exclusion pin proves only literal exclusion text and manual follow-up command text; it does not prove actual export execution, absence of project/ in an output tree, clean HEAD sourcing, or future operator behavior.",
+            "The export verb currently includes untracked unignored files via --others and working-tree file contents; this conflicts with the task phrase clean tree from HEAD unless a separate clean-worktree gate is supplied.",
+            "Because release_export.sh is untracked now, HEAD does not yet contain the export verb in this checkout state.",
+            "Project/status-only tolerance is visible in code, but the full profile evidence for that behavior was blocked by the read-only sandbox before completion.",
+            "Checker green, syntax checks, and static scans remain support evidence only and do not establish source truth, success judgment, quality judgment, Movement authority, or release readiness."
+          ],
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "This JSON is provider-neutral support evidence only.",
+            "It does not claim source truth.",
+            "It does not judge success or quality.",
+            "It does not choose Link Movement.",
+            "It does not approve release publication.",
+            "Checker results are support evidence only.",
+            "Current evidence is bounded to the observed checkout and commands above."
+          ],
+          "remaining_delta": [
+            "Close the HEAD-vs-working-tree gap: the export verb or checker evidence needs to make clear whether export is HEAD-only, clean-index-only, or deliberately working-tree plus untracked; current code says working-tree plus untracked.",
+            "Track or stage support/onboarding/release_export.sh before any HEAD-based closure claim.",
+            "Add checker coverage for no --others or for an explicit clean-worktree requirement if HEAD-only export remains the declared contract.",
+            "Run the required temp export proof, exported-tree checker gate, dashboard bake, focused RED probes, and temp source-copy full gate in a writable verification lane."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "stale_source_risks": [
+            "README and quickstart describe release export behavior that is not yet proven by an observed temp export in this pass.",
+            "Existing project/ contains 3801 tracked files, so the no-neighborhood release claim depends on actual export execution and exported-tree inspection, not only docs or literal exclusions.",
+            "The working-example insightwavesmith/BRICK line remains only in README.md; static scan found no current violation, but the full product_no_smith_residue RED probe was not run here.",
+            "Deploy instructions were checked against existing server/Dockerfile text only; no Vercel, Docker, Cloud Run, IAP, or realtime ingest behavior was executed."
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:05:release-v010-clean-repo-0613-evidence-integrity",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:05"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:coo",
+        "received_work": "brick-work:06:release-v010-clean-repo-0613-closure",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:coo",
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "cli_call_ref": "support-cli-call:adapter:codex-local:release-v010-clean-repo-0613",
+          "cli_version_text": "codex-cli 0.137.0",
+          "deferred_smith_review_queue": [
+            "Decide whether the export contract is strict git archive HEAD or clean-worktree fail-closed before export.",
+            "Decide whether status-only project scaffold tolerance may also ignore arbitrary markerless project directories, or must be narrowed.",
+            "Review public release publication timing for new repo push and v0.1.0 tag after proof exists.",
+            "Review whether the DEPLOY source-truth phrase should be rewritten to support-evidence/projection language before closure."
+          ],
+          "evidence_refs": [
+            "support-packet:release-v010-clean-repo-0613:agent-object:coo:output"
+          ],
+          "narrowly_proven": [
+            "In the current checkout only, the touched tracked surfaces are README.md and support/*; the observed untracked export verb is also under support/.",
+            "The export verb text contains the requested project/ and brick_protocol.egg-info exclusion literals and prints publication follow-up commands instead of executing push/tag.",
+            "The new release_export_exclusion pin detects removal of the project/ exclusion literal.",
+            "The focused non-mutating checks listed above returned exit 0.",
+            "The current implementation does not satisfy the task phrase 'from HEAD' because it includes untracked-unignored files and copies working-tree content.",
+            "HEAD-based release proof is blocked while support/onboarding/release_export.sh remains untracked."
+          ],
+          "next_target_candidates": [
+            "candidate only: implementation repair boundary for HEAD-only export input, tracked export verb admission, and stronger checker pins.",
+            "candidate only: verification boundary for temp export, no-project exported tree inspection, dashboard bake, exported-tree full profile, and temp source-copy gate.",
+            "candidate only: support wording review boundary for DEPLOY source-truth/projection phrasing.",
+            "No Link Movement or route target is chosen by this return."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "actual export verb run to a temp output directory",
+            "exported tree contains no project/ and no brick_protocol.egg-info/",
+            "exported tree was built from HEAD only",
+            "exported tree bake_dashboard_data_json or dashboard_export bake",
+            "exported tree check_profile.py --all exit 0 with no project/ present",
+            "full gate in a temp source copy of this worktree",
+            "full product_no_smith_residue FIRE probes",
+            "fresh clone install behavior",
+            "first Building from text in a clean export",
+            "Vercel build, Docker build, Docker runtime, Cloud Run, IAP, or real ingest behavior",
+            "public repo push or tag v0.1.0",
+            "absence of future untracked local residue in public export",
+            "semantic correctness of the status-only project scaffold tolerance",
+            "Claude/Gemini model review evidence for this closure",
+            "source truth",
+            "success judgment",
+            "quality judgment",
+            "Movement authority"
+          ],
+          "observed_evidence": [
+            "cwd observed as /Users/smith/projects/BRICK-wt-release on branch claude/track-release.",
+            "git status shows modified README.md and support/* paths only, plus untracked support/onboarding/release_export.sh; no observed tracked mutation under brick/*, agent/*, link/*, project/*, AGENTS.md, pyproject.toml, or uv.lock.",
+            "No persisted project/brick-protocol/buildings/*release-v010-clean-repo-0613* evidence root was found by local read-only inspection.",
+            "project/brick-protocol/PROGRESS.md projects 22 buildings and does not show this release Building in the recent-evidence list.",
+            "support/onboarding/release_export.sh exists in the working tree, declares EXCLUDE_PATHS for project and brick_protocol.egg-info, rejects output inside the source checkout, initializes a fresh git repo in the output directory, creates one initial commit, and prints remote/tag/push commands without executing push or tag.",
+            "git ls-files --error-unmatch support/onboarding/release_export.sh reports the export verb is not tracked in HEAD.",
+            "support/onboarding/release_export.sh builds its file list with git ls-files --cached --others --exclude-standard and copies source working-tree file contents with shutil.copy2; that is not limited to HEAD contents.",
+            "README.md and support/docs/references/quickstart.md add command / expected output / failure signal onboarding lines plus a status inbox watch loop.",
+            "README.md and support/dashboard/DEPLOY.md add Vercel static photo and Docker realtime deploy paths with production INGEST_SECRET wording.",
+            "support/checkers/check_profile.py wires release_export_exclusion; support/checkers/lib/kernel_checks.py pins literal project/ and brick_protocol.egg-info exclusions plus manual publication command text; read_side_projection_boundary.yaml includes the new check and path_exists entry.",
+            "support/checkers/check_project_declaration.py and support/operator/ledger_projection.py now ignore project/<id> directories lacking README.md, project.json, or buildings markers.",
+            "commands run read-only: git status --short --branch --untracked-files=all; git diff --name-only; git diff --stat; find release Building paths; sed/rg over AGENTS, PROGRESS, README, support docs, export verb, checker, ledger surfaces; sh -n release_export.sh; sh release_export.sh --help; focused Python calls for release_export_exclusion, install_script_lint, no-Smith-residue collection, project declaration find_violations, and ledger projection; git diff --check; git ls-files counts.",
+            "focused command results: sh -n exit 0; --help exit 0; release_export_exclusion exit 0 inspected=2; install_script_lint exit 0 inspected=1; no-Smith-residue collector inspected=11 violations=[]; project declaration find_violations inspected=1 violations=[]; ledger projection rows=29 projects=1; git diff --check exit 0.",
+            "git ls-files project counted 3801 tracked project/ files in the source checkout; git ls-files brick_protocol.egg-info counted 0 tracked files.",
+            "ignored __pycache__ directories are present under support/checkers, support/checkers/lib, and support/operator from earlier local Python execution evidence."
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ \"cwd observed as /Users/smith/projects/BRICK-wt-release on branch claude/track-release.\", \"git status shows modified README.md and support/* paths only, plus untracked support/onboarding/release_export.sh; no observed tracked mutation under brick/*, agent/*, link/*, project/*, AGENTS.md, pyproject.toml, or uv.lock.\", \"No persisted project/brick-protocol/buildings/*release-v010-clean-repo-0613* evidence root was found by local read-only inspection.\", \"project/brick-protocol/PROGRESS.md projects 22 buildings and does not show this release Building in the recent-eviden...",
+          "parent_goal_delta_status": [
+            "Parent objective is not closed by current support evidence.",
+            "Docs and structural pins are partially observed.",
+            "Release export runtime proof and HEAD-only export contract remain open.",
+            "Closure should not describe the current state as release-ready, source truth, success, quality, or Movement authority."
+          ],
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "remaining_delta": [
+            "Track/admit support/onboarding/release_export.sh before any HEAD-based release proof.",
+            "Repair the export verb to export HEAD-only content, or fail closed on dirty tracked and untracked-unignored files before export; add a RED probe for dirty or untracked inclusion.",
+            "Add a checker pin for no executed push/tag side effects and for the HEAD-only or clean-worktree invariant, not only literal exclusion text.",
+            "Narrow or separately justify the markerless project/<id> skip behavior; add a RED probe for arbitrary nonempty markerless project residue if that tolerance remains.",
+            "Run the required writable proof: temp export, inspect exported tree, bake dashboard data, check_profile.py --all in the exported tree, and full temp source-copy gate.",
+            "Review DEPLOY wording that says source of truth stays in repo ledger/written Building evidence against AGENTS authority language.",
+            "Clean ignored __pycache__ side effects under a write-authorized cleanup step if the release work continues in this checkout."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "transition_concern_evidence": {
+            "binding": false,
+            "concern_kind": "implementation_gap",
+            "concern_ref": "transition-concern:release-v010-clean-repo-0613-head-only-export-gap",
+            "not_proven": [
+              "HEAD-only release export",
+              "tracked export verb in HEAD",
+              "required temp export and full-gate proof"
+            ],
+            "proof_limits": [
+              "non-binding Agent return evidence only",
+              "support evidence only",
+              "not source truth",
+              "not success judgment",
+              "not quality judgment",
+              "not Movement authority"
+            ],
+            "reason_refs": [
+              "task-source:inline-statement",
+              "support/onboarding/release_export.sh",
+              "git-ls-files:error-unmatch:support/onboarding/release_export.sh",
+              "work/step-outputs/release-v010-clean-repo-0613-code-attack-qa-attempt-1/step-output.json",
+              "work/step-outputs/release-v010-clean-repo-0613-axis-attack-qa-attempt-1/step-output.json",
+              "work/step-outputs/release-v010-clean-repo-0613-evidence-integrity-attempt-1/step-output.json"
+            ],
+            "related_boundary_refs": [
+              "brick-release-v010-clean-repo-0613-closure",
+              "brick-release-v010-clean-repo-0613-code-attack-qa",
+              "brick-release-v010-clean-repo-0613-axis-attack-qa",
+              "brick-release-v010-clean-repo-0613-evidence-integrity"
+            ]
+          }
+        }
+      },
+      "fact_ref": "agent-fact:06:release-v010-clean-repo-0613-closure",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:06"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-13T01:37:48Z",
+  "id": "urn:bp:building:release-v010-clean-repo-0613::evidence/claim_trace/agent/returned_claims.json",
+  "recorded_at": "2026-06-13T01:37:48Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:release-v010-clean-repo-0613",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/agent/returned_claims.json",
+  "time": "2026-06-13T01:37:48Z",
+  "type": "bp.claim_trace"
+}

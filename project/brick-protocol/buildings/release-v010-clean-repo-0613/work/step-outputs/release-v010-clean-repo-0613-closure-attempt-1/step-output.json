@@ -1,0 +1,229 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:release-v010-clean-repo-0613::work/step-outputs/release-v010-clean-repo-0613-closure-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-release-v010-clean-repo-0613-closure",
+  "building_id": "release-v010-clean-repo-0613",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:06",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "gate_sequence_decision_record": {
+    "action": "hold",
+    "evidence_ref": "observation:gate-sequence-release-v010-clean-repo-0613-release-v010-clean-repo-0613-closure-link-gate-human-hold",
+    "gate_action_sequence": [
+      {
+        "action": "hold",
+        "evidence_ref": "observation:gate-sequence-release-v010-clean-repo-0613-release-v010-clean-repo-0613-closure-link-gate-human-hold",
+        "gate_ref": "link-gate:human",
+        "hold_reason": "gate_sequence_missing_required_facts:link-gate:human",
+        "pending_target_ref": "brick-release-v010-clean-repo-0613-closure",
+        "reason_refs": [
+          "observation:human-gate-disposition-missing"
+        ],
+        "target_brick_ref": ""
+      }
+    ],
+    "gate_ref": "link-gate:human",
+    "gate_results": [
+      {
+        "checked_public_fact": "brick-comparison:release-v010-clean-repo-0613:release-v010-clean-repo-0613-closure",
+        "gate_ref": "link-gate:human",
+        "missing_required_facts": [
+          "Link.route_decision_basis.human_review_refs"
+        ],
+        "required_public_facts": [
+          "Link.route_decision_basis.human_review_refs"
+        ],
+        "sufficiency": "missing_required_facts"
+      }
+    ],
+    "hold_reason": "gate_sequence_missing_required_facts:link-gate:human",
+    "pending_target_ref": "brick-release-v010-clean-repo-0613-closure",
+    "reason_refs": [
+      "observation:human-gate-disposition-missing"
+    ],
+    "required_disposition_owner": "caller-or-coo",
+    "target_brick_ref": ""
+  },
+  "generatedAtTime": "2026-06-13T01:35:04.548901Z",
+  "id": "urn:bp:building:release-v010-clean-repo-0613::work/step-outputs/release-v010-clean-repo-0613-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:06:release-v010-clean-repo-0613-closure",
+  "recorded_at": "2026-06-13T01:35:04.548901Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:coo",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:codex-local:release-v010-clean-repo-0613",
+    "cli_version_text": "codex-cli 0.137.0",
+    "deferred_smith_review_queue": [
+      "Decide whether the export contract is strict git archive HEAD or clean-worktree fail-closed before export.",
+      "Decide whether status-only project scaffold tolerance may also ignore arbitrary markerless project directories, or must be narrowed.",
+      "Review public release publication timing for new repo push and v0.1.0 tag after proof exists.",
+      "Review whether the DEPLOY source-truth phrase should be rewritten to support-evidence/projection language before closure."
+    ],
+    "evidence_refs": [
+      "support-packet:release-v010-clean-repo-0613:agent-object:coo:output"
+    ],
+    "narrowly_proven": [
+      "In the current checkout only, the touched tracked surfaces are README.md and support/*; the observed untracked export verb is also under support/.",
+      "The export verb text contains the requested project/ and brick_protocol.egg-info exclusion literals and prints publication follow-up commands instead of executing push/tag.",
+      "The new release_export_exclusion pin detects removal of the project/ exclusion literal.",
+      "The focused non-mutating checks listed above returned exit 0.",
+      "The current implementation does not satisfy the task phrase 'from HEAD' because it includes untracked-unignored files and copies working-tree content.",
+      "HEAD-based release proof is blocked while support/onboarding/release_export.sh remains untracked."
+    ],
+    "next_target_candidates": [
+      "candidate only: implementation repair boundary for HEAD-only export input, tracked export verb admission, and stronger checker pins.",
+      "candidate only: verification boundary for temp export, no-project exported tree inspection, dashboard bake, exported-tree full profile, and temp source-copy gate.",
+      "candidate only: support wording review boundary for DEPLOY source-truth/projection phrasing.",
+      "No Link Movement or route target is chosen by this return."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "actual export verb run to a temp output directory",
+      "exported tree contains no project/ and no brick_protocol.egg-info/",
+      "exported tree was built from HEAD only",
+      "exported tree bake_dashboard_data_json or dashboard_export bake",
+      "exported tree check_profile.py --all exit 0 with no project/ present",
+      "full gate in a temp source copy of this worktree",
+      "full product_no_smith_residue FIRE probes",
+      "fresh clone install behavior",
+      "first Building from text in a clean export",
+      "Vercel build, Docker build, Docker runtime, Cloud Run, IAP, or real ingest behavior",
+      "public repo push or tag v0.1.0",
+      "absence of future untracked local residue in public export",
+      "semantic correctness of the status-only project scaffold tolerance",
+      "Claude/Gemini model review evidence for this closure",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority"
+    ],
+    "observed_evidence": [
+      "cwd observed as /Users/smith/projects/BRICK-wt-release on branch claude/track-release.",
+      "git status shows modified README.md and support/* paths only, plus untracked support/onboarding/release_export.sh; no observed tracked mutation under brick/*, agent/*, link/*, project/*, AGENTS.md, pyproject.toml, or uv.lock.",
+      "No persisted project/brick-protocol/buildings/*release-v010-clean-repo-0613* evidence root was found by local read-only inspection.",
+      "project/brick-protocol/PROGRESS.md projects 22 buildings and does not show this release Building in the recent-evidence list.",
+      "support/onboarding/release_export.sh exists in the working tree, declares EXCLUDE_PATHS for project and brick_protocol.egg-info, rejects output inside the source checkout, initializes a fresh git repo in the output directory, creates one initial commit, and prints remote/tag/push commands without executing push or tag.",
+      "git ls-files --error-unmatch support/onboarding/release_export.sh reports the export verb is not tracked in HEAD.",
+      "support/onboarding/release_export.sh builds its file list with git ls-files --cached --others --exclude-standard and copies source working-tree file contents with shutil.copy2; that is not limited to HEAD contents.",
+      "README.md and support/docs/references/quickstart.md add command / expected output / failure signal onboarding lines plus a status inbox watch loop.",
+      "README.md and support/dashboard/DEPLOY.md add Vercel static photo and Docker realtime deploy paths with production INGEST_SECRET wording.",
+      "support/checkers/check_profile.py wires release_export_exclusion; support/checkers/lib/kernel_checks.py pins literal project/ and brick_protocol.egg-info exclusions plus manual publication command text; read_side_projection_boundary.yaml includes the new check and path_exists entry.",
+      "support/checkers/check_project_declaration.py and support/operator/ledger_projection.py now ignore project/<id> directories lacking README.md, project.json, or buildings markers.",
+      "commands run read-only: git status --short --branch --untracked-files=all; git diff --name-only; git diff --stat; find release Building paths; sed/rg over AGENTS, PROGRESS, README, support docs, export verb, checker, ledger surfaces; sh -n release_export.sh; sh release_export.sh --help; focused Python calls for release_export_exclusion, install_script_lint, no-Smith-residue collection, project declaration find_violations, and ledger projection; git diff --check; git ls-files counts.",
+      "focused command results: sh -n exit 0; --help exit 0; release_export_exclusion exit 0 inspected=2; install_script_lint exit 0 inspected=1; no-Smith-residue collector inspected=11 violations=[]; project declaration find_violations inspected=1 violations=[]; ledger projection rows=29 projects=1; git diff --check exit 0.",
+      "git ls-files project counted 3801 tracked project/ files in the source checkout; git ls-files brick_protocol.egg-info counted 0 tracked files.",
+      "ignored __pycache__ directories are present under support/checkers, support/checkers/lib, and support/operator from earlier local Python execution evidence."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"cwd observed as /Users/smith/projects/BRICK-wt-release on branch claude/track-release.\", \"git status shows modified README.md and support/* paths only, plus untracked support/onboarding/release_export.sh; no observed tracked mutation under brick/*, agent/*, link/*, project/*, AGENTS.md, pyproject.toml, or uv.lock.\", \"No persisted project/brick-protocol/buildings/*release-v010-clean-repo-0613* evidence root was found by local read-only inspection.\", \"project/brick-protocol/PROGRESS.md projects 22 buildings and does not show this release Building in the recent-eviden...",
+    "parent_goal_delta_status": [
+      "Parent objective is not closed by current support evidence.",
+      "Docs and structural pins are partially observed.",
+      "Release export runtime proof and HEAD-only export contract remain open.",
+      "Closure should not describe the current state as release-ready, source truth, success, quality, or Movement authority."
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "remaining_delta": [
+      "Track/admit support/onboarding/release_export.sh before any HEAD-based release proof.",
+      "Repair the export verb to export HEAD-only content, or fail closed on dirty tracked and untracked-unignored files before export; add a RED probe for dirty or untracked inclusion.",
+      "Add a checker pin for no executed push/tag side effects and for the HEAD-only or clean-worktree invariant, not only literal exclusion text.",
+      "Narrow or separately justify the markerless project/<id> skip behavior; add a RED probe for arbitrary nonempty markerless project residue if that tolerance remains.",
+      "Run the required writable proof: temp export, inspect exported tree, bake dashboard data, check_profile.py --all in the exported tree, and full temp source-copy gate.",
+      "Review DEPLOY wording that says source of truth stays in repo ledger/written Building evidence against AGENTS authority language.",
+      "Clean ignored __pycache__ side effects under a write-authorized cleanup step if the release work continues in this checkout."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "transition_concern_evidence": {
+      "binding": false,
+      "concern_kind": "implementation_gap",
+      "concern_ref": "transition-concern:release-v010-clean-repo-0613-head-only-export-gap",
+      "not_proven": [
+        "HEAD-only release export",
+        "tracked export verb in HEAD",
+        "required temp export and full-gate proof"
+      ],
+      "proof_limits": [
+        "non-binding Agent return evidence only",
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "reason_refs": [
+        "task-source:inline-statement",
+        "support/onboarding/release_export.sh",
+        "git-ls-files:error-unmatch:support/onboarding/release_export.sh",
+        "work/step-outputs/release-v010-clean-repo-0613-code-attack-qa-attempt-1/step-output.json",
+        "work/step-outputs/release-v010-clean-repo-0613-axis-attack-qa-attempt-1/step-output.json",
+        "work/step-outputs/release-v010-clean-repo-0613-evidence-integrity-attempt-1/step-output.json"
+      ],
+      "related_boundary_refs": [
+        "brick-release-v010-clean-repo-0613-closure",
+        "brick-release-v010-clean-repo-0613-code-attack-qa",
+        "brick-release-v010-clean-repo-0613-axis-attack-qa",
+        "brick-release-v010-clean-repo-0613-evidence-integrity"
+      ]
+    }
+  },
+  "returned_fact_ref": "agent-fact:06:release-v010-clean-repo-0613-closure",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:release-v010-clean-repo-0613",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:release-v010-clean-repo-0613-closure:attempt-1",
+  "step_ref": "release-v010-clean-repo-0613-closure",
+  "subject": "release-v010-clean-repo-0613-closure",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-13T01:35:04.548901Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}
