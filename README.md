@@ -5,7 +5,7 @@ Brick Protocol is a three-axis work protocol for human-agent work: Brick = the w
 ## 시작하기 (2분)
 
 ```bash
-# 1) 받기 + 설치 — 내 gh 로그인 사용 (호스팅된 설치 URL은 없어요)
+# 1) 받기 + 설치 -- 내 gh 로그인 사용 (호스팅된 설치 URL은 없어요)
 #    기본 위치는 $HOME/BRICK; 다른 곳에 받았다면 BRICK_HOME=/path/to/clone 지정
 #    {OWNER}를 내 GitHub org/user로 바꾸세요. 현재 동작 예: insightwavesmith/BRICK
 gh repo clone {OWNER}/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh
@@ -13,11 +13,47 @@ gh repo clone {OWNER}/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh
 cd ~/BRICK && uv run python3 -m brick_protocol.support.operator.onboard codex
 ```
 
+AI/운영자가 그대로 확인할 줄:
+
+```text
+command: gh repo clone {OWNER}/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh
+expected: "5) 설치 점검 완료" 와 다음 온보딩 한 줄이 출력된다.
+failure signal: "BRICK_REPO={OWNER}/BRICK" 요청, "gh auth login" 요청, python3/uv 진단, 또는 git clone/pull 실패.
+
+command: cd ~/BRICK && uv run python3 -m brick_protocol.support.operator.onboard codex
+expected: provider 준비 상태 표와 adapter:local 첫 예제 Building 결과가 출력된다.
+failure signal: local_cli_missing, provider login 진단, FileExistsError, 또는 adapter-error frontier 안내.
+
+command: cd ~/BRICK && PYTHONPATH=support/import_identity uv run python3 support/checkers/check_profile.py --all
+expected: "profile passed:" 줄들이 나오고 마지막 proof-limit 줄 뒤 exit 0.
+failure signal: "profile runner rejected evidence:" 뒤의 첫 거절 문장.
+```
+
 설치가 끝나면 위자드가 다음 단계를 알아서 안내해요. provider 없이도 첫 예제
 빌딩이 30초 안에 돕니다 (이 저장소 실측 약 1.6초, `adapter:local`). 막히면
 `uv run python3 -m brick_protocol.support.operator.onboard doctor` 가 증상→처방
 진단표를 보여줘요. 받은 게 멀쩡한지 확인(초록불 = exit 0):
 `PYTHONPATH=support/import_identity uv run python3 support/checkers/check_profile.py --all`
+
+운영자 세션 표준은 status inbox 감시를 같이 켜는 것입니다. export 직후에는
+`project/`가 없고, 첫 onboard/run 이 로컬 vessel을 만들 수 있어요.
+
+```bash
+cd ~/BRICK
+while true; do
+  if [ -d project/brick-protocol/status/inbox ]; then
+    find project/brick-protocol/status/inbox -maxdepth 1 -type f -name '*.json' -print | tail -20
+  else
+    printf '%s\n' 'status inbox not created yet'
+  fi
+  sleep 5
+done
+```
+
+예상 출력은 알림 packet이 없으면 빈 줄 또는 `status inbox not created yet`,
+알림이 생기면 `project/brick-protocol/status/inbox/*.json` 경로입니다. 실패
+신호는 `No such file or directory`를 숨기지 않은 watch, 또는 repo 루트가 아닌
+곳에서 실행한 경우입니다.
 
 Start here: [quickstart](support/docs/references/quickstart.md) · [setup](support/docs/references/setup.md) · [three-axis overview](support/docs/references/three-axis-overview.md)
 
@@ -35,6 +71,72 @@ Brick Engine remains legacy/reference runtime evidence, not the source of
 truth.
 
 Axes: Brick / Agent / Link only.
+
+## Release Export
+
+릴리스용 공개 repo는 이 checkout에서 `project/` 동네와
+`brick_protocol.egg-info/` 빌드 산출물을 빼고 새로 만듭니다. export는 새
+output dir 안에서만 initial commit을 만들고, remote/push/tag는 출력만 합니다.
+
+```bash
+sh support/onboarding/release_export.sh --output /tmp/BRICK-v0.1.0
+```
+
+```text
+expected: "release export ready", "excluded roots: project/, brick_protocol.egg-info/", "initial commit:".
+failure signal: output dir가 비어 있지 않음, source checkout 밖 output이 아님, git/python3 없음, 또는 commit 생성 실패.
+```
+
+export tree에는 `project/`가 없습니다. 첫 onboard/run 이 로컬 vessel과 status
+inbox를 만듭니다.
+
+## Deploy
+
+대시보드는 support projection입니다. source truth, 성공/품질 판단, Movement
+권한, scheduler/queue/retry/runtime이 아닙니다.
+
+### Vercel Static Photo
+
+정적 사진 모드입니다. `/ingest`와 SSE 없이 bake된 `dashboard-data.json`만
+보여줍니다.
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity \
+  python3 support/operator/dashboard_export.py --bake-public
+cd support/dashboard
+npm ci
+npm run build
+# Vercel: root=support/dashboard, build=npm run build, output=dist
+```
+
+```text
+expected: "baked ... dashboard-data.json | buildings N | source_truth False" 뒤 Vercel build가 dist/를 만든다.
+failure signal: dashboard-data.json 없음, source_truth가 False가 아님, npm build 실패, 또는 Vercel root/output 설정 불일치.
+```
+
+### Docker Realtime
+
+실시간 모드는 Dockerfile을 쓰고 operator-controlled host 또는 Cloud Run/IAP 뒤에
+둡니다. production ingest에는 `INGEST_SECRET`가 필요하고 `PORT`는 선택입니다.
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity \
+  python3 support/operator/dashboard_export.py --bake-public
+docker build -t brick-dashboard:local support/dashboard
+docker run --rm \
+  -e NODE_ENV=production \
+  -e INGEST_SECRET="${INGEST_SECRET_VALUE}" \
+  -p 127.0.0.1:8080:8080 \
+  brick-dashboard:local
+```
+
+```text
+expected: server logs "[surface-server] :8080 (ingest configured)" and /healthz returns ok.
+failure signal: production에서 INGEST_SECRET 없음, port 충돌, 또는 reverse proxy/IAP 인증 설정 누락.
+```
+
+자세한 Cloud Run + IAP, Docker host, bare Node 경로는
+[`support/dashboard/DEPLOY.md`](support/dashboard/DEPLOY.md)를 보세요.
 
 ## Repository Role
 

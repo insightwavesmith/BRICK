@@ -39,6 +39,35 @@ PY
 
 The baked file is a projection seed only. The source of truth stays in the repo ledger and written Building evidence. Re-bake any time after the ledger changes.
 
+## Vercel Static Photo
+
+Use this when the public deployment only needs a static snapshot. It serves the
+baked `dashboard-data.json` through the built Vite files. It has no `/ingest`,
+no SSE, and no realtime server process.
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity \
+  python3 support/operator/dashboard_export.py --bake-public
+
+cd support/dashboard
+npm ci
+npm run build
+```
+
+Configure Vercel with:
+
+```text
+Root Directory: support/dashboard
+Build Command: npm run build
+Output Directory: dist
+```
+
+Expected output: the bake command prints `source_truth False`, and the build
+creates `support/dashboard/dist/`. Failure signals are a missing
+`support/dashboard/public/dashboard-data.json`, any packet with
+`source_truth` not false, a failed Vite build, or a mismatched Vercel
+root/output setting.
+
 ## Cloud Run Plus IAP
 
 Use the deployer's own values. Do not commit the ingest value.

@@ -90,6 +90,11 @@ def find_violations(repo: Path) -> tuple[list[str], int]:
     for project_dir in sorted(project_root.iterdir()):
         if not project_dir.is_dir():
             continue
+        if not any(
+            (project_dir / marker).exists()
+            for marker in ("README.md", "project.json", "buildings")
+        ):
+            continue
         inspected += 1
         project_id = project_dir.name
         charter_path = project_dir / PROJECT_CHARTER_FILENAME
@@ -314,6 +319,15 @@ def run_fire_probes(repo: Path) -> list[str]:
             vessel_id=bad_id,
         )
     failures.extend(_slug_seam_parity_failures(repo))
+    with tempfile.TemporaryDirectory(prefix="project-declaration-status-only-") as tmp:
+        tmp_root = Path(tmp)
+        (tmp_root / "project" / "brick-protocol" / "status" / "inbox").mkdir(parents=True)
+        violations, inspected = find_violations(tmp_root)
+        if violations or inspected != 0:
+            failures.append(
+                "status-only project scaffold must not be treated as a declared "
+                f"vessel: inspected={inspected}, violations={violations}"
+            )
     symlink_failure = _symlink_vessel_failure(repo)
     if symlink_failure:
         failures.append(f"probe symlinked-vessel: {symlink_failure}")
@@ -371,8 +385,9 @@ def main(argv: list[str] | None = None) -> int:
         f"{inspected} project vessel(s) carry a non-trivial charter (README.md) and a "
         "closed-key declaration (project.json) with a non-empty direction; "
         "anti-tautology probes behaved (8 violating vessels rejected incl. 3 non-slug "
-        "ids + 1 symlinked vessel, 1 declared vessel accepted, slug-law parity across "
-        "loader/capture/admission seams, creation rollback left no partial vessel)."
+        "ids + 1 symlinked vessel, 1 declared vessel accepted, status-only scaffold "
+        "ignored, slug-law parity across loader/capture/admission seams, creation "
+        "rollback left no partial vessel)."
     )
     return 0
 

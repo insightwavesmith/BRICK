@@ -13,9 +13,11 @@ kernel_checks:
   - codex_projection_native
   - claude_projection_native
   - install_script_lint
+  - release_export_exclusion
   - product_no_smith_residue
 path_exists:
   - support/onboarding/install.sh
+  - support/onboarding/release_export.sh
   - brick/building_plans/fixture-retired-adapter-plan-0.yaml
   - support/checkers/profiles/read_side_projection_boundary.yaml
   - AGENTS.md
@@ -30,8 +32,6 @@ path_exists:
   - support/operator/reporter.py
   - support/operator/report_sinks.py
   - support/dashboard/DEPLOY.md
-  - project/brick-protocol/status/inbox
-  - project/brick-protocol/status/inbox/.gitkeep
   - AGENTS.md
   - support/operator/run.py
   - support/operator/contracts.py
