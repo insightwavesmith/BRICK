@@ -1,0 +1,12 @@
+# LinkPolicyAction · seq 12 · ["Link"]
+- action_reason: "gate_sequence_missing_required_facts:link-gate:coo"
+- axis_scope: ["Link"]
+- event_type: "LinkPolicyAction"
+- pending_target_ref: "brick-qa-outer-lens-contract-0613-work"
+- policy_action: "hold"
+- reason_refs: ["observation:coo-gate-missing-required-facts"]
+- run_segment: 1
+- sequence_index: 12
+- source_fact_ref: "policy-action-fact-2:01:qa-outer-lens-contract-0613-design"
+- spine_schema_version: "spine-v1"
+- target_brick_ref: ""

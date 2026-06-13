@@ -1,0 +1,246 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:qa-outer-lens-contract-0613::work/step-outputs/qa-outer-lens-contract-0613-design-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:design-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-qa-outer-lens-contract-0613-design",
+  "building_id": "qa-outer-lens-contract-0613",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "gate_sequence_decision_record": {
+    "action": "hold",
+    "evidence_ref": "observation:gate-sequence-qa-outer-lens-contract-0613-qa-outer-lens-contract-0613-design-link-gate-coo-hold",
+    "gate_action_sequence": [
+      {
+        "action": "next",
+        "evidence_ref": "observation:gate-sequence-qa-outer-lens-contract-0613-qa-outer-lens-contract-0613-design-link-gate-default-transition-next",
+        "gate_ref": "link-gate:default-transition",
+        "hold_reason": "",
+        "pending_target_ref": "",
+        "reason_refs": [
+          "observation:gate-sequence-qa-outer-lens-contract-0613-qa-outer-lens-contract-0613-design-link-gate-default-transition-next"
+        ],
+        "target_brick_ref": ""
+      },
+      {
+        "action": "hold",
+        "evidence_ref": "observation:gate-sequence-qa-outer-lens-contract-0613-qa-outer-lens-contract-0613-design-link-gate-coo-hold",
+        "gate_ref": "link-gate:coo",
+        "hold_reason": "gate_sequence_missing_required_facts:link-gate:coo",
+        "pending_target_ref": "brick-qa-outer-lens-contract-0613-work",
+        "reason_refs": [
+          "observation:coo-gate-missing-required-facts"
+        ],
+        "target_brick_ref": ""
+      }
+    ],
+    "gate_ref": "link-gate:coo",
+    "gate_results": [
+      {
+        "checked_public_fact": "brick-comparison:qa-outer-lens-contract-0613:qa-outer-lens-contract-0613-design",
+        "gate_ref": "link-gate:default-transition",
+        "missing_required_facts": [],
+        "required_public_facts": [
+          "BrickComparisonFact.required_return_shape_evidence",
+          "BrickComparisonFact.comparison_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.observed_evidence",
+          "BrickComparisonFact.comparison_evidence.returned_field.design_summary",
+          "BrickComparisonFact.comparison_evidence.returned_field.relevant_current_structure",
+          "BrickComparisonFact.comparison_evidence.returned_field.proposed_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.unchanged_surfaces",
+          "BrickComparisonFact.comparison_evidence.returned_field.axis_responsibility",
+          "BrickComparisonFact.comparison_evidence.returned_field.invariants",
+          "BrickComparisonFact.comparison_evidence.returned_field.edge_cases",
+          "BrickComparisonFact.comparison_evidence.returned_field.checker_or_verifier_plan",
+          "BrickComparisonFact.comparison_evidence.returned_field.candidate_file_changes",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_refs",
+          "BrickComparisonFact.comparison_evidence.returned_field.not_proven",
+          "BrickComparisonFact.comparison_evidence.returned_field.evidence_refs.repository_artifact_ref"
+        ],
+        "sufficiency": "sufficient"
+      },
+      {
+        "checked_public_fact": "brick-comparison:qa-outer-lens-contract-0613:qa-outer-lens-contract-0613-design",
+        "gate_ref": "link-gate:coo",
+        "missing_required_facts": [
+          "Link.route_decision_basis.override_refs"
+        ],
+        "required_public_facts": [
+          "Link.route_decision_basis.override_refs"
+        ],
+        "sufficiency": "missing_required_facts"
+      }
+    ],
+    "hold_reason": "gate_sequence_missing_required_facts:link-gate:coo",
+    "pending_target_ref": "brick-qa-outer-lens-contract-0613-work",
+    "reason_refs": [
+      "observation:coo-gate-missing-required-facts"
+    ],
+    "required_disposition_owner": "coo",
+    "target_brick_ref": ""
+  },
+  "generatedAtTime": "2026-06-13T01:06:04.188036Z",
+  "id": "urn:bp:building:qa-outer-lens-contract-0613::work/step-outputs/qa-outer-lens-contract-0613-design-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:qa-outer-lens-contract-0613-design",
+  "recorded_at": "2026-06-13T01:06:04.188036Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:design-lead",
+    "axis_responsibility": [
+      "Brick owns the attack-QA work contract and required return shape; this is the chosen repair surface.",
+      "Agent performs the attack QA and returns observed facts in AgentFact.returned; it does not classify success, failure, approval, or quality.",
+      "Link carries returned public facts and owns Movement/gate sufficiency; the new fields do not choose route or Movement.",
+      "Support checker verifies template completeness and prose/YAML sync only; checker green would be support evidence, not source truth or quality judgment."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "candidate_file_changes": [
+      "brick/templates/bricks/code-attack-qa/brick.md: add outer-lens duty paragraph and add symptom_reproduction, own_probes, real_entry_surface to Return prose.",
+      "brick/templates/bricks/code-attack-qa/return.yaml: add symptom_reproduction, own_probes, real_entry_surface to required_return_shape.",
+      "brick/templates/bricks/axis-attack-qa/brick.md: add outer-lens duty paragraph and add symptom_reproduction, own_probes, real_entry_surface to Return prose.",
+      "brick/templates/bricks/axis-attack-qa/return.yaml: add symptom_reproduction, own_probes, real_entry_surface to required_return_shape.",
+      "support/checkers/check_bricks_spec_completeness.py: no candidate change unless a future field-set pin exists; current prose/YAML drift coverage already covers the proposed field additions."
+    ],
+    "checker_or_verifier_plan": [
+      "After edits, run direct focused checker: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_bricks_spec_completeness.py.",
+      "Run required focused profile: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --profile core.",
+      "Run full gate from a temp source copy after baking, then report the temp copy path and --all exit code.",
+      "Because this environment is read-only and lacks a writable temporary directory, current checker green and temp-copy full gate are not proven here."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:qa-outer-lens-contract-0613",
+    "cli_version_text": "codex-cli 0.137.0",
+    "design_summary": "Use new top-level required return fields, not only nested observed_evidence items. The outer-lens triple is a required evidence contract for every code-attack-qa and axis-attack-qa performance, and top-level required_return_shape entries give the Link gate a stable presence check while still mapping only to AgentFact.returned. The fields are factual evidence labels, not status, verdict, quality, route, or Movement authority.",
+    "edge_cases": [
+      "Task source has no concrete reported symptom: symptom_reproduction records that no reproducible symptom was present and not_proven names symptom absence; this avoids inventing a symptom.",
+      "Only builder fixtures exist: QA may inspect them as evidence but must create or select separate probes; otherwise own_probes records the gap and not_proven names builder-fixture-only coverage.",
+      "Real entry surface is destructive or requires credentials: do not drive it; real_entry_surface records the blocked surface and not_proven names the safety or credential limit.",
+      "Axis attack QA may inspect documentation/projection authority rather than executable code: real_entry_surface can be the actual checker/profile/projection/read verb a caller would use, not an internal helper fixture.",
+      "A new field in return.yaml without exact prose naming will fail the existing prose_return_shape_drift check."
+    ],
+    "evidence_refs": [
+      "support-packet:qa-outer-lens-contract-0613:agent-object:design-lead:output",
+      "brick/templates/bricks/code-attack-qa/brick.md:16-30",
+      "brick/templates/bricks/code-attack-qa/brick.md:32-47",
+      "brick/templates/bricks/code-attack-qa/return.yaml:7-17",
+      "brick/templates/bricks/code-attack-qa/return.yaml:24-37",
+      "brick/templates/bricks/axis-attack-qa/brick.md:16-27",
+      "brick/templates/bricks/axis-attack-qa/brick.md:29-41",
+      "brick/templates/bricks/axis-attack-qa/return.yaml:7-17",
+      "brick/templates/bricks/axis-attack-qa/return.yaml:24-37",
+      "support/checkers/check_bricks_spec_completeness.py:33-42",
+      "support/checkers/check_bricks_spec_completeness.py:137-142",
+      "support/checkers/check_bricks_spec_completeness.py:158-198",
+      "support/checkers/check_bricks_spec_completeness.py:210-219",
+      "support/checkers/check_bricks_spec_completeness.py:441-473"
+    ],
+    "invariants": [
+      "Every attack-QA return names symptom_reproduction, own_probes, and real_entry_surface.",
+      "Builder or upstream fixtures cannot satisfy own_probes.",
+      "At least one real entry surface must be driven when a safe/read-only real entry surface exists.",
+      "If reproduction or a real entry surface cannot be driven, the required field still records the attempted path and not_proven names the missing evidence.",
+      "evidence_used must continue to cite inspected repository artifacts, not packet labels only.",
+      "No mutation, no verdict keys, no Movement choice, no route target, no credential/session body, no scheduler, no new dependency."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "No files were edited in this read-only run.",
+      "Focused checker green is not proven because the checker could not allocate a temporary directory in this environment.",
+      "Full gate --all in a temp source copy is not proven because the task forbids writes here and no writable temp directory was available.",
+      "Future QA performance quality is not proven.",
+      "Source truth, success judgment, quality judgment, and Movement authority are not claimed.",
+      "No Claude/Gemini/model review evidence was collected in this run."
+    ],
+    "observed_evidence": [
+      "Read brick/templates/bricks/code-attack-qa/brick.md:16-30: current code attack QA is read-only, attacks declared work contract, requires inspected repository artifact refs in evidence_used, but does not currently require independent symptom reproduction, QA-owned probes distinct from builder fixtures, or a real caller entry surface.",
+      "Read brick/templates/bricks/code-attack-qa/brick.md:32-47 and return.yaml:7-17: current required return shape lacks symptom_reproduction, own_probes, and real_entry_surface while preserving forbidden verdict and Movement keys.",
+      "Read brick/templates/bricks/axis-attack-qa/brick.md:16-27: current axis attack QA is read-only and inspects Brick/Agent/Link ownership, support leakage, projection authority, and evidence integrity, but does not currently require outer-lens reproduction.",
+      "Read brick/templates/bricks/axis-attack-qa/brick.md:29-41 and return.yaml:7-17: current required return shape lacks the outer-lens evidence triple while preserving non-binding transition concern evidence and forbidden verdict/Movement keys.",
+      "Read support/checkers/check_bricks_spec_completeness.py:33-42,137-142,158-198,210-219,441-473: the checker requires frontmatter completeness, non-empty body, resolvable primary return templates, and every primary return.yaml required field named in brick.md body prose.",
+      "Attempted PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_bricks_spec_completeness.py; it did not reach contract validation because the read-only environment had no usable writable temporary directory."
+    ],
+    "output_excerpt": "{\"observed_evidence\":[\"Read brick/templates/bricks/code-attack-qa/brick.md:16-30: current code attack QA is read-only, attacks declared work contract, requires inspected repository artifact refs in evidence_used, but does not currently require independent symptom reproduction, QA-owned probes distinct from builder fixtures, or a real caller entry surface.\",\"Read brick/templates/bricks/code-attack-qa/brick.md:32-47 and return.yaml:7-17: current required return shape lacks symptom_reproduction, own_probes, and real_entry_surface while preserving forbidden verdict and Movement keys.\",\"Read bri...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "proposed_changes": [
+      "Add required_return_shape entries symptom_reproduction, own_probes, and real_entry_surface to both return.yaml files, placed after attacked_work or attacked_scope so the outer-lens facts are adjacent to the attacked target.",
+      "In both brick.md bodies, add an Outer-lens duty paragraph requiring QA to independently reproduce the reported symptom from the task source, build QA-owned probes distinct from upstream or builder fixtures, and drive at least one real entry surface used by a real caller.",
+      "In both Return sections, add the exact field names symptom_reproduction, own_probes, and real_entry_surface to keep PROSE<->YAML sync.",
+      "Define symptom_reproduction as what symptom from the task source was independently reproduced, how it was driven, and what output was observed; if the task source contains no reproducible symptom, the field must say that and not_proven must name the missing fact.",
+      "Define own_probes as probes built or selected by QA for this attack, with upstream or builder fixtures allowed only as inspected evidence, not counted as QA-owned probes.",
+      "Define real_entry_surface as the real verb, projection, CLI, checker profile, import path, or caller-facing surface driven, plus observed output/ref; helper-only or fixture-only calls do not satisfy it."
+    ],
+    "relevant_current_structure": [
+      "code-attack-qa currently returns observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, transition_concern_evidence, evidence_used, not_proven.",
+      "axis-attack-qa currently returns observed_evidence, attacked_scope, brick_axis_findings, agent_axis_findings, link_axis_findings, support_leak_findings, projection_authority_findings, transition_concern_evidence, evidence_used, not_proven.",
+      "Both templates already forbid success, failure, approved, quality, movement_choice, and route_target.",
+      "Both brick.md files already require inspected repository artifact references in evidence_used.",
+      "The checker will reject a new return.yaml field unless the exact field name appears in the corresponding brick.md body prose."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "unchanged_surfaces": [
+      "No change to requires_brick_write_scope: both QA bricks remain read-only.",
+      "No change to link_movement_literal: both remain forward unless a declared Link gate later acts.",
+      "No change to transition_concern_evidence authority: it remains non-binding evidence only.",
+      "No change to forbidden_return_keys in either return.yaml.",
+      "No change to agent resources, Link resources, support/operator, support/connection, project status, AGENTS.md, pyproject.toml, uv.lock, or git state.",
+      "No checker weakening proposed."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:01:qa-outer-lens-contract-0613-design",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:qa-outer-lens-contract-0613",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:qa-outer-lens-contract-0613-design:attempt-1",
+  "step_ref": "qa-outer-lens-contract-0613-design",
+  "subject": "qa-outer-lens-contract-0613-design",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-13T01:06:04.188036Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

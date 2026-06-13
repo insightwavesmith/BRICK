@@ -1,0 +1,189 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:qa-outer-lens-contract-0613::work/step-outputs/qa-outer-lens-contract-0613-evidence-integrity-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:inspector",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-qa-outer-lens-contract-0613-evidence-integrity",
+  "building_id": "qa-outer-lens-contract-0613",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:05",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-13T01:29:24.002574Z",
+  "id": "urn:bp:building:qa-outer-lens-contract-0613::work/step-outputs/qa-outer-lens-contract-0613-evidence-integrity-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:05:qa-outer-lens-contract-0613-evidence-integrity",
+  "recorded_at": "2026-06-13T01:29:24.002574Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:inspector",
+    "blocked_or_missing_evidence": [
+      "profile runner rejected evidence: [Errno 2] No usable temporary directory found in ['/var/folders/hm/3b5ry_rn3y18jk6bgy7w7z140000gn/T/', '/tmp', '/var/tmp', '/usr/tmp', '/Users/smith/projects/BRICK-wt-qa']",
+      "Filesystem policy for this session is read-only, so creating a temp source copy for full gate proof was blocked.",
+      "No write-scoped repair was assigned to this inspector; no files were edited by this return."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "checker_overclaim_risks": [
+      "The declared focused profile did not complete, so it must not be reported green.",
+      "The full gate in a temp source copy was not run, so --all exit 0 is not proven.",
+      "A zero-violation repo-only checker function call does not prove the FIRE fixtures, temp-copy behavior, full profile behavior, or future Building correctness.",
+      "Checker green, if later obtained, remains support evidence only and not source truth, success judgment, quality judgment, or Movement authority."
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:qa-outer-lens-contract-0613",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:qa-outer-lens-contract-0613:agent-object:inspector:output"
+    ],
+    "evidence_scope": [
+      "Read-only inspector support evidence only.",
+      "Scope limited to the task-declared attack-QA brick contracts and the spec completeness checker.",
+      "No mutation, commit, push, checkout, reset, merge, rebase, stash, hook execution, provider SDK execution, or network use was performed."
+    ],
+    "evidence_used": [
+      "sed -n '1,220p' /Users/smith/.codex/skills/brick-protocol-inspector/SKILL.md",
+      "sed -n '1,220p' /Users/smith/.codex/skills/brick-protocol-migration-operator/SKILL.md",
+      "rg -n 'qa-outer-lens-contract-0613|code-attack-qa|axis-attack-qa|F9|outer-lens|check_bricks_spec_completeness' /Users/smith/.codex/memories/MEMORY.md",
+      "nl -ba brick/templates/bricks/code-attack-qa/brick.md",
+      "nl -ba brick/templates/bricks/code-attack-qa/return.yaml",
+      "nl -ba brick/templates/bricks/axis-attack-qa/brick.md",
+      "nl -ba brick/templates/bricks/axis-attack-qa/return.yaml",
+      "nl -ba support/checkers/check_bricks_spec_completeness.py",
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --profile core; exit 1 with no usable temporary directory",
+      "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity:. python3 -c 'from support.checkers.check_bricks_spec_completeness import find_violations ...'; exit 0, count=10, violations=0",
+      "git diff --name-status over bounded files",
+      "rg -n over the four attack-QA contract files for outer-lens, return-shape, forbidden-key, and proof-limit terms",
+      "git diff --unified=3 over the two modified brick.md files",
+      "git diff --check over the two modified brick.md files; exit 0 with no output"
+    ],
+    "missing_evidence": [
+      "Focused profile green evidence is missing because check_profile.py --profile core exited 1 before running due to no usable temporary directory.",
+      "Full temp source copy gate evidence is missing because this session is read-only and cannot create the required temp copy.",
+      "No persisted Building evidence root or dashboard/report receipt was created in this inspector lane.",
+      "No Claude/Gemini/model review evidence was requested or run in this packet.",
+      "No provider hook/tool execution behavior was verified."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Focused check_profile.py --profile core green",
+      "Full gate --all exit 0",
+      "Temp source copy gate",
+      "Baked source copy path",
+      "FIRE fixture execution in this environment",
+      "Instruction semantic correctness",
+      "Future Building correctness",
+      "Provider quality",
+      "Tool or hook execution",
+      "Codex native sync",
+      "Claude native sync",
+      "MCP projection behavior",
+      "Source truth",
+      "Success judgment",
+      "Quality judgment",
+      "Movement authority"
+    ],
+    "observed_evidence": [
+      "Bounded repo read list followed: brick/templates/bricks/code-attack-qa/brick.md, brick/templates/bricks/code-attack-qa/return.yaml, brick/templates/bricks/axis-attack-qa/brick.md, brick/templates/bricks/axis-attack-qa/return.yaml, support/checkers/check_bricks_spec_completeness.py.",
+      "git diff --name-status over the bounded files reports modified bodies only: brick/templates/bricks/code-attack-qa/brick.md and brick/templates/bricks/axis-attack-qa/brick.md. The two return.yaml files and checker file showed no bounded diff.",
+      "code-attack-qa brick body contains outer-lens duty at lines 32-41: independent symptom reproduction, QA-built probes distinct from builder fixtures, and a real entry surface, recorded as structured observed_evidence entries named symptom_reproduction, own_probes, and real_entry_surface.",
+      "axis-attack-qa brick body contains the same outer-lens duty at lines 29-38, adapted to boundary symptom reproduction and self-checking examples.",
+      "Both brick bodies state the evidence triple is not additional top-level return keys, preserving the closed AgentFact return shape declared by return.yaml.",
+      "code-attack-qa return.yaml lines 7-17 still declares the existing top-level required_return_shape only; axis-attack-qa return.yaml lines 7-17 does the same.",
+      "Both return.yaml files retain forbidden return key lists and proof-limit language at lines 24-37.",
+      "support/checkers/check_bricks_spec_completeness.py contains the declared completeness gates: required frontmatter fields at lines 33-42, non-empty instruction body check at lines 137-138, required_return_template_refs resolution at lines 158-198, and prose-to-return.yaml drift check at lines 216-219.",
+      "Repo-only invocation of find_violations(Path('.'), run_u2=True) reported count=10 and violations=0.",
+      "git diff --check over the two modified brick bodies exited 0 with no output."
+    ],
+    "output_excerpt": "{ \"observed_evidence\": [ \"Bounded repo read list followed: brick/templates/bricks/code-attack-qa/brick.md, brick/templates/bricks/code-attack-qa/return.yaml, brick/templates/bricks/axis-attack-qa/brick.md, brick/templates/bricks/axis-attack-qa/return.yaml, support/checkers/check_bricks_spec_completeness.py.\", \"git diff --name-status over the bounded files reports modified bodies only: brick/templates/bricks/code-attack-qa/brick.md and brick/templates/bricks/axis-attack-qa/brick.md. The two return.yaml files and checker file showed no bounded diff.\", \"code-attack-qa brick body contains outer...",
+    "persisted_evidence_roots": [
+      "brick/templates/bricks/code-attack-qa/brick.md",
+      "brick/templates/bricks/code-attack-qa/return.yaml",
+      "brick/templates/bricks/axis-attack-qa/brick.md",
+      "brick/templates/bricks/axis-attack-qa/return.yaml",
+      "support/checkers/check_bricks_spec_completeness.py",
+      "No new Building evidence root was written by this read-only inspector lane; building_session_ref was empty."
+    ],
+    "proof_limit_findings": [
+      "Narrowly proven from file inspection: the outer-lens contract text is present in both attack-QA brick bodies and is expressed as structured observed_evidence rather than new top-level return.yaml fields.",
+      "Narrowly proven from bounded diff: only the two brick.md bodies are modified among the declared contract/checker files.",
+      "Narrowly proven from repo-only checker function: current repo brick specs produced zero find_violations results with run_u2=True.",
+      "The repo-only checker function is support evidence only and omits the checker main FIRE fixtures because this environment has no writable temporary directory.",
+      "The checker itself states it proves spec completeness and resolvability only, not instruction correctness, source truth, success judgment, quality judgment, or Movement authority."
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "Support evidence only.",
+      "Not source truth.",
+      "Not success judgment.",
+      "Not quality judgment.",
+      "Not Movement authority.",
+      "No provider credential, setup token, raw session body, or connector state was accessed or printed.",
+      "No top-level return fields beyond the required return shape are introduced by this response."
+    ],
+    "remaining_delta": [
+      "Run the declared focused profile in a lane with a usable temp directory.",
+      "Run the full --all gate in a temp source copy and record the copy path.",
+      "Persist the Building/support evidence root if this packet is to become run evidence.",
+      "Do not treat this inspector return as a Link Movement choice; caller/COO/Link policy retains that decision."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "stale_source_risks": [
+      "The inline task source references operator-verified F9 history; this inspector did not read broader F9 evidence because the task explicitly bounded the repo read list.",
+      "The modified brick.md bodies are uncommitted worktree changes; ownership and closure of those edits are not proven by this read-only return.",
+      "Memory was used only as routing context for attack-QA lens separation risk; current repo files and command outputs controlled the observations."
+    ]
+  },
+  "returned_fact_ref": "agent-fact:05:qa-outer-lens-contract-0613-evidence-integrity",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:qa-outer-lens-contract-0613",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:qa-outer-lens-contract-0613-evidence-integrity:attempt-1",
+  "step_ref": "qa-outer-lens-contract-0613-evidence-integrity",
+  "subject": "qa-outer-lens-contract-0613-evidence-integrity",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-13T01:29:24.002574Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

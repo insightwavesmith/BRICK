@@ -1,0 +1,13 @@
+# AgentReturn · seq 50 · ["Agent"]
+- agent_object_ref: "agent-object:inspector"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-qa-outer-lens-contract-0613-evidence-integrity"
+- event_type: "AgentReturn"
+- observed_fields: ["received_work","returned"]
+- returned_fact_ref: "agent-fact:05:qa-outer-lens-contract-0613-evidence-integrity"
+- route_request_ref: ""
+- run_segment: 2
+- sequence_index: 50
+- spine_schema_version: "spine-v1"
+- step_output_ref: "step-output:qa-outer-lens-contract-0613-evidence-integrity:attempt-1"
+- step_ref: "qa-outer-lens-contract-0613-evidence-integrity"

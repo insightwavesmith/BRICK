@@ -1,0 +1,161 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:qa-outer-lens-contract-0613::work/step-outputs/qa-outer-lens-contract-0613-code-attack-qa-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-qa-outer-lens-contract-0613-code-attack-qa",
+  "building_id": "qa-outer-lens-contract-0613",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:03",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-13T01:25:00.350383Z",
+  "id": "urn:bp:building:qa-outer-lens-contract-0613::work/step-outputs/qa-outer-lens-contract-0613-code-attack-qa-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:03:qa-outer-lens-contract-0613-code-attack-qa",
+  "recorded_at": "2026-06-13T01:25:00.350383Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:qa",
+    "attacked_work": "Outer-lens contract changes for code-attack-qa and axis-attack-qa Brick templates: add independent symptom reproduction, QA-built probes distinct from builder fixtures, and at least one real entry surface, recorded as structured observed_evidence entries rather than new top-level return keys.",
+    "blocked_or_missing_evidence": [
+      "Sandbox has read-only filesystem behavior and no usable temp directory, blocking checker profile FIRE/temp phases and temp-copy full gate.",
+      "No model review evidence was used.",
+      "No modules outside the bounded reading list were inspected."
+    ],
+    "boundary_violations": [
+      "No scoped boundary violation observed in the edited template bodies: the added duty stays in Brick template instruction prose and preserves AgentFact returned shape by nesting the triple under observed_evidence.",
+      "No scoped Link authority leak observed in the added text: it requires driving real entry surfaces and recording output, but does not choose Movement or route targets.",
+      "No scoped mutation beyond the two declared brick.md bodies was observed in the bounded diff."
+    ],
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "checked_sources": [
+      "brick/templates/bricks/code-attack-qa/brick.md",
+      "brick/templates/bricks/code-attack-qa/return.yaml",
+      "brick/templates/bricks/axis-attack-qa/brick.md",
+      "brick/templates/bricks/axis-attack-qa/return.yaml",
+      "support/checkers/check_bricks_spec_completeness.py"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:qa-outer-lens-contract-0613",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:qa-outer-lens-contract-0613:agent-object:qa:output"
+    ],
+    "evidence_used": [
+      "brick/templates/bricks/code-attack-qa/brick.md:32-41 adds outer-lens duty and required observed_evidence triple; lines 43-58 preserve required return shape, non-binding transition_concern_evidence, and forbidden verdict/movement keys.",
+      "brick/templates/bricks/code-attack-qa/return.yaml:7-17 declares unchanged required_return_shape; lines 24-30 preserve forbidden_return_keys.",
+      "brick/templates/bricks/axis-attack-qa/brick.md:29-38 adds outer-lens duty and required observed_evidence triple; lines 40-52 preserve required return shape, non-binding transition_concern_evidence, and forbidden verdict/movement keys.",
+      "brick/templates/bricks/axis-attack-qa/return.yaml:7-17 declares unchanged required_return_shape; lines 24-30 preserve forbidden_return_keys.",
+      "support/checkers/check_bricks_spec_completeness.py:33-42 defines 8 required frontmatter fields; lines 135-198 check body, frontmatter, and return refs; lines 210-219 and 448-473 check prose-to-YAML required_return_shape drift; lines 285-327 show FIRE fixtures use TemporaryDirectory.",
+      "Command evidence: scoped git diff; rg outer-lens/forbidden-key probe; focused check_profile command exit 1 due temp; scoped python -c prose/YAML helper probe exit 0."
+    ],
+    "failing_or_missing_probes": [
+      "Focused profile command did not reach green: exit 1 with no usable temporary directory in /var/folders, /tmp, /var/tmp, /usr/tmp, or the repo root.",
+      "Full gate in temp source copy was not run because this session is read-only and temp allocation is blocked.",
+      "Direct checker main was not run after observing that its FIRE fixture phase creates temporary directories."
+    ],
+    "negative_probe_observations": [
+      "No new top-level return.yaml fields were added; code-attack-qa return shape remains observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, transition_concern_evidence, evidence_used, not_proven.",
+      "No new top-level return.yaml fields were added; axis-attack-qa return shape remains observed_evidence, attacked_scope, brick_axis_findings, agent_axis_findings, link_axis_findings, support_leak_findings, projection_authority_findings, transition_concern_evidence, evidence_used, not_proven.",
+      "Both brick.md bodies explicitly say the new triple is structured under observed_evidence, not additional top-level return keys.",
+      "Both brick.md bodies and both return.yaml files preserve forbidden return keys: success, failure, approved, quality, movement_choice, route_target.",
+      "Checker lines inspected cover REQUIRED_FRONTMATTER, non-empty body, return-template resolution, and prose-to-YAML drift; checker FIRE fixtures require tempfile.TemporaryDirectory before live repo validation."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "check_profile.py --profile core green",
+      "full gate --all exit 0 in temp source copy",
+      "historical F9 dashboard/root symptom reproduction",
+      "future QA Agents will always include the nested observed_evidence triple",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority",
+      "provider behavior",
+      "complete regression coverage"
+    ],
+    "observed_evidence": [
+      {
+        "own_probes": [
+          "Scoped diff over only declared paths showed changes only in brick/templates/bricks/code-attack-qa/brick.md and brick/templates/bricks/axis-attack-qa/brick.md; return.yaml files and support/checkers/check_bricks_spec_completeness.py were unchanged.",
+          "rg probe found Outer-lens duty plus symptom_reproduction, own_probes, and real_entry_surface in both brick.md bodies, and preserved forbidden return key wording in both brick.md/return.yaml surfaces.",
+          "Scoped python -c probe called the checker prose/YAML drift helper for only code-attack-qa and axis-attack-qa; output: scoped prose/yaml probe passed: code-attack-qa and axis-attack-qa primary required_return_shape fields are named in body prose."
+        ],
+        "real_entry_surface": "Driven real entry surface: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --profile core. Observed output returned exit 1 before checker assertions: profile runner rejected evidence because no usable temporary directory was available.",
+        "symptom_reproduction": "Scoped git diff reproduced the contract-level symptom from the task source: the prior template bodies lacked an outer-lens duty block, and the current diff adds one to both attack-QA brick bodies. Historical F9 runtime misprojection was not independently reproduced under the bounded reading list."
+      }
+    ],
+    "output_excerpt": "{\"observed_evidence\":{\"symptom_reproduction\":\"Scoped git diff reproduced the contract-level symptom from the task source: the prior template bodies lacked an outer-lens duty block, and the current diff adds one to both attack-QA brick bodies. Historical F9 runtime misprojection was not independently reproduced under the bounded reading list.\",\"own_probes\":[\"Scoped diff over only declared paths showed changes only in brick/templates/bricks/code-attack-qa/brick.md and brick/templates/bricks/axis-attack-qa/brick.md; return.yaml files and support/checkers/check_bricks_spec_completeness.py were ...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "Support evidence only.",
+      "Checker/profile output is not source truth, success judgment, quality judgment, or Movement authority.",
+      "This QA return does not choose Link Movement or route target.",
+      "No files were edited, created, deleted, committed, pushed, checked out, reset, merged, rebased, or stashed."
+    ],
+    "regression_risks": [
+      "The evidence triple is prose-enforced under observed_evidence, not schema-enforced as separate return.yaml fields. This preserves closed AgentFact shape, but future Agent returns could omit nested symptom_reproduction/own_probes/real_entry_surface without this checker detecting that nested omission.",
+      "Official focused profile and full temp-copy gate were not proven because the read-only sandbox had no usable temp directory.",
+      "The historical F9 dashboard/root symptom was not independently driven because the task source limited repo reading to the templates and checker."
+    ],
+    "remaining_delta": [
+      "Run the focused profile and full --all gate from a writable temp source copy, then record the copy path and command outputs.",
+      "If the invariant requires machine enforcement of the nested evidence triple, a separate declared repair should add checker/schema coverage for observed_evidence subentries without adding forbidden verdict or Movement authority fields."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default"
+  },
+  "returned_fact_ref": "agent-fact:03:qa-outer-lens-contract-0613-code-attack-qa",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:qa-outer-lens-contract-0613",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:qa-outer-lens-contract-0613-code-attack-qa:attempt-1",
+  "step_ref": "qa-outer-lens-contract-0613-code-attack-qa",
+  "subject": "qa-outer-lens-contract-0613-code-attack-qa",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-13T01:25:00.350383Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

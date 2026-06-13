@@ -1,0 +1,535 @@
+{
+  "building_id": "qa-outer-lens-contract-0613",
+  "declared_plan_copy": {
+    "brick_steps": [
+      {
+        "completion_edge_ref": "edge:qa-outer-lens-contract-0613-design-to-qa-outer-lens-contract-0613-work",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-qa-outer-lens-contract-0613-design",
+            "brick_work_ref": "work:qa-outer-lens-contract-0613-design",
+            "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "observed_evidence,design_summary,relevant_current_structure,proposed_changes,unchanged_surfaces,axis_responsibility,invariants,edge_cases,checker_or_verifier_plan,candidate_file_changes,evidence_refs,not_proven",
+            "row_ref": "brick-row:qa-outer-lens-contract-0613-design",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "design Brick for task-source:inline-statement: # QA outer-lens contract — symptom reproduction duty for attack-QA bricks"
+          },
+          {
+            "agent_object_ref": "agent-object:design-lead",
+            "axis": "Agent",
+            "row_ref": "agent-row:qa-outer-lens-contract-0613-design"
+          }
+        ],
+        "step_ref": "qa-outer-lens-contract-0613-design",
+        "step_template_ref": "building-step-template:design"
+      },
+      {
+        "completion_edge_ref": "edge:qa-outer-lens-contract-0613-work-to-qa-outer-lens-contract-0613-code-attack-qa",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-qa-outer-lens-contract-0613-work",
+            "brick_work_ref": "work:qa-outer-lens-contract-0613-work",
+            "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "made_changes, observed_evidence, not_proven",
+            "requires_brick_write_scope": true,
+            "row_ref": "brick-row:qa-outer-lens-contract-0613-work",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "work Brick for task-source:inline-statement: # QA outer-lens contract — symptom reproduction duty for attack-QA bricks",
+            "write_scope": {
+              "allowed_paths": [
+                "brick/templates/*",
+                "support/checkers/*"
+              ],
+              "forbidden_paths": [
+                "link/*",
+                "agent/*",
+                "project/*",
+                "support/operator/*",
+                "support/connection/*",
+                "support/recording/*",
+                "brick/building.py",
+                "brick/work.py",
+                "brick/comparison.py",
+                ".git/*",
+                "AGENTS.md",
+                "pyproject.toml",
+                "uv.lock"
+              ]
+            }
+          },
+          {
+            "agent_object_ref": "agent-object:dev",
+            "axis": "Agent",
+            "row_ref": "agent-row:qa-outer-lens-contract-0613-work"
+          }
+        ],
+        "step_ref": "qa-outer-lens-contract-0613-work",
+        "step_template_ref": "building-step-template:work"
+      },
+      {
+        "completion_edge_ref": "edge:qa-outer-lens-contract-0613-code-attack-qa-to-qa-outer-lens-contract-0613-closure",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-qa-outer-lens-contract-0613-code-attack-qa",
+            "brick_work_ref": "work:qa-outer-lens-contract-0613-code-attack-qa",
+            "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, evidence_used, not_proven",
+            "row_ref": "brick-row:qa-outer-lens-contract-0613-code-attack-qa",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "code_attack_qa Brick for task-source:inline-statement: # QA outer-lens contract — symptom reproduction duty for attack-QA bricks"
+          },
+          {
+            "agent_object_ref": "agent-object:qa",
+            "axis": "Agent",
+            "row_ref": "agent-row:qa-outer-lens-contract-0613-code-attack-qa"
+          }
+        ],
+        "step_ref": "qa-outer-lens-contract-0613-code-attack-qa",
+        "step_template_ref": "building-step-template:code-attack-qa"
+      },
+      {
+        "completion_edge_ref": "edge:qa-outer-lens-contract-0613-axis-attack-qa-to-qa-outer-lens-contract-0613-closure",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-qa-outer-lens-contract-0613-axis-attack-qa",
+            "brick_work_ref": "work:qa-outer-lens-contract-0613-axis-attack-qa",
+            "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "observed_evidence, attacked_scope, brick_axis_findings, agent_axis_findings, link_axis_findings, support_leak_findings, projection_authority_findings, evidence_used, not_proven",
+            "row_ref": "brick-row:qa-outer-lens-contract-0613-axis-attack-qa",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "axis_attack_qa Brick for task-source:inline-statement: # QA outer-lens contract — symptom reproduction duty for attack-QA bricks"
+          },
+          {
+            "agent_object_ref": "agent-object:inspector",
+            "axis": "Agent",
+            "row_ref": "agent-row:qa-outer-lens-contract-0613-axis-attack-qa"
+          }
+        ],
+        "step_ref": "qa-outer-lens-contract-0613-axis-attack-qa",
+        "step_template_ref": "building-step-template:axis-attack-qa"
+      },
+      {
+        "completion_edge_ref": "edge:qa-outer-lens-contract-0613-evidence-integrity-to-qa-outer-lens-contract-0613-closure",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-qa-outer-lens-contract-0613-evidence-integrity",
+            "brick_work_ref": "work:qa-outer-lens-contract-0613-evidence-integrity",
+            "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "observed_evidence, evidence_scope, persisted_evidence_roots, proof_limit_findings, stale_source_risks, checker_overclaim_risks, missing_evidence, evidence_used, not_proven",
+            "row_ref": "brick-row:qa-outer-lens-contract-0613-evidence-integrity",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "evidence_integrity Brick for task-source:inline-statement: # QA outer-lens contract — symptom reproduction duty for attack-QA bricks"
+          },
+          {
+            "agent_object_ref": "agent-object:inspector",
+            "axis": "Agent",
+            "row_ref": "agent-row:qa-outer-lens-contract-0613-evidence-integrity"
+          }
+        ],
+        "step_ref": "qa-outer-lens-contract-0613-evidence-integrity",
+        "step_template_ref": "building-step-template:evidence-integrity"
+      },
+      {
+        "completion_edge_ref": "edge:qa-outer-lens-contract-0613-closure-to-boundary",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-qa-outer-lens-contract-0613-closure",
+            "brick_work_ref": "work:qa-outer-lens-contract-0613-closure",
+            "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence",
+            "row_ref": "brick-row:qa-outer-lens-contract-0613-closure",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "closure Brick for task-source:inline-statement: # QA outer-lens contract — symptom reproduction duty for attack-QA bricks"
+          },
+          {
+            "agent_object_ref": "agent-object:coo",
+            "axis": "Agent",
+            "row_ref": "agent-row:qa-outer-lens-contract-0613-closure"
+          }
+        ],
+        "step_ref": "qa-outer-lens-contract-0613-closure",
+        "step_template_ref": "building-step-template:closure"
+      }
+    ],
+    "building_id": "qa-outer-lens-contract-0613",
+    "chain_preset_ref": "building-chain-preset:brick-protocol-engine-feature-hard",
+    "composition_mode": "caller_or_coo_declared_graph_composition",
+    "declared_by": "caller-claude-operator",
+    "execution_order": [
+      "qa-outer-lens-contract-0613-design",
+      "qa-outer-lens-contract-0613-work",
+      "qa-outer-lens-contract-0613-code-attack-qa",
+      "qa-outer-lens-contract-0613-axis-attack-qa",
+      "qa-outer-lens-contract-0613-evidence-integrity",
+      "qa-outer-lens-contract-0613-closure"
+    ],
+    "groups": [
+      {
+        "group_id": "group:qa-outer-lens-contract-0613-fan-out",
+        "group_role": "fan_out",
+        "member_ref_kind": "link_edge",
+        "member_refs": [
+          "edge:qa-outer-lens-contract-0613-work-to-qa-outer-lens-contract-0613-code-attack-qa",
+          "edge:qa-outer-lens-contract-0613-work-to-qa-outer-lens-contract-0613-axis-attack-qa",
+          "edge:qa-outer-lens-contract-0613-work-to-qa-outer-lens-contract-0613-evidence-integrity"
+        ]
+      },
+      {
+        "group_id": "group:qa-outer-lens-contract-0613-fan-in",
+        "group_role": "fan_in",
+        "member_ref_kind": "link_edge",
+        "member_refs": [
+          "edge:qa-outer-lens-contract-0613-code-attack-qa-to-qa-outer-lens-contract-0613-closure",
+          "edge:qa-outer-lens-contract-0613-axis-attack-qa-to-qa-outer-lens-contract-0613-closure",
+          "edge:qa-outer-lens-contract-0613-evidence-integrity-to-qa-outer-lens-contract-0613-closure"
+        ]
+      }
+    ],
+    "link_edges": [
+      {
+        "edge_ref": "edge:qa-outer-lens-contract-0613-design-to-qa-outer-lens-contract-0613-work",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:coo"
+            ],
+            "gate_sequence_policy": [
+              {
+                "gate_ref": "link-gate:default-transition",
+                "on_missing_required_facts": {
+                  "action": "reroute",
+                  "reason_refs": [
+                    "observation:default-transition-missing-required-facts"
+                  ],
+                  "required_target_budget": true,
+                  "target_basis": "source_brick"
+                },
+                "on_sufficient": {
+                  "action": "next",
+                  "next_gate_ref": "link-gate:coo"
+                }
+              },
+              {
+                "gate_ref": "link-gate:coo",
+                "on_missing_required_facts": {
+                  "action": "HOLD",
+                  "pending_target_basis": "target_brick",
+                  "reason_refs": [
+                    "observation:coo-gate-missing-required-facts"
+                  ],
+                  "required_disposition_owner": "coo"
+                },
+                "on_sufficient": {
+                  "action": "forward"
+                }
+              }
+            ],
+            "movement": "forward",
+            "row_ref": "link-row:edge:qa-outer-lens-contract-0613-design-to-qa-outer-lens-contract-0613-work",
+            "target_ref": "brick-qa-outer-lens-contract-0613-work"
+          }
+        ],
+        "source_step_ref": "qa-outer-lens-contract-0613-design",
+        "target_step_ref": "qa-outer-lens-contract-0613-work"
+      },
+      {
+        "edge_ref": "edge:qa-outer-lens-contract-0613-work-to-qa-outer-lens-contract-0613-code-attack-qa",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition"
+            ],
+            "movement": "forward",
+            "row_ref": "link-row:edge:qa-outer-lens-contract-0613-work-to-qa-outer-lens-contract-0613-code-attack-qa",
+            "target_ref": "brick-qa-outer-lens-contract-0613-code-attack-qa"
+          }
+        ],
+        "source_step_ref": "qa-outer-lens-contract-0613-work",
+        "target_step_ref": "qa-outer-lens-contract-0613-code-attack-qa"
+      },
+      {
+        "edge_ref": "edge:qa-outer-lens-contract-0613-work-to-qa-outer-lens-contract-0613-axis-attack-qa",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition"
+            ],
+            "movement": "forward",
+            "row_ref": "link-row:edge:qa-outer-lens-contract-0613-work-to-qa-outer-lens-contract-0613-axis-attack-qa",
+            "target_ref": "brick-qa-outer-lens-contract-0613-axis-attack-qa"
+          }
+        ],
+        "source_step_ref": "qa-outer-lens-contract-0613-work",
+        "target_step_ref": "qa-outer-lens-contract-0613-axis-attack-qa"
+      },
+      {
+        "edge_ref": "edge:qa-outer-lens-contract-0613-work-to-qa-outer-lens-contract-0613-evidence-integrity",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition"
+            ],
+            "movement": "forward",
+            "row_ref": "link-row:edge:qa-outer-lens-contract-0613-work-to-qa-outer-lens-contract-0613-evidence-integrity",
+            "target_ref": "brick-qa-outer-lens-contract-0613-evidence-integrity"
+          }
+        ],
+        "source_step_ref": "qa-outer-lens-contract-0613-work",
+        "target_step_ref": "qa-outer-lens-contract-0613-evidence-integrity"
+      },
+      {
+        "edge_ref": "edge:qa-outer-lens-contract-0613-code-attack-qa-to-qa-outer-lens-contract-0613-closure",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:strict"
+            ],
+            "gate_concept_provenance": {
+              "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+              "tokens": [
+                "strict-evidence"
+              ]
+            },
+            "movement": "forward",
+            "row_ref": "link-row:edge:qa-outer-lens-contract-0613-code-attack-qa-to-qa-outer-lens-contract-0613-closure",
+            "target_ref": "brick-qa-outer-lens-contract-0613-closure"
+          }
+        ],
+        "source_step_ref": "qa-outer-lens-contract-0613-code-attack-qa",
+        "target_step_ref": "qa-outer-lens-contract-0613-closure"
+      },
+      {
+        "edge_ref": "edge:qa-outer-lens-contract-0613-axis-attack-qa-to-qa-outer-lens-contract-0613-closure",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:strict"
+            ],
+            "gate_concept_provenance": {
+              "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+              "tokens": [
+                "strict-evidence"
+              ]
+            },
+            "movement": "forward",
+            "row_ref": "link-row:edge:qa-outer-lens-contract-0613-axis-attack-qa-to-qa-outer-lens-contract-0613-closure",
+            "target_ref": "brick-qa-outer-lens-contract-0613-closure"
+          }
+        ],
+        "source_step_ref": "qa-outer-lens-contract-0613-axis-attack-qa",
+        "target_step_ref": "qa-outer-lens-contract-0613-closure"
+      },
+      {
+        "edge_ref": "edge:qa-outer-lens-contract-0613-evidence-integrity-to-qa-outer-lens-contract-0613-closure",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:strict"
+            ],
+            "gate_concept_provenance": {
+              "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+              "tokens": [
+                "strict-evidence"
+              ]
+            },
+            "movement": "forward",
+            "row_ref": "link-row:edge:qa-outer-lens-contract-0613-evidence-integrity-to-qa-outer-lens-contract-0613-closure",
+            "target_ref": "brick-qa-outer-lens-contract-0613-closure"
+          }
+        ],
+        "source_step_ref": "qa-outer-lens-contract-0613-evidence-integrity",
+        "target_step_ref": "qa-outer-lens-contract-0613-closure"
+      },
+      {
+        "edge_ref": "edge:qa-outer-lens-contract-0613-closure-to-boundary",
+        "rows": [
+          {
+            "axis": "Link",
+            "building_lifecycle": {
+              "reason": "declared closure boundary for qa-outer-lens-contract-0613",
+              "state": "closed"
+            },
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:coo",
+              "link-gate:human"
+            ],
+            "gate_concept_provenance": {
+              "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+              "tokens": [
+                "coo-review",
+                "human-review"
+              ]
+            },
+            "gate_sequence_policy": [
+              {
+                "gate_ref": "link-gate:human",
+                "on_missing_required_facts": {
+                  "action": "hold",
+                  "pending_target_basis": "source_brick",
+                  "reason_refs": [
+                    "observation:human-gate-disposition-missing"
+                  ],
+                  "required_disposition_owner": "caller-or-coo"
+                },
+                "on_sufficient": {
+                  "action": "forward"
+                }
+              }
+            ],
+            "movement": "forward",
+            "row_ref": "link-row:edge:qa-outer-lens-contract-0613-closure-to-boundary",
+            "target_ref": "building-boundary:qa-outer-lens-contract-0613-closed"
+          }
+        ],
+        "source_step_ref": "qa-outer-lens-contract-0613-closure"
+      }
+    ],
+    "materialization_rule": "caller_or_coo_declared_task_source_plus_graph_chain_preset",
+    "not_proven": [
+      "semantic fitness of selected shape",
+      "future Building run correctness",
+      "future Agent or provider quality"
+    ],
+    "owner_axis": "Brick",
+    "plan_ref": "building-plan:qa-outer-lens-contract-0613",
+    "plan_shape": "graph",
+    "preset_expansion": {
+      "agent_object_refs": [
+        "agent-object:design-lead",
+        "agent-object:dev",
+        "agent-object:qa",
+        "agent-object:inspector",
+        "agent-object:inspector",
+        "agent-object:coo"
+      ],
+      "canonical_chain_preset_ref": "building-chain-preset:brick-protocol-engine-feature-hard",
+      "chain_preset_ref": "building-chain-preset:brick-protocol-engine-feature-hard",
+      "chain_preset_requires_graph": true,
+      "expanded_brick_spec_refs": [
+        "brick/templates/bricks/design/brick.md",
+        "brick/templates/bricks/work/brick.md",
+        "brick/templates/bricks/code-attack-qa/brick.md",
+        "brick/templates/bricks/axis-attack-qa/brick.md",
+        "brick/templates/bricks/evidence-integrity/brick.md",
+        "brick/templates/bricks/closure/brick.md"
+      ],
+      "expanded_brick_template_refs": [
+        "brick/templates/bricks/design/return.yaml",
+        "brick/templates/bricks/transition-concern-return.yaml",
+        "brick/templates/bricks/work/return.yaml",
+        "brick/templates/bricks/code-attack-qa/return.yaml",
+        "brick/templates/bricks/axis-attack-qa/return.yaml",
+        "brick/templates/bricks/evidence-integrity/return.yaml",
+        "brick/templates/bricks/closure/return.yaml"
+      ],
+      "expanded_step_template_refs": [
+        "building-step-template:design",
+        "building-step-template:work",
+        "building-step-template:code-attack-qa",
+        "building-step-template:axis-attack-qa",
+        "building-step-template:evidence-integrity",
+        "building-step-template:closure"
+      ],
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "selected preset ref was not declared unless separately present"
+      ],
+      "proof_limits": [
+        "support records caller / COO declared graph composition only",
+        "not automatic preset selection",
+        "not automatic shape selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "selected_shape_ref": "building-shape:design-needed",
+      "selection_rule": "caller_or_coo_declared_only"
+    },
+    "proof_limits": [
+      "support evidence only",
+      "compose_building assembles caller / COO declared node and edge choices only",
+      "not automatic shape selection",
+      "not automatic Agent selection",
+      "not automatic gate selection",
+      "not support-chosen target",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "route_policy_provenance": {
+      "allowed_provenance": [
+        "per-building",
+        "preset-default"
+      ],
+      "by_node": {
+        "qa-outer-lens-contract-0613-closure": {
+          "closure_transition_target_policy": "preset-default"
+        },
+        "qa-outer-lens-contract-0613-design": {
+          "node_reroute_budget": "preset-default"
+        },
+        "qa-outer-lens-contract-0613-work": {
+          "node_reroute_budget": "preset-default"
+        }
+      },
+      "rule": "route reroute budget + closure routing policy are HUMAN Movement decisions; support records but never synthesizes them (provenance is preset-default for a reusable preset default or per-building for a per-Building override, NEVER support)"
+    },
+    "selected_adapter_ref": "adapter:codex-local",
+    "selected_model_ref": "model:default",
+    "selected_shape_ref": "building-shape:design-needed",
+    "selection_rule": "caller_or_coo_declared_only",
+    "task_source_hash": "75bd430ebd2c47a1b84b716e152d2e9671a57cd08119d7e4ed92aff54c7c4465",
+    "task_source_hash_algorithm": "sha256",
+    "task_source_hash_basis": "utf-8 inline task_statement body at materialization time",
+    "task_source_ref": "task-source:inline-statement",
+    "task_statement": "# QA outer-lens contract — symptom reproduction duty for attack-QA bricks\n\n## Operator pre-analysis (VERIFIED — bounded reading list)\nRead ONLY:\n1. brick/templates/bricks/code-attack-qa/brick.md (+return.yaml) — current contract:\n   attack implementation/regression/negative-probe vs declared work contract; must\n   include inspected repository artifact references; forbidden verdict keys listed.\n2. brick/templates/bricks/axis-attack-qa/brick.md (+return.yaml) — same shape for\n   3-axis boundary inspection.\n3. support/checkers/check_bricks_spec_completeness.py — the gate your edits must keep\n   green: REQUIRED_FRONTMATTER 8 fields (lines ~33-42); non-empty body (~137); every\n   return.yaml field named in body prose (PROSE<->YAML drift, ~216-219);\n   required_return_template_refs resolve (~158-198).\nDo NOT survey other modules.\n\n## Reproduced fact (why — F9 half-green, operator-verified 0612)\nF9's mid-walk-closed misprojection survived TWO same-lens QA passes because QA reused\nthe builder's own fixtures and lens; the real entry surface (bake_dashboard_data_json\nover a real root) was never independently driven. Smith decision 0612: QA bricks gain\nan OUTER-LENS contract.\n\n## Objective (invariant)\nEvery code-attack-qa / axis-attack-qa performance must (a) independently REPRODUCE the\nreported symptom from the task source (not from the builder's fixtures), (b) build its\nOWN probes (builder fixture reuse forbidden), (c) drive at least ONE real entry surface\n(the verb/projection a real caller uses), and name all three in its return.\n\n## Deliverables\n1. Revise BOTH brick.md bodies (and return.yaml if a field is added — keep PROSE<->YAML\n   sync): add the three duties above as explicit instructions with a required return\n   evidence triple: symptom_reproduction (what was independently reproduced + how),\n   own_probes (probes built by QA, distinct from builder fixtures), real_entry_surface\n   (which real verb/surface was driven + observed output). Decide whether these are new\n   return.yaml fields or structured items under observed_evidence — pick the shape that\n   keeps existing closed-AgentFact discipline and justify in design.\n2. Keep ALL existing prohibitions (no mutation, no verdict keys) intact.\n3. Gate: check_bricks_spec_completeness green; full gate --all exit 0 in temp copy.\n\n## Proof required (run yourself, honestly)\n- Focused run: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity python3\n  support/checkers/check_profile.py --profile core (bricks_spec_completeness family) green.\n- Full gate in TEMP SOURCE COPY (bake first, --all exit 0, state copy path).\n\n## Hard constraints (law)\n- write_scope brick/templates/* + support/checkers/* ONLY (checker sync if field set\n  pins exist). Forbidden: link/*, agent/*, project/*, support/operator/*,\n  support/connection/*, support/recording/*, brick/building.py, brick/work.py,\n  brick/comparison.py, .git/*, AGENTS.md, pyproject.toml, uv.lock.\n- No pin weakening; append-only; no scheduler; no new deps; no packet echo; no npm/node.\n"
+  },
+  "kind": "declared_building_plan_provenance",
+  "not_proven": [
+    "declared plan semantic correctness",
+    "future Agent or provider behavior"
+  ],
+  "plan_hash": "b16cf426d233b086ad0a869855eadbc38091165f8c486bae9a554c0d5212c535",
+  "plan_hash_algorithm": "sha256",
+  "plan_hash_basis": "canonical sorted-key JSON of the pure declared-building-plan copy (runtime walker state excluded)",
+  "plan_ref": "building-plan:qa-outer-lens-contract-0613",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ]
+}

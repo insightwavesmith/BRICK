@@ -1,0 +1,558 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:qa-outer-lens-contract-0613::evidence/claim_trace/link/movement_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition",
+          "link-gate:coo"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:01:qa-outer-lens-contract-0613-design",
+          "brick-comparison:01:qa-outer-lens-contract-0613-design",
+          "sufficiency-fact-movement:01:qa-outer-lens-contract-0613-design"
+        ],
+        "target_boundary_ref": "brick:brick-qa-outer-lens-contract-0613-work"
+      },
+      "fact_ref": "movement-fact:01:qa-outer-lens-contract-0613-design",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:02:qa-outer-lens-contract-0613-work",
+          "brick-comparison:02:qa-outer-lens-contract-0613-work",
+          "sufficiency-fact-movement:02:qa-outer-lens-contract-0613-work"
+        ],
+        "target_boundary_ref": "brick:brick-qa-outer-lens-contract-0613-code-attack-qa"
+      },
+      "fact_ref": "movement-fact:02:qa-outer-lens-contract-0613-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:02"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition",
+          "link-gate:strict"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:03:qa-outer-lens-contract-0613-code-attack-qa",
+          "brick-comparison:03:qa-outer-lens-contract-0613-code-attack-qa",
+          "sufficiency-fact-movement:03:qa-outer-lens-contract-0613-code-attack-qa"
+        ],
+        "target_boundary_ref": "brick:brick-qa-outer-lens-contract-0613-closure"
+      },
+      "fact_ref": "movement-fact:03:qa-outer-lens-contract-0613-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:03"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition",
+          "link-gate:strict"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:04:qa-outer-lens-contract-0613-axis-attack-qa",
+          "brick-comparison:04:qa-outer-lens-contract-0613-axis-attack-qa",
+          "sufficiency-fact-movement:04:qa-outer-lens-contract-0613-axis-attack-qa"
+        ],
+        "target_boundary_ref": "brick:brick-qa-outer-lens-contract-0613-closure"
+      },
+      "fact_ref": "movement-fact:04:qa-outer-lens-contract-0613-axis-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:04"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition",
+          "link-gate:strict"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:05:qa-outer-lens-contract-0613-evidence-integrity",
+          "brick-comparison:05:qa-outer-lens-contract-0613-evidence-integrity",
+          "sufficiency-fact-movement:05:qa-outer-lens-contract-0613-evidence-integrity"
+        ],
+        "target_boundary_ref": "brick:brick-qa-outer-lens-contract-0613-closure"
+      },
+      "fact_ref": "movement-fact:05:qa-outer-lens-contract-0613-evidence-integrity",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:05"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "building_lifecycle_reason": "declared closure boundary for qa-outer-lens-contract-0613",
+        "building_lifecycle_state": "closed",
+        "declared_gate_refs": [
+          "link-gate:default-transition",
+          "link-gate:coo",
+          "link-gate:human"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:06:qa-outer-lens-contract-0613-closure",
+          "brick-comparison:06:qa-outer-lens-contract-0613-closure",
+          "sufficiency-fact-movement:06:qa-outer-lens-contract-0613-closure",
+          "observation:gate-sequence-qa-outer-lens-contract-0613-qa-outer-lens-contract-0613-closure-link-gate-human-hold",
+          "observation:reroute-hold-reason-gate_sequence_missing_required_facts:link-gate:human"
+        ],
+        "target_boundary_ref": "brick:building-boundary:qa-outer-lens-contract-0613-closed",
+        "transition_author_ref": "coo:claude-operator",
+        "transition_authoring_basis_refs": [
+          "observation:gate-sequence-qa-outer-lens-contract-0613-qa-outer-lens-contract-0613-closure-link-gate-human-hold",
+          "observation:reroute-hold-reason-gate_sequence_missing_required_facts:link-gate:human"
+        ],
+        "transition_authoring_ref": "link-authoring:resume-disposition:qa-outer-lens-contract-0613:qa-outer-lens-contract-0613-closure",
+        "transition_lifecycle_disposition_action": "forward",
+        "transition_lifecycle_from_brick_ref": "brick-qa-outer-lens-contract-0613-closure",
+        "transition_lifecycle_not_proven": [
+          "adapter:local resume probes only unless caller uses another adapter",
+          "parallel runtime execution",
+          "full process-integrity across resumed provider processes",
+          "semantic correctness of the human/COO disposition"
+        ],
+        "transition_lifecycle_paused_at_ref": "link-transition:reroute-hold-qa-outer-lens-contract-0613-01-brick-qa-outer-lens-contract-0613-closure-src-qa-outer-lens-contract-0613-closure-depth-0-attempt-0",
+        "transition_lifecycle_pending_target_ref": "brick-qa-outer-lens-contract-0613-closure",
+        "transition_lifecycle_progress_state": "in_progress",
+        "transition_lifecycle_proof_limits": [
+          "support evidence only",
+          "dynamic walker walks declared gate-adopted agent-proposed routes only",
+          "support authors no route or Movement",
+          "not source truth",
+          "not success judgment",
+          "not quality judgment",
+          "not Movement authority"
+        ],
+        "transition_lifecycle_reason_refs": [
+          "observation:gate-sequence-qa-outer-lens-contract-0613-qa-outer-lens-contract-0613-closure-link-gate-human-hold",
+          "observation:reroute-hold-reason-gate_sequence_missing_required_facts:link-gate:human"
+        ],
+        "transition_lifecycle_required_disposition_owner": "caller-or-coo",
+        "transition_lifecycle_resumed_from_ref": "link-transition:reroute-hold-qa-outer-lens-contract-0613-01-brick-qa-outer-lens-contract-0613-closure-src-qa-outer-lens-contract-0613-closure-depth-0-attempt-0",
+        "transition_lifecycle_state": "resumed"
+      },
+      "fact_ref": "movement-fact:06:qa-outer-lens-contract-0613-closure",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:06"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:qa-outer-lens-contract-0613-design-to-qa-outer-lens-contract-0613-work",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-qa-outer-lens-contract-0613-design",
+        "target_boundary_ref": "brick-qa-outer-lens-contract-0613-work"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-qa-outer-lens-contract-0613-design-to-qa-outer-lens-contract-0613-work",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:01:edge-qa-outer-lens-contract-0613-design-to-qa-outer-lens-contract-0613-work"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:qa-outer-lens-contract-0613-work-to-qa-outer-lens-contract-0613-code-attack-qa",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-qa-outer-lens-contract-0613-work",
+        "target_boundary_ref": "brick-qa-outer-lens-contract-0613-code-attack-qa"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-qa-outer-lens-contract-0613-work-to-qa-outer-lens-contract-0613-code-attack-qa",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:02:edge-qa-outer-lens-contract-0613-work-to-qa-outer-lens-contract-0613-code-attack-qa"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": false,
+        "link_edge_ref": "edge:qa-outer-lens-contract-0613-work-to-qa-outer-lens-contract-0613-axis-attack-qa",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-qa-outer-lens-contract-0613-work",
+        "target_boundary_ref": "brick-qa-outer-lens-contract-0613-axis-attack-qa"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-qa-outer-lens-contract-0613-work-to-qa-outer-lens-contract-0613-axis-attack-qa",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:03:edge-qa-outer-lens-contract-0613-work-to-qa-outer-lens-contract-0613-axis-attack-qa"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": false,
+        "link_edge_ref": "edge:qa-outer-lens-contract-0613-work-to-qa-outer-lens-contract-0613-evidence-integrity",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-qa-outer-lens-contract-0613-work",
+        "target_boundary_ref": "brick-qa-outer-lens-contract-0613-evidence-integrity"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-qa-outer-lens-contract-0613-work-to-qa-outer-lens-contract-0613-evidence-integrity",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:04:edge-qa-outer-lens-contract-0613-work-to-qa-outer-lens-contract-0613-evidence-integrity"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:qa-outer-lens-contract-0613-code-attack-qa-to-qa-outer-lens-contract-0613-closure",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-qa-outer-lens-contract-0613-code-attack-qa",
+        "target_boundary_ref": "brick-qa-outer-lens-contract-0613-closure"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-qa-outer-lens-contract-0613-code-attack-qa-to-qa-outer-lens-contract-0613-closure",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:05:edge-qa-outer-lens-contract-0613-code-attack-qa-to-qa-outer-lens-contract-0613-closure"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:qa-outer-lens-contract-0613-axis-attack-qa-to-qa-outer-lens-contract-0613-closure",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-qa-outer-lens-contract-0613-axis-attack-qa",
+        "target_boundary_ref": "brick-qa-outer-lens-contract-0613-closure"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-qa-outer-lens-contract-0613-axis-attack-qa-to-qa-outer-lens-contract-0613-closure",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:06:edge-qa-outer-lens-contract-0613-axis-attack-qa-to-qa-outer-lens-contract-0613-closure"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:qa-outer-lens-contract-0613-evidence-integrity-to-qa-outer-lens-contract-0613-closure",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-qa-outer-lens-contract-0613-evidence-integrity",
+        "target_boundary_ref": "brick-qa-outer-lens-contract-0613-closure"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-qa-outer-lens-contract-0613-evidence-integrity-to-qa-outer-lens-contract-0613-closure",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:07:edge-qa-outer-lens-contract-0613-evidence-integrity-to-qa-outer-lens-contract-0613-closure"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:qa-outer-lens-contract-0613-closure-to-boundary",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-qa-outer-lens-contract-0613-closure",
+        "target_boundary_ref": "building-boundary:qa-outer-lens-contract-0613-closed"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-qa-outer-lens-contract-0613-closure-to-boundary",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:08:edge-qa-outer-lens-contract-0613-closure-to-boundary"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-13T01:32:15Z",
+  "id": "urn:bp:building:qa-outer-lens-contract-0613::evidence/claim_trace/link/movement_trace.json",
+  "recorded_at": "2026-06-13T01:32:15Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:qa-outer-lens-contract-0613",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/movement_trace.json",
+  "time": "2026-06-13T01:32:15Z",
+  "type": "bp.claim_trace"
+}
