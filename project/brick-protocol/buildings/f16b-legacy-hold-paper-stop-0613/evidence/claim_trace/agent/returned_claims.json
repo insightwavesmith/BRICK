@@ -1,0 +1,841 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:f16b-legacy-hold-paper-stop-0613::evidence/claim_trace/agent/returned_claims.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:design-lead",
+        "received_work": "brick-work:01:f16b-legacy-hold-paper-stop-0613-design",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:design-lead",
+          "axis_responsibility": {
+            "Agent": "The performing Agent remains the receiver/returner only; this design does not classify Agent success or quality and does not create an AgentFact for the held adapter-error step.",
+            "Brick": "The work invariant is the declared F16b contract: stop disposition on any adapter-error hold paper-closes without adapter invocation.",
+            "Link": "The stop disposition and transition lifecycle refs remain Link evidence; support only reads the recorded reason refs and does not choose Movement or route target.",
+            "Support": "support/operator/walker_resume.py performs the narrow resume predicate and paper-stop recording; support/checkers/lib/kernel_checks.py pins the invariant as support evidence."
+          },
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "candidate_file_changes": [
+            "support/operator/walker_resume.py: broaden _adapter_error_hold_without_return only.",
+            "support/checkers/lib/kernel_checks.py: add the legacy fixture rewrite/helper and F16b assertions inside run_adapter_error_path_hardening."
+          ],
+          "checker_or_verifier_plan": [
+            "Checker-first: extend adapter_error_path_hardening with the F16b legacy-shaped fixture before or with the predicate change.",
+            "Focused green evidence: compileall for touched Python support files, git diff --check, and the adapter_error_path_hardening focused checker.",
+            "Mutation evidence: monkeypatch the predicate back to flat-field-only and require the legacy fixture to fail RED.",
+            "Gate evidence after bake: run the full check_profile --all in a temp source copy and report the temp copy path."
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:f16b-legacy-hold-paper-stop-0613",
+          "cli_version_text": "codex-cli 0.137.0",
+          "design_summary": "Keep the repair in support only. Broaden the paper-stop predicate so adapter-error holds are recognized from either the new-engine flat hold_reason field or the legacy transition_lifecycle_reason_refs marker. Add a narrow checker pin in the existing adapter_error_path_hardening family using a synthetic legacy-shaped hold fixture copied from the observed 0612 reason-ref shape.",
+          "edge_cases": [
+            "transition_lifecycle_reason_refs absent, non-list, or containing non-string entries should not broaden the match; flat hold_reason remains the only fallback.",
+            "A legacy row containing only the hyphenated adapter-error observation ref and not the underscored adapter_error_frontier marker should not match.",
+            "Synthetic fixture ids must preserve the current hold identity so disposition selection still addresses the same hold.",
+            "Mutation RED should distinguish failure to paper-stop from any unexpected adapter invocation; either violates the F16b invariant, but the captured runner should still assert zero calls on the real implementation."
+          ],
+          "evidence_refs": [
+            "support-packet:f16b-legacy-hold-paper-stop-0613:agent-object:design-lead:output",
+            "support/operator/walker_resume.py:213",
+            "support/operator/walker_resume.py:435",
+            "support/operator/walker_resume.py:436",
+            "support/operator/walker_resume.py:491",
+            "project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl:3",
+            "support/checkers/lib/kernel_checks.py:3434",
+            "support/checkers/lib/kernel_checks.py:3513",
+            "support/checkers/lib/kernel_checks.py:3570",
+            "support/checkers/lib/kernel_checks.py:3725",
+            "support/checkers/lib/kernel_checks.py:3791"
+          ],
+          "invariants": [
+            "A stop disposition on a new-engine adapter-error hold with hold_reason == \"adapter_error_frontier\" paper-closes with zero adapter invocations.",
+            "A stop disposition on a legacy adapter-error hold with transition_lifecycle_reason_refs containing \"adapter_error_frontier\" paper-closes with zero adapter invocations.",
+            "The legacy predicate does not recognize unrelated reason_refs.",
+            "The paper-stop path records support evidence only and does not create source truth, quality judgment, success judgment, or Movement authority."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "No implementation was applied in this read-only design return.",
+            "No checker, compileall, git diff --check, mutation probe, or temp-copy full gate was run in this turn.",
+            "Exact behavior of a copied real dashboard-productization-0612 root after the proposed implementation is not proven here.",
+            "Semantic correctness of the human/COO stop disposition is not proven.",
+            "Future Building correctness is not proven.",
+            "Source truth, success judgment, quality judgment, and Movement authority are not claimed."
+          ],
+          "observed_evidence": [
+            "support/operator/walker_resume.py:213 routes stop dispositions with no recorded Agent returns into _paper_stop_adapter_error_hold only when _adapter_error_hold_without_return returns true.",
+            "support/operator/walker_resume.py:435-436 currently recognizes only hold_record.hold_reason == \"adapter_error_frontier\".",
+            "project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl:3 is a legacy paused transition row with transition_lifecycle_reason_refs including \"observation:reroute-hold-reason-adapter_error_frontier\" and an adapter-error observation ref, with no observed flat hold_reason field.",
+            "support/checkers/lib/kernel_checks.py:3434-3571 already contains the adapter_error_path_hardening checker family, including F16 zero-adapter-call paper stop coverage and a mutation RED path.",
+            "support/checkers/lib/kernel_checks.py:3725-3799 contains the fixture and stop-disposition helper area where the legacy-shaped pin can be added without creating a new checker family."
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ \"support/operator/walker_resume.py:213 routes stop dispositions with no recorded Agent returns into _paper_stop_adapter_error_hold only when _adapter_error_hold_without_return returns true.\", \"support/operator/walker_resume.py:435-436 currently recognizes only hold_record.hold_reason == \\\"adapter_error_frontier\\\".\", \"project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl:3 is a legacy paused transition row with transition_lifecycle_reason_refs including \\\"observation:reroute-hold-reason-adapter_error_frontier\\\" and an adapter-error observation...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "proposed_changes": [
+            "In support/operator/walker_resume.py, change _adapter_error_hold_without_return to return true when hold_reason is exactly \"adapter_error_frontier\" or when transition_lifecycle_reason_refs is a list containing a string with the exact substring \"adapter_error_frontier\".",
+            "Keep the refs test narrow: do not match generic \"adapter-error\", generic \"frontier\", hyphenated \"adapter-error-frontier\" alone, or unrelated reason families.",
+            "In support/checkers/lib/kernel_checks.py, add a legacy F16b fixture path under run_adapter_error_path_hardening. Generate a valid temp held root, then rewrite the manifest hold record to remove flat hold_reason and add transition_lifecycle_reason_refs copied from the real legacy shape with synthetic ids.",
+            "Append a stop disposition addressed to the same synthetic hold identity, resume with a captured runner, and assert zero invocations, no step_results replay, complete frontier observation, and paper_stop_observation.provider_invoked=false.",
+            "Add a mutation probe that temporarily reverts the predicate to flat-field-only and requires the legacy fixture to fail the paper-stop invariant."
+          ],
+          "relevant_current_structure": [
+            "resume_building_plan reads dynamic_walker_evidence.hold from evidence/evidence-manifest.json.",
+            "The human/COO stop disposition is selected from raw/link.jsonl by pending_target_ref plus the current hold identity.",
+            "The paper-stop path records a support Link row, rewrites raw manifest/evidence manifest, and states provider_invoked=false without creating an AgentFact.",
+            "The checker family already creates temp Building roots and captured command_runner probes for adapter-error resume behavior."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "unchanged_surfaces": [
+            "No link/*, agent/*, brick/*, project/*, AGENTS.md, pyproject.toml, uv.lock, or .git changes.",
+            "No new Movement literal, GateFact, scheduler, queue, retry runtime, provider runtime, dependency, packet echo, or npm/node surface.",
+            "No AgentFact shape change and no success, failure, quality, or source-truth classification.",
+            "Existing new-engine flat hold_reason behavior remains admitted."
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:01:f16b-legacy-hold-paper-stop-0613-design",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:dev",
+        "received_work": "brick-work:02:f16b-legacy-hold-paper-stop-0613-work",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:dev",
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "changed_files": [
+            "support/checkers/lib/kernel_checks.py",
+            "support/operator/walker_resume.py"
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:f16b-legacy-hold-paper-stop-0613",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:f16b-legacy-hold-paper-stop-0613:agent-object:dev:output"
+          ],
+          "made_changes": [
+            "support/operator/walker_resume.py: paper-stop adapter-error stop dispositions before replay/live continuation, and recognize both flat hold_reason and legacy transition_lifecycle_reason_refs containing adapter_error_frontier.",
+            "support/checkers/lib/kernel_checks.py: extended adapter_error_path_hardening with an F16b legacy-shaped post-return hold fixture, zero runner-call assertion, and flat-field-only mutation RED probe."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "semantic correctness of file edits",
+            "source truth",
+            "success judgment",
+            "quality judgment",
+            "Movement authority",
+            "provider behavior outside captured runner probes",
+            "semantic correctness of stopped work",
+            "ambient-shell full gate stability when report-grain/delivery environment variables are set",
+            "future adapter-error hold shapes beyond tested flat hold_reason and legacy reason-ref forms",
+            "model review coverage"
+          ],
+          "observed_evidence": [
+            "Read-only legacy row observed in project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl: transition_lifecycle_reason_refs contains observation:reroute-hold-reason-adapter_error_frontier and no flat hold_reason.",
+            "Focused gate passed: python3 support/checkers/check_profile.py --profile support/checkers/profiles/building_automation.yaml; output reported flat and legacy reason-ref holds paper-closed without adapter invocation and F16/F16b/F19 mutation probes fired RED.",
+            "compileall passed: python3 -m compileall brick agent link support.",
+            "diff whitespace gate passed: git diff --check.",
+            "Full temp-copy gate passed at /tmp/brick-f16b-full-gate-tU7dYn after baking support/dashboard/public/dashboard-data.json inside the copy and running python3 support/checkers/check_profile.py --all with report delivery/grain environment unset.",
+            "Final worktree changes are limited to support/checkers/lib/kernel_checks.py and support/operator/walker_resume.py."
+          ],
+          "output_excerpt": "{ \"made_changes\": [ \"support/operator/walker_resume.py: paper-stop adapter-error stop dispositions before replay/live continuation, and recognize both flat hold_reason and legacy transition_lifecycle_reason_refs containing adapter_error_frontier.\", \"support/checkers/lib/kernel_checks.py: extended adapter_error_path_hardening with an F16b legacy-shaped post-return hold fixture, zero runner-call assertion, and flat-field-only mutation RED probe.\" ], \"observed_evidence\": [ \"Read-only legacy row observed in project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl: transitio...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "workspace write is limited by Brick-declared write_scope"
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "worktree_observation": {
+            "after_git_refs": {
+              "branch": "claude/track-f16b",
+              "head": "290824792bd1545549495238136423bc101c97b5"
+            },
+            "after_git_status_paths": [
+              "support/checkers/lib/kernel_checks.py",
+              "support/operator/walker_resume.py"
+            ],
+            "after_path_count": 4747,
+            "before_git_refs": {
+              "branch": "claude/track-f16b",
+              "head": "290824792bd1545549495238136423bc101c97b5"
+            },
+            "before_git_status_paths": [],
+            "before_path_count": 4747,
+            "not_proven": [
+              "semantic correctness of file edits",
+              "complete diff attribution for pre-existing dirty paths"
+            ],
+            "observed_changed_files": [
+              "support/checkers/lib/kernel_checks.py",
+              "support/operator/walker_resume.py"
+            ],
+            "proof_limits": [
+              "changed files are support evidence only",
+              "not source truth",
+              "not success judgment",
+              "not quality judgment",
+              "not Movement authority"
+            ],
+            "write_scope": {
+              "allowed_paths": [
+                "support/*"
+              ],
+              "forbidden_paths": [
+                "link/*",
+                "agent/*",
+                "brick/*",
+                "project/*",
+                ".git/*",
+                "AGENTS.md",
+                "pyproject.toml",
+                "uv.lock"
+              ]
+            }
+          }
+        }
+      },
+      "fact_ref": "agent-fact:02:f16b-legacy-hold-paper-stop-0613-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:qa",
+        "received_work": "brick-work:03:f16b-legacy-hold-paper-stop-0613-code-attack-qa",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:qa",
+          "attacked_work": [
+            "Predicate probe returned flat=True, legacy=True, other=False, non-list=False.",
+            "git diff --check exited 0.",
+            "PYTHONDONTWRITEBYTECODE=1 python3 -m compileall -q . exited 0."
+          ],
+          "blocked_or_missing_evidence": [
+            "Writable temporary source-copy gate evidence is blocked by sandbox: no usable temporary directory.",
+            "Checker-run output for adapter_error_path_hardening is missing for the same reason."
+          ],
+          "boundary_violations": [],
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "checked_sources": [
+            "support/operator/walker_resume.py",
+            "project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl",
+            "support/checkers/lib/kernel_checks.py",
+            "support/checkers/profiles/building_automation.yaml only to locate the admitted profile containing adapter_error_path_hardening"
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:f16b-legacy-hold-paper-stop-0613",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:f16b-legacy-hold-paper-stop-0613:agent-object:qa:output"
+          ],
+          "evidence_used": [
+            "Read-only source inspection.",
+            "Read-only git status and git diff --check.",
+            "No-write predicate and legacy-row shape probes.",
+            "No model review, no subagent spawn, no file mutation, no git mutation."
+          ],
+          "failing_or_missing_probes": [
+            "python3 support/checkers/check_profile.py --profile adapter_error_path_hardening failed because kernel check ids are not accepted as profile names.",
+            "python3 support/checkers/check_profile.py --profile support/checkers/profiles/building_automation.yaml failed before execution: no usable temporary directory.",
+            "python3 support/checkers/check_profile.py --all failed before execution: no usable temporary directory.",
+            "Full gate in temp source copy was not run because this environment cannot create temp directories."
+          ],
+          "negative_probe_observations": [
+            "Kernel checker contains a legacy stop runner that records any adapter invocation and raises F16b legacy stop invoked adapter if calls occur.",
+            "Kernel checker contains a flat-field-only predicate mutation; the mutation must make an adapter call or raises F16b legacy flat-field-only mutation made no adapter call.",
+            "Local no-write predicate probe confirmed non-list reason_refs do not match."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Focused checker green.",
+            "Mutation RED by executing the admitted checker.",
+            "Full --all gate green in a temp source copy.",
+            "Runtime adapter zero-invocation behavior on a real copied dashboard-productization-0612 root.",
+            "Source truth, success judgment, quality judgment, Movement authority."
+          ],
+          "observed_evidence": [
+            "Changed files observed: support/operator/walker_resume.py and support/checkers/lib/kernel_checks.py.",
+            "support/operator/walker_resume.py:436 broadens _adapter_error_hold_without_return to return true for flat hold_reason == adapter_error_frontier or list-valued transition_lifecycle_reason_refs entries containing adapter_error_frontier.",
+            "project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl:3 is legacy-shaped: no hold_reason field, and transition_lifecycle_reason_refs includes observation:reroute-hold-reason-adapter_error_frontier.",
+            "support/checkers/lib/kernel_checks.py adds F16b legacy stop and flat-field-only mutation probes inside adapter_error_path_hardening."
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ \"Changed files observed: support/operator/walker_resume.py and support/checkers/lib/kernel_checks.py.\", \"support/operator/walker_resume.py:436 broadens _adapter_error_hold_without_return to return true for flat hold_reason == adapter_error_frontier or list-valued transition_lifecycle_reason_refs entries containing adapter_error_frontier.\", \"project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl:3 is legacy-shaped: no hold_reason field, and transition_lifecycle_reason_refs includes observation:reroute-hold-reason-adapter_error_frontier.\", \"supp...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "Support evidence only.",
+            "Checker/profile pass or source inspection is not source truth, success judgment, quality judgment, or Movement authority.",
+            "This return does not create Gate facts, choose routes, or classify project success."
+          ],
+          "regression_risks": [
+            "Full checker execution was not observed because the managed read-only sandbox has no usable temporary directory.",
+            "The exact zero-adapter invocation behavior is present in checker code but not executed in this sandbox."
+          ],
+          "remaining_delta": [
+            "Run the focused building_automation profile and full --all gate in a writable temp source copy, then record the checker output path.",
+            "No Agent-selected Movement supplied."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default"
+        }
+      },
+      "fact_ref": "agent-fact:03:f16b-legacy-hold-paper-stop-0613-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:inspector",
+        "received_work": "brick-work:04:f16b-legacy-hold-paper-stop-0613-axis-attack-qa",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_axis_findings": [
+            "This inspector lane is reviewer-readonly and returned support evidence only.",
+            "No credential body, provider session body, setup token, success/failure verdict, or quality score was observed or printed.",
+            "The checked predicate and checker pin do not expand AgentFact fields."
+          ],
+          "agent_object_ref": "agent-object:inspector",
+          "attacked_scope": [
+            "Only the prescribed surfaces were inspected: support/operator/walker_resume.py, the single legacy dashboard-productization-0612 raw link row, support/checkers/lib/kernel_checks.py, and the checker profile pin.",
+            "No broad module survey was performed."
+          ],
+          "blocked_or_missing_evidence": [
+            "Reviewer-readonly policy and read-only filesystem prevent creating the temp roots/copies required by the focused checker, mutation probe, and full temp-source-copy gate.",
+            "Shell here-doc probes failed because zsh attempted to create a temp file; equivalent read-only python3 -c probes were used instead."
+          ],
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "brick_axis_findings": [
+            "The task is a support repair/checker pin for the F16b invariant; observed modified paths stay under support/.",
+            "No brick/, agent/, link/, project/, AGENTS.md, pyproject.toml, uv.lock, or .git mutation was observed in git diff name-status.",
+            "The checker fixture preserves declared Building-plan style rows and uses synthetic ids for the legacy-shaped fixture."
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:f16b-legacy-hold-paper-stop-0613",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:f16b-legacy-hold-paper-stop-0613:agent-object:inspector:output"
+          ],
+          "evidence_used": [
+            "AGENTS.md and inline task packet supplied by caller.",
+            "rg/nl reads of support/operator/walker_resume.py, support/checkers/lib/kernel_checks.py, support/checkers/profiles/building_automation.yaml, and project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl.",
+            "git status --short showed exactly two modified support files.",
+            "git diff --stat showed 2 files changed, 259 insertions, 19 deletions.",
+            "git diff --check exited 0.",
+            "python3 -c syntax compile exited 0 for the two modified files.",
+            "PYTHONDONTWRITEBYTECODE=1 python3 -c direct predicate probe exited 0.",
+            "python3 -m support.checkers.check_profile --help exited 0 and showed --profile/--all options.",
+            "No Claude/Gemini model review was run in this inspector pass."
+          ],
+          "link_axis_findings": [
+            "The legacy evidence row is a paused transition_lifecycle row with pending_target_ref brick-dashboard-productization-0612-work and reason refs carrying adapter_error_frontier evidence.",
+            "The predicate recognizes the legacy reason-ref shape without choosing Movement or route target.",
+            "The stop path remains a disposition/paper-close behavior; this return does not choose forward or reroute."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Focused adapter_error_path_hardening checker execution green.",
+            "F16b mutation RED from an executed checker run.",
+            "Full check_profile --all green.",
+            "Full gate in a temp source copy.",
+            "Stop disposition on a /tmp copy of the real dashboard-productization-0612 root.",
+            "Provider quality, provider process integrity, native sync behavior, source truth, success judgment, quality judgment, or Movement authority.",
+            "Absence of future support-authority leaks beyond the inspected surfaces."
+          ],
+          "observed_evidence": [
+            {
+              "changed_files_observed": [
+                "support/operator/walker_resume.py",
+                "support/checkers/lib/kernel_checks.py"
+              ],
+              "narrowly_proven": [
+                "support/operator/walker_resume.py:436-445 now recognizes flat hold_reason == adapter_error_frontier and list-valued transition_lifecycle_reason_refs containing adapter_error_frontier.",
+                "The real legacy row at project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl:3 has no hold_reason field and carries transition_lifecycle_reason_refs including observation:reroute-hold-reason-adapter_error_frontier.",
+                "support/checkers/lib/kernel_checks.py:3574-3615 adds a legacy-shaped paper-stop fixture path that asserts zero adapter calls and no replayed step_results.",
+                "support/checkers/lib/kernel_checks.py:3617-3671 adds a flat-field-only mutation probe expected to RED by invoking the captured runner.",
+                "Direct read-only predicate probe returned {'flat': True, 'legacy': True, 'other': False, 'malformed': False}.",
+                "git diff --check exited 0.",
+                "Read-only syntax compile via python3 -c succeeded for support/operator/walker_resume.py and support/checkers/lib/kernel_checks.py."
+              ],
+              "worktree": "/Users/smith/projects/BRICK-wt-f14"
+            }
+          ],
+          "output_excerpt": "{ \"observed_evidence\": { \"worktree\": \"/Users/smith/projects/BRICK-wt-f14\", \"changed_files_observed\": [ \"support/operator/walker_resume.py\", \"support/checkers/lib/kernel_checks.py\" ], \"narrowly_proven\": [ \"support/operator/walker_resume.py:436-445 now recognizes flat hold_reason == adapter_error_frontier and list-valued transition_lifecycle_reason_refs containing adapter_error_frontier.\", \"The real legacy row at project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl:3 has no hold_reason field and carries transition_lifecycle_reason_refs including observation:reroute-ho...",
+          "projection_authority_findings": [
+            "The real raw/link.jsonl row and synthetic checker row are treated here as support evidence only.",
+            "Checker green, predicate probes, and syntax compile are not source truth, not success judgment, not quality judgment, and not Movement authority.",
+            "No projection was observed acting as authority in the inspected surfaces."
+          ],
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "no Link Movement selected by this Agent return",
+            "no route target selected by this Agent return",
+            "no file mutation performed by this inspector pass"
+          ],
+          "remaining_delta": [
+            "Run the focused adapter_error_path_hardening profile from a writable repair/verification lane.",
+            "Run the flat-field-only mutation probe and record RED evidence.",
+            "Run compileall and full check_profile --all in a temp source copy, then record the copy path and command outcomes.",
+            "Use this inspector return only as support evidence for the declared F16b road; do not treat it as closure by itself."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "support_leak_findings": [
+            "Observed implementation is in support/operator and support/checkers only.",
+            "The checker mutates a temp fixture and monkeypatches walker_resume._adapter_error_hold_without_return only inside the checker probe, restoring it in finally.",
+            "No new dependency, new module family, scheduler, queue, retry runtime, provider runtime, or source-truth surface was observed in the inspected diff."
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:04:f16b-legacy-hold-paper-stop-0613-axis-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:04"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:inspector",
+        "received_work": "brick-work:05:f16b-legacy-hold-paper-stop-0613-evidence-integrity",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:inspector",
+          "blocked_or_missing_evidence": [
+            "Read-only Agent/tool policy and sandbox block the prescribed write-producing verification commands in this inspector pass.",
+            "A separate admitted verification lane is needed to run the focused checker, mutation probe, compileall, and full temp-copy gate."
+          ],
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "checker_overclaim_risks": [
+            "Focused pin green, mutation RED, compileall, and full gate were not executed here; claiming closure from code inspection alone would overstate the evidence.",
+            "The checker output text in kernel_checks.py describes covered invariants, but that text is not runtime proof until the checker is run.",
+            "The paper-stop branch now occurs before recorded-return replay for adapter-error stop holds; this matches the zero-adapter invariant but still needs the prescribed gate evidence over representative roots."
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:f16b-legacy-hold-paper-stop-0613",
+          "cli_version_text": "codex-cli 0.137.0",
+          "evidence_refs": [
+            "support-packet:f16b-legacy-hold-paper-stop-0613:agent-object:inspector:output"
+          ],
+          "evidence_scope": [
+            "Read-only inspection of the three packet-named surfaces: support/operator/walker_resume.py, project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl, and support/checkers/lib/kernel_checks.py.",
+            "Diff inspection was limited to those named paths.",
+            "No repo mutation, hook execution, provider SDK execution, network access, git mutation, commit, or push was performed."
+          ],
+          "evidence_used": [
+            "nl -ba support/operator/walker_resume.py | sed -n '200,455p'",
+            "nl -ba support/checkers/lib/kernel_checks.py | sed -n '3430,3925p'",
+            "nl -ba support/checkers/lib/kernel_checks.py | sed -n '3915,3995p'",
+            "rg -n 'transition_lifecycle_reason_refs|adapter_error_frontier|adapter-error-frontier' project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl",
+            "rg -n '\"hold_reason\"' project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl",
+            "git diff -- support/operator/walker_resume.py support/checkers/lib/kernel_checks.py project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl",
+            "git diff --stat -- support/operator/walker_resume.py support/checkers/lib/kernel_checks.py project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl",
+            "git diff --name-only -- support/operator/walker_resume.py support/checkers/lib/kernel_checks.py project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl",
+            "git diff --check -- support/operator/walker_resume.py support/checkers/lib/kernel_checks.py"
+          ],
+          "missing_evidence": [
+            "compileall evidence was not collected because this lane is read-only and compileall may create bytecode/cache files.",
+            "Focused adapter_error_path_hardening execution was not collected because it creates temporary Building roots.",
+            "Mutation RED was not executed in this pass.",
+            "Full gate --all in a temp source copy was not executed in this pass.",
+            "No dashboard receipt or Building support evidence root for f16b-legacy-hold-paper-stop-0613 was observed here."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "source truth",
+            "success judgment",
+            "quality judgment",
+            "Movement authority",
+            "provider quality",
+            "focused checker green",
+            "mutation RED execution",
+            "compileall green",
+            "full gate --all in temp source copy",
+            "zero adapter invocations on a copied real dashboard-productization-0612 stop disposition in this pass",
+            "future Building correctness"
+          ],
+          "observed_evidence": [
+            "support/operator/walker_resume.py:211-225 currently takes the paper-stop adapter-error path before reading recorded returns when disposition_action is stop and _adapter_error_hold_without_return returns true.",
+            "support/operator/walker_resume.py:436-445 currently recognizes flat hold_reason == adapter_error_frontier or any string item in transition_lifecycle_reason_refs containing adapter_error_frontier.",
+            "project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl:3 contains transition_lifecycle_reason_refs with observation:reroute-hold-reason-adapter_error_frontier and observation:adapter-error-frontier:dashboard-productization-0612-work.",
+            "rg for \"hold_reason\" in the real dashboard-productization-0612 raw link file exited 1 with no matches observed.",
+            "support/checkers/lib/kernel_checks.py:3574-3615 adds a legacy-stop fixture path with a captured runner and a check that legacy_calls remains empty.",
+            "support/checkers/lib/kernel_checks.py:3617-3671 adds a flat-field-only predicate mutation probe and expects a captured adapter invocation for RED evidence.",
+            "support/checkers/lib/kernel_checks.py:3877-3995 adds _rewrite_adapter_error_hold_as_legacy_reason_refs; lines 3915-3920 remove hold_reason and set transition_lifecycle_reason_refs including adapter_error_frontier.",
+            "git diff --name-only for the inspected paths listed only support/checkers/lib/kernel_checks.py and support/operator/walker_resume.py.",
+            "git diff --check for the two changed support files exited 0 with no output."
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ \"support/operator/walker_resume.py:211-225 currently takes the paper-stop adapter-error path before reading recorded returns when disposition_action is stop and _adapter_error_hold_without_return returns true.\", \"support/operator/walker_resume.py:436-445 currently recognizes flat hold_reason == adapter_error_frontier or any string item in transition_lifecycle_reason_refs containing adapter_error_frontier.\", \"project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl:3 contains transition_lifecycle_reason_refs with observation:reroute-hold-reason-a...",
+          "persisted_evidence_roots": [
+            "project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl was read as existing legacy support evidence.",
+            "No new persisted evidence root was created in this inspector pass."
+          ],
+          "proof_limit_findings": [
+            "The observed predicate change is support/operator behavior only; it does not create source truth, success judgment, quality judgment, or Movement authority.",
+            "The checker addition is support evidence only; it can pin the invariant if executed, but checker presence alone does not prove the invariant over live roots.",
+            "The real legacy row shape supports the narrow prescribed containment check because the underscore token adapter_error_frontier appears in a reason ref while flat hold_reason is absent.",
+            "The current implementation keeps the reason-ref match narrower than generic adapter/frontier wording by checking the exact adapter_error_frontier token."
+          ],
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "no Link Movement chosen",
+            "no route target chosen",
+            "no credential, setup token, auth body, or raw provider session inspected",
+            "checker result, if later run, remains support evidence only"
+          ],
+          "remaining_delta": [
+            "Collect prescribed runtime proof in an admitted verification lane: compileall, git diff --check, focused adapter_error_path_hardening, mutation RED, and full gate --all in a temp source copy.",
+            "Record the temp source copy path and any Building/support evidence root produced by that verification lane.",
+            "Keep any implementation delta inside support/* unless a separate admitted repair changes scope."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "stale_source_risks": [
+            "The real 0612 row is project-local persisted evidence, not source truth for future Building roots.",
+            "The checker helper manually synthesizes a legacy-shaped row; field-for-field fixture behavior was observed in code, not by executing the generated fixture.",
+            "The operator FIRE reproduction on a /tmp copy was provided in the task statement; I did not independently reproduce that live-copy tripwire in this read-only pass."
+          ]
+        }
+      },
+      "fact_ref": "agent-fact:05:f16b-legacy-hold-paper-stop-0613-evidence-integrity",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:05"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:coo",
+        "received_work": "brick-work:06:f16b-legacy-hold-paper-stop-0613-closure",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:coo",
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "cli_call_ref": "support-cli-call:adapter:codex-local:f16b-legacy-hold-paper-stop-0613",
+          "cli_version_text": "codex-cli 0.137.0",
+          "deferred_smith_review_queue": [
+            "Review only after the writable verification lane records focused checker green, mutation RED, and full temp-source-copy gate evidence.",
+            "No AGENTS.md, brick/*, agent/*, link/*, project/*, pyproject.toml, uv.lock, or .git mutation was observed in this closure inspection."
+          ],
+          "evidence_refs": [
+            "support-packet:f16b-legacy-hold-paper-stop-0613:agent-object:coo:output"
+          ],
+          "narrowly_proven": [
+            "The current local diff is confined to support/operator/walker_resume.py and support/checkers/lib/kernel_checks.py.",
+            "The current predicate code accepts both the new flat hold_reason shape and the inspected legacy transition_lifecycle_reason_refs shape, while rejecting unrelated or malformed reason_ref inputs in the local no-write probe.",
+            "The stop paper-close path is now positioned before recorded-return replay lookup in the inspected source.",
+            "The checker family now contains a legacy-shaped fixture path and a flat-field-only mutation probe for the F16b invariant.",
+            "Whitespace/diff-check and read-only syntax checks are clean for the modified support files."
+          ],
+          "next_target_candidates": [
+            "No Agent-selected Link Movement or route target.",
+            "Caller/COO candidate: keep the current F16b road in verification evidence collection until the prescribed temp-copy gates are recorded.",
+            "If verification fails, caller/COO may declare a reroute to an explicit support/* repair Brick boundary carrying the failed gate output as handoff evidence."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Focused adapter_error_path_hardening execution green.",
+            "F16b flat-field-only mutation RED from an executed checker run.",
+            "Full check_profile --all green in a temp source copy.",
+            "compileall green in a writable temp source copy.",
+            "Temp source copy path and output evidence root for the full gate.",
+            "Stop disposition on a copied real dashboard-productization-0612 root with zero adapter invocations.",
+            "Persisted f16b-legacy-hold-paper-stop-0613 Building evidence root in this checkout.",
+            "Provider quality, provider process integrity, native sync behavior, source truth, success judgment, quality judgment, or Movement authority.",
+            "Absence of future support-authority leaks beyond the inspected surfaces."
+          ],
+          "observed_evidence": [
+            {
+              "branch": "claude/track-f16b",
+              "changed_files_observed": [
+                "support/checkers/lib/kernel_checks.py",
+                "support/operator/walker_resume.py"
+              ],
+              "evidence_root_observation": "project/brick-protocol/buildings/f16b-legacy-hold-paper-stop-0613 was not present in this checkout; supplied QA step-output bodies were treated as incoming handoff evidence.",
+              "forbidden_path_mutations_observed": [],
+              "head": "2908247",
+              "worktree": "/Users/smith/projects/BRICK-wt-f14"
+            },
+            "project/brick-protocol/PROGRESS.md is machine-generated support projection and currently reports 22 buildings: closed=16, link_paused=5, observed_running=1; it is not source truth or quality/success judgment.",
+            "support/operator/walker_resume.py:211-225 takes the stop + adapter-error paper-stop branch before reading recorded Agent returns.",
+            "support/operator/walker_resume.py:436-445 recognizes flat hold_reason == adapter_error_frontier and list-valued transition_lifecycle_reason_refs entries containing adapter_error_frontier.",
+            "project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl:3 has transition_lifecycle_reason_refs including observation:reroute-hold-reason-adapter_error_frontier.",
+            "rg for a flat \"hold_reason\" key in project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl exited 1, so the inspected legacy row has no flat hold_reason field.",
+            "support/checkers/lib/kernel_checks.py:3574-3615 adds a legacy-shaped paper-stop fixture with a captured runner, zero-adapter-call assertion, no replayed step_results assertion, and complete frontier observation.",
+            "support/checkers/lib/kernel_checks.py:3617-3671 adds a flat-field-only predicate mutation probe that expects a live adapter invocation to fire RED.",
+            "support/checkers/lib/kernel_checks.py:3877-3997 rewrites generated fixture evidence into the legacy reason-ref shape by removing hold_reason and appending transition_lifecycle_reason_refs.",
+            "support/checkers/profiles/building_automation.yaml includes adapter_error_path_hardening.",
+            "git diff --check -- support/operator/walker_resume.py support/checkers/lib/kernel_checks.py exited 0.",
+            "No-write syntax compile via python3 compile(Path.read_text(), path, 'exec') succeeded for the two modified files.",
+            "No-write predicate probe returned {\"flat\": true, \"legacy\": true, \"non_list\": false, \"other\": false}.",
+            "Incoming code-attack, axis-attack, and evidence-integrity returns all agree that focused checker execution, mutation RED execution, and full temp-source-copy gate were not collected in their lanes."
+          ],
+          "output_excerpt": "{ \"observed_evidence\": [ { \"worktree\": \"/Users/smith/projects/BRICK-wt-f14\", \"branch\": \"claude/track-f16b\", \"head\": \"2908247\", \"changed_files_observed\": [ \"support/checkers/lib/kernel_checks.py\", \"support/operator/walker_resume.py\" ], \"forbidden_path_mutations_observed\": [], \"evidence_root_observation\": \"project/brick-protocol/buildings/f16b-legacy-hold-paper-stop-0613 was not present in this checkout; supplied QA step-output bodies were treated as incoming handoff evidence.\" }, \"project/brick-protocol/PROGRESS.md is machine-generated support projection and currently reports 22 buildings: c...",
+          "parent_goal_delta_status": "partial_support_evidence_only: implementation shape and checker pin are present in the live diff, but the prescribed focused checker, mutation RED, copied-real-root stop proof, and full temp-copy gate remain uncollected.",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "remaining_delta": [
+            "Collect the prescribed verification in a writable verification lane: compileall, git diff --check, focused adapter_error_path_hardening/building_automation profile, F16b mutation RED, and full check_profile --all in a temp source copy.",
+            "Record the temp source copy path and command outcomes as support evidence.",
+            "If any prescribed gate fails, return to a declared support/* repair boundary rather than treating this closure synthesis as a route or Movement decision.",
+            "Do not claim closure from source inspection and incoming QA returns alone."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_model_ref": "model:codex:default",
+          "transition_concern_evidence": {
+            "binding": false,
+            "concern_kind": "verification_gap",
+            "concern_ref": "transition-concern:f16b-legacy-hold-paper-stop-0613:closure-verification-gap",
+            "not_proven": [
+              "Focused checker green.",
+              "Mutation RED execution.",
+              "Full temp-source-copy gate.",
+              "Copied-real-root zero-adapter stop proof."
+            ],
+            "proof_limits": [
+              "support evidence only",
+              "not source truth",
+              "not success judgment",
+              "not quality judgment",
+              "not Movement authority",
+              "no Link Movement chosen",
+              "no route target chosen"
+            ],
+            "reason_refs": [
+              "support/operator/walker_resume.py:211-225",
+              "support/operator/walker_resume.py:436-445",
+              "support/checkers/lib/kernel_checks.py:3574-3671",
+              "support/checkers/lib/kernel_checks.py:3877-3997",
+              "project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl:3",
+              "support-packet:f16b-legacy-hold-paper-stop-0613:agent-object:qa:output",
+              "support-packet:f16b-legacy-hold-paper-stop-0613:agent-object:inspector:output"
+            ],
+            "related_boundary_refs": [
+              "brick-f16b-legacy-hold-paper-stop-0613-closure",
+              "brick-f16b-legacy-hold-paper-stop-0613-code-attack-qa",
+              "brick-f16b-legacy-hold-paper-stop-0613-axis-attack-qa",
+              "brick-f16b-legacy-hold-paper-stop-0613-evidence-integrity",
+              "brick-dashboard-productization-0612-work"
+            ]
+          }
+        }
+      },
+      "fact_ref": "agent-fact:06:f16b-legacy-hold-paper-stop-0613-closure",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:06"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-13T02:28:18Z",
+  "id": "urn:bp:building:f16b-legacy-hold-paper-stop-0613::evidence/claim_trace/agent/returned_claims.json",
+  "recorded_at": "2026-06-13T02:28:18Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:f16b-legacy-hold-paper-stop-0613",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/agent/returned_claims.json",
+  "time": "2026-06-13T02:28:18Z",
+  "type": "bp.claim_trace"
+}

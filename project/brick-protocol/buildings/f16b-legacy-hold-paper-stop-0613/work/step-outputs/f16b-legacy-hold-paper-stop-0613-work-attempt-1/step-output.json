@@ -1,0 +1,163 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:f16b-legacy-hold-paper-stop-0613::work/step-outputs/f16b-legacy-hold-paper-stop-0613-work-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:dev",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-f16b-legacy-hold-paper-stop-0613-work",
+  "building_id": "f16b-legacy-hold-paper-stop-0613",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-13T02:18:47.587542Z",
+  "id": "urn:bp:building:f16b-legacy-hold-paper-stop-0613::work/step-outputs/f16b-legacy-hold-paper-stop-0613-work-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:f16b-legacy-hold-paper-stop-0613-work",
+  "recorded_at": "2026-06-13T02:18:47.587542Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:dev",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "changed_files": [
+      "support/checkers/lib/kernel_checks.py",
+      "support/operator/walker_resume.py"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:f16b-legacy-hold-paper-stop-0613",
+    "cli_version_text": "codex-cli 0.137.0",
+    "evidence_refs": [
+      "support-packet:f16b-legacy-hold-paper-stop-0613:agent-object:dev:output"
+    ],
+    "made_changes": [
+      "support/operator/walker_resume.py: paper-stop adapter-error stop dispositions before replay/live continuation, and recognize both flat hold_reason and legacy transition_lifecycle_reason_refs containing adapter_error_frontier.",
+      "support/checkers/lib/kernel_checks.py: extended adapter_error_path_hardening with an F16b legacy-shaped post-return hold fixture, zero runner-call assertion, and flat-field-only mutation RED probe."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority",
+      "provider behavior outside captured runner probes",
+      "semantic correctness of stopped work",
+      "ambient-shell full gate stability when report-grain/delivery environment variables are set",
+      "future adapter-error hold shapes beyond tested flat hold_reason and legacy reason-ref forms",
+      "model review coverage"
+    ],
+    "observed_evidence": [
+      "Read-only legacy row observed in project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl: transition_lifecycle_reason_refs contains observation:reroute-hold-reason-adapter_error_frontier and no flat hold_reason.",
+      "Focused gate passed: python3 support/checkers/check_profile.py --profile support/checkers/profiles/building_automation.yaml; output reported flat and legacy reason-ref holds paper-closed without adapter invocation and F16/F16b/F19 mutation probes fired RED.",
+      "compileall passed: python3 -m compileall brick agent link support.",
+      "diff whitespace gate passed: git diff --check.",
+      "Full temp-copy gate passed at /tmp/brick-f16b-full-gate-tU7dYn after baking support/dashboard/public/dashboard-data.json inside the copy and running python3 support/checkers/check_profile.py --all with report delivery/grain environment unset.",
+      "Final worktree changes are limited to support/checkers/lib/kernel_checks.py and support/operator/walker_resume.py."
+    ],
+    "output_excerpt": "{ \"made_changes\": [ \"support/operator/walker_resume.py: paper-stop adapter-error stop dispositions before replay/live continuation, and recognize both flat hold_reason and legacy transition_lifecycle_reason_refs containing adapter_error_frontier.\", \"support/checkers/lib/kernel_checks.py: extended adapter_error_path_hardening with an F16b legacy-shaped post-return hold fixture, zero runner-call assertion, and flat-field-only mutation RED probe.\" ], \"observed_evidence\": [ \"Read-only legacy row observed in project/brick-protocol/buildings/dashboard-productization-0612/raw/link.jsonl: transitio...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_model_ref": "model:codex:default",
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "claude/track-f16b",
+        "head": "290824792bd1545549495238136423bc101c97b5"
+      },
+      "after_git_status_paths": [
+        "support/checkers/lib/kernel_checks.py",
+        "support/operator/walker_resume.py"
+      ],
+      "after_path_count": 4747,
+      "before_git_refs": {
+        "branch": "claude/track-f16b",
+        "head": "290824792bd1545549495238136423bc101c97b5"
+      },
+      "before_git_status_paths": [],
+      "before_path_count": 4747,
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [
+        "support/checkers/lib/kernel_checks.py",
+        "support/operator/walker_resume.py"
+      ],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "support/*"
+        ],
+        "forbidden_paths": [
+          "link/*",
+          "agent/*",
+          "brick/*",
+          "project/*",
+          ".git/*",
+          "AGENTS.md",
+          "pyproject.toml",
+          "uv.lock"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:02:f16b-legacy-hold-paper-stop-0613-work",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:f16b-legacy-hold-paper-stop-0613",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:f16b-legacy-hold-paper-stop-0613-work:attempt-1",
+  "step_ref": "f16b-legacy-hold-paper-stop-0613-work",
+  "subject": "f16b-legacy-hold-paper-stop-0613-work",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-13T02:18:47.587542Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

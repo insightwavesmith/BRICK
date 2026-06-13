@@ -1,0 +1,11 @@
+# LinkGateCheck · seq 62 · ["Link"]
+- axis_scope: ["Link"]
+- checked_public_fact: "brick-comparison:f16b-legacy-hold-paper-stop-0613:f16b-legacy-hold-paper-stop-0613-closure"
+- event_type: "LinkGateCheck"
+- gate_ref: "link-gate:human"
+- ordinal: 1
+- run_segment: 2
+- sequence_index: 62
+- source_fact_ref: "gate-receipt-fact-1:06:f16b-legacy-hold-paper-stop-0613-closure"
+- spine_schema_version: "spine-v1"
+- sufficiency: "missing_required_facts"

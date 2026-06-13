@@ -1,0 +1,12 @@
+# AgentBinding · seq 21 · ["Agent"]
+- agent_object_ref: "agent-object:dev"
+- agent_performer_ref: "agent-performer:agent-object:dev"
+- axis_scope: ["Agent"]
+- binding_role: "primary"
+- brick_instance_ref: "brick-f16b-legacy-hold-paper-stop-0613-work"
+- event_type: "AgentBinding"
+- run_segment: 2
+- sequence_index: 21
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/f16b-legacy-hold-paper-stop-0613-work-attempt-1/step-output.json"
+- step_ref: "f16b-legacy-hold-paper-stop-0613-work"
