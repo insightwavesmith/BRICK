@@ -196,6 +196,15 @@ ONBOARD_INSTALL_SCRIPT0_TARGETS = {
     "support/onboarding/install.sh",
 }
 
+# RELEASE-EXPORT-0: the operator-run clean public release export verb. This is
+# an inert onboarding support artifact: it copies the checkout to a clean output
+# tree, excludes local project evidence and build artifacts, initializes a fresh
+# git repository there, and prints push/tag follow-up commands without doing
+# network publication. Owns no crossing, judges nothing.
+ONBOARD_RELEASE_EXPORT0_TARGETS = {
+    "support/onboarding/release_export.sh",
+}
+
 # ONBOARDING-RECORDING-HOOKS (0610): TRACKED machine-neutral templates for the
 # per-LLM auto-recording hooks. These are the SOURCE the onboard wizard's
 # opt-in recording step (support/operator/onboard.py) copies into a checkout's
@@ -1600,6 +1609,9 @@ def allowed_path(path: str) -> bool:
         return True
 
     if clean in ONBOARD_INSTALL_SCRIPT0_TARGETS:
+        return True
+
+    if clean in ONBOARD_RELEASE_EXPORT0_TARGETS:
         return True
 
     if clean in ONBOARD_RECORDING_HOOK_TEMPLATE_TARGETS:

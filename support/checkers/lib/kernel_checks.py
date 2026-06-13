@@ -1961,6 +1961,11 @@ def _onboard_smoke_assert_shape(label: str, result: Any) -> None:
 
 
 _INSTALL_SCRIPT_REL = "support/onboarding/install.sh"
+_RELEASE_EXPORT_REL = "support/onboarding/release_export.sh"
+_RELEASE_EXPORT_REQUIRED_EXCLUSIONS = (
+    "project",
+    "brick_protocol.egg-info",
+)
 
 # Secret-shaped patterns the one-line installer must NEVER carry inline. The
 # script relies on the teammate's OWN gh/git login as the access grant; nothing
@@ -2071,6 +2076,78 @@ def run_install_script_lint(repo: Path) -> KernelResult:
             "prove the script actually installs on a real fresh machine (network "
             "clone, uv sync, provider auth); that is manual / Phase-4 infra, not "
             "gated here."
+        ),
+    )
+
+
+def _release_export_exclusions(text: str) -> set[str]:
+    match = re.search(r"EXCLUDE_PATHS\s*=\s*\((?P<body>.*?)\)", text, re.DOTALL)
+    if not match:
+        return set()
+    return set(re.findall(r"""["']([^"']+)["']""", match.group("body")))
+
+
+def _release_export_exclusion_violations(text: str) -> list[str]:
+    exclusions = _release_export_exclusions(text)
+    violations: list[str] = []
+    if not exclusions:
+        violations.append("missing literal EXCLUDE_PATHS tuple")
+    for required in _RELEASE_EXPORT_REQUIRED_EXCLUSIONS:
+        if required not in exclusions:
+            violations.append(f"missing required exclusion: {required}/")
+    if "git remote add origin git@github.com:{OWNER}/BRICK.git" not in text:
+        violations.append("missing placeholder remote follow-up command")
+    if "git tag v0.1.0" not in text:
+        violations.append("missing v0.1.0 tag follow-up command")
+    if "git push -u origin main" not in text or "git push origin v0.1.0" not in text:
+        violations.append("missing manual push follow-up commands")
+    return violations
+
+
+def _release_export_exclusion_fire_probe(text: str) -> int:
+    mutated = text.replace('    "project",\n', "", 1)
+    violations = _release_export_exclusion_violations(mutated)
+    if not any("missing required exclusion: project/" in violation for violation in violations):
+        raise ProfileError(
+            "release_export_exclusion FIRE probe did NOT fire when project/ "
+            "was removed from the export exclusion list"
+        )
+    return 1
+
+
+def run_release_export_exclusion(repo: Path) -> KernelResult:
+    """Pin the clean-repo export verb's local-evidence exclusion list.
+
+    The release export is allowed to prepare a public tree, but it must not ship
+    the local project evidence vessel or Python build metadata. This check only
+    inspects the support verb's literal exclusion contract and publication
+    follow-up shape. It does not push, tag, run the export, judge release
+    quality, or prove future operator behavior.
+    """
+
+    script_path = repo / _RELEASE_EXPORT_REL
+    if not script_path.is_file():
+        raise ProfileError(
+            f"release_export_exclusion: export verb missing: {_RELEASE_EXPORT_REL}"
+        )
+    text = script_path.read_text(encoding="utf-8")
+    violations = _release_export_exclusion_violations(text)
+    if violations:
+        raise ProfileError(
+            "release_export_exclusion rejected export verb:\n"
+            + "\n".join(f"- {violation}" for violation in violations)
+        )
+    inspected = 1 + _release_export_exclusion_fire_probe(text)
+    return KernelResult(
+        check_id="release_export_exclusion",
+        inspected=inspected,
+        output=(
+            "release export exclusion pin passed: support/onboarding/release_export.sh "
+            "carries literal exclusions for project/ and brick_protocol.egg-info/, "
+            "prints manual remote/tag/push follow-up commands with {OWNER}, and "
+            "the temp mutation removing project/ fired RED. PROOF LIMIT: this is "
+            "support evidence only; it does not run publication, choose Movement, "
+            "or judge release quality."
         ),
     )
 

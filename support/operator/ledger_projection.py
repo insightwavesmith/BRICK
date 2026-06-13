@@ -61,6 +61,11 @@ def discover_project_vessels(
     declarations: list[ProjectDeclaration] = []
     for vessel_dir in sorted(project_root.iterdir()):
         if vessel_dir.is_dir():
+            if not any(
+                (vessel_dir / marker).exists()
+                for marker in ("README.md", "project.json", "buildings")
+            ):
+                continue
             declarations.append(load_project_declaration(repo, vessel_dir.name))
     return tuple(declarations)
 
@@ -108,11 +113,6 @@ def project_orchestration_ledger_packet(
         "workspace_ref": _clean_text("workspace_ref", workspace_ref),
     }
     vessels = discover_project_vessels(repo)
-    if not vessels:
-        raise ValueError(
-            "no declared project vessel found — a project must declare its "
-            "charter and direction (project.json) before the ledger can project it"
-        )
     rows: list[Mapping[str, Any]] = []
     vessel_summaries: list[Mapping[str, Any]] = []
     project_blocks: dict[str, Mapping[str, str]] = {}
@@ -158,9 +158,17 @@ def project_orchestration_ledger_packet(
             f"home_project_ref {home_project_ref!r} names no declared vessel — "
             f"declared: {', '.join(sorted(project_blocks))}"
         )
-    home_block = project_blocks[
-        home_project_ref if home_project_ref is not None else vessels[0].project_ref
-    ]
+    home_block = (
+        project_blocks[
+            home_project_ref if home_project_ref is not None else vessels[0].project_ref
+        ]
+        if vessels
+        else {
+            "project_ref": "",
+            "project_label": "No declared project",
+            "project_direction": "",
+        }
+    )
     counters: dict[str, int] = {}
     for row in rows:
         board_state = str(row.get("board_state", "unknown"))

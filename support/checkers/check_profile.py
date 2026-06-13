@@ -125,6 +125,7 @@ from support.checkers.lib.kernel_checks import (
     run_provider_preflight,
     run_onboard_smoke,
     run_install_script_lint,
+    run_release_export_exclusion,
     run_product_no_smith_residue,
     run_reporter_notification_projection,
     run_chat_session_park_seam,
@@ -167,6 +168,7 @@ KERNEL_CHECK_IDS = {
     "provider_preflight",
     "onboard_smoke",
     "install_script_lint",
+    "release_export_exclusion",
     "product_no_smith_residue",
     "reporter_notification_projection",
     "chat_session_park_seam",
@@ -505,6 +507,12 @@ def run_kernel_check(repo: Path, check_id: str) -> KernelResult:
         # non-zero. PROOF LIMIT: structure/safety only -- it does NOT prove a real
         # fresh-machine install (clone/uv sync/provider auth = manual / Phase-4).
         return run_install_script_lint(repo)
+    if check_id == "release_export_exclusion":
+        # RELEASE-EXPORT-0. Structural exclusion pin for the clean public export
+        # verb: project/ local evidence and brick_protocol.egg-info/ build
+        # metadata must not ship, and publication stays as printed follow-up
+        # commands. Includes a temp mutation that removes project/ and must RED.
+        return run_release_export_exclusion(repo)
     if check_id == "product_no_smith_residue":
         # ONBOARDING-LEGACY-SCRUB-0612. Scans shipped newcomer-facing surfaces
         # (README.md, support/docs/spec, agent/prompts) for Smith local residue:

@@ -22,6 +22,58 @@ uv run python3 -m brick_protocol.support.operator.onboard codex
 폴더에만 기록) → 다음 단계 안내까지 알아서 진행해요. 아래의 손으로 조립하는
 경로 없이도 같은 입구(seam, `run_building_intake`)를 통과합니다.
 
+## AI-runnable onboarding checklist
+
+Fresh clone부터 첫 Building과 dashboard snapshot까지 운영자 AI가 그대로
+따라갈 수 있는 확인 줄입니다.
+
+```text
+step: clone + install
+command: gh repo clone {OWNER}/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh
+expected: "5) 설치 점검 완료" 와 다음 온보딩 명령이 출력된다.
+failure signal: BRICK_REPO={OWNER}/BRICK 요청, gh auth login 요청, python3/uv 진단, 또는 clone/pull 실패.
+
+step: doctor
+command: cd ~/BRICK && uv run python3 -m brick_protocol.support.operator.onboard doctor
+expected: provider별 준비 상태 표와 증상 -> 처방 표가 출력되고 exit 0.
+failure signal: doctor 자체 stack trace, 또는 repo 루트가 아닌 곳에서 실행한 import 실패.
+
+step: first Building from text
+command: cd ~/BRICK && uv run python3 -c 'from brick_protocol.support.operator.driver import run_building_intake; result = run_building_intake({"declared_by":"caller-quickstart","task_statement":"첫 온보딩 빌딩을 support evidence only로 기록해 주세요.","chain_preset_ref":"building-chain-preset:design-contract-only","selected_adapter_ref":"adapter:local","building_id":"quickstart-ai-runnable-001","project_ref":"project:brick-protocol"}); print(result.building_id); print(result.run_result.lifecycle_write.root)'
+expected: quickstart-ai-runnable-001 과 project/brick-protocol/buildings/quickstart-ai-runnable-001 경로가 출력된다.
+failure signal: FileExistsError이면 building_id를 새로 정한다; ModuleNotFoundError이면 uv run 또는 PYTHONPATH를 확인한다.
+
+step: dashboard snapshot
+command: cd ~/BRICK && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity uv run python3 support/operator/dashboard_export.py --bake-public
+expected: "baked support/dashboard/public/dashboard-data.json | buildings N | source_truth False".
+failure signal: source_truth가 False가 아니거나, dashboard-data.json 생성 실패, 또는 project evidence shape 거절.
+
+step: checker gate
+command: cd ~/BRICK && PYTHONPATH=support/import_identity uv run python3 support/checkers/check_profile.py --all
+expected: profile passed: 줄들이 출력되고 마지막 proof-limit 줄 뒤 exit 0.
+failure signal: "profile runner rejected evidence:" 뒤 첫 줄이 수리 대상이다.
+```
+
+운영자 세션은 status inbox 감시를 같이 켭니다. release export에는 `project/`가
+없으므로 첫 onboard/run 뒤부터 경로가 생길 수 있습니다.
+
+```bash
+cd ~/BRICK
+while true; do
+  if [ -d project/brick-protocol/status/inbox ]; then
+    find project/brick-protocol/status/inbox -maxdepth 1 -type f -name '*.json' -print | tail -20
+  else
+    printf '%s\n' 'status inbox not created yet'
+  fi
+  sleep 5
+done
+```
+
+예상 출력은 알림이 없으면 빈 줄 또는 `status inbox not created yet`, 알림이
+있으면 `project/brick-protocol/status/inbox/*.json` 경로입니다. 실패 신호는
+repo 루트가 아닌 곳에서 실행하거나 `find`가 숨기지 않은 `No such file or
+directory`를 반복하는 경우입니다.
+
 ## 막혔을 때: 증상 → 처방
 
 `uv run python3 -m brick_protocol.support.operator.onboard doctor` 를 돌리면
