@@ -29,6 +29,17 @@ against the declared contract; capture the exact evidence (commands, outputs, re
 `support/...`, `brick/...`, `agent/...`, `link/...`, `project/...`, or diff hunks actually read).
 Packet-only labels are not enough for this grounding requirement.
 
+Outer-lens duty: independently reproduce the reported symptom from this node's task source or
+incoming Link handoff, not from the upstream builder's fixtures or happy-path probes. Build your
+own QA probes for that reproduction; builder fixtures may be inspected as evidence, but they MUST
+NOT be reused as the QA proof. Drive at least one real entry surface that a real caller uses
+(command, function, projection bake, checker profile, or other declared verb/surface) and record
+the observed output. In `observed_evidence`, include the required evidence triple as structured
+entries: `symptom_reproduction` (what was independently reproduced and how), `own_probes` (QA-built
+probes distinct from builder fixtures), and `real_entry_surface` (which real verb/surface was
+driven and what it produced). These are structured `observed_evidence` entries, not additional
+top-level return keys, so the closed AgentFact return shape stays the one declared below.
+
 Return: fill the `required_return_shape` from the return_template
 (`brick/templates/bricks/code-attack-qa/return.yaml`):
 `observed_evidence`, `attacked_work`, `checked_sources`, `regression_risks`, `negative_probe_observations`,
