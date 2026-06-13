@@ -42,11 +42,21 @@ from brick_protocol.support.operator.plan_graph import (
     _linear_plan_from_graph_plan,
 )
 from brick_protocol.support.operator.primitives import (
+    _merge_texts,
     _optional_text_from_mapping,
     _optional_text_value,
 )
+from brick_protocol.support.recording.building_map import BuildingMapWriteResult
+from brick_protocol.support.recording.capture import (
+    BuildingLifecycleWriteResult,
+    graph_ready_json_object,
+    graph_ready_timestamp,
+)
+from brick_protocol.support.recording.declaration_packets import _plan_snapshot
+from brick_protocol.support.recording.walker_evidence import build_resume_observation
 from brick_protocol.support.operator.walker_hold import (
     _hold_paused_at_ref,
+    _resumed_lifecycle_from_hold,
 )
 from brick_protocol.support.operator.walker_kernel import (
     ResumeSeed,
@@ -189,8 +199,32 @@ def _resume_dynamic_graph_walker(
                 "is EMPTY; refusing to resume with no budget map"
             )
 
+    action = _required_disposition_action(disposition)
+    pending_target = _optional_text_value(hold_record.get("pending_target_ref")) or ""
+    paused_at_ref = (
+        _optional_text_value(disposition.get("resumed_from_ref"))
+        or _optional_text_value(disposition.get("paused_at_ref"))
+        or _hold_paused_at_ref(hold_record)
+    )
+    author_ref = _optional_text_value(disposition.get("author_ref")) or "human:unknown"
+
     recorded_returns = _recorded_agent_returns(root)
     if not recorded_returns:
+        if action == "stop" and _adapter_error_hold_without_return(hold_record):
+            return _paper_stop_adapter_error_hold(
+                root,
+                declared_plan=declared_plan,
+                plan_ref=_optional_text_value(plan.get("plan_ref"))
+                or _optional_text_value(declared_plan.get("plan_ref"))
+                or "building-plan:anonymous",
+                evidence=evidence,
+                hold_record=hold_record,
+                disposition=disposition,
+                paused_at_ref=paused_at_ref,
+                pending_target=pending_target,
+                author_ref=author_ref,
+                checked_proof_limits=checked_proof_limits,
+            )
         raise ValueError("held Building evidence carries no recorded Agent returns to replay")
     # Per step_ref FIFO of recorded returns + AT-TIME gate records, in REALIZED
     # order, so the forward loop REPLAYS the k-th visit with the k-th recorded
@@ -229,15 +263,6 @@ def _resume_dynamic_graph_walker(
                 "the recorded-return ledger and the step-output ledger disagree -- "
                 "refusing to resume from inconsistent evidence"
             )
-
-    action = _required_disposition_action(disposition)
-    pending_target = _optional_text_value(hold_record.get("pending_target_ref")) or ""
-    paused_at_ref = (
-        _optional_text_value(disposition.get("resumed_from_ref"))
-        or _optional_text_value(disposition.get("paused_at_ref"))
-        or _hold_paused_at_ref(hold_record)
-    )
-    author_ref = _optional_text_value(disposition.get("author_ref")) or "human:unknown"
 
     # raise => bump the held node's budget by the declared budget_increment so the
     # held landing ADOPTS naturally on the bigger budget (verified byte-identical
@@ -407,6 +432,148 @@ def _require_budget_exhaustion_raise(
         )
 
 
+def _adapter_error_hold_without_return(hold_record: Mapping[str, Any]) -> bool:
+    return _optional_text_value(hold_record.get("hold_reason")) == "adapter_error_frontier"
+
+
+def _paper_stop_adapter_error_hold(
+    root: Path,
+    *,
+    declared_plan: Mapping[str, Any],
+    plan_ref: str,
+    evidence: Mapping[str, Any],
+    hold_record: Mapping[str, Any],
+    disposition: Mapping[str, Any],
+    paused_at_ref: str,
+    pending_target: str,
+    author_ref: str,
+    checked_proof_limits: tuple[str, ...],
+) -> BuildingPlanSupportResult:
+    building_id = root.name
+    closed_boundary = f"building-boundary:{building_id}-ended-by-disposition-closed"
+    lifecycle = _resumed_lifecycle_from_hold(
+        hold_record,
+        paused_at_ref=paused_at_ref,
+        disposition_action="stop",
+        budget_increment=None,
+    )
+    link_path = root / "raw" / "link.jsonl"
+    raw_ref = _next_link_raw_ref(link_path)
+    link_record = graph_ready_json_object(
+        {
+            "raw_ref": raw_ref,
+            "raw_refs": [raw_ref],
+            "building_id": building_id,
+            "step_ref": _optional_text_value(hold_record.get("source_step_ref")) or "",
+            "source_brick_instance_ref": _optional_text_value(
+                hold_record.get("source_brick_ref")
+            )
+            or _optional_text_value(hold_record.get("target_brick"))
+            or "",
+            "target_brick_instance_ref": closed_boundary,
+            "target": closed_boundary,
+            "transition_record_created": True,
+            "transition_author_ref": author_ref,
+            "movement_source": "human/COO stop disposition ended adapter-error hold without AgentFact",
+            "building_lifecycle_state": "closed",
+            "building_lifecycle_reason": "ended-by-disposition",
+            "transition_lifecycle_state": "resumed",
+            "transition_lifecycle_progress_state": "in_progress",
+            "transition_lifecycle_paused_at_ref": lifecycle.get("paused_at_ref", ""),
+            "transition_lifecycle_resumed_from_ref": lifecycle.get("resumed_from_ref", ""),
+            "transition_lifecycle_from_brick_ref": lifecycle.get("from_brick_ref", ""),
+            "transition_lifecycle_pending_target_ref": lifecycle.get("pending_target_ref", ""),
+            "transition_lifecycle_required_disposition_owner": lifecycle.get(
+                "required_disposition_owner",
+                "",
+            ),
+            "transition_lifecycle_disposition_action": "stop",
+            "transition_lifecycle_reason_refs": list(lifecycle.get("reason_refs", ())),
+            "proof_limits": [
+                "paper stop disposition support evidence only",
+                "no AgentFact was created for the held adapter-error step",
+                "no provider or adapter call was made by this resume path",
+                "not source truth",
+                "not success judgment",
+                "not quality judgment",
+                "not Movement authority",
+            ],
+            "not_proven": [
+                "semantic correctness of the stopped work",
+                "whether caller/COO should launch a different Building",
+            ],
+        },
+        building_id=building_id,
+        local_id=f"raw/link.jsonl#{raw_ref.rsplit(':', maxsplit=1)[-1]}",
+        recorded_at=graph_ready_timestamp(),
+        event_type="bp.raw.link",
+        subject=closed_boundary,
+    )
+    _append_jsonl_record(link_path, link_record)
+    manifest_path = root / "raw" / "raw-manifest.json"
+    _rewrite_raw_manifest_with_link_records(manifest_path, building_id, link_path)
+    evidence_manifest_path = root / "evidence" / "evidence-manifest.json"
+    resume_observation = build_resume_observation(
+        resumed_from=paused_at_ref,
+        paused_at_ref=paused_at_ref,
+        pending_target_ref=pending_target,
+        disposition_action="stop",
+        applied="ended-by-disposition",
+        budget_increment=0,
+        node_budget=0,
+        node_landings=0,
+        proof_limits=[
+            "support resume observation only",
+            "adapter-error stop was recorded without Agent replay",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ],
+        not_proven=[
+            "semantic correctness of stopped work",
+            "future Building outcome",
+        ],
+        disposition_row_provenance=(
+            dict(disposition.get("selected_row_provenance"))
+            if isinstance(disposition.get("selected_row_provenance"), Mapping)
+            else {}
+        ),
+    )
+    _rewrite_paper_stop_evidence_manifest(
+        evidence_manifest_path,
+        plan_ref=plan_ref,
+        declared_plan=declared_plan,
+        evidence=evidence,
+        hold_record=hold_record,
+        resume_observation=resume_observation,
+        raw_ref=raw_ref,
+    )
+    written_files = (link_path, manifest_path, evidence_manifest_path)
+    building_map_path = root / "work" / "building-map.json"
+    building_map_packet = _read_json_mapping(building_map_path)
+    return BuildingPlanSupportResult(
+        building_id=building_id,
+        plan_ref=plan_ref,
+        step_results=(),
+        lifecycle_write=BuildingLifecycleWriteResult(
+            root=root,
+            written_files=written_files,
+            proof_limits=checked_proof_limits,
+        ),
+        building_map_write=BuildingMapWriteResult(
+            root=root,
+            path=building_map_path,
+            written_files=(),
+        ),
+        written_files=written_files,
+        capture_event_types=(),
+        building_map_packet=building_map_packet,
+        proof_limits=_merge_texts(checked_proof_limits, resume_observation.get("proof_limits")),
+        not_proven=_merge_texts(resume_observation.get("not_proven")),
+    )
+
+
 def _building_engaged_reroute_budgets(evidence: Mapping[str, Any]) -> bool:
     """True iff this held Building engaged the reroute-budget mechanism.
 
@@ -439,6 +606,188 @@ def _building_engaged_reroute_budgets(evidence: Mapping[str, Any]) -> bool:
         if "budget" in str(hold.get("hold_reason") or ""):
             return True
     return False
+
+
+def _next_link_raw_ref(link_path: Path) -> str:
+    max_index = 0
+    for record in _jsonl_records(link_path):
+        raw_ref = _optional_text_value(record.get("raw_ref")) or ""
+        if not raw_ref.startswith("raw:link:"):
+            continue
+        suffix = raw_ref.rsplit(":", maxsplit=1)[-1]
+        if suffix.isdigit():
+            max_index = max(max_index, int(suffix))
+    return f"raw:link:{max_index + 1:02d}"
+
+
+def _append_jsonl_record(path: Path, record: Mapping[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(
+            json.dumps(record, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+            + "\n"
+        )
+
+
+def _rewrite_raw_manifest_with_link_records(
+    manifest_path: Path,
+    building_id: str,
+    link_path: Path,
+) -> None:
+    manifest = _read_json_mapping(manifest_path)
+    entries_value = manifest.get("entries")
+    entries = (
+        [dict(entry) for entry in entries_value if isinstance(entry, Mapping)]
+        if isinstance(entries_value, list)
+        else []
+    )
+    raw_refs_value = manifest.get("raw_refs")
+    raw_refs = (
+        [str(ref) for ref in raw_refs_value if isinstance(ref, str)]
+        if isinstance(raw_refs_value, list)
+        else []
+    )
+    link_refs = [
+        ref
+        for record in _jsonl_records(link_path)
+        for ref in _raw_refs_from_mapping(record)
+    ]
+    for ref in link_refs:
+        if ref not in raw_refs:
+            raw_refs.append(ref)
+    _merge_raw_manifest_entry(entries, raw_refs=link_refs)
+    manifest["building_id"] = str(manifest.get("building_id") or building_id)
+    manifest["raw_refs"] = raw_refs
+    manifest["entries"] = entries
+    _write_json_mapping(manifest_path, manifest)
+
+
+def _merge_raw_manifest_entry(
+    entries: list[dict[str, Any]],
+    *,
+    raw_refs: list[str],
+) -> None:
+    cleaned = [ref for ref in dict.fromkeys(raw_refs) if ref]
+    for entry in entries:
+        if entry.get("path") != "raw/link.jsonl":
+            continue
+        existing = (
+            list(entry.get("raw_refs", ()))
+            if isinstance(entry.get("raw_refs"), list)
+            else []
+        )
+        for ref in cleaned:
+            if ref not in existing:
+                existing.append(ref)
+        entry.update(
+            {
+                "source": "support/operator/walker_resume.py paper stop disposition record",
+                "content_shape": "jsonl Link transition rows and disposition records",
+                "proof_limit": "support evidence only",
+                "axis_owner": "Link",
+                "record_role": "primary",
+                "raw_refs": existing,
+            }
+        )
+        return
+    entries.append(
+        {
+            "path": "raw/link.jsonl",
+            "source": "support/operator/walker_resume.py paper stop disposition record",
+            "content_shape": "jsonl Link transition rows and disposition records",
+            "proof_limit": "support evidence only",
+            "axis_owner": "Link",
+            "record_role": "primary",
+            "raw_refs": cleaned,
+        }
+    )
+
+
+def _rewrite_paper_stop_evidence_manifest(
+    path: Path,
+    *,
+    plan_ref: str,
+    declared_plan: Mapping[str, Any],
+    evidence: Mapping[str, Any],
+    hold_record: Mapping[str, Any],
+    resume_observation: Mapping[str, Any],
+    raw_ref: str,
+) -> None:
+    manifest = _read_json_mapping(path)
+    plan_copy = dict(declared_plan)
+    dynamic_evidence = dict(evidence)
+    observations = [
+        dict(item)
+        for item in dynamic_evidence.get("resume_observations", ())
+        if isinstance(item, Mapping)
+    ]
+    observations.append(dict(resume_observation))
+    dynamic_evidence["held"] = False
+    dynamic_evidence["hold"] = dict(hold_record)
+    dynamic_evidence["resume_observations"] = observations
+    dynamic_evidence["proof_limits"] = list(
+        _merge_texts(
+            dynamic_evidence.get("proof_limits"),
+            resume_observation.get("proof_limits"),
+        )
+    )
+    dynamic_evidence["not_proven"] = list(
+        _merge_texts(
+            dynamic_evidence.get("not_proven"),
+            resume_observation.get("not_proven"),
+        )
+    )
+    plan_copy["dynamic_walker_evidence"] = dynamic_evidence
+    manifest["plan_snapshot"] = _plan_snapshot(plan_ref, plan_copy)
+    manifest["frontier_observation"] = (
+        "Adapter-error hold ended by human/COO stop disposition without AgentFact replay"
+    )
+    manifest["paper_stop_observation"] = {
+        "kind": "adapter_error_paper_stop_observation",
+        "raw_ref": raw_ref,
+        "held_step_returned": False,
+        "provider_invoked": False,
+        "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ],
+        "not_proven": [
+            "semantic correctness of stopped work",
+            "future Building outcome",
+        ],
+    }
+    _write_json_mapping(path, manifest)
+
+
+def _raw_refs_from_mapping(record: Mapping[str, Any]) -> list[str]:
+    refs: list[str] = []
+    raw_ref = record.get("raw_ref")
+    if isinstance(raw_ref, str) and raw_ref.strip():
+        refs.append(raw_ref)
+    raw_refs = record.get("raw_refs")
+    if isinstance(raw_refs, list):
+        refs.extend(str(ref) for ref in raw_refs if isinstance(ref, str) and ref.strip())
+    return list(dict.fromkeys(refs))
+
+
+def _read_json_mapping(path: Path) -> dict[str, Any]:
+    if not path.is_file():
+        return {}
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, Mapping):
+        raise ValueError(f"{path}: JSON value must be an object")
+    return dict(value)
+
+
+def _write_json_mapping(path: Path, value: Mapping[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
 
 
 def _read_written_dynamic_plan(root: Path) -> tuple[Mapping[str, Any], Mapping[str, Any]]:

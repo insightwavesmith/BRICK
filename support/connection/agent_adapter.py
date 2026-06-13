@@ -881,7 +881,7 @@ def _invoke_local_cli(
             model_arg = _model_cli_arg(request, spec)
             if model_arg:
                 args_list.extend(("-m", model_arg))
-            if request.session_continuity_mode == "none":
+            if os.environ.get("BRICK_CODEX_EPHEMERAL") == "1":
                 args_list.append("--ephemeral")
             args_list.extend(("--output-last-message", output_file.name, prompt))
             args = tuple(args_list)

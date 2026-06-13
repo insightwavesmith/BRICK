@@ -6,6 +6,7 @@ kernel_checks:
   - building_map_graph
   - chat_session_park_seam
   - adapter_error_frontier_manifest_consistency
+  - adapter_error_path_hardening
 path_exists:
   - support/operator/run.py
   - agent/performance.py
