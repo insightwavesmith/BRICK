@@ -335,10 +335,10 @@ materialize_building_intent_case:
           - work/link-launch-policy.json
         task_source_hash_present: true
         task_source_hash_state: matched
-  - label: materialize-building-intent:app-feature-basic-linear
+  - label: materialize-building-intent:app-feature-basic-graph
     document:
-      plan_ref: building-plan:materialize-app-feature-basic-linear
-      building_id: materialize-app-feature-basic-linear
+      plan_ref: building-plan:materialize-app-feature-basic-graph
+      building_id: materialize-app-feature-basic-graph
       declared_by: coo
       task_source_ref: brick/templates/tasks/source-template.md
       chain_preset_ref: building-chain-preset:app-feature-basic
@@ -353,26 +353,27 @@ materialize_building_intent_case:
       not_proven:
         - checker fixture task source only
     expected:
-      building_id: materialize-app-feature-basic-linear
+      plan_shape: graph
+      building_id: materialize-app-feature-basic-graph
       chain_preset_ref: building-chain-preset:app-feature-basic
       selected_adapter_ref: adapter:codex-local
       task_source_ref: brick/templates/tasks/source-template.md
       step_refs:
-        - materialize-app-feature-basic-linear-plan
-        - materialize-app-feature-basic-linear-design
-        - materialize-app-feature-basic-linear-development
-        - materialize-app-feature-basic-linear-work
-        - materialize-app-feature-basic-linear-review
-        - materialize-app-feature-basic-linear-closure
+        - materialize-app-feature-basic-graph-plan
+        - materialize-app-feature-basic-graph-design
+        - materialize-app-feature-basic-graph-development
+        - materialize-app-feature-basic-graph-work
+        - materialize-app-feature-basic-graph-review
+        - materialize-app-feature-basic-graph-closure
       target_refs:
-        - brick-design
-        - brick-development
-        - brick-work
-        - brick-review
-        - brick-closure
-        - building-boundary:materialize-app-feature-basic-linear-closed
+        - brick-materialize-app-feature-basic-graph-design
+        - brick-materialize-app-feature-basic-graph-development
+        - brick-materialize-app-feature-basic-graph-work
+        - brick-materialize-app-feature-basic-graph-review
+        - brick-materialize-app-feature-basic-graph-closure
+        - building-boundary:materialize-app-feature-basic-graph-closed
       # GATE-WIRING FIRE (b) (0610): a preset with NO gate_concept_profile gets
-      # default-transition ONLY on every row -- support never invents a gate.
+      # default-transition ONLY on every graph row -- support never invents a gate.
       declared_gate_refs_by_row:
         - link-gate:default-transition
         - link-gate:default-transition
@@ -406,6 +407,34 @@ materialize_building_intent_case:
           - work/link-launch-policy.json
         task_source_hash_present: true
         task_source_hash_state: matched
+  - label: materialize-building-intent:portfolio-sequence-graph
+    document:
+      plan_ref: building-plan:materialize-portfolio-sequence-graph
+      building_id: materialize-portfolio-sequence-graph
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:portfolio-sequence
+      selected_adapter_ref: adapter:local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+      not_proven:
+        - checker fixture task source only
+    expected:
+      plan_shape: graph
+      building_id: materialize-portfolio-sequence-graph
+      chain_preset_ref: building-chain-preset:portfolio-sequence
+      selected_adapter_ref: adapter:local
+      task_source_ref: brick/templates/tasks/source-template.md
+      step_refs:
+        - materialize-portfolio-sequence-graph-plan
+        - materialize-portfolio-sequence-graph-closure
+      target_refs:
+        - brick-materialize-portfolio-sequence-graph-closure
+        - building-boundary:materialize-portfolio-sequence-graph-closed
   # GATE-WIRING FIRE (a) (0610): governed-change-review declares
   # gate_concept_profile [strict-evidence, coo-review, human-review]. The
   # materializer must TRANSLATE the declared label into REAL wired gates with
@@ -1123,15 +1152,6 @@ materialize_building_intent_rejects:
           - support/operator/**
         forbidden_paths:
           - .git/**
-  - label: materialize-building-intent:portfolio-target-requires-explicit-driver
-    expected_message: target_word requires explicit portfolio/manual materialization
-    document:
-      plan_ref: building-plan:materialize-portfolio-reject
-      building_id: materialize-portfolio-reject
-      declared_by: coo
-      task_source_ref: brick/templates/tasks/source-template.md
-      chain_preset_ref: building-chain-preset:portfolio-sequence
-      selected_adapter_ref: adapter:local
   - label: materialize-building-intent:hash-mismatch-at-declaration-write
     expected_message: task_source_hash mismatch
     mutate_materialized_task_source_hash: true
@@ -1215,9 +1235,6 @@ preset_building_completion_case:
       - building-chain-preset:recon-fleet
       - building-chain-preset:research-report
       - building-chain-preset:review-fleet
-    expected_portfolio_refs:
-      - building-chain-preset:brick-protocol-portfolio-driver
-      - building-chain-preset:portfolio-sequence
 # PART-2 Phase 1 CORE PRODUCT SEAM: the single task.md + chain preset ->
 # running-Building verb (support/operator/driver.py run_building_intake). This
 # case drives it over an adapter:local deterministic agent brain end-to-end and

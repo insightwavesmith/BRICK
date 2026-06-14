@@ -221,120 +221,32 @@ def materialize_building_intent(
     write_scope = _materializer_write_scope(intent)
     task_summary = _materializer_task_summary(task_body, task_source_ref)
     step_selection_overrides = _materializer_step_selection_overrides(intent)
-    if _chain_preset_requires_graph(preset):
-        rendered = _materializer_graph_plan(
-            intent,
-            preset,
-            registry,
-            repo=repo,
-            building_id=building_id,
-            declared_by=declared_by,
-            chain_preset_ref=chain_preset_ref,
-            task_summary=task_summary,
-            task_source_ref=task_source_ref,
-            source_facts=source_facts,
-            write_scope=write_scope,
-            step_selection_overrides=step_selection_overrides,
-        )
-        rendered["task_source_hash"] = task_source_hash
-        rendered["task_source_hash_algorithm"] = "sha256"
-        rendered["task_source_hash_basis"] = _materializer_task_source_hash_basis(inline_statement)
-        if inline_statement is not None:
-            # The plan IS the carrier: the evidence writer lands this body
-            # verbatim as work/task.md and a replay of the persisted plan file
-            # reproduces it (no external file to lose).
-            rendered["task_statement"] = inline_statement
-        if project_ref is not None:
-            # PROJECT-0 S3-A: recorded declaration fact only (no judgment).
-            rendered["project_ref"] = project_ref
-        rendered["materialization_rule"] = "caller_or_coo_declared_task_source_plus_graph_chain_preset"
-        return rendered
-
-    chain_steps = tuple(_chain_preset_steps(preset))
-    _materializer_reject_unused_step_selection_overrides(chain_steps, step_selection_overrides)
-    declared_steps = [
-        _materializer_declared_step(
-            index,
-            raw_step,
-            registry,
-            building_id=building_id,
-            task_summary=task_summary,
-            task_source_ref=task_source_ref,
-            source_facts=source_facts,
-            write_scope=write_scope,
-            is_terminal_step=index == len(chain_steps) - 1,
-            gate_concept_tokens=_materializer_gate_concept_tokens(preset),
-            chain_preset_ref=chain_preset_ref,
-            step_selection_overrides=step_selection_overrides,
-        )
-        for index, raw_step in enumerate(chain_steps)
-    ]
-    if not declared_steps:
-        raise ValueError("chain_preset_ref must expand to at least one step")
-
-    rendered = render_declared_step_template_plan(
-        {
-            "plan_ref": intent.get("plan_ref", f"building-plan:{building_id}"),
-            "building_id": building_id,
-            "task_source_ref": task_source_ref,
-            # TASK-BY-TEXT (0611): inline flow only -- the statement body rides
-            # the rendered plan so projection validation sees the coupled
-            # sentinel-ref + body pair (None on the file flow drops the key).
-            "task_statement": inline_statement,
-            "selected_shape_ref": preset.get("selected_shape_ref", intent.get("selected_shape_ref", "")),
-            "declared_by": declared_by,
-            "chain_preset_ref": chain_preset_ref,
-            # selected_adapter_ref was validated (non-blank) at the materialize entry;
-            # read it directly -- there is no support default path.
-            "selected_adapter_ref": selected_adapter_ref,
-            # model:default is a SENTINEL (adapter picks its own default), not a support
-            # model choice -- so it stays a default here, unlike the adapter.
-            "selected_model_ref": intent.get("selected_model_ref", "model:default"),
-            "plan_shape": "linear",
-            "proof_limits": list(
-                _materializer_texts(
-                    intent.get("proof_limits"),
-                    preset.get("proof_limits"),
-                    (
-                        "support materializes caller / COO declared task source and preset only",
-                        "not automatic preset selection",
-                        "not source truth",
-                        "not success judgment",
-                        "not quality judgment",
-                        "not Movement authority",
-                    ),
-                )
-            ),
-            "not_proven": list(
-                _materializer_texts(
-                    intent.get("not_proven"),
-                    preset.get("not_proven"),
-                    (
-                        "semantic fitness of selected chain preset",
-                        "future Building run correctness",
-                        "future Agent or provider quality",
-                    ),
-                )
-            ),
-            "steps": declared_steps,
-        },
-        repo_root=repo,
+    rendered = _materializer_graph_plan(
+        intent,
+        preset,
+        registry,
+        repo=repo,
+        building_id=building_id,
+        declared_by=declared_by,
+        chain_preset_ref=chain_preset_ref,
+        task_summary=task_summary,
+        task_source_ref=task_source_ref,
+        source_facts=source_facts,
+        write_scope=write_scope,
+        step_selection_overrides=step_selection_overrides,
     )
-    # Deliver the intent-declared route_decision_basis to review-gated rows on
-    # the LINEAR path too (parity with the graph path; mechanical carry only --
-    # the basis is the caller/COO-declared disposition fact, never invented).
-    rendered = dict(_materializer_apply_route_decision_basis(rendered, intent))
     rendered["task_source_hash"] = task_source_hash
     rendered["task_source_hash_algorithm"] = "sha256"
     rendered["task_source_hash_basis"] = _materializer_task_source_hash_basis(inline_statement)
     if inline_statement is not None:
-        # The plan IS the carrier: the evidence writer lands this body verbatim
-        # as work/task.md and a replay of the persisted plan file reproduces it.
+        # The plan IS the carrier: the evidence writer lands this body
+        # verbatim as work/task.md and a replay of the persisted plan file
+        # reproduces it (no external file to lose).
         rendered["task_statement"] = inline_statement
     if project_ref is not None:
         # PROJECT-0 S3-A: recorded declaration fact only (no judgment).
         rendered["project_ref"] = project_ref
-    rendered["materialization_rule"] = "caller_or_coo_declared_task_source_plus_linear_chain_preset"
+    rendered["materialization_rule"] = "caller_or_coo_declared_task_source_plus_graph_chain_preset"
     return rendered
 
 
@@ -844,136 +756,6 @@ def _materializer_markdown_section(task_body: str, heading: str) -> str:
         if stripped and not stripped.startswith("```"):
             collected.append(stripped)
     return " ".join(collected).strip()[:240]
-
-
-def _materializer_declared_step(
-    index: int,
-    raw_preset_step: Mapping[str, Any],
-    registry: Mapping[str, Any],
-    *,
-    building_id: str,
-    task_summary: str,
-    task_source_ref: str,
-    source_facts: Sequence[str],
-    write_scope: Mapping[str, Any] | None,
-    is_terminal_step: bool = False,
-    gate_concept_tokens: Sequence[str] = (),
-    chain_preset_ref: str = "",
-    step_selection_overrides: Mapping[str, Mapping[str, Any]] | None = None,
-) -> Mapping[str, Any]:
-    if not isinstance(raw_preset_step, Mapping):
-        raise TypeError(f"chain preset steps[{index}] must be an object")
-    step_template_ref = _clean_text(
-        f"chain preset steps[{index}].step_template_ref",
-        raw_preset_step.get("step_template_ref", ""),
-    )
-    raw_preset_step = _materializer_preset_step_with_selection_override(
-        raw_preset_step,
-        step_template_ref,
-        step_selection_overrides or {},
-    )
-    step_templates = registry.get("step_templates", {})
-    if not isinstance(step_templates, Mapping):
-        raise ValueError("shape registry step_templates must be a mapping")
-    step_template = step_templates.get(step_template_ref)
-    if not isinstance(step_template, Mapping):
-        if step_template_ref in RETIRED_STEP_TEMPLATE_REFS:
-            raise ValueError(
-                f"chain preset step_template_ref {step_template_ref} is retired: "
-                f"use {RETIRED_STEP_TEMPLATE_REFS[step_template_ref]}"
-            )
-        raise ValueError(f"chain preset step_template_ref is not in catalog: {step_template_ref}")
-    _validate_declared_brick_spec_ref(raw_preset_step, step_template, label=f"chain preset steps[{index}]")
-    brick_word = _clean_text(f"{step_template_ref}.brick_word", step_template.get("brick_word", ""))
-    step_slug = _composition_slug(brick_word)
-    step_ref = f"{_composition_slug(building_id)}-{step_slug}"
-    target_word = _clean_text(
-        f"chain preset steps[{index}].target_word",
-        raw_preset_step.get("target_word", ""),
-    )
-    brick: dict[str, Any] = {
-        "row_ref": f"brick-row:{step_ref}",
-        "brick_work_ref": f"work:{step_ref}",
-        "brick_instance_ref": f"brick-{step_slug}",
-        "work_statement": f"{brick_word} Brick for {task_source_ref}: {task_summary}",
-        "comparison_rule": (
-            "Observe declared task source and Brick contract only; "
-            "do not choose Movement or judge success/quality."
-        ),
-        "required_return_shape": _clean_text(
-            f"{step_template_ref}.required_return_shape",
-            step_template.get("required_return_shape", ""),
-        ),
-        "source_facts": list(source_facts),
-    }
-    if bool(step_template.get("write_need")):
-        if write_scope is None:
-            raise ValueError(f"write_scope is required for write-needed Brick {step_template_ref}")
-        brick["write_scope"] = dict(write_scope)
-        # NO SILENT WRITE GRANT: the Brick row that receives a write_scope also
-        # records its write NEED EXPLICITLY (requires_brick_write_scope: true) so
-        # run admission can demand a DECLARED need instead of inferring it from
-        # scope presence (the strict require_write_need_marker validation gate).
-        brick["requires_brick_write_scope"] = True
-    # A read-only Brick (no write_need) NEVER carries a write_scope on its row,
-    # even when a building-level write_scope is supplied for the write-needed
-    # step(s): the building write_scope flows past read-only steps un-stamped, so
-    # the run-time provider projection of a read-only step opens no write.
-    is_final_transition = is_terminal_step and target_word == "closure"
-    # GATE-CONCEPT TRANSLATION (see GATE_CONCEPT_TOKEN_GATE_REFS): translate the
-    # PRESET-declared profile tokens into this row's declared gate refs. No
-    # profile -> exactly the prior default-only stamp (support invents nothing).
-    profile_gate_translations = _materializer_profile_gate_translations(
-        gate_concept_tokens,
-        qa_row=str(step_template.get("role_need", "")).strip() == _QA_ROLE_NEED,
-        final_transition_row=is_final_transition,
-    )
-    profile_gate_refs = tuple(ref for _token, ref in profile_gate_translations)
-    link: dict[str, Any] = {
-        "row_ref": f"{step_ref}:link",
-        "target_ref": _materializer_target_ref(target_word),
-        "declared_gate_refs": [DEFAULT_LINK_GATE_REF, *profile_gate_refs],
-    }
-    if profile_gate_translations:
-        # A1 PROVENANCE AS DATA (codex review, 0610): the stamped row records
-        # WHICH declared tokens landed here and WHICH preset declared them --
-        # ONLY when translation happened (un-stamped rows carry no provenance).
-        link["gate_concept_provenance"] = _materializer_gate_concept_provenance(
-            profile_gate_translations,
-            chain_preset_ref=chain_preset_ref,
-        )
-    if GATE_CONCEPT_TOKEN_GATE_REFS["human-review"] in profile_gate_refs:
-        link["gate_sequence_policy"] = _materializer_human_gate_hold_policy()
-    # The closed boundary is granted by POSITION, not by the terminal Brick's KIND.
-    # A terminal step (last index, positional) whose author declared it routes to the
-    # closure boundary (target_word == "closure") gets the closed building boundary --
-    # regardless of which Brick kind synthesizes there. A terminal synthesizer of a
-    # different kind (any Brick can be the fan-in / closing synthesizer) is therefore
-    # closed correctly. The compose-side fan-in validator is already POSITION-based
-    # (_composition_fan_in_target_steps reads the declared graph, not the kind); this
-    # removes the materializer's last brick-KIND lock so both halves agree on POSITION.
-    if is_final_transition:
-        link["target_ref"] = f"building-boundary:{_composition_slug(building_id)}-closed"
-        link["building_lifecycle"] = {
-            "state": "closed",
-            "reason": f"declared closure boundary for {building_id}",
-        }
-    return {
-        "step_ref": step_ref,
-        "step_template_ref": step_template_ref,
-        **(
-            {"selected_adapter_ref": raw_preset_step.get("selected_adapter_ref")}
-            if raw_preset_step.get("selected_adapter_ref") is not None
-            else {}
-        ),
-        **(
-            {"selected_model_ref": raw_preset_step.get("selected_model_ref")}
-            if raw_preset_step.get("selected_model_ref") is not None
-            else {}
-        ),
-        "brick": brick,
-        "link": link,
-    }
 
 
 def _materializer_gate_concept_tokens(preset: Mapping[str, Any]) -> tuple[str, ...]:

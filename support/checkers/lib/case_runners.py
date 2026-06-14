@@ -1319,7 +1319,7 @@ def run_adapter_gate_shape_union_case(repo: Path, profile: Mapping[str, Any]) ->
             "not_proven": ["checker fixture task source only"],
         }
         plan = json.loads(json.dumps(materialize_building_intent(intent, repo_root=repo)))
-        steps = plan.get("steps")
+        steps = plan.get("brick_steps") if plan.get("plan_shape") == "graph" else plan.get("steps")
         if not isinstance(steps, list) or target_step_index >= len(steps):
             raise ProfileError(
                 f"adapter_gate_shape_union_case rejected {label}: "
@@ -1361,7 +1361,7 @@ def run_adapter_gate_shape_union_case(repo: Path, profile: Mapping[str, Any]) ->
                 command_runner=_capturing_runner,
                 adapter_cwd=repo,
                 adapter_timeout_seconds=10,
-                walker_mode="linear",
+                walker_mode="dynamic" if plan.get("plan_shape") == "graph" else "linear",
             )
             frontier = observe_building_frontier(result.lifecycle_write.root, repo_root=repo)
         if frontier.get("frontier_kind") != "complete":
