@@ -1219,19 +1219,23 @@ def run_building_plan(
     proof_limits: Iterable[str] | str | None = None,
     report_env: Mapping[str, str] | None = None,
     report_slack_sender: Any | None = None,
-    walker_mode: str = "linear",
+    walker_mode: str | None = None,
 ) -> BuildingPlanSupportResult:
     """Walk declared Building plan steps and write one accumulated Building root.
 
-    ``walker_mode`` defaults to ``"linear"`` -- the existing linear walker below,
-    UNCHANGED (zero regression). ``walker_mode="dynamic"`` dispatches to the
-    BOUNDED-AGENT-PROPOSED-ROUTING-LOOP-0 dynamic graph walker
-    (``support/operator/dynamic_walker.py``), which reuses this module's step
-    executor and accumulated-evidence writer for the forward path and adds
-    runtime, gate-adopted, node-budgeted reroute + HOLD.
+    ``walker_mode`` defaults to ``None``: unset callers derive from
+    ``plan_shape`` (``graph`` -> ``dynamic``; everything else -> ``linear``).
+    Explicit ``"linear"`` / ``"dynamic"`` values are honored unchanged.
+    ``walker_mode="dynamic"`` dispatches to the BOUNDED-AGENT-PROPOSED-ROUTING-
+    LOOP-0 dynamic graph walker (``support/operator/dynamic_walker.py``), which
+    reuses this module's step executor and accumulated-evidence writer for the
+    forward path and adds runtime, gate-adopted, node-budgeted reroute + HOLD.
     """
 
     packet = _fixture_mapping(plan)
+    if walker_mode is None:
+        # Anti-drift: match the canonical lenient derive rule in case_runners.py:1171.
+        walker_mode = "dynamic" if _optional_text_from_mapping(packet, "plan_shape") == "graph" else "linear"
     _validate_no_payload_forbidden("plan", packet, _FORBIDDEN_PAYLOAD_KEYS)
     declaration_plan = packet
     if walker_mode not in {"linear", "dynamic"}:

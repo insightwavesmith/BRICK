@@ -152,6 +152,50 @@ def _checker_plan(prefix: str, budget: int) -> tuple[Mapping[str, Any], str]:
     return plan, b2
 
 
+def _linear_checker_plan(prefix: str) -> Mapping[str, Any]:
+    step_ref = f"{prefix}-work"
+    brick_ref = f"brick-{prefix}-work"
+    boundary_ref = f"building-boundary:{prefix}-closed"
+    return {
+        "plan_ref": f"building-plan:{prefix}",
+        "owner_axis": "Brick",
+        "building_id": f"{prefix}-0614",
+        "plan_shape": "linear",
+        "selected_adapter_ref": "adapter:local",
+        "proof_limits": _proof_limits(),
+        "not_proven": ["semantic correctness of the linear probe work"],
+        "steps": [
+            {
+                "step_ref": step_ref,
+                "step_template_ref": "building-step-template:work",
+                "rows": [
+                    {
+                        "axis": "Brick",
+                        "row_ref": f"brick-row:{step_ref}",
+                        "brick_work_ref": f"work:{step_ref}",
+                        "brick_instance_ref": brick_ref,
+                        "work_statement": f"Declared linear work for {step_ref}.",
+                        "comparison_rule": "Observe support evidence only; do not choose Movement or judge quality.",
+                        "required_return_shape": "observed_evidence, not_proven",
+                        "source_facts": ["AGENTS.md", "support/operator/run.py"],
+                    },
+                    {"axis": "Agent", "row_ref": f"agent-row:{step_ref}", "agent_object_ref": "agent-object:dev"},
+                    {
+                        "axis": "Link",
+                        "row_ref": f"link-row:{step_ref}",
+                        "movement": "forward",
+                        "target_ref": boundary_ref,
+                        "building_lifecycle": {
+                            "state": "closed",
+                            "reason": f"{prefix} closed",
+                        },
+                    },
+                ],
+            }
+        ],
+    }
+
+
 def _fan_plan(prefix: str, *, held_source: bool = False) -> Mapping[str, Any]:
     root = f"brick-{prefix}-root"
     lane_a = f"brick-{prefix}-lane-a"
@@ -582,6 +626,13 @@ def _invalid_concern_callable(source_brick: str, target_brick: str):
     return _callable
 
 
+def _clean_callable(request: Any) -> Mapping[str, Any]:
+    return {
+        "observed_evidence": [f"obs {request.brick_instance_ref}"],
+        "not_proven": ["semantic correctness of the probe work"],
+    }
+
+
 def _adapter_error_callable(failing_brick: str):
     def _callable(request: Any) -> Mapping[str, Any]:
         if request.brick_instance_ref == failing_brick:
@@ -957,6 +1008,64 @@ def _append_disposition_row(
 def check(repo: Path) -> list[str]:
     _ensure_import_path(repo)
     violations: list[str] = []
+
+    # G5-1: run_building_plan's unset walker_mode is derived from plan_shape at the
+    # entrypoint. This checker calls run_building_plan(plan) with NO walker_mode.
+    from brick_protocol.support.operator.run import run_building_plan
+    from brick_protocol.support.operator.building_operation import observe_building_frontier
+
+    auto_prefix = "bapr-loop0-g5-1-auto-graph"
+    auto_graph_plan, auto_graph_target = _checker_plan(auto_prefix, budget=2)
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-g5-1-auto-") as tmp:
+        auto_graph_result = run_building_plan(
+            auto_graph_plan,
+            output_root=Path(tmp),
+            overwrite_existing=True,
+            local_callables={
+                "callable:local:agent-invoke0-smoke": _reroute_callable(
+                    auto_graph_target,
+                    {f"brick-{auto_prefix}-review"},
+                )
+            },
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+        )
+        auto_graph_frontier = observe_building_frontier(
+            auto_graph_result.lifecycle_write.root,
+            repo_root=repo,
+        )
+        auto_graph_evidence = getattr(auto_graph_result, "_dynamic_walker_evidence", {})
+        if not isinstance(auto_graph_evidence, Mapping) or auto_graph_evidence.get("walker_mode") != "dynamic":
+            violations.append("g5-1: graph plan without walker_mode did not derive dynamic walker evidence")
+        if not tuple(getattr(auto_graph_result, "_dynamic_walker_reroute_records", ())):
+            violations.append("g5-1: graph plan without walker_mode did not record dynamic reroute evidence")
+        if auto_graph_frontier["frontier_kind"] not in {"complete", "closure_pending"}:
+            violations.append(
+                "g5-1: graph plan without walker_mode did not reach a dynamic terminal frontier "
+                f"(frontier={auto_graph_frontier['frontier_kind']})"
+            )
+
+    auto_linear_plan = _linear_checker_plan("bapr-loop0-g5-1-auto-linear")
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-g5-1-linear-") as tmp:
+        auto_linear_result = run_building_plan(
+            auto_linear_plan,
+            output_root=Path(tmp),
+            overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": _clean_callable},
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+        )
+        auto_linear_frontier = observe_building_frontier(
+            auto_linear_result.lifecycle_write.root,
+            repo_root=repo,
+        )
+        if getattr(auto_linear_result, "_dynamic_walker_evidence", None) is not None:
+            violations.append("g5-1: linear plan without walker_mode unexpectedly used dynamic walker evidence")
+        if auto_linear_frontier["frontier_kind"] != "complete":
+            violations.append(
+                "g5-1: linear plan without walker_mode did not reach linear closure "
+                f"(frontier={auto_linear_frontier['frontier_kind']})"
+            )
 
     # Invariant A: budget available -> agent-proposed reroute ADOPTED, target is an
     # existing node, budget consumed per landing, building proceeds.
