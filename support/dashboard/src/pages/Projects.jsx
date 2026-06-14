@@ -3,8 +3,8 @@ import { useDashboard } from '../data/useDashboard.js'
 
 const Stat = ({ l, v, sub, red, amber }) => (
   <div className="flex flex-col items-center flex-1 w-full">
-    <span className="text-gray-500 font-label font-bold text-sm mb-1 text-center">{l}</span>
-    <span className={`font-headline font-black text-4xl ${red && v > 0 ? 'status-crimson' : amber && v > 0 ? 'text-yellow-600' : ''}`}>{v}</span>
+    <span className="text-gray-500 font-label font-bold text-[11px] uppercase tracking-wide mb-1 text-center">{l}</span>
+    <span className={`font-headline font-black text-3xl ${red && v > 0 ? 'status-crimson' : amber && v > 0 ? 'text-yellow-600' : ''}`}>{v}</span>
     {sub ? <span className="text-[11px] text-gray-400 font-bold mt-0.5">{sub}</span> : null}
   </div>
 )

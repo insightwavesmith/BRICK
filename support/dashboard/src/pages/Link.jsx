@@ -16,7 +16,7 @@ export default function LinkPage() {
   return (
     <main className="max-w-7xl mx-auto px-6 py-12">
       <header className="mb-12 border-b-4 border-black pb-8">
-        <h1 className="font-headline font-black text-5xl md:text-6xl tracking-tighter text-black mb-4">링크 · 게이트 현황</h1>
+        <h1 className="font-headline font-black text-3xl md:text-4xl tracking-tight text-black mb-4">링크 · 게이트 현황</h1>
         <p className="font-body text-xl text-gray-700 max-w-3xl">
           브릭과 브릭 사이의 넘김(링크)을 제어하는 게이트 규칙과, 전체 {d.summary?.buildings ?? 0}개 빌딩에서의 실제 적용 집계입니다.
           <span className="text-gray-500"> · 스냅샷 · 규칙 설정은 차후 지원</span>

@@ -32,7 +32,7 @@ export default function Layout({ children }) {
             )
           })}
         </nav>
-        <span className="hidden md:block md:mt-auto shrink-0 text-xs font-bold border border-black/20 px-3 py-1 text-black/55 whitespace-nowrap">읽기 전용</span>
+        <span className="block md:mt-auto shrink-0 text-[10px] md:text-xs font-bold border border-black/20 px-2 md:px-3 py-1 text-black/55 whitespace-nowrap">읽기 전용</span>
       </aside>
 
       {/* 본문: 가운데 정렬 + 넓게 */}

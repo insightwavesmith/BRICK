@@ -74,6 +74,21 @@ export const DISP = {
 }
 export const dispKo = (s) => DISP[s] || s || '상태 불명'
 
+// 표시 상태(disp) → 배지 테두리/글자 색 (neo-brutalist: 흑·크림슨·앰버·그레이만).
+// 각 페이지에 흩어져 있던 인라인 조건(border-primary / border-yellow-500 /
+// border-gray-400 …)을 여기 한 곳으로 모은다. 표현만 — 데이터는 그대로.
+export const DISP_BADGE = {
+  closed: 'border-black text-black',
+  running: 'border-primary text-primary',
+  closure_pending: 'border-yellow-500 text-yellow-700',
+  archived_stale: 'border-gray-400 text-gray-500',
+  stopped: 'border-primary text-primary',
+  review: 'border-yellow-500 text-yellow-700',
+  incomplete: 'border-primary text-primary',
+  unknown: 'border-gray-400 text-gray-500',
+}
+export const dispBadge = (s) => DISP_BADGE[s] || 'border-primary text-primary'
+
 // 처분 주체(disposition owner) → 한글
 export const OWNER = {
   'caller-or-coo': '호출자 또는 COO',

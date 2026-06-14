@@ -8,7 +8,7 @@ export default function Brick() {
   return (
     <main className="flex-grow container mx-auto px-6 py-12 max-w-6xl">
       <header className="mb-12 border-b-4 border-black pb-8">
-        <h1 className="text-5xl font-black font-headline tracking-tighter mb-4 text-black">브릭 카탈로그</h1>
+        <h1 className="text-3xl md:text-4xl font-black font-headline tracking-tight mb-4 text-black">브릭 카탈로그</h1>
         <p className="text-xl font-medium text-gray-800 max-w-3xl leading-relaxed">
           단일 기능 블록(브릭)의 종류와 역할입니다. 각 브릭은 명확한 권한과 반환값(증거)을 가집니다.
           <span className="text-gray-500"> · 총 {bricks.length}종 · 쓰기 가능 브릭은 ‘작업’ 하나뿐</span>

@@ -88,7 +88,7 @@ export default function ProjectDetail() {
               <li className="text-[#C8153C] uppercase tracking-wider">{p?.label || p?.id}</li>
             </ol>
           </nav>
-          <h1 className="text-4xl md:text-5xl font-black font-display tracking-tight">{p?.label || p?.id}</h1>
+          <h1 className="text-3xl md:text-4xl font-black font-display tracking-tight">{p?.label || p?.id}</h1>
         </div>
         <div className="inline-flex items-center gap-2 bg-gray-100 px-4 py-2 border-2 border-black font-label text-sm font-bold">
           <span className="material-symbols-outlined text-gray-500 text-sm">schedule</span>

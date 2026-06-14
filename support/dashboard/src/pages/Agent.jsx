@@ -11,7 +11,7 @@ export default function Agent() {
   return (
     <main className="flex-grow container mx-auto px-6 py-12">
       <div className="mb-12 border-b-2 border-black pb-4">
-        <h1 className="font-headline text-5xl font-black mb-2 tracking-tight">에이전트 현황</h1>
+        <h1 className="font-headline text-3xl md:text-4xl font-black mb-2 tracking-tight">에이전트 현황</h1>
         <p className="font-body text-lg text-zinc-600 font-medium">
           역할(레인)이지 사람 수가 아닙니다. · 총 {agents.length}개 역할 · 숫자 = <b>닫히지 않은</b> 빌딩에서 현재 위치한 브릭 수(마감 대기·멈춤 포함, 실시간 실행 아님)
         </p>

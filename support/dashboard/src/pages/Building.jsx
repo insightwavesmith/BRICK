@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useDashboard } from '../data/useDashboard.js'
 import { buildingKeyOf } from '../data/aggregate.js'
 import { buildTimeline, pickFeatured } from '../data/graph.js'
-import { dispKo } from '../data/labels.js'
+import { dispKo, dispBadge } from '../data/labels.js'
 
 function Avatar({ name, on }) {
   const ch = (name || '?').slice(0, 1).toUpperCase()
@@ -107,16 +107,16 @@ export default function Building() {
     <>
       <div className="flex items-center gap-3 mb-6 flex-wrap">
         <Link to={building?.project ? `/project/${encodeURIComponent(building.project)}` : '/'} className="text-sm font-bold text-black/60">← 프로젝트로</Link>
-        <h1 className="font-display font-black text-2xl md:text-3xl break-all">{building?.id || det?.name || bid}</h1>
+        <h1 className="font-display font-black text-3xl md:text-4xl break-all">{building?.id || det?.name || bid}</h1>
         {projectLabel && <span className="bg-gray-100 border-2 border-black font-bold text-xs px-2 py-1">{projectLabel}</span>}
-        <span className={`border-2 font-bold text-sm px-3 py-1 ${tl.closed ? 'border-black text-black' : building?.disp === 'closure_pending' ? 'border-yellow-500 text-yellow-700' : building?.disp === 'archived_stale' ? 'border-gray-400 text-gray-500' : 'border-primary text-primary'}`}>
+        <span className={`border-2 font-bold text-sm px-3 py-1 ${tl.closed ? dispBadge('closed') : dispBadge(building?.disp)}`}>
           {dispKo(building?.disp || building?.state)} · {tl.closed ? `브릭 ${total}개` : `${doneN}/${total} 브릭`}
         </span>
         {building?.stale && <span className="bg-gray-100 text-gray-600 border-2 border-gray-400 font-bold text-xs px-2 py-1">접어둠 · {building.ageDays}일 전 증거</span>}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        <div className="lg:col-span-2 border-4 border-black p-6 bg-[radial-gradient(#0000000d_1px,transparent_1px)] [background-size:16px_16px]">
+        <div className="lg:col-span-2 border-4 border-black p-6 bg-[radial-gradient(#00000008_1px,transparent_1px)] [background-size:16px_16px]">
           <div className="font-headline font-black text-2xl mb-4 border-l-8 border-black pl-3">빌딩 시퀀스</div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-5 text-[11px] font-bold text-black/45">
             <span className="flex items-center gap-1"><span className="w-3 h-3 bg-black inline-block"></span>완료</span>
