@@ -3015,6 +3015,8 @@ def _reporter_auto_wire_plan(
     step_kinds: Sequence[str] = ("work",),
     report_event_policy: Mapping[str, Any] | None = None,
 ) -> Mapping[str, Any]:
+    from support.checkers.lib.case_runners import _graph_test_plan_from_linear
+
     steps: list[Mapping[str, Any]] = []
     for index, kind in enumerate(step_kinds):
         step_ref = f"{building_id}-{kind}"
@@ -3068,7 +3070,7 @@ def _reporter_auto_wire_plan(
     }
     if report_event_policy is not None:
         plan["report_event_policy"] = dict(report_event_policy)
-    return plan
+    return _graph_test_plan_from_linear(plan)
 
 
 def _assert_no_scheduler_constructs(repo: Path) -> int:

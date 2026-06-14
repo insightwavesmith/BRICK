@@ -52,6 +52,8 @@ def _child_plan(
     propose_candidate_ref: str | None = None,
     hold: bool = False,
 ) -> Mapping[str, Any]:
+    from support.checkers.lib.case_runners import _graph_test_plan_from_linear
+
     brick_ref = f"brick-{prefix}-work"
     link_row: dict[str, Any] = {
         "axis": "Link",
@@ -79,10 +81,11 @@ def _child_plan(
     required_return = "observed_evidence, not_proven"
     if propose_candidate_ref:
         required_return = "observed_evidence, transition_concern_evidence, not_proven"
-    return {
+    linear_plan = {
         "plan_ref": f"building-plan:{prefix}",
         "owner_axis": "Brick",
         "building_id": f"{prefix}-0530",
+        "plan_shape": "linear",
         "selected_adapter_ref": "adapter:local",
         "proof_limits": _proof_limits(),
         "not_proven": ["semantic correctness of this synthetic portfolio child"],
@@ -117,6 +120,7 @@ def _child_plan(
             }
         ],
     }
+    return _graph_test_plan_from_linear(linear_plan)
 
 
 def _write_plan(plan_dir: Path, prefix: str, plan: Mapping[str, Any]) -> Path:

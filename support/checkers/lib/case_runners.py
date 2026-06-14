@@ -1424,11 +1424,12 @@ def run_building_intake_seam_case(repo: Path, profile: Mapping[str, Any]) -> int
     """Exercise the PART-2 task.md+preset -> running-Building seam over adapter:local.
 
     For each declared item: drive run_building_intake (materialize -> write plan ->
-    plan_shape->walker_mode map -> run) over an adapter:local deterministic callable
-    and assert the seam (1) writes a plan file on disk, (2) derives walker_mode
-    mechanically from plan_shape, and (3) reaches the expected terminal frontier
-    with Building evidence. Then assert a NO-PRESET intent HARD-FAILS (the seam must
-    not run a Building) -- this is the FIRE: it must RED if the hard-fail is bypassed.
+    graph-only run dispatch) over an adapter:local deterministic callable and
+    assert the seam (1) writes a graph plan file on disk, (2) records dynamic
+    dispatch as the run default it expects, and (3) reaches the expected terminal
+    frontier with Building evidence. Then assert a NO-PRESET intent HARD-FAILS
+    (the seam must not run a Building) -- this is the FIRE: it must RED if the
+    hard-fail is bypassed.
     """
     items = rule_items(profile, "building_intake_seam_case")
     if not items:
@@ -1459,10 +1460,10 @@ def run_building_intake_seam_case(repo: Path, profile: Mapping[str, Any]) -> int
             f"{label}: selected_adapter_ref",
         )
         expected_plan_shape = require_string(
-            mapping.get("expected_plan_shape", "linear"), f"{label}: expected_plan_shape"
+            mapping.get("expected_plan_shape", "graph"), f"{label}: expected_plan_shape"
         )
         expected_walker_mode = require_string(
-            mapping.get("expected_walker_mode", "linear"), f"{label}: expected_walker_mode"
+            mapping.get("expected_walker_mode", "dynamic"), f"{label}: expected_walker_mode"
         )
         expected_frontier = require_string(
             mapping.get("expected_frontier_kind", "complete"),
@@ -2985,7 +2986,7 @@ def _run_preset_completion_portfolio(
 ) -> None:
     slug = _preset_slug(portfolio_ref)
     plan_dir = tmp / "portfolio-child-plans" / slug
-    candidates: list[tuple[str, Path, str]] = []
+    candidates: list[tuple[str, Path]] = []
     for index, child_suffix in enumerate(("a", "b"), start=1):
         child_building_id = f"{_case_slug(label)}-{slug}-child-{child_suffix}"
         child_plan = materialize_building_intent(
@@ -3004,10 +3005,9 @@ def _run_preset_completion_portfolio(
         plan_path = plan_dir / f"{child_suffix}.json"
         plan_path.parent.mkdir(parents=True, exist_ok=True)
         plan_path.write_text(json.dumps(child_plan, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        walker_mode = "dynamic" if child_plan.get("plan_shape") == "graph" else "linear"
-        candidates.append((f"building-boundary:{slug}-child-{child_suffix}", plan_path, walker_mode))
+        candidates.append((f"building-boundary:{slug}-child-{child_suffix}", plan_path))
 
-    candidate_refs = [candidate_ref for candidate_ref, _path, _walker_mode in candidates]
+    candidate_refs = [candidate_ref for candidate_ref, _path in candidates]
     packet = {
         "portfolio_ref": f"portfolio:{_case_slug(label)}-{slug}",
         "declared_by": f"coo:{_case_slug(label)}",
@@ -3022,9 +3022,8 @@ def _run_preset_completion_portfolio(
             {
                 "candidate_ref": candidate_ref,
                 "building_plan_ref": str(path),
-                "walker_mode": walker_mode,
             }
-            for candidate_ref, path, walker_mode in candidates
+            for candidate_ref, path in candidates
         ],
         "static_order": candidate_refs,
         "portfolio_transition_budget": {
@@ -5453,6 +5452,135 @@ def _compose_building_profile_plan(case: Mapping[str, Any], repo: Path) -> Mappi
     )
 
 
+def _graph_test_plan_from_linear(linear_plan: Mapping[str, Any]) -> Mapping[str, Any]:
+    """Convert a checker-only forward linear plan into a graph plan via compose_building."""
+
+    from support.operator.composition import compose_building
+
+    if linear_plan.get("plan_shape") != "linear":
+        raise ProfileError("_graph_test_plan_from_linear requires plan_shape: linear")
+    raw_steps = linear_plan.get("steps")
+    if not isinstance(raw_steps, Sequence) or isinstance(raw_steps, (str, bytes)) or not raw_steps:
+        raise ProfileError("_graph_test_plan_from_linear requires a non-empty steps list")
+
+    nodes: list[Mapping[str, Any]] = []
+    edges: list[Mapping[str, Any]] = []
+    endpoint_refs: set[str] = set()
+    building_id = str(linear_plan.get("building_id") or "checker-linear-to-graph")
+    prepared_steps: list[tuple[str, Mapping[str, Any], Mapping[str, Any], Mapping[str, Any], Mapping[str, Any]]] = []
+    for index, raw_step in enumerate(raw_steps):
+        if not isinstance(raw_step, Mapping):
+            raise ProfileError(f"_graph_test_plan_from_linear steps[{index}] must be a mapping")
+        step_ref = require_string(raw_step.get("step_ref"), f"steps[{index}].step_ref")
+        rows = raw_step.get("rows")
+        if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes)):
+            raise ProfileError(f"_graph_test_plan_from_linear steps[{index}].rows must be a sequence")
+        by_axis = {
+            str(row.get("axis")): row
+            for row in rows
+            if isinstance(row, Mapping) and row.get("axis") in {"Brick", "Agent", "Link"}
+        }
+        missing_axes = {"Brick", "Agent", "Link"} - set(by_axis)
+        if missing_axes:
+            raise ProfileError(
+                f"_graph_test_plan_from_linear steps[{index}] missing row axis/axes: "
+                + ", ".join(sorted(missing_axes))
+            )
+        brick_row = dict(by_axis["Brick"])
+        agent_row = dict(by_axis["Agent"])
+        link_row = dict(by_axis["Link"])
+        prepared_steps.append((step_ref, raw_step, brick_row, agent_row, link_row))
+        endpoint_refs.add(step_ref)
+        brick_ref = str(brick_row.get("brick_instance_ref") or "").strip()
+        if brick_ref:
+            endpoint_refs.add(brick_ref)
+
+    for index, (step_ref, raw_step, brick_row, _agent_row, link_row) in enumerate(prepared_steps):
+        node: dict[str, Any] = {
+            "node_id": step_ref,
+            "step_ref": step_ref,
+            "step_template_ref": raw_step.get("step_template_ref", "building-step-template:work"),
+        }
+        for key in ("selected_adapter_ref", "selected_model_ref"):
+            if key in raw_step:
+                node[key] = raw_step[key]
+        for key, value in brick_row.items():
+            if key != "axis":
+                if key == "source_facts" and not value:
+                    continue
+                node[key] = json.loads(json.dumps(value))
+        nodes.append(node)
+
+        declared_target_ref = require_string(
+            link_row.get("target_ref", link_row.get("next_brick_instance_ref")),
+            f"steps[{index}].Link.target_ref",
+        )
+        if declared_target_ref in endpoint_refs:
+            target_ref = declared_target_ref
+        elif index == len(prepared_steps) - 1:
+            target_ref = (
+                declared_target_ref
+                if declared_target_ref.startswith(("building-boundary:", "building-boundary-"))
+                else f"building-boundary:{_case_slug(building_id)}-closed"
+            )
+        else:
+            target_ref = declared_target_ref
+        edge: dict[str, Any] = {
+            "edge_ref": f"edge:{step_ref}-to-{_case_slug(target_ref)}",
+            "source_step_ref": step_ref,
+            "target_ref": target_ref,
+            "movement": require_string(link_row.get("movement"), f"steps[{index}].Link.movement"),
+            "row_ref": link_row.get("row_ref", f"link-row:{step_ref}"),
+        }
+        for key in (
+            "declared_gate_refs",
+            "gate_sequence_policy",
+            "gate_concept_provenance",
+            "route_replay_plan",
+            "route_decision_basis",
+            "transition_authoring",
+            "transition_lifecycle",
+            "building_lifecycle",
+        ):
+            if key in link_row:
+                edge[key] = json.loads(json.dumps(link_row[key]))
+        edges.append(edge)
+
+    graph_plan = dict(
+        compose_building(
+            nodes,
+            edges,
+            declared_by=str(linear_plan.get("declared_by") or "coo"),
+            plan_ref=str(linear_plan.get("plan_ref") or ""),
+            building_id=building_id,
+            selected_adapter_ref=str(linear_plan.get("selected_adapter_ref") or "adapter:local"),
+            selected_model_ref=str(linear_plan.get("selected_model_ref") or "model:default"),
+            selected_shape_ref=str(linear_plan.get("selected_shape_ref") or ""),
+            chain_preset_ref=str(linear_plan.get("chain_preset_ref") or ""),
+        )
+    )
+    for key in (
+        "task_source_ref",
+        "task_statement",
+        "report_event_policy",
+        "route_decision_basis",
+        "proof_limits",
+        "not_proven",
+    ):
+        if key in linear_plan:
+            graph_plan[key] = json.loads(json.dumps(linear_plan[key]))
+    return graph_plan
+
+
+def _validation_plan_for_declared_plan(plan: Mapping[str, Any]) -> Mapping[str, Any]:
+    if plan.get("plan_shape") == "graph":
+        from support.operator.plan_graph import _linear_plan_from_graph_plan
+
+        validation_plan, _graph_context = _linear_plan_from_graph_plan(plan)
+        return validation_plan
+    return plan
+
+
 def _compose_building_expected_codes(mapping: Mapping[str, Any]) -> list[str]:
     if "expected_code" in mapping:
         return [require_string(mapping.get("expected_code"), "compose_building_rejects.expected_code")]
@@ -5664,7 +5792,7 @@ def _adapter_capability_plan(
     }
     if write_scope is not None:
         brick_row["write_scope"] = dict(write_scope)
-    return {
+    linear_plan = {
         "plan_ref": "building-plan:adapter-capability-rehome-case",
         "owner_axis": "Brick",
         "building_id": "adapter-capability-rehome-case",
@@ -5690,6 +5818,7 @@ def _adapter_capability_plan(
             }
         ],
     }
+    return _graph_test_plan_from_linear(linear_plan)
 
 
 def _check_adapter_capability_ok_all_four(label: str) -> None:
@@ -5709,9 +5838,11 @@ def _check_adapter_capability_ok_all_four(label: str) -> None:
         write_scope=write_scope,
     )
     validate_declared_building_plan(
-        _adapter_capability_plan(
-            selected_adapter_ref="adapter:codex-local",
-            write_scope=write_scope,
+        _validation_plan_for_declared_plan(
+            _adapter_capability_plan(
+                selected_adapter_ref="adapter:codex-local",
+                write_scope=write_scope,
+            )
         )
     )
     _validate_observed_write_path(
@@ -5751,7 +5882,7 @@ def _check_adapter_capability_claude_write_ok(label: str) -> None:
     step = _adapter_capability_plan(
         selected_adapter_ref="adapter:claude-local",
         write_scope=_adapter_capability_write_scope(),
-    )["steps"][0]
+    )["brick_steps"][0]
     _validate_declared_step_write_scope(step, selected_adapter_ref="adapter:claude-local")
 
 
@@ -5759,9 +5890,11 @@ def _check_adapter_capability_missing_brick_scope(label: str) -> None:
     from support.operator.plan_validation import validate_declared_building_plan
 
     validate_declared_building_plan(
-        _adapter_capability_plan(
-            selected_adapter_ref="adapter:codex-local",
-            write_scope=None,
+        _validation_plan_for_declared_plan(
+            _adapter_capability_plan(
+                selected_adapter_ref="adapter:codex-local",
+                write_scope=None,
+            )
         )
     )
 
@@ -5778,9 +5911,11 @@ def _check_adapter_capability_missing_adapter_capability(label: str) -> None:
     from support.operator.plan_validation import validate_declared_building_plan
 
     validate_declared_building_plan(
-        _adapter_capability_plan(
-            selected_adapter_ref="adapter:local",
-            write_scope=_adapter_capability_write_scope(),
+        _validation_plan_for_declared_plan(
+            _adapter_capability_plan(
+                selected_adapter_ref="adapter:local",
+                write_scope=_adapter_capability_write_scope(),
+            )
         )
     )
 
@@ -5794,7 +5929,6 @@ def _check_adapter_capability_observation_out_of_scope(label: str) -> None:
         tuple(write_scope["allowed_paths"]),
         tuple(write_scope["forbidden_paths"]),
     )
-
 
 def _check_adapter_capability_poc_read_only_with_write_scope(label: str) -> None:
     _adapter_capability_request(
@@ -5995,7 +6129,7 @@ def _check_adapter_capability_write_scope_on_read_only_brick_rejected(
         selected_adapter_ref="adapter:codex-local",
         write_scope=_adapter_capability_write_scope(),
     )
-    step = plan["steps"][0]
+    step = plan["brick_steps"][0]
     brick_row = step["rows"][0]
     # Record the Brick's declared write NEED as explicitly NO on the row, while a
     # write_scope is also present == the misconfiguration this guard catches.
@@ -6067,12 +6201,12 @@ def _check_adapter_capability_explicit_write_need_marker_admitted_strict(
         selected_adapter_ref="adapter:codex-local",
         write_scope=_adapter_capability_write_scope(),
     )
-    brick_row = dict(plan["steps"][0]["rows"][0])
+    brick_row = dict(plan["brick_steps"][0]["rows"][0])
     brick_row["requires_brick_write_scope"] = True
-    plan["steps"][0]["rows"][0] = brick_row
+    plan["brick_steps"][0]["rows"][0] = brick_row
     try:
         validate_declared_building_plan(
-            plan,
+            _validation_plan_for_declared_plan(plan),
             repo_root=repo,
             require_write_need_marker=True,
         )
@@ -6152,10 +6286,11 @@ def _check_adapter_capability_legacy_write_need_marker_not_recognized(
     """
     from support.operator.plan_validation import validate_declared_building_plan
 
-    plan = _adapter_capability_plan(
+    graph_plan = _adapter_capability_plan(
         selected_adapter_ref="adapter:codex-local",
         write_scope=_adapter_capability_write_scope(),
     )
+    plan = dict(_validation_plan_for_declared_plan(graph_plan))
     brick_row = dict(plan["steps"][0]["rows"][0])
     brick_row["write_need"] = True
     plan["steps"][0]["rows"][0] = brick_row
@@ -7635,7 +7770,7 @@ def _check_replay_closure_carry(
 
 def _step_output_drain_plan(case_kind: str, *, missing: bool) -> tuple[Mapping[str, Any], str]:
     if case_kind == "live_linear_n1":
-        return _linear_step_output_drain_plan(missing=missing), "linear"
+        return _linear_step_output_drain_plan(missing=missing), "dynamic"
     if case_kind in {"live_dynamic_fan_in_n2", "live_dynamic_fan_in_n3"}:
         return _dynamic_step_output_drain_plan(missing=missing), "dynamic"
     if case_kind == "live_dynamic_full_replay_n3":
@@ -7643,7 +7778,7 @@ def _step_output_drain_plan(case_kind: str, *, missing: bool) -> tuple[Mapping[s
     if case_kind == "live_dynamic_partial_replay_rejected":
         return _dynamic_full_replay_drain_plan(partial=True), "dynamic"
     if case_kind == "live_linear_missing_step_output_body":
-        return _linear_step_output_drain_plan(missing=True), "linear"
+        return _linear_step_output_drain_plan(missing=True), "dynamic"
     if case_kind == "live_dynamic_missing_step_output_body":
         return _dynamic_step_output_drain_plan(missing=True), "dynamic"
     if case_kind == "graph_plan_linear_walker_rejected":
@@ -7657,9 +7792,10 @@ def _linear_step_output_drain_plan(*, missing: bool) -> Mapping[str, Any]:
         if missing
         else "work/step-outputs/linear-producer-attempt-1/step-output.json"
     )
-    return {
+    linear_plan = {
         "plan_ref": "building-plan:checker-live-linear-step-output-drain",
         "building_id": "checker-live-linear-step-output-drain",
+        "plan_shape": "linear",
         "selected_adapter_ref": "adapter:local",
         "proof_limits": _step_output_drain_proof_limits(),
         "not_proven": ["checker live runner proof only"],
@@ -7678,6 +7814,7 @@ def _linear_step_output_drain_plan(*, missing: bool) -> Mapping[str, Any]:
             ),
         ],
     }
+    return _graph_test_plan_from_linear(linear_plan)
 
 
 def _linear_step(
@@ -8552,6 +8689,7 @@ def run_intake_evidence_projection_case(repo: Path, profile: Mapping[str, Any]) 
                 }
             ],
         }
+        write_plan = dict(_graph_test_plan_from_linear(write_plan))
         with tempfile.TemporaryDirectory(prefix="bp-write-observation-case-") as wtmp:
             workspace = Path(wtmp) / "workspace"
             workspace.mkdir(parents=True)

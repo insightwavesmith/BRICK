@@ -88,8 +88,8 @@ class BuildingIntakeRunResult:
     """Support-only observation of one confirmed-intent -> running-Building seam.
 
     Records the seam's mechanical handoff: the materialized plan written to disk,
-    the plan_shape -> walker_mode mapping that ``run_building_plan``'s own contract
-    forces, and the downstream Building run result. It is not a BAL fact class and
+    the graph-only run dispatch that lets ``run_building_plan`` derive the dynamic
+    walker, and the downstream Building run result. It is not a BAL fact class and
     carries no Movement, success, quality, or preset choice.
     """
 
@@ -111,7 +111,6 @@ class _Candidate:
     candidate_ref: str
     plan_path: Path
     declared_plan_ref: str
-    walker_mode: str
 
 
 @dataclass(frozen=True)
@@ -132,30 +131,7 @@ class _NextResolution:
     reason_refs: tuple[str, ...] = ()
 
 
-_PLAN_SHAPE_TO_WALKER_MODE: Mapping[str, str] = {
-    "linear": "linear",
-    "graph": "dynamic",
-}
 _DECLARED_PLAN_FILENAME = "declared-building-plan.json"
-
-
-def _walker_mode_for_plan_shape(plan_shape: str) -> str:
-    """Map a materialized plan's plan_shape to run_building_plan's walker_mode.
-
-    This is the ONE derivation this seam makes, and it is not a free choice: it is
-    forced by ``run_building_plan``'s own contract (a ``plan_shape: graph`` plan
-    raises unless ``walker_mode='dynamic'``; the linear walker is the default). It
-    is a mechanical 1:1 lookup, NOT a Link Movement decision. A plan_shape that is
-    neither ``linear`` nor ``graph`` fails closed -- support invents no walker mode.
-    """
-
-    walker_mode = _PLAN_SHAPE_TO_WALKER_MODE.get(plan_shape)
-    if walker_mode is None:
-        raise ValueError(
-            "materialized plan_shape must be 'linear' or 'graph'; "
-            f"support maps no walker_mode for plan_shape: {plan_shape!r}"
-        )
-    return walker_mode
 
 
 def run_building_intake(
@@ -233,11 +209,11 @@ def run_building_intake(
     2. Write the materialized plan to ``output_root/<building_id>/declared-building-plan.json``
        using the same json plan serialization the render / compose / portfolio
        paths use (this is the on-disk plan ``run_building_plan`` reads back).
-    3. Map ``plan_shape`` -> ``walker_mode`` mechanically (``graph`` -> ``dynamic``,
-       ``linear`` -> ``linear``; anything else fails closed). This is forced by
-       ``run_building_plan``'s contract, not a Movement choice.
-    4. ``run_building_plan(plan_path, walker_mode=..., ...)`` -> walk the declared
-       road once and write Building evidence.
+    3. Require ``plan_shape: graph`` at this driver seam; non-graph plans fail
+       closed here instead of being walked by the legacy linear walker.
+    4. ``run_building_plan(plan_path, ...)`` -> let the single-Building run
+       entrypoint derive dynamic dispatch from the graph shape, walk the declared
+       road once, and write Building evidence.
     """
 
     repo = Path(repo_root).resolve() if repo_root is not None else Path.cwd().resolve()
@@ -267,9 +243,11 @@ def run_building_intake(
         plan["report_event_policy"] = dict(policy) if isinstance(policy, Mapping) else policy
 
     plan_shape = str(plan.get("plan_shape") or "")
-    walker_mode = _walker_mode_for_plan_shape(plan_shape)
+    if plan_shape != "graph":
+        raise ValueError("driver run_building_intake admits only plan_shape: graph")
+    walker_mode = "dynamic"
     walker_mode_basis = (
-        "mechanical plan_shape->walker_mode map forced by run_building_plan contract; "
+        "driver requires graph plan and lets run_building_plan derive dynamic dispatch; "
         "not a Link Movement decision"
     )
 
@@ -303,7 +281,6 @@ def run_building_intake(
         adapter_cwd=adapter_cwd,
         adapter_timeout_seconds=adapter_timeout_seconds,
         proof_limits=proof_limits,
-        walker_mode=walker_mode,
     )
 
     return BuildingIntakeRunResult(
@@ -465,7 +442,6 @@ def run_declared_portfolio(
                 adapter_cwd=adapter_cwd,
                 adapter_timeout_seconds=adapter_timeout_seconds,
                 proof_limits=checked_proof_limits,
-                walker_mode=current.candidate.walker_mode,
             )
         except ChatSessionParkFrontierEvidenceWritten as parked:
             child_frontier = observe_building_frontier(parked.building_root, repo_root=repo)
@@ -644,15 +620,14 @@ def _candidate_buildings(
         raw_plan_ref = item.get("building_plan_ref", item.get("plan_ref"))
         declared_plan_ref = _required_text(raw_plan_ref, f"candidate_buildings[{index}].building_plan_ref")
         plan_path = _resolve_declared_plan_path(declared_plan_ref, base_dir=base_dir)
-        walker_mode = _required_text(item.get("walker_mode", "linear"), f"candidate_buildings[{index}].walker_mode")
-        if walker_mode not in {"linear", "dynamic"}:
-            raise ValueError("candidate_buildings[].walker_mode must be linear or dynamic")
+        plan_shape = str(_load_declared_plan_mapping(plan_path).get("plan_shape") or "")
+        if plan_shape != "graph":
+            raise ValueError("candidate_buildings[] Building Plan must declare plan_shape: graph")
         candidates.append(
             _Candidate(
                 candidate_ref=candidate_ref,
                 plan_path=plan_path,
                 declared_plan_ref=declared_plan_ref,
-                walker_mode=walker_mode,
             )
         )
     return tuple(candidates), {candidate.candidate_ref: candidate for candidate in candidates}

@@ -1238,9 +1238,9 @@ preset_building_completion_case:
 # PART-2 Phase 1 CORE PRODUCT SEAM: the single task.md + chain preset ->
 # running-Building verb (support/operator/driver.py run_building_intake). This
 # case drives it over an adapter:local deterministic agent brain end-to-end and
-# asserts: (1) it writes the materialized plan to disk, (2) it maps
-# plan_shape -> walker_mode mechanically (linear -> linear; graph -> dynamic),
-# (3) it reaches a terminal frontier with Building evidence. The
+# asserts: (1) it writes the materialized graph plan to disk, (2) it records
+# dynamic dispatch while letting run_building_plan derive it from graph shape,
+# and (3) it reaches a terminal frontier with Building evidence. The
 # no_preset_chain_preset_ref FIRE asserts the seam HARD-FAILS (does not run a
 # Building) when the intent names a preset absent from the registry.
 building_intake_seam_case:
