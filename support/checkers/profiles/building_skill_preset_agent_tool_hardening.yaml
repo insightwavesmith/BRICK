@@ -627,11 +627,11 @@ materialize_building_intent_case:
       chain_preset_ref: building-chain-preset:design-build-parallel
       plan_shape: graph
       node_reroute_budgets:
-        brick-materialize-design-build-parallel-graph-constitutional-default-design: 1
-        brick-materialize-design-build-parallel-graph-constitutional-default-work: 1
-        brick-materialize-design-build-parallel-graph-constitutional-default-code-attack-qa: 1
-        brick-materialize-design-build-parallel-graph-constitutional-default-axis-attack-qa: 1
-        brick-materialize-design-build-parallel-graph-constitutional-default-closure: 1
+        brick-materialize-design-build-parallel-graph-constitutional-default-design: 5
+        brick-materialize-design-build-parallel-graph-constitutional-default-work: 5
+        brick-materialize-design-build-parallel-graph-constitutional-default-code-attack-qa: 5
+        brick-materialize-design-build-parallel-graph-constitutional-default-axis-attack-qa: 5
+        brick-materialize-design-build-parallel-graph-constitutional-default-closure: 5
       assert_route_policy_provenance: true
       route_policy_provenance:
         materialize-design-build-parallel-graph-constitutional-default-design:
