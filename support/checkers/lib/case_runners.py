@@ -1176,7 +1176,6 @@ def run_preset_building_completion_case(repo: Path, profile: Mapping[str, Any]) 
                     command_runner=command_runner,
                     adapter_cwd=repo,
                     adapter_timeout_seconds=10,
-                    walker_mode=walker_mode,
                 )
                 frontier = observe_building_frontier(result.lifecycle_write.root, repo_root=repo)
                 if frontier.get("frontier_kind") != expected_frontier:
@@ -1361,7 +1360,6 @@ def run_adapter_gate_shape_union_case(repo: Path, profile: Mapping[str, Any]) ->
                 command_runner=_capturing_runner,
                 adapter_cwd=repo,
                 adapter_timeout_seconds=10,
-                walker_mode="dynamic" if plan.get("plan_shape") == "graph" else "linear",
             )
             frontier = observe_building_frontier(result.lifecycle_write.root, repo_root=repo)
         if frontier.get("frontier_kind") != "complete":
@@ -1696,7 +1694,6 @@ def run_building_intake_seam_case(repo: Path, profile: Mapping[str, Any]) -> int
                     },
                     adapter_cwd=repo,
                     adapter_timeout_seconds=10,
-                    walker_mode=result.walker_mode,
                 )
                 replay_task_md = (
                     replay_result.lifecycle_write.root / "work" / "task.md"
@@ -3813,7 +3810,6 @@ def run_compose_building_case(repo: Path, profile: Mapping[str, Any]) -> int:
                     },
                     adapter_cwd=repo,
                     adapter_timeout_seconds=10,
-                    walker_mode="dynamic",
                 )
                 frontier = observe_building_frontier(result.lifecycle_write.root, repo_root=repo)
                 _check_compose_building_declaration_evidence(
@@ -7229,7 +7225,7 @@ def run_step_output_drain_case(repo: Path, profile: Mapping[str, Any]) -> int:
         mapping = require_mapping(item, "step_output_drain_case item")
         label = require_string(mapping.get("label"), "step_output_drain_case.label")
         case_kind = require_string(mapping.get("case_kind"), f"{label}: case_kind")
-        plan, walker_mode = _step_output_drain_plan(case_kind, missing=False)
+        plan, _walker_mode = _step_output_drain_plan(case_kind, missing=False)
         if case_kind == "live_dynamic_full_replay_n3":
             _check_dynamic_full_replay_policy(plan, label=label)
         expected = require_mapping(mapping.get("expected", {}), f"{label}: expected")
@@ -7253,7 +7249,6 @@ def run_step_output_drain_case(repo: Path, profile: Mapping[str, Any]) -> int:
                 output_root=output_root,
                 observed=observed,
                 repo=repo,
-                walker_mode=walker_mode,
             )
             if batch_step_output_write_calls:
                 raise ProfileError(
@@ -7286,7 +7281,6 @@ def _run_step_output_drain_plan(
     output_root: Path,
     observed: "_StepOutputDrainObserved",
     repo: Path,
-    walker_mode: str,
 ) -> tuple[Any, int]:
     from support.operator import evidence_assembly
     from support.operator.run import run_building_plan
@@ -7308,7 +7302,6 @@ def _run_step_output_drain_plan(
             local_callables={"callable:local:agent-invoke0-smoke": observed.callable},
             adapter_cwd=repo,
             adapter_timeout_seconds=10,
-            walker_mode=walker_mode,
         )
     finally:
         evidence_assembly.write_step_outputs = original_write_step_outputs
@@ -7333,21 +7326,6 @@ def run_step_output_drain_rejects(repo: Path, profile: Mapping[str, Any]) -> int
         try:
             if case_kind == "step_output_source_fact_disk_fallback_rejected":
                 _source_fact_bodies(("work/step-outputs/missing-attempt-1/step-output.json",))
-            elif case_kind == "graph_plan_linear_walker_rejected":
-                plan, walker_mode = _step_output_drain_plan(case_kind, missing=True)
-                with tempfile.TemporaryDirectory(prefix="bp-step-output-drain-red-") as tmpdir:
-                    observed = _StepOutputDrainObserved(output_root=Path(tmpdir))
-                    run_building_plan(
-                        plan,
-                        output_root=Path(tmpdir),
-                        overwrite_existing=True,
-                        local_callables={
-                            "callable:local:agent-invoke0-smoke": observed.callable
-                        },
-                        adapter_cwd=repo,
-                        adapter_timeout_seconds=10,
-                        walker_mode=walker_mode,
-                    )
             elif case_kind == "live_dynamic_partial_replay_rejected":
                 plan, _walker_mode = _step_output_drain_plan(case_kind, missing=True)
                 try:
@@ -7361,7 +7339,7 @@ def run_step_output_drain_rejects(repo: Path, profile: Mapping[str, Any]) -> int
                     count += 1
                     continue
             elif case_kind == "live_dynamic_missing_step_output_body":
-                plan, walker_mode = _step_output_drain_plan(case_kind, missing=True)
+                plan, _walker_mode = _step_output_drain_plan(case_kind, missing=True)
                 with tempfile.TemporaryDirectory(prefix="bp-step-output-drain-red-") as tmpdir:
                     observed = _StepOutputDrainObserved(output_root=Path(tmpdir))
                     result = run_building_plan(
@@ -7373,7 +7351,6 @@ def run_step_output_drain_rejects(repo: Path, profile: Mapping[str, Any]) -> int
                         },
                         adapter_cwd=repo,
                         adapter_timeout_seconds=10,
-                        walker_mode=walker_mode,
                     )
                     _check_step_output_drain_dynamic_hold(
                         result,
@@ -7384,7 +7361,7 @@ def run_step_output_drain_rejects(repo: Path, profile: Mapping[str, Any]) -> int
                 count += 1
                 continue
             else:
-                plan, walker_mode = _step_output_drain_plan(case_kind, missing=True)
+                plan, _walker_mode = _step_output_drain_plan(case_kind, missing=True)
                 with tempfile.TemporaryDirectory(prefix="bp-step-output-drain-red-") as tmpdir:
                     observed = _StepOutputDrainObserved(output_root=Path(tmpdir))
                     run_building_plan(
@@ -7396,7 +7373,6 @@ def run_step_output_drain_rejects(repo: Path, profile: Mapping[str, Any]) -> int
                         },
                         adapter_cwd=repo,
                         adapter_timeout_seconds=10,
-                        walker_mode=walker_mode,
                     )
         except (TypeError, ValueError) as exc:
             if expected_message not in str(exc):
@@ -7781,8 +7757,6 @@ def _step_output_drain_plan(case_kind: str, *, missing: bool) -> tuple[Mapping[s
         return _linear_step_output_drain_plan(missing=True), "dynamic"
     if case_kind == "live_dynamic_missing_step_output_body":
         return _dynamic_step_output_drain_plan(missing=True), "dynamic"
-    if case_kind == "graph_plan_linear_walker_rejected":
-        return _dynamic_step_output_drain_plan(missing=missing), "linear"
     raise ProfileError(f"unknown step_output_drain case_kind: {case_kind}")
 
 

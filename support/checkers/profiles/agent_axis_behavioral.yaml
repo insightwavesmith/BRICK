@@ -185,7 +185,7 @@ text_contains:
   - path: support/operator/run.py
     texts:
       - movement_gate_fact
-      - SUPPORT-MOVEMENT-AUTHORITY-RETRACT-0
+      - own Brick / Agent / Link meaning
       - write_accumulated_building_evidence
   - path: brick/comparison.py
     texts:

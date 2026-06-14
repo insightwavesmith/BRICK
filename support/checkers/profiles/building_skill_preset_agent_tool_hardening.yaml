@@ -1583,9 +1583,6 @@ step_output_drain_rejects:
   - label: p5-step-output-disk-fallback-rejected
     case_kind: step_output_source_fact_disk_fallback_rejected
     expected_message: step-output source_fact refs must be supplied from step-close evidence
-  - label: p5-graph-plan-linear-walker-rejected
-    case_kind: graph_plan_linear_walker_rejected
-    expected_message: graph Building plans require walker_mode='dynamic'
   - label: p5-live-linear-missing-step-output-body-red
     case_kind: live_linear_missing_step_output_body
     expected_message: missing step-output source_fact body/evidence

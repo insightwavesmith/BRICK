@@ -127,7 +127,7 @@ text_contains:
   - path: support/operator/run.py
     texts:
       - _declared_movement_gate_fact
-      - _declared_transition_lifecycle_state
+      - _validate_transition_lifecycle_for_link_row
       - create undeclared GateFacts
   - path: link/gate.py
     texts:
@@ -569,8 +569,8 @@ fail_fixture_rejects:
 # building_lifecycle.state: waiting / transition_lifecycle.state: paused
 # directly; it only HALTS on a gate_sequence_policy HOLD. A Link row that
 # directly declares a stop state WITHOUT a HOLD-causing gate policy on the same
-# row would be walked through by the graph model where the linear walker
-# (run.py 1461/1469) breaks. _validate_building_lifecycle_for_link_row /
+# row would be walked through by the graph model unless the validators reject it.
+# _validate_building_lifecycle_for_link_row /
 # _validate_transition_lifecycle_for_link_row MUST reject it. These probes
 # exercise the validators directly (the case document is the link_row).
 building_lifecycle_rejects:

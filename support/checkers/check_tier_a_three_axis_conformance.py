@@ -5,7 +5,7 @@ HALF-2 Tier A (refactor/automation goal 0601 §3). CLEAN-YARD v3 (Smith 0611):
 the product repo ships NO standing dogfood Building; a check that needs a
 conformant Building GENERATES it with the REAL engine at check time, asserts,
 and removes it. On every run this harness drives ``run_building_plan``
-(``walker_mode="dynamic"``, adapter:local) over a declared graph plan that
+(dynamic graph dispatch, adapter:local) over a declared graph plan that
 replays the original tier-a topology -- work, a review that proposes a
 non-binding reroute back to work (ADOPTED under the default gate within the
 per-node budget of 1), a mid node, a second review that proposes the same
@@ -837,7 +837,6 @@ def generate_tier_a_case_root(repo: Path, output_root: Path) -> tuple[Path, Path
         local_callables=callables,
         adapter_cwd=repo,
         adapter_timeout_seconds=30,
-        walker_mode="dynamic",
     )
     root = Path(result.lifecycle_write.root)
     held_frontier = observe_building_frontier(root, repo_root=repo)

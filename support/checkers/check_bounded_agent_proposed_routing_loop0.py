@@ -829,7 +829,6 @@ def _run(plan: Mapping[str, Any], callable_, repo: Path):
             local_callables={"callable:local:agent-invoke0-smoke": callable_},
             adapter_cwd=repo,
             adapter_timeout_seconds=30,
-            walker_mode="dynamic",
         )
         frontier = observe_building_frontier(result.lifecycle_write.root, repo_root=repo)
         records = list(getattr(result, "_dynamic_walker_reroute_records", ()))
@@ -965,8 +964,8 @@ def check(repo: Path) -> list[str]:
     _ensure_import_path(repo)
     violations: list[str] = []
 
-    # G5-1: run_building_plan's unset walker_mode is derived from plan_shape at the
-    # entrypoint. This checker calls run_building_plan(plan) with NO walker_mode.
+    # G5-1: run_building_plan has no walker_mode parameter and always enters the
+    # dynamic graph walker.
     from brick_protocol.support.operator.run import run_building_plan
     from brick_protocol.support.operator.building_operation import observe_building_frontier
 
@@ -992,12 +991,12 @@ def check(repo: Path) -> list[str]:
         )
         auto_graph_evidence = getattr(auto_graph_result, "_dynamic_walker_evidence", {})
         if not isinstance(auto_graph_evidence, Mapping) or auto_graph_evidence.get("walker_mode") != "dynamic":
-            violations.append("g5-1: graph plan without walker_mode did not derive dynamic walker evidence")
+            violations.append("g5-1: graph plan did not record dynamic walker evidence")
         if not tuple(getattr(auto_graph_result, "_dynamic_walker_reroute_records", ())):
-            violations.append("g5-1: graph plan without walker_mode did not record dynamic reroute evidence")
+            violations.append("g5-1: graph plan did not record dynamic reroute evidence")
         if auto_graph_frontier["frontier_kind"] not in {"complete", "closure_pending"}:
             violations.append(
-                "g5-1: graph plan without walker_mode did not reach a dynamic terminal frontier "
+                "g5-1: graph plan did not reach a dynamic terminal frontier "
                 f"(frontier={auto_graph_frontier['frontier_kind']})"
             )
 
@@ -1095,7 +1094,6 @@ def check(repo: Path) -> list[str]:
             },
             adapter_cwd=repo,
             adapter_timeout_seconds=30,
-            walker_mode="dynamic",
         )
         root_g5 = res_g5.lifecycle_write.root
         before_g5 = observe_building_frontier(root_g5, repo_root=repo)
@@ -1140,7 +1138,6 @@ def check(repo: Path) -> list[str]:
             },
             adapter_cwd=repo,
             adapter_timeout_seconds=30,
-            walker_mode="dynamic",
         )
         root_g6 = res_g6.lifecycle_write.root
         _append_disposition_row(
@@ -1188,7 +1185,6 @@ def check(repo: Path) -> list[str]:
             },
             adapter_cwd=repo,
             adapter_timeout_seconds=30,
-            walker_mode="dynamic",
         )
         root_g7_forward = res_g7_forward.lifecycle_write.root
         before_g7_forward = observe_building_frontier(root_g7_forward, repo_root=repo)
@@ -1238,7 +1234,6 @@ def check(repo: Path) -> list[str]:
             local_callables={"callable:local:agent-invoke0-smoke": callable_g7},
             adapter_cwd=repo,
             adapter_timeout_seconds=30,
-            walker_mode="dynamic",
         )
         root_g7 = res_g7.lifecycle_write.root
         before_g7 = observe_building_frontier(root_g7, repo_root=repo)
@@ -2119,7 +2114,6 @@ def check(repo: Path) -> list[str]:
                 local_callables={"callable:local:agent-invoke0-smoke": callable_rp},
                 adapter_cwd=repo,
                 adapter_timeout_seconds=30,
-                walker_mode="dynamic",
             )
             root_rp = res_rp.lifecycle_write.root
             before_rp = observe_building_frontier(root_rp, repo_root=repo)
@@ -2223,7 +2217,6 @@ def check(repo: Path) -> list[str]:
             local_callables={"callable:local:agent-invoke0-smoke": callable_nr_resume},
             adapter_cwd=repo,
             adapter_timeout_seconds=30,
-            walker_mode="dynamic",
         )
         root_nr_resume = res_nr_resume.lifecycle_write.root
         before_nr_resume = observe_building_frontier(root_nr_resume, repo_root=repo)
@@ -2297,9 +2290,8 @@ def check(repo: Path) -> list[str]:
         )
 
     # Live regression from REPORTER-NOTIFICATION-PROJECTION-0: if an adapter
-    # interrupts before AgentFact exists, the dynamic walker must use the same
-    # adapter-error frontier writer as the linear walker instead of crashing
-    # without a Building root.
+    # interrupts before AgentFact exists, the dynamic walker must write an
+    # adapter-error frontier instead of crashing without a Building root.
     plan_adapter, _ = _checker_plan("bapr-loop0-adapter-frontier", budget=1)
     failing_brick = "brick-bapr-loop0-adapter-frontier-review"
     with tempfile.TemporaryDirectory(prefix="bp-bapr-adapter-frontier-") as tmp:
@@ -2316,7 +2308,6 @@ def check(repo: Path) -> list[str]:
                 },
                 adapter_cwd=repo,
                 adapter_timeout_seconds=30,
-                walker_mode="dynamic",
             )
         except RuntimeError as exc:
             if "dynamic adapter exception frontier evidence written" not in str(exc):
@@ -2680,7 +2671,6 @@ def check(repo: Path) -> list[str]:
             local_callables={"callable:local:agent-invoke0-smoke": callable_e},
             adapter_cwd=repo,
             adapter_timeout_seconds=30,
-            walker_mode="dynamic",
         )
         root_e = res_e.lifecycle_write.root
         before_e = observe_building_frontier(root_e, repo_root=repo)
@@ -2870,7 +2860,6 @@ def check(repo: Path) -> list[str]:
             local_callables={"callable:local:agent-invoke0-smoke": callable_f},
             adapter_cwd=repo,
             adapter_timeout_seconds=30,
-            walker_mode="dynamic",
         )
         root_f = res_f.lifecycle_write.root
         before_f = observe_building_frontier(root_f, repo_root=repo)
@@ -3061,7 +3050,6 @@ def check(repo: Path) -> list[str]:
             local_callables={"callable:local:agent-invoke0-smoke": callable_g},
             adapter_cwd=repo,
             adapter_timeout_seconds=30,
-            walker_mode="dynamic",
         )
         root_g = res_g.lifecycle_write.root
         before_g = observe_building_frontier(root_g, repo_root=repo)
@@ -3195,7 +3183,7 @@ def check(repo: Path) -> list[str]:
         res_fc = run_building_plan(
             plan_fc, output_root=Path(tmp), overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": callable_},
-            adapter_cwd=repo, adapter_timeout_seconds=30, walker_mode="dynamic",
+            adapter_cwd=repo, adapter_timeout_seconds=30,
         )
         return res_fc, b2_fc
 
@@ -3433,7 +3421,7 @@ def check(repo: Path) -> list[str]:
         res4b = run_building_plan(
             plan4b, output_root=Path(tmp), overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": cb4b},
-            adapter_cwd=repo, adapter_timeout_seconds=30, walker_mode="dynamic")
+            adapter_cwd=repo, adapter_timeout_seconds=30)
         root4b = res4b.lifecycle_write.root
         if observe_building_frontier(root4b, repo_root=repo)["frontier_kind"] != "link_paused":
             violations.append("fc-gap4b-pause: setup did not HOLD on a human gate pause")
@@ -3499,7 +3487,7 @@ def check(repo: Path) -> list[str]:
         res5 = run_building_plan(
             plan5, output_root=Path(tmp), overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": cb5},
-            adapter_cwd=repo, adapter_timeout_seconds=30, walker_mode="dynamic")
+            adapter_cwd=repo, adapter_timeout_seconds=30)
         root5 = res5.lifecycle_write.root
         if observe_building_frontier(root5, repo_root=repo)["frontier_kind"] != "link_paused":
             violations.append("fc-gap5: setup did not HOLD")
@@ -3682,7 +3670,6 @@ def check(repo: Path) -> list[str]:
             local_callables={"callable:local:agent-invoke0-smoke": callable_m1},
             adapter_cwd=repo,
             adapter_timeout_seconds=30,
-            walker_mode="dynamic",
         )
         root_m1 = res_m1.lifecycle_write.root
         rec_m1 = list(getattr(res_m1, "_dynamic_walker_reroute_records", ()))
@@ -3814,7 +3801,6 @@ def check(repo: Path) -> list[str]:
             local_callables={"callable:local:agent-invoke0-smoke": callable_m2},
             adapter_cwd=repo,
             adapter_timeout_seconds=30,
-            walker_mode="dynamic",
         )
         rec_m2 = list(getattr(res_m2, "_dynamic_walker_reroute_records", ()))
         held_m2 = _held_records(rec_m2)
@@ -3868,7 +3854,6 @@ def check(repo: Path) -> list[str]:
             local_callables={"callable:local:agent-invoke0-smoke": _clean_callable_m3},
             adapter_cwd=repo,
             adapter_timeout_seconds=30,
-            walker_mode="dynamic",
         )
     linear_m3, _graph_context_m3 = _linear_plan_from_graph_plan(plan_m3)
     linear_steps_m3 = list(linear_m3["steps"])
@@ -3912,7 +3897,6 @@ def check(repo: Path) -> list[str]:
             local_callables={"callable:local:agent-invoke0-smoke": callable_m4},
             adapter_cwd=repo,
             adapter_timeout_seconds=30,
-            walker_mode="dynamic",
         )
         root_m4 = res_m4.lifecycle_write.root
         if observe_building_frontier(root_m4, repo_root=repo)["frontier_kind"] != "link_paused":
@@ -4084,7 +4068,6 @@ def check(repo: Path) -> list[str]:
             local_callables={"callable:local:agent-invoke0-smoke": callable_m5a},
             adapter_cwd=repo,
             adapter_timeout_seconds=30,
-            walker_mode="dynamic",
         )
         root_m5a = res_m5a.lifecycle_write.root
         if not (root_m5a / escape_ref_m5).is_file():
@@ -4130,7 +4113,6 @@ def check(repo: Path) -> list[str]:
             local_callables={"callable:local:agent-invoke0-smoke": callable_m5b},
             adapter_cwd=repo,
             adapter_timeout_seconds=30,
-            walker_mode="dynamic",
         )
         root_m5b = res_m5b.lifecycle_write.root
         if not (root_m5b / in_subtree_ref_m5).is_file():
@@ -4174,7 +4156,6 @@ def check(repo: Path) -> list[str]:
             local_callables={"callable:local:agent-invoke0-smoke": callable_m5c},
             adapter_cwd=repo,
             adapter_timeout_seconds=30,
-            walker_mode="dynamic",
         )
         rec_m5c = list(getattr(res_m5c, "_dynamic_walker_reroute_records", ()))
         if len(_adopted_records(rec_m5c)) != 1:
@@ -4216,7 +4197,6 @@ def check(repo: Path) -> list[str]:
             local_callables={"callable:local:agent-invoke0-smoke": callable_m5d},
             adapter_cwd=repo,
             adapter_timeout_seconds=30,
-            walker_mode="dynamic",
         )
         rec_m5d = list(getattr(res_m5d, "_dynamic_walker_reroute_records", ()))
         held_m5d = _held_records(rec_m5d)
@@ -4269,7 +4249,6 @@ def check(repo: Path) -> list[str]:
                 local_callables={"callable:local:agent-invoke0-smoke": callable_m5e},
                 adapter_cwd=repo,
                 adapter_timeout_seconds=30,
-                walker_mode="dynamic",
             )
             rec_m5e = list(getattr(res_m5e, "_dynamic_walker_reroute_records", ()))
             held_m5e = _held_records(rec_m5e)
@@ -4316,7 +4295,6 @@ def check(repo: Path) -> list[str]:
             local_callables={"callable:local:agent-invoke0-smoke": callable_m5e_in},
             adapter_cwd=repo,
             adapter_timeout_seconds=30,
-            walker_mode="dynamic",
         )
         rec_m5e_in = list(getattr(res_m5e_in, "_dynamic_walker_reroute_records", ()))
         if len(_adopted_records(rec_m5e_in)) != 1:
@@ -4469,7 +4447,6 @@ def check(repo: Path) -> list[str]:
             local_callables={"callable:local:agent-invoke0-smoke": callable_m6},
             adapter_cwd=repo,
             adapter_timeout_seconds=30,
-            walker_mode="dynamic",
         )
         root_m6 = res_m6.lifecycle_write.root
         _plan_evidence_m6, evidence_m6 = _mail_plan_evidence(root_m6)
@@ -4728,7 +4705,6 @@ def check(repo: Path) -> list[str]:
             local_callables={"callable:local:agent-invoke0-smoke": callable_m7},
             adapter_cwd=repo,
             adapter_timeout_seconds=30,
-            walker_mode="dynamic",
         )
         root_m7 = res_m7.lifecycle_write.root
         _plan_evidence_m7, evidence_m7 = _mail_plan_evidence(root_m7)

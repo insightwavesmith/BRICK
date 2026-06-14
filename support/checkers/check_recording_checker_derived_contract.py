@@ -429,10 +429,9 @@ def _run_linear_operator_evidence(repo: Path, walker_chk: Any):
         return {
             "observed_evidence": [f"obs {request.brick_instance_ref}"],
             "not_proven": ["semantic correctness"],
-        }
+    }
 
     with _tempfile.TemporaryDirectory(prefix="bp-zeta6-a2-lin-") as tmp:
-        walker_mode = "dynamic" if plan.get("plan_shape") == "graph" else "linear"
         result = run_building_plan(
             plan,
             output_root=Path(tmp),
@@ -440,7 +439,6 @@ def _run_linear_operator_evidence(repo: Path, walker_chk: Any):
             local_callables={"callable:local:agent-invoke0-smoke": _ok},
             adapter_cwd=repo,
             adapter_timeout_seconds=30,
-            walker_mode=walker_mode,
         )
         capture_events: list[Mapping[str, Any]] = []
         for step in result.step_results:
@@ -473,7 +471,6 @@ def _run_frontier_operator_evidence(repo: Path, walker_chk: Any):
     with _tempfile.TemporaryDirectory(prefix="bp-zeta6-a2-fr-") as tmp:
         building_root = None
         try:
-            walker_mode = "dynamic" if plan.get("plan_shape") == "graph" else "linear"
             run_building_plan(
                 plan,
                 output_root=Path(tmp),
@@ -481,7 +478,6 @@ def _run_frontier_operator_evidence(repo: Path, walker_chk: Any):
                 local_callables={"callable:local:agent-invoke0-smoke": _fail_on_build},
                 adapter_cwd=repo,
                 adapter_timeout_seconds=30,
-                walker_mode=walker_mode,
             )
         except Exception as exc:  # noqa: BLE001 - the frontier path raises after writing evidence
             building_root = getattr(exc, "building_root", None)

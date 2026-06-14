@@ -3494,7 +3494,6 @@ def run_adapter_error_path_hardening(repo: Path) -> KernelResult:
                 command_runner=failing_codex_runner,
                 adapter_cwd=repo,
                 adapter_timeout_seconds=5,
-                walker_mode="dynamic",
             )
         except RuntimeError as exc:
             if "dynamic adapter exception frontier evidence written" not in str(exc):
@@ -3708,7 +3707,6 @@ def run_adapter_error_path_hardening(repo: Path) -> KernelResult:
             local_callables={"callable:local:agent-invoke0-smoke": _hardening_local_brain},
             adapter_cwd=repo,
             adapter_timeout_seconds=5,
-            walker_mode="dynamic",
         )
         if (overwrite_root / "evidence" / "claim_trace" / "link" / "frontier_trace.json").exists():
             raise ProfileError("adapter_error_path_hardening F19 stale frontier_trace survived")
@@ -3751,7 +3749,6 @@ def run_adapter_error_path_hardening(repo: Path) -> KernelResult:
                 local_callables={"callable:local:agent-invoke0-smoke": _hardening_local_brain},
                 adapter_cwd=repo,
                 adapter_timeout_seconds=5,
-                walker_mode="dynamic",
             )
         finally:
             walker_kernel._clear_overwrite_claim_trace_manifest = original_clear
@@ -3879,7 +3876,6 @@ def _write_adapter_error_frontier_fixture(
             command_runner=failing_runner,
             adapter_cwd=repo,
             adapter_timeout_seconds=5,
-            walker_mode="dynamic",
         )
     except RuntimeError as exc:
         if "dynamic adapter exception frontier evidence written" not in str(exc):
@@ -4321,7 +4317,7 @@ def run_chat_session_park_seam(repo: Path) -> KernelResult:
             temp_repo=temp_repo,
         )
         inspected += 2
-        _chat_session_assert_linear_plan_rejects(
+        _chat_session_assert_non_graph_plan_rejects(
             run_module,
             buildings_root=buildings_root,
             temp_repo=temp_repo,
@@ -4332,7 +4328,6 @@ def run_chat_session_park_seam(repo: Path) -> KernelResult:
             _chat_session_park_graph_plan(),
             buildings_root=buildings_root,
             temp_repo=temp_repo,
-            walker_mode="dynamic",
             label="dynamic",
         )
         no_claim_root, _no_claim_written = _chat_session_drive_park(
@@ -4340,7 +4335,6 @@ def run_chat_session_park_seam(repo: Path) -> KernelResult:
             _chat_session_park_graph_plan(building_id="chat-session-park-no-claim-case"),
             buildings_root=buildings_root,
             temp_repo=temp_repo,
-            walker_mode="dynamic",
             label="no-claim",
         )
         inspected += 2
@@ -4606,7 +4600,8 @@ def run_chat_session_park_seam(repo: Path) -> KernelResult:
         check_id="chat_session_park_seam",
         inspected=inspected,
         output=(
-            "chat-session S2/S3 seam passed: linear chat-session plans rejected, "
+            "chat-session S2/S3 seam passed: non-graph plans rejected by the "
+            "dynamic graph walker guard, "
             "dynamic graph park wrote work-envelope.json + parked.json + raw park evidence, "
             "atomic claim minted a word-form token and second claim rejected, no-claim/"
             "no-submission/token-mismatch/forbidden-key/session-id value/key/nested "
@@ -5851,7 +5846,6 @@ def _chat_session_assert_undeclared_adapter_rejects(
                 plan,
                 output_root=buildings_root,
                 overwrite_existing=True,
-                walker_mode="dynamic",
             )
         except run_module.ChatSessionParkFrontierEvidenceWritten as exc:
             raise ProfileError(
@@ -5889,7 +5883,7 @@ def _chat_session_assert_undeclared_adapter_rejects(
         run_module._REPO_ROOT = original_runner_repo
 
 
-def _chat_session_assert_linear_plan_rejects(
+def _chat_session_assert_non_graph_plan_rejects(
     run_module: Any,
     *,
     buildings_root: Path,
@@ -5903,21 +5897,20 @@ def _chat_session_assert_linear_plan_rejects(
                 _chat_session_park_plan(),
                 output_root=buildings_root,
                 overwrite_existing=True,
-                walker_mode="linear",
             )
         except ValueError as exc:
-            if "linear chat-session replay is not admitted" not in str(exc):
+            if "walker_mode='dynamic' requires a plan_shape: graph Building Plan" not in str(exc):
                 raise ProfileError(
-                    "chat_session_park_seam linear graph-law reject had wrong reason: "
+                    "chat_session_park_seam non-graph dynamic guard had wrong reason: "
                     f"{exc}"
                 ) from exc
             return
         except Exception as exc:  # noqa: BLE001
             raise ProfileError(
-                "chat_session_park_seam linear graph-law expected ValueError, "
+                "chat_session_park_seam non-graph dynamic guard expected ValueError, "
                 f"observed {type(exc).__name__}: {exc}"
             ) from exc
-        raise ProfileError("chat_session_park_seam linear chat-session plan did not reject")
+        raise ProfileError("chat_session_park_seam non-graph plan did not reject")
     finally:
         run_module._REPO_ROOT = original_runner_repo
 
@@ -5976,7 +5969,6 @@ def _chat_session_drive_park(
     *,
     buildings_root: Path,
     temp_repo: Path,
-    walker_mode: str,
     label: str,
 ) -> tuple[Path, tuple[str, ...]]:
     original_runner_repo = run_module._REPO_ROOT
@@ -5987,7 +5979,6 @@ def _chat_session_drive_park(
                 plan,
                 output_root=buildings_root,
                 overwrite_existing=True,
-                walker_mode=walker_mode,
             )
         except run_module.ChatSessionParkFrontierEvidenceWritten as exc:
             return Path(exc.building_root), tuple(str(path) for path in exc.written_files)
@@ -6062,7 +6053,6 @@ def _chat_session_assert_key_scan_fire(
         _chat_session_park_graph_plan(building_id="chat-session-key-scan-fire-case"),
         buildings_root=buildings_root,
         temp_repo=temp_repo,
-        walker_mode="dynamic",
         label="key-scan-fire",
     )
     claim = run_module.claim_chat_session_envelope(
