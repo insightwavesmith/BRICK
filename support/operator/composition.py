@@ -2140,6 +2140,7 @@ def compose_building(
     building_id: str = "",
     selected_adapter_ref: str = "adapter:local",
     selected_model_ref: str = "model:default",
+    transition_concern_adoption: str = "",
     repo_root: Path | str = REPO_ROOT,
 ) -> Mapping[str, Any]:
     """Assemble a caller/COO-declared graph Building Plan from node choices.
@@ -2761,6 +2762,8 @@ def compose_building(
     route_policy_provenance = _composition_route_policy_provenance(node_records)
     if route_policy_provenance:
         plan["route_policy_provenance"] = route_policy_provenance
+    if transition_concern_adoption:
+        plan["transition_concern_adoption"] = transition_concern_adoption
 
     post_problems = _composition_validator_problems(plan, repo)
     if post_problems:

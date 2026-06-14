@@ -1826,6 +1826,76 @@ def check(repo: Path) -> list[str]:
             f"knot4-empty: HOLD moved a node reroute-landing counter ({landings_empty})"
         )
 
+    # B1 advisory concern adoption FIRE: a caller/COO-declared graph plan can mark
+    # transition concerns as advisory. Under that exact literal, even an otherwise
+    # HOLD-worthy non-binding concern with EMPTY related_boundary_refs is recorded
+    # in the Agent return and WALKs FORWARD. Removing the field is the paired RED
+    # branch: the same concern must still HOLD as knot4-empty does above.
+    plan_adv, _ = _checker_plan("bapr-loop0-b1-advisory-empty", budget=1)
+    plan_adv = copy.deepcopy(plan_adv)
+    plan_adv.pop("node_reroute_budgets", None)
+    plan_adv["transition_concern_adoption"] = "advisory"
+    res_adv, fr_adv, rec_adv = _run(
+        plan_adv,
+        _multi_ref_concern_callable("brick-bapr-loop0-b1-advisory-empty-review", []),
+        repo,
+    )
+    if rec_adv:
+        violations.append(
+            "b1-advisory-empty: advisory empty-ref concern produced reroute/HOLD records "
+            f"(must walk on): {rec_adv}"
+        )
+    if fr_adv["frontier_kind"] not in {"complete", "closure_pending"}:
+        violations.append(
+            "b1-advisory-empty: advisory empty-ref concern did not walk on "
+            f"(frontier={fr_adv['frontier_kind']}; expected complete/closure_pending)"
+        )
+    evidence_adv = getattr(res_adv, "_dynamic_walker_evidence", {})
+    if isinstance(evidence_adv, Mapping) and evidence_adv.get("held"):
+        violations.append("b1-advisory-empty: advisory concern was recorded as held")
+    landings_adv = (
+        evidence_adv.get("node_reroute_landings", {})
+        if isinstance(evidence_adv, Mapping)
+        else {}
+    )
+    if any(count != 0 for count in landings_adv.values()):
+        violations.append(
+            "b1-advisory-empty: advisory walk-on moved a node reroute-landing counter "
+            f"({landings_adv})"
+        )
+    adv_step_refs = [r.preparation.step_rows.step_ref for r in res_adv.step_results]
+    if adv_step_refs != list(plan_adv["execution_order"]):
+        violations.append(
+            "b1-advisory-empty: advisory walk-on altered the declared execution_order "
+            f"({adv_step_refs})"
+        )
+
+    plan_adv_red, _ = _checker_plan("bapr-loop0-b1-advisory-red-empty", budget=1)
+    plan_adv_red = copy.deepcopy(plan_adv_red)
+    plan_adv_red.pop("node_reroute_budgets", None)
+    res_adv_red, fr_adv_red, rec_adv_red = _run(
+        plan_adv_red,
+        _multi_ref_concern_callable("brick-bapr-loop0-b1-advisory-red-empty-review", []),
+        repo,
+    )
+    held_adv_red = _held_records(rec_adv_red)
+    if _adopted_records(rec_adv_red):
+        violations.append("b1-advisory-red-empty: no-advisory empty-ref concern was adopted")
+    if len(held_adv_red) != 1:
+        violations.append(
+            f"b1-advisory-red-empty: expected 1 HOLD record without advisory, got {len(held_adv_red)}"
+        )
+    elif held_adv_red[0].get("hold_reason") != "no_resolving_reroute_address":
+        violations.append(
+            "b1-advisory-red-empty: wrong hold_reason without advisory="
+            f"{held_adv_red[0].get('hold_reason')}"
+        )
+    if fr_adv_red["frontier_kind"] != "link_paused":
+        violations.append(
+            "b1-advisory-red-empty: removing advisory did not restore HOLD behavior "
+            f"(frontier={fr_adv_red['frontier_kind']})"
+        )
+
     # KNOT-4 resolver FIRE (non-reroute sentinel): a non-binding concern whose
     # related_boundary_refs is NON-EMPTY and names ONLY building-boundary:
     # sentinel(s) (NO Brick-targeting ref) is an EXPLICIT non-reroute concern: the

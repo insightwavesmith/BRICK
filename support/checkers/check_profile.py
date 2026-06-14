@@ -148,6 +148,33 @@ PROOF_LIMIT = (
     "does not prove source truth, success judgment, quality judgment, Movement "
     "authority, provider behavior, or complete checker consolidation."
 )
+
+
+def _ensure_repo_import_path(repo: Path) -> None:
+    """Prefer the inspected checkout for checker-time brick_protocol imports."""
+    for entry in (repo / "support" / "import_identity", repo):
+        entry_text = str(entry)
+        if entry_text in sys.path:
+            sys.path.remove(entry_text)
+        sys.path.insert(0, entry_text)
+
+
+def _evict_foreign_brick_protocol_modules(repo: Path) -> None:
+    repo_root = repo.resolve()
+    import_root = (repo / "support" / "import_identity").resolve()
+    for name, module in list(sys.modules.items()):
+        if name != "brick_protocol" and not name.startswith("brick_protocol."):
+            continue
+        module_file = getattr(module, "__file__", None)
+        if not module_file:
+            continue
+        try:
+            resolved = Path(module_file).resolve()
+        except OSError:
+            continue
+        if resolved.is_relative_to(repo_root) or resolved.is_relative_to(import_root):
+            continue
+        del sys.modules[name]
 PROFILE_DIR = Path("support/checkers/profiles")
 KERNEL_CHECK_IDS = {
     "axis_vocab_drift",
@@ -721,9 +748,8 @@ def run_kernel_check(repo: Path, check_id: str) -> KernelResult:
 
 
 def run_profile(repo: Path, path: Path) -> tuple[int, list[KernelResult]]:
-    repo_text = str(repo)
-    if repo_text not in sys.path:
-        sys.path.insert(0, repo_text)
+    _ensure_repo_import_path(repo)
+    _evict_foreign_brick_protocol_modules(repo)
     profile = read_profile(path)
     rule_count = 0
     for key in sorted(RULE_RUNNERS):

@@ -51,6 +51,8 @@ text_contains:
   - path: support/operator/walker_kernel.py
     texts:
       - def _run_dynamic_graph_walker
+      - transition_concern_adoption
+      - advisory
   # per-TARGET-node, Link-assigned budget, shared across landings (P3c rehome)
   - path: support/operator/walker_reroute_budget.py
     texts:
@@ -118,6 +120,8 @@ text_contains:
       - "mail-5c: an in-subtree resolving ledger address blocked adoption"
       - "mail-6: a resume with only STALE same-target rows did not fail"
       - replaying the recorded selection rule
+      - "b1-advisory-empty: advisory empty-ref concern produced reroute/HOLD records"
+      - "b1-advisory-red-empty: removing advisory did not restore HOLD behavior"
   # MAIL-REPAIR (0611): the engine-side mail lane stays wired -- the kernel
   # carries runtime_handoffs on adopted-reroute redo items, reads the recorded
   # row back from the ledger, and HOLDs loudly on a broken ledger address.
