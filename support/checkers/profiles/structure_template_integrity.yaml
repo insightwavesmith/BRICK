@@ -275,7 +275,7 @@ text_absent:
 # dogfood plans that left for the frozen museum. The strict no-retired-adapter
 # variant stays single-sourced on per-profile rows; re-pointed to the standing
 # fixtures + the bundled product example plan. The lenient core sweep
-# (building_plans_boundary_sweep) still validates every remaining linear plan.
+# (building_plans_boundary_sweep) still validates every remaining plan.
 building_plan_boundary:
   - path: brick/building_plans/fixture-link-concern-replay-0.yaml
   - path: brick/building_plans/fixture-link-route-replay-0.yaml

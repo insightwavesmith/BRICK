@@ -1,7 +1,7 @@
 plan_ref: building-plan:onboarding-example-0
 owner_axis: Brick
 building_id: onboarding-example-0-0607
-plan_shape: linear
+plan_shape: graph
 declared_by: coo
 selected_adapter_ref: adapter:local
 proof_limits:
@@ -17,8 +17,11 @@ not_proven:
   - quality of the returned greeting
   - repeated provider reliability
   - production runtime readiness
-steps:
+execution_order:
+  - onboarding-example-0-hello
+brick_steps:
   - step_ref: onboarding-example-0-hello
+    completion_edge_ref: link-row:onboarding-example-0-hello-closed
     rows:
       - axis: Brick
         row_ref: brick-row:onboarding-example-0-hello
@@ -30,6 +33,11 @@ steps:
       - axis: Agent
         row_ref: agent-row:onboarding-example-0-hello
         agent_object_ref: agent-object:coo
+link_edges:
+  - edge_ref: link-row:onboarding-example-0-hello-closed
+    source_step_ref: onboarding-example-0-hello
+    target_brick_instance_ref: building-boundary:onboarding-example-0-closed
+    rows:
       - axis: Link
         row_ref: link-row:onboarding-example-0-hello-closed
         declared_gate_refs:

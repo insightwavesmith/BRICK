@@ -8698,13 +8698,14 @@ _LINK_CASE_BUILDING_MAP_REQUIRED = (
 def run_link_route_evidence_case(repo: Path, profile: Mapping[str, Any]) -> int:
     """CLEAN-YARD v3: generate the Link routing/replay evidence at check time.
 
-    Each item runs the declared fixture plan (a strict-valid linear plan that
+    Each item runs the declared fixture plan (a strict-valid graph plan that
     carries the full Link grammar: non-binding concern step, declared
     route_decision_basis, declared route_replay_plan + max_attempts, declared
     resumed transition_lifecycle, attempt-2 replay steps) through the REAL
     ``run_building_plan`` on adapter:local with a deterministic brain that
-    returns the structured concern + route_request at the declared concern
-    step, into a TEMP output root (removed by the context manager). It then
+    returns the structured concern at the declared concern step and the
+    route_request at the QA replay step, into a TEMP output root (removed by
+    the context manager). It then
     asserts the property tables above -- migrated 1:1 from the retired
     standing-evidence pins.
     """
@@ -8740,7 +8741,9 @@ def run_link_route_evidence_case(repo: Path, profile: Mapping[str, Any]) -> int:
                         "concern_kind": "implementation_gap",
                         "binding": False,
                         "reason_refs": ["observation:link-owned-automation-0-qa"],
-                        "related_boundary_refs": [concern_brick],
+                        "related_boundary_refs": [
+                            "building-boundary:link-owned-automation-0-concern-recorded"
+                        ],
                     },
                     "not_proven": ["semantic correctness of the concern"],
                 }

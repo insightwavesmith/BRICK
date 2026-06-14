@@ -404,20 +404,25 @@ def validate_building_plan_boundary(
     if plan.get("owner_axis") != "Brick":
         raise ProfileError(f"{label}: owner_axis must be Brick")
     require_string(plan.get("plan_ref"), f"{label}: plan_ref")
-    steps = plan.get("steps")
-    if not isinstance(steps, list) or not steps:
-        raise ProfileError(f"{label}: steps must be a non-empty list")
     _reject_forbidden_nested_keys(plan, label, _BUILDING_PLAN_FORBIDDEN_KEYS)
+    validation_plan = plan
     try:
         from support.operator.plan_validation import validate_declared_building_plan
 
+        if plan.get("plan_shape") == "graph":
+            from support.operator.plan_graph import _linear_plan_from_graph_plan
+
+            validation_plan, _graph_context = _linear_plan_from_graph_plan(plan)
         validate_declared_building_plan(
-            plan,
+            validation_plan,
             repo_root=repo,
             allow_retired_write_adapter_refs=allow_retired_write_adapter_refs,
         )
     except ValueError as exc:
         raise ProfileError(f"{label}: {exc}") from exc
+    steps = validation_plan.get("steps")
+    if not isinstance(steps, list) or not steps:
+        raise ProfileError(f"{label}: steps must be a non-empty list")
     for index, raw_step in enumerate(steps):
         step = require_mapping(raw_step, f"{label}: steps[{index}]")
         require_string(step.get("step_ref"), f"{label}: steps[{index}].step_ref")

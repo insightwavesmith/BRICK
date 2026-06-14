@@ -1,5 +1,5 @@
 # CHECKER FIXTURE (CLEAN-YARD v3, Smith 0611). Plan files are yaml TEST DATA,
-# not building evidence; this fixture is the strict plan-boundary VALID-linear
+# not building evidence; this fixture is the strict plan-boundary VALID-graph
 # prescription (checker-split-map-0611.md ⚠ §1-2) and the generation plan for
 # the link-routing evidence case. Twin of the retired dogfood plan
 # link-owned-automation-0-dogfood.yaml (original preserved in the frozen
@@ -12,6 +12,7 @@
 plan_ref: building-plan:fixture-link-concern-replay-0
 owner_axis: Brick
 building_id: fixture-link-concern-replay-0
+plan_shape: graph
 selected_adapter_ref: adapter:local
 proof_limits:
   - support evidence only
@@ -24,8 +25,17 @@ not_proven:
   - semantic correctness of Agent returned work
   - semantic correctness of Link concern mapping
   - production runtime readiness
-steps:
+execution_order:
+  - link-owned-automation-0-plan
+  - link-owned-automation-0-design
+  - link-owned-automation-0-dev
+  - link-owned-automation-0-qa
+  - link-owned-automation-0-dev-attempt-2
+  - link-owned-automation-0-qa-attempt-2
+  - link-owned-automation-0-closure
+brick_steps:
   - step_ref: link-owned-automation-0-plan
+    completion_edge_ref: link-row:link-owned-automation-0-plan-to-design
     rows:
       - axis: Brick
         row_ref: brick-row:link-owned-automation-0-plan
@@ -37,13 +47,8 @@ steps:
       - axis: Agent
         row_ref: agent-row:link-owned-automation-0-plan
         agent_object_ref: agent-object:pm-lead
-      - axis: Link
-        row_ref: link-row:link-owned-automation-0-plan-to-design
-        movement: forward
-        target_ref: brick-loa0-design-attempt-1
-        declared_gate_refs:
-          - link-gate:default-transition
   - step_ref: link-owned-automation-0-design
+    completion_edge_ref: link-row:link-owned-automation-0-design-to-dev
     rows:
       - axis: Brick
         row_ref: brick-row:link-owned-automation-0-design
@@ -55,13 +60,8 @@ steps:
       - axis: Agent
         row_ref: agent-row:link-owned-automation-0-design
         agent_object_ref: agent-object:design-lead
-      - axis: Link
-        row_ref: link-row:link-owned-automation-0-design-to-dev
-        movement: forward
-        target_ref: brick-loa0-dev-attempt-1
-        declared_gate_refs:
-          - link-gate:default-transition
   - step_ref: link-owned-automation-0-dev
+    completion_edge_ref: link-row:link-owned-automation-0-dev-to-qa
     rows:
       - axis: Brick
         row_ref: brick-row:link-owned-automation-0-dev-attempt-1
@@ -73,13 +73,8 @@ steps:
       - axis: Agent
         row_ref: agent-row:link-owned-automation-0-dev-attempt-1
         agent_object_ref: agent-object:dev
-      - axis: Link
-        row_ref: link-row:link-owned-automation-0-dev-to-qa
-        movement: forward
-        target_ref: brick-loa0-qa-attempt-1
-        declared_gate_refs:
-          - link-gate:default-transition
   - step_ref: link-owned-automation-0-qa
+    completion_edge_ref: link-row:link-owned-automation-0-qa-reroute-dev
     rows:
       - axis: Brick
         row_ref: brick-row:link-owned-automation-0-qa-attempt-1
@@ -91,6 +86,84 @@ steps:
       - axis: Agent
         row_ref: agent-row:link-owned-automation-0-qa-attempt-1
         agent_object_ref: agent-object:qa
+  - step_ref: link-owned-automation-0-dev-attempt-2
+    completion_edge_ref: link-row:link-owned-automation-0-dev-replay-to-qa
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-owned-automation-0-dev-attempt-2
+        brick_work_ref: work:link-owned-automation-0-dev
+        brick_instance_ref: brick-loa0-dev-attempt-2
+        work_statement: Replay the existing dev boundary after Link-owned reroute.
+        comparison_rule: Observe required honest report fields only.
+        required_return_shape: observed_evidence, made_changes, not_proven
+      - axis: Agent
+        row_ref: agent-row:link-owned-automation-0-dev-attempt-2
+        agent_object_ref: agent-object:dev
+  - step_ref: link-owned-automation-0-qa-attempt-2
+    completion_edge_ref: link-row:link-owned-automation-0-qa-to-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-owned-automation-0-qa-attempt-2
+        brick_work_ref: work:link-owned-automation-0-qa
+        brick_instance_ref: brick-loa0-qa-attempt-2
+        work_statement: Replay the existing QA boundary after dev attempt-2 and return a non-binding route_request.
+        comparison_rule: Observe required honest report fields only.
+        required_return_shape: observed_evidence, made_changes, route_request, not_proven
+      - axis: Agent
+        row_ref: agent-row:link-owned-automation-0-qa-attempt-2
+        agent_object_ref: agent-object:qa
+  - step_ref: link-owned-automation-0-closure
+    completion_edge_ref: link-row:link-owned-automation-0-closed
+    rows:
+      - axis: Brick
+        row_ref: brick-row:link-owned-automation-0-closure
+        brick_work_ref: work:link-owned-automation-0-closure
+        brick_instance_ref: brick-loa0-closure
+        work_statement: Close LINK-OWNED-AUTOMATION-0 dogfood evidence.
+        comparison_rule: Observe closure report fields only.
+        required_return_shape: observed_evidence, remaining_delta, not_proven
+      - axis: Agent
+        row_ref: agent-row:link-owned-automation-0-closure
+        agent_object_ref: agent-object:coo
+link_edges:
+  - edge_ref: link-row:link-owned-automation-0-plan-to-design
+    source_step_ref: link-owned-automation-0-plan
+    target_step_ref: link-owned-automation-0-design
+    target_brick_instance_ref: brick-loa0-design-attempt-1
+    rows:
+      - axis: Link
+        row_ref: link-row:link-owned-automation-0-plan-to-design
+        movement: forward
+        target_ref: brick-loa0-design-attempt-1
+        declared_gate_refs:
+          - link-gate:default-transition
+  - edge_ref: link-row:link-owned-automation-0-design-to-dev
+    source_step_ref: link-owned-automation-0-design
+    target_step_ref: link-owned-automation-0-dev
+    target_brick_instance_ref: brick-loa0-dev-attempt-1
+    rows:
+      - axis: Link
+        row_ref: link-row:link-owned-automation-0-design-to-dev
+        movement: forward
+        target_ref: brick-loa0-dev-attempt-1
+        declared_gate_refs:
+          - link-gate:default-transition
+  - edge_ref: link-row:link-owned-automation-0-dev-to-qa
+    source_step_ref: link-owned-automation-0-dev
+    target_step_ref: link-owned-automation-0-qa
+    target_brick_instance_ref: brick-loa0-qa-attempt-1
+    rows:
+      - axis: Link
+        row_ref: link-row:link-owned-automation-0-dev-to-qa
+        movement: forward
+        target_ref: brick-loa0-qa-attempt-1
+        declared_gate_refs:
+          - link-gate:default-transition
+  - edge_ref: link-row:link-owned-automation-0-qa-reroute-dev
+    source_step_ref: link-owned-automation-0-qa
+    target_step_ref: link-owned-automation-0-dev-attempt-2
+    target_brick_instance_ref: brick-loa0-dev-attempt-2
+    rows:
       - axis: Link
         row_ref: link-row:link-owned-automation-0-qa-reroute-dev
         movement: reroute
@@ -122,18 +195,11 @@ steps:
           replay_segment_refs:
             - brick-loa0-qa-attempt-2
           max_attempts: 2
-  - step_ref: link-owned-automation-0-dev-attempt-2
+  - edge_ref: link-row:link-owned-automation-0-dev-replay-to-qa
+    source_step_ref: link-owned-automation-0-dev-attempt-2
+    target_step_ref: link-owned-automation-0-qa-attempt-2
+    target_brick_instance_ref: brick-loa0-qa-attempt-2
     rows:
-      - axis: Brick
-        row_ref: brick-row:link-owned-automation-0-dev-attempt-2
-        brick_work_ref: work:link-owned-automation-0-dev
-        brick_instance_ref: brick-loa0-dev-attempt-2
-        work_statement: Replay the existing dev boundary after Link-owned reroute.
-        comparison_rule: Observe required honest report fields only.
-        required_return_shape: observed_evidence, made_changes, not_proven
-      - axis: Agent
-        row_ref: agent-row:link-owned-automation-0-dev-attempt-2
-        agent_object_ref: agent-object:dev
       - axis: Link
         row_ref: link-row:link-owned-automation-0-dev-replay-to-qa
         movement: forward
@@ -149,36 +215,21 @@ steps:
           reason_refs:
             - transition-concern:link-owned-automation-0-implementation-gap
           required_disposition_owner: caller-or-coo
-  - step_ref: link-owned-automation-0-qa-attempt-2
+  - edge_ref: link-row:link-owned-automation-0-qa-to-closure
+    source_step_ref: link-owned-automation-0-qa-attempt-2
+    target_step_ref: link-owned-automation-0-closure
+    target_brick_instance_ref: brick-loa0-closure
     rows:
-      - axis: Brick
-        row_ref: brick-row:link-owned-automation-0-qa-attempt-2
-        brick_work_ref: work:link-owned-automation-0-qa
-        brick_instance_ref: brick-loa0-qa-attempt-2
-        work_statement: Replay the existing QA boundary after dev attempt-2 and return a non-binding route_request.
-        comparison_rule: Observe required honest report fields only.
-        required_return_shape: observed_evidence, made_changes, route_request, not_proven
-      - axis: Agent
-        row_ref: agent-row:link-owned-automation-0-qa-attempt-2
-        agent_object_ref: agent-object:qa
       - axis: Link
         row_ref: link-row:link-owned-automation-0-qa-to-closure
         movement: forward
         target_ref: brick-loa0-closure
         declared_gate_refs:
           - link-gate:default-transition
-  - step_ref: link-owned-automation-0-closure
+  - edge_ref: link-row:link-owned-automation-0-closed
+    source_step_ref: link-owned-automation-0-closure
+    target_brick_instance_ref: building-boundary:link-owned-automation-0-closed
     rows:
-      - axis: Brick
-        row_ref: brick-row:link-owned-automation-0-closure
-        brick_work_ref: work:link-owned-automation-0-closure
-        brick_instance_ref: brick-loa0-closure
-        work_statement: Close LINK-OWNED-AUTOMATION-0 dogfood evidence.
-        comparison_rule: Observe closure report fields only.
-        required_return_shape: observed_evidence, remaining_delta, not_proven
-      - axis: Agent
-        row_ref: agent-row:link-owned-automation-0-closure
-        agent_object_ref: agent-object:coo
       - axis: Link
         row_ref: link-row:link-owned-automation-0-closed
         movement: forward
