@@ -12,6 +12,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from support.operator.plan_graph import _linear_plan_from_graph_plan
 from support.operator.plan_validation import validate_declared_building_plan
 from support.operator.route_materialization import materialize_route_transition
 from support.operator.run import run_building_plan
@@ -51,7 +52,7 @@ def prepare_declared_auto_repair_replay_case(case: Mapping[str, Any], repo: Path
     # P11b RUNTIME task_source_ref ENFORCEMENT: this caller already resolves the
     # repo root, so thread it to reject a declared-but-missing task_source_ref at
     # run time, matching the checker boundary.
-    validate_declared_building_plan(plan, repo_root=repo_path)
+    validate_declared_building_plan(_validation_plan(plan), repo_root=repo_path)
     plan_steps = _plan_step_refs_and_brick_instance_refs(plan)
     plan_bricks = [entry["brick_instance_ref"] for entry in plan_steps]
     target_ref = _require_text(materialized.get("target_ref"), "materialized.target_ref")
@@ -106,7 +107,7 @@ def prepare_declared_auto_repair_replay_case(case: Mapping[str, Any], repo: Path
         "repair_replay_building_id": _require_text(plan.get("building_id"), "repair_replay_plan.building_id"),
         "replay_segment_refs": replay_refs,
         "plan_brick_instance_refs": plan_bricks,
-        "plan_step_attempts": plan_steps,
+        "plan_step_attempts": [_public_plan_step(entry) for entry in plan_steps],
         "materialized_link_row": materialized["link_row"],
         "link_decision_packet": materialized["link_decision_packet"],
         "declared_boundary_replay": dict(boundary_replay_packet),
@@ -172,13 +173,14 @@ def _load_mapping(repo: Path, relative: str) -> Mapping[str, Any]:
 
 
 def _plan_step_refs_and_brick_instance_refs(plan: Mapping[str, Any]) -> list[dict[str, Any]]:
-    steps = _steps_list(plan)
+    use_boundary_attempt_ref = plan.get("plan_shape") == "graph"
+    step_plan = _linear_repair_replay_plan(plan) if use_boundary_attempt_ref else plan
+    steps = _steps_list(step_plan)
     refs: list[dict[str, Any]] = []
     step_counts: dict[str, int] = {}
     for index, step in enumerate(steps):
         step_map = _mapping(step, f"steps[{index}]")
         step_ref = _require_text(step_map.get("step_ref"), f"steps[{index}].step_ref")
-        step_counts[step_ref] = step_counts.get(step_ref, 0) + 1
         rows = step_map.get("rows")
         if not isinstance(rows, list):
             raise ValueError(f"steps[{index}].rows must be a list")
@@ -189,10 +191,17 @@ def _plan_step_refs_and_brick_instance_refs(plan: Mapping[str, Any]) -> list[dic
         ]
         if len(brick_rows) != 1:
             raise ValueError(f"steps[{index}] must contain exactly one Brick row")
+        attempt_group_ref = (
+            _attempt_group_ref(step_ref, brick_rows[0])
+            if use_boundary_attempt_ref
+            else step_ref
+        )
+        step_counts[attempt_group_ref] = step_counts.get(attempt_group_ref, 0) + 1
         refs.append(
             {
                 "step_ref": step_ref,
-                "attempt_index": step_counts[step_ref],
+                "_attempt_group_ref": attempt_group_ref,
+                "attempt_index": step_counts[attempt_group_ref],
                 "brick_instance_ref": _require_text(
                     brick_rows[0].get("brick_instance_ref"),
                     f"steps[{index}].brick_instance_ref",
@@ -200,6 +209,24 @@ def _plan_step_refs_and_brick_instance_refs(plan: Mapping[str, Any]) -> list[dic
             }
         )
     return refs
+
+
+def _linear_repair_replay_plan(plan: Mapping[str, Any]) -> Mapping[str, Any]:
+    linear_plan, _graph_context = _linear_plan_from_graph_plan(plan)
+    return linear_plan
+
+
+def _validation_plan(plan: Mapping[str, Any]) -> Mapping[str, Any]:
+    if plan.get("plan_shape") == "graph":
+        return _linear_repair_replay_plan(plan)
+    return plan
+
+
+def _attempt_group_ref(step_ref: str, brick_row: Mapping[str, Any]) -> str:
+    boundary_ref = brick_row.get("boundary_ref")
+    if isinstance(boundary_ref, str) and boundary_ref.strip():
+        return boundary_ref.strip()
+    return step_ref
 
 
 def _steps_list(plan: Mapping[str, Any]) -> list[Any]:
@@ -231,12 +258,16 @@ def _validate_declared_boundary_replay(
     counts: dict[str, int] = {}
     for entry in plan_steps:
         step_ref = _require_text(entry.get("step_ref"), "plan_step.step_ref")
-        counts[step_ref] = counts.get(step_ref, 0) + 1
-        if counts[step_ref] > max_attempt:
+        attempt_group_ref = _require_text(
+            entry.get("_attempt_group_ref", step_ref),
+            "plan_step.attempt_group_ref",
+        )
+        counts[attempt_group_ref] = counts.get(attempt_group_ref, 0) + 1
+        if counts[attempt_group_ref] > max_attempt:
             return _max_attempts_disposition_required(
                 step_ref=step_ref,
                 max_attempt=max_attempt,
-                observed_attempts=counts[step_ref],
+                observed_attempts=counts[attempt_group_ref],
                 link_decision_packet=link_decision_packet,
             )
 
@@ -247,17 +278,18 @@ def _validate_declared_boundary_replay(
     if target_entry["step_ref"] != target_step_ref:
         raise ValueError("declared_boundary_replay target_step_ref must match immediate target step_ref")
     if target_entry["attempt_index"] < 2:
-        raise ValueError("declared_boundary_replay target must be a repeated declared step_ref")
+        raise ValueError("declared_boundary_replay target must be a repeated declared boundary")
 
     source_entries = [
         _entry_for_brick_ref(plan_steps, ref)
         for ref in _string_list(route_plan.get("source_brick_refs", ()), "route_replay_plan.source_brick_refs")
     ]
     if not any(
-        entry["step_ref"] == target_step_ref and entry["attempt_index"] < target_entry["attempt_index"]
+        _same_attempt_group(entry, target_entry)
+        and entry["attempt_index"] < target_entry["attempt_index"]
         for entry in source_entries
     ):
-        raise ValueError("declared_boundary_replay target must replay a prior declared boundary step_ref")
+        raise ValueError("declared_boundary_replay target must replay a prior declared boundary")
 
     replay_packets: list[dict[str, Any]] = []
     affected_entries = [
@@ -275,24 +307,24 @@ def _validate_declared_boundary_replay(
         if replay_entry["step_ref"] not in replay_step_refs:
             raise ValueError("declared_boundary_replay replay step_ref was not declared")
         if replay_entry["attempt_index"] < 2:
-            raise ValueError("declared_boundary_replay replay segment must be a repeated declared step_ref")
+            raise ValueError("declared_boundary_replay replay segment must be a repeated declared boundary")
         if not any(
-            entry["step_ref"] == replay_entry["step_ref"]
+            _same_attempt_group(entry, replay_entry)
             and entry["attempt_index"] < replay_entry["attempt_index"]
             for entry in affected_entries
         ):
-            raise ValueError("declared_boundary_replay replay segment must replay an affected downstream step_ref")
-        replay_packets.append(dict(replay_entry))
+            raise ValueError("declared_boundary_replay replay segment must replay an affected downstream boundary")
+        replay_packets.append(_public_plan_step(replay_entry))
 
     return {
         "resource_kind": "declared_boundary_replay_preflight",
         "max_attempt": max_attempt,
-        "target": dict(target_entry),
+        "target": _public_plan_step(target_entry),
         "replay_segments": replay_packets,
         "link_decision_packet_ref": link_decision_packet["link_decision_packet_ref"],
         "proof_limits": [
             *PROOF_LIMITS,
-            "replay is represented by repeated declared step_refs",
+            "replay is represented by repeated declared boundary attempts",
             "not a hidden runtime loop",
         ],
         "not_proven": list(NOT_PROVEN),
@@ -333,7 +365,7 @@ def _max_attempts_disposition_required(
         "required_disposition_owner": "caller-or-coo",
         "proof_limits": [
             *PROOF_LIMITS,
-            "replay is represented by repeated declared step_refs",
+            "replay is represented by repeated declared boundary attempts",
             "not a hidden runtime loop",
         ],
         "not_proven": list(NOT_PROVEN),
@@ -345,6 +377,23 @@ def _entry_for_brick_ref(plan_steps: list[dict[str, Any]], brick_ref: str) -> di
     if len(matches) != 1:
         raise ValueError(f"declared replay Brick ref must appear exactly once in plan: {brick_ref}")
     return matches[0]
+
+
+def _same_attempt_group(left: Mapping[str, Any], right: Mapping[str, Any]) -> bool:
+    left_group = left.get("_attempt_group_ref") or left.get("step_ref")
+    right_group = right.get("_attempt_group_ref") or right.get("step_ref")
+    return left_group == right_group
+
+
+def _public_plan_step(entry: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        "step_ref": _require_text(entry.get("step_ref"), "plan_step.step_ref"),
+        "attempt_index": entry["attempt_index"],
+        "brick_instance_ref": _require_text(
+            entry.get("brick_instance_ref"),
+            "plan_step.brick_instance_ref",
+        ),
+    }
 
 
 def _positive_int(value: Any, label: str) -> int:

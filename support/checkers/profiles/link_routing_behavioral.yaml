@@ -171,7 +171,7 @@ text_contains:
   - path: support/operator/auto_repair_replay.py
     texts:
       - declared_boundary_replay
-      - repeated declared step_refs
+      - repeated declared boundary attempts
       - not a hidden runtime loop
   - path: support/operator/plan_validation.py
     texts:
@@ -423,9 +423,9 @@ auto_repair_replay_case:
           - brick-bac0-qa-attempt-2
         max_attempts: 2
       declared_boundary_replay:
-        target_step_ref: building-automation-complete-0-dev
+        target_step_ref: building-automation-complete-0-dev-attempt-2
         replay_step_refs:
-          - building-automation-complete-0-qa
+          - building-automation-complete-0-qa-attempt-2
     expected:
       movement: reroute
       target_ref: brick-bac0-dev-attempt-2
@@ -460,9 +460,9 @@ auto_repair_replay_case:
           - brick-bac0-qa-attempt-2
         max_attempts: 1
       declared_boundary_replay:
-        target_step_ref: building-automation-complete-0-dev
+        target_step_ref: building-automation-complete-0-dev-attempt-2
         replay_step_refs:
-          - building-automation-complete-0-qa
+          - building-automation-complete-0-qa-attempt-2
     expected:
       materialized: false
       materialization_state: disposition_required

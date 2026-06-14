@@ -11,7 +11,7 @@
 plan_ref: building-plan:fixture-link-route-replay-0
 owner_axis: Brick
 building_id: fixture-link-route-replay-0
-plan_shape: declared-boundary-replay-dogfood
+plan_shape: graph
 selected_adapter_ref: adapter:local
 parent_goal_ref: goal:building-automation-complete-0
 proof_limits:
@@ -26,13 +26,21 @@ not_proven:
   - semantic correctness of Link decision
   - hidden runtime loop behavior
   - scheduler or queue behavior
-steps:
-  - step_ref: building-automation-complete-0-dev
+execution_order:
+  - building-automation-complete-0-dev-attempt-1
+  - building-automation-complete-0-qa-attempt-1
+  - building-automation-complete-0-dev-attempt-2
+  - building-automation-complete-0-qa-attempt-2
+  - building-automation-complete-0-closure
+brick_steps:
+  - step_ref: building-automation-complete-0-dev-attempt-1
+    completion_edge_ref: link-row:bac0-dev-attempt-1-to-qa
     rows:
       - axis: Brick
         row_ref: brick-row:bac0-dev-attempt-1
         brick_work_ref: work:bac0-dev
         brick_instance_ref: brick-bac0-dev-attempt-1
+        boundary_ref: building-automation-complete-0-dev
         work_statement: Produce initial development evidence for Scope C dogfood.
         comparison_rule: Observe returned development evidence only; do not judge quality.
         required_return_shape: made_changes, observed_evidence, blocked_or_missing_evidence, proof_limits, not_proven
@@ -41,19 +49,14 @@ steps:
       - axis: Agent
         row_ref: agent-row:bac0-dev-attempt-1
         agent_object_ref: agent-object:dev
-      - axis: Link
-        row_ref: link-row:bac0-dev-attempt-1-to-qa
-        declared_gate_refs:
-          - link-gate:default-transition
-        movement: forward
-        target_ref: brick-bac0-qa-attempt-1
-        next_brick_instance_ref: brick-bac0-qa-attempt-1
-  - step_ref: building-automation-complete-0-qa
+  - step_ref: building-automation-complete-0-qa-attempt-1
+    completion_edge_ref: link-row:bac0-qa-attempt-1-link-decision
     rows:
       - axis: Brick
         row_ref: brick-row:bac0-qa-attempt-1
         brick_work_ref: work:bac0-qa
         brick_instance_ref: brick-bac0-qa-attempt-1
+        boundary_ref: building-automation-complete-0-qa
         work_statement: Return QA transition_concern_evidence evidence for an implementation-only repair.
         comparison_rule: Observe transition_concern_evidence evidence only; QA does not choose Movement or target.
         required_return_shape: observations, transition_concern_evidence, proof_limits, not_proven
@@ -63,6 +66,74 @@ steps:
       - axis: Agent
         row_ref: agent-row:bac0-qa-attempt-1
         agent_object_ref: agent-object:qa
+  - step_ref: building-automation-complete-0-dev-attempt-2
+    completion_edge_ref: link-row:bac0-dev-attempt-2-to-qa-replay
+    rows:
+      - axis: Brick
+        row_ref: brick-row:bac0-dev-attempt-2
+        brick_work_ref: work:bac0-dev
+        brick_instance_ref: brick-bac0-dev-attempt-2
+        boundary_ref: building-automation-complete-0-dev
+        work_statement: Replay the declared development boundary as attempt 2 after Link decision evidence.
+        comparison_rule: Observe append-only repair evidence only; do not mutate attempt 1.
+        required_return_shape: made_changes, observed_evidence, attempt_index, proof_limits, not_proven
+        source_facts:
+          - link-decision-packet:building-automation-complete-0-scope-c
+          - route-replay:building-automation-complete-0-scope-c
+      - axis: Agent
+        row_ref: agent-row:bac0-dev-attempt-2
+        agent_object_ref: agent-object:dev
+  - step_ref: building-automation-complete-0-qa-attempt-2
+    completion_edge_ref: link-row:bac0-qa-attempt-2-to-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:bac0-qa-attempt-2
+        brick_work_ref: work:bac0-qa
+        brick_instance_ref: brick-bac0-qa-attempt-2
+        boundary_ref: building-automation-complete-0-qa
+        work_statement: Replay the declared QA boundary as attempt 2 after the repair attempt.
+        comparison_rule: Observe replay evidence only; do not classify success or quality.
+        required_return_shape: replay_observations, attempt_index, proof_limits, not_proven
+        source_facts:
+          - brick-bac0-dev-attempt-2
+          - route-replay:building-automation-complete-0-scope-c
+      - axis: Agent
+        row_ref: agent-row:bac0-qa-attempt-2
+        agent_object_ref: agent-object:qa
+  - step_ref: building-automation-complete-0-closure
+    completion_edge_ref: link-row:bac0-closure
+    rows:
+      - axis: Brick
+        row_ref: brick-row:bac0-closure
+        brick_work_ref: work:bac0-closure
+        brick_instance_ref: brick-bac0-closure
+        boundary_ref: building-automation-complete-0-closure
+        work_statement: Close Scope C dogfood evidence for declared boundary replay.
+        comparison_rule: Closure records observed evidence only.
+        required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta
+        source_facts:
+          - brick/building_plans/building-automation-complete-0-scope-c-dogfood.yaml
+      - axis: Agent
+        row_ref: agent-row:bac0-closure
+        agent_object_ref: agent-object:coo
+link_edges:
+  - edge_ref: link-row:bac0-dev-attempt-1-to-qa
+    source_step_ref: building-automation-complete-0-dev-attempt-1
+    target_step_ref: building-automation-complete-0-qa-attempt-1
+    target_brick_instance_ref: brick-bac0-qa-attempt-1
+    rows:
+      - axis: Link
+        row_ref: link-row:bac0-dev-attempt-1-to-qa
+        declared_gate_refs:
+          - link-gate:default-transition
+        movement: forward
+        target_ref: brick-bac0-qa-attempt-1
+        next_brick_instance_ref: brick-bac0-qa-attempt-1
+  - edge_ref: link-row:bac0-qa-attempt-1-link-decision
+    source_step_ref: building-automation-complete-0-qa-attempt-1
+    target_step_ref: building-automation-complete-0-dev-attempt-2
+    target_brick_instance_ref: brick-bac0-dev-attempt-2
+    rows:
       - axis: Link
         row_ref: link-row:bac0-qa-attempt-1-link-decision
         declared_gate_refs:
@@ -85,21 +156,11 @@ steps:
           replay_segment_refs:
             - brick-bac0-qa-attempt-2
           max_attempts: 2
-  - step_ref: building-automation-complete-0-dev
+  - edge_ref: link-row:bac0-dev-attempt-2-to-qa-replay
+    source_step_ref: building-automation-complete-0-dev-attempt-2
+    target_step_ref: building-automation-complete-0-qa-attempt-2
+    target_brick_instance_ref: brick-bac0-qa-attempt-2
     rows:
-      - axis: Brick
-        row_ref: brick-row:bac0-dev-attempt-2
-        brick_work_ref: work:bac0-dev
-        brick_instance_ref: brick-bac0-dev-attempt-2
-        work_statement: Replay the declared development boundary as attempt 2 after Link decision evidence.
-        comparison_rule: Observe append-only repair evidence only; do not mutate attempt 1.
-        required_return_shape: made_changes, observed_evidence, attempt_index, proof_limits, not_proven
-        source_facts:
-          - link-decision-packet:building-automation-complete-0-scope-c
-          - route-replay:building-automation-complete-0-scope-c
-      - axis: Agent
-        row_ref: agent-row:bac0-dev-attempt-2
-        agent_object_ref: agent-object:dev
       - axis: Link
         row_ref: link-row:bac0-dev-attempt-2-to-qa-replay
         declared_gate_refs:
@@ -107,21 +168,11 @@ steps:
         movement: forward
         target_ref: brick-bac0-qa-attempt-2
         next_brick_instance_ref: brick-bac0-qa-attempt-2
-  - step_ref: building-automation-complete-0-qa
+  - edge_ref: link-row:bac0-qa-attempt-2-to-closure
+    source_step_ref: building-automation-complete-0-qa-attempt-2
+    target_step_ref: building-automation-complete-0-closure
+    target_brick_instance_ref: brick-bac0-closure
     rows:
-      - axis: Brick
-        row_ref: brick-row:bac0-qa-attempt-2
-        brick_work_ref: work:bac0-qa
-        brick_instance_ref: brick-bac0-qa-attempt-2
-        work_statement: Replay the declared QA boundary as attempt 2 after the repair attempt.
-        comparison_rule: Observe replay evidence only; do not classify success or quality.
-        required_return_shape: replay_observations, attempt_index, proof_limits, not_proven
-        source_facts:
-          - brick-bac0-dev-attempt-2
-          - route-replay:building-automation-complete-0-scope-c
-      - axis: Agent
-        row_ref: agent-row:bac0-qa-attempt-2
-        agent_object_ref: agent-object:qa
       - axis: Link
         row_ref: link-row:bac0-qa-attempt-2-to-closure
         declared_gate_refs:
@@ -129,20 +180,10 @@ steps:
         movement: forward
         target_ref: brick-bac0-closure
         next_brick_instance_ref: brick-bac0-closure
-  - step_ref: building-automation-complete-0-closure
+  - edge_ref: link-row:bac0-closure
+    source_step_ref: building-automation-complete-0-closure
+    target_brick_instance_ref: building-boundary:building-automation-complete-0-scope-c-closed
     rows:
-      - axis: Brick
-        row_ref: brick-row:bac0-closure
-        brick_work_ref: work:bac0-closure
-        brick_instance_ref: brick-bac0-closure
-        work_statement: Close Scope C dogfood evidence for declared boundary replay.
-        comparison_rule: Closure records observed evidence only.
-        required_return_shape: observed_evidence, narrowly_proven, not_proven, remaining_delta
-        source_facts:
-          - brick/building_plans/building-automation-complete-0-scope-c-dogfood.yaml
-      - axis: Agent
-        row_ref: agent-row:bac0-closure
-        agent_object_ref: agent-object:coo
       - axis: Link
         row_ref: link-row:bac0-closure
         declared_gate_refs:
