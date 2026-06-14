@@ -64,6 +64,10 @@ text_contains:
       - _validate_route_decision_basis_for_link_row
       - _validate_transition_lifecycle_for_link_row
       - transition_lifecycle.state must be paused or resumed
+      # G5 S1 (gap seal): directly-declared stop states require a HOLD gate
+      - _link_row_declares_hold_gate_policy
+      - "building_lifecycle.state: waiting requires a gate_sequence_policy"
+      - "transition_lifecycle.state: paused requires a gate_sequence_policy"
   # ELEGANT-REFACTOR P3d: observe_building_frontier lifted to
   # operator/frontier_observation.py behind the building_operation facade
   # (location-pin-follows-rehome).
@@ -561,6 +565,66 @@ fail_fixture_rejects:
                 reason_refs:
                   - transition-concern:bad
                 required_disposition_owner: caller-or-coo
+# G5 S1 (gap seal): the graph walker (walker_kernel) does NOT read
+# building_lifecycle.state: waiting / transition_lifecycle.state: paused
+# directly; it only HALTS on a gate_sequence_policy HOLD. A Link row that
+# directly declares a stop state WITHOUT a HOLD-causing gate policy on the same
+# row would be walked through by the graph model where the linear walker
+# (run.py 1461/1469) breaks. _validate_building_lifecycle_for_link_row /
+# _validate_transition_lifecycle_for_link_row MUST reject it. These probes
+# exercise the validators directly (the case document is the link_row).
+building_lifecycle_rejects:
+  - label: waiting-without-hold-gate-policy
+    expected_message: "building_lifecycle.state: waiting requires a gate_sequence_policy"
+    document:
+      link_row:
+        movement: forward
+        target_ref: building-boundary:waiting-gate
+        building_lifecycle:
+          state: waiting
+  - label: waiting-with-reroute-only-gate-policy
+    expected_message: "building_lifecycle.state: waiting requires a gate_sequence_policy"
+    document:
+      link_row:
+        movement: forward
+        target_ref: building-boundary:waiting-gate
+        building_lifecycle:
+          state: waiting
+        gate_sequence_policy:
+          - gate_ref: link-gate:default-transition
+            on_missing_required_facts:
+              action: reroute
+              target_ref: building-boundary:elsewhere
+  - label: paused-without-hold-gate-policy
+    expected_message: "transition_lifecycle.state: paused requires a gate_sequence_policy"
+    document:
+      link_row:
+        movement: forward
+        target_ref: building-boundary:paused-gate
+        transition_lifecycle:
+          state: paused
+          progress_state: in_progress
+building_lifecycle_case:
+  - label: waiting-with-hold-gate-policy-passes-invariant
+    document:
+      link_row:
+        movement: forward
+        target_ref: building-boundary:waiting-gate
+        building_lifecycle:
+          state: waiting
+        gate_sequence_policy:
+          - gate_ref: link-gate:default-transition
+            on_missing_required_facts:
+              action: HOLD
+              required_disposition_owner: caller-or-coo
+              pending_target_ref: building-boundary:waiting-gate
+  - label: closed-without-gate-policy-passes-invariant
+    document:
+      link_row:
+        movement: forward
+        target_ref: building-boundary:closed
+        building_lifecycle:
+          state: closed
 proof_limits:
   - support evidence only
   - transition concern is non-binding Agent evidence

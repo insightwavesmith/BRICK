@@ -1190,7 +1190,7 @@ preset_building_completion_case:
         - coo:all-presets-completion-smoke
       human_review_refs:
         - human-review:all-presets-completion-smoke
-    expected_preset_count: 20
+    expected_preset_count: 21
     expected_frontier_kind: complete
     expected_portfolio_frontier_kind: complete
     expected_preset_refs:
@@ -1208,6 +1208,7 @@ preset_building_completion_case:
       - building-chain-preset:fast-fix
       - building-chain-preset:governed-change-review
       - building-chain-preset:high-risk-change-inspected
+      - building-chain-preset:onboarding-example-graph
       - building-chain-preset:portfolio-sequence
       - building-chain-preset:postmortem-fleet
       - building-chain-preset:quick-check

@@ -1824,6 +1824,12 @@ def _validate_transition_lifecycle_for_link_row(link_row: Mapping[str, Any]) -> 
     state = _required_text("transition_lifecycle.state", lifecycle.get("state"))
     if state not in _TRANSITION_LIFECYCLE_STATES:
         raise ValueError("transition_lifecycle.state must be paused or resumed")
+    if state == "paused" and not _link_row_declares_hold_gate_policy(link_row):
+        raise ValueError(
+            "transition_lifecycle.state: paused requires a gate_sequence_policy "
+            "HOLD on the same Link row (on_missing_required_facts.action: HOLD) "
+            "so the graph walker halts at the declared paused transition"
+        )
     progress_state = _required_text(
         "transition_lifecycle.progress_state",
         lifecycle.get("progress_state"),
@@ -1933,6 +1939,35 @@ def _positive_int(field_name: str, value: Any) -> int:
         return int(value)
     raise ValueError(f"{field_name} must be a finite positive integer")
 
+def _link_row_declares_hold_gate_policy(link_row: Mapping[str, Any]) -> bool:
+    # G5 S1 (gap seal): the graph walker (walker_kernel) does NOT read
+    # building_lifecycle.state == "waiting" / transition_lifecycle.state ==
+    # "paused" directly; it only HALTS on a gate_sequence_policy HOLD
+    # (on_missing_required_facts.action resolving to "hold"). A link_row that
+    # directly declares a stop state but carries no HOLD-causing gate policy
+    # would be walked through by the graph model where the linear walker
+    # (run.py) would have broken. This predicate reports whether the same
+    # link_row pins a HOLD that the graph walker can actually halt on.
+    policy = _gate_sequence_policy_from_link_row(link_row)
+    if not isinstance(policy, list) or not policy:
+        return False
+    for raw_step in policy:
+        if not isinstance(raw_step, Mapping):
+            continue
+        raw_action = raw_step.get("on_missing_required_facts")
+        if not isinstance(raw_action, Mapping):
+            continue
+        try:
+            action = _gate_sequence_action_literal(
+                "gate_sequence_policy.on_missing_required_facts.action",
+                raw_action.get("action"),
+            )
+        except (TypeError, ValueError):
+            continue
+        if action == "hold":
+            return True
+    return False
+
 def _validate_building_lifecycle_for_link_row(link_row: Mapping[str, Any]) -> None:
     if _BUILDING_LIFECYCLE_KEY not in link_row:
         return
@@ -1941,6 +1976,12 @@ def _validate_building_lifecycle_for_link_row(link_row: Mapping[str, Any]) -> No
     state = _required_text("building_lifecycle.state", lifecycle.get("state"))
     if state not in _BUILDING_LIFECYCLE_STATES:
         raise ValueError("building_lifecycle.state must be waiting or closed")
+    if state == "waiting" and not _link_row_declares_hold_gate_policy(link_row):
+        raise ValueError(
+            "building_lifecycle.state: waiting requires a gate_sequence_policy "
+            "HOLD on the same Link row (on_missing_required_facts.action: HOLD) "
+            "so the graph walker halts at the declared waiting gate"
+        )
     _optional_text_value(lifecycle.get("reason"))
     _text_tuple("building_lifecycle.proof_limits", lifecycle.get("proof_limits", ()))
     _text_tuple("building_lifecycle.not_proven", lifecycle.get("not_proven", ()))

@@ -3973,6 +3973,69 @@ def run_gate_sequence_policy_rejects(repo: Path, profile: Mapping[str, Any]) -> 
     return count
 
 
+def run_building_lifecycle_case(repo: Path, profile: Mapping[str, Any]) -> int:
+    items = rule_items(profile, "building_lifecycle_case")
+    if not items:
+        return 0
+    from support.operator.plan_validation import (
+        _validate_building_lifecycle_for_link_row,
+        _validate_transition_lifecycle_for_link_row,
+    )
+
+    count = 0
+    for item in items:
+        mapping = require_mapping(item, "building_lifecycle_case item")
+        case, relative = _profile_case_document(repo, mapping, "building_lifecycle_case")
+        link_row = _gate_sequence_policy_link_row(case)
+        try:
+            _validate_building_lifecycle_for_link_row(link_row)
+            _validate_transition_lifecycle_for_link_row(link_row)
+        except (TypeError, ValueError) as exc:
+            raise ProfileError(
+                f"building_lifecycle_case rejected {relative}: {exc}"
+            ) from exc
+        count += 1
+    return count
+
+
+def run_building_lifecycle_rejects(repo: Path, profile: Mapping[str, Any]) -> int:
+    # G5 S1 (gap seal) negative probe: a Link row that DIRECTLY declares a stop
+    # state (building_lifecycle.state: waiting / transition_lifecycle.state:
+    # paused) WITHOUT a HOLD-causing gate_sequence_policy on the same row would
+    # be walked through by the graph walker (walker_kernel) where the linear
+    # walker (run.py 1461/1469) breaks. validate_declared_building_plan MUST
+    # reject it; this probe RED-flags any regression that drops the invariant.
+    items = rule_items(profile, "building_lifecycle_rejects")
+    if not items:
+        return 0
+    from support.operator.plan_validation import (
+        _validate_building_lifecycle_for_link_row,
+        _validate_transition_lifecycle_for_link_row,
+    )
+
+    count = 0
+    for item in items:
+        mapping = require_mapping(item, "building_lifecycle_rejects item")
+        case, relative = _profile_case_document(repo, mapping, "building_lifecycle_rejects")
+        expected_message = str(mapping.get("expected_message", "") or "")
+        link_row = _gate_sequence_policy_link_row(case)
+        try:
+            _validate_building_lifecycle_for_link_row(link_row)
+            _validate_transition_lifecycle_for_link_row(link_row)
+        except (TypeError, ValueError) as exc:
+            if expected_message and expected_message not in str(exc):
+                raise ProfileError(
+                    f"building_lifecycle_rejects rejected {relative}: "
+                    f"expected message {expected_message!r}, observed {exc}"
+                ) from exc
+            count += 1
+            continue
+        raise ProfileError(
+            f"building_lifecycle_rejects expected rejection but passed: {relative}"
+        )
+    return count
+
+
 def run_native_dispatch_close_case(repo: Path, profile: Mapping[str, Any]) -> int:
     """FIRE the two native-dispatch close governance guards via real open/close.
 

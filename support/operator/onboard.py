@@ -76,7 +76,7 @@ EXAMPLE_TASK_SOURCE_REF = "brick/templates/tasks/source-template.md"
 # The caller / COO declaration recorded on the confirmed intent. NOT support:.
 EXAMPLE_DECLARED_BY = "coo"
 
-# Preset for the FALLBACK (adapter:local) example: a LINEAR, all-read-only chain
+# Preset for the FALLBACK (adapter:local) example: an all-read-only chain
 # (design / review / closure -- NO write_need Brick), so it routes through the
 # seam on the in-process read-only adapter:local with NO write_scope and never
 # touches the repo. NOTE (gate wiring 0610): the example moved OFF
@@ -84,7 +84,12 @@ EXAMPLE_DECLARED_BY = "coo"
 # -- that preset now legitimately HOLDs at the closure human gate until a
 # human disposition exists, and onboarding must NOT auto-supply a fake human
 # disposition just to make the example complete.
-EXAMPLE_LOCAL_PRESET_REF = "building-chain-preset:design-contract-only"
+# GRAPH (G5 S4): the example now routes through an onboarding-only GRAPH variant
+# of design-contract-only -- same design / review / closure forward, but carrying
+# node_reroute_budgets so it materializes as a graph and the example walks the
+# DYNAMIC walker (linear -> dynamic). The shared design-contract-only preset
+# (checker profiles, quickstart, hardening tests depend on it) stays untouched.
+EXAMPLE_LOCAL_PRESET_REF = "building-chain-preset:onboarding-example-graph"
 
 # Preset for the REAL-PROVIDER example: a LINEAR chain that DOES include a
 # write_need Brick (work). A write_need Brick requires an observed-write-capable

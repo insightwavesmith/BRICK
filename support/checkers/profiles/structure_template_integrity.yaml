@@ -36,6 +36,7 @@ path_exists:
   - brick/templates/presets/research-report.md
   - brick/templates/presets/quick-check.md
   - brick/templates/presets/design-contract-only.md
+  - brick/templates/presets/onboarding-example-graph.md
   - link/gate.py
   - link/gate.yaml
   - link/movement.py

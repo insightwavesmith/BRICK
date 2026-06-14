@@ -113,6 +113,8 @@ from support.checkers.lib.case_runners import (
     run_fail_fixture_rejects,
     run_gate_sequence_policy_case,
     run_gate_sequence_policy_rejects,
+    run_building_lifecycle_case,
+    run_building_lifecycle_rejects,
 )
 from support.checkers.lib.kernel_checks import (
     run_axis_vocab_drift,
@@ -237,6 +239,8 @@ RULE_KEYS = {
     "fail_fixture_rejects",
     "gate_sequence_policy_case",
     "gate_sequence_policy_rejects",
+    "building_lifecycle_case",
+    "building_lifecycle_rejects",
 }
 TOP_LEVEL_KEYS = {
     "schema",
@@ -345,6 +349,8 @@ RULE_RUNNERS: Mapping[str, Callable[[Path, Mapping[str, Any]], int]] = {
     "fail_fixture_rejects": run_fail_fixture_rejects,
     "gate_sequence_policy_case": run_gate_sequence_policy_case,
     "gate_sequence_policy_rejects": run_gate_sequence_policy_rejects,
+    "building_lifecycle_case": run_building_lifecycle_case,
+    "building_lifecycle_rejects": run_building_lifecycle_rejects,
 }
 
 
