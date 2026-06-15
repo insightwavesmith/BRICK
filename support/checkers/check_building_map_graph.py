@@ -20,13 +20,6 @@ from typing import Any
 
 GRAPH_KIND = "building_graph_map"
 ADMITTED_PROFILES = {"planning-v0"}
-# REPO-SPLIT seed 0611: the cap-boot historical grandfather entries moved to
-# the history repo with their buildings; the product vessel ships none of them.
-HISTORICAL_BUILDING_IDS: set[str] = set()
-# CLEAN-YARD v3 (Smith 0611): every grandfathered pre-roundtrip building left
-# for the frozen museum with its root; the product vessel ships none, so the
-# grandfather set is EMPTY (a new map claiming pre-roundtrip leniency REDs).
-PRE_ROUNDTRIP_BUILDING_IDS: set[str] = set()
 # FRONTIER-FOSSIL (Smith disposition 0612, option c): adapter-30-s1-park's map
 # was REWRITTEN by the PRE-REPAIR crashed-resume frontier writer (phantom
 # binding/edge/group refs), and the building is unresumable by design (no held
@@ -708,33 +701,6 @@ def validate_group_topology(
         violations.append(path_label(path, f"group {group_id}: fan_in requires multiple incoming edges"))
 
 
-def is_historical_support_map(value: Mapping[str, Any], building_root: Path | None) -> bool:
-    if "kind" in value or building_root is None:
-        return False
-    building_id = value.get("building_id")
-    if building_id not in HISTORICAL_BUILDING_IDS or building_root.name != building_id:
-        return False
-    expected_root = f"project/brick-protocol/buildings/{building_id}/"
-    if value.get("root") != expected_root:
-        return False
-    file_groups = value.get("file_groups")
-    if not isinstance(file_groups, Mapping):
-        return False
-    required_groups = {"work", "raw", "capture", "claim_trace"}
-    if not required_groups.issubset(file_groups):
-        return False
-    return isinstance(value.get("event_refs"), list) and isinstance(value.get("not_proven"), list)
-
-
-def is_pre_roundtrip_building_map(building_root: Path | None) -> bool:
-    if building_root is None:
-        return False
-    if building_root.name not in PRE_ROUNDTRIP_BUILDING_IDS:
-        return False
-    match = re.search(r"-(\d{4})$", building_root.name)
-    return bool(match and match.group(1) < "0530")
-
-
 def validate_graph_map(
     value: Any,
     path: Path,
@@ -748,8 +714,6 @@ def validate_graph_map(
 
     kind = value.get("kind")
     if kind != GRAPH_KIND:
-        if not fixture_mode and is_historical_support_map(value, building_root):
-            return []
         if kind is None:
             return [path_label(path, "graph fixture/map requires kind == 'building_graph_map'")]
         return [path_label(path, f"kind must be {GRAPH_KIND!r}")]
@@ -859,8 +823,6 @@ def validate_graph_map(
         if isinstance(binding_id, str) and isinstance(brick_ref, str):
             bindings_by_brick.setdefault(brick_ref, set()).add(binding_id)
 
-    preserve_legacy_roundtrip = not fixture_mode and is_pre_roundtrip_building_map(building_root)
-
     for item in brick_items:
         brick_id = item.get("brick_instance_id")
         refs = item.get("agent_binding_refs", [])
@@ -873,7 +835,7 @@ def validate_graph_map(
                 if ref not in binding_id_set:
                     violations.append(path_label(path, f"brick {brick_id}: agent_binding_ref does not resolve: {ref!r}"))
             expected_refs = bindings_by_brick.get(brick_id, set())
-            if expected_refs and not preserve_legacy_roundtrip:
+            if expected_refs:
                 ref_set = {ref for ref in refs if isinstance(ref, str)}
                 missing_refs = sorted(expected_refs - ref_set)
                 if missing_refs:
@@ -959,15 +921,7 @@ def check_one(path: Path, *, fixture_mode: bool) -> tuple[Path, list[str], bool]
         fixture_mode=fixture_mode,
         building_root=building_root,
     )
-    historical = bool(
-        isinstance(value, Mapping)
-        and not fixture_mode
-        and (
-            is_historical_support_map(value, building_root)
-            or is_pre_roundtrip_building_map(building_root)
-        )
-    )
-    return map_path, violations, historical
+    return map_path, violations, False
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:

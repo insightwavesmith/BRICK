@@ -39,61 +39,6 @@ from brick_protocol.support.operator.primitives import (
 
 PROJECT_ROOT = "project"
 BUILDINGS_SEGMENT = "buildings"
-ACTIVE_LIFECYCLE_DIRS = {
-    ("work",),
-    ("capture",),
-    ("raw",),
-    ("evidence",),
-    ("evidence", "claim_trace"),
-    ("evidence", "claim_trace", "brick"),
-    ("evidence", "claim_trace", "agent"),
-    ("evidence", "claim_trace", "link"),
-    ("evidence", "evaluation_improvement"),
-}
-ACTIVE_LIFECYCLE_RECORDS = {
-    ("work", "building-work.json"),
-    ("work", "building-map.json"),
-    ("capture", "events.jsonl"),
-    ("raw", "raw-manifest.json"),
-    ("raw", "user-turns.jsonl"),
-    ("raw", "brick-work-issued.jsonl"),
-    ("raw", "handoffs.jsonl"),
-    ("raw", "agent-received.jsonl"),
-    ("raw", "agent-actions.jsonl"),
-    ("raw", "agent-returns.jsonl"),
-    ("raw", "gate-checks.jsonl"),
-    ("raw", "review-raw.jsonl"),
-    ("evidence", "evidence-manifest.json"),
-    ("evidence", "claim_trace", "brick", "work_contract.json"),
-    ("evidence", "claim_trace", "agent", "returned_claims.json"),
-    ("evidence", "claim_trace", "link", "transfer_trace.json"),
-    ("evidence", "claim_trace", "link", "carry_trace.json"),
-    ("evidence", "claim_trace", "link", "sufficiency_trace.json"),
-    ("evidence", "claim_trace", "link", "movement_trace.json"),
-    ("evidence", "evaluation_improvement", "process_integrity_check.json"),
-    ("evidence", "evaluation_improvement", "operator_quality_evaluation.json"),
-    ("evidence", "evaluation_improvement", "integrity_quality_crossing.json"),
-    ("evidence", "evaluation_improvement", "curator_axis_attribution.json"),
-    ("evidence", "evaluation_improvement", "candidate_variable_change.json"),
-    ("evidence", "evaluation_improvement", "change_safety_assessment.json"),
-    ("evidence", "support-record.md"),
-    ("evidence", "review-disposition.md"),
-}
-# REPO-SPLIT seed 0611: cap-boot allowlists emptied — every cap-boot
-# building moved to the history repo; the product vessel ships none.
-COMPACT_HISTORICAL_CAP_BOOT_BUILDINGS: set[str] = set()
-FULL_HISTORICAL_CAP_BOOT_BUILDINGS: set[str] = set()
-HISTORICAL_LIFECYCLE_DIRS = {("work",), ("capture",), ("raw",), ("evidence",)}
-HISTORICAL_LIFECYCLE_RECORDS = {
-    ("work", "building-work.json"),
-    ("work", "building-map.json"),
-    ("work", "spec.md"),
-    ("capture", "events.jsonl"),
-    ("raw", "raw-manifest.json"),
-    ("evidence", "evidence-manifest.json"),
-    ("evidence", "support-record.md"),
-    ("evidence", "review-disposition.md"),
-}
 MINIMAL_LIFECYCLE_DIRS = {
     ("work",),
     ("capture",),
@@ -527,10 +472,6 @@ def forbidden_path_reason(parts: list[str]) -> str | None:
 
 
 def lifecycle_shape_for(building_id: str) -> tuple[set[tuple[str, ...]], set[tuple[str, ...]]]:
-    if building_id in COMPACT_HISTORICAL_CAP_BOOT_BUILDINGS:
-        return HISTORICAL_LIFECYCLE_DIRS, HISTORICAL_LIFECYCLE_RECORDS
-    if building_id in FULL_HISTORICAL_CAP_BOOT_BUILDINGS:
-        return ACTIVE_LIFECYCLE_DIRS, ACTIVE_LIFECYCLE_RECORDS
     return MINIMAL_LIFECYCLE_DIRS, MINIMAL_LIFECYCLE_RECORDS
 
 
@@ -626,10 +567,6 @@ def required_records_for_candidate(
     *,
     u5_5_live: bool = False,
 ) -> set[tuple[str, ...]]:
-    if building_id in COMPACT_HISTORICAL_CAP_BOOT_BUILDINGS:
-        return HISTORICAL_LIFECYCLE_RECORDS
-    if building_id in FULL_HISTORICAL_CAP_BOOT_BUILDINGS:
-        return ACTIVE_LIFECYCLE_RECORDS
     # U5.5 SLICE-1A: a building tagged evidence_generation == u5_5_live MUST carry
     # the spine index records (applied to BOTH the minimal and frontier branches —
     # the disposition/frontier cases are where the spine matters most). Untagged
@@ -646,10 +583,6 @@ def required_records_for_candidate(
 
 
 def required_dirs_for(building_id: str, *, u5_5_live: bool = False) -> set[tuple[str, ...]]:
-    if building_id in COMPACT_HISTORICAL_CAP_BOOT_BUILDINGS:
-        return HISTORICAL_LIFECYCLE_DIRS
-    if building_id in FULL_HISTORICAL_CAP_BOOT_BUILDINGS:
-        return ACTIVE_LIFECYCLE_DIRS
     spine = SPINE_REQUIRED_DIRS if u5_5_live else set()
     return spine | {
         ("raw",),
@@ -1923,8 +1856,6 @@ def collect_content_violations(label: str, candidates: set[tuple[str, str]]) -> 
     if not root.is_dir():
         return violations
     for project_id, building_id in sorted(candidates):
-        if building_id in COMPACT_HISTORICAL_CAP_BOOT_BUILDINGS | FULL_HISTORICAL_CAP_BOOT_BUILDINGS:
-            continue
         building_root = resolve_building_root(root, project_id, building_id)
         if building_root is not None:
             validate_minimal_content(building_root, violations)
