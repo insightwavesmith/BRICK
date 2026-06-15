@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 import tempfile
 
@@ -231,6 +232,167 @@ def _run_driver(repo: Path, portfolio: Mapping[str, Any], output_root: Path, pro
         adapter_cwd=repo,
         adapter_timeout_seconds=30,
     )
+
+
+# ---------------------------------------------------------------------------
+# W1 worktree-sandbox FIRE: a customer-facing WRITE dispatch must leave the
+# customer repo's live tree UNTOUCHED (refs + tracked files unchanged), land
+# the writes inside the engine worktree, commit ONLY on genuine completion, and
+# keep the evidence durable after the worktree is disposed. Mutation-RED: bypass
+# the worktree (adapter_cwd=repo) -> the live-tree-untouched assertion REDs.
+#
+# These cases drive the REAL support/operator/driver.run_customer_building_in_sandbox
+# wrapper. They never call a real provider: a deterministic command_runner stands
+# in for codex, writing the in-scope file into the dispatch cwd and returning a
+# completing AgentFact. The "customer repo" is a FRESH /tmp git repo seeded with
+# THIS repo's HEAD via `git archive` (so it carries the Brick template catalog a
+# real customer install would have); it is NEVER nested inside the live tree.
+# ---------------------------------------------------------------------------
+
+_W1_WRITE_REL = "onboarding-example/fix.txt"
+_W1_WRITE_SCOPE: dict[str, Any] = {
+    "allowed_paths": ["onboarding-example/**"],
+    "forbidden_paths": [".git/**", "AGENTS.md", "agent/**", "brick/**", "link/**",
+                        "support/**", "project/**", "**/.env"],
+}
+
+
+def _remove_git_dir(path: Path) -> None:
+    import shutil
+
+    git_dir = path / ".git"
+    if git_dir.is_dir():
+        shutil.rmtree(git_dir)
+    elif git_dir.exists():
+        git_dir.unlink()
+
+
+def _dir_snapshot(path: Path) -> tuple[str, ...]:
+    return tuple(sorted(p.relative_to(path).as_posix() for p in path.rglob("*") if p.is_file()))
+
+
+def _git_text(cwd: Path, *args: str) -> str:
+    completed = subprocess.run(
+        ["git", "-C", str(cwd), *args],
+        text=True,
+        capture_output=True,
+        check=False,
+        timeout=60,
+    )
+    return completed.stdout.strip()
+
+
+# The minimal working-tree surfaces a customer install needs for the catalog +
+# plan materialization the wrapper exercises. Copying from the WORKING TREE (not
+# `git archive`) keeps this FIRE independent of whether the repo under test is a
+# git checkout (a clean `git archive` overlay tree is NOT a git repo), so the
+# proof never REDs on an environment artifact.
+_W1_SEED_DIRS: tuple[str, ...] = ("brick", "support", "agent", "link")
+_W1_SEED_FILES: tuple[str, ...] = ("AGENTS.md",)
+
+
+def _seed_customer_repo(repo: Path, dest: Path) -> str:
+    """Seed a fresh git repo at ``dest`` with the Brick catalog + plan surfaces
+    copied from ``repo``'s WORKING TREE (a real customer install carries these).
+
+    Returns the seeded HEAD SHA. Works whether or not ``repo`` is itself a git
+    repo, and never nests anything inside the live tree.
+    """
+
+    import shutil
+
+    def _ignore(_dirpath: str, names: list[str]) -> set[str]:
+        # Skip git metadata, build caches, and the heavy generated project vessel
+        # (not read by plan materialization) so the seed stays small + clean.
+        skip = {".git", "__pycache__", ".pytest_cache", "node_modules", "public"}
+        return {name for name in names if name in skip}
+
+    for rel in _W1_SEED_DIRS:
+        src = repo / rel
+        if src.is_dir():
+            shutil.copytree(src, dest / rel, ignore=_ignore, symlinks=False)
+    for rel in _W1_SEED_FILES:
+        src = repo / rel
+        if src.is_file():
+            (dest / rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dest / rel)
+    subprocess.run(["git", "-C", str(dest), "init", "-q"], check=True, timeout=60)
+    subprocess.run(["git", "-C", str(dest), "add", "-A"], check=True, timeout=120)
+    subprocess.run(
+        ["git", "-C", str(dest), "-c", "user.name=customer", "-c",
+         "user.email=customer@brick.local", "commit", "-q", "-m", "seed BRICK catalog"],
+        check=True,
+        timeout=120,
+    )
+    return _git_text(dest, "rev-parse", "HEAD")
+
+
+def _w1_intent(building_id: str) -> dict[str, Any]:
+    return {
+        "declared_by": "coo",
+        "task_statement": f"Write {_W1_WRITE_REL} for the W1 worktree-sandbox FIRE.",
+        "chain_preset_ref": "building-chain-preset:fast-fix",
+        "selected_adapter_ref": "adapter:codex-local",
+        "building_id": building_id,
+        "write_scope": dict(_W1_WRITE_SCOPE),
+    }
+
+
+def _w1_completing_codex_runner(*, write: bool):
+    """A deterministic stand-in for codex. Optionally writes the in-scope file
+    into the dispatch cwd, then returns a completing AgentFact JSON."""
+
+    def _runner(args: Sequence[str], cwd: Path, timeout_seconds: int):
+        from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
+
+        del timeout_seconds
+        call = tuple(str(arg) for arg in args)
+        if "--version" in call:
+            return LocalCliCompleted(call, 0, "codex test-version", "")
+        if write:
+            target = Path(cwd) / _W1_WRITE_REL
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text("fixed by the W1 FIRE runner\n", encoding="utf-8")
+        payload = {
+            "observed_evidence": [f"wrote {_W1_WRITE_REL}"],
+            "changed_files": [_W1_WRITE_REL],
+            "commands_run": ["echo fix"],
+            "handoff_refs": ["handoff:w1-work-done"],
+            "received_work_ref": "work:w1-fast-fix",
+            "not_proven": ["semantic correctness of the W1 fixture edit"],
+            "attack_findings": [],
+            "qa_observed_evidence": ["ran attack qa over the W1 fixture"],
+            "closure_observed_evidence": ["closed the W1 fixture building"],
+        }
+        return LocalCliCompleted(call, 0, json.dumps(payload), "")
+
+    return _runner
+
+
+def _w1_incomplete_codex_runner():
+    """A stand-in that writes the in-scope file but raises at the adapter
+    boundary AFTER the first step, so the building holds (no complete frontier)
+    and the wrapper must produce NO commit."""
+
+    state = {"prompted": 0}
+
+    def _runner(args: Sequence[str], cwd: Path, timeout_seconds: int):
+        from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
+
+        del timeout_seconds
+        call = tuple(str(arg) for arg in args)
+        if "--version" in call:
+            return LocalCliCompleted(call, 0, "codex test-version", "")
+        state["prompted"] += 1
+        # First real step: write the in-scope file, then fail with non-zero so
+        # the building ends incomplete/held. (A non-zero codex exit is the
+        # adapter-error path; the wrapper observes a non-complete frontier.)
+        target = Path(cwd) / _W1_WRITE_REL
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("partial W1 work\n", encoding="utf-8")
+        return LocalCliCompleted(call, 1, "", "W1 incomplete: adapter boom")
+
+    return _runner
 
 
 def _candidate_refs(result: Any) -> list[str]:
@@ -464,7 +626,239 @@ def check(repo: Path) -> tuple[list[str], Mapping[str, Any]]:
 
         summary["portfolio_projection_kind"] = mode1.projection.get("kind")
 
+    # W1 worktree-sandbox FIRE (the load-bearing customer-safety proof). Run in
+    # its OWN system-temp dirs (a fresh /tmp customer repo + a durable evidence
+    # root), never nested in the checker's tmp above and never the live tree.
+    _w1_worktree_sandbox_fire(repo, violations, summary)
+
     return violations, summary
+
+
+def _w1_worktree_sandbox_fire(
+    repo: Path,
+    violations: list[str],
+    summary: dict[str, Any],
+) -> None:
+    from brick_protocol.support.operator.driver import (
+        run_building_intake,
+        run_customer_building_in_sandbox,
+    )
+
+    with tempfile.TemporaryDirectory(prefix="bp-w1-customer-") as cust_raw, \
+            tempfile.TemporaryDirectory(prefix="bp-w1-evidence-") as ev_raw:
+        # Each customer "repo" is its OWN subdir so the shared temp root is never
+        # itself a git repo (otherwise a subdir whose .git we remove would still
+        # resolve UP to the root repo and misreport its probe reason).
+        customer = Path(cust_raw) / "customer-live"
+        customer.mkdir(parents=True, exist_ok=True)
+        evidence_root = Path(ev_raw)
+
+        # CASE 1 (THE proof): customer-facing WRITE dispatch through the worktree
+        # wrapper leaves the live tree UNTOUCHED; writes land in the worktree;
+        # commit on completion; evidence durable; worktree gone after dispose.
+        head_before = _seed_customer_repo(repo, customer)
+        status_before = _git_text(customer, "status", "--porcelain", "--untracked-files=all")
+        result = run_customer_building_in_sandbox(
+            _w1_intent("w1-live-tree-untouched-0"),
+            customer_repo_root=customer,
+            output_root=evidence_root / "complete",
+            overwrite_existing=True,
+            command_runner=_w1_completing_codex_runner(write=True),
+            adapter_timeout_seconds=30,
+        )
+        head_after = _git_text(customer, "rev-parse", "HEAD")
+        status_after = _git_text(customer, "status", "--porcelain", "--untracked-files=all")
+        summary["w1_isolation_mode"] = result.isolation_mode
+        summary["w1_frontier_kind"] = result.frontier_kind
+        summary["w1_commit_sha"] = result.commit_sha
+        summary["w1_head_unchanged"] = head_before == head_after
+        summary["w1_live_status_clean"] = status_after == ""
+
+        if result.isolation_mode != "worktree":
+            violations.append(
+                f"w1-live-tree: expected worktree isolation, got {result.isolation_mode!r}"
+            )
+        # (a) live tree untouched: refs + tracked/untracked status unchanged.
+        if head_before != head_after:
+            violations.append(
+                f"w1-live-tree: customer HEAD moved {head_before} -> {head_after}"
+            )
+        if status_before != "" or status_after != "":
+            violations.append(
+                f"w1-live-tree: customer git status not clean (before={status_before!r} "
+                f"after={status_after!r})"
+            )
+        if (customer / _W1_WRITE_REL).exists():
+            violations.append("w1-live-tree: the write landed in the LIVE customer tree")
+        # (b) writes landed in the engine worktree (it is force-disposed, but the
+        # commit captured exactly the in-scope write).
+        # (c) commit exists on completion + (d) evidence durable outside worktree.
+        if result.frontier_kind != "complete":
+            violations.append(
+                f"w1-live-tree: expected complete frontier, got {result.frontier_kind!r}"
+            )
+        if not result.commit_sha:
+            violations.append("w1-live-tree: completion produced NO commit")
+        else:
+            committed_files = _git_text(
+                customer, "diff-tree", "--no-commit-id", "--name-only", "-r", result.commit_sha
+            )
+            summary["w1_commit_files"] = committed_files
+            if committed_files != _W1_WRITE_REL:
+                violations.append(
+                    f"w1-live-tree: commit did not capture exactly {_W1_WRITE_REL}: "
+                    f"{committed_files!r}"
+                )
+            committed_body = _git_text(customer, "show", f"{result.commit_sha}:{_W1_WRITE_REL}")
+            if "fixed by the W1 FIRE runner" not in committed_body:
+                violations.append("w1-live-tree: committed file body did not match the write")
+            on_branch = _git_text(customer, "branch", "--contains", result.commit_sha)
+            if on_branch:
+                violations.append(
+                    f"w1-live-tree: output commit moved a branch (expected dangling): {on_branch!r}"
+                )
+        if not Path(result.evidence_root).is_dir():
+            violations.append("w1-live-tree: durable evidence root is missing")
+        if result.worktree_path and Path(result.evidence_root).resolve().is_relative_to(
+            Path(result.worktree_path).resolve().parent
+        ) and result.worktree_path in result.evidence_root:
+            violations.append("w1-live-tree: evidence was written inside the worktree")
+        # (e) worktree disposed: directory gone, but commit + evidence remain.
+        if not result.worktree_disposed or (result.worktree_path and Path(result.worktree_path).exists()):
+            violations.append("w1-live-tree: worktree was not disposed after capture")
+        if result.commit_sha:
+            survived = _git_text(customer, "cat-file", "-t", result.commit_sha)
+            if survived != "commit":
+                violations.append("w1-live-tree: output commit did not survive worktree disposal")
+
+        # CASE 2 (non-git refuse): point the wrapper at a NON-git dir that still
+        # carries the Brick catalog (a checkout whose .git was removed) -> the
+        # probe fails closed, the wrapper falls back to a temp dir, creates NO
+        # worktree, does NOT mutate the dir, and reports degraded mode. The write
+        # lands in the temp dir (so even a real provider never touches the dir).
+        non_git = Path(cust_raw) / "not-a-repo"
+        non_git.mkdir(parents=True, exist_ok=True)
+        _seed_customer_repo(repo, non_git)
+        _remove_git_dir(non_git)  # now a non-git dir that still has the catalog
+        before_snapshot = _dir_snapshot(non_git)
+        degraded = run_customer_building_in_sandbox(
+            _w1_intent("w1-non-git-refuse-0"),
+            customer_repo_root=non_git,
+            output_root=evidence_root / "degraded",
+            overwrite_existing=True,
+            command_runner=_w1_completing_codex_runner(write=True),
+            adapter_timeout_seconds=30,
+        )
+        after_snapshot = _dir_snapshot(non_git)
+        summary["w1_degraded_mode"] = degraded.isolation_mode
+        summary["w1_degraded_reason"] = degraded.isolation_reason
+        summary["w1_degraded_frontier"] = degraded.frontier_kind
+        if degraded.isolation_mode != "temp_dir":
+            violations.append(
+                f"w1-non-git: expected temp_dir fallback, got {degraded.isolation_mode!r}"
+            )
+        if degraded.isolation_reason != "not-a-git-work-tree":
+            violations.append(
+                f"w1-non-git: degraded reason drifted: {degraded.isolation_reason!r}"
+            )
+        if degraded.worktree_path:
+            violations.append("w1-non-git: a worktree was created over a non-git dir")
+        if degraded.commit_sha:
+            violations.append("w1-non-git: a commit was produced in degraded mode")
+        if (non_git / _W1_WRITE_REL).exists():
+            violations.append("w1-non-git: the write landed in the non-git customer dir")
+        if before_snapshot != after_snapshot:
+            violations.append("w1-non-git: the non-git customer dir was mutated")
+
+        # CASE 2b (dirty refuse): a DIRTY git tree must ALSO degrade (a dirty base
+        # cannot guarantee carry isolation) -> temp_dir fallback, dir untouched.
+        dirty = Path(cust_raw) / "customer-dirty"
+        dirty.mkdir(parents=True, exist_ok=True)
+        _seed_customer_repo(repo, dirty)
+        (dirty / "uncommitted.txt").write_text("dirty carry\n", encoding="utf-8")
+        dirty_status_before = _git_text(dirty, "status", "--porcelain", "--untracked-files=all")
+        dirty_result = run_customer_building_in_sandbox(
+            _w1_intent("w1-dirty-refuse-0"),
+            customer_repo_root=dirty,
+            output_root=evidence_root / "dirty",
+            overwrite_existing=True,
+            command_runner=_w1_completing_codex_runner(write=True),
+            adapter_timeout_seconds=30,
+        )
+        dirty_status_after = _git_text(dirty, "status", "--porcelain", "--untracked-files=all")
+        summary["w1_dirty_mode"] = dirty_result.isolation_mode
+        summary["w1_dirty_reason"] = dirty_result.isolation_reason
+        if dirty_result.isolation_mode != "temp_dir":
+            violations.append(
+                f"w1-dirty: expected temp_dir fallback over a dirty tree, got "
+                f"{dirty_result.isolation_mode!r}"
+            )
+        if dirty_result.isolation_reason != "dirty-work-tree":
+            violations.append(f"w1-dirty: degraded reason drifted: {dirty_result.isolation_reason!r}")
+        if dirty_result.worktree_path or dirty_result.commit_sha:
+            violations.append("w1-dirty: a dirty tree was not refused (worktree/commit produced)")
+        if (dirty / _W1_WRITE_REL).exists() or dirty_status_before != dirty_status_after:
+            violations.append("w1-dirty: the dirty customer tree was further mutated")
+
+        # CASE 3 (incomplete = no commit): a building that does NOT complete ->
+        # no commit produced; reported not-complete; live tree still untouched.
+        customer3 = Path(cust_raw) / "customer-incomplete"
+        customer3.mkdir(parents=True, exist_ok=True)
+        head3_before = _seed_customer_repo(repo, customer3)
+        incomplete = run_customer_building_in_sandbox(
+            _w1_intent("w1-incomplete-no-commit-0"),
+            customer_repo_root=customer3,
+            output_root=evidence_root / "incomplete",
+            overwrite_existing=True,
+            command_runner=_w1_incomplete_codex_runner(),
+            adapter_timeout_seconds=30,
+        )
+        head3_after = _git_text(customer3, "rev-parse", "HEAD")
+        status3_after = _git_text(customer3, "status", "--porcelain", "--untracked-files=all")
+        summary["w1_incomplete_frontier"] = incomplete.frontier_kind
+        summary["w1_incomplete_commit"] = incomplete.commit_sha
+        if incomplete.frontier_kind == "complete":
+            violations.append("w1-incomplete: a non-completing building reported a complete frontier")
+        if incomplete.commit_sha:
+            violations.append(
+                f"w1-incomplete: a non-completing building produced a commit {incomplete.commit_sha}"
+            )
+        if head3_before != head3_after or status3_after != "":
+            violations.append("w1-incomplete: the live tree was mutated by a held building")
+
+        # MUTATION-RED: bypass the worktree (run the SAME write dispatch directly
+        # with adapter_cwd = the live customer repo). The live-tree-untouched
+        # assertion MUST now RED: the write lands in the live tree / its status
+        # goes dirty. If bypassing the wrapper leaves the live tree clean, the
+        # whole proof is vacuous, so we fail closed.
+        customer4 = Path(cust_raw) / "customer-mutation"
+        customer4.mkdir(parents=True, exist_ok=True)
+        head4_before = _seed_customer_repo(repo, customer4)
+        try:
+            run_building_intake(
+                _w1_intent("w1-mutation-red-0"),
+                repo_root=customer4,
+                output_root=evidence_root / "mutation",
+                overwrite_existing=True,
+                command_runner=_w1_completing_codex_runner(write=True),
+                adapter_cwd=customer4,  # BYPASS: write straight into the live tree
+                adapter_timeout_seconds=30,
+            )
+        except Exception:  # noqa: BLE001 -- the bypass may raise; the live mutation is the point
+            pass
+        head4_after = _git_text(customer4, "rev-parse", "HEAD")
+        status4_after = _git_text(customer4, "status", "--porcelain", "--untracked-files=all")
+        bypass_left_live_tree_dirty = (
+            (customer4 / _W1_WRITE_REL).exists()
+            or status4_after != ""
+            or head4_before != head4_after
+        )
+        summary["w1_mutation_bypass_dirtied_live_tree"] = bypass_left_live_tree_dirty
+        if not bypass_left_live_tree_dirty:
+            violations.append(
+                "w1-mutation-RED: bypassing the worktree did NOT dirty the live tree, so the "
+                "live-tree-untouched proof is vacuous"
+            )
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -507,6 +901,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         "disposition_actions="
         f"{summary['budget_frontier'].get('disposition_action_surface', {}).get('allowed_values')}; "
         f"child_roots={summary['child_roots']} projection={summary['projection_path']}."
+    )
+    print(
+        "W1 worktree-sandbox FIRE passed: "
+        f"live-tree-untouched isolation={summary.get('w1_isolation_mode')} "
+        f"frontier={summary.get('w1_frontier_kind')} commit={summary.get('w1_commit_sha')} "
+        f"commit_files={summary.get('w1_commit_files')} "
+        f"head_unchanged={summary.get('w1_head_unchanged')} "
+        f"live_status_clean={summary.get('w1_live_status_clean')}; "
+        f"non-git-refuse mode={summary.get('w1_degraded_mode')} reason={summary.get('w1_degraded_reason')}; "
+        f"dirty-refuse mode={summary.get('w1_dirty_mode')} reason={summary.get('w1_dirty_reason')}; "
+        f"incomplete frontier={summary.get('w1_incomplete_frontier')} commit={summary.get('w1_incomplete_commit')!r}; "
+        f"mutation-RED bypass_dirtied_live_tree={summary.get('w1_mutation_bypass_dirtied_live_tree')}."
     )
     print(
         "proof limit: support evidence only; checker pass does not prove source truth, "

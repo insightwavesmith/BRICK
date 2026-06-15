@@ -303,6 +303,9 @@ ELEGANT_REFACTOR_BUILDING_OPERATION_TARGETS = {
     "support/operator/composition.py",
     "support/operator/orchestration_packet.py",
     "support/operator/native_dispatch.py",
+    # W1: thin worktree-sandbox lifecycle helper for customer-facing dispatch
+    # (create->run->commit-on-complete->dispose around run_building_intake).
+    "support/operator/worktree_sandbox.py",
 }
 
 PRH_B_RECORDER_TARGETS = {
