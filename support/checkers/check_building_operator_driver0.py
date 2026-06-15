@@ -652,6 +652,25 @@ def check(repo: Path) -> tuple[list[str], Mapping[str, Any]]:
     # BEFORE any run (no evidence, live tree clean). NO live AI / network.
     _h3b_goal_journey_fire(repo, violations, summary)
 
+    # H3c gap2 TERMINAL-CLOSE NORMALIZE FIRE: a canned proposal whose terminal
+    # target is the NON-closed boundary 'building-boundary:done' is normalized to
+    # '...-closed' by compose_building_from_task and then runs to a COMPLETE
+    # frontier (un-normalized it lands at closure_pending). The normalize is the
+    # load-bearing fix that lets a customer goal reach complete.
+    _h3c_terminal_close_normalize_fire(repo, violations, summary)
+
+    # H3c gap4 COMPOSE-RETRY FIRE: compose_building_from_task's bounded retry
+    # (max_attempts) returns the first VALID proposal across a non-deterministic
+    # AI (invalid-then-valid -> retry succeeds; always-invalid -> raises after N;
+    # always-valid attempt 1 -> single invoke, retry never engages).
+    _h3c_compose_retry_fire(repo, violations, summary)
+
+    # H3c gap1 BRAIN-CHOICE FIRE: run_goal_in_sandbox with a write-capable
+    # adapter:codex-local actually routes through the codex CLI seam (sentinel
+    # argv intercepted, NO real CLI) AND the W1 invariant holds (live tree byte-
+    # identical). The CLI --brain -> adapter ref mapping is exact.
+    _h3c_brain_choice_fire(repo, violations, summary)
+
     return violations, summary
 
 
@@ -1030,6 +1049,388 @@ def _h3b_goal_journey_fire(
                 "h3b-mutation-RED: an edge movement='sideways' did NOT raise BEFORE the run, "
                 "so the compose_building graph contract is not enforced on the goal entry"
             )
+
+
+# ---------------------------------------------------------------------------
+# H3c gap2 TERMINAL-CLOSE NORMALIZE FIRE: a CANNED design-AI proposal whose
+# terminal edge target is the NON-closed boundary ``building-boundary:done``
+# (exactly what the live design AI emits per the old prompt example) is handed to
+# compose_building_from_task. The seam NORMALIZES the terminal target to
+# ``building-boundary:done-closed`` BEFORE composing, so the returned proposal's
+# graph carries the closed boundary. We then FEED that proposal's graph to H2a's
+# run_composed_graph_intake (sentinel codex runner; NO real CLI) and assert it
+# runs to frontier=COMPLETE -- which it would NOT have done without the normalize
+# (the un-closed boundary lands at closure_pending). Mutation-RED: the SAME graph
+# run with the un-closed target UN-NORMALIZED lands at closure_pending (proving
+# the normalize is load-bearing for reaching complete).
+# ---------------------------------------------------------------------------
+
+_H3C_TASK = (
+    "Build the H3c terminal-close smoke payload and synthesize its evidence "
+    "deterministically; do not choose Movement or judge quality."
+)
+
+
+def _h3c_unclosed_boundary_graph() -> tuple[list[Mapping[str, Any]], list[Mapping[str, Any]]]:
+    """The SAME real-board work->closure 2-node graph the H2a FIRE hand-builds,
+    but with the terminal edge targeting the NON-closed boundary
+    ``building-boundary:done`` (the old prompt example) instead of a ``-closed``
+    ref. The closing edge still carries building_lifecycle.state=closed, exactly
+    as a realistic design-AI close edge would; only the target suffix is missing
+    ``closed``."""
+
+    nodes, edges = _h2a_graph()
+    # Deep-copy via json so we never mutate the shared _h2a_graph fixtures.
+    nodes = json.loads(json.dumps(nodes))
+    edges = json.loads(json.dumps(edges))
+    # The terminal edge is the second one (closure -> boundary). Point it at the
+    # NON-closed boundary the live AI emits.
+    edges[1]["target"] = "building-boundary:done"
+    return nodes, edges
+
+
+def _h3c_canned_proposal() -> Mapping[str, Any]:
+    nodes, edges = _h3c_unclosed_boundary_graph()
+    return {
+        "requirements": ["implement-payload", "synthesize-evidence"],
+        "graph": {"nodes": nodes, "edges": edges, "groups": []},
+        "requirement_node_map": {
+            "implement-payload": "work",
+            "synthesize-evidence": "closure",
+        },
+        "preset_delta": "fresh",
+    }
+
+
+def _h3c_canned_ai_invoke(proposal: Mapping[str, Any]):
+    text = json.dumps(proposal)
+
+    def _invoke(_prompt: str) -> str:
+        return text
+
+    return _invoke
+
+
+def _h3c_terminal_close_normalize_fire(
+    repo: Path,
+    violations: list[str],
+    summary: dict[str, Any],
+) -> None:
+    from brick_protocol.support.operator.auto_compose import compose_building_from_task
+    from brick_protocol.support.operator.building_operation import (
+        observe_building_frontier,
+    )
+    from brick_protocol.support.operator.driver import run_composed_graph_intake
+
+    # FIRE: canned proposal with the un-closed terminal -> compose_building_from_task
+    # NORMALIZES it -> the returned proposal's terminal target ENDS in -closed.
+    proposal = compose_building_from_task(
+        _H3C_TASK,
+        ai_invoke=_h3c_canned_ai_invoke(_h3c_canned_proposal()),
+        repo_root=repo,
+    )
+    proposed_graph = proposal["graph"]
+    terminal_edge = proposed_graph["edges"][1]
+    summary["h3c_normalized_terminal_target"] = terminal_edge.get("target")
+    if terminal_edge.get("target") != "building-boundary:done-closed":
+        violations.append(
+            "h3c gap2: the un-closed terminal target was NOT normalized to "
+            f"'building-boundary:done-closed' (got {terminal_edge.get('target')!r})"
+        )
+
+    # FEED the NORMALIZED graph to H2a's run_composed_graph_intake -> COMPLETE.
+    with tempfile.TemporaryDirectory(prefix="bp-h3c-norm-") as tmp_raw:
+        out_root = Path(tmp_raw) / "fire"
+        run_result = run_composed_graph_intake(
+            proposed_graph["nodes"],
+            proposed_graph["edges"],
+            groups=proposed_graph.get("groups", []),
+            task_statement=_H3C_TASK,
+            declared_by="coo",
+            selected_adapter_ref="adapter:codex-local",
+            repo_root=repo,
+            output_root=out_root,
+            overwrite_existing=True,
+            command_runner=_h2a_completing_codex_runner(),
+            adapter_timeout_seconds=30,
+        )
+        root = Path(run_result.run_result.lifecycle_write.root)
+        frontier = observe_building_frontier(root, repo_root=repo)
+        summary["h3c_normalized_frontier"] = frontier.get("frontier_kind")
+        if frontier.get("frontier_kind") != "complete":
+            violations.append(
+                "h3c gap2: the NORMALIZED graph did NOT run to a complete frontier "
+                f"(got {frontier.get('frontier_kind')!r})"
+            )
+
+    # MUTATION-RED (the normalize is load-bearing): the SAME graph run with the
+    # un-closed boundary target UN-normalized lands at closure_pending, NOT
+    # complete. This proves the un-closed target is the real blocker the normalize
+    # removes (and that the normalize did not paper over an unrelated failure).
+    raw_nodes, raw_edges = _h3c_unclosed_boundary_graph()
+    with tempfile.TemporaryDirectory(prefix="bp-h3c-raw-") as tmp_raw:
+        out_root = Path(tmp_raw) / "fire"
+        run_result = run_composed_graph_intake(
+            raw_nodes,
+            raw_edges,
+            task_statement=_H3C_TASK,
+            declared_by="coo",
+            selected_adapter_ref="adapter:codex-local",
+            repo_root=repo,
+            output_root=out_root,
+            overwrite_existing=True,
+            command_runner=_h2a_completing_codex_runner(),
+            adapter_timeout_seconds=30,
+        )
+        root = Path(run_result.run_result.lifecycle_write.root)
+        frontier = observe_building_frontier(root, repo_root=repo)
+        summary["h3c_unnormalized_frontier"] = frontier.get("frontier_kind")
+        if frontier.get("frontier_kind") == "complete":
+            violations.append(
+                "h3c gap2 mutation-RED: the UN-normalized un-closed boundary still "
+                "reached complete, so the normalize is not load-bearing"
+            )
+
+
+# ---------------------------------------------------------------------------
+# H3c gap4 COMPOSE-RETRY FIRE: compose_building_from_task is handed a STATEFUL
+# canned ai_invoke that returns an INVALID proposal on attempt 1 (an edge
+# movement='sideways' the compose_building contract rejects) and a VALID proposal
+# on attempt 2. With max_attempts>=2 the seam re-invokes the AI and RETURNS the
+# valid attempt-2 proposal (retry proven; invoke called exactly twice). A SECOND
+# canned ai_invoke that is ALWAYS invalid RAISES AutoComposeError after exactly
+# max_attempts invocations (bounded; the LAST error is surfaced). A canned
+# ALWAYS-valid invoke with max_attempts=3 is called exactly ONCE (single-attempt
+# behavior preserved when attempt 1 validates). NO live provider.
+# ---------------------------------------------------------------------------
+
+
+def _h3c_compose_retry_fire(
+    repo: Path,
+    violations: list[str],
+    summary: dict[str, Any],
+) -> None:
+    from brick_protocol.support.operator.auto_compose import (
+        AutoComposeError,
+        compose_building_from_task,
+    )
+
+    def _valid_proposal() -> Mapping[str, Any]:
+        nodes, edges = _h2a_graph()
+        return {
+            "requirements": ["implement-payload", "synthesize-evidence"],
+            "graph": {"nodes": nodes, "edges": edges, "groups": []},
+            "requirement_node_map": {
+                "implement-payload": "work",
+                "synthesize-evidence": "closure",
+            },
+            "preset_delta": "fresh",
+        }
+
+    def _invalid_proposal() -> Mapping[str, Any]:
+        bad = json.loads(json.dumps(_valid_proposal()))
+        # movement='sideways' is rejected by the compose_building contract.
+        bad["graph"]["edges"][0]["movement"] = "sideways"
+        return bad
+
+    # CASE 1: invalid on attempt 1, valid on attempt 2 -> retry returns the valid
+    # proposal. The invoke is called exactly twice.
+    sequence = [_invalid_proposal(), _valid_proposal()]
+    call_box = {"n": 0}
+
+    def _invoke_then_valid(_prompt: str) -> str:
+        index = min(call_box["n"], len(sequence) - 1)
+        call_box["n"] += 1
+        return json.dumps(sequence[index])
+
+    proposal = compose_building_from_task(
+        _H3C_TASK,
+        ai_invoke=_invoke_then_valid,
+        repo_root=repo,
+        max_attempts=3,
+    )
+    summary["h3c_retry_returned_valid"] = (
+        proposal.get("kind") == "building-graph-proposal"
+    )
+    summary["h3c_retry_invoke_calls"] = call_box["n"]
+    if proposal.get("kind") != "building-graph-proposal":
+        violations.append(
+            "h3c gap4: invalid-then-valid retry did NOT return a valid proposal"
+        )
+    if call_box["n"] != 2:
+        violations.append(
+            "h3c gap4: invalid-then-valid retry did not re-invoke exactly twice "
+            f"(invoke calls={call_box['n']})"
+        )
+
+    # CASE 2: ALWAYS invalid -> raises AutoComposeError after exactly max_attempts
+    # invocations (bounded; surfaces the last error).
+    always_box = {"n": 0}
+
+    def _invoke_always_invalid(_prompt: str) -> str:
+        always_box["n"] += 1
+        return json.dumps(_invalid_proposal())
+
+    h3c_always_raised = False
+    try:
+        compose_building_from_task(
+            _H3C_TASK,
+            ai_invoke=_invoke_always_invalid,
+            repo_root=repo,
+            max_attempts=3,
+        )
+    except AutoComposeError:
+        h3c_always_raised = True
+    summary["h3c_always_invalid_raised"] = h3c_always_raised
+    summary["h3c_always_invalid_invoke_calls"] = always_box["n"]
+    if not h3c_always_raised:
+        violations.append(
+            "h3c gap4: an ALWAYS-invalid proposal did NOT raise after max_attempts"
+        )
+    if always_box["n"] != 3:
+        violations.append(
+            "h3c gap4: an ALWAYS-invalid proposal was not retried exactly "
+            f"max_attempts=3 times (invoke calls={always_box['n']})"
+        )
+
+    # CASE 3: ALWAYS valid + max_attempts=3 -> invoked exactly ONCE (single-attempt
+    # behavior preserved when attempt 1 validates; the retry never engages).
+    once_box = {"n": 0}
+
+    def _invoke_always_valid(_prompt: str) -> str:
+        once_box["n"] += 1
+        return json.dumps(_valid_proposal())
+
+    compose_building_from_task(
+        _H3C_TASK,
+        ai_invoke=_invoke_always_valid,
+        repo_root=repo,
+        max_attempts=3,
+    )
+    summary["h3c_valid_single_invoke_calls"] = once_box["n"]
+    if once_box["n"] != 1:
+        violations.append(
+            "h3c gap4: a VALID attempt-1 proposal engaged the retry loop "
+            f"(invoke calls={once_box['n']}, expected 1)"
+        )
+
+
+# ---------------------------------------------------------------------------
+# H3c gap1 BRAIN-CHOICE FIRE: run_goal_in_sandbox is handed the write-capable
+# adapter ref ``adapter:codex-local`` + a command_runner SENTINEL (NO real CLI).
+# We assert the codex-local adapter was actually used (the sentinel's argv was
+# intercepted: argv[0] == 'codex') and that the customer LIVE tree is byte-
+# identical (HEAD + status) before/after -- the W1 invariant holds for a real
+# write-capable brain. The CLI ``--brain codex`` parse -> the adapter:codex-local
+# ref is exercised separately (run_goal_entry brain pass-through).
+# ---------------------------------------------------------------------------
+
+
+def _h3c_brain_choice_fire(
+    repo: Path,
+    violations: list[str],
+    summary: dict[str, Any],
+) -> None:
+    from brick_protocol.support.operator.driver import run_goal_in_sandbox
+
+    seen_argv0: list[str] = []
+
+    def _codex_sentinel_runner():
+        inner = _h2a_completing_codex_runner()
+
+        def _runner(args: Sequence[str], cwd: Path, timeout_seconds: int):
+            call = [str(arg) for arg in args]
+            if call:
+                seen_argv0.append(call[0])
+            return inner(args, cwd, timeout_seconds)
+
+        return _runner
+
+    with tempfile.TemporaryDirectory(prefix="bp-h3c-brain-") as cust_raw, \
+            tempfile.TemporaryDirectory(prefix="bp-h3c-brain-ev-") as ev_raw:
+        customer = Path(cust_raw) / "customer-live"
+        customer.mkdir(parents=True, exist_ok=True)
+        evidence_root = Path(ev_raw)
+
+        head_before = _seed_customer_repo(repo, customer)
+        status_before = _git_text(customer, "status", "--porcelain", "--untracked-files=all")
+        result = run_goal_in_sandbox(
+            _H3C_TASK,
+            ai_invoke=_h3c_canned_ai_invoke(
+                {
+                    "requirements": ["implement-payload", "synthesize-evidence"],
+                    "graph": {
+                        "nodes": _h2a_graph()[0],
+                        "edges": _h2a_graph()[1],
+                        "groups": [],
+                    },
+                    "requirement_node_map": {
+                        "implement-payload": "work",
+                        "synthesize-evidence": "closure",
+                    },
+                    "preset_delta": "fresh",
+                }
+            ),
+            repo_root=customer,
+            output_root=evidence_root / "brain",
+            selected_adapter_ref="adapter:codex-local",
+            command_runner=_codex_sentinel_runner(),
+            adapter_timeout_seconds=30,
+            overwrite_existing=True,
+        )
+        head_after = _git_text(customer, "rev-parse", "HEAD")
+        status_after = _git_text(customer, "status", "--porcelain", "--untracked-files=all")
+
+        summary["h3c_brain_argv0_seen"] = sorted(set(seen_argv0))
+        summary["h3c_brain_frontier"] = result.frontier_kind
+        summary["h3c_brain_head_unchanged"] = head_before == head_after
+        summary["h3c_brain_live_status_clean"] = (
+            status_before == "" and status_after == ""
+        )
+
+        # The codex-local adapter actually ran: the sentinel intercepted a 'codex'
+        # argv (no real CLI was spawned). adapter:local would never shell out.
+        if "codex" not in seen_argv0:
+            violations.append(
+                "h3c gap1: selected_adapter_ref=adapter:codex-local did NOT route "
+                f"through the codex CLI seam (argv0 seen={sorted(set(seen_argv0))})"
+            )
+        if result.frontier_kind != "complete":
+            violations.append(
+                "h3c gap1: the codex-local goal run did not reach complete "
+                f"(got {result.frontier_kind!r})"
+            )
+        # W1 INVARIANT (LAW): a real write-capable brain still NEVER writes the live
+        # tree -- HEAD + git status byte-identical before/after.
+        if head_before != head_after:
+            violations.append(
+                f"h3c gap1: codex-local moved the customer HEAD {head_before} -> {head_after}"
+            )
+        if status_before != "" or status_after != "":
+            violations.append(
+                "h3c gap1: codex-local dirtied the customer live tree "
+                f"(before={status_before!r} after={status_after!r})"
+            )
+
+    # The CLI --brain parse -> adapter ref pass-through (no run): run_goal_entry is
+    # the CLI wrapper; we assert its brain->adapter mapping is exact.
+    from brick_protocol.support.operator.onboard import _brain_to_adapter_ref
+
+    summary["h3c_brain_map"] = {
+        "codex": _brain_to_adapter_ref("codex"),
+        "claude": _brain_to_adapter_ref("claude"),
+        "local": _brain_to_adapter_ref("local"),
+    }
+    expected = {
+        "codex": "adapter:codex-local",
+        "claude": "adapter:claude-local",
+        "local": "adapter:local",
+    }
+    if summary["h3c_brain_map"] != expected:
+        violations.append(
+            "h3c gap1: --brain -> adapter ref mapping drifted: "
+            f"{summary['h3c_brain_map']!r} (expected {expected!r})"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -1545,6 +1946,22 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"red_evidence_absent={summary.get('h3b_red_evidence_absent')} "
         f"movement_raised={summary.get('h3b_movement_red_raised')} "
         "(LIVE gemini NOT exercised here -- operator dogfoods invoke_gemini_text live separately)."
+    )
+    print(
+        "H3c completion FIREs passed: "
+        f"gap2 normalize terminal={summary.get('h3c_normalized_terminal_target')!r} "
+        f"-> frontier={summary.get('h3c_normalized_frontier')} "
+        f"(un-normalized={summary.get('h3c_unnormalized_frontier')}); "
+        f"gap4 retry invalid-then-valid returned_valid={summary.get('h3c_retry_returned_valid')} "
+        f"invoke_calls={summary.get('h3c_retry_invoke_calls')}, "
+        f"always-invalid raised={summary.get('h3c_always_invalid_raised')} "
+        f"after {summary.get('h3c_always_invalid_invoke_calls')} attempts, "
+        f"valid-attempt-1 single_invoke={summary.get('h3c_valid_single_invoke_calls')}; "
+        f"gap1 brain argv0={summary.get('h3c_brain_argv0_seen')} "
+        f"frontier={summary.get('h3c_brain_frontier')} "
+        f"head_unchanged={summary.get('h3c_brain_head_unchanged')} "
+        f"live_status_clean={summary.get('h3c_brain_live_status_clean')} "
+        f"brain_map={summary.get('h3c_brain_map')}."
     )
     print(
         "proof limit: support evidence only; checker pass does not prove source truth, "

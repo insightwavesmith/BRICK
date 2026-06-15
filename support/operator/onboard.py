@@ -887,7 +887,16 @@ def _handoff_message_ko(host: str) -> str:
         "(인테이크에 task_statement 로 텍스트를 넘기면, 기계가 그 글을 빌딩\n"
         " 증거 work/task.md 로 기록해요. 파일 기반 task_source_ref 는 자동화\n"
         " 경로로 그대로 남아 있어요.)\n"
-        "말로 전한 task로 진짜 빌딩을 시작하는 다음 단계 입구(seam)는\n"
+        "\n"
+        "가장 쉬운 시작: 할 일을 한 줄로 적어 목표 명령에 그대로 넘기세요 —\n"
+        "  onboard goal \"<할 일>\"\n"
+        "AI가 보드(board)를 보고 빌딩을 알아서 구성해요(프리셋을 직접 안 골라도\n"
+        "돼요). 격리된 작업 트리 안에서 실행되고, 당신의 실제 트리는 절대\n"
+        "건드리지 않아요. 실행 브레인을 고르려면 --brain codex|claude|local\n"
+        "(기본 local)을 붙이세요.\n"
+        "\n"
+        "더 들여다보고 싶으면, 말로 전한 task로 빌딩을 시작하는 다음 단계\n"
+        "입구(seam)는\n"
         f"  {SEAM_VERB}\n"
         "(task_statement 텍스트(또는 task 파일) + 고른 preset → 실행 중인 빌딩)\n"
         "이에요. 막히면 그냥 한국어로 물어보면 돼요. 천천히 하셔도 괜찮아요 🙂"
@@ -1029,14 +1038,42 @@ def _render_flow_text(result: dict[str, Any]) -> str:
 # absent key surfaces as a CLEAN typed error, never a crash.
 GOAL_SEAM_VERB = "support.operator.driver.run_goal_in_sandbox"
 
+# The customer's EXECUTION-brain choice for `onboard goal`. ``local`` is the
+# in-process read-only smoke adapter (default); ``codex`` / ``claude`` are the
+# real, WRITE-CAPABLE observed-write CLI adapters. The mapping is the ONLY policy
+# this wrapper adds; the engine's write-capability gate still decides whether a
+# write-needing build may run on the chosen brain (this wrapper does not weaken
+# it). All three brains run INSIDE the W1 disposable worktree sandbox -- the
+# customer's live tree is never written regardless of brain.
+_BRAIN_ADAPTER_REFS: dict[str, str] = {
+    "local": "adapter:local",
+    "codex": "adapter:codex-local",
+    "claude": "adapter:claude-local",
+}
+
+
+def _brain_to_adapter_ref(brain: str) -> str:
+    """Map a ``--brain`` choice to its adapter ref. Unknown brains fall back to
+    the read-only ``adapter:local`` (friendly; never raises)."""
+
+    return _BRAIN_ADAPTER_REFS.get(str(brain).strip().lower(), "adapter:local")
+
 
 def run_goal_entry(
     goal: str,
     *,
     repo_root: Path | str | None = None,
     output_root: Path | str | None = None,
+    brain: str = "local",
 ) -> dict[str, Any]:
     """Compose a free-form goal into a building + run it in the W1 sandbox.
+
+    ``brain`` selects the EXECUTION adapter: ``local`` (default, in-process read-
+    only smoke), ``codex`` (adapter:codex-local) or ``claude`` (adapter:claude-
+    local) -- the real WRITE-CAPABLE CLI brains. The chosen ref is forwarded to
+    ``run_goal_in_sandbox`` as ``selected_adapter_ref``; the engine's write-
+    capability gate is unchanged. Every brain runs inside the W1 disposable
+    worktree sandbox, so the customer's live tree is never written.
 
     Returns a structured result dict (never raises on a normal run; a compose /
     key error is captured into ``error_*`` so the CLI prints friendly guidance and
@@ -1051,9 +1088,12 @@ def run_goal_entry(
         else Path.home() / ".brick" / "goal-runs"
     )
     durable.mkdir(parents=True, exist_ok=True)
+    adapter_ref = _brain_to_adapter_ref(brain)
     result: dict[str, Any] = {
         "goal": goal,
         "routed_through": GOAL_SEAM_VERB,
+        "brain": str(brain).strip().lower(),
+        "selected_adapter_ref": adapter_ref,
         "ok": False,
     }
     try:
@@ -1061,6 +1101,7 @@ def run_goal_entry(
             goal,
             repo_root=repo,
             output_root=durable,
+            selected_adapter_ref=adapter_ref,
             overwrite_existing=True,
         )
     except Exception as exc:  # noqa: BLE001 -- friendly surface: capture, never crash
@@ -1104,6 +1145,10 @@ def _render_goal_text(result: dict[str, Any]) -> str:
     lines.append("")
     lines.append("2) 격리 실행(작업 트리는 건드리지 않았어요)")
     lines.append(f"   - building_id: {result.get('building_id', '')}")
+    lines.append(
+        f"   - 실행 브레인(brain): {result.get('brain', '')} "
+        f"({result.get('selected_adapter_ref', '')})"
+    )
     lines.append(f"   - 격리 모드: {result.get('isolation_mode', '')}")
     lines.append(f"   - frontier: {result.get('frontier_kind', '')}")
     lines.append(f"   - 통과 경로(seam): {result.get('routed_through', '')}")
@@ -1153,11 +1198,24 @@ def main(argv: list[str] | None = None) -> int:
             default=None,
             help="Durable evidence root (default: ~/.brick/goal-runs, OUTSIDE the repo).",
         )
+        goal_parser.add_argument(
+            "--brain",
+            choices=("local", "codex", "claude"),
+            default="local",
+            help=(
+                "Execution brain: 'local' (default, in-process read-only smoke) or "
+                "the real WRITE-CAPABLE CLI brains 'codex' (adapter:codex-local) / "
+                "'claude' (adapter:claude-local). Every brain runs inside the W1 "
+                "disposable worktree sandbox; the live tree is never written. A "
+                "write-needing build on a read-only brain is rejected by the engine."
+            ),
+        )
         goal_args = goal_parser.parse_args(args_list[1:])
         goal_result = run_goal_entry(
             goal_args.goal,
             repo_root=goal_args.repo,
             output_root=goal_args.output_root,
+            brain=goal_args.brain,
         )
         sys.stdout.write(_render_goal_text(goal_result))
         sys.stdout.write("\n")

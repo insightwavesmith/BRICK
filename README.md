@@ -13,6 +13,10 @@ Brick Protocol is a three-axis work protocol for human-agent work: Brick = the w
 gh repo clone {OWNER}/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh
 # 2) 온보딩 위자드 (codex | claude | gemini | local)
 cd ~/BRICK && uv run python3 -m brick_protocol.support.operator.onboard codex
+# 3) 할 일을 한 줄로 — AI가 보드를 보고 빌딩을 알아서 구성해 격리 샌드박스에서 실행
+#    (프리셋을 직접 안 골라도 돼요. 실제 작업 트리는 절대 안 건드려요.)
+cd ~/BRICK && uv run python3 -m brick_protocol.support.operator.onboard goal "내 할 일을 한 줄로 적기"
+#    실행 브레인 고르기(선택): --brain codex|claude|local (기본 local)
 ```
 
 AI/운영자가 그대로 확인할 줄:
@@ -25,6 +29,10 @@ failure signal: "BRICK_REPO={OWNER}/BRICK" 요청, "gh auth login" 요청, pytho
 command: cd ~/BRICK && uv run python3 -m brick_protocol.support.operator.onboard codex
 expected: provider 준비 상태 표와 adapter:local 첫 예제 Building 결과가 출력된다.
 failure signal: local_cli_missing, provider login 진단, FileExistsError, 또는 adapter-error frontier 안내.
+
+command: cd ~/BRICK && uv run python3 -m brick_protocol.support.operator.onboard goal "내 할 일을 한 줄로 적기"
+expected: "AI가 합성한 빌딩(노드)" 목록과 frontier: complete, 그리고 증거 저장 위치(~/.brick/goal-runs 아래)가 출력된다. 작업 트리는 안 건드린다.
+failure signal: AI 합성/실행 실패 안내(에러 종류·내용), GEMINI_API_KEY/GOOGLE_API_KEY 요청, 또는 frontier가 complete 가 아니라는 안내.
 
 command: cd ~/BRICK && PYTHONPATH=support/import_identity uv run python3 support/checkers/check_profile.py --all
 expected: "profile passed:" 줄들이 나오고 마지막 proof-limit 줄 뒤 exit 0.
