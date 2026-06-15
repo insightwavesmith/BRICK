@@ -8,7 +8,7 @@ Brick Protocol is a three-axis work protocol for human-agent work: Brick = the w
 # 1) 받기 + 설치 -- 내 gh 로그인 사용 (호스팅된 설치 URL은 없어요)
 # ⚠️ 먼저 아래 {OWNER}를 네 GitHub 계정(org/user)으로 바꾸세요 — 안 바꾸고 그대로
 #    복붙하면 바로 이 첫 줄에서 실패해요. (BRICK은 포크해서 쓰는 구조라 계정이
-#    사람마다 달라요. 지금 동작하는 예: insightwavesmith/BRICK)
+#    사람마다 달라요. 현재 동작 예: insightwavesmith/BRICK)
 #    기본 위치는 $HOME/BRICK; 다른 곳에 받았다면 BRICK_HOME=/path/to/clone 지정
 gh repo clone {OWNER}/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh
 # 2) 온보딩 위자드 (codex | claude | gemini | local)
