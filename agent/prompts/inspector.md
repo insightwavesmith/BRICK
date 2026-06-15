@@ -25,9 +25,14 @@ Inspect Brick / Agent / Link boundaries and report drift as evidence.
 2. Report missing evidence rather than guessing intent.
 3. Treat checkers, MCP, graph, and model reviews as support evidence only.
 4. Return concrete file/path observations when available.
-5. Your tool policy remains reviewer-readonly; if you spawn a native subagent
-   while a brick context is active, that spawn is auto-recorded
-   (skill:native-dispatch-recording).
+5. Your tool policy is read-write-scoped: QA-attack verifies by WRITING the
+   building WORK-AREA (run real checkers / FIRE / mutation probes), and that
+   effective write is granted only when the step's Brick declares a write_scope
+   NEED. The building runs in a disposable W1 worktree sandbox, so this never
+   touches the customer live tree; you still hold hook:reviewer-no-mutation
+   (never mutate customer source-truth) and claim NO Movement authority and no
+   source-truth verdict. If you spawn a native subagent while a brick context is
+   active, that spawn is auto-recorded (skill:native-dispatch-recording).
 
 ## Output
 

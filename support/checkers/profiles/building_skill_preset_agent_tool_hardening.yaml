@@ -448,20 +448,29 @@ materialize_building_intent_case:
   # assertions pin both presence and absence, so this REDs if the label goes
   # decorative again OR if support starts stamping gates on undeclared rows.
   - label: materialize-building-intent:governed-change-review-gate-wiring
+    # C4 (0615): governed-change-review's QA bricks declare a write NEED, so the
+    # materialized intent carries a broad work-area write_scope and an
+    # observed-write adapter (adapter:codex-local). adapter:local (read-only
+    # in-process stub) may not materialize a write-needing QA plan.
     document:
       plan_ref: building-plan:materialize-governed-gate-wiring
       building_id: materialize-governed-gate-wiring
       declared_by: coo
       task_source_ref: brick/templates/tasks/source-template.md
       chain_preset_ref: building-chain-preset:governed-change-review
-      selected_adapter_ref: adapter:local
+      selected_adapter_ref: adapter:codex-local
       selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - "**"
+        forbidden_paths:
+          - ".git/**"
       not_proven:
         - checker fixture task source only
     expected:
       building_id: materialize-governed-gate-wiring
       chain_preset_ref: building-chain-preset:governed-change-review
-      selected_adapter_ref: adapter:local
+      selected_adapter_ref: adapter:codex-local
       task_source_ref: brick/templates/tasks/source-template.md
       plan_shape: graph
       step_refs:
@@ -840,20 +849,33 @@ materialize_building_intent_case:
         task_source_hash_present: true
         task_source_hash_state: matched
   - label: materialize-building-intent:review-fleet-per-step-provider-ladder
+    # C4 (0615): review-fleet's QA bricks (code-attack-qa, axis-attack-qa,
+    # evidence-integrity) now declare requires_brick_write_scope yes, so the
+    # materialized intent MUST carry a broad work-area write_scope (the
+    # materializer flows it onto the write-needed nodes, un-stamped past the
+    # read-only design/closure steps). The building default adapter is
+    # adapter:codex-local (an observed-write adapter); the preset's per-step
+    # provider-ladder overrides still resolve each QA step to codex/claude-local
+    # exactly as before -- adapter:local NEVER drives a write-needed step.
     document:
       plan_ref: building-plan:materialize-review-fleet-provider-ladder
       building_id: materialize-review-fleet-provider-ladder
       declared_by: coo
       task_source_ref: brick/templates/tasks/source-template.md
       chain_preset_ref: building-chain-preset:review-fleet
-      selected_adapter_ref: adapter:local
+      selected_adapter_ref: adapter:codex-local
       selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - "**"
+        forbidden_paths:
+          - ".git/**"
       not_proven:
         - checker fixture task source only
     expected:
       building_id: materialize-review-fleet-provider-ladder
       chain_preset_ref: building-chain-preset:review-fleet
-      selected_adapter_ref: adapter:local
+      selected_adapter_ref: adapter:codex-local
       task_source_ref: brick/templates/tasks/source-template.md
       plan_shape: graph
       step_refs:
@@ -919,20 +941,31 @@ materialize_building_intent_case:
         materialize-review-fleet-provider-ladder-closure:
           closure_transition_target_policy: preset-default
   - label: materialize-building-intent:postmortem-fleet-alias-smoke
+    # C4 (0615): postmortem-fleet's QA bricks now declare a write NEED, so the
+    # intent carries a broad work-area write_scope (flowed onto the write-needed
+    # lens nodes, un-stamped past the read-only inspect/closure steps). Building
+    # default adapter -> adapter:codex-local; the preset's per-step codex/claude
+    # provider aliases still resolve each step exactly as before. adapter:local
+    # NEVER drives a write-needed step.
     document:
       plan_ref: building-plan:materialize-postmortem-fleet-alias-smoke
       building_id: materialize-postmortem-fleet-alias-smoke
       declared_by: coo
       task_source_ref: brick/templates/tasks/source-template.md
       chain_preset_ref: building-chain-preset:postmortem-fleet
-      selected_adapter_ref: adapter:local
+      selected_adapter_ref: adapter:codex-local
       selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - "**"
+        forbidden_paths:
+          - ".git/**"
       not_proven:
         - checker fixture task source only
     expected:
       building_id: materialize-postmortem-fleet-alias-smoke
       chain_preset_ref: building-chain-preset:postmortem-fleet
-      selected_adapter_ref: adapter:local
+      selected_adapter_ref: adapter:codex-local
       task_source_ref: brick/templates/tasks/source-template.md
       plan_shape: graph
       step_refs:
@@ -1007,20 +1040,31 @@ materialize_building_intent_case:
   # fan_in group edge, drops a fan_in group / collapses to one target and this
   # case REDs.
   - label: materialize-building-intent:two-fan-in-graph-multi-target
+    # C4 (0615): the two-fan-in-graph preset's lens bricks (code/axis lenses are
+    # the flipped QA bricks) now declare a write NEED, so the intent carries a
+    # broad work-area write_scope (flowed onto the write-needed lens nodes,
+    # un-stamped past the read-only inspect/closure steps). Building default
+    # adapter -> adapter:codex-local; the preset already pins adapter:codex-local
+    # on every step, so adapter:local NEVER drives a write-needed step.
     document:
       plan_ref: building-plan:materialize-two-fan-in-graph
       building_id: materialize-two-fan-in-graph
       declared_by: coo
       task_source_ref: brick/templates/tasks/source-template.md
       chain_preset_ref: building-chain-preset:two-fan-in-graph
-      selected_adapter_ref: adapter:local
+      selected_adapter_ref: adapter:codex-local
       selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - "**"
+        forbidden_paths:
+          - ".git/**"
       not_proven:
         - checker fixture task source only
     expected:
       building_id: materialize-two-fan-in-graph
       chain_preset_ref: building-chain-preset:two-fan-in-graph
-      selected_adapter_ref: adapter:local
+      selected_adapter_ref: adapter:codex-local
       task_source_ref: brick/templates/tasks/source-template.md
       plan_shape: graph
       step_refs:
@@ -1171,6 +1215,16 @@ materialize_building_intent_rejects:
       chain_preset_ref: building-chain-preset:postmortem-fleet
       selected_adapter_ref: adapter:local
       selected_model_ref: model:default
+      # C4 (0615): postmortem-fleet's code-attack-qa bricks declare a write NEED,
+      # so a work-area write_scope is required for the intent to materialize PAST
+      # the write-need check and REACH this case's intended step_alias rejection.
+      # (adapter:local stays the building default; it never DRIVES a step because
+      # this intent REJECTS at materialize, before any run.)
+      write_scope:
+        allowed_paths:
+          - "**"
+        forbidden_paths:
+          - ".git/**"
   - label: materialize-building-intent:colliding-step-alias-fails-closed
     expected_message: node_id collision
     patch_chain_preset_ref: building-chain-preset:postmortem-fleet
@@ -1205,6 +1259,15 @@ materialize_building_intent_rejects:
       chain_preset_ref: building-chain-preset:postmortem-fleet
       selected_adapter_ref: adapter:local
       selected_model_ref: model:default
+      # C4 (0615): write-area write_scope lets the intent materialize PAST the
+      # write-need check (postmortem-fleet's code-attack-qa bricks need write) and
+      # REACH this case's intended node_id-collision rejection. adapter:local
+      # never DRIVES a step (this intent REJECTS at materialize, before any run).
+      write_scope:
+        allowed_paths:
+          - "**"
+        forbidden_paths:
+          - ".git/**"
   - label: materialize-building-intent:per-step-adapter-not-in-agent-object
     expected_message: must be referenced by Agent Object
     document:
@@ -1215,6 +1278,16 @@ materialize_building_intent_rejects:
       chain_preset_ref: building-chain-preset:review-fleet
       selected_adapter_ref: adapter:local
       selected_model_ref: model:default
+      # C4 (0615): work-area write_scope lets the intent materialize PAST the
+      # write-need check (review-fleet's code-attack-qa needs write) and REACH
+      # this case's intended per-step-adapter-not-in-agent-object rejection (the
+      # adapter:chat-session override below is not on the QA Agent Object).
+      # adapter:local never DRIVES a step (this intent REJECTS at materialize).
+      write_scope:
+        allowed_paths:
+          - "**"
+        forbidden_paths:
+          - ".git/**"
       step_selection_overrides:
         - step_template_ref: building-step-template:code-attack-qa
           selected_adapter_ref: adapter:chat-session
@@ -1325,22 +1398,20 @@ preset_building_completion_case:
 # no_preset_chain_preset_ref FIRE asserts the seam HARD-FAILS (does not run a
 # Building) when the intent names a preset absent from the registry.
 building_intake_seam_case:
-  # GATE-WIRING FIRE (d) (0610): governed-change-review's closure row now carries
-  # the REAL wired [default-transition, coo, human] gates. WITH the caller-declared
-  # disposition facts (route_decision_basis) the walk must COMPLETE -- the human
-  # gate must not over-block once the human disposition fact exists.
+  # C4 (0615): adapter:local SEAM coverage PRESERVED on a NON-QA, no-write-need
+  # preset. adapter:local is the in-process LOCAL-LLM stub (read-only); it must
+  # NOT drive a write-needing QA preset. onboarding-example-graph is the
+  # design->review->closure graph (no work step, no write_scope NEED), so the
+  # in-process seam still walks the dynamic walker to a complete frontier. The
+  # governed-change-review GATE-WIRING coverage moves to the codex-local
+  # fixtures below (where the write-needing QA bricks are walked for real).
   - label: building-intake-seam-graph-adapter-local
     task_source_ref: brick/templates/tasks/source-template.md
-    chain_preset_ref: building-chain-preset:governed-change-review
+    chain_preset_ref: building-chain-preset:onboarding-example-graph
     selected_adapter_ref: adapter:local
     expected_plan_shape: graph
     expected_walker_mode: dynamic
     expected_frontier_kind: complete
-    route_decision_basis:
-      override_refs:
-        - coo:intake-seam-checker-override
-      human_review_refs:
-        - human-review:intake-seam-checker-disposition
     no_preset_chain_preset_ref: building-chain-preset:this-preset-is-not-in-the-registry
   # TASK-BY-TEXT (0611, Smith ruling; codex FIX-A): humans SPEAK tasks; the
   # machine records them as building evidence. An intent with task_statement
@@ -1362,7 +1433,18 @@ building_intake_seam_case:
   - label: building-intake-seam-task-statement
     task_statement: "온보딩 화면의 환영 문구를 한 줄로 다듬어 주세요. 맥락: 첫 화면이 너무 딱딱하다는 피드백."
     chain_preset_ref: building-chain-preset:governed-change-review
-    selected_adapter_ref: adapter:local
+    # C4 (0615): governed-change-review's QA bricks (axis-attack-qa,
+    # code-attack-qa) now declare a write NEED, so the intent carries a broad
+    # work-area write_scope and drives adapter:codex-local through the existing
+    # command_runner sentinel (no real CLI). The W1 worktree sandboxes the
+    # work-area write; .git/secret/token stay UNCONDITIONALLY forbidden by
+    # write_observation.py regardless of allowed_paths.
+    selected_adapter_ref: adapter:codex-local
+    write_scope:
+      allowed_paths:
+        - "**"
+      forbidden_paths:
+        - ".git/**"
     expected_plan_shape: graph
     expected_walker_mode: dynamic
     expected_frontier_kind: complete
@@ -1387,7 +1469,17 @@ building_intake_seam_case:
   - label: building-intake-seam-human-gate-hold
     task_source_ref: brick/templates/tasks/source-template.md
     chain_preset_ref: building-chain-preset:governed-change-review
-    selected_adapter_ref: adapter:local
+    # C4 (0615): same write-needing QA preset as the task-statement fixture;
+    # carries the broad work-area write_scope and drives adapter:codex-local
+    # through the command_runner sentinel (no real CLI). The walk still HOLDS at
+    # the closure human gate because the human disposition fact is absent.
+    # .git/secret/token stay unconditionally forbidden by write_observation.py.
+    selected_adapter_ref: adapter:codex-local
+    write_scope:
+      allowed_paths:
+        - "**"
+      forbidden_paths:
+        - ".git/**"
     expected_plan_shape: graph
     expected_walker_mode: dynamic
     expected_frontier_kind: link_paused
@@ -3396,6 +3488,16 @@ agent_resource_boundary:
       - adapter:codex-write-local
       - adapter:claude-write-local
     hooks_execution_opened: false
+  # C4 (0615): QA-attack's true nature is to verify by WRITING (run real
+  # checkers / FIRE / mutation probes in the building WORK-AREA inside the W1
+  # disposable worktree sandbox). The reviewer lane MAY carry
+  # tool-policy:read-write-scoped (write CAPABILITY); effective write stays
+  # gated by a Brick-declared write_scope NEED plus an observed-write adapter,
+  # exactly like the leader MAY-carry. hook:reviewer-no-mutation STILL holds
+  # (never mutates customer source-truth, never claims Movement). The retired
+  # tool-policy:review-readonly stays forbidden; the codex/claude write-local
+  # adapters stay forbidden (the observed-write adapters are codex-local /
+  # claude-local, carried by the real qa/inspector Agent Objects).
   - role: qa
     lane: reviewer
     required_hook_refs:
@@ -3403,9 +3505,8 @@ agent_resource_boundary:
       - hook:unsafe-mutation-guard
       - hook:resource-ref-redaction
     required_tool_policy_refs:
-      - tool-policy:reviewer-readonly
-    forbidden_tool_policy_refs:
       - tool-policy:read-write-scoped
+    forbidden_tool_policy_refs:
       - tool-policy:review-readonly
     forbidden_adapter_refs:
       - adapter:codex-write-local
@@ -3418,9 +3519,8 @@ agent_resource_boundary:
       - hook:unsafe-mutation-guard
       - hook:resource-ref-redaction
     required_tool_policy_refs:
-      - tool-policy:reviewer-readonly
-    forbidden_tool_policy_refs:
       - tool-policy:read-write-scoped
+    forbidden_tool_policy_refs:
       - tool-policy:review-readonly
     forbidden_adapter_refs:
       - adapter:codex-write-local

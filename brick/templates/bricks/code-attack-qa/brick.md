@@ -2,7 +2,7 @@
 brick_kind: code-attack-qa
 brick_word: code_attack_qa
 performer_word: qa
-requires_brick_write_scope: no
+requires_brick_write_scope: yes
 performer_lane_need: reviewer
 agent_object_hint_ref: agent-object:qa
 required_return_template_refs:
@@ -14,8 +14,11 @@ brick_contract: Code attack QA Brick attacks implementation, regression, and neg
 ## code-attack-qa
 
 Attack the prior Brick's implementation against the **declared work contract** — probe for
-regression, negative-path failures, and boundary violations. This is a **read-only** Brick:
-attack and observe, **never mutate**.
+regression, negative-path failures, and boundary violations. QA-attack verifies by **writing the
+BUILDING WORK-AREA**: run real checkers / FIRE / mutation probes to break the contract. The
+building runs in a **disposable W1 worktree sandbox**, so this work-area write **never touches the
+customer live tree**. You still claim **NO Movement authority** and **no source-truth verdict** — a
+failing probe is an observed fact, not a judgment.
 
 Input: the prior Brick's report (carried via the Link edge) plus this node's declared
 `work_statement` (the work contract under attack). Read the changed files and the evidence the
