@@ -722,6 +722,16 @@ modules:
     decomposition_target: ""
     pinned_by: building_operator_driver0 + bounded_agent_proposed_routing_loop (Building frontier observation over recorded link.jsonl lifecycle records; reads lifecycle state by field name, chooses no Movement or target)
 
+  - module: support/operator/worktree_sandbox.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: building_operator_driver0 (W1 thin worktree-sandbox lifecycle helper for customer-facing dispatch — create→run→commit-on-complete→dispose around run_building_intake; runs git plumbing only, chooses no Movement/target, judges no success/quality, reads no axis; commit gate is supplied by the caller's frontier observation)
+
   - module: support/operator/coo_operating_chain.py
     layer: operator
     role: operator

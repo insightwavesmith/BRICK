@@ -34,6 +34,14 @@ from brick_protocol.support.operator.run import (
     ChatSessionParkFrontierEvidenceWritten,
     run_building_plan,
 )
+from brick_protocol.support.operator.worktree_sandbox import (
+    WorktreeSandboxError,
+    commit_sandbox_output,
+    create_worktree_sandbox,
+    dispose_worktree_sandbox,
+    probe_worktree_capable,
+    temp_dir_fallback,
+)
 from brick_protocol.support.recording.capture import DEFAULT_BUILDINGS_ROOT, buildings_root_for
 
 
@@ -104,6 +112,31 @@ class BuildingIntakeRunResult:
     # (inline text; the statement rides the declared plan and lands verbatim
     # as work/task.md). Mechanical provenance only; not a judgment.
     task_source_basis: str = "task_source_ref"
+
+
+@dataclass(frozen=True)
+class CustomerSandboxRunResult:
+    """Support-only observation of one customer-facing sandboxed dispatch.
+
+    Records the worktree-sandbox lifecycle bracket around ``run_building_intake``
+    (W1): the isolation mode actually used, the pinned base + worktree path (when
+    a worktree hosted the run), the durable evidence root (OUTSIDE the worktree),
+    the observed frontier, and the commit SHA produced ONLY on genuine
+    completion. Mechanical provenance only -- it carries no Movement, success,
+    quality, or preset choice. ``intake_result`` is None only when the run never
+    started (it never does today: any start failure raises).
+    """
+
+    building_id: str
+    isolation_mode: str  # "worktree" | "temp_dir" (degraded fallback)
+    isolation_reason: str
+    base_sha: str
+    worktree_path: str
+    evidence_root: str
+    frontier_kind: str
+    commit_sha: str  # "" unless frontier_kind == "complete" with a real change
+    worktree_disposed: bool
+    intake_result: BuildingIntakeRunResult | None = None
 
 
 @dataclass(frozen=True)
@@ -291,6 +324,156 @@ def run_building_intake(
         walker_mode_basis=walker_mode_basis,
         run_result=run_result,
         task_source_basis=task_source_basis,
+    )
+
+
+def run_customer_building_in_sandbox(
+    intent: Mapping[str, Any],
+    *,
+    customer_repo_root: Path | str,
+    output_root: Path | str,
+    overwrite_existing: bool = False,
+    local_callables: Mapping[str, AgentBrainCallable] | None = None,
+    command_runner: CommandRunner | None = None,
+    adapter_timeout_seconds: int = 120,
+    proof_limits: Iterable[str] | str | None = None,
+) -> CustomerSandboxRunResult:
+    """Run a CUSTOMER-FACING building dispatch in an isolated git-worktree sandbox.
+
+    W1 (operator-pinned, foundational safety). This is a THIN wrapper around the
+    existing ``run_building_intake`` seam -- it does NOT touch the dispatch
+    internals, the adapter_cwd default, or any axis. It exists so a customer's
+    LIVE / working tree is NEVER written: the dispatch runs entirely inside an
+    engine-created, disposable git worktree at a PINNED base SHA, and the
+    building's CODE output becomes a COMMIT produced ONLY on genuine completion.
+    Internal / checker dispatch keeps using ``run_building_intake`` directly with
+    the bare ``adapter_cwd`` default, byte-identical to today.
+
+    The 6 locked decisions + 4 mitigations live here as a create -> run ->
+    capture/commit -> dispose bracket:
+
+    1. BASE = the explicitly resolved HEAD SHA (probe records it; never a bare
+       ``--detach`` race).
+    2. WHERE = ~/.brick/worktrees/<building-id>/ (outside the repo).
+    3. COMMIT on GENUINE completion only: after the run bracket we observe the
+       durable evidence frontier and commit the worktree's changes ONLY if
+       frontier_kind == "complete". Else NO commit (honesty).
+    4. NON-GIT / DIRTY / no-git -> the probe fails closed and we fall back to a
+       disposable temp dir as adapter_cwd; we NEVER write the live tree.
+       CLEANUP: only the engine-created worktree is force-removed (engine-gated).
+    5. Per-building granularity: one worktree per building id.
+    6. REAL isolation: adapter_cwd AND repo_root point at the worktree for the
+       dispatch, but output_root (evidence) stays durable OUTSIDE it.
+
+    ``output_root`` is REQUIRED and must live OUTSIDE the worktree so evidence
+    survives disposal (the caller owns where -- e.g. a project buildings root).
+    """
+
+    repo = Path(customer_repo_root).resolve()
+    durable_output = Path(output_root).resolve()
+    building_id = _required_text(intent.get("building_id"), "intent building_id")
+
+    # MITIGATION 4 (probe FIRST): is this a clean git work tree with git
+    # installed? ANY failure -> degrade to a temp dir; the live tree is never
+    # written and no worktree is created.
+    probe = probe_worktree_capable(repo)
+    if not probe.ok:
+        temp_dir = temp_dir_fallback()
+        try:
+            sandbox_cwd = Path(temp_dir.name).resolve()
+            # DEGRADED MODE: the two cwd roles split. repo_root stays the customer
+            # dir (READ-ONLY catalog/plan source -- never written: the only writer
+            # is the adapter, and its cwd is the temp dir). adapter_cwd is the
+            # disposable temp dir, so even a real provider's writes stay there and
+            # the live tree is NEVER mutated. (A customer dir lacking the Brick
+            # catalog fails materialization exactly as a bare dispatch does today;
+            # the safety contract is only that we never WRITE the live tree.)
+            intake = run_building_intake(
+                intent,
+                repo_root=repo,
+                output_root=durable_output,
+                overwrite_existing=overwrite_existing,
+                local_callables=local_callables,
+                command_runner=command_runner,
+                adapter_cwd=sandbox_cwd,
+                adapter_timeout_seconds=adapter_timeout_seconds,
+                proof_limits=proof_limits,
+            )
+            frontier = observe_building_frontier(
+                intake.run_result.lifecycle_write.root, repo_root=repo
+            )
+            return CustomerSandboxRunResult(
+                building_id=intake.building_id,
+                isolation_mode="temp_dir",
+                isolation_reason=probe.reason,
+                base_sha="",
+                worktree_path="",
+                evidence_root=str(intake.run_result.lifecycle_write.root),
+                frontier_kind=str(frontier.get("frontier_kind") or ""),
+                commit_sha="",  # a temp dir is not a repo: no commit, by design
+                worktree_disposed=False,
+                intake_result=intake,
+            )
+        finally:
+            temp_dir.cleanup()
+
+    # MITIGATION 1: create the engine worktree detached at the resolved BASE SHA.
+    sandbox = create_worktree_sandbox(
+        repo,
+        building_id=building_id,
+        base_sha=probe.base_sha,
+    )
+    commit_sha = ""
+    frontier_kind = ""
+    evidence_root = ""
+    intake_result: BuildingIntakeRunResult | None = None
+    try:
+        # MITIGATION 6 (real isolation): the dispatch runs with BOTH adapter_cwd
+        # AND repo_root pointing at the worktree, but evidence lands under the
+        # durable output_root OUTSIDE the worktree.
+        intake_result = run_building_intake(
+            intent,
+            repo_root=sandbox.path,
+            output_root=durable_output,
+            overwrite_existing=overwrite_existing,
+            local_callables=local_callables,
+            command_runner=command_runner,
+            adapter_cwd=sandbox.path,
+            adapter_timeout_seconds=adapter_timeout_seconds,
+            proof_limits=proof_limits,
+        )
+        evidence_root = str(intake_result.run_result.lifecycle_write.root)
+        # MITIGATION 3 (commit ONLY on genuine completion, AFTER the run bracket
+        # so the write-observation HEAD guard is honored): observe the DURABLE
+        # evidence frontier, then commit the worktree's changes only if complete.
+        frontier = observe_building_frontier(
+            intake_result.run_result.lifecycle_write.root,
+            repo_root=sandbox.path,
+        )
+        frontier_kind = str(frontier.get("frontier_kind") or "")
+        if frontier_kind == "complete":
+            commit_sha = commit_sandbox_output(
+                sandbox,
+                message=(
+                    f"BRICK building output: {building_id}\n\n"
+                    f"frontier=complete base={sandbox.base_sha}\n"
+                    f"evidence_root={evidence_root}\n"
+                ),
+            )
+    finally:
+        disposed = dispose_worktree_sandbox(sandbox)
+
+    return CustomerSandboxRunResult(
+        building_id=building_id,
+        isolation_mode="worktree",
+        isolation_reason=probe.reason,
+        base_sha=sandbox.base_sha,
+        worktree_path=str(sandbox.path),
+        evidence_root=evidence_root,
+        frontier_kind=frontier_kind,
+        commit_sha=commit_sha,
+        worktree_disposed=disposed,
+        intake_result=intake_result,
     )
 
 
@@ -1147,7 +1330,9 @@ def _slug(value: str) -> str:
 
 __all__ = [
     "BuildingIntakeRunResult",
+    "CustomerSandboxRunResult",
     "PortfolioDriveResult",
     "run_building_intake",
+    "run_customer_building_in_sandbox",
     "run_declared_portfolio",
 ]
