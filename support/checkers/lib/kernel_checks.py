@@ -961,7 +961,7 @@ def _agent_effective_write_probe(
         if knobs["tools"]
         else []
     )
-    if set(write_tools) != {"Read", "Grep", "Glob", "Edit", "Write"}:
+    if set(write_tools) != {"Read", "Grep", "Glob", "Edit", "Write", "Bash"}:
         raise ProfileError(
             "claude effective_write did not expose the exact comma-separated scoped "
             f"write tool set; observed {knobs['tools']!r}"
@@ -1035,7 +1035,8 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     forbidden_write_permission_phrases = (
         "You may edit files only inside",
         "write_scope.allowed_paths",
-        "Read, Grep, Glob, Edit, Write",
+        "Read, Grep, Glob, Edit, Write, Bash",
+        "Bash",
     )
     for phrase in forbidden_write_permission_phrases:
         if any(phrase in rule for rule in reviewer_rules):
@@ -1088,8 +1089,8 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     leader_tools = [tool.strip() for tool in leader_knobs["tools"].split(",") if tool.strip()]
     if leader_tools != ["Read", "Grep", "Glob"]:
         raise ProfileError(f"read-tier claude tools must be Read/Grep/Glob only, got {leader_tools}")
-    if "Edit" in leader_tools or "Write" in leader_tools:
-        raise ProfileError("read-tier claude request leaked Edit/Write tools")
+    if "Edit" in leader_tools or "Write" in leader_tools or "Bash" in leader_tools:
+        raise ProfileError("read-tier claude request leaked Edit/Write/Bash tools")
     if leader_knobs["system_prompt"] != adapter._CLAUDE_READ_ONLY_SYSTEM_PROMPT:
         raise ProfileError("read-tier claude request did not use the read-only system prompt")
 
@@ -1136,7 +1137,43 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     if not any("adapter:gemini-local remains in the none tier" in rule for rule in gemini_rules):
         raise ProfileError("gemini-local read-tier limit was not documented in the prompt")
 
-    return 13
+    gemini_cli_capture: dict[str, Any] = {}
+
+    def _gemini_no_live_runner(args: Sequence[str], cwd: Path, timeout_seconds: int) -> Any:
+        del cwd, timeout_seconds
+        call = tuple(str(arg) for arg in args)
+        gemini_cli_capture["args"] = call
+        if "--admin-policy" in call:
+            policy_path = Path(call[call.index("--admin-policy") + 1])
+            gemini_cli_capture["policy_text"] = policy_path.read_text(encoding="utf-8")
+        return adapter.LocalCliCompleted(call, 0, '{"response": "mocked"}', "")
+
+    adapter._invoke_local_cli(
+        adapter._LOCAL_CLI_SPECS[adapter.ADAPTER_GEMINI_LOCAL],
+        gemini_request,
+        "prompt",
+        cwd=repo,
+        timeout_seconds=5,
+        command_runner=_gemini_no_live_runner,
+    )
+    gemini_args = tuple(gemini_cli_capture.get("args", ()))
+    if "--approval-mode" not in gemini_args:
+        raise ProfileError("gemini-local CLI projection dropped --approval-mode")
+    if gemini_args[gemini_args.index("--approval-mode") + 1] != "plan":
+        raise ProfileError(f"gemini-local CLI projection stopped fail-closing to plan mode: {gemini_args!r}")
+    if "--yolo" in gemini_args or "auto_edit" in gemini_args or "yolo" in gemini_args:
+        raise ProfileError(f"gemini-local CLI projection exposed write/auto-approve mode: {gemini_args!r}")
+    if "--admin-policy" not in gemini_args:
+        raise ProfileError("gemini-local CLI projection dropped no-tools admin policy")
+    policy_text = str(gemini_cli_capture.get("policy_text", ""))
+    for required_deny in ("run_shell_command", "write_file", "replace", 'decision = "deny"'):
+        if required_deny not in policy_text:
+            raise ProfileError(
+                "gemini-local no-tools admin policy stopped denying write/command "
+                f"tooling token {required_deny!r}"
+            )
+
+    return 14
 
 
 def _artifact_grounding_probe(repo: Path) -> int:
@@ -7393,8 +7430,8 @@ def run_claude_projection_native(repo: Path) -> KernelResult:
           plus a body -- and the frontmatter carries the required name +
           description + tools keys;
       (b) REAL tool-policy mapping: the dev agent (tool-policy:read-write-scoped)
-          tools INCLUDE Edit AND Write; a leader/reviewer agent (read-only
-          policy) tools EXCLUDE Edit/Write -- so making the tool list a constant
+          tools INCLUDE Edit, Write, and Bash; a leader/reviewer agent (read-only
+          policy) tools EXCLUDE Edit/Write/Bash -- so making the tool list a constant
           (ignoring policy) turns this RED (this is the load-bearing FIRE pin);
       (c) materially DIFFERENT from the codex form: the codex render is valid
           TOML; the claude render is markdown-with-frontmatter that does NOT
@@ -7460,20 +7497,22 @@ def run_claude_projection_native(repo: Path) -> KernelResult:
 
     # (a) + (d): every admitted role must yield a parseable subagent .md with the
     # required keys and the Brick-MCP honesty note. Split into write/read-only by
-    # the REAL tool mapping (Edit + Write present == write-capable).
+    # the REAL tool mapping (Edit + Write + Bash present == write-capable).
+    write_tool_names = {"Edit", "Write", "Bash"}
     write_roles: list[str] = []
     read_only_roles: list[str] = []
     inspected = 0
     for role in roles:
         tools = _tool_list(role)
-        if "Edit" in tools and "Write" in tools:
+        tool_set = set(tools)
+        if write_tool_names.issubset(tool_set):
             write_roles.append(role)
-        elif "Edit" not in tools and "Write" not in tools:
+        elif tool_set.isdisjoint(write_tool_names):
             read_only_roles.append(role)
         else:
             raise ProfileError(
                 f"claude_projection_native: {role!r} tools list is half-write "
-                f"(Edit/Write must be both present or both absent), got {tools}"
+                f"(Edit/Write/Bash must be all present or all absent), got {tools}"
             )
         inspected += 1
 
@@ -7483,20 +7522,20 @@ def run_claude_projection_native(repo: Path) -> KernelResult:
     # constant (ignoring tool policy) is what this FIRE pin catches.
     if "dev" in roles:
         dev_tools = _tool_list("dev")
-        if "Edit" not in dev_tools or "Write" not in dev_tools:
+        if not write_tool_names.issubset(set(dev_tools)):
             raise ProfileError(
                 "claude_projection_native: dev (tool-policy:read-write-scoped) "
-                f"tools must INCLUDE Edit and Write, got {dev_tools}"
+                f"tools must INCLUDE Edit, Write, and Bash, got {dev_tools}"
             )
     if not write_roles:
         raise ProfileError(
-            "claude_projection_native: no role's tools include Edit/Write; a "
+            "claude_projection_native: no role's tools include Edit/Write/Bash; a "
             "constant read-only tools list would hide the read-write-scoped "
             "worker (mapping is not real)"
         )
     if not read_only_roles:
         raise ProfileError(
-            "claude_projection_native: no role's tools exclude Edit/Write; a "
+            "claude_projection_native: no role's tools exclude Edit/Write/Bash; a "
             "constant write-capable tools list would over-grant every "
             "leader/reviewer (mapping is not real)"
         )
@@ -7505,24 +7544,24 @@ def run_claude_projection_native(repo: Path) -> KernelResult:
     # max-capability projection; the RUN-TIME provider projection FOR A STEP must
     # additionally gate the tool set on the step's Brick write NEED. A
     # write-capable agent (read-write-scoped) on a read-only Brick (write_need
-    # False) MUST project a tool set with NO Edit/Write -- the agent's CAPABILITY
+    # False) MUST project a tool set with NO Edit/Write/Bash -- the agent's CAPABILITY
     # must never override the Brick NEED. Removing the write_need gate (back to
     # keying on tool_policy alone) turns this RED.
     tools_for_policies = agent_resources.claude_tools_for_tool_policies
     write_capable_policies = ["tool-policy:leader-coordination", "tool-policy:read-write-scoped"]
     leak_tools = list(tools_for_policies(write_capable_policies, write_need=False)["tools"])
-    if "Edit" in leak_tools or "Write" in leak_tools:
+    if not write_tool_names.isdisjoint(set(leak_tools)):
         raise ProfileError(
             "claude_projection_native: a write-capable agent on a read-only Brick "
-            f"(write_need=False) must project a tool set with NO Edit/Write, got "
+            f"(write_need=False) must project a tool set with NO Edit/Write/Bash, got "
             f"{leak_tools} (capability overrode the Brick NEED)"
         )
     write_tools = list(tools_for_policies(write_capable_policies, write_need=True)["tools"])
-    if "Edit" not in write_tools or "Write" not in write_tools:
+    if not write_tool_names.issubset(set(write_tools)):
         raise ProfileError(
             "claude_projection_native: a write-capable agent on a write-needed "
-            f"Brick (write_need=True) must project a tool set INCLUDING Edit and "
-            f"Write, got {write_tools} (over-restricted a legitimate write)"
+            f"Brick (write_need=True) must project a tool set INCLUDING Edit, "
+            f"Write, and Bash, got {write_tools} (over-restricted a legitimate write)"
         )
 
     # (c) materially DIFFERENT from the codex form: the claude render is markdown
@@ -7591,7 +7630,7 @@ def run_claude_projection_native(repo: Path) -> KernelResult:
             f"{inspected} Agent Object(s) rendered valid Claude-native subagent .md "
             f"(write={sorted(write_roles)}, read-only count={len(read_only_roles)}); "
             "real tool-policy -> tools allow/deny mapping (dev and write-capable "
-            "leaders have Edit+Write, reviewers remain read-only), honesty note "
+            "leaders have Edit+Write+Bash, reviewers remain read-only), honesty note "
             "present, materially different from the codex TOML form"
         ),
     )

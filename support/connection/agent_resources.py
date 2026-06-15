@@ -72,14 +72,14 @@ _CODEX_SANDBOX_READ_ONLY = "read-only"
 # has only sandbox_mode), the SAME Brick-axis tool-policy must project to a
 # DIFFERENT native shape here: a concrete list of Claude tool names. We MAP the
 # single read-write-scoped policy (worker or leader lane) to a write-CAPABLE tool
-# set (Read + Grep + Glob + Edit + Write); every read-only policy (reviewer /
+# set (Read + Grep + Glob + Edit + Write + Bash); every read-only policy (reviewer /
 # support, or a leader without read-write-scoped) maps to a read-ONLY tool set
-# (Read + Grep + Glob, NO Edit/Write).
+# (Read + Grep + Glob, NO Edit/Write/Bash).
 # This is a support projection of an existing Brick/Agent decision, not a new
 # authority -- Claude still cannot enforce the return shape, the Link gate, or
 # the evidence spine (see the honesty note the renderer stamps into the body).
 _CLAUDE_TOOLS_READ_ONLY = ("Read", "Grep", "Glob")
-_CLAUDE_TOOLS_WRITE_EXTRA = ("Edit", "Write")
+_CLAUDE_TOOLS_WRITE_EXTRA = ("Edit", "Write", "Bash")
 _RETIRED_WRITE_ADAPTER_REFS = frozenset(
     {
         "adapter:codex-write-local",

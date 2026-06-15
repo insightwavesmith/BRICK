@@ -194,7 +194,9 @@ _CLAUDE_READ_ONLY_SYSTEM_PROMPT = (
 )
 _CLAUDE_SCOPED_WRITE_SYSTEM_PROMPT = (
     "You are a non-interactive Brick Protocol worker agent. "
-    "You MAY use only the file tools allowed for this run (Read, Grep, Glob, Edit, Write). "
+    "You MAY use only the tools allowed for this run (Read, Grep, Glob, Edit, Write, Bash). "
+    "Run Bash only from the adapter cwd for commands that stay inside the Brick-declared "
+    "write_scope and local checker/test surface. "
     "Edit files ONLY inside the Brick-declared write_scope.allowed_paths; never edit "
     "write_scope.forbidden_paths, the .git directory, or credential/config files. "
     "Do not call hooks or provider SDKs, do not run git commit or git push, do not access "
