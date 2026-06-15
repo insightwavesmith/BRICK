@@ -66,6 +66,8 @@ _AXIS_VOCAB_EXPECTED_ADAPTER_REFS = (
     "adapter:codex-local",
     "adapter:claude-local",
     "adapter:gemini-local",
+    # B6 (ADDITIVE): direct Gemini HTTP API adapter, sibling of gemini-local.
+    "adapter:gemini-api",
     "adapter:chat-session",
 )
 
@@ -1819,6 +1821,253 @@ def run_provider_preflight(repo: Path) -> KernelResult:
             "status dict for active + in-process adapters, reports adapter:local "
             "ready, and returns ok False (never raises) for bogus/retired refs "
             f"({inspected} ref(s) inspected)."
+        ),
+    )
+
+
+def _gemini_api_classify_error_kind(exc: Exception) -> str:
+    """Read-only mirror of run.py._adapter_error_kind (we cannot edit run.py).
+
+    The B2-hardened hold path classifies adapter exceptions by type/message. We
+    replicate the mapping here ONLY to assert (in-process) that a gemini-api
+    no-key error flows the SAME clean typed adapter-error path, never a crash.
+    Kept structurally identical to support/operator/run.py:_adapter_error_kind.
+    """
+    message = str(exc).lower()
+    if isinstance(exc, FileNotFoundError):
+        return "local_cli_missing"
+    if isinstance(exc, subprocess.TimeoutExpired):
+        return "local_cli_timeout"
+    if "non-zero" in message or "returned non-zero" in message:
+        return "local_cli_nonzero"
+    if "returned payload" in message or "forbidden returned" in message:
+        return "adapter_return_shape_rejected"
+    return "adapter_exception"
+
+
+def run_gemini_api_adapter(repo: Path) -> KernelResult:
+    """B6 gemini-api adapter execution checker (ADDITIVE, no new profile).
+
+    FIREs, IN-PROCESS:
+      (a) adapter:gemini-api is admitted with READ+REVIEW capability (same brain
+          class as gemini-local), is NOT write-capable, and is DELIBERATELY not a
+          _LOCAL_CLI_SPECS member (no CLI / no subprocess identity).
+      (b) no-key (env unset): connect_agent_brain raises a CLEAN typed
+          FileNotFoundError that maps to 'local_cli_missing' (the B2 hold shape),
+          NOT a crash, and spawns NO subprocess (subprocess.Popen trip-wire).
+      (c) mocked request: the constructed HTTP request targets the documented
+          v1beta generateContent endpoint, carries the x-goog-api-key header (key
+          NOT in the URL), and the body is {"contents":[{"parts":[{"text":...}]}]};
+          a mocked candidates[0].content.parts[0].text is parsed into the
+          CLI-mirror returned_value shape.
+      (d) HTTP-error / timeout / malformed response all become CLEAN ValueErrors
+          (flow the hold path), never a raw urllib/KeyError crash.
+
+    Mutation-RED: if the no-key path stops raising the clean typed error (e.g.
+    raises raw / returns), assertion (b) REDs.
+    """
+    _ensure_import_identity(repo)
+    adapter = importlib.import_module("brick_protocol.support.connection.agent_adapter")
+    gemini_api = adapter.ADAPTER_GEMINI_API
+    inspected = 0
+
+    # (a) Admission + capability + not-a-CLI.
+    if gemini_api not in adapter.ALLOWED_ADAPTER_REFS:
+        raise ProfileError("gemini_api_adapter: adapter:gemini-api is not admitted")
+    caps = set(adapter.adapter_capabilities(gemini_api))
+    if caps != {adapter.ADAPTER_CAPABILITY_READ, adapter.ADAPTER_CAPABILITY_REVIEW}:
+        raise ProfileError(
+            f"gemini_api_adapter: gemini-api capabilities must be READ+REVIEW, got {sorted(caps)}"
+        )
+    if adapter.adapter_is_write_capable(gemini_api):
+        raise ProfileError("gemini_api_adapter: gemini-api must NOT be write-capable")
+    if gemini_api in adapter._LOCAL_CLI_SPECS:
+        raise ProfileError(
+            "gemini_api_adapter: gemini-api must NOT be a _LOCAL_CLI_SPECS (CLI) member"
+        )
+    if gemini_api in adapter.local_cli_adapter_refs():
+        raise ProfileError("gemini_api_adapter: gemini-api leaked into local_cli_adapter_refs()")
+    inspected += 1
+
+    def _make_request():
+        return adapter.AgentAdapterRequest(
+            building_id="gemini-api-adapter-probe",
+            agent_object_ref="agent-object:inspector",
+            adapter_ref=gemini_api,
+            brick_instance_ref="brick-review",
+            next_brick_instance_ref="brick-closure",
+            selected_model_ref=adapter.MODEL_REF_GEMINI_FLASH,
+            tool_policy_refs=(adapter.REVIEWER_READONLY_TOOL_POLICY_REF,),
+            work_statement="Return support evidence only.",
+        )
+
+    # (b) no-key: clean typed adapter-error + NO subprocess.
+    saved_env = {
+        name: os.environ.pop(name, None) for name in adapter._GEMINI_API_KEY_ENV_VARS
+    }
+    spawn_count = {"n": 0}
+    original_popen = subprocess.Popen
+
+    class _TripPopen(original_popen):  # type: ignore[misc, valid-type]
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            spawn_count["n"] += 1
+            raise AssertionError("gemini_api_adapter: no-key path spawned a subprocess")
+
+    subprocess.Popen = _TripPopen  # type: ignore[assignment]
+    try:
+        try:
+            adapter.connect_agent_brain(_make_request())
+        except FileNotFoundError as exc:
+            kind = _gemini_api_classify_error_kind(exc)
+            if kind != "local_cli_missing":
+                raise ProfileError(
+                    f"gemini_api_adapter: no-key error classified as {kind!r}, expected local_cli_missing"
+                )
+        except Exception as exc:  # noqa: BLE001
+            raise ProfileError(
+                f"gemini_api_adapter: no-key path raised {type(exc).__name__} "
+                f"({exc}); expected a clean FileNotFoundError"
+            ) from exc
+        else:
+            raise ProfileError(
+                "gemini_api_adapter: no-key path did not raise -- a clean typed "
+                "adapter-error is required (mutation-RED guard)"
+            )
+        if spawn_count["n"] != 0:
+            raise ProfileError(
+                f"gemini_api_adapter: no-key path spawned {spawn_count['n']} subprocess(es)"
+            )
+    finally:
+        subprocess.Popen = original_popen  # type: ignore[assignment]
+        for name, value in saved_env.items():
+            if value is not None:
+                os.environ[name] = value
+    inspected += 1
+
+    # (c) mocked request: capture URL/header/body, parse mocked response.
+    captured: dict[str, Any] = {}
+
+    def _fake_urlopen(http_request: Any, timeout_seconds: int) -> bytes:
+        captured["url"] = http_request.full_url
+        captured["method"] = http_request.get_method()
+        captured["headers"] = {k.lower(): v for k, v in http_request.header_items()}
+        captured["timeout"] = timeout_seconds
+        captured["body"] = json.loads(http_request.data.decode("utf-8"))
+        return json.dumps(
+            {"candidates": [{"content": {"parts": [{"text": "PROBE gemini evidence"}]}}]}
+        ).encode("utf-8")
+
+    fake_key = "PROBE-FAKE-KEY-NOT-A-REAL-CREDENTIAL"
+    os.environ["GEMINI_API_KEY"] = fake_key
+    try:
+        returned, _proof_limits, _not_proven = adapter._invoke_gemini_api(
+            _make_request(),
+            timeout_seconds=37,
+            urlopen=_fake_urlopen,
+        )
+    finally:
+        os.environ.pop("GEMINI_API_KEY", None)
+        for name, value in saved_env.items():
+            if value is not None:
+                os.environ[name] = value
+
+    expected_url = (
+        "https://generativelanguage.googleapis.com/v1beta/models/"
+        "gemini-2.5-flash:generateContent"
+    )
+    if captured.get("url") != expected_url:
+        raise ProfileError(
+            f"gemini_api_adapter: endpoint URL drifted: {captured.get('url')!r} != {expected_url!r}"
+        )
+    if captured.get("method") != "POST":
+        raise ProfileError("gemini_api_adapter: HTTP method must be POST")
+    if captured.get("headers", {}).get("x-goog-api-key") != fake_key:
+        raise ProfileError("gemini_api_adapter: x-goog-api-key header missing or wrong")
+    if fake_key in captured.get("url", ""):
+        raise ProfileError("gemini_api_adapter: API key leaked into the URL")
+    body = captured.get("body")
+    if not (
+        isinstance(body, Mapping)
+        and isinstance(body.get("contents"), list)
+        and len(body["contents"]) == 1
+        and isinstance(body["contents"][0].get("parts"), list)
+        and len(body["contents"][0]["parts"]) == 1
+        and isinstance(body["contents"][0]["parts"][0].get("text"), str)
+        and body["contents"][0]["parts"][0]["text"]
+    ):
+        raise ProfileError(
+            "gemini_api_adapter: request body is not {'contents':[{'parts':[{'text':...}]}]}"
+        )
+    if captured.get("timeout") != 37:
+        raise ProfileError("gemini_api_adapter: adapter timeout was not passed to the HTTP call")
+    if returned.get("adapter_ref") != gemini_api:
+        raise ProfileError("gemini_api_adapter: returned adapter_ref drifted")
+    if returned.get("output_excerpt") != "PROBE gemini evidence":
+        raise ProfileError("gemini_api_adapter: mocked response text not parsed into returned shape")
+    if returned.get("api_model_name") != "gemini-2.5-flash":
+        raise ProfileError("gemini_api_adapter: resolved api_model_name drifted")
+    # CLI-mirror shape: same engine-facing keys the CLI path returns.
+    for key in ("returned_summary", "adapter_ref", "brain_surface_ref", "evidence_refs",
+                "proof_limits", "not_proven"):
+        if key not in returned:
+            raise ProfileError(f"gemini_api_adapter: returned value missing CLI-mirror key {key!r}")
+    inspected += 1
+
+    # (d) HTTP-error / timeout / malformed -> clean ValueError (no crash).
+    request_obj = adapter._build_gemini_api_request(fake_key, "gemini-2.5-flash", "p")
+
+    import urllib.error as _urllib_error
+    import socket as _socket
+
+    def _expect_value_error(thunk: Callable[[], Any], label: str) -> None:
+        try:
+            thunk()
+        except ValueError:
+            return
+        except Exception as exc:  # noqa: BLE001
+            raise ProfileError(
+                f"gemini_api_adapter: {label} raised {type(exc).__name__}, expected clean ValueError"
+            ) from exc
+        raise ProfileError(f"gemini_api_adapter: {label} did not raise (expected clean ValueError)")
+
+    saved_urlopen = adapter.urllib.request.urlopen
+
+    def _http_error(_req: Any, timeout: Any = None) -> Any:
+        raise _urllib_error.HTTPError(request_obj.full_url, 500, "err", {}, None)
+
+    def _timeout(_req: Any, timeout: Any = None) -> Any:
+        raise _socket.timeout("timed out")
+
+    adapter.urllib.request.urlopen = _http_error
+    try:
+        _expect_value_error(
+            lambda: adapter._gemini_api_urlopen(request_obj, timeout_seconds=5), "HTTP 500"
+        )
+    finally:
+        adapter.urllib.request.urlopen = saved_urlopen
+    adapter.urllib.request.urlopen = _timeout
+    try:
+        _expect_value_error(
+            lambda: adapter._gemini_api_urlopen(request_obj, timeout_seconds=5), "timeout"
+        )
+    finally:
+        adapter.urllib.request.urlopen = saved_urlopen
+    _expect_value_error(
+        lambda: adapter._parse_gemini_api_response(b'{"candidates": []}'), "malformed response"
+    )
+    inspected += 1
+
+    return KernelResult(
+        check_id="gemini_api_adapter",
+        inspected=inspected,
+        output=(
+            "gemini-api adapter passed: admitted READ+REVIEW (not write-capable, "
+            "not a CLI spec); no-key -> clean local_cli_missing typed error with "
+            "NO subprocess; mocked request hits the v1beta generateContent endpoint "
+            "with the x-goog-api-key header (key not in URL) and the documented "
+            "contents/parts/text body, parsed into the CLI-mirror returned shape; "
+            "HTTP-error/timeout/malformed all become clean ValueErrors "
+            f"({inspected} group(s) inspected)."
         ),
     )
 
