@@ -385,12 +385,14 @@ def _example_step(
             )
             message_ko = (
                 f"첫 예제 빌딩이 실제 provider({real_host})로 한 번 돌았어요 ✅ "
-                "(결과는 임시 폴더에 저장됐고, 작업 트리는 건드리지 않았어요.)"
+                "(결과는 아래 저장 위치에 그대로 남겨 뒀고, 작업 트리는 "
+                "건드리지 않았어요. 직접 열어 보세요.)"
             )
         else:
             message_ko = (
                 "첫 예제 빌딩이 한 번 돌았어요 ✅ "
-                "(provider 없이 내부에서 실행됐고, 결과는 임시 폴더에 저장됐어요.)"
+                "(provider 없이 내부에서 실행됐고, 결과는 아래 저장 위치에 "
+                "그대로 남겨 뒀어요. 작업 트리는 건드리지 않았어요. 직접 열어 보세요.)"
             )
         return {
             "ok": True,
@@ -1065,10 +1067,21 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     args = parser.parse_args(args_list)
+    # The CLI keeps the first example's evidence so a brand-new customer can go
+    # to the printed "결과 저장 위치" and actually READ it (work/task.md, the
+    # lifecycle root). ~/.brick is the established BRICK user dir (already holds
+    # report.env) and lives OUTSIDE the repo/worktree, so "작업 트리는 건드리지
+    # 않았어요" stays true. run_building_intake passes overwrite_existing=True for
+    # this example, so re-running the wizard overwrites cleanly (no accumulation).
+    # Library callers of run_onboard keep output_root=None (ephemeral temp dir);
+    # ONLY this CLI default changes.
+    example_root = Path.home() / ".brick" / "onboard-example"
+    example_root.mkdir(parents=True, exist_ok=True)
     result = run_onboard(
         args.host,
         repo_root=args.repo,
         run_example=not args.no_example,
+        output_root=example_root,
         allow_real_provider=args.real_provider,
     )
     sys.stdout.write(_render_flow_text(result))
