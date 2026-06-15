@@ -9,13 +9,24 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
 from brick_protocol.support.operator.plan_rendering import (
     SPLIT_SHAPE_CATALOG_PATH,
+    _agent_is_writer,
     _load_shape_registry,
+    _load_yaml_mapping,
     _render_candidate_agents_for_need,
+)
+from brick_protocol.support.connection.agent_resources import (
+    list_agent_object_refs,
+    resolve_agent_object,
+)
+from brick_protocol.link.gate import (
+    DECLARED_GATE_REFS,
+    gate_required_return_fields,
 )
 
 _DEFAULT_REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -113,6 +124,41 @@ _PRESET_RANKING_NOT_PROVEN = (
 # so refs like "building-chain-preset:fast-fix" and prose both yield comparable
 # lowercase tokens. Single-character tokens are dropped as noise.
 _HINT_TOKEN_PATTERN = re.compile(r"[a-z0-9]+")
+
+# THE BOARD (H1): the single read-only manifest a design AI is handed to compose
+# from. It UNIFIES the four already-machine-readable catalogs (Brick / Agent /
+# Link / Preset, plus the Shape menu) into ONE projection. It READS the live
+# catalogs and changes none of them. It is READ-ONLY in the same sense every
+# other surface in this module is: it MEASURES/RECORDS the catalog rows but
+# AUTHORS / DECIDES nothing -- it picks no shape, writes no Building Plan, names
+# no Movement, and renders no success / quality judgment. The active selection
+# stays a caller / COO declaration (selection_rule below), and the same
+# proof_limits / not_proven envelope the design context carries rides along.
+_BOARD_LINK_CATALOG_PATHS = {
+    "movement": Path("link/movement.yaml"),
+    "carry": Path("link/carry.yaml"),
+    "transition": Path("link/transition.yaml"),
+}
+_BOARD_PROOF_LIMITS = (
+    "support catalog projection evidence only",
+    "the board unifies the four catalogs for reading; it changes none of them",
+    "Brick / Agent / Link meaning stays owned by brick/ , agent/ , link/",
+    "AI may propose a graph from the board; it does not select the active shape",
+    "caller / COO declaration is required for the active shape / preset",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+)
+_BOARD_NOT_PROVEN = (
+    "semantic fitness of any future composed graph",
+    "automatic Building Plan authoring from the board",
+    "which catalog rows a design AI will choose",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+)
 
 
 class BuildingDesignToolkitError(ValueError):
@@ -333,6 +379,258 @@ def render_preset_ranking_packet_json(
     )
 
 
+def render_building_board(repo_root: str | Path | None = None) -> dict[str, Any]:
+    """Render THE BOARD: one read-only manifest unifying the four catalogs.
+
+    A design AI is handed this single manifest (instead of four scattered
+    readers) and proposes a graph (compose_building args) from it; the operator
+    cross-verifies and the COO declares the active shape. The board carries ALL
+    FIVE catalog sections, each grounded in the real on-disk fields:
+
+    * ``bricks`` -- one row per Brick kind (the brick.md frontmatter the Builder
+      reads + that kind's return contract: ``required_return_shape`` and
+      ``forbidden_return_keys`` from its primary ``return.yaml``).
+    * ``agents`` -- the Agent Object set (lane / tool_policy_refs / adapter_refs /
+      ``writer_capable``), read through the Agent-axis resolver.
+    * ``links`` -- the Link catalog: Movement literals (forward / reroute),
+      declared Gate refs + each gate's required return fields, Carry fields, and
+      Transition fields.
+    * ``presets`` -- one row per chain preset (its frontmatter verbatim, incl.
+      ``graph_topology`` when the preset declares one).
+    * ``shapes`` -- the declared Building Shape menu refs.
+
+    It REUSES the existing catalog readers: ``render_building_design_context``'s
+    shape / preset registry, the Agent-axis ``resolve_agent_object`` rows, the
+    brick-catalog ``step_templates`` glob, and the Link ``gate`` / ``movement`` /
+    ``carry`` / ``transition`` sources. It READS the catalogs and mutates none of
+    them. It AUTHORS / DECIDES nothing: no Movement, no success / quality verdict,
+    no shape pick. ``selection_rule`` stays a caller / COO declaration and the
+    ``proof_limits`` / ``not_proven`` envelope rides along.
+    """
+
+    repo = Path(repo_root).resolve() if repo_root is not None else _DEFAULT_REPO_ROOT
+    registry = _shape_registry(repo)
+    bricks = _board_bricks(repo, registry)
+    agents = _board_agents(repo)
+    links = _board_links(repo)
+    presets = _board_presets(registry)
+    shapes = _board_shapes(registry)
+    return {
+        "kind": "building-board",
+        "source": "brick/ + agent/ + link/",
+        "section_refs": ["bricks", "agents", "links", "presets", "shapes"],
+        "bricks": bricks,
+        "agents": agents,
+        "links": links,
+        "presets": presets,
+        "shapes": shapes,
+        "catalog_counts": {
+            "bricks": len(bricks),
+            "agents": len(agents),
+            "movements": len(links["movements"]),
+            "gates": len(links["gates"]),
+            "presets": len(presets),
+            "shapes": len(shapes),
+        },
+        "selection_rule": "caller_or_coo_declared_only",
+        "proof_limits": list(_BOARD_PROOF_LIMITS),
+        "not_proven": list(_BOARD_NOT_PROVEN),
+    }
+
+
+def render_building_board_json(repo_root: str | Path | None = None) -> str:
+    """Render the board as deterministic JSON text."""
+
+    return json.dumps(
+        render_building_board(repo_root=repo_root),
+        ensure_ascii=False,
+        sort_keys=True,
+    )
+
+
+def _board_bricks(repo: Path, registry: dict[str, Any]) -> list[dict[str, Any]]:
+    """One row per Brick kind: brick.md frontmatter + return contract.
+
+    The frontmatter + primary ``required_return_shape`` are read by the EXISTING
+    ``step_templates`` registry (the brick-catalog glob, the same source
+    ``render_building_design_context`` exposes). The return contract is completed
+    here by reading the kind's PRIMARY ``return.yaml`` for its
+    ``forbidden_return_keys`` (the catalog file is READ, never written).
+    """
+
+    rows: list[dict[str, Any]] = []
+    for item in _registry_section_items(registry, "step_templates"):
+        kind = str(item.get("step_template_ref", "")).split(":", 1)[-1]
+        return_template_refs = list(item.get("brick_template_refs", ()))
+        required_return_shape = [
+            field
+            for field in str(item.get("required_return_shape", "")).split(",")
+            if field
+        ]
+        primary_return_ref = return_template_refs[0] if return_template_refs else ""
+        rows.append(
+            {
+                "brick_kind": kind,
+                "brick_word": str(item.get("brick_word", "")),
+                "performer_word": str(item.get("agent_word", "")),
+                "performer_lane_need": str(item.get("role_need", "")),
+                "requires_brick_write_scope": bool(item.get("write_need", False)),
+                "agent_object_ref": str(item.get("agent_object_ref", "")),
+                "link_movement_literal": str(item.get("link_word", "")),
+                "brick_contract": str(item.get("brick_contract", "")),
+                "brick_spec_ref": str(item.get("brick_spec_ref", "")),
+                "return_contract": {
+                    "primary_return_template_ref": primary_return_ref,
+                    "required_return_template_refs": return_template_refs,
+                    "required_return_shape": required_return_shape,
+                    "forbidden_return_keys": _board_forbidden_return_keys(
+                        repo, primary_return_ref
+                    ),
+                },
+            }
+        )
+    return rows
+
+
+def _board_forbidden_return_keys(repo: Path, primary_return_ref: str) -> list[str]:
+    """Read a Brick kind's declared ``forbidden_return_keys`` from its return.yaml.
+
+    READ-ONLY: the return template is loaded with the existing
+    ``_load_yaml_mapping`` helper and only its declared ``forbidden_return_keys``
+    list is projected; the file is never written.
+    """
+
+    if not primary_return_ref:
+        return []
+    path = repo / primary_return_ref
+    doc = _load_yaml_mapping(path, f"return template {primary_return_ref}")
+    forbidden = doc.get("forbidden_return_keys", ())
+    if not isinstance(forbidden, (list, tuple)):
+        raise BuildingDesignToolkitError(
+            f"return template {primary_return_ref}: forbidden_return_keys must be a list"
+        )
+    return [str(key) for key in forbidden]
+
+
+def _board_agents(repo: Path) -> list[dict[str, Any]]:
+    """The Agent Object set: lane / tool_policy / adapter / writer_capable.
+
+    Read through the EXISTING Agent-axis readers (``list_agent_object_refs`` +
+    ``resolve_agent_object``); ``writer_capable`` uses the same ``_agent_is_writer``
+    rule the matcher uses (capability owned by agent_resources.py). Rows are
+    sorted by ``agent_object_ref`` for deterministic output -- no quality order.
+    """
+
+    rows: list[dict[str, Any]] = []
+    for ref in sorted(list_agent_object_refs(repo)):
+        agent_object = resolve_agent_object(ref, repo_root=repo)["agent_object"]
+        rows.append(
+            {
+                "agent_object_ref": ref,
+                "name": str(agent_object.get("name", "")),
+                "lane": str(agent_object.get("lane", "")),
+                "writer_capable": _agent_is_writer(agent_object),
+                "tool_policy_refs": list(agent_object.get("tool_policy_refs", ())),
+                "adapter_refs": list(agent_object.get("adapter_refs", ())),
+            }
+        )
+    return rows
+
+
+def _board_links(repo: Path) -> dict[str, Any]:
+    """The Link catalog: movements + gates + carry fields + transition fields.
+
+    Movement literals come from ``link/movement.yaml`` (forward / reroute); the
+    declared Gate refs + each gate's required return fields come from the Link
+    ``gate`` module (the canonical ``DECLARED_GATE_REFS`` source); Carry and
+    Transition public-fact field lists come from their projection YAMLs. All
+    sources are READ, never written.
+    """
+
+    movement_doc = _load_yaml_mapping(
+        repo / _BOARD_LINK_CATALOG_PATHS["movement"], "link movement catalog"
+    )
+    movements = _board_movement_literals(movement_doc)
+    gates = [
+        {
+            "gate_ref": gate_ref,
+            # The Link-owned gate->required-fields mapping, via the canonical
+            # combined helper called per single gate ref (one-ref list).
+            "required_return_fields": list(gate_required_return_fields([gate_ref])),
+        }
+        for gate_ref in DECLARED_GATE_REFS
+    ]
+    return {
+        "movements": movements,
+        "gates": gates,
+        "carry_fields": _board_public_fact_fields(
+            repo, _BOARD_LINK_CATALOG_PATHS["carry"], "link carry catalog"
+        ),
+        "transition_fields": _board_public_fact_fields(
+            repo, _BOARD_LINK_CATALOG_PATHS["transition"], "link transition catalog"
+        ),
+    }
+
+
+def _board_movement_literals(movement_doc: Mapping[str, Any]) -> list[str]:
+    """The admitted Movement literals declared in link/movement.yaml."""
+
+    literals_raw = movement_doc.get("movement_literals", ())
+    if not isinstance(literals_raw, (list, tuple)):
+        raise BuildingDesignToolkitError(
+            "link movement catalog: movement_literals must be a list"
+        )
+    literals: list[str] = []
+    for entry in literals_raw:
+        if isinstance(entry, Mapping):
+            value = entry.get("movement")
+        else:
+            value = entry
+        if not isinstance(value, str) or not value.strip():
+            raise BuildingDesignToolkitError(
+                "link movement catalog: each movement literal must be non-empty text"
+            )
+        literals.append(value.strip())
+    return literals
+
+
+def _board_public_fact_fields(repo: Path, relative: Path, label: str) -> list[str]:
+    """The public_fact.fields list of a Link projection YAML (read-only)."""
+
+    doc = _load_yaml_mapping(repo / relative, label)
+    public_fact = doc.get("public_fact")
+    if not isinstance(public_fact, Mapping):
+        raise BuildingDesignToolkitError(f"{label}: public_fact must be a mapping")
+    fields = public_fact.get("fields", ())
+    if not isinstance(fields, (list, tuple)):
+        raise BuildingDesignToolkitError(f"{label}: public_fact.fields must be a list")
+    return [str(field) for field in fields]
+
+
+def _board_presets(registry: dict[str, Any]) -> list[dict[str, Any]]:
+    """One row per CANONICAL chain preset: its frontmatter verbatim.
+
+    Sourced from the EXISTING ``chain_presets`` registry (built from
+    ``presets/<name>.md`` frontmatter, the same source the design context
+    exposes). Alias entries (whose ``preset_ref`` differs from the registry key)
+    are skipped so each preset appears once; ``graph_topology`` rides along
+    verbatim when the preset declares one. Sorted by ``preset_ref``.
+    """
+
+    rows: list[dict[str, Any]] = []
+    for item in _registry_section_items(registry, "chain_presets"):
+        preset_ref = str(item.get("preset_ref", ""))
+        rows.append(dict(item))
+    rows.sort(key=lambda row: str(row.get("preset_ref", "")))
+    return rows
+
+
+def _board_shapes(registry: dict[str, Any]) -> list[dict[str, Any]]:
+    """The declared Building Shape menu refs (read-only, from the shape registry)."""
+
+    return [{"shape_ref": str(ref)} for ref in registry.get("shape_refs", ())]
+
+
 def _hint_tokens(text: str) -> set[str]:
     """Tokenize a hint into the set of distinct >=2-char lowercase tokens."""
 
@@ -408,6 +706,8 @@ __all__ = [
     "BuildingDesignToolkitError",
     "render_building_design_context",
     "render_building_design_context_json",
+    "render_building_board",
+    "render_building_board_json",
     "render_agent_candidate_packet",
     "render_agent_candidate_packet_json",
     "render_preset_ranking_packet",
