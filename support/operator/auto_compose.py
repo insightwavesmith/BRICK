@@ -67,6 +67,19 @@ _ENVELOPE_KEYS: frozenset[str] = frozenset(
 
 AiInvoke = Callable[[str], str]
 
+# The work-area write_scope a composed WRITE node is stamped with when the design
+# AI omits one (fail-closed default). MIRRORS the C4 work-area constant the W1/
+# brain FIRE drives (case_runners.py:2016): a broad allowed_paths (the step runs
+# inside an ISOLATED work-area worktree, so the worktree boundary is the real
+# protection) with .git forbidden. SUPPLYING this scope is the whole point of
+# H3d -- it never weakens the observed-write invariant (plan_validation still
+# requires requires_brick_write_scope + a non-empty write_scope + an observed-
+# write adapter); it just stops the goal-composed write node landing EMPTY.
+_WORK_AREA_WRITE_SCOPE: Mapping[str, Any] = {
+    "allowed_paths": ["**"],
+    "forbidden_paths": [".git/**"],
+}
+
 
 class AutoComposeError(ValueError):
     """Raised when the design-AI proposal fails an H2b validation gate.
@@ -136,7 +149,22 @@ OUTPUT_CONTRACT_INSTRUCTIONS = (
     "3-5 nodes. If you DO fan a node "
     "out to more than one outgoing edge, that node MUST also carry a "
     "\"completion_edge_ref\" naming the edge_ref of its single forward-completion "
-    "edge (support must not guess which edge completes the node)."
+    "edge (support must not guess which edge completes the node).\n"
+    "\n"
+    "WRITE SCOPE (a node that WRITES files must say so): the board marks each brick "
+    "row with \"requires_brick_write_scope\". For ANY node whose chosen board brick "
+    "has \"requires_brick_write_scope\": true, the real brain that performs the step "
+    "will ONLY be allowed to write files when the node carries a write_scope — "
+    "otherwise it can do no real work. So for EVERY such node you MUST emit BOTH "
+    "\"requires_brick_write_scope\": true AND a work-area "
+    "\"write_scope\": {\"allowed_paths\": [\"**\"], \"forbidden_paths\": "
+    "[\".git/**\"]} (the step runs inside an isolated work-area worktree, so a "
+    "broad allowed_paths with .git forbidden is correct). For IMPLEMENTATION / "
+    "code-writing steps pick the \"work\" brick (it is write-needing), NOT the "
+    "\"development\" brick (which is assign-only and does NOT write). Read-only "
+    "steps (review / inspect / closure / plan / design — bricks whose "
+    "requires_brick_write_scope is false) emit NO write_scope and NO "
+    "requires_brick_write_scope marker."
 )
 
 
@@ -227,6 +255,10 @@ def compose_building_from_task(
     #    The board render is deterministic, so it is computed once and reused;
     #    each retry only appends the prior error as a nudge.
     board = render_building_board(repo_root=repo)
+    # The board's per-brick write-need flags drive the H3d fail-closed default
+    # (a write-needing node that lands without a write_scope is stamped). Built
+    # once from the same deterministic board the prompt is built from.
+    write_need_by_ref = _board_write_need_by_template_ref(board)
     base_prompt = build_design_prompt(
         task_text, board, output_contract=output_contract
     )
@@ -268,6 +300,47 @@ def compose_building_from_task(
         #     ``-closed`` appended. A target that already ends in ``closed`` is
         #     left untouched (no-op for already-closed callers).
         edges = _normalize_terminal_boundaries(edges)
+
+        # 3c. FAIL-CLOSED WRITE_SCOPE (H3d): a goal-composed node whose RESOLVED
+        #     board brick is write-needing but that lands WITHOUT a non-empty
+        #     write_scope is stamped with the work-area write_scope + marker, so a
+        #     real write-capable brain can actually write. Read-only-brick nodes
+        #     and nodes already carrying a non-empty write_scope are UNCHANGED. The
+        #     write-need map is read from THE BOARD (render_building_board) only;
+        #     compose_building remains the authority that REJECTS an unresolved
+        #     brick ref. This SUPPLIES scope; it never weakens the observed-write
+        #     invariant plan_validation enforces.
+        nodes = _stamp_write_scope_fail_closed(nodes, write_need_by_ref)
+
+        # 3d. BRAIN/WRITE MATCH (H3d): a node carrying a write_scope can only do
+        #     real work with a write-capable execution brain (codex-local /
+        #     claude-local). If the run adapter is read-only (e.g. adapter:local)
+        #     yet a write node exists, FAIL EARLY with a friendly, actionable
+        #     message — instead of compose_building's cryptic
+        #     missing_adapter_write_capability, or a silent no-work link_paused
+        #     (the read-only brain honestly does nothing, QA catches it, the
+        #     building pauses). Read-only goals (no write node) are UNAFFECTED.
+        from support.connection.agent_adapter import (  # noqa: PLC0415
+            adapter_is_write_capable,
+        )
+        if not adapter_is_write_capable(selected_adapter_ref):
+            _write_node_ids = [
+                n.get("node_id")
+                for n in nodes
+                if (n.get("write_scope") or {}).get("allowed_paths")
+                or (
+                    isinstance(n.get("brick"), Mapping)
+                    and (n["brick"].get("write_scope") or {}).get("allowed_paths")
+                )
+            ]
+            if _write_node_ids:
+                raise AutoComposeError(
+                    "이 골은 코드/파일 작성이 필요해요 (write 노드 "
+                    f"{len(_write_node_ids)}개). 지금 실행 두뇌(brain) "
+                    f"'{selected_adapter_ref}' 는 읽기 전용이라 실제 작업을 할 수 "
+                    "없어요. `--brain claude` 또는 `--brain codex` 로 다시 "
+                    "실행하세요."
+                )
 
         # 4. VALIDATE the graph against the REAL compose_building contract. This is
         #    the authoritative node/edge/group validator (it raises
@@ -543,6 +616,114 @@ def _normalize_terminal_boundaries(edges: Sequence[Any]) -> list[Any]:
                 continue
         normalized_edges.append(edge)
     return normalized_edges
+
+
+# ---------------------------------------------------------------------------
+# H3d fail-closed write_scope default. A goal-composed node whose RESOLVED board
+# brick is write-needing (requires_brick_write_scope=true) but that lands WITHOUT
+# a non-empty write_scope is stamped with the work-area write_scope + the marker,
+# so a real write-capable brain (claude / codex) can actually write. Read-only
+# bricks and nodes already carrying a non-empty write_scope are LEFT UNCHANGED.
+# This SUPPLIES write_scope; it never weakens the observed-write check.
+# ---------------------------------------------------------------------------
+
+
+def _board_write_need_by_template_ref(board: Mapping[str, Any]) -> dict[str, bool]:
+    """Map each board brick's step_template_ref -> requires_brick_write_scope.
+
+    The board (render_building_board) surfaces one ``bricks`` row per Brick kind
+    carrying ``brick_kind`` + ``requires_brick_write_scope`` (building_design_
+    toolkit.py:473-477). A node references its brick by ``step_template_ref`` in
+    the ``building-step-template:<kind>`` form, whose suffix is exactly the board
+    row's ``brick_kind``. We key the map on the FULL ``building-step-template:``
+    ref the nodes carry (rebuilt from the row's kind). If a board row is missing
+    ``brick_kind`` or its write-need flag, that is a board-projection defect: we
+    RAISE rather than guess a node's write-need (fail-closed, per spec).
+    """
+
+    bricks = board.get("bricks")
+    if not isinstance(bricks, Sequence):
+        raise AutoComposeError(
+            "board has no 'bricks' section to resolve node write-need from"
+        )
+    write_need: dict[str, bool] = {}
+    for index, row in enumerate(bricks):
+        if not isinstance(row, Mapping):
+            raise AutoComposeError(f"board.bricks[{index}] is not an object")
+        kind = str(row.get("brick_kind") or "").strip()
+        if not kind:
+            raise AutoComposeError(
+                f"board.bricks[{index}] has no brick_kind; cannot resolve a "
+                "node's brick write-need (board projection defect)"
+            )
+        if "requires_brick_write_scope" not in row:
+            raise AutoComposeError(
+                f"board.bricks[{index}] ({kind!r}) does not expose "
+                "requires_brick_write_scope; cannot resolve write-need fail-closed"
+            )
+        write_need[f"building-step-template:{kind}"] = bool(
+            row.get("requires_brick_write_scope")
+        )
+    return write_need
+
+
+def _node_brick_view(node: Mapping[str, Any]) -> Mapping[str, Any]:
+    """The mapping a node's brick fields live in: a nested ``brick`` object when
+    present, else the node itself (MIRRORS composition._compose_brick_row:
+    ``brick = raw_brick if isinstance(raw_brick, Mapping) else raw_node``)."""
+
+    nested = node.get("brick")
+    return nested if isinstance(nested, Mapping) else node
+
+
+def _has_nonempty_write_scope(brick_view: Mapping[str, Any]) -> bool:
+    """True iff the node already carries a write_scope with a NON-EMPTY
+    allowed_paths (mirrors the plan_validation non-empty test: an empty/absent
+    allowed_paths is NOT a real scope and must be stamped fail-closed)."""
+
+    raw = brick_view.get("write_scope")
+    if not isinstance(raw, Mapping):
+        return False
+    allowed = raw.get("allowed_paths")
+    return isinstance(allowed, Sequence) and not isinstance(allowed, str) and bool(allowed)
+
+
+def _stamp_write_scope_fail_closed(
+    nodes: Sequence[Any],
+    write_need_by_ref: Mapping[str, bool],
+) -> list[Any]:
+    """Return a NEW node list where each node whose resolved board brick is
+    write-needing AND which lacks a non-empty write_scope is stamped with the
+    work-area write_scope + requires_brick_write_scope marker. Read-only-brick
+    nodes, and nodes already carrying a non-empty write_scope, are UNCHANGED.
+    Never mutates the input nodes. A node whose step_template_ref is not a known
+    board ref is left untouched (compose_building is the authority that REJECTS
+    an unresolved ref; this default only SUPPLIES scope, never invents bricks)."""
+
+    stamped: list[Any] = []
+    for node in nodes:
+        if not isinstance(node, Mapping):
+            stamped.append(node)
+            continue
+        step_ref = str(node.get("step_template_ref") or "").strip()
+        needs_write = write_need_by_ref.get(step_ref, False)
+        brick_view = _node_brick_view(node)
+        if not needs_write or _has_nonempty_write_scope(brick_view):
+            stamped.append(node)
+            continue
+        # WRITE-needing brick + no non-empty write_scope -> stamp fail-closed.
+        new_node = dict(node)
+        nested = node.get("brick")
+        if isinstance(nested, Mapping):
+            new_brick = dict(nested)
+            new_brick["write_scope"] = dict(_WORK_AREA_WRITE_SCOPE)
+            new_brick["requires_brick_write_scope"] = True
+            new_node["brick"] = new_brick
+        else:
+            new_node["write_scope"] = dict(_WORK_AREA_WRITE_SCOPE)
+            new_node["requires_brick_write_scope"] = True
+        stamped.append(new_node)
+    return stamped
 
 
 # ---------------------------------------------------------------------------
