@@ -54,6 +54,7 @@ from brick_protocol.support.operator.driver import run_building_intake
 from brick_protocol.support.operator.frontier_observation import (
     observe_building_frontier,
 )
+from brick_protocol.link.transition import DISPOSITION_ACTIONS
 
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -1164,6 +1165,279 @@ def _render_goal_text(result: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def run_approve_entry(
+    building_ref: str | Path,
+    *,
+    action: str = "forward",
+    author_ref: str = "coo:smith",
+    budget_increment: int | None = None,
+    output_root: Path | str | None = None,
+    repo_root: Path | str | None = None,
+) -> dict[str, Any]:
+    """Append a human/COO disposition row for a held Building, then resume it.
+
+    This is a support convenience wrapper around already-written evidence. It
+    observes the frontier, mirrors the admitted transition_lifecycle disposition
+    row shape into raw/link.jsonl, and calls ``resume_building_plan(building_root)``.
+    It does not choose Movement, targets, sufficiency, quality, or success.
+    """
+
+    import json  # noqa: PLC0415
+
+    from brick_protocol.support.operator.run import resume_building_plan  # noqa: PLC0415
+
+    repo = _safe_repo_root(repo_root)
+    building_text = str(building_ref).strip()
+    action_text = str(action).strip().lower()
+    author_text = str(author_ref).strip()
+    result: dict[str, Any] = {
+        "ok": False,
+        "building_ref": building_text,
+        "action": action_text,
+        "author_ref": author_text,
+        "disposition_written": False,
+    }
+    if not building_text:
+        result.update(
+            {
+                "error_kind": "invalid_building_ref",
+                "error_message": "building ref가 비어 있어요.",
+                "message_ko": "승인할 building을 지정해야 해요.",
+            }
+        )
+        return result
+    if action_text not in DISPOSITION_ACTIONS:
+        result.update(
+            {
+                "error_kind": "invalid_action",
+                "error_message": "action은 forward, stop, raise 중 하나여야 해요.",
+                "message_ko": "지원하지 않는 승인 동작이에요.",
+            }
+        )
+        return result
+    if not (author_text.startswith("coo:") or author_text.startswith("human:")):
+        result.update(
+            {
+                "error_kind": "invalid_author_ref",
+                "error_message": "author_ref는 coo: 또는 human: 접두로 시작해야 해요.",
+                "message_ko": "작성자 ref는 coo: 또는 human: 으로 시작해야 해요.",
+            }
+        )
+        return result
+    parsed_budget: int | None = None
+    if budget_increment is not None:
+        if action_text != "raise":
+            result.update(
+                {
+                    "error_kind": "invalid_budget_increment",
+                    "error_message": "budget_increment는 raise action에만 쓸 수 있어요.",
+                    "message_ko": "forward/stop에는 budget_increment를 붙일 수 없어요.",
+                }
+            )
+            return result
+        try:
+            parsed_budget = int(budget_increment)
+        except (TypeError, ValueError):
+            parsed_budget = 0
+        if parsed_budget <= 0:
+            result.update(
+                {
+                    "error_kind": "invalid_budget_increment",
+                    "error_message": "raise budget_increment는 양의 정수여야 해요.",
+                    "message_ko": "raise에는 양의 budget_increment가 필요해요.",
+                }
+            )
+            return result
+    elif action_text == "raise":
+        result.update(
+            {
+                "error_kind": "missing_budget_increment",
+                "error_message": "raise action에는 budget_increment가 필요해요.",
+                "message_ko": "raise에는 budget_increment가 필요해요.",
+            }
+        )
+        return result
+
+    building_path = Path(building_text).expanduser()
+    if building_path.is_absolute():
+        building_root = building_path.resolve()
+    else:
+        durable = (
+            Path(output_root).expanduser().resolve()
+            if output_root is not None
+            else Path.home() / ".brick" / "goal-runs"
+        )
+        building_root = (durable / building_path).resolve()
+    result["building_root"] = str(building_root)
+    result["evidence_root"] = str(building_root)
+
+    try:
+        frontier_before = dict(observe_building_frontier(building_root, repo_root=repo))
+    except Exception as exc:  # noqa: BLE001 -- CLI support surface returns evidence
+        result.update(
+            {
+                "error_kind": type(exc).__name__,
+                "error_message": str(exc),
+                "message_ko": "building frontier를 읽을 수 없어요.",
+            }
+        )
+        return result
+
+    frontier_kind_before = str(frontier_before.get("frontier_kind") or "")
+    result["frontier_kind_before"] = frontier_kind_before
+    result["frontier_kind"] = frontier_kind_before
+    result["frontier_reason_before"] = str(frontier_before.get("frontier_reason") or "")
+    if frontier_kind_before == "chat_session_parked":
+        result.update(
+            {
+                "error_kind": "chat_session_parked_not_resumable",
+                "error_message": (
+                    "chat_session_parked는 onboard approve 대상이 아니에요."
+                ),
+                "message_ko": (
+                    "이 building은 chat_session_parked 상태라 approve로 재개하지 않아요."
+                ),
+            }
+        )
+        return result
+    if frontier_kind_before == "complete":
+        result.update(
+            {
+                "ok": True,
+                "message_ko": "이미 완료된 building이라 승인 동작이 필요 없어요.",
+            }
+        )
+        return result
+    if frontier_kind_before not in {"link_paused", "human_review_waiting"}:
+        result.update(
+            {
+                "error_kind": "not_approval_hold",
+                "error_message": "승인 대상 hold 상태가 아니에요.",
+                "message_ko": "승인 대상 hold가 아니어서 disposition을 쓰지 않았어요.",
+            }
+        )
+        return result
+
+    latest_lifecycle = frontier_before.get("latest_transition_lifecycle") or {}
+    if not isinstance(latest_lifecycle, dict):
+        latest_lifecycle = {}
+    pending_target_ref = str(
+        latest_lifecycle.get("transition_lifecycle_pending_target_ref") or ""
+    )
+    paused_at_ref = str(
+        latest_lifecycle.get("transition_lifecycle_paused_at_ref") or ""
+    )
+    result["pending_target_ref"] = pending_target_ref
+    result["paused_at_ref"] = paused_at_ref
+    if not pending_target_ref:
+        result.update(
+            {
+                "error_kind": "missing_pending_target_ref",
+                "error_message": "pending_target_ref가 비어 있어요.",
+                "message_ko": "다음 target ref가 기록돼 있지 않아 fail-closed 했어요.",
+            }
+        )
+        return result
+    if not paused_at_ref:
+        result.update(
+            {
+                "error_kind": "missing_paused_at_ref",
+                "error_message": "paused_at_ref가 비어 있어요.",
+                "message_ko": "어떤 hold를 재개하는지 기록돼 있지 않아 fail-closed 했어요.",
+            }
+        )
+        return result
+
+    link_path = building_root / "raw" / "link.jsonl"
+    if not link_path.parent.is_dir():
+        result.update(
+            {
+                "error_kind": "missing_raw_link_dir",
+                "error_message": f"raw/link.jsonl parent does not exist: {link_path.parent}",
+                "message_ko": "raw/link.jsonl을 쓸 evidence 폴더가 없어요.",
+            }
+        )
+        return result
+
+    building_id = building_root.name
+    row: dict[str, Any] = {
+        "raw_ref": f"raw:link:disposition:{action_text}",
+        "building_id": building_id,
+        "step_ref": f"human-disposition-{action_text}",
+        "transition_lifecycle_state": "resumed",
+        "transition_lifecycle_progress_state": "in_progress",
+        "transition_lifecycle_resumed_from_ref": paused_at_ref,
+        "transition_lifecycle_pending_target_ref": pending_target_ref,
+        "transition_lifecycle_required_disposition_owner": "caller-or-coo",
+        "transition_lifecycle_disposition_action": action_text,
+        "transition_author_ref": author_text,
+    }
+    if parsed_budget is not None:
+        row["transition_lifecycle_budget_increment"] = parsed_budget
+    try:
+        with link_path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(row, separators=(",", ":"), ensure_ascii=False) + "\n")
+    except Exception as exc:  # noqa: BLE001 -- support evidence, no traceback surface
+        result.update(
+            {
+                "error_kind": type(exc).__name__,
+                "error_message": str(exc),
+                "message_ko": "disposition row를 raw/link.jsonl에 쓰지 못했어요.",
+            }
+        )
+        return result
+
+    result["disposition_written"] = True
+    result["disposition_row"] = row
+    try:
+        resume_building_plan(building_root)
+        frontier_after = dict(observe_building_frontier(building_root, repo_root=repo))
+    except Exception as exc:  # noqa: BLE001 -- disposition is already written
+        result.update(
+            {
+                "error_kind": type(exc).__name__,
+                "error_message": str(exc),
+                "message_ko": (
+                    "disposition은 썼지만 resume_building_plan 실행 중 문제가 생겼어요."
+                ),
+            }
+        )
+        return result
+
+    result["frontier_kind"] = str(frontier_after.get("frontier_kind") or "")
+    result["frontier_reason"] = str(frontier_after.get("frontier_reason") or "")
+    result["ok"] = True
+    result["message_ko"] = "승인 disposition을 쓰고 resume_building_plan을 호출했어요."
+    return result
+
+
+def _render_approve_text(result: dict[str, Any]) -> str:
+    """Render the approve result as plain-Korean text for the CLI entry."""
+
+    lines: list[str] = []
+    lines.append("=== Brick Protocol: held building 승인 ===\n")
+    lines.append(f"building: {result.get('building_root') or result.get('building_ref', '')}")
+    lines.append(f"action: {result.get('action', '')}")
+    lines.append(f"author: {result.get('author_ref', '')}")
+    lines.append(f"disposition written: {result.get('disposition_written', False)}")
+    if result.get("frontier_kind_before"):
+        lines.append(f"frontier(before): {result.get('frontier_kind_before', '')}")
+    if result.get("frontier_kind"):
+        lines.append(f"frontier(after): {result.get('frontier_kind', '')}")
+    if result.get("pending_target_ref"):
+        lines.append(f"pending target: {result.get('pending_target_ref', '')}")
+    if result.get("paused_at_ref"):
+        lines.append(f"resumed from: {result.get('paused_at_ref', '')}")
+    if result.get("evidence_root"):
+        lines.append(f"evidence: {result.get('evidence_root', '')}")
+    lines.append("")
+    lines.append(str(result.get("message_ko") or ""))
+    if result.get("error_message"):
+        lines.append(f"에러 종류: {result.get('error_kind', '')}")
+        lines.append(f"에러 내용: {result.get('error_message', '')}")
+    return "\n".join(lines)
+
+
 def main(argv: list[str] | None = None) -> int:
     args_list = list(sys.argv[1:]) if argv is None else list(argv)
     # ``onboard doctor``: diagnosis-only subcommand. Runs the gh probe + every
@@ -1220,6 +1494,58 @@ def main(argv: list[str] | None = None) -> int:
         sys.stdout.write(_render_goal_text(goal_result))
         sys.stdout.write("\n")
         return 0 if goal_result.get("ok") else 1
+    # ``onboard approve <building>``: append a human/COO disposition row for a
+    # held Building and call resume_building_plan(building_root). The row mirrors
+    # the admitted checker shape; this support wrapper chooses no Movement.
+    if args_list[:1] == ["approve"]:
+        approve_parser = argparse.ArgumentParser(
+            prog="onboard approve",
+            description=(
+                "Append a human/COO disposition row for a held Building, then "
+                "resume it. Relative buildings resolve under ~/.brick/goal-runs "
+                "unless --output-root is supplied."
+            ),
+        )
+        approve_parser.add_argument("building", help="Building id or absolute path.")
+        approve_parser.add_argument(
+            "--action",
+            choices=DISPOSITION_ACTIONS,
+            default="forward",
+            help="Disposition action. raise requires --budget-increment.",
+        )
+        approve_parser.add_argument(
+            "--author",
+            default="coo:smith",
+            help="Disposition author ref; must start with coo: or human:.",
+        )
+        approve_parser.add_argument(
+            "--budget-increment",
+            type=int,
+            default=None,
+            help="Positive budget increment, allowed only with --action raise.",
+        )
+        approve_parser.add_argument(
+            "--output-root",
+            default=None,
+            help="Root for relative building ids (default: ~/.brick/goal-runs).",
+        )
+        approve_parser.add_argument(
+            "--repo",
+            default=None,
+            help="Repo root override for frontier observation.",
+        )
+        approve_args = approve_parser.parse_args(args_list[1:])
+        approve_result = run_approve_entry(
+            approve_args.building,
+            action=approve_args.action,
+            author_ref=approve_args.author,
+            budget_increment=approve_args.budget_increment,
+            output_root=approve_args.output_root,
+            repo_root=approve_args.repo,
+        )
+        sys.stdout.write(_render_approve_text(approve_result))
+        sys.stdout.write("\n")
+        return 0 if approve_result.get("ok") else 1
     parser = argparse.ArgumentParser(
         description=(
             "Friendly, never-raising onboarding flow. Prints the preflight + "
@@ -1305,6 +1631,7 @@ __all__ = [
     "SUPPORTED_HOSTS",
     "main",
     "run_doctor",
+    "run_approve_entry",
     "run_goal_entry",
     "run_onboard",
     "run_recording_setup",
