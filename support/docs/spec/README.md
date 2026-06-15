@@ -46,52 +46,17 @@
 
 ## Current Active Read Order After CHAIN-REFRESH-0
 
-For new Building automation work after SIMPLE-RUN-0 and the continuous Building
-automation slices, read in this order:
+> Archive note (0610, #24): the 0524-0526 phase docs this read order once
+> enumerated moved to `archive/docs-spec/` with the rest of the unpinned
+> historical spec and no longer resolve here (verified: 0/39 of the old
+> `support/docs/spec/*` phase-doc paths exist on disk). The dead enumeration
+> was trimmed as confirmed-stale residue. The lineage records themselves live
+> in the archive museum.
 
-```text
-AGENTS.md
-current-working-context.md (frozen HISTORY repo)
-support/docs/spec/brick-protocol-coo-judgment-chain-sync-0-source-projection-alignment-0526.md
-support/docs/spec/brick-protocol-movement-binary-0-next-work-and-automation-queue-0526.md
-support/docs/spec/brick-protocol-building-automation-level-0-current-level-assessment-0526.md
-support/docs/spec/brick-protocol-link-reroute-replay-loop-0-declared-loop-0526.md
-support/docs/spec/brick-protocol-building-operator-loop-0-open-run-verify-close-0526.md
-support/docs/spec/brick-protocol-agent-real-work-hardening-0-return-artifacts-0526.md
-support/docs/spec/brick-protocol-building-plan-authoring-next-repair-0-lifecycle-preservation-0526.md
-support/docs/spec/brick-protocol-evidence-graph-completeness-next-0-current-roots-0526.md
-support/docs/spec/brick-protocol-session-lifecycle-next-repair-0-current-language-0526.md
-support/docs/spec/brick-protocol-provider-projection-next-repair-0-local-projection-drift-0526.md
-support/docs/spec/brick-protocol-link-lifecycle-next-audit-0-current-link-state-0526.md
-support/docs/spec/brick-protocol-building-automation-complete-audit-0-current-completion-0526.md
-support/docs/spec/brick-protocol-building-automation-level-next-repair-0-current-level-0526.md
-support/docs/spec/brick-protocol-building-automation-final-completion-audit-0-final-0526.md
-support/docs/spec/brick-protocol-multi-llm-final-qa-0-three-lane-0526.md
-support/docs/spec/brick-protocol-checker-common-lib-0-common-helper-surface-0526.md
-support/docs/spec/brick-protocol-write-observation-cache-repair-0-0526.md
-support/docs/spec/brick-protocol-checker-thinning-0-active-migration-0526.md
-support/docs/spec/brick-protocol-checker-kernel-0-governance-delete-manifest-0526.md
-support/docs/spec/brick-protocol-building-method-0-building-operating-mode-0525.md
-support/docs/spec/brick-protocol-coo-identity-skill-0-building-operator-source-0525.md
-support/docs/spec/brick-protocol-agent-resource-toolkit-0-agent-resource-renderer-0525.md
-support/docs/spec/brick-protocol-coo-sync-0-local-app-projection-0525.md
-support/docs/spec/brick-protocol-mcp-projection-0-agent-resource-call-door-0525.md
-support/docs/spec/brick-protocol-connection-surface-0-support-connection-folder-0525.md
-support/docs/spec/brick-protocol-mia-1-module-responsibility-chain-0522.md
-support/docs/spec/brick-protocol-simple-run-0-support-surface-simplification-plan-0524.md
-support/docs/spec/brick-protocol-building-accumulation-0-continuous-building-evidence-0524.md
-support/docs/spec/brick-protocol-session-continuity-0-design-0524.md
-support/docs/spec/brick-protocol-link-route-replay-0-design-0524.md
-support/docs/spec/brick-protocol-chain-refresh-0-doc-chain-and-graph-ready-status-0525.md
-support/docs/spec/brick-protocol-brick-work-packet-rendering-0-agent-receipt-packet-0525.md
-support/docs/spec/brick-protocol-real-cli-dogfood-0-codex-claude-building-agent-0525.md
-support/docs/spec/brick-protocol-route-replay-handoff-0-packet-carry-0525.md
-support/docs/spec/brick-protocol-building-close-session-0-provider-neutral-close-0525.md
-support/docs/spec/brick-protocol-review-to-link-movement-0-observation-pattern-0525.md
-support/docs/spec/brick-protocol-building-plan-authoring-0-interview-template-0525.md
-support/docs/spec/brick-protocol-building-index-0-support-projection-0525.md
-support/docs/spec/brick-protocol-graph-ready-0-evidence-shape-standard-0522.md
-```
+For new Building automation work, the live read order starts at `AGENTS.md` and
+the current source-record index; read the active phase and Movement from
+`project/brick-protocol/status/kernel/source-record-index.md` and current
+support records rather than from a frozen file list here.
 
 Active run language is SIMPLE-RUN-0:
 
