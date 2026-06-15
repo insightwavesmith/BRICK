@@ -5177,6 +5177,7 @@ _DASHBOARD_PRODUCTIZATION_SKIP_RELATIVES = {
     "support/dashboard/package-lock.json",
     "support/dashboard/public/dashboard-data.json",
 }
+_DASHBOARD_PUBLIC_DATA_RELATIVE = "support/dashboard/public/dashboard-data.json"
 _DASHBOARD_ALLOWED_URL_PREFIXES = (
     "https://fonts.googleapis.com",
     "https://fonts.gstatic.com",
@@ -5393,6 +5394,79 @@ def _dashboard_productization_assert_bake_shape_probe(repo: Path) -> int:
         finally:
             dashboard_export.dashboard_export_packet = original
         inspected += 1
+    return inspected
+
+
+def _dashboard_productization_validate_public_seed_packet(packet: Any, *, label: str) -> None:
+    if not isinstance(packet, Mapping):
+        raise ProfileError(f"dashboard public seed {label} must be a JSON object")
+    if packet.get("source_truth") is not False:
+        raise ProfileError(f"dashboard public seed {label} source_truth must be false")
+    if not isinstance(packet.get("buildings"), list):
+        raise ProfileError(f"dashboard public seed {label} must carry a buildings list")
+
+
+def _dashboard_productization_public_seed_observation(repo: Path) -> tuple[int, str]:
+    seed_path = repo / _DASHBOARD_PUBLIC_DATA_RELATIVE
+    if not seed_path.exists():
+        return (
+            0,
+            f"{_DASHBOARD_PUBLIC_DATA_RELATIVE} absent; static dashboard seed validation skipped as generated-artifact advisory.",
+        )
+    try:
+        packet = json.loads(seed_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ProfileError(
+            f"dashboard public seed {to_posix(seed_path.relative_to(repo))} is invalid JSON: {exc}"
+        ) from exc
+    _dashboard_productization_validate_public_seed_packet(
+        packet,
+        label=to_posix(seed_path.relative_to(repo)),
+    )
+    return (1, f"{_DASHBOARD_PUBLIC_DATA_RELATIVE} present; static dashboard seed shape validated.")
+
+
+def _dashboard_productization_assert_public_seed_optional_probe() -> int:
+    inspected = 0
+    with tempfile.TemporaryDirectory(prefix="bp-dashboard-seed-optional-") as tmp:
+        probe_repo = Path(tmp)
+        missing_inspected, missing_observation = _dashboard_productization_public_seed_observation(probe_repo)
+        inspected += 1
+        if missing_inspected != 0 or "absent" not in missing_observation:
+            raise ProfileError("dashboard public seed absent probe did not skip as advisory")
+
+        seed_path = probe_repo / _DASHBOARD_PUBLIC_DATA_RELATIVE
+        seed_path.parent.mkdir(parents=True)
+        seed_path.write_text(
+            json.dumps({"source_truth": False, "buildings": []}) + "\n",
+            encoding="utf-8",
+        )
+        present_inspected, _ = _dashboard_productization_public_seed_observation(probe_repo)
+        inspected += present_inspected
+        if present_inspected != 1:
+            raise ProfileError("dashboard public seed present probe did not inspect the seed")
+
+        seed_path.write_text(
+            json.dumps({"source_truth": True, "buildings": []}) + "\n",
+            encoding="utf-8",
+        )
+        try:
+            _dashboard_productization_public_seed_observation(probe_repo)
+        except ProfileError:
+            inspected += 1
+        else:
+            raise ProfileError("dashboard public seed FIRE probe did NOT fire for source_truth true")
+
+        seed_path.write_text(
+            json.dumps({"source_truth": False, "buildings": {}}) + "\n",
+            encoding="utf-8",
+        )
+        try:
+            _dashboard_productization_public_seed_observation(probe_repo)
+        except ProfileError:
+            inspected += 1
+        else:
+            raise ProfileError("dashboard public seed FIRE probe did NOT fire for non-list buildings")
     return inspected
 
 
@@ -6165,7 +6239,6 @@ def run_dashboard_productization_projection(repo: Path) -> KernelResult:
     required_paths = (
         repo / "support/dashboard/DEPLOY.md",
         repo / "support/dashboard/server/index.mjs",
-        repo / "support/dashboard/public/dashboard-data.json",
     )
     missing = [to_posix(path.relative_to(repo)) for path in required_paths if not path.exists()]
     if missing:
@@ -6175,6 +6248,10 @@ def run_dashboard_productization_projection(repo: Path) -> KernelResult:
         )
 
     inspected = 0
+    seed_inspected, seed_observation = _dashboard_productization_public_seed_observation(repo)
+    inspected += seed_inspected
+    inspected += _dashboard_productization_assert_public_seed_optional_probe()
+
     server_text = (repo / "support/dashboard/server/index.mjs").read_text(encoding="utf-8")
     _dashboard_productization_validate_server_text(server_text)
     inspected += 1
@@ -6203,7 +6280,9 @@ def run_dashboard_productization_projection(repo: Path) -> KernelResult:
             "routes remain outside that guard, hardcoded deploy URL/project/org "
             "literals are rejected with FIRE probes, and bake_dashboard_data_json "
             "round-tripped a source_truth false packet with buildings list while "
-            "a mutated source_truth true packet fired RED. The dashboard IAP "
+            "a mutated source_truth true packet fired RED. "
+            f"{seed_observation} "
+            "The dashboard IAP "
             "passport pin observed Authorization only when BRICK_DASHBOARD_SA_KEY_PATH "
             "was present, pinned the subprocess surface to openssl dgst -sha256 -sign, "
             "and fired RED when Authorization attachment was removed. "
