@@ -987,6 +987,86 @@ materialize_building_intent_case:
           node_reroute_budget: preset-default
         materialize-postmortem-fleet-alias-smoke-closure:
           closure_transition_target_policy: preset-default
+  # E1 FULL-LEGO multi-fan-in FIRE: the two-fan-in-graph preset DECLARES an
+  # explicit graph_topology with TWO distinct fan_in_groups (two convergence
+  # points: code lenses -> mid-closure, axis lenses -> final-closure) + an
+  # explicit terminal (final-closure). The materializer must emit EXACTLY those
+  # groups+edges -- the Y-shape positional inference cannot express. This case
+  # pins the MULTI-TARGET shape:
+  #   * group_roles == [fan_out, fan_in, fan_in] (TWO fan_in groups, not one),
+  #   * target_refs trace the Y: 4 fan-out, 2 into mid-closure, the plain
+  #     mid-closure -> final-closure edge, 2 axis into final-closure, then the
+  #     closing boundary edge on the DECLARED terminal,
+  #   * route_policy_provenance carries a closure policy on BOTH fan-in targets
+  #     (mid-closure AND final-closure) -- every fan-in TARGET carries its own
+  #     HUMAN-declared closure_transition_target_policy (preset-default),
+  #   * assert_materialized_return_shapes pins each fan-in SOURCE shape ==
+  #     brick shape MINUS transition_concern_evidence and each fan-in TARGET
+  #     closure shape carries it (the same compose_building validators).
+  # MUTATION-RED anchor: removing the declared terminal, or breaking a declared
+  # fan_in group edge, drops a fan_in group / collapses to one target and this
+  # case REDs.
+  - label: materialize-building-intent:two-fan-in-graph-multi-target
+    document:
+      plan_ref: building-plan:materialize-two-fan-in-graph
+      building_id: materialize-two-fan-in-graph
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:two-fan-in-graph
+      selected_adapter_ref: adapter:local
+      selected_model_ref: model:default
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: materialize-two-fan-in-graph
+      chain_preset_ref: building-chain-preset:two-fan-in-graph
+      selected_adapter_ref: adapter:local
+      task_source_ref: brick/templates/tasks/source-template.md
+      plan_shape: graph
+      step_refs:
+        - materialize-two-fan-in-graph-inspect
+        - materialize-two-fan-in-graph-code-lens-a
+        - materialize-two-fan-in-graph-code-lens-b
+        - materialize-two-fan-in-graph-axis-lens-a
+        - materialize-two-fan-in-graph-axis-lens-b
+        - materialize-two-fan-in-graph-mid-closure
+        - materialize-two-fan-in-graph-final-closure
+      target_refs:
+        - brick-materialize-two-fan-in-graph-code-lens-a
+        - brick-materialize-two-fan-in-graph-code-lens-b
+        - brick-materialize-two-fan-in-graph-axis-lens-a
+        - brick-materialize-two-fan-in-graph-axis-lens-b
+        - brick-materialize-two-fan-in-graph-mid-closure
+        - brick-materialize-two-fan-in-graph-mid-closure
+        - brick-materialize-two-fan-in-graph-final-closure
+        - brick-materialize-two-fan-in-graph-final-closure
+        - brick-materialize-two-fan-in-graph-final-closure
+        - building-boundary:materialize-two-fan-in-graph-closed
+      movements:
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+        - forward
+      group_roles:
+        - fan_out
+        - fan_in
+        - fan_in
+      task_source_hash_present: true
+      assert_materialized_return_shapes: true
+      assert_route_policy_provenance: true
+      route_policy_provenance:
+        materialize-two-fan-in-graph-inspect:
+          node_reroute_budget: preset-default
+        materialize-two-fan-in-graph-mid-closure:
+          closure_transition_target_policy: preset-default
+        materialize-two-fan-in-graph-final-closure:
+          closure_transition_target_policy: preset-default
 materialize_building_intent_rejects:
   - label: materialize-building-intent:missing-task-source-ref
     expected_message: task_source_ref must not be blank
@@ -1210,7 +1290,7 @@ preset_building_completion_case:
         - coo:all-presets-completion-smoke
       human_review_refs:
         - human-review:all-presets-completion-smoke
-    expected_preset_count: 21
+    expected_preset_count: 22
     expected_frontier_kind: complete
     expected_portfolio_frontier_kind: complete
     expected_preset_refs:
@@ -1235,6 +1315,7 @@ preset_building_completion_case:
       - building-chain-preset:recon-fleet
       - building-chain-preset:research-report
       - building-chain-preset:review-fleet
+      - building-chain-preset:two-fan-in-graph
 # PART-2 Phase 1 CORE PRODUCT SEAM: the single task.md + chain preset ->
 # running-Building verb (support/operator/driver.py run_building_intake). This
 # case drives it over an adapter:local deterministic agent brain end-to-end and
