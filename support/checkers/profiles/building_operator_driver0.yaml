@@ -30,6 +30,14 @@ text_contains:
       - def run_composed_graph_intake
       - inline_task_source_carry(
       - 'run_composed_graph_intake admits only plan_shape: graph'
+      # H3b customer-entry seam: a free-form goal -> compose_building_from_task ->
+      # run the proposal's graph INSIDE the SHARED worktree sandbox bracket (the
+      # same _run_in_worktree_sandbox the preset customer path uses -- not forked).
+      - def run_goal_in_sandbox
+      - def _run_in_worktree_sandbox
+      - run_dispatch=_run_preset
+      - run_dispatch=_run_composed
+      - compose_building_from_task(
   - path: support/checkers/check_building_operator_driver0.py
     texts:
       - MODE2 bare-default rejected
@@ -47,6 +55,13 @@ text_contains:
       - def _h2b_design_ai_caller_fire
       - compose_building_from_task
       - h2b-mutation-RED
+      # H3b customer goal-journey FIRE pins (goal -> compose -> run in W1 sandbox
+      # -> complete + live tree byte-identical; invalid proposal raises BEFORE run).
+      - H3b GOAL-journey FIRE passed
+      - def _h3b_goal_journey_fire
+      - run_goal_in_sandbox(
+      - h3b-mutation-RED
+      - h3b-live-tree
   # H2b design-AI caller seam: the operator-level fn that hands the board + task
   # to an injectable design AI and returns a VALIDATED graph proposal (anti-lazy).
   - path: support/operator/auto_compose.py

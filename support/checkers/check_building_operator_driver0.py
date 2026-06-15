@@ -644,6 +644,14 @@ def check(repo: Path) -> tuple[list[str], Mapping[str, Any]]:
     # AI-SHAPED graph is actually runnable end to end. No live provider.
     _h2b_design_ai_caller_fire(repo, violations, summary)
 
+    # H3b GOAL-journey FIRE (customer ENTRY): a free-form goal + a CANNED design
+    # AI + a sentinel runner -> run_goal_in_sandbox COMPOSES a validated graph and
+    # RUNS it INSIDE the SAME W1 worktree sandbox the preset customer path uses, to
+    # a complete frontier with durable evidence, leaving the customer LIVE tree
+    # byte-identical (HEAD + status). Mutation-RED: an INVALID proposal raises
+    # BEFORE any run (no evidence, live tree clean). NO live AI / network.
+    _h3b_goal_journey_fire(repo, violations, summary)
+
     return violations, summary
 
 
@@ -813,6 +821,215 @@ def _h2b_design_ai_caller_fire(
             "h2b-mutation-RED: an edge movement='sideways' did NOT raise, so the "
             "compose_building graph contract is not enforced on the proposal"
         )
+
+
+# ---------------------------------------------------------------------------
+# H3b GOAL-journey FIRE: the customer ENTRY seam run_goal_in_sandbox takes a
+# free-form GOAL + a CANNED design-AI ai_invoke (deterministic, NO live AI/
+# network) + a command_runner sentinel (NO real CLI), COMPOSES a validated graph
+# proposal, and RUNS that proposal's graph INSIDE the W1 disposable worktree
+# sandbox. We assert:
+#   * the goal COMPOSED to the expected nodes (the AI-shaped graph);
+#   * the sandboxed run reached a COMPLETE frontier with DURABLE evidence
+#     (outside the worktree);
+#   * the customer's LIVE TREE is UNCHANGED -- HEAD + git status byte-identical
+#     before/after (sandbox isolation proven), isolation_mode == "worktree";
+#   * the SAME worktree sandbox the preset customer path uses was used (shared,
+#     not forked): a worktree was created and disposed.
+# Mutation-RED: a CANNED INVALID proposal (an UNMAPPED requirement -> anti-lazy;
+# and a bad-graph movement='sideways') HARD-RAISES BEFORE any run -- the live
+# tree stays clean and NO evidence root is produced. The FIRE NEVER calls a live
+# provider or the network: ai_invoke is canned and command_runner is a sentinel.
+# NOT proven here: a LIVE gemini call (the operator dogfoods invoke_gemini_text
+# live, separately).
+# ---------------------------------------------------------------------------
+
+_H3B_GOAL = (
+    "Build the H3b customer-goal smoke payload and synthesize its evidence "
+    "deterministically; do not choose Movement or judge quality."
+)
+
+
+def _h3b_canned_proposal() -> Mapping[str, Any]:
+    """A CANNED design-AI proposal over the SAME real-board 2-node graph the H2a
+    FIRE hand-builds (work -> closure -> boundary). Both requirements map to real
+    nodes (anti-lazy satisfied). This is what a customer's design AI would emit
+    for the goal; here it arrives through the canned ai_invoke."""
+
+    nodes, edges = _h2a_graph()
+    return {
+        "requirements": ["implement-payload", "synthesize-evidence"],
+        "graph": {"nodes": nodes, "edges": edges, "groups": []},
+        "requirement_node_map": {
+            "implement-payload": "work",
+            "synthesize-evidence": "closure",
+        },
+        "preset_delta": "fresh",
+    }
+
+
+def _h3b_canned_ai_invoke(proposal: Mapping[str, Any]):
+    """An ai_invoke(prompt)->text that ignores the prompt and replies with the
+    canned proposal JSON (deterministic; NO live provider, NO network)."""
+
+    text = json.dumps(proposal)
+
+    def _invoke(_prompt: str) -> str:
+        return text
+
+    return _invoke
+
+
+def _h3b_goal_journey_fire(
+    repo: Path,
+    violations: list[str],
+    summary: dict[str, Any],
+) -> None:
+    from brick_protocol.support.operator.auto_compose import AutoComposeError
+    from brick_protocol.support.operator.driver import run_goal_in_sandbox
+
+    with tempfile.TemporaryDirectory(prefix="bp-h3b-customer-") as cust_raw, \
+            tempfile.TemporaryDirectory(prefix="bp-h3b-evidence-") as ev_raw:
+        # The customer "repo" is its OWN subdir so the shared temp root is never
+        # itself a git repo; it is seeded with THIS repo's catalog + a git HEAD
+        # (the W1 helper) and is NEVER nested inside the live tree.
+        customer = Path(cust_raw) / "customer-live"
+        customer.mkdir(parents=True, exist_ok=True)
+        evidence_root = Path(ev_raw)
+
+        # CASE 1 (THE proof): free-form GOAL -> canned design AI COMPOSES a graph
+        # -> the SAME worktree sandbox runs it to a COMPLETE frontier, and the
+        # customer LIVE tree is left UNTOUCHED (HEAD + status byte-identical).
+        head_before = _seed_customer_repo(repo, customer)
+        status_before = _git_text(customer, "status", "--porcelain", "--untracked-files=all")
+        result = run_goal_in_sandbox(
+            _H3B_GOAL,
+            ai_invoke=_h3b_canned_ai_invoke(_h3b_canned_proposal()),
+            repo_root=customer,
+            output_root=evidence_root / "complete",
+            selected_adapter_ref="adapter:codex-local",
+            command_runner=_h2a_completing_codex_runner(),
+            adapter_timeout_seconds=30,
+            overwrite_existing=True,
+        )
+        head_after = _git_text(customer, "rev-parse", "HEAD")
+        status_after = _git_text(customer, "status", "--porcelain", "--untracked-files=all")
+
+        summary["h3b_isolation_mode"] = result.isolation_mode
+        summary["h3b_frontier_kind"] = result.frontier_kind
+        summary["h3b_composed_node_ids"] = list(result.composed_node_ids)
+        summary["h3b_building_id"] = result.building_id
+        summary["h3b_head_unchanged"] = head_before == head_after
+        summary["h3b_live_status_clean"] = status_before == "" and status_after == ""
+        summary["h3b_evidence_dir"] = result.evidence_root
+
+        # (a) the goal COMPOSED the AI-shaped graph (the proposal's nodes).
+        if list(result.composed_node_ids) != ["work", "closure"]:
+            violations.append(
+                f"h3b: goal did not compose the expected nodes: {result.composed_node_ids!r}"
+            )
+        if result.proposal.get("kind") != "building-graph-proposal":
+            violations.append(
+                f"h3b: composed proposal kind drifted: {result.proposal.get('kind')!r}"
+            )
+        # (b) the sandboxed run reached a COMPLETE frontier with DURABLE evidence.
+        if result.frontier_kind != "complete":
+            violations.append(
+                f"h3b: the composed goal did NOT run to a complete frontier "
+                f"(got {result.frontier_kind!r})"
+            )
+        if not result.evidence_root or not Path(result.evidence_root).is_dir():
+            violations.append("h3b: durable evidence root is missing after the sandboxed run")
+        elif _is_under(Path(result.evidence_root), customer):
+            violations.append("h3b: evidence was written INSIDE the customer repo (not durable)")
+        # (c) SANDBOX ISOLATION: the live tree is byte-identical (HEAD + status).
+        if result.isolation_mode != "worktree":
+            violations.append(
+                f"h3b: expected worktree isolation, got {result.isolation_mode!r}"
+            )
+        if head_before != head_after:
+            violations.append(
+                f"h3b-live-tree: customer HEAD moved {head_before} -> {head_after}"
+            )
+        if status_before != "" or status_after != "":
+            violations.append(
+                f"h3b-live-tree: customer git status not clean (before={status_before!r} "
+                f"after={status_after!r})"
+            )
+        # The worktree must be gone after disposal (commit + evidence survive).
+        wt_path = result.sandbox_result.worktree_path
+        if not result.sandbox_result.worktree_disposed or (wt_path and Path(wt_path).exists()):
+            violations.append("h3b-live-tree: the worktree was not disposed after the run")
+
+        # MUTATION-RED (anti-lazy, BEFORE any run): a canned INVALID proposal with
+        # an UNMAPPED requirement must HARD-RAISE in compose_building_from_task
+        # BEFORE the sandbox run -- so the live tree stays clean and NO evidence
+        # root is produced. We point at a FRESH customer repo and assert it is
+        # byte-identical after the raise.
+        customer_red = Path(cust_raw) / "customer-red"
+        customer_red.mkdir(parents=True, exist_ok=True)
+        red_head_before = _seed_customer_repo(repo, customer_red)
+        red_status_before = _git_text(customer_red, "status", "--porcelain", "--untracked-files=all")
+        unmapped = json.loads(json.dumps(_h3b_canned_proposal()))
+        unmapped["requirement_node_map"].pop("synthesize-evidence", None)
+        h3b_unmapped_raised = False
+        try:
+            run_goal_in_sandbox(
+                _H3B_GOAL,
+                ai_invoke=_h3b_canned_ai_invoke(unmapped),
+                repo_root=customer_red,
+                output_root=evidence_root / "red-unmapped",
+                selected_adapter_ref="adapter:codex-local",
+                command_runner=_h2a_completing_codex_runner(),
+                adapter_timeout_seconds=30,
+                overwrite_existing=True,
+            )
+        except AutoComposeError:
+            h3b_unmapped_raised = True
+        red_head_after = _git_text(customer_red, "rev-parse", "HEAD")
+        red_status_after = _git_text(customer_red, "status", "--porcelain", "--untracked-files=all")
+        summary["h3b_unmapped_red_raised"] = h3b_unmapped_raised
+        summary["h3b_red_evidence_absent"] = not (evidence_root / "red-unmapped").exists()
+        if not h3b_unmapped_raised:
+            violations.append(
+                "h3b-mutation-RED: an UNMAPPED requirement did NOT raise BEFORE the run, "
+                "so the anti-lazy gate is not load-bearing on the goal entry"
+            )
+        # The raise happened BEFORE any run: no evidence root, live tree untouched.
+        if (evidence_root / "red-unmapped").exists():
+            violations.append(
+                "h3b-mutation-RED: an INVALID proposal still produced an evidence root "
+                "(the run was NOT skipped before composition failed)"
+            )
+        if red_head_before != red_head_after or red_status_before != "" or red_status_after != "":
+            violations.append(
+                "h3b-mutation-RED: an INVALID-proposal goal still mutated the live tree"
+            )
+
+        # MUTATION-RED (graph contract, BEFORE any run): a canned proposal whose
+        # edge movement is the non-literal 'sideways' must HARD-RAISE too.
+        sideways = json.loads(json.dumps(_h3b_canned_proposal()))
+        sideways["graph"]["edges"][0]["movement"] = "sideways"
+        h3b_movement_raised = False
+        try:
+            run_goal_in_sandbox(
+                _H3B_GOAL,
+                ai_invoke=_h3b_canned_ai_invoke(sideways),
+                repo_root=customer,
+                output_root=evidence_root / "red-movement",
+                selected_adapter_ref="adapter:codex-local",
+                command_runner=_h2a_completing_codex_runner(),
+                adapter_timeout_seconds=30,
+                overwrite_existing=True,
+            )
+        except AutoComposeError:
+            h3b_movement_raised = True
+        summary["h3b_movement_red_raised"] = h3b_movement_raised
+        if not h3b_movement_raised:
+            violations.append(
+                "h3b-mutation-RED: an edge movement='sideways' did NOT raise BEFORE the run, "
+                "so the compose_building graph contract is not enforced on the goal entry"
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -1314,6 +1531,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"run_frontier={summary.get('h2b_run_frontier_kind')}; "
         f"anti-lazy unmapped_red_raised={summary.get('h2b_unmapped_red_raised')} "
         f"movement_red_raised={summary.get('h2b_movement_red_raised')}."
+    )
+    print(
+        "H3b GOAL-journey FIRE passed: "
+        f"composed_nodes={summary.get('h3b_composed_node_ids')} "
+        f"building_id={summary.get('h3b_building_id')} "
+        f"isolation={summary.get('h3b_isolation_mode')} "
+        f"frontier={summary.get('h3b_frontier_kind')} "
+        f"head_unchanged={summary.get('h3b_head_unchanged')} "
+        f"live_status_clean={summary.get('h3b_live_status_clean')} "
+        f"evidence={summary.get('h3b_evidence_dir')}; "
+        f"mutation-RED unmapped_raised={summary.get('h3b_unmapped_red_raised')} "
+        f"red_evidence_absent={summary.get('h3b_red_evidence_absent')} "
+        f"movement_raised={summary.get('h3b_movement_red_raised')} "
+        "(LIVE gemini NOT exercised here -- operator dogfoods invoke_gemini_text live separately)."
     )
     print(
         "proof limit: support evidence only; checker pass does not prove source truth, "
