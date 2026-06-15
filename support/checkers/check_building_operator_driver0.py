@@ -637,7 +637,182 @@ def check(repo: Path) -> tuple[list[str], Mapping[str, Any]]:
     # INDISTINGUISHABLE in validity from a preset run.
     _h2a_direct_graph_intake_fire(repo, violations, summary)
 
+    # H2b design-AI caller FIRE (heart H2 centerpiece): a CANNED design-AI
+    # response is parsed/validated by compose_building_from_task into a VALIDATED
+    # graph PROPOSAL (anti-lazy), then that proposal's graph is fed to H2a's
+    # run_composed_graph_intake and runs to a complete frontier -- proving the
+    # AI-SHAPED graph is actually runnable end to end. No live provider.
+    _h2b_design_ai_caller_fire(repo, violations, summary)
+
     return violations, summary
+
+
+# ---------------------------------------------------------------------------
+# H2b design-AI caller FIRE: the NEW compose_building_from_task seam takes a
+# task + the board, hands a CANNED design-AI response (deterministic, no live
+# provider) through its parse/whitelist/validate gates, and RETURNS a VALIDATED
+# graph PROPOSAL (anti-lazy: every requirement maps to a real node). We then
+# FEED that proposal's validated graph to H2a's run_composed_graph_intake and
+# assert it runs to a COMPLETE frontier (the AI-shaped graph is runnable). The
+# proposal's graph is the SAME real-board shape the H2a FIRE composes by hand --
+# here it arrives THROUGH the design-AI caller instead. compose_building_from_task
+# PROPOSES only; the run is the separate H2a seam (post-approval).
+# Mutation-RED: a canned response with an UNMAPPED requirement RAISES; a canned
+# response whose graph carries movement='sideways' RAISES.
+# ---------------------------------------------------------------------------
+
+_H2B_TASK = (
+    "Build the H2b design-AI smoke payload and synthesize its evidence "
+    "deterministically; do not choose Movement or judge quality."
+)
+
+
+def _h2b_canned_proposal() -> Mapping[str, Any]:
+    """A CANNED design-AI proposal over the SAME real-board 2-node graph the H2a
+    FIRE hand-builds (work -> closure -> boundary). Both requirements map to real
+    nodes (anti-lazy satisfied)."""
+
+    nodes, edges = _h2a_graph()
+    return {
+        "requirements": ["implement-payload", "synthesize-evidence"],
+        "graph": {"nodes": nodes, "edges": edges, "groups": []},
+        "requirement_node_map": {
+            "implement-payload": "work",
+            "synthesize-evidence": "closure",
+        },
+        "preset_delta": "fresh",
+    }
+
+
+def _h2b_canned_ai_invoke(proposal: Mapping[str, Any]):
+    """Return an ai_invoke(prompt)->text that ignores the prompt and replies with
+    the canned proposal JSON (so the FIRE is deterministic; no live provider)."""
+
+    text = json.dumps(proposal)
+
+    def _invoke(_prompt: str) -> str:
+        return text
+
+    return _invoke
+
+
+def _h2b_design_ai_caller_fire(
+    repo: Path,
+    violations: list[str],
+    summary: dict[str, Any],
+) -> None:
+    from brick_protocol.support.operator.auto_compose import (
+        AutoComposeError,
+        compose_building_from_task,
+    )
+    from brick_protocol.support.operator.building_operation import (
+        observe_building_frontier,
+    )
+    from brick_protocol.support.operator.driver import run_composed_graph_intake
+
+    # FIRE: canned design-AI response -> VALIDATED graph proposal (anti-lazy).
+    proposal = compose_building_from_task(
+        _H2B_TASK,
+        ai_invoke=_h2b_canned_ai_invoke(_h2b_canned_proposal()),
+        repo_root=repo,
+    )
+    summary["h2b_proposal_keys"] = sorted(proposal.keys())
+    summary["h2b_requirements"] = list(proposal.get("requirements", []))
+    summary["h2b_requirement_node_map"] = dict(proposal.get("requirement_node_map", {}))
+    summary["h2b_preset_delta"] = proposal.get("preset_delta")
+    summary["h2b_proposal_plan_shape"] = (
+        proposal.get("composed_plan", {}).get("plan_shape")
+        if isinstance(proposal.get("composed_plan"), Mapping)
+        else None
+    )
+
+    if proposal.get("kind") != "building-graph-proposal":
+        violations.append(
+            f"h2b: proposal kind drifted: {proposal.get('kind')!r}"
+        )
+    if sorted(proposal.get("requirement_node_map", {})) != sorted(
+        ["implement-payload", "synthesize-evidence"]
+    ):
+        violations.append(
+            "h2b: validated proposal did not carry the full requirement->node map"
+        )
+    if summary["h2b_proposal_plan_shape"] != "graph":
+        violations.append(
+            f"h2b: composed plan in proposal is not plan_shape graph: "
+            f"{summary['h2b_proposal_plan_shape']!r}"
+        )
+
+    # FEED the VALIDATED graph to H2a's run_composed_graph_intake (sentinel
+    # codex runner; NO real CLI) -> the AI-shaped graph runs to complete.
+    proposed_graph = proposal["graph"]
+    with tempfile.TemporaryDirectory(prefix="bp-h2b-run-") as tmp_raw:
+        out_root = Path(tmp_raw) / "fire"
+        run_result = run_composed_graph_intake(
+            proposed_graph["nodes"],
+            proposed_graph["edges"],
+            groups=proposed_graph.get("groups", []),
+            task_statement=_H2B_TASK,
+            declared_by="coo",
+            selected_adapter_ref="adapter:codex-local",
+            repo_root=repo,
+            output_root=out_root,
+            overwrite_existing=True,
+            command_runner=_h2a_completing_codex_runner(),
+            adapter_timeout_seconds=30,
+        )
+        root = Path(run_result.run_result.lifecycle_write.root)
+        frontier = observe_building_frontier(root, repo_root=repo)
+        summary["h2b_run_plan_shape"] = run_result.plan_shape
+        summary["h2b_run_frontier_kind"] = frontier.get("frontier_kind")
+        if run_result.plan_shape != "graph":
+            violations.append(
+                f"h2b-run: expected plan_shape graph, got {run_result.plan_shape!r}"
+            )
+        if frontier.get("frontier_kind") != "complete":
+            violations.append(
+                "h2b-run: the AI-shaped graph did NOT run to a complete frontier "
+                f"(got {frontier.get('frontier_kind')!r})"
+            )
+
+    # MUTATION-RED (anti-lazy): a canned response that leaves a requirement
+    # UNMAPPED must HARD-RAISE (anti-lazy coverage is load-bearing).
+    unmapped = json.loads(json.dumps(_h2b_canned_proposal()))
+    unmapped["requirement_node_map"].pop("synthesize-evidence", None)
+    h2b_unmapped_raised = False
+    try:
+        compose_building_from_task(
+            _H2B_TASK,
+            ai_invoke=_h2b_canned_ai_invoke(unmapped),
+            repo_root=repo,
+        )
+    except AutoComposeError:
+        h2b_unmapped_raised = True
+    summary["h2b_unmapped_red_raised"] = h2b_unmapped_raised
+    if not h2b_unmapped_raised:
+        violations.append(
+            "h2b-mutation-RED: an UNMAPPED requirement did NOT raise, so the "
+            "anti-lazy requirement->node coverage is not load-bearing"
+        )
+
+    # MUTATION-RED (graph contract): a canned response whose edge movement is the
+    # non-literal 'sideways' must HARD-RAISE via the compose_building contract.
+    sideways = json.loads(json.dumps(_h2b_canned_proposal()))
+    sideways["graph"]["edges"][0]["movement"] = "sideways"
+    h2b_movement_raised = False
+    try:
+        compose_building_from_task(
+            _H2B_TASK,
+            ai_invoke=_h2b_canned_ai_invoke(sideways),
+            repo_root=repo,
+        )
+    except AutoComposeError:
+        h2b_movement_raised = True
+    summary["h2b_movement_red_raised"] = h2b_movement_raised
+    if not h2b_movement_raised:
+        violations.append(
+            "h2b-mutation-RED: an edge movement='sideways' did NOT raise, so the "
+            "compose_building graph contract is not enforced on the proposal"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -1128,6 +1303,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"idempotent_id={summary.get('h2a_idempotent_id')} "
         f"dup_root_collides={summary.get('h2a_dup_root_collides')} "
         f"mutation_red_raised={summary.get('h2a_mutation_red_raised')}."
+    )
+    print(
+        "H2b design-AI caller FIRE passed: "
+        f"proposal_keys={summary.get('h2b_proposal_keys')} "
+        f"requirements={summary.get('h2b_requirements')} "
+        f"requirement_node_map={summary.get('h2b_requirement_node_map')} "
+        f"preset_delta={summary.get('h2b_preset_delta')!r} "
+        f"proposal_plan_shape={summary.get('h2b_proposal_plan_shape')} "
+        f"run_frontier={summary.get('h2b_run_frontier_kind')}; "
+        f"anti-lazy unmapped_red_raised={summary.get('h2b_unmapped_red_raised')} "
+        f"movement_red_raised={summary.get('h2b_movement_red_raised')}."
     )
     print(
         "proof limit: support evidence only; checker pass does not prove source truth, "
