@@ -1173,12 +1173,14 @@ def run_approve_entry(
     budget_increment: int | None = None,
     output_root: Path | str | None = None,
     repo_root: Path | str | None = None,
+    adapter_cwd: Path | str | None = None,
+    adapter_timeout_seconds: int = 120,
 ) -> dict[str, Any]:
     """Append a human/COO disposition row for a held Building, then resume it.
 
     This is a support convenience wrapper around already-written evidence. It
     observes the frontier, mirrors the admitted transition_lifecycle disposition
-    row shape into raw/link.jsonl, and calls ``resume_building_plan(building_root)``.
+    row shape into raw/link.jsonl, and calls ``resume_building_plan``.
     It does not choose Movement, targets, sufficiency, quality, or success.
     """
 
@@ -1390,7 +1392,11 @@ def run_approve_entry(
     result["disposition_written"] = True
     result["disposition_row"] = row
     try:
-        resume_building_plan(building_root)
+        resume_building_plan(
+            building_root,
+            adapter_cwd=adapter_cwd,
+            adapter_timeout_seconds=adapter_timeout_seconds,
+        )
         frontier_after = dict(observe_building_frontier(building_root, repo_root=repo))
     except Exception as exc:  # noqa: BLE001 -- disposition is already written
         result.update(
@@ -1534,6 +1540,18 @@ def main(argv: list[str] | None = None) -> int:
             default=None,
             help="Repo root override for frontier observation.",
         )
+        approve_parser.add_argument(
+            "--adapter-cwd",
+            default=None,
+            help="Working directory passed to resumed adapter calls.",
+        )
+        approve_parser.add_argument(
+            "--timeout",
+            dest="adapter_timeout_seconds",
+            type=int,
+            default=120,
+            help="Adapter timeout seconds passed to resume_building_plan.",
+        )
         approve_args = approve_parser.parse_args(args_list[1:])
         approve_result = run_approve_entry(
             approve_args.building,
@@ -1542,6 +1560,8 @@ def main(argv: list[str] | None = None) -> int:
             budget_increment=approve_args.budget_increment,
             output_root=approve_args.output_root,
             repo_root=approve_args.repo,
+            adapter_cwd=approve_args.adapter_cwd,
+            adapter_timeout_seconds=approve_args.adapter_timeout_seconds,
         )
         sys.stdout.write(_render_approve_text(approve_result))
         sys.stdout.write("\n")

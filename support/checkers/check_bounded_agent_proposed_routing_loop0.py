@@ -652,6 +652,72 @@ def _with_link_edge_gate_sequence_policy(
     raise ValueError(f"edge_ref not found for gate-sequence-policy mutation: {edge_ref}")
 
 
+def _onboard_approve_fire_plan(prefix: str) -> tuple[Mapping[str, Any], str]:
+    plan, pending_target = _checker_plan(prefix, budget=1)
+    changed = copy.deepcopy(plan)
+    for edge in changed.get("link_edges", []):
+        if not isinstance(edge, dict):
+            continue
+        rows = edge.get("rows")
+        if isinstance(rows, list) and rows and isinstance(rows[0], dict):
+            rows[0].pop("declared_gate_refs", None)
+            rows[0].pop("gate_sequence_policy", None)
+    changed = _with_link_edge_gate_sequence_policy(
+        changed,
+        f"edge:{prefix}-design-to-build",
+        declared_gate_refs=["link-gate:default-transition", "link-gate:coo"],
+        gate_sequence_policy=[
+            {
+                "gate_ref": "link-gate:default-transition",
+                "on_missing_required_facts": {
+                    "action": "hold",
+                    "pending_target_basis": "target_brick",
+                    "reason_refs": [f"observation:{prefix}-default-transition-missing"],
+                    "required_disposition_owner": "caller-or-coo",
+                },
+                "on_sufficient": {"action": "next", "next_gate_ref": "link-gate:coo"},
+            },
+            {
+                "gate_ref": "link-gate:coo",
+                "on_missing_required_facts": {
+                    "action": "hold",
+                    "pending_target_basis": "target_brick",
+                    "reason_refs": [f"observation:{prefix}-coo-review-required"],
+                    "required_disposition_owner": "caller-or-coo",
+                },
+                "on_sufficient": {"action": "forward"},
+            }
+        ],
+    )
+    return changed, pending_target
+
+
+def _raw_link_rows(root: Path) -> list[Mapping[str, Any]]:
+    rows: list[Mapping[str, Any]] = []
+    path = root / "raw" / "link.jsonl"
+    if not path.is_file():
+        return rows
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        value = json.loads(line)
+        if isinstance(value, Mapping):
+            rows.append(value)
+    return rows
+
+
+def _link_row_lifecycle_value(row: Mapping[str, Any], flat_key: str, nested_key: str) -> str:
+    value = row.get(flat_key)
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    nested = row.get("transition_lifecycle")
+    if isinstance(nested, Mapping):
+        nested_value = nested.get(nested_key)
+        if isinstance(nested_value, str) and nested_value.strip():
+            return nested_value.strip()
+    return ""
+
+
 def _full_chain_replay_plan() -> tuple[Mapping[str, Any], Mapping[str, str]]:
     prefix = "bapr-loop0-b5-c3"
     step_refs = {
@@ -1526,6 +1592,171 @@ def check(repo: Path) -> list[str]:
         violations.append(f"b5-c5-human-gate-pause: frontier was not link_paused (frontier={fr_c5['frontier_kind']})")
     if landings_c5.get(b2_c5) != 0:
         violations.append(f"b5-c5-human-gate-pause: adopted landing counter moved under human gate ({landings_c5})")
+
+    # ONBOARD APPROVE FIRE (C-2): the CLI support wrapper writes the canonical
+    # coo:/human: forward disposition for a link_paused Building, forwards
+    # adapter_cwd/adapter_timeout_seconds into the existing resume verb, then the
+    # resumed local walk advances beyond the held frontier. Providers are not called.
+    from brick_protocol.support.operator import onboard as onboard_module
+    from brick_protocol.support.operator import run as run_module
+    from brick_protocol.support.operator.onboard import run_approve_entry
+
+    def _smoke_required_return(request):
+        return {
+            "observed_evidence": [f"observed {request.brick_instance_ref}"],
+            "not_proven": ["semantic correctness", "real provider behavior"],
+        }
+
+    with tempfile.TemporaryDirectory(prefix="bp-onboard-approve-fire-") as tmp:
+        sandbox = Path(tmp).resolve()
+        pfx = "onboard-approve-fire"
+        plan_oa, pending_oa = _onboard_approve_fire_plan(pfx)
+        res_oa = run_building_plan(
+            plan_oa,
+            output_root=sandbox,
+            overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": _smoke_required_return},
+            adapter_cwd=sandbox,
+            adapter_timeout_seconds=30,
+        )
+        root_oa = res_oa.lifecycle_write.root
+        before_oa = observe_building_frontier(root_oa, repo_root=repo)
+        lifecycle_oa = before_oa.get("latest_transition_lifecycle")
+        if not isinstance(lifecycle_oa, Mapping):
+            lifecycle_oa = {}
+        paused_at_oa = str(
+            lifecycle_oa.get("transition_lifecycle_paused_at_ref")
+            or lifecycle_oa.get("paused_at_ref")
+            or ""
+        )
+        if before_oa["frontier_kind"] != "link_paused":
+            violations.append(
+                "onboard-approve-fire: setup did not produce link_paused "
+                f"(frontier={before_oa['frontier_kind']})"
+            )
+        if str(
+            lifecycle_oa.get("transition_lifecycle_pending_target_ref")
+            or lifecycle_oa.get("pending_target_ref")
+            or ""
+        ) != pending_oa:
+            violations.append("onboard-approve-fire: setup HOLD pending target drifted")
+        reason_refs_oa = lifecycle_oa.get("transition_lifecycle_reason_refs") or lifecycle_oa.get("reason_refs") or []
+        if not any("link-gate:coo" in str(reason_ref) for reason_ref in reason_refs_oa):
+            violations.append("onboard-approve-fire: setup HOLD did not record link-gate:coo")
+        resume_calls_oa: list[Mapping[str, Any]] = []
+        original_resume_oa = run_module.resume_building_plan
+
+        def _spy_resume(building_root, **kwargs):
+            root = Path(building_root)
+            pre_resume_rows = _raw_link_rows(root)
+            resume_calls_oa.append(
+                {
+                    "building_root": root,
+                    "kwargs": dict(kwargs),
+                    "pre_resume_last_row": pre_resume_rows[-1] if pre_resume_rows else {},
+                }
+            )
+            return original_resume_oa(building_root, **kwargs)
+
+        run_module.resume_building_plan = _spy_resume
+        try:
+            approve_oa = run_approve_entry(
+                root_oa,
+                action="forward",
+                author_ref="coo:smith",
+                adapter_cwd=sandbox,
+                adapter_timeout_seconds=17,
+                repo_root=repo,
+            )
+        finally:
+            run_module.resume_building_plan = original_resume_oa
+        if approve_oa.get("ok") is not True:
+            violations.append(
+                "onboard-approve-fire: run_approve_entry did not return ok "
+                f"({approve_oa.get('error_kind')}: {approve_oa.get('error_message')})"
+            )
+        if not resume_calls_oa:
+            violations.append("onboard-approve-fire: resume_building_plan was not called")
+        else:
+            resume_call_oa = resume_calls_oa[-1]
+            kwargs_oa = dict(resume_call_oa.get("kwargs", {}))
+            if Path(kwargs_oa.get("adapter_cwd")).resolve() != sandbox:
+                violations.append("onboard-approve-fire: adapter_cwd was not forwarded to resume_building_plan")
+            if kwargs_oa.get("adapter_timeout_seconds") != 17:
+                violations.append("onboard-approve-fire: adapter_timeout_seconds was not forwarded")
+            pre_resume_last_oa = resume_call_oa.get("pre_resume_last_row")
+            if not isinstance(pre_resume_last_oa, Mapping):
+                pre_resume_last_oa = {}
+            if _link_row_lifecycle_value(
+                pre_resume_last_oa,
+                "transition_lifecycle_disposition_action",
+                "disposition_action",
+            ) != "forward":
+                violations.append("onboard-approve-fire: pre-resume raw/link last row was not a forward disposition")
+            if str(
+                pre_resume_last_oa.get("transition_author_ref")
+                or pre_resume_last_oa.get("author_ref")
+                or ""
+            ) != "coo:smith":
+                violations.append("onboard-approve-fire: pre-resume raw/link last row author was not coo:smith")
+            if _link_row_lifecycle_value(
+                pre_resume_last_oa,
+                "transition_lifecycle_resumed_from_ref",
+                "resumed_from_ref",
+            ) != paused_at_oa:
+                violations.append("onboard-approve-fire: pre-resume disposition row did not address the held paused_at_ref")
+        after_oa = observe_building_frontier(root_oa, repo_root=repo)
+        if after_oa["frontier_kind"] == "link_paused":
+            after_lifecycle_oa = after_oa.get("latest_transition_lifecycle")
+            if not isinstance(after_lifecycle_oa, Mapping):
+                after_lifecycle_oa = {}
+            after_paused_at_oa = str(
+                after_lifecycle_oa.get("transition_lifecycle_paused_at_ref")
+                or after_lifecycle_oa.get("paused_at_ref")
+                or ""
+            )
+            if after_paused_at_oa == paused_at_oa:
+                violations.append("onboard-approve-fire: approve did not advance beyond the original HOLD")
+        elif after_oa["frontier_kind"] not in {"complete", "closure_pending", "agent_incomplete"}:
+            violations.append(
+                "onboard-approve-fire: unexpected post-approve frontier "
+                f"({after_oa['frontier_kind']})"
+            )
+
+    def _approve_with_frontier(frontier: Mapping[str, Any]) -> Mapping[str, Any]:
+        original_observe = onboard_module.observe_building_frontier
+        onboard_module.observe_building_frontier = lambda *_args, **_kwargs: dict(frontier)
+        try:
+            with tempfile.TemporaryDirectory(prefix="bp-onboard-approve-red-") as tmp_red:
+                return run_approve_entry(Path(tmp_red) / "building", repo_root=repo)
+        finally:
+            onboard_module.observe_building_frontier = original_observe
+
+    parked_oa = _approve_with_frontier({"frontier_kind": "chat_session_parked"})
+    if parked_oa.get("error_kind") != "chat_session_parked_not_resumable":
+        violations.append("onboard-approve-fire: chat_session_parked was not rejected")
+    missing_pending_oa = _approve_with_frontier(
+        {
+            "frontier_kind": "link_paused",
+            "latest_transition_lifecycle": {
+                "transition_lifecycle_paused_at_ref": "link-transition:onboard-approve-red"
+            },
+        }
+    )
+    if missing_pending_oa.get("error_kind") != "missing_pending_target_ref":
+        violations.append("onboard-approve-fire: empty pending_target_ref did not fail closed")
+    with tempfile.TemporaryDirectory(prefix="bp-onboard-approve-budget-red-") as tmp_budget_red:
+        budget_red_oa = run_approve_entry(
+            Path(tmp_budget_red) / "building",
+            action="forward",
+            budget_increment=1,
+            repo_root=repo,
+        )
+    if budget_red_oa.get("error_kind") != "invalid_budget_increment":
+        violations.append("onboard-approve-fire: forward + budget_increment was not rejected")
+    complete_oa = _approve_with_frontier({"frontier_kind": "complete"})
+    if complete_oa.get("ok") is not True or complete_oa.get("disposition_written") is not False:
+        violations.append("onboard-approve-fire: complete frontier was not treated as no-op")
 
     # Invariant: FORWARD GATE-BLOCK IS BUDGET-FREE (gate-block <-> reroute
     # decoupling). A declared gate_sequence_policy on a FORWARD edge whose gate is
@@ -4944,7 +5175,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         "+ budget_increment, covered B5 full-chain replay / human-gate pause / "
         "nested different-node budget / no-target walk-on / monotonic "
         "no-judgment records / invalid-concern paused frontier over adapter:local "
-        "deterministic fixtures, persisted "
+        "deterministic fixtures, proved onboard approve C-2 adapter_cwd/timeout "
+        "forwarding + coo forward disposition handoff + fail-closed RED cases, persisted "
         "node_reroute_budgets and route_replay_plan.max_attempts as Link Carry "
         "budget evidence, delivered the MAIL-REPAIR (0611) runtime mail (mail-1 "
         "gate-adopted concern reason_refs arrive in every redo input with recorded "
