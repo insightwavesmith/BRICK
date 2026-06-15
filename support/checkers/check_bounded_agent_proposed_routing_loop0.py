@@ -2366,6 +2366,10 @@ def check(repo: Path) -> list[str]:
     failing_brick = "brick-bapr-loop0-adapter-frontier-review"
     with tempfile.TemporaryDirectory(prefix="bp-bapr-adapter-frontier-") as tmp:
         tmp_path = Path(tmp)
+        # B2: the dynamic adapter interruption now RETURNS a clean held result
+        # (typed AdapterFrontierEvidenceWritten caught by run_building_plan) instead
+        # of crashing with a bare RuntimeError. The adapter-error frontier must still
+        # be written + held (asserted below via observe_building_frontier).
         try:
             run_building_plan(
                 plan_adapter,
@@ -2380,10 +2384,10 @@ def check(repo: Path) -> list[str]:
                 adapter_timeout_seconds=30,
             )
         except RuntimeError as exc:
-            if "dynamic adapter exception frontier evidence written" not in str(exc):
-                violations.append(f"adapter-frontier: unexpected dynamic error: {exc}")
-        else:
-            violations.append("adapter-frontier: adapter interruption did not halt the dynamic walk")
+            violations.append(
+                "adapter-frontier: adapter interruption must end in a clean held "
+                f"result, not a bare RuntimeError ({exc!r})"
+            )
         adapter_root = tmp_path / str(plan_adapter["building_id"])
         if not adapter_root.exists():
             violations.append("adapter-frontier: no Building root was written")

@@ -3483,8 +3483,13 @@ def run_adapter_error_path_hardening(repo: Path) -> KernelResult:
                 return LocalCliCompleted(call, 0, "codex test-version", "")
             return LocalCliCompleted(call, 1, "", "adapter boom")
 
+        # B2: a dynamic adapter exception/timeout no longer crashes the public
+        # surface with a bare RuntimeError. run_building_plan now CATCHES the typed
+        # AdapterFrontierEvidenceWritten and RETURNS a clean HELD result (the
+        # adapter-error frontier is already written + resumable on disk). Assert the
+        # clean held return -- a bare RuntimeError escaping here REDs the check.
         try:
-            run_module.run_building_plan(
+            held_result = run_module.run_building_plan(
                 _adapter_error_hardening_graph_plan(
                     error_building_id,
                     first_adapter_ref="adapter:codex-local",
@@ -3496,10 +3501,27 @@ def run_adapter_error_path_hardening(repo: Path) -> KernelResult:
                 adapter_timeout_seconds=5,
             )
         except RuntimeError as exc:
-            if "dynamic adapter exception frontier evidence written" not in str(exc):
-                raise
-        else:
-            raise ProfileError("adapter_error_path_hardening expected adapter frontier halt")
+            raise ProfileError(
+                "adapter_error_path_hardening B2: a dynamic adapter exception must "
+                "return a clean held result, not raise a bare RuntimeError "
+                f"({exc!r})"
+            ) from exc
+        held_frontier = observe_building_frontier(root, repo_root=repo)
+        if held_frontier.get("frontier_kind") != "agent_incomplete":
+            raise ProfileError(
+                "adapter_error_path_hardening B2: a dynamic adapter exception did not "
+                f"end in an agent_incomplete held frontier: {held_frontier.get('frontier_kind')!r}"
+            )
+        if _persisted_adapter_error_hold_reason(root) != "adapter_error_frontier":
+            raise ProfileError(
+                "adapter_error_path_hardening B2: held frontier did not carry the "
+                "adapter_error_frontier hold_reason"
+            )
+        if held_result.step_results:
+            raise ProfileError(
+                "adapter_error_path_hardening B2: first-step adapter error held with "
+                "completed step results"
+            )
         inspected += len(cli_calls) + 1
         if not cli_calls:
             raise ProfileError("adapter_error_path_hardening did not reach codex adapter probe")
@@ -3659,6 +3681,11 @@ def run_adapter_error_path_hardening(repo: Path) -> KernelResult:
 
         try:
             walker_resume._adapter_error_hold_without_return = flat_field_only_predicate
+            # B2: the broken (flat-field-only) predicate fails to recognize the legacy
+            # reason-ref hold, so resume does a LIVE adapter rerun. That live call now
+            # ends in a clean held adapter-error frontier instead of a bare RuntimeError
+            # crash, so the mutation-RED signal is the live adapter invocation itself
+            # (mutation_legacy_calls non-empty), not a propagated exception.
             try:
                 run_module.resume_building_plan(
                     mutation_legacy_root,
@@ -3670,18 +3697,15 @@ def run_adapter_error_path_hardening(repo: Path) -> KernelResult:
                     adapter_timeout_seconds=5,
                 )
             except RuntimeError:
+                # A live adapter call may still surface as a non-adapter RuntimeError
+                # depending on the failure shape; either way the live call was made.
                 pass
-            else:
-                raise ProfileError(
-                    "adapter_error_path_hardening F16b legacy flat-field-only "
-                    "mutation did not fire RED"
-                )
         finally:
             walker_resume._adapter_error_hold_without_return = original_adapter_error_predicate
         if not mutation_legacy_calls:
             raise ProfileError(
-                "adapter_error_path_hardening F16b legacy flat-field-only mutation "
-                "made no adapter call"
+                "adapter_error_path_hardening F16b legacy flat-field-only "
+                "mutation did not fire RED (no live adapter invocation)"
             )
         inspected += len(mutation_legacy_calls)
 
@@ -3838,6 +3862,37 @@ def _adapter_error_hardening_graph_plan(
     return plan
 
 
+def _persisted_adapter_error_hold_reason(root: Path) -> str:
+    """Read the persisted dynamic_walker_evidence hold_reason from a held root.
+
+    The adapter-error frontier write records the hold inside the evidence manifest
+    plan snapshot (same location _rewrite_adapter_error_hold_as_legacy_reason_refs
+    reads). This is the on-disk proof that the held frontier carries the
+    adapter_error_frontier reason after the B2 typed-signal/return change.
+    """
+
+    manifest_path = root / "evidence" / "evidence-manifest.json"
+    if not manifest_path.is_file():
+        return ""
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    snapshot = manifest.get("plan_snapshot") if isinstance(manifest, Mapping) else None
+    if not isinstance(snapshot, Mapping):
+        return ""
+    plan_rows_copy = snapshot.get("plan_rows_copy")
+    if not isinstance(plan_rows_copy, str):
+        return ""
+    plan_copy = json.loads(plan_rows_copy)
+    if not isinstance(plan_copy, Mapping):
+        return ""
+    evidence = plan_copy.get("dynamic_walker_evidence")
+    if not isinstance(evidence, Mapping):
+        return ""
+    hold = evidence.get("hold")
+    if not isinstance(hold, Mapping):
+        return ""
+    return str(hold.get("hold_reason") or "")
+
+
 def _write_adapter_error_frontier_fixture(
     run_module: Any,
     *,
@@ -3863,6 +3918,9 @@ def _write_adapter_error_frontier_fixture(
             return LocalCliCompleted(call, 0, "codex test-version", "")
         return LocalCliCompleted(call, 1, "", "adapter boom")
 
+    # B2: the dynamic adapter exception now RETURNS a clean held result rather than
+    # raising a bare RuntimeError. The seeded fixture root must still be a held
+    # adapter-error frontier on disk.
     try:
         run_module.run_building_plan(
             _adapter_error_hardening_graph_plan(
@@ -3878,12 +3936,16 @@ def _write_adapter_error_frontier_fixture(
             adapter_timeout_seconds=5,
         )
     except RuntimeError as exc:
-        if "dynamic adapter exception frontier evidence written" not in str(exc):
-            raise
-    else:
-        raise ProfileError("adapter_error_path_hardening expected adapter frontier halt")
+        raise ProfileError(
+            "adapter_error_path_hardening fixture: a dynamic adapter exception must "
+            f"return a clean held result, not raise a bare RuntimeError ({exc!r})"
+        ) from exc
     if not root.is_dir():
         raise ProfileError(f"adapter_error_path_hardening fixture root missing: {root}")
+    if _persisted_adapter_error_hold_reason(root) != "adapter_error_frontier":
+        raise ProfileError(
+            "adapter_error_path_hardening fixture root is not a held adapter-error frontier"
+        )
 
 
 def _rewrite_adapter_error_hold_as_legacy_reason_refs(root: Path) -> None:

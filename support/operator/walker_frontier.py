@@ -95,6 +95,7 @@ def _write_dynamic_adapter_error_frontier(
     fan_in_wait_all_observations: list[Mapping[str, Any]],
     has_fan_groups: bool,
     write_adapter_error_frontier,
+    adapter_frontier_exception,
     resume_observations: list[Mapping[str, Any]] | None = None,
 ) -> None:
     """Write adapter-error frontier evidence for dynamic walks, then halt.
@@ -103,6 +104,16 @@ def _write_dynamic_adapter_error_frontier(
     exist. The dynamic walker records that frontier through the same support
     writer as the linear walker; it does not classify success, choose Movement,
     or invent a route.
+
+    After the frontier write it raises the INJECTED typed
+    ``adapter_frontier_exception`` (``run.AdapterFrontierEvidenceWritten``) --
+    mirroring the chat-session-park surface -- instead of a bare RuntimeError, so
+    the public callers (``run_building_plan`` / ``resume_building_plan``) can CATCH
+    the typed signal and RETURN the already-held, resumable Building as a held
+    ``BuildingPlanSupportResult`` rather than crashing. The frontier write + hold
+    record + resume behaviour are byte-identical; only the raise mechanism changes.
+    The injected exception is threaded in like chat-session-park injects its own
+    exception factory, avoiding a run.py <-> walker import cycle.
     """
 
     prepared = getattr(exc, "prepared", None)
@@ -110,6 +121,15 @@ def _write_dynamic_adapter_error_frontier(
     adapter_error = getattr(exc, "adapter_error", None)
     if prepared is None or adapter_request is None or not isinstance(adapter_error, Mapping):
         raise exc
+    if adapter_frontier_exception is None:
+        # The resume verb (walker_resume._resume_dynamic_graph_walker) delegates to
+        # the forward walk without forwarding the injected exception. Recover the
+        # typed class lazily -- run.py is fully imported by the time any walk runs,
+        # so this only fires on an adapter error during a resumed walk (rare path),
+        # never on the hot forward step.
+        from brick_protocol.support.operator.run import AdapterFrontierEvidenceWritten
+
+        adapter_frontier_exception = AdapterFrontierEvidenceWritten
     frontier_hold_record = hold_record or _adapter_error_hold_record(
         building_id=building_id,
         completed_step_results=completed_step_results,
@@ -120,7 +140,7 @@ def _write_dynamic_adapter_error_frontier(
         cascade_depth=cascade_depth,
         parent_reroute_ref=parent_reroute_ref,
     )
-    write_adapter_error_frontier(
+    evidence_write = write_adapter_error_frontier(
         building_id=building_id,
         plan_ref=plan_ref,
         plan=_dynamic_frontier_write_plan(
@@ -146,8 +166,14 @@ def _write_dynamic_adapter_error_frontier(
             frontier_hold_record
         ),
     )
-    raise RuntimeError(
-        "dynamic adapter exception frontier evidence written before AgentFact returned"
+    raise adapter_frontier_exception(
+        "dynamic adapter exception frontier evidence written before AgentFact returned",
+        building_id=building_id,
+        building_root=evidence_write.lifecycle_write.root,
+        written_files=evidence_write.written_files,
+        plan_ref=plan_ref,
+        completed_step_results=tuple(completed_step_results),
+        evidence_write=evidence_write,
     ) from exc
 
 

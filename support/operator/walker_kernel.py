@@ -1339,6 +1339,7 @@ def _run_dynamic_graph_walker(
     write_adapter_error_frontier,
     write_chat_session_park_frontier,
     chat_session_park_frontier_exception,
+    adapter_frontier_exception=None,
     repo_root: Path | str = _REPO_ROOT,
     resume_seed: "ResumeSeed | None" = None,
     report_env: Mapping[str, str] | None = None,
@@ -1723,6 +1724,7 @@ def _run_dynamic_graph_walker(
                 fan_in_wait_all_observations=fan_in_wait_all_observations,
                 has_fan_groups=has_fan_groups,
                 write_adapter_error_frontier=write_adapter_error_frontier,
+                adapter_frontier_exception=adapter_frontier_exception,
                 resume_observations=_resume_observations_for_frontier(
                     resume_seed,
                     disposition_applied=disposition_applied,
