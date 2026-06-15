@@ -1432,6 +1432,7 @@ def run_building_intake_seam_case(repo: Path, profile: Mapping[str, Any]) -> int
     items = rule_items(profile, "building_intake_seam_case")
     if not items:
         return 0
+    from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
     from support.operator.building_operation import observe_building_frontier
     from support.operator.driver import run_building_intake
 
@@ -1454,9 +1455,18 @@ def run_building_intake_seam_case(repo: Path, profile: Mapping[str, Any]) -> int
             mapping.get("chain_preset_ref"), f"{label}: chain_preset_ref"
         )
         selected_adapter_ref = require_string(
-            mapping.get("selected_adapter_ref", "adapter:local"),
+            mapping.get("selected_adapter_ref", "adapter:codex-local"),
             f"{label}: selected_adapter_ref",
         )
+        # C4 (0615): a fixture that walks a write-needing preset (one whose QA
+        # bricks now declare requires_brick_write_scope yes) MUST carry a
+        # work-area write_scope and drive an observed-write adapter
+        # (adapter:codex-local) through the EXISTING command_runner sentinel --
+        # no real CLI launches. adapter:local (the in-process LOCAL-LLM stub) is
+        # read-only and stays only on a NON-QA, no-write-need preset.
+        write_scope = mapping.get("write_scope")
+        if write_scope is not None:
+            write_scope = require_mapping(write_scope, f"{label}: write_scope")
         expected_plan_shape = require_string(
             mapping.get("expected_plan_shape", "graph"), f"{label}: expected_plan_shape"
         )
@@ -1521,6 +1531,8 @@ def run_building_intake_seam_case(repo: Path, profile: Mapping[str, Any]) -> int
                 "real provider behavior",
             ],
         }
+        if write_scope is not None:
+            intent["write_scope"] = dict(write_scope)
         if route_decision_basis is not None:
             intent["route_decision_basis"] = dict(route_decision_basis)
         if task_statement is not None:
@@ -1538,25 +1550,56 @@ def run_building_intake_seam_case(repo: Path, profile: Mapping[str, Any]) -> int
         statement_residue_before = {
             path.name for path in repo.glob("task-statement-*.md")
         }
-        seam_callable = _building_intake_seam_callable
-        if task_statement is not None:
-            def _no_repo_root_statement_file_callable(
-                request: Any,
-                _label: str = label,
-                _before: frozenset[str] = frozenset(statement_residue_before),
-            ) -> Mapping[str, Any]:
-                during = {
-                    path.name for path in repo.glob("task-statement-*.md")
-                } - _before
-                if during:
-                    raise ProfileError(
-                        f"building_intake_seam_case rejected {_label}: repo-root "
-                        f"task-statement file(s) existed DURING the inline run "
-                        f"(the inline mechanism must write no file): {sorted(during)}"
-                    )
-                return _building_intake_seam_callable(request)
 
-            seam_callable = _no_repo_root_statement_file_callable
+        def _assert_no_repo_root_statement_file(
+            _label: str = label,
+            _before: frozenset[str] = frozenset(statement_residue_before),
+        ) -> None:
+            # TASK-BY-TEXT no-repo-root-file FIRE (codex FIX-A, 0611): the inline
+            # mechanism must NEVER create a repo-root task-statement file, not
+            # even transiently. Probe the repo-root glob DURING the run so a
+            # regression back to any transient-file mechanism REDs mid-walk.
+            during = {
+                path.name for path in repo.glob("task-statement-*.md")
+            } - _before
+            if during:
+                raise ProfileError(
+                    f"building_intake_seam_case rejected {_label}: repo-root "
+                    f"task-statement file(s) existed DURING the inline run "
+                    f"(the inline mechanism must write no file): {sorted(during)}"
+                )
+
+        # C4 (0615): drive the seam through the SAME adapter the fixture
+        # declares. adapter:local stays the in-process local_callables path (a
+        # NON-QA, no-write-need preset only). A write-needing QA preset declares
+        # adapter:codex-local and is driven by the EXISTING preset-completion
+        # command_runner sentinel -- a deterministic CLI-shaped return with NO
+        # real CLI launch (the runner intercepts the argv).
+        local_callables: dict[str, Any] | None = None
+        command_runner = None
+        if selected_adapter_ref == "adapter:local":
+            seam_callable = _building_intake_seam_callable
+            if task_statement is not None:
+                def _no_repo_root_statement_file_callable(
+                    request: Any,
+                ) -> Mapping[str, Any]:
+                    _assert_no_repo_root_statement_file()
+                    return _building_intake_seam_callable(request)
+
+                seam_callable = _no_repo_root_statement_file_callable
+            local_callables = {"callable:local:agent-invoke0-smoke": seam_callable}
+        else:
+            base_runner = _preset_completion_command_runner(LocalCliCompleted)
+
+            def _seam_command_runner(
+                args: Sequence[str], cwd: Path, timeout_seconds: int
+            ) -> Any:
+                checked_args = tuple(str(arg) for arg in args)
+                if task_statement is not None and "--version" not in checked_args:
+                    _assert_no_repo_root_statement_file()
+                return base_runner(args, cwd, timeout_seconds)
+
+            command_runner = _seam_command_runner
 
         with tempfile.TemporaryDirectory(prefix="bp-building-intake-seam-") as tmpdir:
             output_root = Path(tmpdir) / "buildings"
@@ -1565,9 +1608,8 @@ def run_building_intake_seam_case(repo: Path, profile: Mapping[str, Any]) -> int
                 repo_root=repo,
                 output_root=output_root,
                 overwrite_existing=True,
-                local_callables={
-                    "callable:local:agent-invoke0-smoke": seam_callable
-                },
+                local_callables=local_callables,
+                command_runner=command_runner,
                 adapter_cwd=repo,
                 adapter_timeout_seconds=10,
             )
@@ -1958,10 +2000,20 @@ def run_intake_project_vessel_case(repo: Path, profile: Mapping[str, Any]) -> in
         return 0
     import shutil
 
+    from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
     from support.operator.building_operation import observe_building_frontier
     from support.operator.driver import run_building_intake
     from support.operator.project_creation import create_project
     from support.recording.capture import DEFAULT_BUILDINGS_ROOT, buildings_root_for
+
+    # C4 (0615): governed-change-review's QA bricks now declare a write NEED, so
+    # the intent carries a broad work-area write_scope and the seam is driven by
+    # adapter:codex-local through the EXISTING command_runner sentinel (no real
+    # CLI). adapter:local (read-only in-process stub) must not drive a
+    # write-needing QA building. .git/secret/token stay unconditionally forbidden
+    # by write_observation.py.
+    vessel_command_runner = _preset_completion_command_runner(LocalCliCompleted)
+    vessel_write_scope = {"allowed_paths": ["**"], "forbidden_paths": [".git/**"]}
 
     count = 0
     for item in items:
@@ -2010,8 +2062,9 @@ def run_intake_project_vessel_case(repo: Path, profile: Mapping[str, Any]) -> in
             "declared_by": "coo",
             "task_statement": task_statement,
             "chain_preset_ref": chain_preset_ref,
-            "selected_adapter_ref": "adapter:local",
+            "selected_adapter_ref": "adapter:codex-local",
             "selected_model_ref": "model:default",
+            "write_scope": dict(vessel_write_scope),
             "project_ref": project_ref,
             "report_event_policy": {"enabled": False},
             "proof_limits": [
@@ -2048,9 +2101,7 @@ def run_intake_project_vessel_case(repo: Path, profile: Mapping[str, Any]) -> in
                 intent,
                 repo_root=repo,
                 overwrite_existing=False,
-                local_callables={
-                    "callable:local:agent-invoke0-smoke": _building_intake_seam_callable
-                },
+                command_runner=vessel_command_runner,
                 adapter_cwd=repo,
                 adapter_timeout_seconds=10,
             )
@@ -2095,9 +2146,7 @@ def run_intake_project_vessel_case(repo: Path, profile: Mapping[str, Any]) -> in
                         ambiguous_intent,
                         repo_root=repo,
                         output_root=ambiguous_output,
-                        local_callables={
-                            "callable:local:agent-invoke0-smoke": _building_intake_seam_callable
-                        },
+                        command_runner=vessel_command_runner,
                         adapter_cwd=repo,
                         adapter_timeout_seconds=10,
                     )
@@ -2130,9 +2179,7 @@ def run_intake_project_vessel_case(repo: Path, profile: Mapping[str, Any]) -> in
                 run_building_intake(
                     smuggled_intent,
                     repo_root=repo,
-                    local_callables={
-                        "callable:local:agent-invoke0-smoke": _building_intake_seam_callable
-                    },
+                    command_runner=vessel_command_runner,
                     adapter_cwd=repo,
                     adapter_timeout_seconds=10,
                 )
@@ -2158,9 +2205,7 @@ def run_intake_project_vessel_case(repo: Path, profile: Mapping[str, Any]) -> in
                 run_building_intake(
                     bogus_intent,
                     repo_root=repo,
-                    local_callables={
-                        "callable:local:agent-invoke0-smoke": _building_intake_seam_callable
-                    },
+                    command_runner=vessel_command_runner,
                     adapter_cwd=repo,
                     adapter_timeout_seconds=10,
                 )
@@ -2187,9 +2232,7 @@ def run_intake_project_vessel_case(repo: Path, profile: Mapping[str, Any]) -> in
                 run_building_intake(
                     malformed_intent,
                     repo_root=repo,
-                    local_callables={
-                        "callable:local:agent-invoke0-smoke": _building_intake_seam_callable
-                    },
+                    command_runner=vessel_command_runner,
                     adapter_cwd=repo,
                     adapter_timeout_seconds=10,
                 )
@@ -2215,9 +2258,7 @@ def run_intake_project_vessel_case(repo: Path, profile: Mapping[str, Any]) -> in
                 run_building_intake(
                     charterless_intent,
                     repo_root=repo,
-                    local_callables={
-                        "callable:local:agent-invoke0-smoke": _building_intake_seam_callable
-                    },
+                    command_runner=vessel_command_runner,
                     adapter_cwd=repo,
                     adapter_timeout_seconds=10,
                 )

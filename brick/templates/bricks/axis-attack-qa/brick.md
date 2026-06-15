@@ -2,7 +2,7 @@
 brick_kind: axis-attack-qa
 brick_word: axis_attack_qa
 performer_word: inspector
-requires_brick_write_scope: no
+requires_brick_write_scope: yes
 performer_lane_need: reviewer
 agent_object_hint_ref: agent-object:inspector
 required_return_template_refs:
@@ -14,8 +14,11 @@ brick_contract: Axis attack QA Brick inspects Brick / Agent / Link ownership, su
 ## axis-attack-qa
 
 Attack the prior Brick output along the **three-axis boundary**: inspect Brick / Agent / Link
-ownership, support leakage, projection authority, and evidence integrity. Read-only — make **no
-mutation** and claim **no Movement authority**.
+ownership, support leakage, projection authority, and evidence integrity. QA-attack verifies by
+**writing the BUILDING WORK-AREA** (run real checkers / FIRE / mutation probes); the building runs
+in a **disposable W1 worktree sandbox**, so this work-area write **never touches the customer live
+tree**. Claim **no source-truth verdict** and **no Movement authority** — your axis findings are
+observed facts, not reviewer authority.
 
 Input: the prior Brick's report (carried via the Link edge) plus this node's declared
 `work_statement` naming the `attacked_scope` to inspect. Probe whether each meaning lives in its

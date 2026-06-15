@@ -315,9 +315,13 @@ def _validate_agent_authority(role: str, agent_object: Mapping[str, Any], path: 
         raise AgentResourceError(f"{path}: Agent Object must carry hook:instruction-chain-read")
     if _HOOK_RESOURCE_REF_REDACTION not in hook_refs:
         raise AgentResourceError(f"{path}: Agent Object must carry hook:resource-ref-redaction")
-    if _TOOL_POLICY_READ_WRITE_SCOPED in tool_policy_refs and lane not in ("worker", "leader"):
+    if _TOOL_POLICY_READ_WRITE_SCOPED in tool_policy_refs and lane not in (
+        "worker",
+        "leader",
+        "reviewer",
+    ):
         raise AgentResourceError(
-            f"{path}: read-write scoped tool policy is admitted only for worker or leader lane"
+            f"{path}: read-write scoped tool policy is admitted only for worker, leader, or reviewer lane"
         )
     if (
         _TOOL_POLICY_READ_WRITE_SCOPED in tool_policy_refs
@@ -333,9 +337,22 @@ def _validate_agent_authority(role: str, agent_object: Mapping[str, Any], path: 
         if _TOOL_POLICY_LEADER_COORDINATION not in tool_policy_refs:
             raise AgentResourceError(f"{path}: leader lane must carry tool-policy:leader-coordination")
     if lane == "reviewer":
+        # hook:reviewer-no-mutation ALWAYS holds: QA-attack writes the building
+        # WORK-AREA (run real checkers / FIRE / mutation probes -- its true
+        # nature) inside the disposable W1 worktree sandbox, but it never mutates
+        # customer source-truth and never claims Movement. The hook is the
+        # discipline; read-write-scoped is the work-area write CAPABILITY.
         if _HOOK_REVIEWER_NO_MUTATION not in hook_refs:
             raise AgentResourceError(f"{path}: reviewer lane must carry hook:reviewer-no-mutation")
-        if _TOOL_POLICY_REVIEWER_READONLY not in tool_policy_refs:
+        # A reviewer MAY carry tool-policy:read-write-scoped (write-capable
+        # QA-attack); effective write stays gated by a Brick-declared write_scope
+        # NEED plus an observed-write adapter, exactly like the leader MAY-carry.
+        # A reviewer WITHOUT read-write-scoped must still carry the read-only
+        # reviewer policy (byte-identical to today's reviewer surface).
+        if (
+            _TOOL_POLICY_READ_WRITE_SCOPED not in tool_policy_refs
+            and _TOOL_POLICY_REVIEWER_READONLY not in tool_policy_refs
+        ):
             raise AgentResourceError(f"{path}: reviewer lane must carry tool-policy:reviewer-readonly")
 
 
