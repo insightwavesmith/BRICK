@@ -24,12 +24,22 @@ text_contains:
       - portfolio_transition_budget_exhausted
       - support authors no Building Plan, Movement, target, or adoption
       - disposition_action_surface
+      # H2a direct-graph intake seam: compose_building (no preset) + reattach the
+      # inline task-source carry + run_building_plan; the preset path is untouched.
+      - def run_composed_graph_intake
+      - inline_task_source_carry(
+      - 'run_composed_graph_intake admits only plan_shape: graph'
   - path: support/checkers/check_building_operator_driver0.py
     texts:
       - MODE2 bare-default rejected
       - candidate-not-in-declared-set rejected
       - child_roots=
       - adapter:local deterministic fixture only
+      # H2a direct-graph intake FIRE pins (the seam + evidence-spine proof).
+      - H2a direct-graph intake FIRE passed
+      - def _h2a_direct_graph_intake_fire
+      - h2a-mutation-RED
+      - h2a-idempotency
   # ONBOARDING-WIZARD-0 PART-2: the example routes through the PART-1 seam, the
   # real-vs-local adapter is driven by preflight readiness evidence, and the
   # handoff names the seam verb. (onboard_seam_case executes these; the source

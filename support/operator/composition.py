@@ -250,6 +250,68 @@ def materialize_building_intent(
     return rendered
 
 
+def inline_task_source_carry(
+    task_statement: Any,
+    *,
+    chain_preset_ref: str = "",
+) -> Mapping[str, Any]:
+    """Author the INLINE task-source evidence carry for a pre-composed graph.
+
+    H2a (direct-graph intake). ``compose_building`` assembles a ``plan_shape:
+    graph`` plan but OMITS the task-source/evidence carry that
+    ``materialize_building_intent`` authors on the preset path. When a caller
+    runs an AI-composed graph (no preset), the SAME required carry must be
+    reattached so the evidence spine is INDISTINGUISHABLE in validity from a
+    preset-intake run.
+
+    This helper REUSES the materializer's own authoring primitives -- the
+    SINGLE source of the inline body normalization, the sha256 over that body,
+    the hash basis token, and the STABLE id derive -- so the carry is identical
+    to the inline preset path's, byte for byte, and idempotent: the same
+    statement re-derives the same body, hash, and ``default_building_id``. It
+    authors NO Movement, target, success, or quality and changes nothing about
+    ``materialize_building_intent`` / ``compose_building`` behavior; it only
+    EXPOSES the carry the materializer already builds inline so the driver does
+    not duplicate (or drift from) it.
+
+    Returns a mapping with the REQUIRED inline carry fields:
+
+    * ``task_source_ref`` = ``INLINE_TASK_SOURCE_REF`` sentinel
+    * ``task_statement`` = the normalized body (single trailing newline) -- the
+      exact bytes the evidence writer lands as ``work/task.md`` and the source
+      for re-hashing at evidence-write time (declaration_packets.py)
+    * ``task_source_hash`` = sha256 over that body, ``task_source_hash_algorithm``
+      ``sha256``, ``task_source_hash_basis`` the inline basis token
+    * ``default_building_id`` = the STABLE inline id derive (sha256 of body +
+      preset), so a caller that did not declare its own ``building_id`` gets the
+      idempotent default the preset path would have used.
+
+    Fail-closed exactly like the materializer (same single owner): empty /
+    whitespace / non-text statement -> reject; a statement over
+    ``INLINE_TASK_STATEMENT_MAX_BYTES`` -> reject with the file-flow pointer.
+    A declared ``task_source_ref`` is NOT accepted here (this is the inline
+    seam only): ``_materializer_task_source`` rejects the EITHER/OR ambiguity.
+    """
+
+    chain_preset_text = _clean_text("chain_preset_ref", chain_preset_ref) if chain_preset_ref else ""
+    # REUSE the single fail-closed owner of inline-body normalization + the
+    # EITHER/OR / empty / size rejects. repo is unused on the inline branch
+    # (no file is read), so a bare cwd is a safe placeholder.
+    task_source_ref, task_body, inline_statement = _materializer_task_source(
+        {"task_statement": task_statement}, Path.cwd()
+    )
+    if inline_statement is None:  # defensive: the helper is the inline seam only
+        raise ValueError("inline_task_source_carry requires a non-empty task_statement")
+    return {
+        "task_source_ref": task_source_ref,
+        "task_statement": inline_statement,
+        "task_source_hash": hashlib.sha256(task_body.encode("utf-8")).hexdigest(),
+        "task_source_hash_algorithm": "sha256",
+        "task_source_hash_basis": _materializer_task_source_hash_basis(inline_statement),
+        "default_building_id": _materializer_inline_building_id(task_body, chain_preset_text),
+    }
+
+
 def render_declared_step_template_plan(
     intent: Mapping[str, Any],
     *,
