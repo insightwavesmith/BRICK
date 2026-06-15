@@ -957,10 +957,6 @@ def to_posix(path: Path | str) -> str:
     return value
 
 
-def is_under(path: str, root: str) -> bool:
-    return path == root or path.startswith(f"{root}/")
-
-
 def path_tail(path: str, root: str) -> list[str] | None:
     parts = path.split("/")
     root_parts = root.split("/")

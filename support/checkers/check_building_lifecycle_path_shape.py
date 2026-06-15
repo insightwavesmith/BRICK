@@ -534,14 +534,6 @@ def lifecycle_shape_for(building_id: str) -> tuple[set[tuple[str, ...]], set[tup
     return MINIMAL_LIFECYCLE_DIRS, MINIMAL_LIFECYCLE_RECORDS
 
 
-def required_records_for(building_id: str) -> set[tuple[str, ...]]:
-    if building_id in COMPACT_HISTORICAL_CAP_BOOT_BUILDINGS:
-        return HISTORICAL_LIFECYCLE_RECORDS
-    if building_id in FULL_HISTORICAL_CAP_BOOT_BUILDINGS:
-        return ACTIVE_LIFECYCLE_RECORDS
-    return MINIMAL_REQUIRED_RECORDS
-
-
 def candidate_tails(
     paths: set[str],
     project_id: str,

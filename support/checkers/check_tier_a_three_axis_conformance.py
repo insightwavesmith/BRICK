@@ -108,10 +108,6 @@ PROOF_LIMIT = (
 )
 
 
-class TierAConformanceError(ValueError):
-    """Raised when the produced Tier-A Building root fails a conformance assertion."""
-
-
 # ---------------------------------------------------------------------------
 # evidence readers
 # ---------------------------------------------------------------------------
