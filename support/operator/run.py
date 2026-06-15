@@ -175,7 +175,17 @@ from brick_protocol.support.recording.step_outputs import (
 
 
 class AdapterFrontierEvidenceWritten(RuntimeError):
-    """Raised after support writes frontier evidence for an adapter exception."""
+    """Raised after support writes frontier evidence for an adapter exception.
+
+    The dynamic-walker surface raises this TYPED signal (mirroring the linear
+    surface + chat-session-park) after the adapter-error frontier is written, and
+    the public callers (``run_building_plan`` / ``resume_building_plan``) CATCH it
+    and RETURN the already-held, resumable Building as a held
+    ``BuildingPlanSupportResult``. The dynamic surface additionally carries the
+    completed step results + the frontier evidence-write result so the caller can
+    assemble that held result without re-reading disk; the linear surface (which
+    has no multi-step accumulation) leaves those at their defaults.
+    """
 
     def __init__(
         self,
@@ -184,11 +194,17 @@ class AdapterFrontierEvidenceWritten(RuntimeError):
         building_id: str,
         building_root: Path,
         written_files: tuple[Path, ...],
+        plan_ref: str = "",
+        completed_step_results: tuple[BuildingRunSupportResult, ...] = (),
+        evidence_write: Any | None = None,
     ) -> None:
         super().__init__(message)
         self.building_id = building_id
         self.building_root = building_root
         self.written_files = written_files
+        self.plan_ref = plan_ref
+        self.completed_step_results = completed_step_results
+        self.evidence_write = evidence_write
 
 
 class ChatSessionParkFrontierEvidenceWritten(RuntimeError):
@@ -1203,6 +1219,42 @@ def run_building_once(
     return result
 
 
+def _held_result_from_adapter_frontier_signal(
+    signal: AdapterFrontierEvidenceWritten,
+) -> BuildingPlanSupportResult:
+    """Assemble the held ``BuildingPlanSupportResult`` for a caught adapter signal.
+
+    When the dynamic walker hits an adapter exception/timeout it writes the
+    adapter-error frontier (a resumable hold) and raises the TYPED
+    ``AdapterFrontierEvidenceWritten`` carrying the completed step results + the
+    frontier evidence-write result. Rather than crash, the public callers return
+    THIS held result: the building is already held + resumable on disk
+    (hold_reason=adapter_error_frontier, paused lifecycle, disposition_required).
+    The frontier write itself is byte-identical -- this only repackages the
+    already-written evidence as the public return shape.
+    """
+
+    evidence_write = signal.evidence_write
+    if evidence_write is None:
+        raise signal
+    step_results = signal.completed_step_results
+    return BuildingPlanSupportResult(
+        building_id=signal.building_id,
+        plan_ref=signal.plan_ref,
+        step_results=step_results,
+        lifecycle_write=evidence_write.lifecycle_write,
+        building_map_write=evidence_write.building_map_write,
+        written_files=evidence_write.written_files,
+        capture_event_types=evidence_write.capture_event_types,
+        building_map_packet=evidence_write.building_map_packet,
+        proof_limits=_merge_texts(
+            evidence_write.proof_limits,
+            *(r.proof_limits for r in step_results),
+        ),
+        not_proven=_merge_texts(*(r.not_proven for r in step_results)),
+    )
+
+
 def run_building_plan(
     plan: Mapping[str, Any] | str | Path,
     *,
@@ -1228,25 +1280,33 @@ def run_building_plan(
     checked_proof_limits = _proof_limits_tuple(
         proof_limits if proof_limits is not None else packet.get("proof_limits")
     )
-    return _run_dynamic_graph_walker(
-        packet,
-        output_root=output_root,
-        overwrite_existing=overwrite_existing,
-        local_callables=local_callables,
-        command_runner=command_runner,
-        adapter_cwd=adapter_cwd,
-        adapter_timeout_seconds=adapter_timeout_seconds,
-        checked_proof_limits=checked_proof_limits,
-        run_step=_run_building_step_without_writing,
-        record_step_output=_write_step_output_on_step_close,
-        write_accumulated=write_accumulated_building_evidence,
-        write_adapter_error_frontier=write_adapter_error_frontier_evidence,
-        write_chat_session_park_frontier=write_chat_session_park_frontier_evidence,
-        chat_session_park_frontier_exception=ChatSessionParkFrontierEvidenceWritten,
-        repo_root=_REPO_ROOT,
-        report_env=report_env,
-        report_slack_sender=report_slack_sender,
-    )
+    try:
+        return _run_dynamic_graph_walker(
+            packet,
+            output_root=output_root,
+            overwrite_existing=overwrite_existing,
+            local_callables=local_callables,
+            command_runner=command_runner,
+            adapter_cwd=adapter_cwd,
+            adapter_timeout_seconds=adapter_timeout_seconds,
+            checked_proof_limits=checked_proof_limits,
+            run_step=_run_building_step_without_writing,
+            record_step_output=_write_step_output_on_step_close,
+            write_accumulated=write_accumulated_building_evidence,
+            write_adapter_error_frontier=write_adapter_error_frontier_evidence,
+            write_chat_session_park_frontier=write_chat_session_park_frontier_evidence,
+            chat_session_park_frontier_exception=ChatSessionParkFrontierEvidenceWritten,
+            adapter_frontier_exception=AdapterFrontierEvidenceWritten,
+            repo_root=_REPO_ROOT,
+            report_env=report_env,
+            report_slack_sender=report_slack_sender,
+        )
+    except AdapterFrontierEvidenceWritten as adapter_frontier:
+        # The adapter raised/timed out before an AgentFact existed; the dynamic
+        # walker has already written the resumable adapter-error frontier (hold).
+        # Return that already-held Building as a clean held result instead of
+        # crashing -- a flaky adapter call ends recoverable, not fatal.
+        return _held_result_from_adapter_frontier_signal(adapter_frontier)
 
 
 def resume_building_plan(
@@ -1288,26 +1348,34 @@ def resume_building_plan(
             report_slack_sender=report_slack_sender,
         )
     frontier_history = _adapter_error_frontier_history_snapshot(root)
-    result = _resume_dynamic_graph_walker(
-        root,
-        output_root=root.parent,
-        overwrite_existing=overwrite_existing,
-        local_callables=local_callables,
-        command_runner=command_runner,
-        adapter_cwd=adapter_cwd,
-        adapter_timeout_seconds=adapter_timeout_seconds,
-        checked_proof_limits=checked_proof_limits,
-        run_step=_run_building_step_without_writing,
-        replay_step=_replay_building_step_from_returned,
-        record_step_output=_write_step_output_on_step_close,
-        write_accumulated=write_accumulated_building_evidence,
-        write_adapter_error_frontier=write_adapter_error_frontier_evidence,
-        write_chat_session_park_frontier=write_chat_session_park_frontier_evidence,
-        chat_session_park_frontier_exception=ChatSessionParkFrontierEvidenceWritten,
-        repo_root=_REPO_ROOT,
-        report_env=report_env,
-        report_slack_sender=report_slack_sender,
-    )
+    try:
+        result = _resume_dynamic_graph_walker(
+            root,
+            output_root=root.parent,
+            overwrite_existing=overwrite_existing,
+            local_callables=local_callables,
+            command_runner=command_runner,
+            adapter_cwd=adapter_cwd,
+            adapter_timeout_seconds=adapter_timeout_seconds,
+            checked_proof_limits=checked_proof_limits,
+            run_step=_run_building_step_without_writing,
+            replay_step=_replay_building_step_from_returned,
+            record_step_output=_write_step_output_on_step_close,
+            write_accumulated=write_accumulated_building_evidence,
+            write_adapter_error_frontier=write_adapter_error_frontier_evidence,
+            write_chat_session_park_frontier=write_chat_session_park_frontier_evidence,
+            chat_session_park_frontier_exception=ChatSessionParkFrontierEvidenceWritten,
+            repo_root=_REPO_ROOT,
+            report_env=report_env,
+            report_slack_sender=report_slack_sender,
+        )
+    except AdapterFrontierEvidenceWritten as adapter_frontier:
+        # A resumed walk can hit a FRESH adapter exception/timeout (the held step's
+        # provider call after disposition). The forward walk has already written the
+        # adapter-error frontier; return that clean held result instead of crashing,
+        # and still preserve the prior adapter-error frontier history exactly as the
+        # normal-return path does.
+        result = _held_result_from_adapter_frontier_signal(adapter_frontier)
     _preserve_adapter_error_frontier_history_after_resume(root, frontier_history)
     return result
 
@@ -1397,26 +1465,33 @@ def _resume_chat_session_parked_building_plan(
         resume_authority_ref=submitted["claim_ref"],
     )
     frontier_history = _chat_session_frontier_history_snapshot(root)
-    result = _run_dynamic_graph_walker(
-        declared_plan,
-        output_root=root.parent,
-        overwrite_existing=overwrite_existing,
-        local_callables=local_callables,
-        command_runner=command_runner,
-        adapter_cwd=adapter_cwd,
-        adapter_timeout_seconds=adapter_timeout_seconds,
-        checked_proof_limits=checked_proof_limits,
-        run_step=_run_building_step_without_writing,
-        record_step_output=_write_step_output_on_step_close,
-        write_accumulated=write_accumulated_building_evidence,
-        write_adapter_error_frontier=write_adapter_error_frontier_evidence,
-        write_chat_session_park_frontier=write_chat_session_park_frontier_evidence,
-        chat_session_park_frontier_exception=ChatSessionParkFrontierEvidenceWritten,
-        repo_root=_REPO_ROOT,
-        resume_seed=seed,
-        report_env=report_env,
-        report_slack_sender=report_slack_sender,
-    )
+    try:
+        result = _run_dynamic_graph_walker(
+            declared_plan,
+            output_root=root.parent,
+            overwrite_existing=overwrite_existing,
+            local_callables=local_callables,
+            command_runner=command_runner,
+            adapter_cwd=adapter_cwd,
+            adapter_timeout_seconds=adapter_timeout_seconds,
+            checked_proof_limits=checked_proof_limits,
+            run_step=_run_building_step_without_writing,
+            record_step_output=_write_step_output_on_step_close,
+            write_accumulated=write_accumulated_building_evidence,
+            write_adapter_error_frontier=write_adapter_error_frontier_evidence,
+            write_chat_session_park_frontier=write_chat_session_park_frontier_evidence,
+            chat_session_park_frontier_exception=ChatSessionParkFrontierEvidenceWritten,
+            adapter_frontier_exception=AdapterFrontierEvidenceWritten,
+            repo_root=_REPO_ROOT,
+            resume_seed=seed,
+            report_env=report_env,
+            report_slack_sender=report_slack_sender,
+        )
+    except AdapterFrontierEvidenceWritten as adapter_frontier:
+        # A submitted chat-session work item can itself hit an adapter exception on
+        # its post-submit provider call; the forward walk wrote the adapter-error
+        # frontier, so return that clean held result instead of crashing.
+        result = _held_result_from_adapter_frontier_signal(adapter_frontier)
     _preserve_chat_session_frontier_history_after_resume(root, frontier_history)
     return result
 

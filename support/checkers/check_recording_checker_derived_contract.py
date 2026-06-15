@@ -471,7 +471,10 @@ def _run_frontier_operator_evidence(repo: Path, walker_chk: Any):
     with _tempfile.TemporaryDirectory(prefix="bp-zeta6-a2-fr-") as tmp:
         building_root = None
         try:
-            run_building_plan(
+            # B2: a dynamic adapter exception no longer crashes -- run_building_plan
+            # CATCHES the typed AdapterFrontierEvidenceWritten and RETURNS a clean
+            # held result. Read the held building_root off that returned result.
+            held = run_building_plan(
                 plan,
                 output_root=Path(tmp),
                 overwrite_existing=True,
@@ -479,16 +482,19 @@ def _run_frontier_operator_evidence(repo: Path, walker_chk: Any):
                 adapter_cwd=repo,
                 adapter_timeout_seconds=30,
             )
-        except Exception as exc:  # noqa: BLE001 - the frontier path raises after writing evidence
+            building_root = getattr(
+                getattr(held, "lifecycle_write", None), "root", None
+            )
+        except Exception as exc:  # noqa: BLE001 - tolerate a residual frontier raise
             building_root = getattr(exc, "building_root", None)
-            if building_root is None:
-                roots = [
-                    path
-                    for path in Path(tmp).iterdir()
-                    if path.is_dir() and (path / "work" / "building-map.json").is_file()
-                ]
-                if len(roots) == 1:
-                    building_root = roots[0]
+        if building_root is None:
+            roots = [
+                path
+                for path in Path(tmp).iterdir()
+                if path.is_dir() and (path / "work" / "building-map.json").is_file()
+            ]
+            if len(roots) == 1:
+                building_root = roots[0]
         if building_root is None:
             return None
         building_map = _json.loads(
