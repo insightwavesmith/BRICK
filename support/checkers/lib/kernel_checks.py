@@ -1845,6 +1845,204 @@ def _gemini_api_classify_error_kind(exc: Exception) -> str:
     return "adapter_exception"
 
 
+def run_design_ai_text_seams(repo: Path) -> KernelResult:
+    """DESIGN-AI-TEXT-SEAM-0616 checker for Claude/Codex prompt -> text wrappers.
+
+    FIREs, IN-PROCESS with mock command_runners only:
+      (a) normal text returns byte-matching raw text and emits the declared CLI
+          shapes.
+      (b) command_runner FileNotFoundError propagates cleanly.
+      (c) command_runner TimeoutExpired propagates unchanged.
+      (d) blank/whitespace output raises clean ValueError.
+      (e) secret-looking output is rejected by the adapter secret scrub.
+
+    Mutation-RED: removing any raise/parse/scrub behavior above turns this check
+    red without invoking a live provider CLI.
+    """
+    _ensure_import_identity(repo)
+    adapter = importlib.import_module("brick_protocol.support.connection.agent_adapter")
+    inspected = 0
+
+    claude_prompt = "Design prompt\nwith two lines"
+    claude_captured: dict[str, Any] = {}
+
+    def _claude_ok_runner(args: Sequence[str], cwd: Path, timeout: int) -> Any:
+        claude_captured["args"] = tuple(args)
+        claude_captured["cwd"] = cwd
+        claude_captured["timeout"] = timeout
+        return adapter.LocalCliCompleted(
+            args=tuple(args),
+            return_code=0,
+            stdout="CLAUDE raw text\n",
+            stderr="",
+        )
+
+    claude_text = adapter.invoke_claude_text(
+        claude_prompt,
+        model_name="claude-test-model",
+        timeout_seconds=41,
+        command_runner=_claude_ok_runner,
+    )
+    if claude_text != "CLAUDE raw text\n":
+        raise ProfileError("design_ai_text_seams: claude raw text was not returned byte-matching")
+    expected_claude_args = (
+        "claude",
+        "-p",
+        claude_prompt,
+        "--output-format",
+        "text",
+        "--model",
+        "claude-test-model",
+    )
+    if claude_captured.get("args") != expected_claude_args:
+        raise ProfileError(
+            f"design_ai_text_seams: claude args drifted: {claude_captured.get('args')!r}"
+        )
+    if claude_captured.get("cwd") != repo or claude_captured.get("timeout") != 41:
+        raise ProfileError("design_ai_text_seams: claude cwd/timeout was not carried")
+    inspected += 1
+
+    codex_prompt = "Compose a short graph proposal."
+    codex_captured: dict[str, Any] = {}
+
+    def _codex_ok_runner(args: Sequence[str], cwd: Path, timeout: int) -> Any:
+        codex_captured["args"] = tuple(args)
+        codex_captured["cwd"] = cwd
+        codex_captured["timeout"] = timeout
+        output_path = Path(args[args.index("--output-last-message") + 1])
+        codex_captured["output_path"] = output_path
+        output_path.write_text("CODEX raw text\n", encoding="utf-8")
+        return adapter.LocalCliCompleted(
+            args=tuple(args),
+            return_code=0,
+            stdout="ignored stdout\n",
+            stderr="",
+        )
+
+    codex_text = adapter.invoke_codex_text(
+        codex_prompt,
+        model_name="codex-test-model",
+        timeout_seconds=53,
+        command_runner=_codex_ok_runner,
+    )
+    if codex_text != "CODEX raw text\n":
+        raise ProfileError("design_ai_text_seams: codex temp-file text was not returned")
+    codex_args = codex_captured.get("args")
+    if not isinstance(codex_args, tuple):
+        raise ProfileError("design_ai_text_seams: codex args were not captured")
+    if codex_args[:4] != ("codex", "exec", "--sandbox", "read-only"):
+        raise ProfileError(f"design_ai_text_seams: codex command prefix drifted: {codex_args!r}")
+    if ("-m", "codex-test-model") != codex_args[4:6]:
+        raise ProfileError("design_ai_text_seams: codex model arg was not carried")
+    if "--output-last-message" not in codex_args or codex_args[-1] != codex_prompt:
+        raise ProfileError("design_ai_text_seams: codex output-last-message/prompt shape drifted")
+    output_path = codex_captured.get("output_path")
+    if not isinstance(output_path, Path):
+        raise ProfileError("design_ai_text_seams: codex output path was not captured")
+    if output_path.exists():
+        raise ProfileError("design_ai_text_seams: codex temp output file was not cleaned up")
+    if codex_captured.get("cwd") != repo or codex_captured.get("timeout") != 53:
+        raise ProfileError("design_ai_text_seams: codex cwd/timeout was not carried")
+    inspected += 1
+
+    def _expect_error(thunk: Callable[[], Any], error_type: type[BaseException], label: str) -> None:
+        try:
+            thunk()
+        except error_type:
+            return
+        except Exception as exc:  # noqa: BLE001
+            raise ProfileError(
+                f"design_ai_text_seams: {label} raised {type(exc).__name__}, "
+                f"expected {error_type.__name__}"
+            ) from exc
+        raise ProfileError(
+            f"design_ai_text_seams: {label} did not raise {error_type.__name__} "
+            "(mutation-RED guard)"
+        )
+
+    def _missing_runner(args: Sequence[str], cwd: Path, timeout: int) -> Any:
+        raise FileNotFoundError(f"{Path(str(args[0])).name} missing")
+
+    _expect_error(
+        lambda: adapter.invoke_claude_text("p", command_runner=_missing_runner),
+        FileNotFoundError,
+        "claude missing executable",
+    )
+    _expect_error(
+        lambda: adapter.invoke_codex_text("p", command_runner=_missing_runner),
+        FileNotFoundError,
+        "codex missing executable",
+    )
+    inspected += 1
+
+    def _timeout_runner(args: Sequence[str], cwd: Path, timeout: int) -> Any:
+        raise subprocess.TimeoutExpired(cmd=tuple(args), timeout=timeout)
+
+    _expect_error(
+        lambda: adapter.invoke_claude_text("p", timeout_seconds=7, command_runner=_timeout_runner),
+        subprocess.TimeoutExpired,
+        "claude timeout propagation",
+    )
+    _expect_error(
+        lambda: adapter.invoke_codex_text("p", timeout_seconds=11, command_runner=_timeout_runner),
+        subprocess.TimeoutExpired,
+        "codex timeout propagation",
+    )
+    inspected += 1
+
+    def _claude_blank_runner(args: Sequence[str], cwd: Path, timeout: int) -> Any:
+        return adapter.LocalCliCompleted(args=tuple(args), return_code=0, stdout=" \n\t", stderr="")
+
+    def _codex_blank_runner(args: Sequence[str], cwd: Path, timeout: int) -> Any:
+        Path(args[args.index("--output-last-message") + 1]).write_text(" \n\t", encoding="utf-8")
+        return adapter.LocalCliCompleted(args=tuple(args), return_code=0, stdout="", stderr="")
+
+    _expect_error(
+        lambda: adapter.invoke_claude_text("p", command_runner=_claude_blank_runner),
+        ValueError,
+        "claude blank output",
+    )
+    _expect_error(
+        lambda: adapter.invoke_codex_text("p", command_runner=_codex_blank_runner),
+        ValueError,
+        "codex blank output",
+    )
+    inspected += 1
+
+    fake_secret = "sk-ABCDEFGHIJKLMNOP"
+
+    def _claude_secret_runner(args: Sequence[str], cwd: Path, timeout: int) -> Any:
+        return adapter.LocalCliCompleted(args=tuple(args), return_code=0, stdout=fake_secret, stderr="")
+
+    def _codex_secret_runner(args: Sequence[str], cwd: Path, timeout: int) -> Any:
+        Path(args[args.index("--output-last-message") + 1]).write_text(fake_secret, encoding="utf-8")
+        return adapter.LocalCliCompleted(args=tuple(args), return_code=0, stdout="", stderr="")
+
+    _expect_error(
+        lambda: adapter.invoke_claude_text("p", command_runner=_claude_secret_runner),
+        ValueError,
+        "claude secret output",
+    )
+    _expect_error(
+        lambda: adapter.invoke_codex_text("p", command_runner=_codex_secret_runner),
+        ValueError,
+        "codex secret output",
+    )
+    inspected += 1
+
+    return KernelResult(
+        check_id="design_ai_text_seams",
+        inspected=inspected,
+        output=(
+            "design-AI text seams passed: claude/codex prompt-to-text wrappers "
+            "returned mocked raw text, preserved CLI shape/cwd/timeout, propagated "
+            "FileNotFoundError and TimeoutExpired, rejected blank output, rejected "
+            "secret-looking output, and called NO live provider CLI "
+            f"({inspected} group(s) inspected)."
+        ),
+    )
+
+
 def run_gemini_api_adapter(repo: Path) -> KernelResult:
     """B6 gemini-api adapter execution checker (ADDITIVE, no new profile).
 

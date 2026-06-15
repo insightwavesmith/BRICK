@@ -1110,6 +1110,77 @@ def invoke_gemini_text(
     return output_text
 
 
+def invoke_claude_text(
+    prompt: str,
+    *,
+    model_name: str = "",
+    timeout_seconds: int = 120,
+    command_runner: CommandRunner | None = None,
+) -> str:
+    """PUBLIC prompt -> text seam over the local Claude CLI.
+
+    This additive design-AI seam mirrors ``invoke_gemini_text``'s narrow
+    contract: caller supplies a prompt, the provider returns raw text, and the
+    output must be non-empty and secret-free. It does not build or return an
+    AgentFact and does not touch the Building adapter path.
+    """
+
+    if not isinstance(prompt, str):
+        raise TypeError("invoke_claude_text requires a str prompt")
+    executable_path = _text_cli_executable("claude", command_runner)
+    args_list = [executable_path, "-p", prompt, "--output-format", "text"]
+    bare_model = _clean_text_cli_option("claude model_name", model_name)
+    if bare_model:
+        args_list.extend(("--model", bare_model))
+    completed = _run_text_cli(
+        tuple(args_list),
+        timeout_seconds=timeout_seconds,
+        command_runner=command_runner,
+    )
+    return _raw_text_from_completed("claude_text_output", completed.stdout, completed)
+
+
+def invoke_codex_text(
+    prompt: str,
+    *,
+    model_name: str = "",
+    timeout_seconds: int = 180,
+    command_runner: CommandRunner | None = None,
+) -> str:
+    """PUBLIC prompt -> text seam over ``codex exec --output-last-message``.
+
+    The Codex CLI writes the last assistant message to a temp file; this wrapper
+    returns that file's raw text after the same empty-output and secret-output
+    guards used by the Gemini text seam.
+    """
+
+    if not isinstance(prompt, str):
+        raise TypeError("invoke_codex_text requires a str prompt")
+    executable_path = _text_cli_executable("codex", command_runner)
+    bare_model = _clean_text_cli_option("codex model_name", model_name)
+    with tempfile.TemporaryDirectory(prefix="bp-codex-text-") as tmpdir:
+        output_path = Path(tmpdir) / "last-message.txt"
+        args_list = [
+            executable_path,
+            "exec",
+            "--sandbox",
+            "read-only",
+        ]
+        if bare_model:
+            args_list.extend(("-m", bare_model))
+        args_list.extend(("--output-last-message", str(output_path), prompt))
+        completed = _run_text_cli(
+            tuple(args_list),
+            timeout_seconds=timeout_seconds,
+            command_runner=command_runner,
+        )
+        try:
+            output_text = output_path.read_text(encoding="utf-8")
+        except FileNotFoundError as exc:
+            raise ValueError("codex text output file was not written") from exc
+    return _raw_text_from_completed("codex_text_output", output_text, completed)
+
+
 def _local_cli_spec(adapter_ref: str) -> LocalCliSpec:
     if adapter_ref in _RETIRED_WRITE_ADAPTER_REFS:
         raise ValueError("adapter_ref is retired and not admitted as an active adapter")
@@ -1371,6 +1442,93 @@ def _run_or_delegate(
     if command_runner is not None:
         return command_runner(args, cwd, timeout_seconds)
     return _run_command(args, cwd=cwd, timeout_seconds=timeout_seconds)
+
+
+def _text_cli_executable(executable_name: str, command_runner: CommandRunner | None) -> str:
+    executable_path = executable_name if command_runner is not None else shutil.which(executable_name)
+    if not executable_path:
+        raise FileNotFoundError(f"{executable_name} CLI executable not found")
+    return executable_path
+
+
+def _clean_text_cli_option(label: str, value: Any) -> str:
+    if not isinstance(value, str):
+        raise TypeError(f"{label} must be text")
+    text = value.strip()
+    if "\x00" in text or "\n" in text:
+        raise ValueError(f"{label} contains unsupported control text")
+    if text:
+        _reject_secret_text(label, text)
+    return text
+
+
+def _run_text_cli(
+    args: Sequence[str],
+    *,
+    timeout_seconds: int,
+    command_runner: CommandRunner | None,
+) -> LocalCliCompleted:
+    if not args:
+        raise ValueError("text CLI args must not be empty")
+    executable = Path(str(args[0])).name
+    if executable not in {"codex", "claude"}:
+        raise ValueError("text CLI executable is not allowlisted")
+    for index, item in enumerate(args):
+        text = str(item)
+        if "\x00" in text:
+            raise ValueError("text CLI arg contains unsupported control text")
+        if index != len(args) - 1:
+            _reject_secret_text("text_cli_arg", text)
+    if command_runner is not None:
+        return command_runner(args, _REPO_ROOT, timeout_seconds)
+    return _run_text_cli_command(args, cwd=_REPO_ROOT, timeout_seconds=timeout_seconds)
+
+
+def _run_text_cli_command(
+    args: Sequence[str],
+    *,
+    cwd: Path,
+    timeout_seconds: int,
+) -> LocalCliCompleted:
+    proc = subprocess.Popen(
+        list(args),
+        cwd=str(cwd),
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        start_new_session=True,
+    )
+    _journal_spawn(proc, args, cwd)
+    try:
+        stdout, stderr = proc.communicate(timeout=timeout_seconds)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            pass
+        proc.wait()
+        _journal_reap(proc, reason="timeout")
+        raise
+    _journal_reap(proc, reason="exit")
+    return LocalCliCompleted(
+        args=tuple(str(part) for part in args),
+        return_code=proc.returncode,
+        stdout=stdout or "",
+        stderr=stderr or "",
+    )
+
+
+def _raw_text_from_completed(
+    label: str,
+    output_text: str,
+    completed: LocalCliCompleted,
+) -> str:
+    if completed.return_code != 0:
+        raise ValueError(f"{label} command returned non-zero")
+    if not output_text.strip():
+        raise ValueError(f"{label} was empty")
+    _reject_secret_text(label, output_text)
+    return output_text
 
 
 # Fixed path for the append-only adapter spawn journal. The env override exists
@@ -2117,6 +2275,8 @@ __all__ = [
     "agent_request_effective_write",
     "agent_request_read_tier",
     "connect_agent_brain",
+    "invoke_claude_text",
+    "invoke_codex_text",
     "invoke_gemini_text",
     "local_cli_adapter_refs",
     "preflight_provider",

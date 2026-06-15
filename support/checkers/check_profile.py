@@ -123,6 +123,7 @@ from support.checkers.lib.kernel_checks import (
     run_building_plans_boundary_sweep,
     run_agent_adapter_return_shape,
     run_provider_preflight,
+    run_design_ai_text_seams,
     run_gemini_api_adapter,
     run_onboard_smoke,
     run_install_script_lint,
@@ -195,6 +196,7 @@ KERNEL_CHECK_IDS = {
     "building_plans_boundary_sweep",
     "agent_adapter_return_shape",
     "provider_preflight",
+    "design_ai_text_seams",
     "gemini_api_adapter",
     "onboard_smoke",
     "install_script_lint",
@@ -535,6 +537,12 @@ def run_kernel_check(repo: Path, check_id: str) -> KernelResult:
         # typed error, this kernel check goes RED (mutation-RED guard) and --all
         # EXITs non-zero. NO live API call (no real key) is made.
         return run_gemini_api_adapter(repo)
+    if check_id == "design_ai_text_seams":
+        # DESIGN-AI-TEXT-SEAM-0616. Executes the Claude/Codex prompt -> raw text
+        # wrappers IN-PROCESS with mock command_runners only: normal raw text,
+        # missing executable, timeout propagation, blank-output rejection, and
+        # secret-output rejection. NO live provider CLI is called.
+        return run_design_ai_text_seams(repo)
     if check_id == "onboard_smoke":
         # ONBOARDING-WIZARD-0. Executes the friendly never-raising onboarding flow
         # IN-PROCESS: imports run_onboard and drives the bundled adapter:local

@@ -15,6 +15,11 @@ kernel_checks:
   # CLI-mirror returned shape; HTTP-error/timeout/malformed -> clean ValueErrors.
   # Mutation-RED: break the no-key clean-error (let it raise raw / return) -> RED.
   - gemini_api_adapter
+  # DESIGN-AI-TEXT-SEAM-0616: Claude/Codex prompt -> raw text seams. Executes
+  # IN-PROCESS with mock command_runners only: normal raw text, missing
+  # executable, timeout propagation, blank-output rejection, and secret-output
+  # rejection. NO live provider CLI is called.
+  - design_ai_text_seams
   # TREASURE PORT 2 (0611, lifted from 2d44fc7): no provider/runtime session id
   # in kernel/buildings/reviews/archive surfaces; 6 frozen-history legacy leak
   # files ride an explicit per-path allowlist of frozen line-content hashes

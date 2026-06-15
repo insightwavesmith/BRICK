@@ -351,7 +351,7 @@ modules:
     imports_axis: []
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
-    pinned_by: axis_vocab_drift / building_map_graph / agent_adapter_return_shape / reporter_notification_projection kernel checks (core profile) + agent_session_id_redaction kernel check (agent_axis_behavioral profile, TREASURE PORT 2 0611, frozen-line-content-hash allowlist over kernel/buildings/reviews/archive session-id leaks)
+    pinned_by: axis_vocab_drift / building_map_graph / agent_adapter_return_shape / reporter_notification_projection kernel checks (core profile) + design_ai_text_seams / agent_session_id_redaction kernel checks (agent_axis_behavioral profile, TREASURE PORT 2 0611, frozen-line-content-hash allowlist over kernel/buildings/reviews/archive session-id leaks)
 
   # ---- support/connection -------------------------------------------------
   - module: support/connection/agent_adapter.py
@@ -366,7 +366,7 @@ modules:
       - brick/work.py
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
-    pinned_by: agent_adapter_return_shape kernel check + adapter_model_selection cases
+    pinned_by: agent_adapter_return_shape / design_ai_text_seams kernel checks + adapter_model_selection cases
 
   - module: support/connection/agent_resources.py
     layer: connection
