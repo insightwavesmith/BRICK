@@ -30,6 +30,7 @@
     "adapter:local",
     "adapter:codex-local",
     "adapter:claude-local",
-    "adapter:gemini-local"
+    "adapter:gemini-local",
+    "adapter:gemini-api"
   ]
 }

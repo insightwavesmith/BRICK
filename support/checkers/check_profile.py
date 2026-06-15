@@ -125,6 +125,7 @@ from support.checkers.lib.kernel_checks import (
     run_building_plans_boundary_sweep,
     run_agent_adapter_return_shape,
     run_provider_preflight,
+    run_gemini_api_adapter,
     run_onboard_smoke,
     run_install_script_lint,
     run_release_export_exclusion,
@@ -196,6 +197,7 @@ KERNEL_CHECK_IDS = {
     "building_plans_boundary_sweep",
     "agent_adapter_return_shape",
     "provider_preflight",
+    "gemini_api_adapter",
     "onboard_smoke",
     "install_script_lint",
     "release_export_exclusion",
@@ -522,6 +524,19 @@ def run_kernel_check(repo: Path, check_id: str) -> KernelResult:
         # step (a missing/unauthed provider must surface a plain-Korean message,
         # not a mid-run stack-trace).
         return run_provider_preflight(repo)
+    if check_id == "gemini_api_adapter":
+        # B6 GEMINI-API-ADAPTER. Executes the direct Gemini HTTP API adapter
+        # IN-PROCESS: asserts adapter:gemini-api is admitted (READ+REVIEW, not
+        # write-capable, not a CLI spec); that a no-key call raises a CLEAN typed
+        # adapter-error (local_cli_missing, the B2 hold shape) with NO child
+        # process spawned; that a mocked request hits the documented v1beta
+        # generateContent endpoint with the x-goog-api-key header (key NOT in the
+        # URL) and the {"contents":[{"parts":[{"text":...}]}]} body, parsed into
+        # the CLI-mirror returned shape; and that HTTP-error/timeout/malformed all
+        # become clean ValueErrors. If the no-key path stops raising the clean
+        # typed error, this kernel check goes RED (mutation-RED guard) and --all
+        # EXITs non-zero. NO live API call (no real key) is made.
+        return run_gemini_api_adapter(repo)
     if check_id == "onboard_smoke":
         # ONBOARDING-WIZARD-0. Executes the friendly never-raising onboarding flow
         # IN-PROCESS: imports run_onboard and drives the bundled adapter:local

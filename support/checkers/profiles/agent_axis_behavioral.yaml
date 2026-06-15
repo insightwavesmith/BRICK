@@ -7,6 +7,14 @@ kernel_checks:
   - building_lifecycle_path_shape
   - building_map_graph
   - provider_preflight
+  # B6 (ADDITIVE): direct Gemini HTTP API adapter (adapter:gemini-api). Executes
+  # IN-PROCESS: admission (READ+REVIEW, not write-capable, not a CLI spec); no-key
+  # -> clean local_cli_missing typed adapter-error with NO subprocess; mocked
+  # request hits the v1beta generateContent endpoint with the x-goog-api-key
+  # header (key not in URL) + the contents/parts/text body, parsed into the
+  # CLI-mirror returned shape; HTTP-error/timeout/malformed -> clean ValueErrors.
+  # Mutation-RED: break the no-key clean-error (let it raise raw / return) -> RED.
+  - gemini_api_adapter
   # TREASURE PORT 2 (0611, lifted from 2d44fc7): no provider/runtime session id
   # in kernel/buildings/reviews/archive surfaces; 6 frozen-history legacy leak
   # files ride an explicit per-path allowlist of frozen line-content hashes
