@@ -39,7 +39,7 @@ import argparse
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from brick_protocol.support.connection import connect
 from brick_protocol.support.connection.agent_adapter import (
@@ -48,6 +48,9 @@ from brick_protocol.support.connection.agent_adapter import (
     ADAPTER_GEMINI_LOCAL,
     ADAPTER_LOCAL,
     adapter_is_write_capable,
+    invoke_claude_text,
+    invoke_codex_text,
+    invoke_gemini_text,
     preflight_provider,
 )
 from brick_protocol.support.operator.driver import run_building_intake
@@ -780,6 +783,11 @@ DOCTOR_SYMPTOM_PRESCRIPTIONS_KO: tuple[tuple[str, str], ...] = (
         "npm install -g @anthropic-ai/claude-code",
     ),
     (
+        "설계AI 키 없음",
+        "설계AI를 claude/codex로 고르면 별도 API 키가 필요 없고, "
+        "gemini를 고르면 GEMINI_API_KEY (또는 GOOGLE_API_KEY)를 설정하세요.",
+    ),
+    (
         "gh 인증 에러 (clone/pull 실패)",
         "gh auth login (gh가 없으면 https://cli.github.com 에서 설치)",
     ),
@@ -877,9 +885,10 @@ def _render_doctor_text(result: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _handoff_message_ko(host: str) -> str:
+def _handoff_message_ko(host: str, design_brain: str | None = None) -> str:
     """Step 4: plain-Korean closing handoff that NAMES the Phase-1 seam verb."""
 
+    selected_design_brain = _normalize_design_brain(host, design_brain)
     return (
         "이제 에이전트한테 말 거세요:\n"
         "  · \"브릭이 뭐야?\"  (개념이 궁금할 때)\n"
@@ -893,8 +902,11 @@ def _handoff_message_ko(host: str) -> str:
         "  onboard goal \"<할 일>\"\n"
         "AI가 보드(board)를 보고 빌딩을 알아서 구성해요(프리셋을 직접 안 골라도\n"
         "돼요). 격리된 작업 트리 안에서 실행되고, 당신의 실제 트리는 절대\n"
-        "건드리지 않아요. 실행 브레인을 고르려면 --brain codex|claude|local\n"
-        "(기본 local)을 붙이세요.\n"
+        "건드리지 않아요. 실행 브레인을 고르려면 --brain codex|claude|gemini|local\n"
+        "(기본 local)을 붙이세요. 설계AI는 기본적으로 --brain을 따라가고,\n"
+        "local만 설계AI가 없어 gemini로 대체돼요. 다르게 고르려면\n"
+        "--design-brain codex|claude|gemini 를 붙이세요.\n"
+        f"지금 안내 기준 설계AI: {selected_design_brain}\n"
         "\n"
         "더 들여다보고 싶으면, 말로 전한 task로 빌딩을 시작하는 다음 단계\n"
         "입구(seam)는\n"
@@ -911,6 +923,7 @@ def run_onboard(
     run_example: bool = True,
     output_root: Path | str | None = None,
     allow_real_provider: bool = False,
+    design_brain: str | None = None,
 ) -> dict[str, Any]:
     """Run the friendly, NEVER-raising onboarding flow.
 
@@ -949,6 +962,9 @@ def run_onboard(
 
     preflight = _preflight_step(normalized_host)
     readiness = _preflight_readiness(preflight)
+    selected_design_brain = _normalize_design_brain(normalized_host, design_brain)
+    design_preflight = _design_brain_preflight(selected_design_brain)
+    design_readiness = _preflight_readiness(design_preflight)
     connect_hint = _connect_step(normalized_host, root)
 
     if run_example:
@@ -966,15 +982,25 @@ def run_onboard(
             "message_ko": "예제 실행은 건너뛰었어요.",
         }
 
-    ok = bool(preflight.get("ok")) and bool(example_result.get("ok"))
+    ok = (
+        bool(preflight.get("ok"))
+        and bool(design_preflight.get("ok"))
+        and bool(example_result.get("ok"))
+    )
 
     return {
         "host": normalized_host,
         "preflight": preflight,
         "preflight_readiness": readiness,
+        "design_brain": selected_design_brain,
+        "design_brain_preflight": design_preflight,
+        "design_brain_readiness": design_readiness,
         "connect_hint": connect_hint,
         "example_result": example_result,
-        "handoff_message_ko": _handoff_message_ko(normalized_host),
+        "handoff_message_ko": _handoff_message_ko(
+            normalized_host,
+            selected_design_brain,
+        ),
         "ok": ok,
     }
 
@@ -989,7 +1015,13 @@ def _render_flow_text(result: dict[str, Any]) -> str:
     preflight = result.get("preflight") or {}
     lines.append("1) provider 준비 상태")
     lines.append(f"   {preflight.get('message_ko', '(상태 없음)')}")
-    lines.append(f"   - 준비도(기록): {result.get('preflight_readiness', 'unknown')}\n")
+    lines.append(f"   - 준비도(기록): {result.get('preflight_readiness', 'unknown')}")
+    design_preflight = result.get("design_brain_preflight") or {}
+    lines.append(
+        f"   - 설계AI({result.get('design_brain', '')}) 준비도: "
+        f"{result.get('design_brain_readiness', 'unknown')}"
+    )
+    lines.append(f"     {design_preflight.get('message_ko', '(상태 없음)')}\n")
 
     connect_hint = result.get("connect_hint") or {}
     lines.append("2) 연결 설정")
@@ -1034,22 +1066,34 @@ def _render_flow_text(result: dict[str, Any]) -> str:
 # only the goal-string read + the plain-Korean print of the composed nodes +
 # evidence location. The live/customer tree is NEVER written (the seam runs the
 # composed graph inside the disposable worktree; output_root lives under ~/.brick,
-# OUTSIDE the repo). By default the design AI is the LIVE gemini text seam
-# (invoke_gemini_text); it needs GEMINI_API_KEY (or GOOGLE_API_KEY) in env -- an
-# absent key surfaces as a CLEAN typed error, never a crash.
+# OUTSIDE the repo). By default the design AI follows the selected execution
+# ``--brain``; ``local`` has no text design seam, so it falls back to gemini.
 GOAL_SEAM_VERB = "support.operator.driver.run_goal_in_sandbox"
 
 # The customer's EXECUTION-brain choice for `onboard goal`. ``local`` is the
-# in-process read-only smoke adapter (default); ``codex`` / ``claude`` are the
-# real, WRITE-CAPABLE observed-write CLI adapters. The mapping is the ONLY policy
-# this wrapper adds; the engine's write-capability gate still decides whether a
-# write-needing build may run on the chosen brain (this wrapper does not weaken
-# it). All three brains run INSIDE the W1 disposable worktree sandbox -- the
-# customer's live tree is never written regardless of brain.
+# in-process read-only smoke adapter (default); ``codex`` / ``claude`` are
+# WRITE-CAPABLE observed-write CLI adapters; ``gemini`` is an admitted non-write
+# local CLI adapter. The mapping is execution selection only; the design-AI
+# callable is selected separately below and injected through ``ai_invoke``.
 _BRAIN_ADAPTER_REFS: dict[str, str] = {
     "local": "adapter:local",
     "codex": "adapter:codex-local",
     "claude": "adapter:claude-local",
+    "gemini": "adapter:gemini-local",
+}
+
+# Design-AI prompt -> text seams. These are injected into driver.run_goal_in_sandbox
+# through its existing ai_invoke seam; driver.py / auto_compose.py stay untouched.
+_DESIGN_BRAIN_AI_INVOKE: dict[str, Callable[[str], str]] = {
+    "gemini": invoke_gemini_text,
+    "claude": invoke_claude_text,
+    "codex": invoke_codex_text,
+}
+
+_DESIGN_BRAIN_PREFLIGHT_ADAPTER_REFS: dict[str, str] = {
+    "gemini": "adapter:gemini-api",
+    "claude": "adapter:claude-local",
+    "codex": "adapter:codex-local",
 }
 
 
@@ -1060,21 +1104,70 @@ def _brain_to_adapter_ref(brain: str) -> str:
     return _BRAIN_ADAPTER_REFS.get(str(brain).strip().lower(), "adapter:local")
 
 
+def _normalize_design_brain(brain: str, design_brain: str | None = None) -> str:
+    """Resolve the design-AI choice for goal composition.
+
+    Unspecified follows ``brain`` except ``local``, which has no text design seam
+    and therefore falls back to gemini. Unknown library inputs are friendly and
+    also fall back to gemini; the CLI constrains explicit values with argparse.
+    """
+
+    explicit = str(design_brain).strip().lower() if design_brain is not None else ""
+    candidate = explicit or str(brain).strip().lower()
+    if candidate in _DESIGN_BRAIN_AI_INVOKE:
+        return candidate
+    return "gemini"
+
+
+def _design_brain_preflight(design_brain: str) -> dict[str, Any]:
+    """Friendly design-AI readiness check. Never raises."""
+
+    normalized = _normalize_design_brain(design_brain)
+    adapter_ref = _DESIGN_BRAIN_PREFLIGHT_ADAPTER_REFS.get(normalized, "adapter:gemini-api")
+    try:
+        status = preflight_provider(adapter_ref)
+    except Exception as exc:  # noqa: BLE001 -- goal entry must stay friendly
+        return {
+            "ok": False,
+            "design_brain": normalized,
+            "adapter_ref": adapter_ref,
+            "message_ko": (
+                "설계AI 준비 상태를 확인하는 중에 문제가 생겼어요. "
+                "잠시 후 다시 시도해 주세요."
+            ),
+            "error_kind": type(exc).__name__,
+        }
+    result = dict(status)
+    result["design_brain"] = normalized
+    result["adapter_ref"] = adapter_ref
+    if not result.get("ok"):
+        if normalized == "gemini":
+            result["message_ko"] = (
+                str(result.get("message_ko") or "")
+                or "설계AI gemini는 GEMINI_API_KEY (또는 GOOGLE_API_KEY)가 필요해요."
+            )
+        else:
+            result["message_ko"] = (
+                str(result.get("message_ko") or "")
+                or f"설계AI {normalized} CLI 준비가 필요해요."
+            )
+    return result
+
+
 def run_goal_entry(
     goal: str,
     *,
     repo_root: Path | str | None = None,
     output_root: Path | str | None = None,
     brain: str = "local",
+    design_brain: str | None = None,
 ) -> dict[str, Any]:
     """Compose a free-form goal into a building + run it in the W1 sandbox.
 
-    ``brain`` selects the EXECUTION adapter: ``local`` (default, in-process read-
-    only smoke), ``codex`` (adapter:codex-local) or ``claude`` (adapter:claude-
-    local) -- the real WRITE-CAPABLE CLI brains. The chosen ref is forwarded to
-    ``run_goal_in_sandbox`` as ``selected_adapter_ref``; the engine's write-
-    capability gate is unchanged. Every brain runs inside the W1 disposable
-    worktree sandbox, so the customer's live tree is never written.
+    ``brain`` selects the EXECUTION adapter. ``design_brain`` selects the design
+    AI callable injected through ``run_goal_in_sandbox(ai_invoke=...)``. When
+    ``design_brain`` is omitted, design follows ``brain`` except ``local`` falls
+    back to gemini. The engine's write-capability gate is unchanged.
 
     Returns a structured result dict (never raises on a normal run; a compose /
     key error is captured into ``error_*`` so the CLI prints friendly guidance and
@@ -1089,19 +1182,33 @@ def run_goal_entry(
         else Path.home() / ".brick" / "goal-runs"
     )
     durable.mkdir(parents=True, exist_ok=True)
-    adapter_ref = _brain_to_adapter_ref(brain)
+    normalized_brain = str(brain).strip().lower() or "local"
+    adapter_ref = _brain_to_adapter_ref(normalized_brain)
+    selected_design_brain = _normalize_design_brain(normalized_brain, design_brain)
+    design_preflight = _design_brain_preflight(selected_design_brain)
+    design_ai_invoke = _DESIGN_BRAIN_AI_INVOKE[selected_design_brain]
     result: dict[str, Any] = {
         "goal": goal,
         "routed_through": GOAL_SEAM_VERB,
-        "brain": str(brain).strip().lower(),
+        "brain": normalized_brain,
+        "design_brain": selected_design_brain,
         "selected_adapter_ref": adapter_ref,
+        "design_brain_preflight": design_preflight,
         "ok": False,
     }
+    if not bool(design_preflight.get("ok")):
+        result["error_kind"] = "design_brain_preflight_failed"
+        result["error_message"] = (
+            f"설계AI {selected_design_brain} 준비가 안 됐어요: "
+            f"{design_preflight.get('message_ko', '')}"
+        )
+        return result
     try:
         run = run_goal_in_sandbox(
             goal,
             repo_root=repo,
             output_root=durable,
+            ai_invoke=design_ai_invoke,
             selected_adapter_ref=adapter_ref,
             overwrite_existing=True,
         )
@@ -1130,8 +1237,9 @@ def _render_goal_text(result: dict[str, Any]) -> str:
         lines.append(f"   - 에러 종류: {result.get('error_kind', '')}")
         lines.append(f"   - 에러 내용: {result.get('error_message', '')}")
         lines.append(
-            "   - 참고: 기본 설계 AI는 gemini입니다. 환경변수 GEMINI_API_KEY "
-            "(또는 GOOGLE_API_KEY)가 필요해요."
+            "   - 참고: 설계AI는 기본적으로 --brain을 따라가고, --brain local만 "
+            "gemini로 대체돼요. gemini는 GEMINI_API_KEY 또는 GOOGLE_API_KEY가 "
+            "필요하고, claude/codex는 로컬 CLI 준비 상태를 확인해요."
         )
         lines.append("")
         lines.append("준비 완료: 아직이요 (위 에러를 확인해 주세요)")
@@ -1150,6 +1258,7 @@ def _render_goal_text(result: dict[str, Any]) -> str:
         f"   - 실행 브레인(brain): {result.get('brain', '')} "
         f"({result.get('selected_adapter_ref', '')})"
     )
+    lines.append(f"   - 설계AI(design-brain): {result.get('design_brain', '')}")
     lines.append(f"   - 격리 모드: {result.get('isolation_mode', '')}")
     lines.append(f"   - frontier: {result.get('frontier_kind', '')}")
     lines.append(f"   - 통과 경로(seam): {result.get('routed_through', '')}")
@@ -1463,8 +1572,8 @@ def main(argv: list[str] | None = None) -> int:
             description=(
                 "Customer entry: a free-form goal -> the design AI composes a "
                 "building -> it runs in the W1 disposable worktree sandbox -> "
-                "evidence. The live tree is never written. The default design AI "
-                "is the live gemini text seam (needs GEMINI_API_KEY/GOOGLE_API_KEY)."
+                "evidence. The live tree is never written. The design AI follows "
+                "--brain by default; --brain local falls back to gemini."
             ),
         )
         goal_parser.add_argument("goal", help="The free-form goal text to build.")
@@ -1480,14 +1589,25 @@ def main(argv: list[str] | None = None) -> int:
         )
         goal_parser.add_argument(
             "--brain",
-            choices=("local", "codex", "claude"),
+            choices=("local", "codex", "claude", "gemini"),
             default="local",
             help=(
                 "Execution brain: 'local' (default, in-process read-only smoke) or "
-                "the real WRITE-CAPABLE CLI brains 'codex' (adapter:codex-local) / "
-                "'claude' (adapter:claude-local). Every brain runs inside the W1 "
-                "disposable worktree sandbox; the live tree is never written. A "
-                "write-needing build on a read-only brain is rejected by the engine."
+                "the local CLI brains 'codex' (adapter:codex-local), 'claude' "
+                "(adapter:claude-local), or 'gemini' (adapter:gemini-local). Every "
+                "brain runs inside the W1 disposable worktree sandbox; the live "
+                "tree is never written. A write-needing build on a read-only brain "
+                "is rejected by the engine."
+            ),
+        )
+        goal_parser.add_argument(
+            "--design-brain",
+            choices=("gemini", "claude", "codex"),
+            default=None,
+            help=(
+                "Design AI for composing the Building. Default: follow --brain; "
+                "--brain local falls back to gemini. claude/codex use local CLI "
+                "preflight; gemini needs GEMINI_API_KEY or GOOGLE_API_KEY."
             ),
         )
         goal_args = goal_parser.parse_args(args_list[1:])
@@ -1496,6 +1616,7 @@ def main(argv: list[str] | None = None) -> int:
             repo_root=goal_args.repo,
             output_root=goal_args.output_root,
             brain=goal_args.brain,
+            design_brain=goal_args.design_brain,
         )
         sys.stdout.write(_render_goal_text(goal_result))
         sys.stdout.write("\n")
@@ -1606,6 +1727,15 @@ def main(argv: list[str] | None = None) -> int:
             "overwrites a user-modified file (compare + skip + warn)."
         ),
     )
+    parser.add_argument(
+        "--design-brain",
+        choices=("gemini", "claude", "codex"),
+        default=None,
+        help=(
+            "Design AI readiness to preflight for the follow-up 'onboard goal' "
+            "handoff. Default: follow host; local falls back to gemini."
+        ),
+    )
     args = parser.parse_args(args_list)
     # The CLI keeps the first example's evidence so a brand-new customer can go
     # to the printed "결과 저장 위치" and actually READ it (work/task.md, the
@@ -1623,6 +1753,7 @@ def main(argv: list[str] | None = None) -> int:
         run_example=not args.no_example,
         output_root=example_root,
         allow_real_provider=args.real_provider,
+        design_brain=args.design_brain,
     )
     sys.stdout.write(_render_flow_text(result))
     sys.stdout.write("\n")
@@ -1640,6 +1771,7 @@ def main(argv: list[str] | None = None) -> int:
 
 __all__ = [
     "DOCTOR_SYMPTOM_PRESCRIPTIONS_KO",
+    "_DESIGN_BRAIN_AI_INVOKE",
     "GOAL_SEAM_VERB",
     "EXAMPLE_DECLARED_BY",
     "EXAMPLE_LOCAL_PRESET_REF",

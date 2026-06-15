@@ -62,6 +62,12 @@ text_contains:
       - run_goal_in_sandbox(
       - h3b-mutation-RED
       - h3b-live-tree
+      # P2 onboard design-brain FIRE pins: run_goal_entry injects the selected
+      # design-AI callable into the existing run_goal_in_sandbox(ai_invoke=...)
+      # seam, and gemini no-key REDs before the driver seam is reached.
+      - def _h3c_design_brain_choice_fire
+      - p2 design-brain RED
+      - h3c_design_brain_no_key_error
   # H2b design-AI caller seam: the operator-level fn that hands the board + task
   # to an injectable design AI and returns a VALIDATED graph proposal (anti-lazy).
   - path: support/operator/auto_compose.py
@@ -93,6 +99,13 @@ text_contains:
       - '"routed_through": SEAM_VERB'
       - '"preflight_readiness": readiness'
       - allow_real_provider
+      # P2 onboard design-brain selection: onboard owns map/flag/preflight only;
+      # driver.py / auto_compose.py / agent_adapter.py behavior remains unchanged.
+      - _DESIGN_BRAIN_AI_INVOKE
+      - def _design_brain_preflight
+      - --design-brain
+      - ai_invoke=design_ai_invoke
+      - design_brain_preflight
 text_absent:
   - path: support/operator/driver.py
     texts:

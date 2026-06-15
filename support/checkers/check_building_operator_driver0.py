@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -670,6 +671,12 @@ def check(repo: Path) -> tuple[list[str], Mapping[str, Any]]:
     # argv intercepted, NO real CLI) AND the W1 invariant holds (live tree byte-
     # identical). The CLI --brain -> adapter ref mapping is exact.
     _h3c_brain_choice_fire(repo, violations, summary)
+
+    # P2 onboard DESIGN-BRAIN FIRE: run_goal_entry injects the selected design
+    # callable through ai_invoke while preserving --brain as execution adapter
+    # selection. No live provider is called; the Gemini no-key path REDs before
+    # the driver seam is reached.
+    _h3c_design_brain_choice_fire(repo, violations, summary)
 
     # H3d EFFECTIVE-WRITE FIRE: a goal-composed 'work' write-brick node that lands
     # with NO write_scope is STAMPED with the work-area write_scope (read-only
@@ -1490,17 +1497,205 @@ def _h3c_brain_choice_fire(
     summary["h3c_brain_map"] = {
         "codex": _brain_to_adapter_ref("codex"),
         "claude": _brain_to_adapter_ref("claude"),
+        "gemini": _brain_to_adapter_ref("gemini"),
         "local": _brain_to_adapter_ref("local"),
     }
     expected = {
         "codex": "adapter:codex-local",
         "claude": "adapter:claude-local",
+        "gemini": "adapter:gemini-local",
         "local": "adapter:local",
     }
     if summary["h3c_brain_map"] != expected:
         violations.append(
             "h3c gap1: --brain -> adapter ref mapping drifted: "
             f"{summary['h3c_brain_map']!r} (expected {expected!r})"
+        )
+
+
+# ---------------------------------------------------------------------------
+# P2 onboard DESIGN-BRAIN FIRE: onboard.run_goal_entry keeps ``--brain`` as the
+# EXECUTION adapter selection and injects the separately resolved design-AI
+# callable through run_goal_in_sandbox(ai_invoke=...). The proof patches only
+# the existing seams in-process: fake design preflight + fake driver intercept,
+# so NO live CLI, provider, network, or Gemini key is used. Mutation-RED: with
+# real Gemini design preflight and no GEMINI_API_KEY / GOOGLE_API_KEY, the goal
+# entry returns a friendly preflight error BEFORE the fake driver is called.
+# ---------------------------------------------------------------------------
+
+
+class _H3CInterceptedGoalRun:
+    building_id = "h3c-design-brain-intercept"
+    composed_node_ids = ("work", "closure")
+    isolation_mode = "intercept"
+    frontier_kind = "complete"
+    evidence_root = "/tmp/h3c-design-brain-intercept"
+    commit_sha = ""
+
+
+def _h3c_design_brain_choice_fire(
+    repo: Path,
+    violations: list[str],
+    summary: dict[str, Any],
+) -> None:
+    from brick_protocol.support.operator import driver as driver_module
+    from brick_protocol.support.operator import onboard
+
+    original_run_goal_in_sandbox = driver_module.run_goal_in_sandbox
+    original_preflight_provider = onboard.preflight_provider
+    calls: list[dict[str, Any]] = []
+    preflight_refs: list[str] = []
+
+    def _fake_preflight(adapter_ref: str) -> dict[str, Any]:
+        preflight_refs.append(adapter_ref)
+        return {
+            "adapter_ref": adapter_ref,
+            "cli": adapter_ref.removeprefix("adapter:").removesuffix("-local"),
+            "installed": True,
+            "authed": "unknown",
+            "ok": True,
+            "message_ko": "checker fake design preflight ready",
+        }
+
+    def _fake_run_goal_in_sandbox(goal: str, **kwargs: Any) -> _H3CInterceptedGoalRun:
+        calls.append({"goal": goal, **kwargs})
+        return _H3CInterceptedGoalRun()
+
+    driver_module.run_goal_in_sandbox = _fake_run_goal_in_sandbox  # type: ignore[assignment]
+    onboard.preflight_provider = _fake_preflight  # type: ignore[assignment]
+    try:
+        with tempfile.TemporaryDirectory(prefix="bp-h3c-design-brain-") as tmp_raw:
+            tmp = Path(tmp_raw)
+            explicit_claude = onboard.run_goal_entry(
+                _H3C_TASK,
+                repo_root=repo,
+                output_root=tmp / "explicit-claude",
+                brain="local",
+                design_brain="claude",
+            )
+            hybrid_codex = onboard.run_goal_entry(
+                _H3C_TASK,
+                repo_root=repo,
+                output_root=tmp / "hybrid-codex",
+                brain="codex",
+            )
+            override_claude = onboard.run_goal_entry(
+                _H3C_TASK,
+                repo_root=repo,
+                output_root=tmp / "override-claude",
+                brain="codex",
+                design_brain="claude",
+            )
+            local_fallback = onboard.run_goal_entry(
+                _H3C_TASK,
+                repo_root=repo,
+                output_root=tmp / "local-fallback",
+                brain="local",
+            )
+    finally:
+        driver_module.run_goal_in_sandbox = original_run_goal_in_sandbox  # type: ignore[assignment]
+        onboard.preflight_provider = original_preflight_provider  # type: ignore[assignment]
+
+    summary["h3c_design_brain_results"] = {
+        "explicit_claude": explicit_claude.get("design_brain"),
+        "hybrid_codex": hybrid_codex.get("design_brain"),
+        "override_claude": override_claude.get("design_brain"),
+        "local_fallback": local_fallback.get("design_brain"),
+    }
+    summary["h3c_design_brain_preflight_refs"] = list(preflight_refs)
+    if len(calls) != 4:
+        violations.append(
+            "p2 design-brain: fake run_goal_in_sandbox expected 4 calls, "
+            f"got {len(calls)}"
+        )
+        return
+
+    expected_calls = [
+        ("explicit-claude", onboard.invoke_claude_text, "adapter:local", "claude"),
+        ("hybrid-codex", onboard.invoke_codex_text, "adapter:codex-local", "codex"),
+        ("override-claude", onboard.invoke_claude_text, "adapter:codex-local", "claude"),
+        ("local-fallback", onboard.invoke_gemini_text, "adapter:local", "gemini"),
+    ]
+    for idx, (label, expected_invoke, expected_adapter, expected_design) in enumerate(
+        expected_calls
+    ):
+        call = calls[idx]
+        result = (
+            explicit_claude,
+            hybrid_codex,
+            override_claude,
+            local_fallback,
+        )[idx]
+        if call.get("ai_invoke") is not expected_invoke:
+            violations.append(
+                f"p2 design-brain: {label} did not inject the expected ai_invoke "
+                f"callable (got {call.get('ai_invoke')!r})"
+            )
+        if call.get("selected_adapter_ref") != expected_adapter:
+            violations.append(
+                f"p2 design-brain: {label} changed execution adapter selection "
+                f"to {call.get('selected_adapter_ref')!r}, expected {expected_adapter!r}"
+            )
+        if result.get("design_brain") != expected_design:
+            violations.append(
+                f"p2 design-brain: {label} recorded design_brain={result.get('design_brain')!r}, "
+                f"expected {expected_design!r}"
+            )
+        if result.get("ok") is not True:
+            violations.append(
+                f"p2 design-brain: {label} intercepted run should report ok True, "
+                f"got {result.get('ok')!r} ({result})"
+            )
+
+    # Mutation-RED / no-key barrier: the real gemini design preflight must return
+    # a friendly no-key error before run_goal_in_sandbox can be called.
+    driver_called_after_no_key = {"n": 0}
+
+    def _trip_run_goal_in_sandbox(goal: str, **kwargs: Any) -> _H3CInterceptedGoalRun:
+        del goal, kwargs
+        driver_called_after_no_key["n"] += 1
+        return _H3CInterceptedGoalRun()
+
+    saved_env = {
+        "GEMINI_API_KEY": os.environ.pop("GEMINI_API_KEY", None),
+        "GOOGLE_API_KEY": os.environ.pop("GOOGLE_API_KEY", None),
+    }
+    driver_module.run_goal_in_sandbox = _trip_run_goal_in_sandbox  # type: ignore[assignment]
+    try:
+        with tempfile.TemporaryDirectory(prefix="bp-h3c-design-brain-nokey-") as tmp_raw:
+            no_key = onboard.run_goal_entry(
+                _H3C_TASK,
+                repo_root=repo,
+                output_root=Path(tmp_raw) / "no-key",
+                brain="local",
+                design_brain="gemini",
+            )
+    finally:
+        driver_module.run_goal_in_sandbox = original_run_goal_in_sandbox  # type: ignore[assignment]
+        for name, value in saved_env.items():
+            if value is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = value
+
+    summary["h3c_design_brain_no_key_error"] = {
+        "error_kind": no_key.get("error_kind"),
+        "driver_calls": driver_called_after_no_key["n"],
+        "message_mentions_key": "GEMINI_API_KEY" in str(no_key.get("error_message") or ""),
+    }
+    if no_key.get("error_kind") != "design_brain_preflight_failed":
+        violations.append(
+            "p2 design-brain RED: gemini no-key path did not return the friendly "
+            f"design_brain_preflight_failed error (got {no_key})"
+        )
+    if driver_called_after_no_key["n"] != 0:
+        violations.append(
+            "p2 design-brain RED: gemini no-key path still called run_goal_in_sandbox "
+            f"({driver_called_after_no_key['n']} call(s))"
+        )
+    if "GEMINI_API_KEY" not in str(no_key.get("error_message") or ""):
+        violations.append(
+            "p2 design-brain RED: gemini no-key message did not name GEMINI_API_KEY"
         )
 
 
@@ -2189,7 +2384,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"frontier={summary.get('h3c_brain_frontier')} "
         f"head_unchanged={summary.get('h3c_brain_head_unchanged')} "
         f"live_status_clean={summary.get('h3c_brain_live_status_clean')} "
-        f"brain_map={summary.get('h3c_brain_map')}."
+        f"brain_map={summary.get('h3c_brain_map')}; "
+        f"design_brain={summary.get('h3c_design_brain_results')} "
+        f"preflight_refs={summary.get('h3c_design_brain_preflight_refs')} "
+        f"gemini_no_key={summary.get('h3c_design_brain_no_key_error')}."
     )
     print(
         "H3d effective-write FIRE passed: "
