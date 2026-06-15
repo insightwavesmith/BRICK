@@ -124,7 +124,14 @@ OUTPUT_CONTRACT_INSTRUCTIONS = (
     "\n"
     "Do not invent brick kinds, agents, movements, or gates that are absent from "
     "the board. Do not author a Movement decision, a success/quality verdict, or a "
-    "route target outside the edges. Propose only; you do not run the building."
+    "route target outside the edges. Propose only; you do not run the building.\n"
+    "\n"
+    "GRAPH SHAPE: prefer a LINEAR chain — give each node EXACTLY ONE outgoing edge, "
+    "and the LAST node's edge targets a \"building-boundary:\"-prefixed close (e.g. "
+    "\"building-boundary:done\"); keep it to about 3-5 nodes. If you DO fan a node "
+    "out to more than one outgoing edge, that node MUST also carry a "
+    "\"completion_edge_ref\" naming the edge_ref of its single forward-completion "
+    "edge (support must not guess which edge completes the node)."
 )
 
 
