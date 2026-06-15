@@ -100,6 +100,39 @@ text_contains:
       - render_building_design_context
       - caller_or_coo_declared_only
       - not Movement authority
+      # H1 THE BOARD: the single read-only manifest unifying the four catalogs.
+      # Each literal below is load-bearing: dropping a section from the returned
+      # manifest (or removing its builder) deletes the matching string here and
+      # turns this profile RED (the drop-a-section Mutation-RED). The five
+      # `"<section>": <section>,` needles pin the actual RETURN-DICT WIRING, so a
+      # section cannot vanish from the manifest while its builder lingers.
+      - def render_building_board
+      - def render_building_board_json
+      - '"kind": "building-board"'
+      - '"section_refs": ["bricks", "agents", "links", "presets", "shapes"]'
+      - '"bricks": bricks,'
+      - '"agents": agents,'
+      - '"links": links,'
+      - '"presets": presets,'
+      - '"shapes": shapes,'
+      - def _board_bricks
+      - def _board_agents
+      - def _board_links
+      - def _board_presets
+      - def _board_shapes
+      - def _board_forbidden_return_keys
+      - '"required_return_shape": required_return_shape'
+      - '"forbidden_return_keys": _board_forbidden_return_keys('
+      - '"writer_capable": _agent_is_writer(agent_object)'
+      - '"movements": movements,'
+      - '"gates": gates,'
+      - '"carry_fields": _board_public_fact_fields('
+      - '"transition_fields": _board_public_fact_fields('
+      - graph_topology
+      - '"catalog_counts": {'
+      # The board's read-only envelope: it AUTHORS / DECIDES nothing.
+      - the board unifies the four catalogs for reading; it changes none of them
+      - it does not select the active shape
   - path: support/connection/mcp_projection.py
     texts:
       - "brick-protocol://building/design/context"
