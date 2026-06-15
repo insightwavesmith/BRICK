@@ -631,7 +631,212 @@ def check(repo: Path) -> tuple[list[str], Mapping[str, Any]]:
     # root), never nested in the checker's tmp above and never the live tree.
     _w1_worktree_sandbox_fire(repo, violations, summary)
 
+    # H2a direct-graph intake FIRE (heart H2 deterministic plumbing): a
+    # pre-composed graph + inline task_statement runs through the NEW
+    # run_composed_graph_intake seam (NO preset) and produces an evidence spine
+    # INDISTINGUISHABLE in validity from a preset run.
+    _h2a_direct_graph_intake_fire(repo, violations, summary)
+
     return violations, summary
+
+
+# ---------------------------------------------------------------------------
+# H2a direct-graph intake FIRE: the NEW run_composed_graph_intake seam takes a
+# PRE-COMPOSED graph (compose_building args -- real board step templates/agents)
+# + an inline task_statement, runs it through compose_building WITHOUT a preset,
+# reattaches the REQUIRED inline task-source carry, and runs it. We assert the
+# building materializes + RUNS to a complete frontier and that the evidence
+# spine is INDISTINGUISHABLE in validity from a preset-intake run:
+#   * task_source_ref == INLINE_TASK_SOURCE_REF (the inline sentinel)
+#   * work/task.md body == the inline task_statement, verbatim
+#   * building_id is STABLE on re-run (idempotent), dup root collides loudly
+#   * plan_shape == graph
+# Mutation-RED: omit task_statement -> the seam hard-RAISES (the carry is
+# load-bearing). The adapter never calls a real CLI: a deterministic
+# command_runner stands in for codex (mirroring case_runners 3845 / 1144).
+# ---------------------------------------------------------------------------
+
+_H2A_TASK = (
+    "Build the H2a direct-graph smoke payload deterministically; "
+    "do not choose Movement or judge quality."
+)
+
+
+def _h2a_graph() -> tuple[list[Mapping[str, Any]], list[Mapping[str, Any]]]:
+    """A small hand-built 2-node graph (work -> closure) over REAL board step
+    templates/agents -- the same node/edge shape compose_building admits, with
+    NO chain preset declared."""
+
+    nodes: list[Mapping[str, Any]] = [
+        {
+            "node_id": "work",
+            "step_template_ref": "building-step-template:work",
+            "brick_instance_ref": "brick-h2a-work",
+            "brick_work_ref": "work:h2a",
+            "work_statement": "Implement the H2a smoke payload.",
+            "comparison_rule": "Observe support evidence only; do not judge quality.",
+            "required_return_shape": "made_changes, observed_evidence, not_proven",
+            "completion_edge_ref": "edge:h2a-work-to-closure",
+        },
+        {
+            "node_id": "closure",
+            "step_template_ref": "building-step-template:closure",
+            "brick_instance_ref": "brick-h2a-closure",
+            "brick_work_ref": "work:h2a-closure",
+            "work_statement": "Synthesize the H2a smoke evidence.",
+            "comparison_rule": "Closure synthesis returns its own fields; not Movement authority.",
+            "required_return_shape": "observed_evidence, narrowly_proven, not_proven, remaining_delta",
+            "completion_edge_ref": "edge:h2a-closure-to-boundary",
+        },
+    ]
+    edges: list[Mapping[str, Any]] = [
+        {
+            "edge_ref": "edge:h2a-work-to-closure",
+            "source": "work",
+            "target": "closure",
+            "movement": "forward",
+        },
+        {
+            "edge_ref": "edge:h2a-closure-to-boundary",
+            "source": "closure",
+            "target": "building-boundary:h2a-closed",
+            "movement": "forward",
+            "building_lifecycle": {"state": "closed", "reason": "H2a smoke closed."},
+        },
+    ]
+    return nodes, edges
+
+
+def _h2a_completing_codex_runner():
+    """Deterministic stand-in for codex: returns a completing AgentFact for both
+    the work and closure bricks. NEVER calls a real CLI."""
+
+    def _runner(args: Sequence[str], cwd: Path, timeout_seconds: int):
+        from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
+
+        del cwd, timeout_seconds
+        call = tuple(str(arg) for arg in args)
+        if "--version" in call:
+            return LocalCliCompleted(call, 0, "codex test-version", "")
+        payload = {
+            "observed_evidence": ["did the H2a smoke work"],
+            "made_changes": True,
+            "changed_files": [],
+            "narrowly_proven": ["the H2a seam ran end to end"],
+            "remaining_delta": ["nothing semantic proven by the smoke"],
+            "not_proven": ["semantic correctness of the H2a smoke"],
+        }
+        return LocalCliCompleted(call, 0, json.dumps(payload), "")
+
+    return _runner
+
+
+def _h2a_run(repo: Path, out_root: Path, *, task_statement: Any = _H2A_TASK, overwrite: bool = False):
+    from brick_protocol.support.operator.driver import run_composed_graph_intake
+
+    nodes, edges = _h2a_graph()
+    return run_composed_graph_intake(
+        nodes,
+        edges,
+        task_statement=task_statement,
+        declared_by="coo",
+        selected_adapter_ref="adapter:codex-local",
+        repo_root=repo,
+        output_root=out_root,
+        overwrite_existing=overwrite,
+        command_runner=_h2a_completing_codex_runner(),
+        adapter_timeout_seconds=30,
+    )
+
+
+def _h2a_direct_graph_intake_fire(
+    repo: Path,
+    violations: list[str],
+    summary: dict[str, Any],
+) -> None:
+    from brick_protocol.support.operator.building_operation import observe_building_frontier
+    from brick_protocol.support.operator.primitives import INLINE_TASK_SOURCE_REF
+
+    with tempfile.TemporaryDirectory(prefix="bp-h2a-intake-") as tmp_raw:
+        tmp = Path(tmp_raw)
+
+        # FIRE: compose the no-preset graph + inline task, run it to a frontier.
+        result = _h2a_run(repo, tmp / "fire", overwrite=True)
+        root = Path(result.run_result.lifecycle_write.root)
+        frontier = observe_building_frontier(root, repo_root=repo)
+        plan_on_disk = json.loads(result.plan_path.read_text(encoding="utf-8"))
+        task_md = root / "work" / "task.md"
+        task_md_body = task_md.read_text(encoding="utf-8") if task_md.is_file() else None
+
+        summary["h2a_building_id"] = result.building_id
+        summary["h2a_plan_shape"] = result.plan_shape
+        summary["h2a_frontier_kind"] = frontier.get("frontier_kind")
+        summary["h2a_task_source_ref"] = plan_on_disk.get("task_source_ref")
+        summary["h2a_task_source_hash"] = plan_on_disk.get("task_source_hash")
+        summary["h2a_task_md_matches"] = task_md_body == (_H2A_TASK + "\n")
+
+        if result.plan_shape != "graph":
+            violations.append(f"h2a: expected plan_shape graph, got {result.plan_shape!r}")
+        if frontier.get("frontier_kind") != "complete":
+            violations.append(
+                f"h2a: expected complete frontier, got {frontier.get('frontier_kind')!r}"
+            )
+        # Evidence spine INDISTINGUISHABLE from a preset run: inline sentinel ref.
+        if plan_on_disk.get("task_source_ref") != INLINE_TASK_SOURCE_REF:
+            violations.append(
+                f"h2a: plan task_source_ref is not the inline sentinel: "
+                f"{plan_on_disk.get('task_source_ref')!r}"
+            )
+        if plan_on_disk.get("task_source_hash_algorithm") != "sha256" or not plan_on_disk.get(
+            "task_source_hash"
+        ):
+            violations.append("h2a: plan is missing the sha256 task_source_hash carry")
+        # work/task.md body == the inline task_statement, verbatim.
+        if task_md_body is None:
+            violations.append("h2a: work/task.md was not landed from the carried task_statement")
+        elif task_md_body != _H2A_TASK + "\n":
+            violations.append(
+                f"h2a: work/task.md body != inline task_statement (got {task_md_body!r})"
+            )
+
+        # IDEMPOTENCY: the same inline intent re-derives the SAME building_id
+        # (independent of output root), and a SECOND write under the SAME root
+        # collides loudly instead of duplicating.
+        again = _h2a_run(repo, tmp / "fire-b", overwrite=False)
+        summary["h2a_idempotent_id"] = again.building_id == result.building_id
+        if again.building_id != result.building_id:
+            violations.append(
+                f"h2a-idempotency: same intent drifted building_id "
+                f"{result.building_id!r} -> {again.building_id!r}"
+            )
+        try:
+            _h2a_run(repo, tmp / "fire-b", overwrite=False)
+        except ValueError:
+            summary["h2a_dup_root_collides"] = True
+        else:
+            summary["h2a_dup_root_collides"] = False
+            violations.append(
+                "h2a-idempotency: a second intake under the same root did NOT collide "
+                "(building_id is not load-bearing for de-dup)"
+            )
+        # A DIFFERENT statement must derive a DIFFERENT id.
+        other = _h2a_run(repo, tmp / "fire-c", task_statement="A different H2a task statement.")
+        if other.building_id == result.building_id:
+            violations.append("h2a-idempotency: a different task_statement reused the same id")
+
+        # MUTATION-RED: omit the task_statement -> the seam must HARD-RAISE
+        # (the inline carry is load-bearing; a missing body is a broken road).
+        red_raised = False
+        try:
+            _h2a_run(repo, tmp / "fire-red", task_statement=None, overwrite=True)
+        except (ValueError, TypeError):
+            red_raised = True
+        summary["h2a_mutation_red_raised"] = red_raised
+        if not red_raised:
+            violations.append(
+                "h2a-mutation-RED: omitting task_statement did NOT raise, so the inline "
+                "task-source carry is not load-bearing"
+            )
 
 
 def _w1_worktree_sandbox_fire(
@@ -913,6 +1118,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"dirty-refuse mode={summary.get('w1_dirty_mode')} reason={summary.get('w1_dirty_reason')}; "
         f"incomplete frontier={summary.get('w1_incomplete_frontier')} commit={summary.get('w1_incomplete_commit')!r}; "
         f"mutation-RED bypass_dirtied_live_tree={summary.get('w1_mutation_bypass_dirtied_live_tree')}."
+    )
+    print(
+        "H2a direct-graph intake FIRE passed: "
+        f"building_id={summary.get('h2a_building_id')} plan_shape={summary.get('h2a_plan_shape')} "
+        f"frontier={summary.get('h2a_frontier_kind')} "
+        f"task_source_ref={summary.get('h2a_task_source_ref')} "
+        f"task_md_matches={summary.get('h2a_task_md_matches')} "
+        f"idempotent_id={summary.get('h2a_idempotent_id')} "
+        f"dup_root_collides={summary.get('h2a_dup_root_collides')} "
+        f"mutation_red_raised={summary.get('h2a_mutation_red_raised')}."
     )
     print(
         "proof limit: support evidence only; checker pass does not prove source truth, "

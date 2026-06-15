@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -25,7 +25,9 @@ from brick_protocol.support.connection.agent_adapter import (
 )
 from brick_protocol.support.operator.building_operation import observe_building_frontier
 from brick_protocol.support.operator.composition import (
+    compose_building,
     declared_portfolio_gate_translations,
+    inline_task_source_carry,
     materialize_building_intent,
     stamp_declared_portfolio_closure_gates,
 )
@@ -324,6 +326,149 @@ def run_building_intake(
         walker_mode_basis=walker_mode_basis,
         run_result=run_result,
         task_source_basis=task_source_basis,
+    )
+
+
+def run_composed_graph_intake(
+    nodes: Sequence[Mapping[str, Any]] | Mapping[str, Mapping[str, Any]],
+    edges: Sequence[Mapping[str, Any]],
+    *,
+    task_statement: Any,
+    declared_by: str,
+    groups: Sequence[Mapping[str, Any]] = (),
+    selected_shape_ref: str = "",
+    chain_preset_ref: str = "",
+    plan_ref: str = "",
+    building_id: str = "",
+    selected_adapter_ref: str = "adapter:local",
+    selected_model_ref: str = "model:default",
+    transition_concern_adoption: str = "",
+    repo_root: Path | str | None = None,
+    output_root: Path | str | None = None,
+    overwrite_existing: bool = False,
+    local_callables: Mapping[str, AgentBrainCallable] | None = None,
+    command_runner: CommandRunner | None = None,
+    adapter_cwd: Path | str | None = None,
+    adapter_timeout_seconds: int = 120,
+    proof_limits: Iterable[str] | str | None = None,
+) -> BuildingIntakeRunResult:
+    """Sequence a PRE-COMPOSED graph + inline task statement into a running Building.
+
+    H2a (heart H2 deterministic plumbing). This is the sibling of
+    ``run_building_intake`` for the DIRECT-GRAPH flow: a caller (today the
+    checker; tomorrow the H2b design AI that reads the board) hands a graph it
+    already laid out as ``compose_building`` arguments -- nodes, edges, groups,
+    declared_by -- together with the inline ``task_statement`` it is building
+    against, and this seam runs it WITHOUT a chain preset. ``compose_building``
+    treats ``chain_preset_ref`` as OPTIONAL and already emits ``plan_shape:
+    graph``, but it OMITS the task-source/evidence carry that
+    ``materialize_building_intent`` authors on the preset path. So this seam
+    REATTACHES the REQUIRED inline carry (``inline_task_source_carry``, which
+    reuses the materializer's own body normalization, sha256, basis, and STABLE
+    id derive -- no duplication) onto the composed plan, then writes the plan
+    and runs it through the SAME ``run_building_plan`` entrypoint the preset
+    intake uses. The result is an evidence spine INDISTINGUISHABLE in validity
+    from a preset-intake run: INLINE ``task_source_ref``, ``work/task.md`` body
+    == ``task_statement`` verbatim, a STABLE/idempotent ``building_id``, and
+    ``plan_shape: graph``.
+
+    It is pure support mechanics. It composes ``compose_building`` (the caller
+    owns every node/edge/gate choice) + the inline carry author + the existing
+    single-Building run, and records the handoff. It does NOT choose Movement,
+    pick an agent outside the NEED<->CAPABILITY match compose_building enforces,
+    judge success / sufficiency / quality, or select a preset (there is none).
+    The preset path (``run_building_intake`` / ``materialize_building_intent``)
+    is UNTOUCHED and ``compose_building`` is called unchanged.
+
+    Idempotency: when ``building_id`` is omitted, the STABLE inline default id
+    (sha256 of statement body + preset) is used, so the same composed intent
+    retried re-derives the SAME id and collides loudly with the existing
+    declared-plan root instead of duplicating roots -- exactly the preset inline
+    path's discipline.
+    """
+
+    repo = Path(repo_root).resolve() if repo_root is not None else Path.cwd().resolve()
+
+    # 1. Compose the caller/COO-declared graph WITHOUT a preset. This call is
+    #    byte-for-byte the same compose_building the checker compose path uses;
+    #    it validates the graph and emits plan_shape: graph but omits the carry.
+    plan = dict(
+        compose_building(
+            nodes,
+            edges,
+            selected_shape_ref=selected_shape_ref,
+            declared_by=declared_by,
+            groups=groups,
+            chain_preset_ref=chain_preset_ref,
+            plan_ref=plan_ref,
+            building_id=building_id,
+            selected_adapter_ref=selected_adapter_ref,
+            selected_model_ref=selected_model_ref,
+            transition_concern_adoption=transition_concern_adoption,
+            repo_root=repo,
+        )
+    )
+
+    # 2. Reattach the REQUIRED inline task-source evidence carry the preset path
+    #    authors in materialize_building_intent. inline_task_source_carry is the
+    #    single source of the body normalization + hash + id derive, so this
+    #    carry is identical to the inline preset path's (declaration_packets.py
+    #    re-hashes the carried body at evidence-write time and raises on drift;
+    #    run admission rejects a sentinel ref with no body).
+    carry = inline_task_source_carry(task_statement, chain_preset_ref=chain_preset_ref)
+    plan["task_source_ref"] = carry["task_source_ref"]
+    plan["task_statement"] = carry["task_statement"]
+    plan["task_source_hash"] = carry["task_source_hash"]
+    plan["task_source_hash_algorithm"] = carry["task_source_hash_algorithm"]
+    plan["task_source_hash_basis"] = carry["task_source_hash_basis"]
+
+    # 3. Stable/idempotent building_id: an explicit caller id wins; otherwise the
+    #    materializer's STABLE inline default (sha256 of body + preset) so a
+    #    retried intent collides loudly instead of duplicating roots.
+    raw_building_id = str(plan.get("building_id") or "").strip()
+    if not building_id.strip() and (not raw_building_id or raw_building_id == "composed-graph"):
+        raw_building_id = str(carry["default_building_id"])
+    plan["building_id"] = raw_building_id
+
+    plan_shape = str(plan.get("plan_shape") or "")
+    if plan_shape != "graph":
+        raise ValueError("driver run_composed_graph_intake admits only plan_shape: graph")
+    walker_mode = "dynamic"
+    walker_mode_basis = (
+        "driver requires graph plan and lets run_building_plan derive dynamic dispatch; "
+        "not a Link Movement decision"
+    )
+
+    resolved_building_id = _required_text(plan.get("building_id"), "composed plan building_id")
+    output = Path(output_root).resolve() if output_root is not None else DEFAULT_BUILDINGS_ROOT
+    plan_path = output / _slug(resolved_building_id) / _DECLARED_PLAN_FILENAME
+    if plan_path.exists() and not overwrite_existing:
+        raise ValueError(f"declared Building plan already exists: {plan_path}")
+    plan_path.parent.mkdir(parents=True, exist_ok=True)
+    plan_path.write_text(
+        json.dumps(plan, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+    run_result = run_building_plan(
+        plan_path,
+        output_root=output,
+        overwrite_existing=overwrite_existing,
+        local_callables=local_callables,
+        command_runner=command_runner,
+        adapter_cwd=adapter_cwd,
+        adapter_timeout_seconds=adapter_timeout_seconds,
+        proof_limits=proof_limits,
+    )
+
+    return BuildingIntakeRunResult(
+        building_id=resolved_building_id,
+        plan_path=plan_path,
+        plan_shape=plan_shape,
+        walker_mode=walker_mode,
+        walker_mode_basis=walker_mode_basis,
+        run_result=run_result,
+        task_source_basis="task_statement",
     )
 
 
@@ -1333,6 +1478,7 @@ __all__ = [
     "CustomerSandboxRunResult",
     "PortfolioDriveResult",
     "run_building_intake",
+    "run_composed_graph_intake",
     "run_customer_building_in_sandbox",
     "run_declared_portfolio",
 ]
