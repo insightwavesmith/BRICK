@@ -243,6 +243,11 @@ BAR_V2_OPERATOR_TARGETS = {
     "support/operator/write_observation.py",
     # BUILDING-OPERATOR-DRIVER-0 admits the bounded declared portfolio driver.
     "support/operator/driver.py",
+    # HEART-AUTO-COMPOSE-0 (Smith 0615): the design-AI caller that turns a goal +
+    # the read-only board into a VALIDATED graph proposal (proposes only; observes
+    # the board, authors no Movement/success/quality; the run is the existing
+    # run_composed_graph_intake, post-approval).
+    "support/operator/auto_compose.py",
 }
 
 REPORTER_NOTIFICATION_PROJECTION0_TARGETS = {
