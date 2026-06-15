@@ -12,8 +12,10 @@ import json
 import os
 import re
 import shutil
+import signal
 import subprocess
 import tempfile
+import time
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -1078,21 +1080,97 @@ def _run_or_delegate(
     return _run_command(args, cwd=cwd, timeout_seconds=timeout_seconds)
 
 
+# Fixed path for the append-only adapter spawn journal. The env override exists
+# ONLY so a test/probe can redirect it off the shared default; live use leaves it
+# unset. Mirrors the native-dispatch context-path seam (single fixed /tmp default
+# + BRICK_*_PATH override). RECORD-ONLY: this is a forensic trace of spawn/reap so
+# an orphaned provider grandchild is traceable -- it is NOT a reaper.
+_ADAPTER_SPAWN_JOURNAL_DEFAULT_PATH = os.path.join("/tmp", "brick-adapter-spawn-journal.jsonl")
+
+
+def _adapter_spawn_journal_path() -> str:
+    """Resolve the adapter spawn-journal file path (env-overridable seam)."""
+    override = os.environ.get("BRICK_ADAPTER_SPAWN_JOURNAL_PATH")
+    return override if override else _ADAPTER_SPAWN_JOURNAL_DEFAULT_PATH
+
+
+def _journal_write(record: Mapping[str, Any]) -> None:
+    """Append one JSONL record. Best-effort: NEVER raises into the adapter path."""
+    try:
+        line = (json.dumps(record, sort_keys=True) + "\n").encode("utf-8")
+        path = _adapter_spawn_journal_path()
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+        try:
+            os.write(fd, line)
+        finally:
+            os.close(fd)
+    except Exception:
+        # Forensic journal only -- a journal IO failure must not break a spawn.
+        return
+
+
+def _journal_spawn(proc: "subprocess.Popen[str]", args: Sequence[str], cwd: Path) -> None:
+    try:
+        pgid = os.getpgid(proc.pid)
+    except OSError:
+        pgid = -1
+    _journal_write(
+        {
+            "event": "spawn",
+            "pid": proc.pid,
+            "pgid": pgid,
+            "argv0": Path(str(args[0])).name if args else "",
+            "cwd": str(cwd),
+            "started_at": time.time(),
+        }
+    )
+
+
+def _journal_reap(proc: "subprocess.Popen[str]", *, reason: str) -> None:
+    try:
+        pgid = os.getpgid(proc.pid)
+    except OSError:
+        pgid = -1
+    _journal_write(
+        {
+            "event": "reap",
+            "pid": proc.pid,
+            "pgid": pgid,
+            "reason": reason,
+            "return_code": proc.returncode,
+            "reaped_at": time.time(),
+        }
+    )
+
+
 def _run_command(args: Sequence[str], *, cwd: Path, timeout_seconds: int) -> LocalCliCompleted:
     _validate_command_args(args)
-    completed = subprocess.run(
+    proc = subprocess.Popen(
         list(args),
         cwd=str(cwd),
         text=True,
-        capture_output=True,
-        timeout=timeout_seconds,
-        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        start_new_session=True,  # proc becomes its own process-group leader (setsid)
     )
+    _journal_spawn(proc, args, cwd)  # best-effort; never raises
+    try:
+        stdout, stderr = proc.communicate(timeout=timeout_seconds)
+    except subprocess.TimeoutExpired:
+        try:
+            # Reap the provider binary AND every grandchild it forked (one group).
+            os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            pass
+        proc.wait()  # reap the now-dead group leader (no zombie left behind)
+        _journal_reap(proc, reason="timeout")
+        raise  # SAME TimeoutExpired -> run.py _adapter_error_kind stays 'local_cli_timeout'
+    _journal_reap(proc, reason="exit")
     return LocalCliCompleted(
         args=tuple(str(part) for part in args),
-        return_code=completed.returncode,
-        stdout=completed.stdout or "",
-        stderr=completed.stderr or "",
+        return_code=proc.returncode,
+        stdout=stdout or "",
+        stderr=stderr or "",
     )
 
 

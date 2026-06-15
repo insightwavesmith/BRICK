@@ -41,6 +41,19 @@ text_contains:
       - credential redacted
       - write_adapter_error_frontier_evidence
       - write_chat_session_park_frontier_evidence
+  # PROCGROUP-HARDENING (B3): the adapter's single provider chokepoint
+  # (_run_command) spawns codex/claude in its OWN process group
+  # (start_new_session=True) and on timeout SIGKILLs the whole group
+  # (os.killpg(os.getpgid(...))) so codex grandchildren never orphan; a
+  # best-effort append-only spawn journal (env-overridable path) records
+  # spawn/reap for forensics. These pins keep the process-group reap and the
+  # journal seam from silently regressing.
+  - path: support/connection/agent_adapter.py
+    texts:
+      - start_new_session=True
+      - os.killpg
+      - os.getpgid
+      - BRICK_ADAPTER_SPAWN_JOURNAL_PATH
   # The public adapter-error frontier writer name stays exposed on the thin
   # facade (re-exported for external importers).
   - path: support/operator/evidence_assembly.py
