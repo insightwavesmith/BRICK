@@ -116,75 +116,98 @@ and lands your exact words verbatim as the Building's `work/task.md` evidence.
 (declaring both rejects, fail-closed); the file form stays available as the
 automation path (see the intake section below).
 
-## 직접 조립하고 싶다면: minimal hand-written plan (advanced)
+## 직접 plan을 돌리고 싶다면: the bundled runnable plan (advanced)
 
-You can also hand-write a full plan — this is the advanced path; the wizard
-and the `task_statement` one-liner above cover the common cases without it.
-Save this OUTSIDE the repository (for example `/tmp/first-building.yaml` —
-the repo tree itself admits no scratch files):
+You can also run a full plan file directly through `run_building_plan` — this
+is the advanced path; the wizard and the `task_statement` one-liner above cover
+the common cases without it. The repository already ships a verified, runnable
+first plan at `brick/building_plans/onboarding-example-0.yaml`; point the runner
+at it rather than hand-writing one (a hand-written copy would drift from the
+real, tested shape).
+
+A Building plan is GRAPH-shaped: `plan_shape: graph` at the top, then
+`execution_order`, `brick_steps`, and `link_edges`. The public runner always
+dispatches to the dynamic graph walker, which rejects any plan that is not
+`plan_shape: graph`. Here is the bundled plan, faithfully (the file is the
+source of truth — read it for the full, current text):
 
 ```yaml
-plan_ref: building-plan:first-building
+plan_ref: building-plan:onboarding-example-0
 owner_axis: Brick
-building_id: first-building-001
+building_id: onboarding-example-0-0607
+plan_shape: graph
+declared_by: coo
 selected_adapter_ref: adapter:local
-selected_model_ref: model:default
 proof_limits:
   - support evidence only
+  - bundled onboarding example only
+  - runs in-process on adapter:local (no provider needed)
   - not source truth
   - not success judgment
   - not quality judgment
   - not Movement authority
 not_proven:
-  - provider availability
-  - quality of returned work
-steps:
-  - step_ref: first-building-01
-    selected_adapter_ref: adapter:local
-    selected_model_ref: model:default
+  - real provider behavior
+  - quality of the returned greeting
+  - repeated provider reliability
+  - production runtime readiness
+execution_order:
+  - onboarding-example-0-hello
+brick_steps:
+  - step_ref: onboarding-example-0-hello
+    completion_edge_ref: link-row:onboarding-example-0-hello-closed
     rows:
       - axis: Brick
-        row_ref: brick-row:first-building-01
-        brick_work_ref: work:first-building-01
-        brick_instance_ref: brick-first-building-01
-        work_statement: Return one JSON object with observed_evidence and not_proven fields only. Do not choose Movement, success, or quality.
-        comparison_rule: Observe only whether returned fields match required_return_shape.
-        required_return_shape: observed_evidence, not_proven
+        row_ref: brick-row:onboarding-example-0-hello
+        brick_work_ref: work:onboarding-example-0
+        brick_instance_ref: brick-onboarding-example-0-hello
+        work_statement: Say hello to the new operator and name the three axes of the Brick Protocol (Brick = the work, Agent = the worker, Link = the handoff). This is a tiny harmless first example; do not change any files.
+        comparison_rule: Observe whether the returned greeting evidence is present; this example records a first run, not success or quality.
+        required_return_shape: observed_evidence, proof_limits, not_proven
       - axis: Agent
-        row_ref: agent-row:first-building-01
+        row_ref: agent-row:onboarding-example-0-hello
         agent_object_ref: agent-object:coo
+link_edges:
+  - edge_ref: link-row:onboarding-example-0-hello-closed
+    source_step_ref: onboarding-example-0-hello
+    target_brick_instance_ref: building-boundary:onboarding-example-0-closed
+    rows:
       - axis: Link
-        row_ref: link-row:first-building-01
-        movement: forward
-        target_ref: building-boundary:first-building-closed
+        row_ref: link-row:onboarding-example-0-hello-closed
         declared_gate_refs:
           - link-gate:default-transition
+        movement: forward
         building_lifecycle:
           state: closed
-          reason: First Building example closes after one declared step.
+          reason: ONBOARDING-EXAMPLE-0 first example run recorded on adapter:local; no further Movement chosen inside this example.
+        target_ref: building-boundary:onboarding-example-0-closed
+        next_brick_instance_ref: building-boundary-onboarding-example-0-closed
 ```
 
-The plan declares the whole road up front. The Brick row says what work is requested and which return fields are expected. The Agent row names the provider-neutral Agent Object that receives the work. The Link row declares the movement and closed target for this one-step example; support does not choose that movement.
+The plan declares the whole road up front. The Brick row says what work is requested and which return fields are expected. The Agent row names the provider-neutral Agent Object that receives the work. The Link edge declares the movement and closed target for this one-step example; support does not choose that movement.
 
 ## Run it
 
-From the repository root (`uv run` uses the `.venv` that `install.sh` / `uv sync` prepared, where brick-protocol and PyYAML live):
+From the repository root (`uv run` uses the `.venv` that `install.sh` / `uv sync` prepared, where brick-protocol and PyYAML live). The path is repo-relative, so this runs the bundled plan as-is:
 
 ```bash
-uv run python3 -c 'from brick_protocol.support.operator.run import run_building_plan; result = run_building_plan("/tmp/first-building.yaml"); print(result.building_id); print(result.lifecycle_write.root); print("\n".join(str(path) for path in result.written_files))'
+uv run python3 -c 'from brick_protocol.support.operator.run import run_building_plan; result = run_building_plan("brick/building_plans/onboarding-example-0.yaml"); print(result.building_id); print(result.lifecycle_write.root); print("\n".join(str(path) for path in result.written_files))'
 ```
 
 No `uv`? The bare-Python alternative works only if PyYAML is installed for your global `python3`:
 
 ```bash
-PYTHONPATH=support/import_identity python3 -c 'from brick_protocol.support.operator.run import run_building_plan; result = run_building_plan("/tmp/first-building.yaml"); print(result.building_id); print(result.lifecycle_write.root); print("\n".join(str(path) for path in result.written_files))'
+PYTHONPATH=support/import_identity python3 -c 'from brick_protocol.support.operator.run import run_building_plan; result = run_building_plan("brick/building_plans/onboarding-example-0.yaml"); print(result.building_id); print(result.lifecycle_write.root); print("\n".join(str(path) for path in result.written_files))'
 ```
 
-For `adapter:local` (the default above), the COO Agent Object uses its registered local callable reference: no provider CLI, no login, runs in-process. That is useful for a smoke run of the support path, but it does not prove provider behavior or work quality.
+The bundled plan uses `adapter:local`, so the COO Agent Object uses its registered local callable reference: no provider CLI, no login, runs in-process. That is useful for a smoke run of the support path, but it does not prove provider behavior or work quality. (Rerunning lands in the same Building root; pass `overwrite_existing=True` to reuse it, or give a fresh `building_id`.)
 
 ### 업그레이드: 실제 provider로 (adapter:codex-local)
 
-To run the same shape on the real local Codex CLI instead, change these fields (top-level AND per-step):
+To run the same shape on the real local Codex CLI instead, copy the bundled
+plan OUTSIDE the repository (the repo tree admits no scratch files) and change
+its top-level adapter field (the bundled plan declares the adapter only at the
+top level), then point `run_building_plan` at your copy:
 
 ```yaml
 selected_adapter_ref: adapter:codex-local
@@ -201,10 +224,10 @@ By default, Building evidence is written under:
 project/brick-protocol/buildings/<building_id>/
 ```
 
-For the example above, the root is:
+For the bundled example above, the root is:
 
 ```text
-project/brick-protocol/buildings/first-building-001/
+project/brick-protocol/buildings/onboarding-example-0-0607/
 ```
 
 Important files and directories include:
@@ -225,7 +248,7 @@ work/building-work.json
 work/building-map.json
   A support projection of the walked Building map.
 
-work/step-outputs/first-building-01-attempt-1/step-output.json
+work/step-outputs/onboarding-example-0-hello-attempt-1/step-output.json
   The returned payload and per-step support evidence for the first attempt.
 
 raw/

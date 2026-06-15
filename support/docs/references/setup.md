@@ -48,13 +48,14 @@ A Building plan declares the whole road up front: each step carries exactly thre
 
 The human flow needs NO file at all: pass your task as text (`task_statement`)
 to `run_building_intake` — the one-liner and field guide are in
-`quickstart.md`. To hand-write a full plan instead, save the quickstart's
-minimal plan OUTSIDE the repository (for example `/tmp/first-building.yaml`;
-the repo tree admits no scratch files), then run it through the public
-`run_building_plan` surface:
+`quickstart.md`. To run a full plan file directly instead, use the bundled,
+verified-runnable first plan that ships in the repository at
+`brick/building_plans/onboarding-example-0.yaml` (it is GRAPH-shaped, which the
+public runner requires) and run it through the public `run_building_plan`
+surface:
 
 ```bash
-PYTHONPATH=support/import_identity python3 -c 'from brick_protocol.support.operator.run import run_building_plan; result = run_building_plan("/tmp/first-building.yaml"); print(result.building_id); print(result.lifecycle_write.root); print("\n".join(str(path) for path in result.written_files))'
+PYTHONPATH=support/import_identity python3 -c 'from brick_protocol.support.operator.run import run_building_plan; result = run_building_plan("brick/building_plans/onboarding-example-0.yaml"); print(result.building_id); print(result.lifecycle_write.root); print("\n".join(str(path) for path in result.written_files))'
 ```
 
 `run_building_plan` accepts a plan as a mapping, or a path to a `.json` / `.yaml` / `.yml` file. Its real signature (from `support/operator/run.py`) is:
@@ -70,7 +71,8 @@ def run_building_plan(
     adapter_cwd=None,                    # working dir for the local CLI adapter
     adapter_timeout_seconds=120,         # per-adapter-call timeout
     proof_limits=None,                   # if set, OVERRIDES the plan's own proof_limits (then merged with adapter/completion limits)
-    walker_mode="linear",                # "linear" or "dynamic"
+    report_env=None,                     # env mapping for report delivery sinks
+    report_slack_sender=None,            # injected Slack sender (testing)
 )
 ```
 
@@ -80,7 +82,8 @@ The fields most newcomers touch:
 - **`overwrite_existing`** — defaults to `False`. If the Building root already exists and this is `False`, the runner raises `FileExistsError` and tells you to choose a new `building_id` or pass `overwrite_existing=True`. Pass `True` deliberately to reuse a root.
 - **`adapter_cwd`** — the working directory handed to the local CLI adapter (e.g. where `codex` runs). Leave it `None` to use the process default.
 - **`adapter_timeout_seconds`** — per-adapter-call timeout, default `120`. A slower-than-this Codex call raises a `local_cli_timeout` adapter error and the runner records frontier evidence.
-- **`walker_mode`** — `"linear"` (default) walks the declared steps in order. `"dynamic"` dispatches to the bounded dynamic graph walker, which adds runtime gate-adopted, node-budgeted reroute and HOLD. Any other value raises `ValueError`. A plan with `plan_shape: graph` **requires** `walker_mode="dynamic"`; a graph plan under the linear walker is rejected.
+
+The public `run_building_plan` always dispatches to the dynamic graph walker, so the plan **must** be GRAPH-shaped (`plan_shape: graph` plus non-empty `brick_steps`, `link_edges`, and `execution_order`). A non-graph packet is rejected at the walker admission guard (`support/operator/walker_kernel.py`) with a `ValueError`. The bundled `brick/building_plans/onboarding-example-0.yaml` is already graph-shaped, which is why the run command above works as written.
 
 ### Choosing the adapter
 
@@ -97,7 +100,7 @@ For `adapter:local` the Agent Object uses its registered local callable referenc
 
 ### Read-only by default
 
-`adapter:codex-local` invokes the Codex CLI in read-only mode for a step when the Brick row declares no `write_scope`. The minimal plan declares none, so the first run is read-only. Write scope is opt-in per Brick row.
+`adapter:codex-local` invokes the Codex CLI in read-only mode for a step when the Brick row declares no `write_scope`. The bundled plan declares none, so the first run is read-only. Write scope is opt-in per Brick row.
 
 ## Where evidence lands
 
