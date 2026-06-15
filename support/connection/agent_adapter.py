@@ -1064,6 +1064,52 @@ def _invoke_gemini_api(
     )
 
 
+def invoke_gemini_text(
+    prompt: str,
+    *,
+    model_name: str = "gemini-2.5-flash",
+    timeout_seconds: int = 90,
+    urlopen: Callable[..., bytes] | None = None,
+) -> str:
+    """PUBLIC prompt -> text seam over the Gemini HTTP API (H3b customer entry).
+
+    This is an ADDITIVE thin wrapper composing the EXISTING private helpers --
+    ``_gemini_api_key_from_env`` (env key, never logged), ``_build_gemini_api_request``
+    (pure request build), ``_gemini_api_urlopen`` (stdlib urllib, clean typed
+    errors), ``_parse_gemini_api_response`` (candidates[0]...text) -- plus the
+    output secret-scrub. It exists so a caller (the H3b ``ai_invoke`` default)
+    can turn a bare design prompt into bare text WITHOUT building an
+    ``AgentAdapterRequest`` (the per-Brick dispatch path stays untouched).
+
+    Key handling mirrors decision 1 (locked): the key is read from
+    ``GEMINI_API_KEY`` else ``GOOGLE_API_KEY``; an ABSENT key raises the SAME
+    ``FileNotFoundError`` the per-Brick path raises (mirrors the B2-hardened
+    ``local_cli_missing`` adapter-error shape) -- a CLEAN typed error, NEVER a
+    crash and NEVER a subprocess. HTTP error / timeout / malformed response all
+    surface as the helpers' clean ``ValueError`` (no raw traceback). The key is
+    never returned in the result and never logged.
+
+    The optional ``urlopen`` seam exists ONLY so a checker FIRE can mock the HTTP
+    call (capture the request, return a canned body) with NO network / credential;
+    a live caller leaves it None (the default stdlib ``_gemini_api_urlopen`` path).
+    It is called as ``urlopen(request, timeout_seconds=...)`` -- the same keyword
+    shape as ``_gemini_api_urlopen``.
+    """
+
+    if not isinstance(prompt, str):
+        raise TypeError("invoke_gemini_text requires a str prompt")
+    api_key = _gemini_api_key_from_env()  # no-key -> FileNotFoundError (clean, no spawn)
+    bare_model = str(model_name).strip() or _GEMINI_API_MODEL_FALLBACK
+    http_request = _build_gemini_api_request(api_key, bare_model, prompt)
+    if urlopen is not None:
+        raw_body = urlopen(http_request, timeout_seconds=timeout_seconds)
+    else:
+        raw_body = _gemini_api_urlopen(http_request, timeout_seconds=timeout_seconds)
+    output_text = _parse_gemini_api_response(raw_body)
+    _reject_secret_text("gemini_api_text_output", output_text)
+    return output_text
+
+
 def _local_cli_spec(adapter_ref: str) -> LocalCliSpec:
     if adapter_ref in _RETIRED_WRITE_ADAPTER_REFS:
         raise ValueError("adapter_ref is retired and not admitted as an active adapter")
@@ -2071,6 +2117,7 @@ __all__ = [
     "agent_request_effective_write",
     "agent_request_read_tier",
     "connect_agent_brain",
+    "invoke_gemini_text",
     "local_cli_adapter_refs",
     "preflight_provider",
     "probe_local_cli_adapter",

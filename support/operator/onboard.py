@@ -1017,6 +1017,108 @@ def _render_flow_text(result: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+# H3b customer ENTRY: a free-form goal -> the design AI composes a building ->
+# it runs in the W1 disposable worktree sandbox -> evidence. This is the
+# customer's "use BRICK" command. It is a THIN CLI wrapper over the operator seam
+# driver.run_goal_in_sandbox (which composes + runs in the sandbox); onboard adds
+# only the goal-string read + the plain-Korean print of the composed nodes +
+# evidence location. The live/customer tree is NEVER written (the seam runs the
+# composed graph inside the disposable worktree; output_root lives under ~/.brick,
+# OUTSIDE the repo). By default the design AI is the LIVE gemini text seam
+# (invoke_gemini_text); it needs GEMINI_API_KEY (or GOOGLE_API_KEY) in env -- an
+# absent key surfaces as a CLEAN typed error, never a crash.
+GOAL_SEAM_VERB = "support.operator.driver.run_goal_in_sandbox"
+
+
+def run_goal_entry(
+    goal: str,
+    *,
+    repo_root: Path | str | None = None,
+    output_root: Path | str | None = None,
+) -> dict[str, Any]:
+    """Compose a free-form goal into a building + run it in the W1 sandbox.
+
+    Returns a structured result dict (never raises on a normal run; a compose /
+    key error is captured into ``error_*`` so the CLI prints friendly guidance and
+    exits nonzero). The customer's live tree is never written."""
+
+    from brick_protocol.support.operator.driver import run_goal_in_sandbox
+
+    repo = _safe_repo_root(repo_root)
+    durable = (
+        Path(output_root).resolve()
+        if output_root is not None
+        else Path.home() / ".brick" / "goal-runs"
+    )
+    durable.mkdir(parents=True, exist_ok=True)
+    result: dict[str, Any] = {
+        "goal": goal,
+        "routed_through": GOAL_SEAM_VERB,
+        "ok": False,
+    }
+    try:
+        run = run_goal_in_sandbox(
+            goal,
+            repo_root=repo,
+            output_root=durable,
+            overwrite_existing=True,
+        )
+    except Exception as exc:  # noqa: BLE001 -- friendly surface: capture, never crash
+        result["error_kind"] = type(exc).__name__
+        result["error_message"] = str(exc)
+        return result
+    result["building_id"] = run.building_id
+    result["composed_node_ids"] = list(run.composed_node_ids)
+    result["isolation_mode"] = run.isolation_mode
+    result["frontier_kind"] = run.frontier_kind
+    result["evidence_root"] = run.evidence_root
+    result["commit_sha"] = run.commit_sha
+    result["ok"] = run.frontier_kind == "complete"
+    return result
+
+
+def _render_goal_text(result: dict[str, Any]) -> str:
+    """Render the goal-journey result as plain-Korean text for the CLI entry."""
+
+    lines: list[str] = []
+    lines.append("=== Brick Protocol: 목표로 빌딩 만들기 ===\n")
+    lines.append(f"목표(goal): {result.get('goal', '')}\n")
+    if result.get("error_message"):
+        lines.append("AI 합성 또는 실행에 실패했어요.")
+        lines.append(f"   - 에러 종류: {result.get('error_kind', '')}")
+        lines.append(f"   - 에러 내용: {result.get('error_message', '')}")
+        lines.append(
+            "   - 참고: 기본 설계 AI는 gemini입니다. 환경변수 GEMINI_API_KEY "
+            "(또는 GOOGLE_API_KEY)가 필요해요."
+        )
+        lines.append("")
+        lines.append("준비 완료: 아직이요 (위 에러를 확인해 주세요)")
+        return "\n".join(lines)
+    lines.append("1) AI가 합성한 빌딩(노드)")
+    nodes = result.get("composed_node_ids") or []
+    if nodes:
+        for node_id in nodes:
+            lines.append(f"   - {node_id}")
+    else:
+        lines.append("   (합성된 노드 없음)")
+    lines.append("")
+    lines.append("2) 격리 실행(작업 트리는 건드리지 않았어요)")
+    lines.append(f"   - building_id: {result.get('building_id', '')}")
+    lines.append(f"   - 격리 모드: {result.get('isolation_mode', '')}")
+    lines.append(f"   - frontier: {result.get('frontier_kind', '')}")
+    lines.append(f"   - 통과 경로(seam): {result.get('routed_through', '')}")
+    lines.append("")
+    lines.append("3) 증거 저장 위치")
+    lines.append(f"   - {result.get('evidence_root', '')}")
+    if result.get("commit_sha"):
+        lines.append(f"   - 완료 커밋: {result.get('commit_sha', '')}")
+    lines.append("")
+    lines.append(
+        f"준비 완료: {'예 ✅' if result.get('ok') else '아직이요 (frontier가 complete가 아니에요)'}"
+    )
+    return "\n".join(lines)
+
+
 def main(argv: list[str] | None = None) -> int:
     args_list = list(sys.argv[1:]) if argv is None else list(argv)
     # ``onboard doctor``: diagnosis-only subcommand. Runs the gh probe + every
@@ -1026,6 +1128,40 @@ def main(argv: list[str] | None = None) -> int:
         sys.stdout.write(_render_doctor_text(run_doctor()))
         sys.stdout.write("\n")
         return 0
+    # ``onboard goal "<text>"``: the H3b CUSTOMER ENTRY. Reads a free-form goal,
+    # composes it into a building via the design AI (default: live gemini), runs
+    # it in the W1 disposable worktree sandbox, and prints the composed nodes +
+    # the evidence location in plain Korean. The live tree is NEVER written.
+    if args_list[:1] == ["goal"]:
+        goal_parser = argparse.ArgumentParser(
+            prog="onboard goal",
+            description=(
+                "Customer entry: a free-form goal -> the design AI composes a "
+                "building -> it runs in the W1 disposable worktree sandbox -> "
+                "evidence. The live tree is never written. The default design AI "
+                "is the live gemini text seam (needs GEMINI_API_KEY/GOOGLE_API_KEY)."
+            ),
+        )
+        goal_parser.add_argument("goal", help="The free-form goal text to build.")
+        goal_parser.add_argument(
+            "--repo",
+            default=None,
+            help="Repo root override (default: computed from this file's location).",
+        )
+        goal_parser.add_argument(
+            "--output-root",
+            default=None,
+            help="Durable evidence root (default: ~/.brick/goal-runs, OUTSIDE the repo).",
+        )
+        goal_args = goal_parser.parse_args(args_list[1:])
+        goal_result = run_goal_entry(
+            goal_args.goal,
+            repo_root=goal_args.repo,
+            output_root=goal_args.output_root,
+        )
+        sys.stdout.write(_render_goal_text(goal_result))
+        sys.stdout.write("\n")
+        return 0 if goal_result.get("ok") else 1
     parser = argparse.ArgumentParser(
         description=(
             "Friendly, never-raising onboarding flow. Prints the preflight + "
@@ -1100,6 +1236,7 @@ def main(argv: list[str] | None = None) -> int:
 
 __all__ = [
     "DOCTOR_SYMPTOM_PRESCRIPTIONS_KO",
+    "GOAL_SEAM_VERB",
     "EXAMPLE_DECLARED_BY",
     "EXAMPLE_LOCAL_PRESET_REF",
     "EXAMPLE_PLAN_REL",
@@ -1110,6 +1247,7 @@ __all__ = [
     "SUPPORTED_HOSTS",
     "main",
     "run_doctor",
+    "run_goal_entry",
     "run_onboard",
     "run_recording_setup",
 ]
