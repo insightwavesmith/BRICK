@@ -3,14 +3,15 @@
 Date: 2026-06-11.
 Status: support record / navigational reference only. NOT source truth, NOT
 success judgment, NOT quality judgment, NOT Movement authority.
-Supersedes `project/brick-protocol/status/kernel/brick-protocol-engine-blueprint-0529.md`
-(the 34-checker era) as the CURRENT architecture reference; the 0529 blueprint
-is kept as history.
+Supersedes the 0529 engine blueprint (the 34-checker era) as the CURRENT
+architecture reference; that blueprint moved to the frozen HISTORY repo with the
+rest of the unpinned historical spec and no longer resolves on this tree.
 
 This page answers two fresh-clone questions: "which module does what?" and
 "how does one run flow end to end?". Every module named here exists on the
 current tree. The authoritative census is `support/checkers/module_registry.yaml`
-(98 registered modules); this page is the human-readable map of the
+(the count drifts as modules split/merge — read it from the registry, do not
+trust a number copied here); this page is the human-readable map of the
 `support/operator/` families plus the surrounding layers.
 
 ## Module families (support/operator, one folder)
