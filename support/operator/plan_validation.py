@@ -131,7 +131,6 @@ _GATE_SEQUENCE_FORBIDDEN_KEYS: frozenset[str] = frozenset(
     }
 )
 _GATE_SEQUENCE_TARGET_BASIS = frozenset({"source_brick", "target_brick"})
-_CODEX_LOCAL_ADAPTER_REF = "adapter:codex-local"
 _RETIRED_WRITE_ADAPTER_REFS = frozenset(
     {
         "adapter:codex-write-local",
@@ -1204,13 +1203,6 @@ def _validate_declared_route_replay_attempt_limits(plan: Mapping[str, Any], step
                     f"route_replay_plan max_attempts exceeded for step_ref {counted_step_ref}"
                 )
 
-def _positive_int(label: str, value: Any) -> int:
-    if isinstance(value, int) and value > 0:
-        return value
-    if isinstance(value, str) and value.isdecimal() and int(value) > 0:
-        return int(value)
-    raise ValueError(f"{label} must be a positive integer")
-
 def _validate_declared_step_link(
     step: Mapping[str, Any],
     *,
@@ -2201,12 +2193,6 @@ def _required_transition_lifecycle_owner(lifecycle: Mapping[str, Any]) -> str:
             "transition_lifecycle.required_disposition_owner must be caller, coo, or caller-or-coo"
         )
     return owner
-
-def _non_empty_text_tuple(field_name: str, values: Iterable[str] | str | None) -> tuple[str, ...]:
-    result = _text_tuple(field_name, values)
-    if not result:
-        raise ValueError(f"{field_name} must be non-empty")
-    return result
 
 def _text_list_tuple(field_name: str, values: Any) -> tuple[str, ...]:
     if not isinstance(values, list):

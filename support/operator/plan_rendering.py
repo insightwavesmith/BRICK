@@ -951,17 +951,6 @@ def _return_template_refs(value: Any, label: str) -> list[str]:
     raise ValueError(f"{label}: return_template must be a path or a list of paths")
 
 
-def _store_chain_preset(
-    chain_presets: dict[str, dict[str, Any]],
-    preset_ref: str,
-    preset: dict[str, Any],
-    label: str,
-) -> None:
-    if preset_ref in chain_presets:
-        raise ValueError(f"{label} duplicate preset_ref: {preset_ref}")
-    chain_presets[preset_ref] = preset
-
-
 def _chain_presets_from_presets(repo: Path) -> dict[str, Any]:
     """Build the chain_presets registry dicts from presets/<name>.md frontmatter.
 
@@ -1084,15 +1073,6 @@ def _yaml_mapping_rows(value: Any, label: str) -> tuple[Mapping[str, Any], ...]:
             raise ValueError(f"{label}[{index}] must be a mapping")
         rows.append(row)
     return tuple(rows)
-
-
-def _yaml_nested_value(value: Mapping[str, Any], dotted_key: str, label: str) -> Any:
-    current: Any = value
-    for part in dotted_key.split("."):
-        if not isinstance(current, Mapping) or part not in current:
-            raise ValueError(f"{label}.{dotted_key} is missing")
-        current = current[part]
-    return current
 
 
 def _yaml_text_tuple(value: Any, label: str, *, allow_empty: bool = False) -> tuple[str, ...]:

@@ -118,8 +118,6 @@ from support.checkers.lib.case_runners import (
 )
 from support.checkers.lib.kernel_checks import (
     run_axis_vocab_drift,
-    captured_output,
-    patched_argv,
     call_main,
     run_building_map_graph,
     run_building_plans_boundary_sweep,

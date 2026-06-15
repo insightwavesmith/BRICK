@@ -881,14 +881,6 @@ def _dashboard_openssl_sign_rs256(signing_input: bytes, private_key: str) -> byt
     return completed.stdout
 
 
-def validate_dashboard_delivery_environment(
-    env: Mapping[str, str] | None = None,
-) -> Mapping[str, str]:
-    """Return dashboard ingest environment variable presence only, never values."""
-
-    return _dashboard_environment_presence(os.environ if env is None else env)
-
-
 def validate_slack_delivery_environment(
     env: Mapping[str, str] | None = None,
 ) -> Mapping[str, str]:
@@ -1438,13 +1430,6 @@ def _slack_action_line(packet: Mapping[str, Any], *, event_kind: str) -> str:
     if owner_label:
         return f"{owner_label} {action or '처분 필요'}"
     return action or "처분 필요"
-
-
-def _slack_operator_refs_line(packet: Mapping[str, Any]) -> str:
-    brick_ref = _short_ref(str(packet.get("current_brick_ref") or "").strip())
-    step_ref = _short_step_ref(str(packet.get("last_completed_step_ref") or "").strip())
-    frontier_ref = _short_frontier_ref(_required_text(packet.get("frontier_ref"), "frontier_ref"))
-    return f"brick={brick_ref}; step={step_ref}; frontier={frontier_ref}"
 
 
 def _slack_ref_line(packet: Mapping[str, Any], *, source_ref: str) -> str:

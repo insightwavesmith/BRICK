@@ -221,17 +221,6 @@ def project_orchestration_ledger_packet(
 LEDGER_EXPORT_FILENAME = "project-orchestration-ledger.json"
 
 
-def project_orchestration_ledger_export_path(project_ref: str) -> Path:
-    """Per-vessel export home: ``<vessel>/status/<filename>``, seam-derived.
-
-    PROJECT-0 S4-A: the export location derives from the vessel's buildings
-    root through ``buildings_root_for`` (THE single seam) — no vessel path
-    literal. Each declared vessel may home its own written copy of the packet.
-    """
-
-    return buildings_root_for(project_ref).parent / "status" / LEDGER_EXPORT_FILENAME
-
-
 # Legacy ref-less alias: the default export home is the ref-less default
 # vessel's status sibling — derived from DEFAULT_BUILDINGS_ROOT (itself
 # seam-derived in capture.py), so no vessel path literal survives here either.

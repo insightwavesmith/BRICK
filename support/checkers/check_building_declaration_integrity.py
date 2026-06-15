@@ -102,10 +102,6 @@ PROOF_LIMIT = (
 )
 
 
-class DeclarationIntegrityError(ValueError):
-    """Raised when a building root violates declaration-chain authenticity."""
-
-
 # ---------------------------------------------------------------------------
 # evidence readers
 # ---------------------------------------------------------------------------

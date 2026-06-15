@@ -217,9 +217,6 @@ def _is_write_observation_default_excluded_residue(relative_path: Path) -> bool:
         or relative_path.suffix in _WRITE_OBSERVATION_DEFAULT_EXCLUDED_SUFFIXES
     )
 
-def _is_write_observation_cache_residue(relative_path: Path) -> bool:
-    return _is_write_observation_default_excluded_residue(relative_path)
-
 def _file_digest(path: Path) -> str:
     digest = hashlib.sha256()
     try:

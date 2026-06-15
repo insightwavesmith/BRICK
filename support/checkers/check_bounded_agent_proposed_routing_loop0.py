@@ -582,13 +582,6 @@ def _invalid_concern_callable(source_brick: str, target_brick: str):
     return _callable
 
 
-def _clean_callable(request: Any) -> Mapping[str, Any]:
-    return {
-        "observed_evidence": [f"obs {request.brick_instance_ref}"],
-        "not_proven": ["semantic correctness of the probe work"],
-    }
-
-
 def _adapter_error_callable(failing_brick: str):
     def _callable(request: Any) -> Mapping[str, Any]:
         if request.brick_instance_ref == failing_brick:

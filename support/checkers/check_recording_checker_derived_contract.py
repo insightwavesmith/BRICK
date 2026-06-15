@@ -98,16 +98,6 @@ def _independent_expected_axis(event_type: str) -> str:
     return _PINNED_NON_AXIS_ATTRIBUTION
 
 
-def _expected_keys(required: Sequence[str], optional: Sequence[str], observed: Mapping[str, Any]) -> set[str]:
-    """Expected key set = all required + optional fields that are present."""
-
-    keys = set(required)
-    for name in optional:
-        if name in observed:
-            keys.add(name)
-    return keys
-
-
 def _check_record_against_contract(
     record: Mapping[str, Any],
     *,
