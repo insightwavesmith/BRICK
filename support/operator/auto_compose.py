@@ -101,10 +101,14 @@ OUTPUT_CONTRACT_INSTRUCTIONS = (
     "of the task statement (each a short string id or phrase).\n"
     "  - \"graph\": an object {\"nodes\": [...], \"edges\": [...], "
     "\"groups\": [...]} laid out EXACTLY as compose_building arguments:\n"
-    "      * each node: a UNIQUE \"node_id\", a \"step_template_ref\" that "
-    "RESOLVES in the board's brick step-template catalog, the matching brick "
-    "fields (\"brick_instance_ref\", \"brick_work_ref\", \"work_statement\", "
-    "\"comparison_rule\", \"required_return_shape\"). Pick the brick kind + its "
+    "      * each node: a UNIQUE \"node_id\", a \"step_template_ref\" that is an "
+    "EXACT, character-for-character copy of one of the step_template_ref strings "
+    "present in the board's brick step-template catalog (do NOT invent, abbreviate, "
+    "or reword it; copy a real board value verbatim), the matching brick fields "
+    "(\"brick_instance_ref\", \"brick_work_ref\", \"work_statement\", "
+    "\"comparison_rule\", \"required_return_shape\"). ALWAYS include "
+    "\"required_return_shape\": copy the chosen brick's required_return_shape "
+    "string from the board verbatim (never omit it). Pick the brick kind + its "
     "agent ONLY from the board.\n"
     "      * each edge: a \"source\" and \"target\" that each resolve to a "
     "declared node_id OR a \"building-boundary:\"-prefixed terminal, and a "
@@ -127,8 +131,9 @@ OUTPUT_CONTRACT_INSTRUCTIONS = (
     "route target outside the edges. Propose only; you do not run the building.\n"
     "\n"
     "GRAPH SHAPE: prefer a LINEAR chain — give each node EXACTLY ONE outgoing edge, "
-    "and the LAST node's edge targets a \"building-boundary:\"-prefixed close (e.g. "
-    "\"building-boundary:done\"); keep it to about 3-5 nodes. If you DO fan a node "
+    "and the LAST node's edge targets a \"building-boundary:\"-prefixed close that "
+    "ENDS IN \"-closed\" (e.g. \"building-boundary:done-closed\"); keep it to about "
+    "3-5 nodes. If you DO fan a node "
     "out to more than one outgoing edge, that node MUST also carry a "
     "\"completion_edge_ref\" naming the edge_ref of its single forward-completion "
     "edge (support must not guess which edge completes the node)."
@@ -191,6 +196,7 @@ def compose_building_from_task(
     output_contract: str = OUTPUT_CONTRACT_INSTRUCTIONS,
     selected_adapter_ref: str = "adapter:local",
     selected_model_ref: str = "model:default",
+    max_attempts: int = 3,
 ) -> Mapping[str, Any]:
     """Board + task -> design AI -> VALIDATED graph PROPOSAL (anti-lazy).
 
@@ -198,6 +204,15 @@ def compose_building_from_task(
     ``AutoComposeError`` on a malformed envelope, a graph that breaks the
     compose_building contract, or an unmapped requirement (anti-lazy). Writes
     nothing to the live tree.
+
+    RELIABILITY (bounded retry): the design AI is NON-DETERMINISTIC (it can emit
+    a step_template_ref that does not resolve, omit required_return_shape, or
+    return a malformed envelope). ``max_attempts`` (default 3) re-invokes
+    ``ai_invoke`` up to N times; the FIRST attempt that validates is returned,
+    and only the LAST attempt's error is raised if every attempt fails. Each
+    retry appends the prior attempt's error to the prompt to nudge the AI. When
+    attempt 1 validates this is single-attempt behavior (the loop returns at
+    once) -- existing canned-valid callers are unchanged.
     """
 
     repo = (
@@ -205,58 +220,128 @@ def compose_building_from_task(
     )
     task_text = _clean_task_statement(task_statement)
     invoke = ai_invoke if ai_invoke is not None else _default_ai_invoke
+    if not isinstance(max_attempts, int) or max_attempts < 1:
+        raise AutoComposeError("max_attempts must be a positive integer")
 
-    # 1. Build the prompt from the board + the task + the output contract.
+    # 1. Build the base prompt from the board + the task + the output contract.
+    #    The board render is deterministic, so it is computed once and reused;
+    #    each retry only appends the prior error as a nudge.
     board = render_building_board(repo_root=repo)
-    prompt = build_design_prompt(task_text, board, output_contract=output_contract)
-
-    # 2. Invoke the (injectable) design AI.
-    output_text = invoke(prompt)
-    if not isinstance(output_text, str):
-        raise AutoComposeError("ai_invoke must return text (str)")
-
-    # 3. Parse one JSON object + whitelist the envelope (mirror the adapter
-    #    return idiom). The forbidden-key reject runs over the FREEFORM envelope
-    #    fields ONLY -- NOT the graph (its movement/target are the Link contract).
-    envelope = _structured_proposal_payload(output_text)
-    if envelope is None:
-        raise AutoComposeError(
-            "design AI did not return a single JSON object proposal"
-        )
-    requirements, graph, requirement_node_map, preset_delta = _whitelist_envelope(
-        envelope
+    base_prompt = build_design_prompt(
+        task_text, board, output_contract=output_contract
     )
 
-    # 4. VALIDATE the graph against the REAL compose_building contract. This is
-    #    the authoritative node/edge/group validator (it raises CompositionError
-    #    on any break). compose_building is pure in-memory; it writes nothing.
-    nodes = graph.get("nodes", [])
-    edges = graph.get("edges", [])
-    groups = graph.get("groups", [])
-    _require_list("graph.nodes", nodes)
-    _require_list("graph.edges", edges)
-    _require_list("graph.groups", groups)
-    try:
-        composed_plan = compose_building(
-            nodes,
-            edges,
-            declared_by=declared_by,
-            groups=groups,
-            selected_adapter_ref=selected_adapter_ref,
-            selected_model_ref=selected_model_ref,
-            repo_root=repo,
+    def _one_attempt(prompt: str) -> Mapping[str, Any]:
+        # 2. Invoke the (injectable) design AI.
+        output_text = invoke(prompt)
+        if not isinstance(output_text, str):
+            raise AutoComposeError("ai_invoke must return text (str)")
+
+        # 3. Parse one JSON object + whitelist the envelope (mirror the adapter
+        #    return idiom). The forbidden-key reject runs over the FREEFORM
+        #    envelope fields ONLY -- NOT the graph (its movement/target are the
+        #    Link contract).
+        envelope = _structured_proposal_payload(output_text)
+        if envelope is None:
+            raise AutoComposeError(
+                "design AI did not return a single JSON object proposal"
+            )
+        requirements, graph, requirement_node_map, preset_delta = (
+            _whitelist_envelope(envelope)
         )
-    except CompositionError as exc:
-        raise AutoComposeError(
-            f"proposed graph failed the compose_building contract: {exc}",
-            problems=exc.problems,
-        ) from exc
 
-    # 5. ANTI-LAZY (NET-NEW): every requirement must map -> a real node.
-    node_ids = _graph_node_ids(nodes)
-    _enforce_requirement_coverage(requirements, requirement_node_map, node_ids)
+        nodes = graph.get("nodes", [])
+        edges = graph.get("edges", [])
+        groups = graph.get("groups", [])
+        _require_list("graph.nodes", nodes)
+        _require_list("graph.edges", edges)
+        _require_list("graph.groups", groups)
 
-    # 6. Return the VALIDATED proposal. PROPOSES only -- no run, no commit.
+        # 3b. TERMINAL CLOSE DISCIPLINE: a building reaches frontier=complete only
+        #     when the executed terminal link record's target is a
+        #     ``building-boundary:`` ref ENDING in ``closed`` (frontier_observation
+        #     _is_closed_boundary_ref). The design AI may emit a boundary target
+        #     that is NOT closed (e.g. ``building-boundary:done``), which composes
+        #     fine but lands at ``closure_pending``. NORMALIZE here, BEFORE
+        #     validating/composing: any edge target that startswith
+        #     ``building-boundary:`` and does NOT endwith ``closed`` gets
+        #     ``-closed`` appended. A target that already ends in ``closed`` is
+        #     left untouched (no-op for already-closed callers).
+        edges = _normalize_terminal_boundaries(edges)
+
+        # 4. VALIDATE the graph against the REAL compose_building contract. This is
+        #    the authoritative node/edge/group validator (it raises
+        #    CompositionError on any break). compose_building is pure in-memory; it
+        #    writes nothing.
+        try:
+            composed_plan = compose_building(
+                nodes,
+                edges,
+                declared_by=declared_by,
+                groups=groups,
+                selected_adapter_ref=selected_adapter_ref,
+                selected_model_ref=selected_model_ref,
+                repo_root=repo,
+            )
+        except CompositionError as exc:
+            raise AutoComposeError(
+                f"proposed graph failed the compose_building contract: {exc}",
+                problems=exc.problems,
+            ) from exc
+
+        # 5. ANTI-LAZY (NET-NEW): every requirement must map -> a real node.
+        node_ids = _graph_node_ids(nodes)
+        _enforce_requirement_coverage(requirements, requirement_node_map, node_ids)
+
+        return _build_proposal(
+            requirements=requirements,
+            nodes=nodes,
+            edges=edges,
+            groups=groups,
+            requirement_node_map=requirement_node_map,
+            preset_delta=preset_delta,
+            board=board,
+            declared_by=declared_by,
+            composed_plan=composed_plan,
+        )
+
+    # BOUNDED RETRY: return the FIRST valid proposal; raise the LAST error after
+    # exhausting max_attempts. Each retry appends the prior error as a nudge.
+    last_error: AutoComposeError | None = None
+    for attempt in range(1, max_attempts + 1):
+        prompt = base_prompt
+        if last_error is not None:
+            prompt = (
+                f"{base_prompt}\n"
+                "\n"
+                "=== PRIOR ATTEMPT FAILED — FIX THIS AND RETURN A VALID PROPOSAL ===\n"
+                f"Attempt {attempt - 1} of {max_attempts} was rejected with: "
+                f"{last_error.detail}\n"
+                "Return ONE corrected JSON object that resolves the error above."
+            )
+        try:
+            return _one_attempt(prompt)
+        except AutoComposeError as exc:
+            last_error = exc
+    # Exhausted: raise the last attempt's error (carrying its problems).
+    assert last_error is not None  # max_attempts >= 1, so the loop ran at least once
+    raise last_error
+
+
+def _build_proposal(
+    *,
+    requirements: list[Any],
+    nodes: Sequence[Any],
+    edges: Sequence[Any],
+    groups: Sequence[Any],
+    requirement_node_map: Mapping[str, Any],
+    preset_delta: Any,
+    board: Mapping[str, Any],
+    declared_by: str,
+    composed_plan: Any,
+) -> Mapping[str, Any]:
+    """Assemble the validated-proposal return mapping. PROPOSES only."""
+
     return {
         "kind": "building-graph-proposal",
         "requirements": requirements,
@@ -419,6 +504,45 @@ def _graph_node_ids(nodes: Sequence[Any]) -> frozenset[str]:
         if node_id:
             ids.add(node_id)
     return frozenset(ids)
+
+
+def _is_closeable_boundary_target(target: str) -> bool:
+    """A ``building-boundary:``-prefixed terminal target that does NOT already end
+    in ``closed`` (so appending ``-closed`` makes it a complete-reaching close).
+
+    Mirrors frontier_observation._is_closed_boundary_ref's prefix/suffix test:
+    the prefix may be ``building-boundary:`` or ``building-boundary-``; ``closed``
+    is matched case-insensitively. A target already ending in ``closed`` returns
+    False (left untouched). The spec's normalize targets only ``building-boundary:``
+    but we tolerate the ``-`` prefix too so we never mis-skip a real boundary.
+    """
+
+    normalized = target.strip().lower()
+    is_boundary = normalized.startswith("building-boundary:") or normalized.startswith(
+        "building-boundary-"
+    )
+    return is_boundary and not normalized.endswith("closed")
+
+
+def _normalize_terminal_boundaries(edges: Sequence[Any]) -> list[Any]:
+    """Append ``-closed`` to any edge ``target`` that is a building-boundary close
+    NOT already ending in ``closed`` (so the executed terminal link reaches
+    frontier=complete). Already-``closed`` targets are left byte-identical. Edges
+    that are not Mappings, or whose target is not a building-boundary ref, are
+    returned unchanged. Returns a NEW list of edges; never mutates the input.
+    """
+
+    normalized_edges: list[Any] = []
+    for edge in edges:
+        if isinstance(edge, Mapping):
+            target = edge.get("target")
+            if isinstance(target, str) and _is_closeable_boundary_target(target):
+                new_edge = dict(edge)
+                new_edge["target"] = f"{target.rstrip()}-closed"
+                normalized_edges.append(new_edge)
+                continue
+        normalized_edges.append(edge)
+    return normalized_edges
 
 
 # ---------------------------------------------------------------------------
