@@ -671,6 +671,17 @@ def check(repo: Path) -> tuple[list[str], Mapping[str, Any]]:
     # identical). The CLI --brain -> adapter ref mapping is exact.
     _h3c_brain_choice_fire(repo, violations, summary)
 
+    # H3d EFFECTIVE-WRITE FIRE: a goal-composed 'work' write-brick node that lands
+    # with NO write_scope is STAMPED with the work-area write_scope (read-only
+    # 'closure' stays unstamped); the stamped node + adapter:codex-local becomes
+    # effective_write=True (opens real write), and the SAME node without the stamp
+    # is effective_write=False (the stamp is load-bearing). This closes the gap a
+    # live --brain claude dogfood hit (empty scope -> made_changes=False ->
+    # link_paused). The stamp SUPPLIES scope; it never weakens the observed-write
+    # invariant. NOT proven here: a LIVE claude actually writing a file (operator
+    # re-dogfoods that separately).
+    _h3d_effective_write_fire(repo, violations, summary)
+
     return violations, summary
 
 
@@ -738,11 +749,65 @@ def _h2b_design_ai_caller_fire(
     from brick_protocol.support.operator.driver import run_composed_graph_intake
 
     # FIRE: canned design-AI response -> VALIDATED graph proposal (anti-lazy).
+    # selected_adapter_ref is the WRITE-CAPABLE adapter:codex-local (the same the
+    # downstream run uses) so the H3d fail-closed write_scope stamped onto the
+    # 'work' write-brick node validates against the observed-write invariant --
+    # MIRRORING the real goal flow, where run_goal_in_sandbox threads the brain's
+    # write-capable adapter into compose_building_from_task.
     proposal = compose_building_from_task(
         _H2B_TASK,
         ai_invoke=_h2b_canned_ai_invoke(_h2b_canned_proposal()),
         repo_root=repo,
+        selected_adapter_ref="adapter:codex-local",
     )
+
+    # H3d: the design AI emitted NO write_scope, but the 'work' node's brick is
+    # write-needing -> the fail-closed default STAMPED the work-area write_scope +
+    # marker. (read-only 'closure' node stays unstamped.) Assert the stamp landed.
+    h2b_work_node = next(
+        (
+            node
+            for node in proposal["graph"]["nodes"]
+            if node.get("node_id") == "work"
+        ),
+        None,
+    )
+    h2b_closure_node = next(
+        (
+            node
+            for node in proposal["graph"]["nodes"]
+            if node.get("node_id") == "closure"
+        ),
+        None,
+    )
+    summary["h2b_work_write_scope"] = (
+        h2b_work_node.get("write_scope") if isinstance(h2b_work_node, Mapping) else None
+    )
+    summary["h2b_work_write_need_marker"] = (
+        h2b_work_node.get("requires_brick_write_scope")
+        if isinstance(h2b_work_node, Mapping)
+        else None
+    )
+    summary["h2b_closure_has_write_scope"] = (
+        isinstance(h2b_closure_node, Mapping)
+        and h2b_closure_node.get("write_scope") is not None
+    )
+    if summary["h2b_work_write_scope"] != {
+        "allowed_paths": ["**"],
+        "forbidden_paths": [".git/**"],
+    }:
+        violations.append(
+            "h3d: the write-needing 'work' node was NOT stamped with the work-area "
+            f"write_scope (got {summary['h2b_work_write_scope']!r})"
+        )
+    if summary["h2b_work_write_need_marker"] is not True:
+        violations.append(
+            "h3d: the stamped 'work' node did not carry requires_brick_write_scope=true"
+        )
+    if summary["h2b_closure_has_write_scope"]:
+        violations.append(
+            "h3d: the read-only 'closure' node was WRONGLY stamped with a write_scope"
+        )
     summary["h2b_proposal_keys"] = sorted(proposal.keys())
     summary["h2b_requirements"] = list(proposal.get("requirements", []))
     summary["h2b_requirement_node_map"] = dict(proposal.get("requirement_node_map", {}))
@@ -811,6 +876,7 @@ def _h2b_design_ai_caller_fire(
             _H2B_TASK,
             ai_invoke=_h2b_canned_ai_invoke(unmapped),
             repo_root=repo,
+            selected_adapter_ref="adapter:codex-local",
         )
     except AutoComposeError:
         h2b_unmapped_raised = True
@@ -831,6 +897,7 @@ def _h2b_design_ai_caller_fire(
             _H2B_TASK,
             ai_invoke=_h2b_canned_ai_invoke(sideways),
             repo_root=repo,
+            selected_adapter_ref="adapter:codex-local",
         )
     except AutoComposeError:
         h2b_movement_raised = True
@@ -1128,6 +1195,7 @@ def _h3c_terminal_close_normalize_fire(
         _H3C_TASK,
         ai_invoke=_h3c_canned_ai_invoke(_h3c_canned_proposal()),
         repo_root=repo,
+        selected_adapter_ref="adapter:codex-local",
     )
     proposed_graph = proposal["graph"]
     terminal_edge = proposed_graph["edges"][1]
@@ -1248,6 +1316,7 @@ def _h3c_compose_retry_fire(
         ai_invoke=_invoke_then_valid,
         repo_root=repo,
         max_attempts=3,
+        selected_adapter_ref="adapter:codex-local",
     )
     summary["h3c_retry_returned_valid"] = (
         proposal.get("kind") == "building-graph-proposal"
@@ -1278,6 +1347,7 @@ def _h3c_compose_retry_fire(
             ai_invoke=_invoke_always_invalid,
             repo_root=repo,
             max_attempts=3,
+            selected_adapter_ref="adapter:codex-local",
         )
     except AutoComposeError:
         h3c_always_raised = True
@@ -1306,6 +1376,7 @@ def _h3c_compose_retry_fire(
         ai_invoke=_invoke_always_valid,
         repo_root=repo,
         max_attempts=3,
+        selected_adapter_ref="adapter:codex-local",
     )
     summary["h3c_valid_single_invoke_calls"] = once_box["n"]
     if once_box["n"] != 1:
@@ -1430,6 +1501,163 @@ def _h3c_brain_choice_fire(
         violations.append(
             "h3c gap1: --brain -> adapter ref mapping drifted: "
             f"{summary['h3c_brain_map']!r} (expected {expected!r})"
+        )
+
+
+# ---------------------------------------------------------------------------
+# H3d EFFECTIVE-WRITE FIRE: the load-bearing proof that the H3d stamp opens real
+# write. compose_building_from_task is handed a canned AI graph with a 'work'
+# write-brick node carrying NO write_scope. The fail-closed default STAMPS the
+# work-area write_scope + marker (read-only 'closure' node stays unstamped). We
+# then build an AgentAdapterRequest from the STAMPED node + adapter:codex-local
+# and assert agent_request_effective_write == True (the brain opens write); the
+# SAME node WITHOUT the stamp (empty write_scope) -> effective_write == False.
+# This proves the stamp is what makes the real brain able to write -- the gap a
+# live --brain claude dogfood hit (made_changes=False -> link_paused).
+# Mutation-RED is intrinsic: drop the stamped write_scope and effective_write
+# falls to False, so the stamp is load-bearing (not decorative).
+# ---------------------------------------------------------------------------
+
+_H3D_TASK = (
+    "Build the H3d effective-write smoke payload; do not choose Movement or "
+    "judge quality."
+)
+
+
+def _h3d_effective_write_fire(
+    repo: Path,
+    violations: list[str],
+    summary: dict[str, Any],
+) -> None:
+    from brick_protocol.support.connection.agent_adapter import (
+        ADAPTER_CODEX_LOCAL,
+        READ_WRITE_TOOL_POLICY_REF,
+        AgentAdapterRequest,
+        agent_request_effective_write,
+    )
+    from brick_protocol.support.operator.auto_compose import compose_building_from_task
+
+    # A canned AI graph (the SAME work->closure shape) with NO write_scope on the
+    # write-brick 'work' node -- exactly the empty-scope landing the goal flow hit.
+    canned = {
+        "requirements": ["implement-payload", "synthesize-evidence"],
+        "graph": {
+            "nodes": _h2a_graph()[0],
+            "edges": _h2a_graph()[1],
+            "groups": [],
+        },
+        "requirement_node_map": {
+            "implement-payload": "work",
+            "synthesize-evidence": "closure",
+        },
+        "preset_delta": "fresh",
+    }
+
+    def _invoke(_prompt: str) -> str:
+        return json.dumps(canned)
+
+    proposal = compose_building_from_task(
+        _H3D_TASK,
+        ai_invoke=_invoke,
+        repo_root=repo,
+        selected_adapter_ref="adapter:codex-local",
+    )
+    nodes = proposal["graph"]["nodes"]
+    work_node = next((n for n in nodes if n.get("node_id") == "work"), None)
+    closure_node = next((n for n in nodes if n.get("node_id") == "closure"), None)
+
+    stamped_scope = work_node.get("write_scope") if isinstance(work_node, Mapping) else None
+    summary["h3d_stamped_work_scope"] = stamped_scope
+    summary["h3d_closure_unstamped"] = (
+        isinstance(closure_node, Mapping) and closure_node.get("write_scope") is None
+    )
+    if stamped_scope != {"allowed_paths": ["**"], "forbidden_paths": [".git/**"]}:
+        violations.append(
+            "h3d: compose_building_from_task did NOT stamp the work-area write_scope "
+            f"on the write-brick node (got {stamped_scope!r})"
+        )
+    if not summary["h3d_closure_unstamped"]:
+        violations.append(
+            "h3d: the read-only 'closure' node was stamped with a write_scope"
+        )
+
+    # LOAD-BEARING: the STAMPED node + codex-local -> effective_write True.
+    stamped_request = AgentAdapterRequest(
+        building_id="h3d-effective-write",
+        agent_object_ref="agent-object:dev",
+        adapter_ref=ADAPTER_CODEX_LOCAL,
+        brick_instance_ref="brick-h3d-work",
+        next_brick_instance_ref="brick-h3d-closure",
+        tool_policy_refs=(READ_WRITE_TOOL_POLICY_REF,),
+        write_scope=stamped_scope or {},
+    )
+    stamped_effective = agent_request_effective_write(stamped_request)
+    summary["h3d_stamped_effective_write"] = stamped_effective
+    if stamped_effective is not True:
+        violations.append(
+            "h3d: a STAMPED write node + adapter:codex-local did NOT become "
+            "effective_write (the stamp did not open real write)"
+        )
+
+    # MUTATION-RED (the stamp is load-bearing): the SAME node WITHOUT the stamp
+    # (empty write_scope) -> effective_write False. Drop the scope, re-probe.
+    unstamped_request = AgentAdapterRequest(
+        building_id="h3d-effective-write-unstamped",
+        agent_object_ref="agent-object:dev",
+        adapter_ref=ADAPTER_CODEX_LOCAL,
+        brick_instance_ref="brick-h3d-work",
+        next_brick_instance_ref="brick-h3d-closure",
+        tool_policy_refs=(READ_WRITE_TOOL_POLICY_REF,),
+        write_scope={},
+    )
+    unstamped_effective = agent_request_effective_write(unstamped_request)
+    summary["h3d_unstamped_effective_write"] = unstamped_effective
+    if unstamped_effective is not False:
+        violations.append(
+            "h3d-mutation-RED: the SAME node WITHOUT the stamp (empty write_scope) "
+            "still became effective_write, so the stamp is NOT load-bearing"
+        )
+
+    # PRE-SUPPLIED write_scope is UNCHANGED: a canned graph whose 'work' node
+    # ALREADY carries a narrower write_scope must NOT be overridden by the stamp.
+    pre_scope = {
+        "allowed_paths": ["support/operator/**"],
+        "forbidden_paths": [".git/**", "*.pem"],
+    }
+    pre_nodes = json.loads(json.dumps(_h2a_graph()[0]))
+    for node in pre_nodes:
+        if node.get("node_id") == "work":
+            node["write_scope"] = dict(pre_scope)
+            node["requires_brick_write_scope"] = True
+    pre_canned = {
+        "requirements": ["implement-payload", "synthesize-evidence"],
+        "graph": {"nodes": pre_nodes, "edges": _h2a_graph()[1], "groups": []},
+        "requirement_node_map": {
+            "implement-payload": "work",
+            "synthesize-evidence": "closure",
+        },
+        "preset_delta": "fresh",
+    }
+
+    def _invoke_pre(_prompt: str) -> str:
+        return json.dumps(pre_canned)
+
+    pre_proposal = compose_building_from_task(
+        _H3D_TASK,
+        ai_invoke=_invoke_pre,
+        repo_root=repo,
+        selected_adapter_ref="adapter:codex-local",
+    )
+    pre_work = next(
+        (n for n in pre_proposal["graph"]["nodes"] if n.get("node_id") == "work"),
+        None,
+    )
+    pre_work_scope = pre_work.get("write_scope") if isinstance(pre_work, Mapping) else None
+    summary["h3d_pre_supplied_scope_unchanged"] = pre_work_scope == pre_scope
+    if pre_work_scope != pre_scope:
+        violations.append(
+            "h3d: a PRE-SUPPLIED write_scope was OVERRIDDEN by the fail-closed stamp "
+            f"(expected {pre_scope!r}, got {pre_work_scope!r})"
         )
 
 
@@ -1962,6 +2190,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"head_unchanged={summary.get('h3c_brain_head_unchanged')} "
         f"live_status_clean={summary.get('h3c_brain_live_status_clean')} "
         f"brain_map={summary.get('h3c_brain_map')}."
+    )
+    print(
+        "H3d effective-write FIRE passed: "
+        f"stamped work write_scope={summary.get('h3d_stamped_work_scope')} "
+        f"closure_unstamped={summary.get('h3d_closure_unstamped')}; "
+        f"stamped_effective_write={summary.get('h3d_stamped_effective_write')} "
+        f"unstamped_effective_write={summary.get('h3d_unstamped_effective_write')} "
+        f"pre_supplied_scope_unchanged={summary.get('h3d_pre_supplied_scope_unchanged')} "
+        "(stamp is load-bearing; LIVE claude writing a file NOT proven here -- "
+        "operator re-dogfoods)."
     )
     print(
         "proof limit: support evidence only; checker pass does not prove source truth, "
