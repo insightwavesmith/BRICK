@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from .movement import MOVEMENT_LITERALS
 
 BUILDING_LIFECYCLE_STATES: frozenset[str] = frozenset({"waiting", "closed"})
-DISPOSITION_ACTIONS: tuple[str, ...] = ("raise", "forward", "stop")
+DISPOSITION_ACTIONS: tuple[str, ...] = ("raise", "forward", "stop", "reroute")
 TRANSITION_LIFECYCLE_STATES: frozenset[str] = frozenset({"paused", "resumed"})
 TRANSITION_LIFECYCLE_PROGRESS_STATES: frozenset[str] = frozenset({"in_progress"})
 TRANSITION_LIFECYCLE_DISPOSITION_OWNERS: frozenset[str] = frozenset(

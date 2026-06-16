@@ -1280,6 +1280,7 @@ def run_approve_entry(
     action: str = "forward",
     author_ref: str = "coo:smith",
     budget_increment: int | None = None,
+    reroute_target_ref: str | None = None,
     output_root: Path | str | None = None,
     repo_root: Path | str | None = None,
     adapter_cwd: Path | str | None = None,
@@ -1301,6 +1302,7 @@ def run_approve_entry(
     building_text = str(building_ref).strip()
     action_text = str(action).strip().lower()
     author_text = str(author_ref).strip()
+    reroute_target_text = str(reroute_target_ref or "").strip()
     result: dict[str, Any] = {
         "ok": False,
         "building_ref": building_text,
@@ -1321,8 +1323,26 @@ def run_approve_entry(
         result.update(
             {
                 "error_kind": "invalid_action",
-                "error_message": "action은 forward, stop, raise 중 하나여야 해요.",
+                "error_message": "action은 forward, stop, raise, reroute 중 하나여야 해요.",
                 "message_ko": "지원하지 않는 승인 동작이에요.",
+            }
+        )
+        return result
+    if action_text == "reroute" and not reroute_target_text:
+        result.update(
+            {
+                "error_kind": "missing_reroute_target_ref",
+                "error_message": "reroute action에는 reroute_target_ref가 필요해요.",
+                "message_ko": "reroute에는 사람이 고른 target ref가 필요해요.",
+            }
+        )
+        return result
+    if action_text != "reroute" and reroute_target_text:
+        result.update(
+            {
+                "error_kind": "invalid_reroute_target_ref",
+                "error_message": "reroute_target_ref는 reroute action에만 쓸 수 있어요.",
+                "message_ko": "reroute target은 action=reroute에서만 쓸 수 있어요.",
             }
         )
         return result
@@ -1435,10 +1455,16 @@ def run_approve_entry(
     pending_target_ref = str(
         latest_lifecycle.get("transition_lifecycle_pending_target_ref") or ""
     )
+    disposition_pending_target_ref = (
+        reroute_target_text if action_text == "reroute" else pending_target_ref
+    )
     paused_at_ref = str(
         latest_lifecycle.get("transition_lifecycle_paused_at_ref") or ""
     )
-    result["pending_target_ref"] = pending_target_ref
+    result["pending_target_ref"] = disposition_pending_target_ref
+    if disposition_pending_target_ref != pending_target_ref:
+        result["held_pending_target_ref"] = pending_target_ref
+        result["reroute_target_ref"] = disposition_pending_target_ref
     result["paused_at_ref"] = paused_at_ref
     if not pending_target_ref:
         result.update(
@@ -1478,7 +1504,7 @@ def run_approve_entry(
         "transition_lifecycle_state": "resumed",
         "transition_lifecycle_progress_state": "in_progress",
         "transition_lifecycle_resumed_from_ref": paused_at_ref,
-        "transition_lifecycle_pending_target_ref": pending_target_ref,
+        "transition_lifecycle_pending_target_ref": disposition_pending_target_ref,
         "transition_lifecycle_required_disposition_owner": "caller-or-coo",
         "transition_lifecycle_disposition_action": action_text,
         "transition_author_ref": author_text,
@@ -1652,6 +1678,12 @@ def main(argv: list[str] | None = None) -> int:
             help="Positive budget increment, allowed only with --action raise.",
         )
         approve_parser.add_argument(
+            "--reroute-target",
+            dest="reroute_target_ref",
+            default=None,
+            help="Declared Brick node ref selected by the human/COO for --action reroute.",
+        )
+        approve_parser.add_argument(
             "--output-root",
             default=None,
             help="Root for relative building ids (default: ~/.brick/goal-runs).",
@@ -1679,6 +1711,7 @@ def main(argv: list[str] | None = None) -> int:
             action=approve_args.action,
             author_ref=approve_args.author,
             budget_increment=approve_args.budget_increment,
+            reroute_target_ref=approve_args.reroute_target_ref,
             output_root=approve_args.output_root,
             repo_root=approve_args.repo,
             adapter_cwd=approve_args.adapter_cwd,

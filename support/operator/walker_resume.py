@@ -6,7 +6,7 @@ orchestration helpers -- reading the written plan snapshot / dynamic_walker
 evidence / recorded Agent returns / the human-or-COO-authored disposition Link
 row, replaying completed steps from recorded payloads, reconstructing the
 residual queue after the HOLD, and continuing the live queue per the disposition
-action (raise / forward / stop) -- were lifted out of the dynamic_walker
+action (raise / forward / stop / reroute) -- were lifted out of the dynamic_walker
 god-module into this single-concern collaborator. The separable mechanics (HOLD /
 fan-in / reroute budget / step fixtures / transition-concern / frontier) live in
 their own collaborator modules; this verb orchestrates them.
@@ -200,7 +200,15 @@ def _resume_dynamic_graph_walker(
             )
 
     action = _required_disposition_action(disposition)
-    pending_target = _optional_text_value(hold_record.get("pending_target_ref")) or ""
+    pending_target = _disposition_pending_target_ref(
+        action,
+        disposition=disposition,
+        hold_record=hold_record,
+        declared_plan=declared_plan,
+    )
+    seed_hold_record: Mapping[str, Any] = hold_record
+    if action == "reroute":
+        seed_hold_record = {**hold_record, "pending_target_ref": pending_target}
     paused_at_ref = (
         _optional_text_value(disposition.get("resumed_from_ref"))
         or _optional_text_value(disposition.get("paused_at_ref"))
@@ -267,7 +275,7 @@ def _resume_dynamic_graph_walker(
 
     # raise => bump the held node's budget by the declared budget_increment so the
     # held landing ADOPTS naturally on the bigger budget (verified byte-identical
-    # to a fresh forward walk with the bumped budget). forward/stop => no delta.
+    # to a fresh forward walk with the bumped budget). forward/stop/reroute => no delta.
     budget_delta: dict[str, int] = {}
     if action == "raise":
         increment = _positive_int(
@@ -329,7 +337,7 @@ def _resume_dynamic_graph_walker(
         pending_target_ref=pending_target,
         author_ref=author_ref,
         paused_at_ref=paused_at_ref,
-        hold_record=hold_record,
+        hold_record=seed_hold_record,
         existing_resume_observations=tuple(existing_resume_observations),
         expected_replay_counts=dict(expected_replay_counts),
         replay_recorded_at=replay_recorded_at,
@@ -431,6 +439,32 @@ def _require_budget_exhaustion_raise(
             f"node_reroute_budget ({recorded_budget}); refusing to raise a budget "
             "that was not actually exhausted"
         )
+
+
+def _disposition_pending_target_ref(
+    action: str,
+    *,
+    disposition: Mapping[str, Any],
+    hold_record: Mapping[str, Any],
+    declared_plan: Mapping[str, Any],
+) -> str:
+    if action != "reroute":
+        pending_target = _optional_text_value(hold_record.get("pending_target_ref")) or ""
+        if not pending_target:
+            raise ValueError("HOLD record is missing pending_target_ref")
+        return pending_target
+
+    pending_target = _optional_text_value(disposition.get("pending_target_ref")) or ""
+    if not pending_target:
+        raise ValueError("reroute disposition pending_target_ref is required")
+    if pending_target.startswith("building-boundary:"):
+        raise ValueError("reroute disposition pending_target_ref must be a declared Brick node")
+    source_brick = _optional_text_value(hold_record.get("source_brick_ref")) or ""
+    if source_brick and pending_target == source_brick:
+        raise ValueError("reroute disposition pending_target_ref must not be the held source Brick")
+    if pending_target not in step_ref_by_brick_from_declared(declared_plan):
+        raise ValueError("reroute disposition pending_target_ref is not an existing Brick node")
+    return pending_target
 
 
 def _adapter_error_hold_without_return(hold_record: Mapping[str, Any]) -> bool:
@@ -901,8 +935,10 @@ def _read_disposition_row(
     FIX 3 (replay provenance): the selected row's discriminator is attached
     under ``selected_row_provenance`` (data only) so an auditor replaying the
     SAME selection rule -- file-order scan of raw/link.jsonl rows carrying a
-    ``disposition_action`` whose ``pending_target_ref`` AND hold identity match
-    the current hold, take the LAST -- lands on the SAME row deterministically.
+    ``disposition_action`` whose hold identity matches the current hold (and, for
+    non-reroute dispositions, whose ``pending_target_ref`` still names the held
+    target), take the LAST -- lands on the SAME row deterministically. For
+    reroute dispositions, ``pending_target_ref`` is the human/COO-selected target.
     HONEST LIMIT (0611): raw/link.jsonl is REWRITTEN (write_text, not appended;
     see raw_claim_trace._write_jsonl) on every walk, so any file-positional
     discriminator (offset, line number, match index) dangles across a resume:
@@ -916,8 +952,8 @@ def _read_disposition_row(
     ledger as it was when this selection ran, not against a later rewrite.
     """
 
-    pending_target = _optional_text_value(hold_record.get("pending_target_ref")) or ""
-    if not pending_target:
+    hold_pending_target = _optional_text_value(hold_record.get("pending_target_ref")) or ""
+    if not hold_pending_target:
         raise ValueError("HOLD record is missing pending_target_ref")
     current_hold_ref = _hold_paused_at_ref(hold_record)
     selected_record: Mapping[str, Any] | None = None
@@ -928,7 +964,8 @@ def _read_disposition_row(
         action = _optional_text_value(lifecycle.get("disposition_action"))
         if not action:
             continue
-        if _optional_text_value(lifecycle.get("pending_target_ref")) != pending_target:
+        row_pending_target = _optional_text_value(lifecycle.get("pending_target_ref")) or ""
+        if action != "reroute" and row_pending_target != hold_pending_target:
             continue
         # FIX 2: the row must reference THE CURRENT hold. Every identity field
         # the row carries must equal the current hold's ref; a row carrying

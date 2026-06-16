@@ -606,8 +606,8 @@ def check(repo: Path) -> tuple[list[str], Mapping[str, Any]]:
         if not isinstance(lifecycle, Mapping) or lifecycle.get("transition_lifecycle_pending_target_ref") != b2:
             violations.append("budget: paused frontier did not carry pending second Building")
         surface = budget_frontier.get("disposition_action_surface", {})
-        if not isinstance(surface, Mapping) or surface.get("allowed_values") != ["raise", "forward", "stop"]:
-            violations.append("budget: disposition_action surface did not expose raise/forward/stop")
+        if not isinstance(surface, Mapping) or surface.get("allowed_values") != ["raise", "forward", "stop", "reroute"]:
+            violations.append("budget: disposition_action surface did not expose raise/forward/stop/reroute")
 
         # Child roots independent: use MODE1, where two children closed. The
         # portfolio projection references both roots and is outside both roots.

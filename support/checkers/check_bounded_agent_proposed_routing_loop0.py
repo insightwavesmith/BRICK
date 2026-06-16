@@ -1037,8 +1037,19 @@ def check(repo: Path) -> list[str]:
 
     # G5-1: run_building_plan has no walker_mode parameter and always enters the
     # dynamic graph walker.
+    from brick_protocol.link.transition import DISPOSITION_ACTIONS
     from brick_protocol.support.operator.run import run_building_plan
     from brick_protocol.support.operator.building_operation import observe_building_frontier
+
+    if (
+        len(DISPOSITION_ACTIONS) != 4
+        or DISPOSITION_ACTIONS[:3] != ("raise", "forward", "stop")
+        or "reroute" not in DISPOSITION_ACTIONS
+    ):
+        violations.append(
+            "human-reroute-disposition: DISPOSITION_ACTIONS must pin "
+            "raise/forward/stop/reroute exactly"
+        )
 
     auto_prefix = "bapr-loop0-g5-1-auto-graph"
     auto_graph_plan, auto_graph_target = _checker_plan(auto_prefix, budget=2)
@@ -1787,6 +1798,143 @@ def check(repo: Path) -> list[str]:
     complete_oa = _approve_with_frontier({"frontier_kind": "complete"})
     if complete_oa.get("ok") is not True or complete_oa.get("disposition_written") is not False:
         violations.append("onboard-approve-fire: complete frontier was not treated as no-op")
+
+    # HUMAN REROUTE DISPOSITION FIRE (FIX-B-HUMAN-REROUTE-TARGET-0616):
+    # an ambiguous HOLD names 2+ declared Brick nodes, so support must not pick one.
+    # A later human/COO-authored disposition_action="reroute" may name exactly one
+    # declared, non-source Brick node; resume then reuses the existing reroute
+    # adoption/replay machinery to land there. Bad human targets fail closed.
+    from brick_protocol.support.operator.run import resume_building_plan
+
+    human_prefix = "bapr-loop0-human-reroute"
+    plan_hr, build_hr = _checker_plan(human_prefix, budget=1)
+    design_hr = f"brick-{human_prefix}-design"
+    review_hr = f"brick-{human_prefix}-review"
+    plan_hr = copy.deepcopy(plan_hr)
+    plan_hr["node_reroute_budgets"] = {build_hr: 1, design_hr: 1}
+    callable_hr = _multi_ref_concern_callable(review_hr, [build_hr, design_hr])
+    with tempfile.TemporaryDirectory(prefix="bp-human-reroute-fire-") as tmp_hr:
+        sandbox_hr = Path(tmp_hr).resolve()
+        res_hr = run_building_plan(
+            plan_hr,
+            output_root=sandbox_hr,
+            overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": callable_hr},
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+        )
+        root_hr = res_hr.lifecycle_write.root
+        before_hr = observe_building_frontier(root_hr, repo_root=repo)
+        held_hr = _held_records(list(getattr(res_hr, "_dynamic_walker_reroute_records", ())))
+        if before_hr["frontier_kind"] != "link_paused":
+            violations.append(
+                "human-reroute-disposition: ambiguous setup did not pause "
+                f"(frontier={before_hr['frontier_kind']})"
+            )
+        if not held_hr or held_hr[-1].get("hold_reason") != "multiple_reroute_addresses_no_single_owner":
+            violations.append("human-reroute-disposition: setup did not record ambiguous HOLD")
+        _append_disposition_row(
+            root_hr,
+            building_id=res_hr.building_id,
+            pending_target_ref=design_hr,
+            action="reroute",
+            author_ref="coo:smith",
+        )
+        resumed_hr = resume_building_plan(
+            root_hr,
+            local_callables={"callable:local:agent-invoke0-smoke": callable_hr},
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+        )
+        records_hr = list(getattr(resumed_hr, "_dynamic_walker_reroute_records", ()))
+        adopted_hr = _adopted_records(records_hr)
+        if not any(record.get("target_brick") == design_hr for record in adopted_hr):
+            violations.append(
+                "human-reroute-disposition: human-chosen design target was not "
+                "adopted as a reroute landing"
+            )
+        if _step_bricks(resumed_hr).count(design_hr) < 2:
+            violations.append(
+                "human-reroute-disposition: chosen design target was not replayed "
+                f"(bricks={_step_bricks(resumed_hr)})"
+            )
+        evidence_hr = getattr(resumed_hr, "_dynamic_walker_evidence", {})
+        observations_hr = (
+            evidence_hr.get("resume_observations", [])
+            if isinstance(evidence_hr, Mapping)
+            else []
+        )
+        if not any(
+            isinstance(observation, Mapping)
+            and observation.get("disposition_action") == "reroute"
+            and observation.get("pending_target_ref") == design_hr
+            for observation in observations_hr
+        ):
+            violations.append(
+                "human-reroute-disposition: resume observation did not carry "
+                "the human reroute target"
+            )
+
+    bad_prefix = "bapr-loop0-human-reroute-red"
+    bad_plan, bad_build = _checker_plan(bad_prefix, budget=1)
+    bad_review = f"brick-{bad_prefix}-review"
+    bad_plan = copy.deepcopy(bad_plan)
+    bad_plan["node_reroute_budgets"] = {
+        bad_build: 1,
+        f"brick-{bad_prefix}-design": 1,
+    }
+    bad_callable = _multi_ref_concern_callable(
+        bad_review,
+        [bad_build, f"brick-{bad_prefix}-design"],
+    )
+    with tempfile.TemporaryDirectory(prefix="bp-human-reroute-red-") as tmp_bad:
+        sandbox_bad = Path(tmp_bad).resolve()
+        res_bad = run_building_plan(
+            bad_plan,
+            output_root=sandbox_bad,
+            overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": bad_callable},
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+        )
+        root_bad = res_bad.lifecycle_write.root
+        bad_targets = (
+            (bad_review, "self"),
+            (f"building-boundary:{bad_prefix}-closed", "boundary"),
+            (f"brick-{bad_prefix}-missing", "undeclared"),
+        )
+        for bad_target, label in bad_targets:
+            _append_disposition_row(
+                root_bad,
+                building_id=res_bad.building_id,
+                pending_target_ref=bad_target,
+                action="reroute",
+                author_ref="coo:smith",
+            )
+            try:
+                resume_building_plan(
+                    root_bad,
+                    local_callables={"callable:local:agent-invoke0-smoke": bad_callable},
+                    adapter_cwd=repo,
+                    adapter_timeout_seconds=30,
+                )
+            except ValueError:
+                pass
+            else:
+                violations.append(
+                    "human-reroute-disposition: bad reroute target did not reject "
+                    f"({label}: {bad_target})"
+                )
+    missing_target_oa = run_approve_entry(
+        Path(tempfile.gettempdir()) / "bp-onboard-reroute-missing",
+        action="reroute",
+        repo_root=repo,
+    )
+    if missing_target_oa.get("error_kind") != "missing_reroute_target_ref":
+        violations.append(
+            "human-reroute-disposition: onboard approve reroute without target "
+            "did not fail closed"
+        )
 
     # Invariant: FORWARD GATE-BLOCK IS BUDGET-FREE (gate-block <-> reroute
     # decoupling). A declared gate_sequence_policy on a FORWARD edge whose gate is
@@ -5588,6 +5736,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         "frontier over adapter:local "
         "deterministic fixtures, proved onboard approve C-2 adapter_cwd/timeout "
         "forwarding + coo forward disposition handoff + fail-closed RED cases, persisted "
+        "human/COO reroute disposition target selection from an ambiguous HOLD "
+        "(declared non-source target replays; self/boundary/undeclared targets reject), "
         "node_reroute_budgets and route_replay_plan.max_attempts as Link Carry "
         "budget evidence, delivered the MAIL-REPAIR (0611) runtime mail (mail-1 "
         "gate-adopted concern reason_refs arrive in every redo input with recorded "

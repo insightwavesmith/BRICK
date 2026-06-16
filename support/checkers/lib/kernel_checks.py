@@ -42,7 +42,7 @@ from support.checkers.lib.yaml_subset import (
 _AXIS_VOCAB_EXPECTED_MOVEMENT = ("forward", "reroute")
 
 
-_AXIS_VOCAB_EXPECTED_DISPOSITION_ACTIONS = ("raise", "forward", "stop")
+_AXIS_VOCAB_EXPECTED_DISPOSITION_ACTIONS = ("raise", "forward", "stop", "reroute")
 
 
 _AXIS_VOCAB_EXPECTED_DISPOSITION_OWNERS = ("caller", "coo", "caller-or-coo")

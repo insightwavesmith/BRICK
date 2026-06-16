@@ -111,6 +111,7 @@ from brick_protocol.support.operator.walker_step_fixture import (
 from brick_protocol.support.operator.walker_transition_concern import (
     _build_invalid_transition_concern_hold,
     _classify_reroute_target,
+    _RerouteTargetClassification,
     _transition_concern_observation_from_step_result,
 )
 from brick_protocol.support.recording.walker_evidence import (
@@ -788,7 +789,8 @@ class ResumeSeed:
     budgets): re-running it while REPLAYING the recorded returns (instead of
     calling the provider) reproduces the exact same path up to the original HOLD.
     At the held step occurrence the disposition is applied INLINE (raise = the
-    budget delta below already lets the landing adopt; forward = the held
+    budget delta below already lets the landing adopt; reroute = the human/COO
+    selected target enters the existing adoption path; forward = the held
     concern/gate HOLD is walked-on once; stop = the building is closed) and the
     loop continues to completion / the next HOLD with full forward fidelity.
 
@@ -805,7 +807,7 @@ class ResumeSeed:
         (``_replay_building_step_from_returned``); no provider call.
       ``budget_delta`` -- per target Brick ref budget increment to ADD to the
         declared node budget before the walk (raise disposition; empty otherwise).
-      ``disposition_action`` -- ``raise`` / ``forward`` / ``stop``.
+      ``disposition_action`` -- ``raise`` / ``forward`` / ``stop`` / ``reroute``.
       ``held_source_step_ref`` / ``held_cascade_depth`` / ``pending_target_ref``
         -- identify the held step occurrence the disposition resolves.
       ``author_ref`` / ``paused_at_ref`` / ``hold_record`` -- carry the resume
@@ -1100,6 +1102,7 @@ def _build_resume_disposition_observation(
             "raise": "budget_raised_and_held_landing_reentered",
             "forward": "forwarded_past_held_gate_without_reroute_landing",
             "stop": "closed_by_human_or_coo_disposition",
+            "reroute": "rerouted_to_human_or_coo_selected_target",
         }[action]
     increment = (
         int(resume_seed.budget_delta.get(target, 0)) if action == "raise" else 0
@@ -1831,12 +1834,14 @@ def _run_dynamic_graph_walker(
         )
         if has_fan_groups:
             completed_fan_steps.add((step_ref, cascade_depth))
+        human_disposition_reroute_target = ""
         # RESUME disposition application at the held step occurrence. The held step
         # is the LAST recorded step (the original walk broke there); on replay this
         # is the occurrence that just exhausted its recorded returns at the held
         # (step_ref, cascade_depth) identity. raise was already applied as a budget
-        # bump (the landing adopts naturally below). forward => WALK ON past the
-        # held concern/gate (treat as no actionable reroute). stop => close.
+        # bump (the landing adopts naturally below). reroute carries a human-selected
+        # target into the existing adoption path. forward => WALK ON past the held
+        # concern/gate (treat as no actionable reroute). stop => close.
         if (
             resume_seed is not None
             and not disposition_applied
@@ -1889,6 +1894,26 @@ def _run_dynamic_graph_walker(
                         scheduled_fan_steps=scheduled_fan_steps,
                     )
                 continue
+            if resume_seed.disposition_action == "reroute":
+                # Human/COO selected a declared non-source Brick node while resolving
+                # this HOLD. The resume seed carries the already-validated target; the
+                # concern adoption block below reuses the existing reroute landing /
+                # replay machinery instead of introducing a second reroute engine.
+                human_disposition_reroute_target = resume_seed.pending_target_ref
+                if gate_sequence_decision.action == "hold":
+                    gate_sequence_decision = GateSequenceDecision(
+                        action="reroute",
+                        gate_ref=gate_sequence_decision.gate_ref,
+                        target_brick_ref=human_disposition_reroute_target,
+                        hold_reason=gate_sequence_decision.hold_reason,
+                        evidence_ref=resume_seed.paused_at_ref,
+                        reason_refs=(
+                            resume_seed.disposition_reason_refs
+                            or gate_sequence_decision.reason_refs
+                        ),
+                        gate_results=gate_sequence_decision.gate_results,
+                        gate_action_sequence=gate_sequence_decision.gate_action_sequence,
+                    )
             # raise: fall through to the normal branches; the bumped budget lets the
             # held landing ADOPT below (no special-casing needed).
             # MAIL-REPAIR (0611, B3 lane 2): THIS resume's disposition row is a
@@ -2114,18 +2139,28 @@ def _run_dynamic_graph_walker(
             if concern is not None
             else None
         )
+        human_disposition_adopted_by = ""
+        if human_disposition_reroute_target:
+            target_classification = _RerouteTargetClassification(
+                kind="single",
+                target=human_disposition_reroute_target,
+                resolved=(human_disposition_reroute_target,),
+            )
+            human_disposition_adopted_by = "link-policy:human-disposition"
         # WALK ON (carry forward to closure, no HOLD, no reroute landing) when
         # there is NO concern, the plan declares concerns advisory, OR the concern
         # is an EXPLICIT non-reroute concern: either building-boundary: sentinels
         # name no Brick node, or the only resolved Brick node is the source node
         # itself. That is not an actionable reroute, so it must NOT HOLD.
         # BUDGET-FREE: node_landings / node_budget untouched.
-        if concern is None or (
+        if (concern is None and not human_disposition_reroute_target) or (
             concern is not None
             and plan.get("transition_concern_adoption") == "advisory"
+            and not human_disposition_reroute_target
         ) or (
             target_classification is not None
             and target_classification.kind == "non_reroute"
+            and not human_disposition_reroute_target
         ):
             if not has_fan_groups:
                 continue
@@ -2447,7 +2482,7 @@ def _run_dynamic_graph_walker(
                     )
                     or "",
                     transition_concern_binding=False,
-                    adopted_by=_adopted_by_ref(step),
+                    adopted_by=human_disposition_adopted_by or _adopted_by_ref(step),
                     immediate_target_ref=target_brick,
                     target_brick=target_brick,
                     target_step_ref=target_step_ref,
@@ -2488,7 +2523,7 @@ def _run_dynamic_graph_walker(
             )
 
     # RESUME: stamp the human/COO-authored resumed transition_lifecycle on the held
-    # source for raise/forward (stop already stamped + closed in the loop hook), and
+    # source for raise/forward/reroute (stop already stamped + closed in the loop hook), and
     # build the resume_observation recording the applied disposition. Mirrors the
     # prior resume verb so the resumed Building's evidence shows the disposition was
     # human/COO-authored (ζ7: support reads it, never authors it).
@@ -2497,7 +2532,7 @@ def _run_dynamic_graph_walker(
         # FAIL-CLOSED gap-2: assert the held occurrence was actually reached and the
         # disposition applied. The in-loop hook sets disposition_applied=True exactly
         # when (held_source_step_ref, held_cascade_depth) is hit as its held
-        # occurrence and the raise/forward/stop action is applied. If the seeded
+        # occurrence and the raise/forward/stop/reroute action is applied. If the seeded
         # walk finished WITHOUT applying the disposition (the held occurrence was
         # never reached -- e.g. corrupt held identity, a divergent earlier HOLD, or
         # a replay that never reached it), a silent return would falsely claim the
@@ -2513,7 +2548,7 @@ def _run_dynamic_graph_walker(
             )
         resume_observations = list(resume_seed.existing_resume_observations)
         if (
-            resume_seed.disposition_action in {"raise", "forward"}
+            resume_seed.disposition_action in {"raise", "forward", "reroute"}
             and not resume_seed.skip_lifecycle_stamp
         ):
             step_results = _stamp_resumed_lifecycle_on_held_source(
