@@ -200,17 +200,18 @@ transition_lifecycle:
   progress_state: in_progress
   required_disposition_owner: caller | coo | caller-or-coo
   pending_target_ref: <declared Brick boundary ref>
-  disposition_action: raise | forward | stop
+  disposition_action: raise | forward | stop | reroute
   budget_increment: <finite positive integer, required only for raise>
 ```
 
-`disposition_action` is exactly three values:
+`disposition_action` is one of these values:
 
 ```text
 raise     extend only the declared bounded budget for the paused boundary
           (requires a finite positive budget_increment)
 forward   resume forward (must not carry budget_increment)
 stop      close (must not carry budget_increment)
+reroute   resume onto a declared route target (must not carry budget_increment)
 ```
 
 Ownership and authoring rules (`AGENTS.md`):
@@ -219,7 +220,7 @@ Ownership and authoring rules (`AGENTS.md`):
 - A `disposition_action` may appear **only on a `human:`- or `coo:`-authored disposition row**. `human:` / `coo:` / `caller:` are author **prefixes**, not owner values; current validation admits the `human:` and `coo:` author prefixes only.
 - Support may **observe and record** the disposition, but it must not author the disposition or choose the target.
 
-Note a wording distinction: the disposition row carries `disposition_action: raise | forward | stop`, while the gate concepts `link-gate:human` / `link-gate:coo` describe **who** must supply disposition evidence before a paused transition resumes. The `required_disposition_owner` enum (`caller | coo | caller-or-coo`) is separate again from the `human:`/`coo:` author prefixes admitted for the row itself. These three vocabularies travel together but are not the same field.
+Note a wording distinction: the disposition row carries `disposition_action: raise | forward | stop | reroute`, while the gate concepts `link-gate:human` / `link-gate:coo` describe **who** must supply disposition evidence before a paused transition resumes. The `required_disposition_owner` enum (`caller | coo | caller-or-coo`) is separate again from the `human:`/`coo:` author prefixes admitted for the row itself. These three vocabularies travel together but are not the same field.
 
 ## One step, drawn
 

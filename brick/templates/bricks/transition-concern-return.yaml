@@ -7,8 +7,11 @@ returned_shape:
     concern_kind: implementation_gap | design_gap | upstream_gap | boundary_mismatch | insufficient_input | replay_needed | verification_gap | unknown
     reason_refs:
       - observation:<id>
+    # related_boundary_refs names the upstream WORK node responsible for the defect
+    # (brick:<the-work-node-id>) — NOT the reporting node itself, NOT a building-boundary: sentinel.
+    # The engine silently walks-on a self-ref or sentinel, so no reroute fires.
     related_boundary_refs:
-      - brick:<id>
+      - brick:<upstream-work-node-id>
     binding: false
     proof_limits:
       - Agent concern only

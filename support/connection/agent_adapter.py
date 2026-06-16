@@ -19,7 +19,7 @@ import tempfile
 import time
 import urllib.error
 import urllib.request
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -1742,6 +1742,7 @@ def _transition_concern_schema_rules() -> tuple[str, ...]:
         "transition_concern_evidence.binding must be the JSON literal false.",
         "transition_concern_evidence.reason_refs must be a non-empty list of strings.",
         "transition_concern_evidence.related_boundary_refs may name only Brick boundaries such as brick-..., brick:..., brick-boundary:..., brick-instance:..., or building-boundary:....",
+        "For a reproduced defect, set related_boundary_refs to the upstream work node (not yourself/sentinel); put env/runtime constraints in not_proven, not a concern; reason_refs must not be /tmp filesystem paths.",
         "Do not put observation, disposition_note, candidate_pending_target_ref, secondary_concern_kind, route_target, target_ref, or movement inside transition_concern_evidence.",
     )
 
@@ -2118,6 +2119,7 @@ def _validate_write_scope(label: str, value: Mapping[str, Any]) -> None:
         if not isinstance(item, str) or not item.strip():
             raise ValueError(f"{label}.allowed_paths[{index}] must be non-empty text")
         _reject_forbidden_write_path(f"{label}.allowed_paths[{index}]", item)
+        _reject_bare_dir_write_path(f"{label}.allowed_paths[{index}]", item)
 
     forbidden = value.get("forbidden_paths")
     if not isinstance(forbidden, list):
@@ -2126,6 +2128,7 @@ def _validate_write_scope(label: str, value: Mapping[str, Any]) -> None:
         if not isinstance(item, str) or not item.strip():
             raise ValueError(f"{label}.forbidden_paths[{index}] must be non-empty text")
         _reject_secret_text(f"{label}.forbidden_paths[{index}]", item)
+        _reject_bare_dir_write_path(f"{label}.forbidden_paths[{index}]", item)
 
     for key in ("commit_allowed", "push_allowed"):
         if value.get(key) is True:
@@ -2147,6 +2150,29 @@ def _reject_forbidden_write_path(label: str, value: str) -> None:
         or _path_has_forbidden_write_segment(lowered)
     ):
         raise ValueError(f"{label} is not admitted for write_scope")
+
+
+def _reject_bare_dir_write_path(label: str, value: str) -> None:
+    """Fail closed on a bare-directory write_scope entry.
+
+    ``support/operator/write_observation.py:_path_matches_scope`` matches a
+    changed file against an entry via ``fnmatch`` OR exact-path equality
+    (``path == pattern.rstrip("/")``). A bare directory with no glob char (e.g.
+    ``"support/"``) therefore matches ONLY the literal directory entry, never
+    any nested file: it passes construction here but then silently HOLDs every
+    nested file at observation time (write_observation_out_of_scope). Reject it
+    at construction so the author fixes the declaration instead of getting a
+    silent stall. Exact-file entries (``AGENTS.md``, ``brick/work.py``) and
+    glob entries (``support/*``, ``support/**``) are unaffected.
+    """
+
+    text = value.strip().replace("\\", "/")
+    if text.endswith("/") and "*" not in text:
+        raise ValueError(
+            f"{label} is a bare directory ({value!r}) that matches no nested "
+            f"files at write_observation time; use a glob such as "
+            f"'{text.rstrip('/')}/*' or '{text.rstrip('/')}/**' instead"
+        )
 
 
 def _path_has_forbidden_write_segment(path: str) -> bool:

@@ -41,6 +41,11 @@ Return: fill the `required_return_shape` from the return_template
 is **non-binding** Agent evidence — it carries `concern_ref`, `concern_kind`, `reason_refs`,
 `related_boundary_refs`, `binding: false`; it MUST NOT carry `movement` / `target` / `target_ref` /
 `route_target`. The forward Link carries this evidence onward; the concern never reroutes by itself.
+When you raise a concern for a REAL reproduced defect, aim `related_boundary_refs` at the upstream
+WORK node responsible (e.g. `brick:<the-work-node-id>`) — NOT yourself, NOT a `building-boundary:`
+sentinel. The engine silently walks-on a self-ref or sentinel, so no reroute ever fires. Environment
+or runtime constraints (no temp dir, write-scope limits, provider limits, read-only status, "live not
+run") are NOT defects — record them in `not_proven`, never as a `transition_concern`.
 
 Do NOT return `success` / `failure` / `approved` / `good_enough` / `movement_choice` / `route_target` —
 sufficiency + movement are the Link gate's; quality/success are the human's. This Brick writes no

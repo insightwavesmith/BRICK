@@ -61,6 +61,20 @@ _AXIS_VOCAB_REQUIRED_TRANSITION_KEYS = (
 )
 
 
+# S-5: concern_kind code<->doc parity. The closed concern_kind vocabulary lives
+# in code as agent/return_fact.py:TRANSITION_CONCERN_KINDS (the source of truth)
+# and is documented in AGENTS.md under this header line as a fenced ```text```
+# block (one value per line). The parity check compares the two directly and
+# fails on any divergence in either direction; it hardcodes NO third copy of the
+# values, so the values themselves are pinned only at the code surface.
+_AXIS_VOCAB_CONCERN_KIND_SOURCE = "agent/return_fact.py"
+_AXIS_VOCAB_CONCERN_KIND_CONST = "TRANSITION_CONCERN_KINDS"
+_AXIS_VOCAB_CONCERN_KIND_DOC = "AGENTS.md"
+_AXIS_VOCAB_CONCERN_KIND_DOC_HEADER = (
+    "Agent transition concerns use the closed `concern_kind` vocabulary:"
+)
+
+
 _AXIS_VOCAB_EXPECTED_ADAPTER_REFS = (
     "adapter:local",
     "adapter:codex-local",
@@ -400,7 +414,7 @@ def _axis_vocab_check_docs(repo: Path, violations: list[str]) -> None:
     required = [
         "progress_state: in_progress",
         "required_disposition_owner: caller | coo | caller-or-coo",
-        "disposition_action: raise | forward | stop",
+        "disposition_action: raise | forward | stop | reroute",
         "budget_increment: <finite positive integer, required only for raise>",
         "`human:/coo:/caller:` are author prefixes, not owner values",
         "admits `human:` and `coo:` author prefixes only",
@@ -484,11 +498,77 @@ def _axis_vocab_check_agent_adapter_refs(repo: Path, violations: list[str]) -> N
                 )
 
 
+def _axis_vocab_doc_fenced_block(text: str, header: str) -> frozenset[str] | None:
+    """Return the values in the first ```text``` fenced block after `header`.
+
+    Reads one bare value per non-empty line inside the fence. Returns None when
+    the header or its following fenced block is absent (so the caller can report
+    a precise missing-doc-block violation rather than a silent empty match).
+    """
+    lines = text.splitlines()
+    try:
+        start = next(i for i, line in enumerate(lines) if header in line)
+    except StopIteration:
+        return None
+    fence_open: int | None = None
+    for i in range(start + 1, len(lines)):
+        if lines[i].strip().startswith("```"):
+            fence_open = i
+            break
+    if fence_open is None:
+        return None
+    values: set[str] = set()
+    for i in range(fence_open + 1, len(lines)):
+        stripped = lines[i].strip()
+        if stripped.startswith("```"):
+            return frozenset(values)
+        if stripped:
+            values.add(stripped)
+    return None
+
+
+def _axis_vocab_check_concern_kind_parity(repo: Path, violations: list[str]) -> None:
+    return_fact_tree, _return_fact_text = _axis_vocab_parse_python(
+        repo, _AXIS_VOCAB_CONCERN_KIND_SOURCE
+    )
+    return_fact_env = _axis_vocab_module_env(return_fact_tree)
+    code_kinds = _axis_vocab_set(
+        return_fact_env,
+        _AXIS_VOCAB_CONCERN_KIND_CONST,
+        _AXIS_VOCAB_CONCERN_KIND_SOURCE,
+    )
+
+    doc_text = to_repo_path(repo, _AXIS_VOCAB_CONCERN_KIND_DOC).read_text(encoding="utf-8")
+    doc_kinds = _axis_vocab_doc_fenced_block(doc_text, _AXIS_VOCAB_CONCERN_KIND_DOC_HEADER)
+    if doc_kinds is None:
+        violations.append(
+            f"{_AXIS_VOCAB_CONCERN_KIND_DOC}: missing the closed concern_kind vocabulary "
+            f"fenced block under header {_AXIS_VOCAB_CONCERN_KIND_DOC_HEADER!r}"
+        )
+        return
+
+    missing_in_doc = sorted(code_kinds - doc_kinds)
+    extra_in_doc = sorted(doc_kinds - code_kinds)
+    if missing_in_doc:
+        violations.append(
+            f"{_AXIS_VOCAB_CONCERN_KIND_DOC}: closed concern_kind vocabulary missing "
+            f"{_AXIS_VOCAB_CONCERN_KIND_SOURCE}:{_AXIS_VOCAB_CONCERN_KIND_CONST} value(s): "
+            f"{', '.join(missing_in_doc)}"
+        )
+    if extra_in_doc:
+        violations.append(
+            f"{_AXIS_VOCAB_CONCERN_KIND_DOC}: closed concern_kind vocabulary lists value(s) "
+            f"absent from {_AXIS_VOCAB_CONCERN_KIND_SOURCE}:{_AXIS_VOCAB_CONCERN_KIND_CONST}: "
+            f"{', '.join(extra_in_doc)}"
+        )
+
+
 def run_axis_vocab_drift(repo: Path) -> KernelResult:
     violations: list[str] = []
     _axis_vocab_check_link_sources(repo, violations)
     _axis_vocab_check_transition_author_prefix_consumers(repo, violations)
     _axis_vocab_check_docs(repo, violations)
+    _axis_vocab_check_concern_kind_parity(repo, violations)
     _axis_vocab_check_agent_adapter_refs(repo, violations)
     scanned = _axis_vocab_scan_exact_enum_redefinitions(repo, violations)
     if violations:
@@ -496,11 +576,11 @@ def run_axis_vocab_drift(repo: Path) -> KernelResult:
         raise ProfileError(f"kernel check axis_vocab_drift rejected evidence:\n{detail}")
     return KernelResult(
         check_id="axis_vocab_drift",
-        inspected=scanned + 5,
+        inspected=scanned + 6,
         output=(
             "axis vocab drift passed: parsed Link Movement/transition sources, "
             "transition author-prefix consumers, AGENTS/current packet text, "
-            "Agent adapter refs, and scanned "
+            "Agent concern_kind code<->doc parity, Agent adapter refs, and scanned "
             f"{scanned} active Python file(s) for competing full enum literals."
         ),
     )
