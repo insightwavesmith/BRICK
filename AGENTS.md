@@ -4,18 +4,6 @@ This repository is the clean-room home for Brick Protocol.
 
 Read this file before changing protocol, kernel, checker, module, contract,
 runner, Agent resource, Link gate, projection, evidence, or status surfaces.
-For current post-D operation also read:
-
-```text
-archive/status-kernel/current-brick-operating-packet-0531.md
-archive/status-kernel/brick-protocol-post-d-surface-recompile-0-plan-0530.md
-```
-
-Detailed pre-compression admission prose is preserved as reference evidence at:
-
-```text
-archive/docs-spec/brick-protocol-agents-active-admission-history-0531.md
-```
 
 If this short constitution conflicts with older detailed prose, this file plus
 the current operating packet's AGENTS-governed operating context controls active
@@ -248,12 +236,6 @@ Reserve planning/shape steps for ambiguity, portfolio split, or admission risk.
 Treat attack-QA and axis-QA as Building work, not reviewer authority.
 ```
 
-Candidate matrix:
-
-```text
-archive/status-kernel/brick-protocol-agent-brick-link-preset-matrix-0-candidate-0530.md
-```
-
 P7 admits the matrix direction as current post-D operating policy:
 
 ```text
@@ -262,12 +244,6 @@ plan/design shaping is reserved for ambiguity, portfolio split, or admission ris
 Codex builder, Opus attack-review, and Gemini broad-review are routing hints,
 not Agent identities or authority
 parallel attack-QA is Building work, not reviewer judgment authority
-```
-
-The admitted P7 status record is:
-
-```text
-archive/status-kernel/brick-protocol-post-d-surface-recompile-0-p7-agent-template-gate-preset-recompile-0531.md
 ```
 
 ## Agent Axis
@@ -744,12 +720,6 @@ refresh projections only as support
 finish with P9 strict gates and proof limits
 ```
 
-P9 final strict-gate record:
-
-```text
-project/brick-protocol/status/kernel/brick-protocol-post-d-surface-recompile-0-p9-final-strict-gate-and-proof-limits-0531.md
-```
-
 Forbidden inside this goal unless a later explicit admission changes it:
 
 ```text
@@ -789,18 +759,7 @@ Every phase uses:
 
 ## Active Admission Index
 
-This index points to active law families. Detailed pre-compression prose is
-preserved in:
-
-```text
-archive/docs-spec/brick-protocol-agents-active-admission-history-0531.md
-```
-
-Current operator packet:
-
-```text
-archive/status-kernel/current-brick-operating-packet-0531.md
-```
+This index points to active law families.
 
 Core root / authority:
 
@@ -859,12 +818,6 @@ PRH-B automatic Building evidence recording
 raw structured BAL evidence minimum
 ```
 
-P8 records the reporter / notification candidate admission plan:
-
-```text
-project/brick-protocol/status/kernel/brick-protocol-post-d-surface-recompile-0-p8-reporter-candidate-admission-plan-0531.md
-```
-
 REPORTER-NOTIFICATION-PROJECTION-0 admits only the first support-only local
 status inbox projection slice:
 
@@ -872,7 +825,6 @@ status inbox projection slice:
 support/operator/reporter.py
 support/operator/report_sinks.py
 project/brick-protocol/status/inbox/
-project/brick-protocol/status/kernel/brick-protocol-reporter-notification-projection-0-support-record-0531.md
 ```
 
 The admitted slice may read persisted Building / portfolio evidence, render
