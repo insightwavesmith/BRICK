@@ -1773,10 +1773,10 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
     # REHOME (checker consolidation): assert the FULL return-field vocabulary the
     # retiring provider_json_return_smoke profile single-sourced (several tokens
     # were pinned only there). The Agent return label/JSON field constants live in
-    # support/connection/agent_adapter.py; the forbidden return keys live in
-    # agent/return_fact.py and are re-exported into the adapter. An absent guard
-    # fires nothing, so verify the constants directly instead of leaving the
-    # vocabulary text-pinned in one retiring profile.
+    # support/connection/agent_adapter.py; the top-level verdict keys and always
+    # recursive secret keys live in agent/return_fact.py and are re-exported into
+    # the adapter. An absent guard fires nothing, so verify the constants directly
+    # instead of leaving the vocabulary text-pinned in one retiring profile.
     return_fact = importlib.import_module("brick_protocol.agent.return_fact")
     _EXPECTED_RETURN_LABEL_FIELDS = (
         "blocked_or_missing_evidence",
@@ -1789,7 +1789,8 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
         "transition_concern_evidence",
     )
     _EXPECTED_RETURN_JSON_FIELDS = ("transition_concern_evidence",)
-    _EXPECTED_RETURNED_FORBIDDEN_KEYS = ("movement_choice", "route_target", "target_ref")
+    _EXPECTED_TOP_LEVEL_VERDICT_KEYS = ("movement_choice", "route_target", "target_ref")
+    _EXPECTED_ALWAYS_SECRET_KEYS = ("credential", "secret", "session", "setup_token")
     missing_label_fields = sorted(
         set(_EXPECTED_RETURN_LABEL_FIELDS) - set(adapter._RETURN_LABEL_FIELDS)
     )
@@ -1806,23 +1807,60 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
             "agent adapter _RETURN_JSON_FIELDS missing JSON return field(s): "
             + ", ".join(missing_json_fields)
         )
-    missing_forbidden_keys = sorted(
-        set(_EXPECTED_RETURNED_FORBIDDEN_KEYS) - set(return_fact.RETURNED_FORBIDDEN_KEYS)
+    missing_top_level_keys = sorted(
+        set(_EXPECTED_TOP_LEVEL_VERDICT_KEYS) - set(return_fact.TOP_LEVEL_VERDICT_KEYS)
     )
-    if missing_forbidden_keys:
+    if missing_top_level_keys:
         raise ProfileError(
-            "return_fact RETURNED_FORBIDDEN_KEYS missing forbidden return key(s): "
-            + ", ".join(missing_forbidden_keys)
+            "return_fact TOP_LEVEL_VERDICT_KEYS missing forbidden return key(s): "
+            + ", ".join(missing_top_level_keys)
         )
-    if set(adapter._RETURN_FORBIDDEN_KEYS) != set(return_fact.RETURNED_FORBIDDEN_KEYS):
+    missing_secret_keys = sorted(
+        set(_EXPECTED_ALWAYS_SECRET_KEYS) - set(return_fact.ALWAYS_SECRET_KEYS)
+    )
+    if missing_secret_keys:
         raise ProfileError(
-            "agent adapter _RETURN_FORBIDDEN_KEYS drifted from "
-            "return_fact RETURNED_FORBIDDEN_KEYS"
+            "return_fact ALWAYS_SECRET_KEYS missing recursive secret key(s): "
+            + ", ".join(missing_secret_keys)
         )
+    if set(adapter._TOP_LEVEL_VERDICT_KEYS) != set(return_fact.TOP_LEVEL_VERDICT_KEYS):
+        raise ProfileError(
+            "agent adapter _TOP_LEVEL_VERDICT_KEYS drifted from "
+            "return_fact TOP_LEVEL_VERDICT_KEYS"
+        )
+    if set(adapter._ALWAYS_SECRET_KEYS) != set(return_fact.ALWAYS_SECRET_KEYS):
+        raise ProfileError(
+            "agent adapter _ALWAYS_SECRET_KEYS drifted from "
+            "return_fact ALWAYS_SECRET_KEYS"
+        )
+    try:
+        adapter._validate_returned_payload(
+            "returned",
+            {"observed_evidence": [{"checker_profile_run_results": {"pass": 5, "fail": 0}}]},
+        )
+    except ValueError as exc:
+        raise ProfileError(
+            "agent adapter rejected nested natural evidence keys pass/fail"
+        ) from exc
+    try:
+        adapter._validate_returned_payload("returned", {"success": True})
+    except ValueError:
+        pass
+    else:
+        raise ProfileError("agent adapter admitted top-level success return key")
+    try:
+        adapter._validate_returned_payload(
+            "returned",
+            {"e": [{"x": "Bearer ghp_fakesecret123"}]},
+        )
+    except ValueError:
+        pass
+    else:
+        raise ProfileError("agent adapter admitted nested raw secret text")
 
     return KernelResult(
         check_id="agent_adapter_return_shape",
-        inspected=6
+        inspected=9
         + effective_write_inspected
         + read_tier_inspected
         + artifact_grounding_inspected,
@@ -5008,9 +5046,9 @@ def run_chat_session_park_seam(repo: Path) -> KernelResult:
             run_module,
             dynamic_root,
             token=token,
-            returned={"status": "done", "observed_evidence": ["bad"]},
-            expected="forbidden key 'status'",
-            label="forbidden status key",
+            returned={"secret": "done", "observed_evidence": ["bad"]},
+            expected="forbidden key 'secret'",
+            label="forbidden secret key",
         )
         _chat_session_assert_submit_rejects(
             run_module,
@@ -7077,7 +7115,7 @@ def _chat_session_mutate_submission_forbidden_key(building_root: Path) -> None:
     submission_path = _chat_session_submission_path(building_root)
     submission = dict(_chat_session_json_object(submission_path))
     returned = dict(submission.get("returned") or {})
-    returned["status"] = "done"
+    returned["secret"] = "done"
     submission["returned"] = returned
     _chat_session_write_json_object(submission_path, submission)
 

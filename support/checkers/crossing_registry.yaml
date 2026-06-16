@@ -52,6 +52,8 @@ crossings:
       - AgentFact
       - make_agent_fact
       - AGENT_FACT_FIELDS
+      - TOP_LEVEL_VERDICT_KEYS
+      - ALWAYS_SECRET_KEYS
       - RETURNED_FORBIDDEN_KEYS
       - TRANSITION_CONCERN_ALLOWED_KEYS
       - TRANSITION_CONCERN_KINDS

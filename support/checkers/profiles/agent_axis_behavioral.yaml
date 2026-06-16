@@ -186,9 +186,12 @@ text_contains:
       - Return one JSON object
       - unstructured prose
       - completed
-      - RETURNED_FORBIDDEN_KEYS
+      - TOP_LEVEL_VERDICT_KEYS
+      - ALWAYS_SECRET_KEYS
   - path: agent/return_fact.py
     texts:
+      - TOP_LEVEL_VERDICT_KEYS
+      - ALWAYS_SECRET_KEYS
       - movement_choice
       - route_target
   - path: support/operator/write_observation.py
