@@ -176,7 +176,10 @@ def check(repo: Path) -> list[str]:
     plan_b, b2_b = _build_checker_plan(walker_chk, "zeta6-hold", budget=1)
     _, _, rec_b = walker_chk._run(
         plan_b,
-        walker_chk._reroute_callable(b2_b, {"brick-zeta6-hold-review", b2_b}),
+        walker_chk._reroute_callable(
+            b2_b,
+            {"brick-zeta6-hold-design", "brick-zeta6-hold-review"},
+        ),
         repo,
     )
     held = [r for r in rec_b if r.get("disposition_required")]

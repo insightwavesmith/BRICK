@@ -5,7 +5,7 @@ kernel_checks:
   - package_path_admission
   # Executes the standalone walker checker live inside check_profile --all:
   # imports + walks the real dynamic graph walker over adapter:local fixtures
-  # (adopt within budget / HOLD on exhaustion = termination / nested shares
+  # (adopt within budget / HOLD on exhaustion = termination / shared target
   # budget). A broken walker invariant now makes --all EXIT non-zero.
   - bounded_agent_proposed_routing_loop
   # Executes the standalone ζ6 recording-contract checker live inside --all:
@@ -40,7 +40,7 @@ text_contains:
       # HOLD on exhaustion with caller-or-coo disposition
       - transition_lifecycle.state=paused
       - required_disposition_owner=caller-or-coo
-      # nested landing draws the same shared budget (no fresh budget)
+      # repeated non-self landings draw the same shared budget (no fresh budget)
       - it never receives a fresh budget
       # support halts and records; the human decides raise/forward/stop
       - does NOT decide raise/forward/stop
@@ -122,6 +122,8 @@ text_contains:
       - replaying the recorded selection rule
       - "b1-advisory-empty: advisory empty-ref concern produced reroute/HOLD records"
       - "b1-advisory-red-empty: removing advisory did not restore HOLD behavior"
+      - "knot4-self-reroute: self-target concern produced reroute/HOLD records"
+      - "knot4-other-target-control: expected one adopted true reroute"
   # MAIL-REPAIR (0611): the engine-side mail lane stays wired -- the kernel
   # carries runtime_handoffs on adopted-reroute redo items, reads the recorded
   # row back from the ledger, and HOLDs loudly on a broken ledger address.

@@ -57,8 +57,10 @@ class _RerouteTargetClassification:
                       machine must NOT pick one -> the caller HOLDs.
     - ``non_reroute`` zero brick refs resolve, the list is NON-EMPTY, and EVERY
                       named ref is a building-boundary: sentinel (no Brick node
-                      targeted) -> an EXPLICIT non-reroute concern -> the caller
-                      WALKS ON (carry forward), it does NOT HOLD.
+                      targeted), OR exactly one named ref resolves to the SAME
+                      Brick node that raised the concern -> an EXPLICIT
+                      non-reroute concern -> the caller WALKS ON (carry
+                      forward), it does NOT HOLD.
     - ``none``        zero named refs resolve while a concern IS present AND the
                       non_reroute carve-out does not apply (empty list, or a
                       brick-targeting ref that failed to resolve) -> the
@@ -89,6 +91,7 @@ def _classify_reroute_target(
     concern: Mapping[str, Any],
     *,
     declared_bricks: set[str],
+    source_brick_ref: str = "",
 ) -> _RerouteTargetClassification:
     """Resolve ALL named reroute addresses and classify.
 
@@ -116,6 +119,11 @@ def _classify_reroute_target(
     single valid ref (no garbage) still resolves to ``single``; a valid ref beside
     a building-boundary: sentinel still resolves to ``single`` (the sentinel is
     not garbage).
+
+    Self-reroute carve-out: when the only resolving Brick node is the SAME Brick
+    node that raised the concern, the concern has not named another declared
+    boundary. Treat it like the building-boundary: non-reroute sentinel so the
+    caller walks on instead of trying to consume reroute budget against itself.
     """
 
     refs = concern.get("related_boundary_refs")
@@ -150,6 +158,11 @@ def _classify_reroute_target(
             kind="none",
             resolved=tuple(resolved),
             hold_reason="unresolvable_reroute_address",
+        )
+    if len(resolved) == 1 and source_brick_ref and resolved[0] == source_brick_ref:
+        return _RerouteTargetClassification(
+            kind="non_reroute",
+            resolved=(resolved[0],),
         )
     if len(resolved) == 1:
         return _RerouteTargetClassification(

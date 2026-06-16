@@ -7,9 +7,8 @@ admitted dynamic graph walker (support/operator/dynamic_walker.py) over adapter:
 local fixtures (NO codex/claude/gemini) and asserts the bounded-routing-loop
 invariants the amendment locks:
 
-- the reroute budget is per-TARGET-Brick (node), Link-assigned, SHARED across all
-  reroute-landings on that node (outer AND nested); a nested landing draws the
-  same node budget (no fresh per-event budget);
+- the reroute budget is per-TARGET-Brick (node), Link-assigned, SHARED across
+  multiple non-self reroute-landings on that node (no fresh per-event budget);
 - a reroute target must resolve to an EXISTING node (support never invents one);
 - max_attempts / per-node budget is REQUIRED and POSITIVE (no absent/zero budget);
 - budget is consumed per REROUTE-LANDING, not per forward-replay-execution;
@@ -562,6 +561,19 @@ def _multi_ref_concern_callable(source_brick: str, related_boundary_refs: list[s
     return _callable
 
 
+def _raw_transition_concern_callable(source_brick: str, concern_value: Any):
+    def _callable(request: Any) -> Mapping[str, Any]:
+        returned: dict[str, Any] = {
+            "observed_evidence": [f"obs {request.brick_instance_ref}"],
+            "not_proven": ["semantic correctness"],
+        }
+        if request.brick_instance_ref == source_brick:
+            returned["transition_concern_evidence"] = concern_value
+        return returned
+
+    return _callable
+
+
 def _invalid_concern_callable(source_brick: str, target_brick: str):
     def _callable(request: Any) -> Mapping[str, Any]:
         returned: dict[str, Any] = {
@@ -1085,7 +1097,10 @@ def check(repo: Path) -> list[str]:
     plan_b, b2_b = _checker_plan("bapr-loop0-hold", budget=1)
     res_b, fr_b, rec_b = _run(
         plan_b,
-        _reroute_callable(b2_b, {"brick-bapr-loop0-hold-review", b2_b}),
+        _reroute_callable(
+            b2_b,
+            {"brick-bapr-loop0-hold-design", "brick-bapr-loop0-hold-review"},
+        ),
         repo,
     )
     held_b = [r for r in rec_b if r.get("disposition_required")]
@@ -1239,7 +1254,10 @@ def check(repo: Path) -> list[str]:
             local_callables={
                 "callable:local:agent-invoke0-smoke": _reroute_callable(
                     b2_g7_forward,
-                    {"brick-bapr-loop0-b4-forward-disposition-review", b2_g7_forward},
+                    {
+                        "brick-bapr-loop0-b4-forward-disposition-design",
+                        "brick-bapr-loop0-b4-forward-disposition-review",
+                    },
                 )
             },
             adapter_cwd=repo,
@@ -1264,7 +1282,10 @@ def check(repo: Path) -> list[str]:
             local_callables={
                 "callable:local:agent-invoke0-smoke": _reroute_callable(
                     b2_g7_forward,
-                    {"brick-bapr-loop0-b4-forward-disposition-review", b2_g7_forward},
+                    {
+                        "brick-bapr-loop0-b4-forward-disposition-design",
+                        "brick-bapr-loop0-b4-forward-disposition-review",
+                    },
                 )
             },
             adapter_cwd=repo,
@@ -1284,7 +1305,10 @@ def check(repo: Path) -> list[str]:
     with tempfile.TemporaryDirectory(prefix="bp-bapr-b4-g7-") as tmp:
         callable_g7 = _reroute_callable(
             b2_g7,
-            {"brick-bapr-loop0-b4-raise-resume-review", b2_g7},
+            {
+                "brick-bapr-loop0-b4-raise-resume-design",
+                "brick-bapr-loop0-b4-raise-resume-review",
+            },
         )
         res_g7 = run_building_plan(
             plan_g7,
@@ -1343,20 +1367,26 @@ def check(repo: Path) -> list[str]:
                     "b4-g7: later pause after raise did not record bounded-budget exhaustion semantics"
                 )
 
-    # Invariant C: nested reroute landing on the SAME node draws the SAME shared
-    # budget (no fresh budget) and the cascade is bounded.
+    # Invariant C: multiple non-self reroute landings on the SAME node draw the
+    # SAME shared budget (no fresh budget) and the cascade is bounded. Self-reroute
+    # is covered separately by CLOSURE-SELFREROUTE-GUARD-0616 below.
     plan_c, b2_c = _checker_plan("bapr-loop0-nested", budget=2)
     res_c, fr_c, rec_c = _run(
         plan_c,
-        _reroute_callable(b2_c, {"brick-bapr-loop0-nested-review", b2_c}),
+        _reroute_callable(
+            b2_c,
+            {
+                "brick-bapr-loop0-nested-design",
+                "brick-bapr-loop0-nested-review",
+                "brick-bapr-loop0-nested-close",
+            },
+        ),
         repo,
     )
     adopted_c = [r for r in rec_c if not r.get("disposition_required")]
     held_c = [r for r in rec_c if r.get("disposition_required")]
     if not all(r.get("target_brick") == b2_c for r in rec_c):
         violations.append("nested-case: a landing targeted a node other than the shared-budget node")
-    if not any(r.get("cascade_depth", 0) >= 2 for r in adopted_c):
-        violations.append("nested-case: no nested (cascade_depth>=2) landing observed")
     if len(adopted_c) != 2:
         violations.append("nested-case: shared budget of 2 admitted other than 2 landings (no fresh budget)")
     if not held_c or not held_c[0].get("budget_exhausted"):
@@ -2120,6 +2150,133 @@ def check(repo: Path) -> list[str]:
             f"(frontier={fr_adv_red['frontier_kind']})"
         )
 
+    # CLOSURE-SELFREROUTE-GUARD-0616 FIRE (a): omitted/null/false/empty-string
+    # transition_concern_evidence is not a reroute proposal. Each variant must
+    # walk the declared order to closure and produce no reroute/HOLD records.
+    empty_concern_variants: list[tuple[str, Any | None]] = [
+        ("omitted", None),
+        ("null", None),
+        ("false", False),
+        ("empty-string", ""),
+    ]
+    for variant_label, concern_value in empty_concern_variants:
+        plan_empty_variant, _ = _checker_plan(
+            f"bapr-loop0-selfreroute-empty-{variant_label}",
+            budget=1,
+        )
+        source_empty_variant = (
+            f"brick-bapr-loop0-selfreroute-empty-{variant_label}-review"
+        )
+        callable_empty_variant = (
+            _reroute_callable("brick-unused", set())
+            if variant_label == "omitted"
+            else _raw_transition_concern_callable(source_empty_variant, concern_value)
+        )
+        res_empty_variant, fr_empty_variant, rec_empty_variant = _run(
+            plan_empty_variant,
+            callable_empty_variant,
+            repo,
+        )
+        if rec_empty_variant:
+            violations.append(
+                "selfreroute-empty: empty concern variant produced reroute/HOLD "
+                f"records ({variant_label}: {rec_empty_variant})"
+            )
+        if fr_empty_variant["frontier_kind"] not in {"complete", "closure_pending"}:
+            violations.append(
+                "selfreroute-empty: empty concern variant did not walk on "
+                f"({variant_label}: frontier={fr_empty_variant['frontier_kind']})"
+            )
+        empty_variant_step_refs = [
+            r.preparation.step_rows.step_ref for r in res_empty_variant.step_results
+        ]
+        if empty_variant_step_refs != list(plan_empty_variant["execution_order"]):
+            violations.append(
+                "selfreroute-empty: empty concern variant altered declared order "
+                f"({variant_label}: {empty_variant_step_refs})"
+            )
+
+    # CLOSURE-SELFREROUTE-GUARD-0616 FIRE (b/d): if an Agent concern resolves
+    # ONLY to the same Brick node that raised it, the walker must treat it as
+    # non_reroute and walk on. This is the mutation RED probe: removing the
+    # self-reroute guard makes this fixture try to reroute to the review node
+    # itself, which has no declared node budget, and the frontier pauses with
+    # target_node_has_no_link_assigned_budget.
+    from brick_protocol.support.operator.walker_transition_concern import (
+        _classify_reroute_target,
+    )
+
+    self_source = "brick-bapr-loop0-knot4-self-reroute-review"
+    self_classification = _classify_reroute_target(
+        {
+            "related_boundary_refs": [self_source],
+        },
+        declared_bricks={self_source, "brick-bapr-loop0-knot4-self-reroute-build"},
+        source_brick_ref=self_source,
+    )
+    if self_classification.kind != "non_reroute":
+        violations.append(
+            "knot4-self-reroute: direct classifier did not mark self-target as "
+            f"non_reroute ({self_classification})"
+        )
+    plan_self, _ = _checker_plan("bapr-loop0-knot4-self-reroute", budget=1)
+    res_self, fr_self, rec_self = _run(
+        plan_self,
+        _multi_ref_concern_callable(self_source, [self_source]),
+        repo,
+    )
+    if rec_self:
+        violations.append(
+            "knot4-self-reroute: self-target concern produced reroute/HOLD records "
+            f"(must walk on): {rec_self}"
+        )
+    if fr_self["frontier_kind"] not in {"complete", "closure_pending"}:
+        violations.append(
+            "knot4-self-reroute: self-target concern did not walk on "
+            f"(frontier={fr_self['frontier_kind']}; expected complete/closure_pending)"
+        )
+    evidence_self = getattr(res_self, "_dynamic_walker_evidence", {})
+    if isinstance(evidence_self, Mapping) and evidence_self.get("held"):
+        violations.append("knot4-self-reroute: self-target concern was recorded as held")
+    landings_self = (
+        evidence_self.get("node_reroute_landings", {})
+        if isinstance(evidence_self, Mapping)
+        else {}
+    )
+    if any(count != 0 for count in landings_self.values()):
+        violations.append(
+            "knot4-self-reroute: walk-on moved a node reroute-landing counter "
+            f"({landings_self})"
+        )
+    self_bricks = _step_bricks(res_self)
+    if self_bricks.count(self_source) != 1:
+        violations.append(
+            "knot4-self-reroute: source node was re-executed instead of walking on "
+            f"(count={self_bricks.count(self_source)})"
+        )
+    self_step_refs = [r.preparation.step_rows.step_ref for r in res_self.step_results]
+    if self_step_refs != list(plan_self["execution_order"]):
+        violations.append(
+            "knot4-self-reroute: self-reroute walk-on altered the declared "
+            f"execution_order ({self_step_refs})"
+        )
+    self_returned_concern = any(
+        isinstance(getattr(step_result.adapter_result, "returned_value", None), Mapping)
+        and isinstance(
+            getattr(step_result.adapter_result, "returned_value", {}).get(
+                "transition_concern_evidence"
+            ),
+            Mapping,
+        )
+        for step_result in res_self.step_results
+        if step_result.preparation.brick_instance_ref == self_source
+    )
+    if not self_returned_concern:
+        violations.append(
+            "knot4-self-reroute: self-target concern was not present in the Agent "
+            "returned evidence"
+        )
+
     # KNOT-4 resolver FIRE (non-reroute sentinel): a non-binding concern whose
     # related_boundary_refs is NON-EMPTY and names ONLY building-boundary:
     # sentinel(s) (NO Brick-targeting ref) is an EXPLICIT non-reroute concern: the
@@ -2301,6 +2458,56 @@ def check(repo: Path) -> list[str]:
         violations.append(
             "knot4-one-good-one-garbage: resolving node was re-executed (silent single "
             f"deliver) instead of pausing (count={single_bricks.count(b2_c_single)})"
+        )
+
+    # KNOT-4 resolver FIRE (c): another-node target with budget remains a true
+    # reroute. The self-reroute guard must not soften or skip this path.
+    plan_other, b2_other = _checker_plan("bapr-loop0-knot4-other-target-control", budget=1)
+    source_other = "brick-bapr-loop0-knot4-other-target-control-review"
+    other_classification = _classify_reroute_target(
+        {
+            "related_boundary_refs": [b2_other],
+        },
+        declared_bricks={source_other, b2_other},
+        source_brick_ref=source_other,
+    )
+    if other_classification.kind != "single" or other_classification.target != b2_other:
+        violations.append(
+            "knot4-other-target-control: direct classifier softened a true "
+            f"reroute ({other_classification})"
+        )
+    res_other, fr_other, rec_other = _run(
+        plan_other,
+        _multi_ref_concern_callable(source_other, [b2_other]),
+        repo,
+    )
+    adopted_other = _adopted_records(rec_other)
+    held_other = _held_records(rec_other)
+    if len(adopted_other) != 1:
+        violations.append(
+            "knot4-other-target-control: expected one adopted true reroute, "
+            f"got {len(adopted_other)} ({rec_other})"
+        )
+    elif adopted_other[0].get("target_brick") != b2_other:
+        violations.append(
+            "knot4-other-target-control: adopted target drifted "
+            f"({adopted_other[0].get('target_brick')})"
+        )
+    if held_other:
+        violations.append(
+            "knot4-other-target-control: true reroute unexpectedly paused "
+            f"({held_other})"
+        )
+    if fr_other["frontier_kind"] not in {"complete", "closure_pending"}:
+        violations.append(
+            "knot4-other-target-control: true reroute did not proceed "
+            f"(frontier={fr_other['frontier_kind']})"
+        )
+    other_bricks = _step_bricks(res_other)
+    if other_bricks.count(b2_other) < 2:
+        violations.append(
+            "knot4-other-target-control: true target was not re-executed "
+            f"(count={other_bricks.count(b2_other)})"
         )
 
     # KNOT-4 resolver FIRE (d): NO CONCERN AT ALL -> walk on unchanged (no HOLD,
@@ -3121,9 +3328,10 @@ def check(repo: Path) -> list[str]:
 
     def _hold_before_cohort_callable():
         """join proposes reroute->lane-a on its 1st call (cohort spliced); lane-a
-        (the re-walk landing) proposes reroute->lane-a on its 2nd call so the
-        landing HOLDs on budget exhaustion BEFORE the cohort runs. The re-run join
-        on resume (its 2nd call) is CLEAN so the building can complete."""
+        (the re-walk landing) proposes reroute->lane-b on its 2nd call. lane-b has
+        no Link-assigned reroute budget in this fixture, so the landing HOLDs
+        BEFORE the cohort runs without relying on self-reroute. The re-run join on
+        resume (its 2nd call) is CLEAN so the building can complete."""
 
         seen: dict[str, int] = {}
 
@@ -3138,12 +3346,13 @@ def check(repo: Path) -> list[str]:
                 or (request.brick_instance_ref == lane_a_f and seen[lane_a_f] >= 2)
             )
             if propose:
+                target_ref = lane_a_f if request.brick_instance_ref == join_f else lane_b_f
                 returned["transition_concern_evidence"] = {
                     "concern_ref": f"transition-concern:{request.brick_instance_ref}",
                     "concern_kind": "implementation_gap",
                     "binding": False,
                     "reason_refs": [f"brick-comparison:{request.brick_instance_ref}"],
-                    "related_boundary_refs": [lane_a_f],
+                    "related_boundary_refs": [target_ref],
                 }
             return returned
 
@@ -3312,8 +3521,9 @@ def check(repo: Path) -> list[str]:
 
     def _nested_hold_before_cohort_callable():
         """j1 proposes reroute -> lane-a on its 1st call (inner cohort spliced);
-        lane-a (the re-walk landing) proposes reroute -> lane-a on its 2nd call so
-        the landing HOLDs on budget exhaustion BEFORE the cohort + joins run."""
+        lane-a (the re-walk landing) proposes reroute -> lane-b on its 2nd call.
+        lane-b has no Link-assigned reroute budget in this fixture, so the landing
+        HOLDs BEFORE the cohort + joins run without relying on self-reroute."""
 
         seen: dict[str, int] = {}
 
@@ -3328,12 +3538,13 @@ def check(repo: Path) -> list[str]:
                 or (request.brick_instance_ref == lane_a_g and seen[lane_a_g] >= 2)
             )
             if propose:
+                target_ref = lane_a_g if request.brick_instance_ref == j1_g else lane_b_g
                 returned["transition_concern_evidence"] = {
                     "concern_ref": f"transition-concern:{request.brick_instance_ref}",
                     "concern_kind": "implementation_gap",
                     "binding": False,
                     "reason_refs": [f"brick-comparison:{request.brick_instance_ref}"],
-                    "related_boundary_refs": [lane_a_g],
+                    "related_boundary_refs": [target_ref],
                 }
             return returned
 
@@ -3498,7 +3709,10 @@ def check(repo: Path) -> list[str]:
     # GAP 1: a MISSING pre-HOLD recorded return must FAIL CLOSED, not run live.
     with tempfile.TemporaryDirectory(prefix="bp-bapr-fc-gap1-") as tmp:
         pfx = "bapr-loop0-fc-gap1"
-        cb = _reroute_callable(f"brick-{pfx}-build", {f"brick-{pfx}-review", f"brick-{pfx}-build"})
+        cb = _reroute_callable(
+            f"brick-{pfx}-build",
+            {f"brick-{pfx}-design", f"brick-{pfx}-review"},
+        )
         res1, b2_1 = _build_held_fc(pfx, tmp, cb, budget=1)
         root1 = res1.lifecycle_write.root
         if observe_building_frontier(root1, repo_root=repo)["frontier_kind"] != "link_paused":
@@ -3556,7 +3770,10 @@ def check(repo: Path) -> list[str]:
     for corruption_1b in ("malformed", "nonobject", "holey"):
         with tempfile.TemporaryDirectory(prefix=f"bp-bapr-fc-gap1b-{corruption_1b}-") as tmp:
             pfx = f"bapr-loop0-fc-gap1b-{corruption_1b}"
-            cb = _reroute_callable(f"brick-{pfx}-build", {f"brick-{pfx}-review", f"brick-{pfx}-build"})
+            cb = _reroute_callable(
+                f"brick-{pfx}-build",
+                {f"brick-{pfx}-design", f"brick-{pfx}-review"},
+            )
             res1b, b2_1b = _build_held_fc(pfx, tmp, cb, budget=1)
             root1b = res1b.lifecycle_write.root
             if observe_building_frontier(root1b, repo_root=repo)["frontier_kind"] != "link_paused":
@@ -3591,7 +3808,10 @@ def check(repo: Path) -> list[str]:
     # GAP 2: a resume whose disposition was NEVER APPLIED must FAIL CLOSED.
     with tempfile.TemporaryDirectory(prefix="bp-bapr-fc-gap2-") as tmp:
         pfx = "bapr-loop0-fc-gap2"
-        cb = _reroute_callable(f"brick-{pfx}-build", {f"brick-{pfx}-review", f"brick-{pfx}-build"})
+        cb = _reroute_callable(
+            f"brick-{pfx}-build",
+            {f"brick-{pfx}-design", f"brick-{pfx}-review"},
+        )
         res2, b2_2 = _build_held_fc(pfx, tmp, cb, budget=1)
         root2 = res2.lifecycle_write.root
         mp2, man2, plan2 = _read_evidence_plan(root2)
@@ -3611,27 +3831,20 @@ def check(repo: Path) -> list[str]:
                 f"unreachable) did not fail closed (frontier={fr2['frontier_kind']})"
             )
 
-    # GAP 3: the resumed lifecycle must stamp the EXACT held occurrence (not a later
-    # same-step_ref occurrence a raise re-adoption creates).
+    # GAP 3: the resumed lifecycle must stamp the EXACT held occurrence. The
+    # setup uses non-self reroute proposals (design/review -> build); self-reroute
+    # is a walk-on concern under CLOSURE-SELFREROUTE-GUARD-0616.
     with tempfile.TemporaryDirectory(prefix="bp-bapr-fc-gap3-") as tmp:
         pfx = "bapr-loop0-fc-gap3"
         b2_3 = f"brick-{pfx}-build"
-        def _setup3():
-            calls = {}
-            def _c(request):
-                ref = request.brick_instance_ref
-                calls[ref] = calls.get(ref, 0) + 1
-                r = {"observed_evidence": [f"o {ref}"], "not_proven": ["x"]}
-                if ref == b2_3 and calls[ref] <= 2:
-                    r["transition_concern_evidence"] = {
-                        "concern_ref": f"transition-concern:{ref}", "concern_kind": "implementation_gap",
-                        "binding": False, "reason_refs": [f"brick-comparison:{ref}"],
-                        "related_boundary_refs": [b2_3]}
-                return r
-            return _c
+        held_step_ref_3 = f"{pfx}-review"
+        setup3 = _reroute_callable(
+            b2_3,
+            {f"brick-{pfx}-design", f"brick-{pfx}-review"},
+        )
         def _live3(request):
             return {"observed_evidence": [f"o {request.brick_instance_ref}"], "not_proven": ["x"]}
-        res3, _ = _build_held_fc(pfx, tmp, _setup3(), budget=1)
+        res3, _ = _build_held_fc(pfx, tmp, setup3, budget=1)
         root3 = res3.lifecycle_write.root
         if observe_building_frontier(root3, repo_root=repo)["frontier_kind"] != "link_paused":
             violations.append("fc-gap3: setup did not HOLD")
@@ -3643,24 +3856,19 @@ def check(repo: Path) -> list[str]:
             violations.append("fc-gap3: raise re-adoption did not complete (setup invalid)")
         occ3 = []
         for idx3, sr3 in enumerate(resumed3.step_results):
-            if sr3.preparation.step_rows.step_ref != f"{pfx}-build":
+            if sr3.preparation.step_rows.step_ref != held_step_ref_3:
                 continue
             lr3 = sr3.preparation.step_rows.link_row
             tl3 = lr3.get("transition_lifecycle") if isinstance(lr3, Mapping) else None
             occ3.append((idx3, tl3.get("state") if isinstance(tl3, Mapping) else None))
         resumed_idx3 = [i for i, s in occ3 if s == "resumed"]
-        if len(occ3) < 3:
-            violations.append(f"fc-gap3: expected >=3 build occurrences after raise (got {occ3})")
+        if len(occ3) != 1:
+            violations.append(f"fc-gap3: expected exactly one held review occurrence (got {occ3})")
         elif not resumed_idx3:
             violations.append(f"fc-gap3: no resumed-lifecycle stamp found ({occ3})")
         else:
-            held_idx3 = occ3[1][0]   # cascade1 = the HELD occurrence
-            last_idx3 = occ3[-1][0]  # cascade2 = the deeper raise re-adoption
-            if resumed_idx3[0] == last_idx3 and last_idx3 != held_idx3:
-                violations.append(
-                    "fc-gap3: resumed lifecycle stamped the LATER same-step_ref occurrence "
-                    f"(index {resumed_idx3[0]}) not the held one (index {held_idx3})")
-            elif resumed_idx3[0] != held_idx3:
+            held_idx3 = occ3[0][0]
+            if resumed_idx3[0] != held_idx3:
                 violations.append(f"fc-gap3: resumed stamp on wrong occurrence (stamped {resumed_idx3}, held {held_idx3})")
 
     # GAP 4: a missing OR malformed re-attached budget map must FAIL CLOSED (the
@@ -3668,7 +3876,10 @@ def check(repo: Path) -> list[str]:
     for gap4_mode in ("missing", "malformed"):
         with tempfile.TemporaryDirectory(prefix=f"bp-bapr-fc-gap4-{gap4_mode}-") as tmp:
             pfx = f"bapr-loop0-fc-gap4-{gap4_mode}"
-            cb = _reroute_callable(f"brick-{pfx}-build", {f"brick-{pfx}-review", f"brick-{pfx}-build"})
+            cb = _reroute_callable(
+                f"brick-{pfx}-build",
+                {f"brick-{pfx}-design", f"brick-{pfx}-review"},
+            )
             res4, b2_4 = _build_held_fc(pfx, tmp, cb, budget=1)
             root4 = res4.lifecycle_write.root
             mp4, man4, plan4 = _read_evidence_plan(root4)
@@ -3749,7 +3960,10 @@ def check(repo: Path) -> list[str]:
     # (the B2 admission must not break the legitimate raise path).
     with tempfile.TemporaryDirectory(prefix="bp-bapr-fc-gap4b-exh-") as tmp:
         pfx = "bapr-loop0-fc-gap4b-exh"
-        cb4be = _reroute_callable(f"brick-{pfx}-build", {f"brick-{pfx}-review", f"brick-{pfx}-build"})
+        cb4be = _reroute_callable(
+            f"brick-{pfx}-build",
+            {f"brick-{pfx}-design", f"brick-{pfx}-review"},
+        )
         res4be, b2_4be = _build_held_fc(pfx, tmp, cb4be, budget=1)
         root4be = res4be.lifecycle_write.root
         if observe_building_frontier(root4be, repo_root=repo)["frontier_kind"] != "link_paused":
@@ -3781,7 +3995,7 @@ def check(repo: Path) -> list[str]:
                     "reason_refs": [f"observation:{pfx}-missing"],
                     "required_disposition_owner": "caller-or-coo"},
                 "on_sufficient": {"action": "forward"}}])
-        cb5 = _reroute_callable(b2_5, {f"brick-{pfx}-review", b2_5})
+        cb5 = _reroute_callable(b2_5, {f"brick-{pfx}-design", f"brick-{pfx}-review"})
         res5 = run_building_plan(
             plan5, output_root=Path(tmp), overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": cb5},
@@ -3816,7 +4030,10 @@ def check(repo: Path) -> list[str]:
     # GAP 6: replayed step outputs must PRESERVE the original recorded_at.
     with tempfile.TemporaryDirectory(prefix="bp-bapr-fc-gap6-") as tmp:
         pfx = "bapr-loop0-fc-gap6"
-        cb = _reroute_callable(f"brick-{pfx}-build", {f"brick-{pfx}-review", f"brick-{pfx}-build"})
+        cb = _reroute_callable(
+            f"brick-{pfx}-build",
+            {f"brick-{pfx}-design", f"brick-{pfx}-review"},
+        )
         res6, b2_6 = _build_held_fc(pfx, tmp, cb, budget=1)
         root6 = res6.lifecycle_write.root
         if observe_building_frontier(root6, repo_root=repo)["frontier_kind"] != "link_paused":
@@ -4185,7 +4402,8 @@ def check(repo: Path) -> list[str]:
     mail_disposition_marker = "observation:mail-repair-disposition-reason-rides"
     plan_m4, b2_m4 = _checker_plan("bapr-mail-4-resume", budget=1)
     callable_m4 = _reroute_callable(
-        b2_m4, {"brick-bapr-mail-4-resume-review", b2_m4}
+        b2_m4,
+        {"brick-bapr-mail-4-resume-design", "brick-bapr-mail-4-resume-review"},
     )
     with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-4-") as tmp:
         res_m4 = run_building_plan(
@@ -4736,7 +4954,14 @@ def check(repo: Path) -> list[str]:
     mail6_stale_marker = "observation:mail-repair-stale-from-old-resume"
     mail6_new_marker = "observation:mail-repair-current-hold-disposition"
     plan_m6, b2_m6 = _checker_plan("bapr-mail-6-stale", budget=1)
-    callable_m6 = _reroute_callable(b2_m6, {"brick-bapr-mail-6-stale-review", b2_m6})
+    callable_m6 = _reroute_callable(
+        b2_m6,
+        {
+            "brick-bapr-mail-6-stale-design",
+            "brick-bapr-mail-6-stale-review",
+            "brick-bapr-mail-6-stale-close",
+        },
+    )
     with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-6-") as tmp:
         res_m6 = run_building_plan(
             plan_m6,
@@ -4978,9 +5203,9 @@ def check(repo: Path) -> list[str]:
     # adoption_sequence_number RESETS to 0 on every walk, so a FORWARD
     # disposition chain constructs two holds for the SAME target at the SAME
     # sequence position in different walk generations: walk-1 budget-holds at
-    # seq N when the redo landing re-proposes its own node; the human authors
+    # seq N when a non-target source exhausts the target budget; the human authors
     # FORWARD; the resumed walk forwards past that occurrence WITHOUT a
-    # sequence increment, and the DECLARED same-node step then re-holds the
+    # sequence increment, and a later declared non-target source then re-holds the
     # same exhausted target at seq N again. Operator-reproduced 0611 on the
     # real engine: under the bare reroute_ref identity the colliding pair also
     # shares attempt_number (no adoption between them -- landings unchanged),
@@ -4993,7 +5218,12 @@ def check(repo: Path) -> list[str]:
     # resume must fail closed LOUDLY.
     plan_m7, b2_m7 = _checker_plan("bapr-mail-7-collide", budget=1)
     callable_m7 = _reroute_callable(
-        b2_m7, {"brick-bapr-mail-7-collide-design", b2_m7}
+        b2_m7,
+        {
+            "brick-bapr-mail-7-collide-design",
+            "brick-bapr-mail-7-collide-review",
+            "brick-bapr-mail-7-collide-close",
+        },
     )
     with tempfile.TemporaryDirectory(prefix="bp-bapr-mail-7-") as tmp:
         res_m7 = run_building_plan(
@@ -5099,11 +5329,8 @@ def check(repo: Path) -> list[str]:
                 # addressed to the CURRENT hold's identity is selected -- the
                 # guard discriminates generations, it does not block resumes.
                 # (The full forward-generation walk continuation is pinned by
-                # fc-gap6/mail-6; re-walking THIS self-rerouting building after
-                # a forward is a separate engine surface: a forwarded concern
-                # occurrence is re-evaluated on replay, so the continued walk
-                # re-holds at the OLD occurrence before reaching this one --
-                # see the operator report 0611. Data: selection-level proof.)
+                # fc-gap6/mail-6; this case is selection-level proof over the
+                # cross-generation same-target collision.)
                 mail7_new_marker = "observation:mail-repair-current-generation-row"
                 _append_disposition_row(
                     root_m7,
@@ -5168,13 +5395,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(
         "bounded agent-proposed routing loop passed: dynamic walker adopted a "
         "gate-adopted agent-proposed reroute within the per-node budget, HELD on "
-        "exhaustion (disposition_required), shared the node budget across a nested "
-        "landing, walked B3 fan-out/fan-in serially over adapter:local evidence, "
+        "exhaustion (disposition_required), shared the node budget across multiple "
+        "non-self same-target landings, walked B3 fan-out/fan-in serially over adapter:local evidence, "
         "paused on a held fan-in source, kept no-disposition resume paused, rejected "
         "support-authored disposition, resumed a budget HOLD from human/COO raise "
         "+ budget_increment, covered B5 full-chain replay / human-gate pause / "
         "nested different-node budget / no-target walk-on / monotonic "
-        "no-judgment records / invalid-concern paused frontier over adapter:local "
+        "no-judgment records / self-reroute walk-on / invalid-concern paused "
+        "frontier over adapter:local "
         "deterministic fixtures, proved onboard approve C-2 adapter_cwd/timeout "
         "forwarding + coo forward disposition handoff + fail-closed RED cases, persisted "
         "node_reroute_budgets and route_replay_plan.max_attempts as Link Carry "

@@ -2106,18 +2106,20 @@ def _run_dynamic_graph_walker(
         concern = concern_observation.concern
         adopted_reroute = False
         target_classification = (
-            _classify_reroute_target(concern, declared_bricks=set(step_ref_by_brick))
+            _classify_reroute_target(
+                concern,
+                declared_bricks=set(step_ref_by_brick),
+                source_brick_ref=brick_ref_by_step[step_ref],
+            )
             if concern is not None
             else None
         )
         # WALK ON (carry forward to closure, no HOLD, no reroute landing) when
         # there is NO concern, the plan declares concerns advisory, OR the concern
-        # is an EXPLICIT non-reroute concern (non-empty related_boundary_refs that
-        # are ALL building-boundary: sentinels -> no Brick node targeted). The
-        # non_reroute carve-out matches the legacy engine: an Agent may raise a
-        # non-binding concern WITHOUT proposing a reroute address; that is not an
-        # unaddressable reroute, so it must NOT HOLD. BUDGET-FREE: node_landings /
-        # node_budget untouched.
+        # is an EXPLICIT non-reroute concern: either building-boundary: sentinels
+        # name no Brick node, or the only resolved Brick node is the source node
+        # itself. That is not an actionable reroute, so it must NOT HOLD.
+        # BUDGET-FREE: node_landings / node_budget untouched.
         if concern is None or (
             concern is not None
             and plan.get("transition_concern_adoption") == "advisory"
