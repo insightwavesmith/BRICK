@@ -8,6 +8,7 @@ and judges no success or quality.
 from __future__ import annotations
 
 import copy
+import json
 from collections import Counter, defaultdict
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -51,6 +52,7 @@ _FORBIDDEN_BRICK_KWARGS = frozenset(
 )
 _TRANSITION_CONCERN_FIELD = "transition_concern_evidence"
 _DEFAULT_BOUNDARY_REF = "building-boundary:closed"
+_PROPOSED_BUILDING_GRAPH_FILENAME = "proposed-building-graph.json"
 
 
 class Concern(Enum):
@@ -155,6 +157,7 @@ class ComposedGraph:
     selected_model_ref: str
     selected_shape_ref: str
     transition_concern_adoption: str
+    task_statement: str = ""
 
     def as_compose_args(
         self,
@@ -166,7 +169,7 @@ class ComposedGraph:
         )
 
     def as_intake_args(self) -> Mapping[str, Any]:
-        return {
+        args: dict[str, Any] = {
             "nodes": copy.deepcopy(self.nodes),
             "edges": copy.deepcopy(self.edges),
             "groups": copy.deepcopy(self.groups),
@@ -178,6 +181,9 @@ class ComposedGraph:
             "transition_concern_adoption": self.transition_concern_adoption,
             "chain_preset_ref": "",
         }
+        if self.task_statement:
+            args["task_statement"] = self.task_statement
+        return args
 
 
 def brick(
@@ -396,19 +402,67 @@ def assemble(
         transition_concern_adoption=concern_adoption,
         repo_root=repo,
     )
+    frozen_plan = _frozen_composed_plan(composed_plan, task_body)
 
     return ComposedGraph(
         nodes=tuple(copy.deepcopy(lowered_nodes)),
         edges=tuple(copy.deepcopy(lowered_edges)),
         groups=tuple(copy.deepcopy(lowered_groups)),
-        composed_plan=copy.deepcopy(composed_plan),
+        composed_plan=frozen_plan,
         building_id=resolved_building_id,
         declared_by=declared_by_text,
         selected_adapter_ref=selected_adapter_ref,
         selected_model_ref=selected_model_ref,
         selected_shape_ref=selected_shape_ref,
         transition_concern_adoption=concern_adoption,
+        task_statement=task_body or "",
     )
+
+
+def persist_proposed_building_graph(
+    composed: ComposedGraph,
+    output_root: Path | str,
+    *,
+    goal_id: str | None = None,
+    overwrite: bool = False,
+) -> Path:
+    """Persist the validated composed-plan snapshot produced at propose time.
+
+    The written JSON is the frozen run input for the pre-run approval seam. It is
+    support evidence only: this helper records no provider state, chooses no
+    Movement, and judges no success or quality.
+    """
+
+    if not isinstance(composed, ComposedGraph):
+        raise TypeError("persist_proposed_building_graph() requires a ComposedGraph")
+    root = Path(output_root).expanduser().resolve()
+    raw_goal_id = _optional_text(goal_id) or composed.building_id
+    proposal_dir = root / _composition_slug(raw_goal_id)
+    proposal_path = proposal_dir / _PROPOSED_BUILDING_GRAPH_FILENAME
+    if proposal_path.exists() and not overwrite:
+        raise FileExistsError(f"proposed Building graph already exists: {proposal_path}")
+    proposal_dir.mkdir(parents=True, exist_ok=True)
+    proposal_path.write_text(
+        json.dumps(composed.composed_plan, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return proposal_path
+
+
+def _frozen_composed_plan(
+    composed_plan: Mapping[str, Any],
+    task_body: str | None,
+) -> Mapping[str, Any]:
+    plan = copy.deepcopy(composed_plan)
+    if task_body is None:
+        return plan
+    carry = inline_task_source_carry(task_body, chain_preset_ref="")
+    plan["task_source_ref"] = carry["task_source_ref"]
+    plan["task_statement"] = carry["task_statement"]
+    plan["task_source_hash"] = carry["task_source_hash"]
+    plan["task_source_hash_algorithm"] = carry["task_source_hash_algorithm"]
+    plan["task_source_hash_basis"] = carry["task_source_hash_basis"]
+    return plan
 
 
 def stamp_profile_gates(
@@ -913,6 +967,7 @@ __all__ = [
     "fan_out",
     "hold",
     "lower_route",
+    "persist_proposed_building_graph",
     "reroute",
     "stamp_profile_gates",
 ]

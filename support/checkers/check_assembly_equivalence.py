@@ -11,7 +11,9 @@ from __future__ import annotations
 
 import argparse
 import copy
+import json
 import sys
+import tempfile
 from collections import Counter, defaultdict
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -35,6 +37,7 @@ from brick_protocol.support.operator.assembly import (
     fan_in,
     fan_out,
     hold,
+    persist_proposed_building_graph,
     reroute,
 )
 from brick_protocol.support.operator.composition import CompositionError, compose_building
@@ -813,6 +816,241 @@ def _construction_red_outputs(repo: Path) -> tuple[str, ...]:
     )
 
 
+def _approval_runner():
+    """Deterministic codex-local stand-in for frozen proposal FIRE runs."""
+
+    def _runner(args: Sequence[str], cwd: Path, timeout_seconds: int):
+        from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
+
+        del cwd, timeout_seconds
+        call = tuple(str(arg) for arg in args)
+        if "--version" in call:
+            return LocalCliCompleted(call, 0, "codex test-version", "")
+        payload = {
+            "assignment_summary": ["assigned the deterministic proposal check"],
+            "worker_brick_boundaries": ["brick-boundary:proposal-fire"],
+            "write_scope_requirements": ["no live provider write in checker"],
+            "risk_boundaries": ["support evidence only"],
+            "required_verification": ["checker FIRE"],
+            "received_work_ref": "work:proposal-fire",
+            "made_changes": True,
+            "changed_files": [],
+            "commands_run": ["deterministic checker runner"],
+            "blocked_or_missing_evidence": [],
+            "handoff_refs": ["handoff:proposal-fire"],
+            "inspected_scope": "frozen proposal approval seam",
+            "matched_facts": ["proposal was frozen before approval"],
+            "missing_facts": [],
+            "mismatched_facts": [],
+            "boundary_findings": [],
+            "observed_evidence": ["walked frozen proposal with deterministic runner"],
+            "attacked_work": ["frozen proposal approval seam"],
+            "checked_sources": ["support/operator/assembly.py", "support/operator/onboard.py"],
+            "regression_risks": [],
+            "negative_probe_observations": ["raise and tampered proposal rejected"],
+            "failing_or_missing_probes": [],
+            "boundary_violations": [],
+            "attacked_scope": "pre-run approval support seam",
+            "brick_axis_findings": ["Building Plan remains the frozen Brick-owned road"],
+            "agent_axis_findings": ["AgentFact return stays closed"],
+            "link_axis_findings": ["approval action is caller/human supplied"],
+            "support_leak_findings": [],
+            "projection_authority_findings": [],
+            "evidence_used": ["support/operator/onboard.py", "support/operator/assembly.py"],
+            "narrowly_proven": ["the frozen proposal path was executed by run_building_plan"],
+            "remaining_delta": ["live Smith approval dogfood is outside this checker"],
+            "parent_goal_delta_status": {
+                "matched_delta_refs": ["delta:frozen-plan-forward"],
+                "closed_delta_refs": [],
+                "open_delta_refs": [],
+                "missing_delta_refs": [],
+                "unknown_delta_refs": [],
+                "evidence_refs": ["checker:assembly-equivalence"],
+            },
+            "next_target_candidates": ["candidate:operator-dogfood"],
+            "deferred_smith_review_queue": [],
+            "transition_concern_evidence": "",
+            "not_proven": ["semantic correctness of real provider work"],
+        }
+        return LocalCliCompleted(call, 0, json.dumps(payload), "")
+
+    return _runner
+
+
+def _approval_simple_graph():
+    inspect = brick("inspect", "inspect frozen proposal before approval")
+    close = brick("closure", "close frozen proposal approval evidence")
+    return chain([inspect, close])
+
+
+def _assert_no_building_root(root: Path, building_id: str, label: str) -> None:
+    if (root / building_id).exists():
+        raise AssemblyEquivalenceError(f"{label}: unexpected Building root was written")
+
+
+def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
+    from brick_protocol.support.operator.onboard import (
+        render_proposal_for_human,
+        run_goal_approve_entry,
+    )
+
+    outputs: list[str] = []
+    with tempfile.TemporaryDirectory(prefix="bp-heart-p5-") as tmp_raw:
+        tmp = Path(tmp_raw)
+        probe_repo = tmp / "not-a-git-repo"
+        probe_repo.mkdir()
+        proposal_root = tmp / "proposals"
+        run_root = tmp / "runs"
+        stop_root = tmp / "stops"
+
+        simple = assemble(
+            _approval_simple_graph(),
+            declared_by=DECLARED_BY,
+            authority=Authority.COO,
+            task="frozen proposal approval checker task",
+            building_id="heart-phase5-simple-approval",
+            adapter="codex-local",
+            repo_root=repo,
+        )
+        proposal_path = persist_proposed_building_graph(
+            simple,
+            proposal_root,
+            overwrite=True,
+        )
+        loaded = json.loads(proposal_path.read_text(encoding="utf-8"))
+        if loaded.get("building_id") != simple.building_id:
+            raise AssemblyEquivalenceError("proposal snapshot did not preserve building_id")
+        if not loaded.get("task_statement") or not loaded.get("task_source_ref"):
+            raise AssemblyEquivalenceError("proposal snapshot did not carry inline task source")
+        _assert_no_building_root(run_root, simple.building_id, "unapproved proposal")
+        outputs.append("proposal green: snapshot persisted without running a Building root.")
+
+        stop = run_goal_approve_entry(
+            proposal_path,
+            action="stop",
+            author_ref="coo:smith",
+            output_root=stop_root,
+            repo_root=probe_repo,
+        )
+        if stop.get("ran") is not False or not stop.get("ok"):
+            raise AssemblyEquivalenceError(f"stop approval did not return ran False: {stop!r}")
+        _assert_no_building_root(stop_root, simple.building_id, "stop approval")
+        outputs.append("proposal green: stop approval ran nothing and wrote no Building root.")
+
+        raise_result = run_goal_approve_entry(
+            proposal_path,
+            action="raise",
+            author_ref="coo:smith",
+            output_root=run_root,
+            repo_root=probe_repo,
+        )
+        if raise_result.get("ran") is not False or raise_result.get("error_kind") != "invalid_goal_approve_action":
+            raise AssemblyEquivalenceError(f"raise approval was not rejected: {raise_result!r}")
+        _assert_no_building_root(run_root, simple.building_id, "raise rejection")
+        outputs.append("proposal RED observed: pre-run raise action rejected.")
+
+        tampered = json.loads(json.dumps(loaded))
+        tampered.pop("task_statement", None)
+        tampered_result = run_goal_approve_entry(
+            tampered,
+            action="forward",
+            author_ref="coo:smith",
+            output_root=run_root,
+            repo_root=probe_repo,
+            command_runner=_approval_runner(),
+        )
+        if tampered_result.get("ran") is not False or not tampered_result.get("error_kind"):
+            raise AssemblyEquivalenceError(f"tampered proposal was not rejected: {tampered_result!r}")
+        _assert_no_building_root(run_root, simple.building_id, "tampered rejection")
+        outputs.append("proposal RED observed: missing task_statement snapshot rejected before run.")
+
+        default_root_graph = assemble(
+            _approval_simple_graph(),
+            declared_by=DECLARED_BY,
+            authority=Authority.COO,
+            task="default-root frozen approval checker task",
+            building_id="heart-phase5-default-root-approval",
+            adapter="codex-local",
+            repo_root=repo,
+        )
+        default_path = persist_proposed_building_graph(
+            default_root_graph,
+            tmp / "default-proposals",
+            overwrite=True,
+        )
+        default_forward = run_goal_approve_entry(
+            default_path,
+            action="forward",
+            author_ref="coo:smith",
+            repo_root=probe_repo,
+            command_runner=_approval_runner(),
+            adapter_timeout_seconds=30,
+        )
+        if (
+            not default_forward.get("ran")
+            or default_forward.get("frontier_kind") != "complete"
+            or not default_forward.get("proposal_root_reused")
+        ):
+            raise AssemblyEquivalenceError(
+                f"default-root forward approval did not reuse proposal root: {default_forward!r}"
+            )
+        outputs.append("proposal green: default approval reused pre-run-only proposal root.")
+
+        forward = run_goal_approve_entry(
+            proposal_path,
+            action="forward",
+            author_ref="coo:smith",
+            output_root=run_root,
+            repo_root=probe_repo,
+            overwrite_existing=True,
+            command_runner=_approval_runner(),
+            adapter_timeout_seconds=30,
+        )
+        if not forward.get("ran") or forward.get("frontier_kind") != "complete":
+            raise AssemblyEquivalenceError(f"forward approval did not complete: {forward!r}")
+        if Path(str(forward.get("plan_path"))).resolve() != proposal_path.resolve():
+            raise AssemblyEquivalenceError("forward approval did not run the frozen proposal path")
+        outputs.append("proposal green: forward approval ran frozen plan to complete frontier.")
+
+        multi = assemble(
+            _assembly_graph("two-fan-in-graph"),
+            declared_by=DECLARED_BY,
+            authority=Authority.COO,
+            task="two fan-in proposal approval checker task",
+            building_id="heart-phase5-two-fanin-approval",
+            adapter="codex-local",
+            gates=(Gate.STRICT_EVIDENCE, Gate.FAN_IN_WAIT_ALL),
+            shape="design-needed",
+            repo_root=repo,
+            write_scope=_write_scope(),
+        )
+        multi_path = persist_proposed_building_graph(
+            multi,
+            proposal_root,
+            overwrite=True,
+        )
+        rendered = render_proposal_for_human(multi_path)
+        if "합류점 2개" not in rendered:
+            raise AssemblyEquivalenceError("proposal renderer did not show 합류점 2개")
+        multi_forward = run_goal_approve_entry(
+            multi_path,
+            action="forward",
+            author_ref="human:smith",
+            output_root=tmp / "multi-runs",
+            repo_root=probe_repo,
+            overwrite_existing=True,
+            command_runner=_approval_runner(),
+            adapter_timeout_seconds=30,
+        )
+        if not multi_forward.get("ran") or multi_forward.get("frontier_kind") != "complete":
+            raise AssemblyEquivalenceError(
+                f"multi-fan-in forward approval did not complete: {multi_forward!r}"
+            )
+        outputs.append("proposal green: multi-fan-in render showed 합류점 2개 and ran frozen plan.")
+
+    return tuple(outputs)
+
+
 def run(repo: Path) -> list[str]:
     outputs: list[str] = []
     fixtures = {fixture.name: fixture for fixture in _fixtures()}
@@ -871,6 +1109,7 @@ def run(repo: Path) -> list[str]:
         outputs.append(f"discrimination RED observed: {mutation.name} changed P(plan).")
 
     outputs.extend(_construction_red_outputs(repo))
+    outputs.extend(_proposal_approval_fire(repo))
     outputs.append(PROOF_LIMIT)
     return outputs
 

@@ -36,8 +36,11 @@ onboarding only RECORDS what it observed.
 from __future__ import annotations
 
 import argparse
+import copy
+import json
 import sys
 import tempfile
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, Callable
 
@@ -1069,6 +1072,9 @@ def _render_flow_text(result: dict[str, Any]) -> str:
 # OUTSIDE the repo). By default the design AI follows the selected execution
 # ``--brain``; ``local`` has no text design seam, so it falls back to gemini.
 GOAL_SEAM_VERB = "support.operator.driver.run_goal_in_sandbox"
+GOAL_APPROVE_SEAM_VERB = "support.operator.onboard.run_goal_approve_entry"
+GOAL_APPROVE_ACTIONS = ("forward", "stop")
+_GOAL_PROPOSAL_FILENAME = "proposed-building-graph.json"
 
 # The customer's EXECUTION-brain choice for `onboard goal`. ``local`` is the
 # in-process read-only smoke adapter (default); ``codex`` / ``claude`` are
@@ -1272,6 +1278,411 @@ def _render_goal_text(result: dict[str, Any]) -> str:
         f"준비 완료: {'예 ✅' if result.get('ok') else '아직이요 (frontier가 complete가 아니에요)'}"
     )
     return "\n".join(lines)
+
+
+def render_proposal_for_human(proposal_ref: Any) -> str:
+    """Render a frozen proposal snapshot as a plain-Korean pre-run preview.
+
+    This is read-side support projection only. It reads a caller/COO-declared
+    composed plan and names what will run; it does not approve, choose Movement,
+    or judge quality.
+    """
+
+    plan, _proposal_path = _load_goal_proposal(proposal_ref)
+    return _render_goal_proposal_plan(plan)
+
+
+def run_goal_approve_entry(
+    proposal_ref: Any,
+    *,
+    action: str = "forward",
+    author_ref: str = "coo:smith",
+    output_root: Path | str | None = None,
+    repo_root: Path | str | None = None,
+    overwrite_existing: bool = False,
+    local_callables: Mapping[str, Any] | None = None,
+    command_runner: Any | None = None,
+    adapter_timeout_seconds: int = 120,
+    proof_limits: Any | None = None,
+    report_env: Mapping[str, str] | None = None,
+    report_slack_sender: Any | None = None,
+) -> dict[str, Any]:
+    """Approve or stop a frozen pre-run proposal.
+
+    ``forward`` walks the already-persisted composed plan through
+    ``run_building_plan`` inside the existing worktree-sandbox bracket.
+    ``stop`` records no Building root and runs nothing.
+    """
+
+    from brick_protocol.support.operator.driver import (  # noqa: PLC0415
+        BuildingIntakeRunResult,
+        _run_in_worktree_sandbox,
+    )
+    from brick_protocol.support.operator.run import run_building_plan  # noqa: PLC0415
+
+    action_text = str(action).strip().lower()
+    author_text = str(author_ref).strip()
+    result: dict[str, Any] = {
+        "ok": False,
+        "ran": False,
+        "action": action_text,
+        "author_ref": author_text,
+        "routed_through": GOAL_APPROVE_SEAM_VERB,
+    }
+    if action_text not in GOAL_APPROVE_ACTIONS:
+        result.update(
+            {
+                "error_kind": "invalid_goal_approve_action",
+                "error_message": "pre-run approval action must be forward or stop.",
+                "message_ko": "굴리기 전 승인은 forward 또는 stop만 가능해요.",
+            }
+        )
+        return result
+    if not (author_text.startswith("coo:") or author_text.startswith("human:")):
+        result.update(
+            {
+                "error_kind": "invalid_author_ref",
+                "error_message": "author_ref must start with coo: or human:.",
+                "message_ko": "작성자 ref는 coo: 또는 human: 으로 시작해야 해요.",
+            }
+        )
+        return result
+
+    try:
+        plan, proposal_path = _load_goal_proposal(proposal_ref)
+        _validate_frozen_goal_plan(plan)
+    except Exception as exc:  # noqa: BLE001 -- friendly support entry
+        result.update(
+            {
+                "error_kind": type(exc).__name__,
+                "error_message": str(exc),
+                "message_ko": "proposal snapshot을 읽거나 검증할 수 없어요.",
+            }
+        )
+        return result
+
+    building_id = _required_plan_text(plan, "building_id")
+    result["building_id"] = building_id
+    if proposal_path is not None:
+        result["proposal_ref"] = str(proposal_path)
+
+    if action_text == "stop":
+        result.update(
+            {
+                "ok": True,
+                "ran": False,
+                "message_ko": "stop 처분이라 frozen plan을 실행하지 않았어요.",
+            }
+        )
+        return result
+
+    repo = _safe_repo_root(repo_root)
+    durable_output = _goal_approval_output_root(output_root, proposal_path)
+    run_plan_path = _goal_approval_plan_path(
+        plan,
+        proposal_path=proposal_path,
+        durable_output=durable_output,
+    )
+    run_overwrite_existing = overwrite_existing or _proposal_root_is_prerun_only(
+        proposal_path,
+        durable_output=durable_output,
+        building_id=building_id,
+    )
+
+    def _run_frozen_plan(repo_root_inner: Path, adapter_cwd: Path) -> BuildingIntakeRunResult:
+        del repo_root_inner
+        run_result = run_building_plan(
+            run_plan_path,
+            output_root=durable_output,
+            overwrite_existing=run_overwrite_existing,
+            local_callables=local_callables,
+            command_runner=command_runner,
+            adapter_cwd=adapter_cwd,
+            adapter_timeout_seconds=adapter_timeout_seconds,
+            proof_limits=proof_limits,
+            report_env=report_env,
+            report_slack_sender=report_slack_sender,
+        )
+        return BuildingIntakeRunResult(
+            building_id=building_id,
+            plan_path=run_plan_path,
+            plan_shape=str(plan.get("plan_shape") or ""),
+            walker_mode="dynamic",
+            walker_mode_basis=(
+                "pre-run human/COO approval ran a frozen composed plan through "
+                "run_building_plan; no compose_building call"
+            ),
+            run_result=run_result,
+            task_source_basis="task_statement",
+        )
+
+    try:
+        sandbox_result = _run_in_worktree_sandbox(
+            repo,
+            building_id=building_id,
+            durable_output=durable_output,
+            run_dispatch=_run_frozen_plan,
+        )
+    except Exception as exc:  # noqa: BLE001 -- friendly support entry
+        result.update(
+            {
+                "error_kind": type(exc).__name__,
+                "error_message": str(exc),
+                "message_ko": "frozen plan 실행 중 문제가 생겼어요.",
+            }
+        )
+        return result
+
+    result.update(
+        {
+            "ok": sandbox_result.frontier_kind == "complete",
+            "ran": True,
+            "plan_path": str(run_plan_path),
+            "evidence_root": sandbox_result.evidence_root,
+            "frontier_kind": sandbox_result.frontier_kind,
+            "isolation_mode": sandbox_result.isolation_mode,
+            "isolation_reason": sandbox_result.isolation_reason,
+            "commit_sha": sandbox_result.commit_sha,
+            "worktree_path": sandbox_result.worktree_path,
+            "worktree_disposed": sandbox_result.worktree_disposed,
+            "proposal_root_reused": run_overwrite_existing and not overwrite_existing,
+        }
+    )
+    return result
+
+
+def _load_goal_proposal(proposal_ref: Any) -> tuple[Mapping[str, Any], Path | None]:
+    from brick_protocol.support.operator.assembly import ComposedGraph  # noqa: PLC0415
+
+    if isinstance(proposal_ref, ComposedGraph):
+        return copy.deepcopy(proposal_ref.composed_plan), None
+    if isinstance(proposal_ref, Mapping):
+        return copy.deepcopy(proposal_ref), None
+    path = _proposal_path_from_ref(proposal_ref)
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, Mapping):
+        raise TypeError("proposal snapshot must be a JSON object")
+    return value, path
+
+
+def _proposal_path_from_ref(proposal_ref: Any) -> Path:
+    path = Path(str(proposal_ref)).expanduser()
+    if path.is_dir():
+        path = path / _GOAL_PROPOSAL_FILENAME
+    return path.resolve()
+
+
+def _validate_frozen_goal_plan(plan: Mapping[str, Any]) -> None:
+    if str(plan.get("plan_shape") or "") != "graph":
+        raise ValueError("frozen proposal must be a graph Building Plan")
+    _required_plan_text(plan, "building_id")
+    if not _optional_plan_text(plan.get("task_source_ref")):
+        raise ValueError("frozen proposal is missing task_source_ref")
+    if not _optional_plan_text(plan.get("task_statement")):
+        raise ValueError("frozen proposal is missing task_statement")
+    if not isinstance(plan.get("brick_steps"), list):
+        raise ValueError("frozen proposal is missing brick_steps")
+    if not isinstance(plan.get("link_edges"), list):
+        raise ValueError("frozen proposal is missing link_edges")
+
+
+def _goal_approval_output_root(
+    output_root: Path | str | None,
+    proposal_path: Path | None,
+) -> Path:
+    if output_root is not None:
+        return Path(output_root).expanduser().resolve()
+    if proposal_path is not None and proposal_path.name == _GOAL_PROPOSAL_FILENAME:
+        parent = proposal_path.parent.parent
+        if parent != proposal_path.parent:
+            return parent.resolve()
+    return Path.home() / ".brick" / "goal-runs"
+
+
+def _goal_approval_plan_path(
+    plan: Mapping[str, Any],
+    *,
+    proposal_path: Path | None,
+    durable_output: Path,
+) -> Path:
+    if proposal_path is not None:
+        return proposal_path
+    building_id = _required_plan_text(plan, "building_id")
+    plan_path = durable_output / _path_slug(building_id) / _GOAL_PROPOSAL_FILENAME
+    plan_path.parent.mkdir(parents=True, exist_ok=True)
+    plan_path.write_text(
+        json.dumps(plan, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return plan_path
+
+
+def _proposal_root_is_prerun_only(
+    proposal_path: Path | None,
+    *,
+    durable_output: Path,
+    building_id: str,
+) -> bool:
+    if proposal_path is None:
+        return False
+    root = (durable_output / building_id).resolve()
+    if proposal_path.parent.resolve() != root:
+        return False
+    try:
+        entries = list(root.iterdir())
+    except FileNotFoundError:
+        return False
+    if len(entries) != 1:
+        return False
+    entry = entries[0]
+    return (
+        entry.resolve() == proposal_path.resolve()
+        and entry.name == _GOAL_PROPOSAL_FILENAME
+        and entry.is_file()
+        and not entry.is_symlink()
+    )
+
+
+def _render_goal_proposal_plan(plan: Mapping[str, Any]) -> str:
+    building_id = str(plan.get("building_id") or "")
+    steps = [step for step in plan.get("brick_steps", ()) if isinstance(step, Mapping)]
+    edges = [edge for edge in plan.get("link_edges", ()) if isinstance(edge, Mapping)]
+    groups = [group for group in plan.get("groups", ()) if isinstance(group, Mapping)]
+    fan_in_groups = [
+        group for group in groups if str(group.get("group_role") or "").strip() == "fan_in"
+    ]
+    fan_in_labels: dict[str, str] = {}
+    edge_by_ref = {str(edge.get("edge_ref") or ""): edge for edge in edges}
+    for index, group in enumerate(fan_in_groups, start=1):
+        label = f"합류 {index}"
+        for member_ref in _text_list(group.get("member_refs")):
+            edge = edge_by_ref.get(member_ref)
+            if isinstance(edge, Mapping):
+                target = str(edge.get("target_step_ref") or "").strip()
+                if target:
+                    fan_in_labels[target] = label
+
+    fan_out_counts: dict[str, int] = {}
+    for group in groups:
+        if str(group.get("group_role") or "").strip() != "fan_out":
+            continue
+        member_refs = _text_list(group.get("member_refs"))
+        for member_ref in member_refs:
+            edge = edge_by_ref.get(member_ref)
+            if isinstance(edge, Mapping):
+                source = str(edge.get("source_step_ref") or "").strip()
+                if source:
+                    fan_out_counts[source] = max(fan_out_counts.get(source, 0), len(member_refs))
+
+    lines = [
+        "=== 굴리기 전 proposal 미리보기 ===",
+        f"building_id: {building_id}",
+        f"단계: {len(steps)}개",
+        f"합류점 {len(fan_in_groups)}개",
+        "",
+    ]
+    for index, step in enumerate(steps, start=1):
+        step_ref = str(step.get("step_ref") or "").strip()
+        kind = _step_kind(step)
+        agent_ref = _agent_ref(step) or "agent 미지정"
+        link_bits: list[str] = []
+        if fan_out_counts.get(step_ref):
+            link_bits.append(f"fan_out {fan_out_counts[step_ref]}갈래")
+        if fan_in_labels.get(step_ref):
+            link_bits.append(fan_in_labels[step_ref])
+        if not link_bits:
+            link_bits.append(_next_link_label(step_ref, edges))
+        gate_label = _gate_label(step_ref, edges)
+        write_label = _write_scope_label(step)
+        lines.append(f"{index}. {kind} — {step_ref}")
+        lines.append(f"   누구: {agent_ref}")
+        lines.append(f"   링크: {', '.join(bit for bit in link_bits if bit)}")
+        lines.append(f"   게이트: {gate_label}")
+        lines.append(f"   쓰기영역: {write_label}")
+    return "\n".join(lines)
+
+
+def _step_kind(step: Mapping[str, Any]) -> str:
+    ref = str(step.get("step_template_ref") or "").strip()
+    return ref.split(":", 1)[-1] if ":" in ref else ref or "unknown"
+
+
+def _agent_ref(step: Mapping[str, Any]) -> str:
+    row = _step_row(step, "Agent")
+    return str(row.get("agent_object_ref") or "").strip()
+
+
+def _write_scope_label(step: Mapping[str, Any]) -> str:
+    row = _step_row(step, "Brick")
+    scope = row.get("write_scope")
+    requires = bool(row.get("requires_brick_write_scope"))
+    if not isinstance(scope, Mapping) and not requires:
+        return "읽기/기록만"
+    allowed = scope.get("allowed_paths") if isinstance(scope, Mapping) else ()
+    allowed_text = ", ".join(_text_list(allowed)) or "선언 필요"
+    return f"✍️ 파일 씀: {allowed_text}"
+
+
+def _next_link_label(step_ref: str, edges: list[Mapping[str, Any]]) -> str:
+    labels: list[str] = []
+    for edge in edges:
+        if str(edge.get("source_step_ref") or "").strip() != step_ref:
+            continue
+        target = str(edge.get("target_step_ref") or "").strip()
+        if not target:
+            link_row = _link_row(edge)
+            target = str(link_row.get("target_ref") or "boundary").strip()
+        labels.append(f"다음 {target}")
+    return ", ".join(labels) if labels else "다음 없음"
+
+
+def _gate_label(step_ref: str, edges: list[Mapping[str, Any]]) -> str:
+    refs: list[str] = []
+    for edge in edges:
+        if str(edge.get("source_step_ref") or "").strip() != step_ref:
+            continue
+        refs.extend(_text_list(_link_row(edge).get("declared_gate_refs")))
+    return ", ".join(dict.fromkeys(refs)) if refs else "기본 전이"
+
+
+def _step_row(step: Mapping[str, Any], owner_axis: str) -> Mapping[str, Any]:
+    for row in step.get("rows", ()):
+        if isinstance(row, Mapping) and str(row.get("owner_axis") or "") == owner_axis:
+            return row
+    return {}
+
+
+def _link_row(edge: Mapping[str, Any]) -> Mapping[str, Any]:
+    rows = edge.get("rows")
+    if isinstance(rows, list) and rows and isinstance(rows[0], Mapping):
+        return rows[0]
+    return {}
+
+
+def _text_list(value: Any) -> list[str]:
+    if isinstance(value, str):
+        return [value.strip()] if value.strip() else []
+    if not isinstance(value, (list, tuple)):
+        return []
+    return [str(item).strip() for item in value if str(item).strip()]
+
+
+def _required_plan_text(plan: Mapping[str, Any], key: str) -> str:
+    text = _optional_plan_text(plan.get(key))
+    if not text:
+        raise ValueError(f"frozen proposal is missing {key}")
+    return text
+
+
+def _optional_plan_text(value: Any) -> str:
+    return str(value).strip() if value is not None else ""
+
+
+def _path_slug(value: str) -> str:
+    slug = "".join(ch.lower() if ch.isalnum() else "-" for ch in value)
+    while "--" in slug:
+        slug = slug.replace("--", "-")
+    return slug.strip("-") or "proposal"
 
 
 def run_approve_entry(
@@ -1647,6 +2058,68 @@ def main(argv: list[str] | None = None) -> int:
         sys.stdout.write(_render_goal_text(goal_result))
         sys.stdout.write("\n")
         return 0 if goal_result.get("ok") else 1
+    # ``onboard goal-approve <proposal>``: pre-run human/COO approval over a
+    # frozen proposal snapshot. This is distinct from ``onboard approve``, which
+    # resumes an already-started held Building.
+    if args_list[:1] == ["goal-approve"]:
+        goal_approve_parser = argparse.ArgumentParser(
+            prog="onboard goal-approve",
+            description=(
+                "Approve or stop a frozen pre-run proposal snapshot. forward "
+                "runs proposed-building-graph.json through run_building_plan; "
+                "stop runs nothing."
+            ),
+        )
+        goal_approve_parser.add_argument(
+            "proposal",
+            help="Path to proposed-building-graph.json, or its containing directory.",
+        )
+        goal_approve_parser.add_argument(
+            "--action",
+            choices=GOAL_APPROVE_ACTIONS,
+            default="forward",
+            help="Pre-run disposition action.",
+        )
+        goal_approve_parser.add_argument(
+            "--author",
+            default="coo:smith",
+            help="Disposition author ref; must start with coo: or human:.",
+        )
+        goal_approve_parser.add_argument(
+            "--output-root",
+            default=None,
+            help="Durable evidence root; defaults to the proposal parent root.",
+        )
+        goal_approve_parser.add_argument(
+            "--repo",
+            default=None,
+            help="Repo root override for the worktree-sandbox bracket.",
+        )
+        goal_approve_parser.add_argument(
+            "--overwrite-existing",
+            action="store_true",
+            help="Allow an existing Building evidence root to be overwritten.",
+        )
+        goal_approve_parser.add_argument(
+            "--timeout",
+            dest="adapter_timeout_seconds",
+            type=int,
+            default=120,
+            help="Adapter timeout seconds passed to run_building_plan.",
+        )
+        goal_approve_args = goal_approve_parser.parse_args(args_list[1:])
+        goal_approve_result = run_goal_approve_entry(
+            goal_approve_args.proposal,
+            action=goal_approve_args.action,
+            author_ref=goal_approve_args.author,
+            output_root=goal_approve_args.output_root,
+            repo_root=goal_approve_args.repo,
+            overwrite_existing=goal_approve_args.overwrite_existing,
+            adapter_timeout_seconds=goal_approve_args.adapter_timeout_seconds,
+        )
+        sys.stdout.write(json.dumps(goal_approve_result, ensure_ascii=False, indent=2))
+        sys.stdout.write("\n")
+        return 0 if goal_approve_result.get("ok") else 1
     # ``onboard approve <building>``: append a human/COO disposition row for a
     # held Building and call resume_building_plan(building_root). The row mirrors
     # the admitted checker shape; this support wrapper chooses no Movement.
@@ -1805,6 +2278,8 @@ def main(argv: list[str] | None = None) -> int:
 __all__ = [
     "DOCTOR_SYMPTOM_PRESCRIPTIONS_KO",
     "_DESIGN_BRAIN_AI_INVOKE",
+    "GOAL_APPROVE_ACTIONS",
+    "GOAL_APPROVE_SEAM_VERB",
     "GOAL_SEAM_VERB",
     "EXAMPLE_DECLARED_BY",
     "EXAMPLE_LOCAL_PRESET_REF",
@@ -1817,8 +2292,10 @@ __all__ = [
     "main",
     "run_doctor",
     "run_approve_entry",
+    "run_goal_approve_entry",
     "run_goal_entry",
     "run_onboard",
+    "render_proposal_for_human",
     "run_recording_setup",
 ]
 
