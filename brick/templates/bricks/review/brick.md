@@ -28,6 +28,15 @@ each tied to the evidence you actually inspected. Optional `transition_concern_e
 `support/...`, `brick/...`, `agent/...`, `link/...`, `project/...`, or diff hunks actually read).
 Packet-only labels are not enough for this grounding requirement.
 
+`transition_concern_evidence` (shape: `brick/templates/bricks/transition-concern-return.yaml`) is
+**non-binding** Agent evidence; it carries `concern_ref`, `concern_kind`, `reason_refs`,
+`related_boundary_refs`, `binding: false`. When you raise a concern for a REAL reproduced defect, aim
+`related_boundary_refs` at the upstream WORK node responsible (e.g. `brick:<the-work-node-id>`) — NOT
+yourself, NOT a `building-boundary:` sentinel. The engine silently walks-on a self-ref or sentinel,
+so no reroute ever fires. Environment or runtime constraints (no temp dir, write-scope limits,
+provider limits, read-only status, "live not run") are NOT defects — record them in `not_proven`,
+never as a `transition_concern`.
+
 Return: fill the `required_return_shape` from the return_template
 (`brick/templates/bricks/review/return.yaml`):
 `observed_evidence`, `checked_work`, `checked_sources`, `observed_matches`, `missing_or_mismatched_facts`,

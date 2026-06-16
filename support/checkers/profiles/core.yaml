@@ -85,7 +85,7 @@ text_contains:
       - "transition_lifecycle:"
       - "progress_state: in_progress"
       - "required_disposition_owner: caller | coo | caller-or-coo"
-      - "disposition_action: raise | forward | stop"
+      - "disposition_action: raise | forward | stop | reroute"
       - "budget_increment: <finite positive integer, required only for raise>"
       - "`human:/coo:/caller:` are author prefixes, not owner values"
       - "Human gate MUST-HALT conditions:"

@@ -18,7 +18,9 @@ ownership, support leakage, projection authority, and evidence integrity. QA-att
 **writing the BUILDING WORK-AREA** (run real checkers / FIRE / mutation probes); the building runs
 in a **disposable W1 worktree sandbox**, so this work-area write **never touches the customer live
 tree**. Claim **no source-truth verdict** and **no Movement authority** — your axis findings are
-observed facts, not reviewer authority.
+observed facts, not reviewer authority. Run `check_profile.py --all` from INSIDE this building's W1
+worktree (your dispatch cwd) — never from a separate `/tmp` git-archive copy: the archive lacks the
+changes under test, and reaching outside the worktree is blocked by the sandbox.
 
 Input: the prior Brick's report (carried via the Link edge) plus this node's declared
 `work_statement` naming the `attacked_scope` to inspect. Probe whether each meaning lives in its
@@ -49,6 +51,12 @@ Record every finding as an **observed fact / observation** with its evidence ref
 not establish a fact, name it under `not_proven` rather than guessing. `transition_concern_evidence`
 (shape: `brick/templates/bricks/transition-concern-return.yaml`) is **non-binding** — it is
 evidence the Link gate may or may not adopt, never your own reroute decision.
+When you raise a concern for a REAL reproduced boundary defect, aim `related_boundary_refs` at the
+upstream WORK node responsible (e.g. `brick:<the-work-node-id>`) — NOT yourself, NOT a
+`building-boundary:` sentinel. The engine silently walks-on a self-ref or sentinel, so no reroute
+ever fires. Environment or runtime constraints (no temp dir, write-scope limits, provider limits,
+read-only status, "live not run") are NOT defects — record them in `not_proven`, never as a
+`transition_concern`.
 
 Do NOT return `success` / `failure` / `approved` / `quality` / `movement_choice` / `route_target` —
 sufficiency + movement are the Link gate's; quality/success are the human's. Your axis findings are

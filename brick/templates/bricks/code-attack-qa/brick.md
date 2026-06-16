@@ -18,7 +18,9 @@ regression, negative-path failures, and boundary violations. QA-attack verifies 
 BUILDING WORK-AREA**: run real checkers / FIRE / mutation probes to break the contract. The
 building runs in a **disposable W1 worktree sandbox**, so this work-area write **never touches the
 customer live tree**. You still claim **NO Movement authority** and **no source-truth verdict** — a
-failing probe is an observed fact, not a judgment.
+failing probe is an observed fact, not a judgment. Run `check_profile.py --all` from INSIDE this
+building's W1 worktree (your dispatch cwd) — never from a separate `/tmp` git-archive copy: the
+archive lacks the changes under test, and reaching outside the worktree is blocked by the sandbox.
 
 Input: the prior Brick's report (carried via the Link edge) plus this node's declared
 `work_statement` (the work contract under attack). Read the changed files and the evidence the
@@ -53,6 +55,11 @@ is **non-binding** Agent evidence — it carries `concern_ref`, `concern_kind`, 
 `related_boundary_refs`, `binding: false`; it MUST NOT carry `movement` / `target` / `target_ref` /
 `route_target`. Forward Link carries this evidence to the declared fan-in or closure boundary; the
 concern never reroutes by itself.
+When a probe reproduces a REAL defect, aim `related_boundary_refs` at the upstream WORK node
+responsible (e.g. `brick:<the-work-node-id>`) — NOT yourself, NOT a `building-boundary:` sentinel.
+The engine silently walks-on a self-ref or sentinel, so no reroute ever fires. Environment or runtime
+constraints (no temp dir, write-scope limits, provider limits, read-only status, "live not run") are
+NOT defects — record them in `not_proven`, never as a `transition_concern`.
 
 Do NOT return `success` / `failure` / `approved` / `quality` / `movement_choice` / `route_target` —
 a failing probe is an observed **fact**, not a verdict. Whether the failures are sufficient to

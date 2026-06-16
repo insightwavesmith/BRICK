@@ -660,7 +660,7 @@ transition_lifecycle:
   progress_state: in_progress
   required_disposition_owner: caller | coo | caller-or-coo
   pending_target_ref: <declared Brick boundary ref>
-  disposition_action: raise | forward | stop
+  disposition_action: raise | forward | stop | reroute
   budget_increment: <finite positive integer, required only for raise>
 ```
 
