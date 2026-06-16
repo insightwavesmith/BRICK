@@ -14,7 +14,7 @@ proof_limits:
   - not success judgment
   - not quality judgment
   - not Movement authority
-  - assembly.py LHS equivalence advisory-skip while assembly.py is absent
+  - assembly.py is present; assembly.py LHS equivalence is actively checked (P(assemble) == P(hand-built))
 not_proven:
   - Phase 1 assembly.py LHS equivalence
   - closure policy semantic validity

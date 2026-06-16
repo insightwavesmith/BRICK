@@ -154,9 +154,10 @@ SEAM: brick_protocol.support.operator.driver.run_building_intake
 For a confirmed `task.md` + selected `chain_preset_ref`, `run_building_intake` is
 the single entry from a declared intent to a running Building. It is pure support
 sequencing: it calls `materialize_building_intent` (A), writes the materialized
-plan to disk, maps `plan_shape -> walker_mode` mechanically (`linear -> linear`,
-`graph -> dynamic`, forced by `run_building_plan`'s own contract, NOT a Movement
-choice), then calls `run_building_plan` (D). It selects no preset (the preset comes
+plan to disk, admits only `plan_shape: graph` (non-graph plans fail closed at
+this seam — the legacy linear walker was deleted in G5) and always dispatches the
+dynamic graph walker (`walker_mode: dynamic`, forced by `run_building_plan`'s own
+contract, NOT a Movement choice), then calls `run_building_plan` (D). It selects no preset (the preset comes
 from the confirmed intent; an intent with no registry preset hard-fails), chooses
 no Movement, picks no agent outside the NEED<->CAPABILITY match, and judges no
 success / sufficiency / quality. The underlying A..F verbs remain available for
@@ -214,7 +215,8 @@ Use this coordination order:
    before closure-synthesis unless a later declared freshness / Work Packet
    Building proves partial QA reuse.
 10. For confirmed chain presets, use the Builder materializer handoff
-   (`task_source_ref + chain_preset_ref -> declared rows` for linear routes,
+   (`task_source_ref + chain_preset_ref -> declared rows` for single-lane,
+   row-shaped presets — which still materialize to a `plan_shape: graph` plan —
    or declared nodes / edges / groups for graph routes) before Runner.
    For manual paths, keep explicit declared nodes / edges / groups.
 11. Declare `active_plan_ref` or fully declared intent only after task-source,
