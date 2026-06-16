@@ -6,7 +6,6 @@ kernel_checks:
   - onboard_smoke
 path_exists:
   - support/operator/driver.py
-  - support/operator/auto_compose.py
   - support/checkers/check_building_operator_driver0.py
   - AGENTS.md
   # ONBOARDING-WIZARD-0 surface (pinned by the onboard_smoke kernel check).
@@ -30,14 +29,9 @@ text_contains:
       - def run_composed_graph_intake
       - inline_task_source_carry(
       - 'run_composed_graph_intake admits only plan_shape: graph'
-      # H3b customer-entry seam: a free-form goal -> compose_building_from_task ->
-      # run the proposal's graph INSIDE the SHARED worktree sandbox bracket (the
-      # same _run_in_worktree_sandbox the preset customer path uses -- not forked).
-      - def run_goal_in_sandbox
+      # Shared worktree-sandbox bracket the preset customer path routes through.
       - def _run_in_worktree_sandbox
       - run_dispatch=_run_preset
-      - run_dispatch=_run_composed
-      - compose_building_from_task(
   - path: support/checkers/check_building_operator_driver0.py
     texts:
       - MODE2 bare-default rejected
@@ -49,36 +43,6 @@ text_contains:
       - def _h2a_direct_graph_intake_fire
       - h2a-mutation-RED
       - h2a-idempotency
-      # H2b design-AI caller FIRE pins (board+task -> validated graph proposal ->
-      # feed H2a -> complete; anti-lazy + graph-contract mutation REDs).
-      - H2b design-AI caller FIRE passed
-      - def _h2b_design_ai_caller_fire
-      - compose_building_from_task
-      - h2b-mutation-RED
-      # H3b customer goal-journey FIRE pins (goal -> compose -> run in W1 sandbox
-      # -> complete + live tree byte-identical; invalid proposal raises BEFORE run).
-      - H3b GOAL-journey FIRE passed
-      - def _h3b_goal_journey_fire
-      - run_goal_in_sandbox(
-      - h3b-mutation-RED
-      - h3b-live-tree
-      # P2 onboard design-brain FIRE pins: run_goal_entry injects the selected
-      # design-AI callable into the existing run_goal_in_sandbox(ai_invoke=...)
-      # seam, and gemini no-key REDs before the driver seam is reached.
-      - def _h3c_design_brain_choice_fire
-      - p2 design-brain RED
-      - h3c_design_brain_no_key_error
-  # H2b design-AI caller seam: the operator-level fn that hands the board + task
-  # to an injectable design AI and returns a VALIDATED graph proposal (anti-lazy).
-  - path: support/operator/auto_compose.py
-    texts:
-      - def compose_building_from_task
-      - OUTPUT_CONTRACT_INSTRUCTIONS
-      - EVERY requirement must map, through requirement_node_map, to a REAL node
-      - def _enforce_requirement_coverage
-      - 'anti-lazy: requirement(s) not mapped to any node'
-      - from brick_protocol.support.operator.composition import (
-      - from brick_protocol.support.connection.building_design_toolkit import (
   # ONBOARDING-WIZARD-0 PART-2: the example routes through the PART-1 seam, the
   # real-vs-local adapter is driven by preflight readiness evidence, and the
   # handoff names the seam verb. (onboard_seam_case executes these; the source
@@ -99,13 +63,6 @@ text_contains:
       - '"routed_through": SEAM_VERB'
       - '"preflight_readiness": readiness'
       - allow_real_provider
-      # P2 onboard design-brain selection: onboard owns map/flag/preflight only;
-      # driver.py / auto_compose.py / agent_adapter.py behavior remains unchanged.
-      - _DESIGN_BRAIN_AI_INVOKE
-      - def _design_brain_preflight
-      - --design-brain
-      - ai_invoke=design_ai_invoke
-      - design_brain_preflight
 text_absent:
   - path: support/operator/driver.py
     texts:

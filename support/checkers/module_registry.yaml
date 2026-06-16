@@ -774,24 +774,6 @@ modules:
     decomposition_target: ""
     pinned_by: assembly_equivalence kernel check (HEART front door: refined 3-axis builder API; assemble() lowers caller STRUCTURE to compose_building (nodes, edges, groups), authors no Movement or route)
 
-  # H2b heart centerpiece: the design-AI caller. compose_building_from_task hands
-  # the board + a task to an INJECTABLE ai_invoke(prompt)->text, parses/whitelists
-  # the returned JSON proposal (mirroring the agent_adapter return idiom), then
-  # VALIDATES the proposed graph through the real compose_building contract AND an
-  # anti-lazy requirement->node coverage rule. It PROPOSES only (the run is the
-  # separate H2a run_composed_graph_intake seam). It imports compose_building +
-  # render_building_board + RETURNED_FORBIDDEN_KEYS only; it crosses no axis,
-  # authors no Movement/target, and judges no success/quality.
-  - module: support/operator/auto_compose.py
-    layer: operator
-    role: operator
-    owns_crossings: []
-    consumes_crossings: []
-    imports_axis: []
-    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
-    decomposition_target: ""
-    pinned_by: building_operator_driver0 (H2b design-AI caller FIRE; compose_building_from_task board+task -> validated graph proposal via injectable ai_invoke, anti-lazy requirement->node coverage; proposes only, runs nothing, crosses no axis)
-
   - module: support/operator/orchestration_packet.py
     layer: operator
     role: operator
