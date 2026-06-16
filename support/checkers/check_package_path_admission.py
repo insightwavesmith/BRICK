@@ -313,6 +313,15 @@ ELEGANT_REFACTOR_BUILDING_OPERATION_TARGETS = {
     "support/operator/worktree_sandbox.py",
 }
 
+# HEART front door: assembly.py -- the refined 3-axis builder API
+# (brick/agent/chain/fan_out/fan_in/edge/converge/reroute/hold/assemble). The
+# main agent expresses STRUCTURE only; assemble() lowers verbatim to the
+# compose_building (nodes, edges, groups) args. Imports composition.py only;
+# authors no Movement or route.
+HEART_FRONTDOOR0_TARGETS = {
+    "support/operator/assembly.py",
+}
+
 PRH_B_RECORDER_TARGETS = {
     "support/recording/__init__.py",
     "support/recording/records.py",
@@ -1645,6 +1654,9 @@ def allowed_path(path: str) -> bool:
         return True
 
     if clean in DASHBOARD_EXPORT0_TARGETS:
+        return True
+
+    if clean in HEART_FRONTDOOR0_TARGETS:
         return True
 
     if is_dashboard_surface_path(clean, is_dir=False):
