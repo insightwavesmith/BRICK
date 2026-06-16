@@ -1,0 +1,21 @@
+schema: checker-profile/v1
+profile_id: assembly-equivalence
+description: Phase 0 structural equivalence guard for future assembly.py lowering.
+kernel_checks:
+  - assembly_equivalence
+path_exists:
+  - support/checkers/check_assembly_equivalence.py
+  - support/checkers/profiles/assembly_equivalence.yaml
+  - support/operator/composition.py
+  - brick/templates/presets/two-fan-in-graph.md
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+  - assembly.py LHS equivalence advisory-skip while assembly.py is absent
+not_proven:
+  - Phase 1 assembly.py LHS equivalence
+  - closure policy semantic validity
+  - future provider behavior

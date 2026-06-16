@@ -295,6 +295,16 @@ modules:
     decomposition_target: ""
     pinned_by: brick_template_catalog_restructure kernel check (P3 staged FIRE fixtures)
 
+  - module: support/checkers/check_assembly_equivalence.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: assembly_equivalence kernel check (HEART-PHASE0 structural projection + discrimination probes)
+
   - module: support/checkers/lib/common.py
     layer: checkers/lib
     role: checker-lib

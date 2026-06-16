@@ -53,6 +53,7 @@ path_allowlist:
   - root: support/checkers/profiles
     paths:
       - support/checkers/profiles/agent_axis_behavioral.yaml
+      - support/checkers/profiles/assembly_equivalence.yaml
       - support/checkers/profiles/bounded_agent_proposed_routing_loop.yaml
       - support/checkers/profiles/building_operator_driver0.yaml
       - support/checkers/profiles/building_automation.yaml

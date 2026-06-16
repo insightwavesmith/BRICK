@@ -180,6 +180,7 @@ KERNEL_CHECK_IDS = {
     "axis_vocab_drift",
     "package_path_admission",
     "axis_contract_projection",
+    "assembly_equivalence",
     "declared_verifier_exists",
     "axis_field_enum_parity",
     "agentfact_single_home",
@@ -405,6 +406,19 @@ def run_kernel_check(repo: Path, check_id: str) -> KernelResult:
         return call_main(
             check_id,
             "support.checkers.check_axis_contract_projection",
+            ["--repo", str(repo)],
+        )
+    if check_id == "assembly_equivalence":
+        # HEART-PHASE0-EQUIVALENCE-CHECKER-0616. Executes the structural
+        # equivalence guard IN-PROCESS over hand-built compose_building fixtures:
+        # 3 accepted corpus shapes including two-fan-in, renamed-ref green, and
+        # RED discrimination for wrong gate placement / closure policy drift /
+        # missing fan-in group. While support/operator/assembly.py is absent,
+        # the true LHS assembly equivalence corpus logs an advisory skip; if the
+        # front door appears, this check fails closed until wired to it.
+        return call_main(
+            check_id,
+            "support.checkers.check_assembly_equivalence",
             ["--repo", str(repo)],
         )
     if check_id == "declared_verifier_exists":
