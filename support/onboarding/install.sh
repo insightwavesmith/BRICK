@@ -5,16 +5,15 @@
 # script from the repository first, with your own gh/git login:
 #   gh repo clone {OWNER}/BRICK ~/BRICK
 #   sh ~/BRICK/support/onboarding/install.sh
-# Replace {OWNER} with your GitHub org/user. Current working example:
-#   gh repo clone insightwavesmith/BRICK ~/BRICK
+# Replace {OWNER} with your GitHub org/user, e.g.:
+#   gh repo clone {OWNER}/BRICK ~/BRICK
 # (or: git clone https://github.com/{OWNER}/BRICK.git, then run
 #  support/onboarding/install.sh from the checkout)
 # Cloned somewhere other than $HOME/BRICK? Set BRICK_HOME to that path
 # first (e.g. BRICK_HOME=/path/to/your/clone sh install.sh) -- the default
 # target is $HOME/BRICK.
 # Running the script before the target checkout exists? Set BRICK_REPO first
-# (e.g. BRICK_REPO={OWNER}/BRICK sh install.sh; current working example:
-# BRICK_REPO=insightwavesmith/BRICK sh install.sh).
+# (e.g. BRICK_REPO={OWNER}/BRICK sh install.sh).
 #
 # WHAT IT DOES (each step is plain and idempotent):
 #   1. checks python3 (>= 3.11) is present
@@ -118,7 +117,7 @@ main() {
         if [ -z "$REPO_SLUG" ]; then
             printf '%s\n' \
                 "받을 저장소를 모르겠어요. 먼저 BRICK_REPO={OWNER}/BRICK 를 지정해 주세요." \
-                "  - 예: BRICK_REPO=insightwavesmith/BRICK sh support/onboarding/install.sh" >&2
+                "  - 예: BRICK_REPO={OWNER}/BRICK sh support/onboarding/install.sh" >&2
             return 1
         fi
         if ! command -v gh >/dev/null 2>&1; then
