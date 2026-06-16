@@ -8352,12 +8352,43 @@ _VESSEL_CASE_LEDGER_ROW_REQUIRED = (
     "evidence_refs.building_map",
     "proof_limits[]",
 )
+_LIVE_INBOX_FIXTURE_PACKET_GLOB = "checker-projection-fixture-vessel-*.json"
 
 
 def _vessel_case_require_json(value: Any, required: Sequence[str], label: str) -> None:
     for dotted in required:
         if not json_path_exists(value, dotted):
             raise ProfileError(f"{label}: required path {dotted!r} missing")
+
+
+def _live_inbox_fixture_packet_count(repo: Path) -> int:
+    inbox = repo / "project" / "brick-protocol" / "status" / "inbox"
+    if not inbox.is_dir():
+        return 0
+    return sum(1 for path in inbox.glob(_LIVE_INBOX_FIXTURE_PACKET_GLOB) if path.is_file())
+
+
+def _assert_live_inbox_fixture_count_unchanged(
+    label: str, before: int, after: int
+) -> None:
+    if after == before:
+        return
+    raise ProfileError(
+        f"intake_evidence_projection_case rejected {label}: live repo inbox "
+        f"{_LIVE_INBOX_FIXTURE_PACKET_GLOB!r} count changed from {before} to {after}; "
+        "checker fixtures must not write project/brick-protocol/status/inbox"
+    )
+
+
+def _assert_live_inbox_fixture_count_guard_red(label: str, before: int) -> None:
+    try:
+        _assert_live_inbox_fixture_count_unchanged(label, before, before + 1)
+    except ProfileError:
+        return
+    raise ProfileError(
+        f"intake_evidence_projection_case rejected {label}: live inbox count guard "
+        "did not RED on a synthetic fixture packet increase"
+    )
 
 
 def run_intake_evidence_projection_case(repo: Path, profile: Mapping[str, Any]) -> int:
@@ -8423,6 +8454,8 @@ def run_intake_evidence_projection_case(repo: Path, profile: Mapping[str, Any]) 
             "read-side projection shapes can be asserted on fresh evidence."
         )
         command_runner = _preset_completion_command_runner(LocalCliCompleted)
+        live_inbox_count_before = _live_inbox_fixture_packet_count(repo)
+        _assert_live_inbox_fixture_count_guard_red(label, live_inbox_count_before)
         try:
             create_project(
                 repo,
@@ -8475,6 +8508,9 @@ def run_intake_evidence_projection_case(repo: Path, profile: Mapping[str, Any]) 
                     f"semantic correctness of {label}",
                     "real provider behavior",
                 ],
+                "report_event_policy": {
+                    "enabled": False,
+                },
             }
             run_building_intake(
                 intent,
@@ -8611,7 +8647,11 @@ def run_intake_evidence_projection_case(repo: Path, profile: Mapping[str, Any]) 
                     "PROGRESS render does not show the generated building"
                 )
         finally:
+            live_inbox_count_after = _live_inbox_fixture_packet_count(repo)
             shutil.rmtree(vessel_dir, ignore_errors=True)
+            _assert_live_inbox_fixture_count_unchanged(
+                label, live_inbox_count_before, live_inbox_count_after
+            )
 
         # PART B -- effective-write step-output shape (retired read_side
         # project-orchestration-ledger-0528 WORK-attempt pins: returned.adapter_ref,
