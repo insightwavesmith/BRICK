@@ -23,7 +23,21 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from support.operator.composition import CompositionError, compose_building
+from brick_protocol.support.operator.assembly import (
+    Authority,
+    Concern,
+    Gate,
+    assemble,
+    brick,
+    chain,
+    converge,
+    edge as assembly_edge,
+    fan_in,
+    fan_out,
+    hold,
+    reroute,
+)
+from brick_protocol.support.operator.composition import CompositionError, compose_building
 
 
 DEFAULT_GATE = "link-gate:default-transition"
@@ -35,8 +49,8 @@ BOUNDARY_PREFIXES = ("building-boundary:", "building-boundary-")
 PROOF_LIMIT = (
     "proof limit: assembly equivalence checker support evidence only; it does "
     "not prove source truth, success judgment, quality judgment, Movement "
-    "authority, assembly.py LHS equivalence while assembly.py is absent, or "
-    "closure policy validity beyond structural discrimination."
+    "authority, live Building execution, provider behavior, or closure policy "
+    "semantic validity beyond structural discrimination."
 )
 
 
@@ -224,10 +238,10 @@ def _fixtures() -> tuple[Fixture, ...]:
             ),
         ),
         edges=(
-            _edge("edge:two-inspect-code-a", "two-inspect", "two-code-a", gates=default),
-            _edge("edge:two-inspect-code-b", "two-inspect", "two-code-b", gates=default),
-            _edge("edge:two-inspect-axis-a", "two-inspect", "two-axis-a", gates=default),
-            _edge("edge:two-inspect-axis-b", "two-inspect", "two-axis-b", gates=default),
+            _edge("edge:two-inspect-code-a", "two-inspect", "two-code-a", gates=strict),
+            _edge("edge:two-inspect-code-b", "two-inspect", "two-code-b", gates=strict),
+            _edge("edge:two-inspect-axis-a", "two-inspect", "two-axis-a", gates=strict),
+            _edge("edge:two-inspect-axis-b", "two-inspect", "two-axis-b", gates=strict),
             _edge("edge:two-code-a-mid", "two-code-a", "two-mid", gates=strict),
             _edge("edge:two-code-b-mid", "two-code-b", "two-mid", gates=strict),
             _edge("edge:two-mid-final", "two-mid", "two-final", gates=default),
@@ -512,6 +526,125 @@ def _compose_fixture(repo: Path, fixture: Fixture, *, building_id: str | None = 
         raise AssemblyEquivalenceError(f"{fixture.name} compose_building rejected: {exc}") from exc
 
 
+def _assembly_lhs(repo: Path, fixture_name: str) -> tuple[Mapping[str, Any], Fixture]:
+    graph = _assembly_graph(fixture_name)
+    composed = assemble(
+        graph,
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task=f"assembly equivalence task for {fixture_name}",
+        building_id=f"heart-phase1-{fixture_name}",
+        adapter="codex-local",
+        gates=_assembly_gates(fixture_name),
+        shape="design-needed" if fixture_name == "two-fan-in-graph" else None,
+        repo_root=repo,
+        write_scope=_write_scope(),
+    )
+    nodes, edges, groups = composed.as_compose_args()
+    lhs_fixture = Fixture(
+        name=f"{fixture_name}-assembly-lhs",
+        nodes=tuple(nodes),
+        edges=tuple(edges),
+        groups=tuple(groups),
+    )
+    try:
+        plan = compose_building(
+            nodes,
+            edges,
+            groups=groups,
+            declared_by=composed.declared_by,
+            repo_root=repo,
+            building_id=composed.building_id,
+            selected_adapter_ref=composed.selected_adapter_ref,
+            selected_model_ref=composed.selected_model_ref,
+            selected_shape_ref=composed.selected_shape_ref,
+            transition_concern_adoption=composed.transition_concern_adoption,
+        )
+    except CompositionError as exc:
+        raise AssemblyEquivalenceError(f"{fixture_name} assembly LHS compose_building rejected: {exc}") from exc
+    return plan, lhs_fixture
+
+
+def _assembly_gates(fixture_name: str) -> tuple[Gate, ...]:
+    if fixture_name in {"fast-fix", "engine-feature-hard", "two-fan-in-graph"}:
+        return (Gate.STRICT_EVIDENCE, Gate.FAN_IN_WAIT_ALL) if fixture_name == "two-fan-in-graph" else (Gate.STRICT_EVIDENCE,)
+    raise AssemblyEquivalenceError(f"no assembly gate fixture for {fixture_name}")
+
+
+def _assembly_graph(fixture_name: str):
+    if fixture_name == "fast-fix":
+        work = brick("work", "checker fixture work for fast-fix-work", write=True)
+        qa = brick("axis-attack-qa", "checker fixture work for fast-fix-qa")
+        close = brick("closure", "checker fixture work for fast-fix-closure")
+        return chain([work, qa, close])
+
+    if fixture_name == "engine-feature-hard":
+        dev = brick("development", "checker fixture work for hard-development")
+        code = brick("code-attack-qa", "checker fixture work for hard-code", returns=SOURCE_RETURN_SHAPE)
+        axis = brick("axis-attack-qa", "checker fixture work for hard-axis", returns=SOURCE_RETURN_SHAPE)
+        evidence = brick(
+            "evidence-integrity",
+            "checker fixture work for hard-evidence",
+            returns=SOURCE_RETURN_SHAPE,
+        )
+        close = brick("closure", "checker fixture work for hard-closure")
+        sources = [code, axis, evidence]
+        return converge(
+            fan_out(dev, sources),
+            fan_in(
+                sources,
+                close,
+                route=[
+                    reroute(Concern.IMPLEMENTATION_GAP, to=dev, budget=5),
+                    hold(Concern.VERIFICATION_GAP),
+                ],
+            ),
+            terminal=close,
+        )
+
+    if fixture_name == "two-fan-in-graph":
+        inspect = brick("inspect", "checker fixture work for two-inspect")
+        code_a = brick(
+            "code-attack-qa",
+            "checker fixture work for two-code-a",
+            alias="code-lens-a",
+            returns=SOURCE_RETURN_SHAPE,
+        )
+        code_b = brick(
+            "code-attack-qa",
+            "checker fixture work for two-code-b",
+            alias="code-lens-b",
+            returns=SOURCE_RETURN_SHAPE,
+        )
+        axis_a = brick(
+            "axis-attack-qa",
+            "checker fixture work for two-axis-a",
+            alias="axis-lens-a",
+            returns=SOURCE_RETURN_SHAPE,
+        )
+        axis_b = brick(
+            "axis-attack-qa",
+            "checker fixture work for two-axis-b",
+            alias="axis-lens-b",
+            returns=SOURCE_RETURN_SHAPE,
+        )
+        mid = brick("closure", "checker fixture work for two-mid", alias="mid")
+        final = brick("closure", "checker fixture work for two-final", alias="final")
+        route = [
+            reroute(Concern.IMPLEMENTATION_GAP, to=inspect, budget=1),
+            hold(Concern.VERIFICATION_GAP),
+        ]
+        return converge(
+            fan_out(inspect, [code_a, code_b, axis_a, axis_b]),
+            fan_in([code_a, code_b], mid, route=route),
+            assembly_edge(mid, final),
+            fan_in([axis_a, axis_b], final, route=route),
+            terminal=final,
+        )
+
+    raise AssemblyEquivalenceError(f"no assembly graph fixture for {fixture_name}")
+
+
 def _with_renamed_refs(fixture: Fixture) -> Fixture:
     mapping: dict[str, str] = {}
     for index, node in enumerate(fixture.nodes, start=1):
@@ -615,13 +748,68 @@ def _assert_projection_differs(left: Projection, right: Projection, label: str) 
         raise AssemblyEquivalenceError(f"{label}: structural projection did not discriminate")
 
 
-def _assembly_lhs_status(repo: Path) -> str:
-    assembly_path = repo / "support" / "operator" / "assembly.py"
-    if not assembly_path.is_file():
-        return "advisory-skip: support/operator/assembly.py absent; LHS assembly equivalence deferred for Phase 1."
-    raise AssemblyEquivalenceError(
-        "support/operator/assembly.py is present; LHS assembly equivalence is now required "
-        "and this Phase 0 checker must be wired to that front door before --all can pass."
+def _assert_raises(label: str, exc_type: type[BaseException], fn: Any) -> str:
+    try:
+        fn()
+    except exc_type:
+        return f"construction RED observed: {label} raised {exc_type.__name__}."
+    except Exception as exc:
+        raise AssemblyEquivalenceError(
+            f"{label}: expected {exc_type.__name__}, got {type(exc).__name__}: {exc}"
+        ) from exc
+    raise AssemblyEquivalenceError(f"{label}: expected {exc_type.__name__} but no exception was raised")
+
+
+def _construction_red_outputs(repo: Path) -> tuple[str, ...]:
+    def self_reroute_probe() -> None:
+        source = brick("code-attack-qa", "source", returns=SOURCE_RETURN_SHAPE)
+        close = brick("closure", "close")
+        fan_in(
+            [source],
+            close,
+            route=[reroute(Concern.IMPLEMENTATION_GAP, to=close, budget=1)],
+        )
+
+    def missing_returns_probe() -> None:
+        source = brick("code-attack-qa", "source")
+        close = brick("closure", "close")
+        fan_in([source], close)
+
+    def bad_terminal_probe() -> None:
+        first = brick("inspect", "inspect")
+        second = brick("closure", "close")
+        converge(chain([first, second]), terminal=second)
+
+    def declared_by_colon_probe() -> None:
+        close = brick("closure", "close")
+        assemble(
+            chain([close]),
+            declared_by="coo:smith",
+            authority=Authority.COO,
+            task="bad declared by probe",
+            repo_root=repo,
+        )
+
+    def forbidden_input_probe() -> None:
+        brick("work", "work", node_id="caller-owned-node")
+
+    coo_probe = assemble(
+        chain([brick("closure", "close")]),
+        declared_by="smith",
+        authority=Authority.COO,
+        task="good declared by probe",
+        repo_root=repo,
+    )
+    if coo_probe.declared_by != "coo-smith":
+        raise AssemblyEquivalenceError("declared_by smith + COO did not lower to coo-smith")
+
+    return (
+        _assert_raises("self-reroute", ValueError, self_reroute_probe),
+        _assert_raises("fan-in source missing returns", TypeError, missing_returns_probe),
+        _assert_raises("converge terminal not a fan-in target", ValueError, bad_terminal_probe),
+        "construction green observed: declared_by smith + COO lowered to coo-smith.",
+        _assert_raises("declared_by colon form", ValueError, declared_by_colon_probe),
+        _assert_raises("forbidden derived brick input", TypeError, forbidden_input_probe),
     )
 
 
@@ -642,6 +830,18 @@ def run(repo: Path) -> list[str]:
             f"{fixture.name} nodes={len(plan.get('brick_steps', ()))}, "
             f"edges={len(plan.get('link_edges', ()))}, groups={len(plan.get('groups', ())) or 0}"
         )
+        lhs_plan, lhs_fixture = _assembly_lhs(repo, fixture.name)
+        lhs_projection = _projection(lhs_plan, lhs_fixture)
+        if any(has_concern for _label, has_concern in lhs_projection.fan_in_source_return_has_concern):
+            raise AssemblyEquivalenceError(
+                f"{fixture.name}: assembly LHS fan-in source required_return_shape still carries transition_concern_evidence"
+            )
+        _assert_projection_equal(
+            lhs_projection,
+            projection,
+            f"{fixture.name} assembly LHS vs hand-built RHS",
+        )
+        outputs.append(f"assembly LHS green: {fixture.name} P(assemble)==P(hand-built).")
 
     two = fixtures["two-fan-in-graph"]
     two_plan = _compose_fixture(repo, two)
@@ -670,7 +870,7 @@ def run(repo: Path) -> list[str]:
         )
         outputs.append(f"discrimination RED observed: {mutation.name} changed P(plan).")
 
-    outputs.append(_assembly_lhs_status(repo))
+    outputs.extend(_construction_red_outputs(repo))
     outputs.append(PROOF_LIMIT)
     return outputs
 
