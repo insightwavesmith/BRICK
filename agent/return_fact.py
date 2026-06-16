@@ -29,16 +29,11 @@ TRANSITION_CONCERN_ALLOWED_KEYS: frozenset[str] = frozenset(
         "not_proven",
     }
 )
-RETURNED_FORBIDDEN_KEYS: frozenset[str] = frozenset(
+TOP_LEVEL_VERDICT_KEYS: frozenset[str] = frozenset(
     {
         "approved",
-        "auth",
-        "auth_value",
         "complete",
         "completed",
-        "credential",
-        "credential_body",
-        "credential_value",
         "done",
         "fail",
         "failed",
@@ -49,15 +44,9 @@ RETURNED_FORBIDDEN_KEYS: frozenset[str] = frozenset(
         "quality",
         "quality_judgment",
         "quality_score",
-        "raw_secret",
         "result",
         "route_target",
         "score",
-        "secret",
-        "session",
-        "session_id",
-        "setup_token",
-        "setup_token_value",
         "status",
         "success",
         "success_judgment",
@@ -66,6 +55,25 @@ RETURNED_FORBIDDEN_KEYS: frozenset[str] = frozenset(
         "verdict",
     }
 )
+ALWAYS_SECRET_KEYS: frozenset[str] = frozenset(
+    {
+        "auth",
+        "auth_value",
+        "credential",
+        "credential_body",
+        "credential_value",
+        "raw_secret",
+        "secret",
+        "session",
+        "session_id",
+        "setup_token",
+        "setup_token_value",
+    }
+)
+# Compatibility surface for older recursive support payload guards. Verdict and
+# Movement words are top-level-only; recursive users should receive only the
+# credential/session key family.
+RETURNED_FORBIDDEN_KEYS: frozenset[str] = ALWAYS_SECRET_KEYS
 
 
 def _required_text(field_name: str, value: Any) -> str:
@@ -86,6 +94,19 @@ def _text_tuple(field_name: str, values: Any) -> tuple[str, ...]:
     for index, value in enumerate(values):
         result.append(_required_text(f"{field_name}[{index}]", value))
     return tuple(result)
+
+
+def _normalize_return_key(value: Any) -> str:
+    return str(value).strip().lower().replace("-", "_").replace(" ", "_")
+
+
+def _validate_returned_top_level_keys(returned: Any) -> None:
+    if not isinstance(returned, Mapping):
+        return
+    for raw_key in returned:
+        key = _normalize_return_key(raw_key)
+        if key in ALWAYS_SECRET_KEYS or key in TOP_LEVEL_VERDICT_KEYS:
+            raise ValueError(f"AgentFact returned contains forbidden key {raw_key!r}")
 
 
 def validate_transition_concern_evidence(concern: "Mapping[str, Any]") -> dict:
@@ -137,6 +158,7 @@ def make_agent_fact(
         raise ValueError(
             "AgentFact requires public fact value(s): " + ", ".join(missing_fields)
         )
+    _validate_returned_top_level_keys(returned)
     return AgentFact(received_work=received_work, returned=returned)
 
 
@@ -149,6 +171,8 @@ __all__ = (
     "make_agent_fact",
     "TRANSITION_CONCERN_KINDS",
     "TRANSITION_CONCERN_ALLOWED_KEYS",
+    "TOP_LEVEL_VERDICT_KEYS",
+    "ALWAYS_SECRET_KEYS",
     "RETURNED_FORBIDDEN_KEYS",
     "validate_transition_concern_evidence",
 )

@@ -31,7 +31,7 @@ if _IMPORT_IDENTITY not in sys.path:
 # U5.5 SLICE-1A: the admitted spine event_type set (single-source). The
 # events/<seq>-<type> path predicate admits only a real spine event_type.
 from brick_protocol.support.recording.spine import SPINE_EVENT_TYPES
-from brick_protocol.agent.return_fact import RETURNED_FORBIDDEN_KEYS
+from brick_protocol.agent.return_fact import ALWAYS_SECRET_KEYS
 from brick_protocol.support.operator.primitives import (
     evidence_list_has_repository_artifact_ref,
 )
@@ -1552,7 +1552,7 @@ def validate_chat_session_claim_submission_files(building_root: Path, violations
         if has_sensitive_text(claim) or has_session_identifier_text(claim):
             violations.append(f"{claim_path}: claim record must not contain credential/session text")
 
-    forbidden_return_keys = set(RETURNED_FORBIDDEN_KEYS)
+    forbidden_return_keys = set(ALWAYS_SECRET_KEYS)
     for submission_path in sorted(step_outputs.glob("*/submission.json")):
         submission = parse_json_file(submission_path, violations)
         if not isinstance(submission, dict):
@@ -1570,8 +1570,8 @@ def validate_chat_session_claim_submission_files(building_root: Path, violations
             violations.append(f"{submission_path}: submission returned payload must be a JSON object")
         elif has_any_key(returned, forbidden_return_keys):
             violations.append(
-                f"{submission_path}: submission returned payload must not contain closed "
-                "AgentFact forbidden keys"
+                f"{submission_path}: submission returned payload must not contain "
+                "credential/session key names"
             )
         if has_sensitive_text(submission) or has_session_identifier_text(submission):
             violations.append(f"{submission_path}: submission record must not contain credential/session text")

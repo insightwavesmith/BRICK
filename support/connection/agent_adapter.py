@@ -24,7 +24,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from brick_protocol.agent.return_fact import RETURNED_FORBIDDEN_KEYS as _RETURN_FORBIDDEN_KEYS
+from brick_protocol.agent.return_fact import ALWAYS_SECRET_KEYS as _ALWAYS_SECRET_KEYS
+from brick_protocol.agent.return_fact import TOP_LEVEL_VERDICT_KEYS as _TOP_LEVEL_VERDICT_KEYS
 from brick_protocol.agent.return_fact import TRANSITION_CONCERN_ALLOWED_KEYS as _TRANSITION_CONCERN_ALLOWED_KEYS
 from brick_protocol.agent.return_fact import TRANSITION_CONCERN_KINDS as _TRANSITION_CONCERN_KINDS
 from brick_protocol.brick.work import parse_required_return_shape
@@ -1643,6 +1644,7 @@ def _validate_command_args(args: Sequence[str]) -> None:
 def _build_prompt(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
     required_labels = _required_return_shape_fields(request.required_return_shape)
     waiver_labels = _return_field_waivers(required_labels)
+    reserved_top_level_return_keys = ", ".join(sorted(_TOP_LEVEL_VERDICT_KEYS))
     rules = [
         "Do not claim source truth.",
         "Do not judge success or quality.",
@@ -1651,6 +1653,9 @@ def _build_prompt(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
         "Do not access or print setup tokens, auth bodies, credentials, or raw provider sessions.",
         "Return concise text only.",
         "Return one JSON object. The object may include only required_return_shape fields and listed return_field_waivers.",
+        "Do not use these reserved keys at the top level of the returned JSON object: "
+        + reserved_top_level_return_keys
+        + ".",
         "If evidence is missing, put it under blocked_or_missing_evidence or not_proven inside that JSON object; do not invent fields.",
     ]
     if "transition_concern_evidence" in required_labels:
@@ -1800,7 +1805,8 @@ def _required_return_shape_fields(value: Any) -> tuple[str, ...]:
         dict.fromkeys(
             field
             for field in parse_required_return_shape(value)
-            if field not in _RETURN_FORBIDDEN_KEYS
+            if field not in _ALWAYS_SECRET_KEYS
+            and field not in _TOP_LEVEL_VERDICT_KEYS
         )
     )
 
@@ -1929,16 +1935,21 @@ def _gemini_tool_call_count(payload: Mapping[str, Any]) -> int:
     raise ValueError("Gemini local CLI tool-call count must be numeric")
 
 
-def _validate_returned_payload(label: str, value: Any) -> None:
+def _validate_returned_payload(label: str, value: Any, *, depth: int = 0) -> None:
     if isinstance(value, Mapping):
         for raw_key, child in value.items():
             key = _normalize(raw_key)
-            if key in _RETURN_FORBIDDEN_KEYS:
+            # Secret/session-bearing key names stay recursive. A nested key can
+            # still structure credential material even when it is not an
+            # authority assertion.
+            if key in _ALWAYS_SECRET_KEYS:
                 raise ValueError(f"{label} contains forbidden return key {raw_key!r}")
-            _validate_returned_payload(f"{label}.{raw_key}", child)
+            if depth == 0 and key in _TOP_LEVEL_VERDICT_KEYS:
+                raise ValueError(f"{label} contains forbidden return key {raw_key!r}")
+            _validate_returned_payload(f"{label}.{raw_key}", child, depth=depth + 1)
     elif isinstance(value, (list, tuple)):
         for index, child in enumerate(value):
-            _validate_returned_payload(f"{label}[{index}]", child)
+            _validate_returned_payload(f"{label}[{index}]", child, depth=depth + 1)
     elif isinstance(value, str):
         _reject_secret_text(label, value)
 
