@@ -2730,6 +2730,7 @@ _NO_SMITH_RESIDUE_SURFACES = (
     "README.md",
     "support/docs/spec",
     "agent/prompts",
+    "support/onboarding/install.sh",
 )
 
 
