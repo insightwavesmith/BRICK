@@ -142,32 +142,6 @@ class CustomerSandboxRunResult:
 
 
 @dataclass(frozen=True)
-class GoalSandboxRunResult:
-    """Support-only observation of one customer GOAL -> compose -> sandboxed run.
-
-    H3b (customer-usable entry). Records the full mechanical chain a free-form
-    customer goal travels: the design AI COMPOSED a validated graph proposal
-    (``proposal``, exactly what ``compose_building_from_task`` returned), and the
-    SAME worktree-sandbox bracket the preset customer path uses then RAN that
-    proposal's graph (``sandbox_result``) so the live tree was NEVER written and a
-    commit lands ONLY on genuine completion. ``composed_node_ids`` and
-    ``evidence_root`` are convenience surfaces for the CLI/customer ("what was
-    built + where is the evidence"). Mechanical provenance only -- it carries no
-    Movement, success, quality, or preset choice (there is no preset).
-    """
-
-    goal: str
-    building_id: str
-    proposal: Mapping[str, Any]
-    composed_node_ids: tuple[str, ...]
-    sandbox_result: CustomerSandboxRunResult
-    isolation_mode: str
-    frontier_kind: str
-    evidence_root: str
-    commit_sha: str
-
-
-@dataclass(frozen=True)
 class _Candidate:
     candidate_ref: str
     plan_path: Path
@@ -581,9 +555,9 @@ def _run_in_worktree_sandbox(
 ) -> CustomerSandboxRunResult:
     """Shared W1 worktree-sandbox lifecycle bracket around an inner dispatch.
 
-    THE single home of the customer-facing live-tree-untouched invariant. Both
-    ``run_customer_building_in_sandbox`` (preset path) and ``run_goal_in_sandbox``
-    (H3b goal path) route through here; only ``run_dispatch`` differs. It is pure
+    THE single home of the customer-facing live-tree-untouched invariant.
+    ``run_customer_building_in_sandbox`` (preset path) routes through here; only
+    ``run_dispatch`` differs. It is pure
     support mechanics: it owns no axis, chooses no Movement, judges no
     success/quality, and authors no plan -- it ONLY brackets the run with the
     worktree sandbox. ``run_dispatch(repo_root, adapter_cwd)`` runs the inner
@@ -687,143 +661,6 @@ def _run_in_worktree_sandbox(
         worktree_disposed=disposed,
         intake_result=intake_result,
     )
-
-
-def run_goal_in_sandbox(
-    goal: str,
-    *,
-    ai_invoke: "Callable[[str], str] | None" = None,
-    repo_root: Path | str,
-    output_root: Path | str,
-    declared_by: str = "coo",
-    building_id: str = "",
-    selected_adapter_ref: str = "adapter:local",
-    selected_model_ref: str = "model:default",
-    overwrite_existing: bool = False,
-    local_callables: Mapping[str, AgentBrainCallable] | None = None,
-    command_runner: CommandRunner | None = None,
-    adapter_timeout_seconds: int = 120,
-    proof_limits: Iterable[str] | str | None = None,
-) -> GoalSandboxRunResult:
-    """CUSTOMER ENTRY (H3b): a free-form goal -> AI composes -> run in W1 sandbox.
-
-    This is the customer's "use BRICK" seam. It is pure support mechanics that
-    COMPOSES three EXISTING pieces and adds NO new policy:
-
-      1. ``compose_building_from_task(goal, ai_invoke=..., repo_root=...)`` hands
-         the board + the goal to a design AI and returns a VALIDATED graph
-         PROPOSAL (anti-lazy; raises BEFORE any run on a malformed/lazy proposal).
-         ``ai_invoke`` defaults to ``invoke_gemini_text`` (the live Gemini text
-         seam); a checker FIRE / any caller injects a deterministic callable.
-         Composition is pure in-memory and READ-ONLY over the board -- it writes
-         NOTHING to the live tree.
-      2. The SAME worktree-sandbox bracket the preset customer path uses
-         (``_run_in_worktree_sandbox``) brackets the run so the customer's LIVE
-         tree is NEVER written: the run happens inside a disposable detached
-         worktree at the pinned HEAD (or a temp dir on a non-git/dirty repo), and
-         a commit lands ONLY on a genuinely complete frontier.
-      3. Inside the bracket, the proposal's validated ``graph`` runs through
-         ``run_composed_graph_intake`` (NO preset; the inline task-source carry is
-         reattached there) with the goal text as the inline ``task_statement``.
-
-    It chooses no Movement, picks no agent outside the NEED<->CAPABILITY match
-    compose_building enforces, judges no success / sufficiency / quality, and
-    selects no preset (there is none). ``output_root`` is REQUIRED and must live
-    OUTSIDE the repo so the evidence survives worktree disposal.
-    """
-
-    from brick_protocol.support.connection.agent_adapter import invoke_gemini_text
-    from brick_protocol.support.operator.auto_compose import compose_building_from_task
-
-    goal_text = _required_text(goal, "goal")
-    repo = Path(repo_root).resolve()
-    durable_output = Path(output_root).resolve()
-    invoke = ai_invoke if ai_invoke is not None else invoke_gemini_text
-
-    # 1. COMPOSE: board + goal -> design AI -> VALIDATED graph proposal. This is
-    #    pure in-memory + read-only over the board; it RAISES (AutoComposeError /
-    #    CompositionError) BEFORE any run on a malformed or lazy proposal. The
-    #    live tree is never written here.
-    proposal = compose_building_from_task(
-        goal_text,
-        ai_invoke=invoke,
-        repo_root=repo,
-        declared_by=declared_by,
-        selected_adapter_ref=selected_adapter_ref,
-        selected_model_ref=selected_model_ref,
-    )
-    graph = proposal["graph"]
-    nodes = list(graph.get("nodes", []))
-    edges = list(graph.get("edges", []))
-    groups = list(graph.get("groups", []))
-    composed_node_ids = tuple(
-        str(node.get("node_id"))
-        for node in nodes
-        if isinstance(node, Mapping) and node.get("node_id")
-    )
-
-    # A STABLE building id: an explicit caller id wins; otherwise the composed
-    # graph intake derives the inline-default stable id from the goal body. We
-    # derive a slug-safe id here so the sandbox bracket (which needs a building
-    # id for the per-building worktree path) and the composed-graph intake agree.
-    resolved_building_id = building_id.strip() or _goal_building_id(goal_text)
-
-    # 2 + 3. RUN the proposal's validated graph INSIDE the shared worktree-sandbox
-    #        bracket (live tree never written; commit only on complete). The inner
-    #        dispatch runs run_composed_graph_intake (NO preset) with the goal as
-    #        the inline task_statement and the sandbox roots.
-    def _run_composed(repo_root_inner: Path, adapter_cwd: Path) -> BuildingIntakeRunResult:
-        return run_composed_graph_intake(
-            nodes,
-            edges,
-            groups=groups,
-            task_statement=goal_text,
-            declared_by=declared_by,
-            building_id=resolved_building_id,
-            selected_adapter_ref=selected_adapter_ref,
-            selected_model_ref=selected_model_ref,
-            repo_root=repo_root_inner,
-            output_root=durable_output,
-            overwrite_existing=overwrite_existing,
-            local_callables=local_callables,
-            command_runner=command_runner,
-            adapter_cwd=adapter_cwd,
-            adapter_timeout_seconds=adapter_timeout_seconds,
-            proof_limits=proof_limits,
-        )
-
-    sandbox_result = _run_in_worktree_sandbox(
-        repo,
-        building_id=resolved_building_id,
-        durable_output=durable_output,
-        run_dispatch=_run_composed,
-    )
-
-    return GoalSandboxRunResult(
-        goal=goal_text,
-        building_id=sandbox_result.building_id,
-        proposal=proposal,
-        composed_node_ids=composed_node_ids,
-        sandbox_result=sandbox_result,
-        isolation_mode=sandbox_result.isolation_mode,
-        frontier_kind=sandbox_result.frontier_kind,
-        evidence_root=sandbox_result.evidence_root,
-        commit_sha=sandbox_result.commit_sha,
-    )
-
-
-def _goal_building_id(goal_text: str) -> str:
-    """A STABLE, slug-safe building id derived from the goal body.
-
-    Mirrors the inline-default discipline of the composed-graph intake (a retried
-    SAME goal re-derives the SAME id and collides loudly instead of duplicating
-    roots). Mechanical provenance only -- not a Movement or success judgment.
-    """
-
-    import hashlib
-
-    digest = hashlib.sha256(goal_text.encode("utf-8")).hexdigest()[:16]
-    return f"goal-{digest}"
 
 
 def run_declared_portfolio(
@@ -1680,11 +1517,9 @@ def _slug(value: str) -> str:
 __all__ = [
     "BuildingIntakeRunResult",
     "CustomerSandboxRunResult",
-    "GoalSandboxRunResult",
     "PortfolioDriveResult",
     "run_building_intake",
     "run_composed_graph_intake",
     "run_customer_building_in_sandbox",
     "run_declared_portfolio",
-    "run_goal_in_sandbox",
 ]
