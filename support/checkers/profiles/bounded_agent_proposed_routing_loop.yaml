@@ -123,6 +123,9 @@ text_contains:
       - "b1-advisory-empty: advisory empty-ref concern produced reroute/HOLD records"
       - "b1-advisory-red-empty: removing advisory did not restore HOLD behavior"
       - "knot4-self-reroute: self-target concern produced reroute/HOLD records"
+      - "knot4-strip-self-single: source+sibling did not adopt exactly one"
+      - "knot4-strip-self-ambiguous: source+two-siblings adopted a target"
+      - "knot4-strip-self-kind-agnostic: source kind"
       - "knot4-other-target-control: expected one adopted true reroute"
   # MAIL-REPAIR (0611): the engine-side mail lane stays wired -- the kernel
   # carries runtime_handoffs on adopted-reroute redo items, reads the recorded

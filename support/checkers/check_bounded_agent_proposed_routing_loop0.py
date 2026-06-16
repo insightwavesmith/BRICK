@@ -2198,10 +2198,7 @@ def check(repo: Path) -> list[str]:
 
     # CLOSURE-SELFREROUTE-GUARD-0616 FIRE (b/d): if an Agent concern resolves
     # ONLY to the same Brick node that raised it, the walker must treat it as
-    # non_reroute and walk on. This is the mutation RED probe: removing the
-    # self-reroute guard makes this fixture try to reroute to the review node
-    # itself, which has no declared node budget, and the frontier pauses with
-    # target_node_has_no_link_assigned_budget.
+    # non_reroute and walk on.
     from brick_protocol.support.operator.walker_transition_concern import (
         _classify_reroute_target,
     )
@@ -2275,6 +2272,192 @@ def check(repo: Path) -> list[str]:
         violations.append(
             "knot4-self-reroute: self-target concern was not present in the Agent "
             "returned evidence"
+        )
+
+    # FIX-A-STRIP-SELF-THEN-CLASSIFY-0616 FIRE: classification must first remove
+    # the source Brick node, then classify the remaining resolving nodes. This is
+    # brick-kind agnostic: closure/QA/review source names take the same path.
+    strip_source = "brick-bapr-loop0-knot4-strip-self-single-review"
+    strip_single_classification = _classify_reroute_target(
+        {
+            "related_boundary_refs": [
+                strip_source,
+                "brick-bapr-loop0-knot4-strip-self-single-build",
+            ],
+        },
+        declared_bricks={
+            strip_source,
+            "brick-bapr-loop0-knot4-strip-self-single-build",
+        },
+        source_brick_ref=strip_source,
+    )
+    if (
+        strip_single_classification.kind != "single"
+        or strip_single_classification.target
+        != "brick-bapr-loop0-knot4-strip-self-single-build"
+    ):
+        violations.append(
+            "knot4-strip-self-single: source+sibling did not classify as single "
+            f"after stripping self ({strip_single_classification})"
+        )
+    empty_source_classification = _classify_reroute_target(
+        {
+            "related_boundary_refs": [
+                strip_source,
+                "brick-bapr-loop0-knot4-strip-self-single-build",
+            ],
+        },
+        declared_bricks={
+            strip_source,
+            "brick-bapr-loop0-knot4-strip-self-single-build",
+        },
+        source_brick_ref="",
+    )
+    if empty_source_classification.kind != "ambiguous":
+        violations.append(
+            "knot4-strip-self-empty-source-control: empty source_brick_ref did not "
+            f"leave the multi-ref classification ambiguous ({empty_source_classification})"
+        )
+    for source_kind in ("closure", "qa"):
+        kind_source = f"brick-bapr-loop0-knot4-strip-self-{source_kind}"
+        kind_sibling = f"{kind_source}-sibling"
+        kind_classification = _classify_reroute_target(
+            {"related_boundary_refs": [kind_source, kind_sibling]},
+            declared_bricks={kind_source, kind_sibling},
+            source_brick_ref=kind_source,
+        )
+        if (
+            kind_classification.kind != "single"
+            or kind_classification.target != kind_sibling
+        ):
+            violations.append(
+                "knot4-strip-self-kind-agnostic: source kind "
+                f"{source_kind} did not use the same strip-self classification "
+                f"({kind_classification})"
+            )
+
+    plan_strip_single, b2_strip_single = _checker_plan(
+        "bapr-loop0-knot4-strip-self-single",
+        budget=1,
+    )
+    res_strip_single, fr_strip_single, rec_strip_single = _run(
+        plan_strip_single,
+        _multi_ref_concern_callable(strip_source, [strip_source, b2_strip_single]),
+        repo,
+    )
+    adopted_strip_single = _adopted_records(rec_strip_single)
+    held_strip_single = _held_records(rec_strip_single)
+    if len(adopted_strip_single) != 1:
+        violations.append(
+            "knot4-strip-self-single: source+sibling did not adopt exactly one "
+            f"reroute after stripping self ({rec_strip_single})"
+        )
+    elif adopted_strip_single[0].get("target_brick") != b2_strip_single:
+        violations.append(
+            "knot4-strip-self-single: adopted target was not the remaining sibling "
+            f"({adopted_strip_single[0].get('target_brick')})"
+        )
+    if held_strip_single:
+        violations.append(
+            "knot4-strip-self-single: source+sibling paused instead of rerouting to "
+            f"the only remaining sibling ({held_strip_single})"
+        )
+    if fr_strip_single["frontier_kind"] not in {"complete", "closure_pending"}:
+        violations.append(
+            "knot4-strip-self-single: source+sibling reroute did not proceed "
+            f"(frontier={fr_strip_single['frontier_kind']})"
+        )
+    strip_single_bricks = _step_bricks(res_strip_single)
+    if strip_single_bricks.count(b2_strip_single) < 2:
+        violations.append(
+            "knot4-strip-self-single: remaining sibling was not re-executed "
+            f"(count={strip_single_bricks.count(b2_strip_single)})"
+        )
+
+    strip_amb_source = "brick-bapr-loop0-knot4-strip-self-ambiguous-review"
+    strip_amb_first = "brick-bapr-loop0-knot4-strip-self-ambiguous-build"
+    strip_amb_second = "brick-bapr-loop0-knot4-strip-self-ambiguous-design"
+    strip_amb_classification = _classify_reroute_target(
+        {
+            "related_boundary_refs": [
+                strip_amb_source,
+                strip_amb_first,
+                strip_amb_second,
+            ],
+        },
+        declared_bricks={strip_amb_source, strip_amb_first, strip_amb_second},
+        source_brick_ref=strip_amb_source,
+    )
+    if strip_amb_classification.kind != "ambiguous":
+        violations.append(
+            "knot4-strip-self-ambiguous: source+two-siblings did not remain "
+            f"ambiguous after stripping self ({strip_amb_classification})"
+        )
+    no_source_amb_classification = _classify_reroute_target(
+        {"related_boundary_refs": [strip_amb_first, strip_amb_second]},
+        declared_bricks={strip_amb_source, strip_amb_first, strip_amb_second},
+        source_brick_ref=strip_amb_source,
+    )
+    if no_source_amb_classification.kind != "ambiguous":
+        violations.append(
+            "knot4-strip-self-no-source-two-siblings: two siblings without self "
+            f"did not stay ambiguous ({no_source_amb_classification})"
+        )
+    plan_strip_amb, _ = _checker_plan(
+        "bapr-loop0-knot4-strip-self-ambiguous",
+        budget=1,
+    )
+    plan_strip_amb = copy.deepcopy(plan_strip_amb)
+    plan_strip_amb["node_reroute_budgets"] = {
+        strip_amb_first: 1,
+        strip_amb_second: 1,
+    }
+    res_strip_amb, fr_strip_amb, rec_strip_amb = _run(
+        plan_strip_amb,
+        _multi_ref_concern_callable(
+            strip_amb_source,
+            [strip_amb_source, strip_amb_first, strip_amb_second],
+        ),
+        repo,
+    )
+    adopted_strip_amb = _adopted_records(rec_strip_amb)
+    held_strip_amb = _held_records(rec_strip_amb)
+    evidence_strip_amb = getattr(res_strip_amb, "_dynamic_walker_evidence", {})
+    landings_strip_amb = (
+        evidence_strip_amb.get("node_reroute_landings", {})
+        if isinstance(evidence_strip_amb, Mapping)
+        else {}
+    )
+    if adopted_strip_amb:
+        violations.append(
+            "knot4-strip-self-ambiguous: source+two-siblings adopted a target "
+            f"instead of HOLDing ({adopted_strip_amb})"
+        )
+    if len(held_strip_amb) != 1:
+        violations.append(
+            f"knot4-strip-self-ambiguous: expected 1 HOLD record, got {len(held_strip_amb)}"
+        )
+    elif (
+        held_strip_amb[0].get("hold_reason")
+        != "multiple_reroute_addresses_no_single_owner"
+    ):
+        violations.append(
+            "knot4-strip-self-ambiguous: wrong hold_reason="
+            f"{held_strip_amb[0].get('hold_reason')}"
+        )
+    elif held_strip_amb[0].get("required_disposition_owner") != "caller-or-coo":
+        violations.append(
+            "knot4-strip-self-ambiguous: HOLD did not require caller-or-coo disposition"
+        )
+    if fr_strip_amb["frontier_kind"] != "link_paused":
+        violations.append(
+            "knot4-strip-self-ambiguous: true multi-sibling concern did not pause "
+            f"(frontier={fr_strip_amb['frontier_kind']})"
+        )
+    if any(count != 0 for count in landings_strip_amb.values()):
+        violations.append(
+            "knot4-strip-self-ambiguous: HOLD moved a node reroute-landing counter "
+            f"({landings_strip_amb})"
         )
 
     # KNOT-4 resolver FIRE (non-reroute sentinel): a non-binding concern whose

@@ -51,16 +51,18 @@ class _RerouteTargetClassification:
     related_boundary_refs against the EXISTING declared Brick nodes WITHOUT
     inventing one and WITHOUT guessing among several. The classification is:
 
-    - ``single``      exactly one named ref resolves -> ``target`` is that node
-                      (the happy path; the machine adopts within budget/gate).
-    - ``ambiguous``   two or more named refs resolve -> NO single owner; the
-                      machine must NOT pick one -> the caller HOLDs.
-    - ``non_reroute`` zero brick refs resolve, the list is NON-EMPTY, and EVERY
-                      named ref is a building-boundary: sentinel (no Brick node
-                      targeted), OR exactly one named ref resolves to the SAME
-                      Brick node that raised the concern -> an EXPLICIT
-                      non-reroute concern -> the caller WALKS ON (carry
-                      forward), it does NOT HOLD.
+    - ``single``      exactly one named ref remains after the source Brick node
+                      is stripped -> ``target`` is that node (the happy path;
+                      the machine adopts within budget/gate).
+    - ``ambiguous``   two or more named refs remain after the source Brick node
+                      is stripped -> NO single owner; the machine must NOT pick
+                      one -> the caller HOLDs.
+    - ``non_reroute`` no actionable Brick ref remains: either zero brick refs
+                      resolve, the list is NON-EMPTY, and EVERY named ref is a
+                      building-boundary: sentinel (no Brick node targeted), OR
+                      stripping the source Brick node leaves no resolving Brick
+                      node -> an EXPLICIT non-reroute concern -> the caller
+                      WALKS ON (carry forward), it does NOT HOLD.
     - ``none``        zero named refs resolve while a concern IS present AND the
                       non_reroute carve-out does not apply (empty list, or a
                       brick-targeting ref that failed to resolve) -> the
@@ -120,10 +122,10 @@ def _classify_reroute_target(
     a building-boundary: sentinel still resolves to ``single`` (the sentinel is
     not garbage).
 
-    Self-reroute carve-out: when the only resolving Brick node is the SAME Brick
-    node that raised the concern, the concern has not named another declared
-    boundary. Treat it like the building-boundary: non-reroute sentinel so the
-    caller walks on instead of trying to consume reroute budget against itself.
+    Self-reroute carve-out: when ``source_brick_ref`` is present, strip that
+    SAME Brick node before classifying. A source-only list becomes
+    ``non_reroute``; source+one other declared Brick becomes ``single`` for the
+    other Brick; source+two or more other declared Bricks remains ``ambiguous``.
     """
 
     refs = concern.get("related_boundary_refs")
@@ -159,17 +161,30 @@ def _classify_reroute_target(
             resolved=tuple(resolved),
             hold_reason="unresolvable_reroute_address",
         )
-    if len(resolved) == 1 and source_brick_ref and resolved[0] == source_brick_ref:
+    classified_resolved = [
+        brick_ref
+        for brick_ref in resolved
+        if not source_brick_ref or brick_ref != source_brick_ref
+    ]
+    source_was_stripped = (
+        bool(source_brick_ref) and len(classified_resolved) != len(resolved)
+    )
+    if not classified_resolved and source_was_stripped:
         return _RerouteTargetClassification(
             kind="non_reroute",
-            resolved=(resolved[0],),
+            resolved=(),
         )
-    if len(resolved) == 1:
+    if len(classified_resolved) == 1:
         return _RerouteTargetClassification(
-            kind="single", target=resolved[0], resolved=(resolved[0],)
+            kind="single",
+            target=classified_resolved[0],
+            resolved=(classified_resolved[0],),
         )
-    if len(resolved) >= 2:
-        return _RerouteTargetClassification(kind="ambiguous", resolved=tuple(resolved))
+    if len(classified_resolved) >= 2:
+        return _RerouteTargetClassification(
+            kind="ambiguous",
+            resolved=tuple(classified_resolved),
+        )
     # Zero brick refs resolved. Walk on ONLY for an explicit non-reroute concern:
     # a non-empty list where EVERY ref is a building-boundary: sentinel.
     if text_refs and all(
