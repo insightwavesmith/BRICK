@@ -537,8 +537,9 @@ builder (materialize a declared plan):
 engine (walk the declared plan, record evidence):
   run.py  dynamic_walker.py  walker_*.py  gate_sequence.py  native_dispatch.py
 operator surface (entry points + read-side observation):
-  driver.py  onboard.py  building_operation.py  coo_operating_chain.py
+  assembly.py  driver.py  onboard.py  building_operation.py  coo_operating_chain.py
   frontier_observation.py  evidence_status.py  dashboard_export.py
+  (assembly.py = the refined 3-axis assemble() front door)
 read-side projection (observe + project written evidence, never judge):
   ledger_projection.py  progress_projection.py  dashboard_export.py
   report_sinks.py  reporter.py
@@ -546,8 +547,10 @@ vessel declaration (project vessel declaration record + creation verb):
   project_declaration.py  project_creation.py
 ```
 
-The authoritative module census is `support/checkers/module_registry.yaml`; this
-map is shared vocabulary only, not the census.
+This map is representative / non-exhaustive shared vocabulary only (the
+support/operator folder holds far more modules than are named here); it is not
+the census. The canonical, complete module list is
+`support/checkers/module_registry.yaml`.
 
 Recording-folder glossary (inside every Building root):
 
@@ -676,7 +679,11 @@ as closed. Model review, checker green, dashboard rendering, projection
 freshness, and support records are evidence only; they do not replace the human
 gate.
 
-Historical POST-D P1 baseline snapshot:
+NOTE: the "40 / 42 profile files" figures below are brick-protocol monorepo
+snapshots, NOT BRICK counts. After the split, BRICK has 13 profile files
+(`ls support/checkers/profiles/*.yaml | wc -l`).
+
+Historical POST-D P1 baseline snapshot (brick-protocol monorepo):
 
 ```text
 40 profile files
@@ -685,7 +692,7 @@ compileall green
 git diff --check green
 ```
 
-Current closure at POST-D P9 and later closeout:
+Historical closure at POST-D P9 and later closeout (brick-protocol monorepo):
 
 ```text
 P0-P8 committed through b3cc0da
@@ -698,9 +705,11 @@ reporter implementation remained absent at P9; REPORTER-NOTIFICATION-PROJECTION-
 later admits the local inbox projection slice only
 ```
 
-## Current Post-D Goal
+## Post-D Goal (Completed — historical)
 
-Active long goal:
+Completed (brick-protocol pre-split) — historical record. This goal is DONE; the
+active goal is now the customer-ready A-G plan. Kept below as law/process history,
+not as current work.
 
 ```text
 POST-D-SURFACE-RECOMPILE-0

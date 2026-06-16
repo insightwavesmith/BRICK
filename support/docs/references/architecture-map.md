@@ -53,6 +53,7 @@ native_dispatch.py           POSITION-A native-dispatch open/close recording sea
 operator surface — entry points + operator observation:
 
 ```text
+assembly.py              refined 3-axis assemble() customer front door
 driver.py                bounded declared multi-Building driver + task intake
                          (run_building_intake)
 onboard.py               friendly never-raising onboarding wizard flow
@@ -62,6 +63,10 @@ frontier_observation.py  Building frontier observation
 evidence_status.py       evidence presence/analysis read projection
 orchestration_packet.py  coo_run_orchestration read packet
 checker_runner.py        allowlisted checker-profile subprocess invocation
+workflow_import.py       post-hoc workflow-result recording channel (records
+                         work done inside a harness Workflow the hooks can't see)
+worktree_sandbox.py      disposable git-worktree sandbox for customer-facing
+                         dispatch (pinned base SHA; live tree never written)
 ```
 
 read-side projection — observe + project written evidence, never judge:
