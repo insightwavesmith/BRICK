@@ -148,6 +148,27 @@ PROOF_LIMIT = (
     "does not prove source truth, success judgment, quality judgment, Movement "
     "authority, provider behavior, or complete checker consolidation."
 )
+LIVE_INBOX_FIXTURE_PACKET_GLOB = "checker-projection-fixture-vessel-*.json"
+
+
+def live_inbox_fixture_packet_count(repo: Path) -> int:
+    inbox = repo / "project" / "brick-protocol" / "status" / "inbox"
+    if not inbox.is_dir():
+        return 0
+    return sum(1 for path in inbox.glob(LIVE_INBOX_FIXTURE_PACKET_GLOB) if path.is_file())
+
+
+def assert_all_profiles_did_not_write_live_fixture_inbox(
+    repo: Path, before: int
+) -> None:
+    after = live_inbox_fixture_packet_count(repo)
+    if after == before:
+        return
+    raise ProfileError(
+        f"--all rejected evidence: live repo inbox {LIVE_INBOX_FIXTURE_PACKET_GLOB!r} "
+        f"count changed from {before} to {after}; checker profiles must not write "
+        "project/brick-protocol/status/inbox"
+    )
 
 
 def _ensure_repo_import_path(repo: Path) -> None:
@@ -970,8 +991,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         repo = Path(args.repo).resolve()
         if not repo.is_dir():
             raise ProfileError(f"--repo must be a directory: {repo}")
-        for path in profile_paths(repo, args):
-            run_profile(repo, path)
+        paths = profile_paths(repo, args)
+        live_inbox_count_before = (
+            live_inbox_fixture_packet_count(repo) if args.all else None
+        )
+        try:
+            for path in paths:
+                run_profile(repo, path)
+        finally:
+            if live_inbox_count_before is not None:
+                assert_all_profiles_did_not_write_live_fixture_inbox(
+                    repo, live_inbox_count_before
+                )
         print(PROOF_LIMIT)
         return 0
     except (OSError, json.JSONDecodeError, ProfileError) as exc:
