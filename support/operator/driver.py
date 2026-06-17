@@ -352,7 +352,7 @@ def run_composed_graph_intake(
     adapter_timeout_seconds: int = 120,
     proof_limits: Iterable[str] | str | None = None,
 ) -> BuildingIntakeRunResult:
-    """Sequence a PRE-COMPOSED graph + inline task statement into a running Building.
+    """Internal/checker-only seam, not a public ordering surface; main AI uses run_building_intake or assemble.
 
     H2a (heart H2 deterministic plumbing). This is the sibling of
     ``run_building_intake`` for the DIRECT-GRAPH flow: a caller (today the
@@ -1519,7 +1519,6 @@ __all__ = [
     "CustomerSandboxRunResult",
     "PortfolioDriveResult",
     "run_building_intake",
-    "run_composed_graph_intake",
     "run_customer_building_in_sandbox",
     "run_declared_portfolio",
 ]

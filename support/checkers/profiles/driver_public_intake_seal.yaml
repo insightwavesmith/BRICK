@@ -1,0 +1,35 @@
+schema: checker-profile/v1
+profile_id: driver-public-intake-seal
+description: Seals support/operator/driver.py public Building-making intake exports to the preset branch only; assemble is owned by support/operator/assembly.py.
+kernel_checks:
+  - driver_public_intake_seal
+path_exists:
+  - support/operator/driver.py
+  - support/checkers/check_driver_public_intake_seal.py
+  - support/checkers/profiles/driver_public_intake_seal.yaml
+text_contains:
+  - path: support/operator/driver.py
+    texts:
+      - def run_building_intake
+      - def run_composed_graph_intake
+      - "Internal/checker-only seam, not a public ordering surface; main AI uses run_building_intake or assemble."
+  - path: support/checkers/check_driver_public_intake_seal.py
+    texts:
+      - PUBLIC_BUILDING_MAKING_INTAKES
+      - SEALED_INTERNAL_INTAKES
+      - ASSEMBLE_PUBLIC_SURFACE_OUT_OF_SCOPE
+      - mutation RED observed
+text_absent:
+  - path: support/operator/driver.py
+    texts:
+      - '    "run_composed_graph_intake",'
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+  - not provider proof
+not_proven:
+  - semantic correctness of future Building authoring
+  - complete absence of future public ordering-surface leaks beyond audited driver.py __all__

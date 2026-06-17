@@ -214,6 +214,7 @@ KERNEL_CHECK_IDS = {
     "project_declaration",
     "bounded_agent_proposed_routing_loop",
     "building_operator_driver0",
+    "driver_public_intake_seal",
     "building_declaration_integrity",
     "building_plans_boundary_sweep",
     "agent_adapter_return_shape",
@@ -524,6 +525,16 @@ def run_kernel_check(repo: Path, check_id: str) -> KernelResult:
         return call_main(
             check_id,
             "support.checkers.check_building_operator_driver0",
+            ["--repo", str(repo)],
+        )
+    if check_id == "driver_public_intake_seal":
+        # Parses driver.py __all__ without importing it: the only public
+        # Building-making intake verb in driver remains run_building_intake;
+        # run_composed_graph_intake stays callable by direct checker import but
+        # is sealed out of the public ordering surface.
+        return call_main(
+            check_id,
+            "support.checkers.check_driver_public_intake_seal",
             ["--repo", str(repo)],
         )
     if check_id == "building_declaration_integrity":
