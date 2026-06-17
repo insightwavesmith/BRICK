@@ -27,11 +27,13 @@ SLACK_BOT_TOKEN_ENV = "BRICK_REPORT_SLACK_BOT_TOKEN"
 SLACK_CHANNEL_ID_ENV = "BRICK_REPORT_SLACK_CHANNEL_ID"
 SLACK_API_URL = "https://slack.com/api/chat.postMessage"
 SLACK_THREAD_PARENT_RECORD = "raw/report-thread.jsonl"
-SLACK_THREAD_REPLY_EVENT_KINDS = frozenset({"brick_returned", "disposition_applied"})
-SLACK_THREAD_TS_REQUIRED_EVENT_KINDS = frozenset(
-    {"brick_returned", "disposition_applied", "building_finished"}
+SLACK_THREAD_REPLY_EVENT_KINDS = frozenset(
+    {"brick_received", "brick_returned", "gate_passed", "disposition_applied"}
 )
-SLACK_THREAD_STATUS_ONLY_EVENT_KINDS = frozenset({"brick_received", "gate_passed"})
+SLACK_THREAD_TS_REQUIRED_EVENT_KINDS = frozenset(
+    {"brick_received", "brick_returned", "gate_passed", "disposition_applied", "building_finished"}
+)
+SLACK_THREAD_STATUS_ONLY_EVENT_KINDS = frozenset()
 SLACK_BRICK_GRAIN_EVENT_KINDS = (
     "brick_received",
     "brick_returned",
@@ -1269,7 +1271,9 @@ def _slack_message_text(packet: Mapping[str, Any]) -> str:
         return _slack_thread_reply_text(packet, source_ref=source_ref, event_kind=event_kind)
     title = _slack_human_title(packet, fallback=source_ref)
     if event_kind == "building_started":
-        return f"🧱 {title}\n시작했어요. 진행되는 대로 여기 댓글로 알려드릴게요."
+        base = f"🧱 {title}\n시작했어요. 진행되는 대로 여기 댓글로 알려드릴게요."
+        diagram = str(packet.get("structure_diagram") or "").strip()
+        return f"{base}\n```\n{diagram}\n```" if diagram else base
     if event_kind == "building_finished":
         return f"🧱 {title}\n✅ 다 됐어요!"
     if event_kind == "intervention_required":
@@ -1303,9 +1307,27 @@ def _slack_thread_reply_text(
 ) -> str:
     context = packet.get("event_context")
     ctx = context if isinstance(context, Mapping) else {}
+    if event_kind == "brick_received":
+        return _slack_brick_received_reply_text(packet, source_ref=source_ref, context=ctx)
+    if event_kind == "gate_passed":
+        return _slack_gate_passed_reply_text(packet, source_ref=source_ref, context=ctx)
     if event_kind == "disposition_applied":
         return _slack_disposition_reply_text(packet, source_ref=source_ref, context=ctx)
     return _slack_brick_returned_reply_text(packet, source_ref=source_ref, context=ctx)
+
+
+def _slack_brick_received_reply_text(
+    packet: Mapping[str, Any],
+    *,
+    source_ref: str,
+    context: Mapping[str, Any],
+) -> str:
+    del source_ref
+    sequence = _circled_sequence(context.get("sequence_index"))
+    received_at = _kst_hhmm(context.get("received_at") or packet.get("generated_at"))
+    stage = _slack_completed_stage_label(packet, context=context)
+    lane = _slack_lane_label(packet)
+    return f"{sequence} {stage} 시작했어요. (담당: {lane}) ({received_at})"
 
 
 def _slack_brick_returned_reply_text(
@@ -1314,12 +1336,34 @@ def _slack_brick_returned_reply_text(
     source_ref: str,
     context: Mapping[str, Any],
 ) -> str:
+    del source_ref
     sequence = _circled_sequence(context.get("sequence_index"))
     returned_at = _kst_hhmm(
         context.get("returned_at") or context.get("received_at") or packet.get("generated_at")
     )
     stage = _slack_completed_stage_label(packet, context=context)
-    return f"{sequence} {stage} 단계 끝났어요. ({returned_at})"
+    lane = _slack_lane_label(packet)
+    return f"{sequence} {stage} 단계 끝났어요. (담당: {lane}) ({returned_at})"
+
+
+def _slack_gate_passed_reply_text(
+    packet: Mapping[str, Any],
+    *,
+    source_ref: str,
+    context: Mapping[str, Any],
+) -> str:
+    del source_ref
+    sequence = _circled_sequence(context.get("sequence_index"))
+    checked_at = _kst_hhmm(
+        context.get("returned_at") or context.get("received_at") or packet.get("generated_at")
+    )
+    stage = _slack_completed_stage_label(packet, context=context)
+    next_ref = str(context.get("next_brick_instance_ref") or "").strip()
+    if next_ref.startswith("building-boundary"):
+        return f"{sequence} {stage} 확인했어요. 이제 마무리예요. ({checked_at})"
+    next_kind = str(context.get("next_work_kind") or "").strip()
+    next_label = _label_value("brick_kinds", next_kind, field="ko") or next_kind or "다음"
+    return f"{sequence} {stage} 확인하고 다음 단계({next_label})로 넘어가요. ({checked_at})"
 
 
 def _slack_disposition_reply_text(
@@ -1350,6 +1394,11 @@ def _slack_completed_stage_label(
         if isinstance(raw_kinds, list) and raw_kinds:
             kind = str(raw_kinds[-1] or "").strip()
     return _label_value("brick_kinds", kind, field="ko") or kind or "해당"
+
+
+def _slack_lane_label(packet: Mapping[str, Any]) -> str:
+    lane = str(packet.get("current_lane") or "").strip()
+    return _label_value("lanes", lane) or lane or "담당자"
 
 
 def _slack_stage_lines(packet: Mapping[str, Any]) -> tuple[str, ...]:

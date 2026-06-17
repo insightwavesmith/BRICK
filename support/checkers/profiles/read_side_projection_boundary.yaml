@@ -183,6 +183,8 @@ text_contains:
       - def render_building_event_report_packet
       - def emit_building_event_report_packet
       - def emit_building_event_for_policy
+      - def _structure_diagram_text
+      - structure_diagram
       - def reporter_event_hook_probe_observations
       - FORBIDDEN_REPORT_PACKET_FIELDS
       - OBSERVED_BOARD_STATES
@@ -292,6 +294,9 @@ text_contains:
       - def deliver_report_packet
       - def dry_run_report_packet
       - def _slack_message_text
+      - def _slack_brick_received_reply_text
+      - def _slack_gate_passed_reply_text
+      - def _slack_lane_label
       - def send_slack_report_packet
       - def validate_slack_delivery_environment
       - def write_local_inbox_packet
@@ -311,6 +316,9 @@ text_contains:
       - 시작했어요. 진행되는 대로 여기 댓글로 알려드릴게요.
       - ✅ 다 됐어요!
       - 단계 끝났어요
+      - 넘어가요
+      - 마무리예요
+      - "담당:"
       - COO 확인
       - project/brick-protocol/status/inbox
       - report sink packet source_truth must be false
