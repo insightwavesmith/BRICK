@@ -1374,6 +1374,362 @@ def _report_repo_root_for_building_root(
     return root.parent
 
 
+@dataclasses.dataclass(frozen=True)
+class NodeProcessingOutcome:
+    """Support-only result for one dynamic-walker node execution."""
+
+    step_result: BuildingRunSupportResult | None
+    attempt_index: int
+    gate_sequence_decision: GateSequenceDecision
+    source_fact_body_carry_observation: Mapping[str, Any] | None
+    report_events: tuple[Mapping[str, Any], ...]
+    is_replay: bool
+    recorded_gate_record: Any = None
+    failure_reason: str = ""
+    adapter_frontier: Mapping[str, Any] | None = None
+    park_frontier: Mapping[str, Any] | None = None
+    fan_in_hold_record: Mapping[str, Any] | None = None
+    step_result_event: Mapping[str, Any] | None = None
+
+
+def process_one_node(
+    node_id: str,
+    step: Mapping[str, Any],
+    *,
+    linear_plan: Mapping[str, Any],
+    linear_steps: Sequence[Mapping[str, Any]],
+    forward_order: Sequence[str],
+    building_root: Path,
+    building_id: str,
+    plan_ref: str,
+    task_source_ref: str,
+    graph_context: Mapping[str, Any],
+    declaration_plan: Mapping[str, Any],
+    output_root: Path | str,
+    overwrite_existing: bool,
+    cascade_depth: int,
+    parent_reroute_ref: str,
+    runtime_handoffs: Sequence[Mapping[str, Any]],
+    has_fan_groups: bool,
+    fan_in_sources_by_target: Mapping[str, tuple[str, ...]],
+    cohort_skip_carry_forward: set[tuple[str, int]],
+    brick_ref_by_step: Mapping[str, str],
+    step_results_snapshot: list[BuildingRunSupportResult],
+    step_result_events_snapshot: list[Mapping[str, Any]],
+    resume_seed: "ResumeSeed | None",
+    replay_consumed: dict[str, int],
+    disposition_applied: bool,
+    reroute_records: list[Mapping[str, Any]],
+    node_budget: Mapping[str, int],
+    node_landings: Mapping[str, int],
+    fan_in_wait_all_observations: list[Mapping[str, Any]],
+    local_callables: Mapping[str, AgentBrainCallable] | None,
+    command_runner: CommandRunner | None,
+    adapter_cwd: Path | str | None,
+    adapter_timeout_seconds: int,
+    checked_proof_limits: tuple[str, ...],
+    run_step: Callable[..., BuildingRunSupportResult],
+    record_step_output: Callable[..., BuildingRunSupportResult],
+    write_adapter_error_frontier: Callable[..., Any],
+    write_chat_session_park_frontier: Callable[..., Any],
+    chat_session_park_frontier_exception,
+    adapter_frontier_exception,
+    report_event_policy: Mapping[str, Any] | None,
+    repo_root_path: Path,
+    report_env: Mapping[str, str] | None,
+    report_slack_sender: Any | None,
+) -> NodeProcessingOutcome:
+    """Process one node without mutating queue/reroute scheduling state."""
+
+    step_ref = node_id
+    index = len(step_results_snapshot)
+    step_fixture = _step_fixture_from_plan_step(
+        linear_plan,
+        step,
+        index,
+        building_id=building_id,
+        incoming_link_handoff_refs=_incoming_link_handoff_refs(
+            linear_steps, forward_order.index(step_ref)
+        )
+        if step_ref in forward_order
+        else {},
+    )
+    # MAIL-REPAIR (0611) -- the ONE assembler widening: a redo step scheduled
+    # by an ADOPTED runtime reroute carries the eligible runtime rows' mail
+    # (B3: the gate-adopted concern + this resume's disposition row) into its
+    # handoff packet as ADDRESSES with recorded provenance. Items without
+    # runtime mail (the whole declared path) take the EXACT prior branch --
+    # the declared-refs mailbox stays byte-identical (regression guard).
+    if runtime_handoffs:
+        widened_handoff_refs = dict(step_fixture.get("link_handoff_refs") or {})
+        widened_handoff_refs.setdefault(
+            "target_brick_instance_ref", brick_ref_by_step[step_ref]
+        )
+        widened_handoff_refs["runtime_handoffs"] = [
+            dict(entry) for entry in runtime_handoffs
+        ]
+        step_fixture = dict(step_fixture)
+        step_fixture["link_handoff_refs"] = widened_handoff_refs
+    source_fact_body_carry = _source_fact_body_carry_for_step(
+        building_root=building_root,
+        building_id=building_id,
+        target_step_ref=step_ref,
+        cascade_depth=cascade_depth,
+        step=step,
+        step_results=step_results_snapshot,
+        step_result_events=step_result_events_snapshot,
+        fan_in_sources_by_target=fan_in_sources_by_target,
+        cohort_skip_carry_forward=cohort_skip_carry_forward,
+    )
+    source_fact_body_carry_observation = source_fact_body_carry["observation"]
+    if source_fact_body_carry["source_fact_bodies"]:
+        step_fixture = dict(step_fixture)
+        step_fixture["source_fact_bodies"] = dict(
+            source_fact_body_carry["source_fact_bodies"]
+        )
+    if source_fact_body_carry_observation is not None and source_fact_body_carry_observation.get("body_absent"):
+        missing = source_fact_body_carry_observation.get(
+            "missing_source_fact_refs",
+            [],
+        )
+        if has_fan_groups and step_ref in fan_in_sources_by_target:
+            return NodeProcessingOutcome(
+                step_result=None,
+                attempt_index=0,
+                gate_sequence_decision=GateSequenceDecision(),
+                source_fact_body_carry_observation=source_fact_body_carry_observation,
+                report_events=(),
+                is_replay=False,
+                fan_in_hold_record=_build_fan_in_wait_all_hold(
+                    building_id=building_id,
+                    plan_ref=plan_ref,
+                    target_step_ref=step_ref,
+                    target_brick=brick_ref_by_step[step_ref],
+                    cascade_depth=cascade_depth,
+                    observation=_fan_in_observation_from_carry_observation(
+                        source_fact_body_carry_observation,
+                        required_sources=fan_in_sources_by_target.get(step_ref, ()),
+                    ),
+                    step_results=step_results_snapshot,
+                ),
+            )
+        raise ValueError(
+            "missing step-output source_fact body/evidence: "
+            + ", ".join(str(item) for item in missing)
+        )
+    # RESUME replay-or-live decision: if resume seeded a recorded return for
+    # this step occurrence, REPLAY it (no provider call); otherwise run LIVE.
+    # The k-th visit to step_ref consumes the k-th recorded return (realized
+    # order). A replayed step READS its recorded AT-TIME gate decision back;
+    # a live step computes it (forward parity). Default (no seed) => live.
+    recorded_return, recorded_gate_record, recorded_at, is_replay = _next_recorded_return(
+        resume_seed, step_ref, replay_consumed
+    )
+    try:
+        if is_replay:
+            # gap-6: preserve the ORIGINAL recorded_at through the replay path
+            # (evidence fidelity) instead of stamping a fresh timestamp.
+            step_result = resume_seed.replay_step(  # type: ignore[union-attr]
+                step_fixture,
+                returned_value=recorded_return,
+                recorded_at=recorded_at,
+                gate_sequence_decision_record=recorded_gate_record,
+                proof_limits=checked_proof_limits,
+            )
+        else:
+            step_result = run_step(
+                step_fixture,
+                local_callables=local_callables,
+                command_runner=command_runner,
+                adapter_cwd=adapter_cwd,
+                adapter_timeout_seconds=adapter_timeout_seconds,
+                proof_limits=checked_proof_limits,
+            )
+    except Exception as exc:  # noqa: BLE001 - distinguish adapter frontier below
+        if getattr(exc, "parked", None) is not None:
+            evidence_write = _write_dynamic_chat_session_park_frontier(
+                exc,
+                building_id=building_id,
+                plan_ref=plan_ref,
+                linear_plan=linear_plan,
+                completed_step_results=step_results_snapshot,
+                output_root=output_root,
+                overwrite_existing=overwrite_existing or bool(step_results_snapshot),
+                checked_proof_limits=checked_proof_limits,
+                graph_context=graph_context,
+                reroute_records=reroute_records,
+                node_budget=node_budget,
+                node_landings=node_landings,
+                held=False,
+                hold_record=None,
+                cascade_depth=cascade_depth,
+                parent_reroute_ref=parent_reroute_ref,
+                fan_in_wait_all_observations=fan_in_wait_all_observations,
+                has_fan_groups=has_fan_groups,
+                write_chat_session_park_frontier=write_chat_session_park_frontier,
+                declaration_plan=declaration_plan,
+                resume_observations=_resume_observations_for_frontier(
+                    resume_seed,
+                    disposition_applied=disposition_applied,
+                    node_budget=node_budget,
+                    node_landings=node_landings,
+                ),
+            )
+            if report_event_policy:
+                terminal_event_kind = building_event_kind_from_frontier(
+                    evidence_write.lifecycle_write.root,
+                    repo_root=repo_root_path,
+                )
+                _emit_building_event_best_effort(
+                    report_event_policy,
+                    event_kind=terminal_event_kind,
+                    building_id=building_id,
+                    building_root=evidence_write.lifecycle_write.root,
+                    repo_root=repo_root_path,
+                    report_env=report_env,
+                    report_slack_sender=report_slack_sender,
+                    overwrite_existing=overwrite_existing,
+                )
+            raise chat_session_park_frontier_exception(
+                "chat-session park frontier evidence written before AgentFact returned",
+                building_id=building_id,
+                building_root=evidence_write.lifecycle_write.root,
+                written_files=evidence_write.written_files,
+            ) from exc
+        _write_dynamic_adapter_error_frontier(
+            exc,
+            building_id=building_id,
+            plan_ref=plan_ref,
+            linear_plan=linear_plan,
+            completed_step_results=step_results_snapshot,
+            output_root=output_root,
+            overwrite_existing=overwrite_existing or bool(step_results_snapshot),
+            checked_proof_limits=checked_proof_limits,
+            graph_context=graph_context,
+            reroute_records=reroute_records,
+            node_budget=node_budget,
+            node_landings=node_landings,
+            held=False,
+            hold_record=None,
+            cascade_depth=cascade_depth,
+            parent_reroute_ref=parent_reroute_ref,
+            fan_in_wait_all_observations=fan_in_wait_all_observations,
+            has_fan_groups=has_fan_groups,
+            write_adapter_error_frontier=write_adapter_error_frontier,
+            adapter_frontier_exception=adapter_frontier_exception,
+            resume_observations=_resume_observations_for_frontier(
+                resume_seed,
+                disposition_applied=disposition_applied,
+                node_budget=node_budget,
+                node_landings=node_landings,
+            ),
+        )
+        raise AssertionError("unreachable after dynamic adapter frontier write")
+    # E1 (U5.5 slice-3) + RESUME-GATE-RECORD -- DYNAMIC-WALKER parity with run.py.
+    # Compute the live gate-sequence disposition and attach it to the step result
+    # BEFORE the step-output write so the AT-TIME step-output.json persists the
+    # gate_sequence_decision_record (which resume reads back without recompute).
+    # This is a PURE computation over the already-completed step_result + step; it
+    # does NOT depend on the step-output file. The loop control below reads
+    # gate_sequence_decision exactly as before -- hold / reroute / fan-in / next /
+    # break behaviour is unchanged, and the field survives the only later mutation
+    # of an existing step_results entry (_inject_hold_paused_link /
+    # _inject_fan_in_paused_link via _step_result_with_paused_lifecycle uses a
+    # partial dataclasses.replace). Recording carry only.
+    # On a REPLAYED step the gate decision was already RECONSTRUCTED from the
+    # recorded AT-TIME record by replay_step (read-back, no recompute); keep it.
+    # A no-policy replayed step has gate_sequence_decision None -- normalize to a
+    # no-action GateSequenceDecision so the loop control reads it like the
+    # forward walk's run_gate_sequence_policy() no-policy result.
+    if is_replay:
+        if _replay_gate_record_requests_live_compute(recorded_gate_record):
+            gate_sequence_decision = run_gate_sequence_policy(
+                step=step,
+                step_result=step_result,
+                source_brick_ref=brick_ref_by_step[step_ref],
+                target_brick_ref=step_result.preparation.next_brick_instance_ref,
+            )
+            step_result = dataclasses.replace(
+                step_result, gate_sequence_decision=gate_sequence_decision
+            )
+        # FAIL-CLOSED gap-5: a replayed step that DECLARED a non-empty
+        # gate_sequence_policy MUST have a recorded gate decision to read back.
+        # If it is absent (None) the policy's AT-TIME decision was lost, and
+        # normalizing to a no-action GateSequenceDecision() would SILENTLY treat
+        # a policy step as no-policy (divergence: a recorded HOLD/forward gate
+        # decision would vanish). Raise instead -- only a genuinely no-policy
+        # step legitimately has a None recorded decision.
+        elif (
+            step_result.gate_sequence_decision is None
+            and _step_declares_gate_sequence_policy(step)
+        ):
+            raise ValueError(
+                f"resume corrupt evidence: replayed step {step_ref!r} declares a "
+                "gate_sequence_policy but its step-output carries NO recorded gate "
+                "decision to read back; refusing to silently treat a policy step as "
+                "no-action (would drop the recorded gate decision and diverge)"
+            )
+        else:
+            gate_sequence_decision = (
+                step_result.gate_sequence_decision
+                if step_result.gate_sequence_decision is not None
+                else GateSequenceDecision()
+            )
+    else:
+        gate_sequence_decision = run_gate_sequence_policy(
+            step=step,
+            step_result=step_result,
+            source_brick_ref=brick_ref_by_step[step_ref],
+            target_brick_ref=step_result.preparation.next_brick_instance_ref,
+        )
+        step_result = dataclasses.replace(
+            step_result, gate_sequence_decision=gate_sequence_decision
+        )
+    attempt_index = 1 + sum(
+        1
+        for completed in step_results_snapshot
+        if completed.preparation.step_rows.step_ref == step_ref
+    )
+    step_result = record_step_output(
+        building_root=building_root,
+        building_id=building_id,
+        step_result=step_result,
+        completed_step_results=step_results_snapshot,
+        proof_limits=checked_proof_limits,
+        task_source_ref=task_source_ref,
+        overwrite_existing=overwrite_existing,
+    )
+    report_events = tuple(
+        _emit_brick_grain_step_events(
+            report_event_policy,
+            linear_plan=linear_plan,
+            building_id=building_id,
+            building_root=building_root,
+            repo_root=repo_root_path,
+            step_result=step_result,
+            step_index=len(step_results_snapshot) + 1,
+            attempt_index=attempt_index,
+            gate_sequence_decision=gate_sequence_decision,
+            report_env=report_env,
+            report_slack_sender=report_slack_sender,
+            overwrite_existing=overwrite_existing,
+        )
+    )
+    return NodeProcessingOutcome(
+        step_result=step_result,
+        attempt_index=attempt_index,
+        gate_sequence_decision=gate_sequence_decision,
+        source_fact_body_carry_observation=source_fact_body_carry_observation,
+        report_events=report_events,
+        is_replay=is_replay,
+        recorded_gate_record=recorded_gate_record,
+        step_result_event={
+            "step_ref": step_ref,
+            "cascade_depth": cascade_depth,
+        },
+    )
+
+
 def _run_dynamic_graph_walker(
     plan: Mapping[str, Any],
     *,
@@ -1606,283 +1962,66 @@ def _run_dynamic_graph_walker(
                 )
                 break
         step = steps_by_ref[step_ref]
-        index = len(step_results)
-        step_fixture = _step_fixture_from_plan_step(
-            linear_plan,
+        outcome = process_one_node(
+            step_ref,
             step,
-            index,
-            building_id=building_id,
-            incoming_link_handoff_refs=_incoming_link_handoff_refs(linear_steps, forward_order.index(step_ref))
-            if step_ref in forward_order
-            else {},
-        )
-        # MAIL-REPAIR (0611) -- the ONE assembler widening: a redo step scheduled
-        # by an ADOPTED runtime reroute carries the eligible runtime rows' mail
-        # (B3: the gate-adopted concern + this resume's disposition row) into its
-        # handoff packet as ADDRESSES with recorded provenance. Items without
-        # runtime mail (the whole declared path) take the EXACT prior branch --
-        # the declared-refs mailbox stays byte-identical (regression guard).
-        runtime_handoffs = item.get("runtime_handoffs") or ()
-        if runtime_handoffs:
-            widened_handoff_refs = dict(step_fixture.get("link_handoff_refs") or {})
-            widened_handoff_refs.setdefault(
-                "target_brick_instance_ref", brick_ref_by_step[step_ref]
-            )
-            widened_handoff_refs["runtime_handoffs"] = [
-                dict(entry) for entry in runtime_handoffs
-            ]
-            step_fixture = dict(step_fixture)
-            step_fixture["link_handoff_refs"] = widened_handoff_refs
-        source_fact_body_carry = _source_fact_body_carry_for_step(
+            linear_plan=linear_plan,
+            linear_steps=linear_steps,
+            forward_order=forward_order,
             building_root=building_root,
             building_id=building_id,
-            target_step_ref=step_ref,
+            plan_ref=plan_ref,
+            task_source_ref=task_source_ref,
+            graph_context=graph_context,
+            declaration_plan=plan,
+            output_root=output_root,
+            overwrite_existing=overwrite_existing,
             cascade_depth=cascade_depth,
-            step=step,
-            step_results=step_results,
-            step_result_events=step_result_events,
+            parent_reroute_ref=item["parent_reroute_ref"],
+            runtime_handoffs=item.get("runtime_handoffs") or (),
+            has_fan_groups=has_fan_groups,
             fan_in_sources_by_target=fan_in_sources_by_target,
             cohort_skip_carry_forward=cohort_skip_carry_forward,
+            brick_ref_by_step=brick_ref_by_step,
+            step_results_snapshot=step_results,
+            step_result_events_snapshot=step_result_events,
+            resume_seed=resume_seed,
+            replay_consumed=replay_consumed,
+            disposition_applied=disposition_applied,
+            reroute_records=reroute_records,
+            node_budget=node_budget,
+            node_landings=node_landings,
+            fan_in_wait_all_observations=fan_in_wait_all_observations,
+            local_callables=local_callables,
+            command_runner=command_runner,
+            adapter_cwd=adapter_cwd,
+            adapter_timeout_seconds=adapter_timeout_seconds,
+            checked_proof_limits=checked_proof_limits,
+            run_step=run_step,
+            record_step_output=record_step_output,
+            write_adapter_error_frontier=write_adapter_error_frontier,
+            write_chat_session_park_frontier=write_chat_session_park_frontier,
+            chat_session_park_frontier_exception=chat_session_park_frontier_exception,
+            adapter_frontier_exception=adapter_frontier_exception,
+            report_event_policy=report_event_policy,
+            repo_root_path=repo_root_path,
+            report_env=report_env,
+            report_slack_sender=report_slack_sender,
         )
-        if source_fact_body_carry["source_fact_bodies"]:
-            step_fixture = dict(step_fixture)
-            step_fixture["source_fact_bodies"] = dict(
-                source_fact_body_carry["source_fact_bodies"]
-            )
-        if source_fact_body_carry["observation"] is not None:
+        if outcome.source_fact_body_carry_observation is not None:
             source_fact_body_carry_observations.append(
-                source_fact_body_carry["observation"]
+                outcome.source_fact_body_carry_observation
             )
-            if source_fact_body_carry["observation"].get("body_absent"):
-                missing = source_fact_body_carry["observation"].get(
-                    "missing_source_fact_refs",
-                    [],
-                )
-                if has_fan_groups and step_ref in fan_in_sources_by_target:
-                    fan_in_hold_record = _build_fan_in_wait_all_hold(
-                        building_id=building_id,
-                        plan_ref=plan_ref,
-                        target_step_ref=step_ref,
-                        target_brick=brick_ref_by_step[step_ref],
-                        cascade_depth=cascade_depth,
-                        observation=_fan_in_observation_from_carry_observation(
-                            source_fact_body_carry["observation"],
-                            required_sources=fan_in_sources_by_target.get(step_ref, ()),
-                        ),
-                        step_results=step_results,
-                    )
-                    break
-                raise ValueError(
-                    "missing step-output source_fact body/evidence: "
-                    + ", ".join(str(item) for item in missing)
-                )
-        # RESUME replay-or-live decision: if resume seeded a recorded return for
-        # this step occurrence, REPLAY it (no provider call); otherwise run LIVE.
-        # The k-th visit to step_ref consumes the k-th recorded return (realized
-        # order). A replayed step READS its recorded AT-TIME gate decision back;
-        # a live step computes it (forward parity). Default (no seed) => live.
-        recorded_return, recorded_gate_record, recorded_at, is_replay = _next_recorded_return(
-            resume_seed, step_ref, replay_consumed
-        )
-        try:
-            if is_replay:
-                # gap-6: preserve the ORIGINAL recorded_at through the replay path
-                # (evidence fidelity) instead of stamping a fresh timestamp.
-                step_result = resume_seed.replay_step(  # type: ignore[union-attr]
-                    step_fixture,
-                    returned_value=recorded_return,
-                    recorded_at=recorded_at,
-                    gate_sequence_decision_record=recorded_gate_record,
-                    proof_limits=checked_proof_limits,
-                )
-            else:
-                step_result = run_step(
-                    step_fixture,
-                    local_callables=local_callables,
-                    command_runner=command_runner,
-                    adapter_cwd=adapter_cwd,
-                    adapter_timeout_seconds=adapter_timeout_seconds,
-                    proof_limits=checked_proof_limits,
-                )
-        except Exception as exc:  # noqa: BLE001 - distinguish adapter frontier below
-            if getattr(exc, "parked", None) is not None:
-                evidence_write = _write_dynamic_chat_session_park_frontier(
-                    exc,
-                    building_id=building_id,
-                    plan_ref=plan_ref,
-                    linear_plan=linear_plan,
-                    completed_step_results=step_results,
-                    output_root=output_root,
-                    overwrite_existing=overwrite_existing or bool(step_results),
-                    checked_proof_limits=checked_proof_limits,
-                    graph_context=graph_context,
-                    reroute_records=reroute_records,
-                    node_budget=node_budget,
-                    node_landings=node_landings,
-                    held=False,
-                    hold_record=None,
-                    cascade_depth=cascade_depth,
-                    parent_reroute_ref=item["parent_reroute_ref"],
-                    fan_in_wait_all_observations=fan_in_wait_all_observations,
-                    has_fan_groups=has_fan_groups,
-                    write_chat_session_park_frontier=write_chat_session_park_frontier,
-                    declaration_plan=plan,
-                    resume_observations=_resume_observations_for_frontier(
-                        resume_seed,
-                        disposition_applied=disposition_applied,
-                        node_budget=node_budget,
-                        node_landings=node_landings,
-                    ),
-                )
-                if report_event_policy:
-                    terminal_event_kind = building_event_kind_from_frontier(
-                        evidence_write.lifecycle_write.root,
-                        repo_root=repo_root_path,
-                    )
-                    terminal_event = _emit_building_event_best_effort(
-                        report_event_policy,
-                        event_kind=terminal_event_kind,
-                        building_id=building_id,
-                        building_root=evidence_write.lifecycle_write.root,
-                        repo_root=repo_root_path,
-                        report_env=report_env,
-                        report_slack_sender=report_slack_sender,
-                        overwrite_existing=overwrite_existing,
-                    )
-                    if terminal_event is not None:
-                        report_event_observations.append(terminal_event)
-                raise chat_session_park_frontier_exception(
-                    "chat-session park frontier evidence written before AgentFact returned",
-                    building_id=building_id,
-                    building_root=evidence_write.lifecycle_write.root,
-                    written_files=evidence_write.written_files,
-                ) from exc
-            _write_dynamic_adapter_error_frontier(
-                exc,
-                building_id=building_id,
-                plan_ref=plan_ref,
-                linear_plan=linear_plan,
-                completed_step_results=step_results,
-                output_root=output_root,
-                overwrite_existing=overwrite_existing or bool(step_results),
-                checked_proof_limits=checked_proof_limits,
-                graph_context=graph_context,
-                reroute_records=reroute_records,
-                node_budget=node_budget,
-                node_landings=node_landings,
-                held=False,
-                hold_record=None,
-                cascade_depth=cascade_depth,
-                parent_reroute_ref=item["parent_reroute_ref"],
-                fan_in_wait_all_observations=fan_in_wait_all_observations,
-                has_fan_groups=has_fan_groups,
-                write_adapter_error_frontier=write_adapter_error_frontier,
-                adapter_frontier_exception=adapter_frontier_exception,
-                resume_observations=_resume_observations_for_frontier(
-                    resume_seed,
-                    disposition_applied=disposition_applied,
-                    node_budget=node_budget,
-                    node_landings=node_landings,
-                ),
-            )
-            raise AssertionError("unreachable after dynamic adapter frontier write")
-        # E1 (U5.5 slice-3) + RESUME-GATE-RECORD — DYNAMIC-WALKER parity with run.py.
-        # Compute the live gate-sequence disposition and attach it to the step result
-        # BEFORE the step-output write so the AT-TIME step-output.json persists the
-        # gate_sequence_decision_record (which resume reads back without recompute).
-        # This is a PURE computation over the already-completed step_result + step; it
-        # does NOT depend on the step-output file. The loop control below reads
-        # gate_sequence_decision exactly as before — hold / reroute / fan-in / next /
-        # break behaviour is unchanged, and the field survives the only later mutation
-        # of an existing step_results entry (_inject_hold_paused_link /
-        # _inject_fan_in_paused_link via _step_result_with_paused_lifecycle uses a
-        # partial dataclasses.replace). Recording carry only.
-        # On a REPLAYED step the gate decision was already RECONSTRUCTED from the
-        # recorded AT-TIME record by replay_step (read-back, no recompute); keep it.
-        # A no-policy replayed step has gate_sequence_decision None — normalize to a
-        # no-action GateSequenceDecision so the loop control reads it like the
-        # forward walk's run_gate_sequence_policy() no-policy result.
-        if is_replay:
-            if _replay_gate_record_requests_live_compute(recorded_gate_record):
-                gate_sequence_decision = run_gate_sequence_policy(
-                    step=step,
-                    step_result=step_result,
-                    source_brick_ref=brick_ref_by_step[step_ref],
-                    target_brick_ref=step_result.preparation.next_brick_instance_ref,
-                )
-                step_result = dataclasses.replace(
-                    step_result, gate_sequence_decision=gate_sequence_decision
-                )
-            # FAIL-CLOSED gap-5: a replayed step that DECLARED a non-empty
-            # gate_sequence_policy MUST have a recorded gate decision to read back.
-            # If it is absent (None) the policy's AT-TIME decision was lost, and
-            # normalizing to a no-action GateSequenceDecision() would SILENTLY treat
-            # a policy step as no-policy (divergence: a recorded HOLD/forward gate
-            # decision would vanish). Raise instead -- only a genuinely no-policy
-            # step legitimately has a None recorded decision.
-            elif (
-                step_result.gate_sequence_decision is None
-                and _step_declares_gate_sequence_policy(step)
-            ):
-                raise ValueError(
-                    f"resume corrupt evidence: replayed step {step_ref!r} declares a "
-                    "gate_sequence_policy but its step-output carries NO recorded gate "
-                    "decision to read back; refusing to silently treat a policy step as "
-                    "no-action (would drop the recorded gate decision and diverge)"
-                )
-            else:
-                gate_sequence_decision = (
-                    step_result.gate_sequence_decision
-                    if step_result.gate_sequence_decision is not None
-                    else GateSequenceDecision()
-                )
-        else:
-            gate_sequence_decision = run_gate_sequence_policy(
-                step=step,
-                step_result=step_result,
-                source_brick_ref=brick_ref_by_step[step_ref],
-                target_brick_ref=step_result.preparation.next_brick_instance_ref,
-            )
-            step_result = dataclasses.replace(
-                step_result, gate_sequence_decision=gate_sequence_decision
-            )
-        attempt_index = 1 + sum(
-            1
-            for completed in step_results
-            if completed.preparation.step_rows.step_ref == step_ref
-        )
-        step_result = record_step_output(
-            building_root=building_root,
-            building_id=building_id,
-            step_result=step_result,
-            completed_step_results=step_results,
-            proof_limits=checked_proof_limits,
-            task_source_ref=task_source_ref,
-            overwrite_existing=overwrite_existing,
-        )
-        report_event_observations.extend(
-            _emit_brick_grain_step_events(
-                report_event_policy,
-                linear_plan=linear_plan,
-                building_id=building_id,
-                building_root=building_root,
-                repo_root=repo_root_path,
-                step_result=step_result,
-                step_index=len(step_results) + 1,
-                attempt_index=attempt_index,
-                gate_sequence_decision=gate_sequence_decision,
-                report_env=report_env,
-                report_slack_sender=report_slack_sender,
-                overwrite_existing=overwrite_existing,
-            )
-        )
+        if outcome.fan_in_hold_record is not None:
+            fan_in_hold_record = outcome.fan_in_hold_record
+            break
+        if outcome.step_result is None or outcome.step_result_event is None:
+            raise AssertionError("process_one_node returned no step result")
+        step_result = outcome.step_result
+        gate_sequence_decision = outcome.gate_sequence_decision
+        report_event_observations.extend(outcome.report_events)
         step_results.append(step_result)
-        step_result_events.append(
-            {
-                "step_ref": step_ref,
-                "cascade_depth": cascade_depth,
-            }
-        )
+        step_result_events.append(outcome.step_result_event)
         if has_fan_groups:
             completed_fan_steps.add((step_ref, cascade_depth))
         human_disposition_reroute_target = ""
