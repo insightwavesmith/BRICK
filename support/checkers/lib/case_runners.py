@@ -6227,9 +6227,11 @@ def _check_adapter_capability_explicit_write_need_marker_admitted_strict(
        demands a DECLARED need, it does not block declared writes.
     2. Request construction + sandbox projection (no real CLI launch): a request
        WITHOUT write_scope projects codex sandbox 'read-only' and a read-only
-       claude invocation (plan mode, no tools); a request WITH the scope the
-       marker-bearing row declares projects codex 'workspace-write' and a claude
-       invocation including Edit + Write.
+       claude invocation (plan mode, read-only browse tools Read/Grep/Glob, no
+       Edit/Write/Bash -- CLEAN-READTIER-0617: a read-only Brick + tool-capable
+       Agent browses read-only, it is no longer the none tier); a request WITH
+       the scope the marker-bearing row declares projects codex 'workspace-write'
+       and a claude invocation including Edit + Write.
     """
     from brick_protocol.support.connection import agent_adapter as adapter
     from support.operator.plan_validation import validate_declared_building_plan
@@ -6264,17 +6266,28 @@ def _check_adapter_capability_explicit_write_need_marker_admitted_strict(
             f"adapter_capability_rehome_case rejected {label}: request WITHOUT "
             f"write_scope must project codex sandbox 'read-only', got {observed_sandbox!r}"
         )
-    no_scope_claude = adapter._claude_cli_invocation(
-        _adapter_capability_request(
-            adapter_ref="adapter:claude-local",
-            write_scope=None,
-        )
+    no_scope_claude_request = _adapter_capability_request(
+        adapter_ref="adapter:claude-local",
+        write_scope=None,
     )
-    if no_scope_claude.get("permission_mode") != "plan" or no_scope_claude.get("tools"):
+    no_scope_claude = adapter._claude_cli_invocation(no_scope_claude_request)
+    # CLEAN-READTIER-0617: a read-only Brick (no write_scope) + a tool-capable
+    # Agent (read-write-scoped policy) browses read-only -- plan mode with the
+    # Read/Grep/Glob browse tools, NEVER Edit/Write/Bash. Read/write tier is no
+    # longer a support authority over the policy label.
+    no_scope_tools = [
+        tool.strip() for tool in str(no_scope_claude.get("tools", "")).split(",") if tool.strip()
+    ]
+    if no_scope_claude.get("permission_mode") != "plan" or no_scope_tools != ["Read", "Grep", "Glob"]:
         raise ProfileError(
             f"adapter_capability_rehome_case rejected {label}: request WITHOUT "
-            "write_scope must project the read-only claude invocation (plan mode, "
-            f"no tools), got {no_scope_claude!r}"
+            "write_scope must project the read-only browse claude invocation "
+            f"(plan mode, Read/Grep/Glob tools), got {no_scope_claude!r}"
+        )
+    if any(tool in no_scope_tools for tool in ("Edit", "Write", "Bash")):
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: read-only browse "
+            f"claude invocation leaked a write/shell tool, got {no_scope_claude!r}"
         )
 
     scoped_codex = _adapter_capability_request(
