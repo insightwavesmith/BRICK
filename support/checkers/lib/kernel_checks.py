@@ -3093,21 +3093,37 @@ def _assert_reporter_message_shape(report_sinks: Any) -> tuple[str, int]:
         "frontier_ref": "project/brick-protocol/buildings/customer-language-probe#frontier:complete:event:building_finished",
         "sink_refs": ["report-sink:slack"],
     }
-    text = report_sinks._slack_message_text(packet)
-    lines = text.splitlines()
+    finished_text = report_sinks._slack_message_text(packet)
+    started_text = report_sinks._slack_message_text(
+        {
+            **packet,
+            "trigger_event_ref": "building-event:building_started:customer-language-probe",
+            "observed_board_state": "observed_started",
+        }
+    )
+    text = "\n---\n".join((started_text, finished_text))
     required_fragments = (
         "알림 말투 점검",
-        "→ 완료됐어요.",
-        "누구: 워커",
-        "다음: 알림 확인",
-        "ref: customer-language-probe",
-        "frontier=complete:event:building_finished",
-        "※ 상태 알림일 뿐",
+        "시작했어요.",
+        "진행되는 대로 여기 댓글로 알려드릴게요.",
+        "✅ 다 됐어요!",
     )
     for fragment in required_fragments:
         if fragment not in text:
             raise ProfileError(f"Slack message shape missing fragment {fragment!r}:\n{text}")
-    forbidden_headline_fragments = (
+    forbidden_fragments = (
+        "ref:",
+        "brick=",
+        "step=",
+        "frontier=",
+        "※",
+        "누구:",
+        "다음:",
+    )
+    for fragment in forbidden_fragments:
+        if fragment in text:
+            raise ProfileError(f"Slack message leaked customer-facing jargon {fragment!r}:\n{text}")
+    forbidden_legacy_fragments = (
         "Brick:",
         "Agent:",
         "Link:",
@@ -3117,12 +3133,9 @@ def _assert_reporter_message_shape(report_sinks: Any) -> tuple[str, int]:
         "brick=-",
         "운영 refs:",
     )
-    headline = "\n".join(lines[:6])
-    for fragment in forbidden_headline_fragments:
-        if fragment in headline:
-            raise ProfileError(f"Slack message headline leaked {fragment!r}:\n{text}")
-    if sum(1 for line in lines if line.startswith("ref: ")) != 1:
-        raise ProfileError(f"Slack message must carry exactly one compact ref line:\n{text}")
+    for fragment in forbidden_legacy_fragments:
+        if fragment in text:
+            raise ProfileError(f"Slack message leaked legacy wording {fragment!r}:\n{text}")
     empty_probe = report_sinks._slack_message_text(
         {
             **packet,
@@ -3132,11 +3145,10 @@ def _assert_reporter_message_shape(report_sinks: Any) -> tuple[str, int]:
             "frontier_ref": "project/brick-protocol/buildings/customer-language-probe#frontier:complete",
         }
     )
-    if "step=-" in empty_probe or "brick=-" in empty_probe:
-        raise ProfileError(f"Slack message leaked empty ref fields:\n{empty_probe}")
-    if sum(1 for line in empty_probe.splitlines() if line.startswith("ref: ")) != 1:
-        raise ProfileError(f"Slack empty-field probe must keep one compact ref line:\n{empty_probe}")
-    return text, len(required_fragments) + len(forbidden_headline_fragments) + 3
+    for fragment in (*forbidden_fragments, "step=-", "brick=-"):
+        if fragment in empty_probe:
+            raise ProfileError(f"Slack empty-field probe leaked {fragment!r}:\n{empty_probe}")
+    return text, len(required_fragments) + len(forbidden_fragments) + len(forbidden_legacy_fragments) + 1
 
 
 def _assert_reporter_auto_wiring(repo: Path, reporter: Any, report_sinks: Any) -> tuple[str, str, str, int]:
@@ -3174,9 +3186,9 @@ def _assert_reporter_auto_wiring(repo: Path, reporter: Any, report_sinks: Any) -
                 report_env={},
             )
         observations = tuple(getattr(result, "_report_event_observations", ()))
-        if len(observations) != 2:
+        if len(observations) != 5:
             raise ProfileError(
-                "basic auto-wiring without Slack env should emit start and terminal observations"
+                "basic auto-wiring without Slack env should emit start, brick, and terminal observations"
             )
         for observation in observations:
             sink_refs = observation.get("report_packet", {}).get("sink_refs", [])
@@ -3185,8 +3197,8 @@ def _assert_reporter_auto_wiring(repo: Path, reporter: Any, report_sinks: Any) -
                     f"auto-wiring without Slack env attempted unexpected sinks: {sink_refs}"
                 )
         inbox_packets = sorted((temp_repo / "project" / "brick-protocol" / "status" / "inbox").glob("*.json"))
-        if len(inbox_packets) != 2:
-            raise ProfileError("basic auto-wiring without Slack env did not write two local inbox packets")
+        if len(inbox_packets) != 5:
+            raise ProfileError("basic auto-wiring without Slack env did not write five local inbox packets")
         local_inbox_text = inbox_packets[0].read_text(encoding="utf-8")
         inspected += 4
 
@@ -3220,7 +3232,7 @@ def _assert_reporter_auto_wiring(repo: Path, reporter: Any, report_sinks: Any) -
                 report_slack_sender=_fake_temp_slack_sender,
             )
         observations = tuple(getattr(result, "_report_event_observations", ()))
-        if len(observations) != 2:
+        if len(observations) != 5:
             raise ProfileError("temp-root auto-wiring with fake Slack env emitted wrong event count")
         for observation in observations:
             sink_refs = observation.get("report_packet", {}).get("sink_refs", [])
@@ -3315,9 +3327,11 @@ def _assert_reporter_auto_wiring(repo: Path, reporter: Any, report_sinks: Any) -
             raise ProfileError("verbose-mode temp drive emitted wrong event count")
         packet = observations[0].get("report_packet", {})
         verbose_text = report_sinks._slack_message_text(packet)
-        stage_lines = [line for line in verbose_text.splitlines() if line.startswith("단계: ")]
-        if stage_lines != ["단계: 설계", "단계: 작업"]:
-            raise ProfileError(f"verbose-mode message did not render per-step lines:\n{verbose_text}")
+        if "✅ 다 됐어요!" not in verbose_text:
+            raise ProfileError(f"verbose-mode message did not render plain completion:\n{verbose_text}")
+        for fragment in ("단계: ", "ref:", "누구:", "다음:"):
+            if fragment in verbose_text:
+                raise ProfileError(f"verbose-mode message leaked old Slack fragment {fragment!r}:\n{verbose_text}")
         inspected += 3
 
     return real_sent_messages[0], local_inbox_text, verbose_text, inspected
@@ -3360,6 +3374,7 @@ def _assert_reporter_brick_grain_threading(
         "building_finished",
     ]:
         raise ProfileError("building grain policy did not preserve the three existing event kinds")
+    default_policy = reporter.report_event_policy_from_plan({})
     brick_policy = reporter.report_event_policy_from_plan(
         {
             "report_event_policy": {
@@ -3382,7 +3397,15 @@ def _assert_reporter_brick_grain_threading(
             "brick grain policy did not extend event kinds additively: "
             f"{brick_policy.get('event_kinds')!r}"
         )
-    inspected += 2
+    if (
+        default_policy.get("event_kinds") != expected_brick_events
+        or default_policy.get("report_event_grain") != "brick"
+    ):
+        raise ProfileError(
+            "absent report policy did not default to brick grain: "
+            f"{default_policy!r}"
+        )
+    inspected += 3
 
     sent_payloads: list[Mapping[str, Any]] = []
 
@@ -3408,16 +3431,7 @@ def _assert_reporter_brick_grain_threading(
         try:
             reporter.REPO_ROOT = temp_repo
             result = run_building_plan(
-                _reporter_auto_wire_plan(
-                    "reporter-brick-grain-thread",
-                    report_event_policy={
-                        "enabled": True,
-                        "mode": "basic",
-                        "grain": "brick",
-                        "sink_refs": ["report-sink:slack"],
-                        "allow_real_slack_delivery": True,
-                    },
-                ),
+                _reporter_auto_wire_plan("reporter-brick-grain-thread"),
                 output_root=output_root,
                 overwrite_existing=True,
                 local_callables={"callable:local:agent-invoke0-smoke": _brain},
@@ -3448,22 +3462,40 @@ def _assert_reporter_brick_grain_threading(
                 raise ProfileError(f"brick grain did not emit {event_kind} support event")
 
         thread_payloads = [payload for payload in sent_payloads if payload.get("thread_ts")]
-        if len(thread_payloads) != 1:
+        per_step_payloads = [
+            payload
+            for payload in thread_payloads
+            if "단계 끝났어요" in str(payload.get("text") or "")
+        ]
+        if len(per_step_payloads) != 1:
             raise ProfileError(
-                f"brick grain expected exactly one per-step Slack thread reply, got {len(thread_payloads)}"
+                "brick grain expected exactly one per-step Slack thread reply, "
+                f"got {len(per_step_payloads)}"
             )
-        reply = thread_payloads[0]
+        reply = per_step_payloads[0]
         if reply.get("thread_ts") != "1718200000.000100":
             raise ProfileError(f"brick grain reply carried wrong thread_ts: {reply!r}")
         brick_reply_text = str(reply.get("text") or "")
-        for fragment in ("①", "받음(", "반환(", "게이트 결과(", "ref: reporter-brick-grain-thread"):
+        for fragment in ("①", "단계 끝났어요", "("):
             if fragment not in brick_reply_text:
                 raise ProfileError(
                     f"brick grain Slack reply missing fragment {fragment!r}:\n{brick_reply_text}"
                 )
-        if not re.search(r"받음\(\d{2}:\d{2}\).*반환\(\d{2}:\d{2}", brick_reply_text):
+        if not re.search(r"\(\d{2}:\d{2}\)", brick_reply_text):
             raise ProfileError(f"brick grain Slack reply did not render KST HH:MM times:\n{brick_reply_text}")
-        inspected += 5
+        finished_payloads = [
+            payload
+            for payload in thread_payloads
+            if "✅ 다 됐어요!" in str(payload.get("text") or "")
+        ]
+        if len(finished_payloads) != 1:
+            raise ProfileError(
+                "brick grain expected one completion Slack thread reply, "
+                f"got {len(finished_payloads)}"
+            )
+        if finished_payloads[0].get("thread_ts") != "1718200000.000100":
+            raise ProfileError("brick grain completion reply carried wrong thread_ts")
+        inspected += 6
 
         missing_thread_payloads: list[Mapping[str, Any]] = []
 
@@ -3550,7 +3582,7 @@ def _assert_reporter_brick_grain_threading(
         if disposition_payloads[0].get("thread_ts") != "1718200000.000100":
             raise ProfileError("disposition_applied reply did not carry recorded thread_ts")
         disposition_reply_text = str(disposition_payloads[0].get("text") or "")
-        if "⤷ coo 도장" not in disposition_reply_text:
+        if "⤷ COO 확인" not in disposition_reply_text:
             raise ProfileError(
                 f"disposition_applied reply did not render coo stamp:\n{disposition_reply_text}"
             )

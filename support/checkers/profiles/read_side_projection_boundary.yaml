@@ -308,10 +308,10 @@ text_contains:
       - external_delivery_allowed
       - not_attempted_non_real_vessel
       - def _packet_allows_external_delivery
-      - 누구
-      - 다음
-      - 'ref:'
-      - 상태 알림일 뿐
+      - 시작했어요. 진행되는 대로 여기 댓글로 알려드릴게요.
+      - ✅ 다 됐어요!
+      - 단계 끝났어요
+      - COO 확인
       - project/brick-protocol/status/inbox
       - report sink packet source_truth must be false
       - validates admitted sink refs without writing local status inbox packets
@@ -409,6 +409,9 @@ text_absent:
       - webhook
       - Thread
       - Queue
+      - Movement 판단 아님
+      - frontier=
+      - brick=
   - path: support/operator/driver.py
     texts:
       - status/inbox

@@ -1049,17 +1049,21 @@ def reporter_event_hook_probe_observations() -> tuple[Mapping[str, Any], ...]:
     finally:
         if previous_grain is not None:
             os.environ[REPORT_GRAIN_ENV] = previous_grain
+    expected_default_events = list(
+        _merge_texts(DEFAULT_BUILDING_EVENT_KINDS, BRICK_GRAIN_EVENT_KINDS)
+    )
     append(
         "absent_policy_defaults_to_local_env_gated_sinks",
         passed=(
             isinstance(default_policy, Mapping)
             and default_policy.get("event_kinds")
-            == ["building_started", "intervention_required", "building_finished"]
+            == expected_default_events
             and default_policy.get("sink_refs")
             == [LOCAL_INBOX_SINK_REF, SLACK_SINK_REF, DASHBOARD_SINK_REF]
             and default_policy.get("environment_gated_sink_refs")
             == [SLACK_SINK_REF, DASHBOARD_SINK_REF]
             and default_policy.get("mode") == "basic"
+            and default_policy.get("report_event_grain") == "brick"
         ),
         accepted=True,
     )
@@ -1717,7 +1721,7 @@ def _report_event_mode(value: Any) -> str:
 
 def _report_event_grain(value: Any) -> str:
     raw = value if value is not None else os.environ.get(REPORT_GRAIN_ENV)
-    grain = str(raw or "building").strip().lower()
+    grain = str(raw or "brick").strip().lower()
     if grain not in REPORT_EVENT_GRAINS:
         raise ValueError(
             f"{REPORT_GRAIN_ENV} / report_event_policy.grain must be 'building' or 'brick'"

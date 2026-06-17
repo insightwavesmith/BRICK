@@ -84,6 +84,10 @@
     "coo": "COO",
     "caller": "호출자"
   },
+  "disposition_actions": {
+    "forward": "다음 단계로 진행",
+    "stop": "여기서 멈춤"
+  },
   "events": {
     "building_started": "시작",
     "intervention_required": "멈춤·개입 필요",
