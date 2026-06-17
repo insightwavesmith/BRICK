@@ -109,6 +109,7 @@ def _fan_in_wait_all_state(
     cascade_depth: int,
     fan_in_sources_by_target: Mapping[str, tuple[str, ...]],
     completed_fan_steps: set[tuple[str, int]],
+    running_fan_steps: set[tuple[str, int]],
     held_fan_steps: set[tuple[str, int]],
     pending_queue: list[dict[str, Any]],
     fan_in_deferrals: dict[tuple[str, int], int],
@@ -131,8 +132,15 @@ def _fan_in_wait_all_state(
         if int(item.get("cascade_depth", 0)) == cascade_depth
         and item.get("step_ref") in missing_sources
     }
+    running_sources = {
+        source
+        for source in missing_sources
+        if (source, cascade_depth) in running_fan_steps
+    }
     wait_key = (step_ref, cascade_depth)
-    if pending_sources and fan_in_deferrals.get(wait_key, 0) < len(incoming_sources):
+    if (pending_sources or running_sources) and fan_in_deferrals.get(wait_key, 0) < len(
+        incoming_sources
+    ):
         fan_in_deferrals[wait_key] = fan_in_deferrals.get(wait_key, 0) + 1
         return "defer", None
     return "hold", _build_fan_in_wait_all_observation(

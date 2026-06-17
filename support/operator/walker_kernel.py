@@ -1548,6 +1548,7 @@ def _run_dynamic_graph_walker(
     hold_record: Mapping[str, Any] | None = None
     fan_in_hold_record: Mapping[str, Any] | None = None
     completed_fan_steps: set[tuple[str, int]] = set()
+    running_fan_steps: set[tuple[str, int]] = set()
     held_fan_steps: set[tuple[str, int]] = set()
     fan_in_deferrals: dict[tuple[str, int], int] = {}
     # (skipped_source_step_ref, reroute_cascade_depth) pairs for HUMAN-vouched
@@ -1583,6 +1584,7 @@ def _run_dynamic_graph_walker(
                 cascade_depth=cascade_depth,
                 fan_in_sources_by_target=fan_in_sources_by_target,
                 completed_fan_steps=completed_fan_steps,
+                running_fan_steps=running_fan_steps,
                 held_fan_steps=held_fan_steps,
                 pending_queue=attempt_queue[cursor:],
                 fan_in_deferrals=fan_in_deferrals,
