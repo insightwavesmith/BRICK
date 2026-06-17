@@ -333,8 +333,8 @@ adapter_model_selection_case:
     selected_model_ref: model:claude:sonnet
     expected_cli_arg: sonnet
   - adapter_ref: adapter:gemini-local
-    selected_model_ref: model:gemini:gemini-2.5-flash
-    expected_cli_arg: gemini-2.5-flash
+    selected_model_ref: model:gemini:gemini-3.5-flash
+    expected_cli_arg: gemini-3.5-flash
   - adapter_ref: adapter:local
     selected_model_ref: model:default
     expected_cli_arg: ""
