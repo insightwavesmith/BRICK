@@ -210,6 +210,8 @@ _CLAUDE_SCOPED_WRITE_SYSTEM_PROMPT = (
 _GEMINI_NO_TOOL_POLICY = """[[rule]]
 toolName = [
   "glob",
+  "grep_search",
+  "list_directory",
   "read_file",
   "read_many_files",
   "replace",
@@ -226,6 +228,8 @@ priority = 999
 _GEMINI_READ_TOOL_NAMES = frozenset(
     {
         "glob",
+        "grep_search",
+        "list_directory",
         "read_file",
         "read_many_files",
         "search_file_content",
@@ -234,6 +238,8 @@ _GEMINI_READ_TOOL_NAMES = frozenset(
 _GEMINI_READONLY_POLICY = """[[rule]]
 toolName = [
   "glob",
+  "grep_search",
+  "list_directory",
   "read_file",
   "read_many_files",
   "search_file_content",
@@ -604,12 +610,16 @@ def agent_request_effective_write(request: AgentAdapterRequest) -> bool:
 def agent_request_read_tier(request: AgentAdapterRequest) -> bool:
     """Return whether this non-write request admits read-only repo inspection.
 
-    The admitted read tier is intentionally narrower than generic adapter read
-    capability: codex/claude open it only for review/coordination tool-policy
-    refs; gemini-local opens it for any known tool-bearing policy because its
-    local CLI branch has no observed-write path and is still constrained by the
-    read-only Gemini admin policy. Ambiguous requests fail closed to the none
-    tier.
+    Read/write tier is NOT a support-side authority over the tool-policy label.
+    The uniform rule across codex-local/claude-local/gemini-local is: if the
+    request does not open observed workspace write AND it carries a known,
+    tool-bearing Agent policy (every ref in KNOWN_TOOL_POLICY_REFS, at least
+    one present), the adapter opens the read-only browse tier -- regardless of
+    which read/write policy label it is. A read-only Brick paired with a
+    tool-capable Agent therefore browses read-only. Effective-write requests
+    still take the write path (early return). Ambiguous requests -- no tool
+    policy, or any unknown policy ref -- fail closed to the none tier. Only
+    codex/claude/gemini local adapters can reach the read tier.
     """
 
     if not isinstance(request, AgentAdapterRequest):
@@ -617,11 +627,9 @@ def agent_request_read_tier(request: AgentAdapterRequest) -> bool:
     if agent_request_effective_write(request):
         return False
     tool_policy_refs = set(request.tool_policy_refs)
-    if any(ref not in KNOWN_TOOL_POLICY_REFS for ref in tool_policy_refs):
+    if not tool_policy_refs:
         return False
-    if request.adapter_ref == ADAPTER_GEMINI_LOCAL:
-        return bool(tool_policy_refs)
-    if not tool_policy_refs.intersection(READ_ONLY_TOOL_POLICY_REFS):
+    if any(ref not in KNOWN_TOOL_POLICY_REFS for ref in tool_policy_refs):
         return False
     return request.adapter_ref in {ADAPTER_CODEX_LOCAL, ADAPTER_CLAUDE_LOCAL, ADAPTER_GEMINI_LOCAL}
 
@@ -1793,7 +1801,7 @@ def _build_prompt(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
     if spec.adapter_ref == ADAPTER_GEMINI_LOCAL:
         if agent_request_read_tier(request):
             rules.append(
-                "Gemini local read tier may use only read_file, glob, search_file_content, and read_many_files through the read-only admin policy; write and shell tools remain blocked."
+                "Gemini local read tier may use only read_file, glob, grep_search, search_file_content, list_directory, and read_many_files through the read-only admin policy; write and shell tools remain blocked."
             )
         rules.extend(
             (

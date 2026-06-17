@@ -1175,8 +1175,13 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     if leader_knobs["system_prompt"] != adapter._CLAUDE_READ_ONLY_SYSTEM_PROMPT:
         raise ProfileError("read-tier claude request did not use the read-only system prompt")
 
+    # CLEAN-READTIER-0617: read/write tier is no longer a support-side authority
+    # over the tool-policy label. A read-only Brick (no observed write) paired
+    # with a tool-capable codex Agent that carries read-write-scoped now browses
+    # read-only -- the uniform rule across codex/claude/gemini. (Write still
+    # requires write_scope, which routes through agent_request_effective_write.)
     dev_nonwrite_request = adapter.AgentAdapterRequest(
-        building_id="agent-read-tier-dev-none-probe",
+        building_id="agent-read-tier-dev-readonly-probe",
         agent_object_ref="agent-object:dev",
         adapter_ref=adapter.ADAPTER_CODEX_LOCAL,
         brick_instance_ref="brick-readonly-worker",
@@ -1184,16 +1189,30 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
         tool_policy_refs=(adapter.READ_WRITE_TOOL_POLICY_REF,),
         agent_instruction_packet=dev_packet,
     )
-    if adapter.agent_request_read_tier(dev_nonwrite_request):
-        raise ProfileError("read-write-scoped alone must not enter the read tier without write_scope")
+    if adapter.agent_request_effective_write(dev_nonwrite_request):
+        raise ProfileError("read-write-scoped without write_scope must not be effective_write")
+    if not adapter.agent_request_read_tier(dev_nonwrite_request):
+        raise ProfileError(
+            "read-only Brick + tool-capable codex Agent (read-write-scoped, no write_scope) "
+            "did not enter the read tier under the uniform CLEAN-READTIER rule"
+        )
     dev_prompt = json.loads(
         adapter._build_prompt(
             dev_nonwrite_request,
             adapter._LOCAL_CLI_SPECS[adapter.ADAPTER_CODEX_LOCAL],
         )
     )
-    if "Do not use tools or hooks." not in dev_prompt.get("rules", []):
-        raise ProfileError("ambiguous non-write worker request did not fail closed to none tier")
+    dev_rules = list(dev_prompt.get("rules", []))
+    if "Do not use tools or hooks." in dev_rules:
+        raise ProfileError("read-tier read-write-scoped codex prompt still rendered the none-tier no-tools rule")
+    if expected_read_rule not in dev_rules:
+        raise ProfileError("read-tier read-write-scoped codex prompt did not expose repository inspection rule")
+    # Read tier must not leak write-tier permission: no edit-allowed phrasing.
+    for phrase in ("You may edit files only inside", "write_scope.allowed_paths"):
+        if any(phrase in rule for rule in dev_rules):
+            raise ProfileError(
+                f"read-tier read-write-scoped codex prompt leaked write-tier permission phrase {phrase!r}"
+            )
 
     gemini_inspect_request = adapter.AgentAdapterRequest(
         building_id="agent-read-tier-gemini-inspect-probe",
@@ -1317,6 +1336,8 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     for required_allow in (
         "read_file",
         "glob",
+        "grep_search",
+        "list_directory",
         "search_file_content",
         "read_many_files",
         'decision = "allow"',
@@ -1347,10 +1368,17 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
             "response": "read tools accepted",
             "stats": {
                 "tools": {
-                    "totalCalls": 4,
+                    "totalCalls": 6,
                     "byName": {
                         "read_file": 1,
                         "glob": 1,
+                        # CLEAN-READTIER-0617: gemini CLI 0.46 SearchText is named
+                        # grep_search (search_file_content is the legacy alias) and
+                        # list_directory (ReadFolder) is a read-only browse tool;
+                        # both must pass the non-read rejection set or read browse
+                        # gets falsely rejected.
+                        "grep_search": 1,
+                        "list_directory": 1,
                         "search_file_content": 1,
                         "read_many_files": 1,
                     },
