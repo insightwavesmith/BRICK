@@ -51,12 +51,12 @@ There are eight Agent Objects under `agent/objects/`. Each declares a `lane` and
 | `cto-lead` | `leader` | `tool-policy:leader-coordination` + `tool-policy:read-write-scoped` | Architecture / slicing leadership; may implement directly under a Brick write NEED; delegating to DEV remains the normal pattern for larger slices. |
 | `dev` | `worker` | `tool-policy:read-write-scoped` | The implementer; the only `worker`-lane role; writes only within a declared scope. |
 | `qa-lead` | `leader` | `tool-policy:leader-coordination` + `tool-policy:read-write-scoped` | QA leadership; evidence verification and gap detection. |
-| `qa` | `reviewer` | `tool-policy:reviewer-readonly` | Reviewer; reads scoped files and runs verification commands. |
-| `inspector` | `reviewer` | `tool-policy:reviewer-readonly` | Axis/structure inspection of prior Brick / Agent / Link output. |
+| `qa` | `reviewer` | `tool-policy:read-write-scoped` | Reviewer; runs verification, FIRE, and mutation probes inside the disposable W1 worktree sandbox. |
+| `inspector` | `reviewer` | `tool-policy:read-write-scoped` | Axis/structure inspection of prior Brick / Agent / Link output inside the disposable W1 worktree sandbox. |
 
 (The list of current roles is also recorded in `AGENTS.md` under "Agent Axis.")
 
-Notice the shape of this set: **five leaders, one worker, two reviewers.** Only `dev` sits in the `worker` lane, but the read-write tool policy is carried by the worker **and** the four team leads (`pm-lead`, `design-lead`, `cto-lead`, `qa-lead`); the COO stays read-only (the Movement/judgment authority carries no write tools), and the two reviewers stay read-only. Capability is not authority: a write-capable role still writes only where a Brick declares its write NEED (`requires_brick_write_scope`) — capability without that NEED stays read-only. This is deliberate, not an accident of configuration — see the next two sections.
+Notice the shape of this set: **five leaders, one worker, two reviewers.** Only `dev` sits in the `worker` lane, but the read-write tool policy is carried by the worker, the four team leads (`pm-lead`, `design-lead`, `cto-lead`, `qa-lead`), and the two reviewers (`qa`, `inspector`) for W1 disposable-worktree verification/probe work. The COO stays read-only (the Movement/judgment authority carries no write tools). Capability is not authority: a write-capable role still writes only where a Brick declares its write NEED (`requires_brick_write_scope`) — capability without that NEED stays read-only. This is deliberate, not an accident of configuration — see the next two sections.
 
 ## Tool policies: what a performer may touch
 
@@ -64,7 +64,7 @@ A **tool policy** is an Agent-axis resource (`owner_axis: Agent`) that states wh
 
 ### `read-write-scoped` (the only write-capable policy)
 
-Used by `dev` and by the four team leads (`pm-lead`, `design-lead`, `cto-lead`, `qa-lead`, each alongside `leader-coordination`; the COO stays read-only — the Movement/judgment authority carries no write tools). Its `allowed_use` is: *"read and edit only through an admitted Brick `write_scope` and compatible write-capable adapter support."* Its `mutation_scope` is *"Brick-declared `write_scope` only; no free tool execution"*, and it is the only policy with `execution_opened: true`.
+Used by `dev`, the four team leads (`pm-lead`, `design-lead`, `cto-lead`, `qa-lead`, each alongside `leader-coordination`), and the two reviewers (`qa`, `inspector`) for disposable W1 worktree verification/probe work; the COO stays read-only — the Movement/judgment authority carries no write tools. Its `allowed_use` is: *"read and edit only through an admitted Brick `write_scope` and compatible write-capable adapter support."* Its `mutation_scope` is *"Brick-declared `write_scope` only; no free tool execution"*, and it is the only policy with `execution_opened: true`.
 
 Crucially, the policy spells out that being write-capable is **not enough on its own**. Its `execution_opening_condition` reads:
 
@@ -89,7 +89,7 @@ Used by `coo`, `pm-lead`, `design-lead`, `cto-lead`, `qa-lead` (the four team le
 
 ### `reviewer-readonly`
 
-Used by `qa`, `inspector`. `allowed_use`: read scoped files and run verification commands. `mutation_scope`: *"none unless an in-scope repair is separately assigned."* `execution_opened: false`. A reviewer reads and runs checks; it does not mutate files unless a separate repair Brick is declared.
+Still admitted as the read-only reviewer fallback policy. Current `qa` and `inspector` Agent Objects carry `read-write-scoped` for attack-QA / inspection work inside the disposable W1 worktree sandbox instead. The reviewer-no-mutation hook still holds: reviewer writes are work-area probes or repairs only, never customer source-truth mutation, Movement, quality, or success authority.
 
 ### What every tool policy refuses
 
@@ -188,7 +188,7 @@ insufficient_input, replay_needed, verification_gap, unknown
 The Agent axis is the performer, and it is built so the performer can do real work while being unable to grade it:
 
 1. An **Agent Object** declares a provider-neutral role (`agent/objects/*.yaml`) with a `lane`.
-2. A **tool policy** (`agent/tool_policies/*.yaml`) bounds what that role may touch — only `read-write-scoped` (carried by `dev` and the four team leads; the COO and the reviewers stay read-only) can write, and only inside a Brick-declared `write_scope`.
+2. A **tool policy** (`agent/tool_policies/*.yaml`) bounds what that role may touch — only `read-write-scoped` (carried by `dev`, the four team leads, and the two reviewers for W1 disposable-worktree work; the COO stays read-only) can write, and only inside a Brick-declared `write_scope`.
 3. A Brick declares its **NEED** (`requires_brick_write_scope` + `performer_lane_need`); the Builder **selects** an Agent whose lane/policy/capability **matches**, with `agent_object_hint_ref` as an optional hint, not an authority.
 4. The selected Agent returns a **closed AgentFact** (`received_work`, `returned`) under the **proof-limits** discipline — observed evidence and what is not proven, never a verdict and never the next Movement.
 

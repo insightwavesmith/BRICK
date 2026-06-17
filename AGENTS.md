@@ -120,8 +120,12 @@ Write capability is `tool-policy:read-write-scoped` plus an observed-write
 adapter. It is admissible for worker and leader lanes — the four team leads
 (pm-lead, design-lead, cto-lead, qa-lead) carry it alongside dev; the COO
 stays read-only (the Movement/judgment authority carries no write tools);
-reviewer lanes stay read-only. Capability is not authority. Effective write
-opens only where the Brick declares its write NEED:
+reviewer lanes may carry it for attack-QA / inspection work inside the
+disposable W1 worktree sandbox. The worktree boundary protects the real repo;
+reviewer writes are repair/probe work-area mutations only, never customer
+source-truth mutation, Movement, quality, or success authority. Capability is
+not authority. Effective write opens only where the Brick declares its write
+NEED:
 
 ```text
 effective_write = Brick write_scope NEED
@@ -331,7 +335,14 @@ adapter:local
 adapter:codex-local
 adapter:claude-local
 adapter:gemini-local
+adapter:gemini-api
+adapter:chat-session
 ```
+
+`adapter:gemini-api` is a read/review HTTP API adapter sibling of
+`adapter:gemini-local`, not a write adapter. `adapter:chat-session` is the
+parked / human-as-agent adapter for chat-session handoff, not provider identity
+or Movement authority.
 
 Write capability is not owned by the adapter name or by `dev` alone. Effective
 write requires Brick-declared write scope, Agent tool policy, adapter support,
@@ -702,7 +713,7 @@ compileall green
 git diff --check green
 import smoke green
 reporter implementation remained absent at P9; REPORTER-NOTIFICATION-PROJECTION-0
-later admits the local inbox projection slice only
+later admits four support-only report sinks
 ```
 
 ## Post-D Goal (Completed — historical)
@@ -822,28 +833,40 @@ Evidence / ledger / dashboard family:
 PROJECT-ORCHESTRATION-LEDGER-0
 DASHBOARD-READ-SIDE-VIEW
 DASHBOARD-WEB-PROJECTION-0
-REPORTER-NOTIFICATION-PROJECTION-0 local inbox projection slice only
+REPORTER-NOTIFICATION-PROJECTION-0 four support-only report sinks
 PRH-B automatic Building evidence recording
 raw structured BAL evidence minimum
 ```
 
-REPORTER-NOTIFICATION-PROJECTION-0 admits only the first support-only local
-status inbox projection slice:
+REPORTER-NOTIFICATION-PROJECTION-0 admits exactly four support-only report
+sinks:
 
 ```text
 support/operator/reporter.py
 support/operator/report_sinks.py
 project/brick-protocol/status/inbox/
+report-sink:local-inbox
+report-sink:operator-wake-local
+report-sink:slack
+report-sink:dashboard
 ```
 
 The admitted slice may read persisted Building / portfolio evidence, render
-report packets, and fan out one packet to the local inbox sink. It must not
+report packets, and fan out one packet to the admitted sinks. Local inbox and
+operator-wake-local write local status projection packets. Slack and dashboard
+real delivery are gated by environment credentials plus the caller-declared
+`allow_real_slack_delivery` / `allow_real_dashboard_delivery` flags; dry-run /
+non-delivery remains the default support validation posture outside those
+gates. Slack/dashboard observations record only environment presence and
+status classes, never credentials or response bodies. It must not
 become source truth, success judgment, quality judgment, Movement authority,
 target selector, route input, scheduler / queue / retry runtime, provider
-runtime, Slack delivery, thread wake delivery, dashboard expansion, webhook
-delivery, or database. The reporter profile executes negative probes for
-authority-leaking report packets and unadmitted sinks; it does not merely
-text-pin probe function names.
+runtime, webhook delivery, database, source-truth write-back, or any fifth sink
+without a separate report_bus / sinks split. The reporter remains a stateless
+synchronous render -> sink support projection. The reporter profile executes
+negative probes for authority-leaking report packets, unadmitted sinks,
+real-delivery gating, no-scheduler/no-queue/no-retry discipline, and the
+four-sink ceiling; it does not merely text-pin probe function names.
 
 Link / routing / disposition family:
 

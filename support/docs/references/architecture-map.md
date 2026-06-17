@@ -76,10 +76,10 @@ ledger_projection.py    per-vessel orchestration-ledger packet + read-only view
 progress_projection.py  per-vessel machine PROGRESS.md projection (truth layer only)
 dashboard_export.py     dashboard read-side projection; delta keyed by the
                         composite (project_ref, building_id)
-reporter.py             support-only report packet renderer + local inbox
-                        coordinator
+reporter.py             support-only report packet renderer for admitted
+                        report sinks
 report_sinks.py         one-shot report sink fan-out for support-only report
-                        packets
+                        packets: local inbox, operator wake, Slack, dashboard
 ```
 
 vessel declaration — project vessel declaration record + creation verb:
