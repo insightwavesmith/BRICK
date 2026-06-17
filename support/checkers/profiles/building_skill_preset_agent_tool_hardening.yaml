@@ -123,7 +123,8 @@ text_contains:
       - retired tool policy ref
       - retired hook ref
       - leader lane must carry tool-policy:leader-coordination
-      - reviewer lane must carry tool-policy:reviewer-readonly
+      - A reviewer MAY carry tool-policy:read-write-scoped
+      - work-area write CAPABILITY
   - path: support/connection/agent_adapter.py
     texts:
       - lowered.startswith("/")

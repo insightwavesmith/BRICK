@@ -158,12 +158,17 @@ text_contains:
       - building_index_packet
   - path: AGENTS.md
     texts:
-      - REPORTER-NOTIFICATION-PROJECTION-0 local inbox projection slice only
+      - REPORTER-NOTIFICATION-PROJECTION-0 four support-only report sinks
       - support/operator/reporter.py
       - support/operator/report_sinks.py
-      - reporter profile executes negative probes
+      - report-sink:operator-wake-local
+      - report-sink:slack
+      - report-sink:dashboard
       - The admitted slice may read persisted Building / portfolio evidence
+      - Slack and dashboard
+      - real delivery are gated by environment credentials plus the caller-declared
       - target selector, route input, scheduler / queue / retry runtime
+      - four-sink ceiling
   - path: support/operator/reporter.py
     texts:
       - def render_report_packet
@@ -476,7 +481,7 @@ proof_limits:
   - not quality judgment
   - not Movement authority
   - profile pass is not source truth
-  - local inbox projection only
+  - four support-only report sinks only
   - not route input
 not_proven:
   - semantic correctness of the projected Building states
