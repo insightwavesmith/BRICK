@@ -197,162 +197,16 @@ def _evict_foreign_brick_protocol_modules(repo: Path) -> None:
             continue
         del sys.modules[name]
 PROFILE_DIR = Path("support/checkers/profiles")
-KERNEL_CHECK_IDS = {
-    "axis_vocab_drift",
-    "package_path_admission",
-    "axis_contract_projection",
-    "assembly_equivalence",
-    "declared_verifier_exists",
-    "axis_field_enum_parity",
-    "agentfact_single_home",
-    "building_root_anchor",
-    "catalog_reader_sync",
-    "agent_resource_resolution",
-    "bricks_spec_completeness",
-    "building_lifecycle_path_shape",
-    "building_map_graph",
-    "project_declaration",
-    "bounded_agent_proposed_routing_loop",
-    "building_operator_driver0",
-    "driver_public_intake_seal",
-    "building_declaration_integrity",
-    "building_plans_boundary_sweep",
-    "agent_adapter_return_shape",
-    "provider_preflight",
-    "design_ai_text_seams",
-    "gemini_api_adapter",
-    "onboard_smoke",
-    "install_script_lint",
-    "release_export_exclusion",
-    "product_no_smith_residue",
-    "reporter_notification_projection",
-    "chat_session_park_seam",
-    "adapter_error_frontier_manifest_consistency",
-    "adapter_error_path_hardening",
-    "mcp_stdio_smoke",
-    "connect_config_launch",
-    "codex_projection_native",
-    "claude_projection_native",
-    "recording_checker_derived_contract",
-    "axis_crossing_elegance",
-    "tier_a_three_axis_conformance",
-    "brick_template_catalog_restructure",
-    "evidence_spine",
-    "evidence_spine_projection",
-    "pin_estate_integrity",
-    "agent_session_id_redaction",
-    "dashboard_productization_projection",
-}
-RULE_KEYS = {
-    "path_exists",
-    "path_absent",
-    "path_absent_glob",
-    "path_allowlist",
-    "text_contains",
-    "text_absent",
-    "yaml_literal_set",
-    "json_required_paths",
-    "json_value_paths",
-    "agent_resource_boundary",
-    "agent_preferred_adapter_rejects",
-    "agent_resource_retired_ref_rejects",
-    "adapter_capability_rehome_case",
-    "hook_registry_axis_case",
-    "adapter_model_selection_case",
-    "adapter_model_selection_rejects",
-    "building_plan_boundary",
-    "route_policy_boundary",
-    "route_materialization_case",
-    "transition_concern_disposition_case",
-    "materialize_building_intent_case",
-    "materialize_building_intent_rejects",
-    "preset_building_completion_case",
-    "adapter_gate_shape_union_case",
-    "building_intake_seam_case",
-    "intake_evidence_projection_case",
-    "intake_project_vessel_case",
-    "link_route_evidence_case",
-    "run_once_task_source_admission_case",
-    "onboard_seam_case",
-    "agent_candidate_packet_case",
-    "preset_ranking_packet_case",
-    "compose_building_case",
-    "compose_building_rejects",
-    "write_scope_default_exclude_case",
-    "source_fact_body_carry_case",
-    "step_output_drain_case",
-    "step_output_drain_rejects",
-    "declared_step_template_plan_case",
-    "declared_step_template_plan_rejects",
-    "auto_repair_replay_case",
-    "child_building_candidate_case",
-    "native_dispatch_close_case",
-    "workflow_import_case",
-    "fail_fixture_rejects",
-    "gate_sequence_policy_case",
-    "gate_sequence_policy_rejects",
-    "building_lifecycle_case",
-    "building_lifecycle_rejects",
-}
-TOP_LEVEL_KEYS = {
-    "schema",
-    "profile_id",
-    "description",
-    "kernel_checks",
-    "proof_limits",
-    "not_proven",
-} | RULE_KEYS
-
-
-def read_profile(path: Path) -> Mapping[str, Any]:
-    parsed = parse_yaml_subset(path.read_text(encoding="utf-8"))
-    profile = require_mapping(parsed, str(path))
-    validate_profile(profile, path)
-    return profile
-
-
-def validate_profile(profile: Mapping[str, Any], path: Path) -> None:
-    unknown = set(profile) - TOP_LEVEL_KEYS
-    if unknown:
-        raise ProfileError(f"{path}: unknown top-level key(s): {sorted(unknown)}")
-    if profile.get("schema") != PROFILE_SCHEMA:
-        raise ProfileError(f"{path}: schema must be {PROFILE_SCHEMA!r}")
-    require_string(profile.get("profile_id"), f"{path}: profile_id")
-    for check_id in require_string_list(profile.get("kernel_checks", []), f"{path}: kernel_checks"):
-        if check_id not in KERNEL_CHECK_IDS:
-            raise ProfileError(f"{path}: unknown kernel check id: {check_id}")
-    for key in RULE_KEYS:
-        if key in profile and not isinstance(profile[key], list):
-            raise ProfileError(f"{path}: {key} must be a list")
-
-
-def profile_path(repo: Path, value: str) -> Path:
-    raw = Path(value)
-    if raw.exists():
-        return raw
-    name = value[:-5] if value.endswith(".yaml") else value
-    candidates = [
-        repo / PROFILE_DIR / f"{name}.yaml",
-        repo / PROFILE_DIR / f"{name.replace('-', '_')}.yaml",
-        repo / PROFILE_DIR / f"{name.replace('_', '-')}.yaml",
-    ]
-    for candidate in candidates:
-        if candidate.is_file():
-            return candidate
-    raise ProfileError(f"profile not found: {value}")
-
-
-def profile_paths(repo: Path, args: argparse.Namespace) -> list[Path]:
-    if args.all:
-        paths = sorted((repo / PROFILE_DIR).glob("*.yaml"))
-        if not paths:
-            raise ProfileError(f"no profiles found in {repo / PROFILE_DIR}")
-        return paths
-    if args.profile:
-        return [profile_path(repo, args.profile)]
-    raise ProfileError("provide --profile, --all, or --self-test")
-
-
+BASE_TOP_LEVEL_KEYS = frozenset(
+    {
+        "schema",
+        "profile_id",
+        "description",
+        "kernel_checks",
+        "proof_limits",
+        "not_proven",
+    }
+)
 RULE_RUNNERS: Mapping[str, Callable[[Path, Mapping[str, Any]], int]] = {
     "path_exists": run_path_exists,
     "path_absent": run_path_absent,
@@ -404,414 +258,470 @@ RULE_RUNNERS: Mapping[str, Callable[[Path, Mapping[str, Any]], int]] = {
     "building_lifecycle_case": run_building_lifecycle_case,
     "building_lifecycle_rejects": run_building_lifecycle_rejects,
 }
+RULE_KEYS = frozenset(RULE_RUNNERS)
+TOP_LEVEL_KEYS = BASE_TOP_LEVEL_KEYS | RULE_KEYS
+
+_REPO_ARG = object()
+
+
+@dataclass(frozen=True)
+class _CallMainKernel:
+    check_id: str
+    module_name: str
+    argv: tuple[object, ...] | None
+
+    def __call__(self, repo: Path) -> KernelResult:
+        if self.argv is None:
+            argv = None
+        else:
+            argv = [str(repo) if arg is _REPO_ARG else str(arg) for arg in self.argv]
+        return call_main(self.check_id, self.module_name, argv)
+
+
+def _repo_main(check_id: str, module_name: str, *extra_args: str) -> _CallMainKernel:
+    return _CallMainKernel(check_id, module_name, ("--repo", _REPO_ARG, *extra_args))
+
+
+def _run_package_path_admission(repo: Path) -> KernelResult:
+    module = importlib.import_module("support.checkers.check_package_path_admission")
+    paths = module.collect_repo_paths(repo)
+    violations = module.check_paths(paths)
+    if violations:
+        detail = "\n".join(f"- {violation}" for violation in violations)
+        raise ProfileError(f"kernel check package_path_admission rejected evidence:\n{detail}")
+    return KernelResult(
+        check_id="package_path_admission",
+        inspected=len(paths),
+        output=(
+            "package path admission passed: full repo path gate inspected "
+            f"{len(paths)} path(s)."
+        ),
+    )
+
+
+KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
+    "axis_vocab_drift": run_axis_vocab_drift,
+    # package_path_admission intentionally keeps the inline inspected-count body;
+    # call_main would collapse inspected to 1 and lose the full path-gate meaning.
+    "package_path_admission": _run_package_path_admission,
+    "axis_contract_projection": _repo_main(
+        "axis_contract_projection",
+        "support.checkers.check_axis_contract_projection",
+    ),
+    # HEART-PHASE0-EQUIVALENCE-CHECKER-0616. Executes the structural
+    # equivalence guard IN-PROCESS over hand-built compose_building fixtures:
+    # 3 accepted corpus shapes including two-fan-in, renamed-ref green, and
+    # RED discrimination for wrong gate placement / closure policy drift /
+    # missing fan-in group. While support/operator/assembly.py is absent,
+    # the true LHS assembly equivalence corpus logs an advisory skip; if the
+    # front door appears, this check fails closed until wired to it.
+    "assembly_equivalence": _repo_main(
+        "assembly_equivalence",
+        "support.checkers.check_assembly_equivalence",
+    ),
+    "declared_verifier_exists": _repo_main(
+        "declared_verifier_exists",
+        "support.checkers.check_declared_verifier_exists",
+    ),
+    "axis_field_enum_parity": _repo_main(
+        "axis_field_enum_parity",
+        "support.checkers.check_axis_field_enum_parity",
+    ),
+    "agentfact_single_home": _repo_main(
+        "agentfact_single_home",
+        "support.checkers.check_agentfact_single_home",
+    ),
+    "building_root_anchor": _repo_main(
+        "building_root_anchor",
+        "support.checkers.check_building_root_anchor",
+    ),
+    "catalog_reader_sync": _repo_main(
+        "catalog_reader_sync",
+        "support.checkers.check_catalog_reader_sync",
+    ),
+    "agent_resource_resolution": _repo_main(
+        "agent_resource_resolution",
+        "support.checkers.check_agent_resource_resolution",
+    ),
+    "bricks_spec_completeness": _repo_main(
+        "bricks_spec_completeness",
+        "support.checkers.check_bricks_spec_completeness",
+    ),
+    "building_lifecycle_path_shape": _repo_main(
+        "building_lifecycle_path_shape",
+        "support.checkers.check_building_lifecycle_path_shape",
+    ),
+    "building_map_graph": run_building_map_graph,
+    # PROJECT-0 S1: every project/<id>/ vessel must declare its charter
+    # (README.md) + machine declaration (project.json, closed keys,
+    # non-empty direction). Runs IN-PROCESS with anti-tautology probes
+    # (violating vessels incl. non-slug ids + a symlinked vessel, slug-law
+    # seam parity, creation rollback)
+    # (violating synthetic vessels must be rejected); a non-zero main()
+    # raises ProfileError, so an undeclared project vessel drives --all RED.
+    "project_declaration": _repo_main(
+        "project_declaration",
+        "support.checkers.check_project_declaration",
+    ),
+    # Executes the standalone walker checker IN-PROCESS: imports + runs the
+    # real dynamic graph walker over adapter:local fixtures (adopt within
+    # budget / HOLD on exhaustion / nested shares budget). A non-zero
+    # main() raises ProfileError, so a broken walker invariant makes
+    # --all EXIT non-zero (no longer text-admitted only).
+    "bounded_agent_proposed_routing_loop": _repo_main(
+        "bounded_agent_proposed_routing_loop",
+        "support.checkers.check_bounded_agent_proposed_routing_loop0",
+    ),
+    # Executes the standalone D2 portfolio driver checker IN-PROCESS: imports
+    # + drives the real support/operator/driver.py over declared existing
+    # adapter:local Building Plan refs, including the load-bearing negative
+    # probes for bare default-transition and undeclared candidates.
+    "building_operator_driver0": _repo_main(
+        "building_operator_driver0",
+        "support.checkers.check_building_operator_driver0",
+    ),
+    # Parses driver.py __all__ without importing it: the only public
+    # Building-making intake verb in driver remains run_building_intake;
+    # run_composed_graph_intake stays callable by direct checker import but
+    # is sealed out of the public ordering surface.
+    "driver_public_intake_seal": _repo_main(
+        "driver_public_intake_seal",
+        "support.checkers.check_driver_public_intake_seal",
+    ),
+    # Executes the declaration-integrity checker IN-PROCESS: runs the three
+    # anti-tautological negative probes (composition-mode, chain artifacts,
+    # provenance<->returned acceptance) AND inspects every persisted building
+    # root. A probe that is not rejected, or a real root that violates the
+    # invariant, makes main() return non-zero and raises ProfileError, so
+    # --all EXITs non-zero.
+    "building_declaration_integrity": _repo_main(
+        "building_declaration_integrity",
+        "support.checkers.check_building_declaration_integrity",
+    ),
+    # Global building-plan boundary sweep: runs validate_building_plan_boundary
+    # over every linear plan in brick/building_plans/, rehoming the per-profile
+    # single-plan boundary pins into one general guard (pass-1 consolidation).
+    "building_plans_boundary_sweep": run_building_plans_boundary_sweep,
+    # Executes the required-return-shape waiver probe IN-PROCESS so the work
+    # template's no_changes_reason wording cannot drift away from adapter
+    # extraction or Brick comparison waiver behavior.
+    "agent_adapter_return_shape": run_agent_adapter_return_shape,
+    # ONBOARDING-PROVIDER-PREFLIGHT-0. Executes the friendly never-raising
+    # provider preflight IN-PROCESS: imports preflight_provider and asserts it
+    # returns a well-shaped status dict for an ACTIVE adapter + in-process
+    # adapter:local, AND that it returns ok False (never raises) for a
+    # deliberately bogus/retired adapter ref. If preflight_provider ever
+    # raises (e.g. on a missing CLI), this kernel check goes RED and --all
+    # EXITs non-zero. This is the no-raise guard for the onboarding "login"
+    # step (a missing/unauthed provider must surface a plain-Korean message,
+    # not a mid-run stack-trace).
+    "provider_preflight": run_provider_preflight,
+    # DESIGN-AI-TEXT-SEAM-0616. Executes the Claude/Codex prompt -> raw text
+    # wrappers IN-PROCESS with mock command_runners only: normal raw text,
+    # missing executable, timeout propagation, blank-output rejection, and
+    # secret-output rejection. NO live provider CLI is called.
+    "design_ai_text_seams": run_design_ai_text_seams,
+    # B6 GEMINI-API-ADAPTER. Executes the direct Gemini HTTP API adapter
+    # IN-PROCESS: asserts adapter:gemini-api is admitted (READ+REVIEW, not
+    # write-capable, not a CLI spec); that a no-key call raises a CLEAN typed
+    # adapter-error (local_cli_missing, the B2 hold shape) with NO child
+    # process spawned; that a mocked request hits the documented v1beta
+    # generateContent endpoint with the x-goog-api-key header (key NOT in the
+    # URL) and the {"contents":[{"parts":[{"text":...}]}]} body, parsed into
+    # the CLI-mirror returned shape; and that HTTP-error/timeout/malformed all
+    # become clean ValueErrors. If the no-key path stops raising the clean
+    # typed error, this kernel check goes RED (mutation-RED guard) and --all
+    # EXITs non-zero. NO live API call (no real key) is made.
+    "gemini_api_adapter": run_gemini_api_adapter,
+    # ONBOARDING-WIZARD-0. Executes the friendly never-raising onboarding flow
+    # IN-PROCESS: imports run_onboard and drives the bundled adapter:local
+    # example Building END-TO-END to a TEMP output_root (never the repo),
+    # asserting it returns the structured {preflight, connect_hint,
+    # example_result, handoff_message_ko, ok} dict with ok True + a building_id
+    # + landed evidence, AND returns ok False (never raises) for a bogus host.
+    # If run_onboard ever raises, this kernel check goes RED and --all EXITs
+    # non-zero. This is the no-raise guard for the guided onboarding experience.
+    "onboard_smoke": run_onboard_smoke,
+    # ONBOARDING-INSTALL-SCRIPT-0. Structural/safety lint of the one-line
+    # installer support/onboarding/install.sh IN-PROCESS: asserts set -eu, all
+    # logic in main() invoked as 'main "$@"' on the LAST non-empty line
+    # (anti-truncation), no http:// (HTTPS only), no /Users/ literal, no inline
+    # secret pattern, and a reference to the onboard wizard entry. A violation
+    # makes main() return non-zero and raises ProfileError, so --all EXITs
+    # non-zero. PROOF LIMIT: structure/safety only -- it does NOT prove a real
+    # fresh-machine install (clone/uv sync/provider auth = manual / Phase-4).
+    "install_script_lint": run_install_script_lint,
+    # RELEASE-EXPORT-0. Structural exclusion pin for the clean public export
+    # verb: project/ local evidence and brick_protocol.egg-info/ build
+    # metadata must not ship, and publication stays as printed follow-up
+    # commands. Includes a temp mutation that removes project/ and must RED.
+    "release_export_exclusion": run_release_export_exclusion,
+    # ONBOARDING-LEGACY-SCRUB-0612. Scans shipped newcomer-facing surfaces
+    # (README.md, support/docs/spec, agent/prompts) for Smith local residue:
+    # no /Users/smith literal and no hardcoded insightwavesmith org outside
+    # the README working-example allowance. Runs temp-copy FIRE probes for
+    # both forbidden families; a non-firing probe makes --all exit non-zero.
+    "product_no_smith_residue": run_product_no_smith_residue,
+    # Executes reporter validation probes IN-PROCESS. This keeps the profile
+    # from merely text-pinning the presence of probe functions while never
+    # observing that authority-leaking packets and unadmitted sinks reject.
+    "reporter_notification_projection": run_reporter_notification_projection,
+    # Executes the dashboard productization guard IN-PROCESS: production
+    # /ingest fail-closed static lint with mutated-copy FIRE, deploy literal
+    # hygiene with synthetic hardcoded project/URL probes, and the synchronous
+    # bake verb round-trip with a source_truth mutation RED case.
+    "dashboard_productization_projection": run_dashboard_productization_projection,
+    # Executes the chat-session S1 PARK seam IN-PROCESS over a temp project
+    # Building root: declared adapter:chat-session must write a closed
+    # AgentAdapterRequest envelope + distinct park record, stop before any
+    # AgentFact, observe frontier_kind=chat_session_parked before incomplete,
+    # map to the reporter intervention bell, and pass both lifecycle/path
+    # admission checkers on the generated support evidence.
+    "chat_session_park_seam": run_chat_session_park_seam,
+    "adapter_error_frontier_manifest_consistency": run_adapter_error_frontier_manifest_consistency,
+    "adapter_error_path_hardening": run_adapter_error_path_hardening,
+    # Execution smoke: bare-launches support/connection/mcp_projection.py with
+    # a CLEAN env (no PYTHONPATH) like a real MCP host and asserts it answers
+    # initialize without crashing at import. Catches the bootstrap regression
+    # where the script forgets to put support/import_identity on sys.path and
+    # crashes with ModuleNotFoundError: brick_protocol on a bare host launch.
+    # The external bare-launch lives in the checker layer (kernel_checks.py),
+    # never in mcp_projection.py, which owns no execution surface.
+    "mcp_stdio_smoke": run_mcp_stdio_smoke,
+    # Execution proof for the CONNECT-GENERATOR-0 read-only generator: imports
+    # support/connection/connect.py, renders the Codex MCP config for THIS
+    # repo, extracts the command + server script + --repo it emits, then
+    # externally launches EXACTLY that with a CLEAN env (no PYTHONPATH) and
+    # pipes one initialize. Asserts a JSON-RPC result with no crash, that the
+    # emitted script == <repo>/support/connection/mcp_projection.py (and
+    # exists), and that connect.py source carries no hardcoded user-home path.
+    # This proves "generated config -> actually working connection". The
+    # external launch lives in the checker layer; connect.py runs none.
+    "connect_config_launch": run_connect_config_launch,
+    # Execution proof that the Claude projection is a REAL Claude-native .md
+    # subagent (--- YAML frontmatter --- + body), not a label-only generic
+    # blob. Imports the read-only renderer (support/connection/
+    # agent_resources.py) and asserts over admitted Agent Objects: (a)
+    # render_claude_subagent_md parses with name/description/tools in the
+    # frontmatter; (b) a REAL tool-policy -> tools mapping (dev read-write-
+    # scoped tools INCLUDE Edit AND Write; a leader/reviewer EXCLUDES both),
+    # so a constant tools list turns this RED; (c) the claude .md is
+    # materially DIFFERENT from the codex TOML (markdown, not a TOML table);
+    # (d) the "enforced by Brick MCP" honesty note is present in the body.
+    # The renderer it pins spawns no external process and writes no file; the
+    # checker imports it in-process.
+    "claude_projection_native": run_claude_projection_native,
+    # Execution proof that the Codex projection is a REAL Codex-native TOML
+    # subagent, not a label-only generic blob. Imports the read-only renderer
+    # (support/connection/agent_resources.py) and asserts over admitted Agent
+    # Objects: (a) render_codex_subagent_toml parses as valid TOML with the
+    # required name/description/developer_instructions; (b) sandbox_mode is a
+    # REAL tool-policy mapping (read-write-scoped dev -> workspace-write;
+    # leader/reviewer read-only policies -> read-only), so a constant
+    # sandbox_mode turns this RED; (c) the codex TOML is materially DIFFERENT
+    # from the claude markdown seed; (d) developer_instructions carries the
+    # "enforced by Brick MCP" honesty note. The renderer it pins spawns no
+    # external process and writes no file; the checker imports it in-process.
+    "codex_projection_native": run_codex_projection_native,
+    # Executes the standalone zeta6 checker IN-PROCESS: derives the dynamic-walker
+    # evidence shape from support/recording/contracts.py and runs the real
+    # walk, catching contract-required-field drift AND independent axis-value
+    # drift. A non-zero main() raises ProfileError, so an evidence-contract
+    # regression makes --all EXIT non-zero.
+    "recording_checker_derived_contract": _repo_main(
+        "recording_checker_derived_contract",
+        "support.checkers.check_recording_checker_derived_contract",
+    ),
+    # ELEGANT-REFACTOR P-guard. Executes the elegance guard IN-PROCESS: runs
+    # the six anti-tautological G1-G6 negative probes AND validates the live
+    # crossing_registry.yaml + module_registry.yaml + the support module
+    # tree (one canonical contract per crossing, no mixing, cross-via-
+    # canonical-only, every module registered, consume-not-author,
+    # decomposition ceiling - a self-consistency check, not a one-way
+    # ratchet; see check_axis_crossing_elegance G6 proof-limit). A probe
+    # that is not rejected, or a real
+    # registry/code violation, makes main() return non-zero and raises
+    # ProfileError, so --all EXITs non-zero. Independent oracle: this checker
+    # imports no axis module (and is not imported here in a way that would).
+    "axis_crossing_elegance": _repo_main(
+        "axis_crossing_elegance",
+        "support.checkers.check_axis_crossing_elegance",
+    ),
+    # HALF-2 Tier A. Executes the conformance harness IN-PROCESS: runs the
+    # anti-tautological FIRE probe (a degraded copy with the reroute trace and
+    # declaration_provenance dropped MUST be reported unmet) AND asserts the
+    # engine-produced tier-a-3axis-conformance-0 root carries all three axes +
+    # Link mechanics + evidence + declaration_provenance. A probe that does not
+    # fire, or an unmet assertion, makes main() return non-zero and raises
+    # ProfileError, so --all EXITs non-zero. This is the deterministic
+    # regression net re-run after each P3 extraction.
+    "tier_a_three_axis_conformance": _repo_main(
+        "tier_a_three_axis_conformance",
+        "support.checkers.check_tier_a_three_axis_conformance",
+    ),
+    # BRICK-TEMPLATE-CATALOG-RESTRUCTURE-0 P10 checker/FIRE closure. Executes
+    # the split catalog checker IN-PROCESS: synthetic RED-first FIRE fixtures
+    # prove stable problem codes, while live enforcement reads split
+    # step_template_catalog.rows as active binding evidence after old compact
+    # registry deletion. Link refs anchor in link/gate.py,
+    # Agent refs in agent/objects payloads, link_word in link/movement.py,
+    # and checker output remains support evidence only.
+    "brick_template_catalog_restructure": _repo_main(
+        "brick_template_catalog_restructure",
+        "support.checkers.check_brick_template_catalog_restructure",
+        "--mode",
+        "p10-delete",
+    ),
+    # U5.5 SLICE-1A. Executes the spine structural checker IN-PROCESS over
+    # every persisted building root: for each building tagged
+    # evidence_generation == u5_5_live it verifies pairing (.md ==
+    # render(.json)), the content/prev hash chain, monotonic sequence_index +
+    # run_segment, spine.json/.jsonl/.md == re-derived from events/, admitted
+    # event types + axis scope, and no forbidden success/quality key.
+    # Untagged (pre-U5.5) buildings are skipped, so existing evidence is
+    # untouched. A real spine violation makes main() return non-zero and
+    # raises ProfileError, so --all EXITs non-zero.
+    "evidence_spine": _repo_main(
+        "evidence_spine",
+        "support.checkers.check_evidence_spine",
+    ),
+    # U5.5 SLICE-2. Executes the spine PROJECTION-completeness checker
+    # IN-PROCESS over every persisted building root: for each building tagged
+    # evidence_generation == u5_5_live it verifies the spine projection covers
+    # the building-scope declarations (exactly one each of PresetExpansion and
+    # LinkLaunchPolicy in events/). This is the coverage guard, complementary
+    # to evidence_spine (the structural guard). Untagged (pre-U5.5) buildings
+    # are skipped, so existing evidence is untouched. A real coverage gap makes
+    # main() return non-zero and raises ProfileError, so --all EXITs non-zero.
+    "evidence_spine_projection": _repo_main(
+        "evidence_spine_projection",
+        "support.checkers.check_evidence_spine_projection",
+    ),
+    # TREASURE PORT 1 (ACTIVE-SPEC-SPINE disciplines, concept-lifted from
+    # d5bc86e:support/checkers/check_doc_grounding.py). Executes the
+    # pin-estate checker IN-PROCESS: (a) rejects decorative history-doc pins
+    # (path-existence-only / blank needles / keyless json_required_paths),
+    # (b) runs adversarial pin probes (temp copy of the pinned doc, mutate
+    # the pinned text, the REAL text_rule runner must RED - proving the
+    # surviving KEEP-LIVE/GUARD-ONLY pins actually fire), and (c) enforces
+    # the pin-estate ratchet (estate count changes - path_exists/path_absent
+    # items, text_contains/text_absent blocks, and json_required_paths
+    # blocks on the history prefixes - vs support/checkers/
+    # pin_estate_baseline.yaml without a new dated human disposition entry
+    # RED; tamper-EVIDENT, not tamper-proof - see the checker docstring).
+    # Six synthetic FIRE probes run RED-first on every invocation; a
+    # non-rejecting probe makes main() return non-zero, so --all EXITs
+    # non-zero.
+    "pin_estate_integrity": _repo_main(
+        "pin_estate_integrity",
+        "support.checkers.check_pin_estate_integrity",
+    ),
+    # TREASURE PORT 2 (lifted from 2d44fc7:support/checkers/lib/
+    # kernel_checks.py run_agent_session_id_redaction). Forbids any
+    # provider/runtime session id (bare UUID/ULID, keyed session_id/
+    # conversation_id forms, sess_/sess-/provider-session-/resume-token-/
+    # chatcmpl-/ya29./JWT tokens) in the kernel/buildings/reviews/archive
+    # surfaces. Operator policy 0611: frozen building evidence and archived
+    # history are NOT rewritten; the 6 investigator-verified legacy leak
+    # files are carried on an explicit per-path allowlist of frozen
+    # line-content sha256[:16] hashes (codex-review tightening C: every
+    # offending line must match a frozen allowlisted line - count<=budget
+    # is no longer sufficient), and any NEW leak (outside the allowlist,
+    # or any non-matching/extra line inside an allowlisted file) REDs.
+    "agent_session_id_redaction": run_agent_session_id_redaction,
+}
+KERNEL_CHECK_IDS = frozenset(KERNEL_DISPATCH)
+
+
+def _raw_profile(path: Path) -> Mapping[str, Any]:
+    parsed = parse_yaml_subset(path.read_text(encoding="utf-8"))
+    return require_mapping(parsed, str(path))
+
+
+def assert_registry_closure(repo: Path) -> None:
+    missing_top_level = sorted(set(RULE_RUNNERS) - TOP_LEVEL_KEYS)
+    if missing_top_level:
+        raise ProfileError(f"self-test failed: RULE_RUNNERS key(s) missing from TOP_LEVEL_KEYS: {missing_top_level}")
+    synthetic = {"schema": PROFILE_SCHEMA, "profile_id": "self-test-rule-key-closure"}
+    for key in RULE_RUNNERS:
+        synthetic[key] = []
+    validate_profile(synthetic, Path("<self-test-rule-key-closure>"))
+
+    profile_files = sorted((repo / PROFILE_DIR).glob("*.yaml"))
+    if not profile_files:
+        raise ProfileError(f"self-test failed: no profile YAML files found in {repo / PROFILE_DIR}")
+    unknown_checks: dict[str, list[str]] = {}
+    unknown_rules: dict[str, list[str]] = {}
+    for path in profile_files:
+        profile = _raw_profile(path)
+        check_ids = require_string_list(profile.get("kernel_checks", []), f"{path}: kernel_checks")
+        missing = sorted(set(check_ids) - KERNEL_DISPATCH.keys())
+        if missing:
+            unknown_checks[to_posix(path)] = missing
+        rule_keys = sorted((set(profile) - BASE_TOP_LEVEL_KEYS) - RULE_RUNNERS.keys())
+        if rule_keys:
+            unknown_rules[to_posix(path)] = rule_keys
+    if unknown_checks:
+        raise ProfileError(f"self-test failed: profile kernel_checks not in KERNEL_DISPATCH: {unknown_checks}")
+    if unknown_rules:
+        raise ProfileError(f"self-test failed: profile rule keys not in RULE_RUNNERS: {unknown_rules}")
+
+
+def read_profile(path: Path) -> Mapping[str, Any]:
+    parsed = parse_yaml_subset(path.read_text(encoding="utf-8"))
+    profile = require_mapping(parsed, str(path))
+    validate_profile(profile, path)
+    return profile
+
+
+def validate_profile(profile: Mapping[str, Any], path: Path) -> None:
+    unknown = set(profile) - TOP_LEVEL_KEYS
+    if unknown:
+        raise ProfileError(f"{path}: unknown top-level key(s): {sorted(unknown)}")
+    if profile.get("schema") != PROFILE_SCHEMA:
+        raise ProfileError(f"{path}: schema must be {PROFILE_SCHEMA!r}")
+    require_string(profile.get("profile_id"), f"{path}: profile_id")
+    for check_id in require_string_list(profile.get("kernel_checks", []), f"{path}: kernel_checks"):
+        if check_id not in KERNEL_CHECK_IDS:
+            raise ProfileError(f"{path}: unknown kernel check id: {check_id}")
+    for key in RULE_KEYS:
+        if key in profile and not isinstance(profile[key], list):
+            raise ProfileError(f"{path}: {key} must be a list")
+
+
+def profile_path(repo: Path, value: str) -> Path:
+    raw = Path(value)
+    if raw.exists():
+        return raw
+    name = value[:-5] if value.endswith(".yaml") else value
+    candidates = [
+        repo / PROFILE_DIR / f"{name}.yaml",
+        repo / PROFILE_DIR / f"{name.replace('-', '_')}.yaml",
+        repo / PROFILE_DIR / f"{name.replace('_', '-')}.yaml",
+    ]
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    raise ProfileError(f"profile not found: {value}")
+
+
+def profile_paths(repo: Path, args: argparse.Namespace) -> list[Path]:
+    if args.all:
+        paths = sorted((repo / PROFILE_DIR).glob("*.yaml"))
+        if not paths:
+            raise ProfileError(f"no profiles found in {repo / PROFILE_DIR}")
+        return paths
+    if args.profile:
+        return [profile_path(repo, args.profile)]
+    raise ProfileError("provide --profile, --all, or --self-test")
 
 
 def run_kernel_check(repo: Path, check_id: str) -> KernelResult:
-    if check_id == "axis_vocab_drift":
-        return run_axis_vocab_drift(repo)
-    if check_id == "package_path_admission":
-        module = importlib.import_module("support.checkers.check_package_path_admission")
-        paths = module.collect_repo_paths(repo)
-        violations = module.check_paths(paths)
-        if violations:
-            detail = "\n".join(f"- {violation}" for violation in violations)
-            raise ProfileError(f"kernel check package_path_admission rejected evidence:\n{detail}")
-        return KernelResult(
-            check_id="package_path_admission",
-            inspected=len(paths),
-            output=(
-                "package path admission passed: full repo path gate inspected "
-                f"{len(paths)} path(s)."
-            ),
-        )
-    if check_id == "axis_contract_projection":
-        return call_main(
-            check_id,
-            "support.checkers.check_axis_contract_projection",
-            ["--repo", str(repo)],
-        )
-    if check_id == "assembly_equivalence":
-        # HEART-PHASE0-EQUIVALENCE-CHECKER-0616. Executes the structural
-        # equivalence guard IN-PROCESS over hand-built compose_building fixtures:
-        # 3 accepted corpus shapes including two-fan-in, renamed-ref green, and
-        # RED discrimination for wrong gate placement / closure policy drift /
-        # missing fan-in group. While support/operator/assembly.py is absent,
-        # the true LHS assembly equivalence corpus logs an advisory skip; if the
-        # front door appears, this check fails closed until wired to it.
-        return call_main(
-            check_id,
-            "support.checkers.check_assembly_equivalence",
-            ["--repo", str(repo)],
-        )
-    if check_id == "declared_verifier_exists":
-        return call_main(
-            check_id,
-            "support.checkers.check_declared_verifier_exists",
-            ["--repo", str(repo)],
-        )
-    if check_id == "axis_field_enum_parity":
-        return call_main(
-            check_id,
-            "support.checkers.check_axis_field_enum_parity",
-            ["--repo", str(repo)],
-        )
-    if check_id == "agentfact_single_home":
-        return call_main(
-            check_id,
-            "support.checkers.check_agentfact_single_home",
-            ["--repo", str(repo)],
-        )
-    if check_id == "building_root_anchor":
-        return call_main(
-            check_id,
-            "support.checkers.check_building_root_anchor",
-            ["--repo", str(repo)],
-        )
-    if check_id == "catalog_reader_sync":
-        return call_main(
-            check_id,
-            "support.checkers.check_catalog_reader_sync",
-            ["--repo", str(repo)],
-        )
-    if check_id == "agent_resource_resolution":
-        return call_main(
-            check_id,
-            "support.checkers.check_agent_resource_resolution",
-            ["--repo", str(repo)],
-        )
-    if check_id == "bricks_spec_completeness":
-        return call_main(
-            check_id,
-            "support.checkers.check_bricks_spec_completeness",
-            ["--repo", str(repo)],
-        )
-    if check_id == "building_lifecycle_path_shape":
-        return call_main(
-            check_id,
-            "support.checkers.check_building_lifecycle_path_shape",
-            ["--repo", str(repo)],
-        )
-    if check_id == "building_map_graph":
-        return run_building_map_graph(repo)
-    if check_id == "project_declaration":
-        # PROJECT-0 S1: every project/<id>/ vessel must declare its charter
-        # (README.md) + machine declaration (project.json, closed keys,
-        # non-empty direction). Runs IN-PROCESS with anti-tautology probes
-        # (violating vessels incl. non-slug ids + a symlinked vessel, slug-law
-        # seam parity, creation rollback)
-        # (violating synthetic vessels must be rejected); a non-zero main()
-        # raises ProfileError, so an undeclared project vessel drives --all RED.
-        return call_main(
-            check_id,
-            "support.checkers.check_project_declaration",
-            ["--repo", str(repo)],
-        )
-    if check_id == "bounded_agent_proposed_routing_loop":
-        # Executes the standalone walker checker IN-PROCESS: imports + runs the
-        # real dynamic graph walker over adapter:local fixtures (adopt within
-        # budget / HOLD on exhaustion / nested shares budget). A non-zero
-        # main() raises ProfileError, so a broken walker invariant makes
-        # --all EXIT non-zero (no longer text-admitted only).
-        return call_main(
-            check_id,
-            "support.checkers.check_bounded_agent_proposed_routing_loop0",
-            ["--repo", str(repo)],
-        )
-    if check_id == "building_operator_driver0":
-        # Executes the standalone D2 portfolio driver checker IN-PROCESS: imports
-        # + drives the real support/operator/driver.py over declared existing
-        # adapter:local Building Plan refs, including the load-bearing negative
-        # probes for bare default-transition and undeclared candidates.
-        return call_main(
-            check_id,
-            "support.checkers.check_building_operator_driver0",
-            ["--repo", str(repo)],
-        )
-    if check_id == "driver_public_intake_seal":
-        # Parses driver.py __all__ without importing it: the only public
-        # Building-making intake verb in driver remains run_building_intake;
-        # run_composed_graph_intake stays callable by direct checker import but
-        # is sealed out of the public ordering surface.
-        return call_main(
-            check_id,
-            "support.checkers.check_driver_public_intake_seal",
-            ["--repo", str(repo)],
-        )
-    if check_id == "building_declaration_integrity":
-        # Executes the declaration-integrity checker IN-PROCESS: runs the three
-        # anti-tautological negative probes (composition-mode, chain artifacts,
-        # provenance<->returned acceptance) AND inspects every persisted building
-        # root. A probe that is not rejected, or a real root that violates the
-        # invariant, makes main() return non-zero and raises ProfileError, so
-        # --all EXITs non-zero.
-        return call_main(
-            check_id,
-            "support.checkers.check_building_declaration_integrity",
-            ["--repo", str(repo)],
-        )
-    if check_id == "building_plans_boundary_sweep":
-        # Global building-plan boundary sweep: runs validate_building_plan_boundary
-        # over every linear plan in brick/building_plans/, rehoming the per-profile
-        # single-plan boundary pins into one general guard (pass-1 consolidation).
-        return run_building_plans_boundary_sweep(repo)
-    if check_id == "agent_adapter_return_shape":
-        # Executes the required-return-shape waiver probe IN-PROCESS so the work
-        # template's no_changes_reason wording cannot drift away from adapter
-        # extraction or Brick comparison waiver behavior.
-        return run_agent_adapter_return_shape(repo)
-    if check_id == "provider_preflight":
-        # ONBOARDING-PROVIDER-PREFLIGHT-0. Executes the friendly never-raising
-        # provider preflight IN-PROCESS: imports preflight_provider and asserts it
-        # returns a well-shaped status dict for an ACTIVE adapter + in-process
-        # adapter:local, AND that it returns ok False (never raises) for a
-        # deliberately bogus/retired adapter ref. If preflight_provider ever
-        # raises (e.g. on a missing CLI), this kernel check goes RED and --all
-        # EXITs non-zero. This is the no-raise guard for the onboarding "login"
-        # step (a missing/unauthed provider must surface a plain-Korean message,
-        # not a mid-run stack-trace).
-        return run_provider_preflight(repo)
-    if check_id == "gemini_api_adapter":
-        # B6 GEMINI-API-ADAPTER. Executes the direct Gemini HTTP API adapter
-        # IN-PROCESS: asserts adapter:gemini-api is admitted (READ+REVIEW, not
-        # write-capable, not a CLI spec); that a no-key call raises a CLEAN typed
-        # adapter-error (local_cli_missing, the B2 hold shape) with NO child
-        # process spawned; that a mocked request hits the documented v1beta
-        # generateContent endpoint with the x-goog-api-key header (key NOT in the
-        # URL) and the {"contents":[{"parts":[{"text":...}]}]} body, parsed into
-        # the CLI-mirror returned shape; and that HTTP-error/timeout/malformed all
-        # become clean ValueErrors. If the no-key path stops raising the clean
-        # typed error, this kernel check goes RED (mutation-RED guard) and --all
-        # EXITs non-zero. NO live API call (no real key) is made.
-        return run_gemini_api_adapter(repo)
-    if check_id == "design_ai_text_seams":
-        # DESIGN-AI-TEXT-SEAM-0616. Executes the Claude/Codex prompt -> raw text
-        # wrappers IN-PROCESS with mock command_runners only: normal raw text,
-        # missing executable, timeout propagation, blank-output rejection, and
-        # secret-output rejection. NO live provider CLI is called.
-        return run_design_ai_text_seams(repo)
-    if check_id == "onboard_smoke":
-        # ONBOARDING-WIZARD-0. Executes the friendly never-raising onboarding flow
-        # IN-PROCESS: imports run_onboard and drives the bundled adapter:local
-        # example Building END-TO-END to a TEMP output_root (never the repo),
-        # asserting it returns the structured {preflight, connect_hint,
-        # example_result, handoff_message_ko, ok} dict with ok True + a building_id
-        # + landed evidence, AND returns ok False (never raises) for a bogus host.
-        # If run_onboard ever raises, this kernel check goes RED and --all EXITs
-        # non-zero. This is the no-raise guard for the guided onboarding experience.
-        return run_onboard_smoke(repo)
-    if check_id == "install_script_lint":
-        # ONBOARDING-INSTALL-SCRIPT-0. Structural/safety lint of the one-line
-        # installer support/onboarding/install.sh IN-PROCESS: asserts set -eu, all
-        # logic in main() invoked as 'main "$@"' on the LAST non-empty line
-        # (anti-truncation), no http:// (HTTPS only), no /Users/ literal, no inline
-        # secret pattern, and a reference to the onboard wizard entry. A violation
-        # makes main() return non-zero and raises ProfileError, so --all EXITs
-        # non-zero. PROOF LIMIT: structure/safety only -- it does NOT prove a real
-        # fresh-machine install (clone/uv sync/provider auth = manual / Phase-4).
-        return run_install_script_lint(repo)
-    if check_id == "release_export_exclusion":
-        # RELEASE-EXPORT-0. Structural exclusion pin for the clean public export
-        # verb: project/ local evidence and brick_protocol.egg-info/ build
-        # metadata must not ship, and publication stays as printed follow-up
-        # commands. Includes a temp mutation that removes project/ and must RED.
-        return run_release_export_exclusion(repo)
-    if check_id == "product_no_smith_residue":
-        # ONBOARDING-LEGACY-SCRUB-0612. Scans shipped newcomer-facing surfaces
-        # (README.md, support/docs/spec, agent/prompts) for Smith local residue:
-        # no /Users/smith literal and no hardcoded insightwavesmith org outside
-        # the README working-example allowance. Runs temp-copy FIRE probes for
-        # both forbidden families; a non-firing probe makes --all exit non-zero.
-        return run_product_no_smith_residue(repo)
-    if check_id == "reporter_notification_projection":
-        # Executes reporter validation probes IN-PROCESS. This keeps the profile
-        # from merely text-pinning the presence of probe functions while never
-        # observing that authority-leaking packets and unadmitted sinks reject.
-        return run_reporter_notification_projection(repo)
-    if check_id == "dashboard_productization_projection":
-        # Executes the dashboard productization guard IN-PROCESS: production
-        # /ingest fail-closed static lint with mutated-copy FIRE, deploy literal
-        # hygiene with synthetic hardcoded project/URL probes, and the synchronous
-        # bake verb round-trip with a source_truth mutation RED case.
-        return run_dashboard_productization_projection(repo)
-    if check_id == "chat_session_park_seam":
-        # Executes the chat-session S1 PARK seam IN-PROCESS over a temp project
-        # Building root: declared adapter:chat-session must write a closed
-        # AgentAdapterRequest envelope + distinct park record, stop before any
-        # AgentFact, observe frontier_kind=chat_session_parked before incomplete,
-        # map to the reporter intervention bell, and pass both lifecycle/path
-        # admission checkers on the generated support evidence.
-        return run_chat_session_park_seam(repo)
-    if check_id == "adapter_error_frontier_manifest_consistency":
-        return run_adapter_error_frontier_manifest_consistency(repo)
-    if check_id == "adapter_error_path_hardening":
-        return run_adapter_error_path_hardening(repo)
-    if check_id == "mcp_stdio_smoke":
-        # Execution smoke: bare-launches support/connection/mcp_projection.py with
-        # a CLEAN env (no PYTHONPATH) like a real MCP host and asserts it answers
-        # initialize without crashing at import. Catches the bootstrap regression
-        # where the script forgets to put support/import_identity on sys.path and
-        # crashes with ModuleNotFoundError: brick_protocol on a bare host launch.
-        # The external bare-launch lives in the checker layer (kernel_checks.py),
-        # never in mcp_projection.py, which owns no execution surface.
-        return run_mcp_stdio_smoke(repo)
-    if check_id == "connect_config_launch":
-        # Execution proof for the CONNECT-GENERATOR-0 read-only generator: imports
-        # support/connection/connect.py, renders the Codex MCP config for THIS
-        # repo, extracts the command + server script + --repo it emits, then
-        # externally launches EXACTLY that with a CLEAN env (no PYTHONPATH) and
-        # pipes one initialize. Asserts a JSON-RPC result with no crash, that the
-        # emitted script == <repo>/support/connection/mcp_projection.py (and
-        # exists), and that connect.py source carries no hardcoded user-home path.
-        # This proves "generated config -> actually working connection". The
-        # external launch lives in the checker layer; connect.py runs none.
-        return run_connect_config_launch(repo)
-    if check_id == "claude_projection_native":
-        # Execution proof that the Claude projection is a REAL Claude-native .md
-        # subagent (--- YAML frontmatter --- + body), not a label-only generic
-        # blob. Imports the read-only renderer (support/connection/
-        # agent_resources.py) and asserts over admitted Agent Objects: (a)
-        # render_claude_subagent_md parses with name/description/tools in the
-        # frontmatter; (b) a REAL tool-policy -> tools mapping (dev read-write-
-        # scoped tools INCLUDE Edit AND Write; a leader/reviewer EXCLUDES both),
-        # so a constant tools list turns this RED; (c) the claude .md is
-        # materially DIFFERENT from the codex TOML (markdown, not a TOML table);
-        # (d) the "enforced by Brick MCP" honesty note is present in the body.
-        # The renderer it pins spawns no external process and writes no file; the
-        # checker imports it in-process.
-        return run_claude_projection_native(repo)
-    if check_id == "codex_projection_native":
-        # Execution proof that the Codex projection is a REAL Codex-native TOML
-        # subagent, not a label-only generic blob. Imports the read-only renderer
-        # (support/connection/agent_resources.py) and asserts over admitted Agent
-        # Objects: (a) render_codex_subagent_toml parses as valid TOML with the
-        # required name/description/developer_instructions; (b) sandbox_mode is a
-        # REAL tool-policy mapping (read-write-scoped dev -> workspace-write;
-        # leader/reviewer read-only policies -> read-only), so a constant
-        # sandbox_mode turns this RED; (c) the codex TOML is materially DIFFERENT
-        # from the claude markdown seed; (d) developer_instructions carries the
-        # "enforced by Brick MCP" honesty note. The renderer it pins spawns no
-        # external process and writes no file; the checker imports it in-process.
-        return run_codex_projection_native(repo)
-    if check_id == "recording_checker_derived_contract":
-        # Executes the standalone ζ6 checker IN-PROCESS: derives the dynamic-walker
-        # evidence shape from support/recording/contracts.py and runs the real
-        # walk, catching contract-required-field drift AND independent axis-value
-        # drift. A non-zero main() raises ProfileError, so an evidence-contract
-        # regression makes --all EXIT non-zero.
-        return call_main(
-            check_id,
-            "support.checkers.check_recording_checker_derived_contract",
-            ["--repo", str(repo)],
-        )
-    if check_id == "axis_crossing_elegance":
-        # ELEGANT-REFACTOR P-guard. Executes the elegance guard IN-PROCESS: runs
-        # the six anti-tautological G1-G6 negative probes AND validates the live
-        # crossing_registry.yaml + module_registry.yaml + the support module
-        # tree (one canonical contract per crossing, no mixing, cross-via-
-        # canonical-only, every module registered, consume-not-author,
-        # decomposition ceiling — a self-consistency check, not a one-way
-        # ratchet; see check_axis_crossing_elegance G6 proof-limit). A probe
-        # that is not rejected, or a real
-        # registry/code violation, makes main() return non-zero and raises
-        # ProfileError, so --all EXITs non-zero. Independent oracle: this checker
-        # imports no axis module (and is not imported here in a way that would).
-        return call_main(
-            check_id,
-            "support.checkers.check_axis_crossing_elegance",
-            ["--repo", str(repo)],
-        )
-    if check_id == "tier_a_three_axis_conformance":
-        # HALF-2 Tier A. Executes the conformance harness IN-PROCESS: runs the
-        # anti-tautological FIRE probe (a degraded copy with the reroute trace and
-        # declaration_provenance dropped MUST be reported unmet) AND asserts the
-        # engine-produced tier-a-3axis-conformance-0 root carries all three axes +
-        # Link mechanics + evidence + declaration_provenance. A probe that does not
-        # fire, or an unmet assertion, makes main() return non-zero and raises
-        # ProfileError, so --all EXITs non-zero. This is the deterministic
-        # regression net re-run after each P3 extraction.
-        return call_main(
-            check_id,
-            "support.checkers.check_tier_a_three_axis_conformance",
-            ["--repo", str(repo)],
-        )
-    if check_id == "brick_template_catalog_restructure":
-        # BRICK-TEMPLATE-CATALOG-RESTRUCTURE-0 P10 checker/FIRE closure. Executes
-        # the split catalog checker IN-PROCESS: synthetic RED-first FIRE fixtures
-        # prove stable problem codes, while live enforcement reads split
-        # step_template_catalog.rows as active binding evidence after old compact
-        # registry deletion. Link refs anchor in link/gate.py,
-        # Agent refs in agent/objects payloads, link_word in link/movement.py,
-        # and checker output remains support evidence only.
-        return call_main(
-            check_id,
-            "support.checkers.check_brick_template_catalog_restructure",
-            ["--repo", str(repo), "--mode", "p10-delete"],
-        )
-    if check_id == "evidence_spine":
-        # U5.5 SLICE-1A. Executes the spine structural checker IN-PROCESS over
-        # every persisted building root: for each building tagged
-        # evidence_generation == u5_5_live it verifies pairing (.md ==
-        # render(.json)), the content/prev hash chain, monotonic sequence_index +
-        # run_segment, spine.json/.jsonl/.md == re-derived from events/, admitted
-        # event types + axis scope, and no forbidden success/quality key.
-        # Untagged (pre-U5.5) buildings are skipped, so existing evidence is
-        # untouched. A real spine violation makes main() return non-zero and
-        # raises ProfileError, so --all EXITs non-zero.
-        return call_main(
-            check_id,
-            "support.checkers.check_evidence_spine",
-            ["--repo", str(repo)],
-        )
-    if check_id == "evidence_spine_projection":
-        # U5.5 SLICE-2. Executes the spine PROJECTION-completeness checker
-        # IN-PROCESS over every persisted building root: for each building tagged
-        # evidence_generation == u5_5_live it verifies the spine projection covers
-        # the building-scope declarations (exactly one each of PresetExpansion and
-        # LinkLaunchPolicy in events/). This is the coverage guard, complementary
-        # to evidence_spine (the structural guard). Untagged (pre-U5.5) buildings
-        # are skipped, so existing evidence is untouched. A real coverage gap makes
-        # main() return non-zero and raises ProfileError, so --all EXITs non-zero.
-        return call_main(
-            check_id,
-            "support.checkers.check_evidence_spine_projection",
-            ["--repo", str(repo)],
-        )
-    if check_id == "pin_estate_integrity":
-        # TREASURE PORT 1 (ACTIVE-SPEC-SPINE disciplines, concept-lifted from
-        # d5bc86e:support/checkers/check_doc_grounding.py). Executes the
-        # pin-estate checker IN-PROCESS: (a) rejects decorative history-doc pins
-        # (path-existence-only / blank needles / keyless json_required_paths),
-        # (b) runs adversarial pin probes (temp copy of the pinned doc, mutate
-        # the pinned text, the REAL text_rule runner must RED — proving the
-        # surviving KEEP-LIVE/GUARD-ONLY pins actually fire), and (c) enforces
-        # the pin-estate ratchet (estate count changes — path_exists/path_absent
-        # items, text_contains/text_absent blocks, and json_required_paths
-        # blocks on the history prefixes — vs support/checkers/
-        # pin_estate_baseline.yaml without a new dated human disposition entry
-        # RED; tamper-EVIDENT, not tamper-proof — see the checker docstring).
-        # Six synthetic FIRE probes run RED-first on every invocation; a
-        # non-rejecting probe makes main() return non-zero, so --all EXITs
-        # non-zero.
-        return call_main(
-            check_id,
-            "support.checkers.check_pin_estate_integrity",
-            ["--repo", str(repo)],
-        )
-    if check_id == "agent_session_id_redaction":
-        # TREASURE PORT 2 (lifted from 2d44fc7:support/checkers/lib/
-        # kernel_checks.py run_agent_session_id_redaction). Forbids any
-        # provider/runtime session id (bare UUID/ULID, keyed session_id/
-        # conversation_id forms, sess_/sess-/provider-session-/resume-token-/
-        # chatcmpl-/ya29./JWT tokens) in the kernel/buildings/reviews/archive
-        # surfaces. Operator policy 0611: frozen building evidence and archived
-        # history are NOT rewritten; the 6 investigator-verified legacy leak
-        # files are carried on an explicit per-path allowlist of frozen
-        # line-content sha256[:16] hashes (codex-review tightening C: every
-        # offending line must match a frozen allowlisted line — count<=budget
-        # is no longer sufficient), and any NEW leak (outside the allowlist,
-        # or any non-matching/extra line inside an allowlisted file) REDs.
-        return run_agent_session_id_redaction(repo)
-    raise ProfileError(f"unknown kernel check id: {check_id}")
+    try:
+        runner = KERNEL_DISPATCH[check_id]
+    except KeyError as exc:
+        raise ProfileError(f"unknown kernel check id: {check_id}") from exc
+    return runner(repo)
 
 
 def run_profile(repo: Path, path: Path) -> tuple[int, list[KernelResult]]:
@@ -931,6 +841,8 @@ def run_self_test() -> None:
         repo = write_self_test_files(Path(tmp))
         profile = repo / PROFILE_DIR / "self.yaml"
         run_profile(repo, profile)
+        assert_registry_closure(Path(_REPO_ROOT))
+        print("self-test passed: registry closure asserted")
         bad_profile = dict(read_profile(profile))
         bad_profile["kernel_checks"] = ["support/checkers/check_package_path_admission.py"]
         try:
