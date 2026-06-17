@@ -1154,6 +1154,7 @@ def _report_policy_uses_brick_grain(policy: Mapping[str, Any] | None) -> bool:
 def _emit_brick_grain_step_events(
     policy: Mapping[str, Any] | None,
     *,
+    linear_plan: Mapping[str, Any],
     building_id: str,
     building_root: Path | str,
     repo_root: Path,
@@ -1170,6 +1171,7 @@ def _emit_brick_grain_step_events(
     step_ref = step_result.preparation.step_rows.step_ref
     context = _brick_grain_step_context(
         step_result,
+        linear_plan=linear_plan,
         step_index=step_index,
         gate_sequence_decision=gate_sequence_decision,
     )
@@ -1197,18 +1199,64 @@ def _emit_brick_grain_step_events(
 def _brick_grain_step_context(
     step_result: BuildingRunSupportResult,
     *,
+    linear_plan: Mapping[str, Any],
     step_index: int,
     gate_sequence_decision: GateSequenceDecision,
 ) -> Mapping[str, Any]:
     recorded_at = step_result.recorded_at or ""
+    next_brick_ref = step_result.preparation.next_brick_instance_ref
+    step_ref = step_result.preparation.step_rows.step_ref
     return {
-        "step_ref": step_result.preparation.step_rows.step_ref,
+        "step_ref": step_ref,
         "sequence_index": step_index,
+        "work_kind": _brick_grain_work_kind_for_step_ref(linear_plan, step_ref),
         "received_at": recorded_at,
         "returned_at": recorded_at,
         "returned_summary": "반환 기록됨",
         "gate_note": _brick_grain_gate_note(gate_sequence_decision),
+        "next_brick_instance_ref": next_brick_ref,
+        "next_work_kind": _brick_grain_next_work_kind(linear_plan, next_brick_ref),
     }
+
+
+def _brick_grain_work_kind_for_step_ref(linear_plan: Mapping[str, Any], step_ref: str) -> str:
+    if not step_ref:
+        return ""
+    steps = linear_plan.get("steps")
+    if not isinstance(steps, list):
+        return ""
+    for step in steps:
+        if not isinstance(step, Mapping):
+            continue
+        if str(step.get("step_ref") or "").strip() != step_ref:
+            continue
+        return _brick_grain_work_kind_from_step(step)
+    return ""
+
+
+def _brick_grain_next_work_kind(linear_plan: Mapping[str, Any], next_brick_ref: str) -> str:
+    if not next_brick_ref or next_brick_ref.startswith("building-boundary"):
+        return ""
+    steps = linear_plan.get("steps")
+    if not isinstance(steps, list):
+        return ""
+    for step in steps:
+        if not isinstance(step, Mapping):
+            continue
+        try:
+            brick_ref = _brick_instance_ref_from_linear_step(step)
+        except ValueError:
+            continue
+        if brick_ref != next_brick_ref:
+            continue
+        return _brick_grain_work_kind_from_step(step)
+    return ""
+
+
+def _brick_grain_work_kind_from_step(step: Mapping[str, Any]) -> str:
+    step_template_ref = str(step.get("step_template_ref") or "").strip()
+    prefix = "building-step-template:"
+    return step_template_ref.removeprefix(prefix) if step_template_ref.startswith(prefix) else ""
 
 
 def _brick_grain_gate_note(gate_sequence_decision: GateSequenceDecision) -> str:
@@ -1813,6 +1861,7 @@ def _run_dynamic_graph_walker(
         report_event_observations.extend(
             _emit_brick_grain_step_events(
                 report_event_policy,
+                linear_plan=linear_plan,
                 building_id=building_id,
                 building_root=building_root,
                 repo_root=repo_root_path,

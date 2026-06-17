@@ -482,6 +482,10 @@ def render_building_event_report_packet(
         packet["report_event_grain"] = "brick"
     if event_context:
         packet["event_context"] = _report_event_context(event_context)
+    if event_kind == "building_started":
+        diagram = _structure_diagram_text(repo, root, building_map)
+        if diagram:
+            packet["structure_diagram"] = diagram
     if checked_stage_mode == "verbose":
         packet["completed_step_kinds"] = list(_completed_step_kinds(root, building_map))
     validate_report_packet(packet)
@@ -1588,6 +1592,273 @@ def _completed_step_kinds(root: Path, building_map: Mapping[str, Any]) -> tuple[
         if kind:
             kinds.append(kind)
     return tuple(kinds)
+
+
+def _structure_diagram_text(repo: Path, root: Path, building_map: Mapping[str, Any]) -> str:
+    """Render a customer-facing Building structure diagram from declared plan evidence."""
+
+    try:
+        plan = _declared_plan_for_building(root, building_map)
+        steps = _ordered_declared_steps(plan)
+        if not steps:
+            return ""
+        step_by_ref = {
+            step_ref: step
+            for step in steps
+            if (step_ref := str(step.get("step_ref") or "").strip())
+        }
+        if not step_by_ref:
+            return ""
+        order = [str(step.get("step_ref") or "").strip() for step in steps]
+        labels = {
+            step_ref: _structure_step_label(repo, step)
+            for step_ref, step in step_by_ref.items()
+        }
+        edges = _mapping_list(plan.get("link_edges"))
+        if not edges:
+            return _linear_structure_diagram(order, labels, _linear_plan_has_terminal(steps))
+
+        adjacency: dict[str, list[str]] = {}
+        reverse: dict[str, list[str]] = {}
+        terminal_sources: set[str] = set()
+        for edge in edges:
+            source_ref = str(edge.get("source_step_ref") or "").strip()
+            target_ref = str(edge.get("target_step_ref") or "").strip()
+            if not source_ref or source_ref not in step_by_ref:
+                continue
+            if target_ref and target_ref in step_by_ref:
+                adjacency.setdefault(source_ref, []).append(target_ref)
+                reverse.setdefault(target_ref, []).append(source_ref)
+                continue
+            if _link_edge_points_to_terminal(edge):
+                terminal_sources.add(source_ref)
+
+        groups = _mapping_list(plan.get("groups"))
+        fan_diagram = _fan_structure_diagram(
+            groups,
+            edges,
+            order=order,
+            labels=labels,
+            adjacency=adjacency,
+            reverse=reverse,
+            terminal_sources=terminal_sources,
+        )
+        if fan_diagram:
+            return fan_diagram
+        if all(len(targets) <= 1 for targets in adjacency.values()) and all(
+            len(sources) <= 1 for sources in reverse.values()
+        ):
+            start_ref = next((ref for ref in order if not reverse.get(ref)), order[0])
+            path, terminal = _linear_path_from(start_ref, adjacency, terminal_sources)
+            return _linear_structure_diagram(path, labels, terminal)
+        return _linear_structure_diagram(order, labels, order[-1] in terminal_sources)
+    except Exception:
+        return ""
+
+
+def _ordered_declared_steps(plan: Mapping[str, Any]) -> tuple[Mapping[str, Any], ...]:
+    steps = _declared_steps(plan)
+    order = plan.get("execution_order")
+    if not isinstance(order, list):
+        return steps
+    step_by_ref = {
+        str(step.get("step_ref") or "").strip(): step
+        for step in steps
+        if str(step.get("step_ref") or "").strip()
+    }
+    ordered: list[Mapping[str, Any]] = []
+    seen: set[str] = set()
+    for raw_ref in order:
+        step_ref = str(raw_ref or "").strip()
+        step = step_by_ref.get(step_ref)
+        if step is not None:
+            ordered.append(step)
+            seen.add(step_ref)
+    ordered.extend(
+        step
+        for step in steps
+        if str(step.get("step_ref") or "").strip() not in seen
+    )
+    return tuple(ordered)
+
+
+def _structure_step_label(repo: Path, step: Mapping[str, Any]) -> str:
+    kind = _step_template_kind(str(step.get("step_template_ref") or ""))
+    kind_label = _report_label_value(repo, "brick_kinds", kind, field="ko") or kind or "작업"
+    lane, _lane_not_proven = _agent_lane_for_ref(_agent_object_ref_from_step(step), repo)
+    lane_label = _report_label_value(repo, "lanes", lane) or lane or "담당자"
+    return f"[{kind_label}·{lane_label}]"
+
+
+def _report_label_value(
+    repo: Path,
+    section: str,
+    key: str,
+    *,
+    field: str | None = None,
+) -> str:
+    key = str(key or "").strip()
+    if not key:
+        return ""
+    label_map = _read_json_mapping(repo / "support" / "operator" / "label_map.json")
+    raw_section = label_map.get(section)
+    if not isinstance(raw_section, Mapping):
+        return ""
+    item = raw_section.get(key)
+    if isinstance(item, str):
+        return item
+    if isinstance(item, Mapping) and field:
+        value = item.get(field)
+        if isinstance(value, str):
+            return value
+    return ""
+
+
+def _link_edge_points_to_terminal(edge: Mapping[str, Any]) -> bool:
+    if str(edge.get("target_step_ref") or "").strip():
+        return False
+    link_row = _axis_row(edge, "Link")
+    target_ref = str(link_row.get("target_ref") or "").strip()
+    return not target_ref or target_ref.startswith("building-boundary")
+
+
+def _linear_plan_has_terminal(steps: tuple[Mapping[str, Any], ...]) -> bool:
+    if not steps:
+        return False
+    link_row = _axis_row(steps[-1], "Link")
+    target_ref = str(link_row.get("target_ref") or "").strip()
+    return not target_ref or target_ref.startswith("building-boundary")
+
+
+def _linear_structure_diagram(
+    step_refs: Iterable[str],
+    labels: Mapping[str, str],
+    terminal: bool,
+) -> str:
+    parts = [labels[step_ref] for step_ref in step_refs if labels.get(step_ref)]
+    if terminal:
+        parts.append("(완료)")
+    return " ──▶ ".join(parts)
+
+
+def _linear_path_from(
+    start_ref: str,
+    adjacency: Mapping[str, list[str]],
+    terminal_sources: set[str],
+) -> tuple[list[str], bool]:
+    path: list[str] = []
+    seen: set[str] = set()
+    current = start_ref
+    terminal = False
+    while current and current not in seen:
+        path.append(current)
+        seen.add(current)
+        if current in terminal_sources:
+            terminal = True
+            break
+        targets = adjacency.get(current) or []
+        if len(targets) != 1:
+            break
+        current = targets[0]
+    return path, terminal
+
+
+def _fan_structure_diagram(
+    groups: Iterable[Mapping[str, Any]],
+    edges: Iterable[Mapping[str, Any]],
+    *,
+    order: list[str],
+    labels: Mapping[str, str],
+    adjacency: Mapping[str, list[str]],
+    reverse: Mapping[str, list[str]],
+    terminal_sources: set[str],
+) -> str:
+    edge_by_ref = {
+        str(edge.get("edge_ref") or "").strip(): edge
+        for edge in edges
+        if str(edge.get("edge_ref") or "").strip()
+    }
+    fan_out_refs: list[str] = []
+    fan_in_refs: list[str] = []
+    for group in groups:
+        role = str(group.get("group_role") or "").strip()
+        member_refs = group.get("member_refs")
+        if not isinstance(member_refs, list):
+            continue
+        refs = [str(ref or "").strip() for ref in member_refs if str(ref or "").strip()]
+        if role == "fan_out" and not fan_out_refs:
+            fan_out_refs = refs
+        elif role == "fan_in" and not fan_in_refs:
+            fan_in_refs = refs
+    if not fan_out_refs or not fan_in_refs:
+        return ""
+
+    fan_out_edges = [edge_by_ref[ref] for ref in fan_out_refs if ref in edge_by_ref]
+    fan_in_edges = [edge_by_ref[ref] for ref in fan_in_refs if ref in edge_by_ref]
+    sources = {
+        str(edge.get("source_step_ref") or "").strip()
+        for edge in fan_out_edges
+        if str(edge.get("source_step_ref") or "").strip()
+    }
+    fan_in_targets = {
+        str(edge.get("target_step_ref") or "").strip()
+        for edge in fan_in_edges
+        if str(edge.get("target_step_ref") or "").strip()
+    }
+    if len(sources) != 1 or len(fan_in_targets) != 1:
+        return ""
+    fan_source = next(iter(sources))
+    fan_in_target = next(iter(fan_in_targets))
+    order_index = {step_ref: index for index, step_ref in enumerate(order)}
+    branch_refs = [
+        str(edge.get("target_step_ref") or "").strip()
+        for edge in fan_out_edges
+        if str(edge.get("target_step_ref") or "").strip()
+    ]
+    branch_refs = sorted(
+        [ref for ref in branch_refs if labels.get(ref)],
+        key=lambda ref: order_index.get(ref, len(order_index)),
+    )
+    if not branch_refs or not labels.get(fan_source) or not labels.get(fan_in_target):
+        return ""
+
+    prefix_refs = _linear_prefix_to(fan_source, reverse, order)
+    prefix = _linear_structure_diagram(prefix_refs, labels, terminal=False)
+    suffix_refs, suffix_terminal = _linear_path_from(fan_in_target, adjacency, terminal_sources)
+    suffix = _linear_structure_diagram(suffix_refs, labels, suffix_terminal)
+    branch_labels = [labels[ref] for ref in branch_refs]
+    if len(branch_labels) > 3 or any(len(label) > 16 for label in branch_labels):
+        branch_lines = [
+            f"{'└' if index == len(branch_labels) - 1 else '├'}─ {label}"
+            for index, label in enumerate(branch_labels)
+        ]
+        return "\n".join([prefix, *branch_lines, "▼", suffix])
+
+    widths = [max(len(label), 3) for label in branch_labels]
+    top = "┌" + "┼".join("─" * width for width in widths) + "┐"
+    arrows = " ".join("▼".center(width) for width in widths)
+    middle = " ".join(label.center(width) for label, width in zip(branch_labels, widths))
+    bottom = "└" + "┼".join("─" * width for width in widths) + "┘"
+    return "\n".join([prefix, top, arrows, middle, bottom, "▼", suffix])
+
+
+def _linear_prefix_to(
+    target_ref: str,
+    reverse: Mapping[str, list[str]],
+    order: list[str],
+) -> list[str]:
+    path = [target_ref]
+    seen = {target_ref}
+    current = target_ref
+    while True:
+        sources = reverse.get(current) or []
+        if len(sources) != 1 or sources[0] in seen:
+            break
+        current = sources[0]
+        path.insert(0, current)
+        seen.add(current)
+    order_index = {step_ref: index for index, step_ref in enumerate(order)}
+    return sorted(path, key=lambda ref: order_index.get(ref, len(order_index)))
 
 
 def _declared_plan_for_building(

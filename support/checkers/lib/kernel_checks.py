@@ -3099,6 +3099,7 @@ def _assert_reporter_message_shape(report_sinks: Any) -> tuple[str, int]:
             **packet,
             "trigger_event_ref": "building-event:building_started:customer-language-probe",
             "observed_board_state": "observed_started",
+            "structure_diagram": "[작업·워커] ──▶ (완료)",
         }
     )
     text = "\n---\n".join((started_text, finished_text))
@@ -3106,6 +3107,8 @@ def _assert_reporter_message_shape(report_sinks: Any) -> tuple[str, int]:
         "알림 말투 점검",
         "시작했어요.",
         "진행되는 대로 여기 댓글로 알려드릴게요.",
+        "```",
+        "[작업·워커] ──▶ (완료)",
         "✅ 다 됐어요!",
     )
     for fragment in required_fragments:
@@ -3422,6 +3425,9 @@ def _assert_reporter_brick_grain_threading(
         "BRICK_REPORT_SLACK_CHANNEL_ID": "CREDPROBE",
     }
     brick_reply_text = ""
+    received_reply_text = ""
+    gate_reply_text = ""
+    nonterminal_gate_text = ""
     disposition_reply_text = ""
     with tempfile.TemporaryDirectory(prefix="bp-reporter-brick-grain-") as tmpdir:
         temp_repo = Path(tmpdir)
@@ -3462,27 +3468,99 @@ def _assert_reporter_brick_grain_threading(
                 raise ProfileError(f"brick grain did not emit {event_kind} support event")
 
         thread_payloads = [payload for payload in sent_payloads if payload.get("thread_ts")]
-        per_step_payloads = [
+        if len(thread_payloads) != 4:
+            raise ProfileError(
+                "brick grain expected brick_received, brick_returned, gate_passed, "
+                f"and completion Slack thread replies, got {len(thread_payloads)}"
+            )
+        for payload in thread_payloads:
+            if payload.get("thread_ts") != "1718200000.000100":
+                raise ProfileError(f"brick grain reply carried wrong thread_ts: {payload!r}")
+        received_payloads = [
+            payload
+            for payload in thread_payloads
+            if "시작했어요." in str(payload.get("text") or "")
+            and "진행되는 대로" not in str(payload.get("text") or "")
+        ]
+        returned_payloads = [
             payload
             for payload in thread_payloads
             if "단계 끝났어요" in str(payload.get("text") or "")
         ]
-        if len(per_step_payloads) != 1:
+        gate_payloads = [
+            payload
+            for payload in thread_payloads
+            if "마무리예요" in str(payload.get("text") or "")
+        ]
+        if len(received_payloads) != 1:
             raise ProfileError(
-                "brick grain expected exactly one per-step Slack thread reply, "
-                f"got {len(per_step_payloads)}"
+                "brick grain expected exactly one brick_received Slack thread reply, "
+                f"got {len(received_payloads)}"
             )
-        reply = per_step_payloads[0]
-        if reply.get("thread_ts") != "1718200000.000100":
-            raise ProfileError(f"brick grain reply carried wrong thread_ts: {reply!r}")
-        brick_reply_text = str(reply.get("text") or "")
-        for fragment in ("①", "단계 끝났어요", "("):
+        if len(returned_payloads) != 1:
+            raise ProfileError(
+                "brick grain expected exactly one brick_returned Slack thread reply, "
+                f"got {len(returned_payloads)}"
+            )
+        if len(gate_payloads) != 1:
+            raise ProfileError(
+                "brick grain expected exactly one terminal gate_passed Slack thread reply, "
+                f"got {len(gate_payloads)}"
+            )
+        received_reply_text = str(received_payloads[0].get("text") or "")
+        brick_reply_text = str(returned_payloads[0].get("text") or "")
+        gate_reply_text = str(gate_payloads[0].get("text") or "")
+        for fragment in ("①", "작업", "시작했어요.", "담당: 워커", "("):
+            if fragment not in received_reply_text:
+                raise ProfileError(
+                    f"brick_received Slack reply missing fragment {fragment!r}:\n{received_reply_text}"
+                )
+        for fragment in ("①", "작업", "단계 끝났어요", "담당: 워커", "("):
             if fragment not in brick_reply_text:
                 raise ProfileError(
                     f"brick grain Slack reply missing fragment {fragment!r}:\n{brick_reply_text}"
                 )
-        if not re.search(r"\(\d{2}:\d{2}\)", brick_reply_text):
-            raise ProfileError(f"brick grain Slack reply did not render KST HH:MM times:\n{brick_reply_text}")
+        for fragment in ("①", "작업", "확인했어요.", "마무리예요", "("):
+            if fragment not in gate_reply_text:
+                raise ProfileError(
+                    f"gate_passed Slack reply missing fragment {fragment!r}:\n{gate_reply_text}"
+                )
+        for label, reply_text in (
+            ("brick_received", received_reply_text),
+            ("brick_returned", brick_reply_text),
+            ("gate_passed", gate_reply_text),
+        ):
+            if not re.search(r"\(\d{2}:\d{2}\)", reply_text):
+                raise ProfileError(
+                    f"{label} Slack reply did not render KST HH:MM times:\n{reply_text}"
+                )
+            for fragment in ("ref:", "brick=", "frontier=", "※", "누구:", "다음:"):
+                if fragment in reply_text:
+                    raise ProfileError(
+                        f"{label} Slack reply leaked forbidden fragment {fragment!r}:\n{reply_text}"
+                    )
+        nonterminal_gate_text = report_sinks._slack_message_text(
+            {
+                **_minimal_reporter_packet(),
+                "report_id": "reporter-gate-nonterminal-probe",
+                "building_id": "reporter-brick-grain-thread",
+                "trigger_event_ref": "building-event:gate_passed:reporter-brick-grain-thread",
+                "current_work_kind": "work",
+                "current_lane": "worker",
+                "event_context": {
+                    "sequence_index": 1,
+                    "returned_at": "2026-06-12T00:01:00+00:00",
+                    "next_brick_instance_ref": "brick-review",
+                    "next_work_kind": "review",
+                },
+            }
+        )
+        for fragment in ("①", "작업", "다음 단계(검수)", "넘어가요", "(09:01)"):
+            if fragment not in nonterminal_gate_text:
+                raise ProfileError(
+                    f"nonterminal gate_passed Slack reply missing fragment {fragment!r}:\n"
+                    f"{nonterminal_gate_text}"
+                )
         finished_payloads = [
             payload
             for payload in thread_payloads
@@ -3493,9 +3571,7 @@ def _assert_reporter_brick_grain_threading(
                 "brick grain expected one completion Slack thread reply, "
                 f"got {len(finished_payloads)}"
             )
-        if finished_payloads[0].get("thread_ts") != "1718200000.000100":
-            raise ProfileError("brick grain completion reply carried wrong thread_ts")
-        inspected += 6
+        inspected += 13
 
         missing_thread_payloads: list[Mapping[str, Any]] = []
 
@@ -3509,36 +3585,43 @@ def _assert_reporter_brick_grain_threading(
         missing_thread_root = output_root / "missing-thread-case"
         missing_thread_root.mkdir(parents=True)
         try:
-            missing_packet = reporter.render_building_event_report_packet(
-                event_kind="brick_returned",
-                building_id="missing-thread-case",
-                building_root=missing_thread_root,
-                current_brick_ref="brick-work",
-                last_completed_step_ref="work/step-outputs/missing-thread-case-work-attempt-1/step-output.json",
-                sink_refs=["report-sink:slack"],
-                repo_root=temp_repo,
-                generated_at="2026-06-12T00:00:00+00:00",
-                event_context={
-                    "step_ref": "missing-thread-case-work",
-                    "sequence_index": 1,
-                    "received_at": "2026-06-12T00:00:00+00:00",
-                    "returned_at": "2026-06-12T00:01:00+00:00",
-                    "gate_note": "통과→다음스텝",
-                },
-            )
-            missing_observation = report_sinks.send_slack_report_packet(
-                missing_packet,
-                repo_root=temp_repo,
-                allow_real_delivery=True,
-                env=fake_env,
-                sender=_should_not_send,
-            )
+            missing_observations = []
+            for event_kind in ("brick_received", "brick_returned", "gate_passed"):
+                missing_packet = reporter.render_building_event_report_packet(
+                    event_kind=event_kind,
+                    building_id="missing-thread-case",
+                    building_root=missing_thread_root,
+                    current_brick_ref="brick-work",
+                    last_completed_step_ref="work/step-outputs/missing-thread-case-work-attempt-1/step-output.json",
+                    sink_refs=["report-sink:slack"],
+                    repo_root=temp_repo,
+                    generated_at="2026-06-12T00:00:00+00:00",
+                    event_context={
+                        "step_ref": "missing-thread-case-work",
+                        "sequence_index": 1,
+                        "received_at": "2026-06-12T00:00:00+00:00",
+                        "returned_at": "2026-06-12T00:01:00+00:00",
+                        "gate_note": "통과→다음스텝",
+                        "next_brick_instance_ref": "brick-review",
+                        "next_work_kind": "review",
+                    },
+                )
+                missing_observations.append(
+                    report_sinks.send_slack_report_packet(
+                        missing_packet,
+                        repo_root=temp_repo,
+                        allow_real_delivery=True,
+                        env=fake_env,
+                        sender=_should_not_send,
+                    )
+                )
         finally:
             reporter.REPO_ROOT = original_reporter_root
-        if missing_observation.delivery_status_class != "not_attempted_missing_thread_ts":
-            raise ProfileError(
-                "brick grain missing-thread Slack send did not fail closed as not_attempted"
-            )
+        if any(
+            observation.delivery_status_class != "not_attempted_missing_thread_ts"
+            for observation in missing_observations
+        ):
+            raise ProfileError("brick grain missing-thread Slack sends did not all fail closed")
         if missing_thread_payloads:
             raise ProfileError("brick grain missing-thread probe still called Slack sender")
 
@@ -3635,7 +3718,20 @@ def _assert_reporter_brick_grain_threading(
             )
         inspected += 4
 
-    return brick_reply_text, disposition_reply_text, inspected
+    return (
+        "\n".join(
+            text
+            for text in (
+                received_reply_text,
+                brick_reply_text,
+                gate_reply_text,
+                nonterminal_gate_text,
+            )
+            if text
+        ),
+        disposition_reply_text,
+        inspected,
+    )
 
 
 def _copy_reporter_probe_agent_resources(repo: Path, temp_repo: Path) -> None:
