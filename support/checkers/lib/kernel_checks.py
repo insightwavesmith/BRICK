@@ -1074,6 +1074,7 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     qa_packet = _agent_instruction_packet_for_role(repo, "qa")
     cto_packet = _agent_instruction_packet_for_role(repo, "cto-lead")
     dev_packet = _agent_instruction_packet_for_role(repo, "dev")
+    inspector_packet = _agent_instruction_packet_for_role(repo, "inspector")
     expected_known_policies = {
         adapter.LEADER_COORDINATION_TOOL_POLICY_REF,
         adapter.READ_WRITE_TOOL_POLICY_REF,
@@ -1194,6 +1195,33 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     if "Do not use tools or hooks." not in dev_prompt.get("rules", []):
         raise ProfileError("ambiguous non-write worker request did not fail closed to none tier")
 
+    gemini_inspect_request = adapter.AgentAdapterRequest(
+        building_id="agent-read-tier-gemini-inspect-probe",
+        agent_object_ref="agent-object:inspector",
+        adapter_ref=adapter.ADAPTER_GEMINI_LOCAL,
+        brick_instance_ref="brick-inspect",
+        next_brick_instance_ref="brick-closure",
+        tool_policy_refs=(adapter.READ_WRITE_TOOL_POLICY_REF,),
+        agent_instruction_packet=inspector_packet,
+    )
+    if not adapter.agent_request_read_tier(gemini_inspect_request):
+        raise ProfileError("gemini-local read-write-scoped request did not enter read tier")
+    gemini_inspect_prompt = json.loads(
+        adapter._build_prompt(
+            gemini_inspect_request,
+            adapter._LOCAL_CLI_SPECS[adapter.ADAPTER_GEMINI_LOCAL],
+        )
+    )
+    gemini_inspect_rules = list(gemini_inspect_prompt.get("rules", []))
+    if "Do not use tools or hooks." in gemini_inspect_rules:
+        raise ProfileError("gemini-local read-write-scoped prompt still rendered no-tools rule")
+    if expected_read_rule not in gemini_inspect_rules:
+        raise ProfileError("gemini-local read-write-scoped prompt did not expose repository inspection rule")
+    if not any(adapter.READ_WRITE_TOOL_POLICY_REF in rule for rule in gemini_inspect_rules):
+        raise ProfileError("gemini-local read-write-scoped prompt omitted its admitted policy ref")
+    if not any("Gemini local read tier may use only read_file" in rule for rule in gemini_inspect_rules):
+        raise ProfileError("gemini-local read-write-scoped prompt did not pin read-only tool allow-list")
+
     gemini_request = adapter.AgentAdapterRequest(
         building_id="agent-read-tier-gemini-probe",
         agent_object_ref="agent-object:qa",
@@ -1253,7 +1281,7 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     try:
         adapter._invoke_local_cli(
             adapter._LOCAL_CLI_SPECS[adapter.ADAPTER_GEMINI_LOCAL],
-            gemini_request,
+            gemini_inspect_request,
             "prompt",
             cwd=repo,
             timeout_seconds=5,
@@ -1369,7 +1397,60 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     if "Do not use tools or hooks." not in gemini_none_prompt.get("rules", []):
         raise ProfileError("gemini-local none-tier request stopped rendering no-tools prompt")
 
-    return 23
+    def _gemini_nonzero_runner(
+        args: Sequence[str],
+        cwd: Path,
+        timeout_seconds: int,
+        *,
+        env: Mapping[str, str] | None = None,
+    ) -> Any:
+        del cwd, timeout_seconds, env
+        call = tuple(str(arg) for arg in args)
+        if "--version" in call:
+            return adapter.LocalCliCompleted(call, 0, "0.46.0", "")
+        return adapter.LocalCliCompleted(
+            call,
+            1,
+            json.dumps({"error": {"code": 404, "message": "model not found for probe"}}),
+            "Gemini CLI failed; details: /tmp/gemini-client-error-probe.json",
+        )
+
+    saved_env = {name: os.environ.get(name) for name in adapter._GEMINI_API_KEY_ENV_VARS}
+    for name in adapter._GEMINI_API_KEY_ENV_VARS:
+        os.environ.pop(name, None)
+    os.environ["GEMINI_API_KEY"] = "probe-key"
+    try:
+        try:
+            adapter._invoke_local_cli_adapter(
+                gemini_inspect_request,
+                cwd=repo,
+                timeout_seconds=5,
+                command_runner=_gemini_nonzero_runner,
+            )
+        except ValueError as exc:
+            nonzero_message = str(exc)
+        else:
+            raise ProfileError("gemini-local non-zero adapter probe did not raise")
+    finally:
+        for name in adapter._GEMINI_API_KEY_ENV_VARS:
+            os.environ.pop(name, None)
+            if saved_env[name] is not None:
+                os.environ[name] = saved_env[name]
+    for expected_fragment, label in (
+        ("local CLI adapter command returned non-zero", "non-zero marker"),
+        ("adapter_ref=adapter:gemini-local", "adapter ref"),
+        ("return_code=1", "return code"),
+        ("stderr_excerpt=Gemini CLI failed", "stderr excerpt"),
+        ("stdout_error_excerpt=", "stdout error excerpt"),
+        ("model not found for probe", "stdout error detail"),
+        ("stderr_error_path=/tmp/gemini-client-error-probe.json", "stderr error path"),
+    ):
+        if expected_fragment not in nonzero_message:
+            raise ProfileError(
+                f"gemini-local non-zero adapter error omitted {label}: {nonzero_message!r}"
+            )
+
+    return 27
 
 
 def _artifact_grounding_probe(repo: Path) -> int:
