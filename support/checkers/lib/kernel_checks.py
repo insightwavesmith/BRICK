@@ -3094,6 +3094,22 @@ def _assert_reporter_message_shape(report_sinks: Any) -> tuple[str, int]:
         "sink_refs": ["report-sink:slack"],
     }
     finished_text = report_sinks._slack_message_text(packet)
+    finished_top_level_text = report_sinks._slack_message_text(packet, force_top_level=True)
+    intervention_packet = {
+        **packet,
+        "observed_board_state": "needs_disposition",
+        "trigger_event_ref": "building-event:intervention_required:customer-language-probe",
+        "frontier_ref": (
+            "project/brick-protocol/buildings/customer-language-probe"
+            "#frontier:human_review_waiting:event:intervention_required"
+        ),
+        "required_disposition_owner": "caller-or-coo",
+    }
+    intervention_text = report_sinks._slack_message_text(intervention_packet)
+    intervention_top_level_text = report_sinks._slack_message_text(
+        intervention_packet,
+        force_top_level=True,
+    )
     started_text = report_sinks._slack_message_text(
         {
             **packet,
@@ -3102,7 +3118,15 @@ def _assert_reporter_message_shape(report_sinks: Any) -> tuple[str, int]:
             "structure_diagram": "[작업·워커] ──▶ (완료)",
         }
     )
-    text = "\n---\n".join((started_text, finished_text))
+    text = "\n---\n".join(
+        (
+            started_text,
+            finished_text,
+            intervention_text,
+            finished_top_level_text,
+            intervention_top_level_text,
+        )
+    )
     required_fragments = (
         "알림 말투 점검",
         "시작했어요.",
@@ -3110,10 +3134,24 @@ def _assert_reporter_message_shape(report_sinks: Any) -> tuple[str, int]:
         "```",
         "[작업·워커] ──▶ (완료)",
         "✅ 다 됐어요!",
+        "잠깐 멈췄어요. 살펴봐 주세요. (담당: 호출자 또는 COO)",
     )
     for fragment in required_fragments:
         if fragment not in text:
             raise ProfileError(f"Slack message shape missing fragment {fragment!r}:\n{text}")
+    if finished_text != "✅ 다 됐어요!":
+        raise ProfileError(f"building_finished reply text was not clean:\n{finished_text}")
+    if intervention_text != "잠깐 멈췄어요. 살펴봐 주세요. (담당: 호출자 또는 COO)":
+        raise ProfileError(f"intervention_required reply text was not clean:\n{intervention_text}")
+    if not finished_top_level_text.startswith("🧱 알림 말투 점검\n"):
+        raise ProfileError(
+            f"building_finished fallback text was not top-level titled:\n{finished_top_level_text}"
+        )
+    if not intervention_top_level_text.startswith("🧱 알림 말투 점검\n"):
+        raise ProfileError(
+            "intervention_required fallback text was not top-level titled:\n"
+            f"{intervention_top_level_text}"
+        )
     forbidden_fragments = (
         "ref:",
         "brick=",
@@ -3429,6 +3467,10 @@ def _assert_reporter_brick_grain_threading(
     gate_reply_text = ""
     nonterminal_gate_text = ""
     disposition_reply_text = ""
+    intervention_reply_text = ""
+    finished_reply_text = ""
+    fallback_intervention_text = ""
+    fallback_finished_text = ""
     with tempfile.TemporaryDirectory(prefix="bp-reporter-brick-grain-") as tmpdir:
         temp_repo = Path(tmpdir)
         _copy_reporter_probe_agent_resources(repo, temp_repo)
@@ -3571,13 +3613,76 @@ def _assert_reporter_brick_grain_threading(
                 "brick grain expected one completion Slack thread reply, "
                 f"got {len(finished_payloads)}"
             )
-        inspected += 13
+        finished_reply_text = str(finished_payloads[0].get("text") or "")
+        if finished_reply_text != "✅ 다 됐어요!":
+            raise ProfileError(
+                f"building_finished Slack reply was not a clean comment:\n{finished_reply_text}"
+            )
+        if "🧱" in finished_reply_text:
+            raise ProfileError(
+                f"building_finished Slack reply leaked parent title marker:\n{finished_reply_text}"
+            )
+        inspected += 15
+
+        intervention_payloads: list[Mapping[str, Any]] = []
+
+        def _fake_intervention_sender(request: Any, timeout_seconds: float) -> tuple[int, bytes]:
+            del timeout_seconds
+            payload = json.loads(bytes(request.data or b"{}").decode("utf-8"))
+            intervention_payloads.append(payload)
+            return 200, b'{"ok":true}'
+
+        original_reporter_root = reporter.REPO_ROOT
+        reporter.REPO_ROOT = temp_repo
+        try:
+            intervention_packet = reporter.render_building_event_report_packet(
+                event_kind="intervention_required",
+                building_id="reporter-brick-grain-thread",
+                building_root=root,
+                current_brick_ref="brick-work",
+                last_completed_step_ref="work/step-outputs/reporter-brick-grain-thread-work-attempt-1/step-output.json",
+                required_disposition_owner="caller-or-coo",
+                sink_refs=["report-sink:slack"],
+                repo_root=temp_repo,
+                generated_at="2026-06-12T00:03:00+00:00",
+                report_event_grain="brick",
+            )
+        finally:
+            reporter.REPO_ROOT = original_reporter_root
+        intervention_observation = report_sinks.send_slack_report_packet(
+            intervention_packet,
+            repo_root=temp_repo,
+            allow_real_delivery=True,
+            env=fake_env,
+            sender=_fake_intervention_sender,
+        )
+        if intervention_observation.delivered is not True or len(intervention_payloads) != 1:
+            raise ProfileError("intervention_required probe did not send exactly one thread reply")
+        if intervention_payloads[0].get("thread_ts") != "1718200000.000100":
+            raise ProfileError("intervention_required reply did not carry recorded thread_ts")
+        intervention_reply_text = str(intervention_payloads[0].get("text") or "")
+        if intervention_reply_text != "잠깐 멈췄어요. 살펴봐 주세요. (담당: 호출자 또는 COO)":
+            raise ProfileError(
+                "intervention_required Slack reply was not a clean owner-labeled comment:\n"
+                f"{intervention_reply_text}"
+            )
+        if "🧱" in intervention_reply_text:
+            raise ProfileError(
+                f"intervention_required Slack reply leaked parent title marker:\n{intervention_reply_text}"
+            )
+        inspected += 4
 
         missing_thread_payloads: list[Mapping[str, Any]] = []
+        fallback_payloads: list[Mapping[str, Any]] = []
 
         def _should_not_send(request: Any, timeout_seconds: float) -> tuple[int, bytes]:
             del timeout_seconds
             missing_thread_payloads.append(json.loads(bytes(request.data or b"{}").decode("utf-8")))
+            return 200, b'{"ok":true}'
+
+        def _fallback_sender(request: Any, timeout_seconds: float) -> tuple[int, bytes]:
+            del timeout_seconds
+            fallback_payloads.append(json.loads(bytes(request.data or b"{}").decode("utf-8")))
             return 200, b'{"ok":true}'
 
         original_reporter_root = reporter.REPO_ROOT
@@ -3615,6 +3720,32 @@ def _assert_reporter_brick_grain_threading(
                         sender=_should_not_send,
                     )
                 )
+            fallback_observations = []
+            for event_kind in ("intervention_required", "building_finished"):
+                fallback_packet = reporter.render_building_event_report_packet(
+                    event_kind=event_kind,
+                    building_id="missing-thread-case",
+                    building_root=missing_thread_root,
+                    current_brick_ref="brick-work",
+                    last_completed_step_ref=(
+                        "work/step-outputs/missing-thread-case-work-attempt-1/"
+                        "step-output.json"
+                    ),
+                    required_disposition_owner="caller-or-coo",
+                    sink_refs=["report-sink:slack"],
+                    repo_root=temp_repo,
+                    generated_at="2026-06-12T00:04:00+00:00",
+                    report_event_grain="brick",
+                )
+                fallback_observations.append(
+                    report_sinks.send_slack_report_packet(
+                        fallback_packet,
+                        repo_root=temp_repo,
+                        allow_real_delivery=True,
+                        env=fake_env,
+                        sender=_fallback_sender,
+                    )
+                )
         finally:
             reporter.REPO_ROOT = original_reporter_root
         if any(
@@ -3624,6 +3755,31 @@ def _assert_reporter_brick_grain_threading(
             raise ProfileError("brick grain missing-thread Slack sends did not all fail closed")
         if missing_thread_payloads:
             raise ProfileError("brick grain missing-thread probe still called Slack sender")
+        if any(observation.delivered is not True for observation in fallback_observations):
+            raise ProfileError("HOLD/FINISH missing-thread fallback did not send")
+        if len(fallback_payloads) != 2:
+            raise ProfileError(
+                f"HOLD/FINISH missing-thread fallback sent {len(fallback_payloads)} payload(s)"
+            )
+        for payload in fallback_payloads:
+            if payload.get("thread_ts"):
+                raise ProfileError(f"missing-thread fallback unexpectedly carried thread_ts: {payload!r}")
+        fallback_intervention_text = str(fallback_payloads[0].get("text") or "")
+        fallback_finished_text = str(fallback_payloads[1].get("text") or "")
+        if fallback_intervention_text != (
+            "🧱 missing-thread-case\n"
+            "잠깐 멈췄어요. 살펴봐 주세요. (담당: 호출자 또는 COO)"
+        ):
+            raise ProfileError(
+                "intervention_required missing-thread fallback did not preserve titled form:\n"
+                f"{fallback_intervention_text}"
+            )
+        if fallback_finished_text != "🧱 missing-thread-case\n✅ 다 됐어요!":
+            raise ProfileError(
+                "building_finished missing-thread fallback did not preserve titled form:\n"
+                f"{fallback_finished_text}"
+            )
+        inspected += 5
 
         disposition_payloads: list[Mapping[str, Any]] = []
 
@@ -3726,6 +3882,10 @@ def _assert_reporter_brick_grain_threading(
                 brick_reply_text,
                 gate_reply_text,
                 nonterminal_gate_text,
+                intervention_reply_text,
+                finished_reply_text,
+                fallback_intervention_text,
+                fallback_finished_text,
             )
             if text
         ),
