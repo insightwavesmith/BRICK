@@ -62,6 +62,7 @@ MODEL_REF_CODEX_DEFAULT = "model:codex:default"
 MODEL_REF_CLAUDE_INHERIT = "model:claude:inherit"
 MODEL_REF_GEMINI_DEFAULT = "model:gemini:default"
 MODEL_REF_GEMINI_FLASH = "model:gemini:gemini-2.5-flash"
+MODEL_REF_GEMINI_LOCAL_FLASH = "model:gemini:gemini-3.5-flash"
 MODEL_PROVIDER_BY_ADAPTER = {
     ADAPTER_CODEX_LOCAL: "codex",
     ADAPTER_CLAUDE_LOCAL: "claude",
@@ -217,6 +218,36 @@ toolName = [
   "update_topic",
   "write_file",
   "exit_plan_mode",
+]
+decision = "deny"
+priority = 999
+"""
+
+_GEMINI_READ_TOOL_NAMES = frozenset(
+    {
+        "glob",
+        "read_file",
+        "read_many_files",
+        "search_file_content",
+    }
+)
+_GEMINI_READONLY_POLICY = """[[rule]]
+toolName = [
+  "glob",
+  "read_file",
+  "read_many_files",
+  "search_file_content",
+]
+decision = "allow"
+priority = 998
+
+[[rule]]
+toolName = [
+  "exit_plan_mode",
+  "replace",
+  "run_shell_command",
+  "update_topic",
+  "write_file",
 ]
 decision = "deny"
 priority = 999
@@ -413,7 +444,7 @@ class LocalCliCompleted:
 
 
 AgentBrainCallable = Callable[[AgentAdapterRequest], Any]
-CommandRunner = Callable[[Sequence[str], Path, int], LocalCliCompleted]
+CommandRunner = Callable[..., LocalCliCompleted]
 
 _LOCAL_CLI_SPECS: Mapping[str, LocalCliSpec] = {
     ADAPTER_CODEX_LOCAL: LocalCliSpec(
@@ -438,7 +469,7 @@ _LOCAL_CLI_SPECS: Mapping[str, LocalCliSpec] = {
         executable_name="gemini",
         version_args=("--version",),
         invocation_args_kind="gemini-p-json-flash",
-        default_model_ref=MODEL_REF_GEMINI_FLASH,
+        default_model_ref=MODEL_REF_GEMINI_LOCAL_FLASH,
     ),
 }
 
@@ -541,7 +572,13 @@ def supported_model_ref_examples(adapter_ref: str) -> tuple[str, ...]:
             "model:claude:haiku",
             "model:claude:<claude-model-id>",
         )
-    if adapter_ref in (ADAPTER_GEMINI_LOCAL, ADAPTER_GEMINI_API):
+    if adapter_ref == ADAPTER_GEMINI_LOCAL:
+        return (
+            MODEL_REF_GEMINI_DEFAULT,
+            MODEL_REF_GEMINI_LOCAL_FLASH,
+            "model:gemini:<gemini-model-id>",
+        )
+    if adapter_ref == ADAPTER_GEMINI_API:
         return (
             MODEL_REF_GEMINI_DEFAULT,
             MODEL_REF_GEMINI_FLASH,
@@ -582,7 +619,7 @@ def agent_request_read_tier(request: AgentAdapterRequest) -> bool:
         return False
     if not tool_policy_refs.intersection(READ_ONLY_TOOL_POLICY_REFS):
         return False
-    return request.adapter_ref in {ADAPTER_CODEX_LOCAL, ADAPTER_CLAUDE_LOCAL}
+    return request.adapter_ref in {ADAPTER_CODEX_LOCAL, ADAPTER_CLAUDE_LOCAL, ADAPTER_GEMINI_LOCAL}
 
 
 def project_model_ref_to_cli_arg(adapter_ref: str, selected_model_ref: str = "") -> str:
@@ -1273,8 +1310,37 @@ def _invoke_local_cli(
     if spec.invocation_args_kind == "gemini-p-json-flash":
         with tempfile.TemporaryDirectory(prefix="bp-gemini-cli-") as tmpdir:
             temp_root = Path(tmpdir)
-            policy_path = temp_root / "no-tools-policy.toml"
-            policy_path.write_text(_GEMINI_NO_TOOL_POLICY, encoding="utf-8")
+            read_tier = agent_request_read_tier(request)
+            policy_path = temp_root / ("readonly-policy.toml" if read_tier else "no-tools-policy.toml")
+            policy_path.write_text(
+                _GEMINI_READONLY_POLICY if read_tier else _GEMINI_NO_TOOL_POLICY,
+                encoding="utf-8",
+            )
+            run_cwd = cwd if read_tier else temp_root
+            run_env = None
+            approval_mode = "plan"
+            model_arg = _model_cli_arg(request, spec) or "gemini-2.5-flash"
+            if read_tier:
+                run_env = dict(os.environ)
+                if not _gemini_api_key_env_present(run_env):
+                    raise FileNotFoundError(
+                        "gemini-local read tier requires an API key in env "
+                        + " or ".join(_GEMINI_API_KEY_ENV_VARS)
+                        + " (none set)"
+                    )
+                gemini_home = temp_root / "home"
+                gemini_settings_dir = gemini_home / ".gemini"
+                gemini_settings_dir.mkdir(parents=True)
+                (gemini_settings_dir / "settings.json").write_text(
+                    json.dumps(
+                        {"security": {"auth": {"selectedType": "gemini-api-key"}}},
+                        sort_keys=True,
+                    ),
+                    encoding="utf-8",
+                )
+                run_env["HOME"] = str(gemini_home)
+                approval_mode = "default"
+                model_arg = _model_cli_arg(request, spec) or "gemini-3.5-flash"
             args = (
                 executable_path,
                 "-p",
@@ -1282,16 +1348,22 @@ def _invoke_local_cli(
                 "--output-format",
                 "json",
                 "--model",
-                _model_cli_arg(request, spec) or "gemini-2.5-flash",
+                model_arg,
                 "--approval-mode",
-                "plan",
+                approval_mode,
                 "--extensions",
                 "",
                 "--admin-policy",
                 str(policy_path),
                 "--skip-trust",
             )
-            return _run_or_delegate(args, temp_root, timeout_seconds, command_runner)
+            return _run_or_delegate(
+                args,
+                run_cwd,
+                timeout_seconds,
+                command_runner,
+                env=run_env,
+            )
     raise ValueError("unsupported local CLI adapter kind")
 
 
@@ -1441,10 +1513,27 @@ def _run_or_delegate(
     cwd: Path,
     timeout_seconds: int,
     command_runner: CommandRunner | None,
+    *,
+    env: Mapping[str, str] | None = None,
 ) -> LocalCliCompleted:
     if command_runner is not None:
+        if env is not None and _command_runner_accepts_env(command_runner):
+            return command_runner(args, cwd, timeout_seconds, env=env)
         return command_runner(args, cwd, timeout_seconds)
-    return _run_command(args, cwd=cwd, timeout_seconds=timeout_seconds)
+    return _run_command(args, cwd=cwd, timeout_seconds=timeout_seconds, env=env)
+
+
+def _command_runner_accepts_env(command_runner: CommandRunner) -> bool:
+    call = getattr(command_runner, "__call__", None)
+    candidates = (command_runner, call) if call is not None else (command_runner,)
+    for candidate in candidates:
+        code = getattr(candidate, "__code__", None)
+        if code is None:
+            continue
+        arg_names = code.co_varnames[: code.co_argcount + code.co_kwonlyargcount]
+        if "env" in arg_names:
+            return True
+    return False
 
 
 def _text_cli_executable(executable_name: str, command_runner: CommandRunner | None) -> str:
@@ -1597,11 +1686,18 @@ def _journal_reap(proc: "subprocess.Popen[str]", *, reason: str) -> None:
     )
 
 
-def _run_command(args: Sequence[str], *, cwd: Path, timeout_seconds: int) -> LocalCliCompleted:
+def _run_command(
+    args: Sequence[str],
+    *,
+    cwd: Path,
+    timeout_seconds: int,
+    env: Mapping[str, str] | None = None,
+) -> LocalCliCompleted:
     _validate_command_args(args)
     proc = subprocess.Popen(
         list(args),
         cwd=str(cwd),
+        env=dict(env) if env is not None else None,
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -1685,9 +1781,9 @@ def _build_prompt(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
     else:
         rules.append("Do not use tools or hooks.")
     if spec.adapter_ref == ADAPTER_GEMINI_LOCAL:
-        if set(request.tool_policy_refs).intersection(READ_ONLY_TOOL_POLICY_REFS):
+        if agent_request_read_tier(request):
             rules.append(
-                "Documented adapter limit: adapter:gemini-local remains in the none tier; this support policy does not express repository read-only tools safely."
+                "Gemini local read tier may use only read_file, glob, search_file_content, and read_many_files through the read-only admin policy; write and shell tools remain blocked."
             )
         rules.extend(
             (
@@ -1907,13 +2003,46 @@ def _extract_gemini_response(stdout: str) -> str:
         raise ValueError("Gemini local CLI output was not JSON") from exc
     if not isinstance(payload, Mapping):
         raise ValueError("Gemini local CLI JSON output must be an object")
-    total_calls = _gemini_tool_call_count(payload)
-    if total_calls:
-        raise ValueError("Gemini local CLI reported tool calls; refusing support payload")
+    stats = payload.get("stats")
+    nonread_tool_names = _gemini_nonread_tool_names(stats)
+    if nonread_tool_names:
+        raise ValueError(
+            "Gemini local CLI reported non-read tool calls; refusing support payload: "
+            + ", ".join(nonread_tool_names)
+        )
     response = payload.get("response")
     if not isinstance(response, str) or not response.strip():
         raise ValueError("Gemini local CLI JSON output missing response text")
     return response
+
+
+def _gemini_api_key_env_present(env: Mapping[str, str]) -> bool:
+    return any((env.get(env_var) or "").strip() for env_var in _GEMINI_API_KEY_ENV_VARS)
+
+
+def _gemini_nonread_tool_names(stats: Any) -> tuple[str, ...]:
+    if not isinstance(stats, Mapping):
+        return ()
+    tools = stats.get("tools")
+    if not isinstance(tools, Mapping):
+        return ()
+    by_name = tools.get("byName")
+    if by_name is None:
+        return ()
+    names: set[str] = set()
+    if isinstance(by_name, Mapping):
+        names.update(str(name) for name in by_name)
+    elif isinstance(by_name, Sequence) and not isinstance(by_name, (str, bytes, bytearray)):
+        for item in by_name:
+            if isinstance(item, Mapping):
+                raw_name = item.get("name") or item.get("toolName") or item.get("tool_name")
+                if raw_name:
+                    names.add(str(raw_name))
+            elif item:
+                names.add(str(item))
+    else:
+        raise ValueError("Gemini local CLI stats.tools.byName must be an object or list")
+    return tuple(sorted(name for name in names if name not in _GEMINI_READ_TOOL_NAMES))
 
 
 def _gemini_tool_call_count(payload: Mapping[str, Any]) -> int:
