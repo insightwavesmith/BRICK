@@ -17,6 +17,11 @@ from pathlib import Path
 from typing import Any
 
 from brick_protocol.agent.return_fact import TRANSITION_CONCERN_KINDS
+from brick_protocol.link.gate import (
+    COO_GATE_REF,
+    HUMAN_DISPOSITION_GATE_REFS,
+    HUMAN_GATE_REF,
+)
 from brick_protocol.link.movement import MOVEMENT_LITERALS
 from brick_protocol.support.operator.building_operation_common import (
     COMPACT_LINK_GATE_TOKENS,
@@ -1240,8 +1245,8 @@ def _materializer_apply_route_decision_basis(
             if (
                 patched_row.get("axis") == "Link"
                 and (
-                    _materializer_link_row_has_gate_ref(patched_row, "link-gate:coo")
-                    or _materializer_link_row_has_gate_ref(patched_row, "link-gate:human")
+                    _materializer_link_row_has_gate_ref(patched_row, COO_GATE_REF)
+                    or _materializer_link_row_has_gate_ref(patched_row, HUMAN_GATE_REF)
                 )
                 and "route_decision_basis" not in patched_row
             ):
@@ -2991,7 +2996,7 @@ def compose_building(
             outgoing_by_step.setdefault(source_step, []).append(
                 _composition_edge_ref(index, raw_edge, source_step, target_step or target_ref)
             )
-            if any(ref in {"link-gate:human", "link-gate:coo"} for ref in declared_gate_refs):
+            if any(ref in HUMAN_DISPOSITION_GATE_REFS for ref in declared_gate_refs):
                 review_gate_seen_by_step[source_step] = True
         edge_records.append(
             {

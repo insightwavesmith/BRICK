@@ -116,6 +116,13 @@ crossings:
       - make_carry_gate_fact
       - make_movement_gate_fact
       - DECLARED_GATE_REFS
+      # P4-S1: human/auto disposition gate partitions, single-sourced in link/gate.py
+      # (derived from DECLARED_GATE_REFS) so support imports the Link-owned partition
+      # instead of re-deriving the raw frozensets at 4 sites.
+      - HUMAN_DISPOSITION_GATE_REFS
+      - AUTO_ADOPT_GATE_REFS
+      - HUMAN_GATE_REF
+      - COO_GATE_REF
       # E1 (U5.5 slice-3): the admitted Link gate sufficiency vocabulary, single-
       # sourced by recording (claims_link) to validate the recorded sufficiency.
       - GATE_SUFFICIENCY_LITERALS

@@ -22,6 +22,12 @@ DECLARED_GATE_REFS: tuple[str, ...] = (
     "link-gate:human",
     "link-gate:coo",
 )
+HUMAN_DISPOSITION_GATE_REFS: frozenset[str] = frozenset(
+    {DECLARED_GATE_REFS[2], DECLARED_GATE_REFS[3]}
+)
+AUTO_ADOPT_GATE_REFS: frozenset[str] = frozenset({DECLARED_GATE_REFS[0]})
+HUMAN_GATE_REF: str = DECLARED_GATE_REFS[2]
+COO_GATE_REF: str = DECLARED_GATE_REFS[3]
 
 _GATE_REQUIRED_RETURN_FIELDS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("link-gate:default-transition", ("observed_evidence", "not_proven")),
@@ -423,6 +429,10 @@ __all__ = [
     "GATE_STAGE_LITERALS",
     "GATE_SUFFICIENCY_LITERALS",
     "DECLARED_GATE_REFS",
+    "HUMAN_DISPOSITION_GATE_REFS",
+    "AUTO_ADOPT_GATE_REFS",
+    "HUMAN_GATE_REF",
+    "COO_GATE_REF",
     "GateFact",
     "make_gate_fact",
     "gate_required_return_fields",

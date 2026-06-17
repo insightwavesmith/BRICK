@@ -17,6 +17,10 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
+from brick_protocol.link.gate import (
+    AUTO_ADOPT_GATE_REFS,
+    HUMAN_DISPOSITION_GATE_REFS,
+)
 from brick_protocol.link.transition import (
     TRANSITION_LIFECYCLE_DISPOSITION_AUTHOR_PREFIXES as _HUMAN_AUTHOR_PREFIXES,
 )
@@ -30,12 +34,8 @@ from brick_protocol.support.recording.walker_evidence import (
 # template/default-transition gate AUTO-ADOPTS the agent's non-binding proposal. A
 # human:/coo: gate PAUSEs for a caller/COO disposition. Support reads the declared
 # gate; it never authors one.
-_TEMPLATE_GATE_REFS: frozenset[str] = frozenset(
-    {"link-gate:default-transition"}
-)
-_HUMAN_GATE_REFS: frozenset[str] = frozenset(
-    {"link-gate:human", "link-gate:coo"}
-)
+_TEMPLATE_GATE_REFS: frozenset[str] = AUTO_ADOPT_GATE_REFS
+_HUMAN_GATE_REFS: frozenset[str] = HUMAN_DISPOSITION_GATE_REFS
 _TEMPLATE_AUTHOR_PREFIXES: tuple[str, ...] = ("template:",)
 
 
