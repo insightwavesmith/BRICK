@@ -302,6 +302,9 @@ text_contains:
       - def write_local_inbox_packet
       - def write_operator_wake_packet
       - DASHBOARD_SA_KEY_PATH_ENV
+      - SLACK_THREAD_REPLY_EVENT_KINDS
+      - SLACK_THREAD_TS_REQUIRED_EVENT_KINDS
+      - SLACK_THREAD_FALLBACK_TOP_LEVEL_EVENT_KINDS
       - def _dashboard_openssl_sign_rs256
       - openssl
       - dgst
@@ -312,8 +315,10 @@ text_contains:
       - def _validate_slack_packet
       - external_delivery_allowed
       - not_attempted_non_real_vessel
+      - not_attempted_missing_thread_ts
       - def _packet_allows_external_delivery
       - 시작했어요. 진행되는 대로 여기 댓글로 알려드릴게요.
+      - "잠깐 멈췄어요. 살펴봐 주세요. (담당:"
       - ✅ 다 됐어요!
       - 단계 끝났어요
       - 넘어가요

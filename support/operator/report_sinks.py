@@ -28,10 +28,27 @@ SLACK_CHANNEL_ID_ENV = "BRICK_REPORT_SLACK_CHANNEL_ID"
 SLACK_API_URL = "https://slack.com/api/chat.postMessage"
 SLACK_THREAD_PARENT_RECORD = "raw/report-thread.jsonl"
 SLACK_THREAD_REPLY_EVENT_KINDS = frozenset(
-    {"brick_received", "brick_returned", "gate_passed", "disposition_applied"}
+    {
+        "brick_received",
+        "brick_returned",
+        "gate_passed",
+        "disposition_applied",
+        "intervention_required",
+        "building_finished",
+    }
 )
 SLACK_THREAD_TS_REQUIRED_EVENT_KINDS = frozenset(
-    {"brick_received", "brick_returned", "gate_passed", "disposition_applied", "building_finished"}
+    {
+        "brick_received",
+        "brick_returned",
+        "gate_passed",
+        "disposition_applied",
+        "intervention_required",
+        "building_finished",
+    }
+)
+SLACK_THREAD_FALLBACK_TOP_LEVEL_EVENT_KINDS = frozenset(
+    {"intervention_required", "building_finished"}
 )
 SLACK_THREAD_STATUS_ONLY_EVENT_KINDS = frozenset()
 SLACK_BRICK_GRAIN_EVENT_KINDS = (
@@ -499,30 +516,32 @@ def send_slack_report_packet(
         )
 
     payload = {"channel": channel_id, "text": _slack_message_text(packet)}
-    if event_kind in SLACK_THREAD_TS_REQUIRED_EVENT_KINDS and (
-        event_kind != "building_finished" or packet.get("report_event_grain") == "brick"
-    ):
+    if event_kind in SLACK_THREAD_TS_REQUIRED_EVENT_KINDS:
         thread_ref = _slack_thread_ref_for_packet(repo, packet)
         thread_ts = str(thread_ref.get("message_ts") or "").strip()
         thread_channel = str(thread_ref.get("channel_ref") or "").strip()
         if not thread_ts:
-            return ReportSinkObservation(
-                sink_ref=SLACK_SINK_REF,
-                delivered=False,
-                packet_ref=packet_ref,
-                written_path="",
-                proof_limits=SLACK_REAL_DELIVERY_PROOF_LIMITS,
-                not_proven=_merge_texts(
-                    SLACK_NOT_PROVEN,
-                    ("Slack thread parent ts was not recorded",),
-                ),
-                delivery_status_class="not_attempted_missing_thread_ts",
-                provider_response_status_class="not_attempted",
-                environment_presence=environment_presence,
-            )
-        payload["thread_ts"] = thread_ts
-        if thread_channel:
-            payload["channel"] = thread_channel
+            if event_kind in SLACK_THREAD_FALLBACK_TOP_LEVEL_EVENT_KINDS:
+                payload["text"] = _slack_message_text(packet, force_top_level=True)
+            else:
+                return ReportSinkObservation(
+                    sink_ref=SLACK_SINK_REF,
+                    delivered=False,
+                    packet_ref=packet_ref,
+                    written_path="",
+                    proof_limits=SLACK_REAL_DELIVERY_PROOF_LIMITS,
+                    not_proven=_merge_texts(
+                        SLACK_NOT_PROVEN,
+                        ("Slack thread parent ts was not recorded",),
+                    ),
+                    delivery_status_class="not_attempted_missing_thread_ts",
+                    provider_response_status_class="not_attempted",
+                    environment_presence=environment_presence,
+                )
+        else:
+            payload["thread_ts"] = thread_ts
+            if thread_channel:
+                payload["channel"] = thread_channel
 
     body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
     request = urllib.request.Request(
@@ -1262,12 +1281,12 @@ def _slack_environment_presence(env: Mapping[str, str]) -> Mapping[str, str]:
     }
 
 
-def _slack_message_text(packet: Mapping[str, Any]) -> str:
+def _slack_message_text(packet: Mapping[str, Any], *, force_top_level: bool = False) -> str:
     source_ref = str(packet.get("building_id") or packet.get("portfolio_id") or "").strip()
     if not source_ref:
         source_ref = _required_text(packet.get("report_id"), "report_id")
     event_kind = _slack_event_kind(packet)
-    if event_kind in SLACK_THREAD_REPLY_EVENT_KINDS:
+    if event_kind in SLACK_THREAD_REPLY_EVENT_KINDS and not force_top_level:
         return _slack_thread_reply_text(packet, source_ref=source_ref, event_kind=event_kind)
     title = _slack_human_title(packet, fallback=source_ref)
     if event_kind == "building_started":
@@ -1313,6 +1332,12 @@ def _slack_thread_reply_text(
         return _slack_gate_passed_reply_text(packet, source_ref=source_ref, context=ctx)
     if event_kind == "disposition_applied":
         return _slack_disposition_reply_text(packet, source_ref=source_ref, context=ctx)
+    if event_kind == "intervention_required":
+        owner = str(packet.get("required_disposition_owner") or "").strip()
+        owner_label = _label_value("disposition_owners", owner) or owner or "확인 필요"
+        return f"잠깐 멈췄어요. 살펴봐 주세요. (담당: {owner_label})"
+    if event_kind == "building_finished":
+        return "✅ 다 됐어요!"
     return _slack_brick_returned_reply_text(packet, source_ref=source_ref, context=ctx)
 
 
