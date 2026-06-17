@@ -28,6 +28,9 @@ SLACK_CHANNEL_ID_ENV = "BRICK_REPORT_SLACK_CHANNEL_ID"
 SLACK_API_URL = "https://slack.com/api/chat.postMessage"
 SLACK_THREAD_PARENT_RECORD = "raw/report-thread.jsonl"
 SLACK_THREAD_REPLY_EVENT_KINDS = frozenset({"brick_returned", "disposition_applied"})
+SLACK_THREAD_TS_REQUIRED_EVENT_KINDS = frozenset(
+    {"brick_returned", "disposition_applied", "building_finished"}
+)
 SLACK_THREAD_STATUS_ONLY_EVENT_KINDS = frozenset({"brick_received", "gate_passed"})
 SLACK_BRICK_GRAIN_EVENT_KINDS = (
     "brick_received",
@@ -494,7 +497,9 @@ def send_slack_report_packet(
         )
 
     payload = {"channel": channel_id, "text": _slack_message_text(packet)}
-    if event_kind in SLACK_THREAD_REPLY_EVENT_KINDS:
+    if event_kind in SLACK_THREAD_TS_REQUIRED_EVENT_KINDS and (
+        event_kind != "building_finished" or packet.get("report_event_grain") == "brick"
+    ):
         thread_ref = _slack_thread_ref_for_packet(repo, packet)
         thread_ts = str(thread_ref.get("message_ts") or "").strip()
         thread_channel = str(thread_ref.get("channel_ref") or "").strip()
@@ -1262,20 +1267,16 @@ def _slack_message_text(packet: Mapping[str, Any]) -> str:
     event_kind = _slack_event_kind(packet)
     if event_kind in SLACK_THREAD_REPLY_EVENT_KINDS:
         return _slack_thread_reply_text(packet, source_ref=source_ref, event_kind=event_kind)
-    work_kind = str(packet.get("current_work_kind") or "").strip()
-    lane = str(packet.get("current_lane") or "").strip()
-    lane_label = _label_value("lanes", lane) or lane or "확인 필요"
-    action_line = _slack_action_line(packet, event_kind=event_kind)
-    lines = [
-        f"🧱 {_slack_human_title(packet, fallback=source_ref)}",
-        f"→ {_slack_status_sentence(packet, event_kind=event_kind)}",
-        f"누구: {lane_label}",
-        f"다음: {action_line or '없음'}",
-    ]
-    lines.extend(_slack_stage_lines(packet))
-    lines.append(f"ref: {_slack_ref_line(packet, source_ref=source_ref)}")
-    lines.append("※ 상태 알림일 뿐 source truth/성공·품질·Movement 판단 아님")
-    return "\n".join(lines)
+    title = _slack_human_title(packet, fallback=source_ref)
+    if event_kind == "building_started":
+        return f"🧱 {title}\n시작했어요. 진행되는 대로 여기 댓글로 알려드릴게요."
+    if event_kind == "building_finished":
+        return f"🧱 {title}\n✅ 다 됐어요!"
+    if event_kind == "intervention_required":
+        owner = str(packet.get("required_disposition_owner") or "").strip()
+        owner_label = _label_value("disposition_owners", owner) or owner or "확인 필요"
+        return f"🧱 {title}\n잠깐 멈췄어요. 살펴봐 주세요. (담당: {owner_label})"
+    return f"🧱 {title}\n{_slack_status_sentence(packet, event_kind=event_kind)}"
 
 
 def _slack_human_title(packet: Mapping[str, Any], *, fallback: str) -> str:
@@ -1313,20 +1314,12 @@ def _slack_brick_returned_reply_text(
     source_ref: str,
     context: Mapping[str, Any],
 ) -> str:
-    step_ref = str(context.get("step_ref") or packet.get("last_completed_step_ref") or "").strip()
     sequence = _circled_sequence(context.get("sequence_index"))
-    received_at = _kst_hhmm(context.get("received_at") or packet.get("generated_at"))
-    returned_at = _kst_hhmm(context.get("returned_at") or packet.get("generated_at"))
-    summary = str(context.get("returned_summary") or "반환 기록됨").strip()
-    gate_note = str(context.get("gate_note") or "통과→다음스텝").strip()
-    title = _short_step_ref(step_ref) if step_ref else _slack_human_title(packet, fallback=source_ref)
-    lines = [
-        f"{sequence} {title}",
-        f"받음({received_at}) → 반환({returned_at}, {summary}) → 게이트 결과({gate_note})",
-        f"ref: {_slack_ref_line(packet, source_ref=source_ref)}",
-        "※ 상태 알림일 뿐 source truth/성공·품질·Movement 판단 아님",
-    ]
-    return "\n".join(lines)
+    returned_at = _kst_hhmm(
+        context.get("returned_at") or context.get("received_at") or packet.get("generated_at")
+    )
+    stage = _slack_completed_stage_label(packet, context=context)
+    return f"{sequence} {stage} 단계 끝났어요. ({returned_at})"
 
 
 def _slack_disposition_reply_text(
@@ -1335,19 +1328,28 @@ def _slack_disposition_reply_text(
     source_ref: str,
     context: Mapping[str, Any],
 ) -> str:
-    author_ref = str(context.get("disposition_author_ref") or "coo:unknown").strip()
-    author = author_ref.split(":", 1)[0] if ":" in author_ref else author_ref
-    if author not in {"human", "coo"}:
-        author = "coo"
     action = str(context.get("disposition_action") or "forward").strip()
+    action_label = _label_value("disposition_actions", action) or action or "다음 단계로 진행"
     applied_at = _kst_hhmm(context.get("applied_at") or packet.get("generated_at"))
-    lines = [
-        f"⤷ {author} 도장",
-        f"처분({applied_at}): {action}",
-        f"ref: {_slack_ref_line(packet, source_ref=source_ref)}",
-        "※ 상태 알림일 뿐 source truth/성공·품질·Movement 판단 아님",
-    ]
-    return "\n".join(lines)
+    return f"⤷ COO 확인: {action_label} ({applied_at})"
+
+
+def _slack_completed_stage_label(
+    packet: Mapping[str, Any],
+    *,
+    context: Mapping[str, Any],
+) -> str:
+    kind = str(
+        context.get("step_kind")
+        or context.get("work_kind")
+        or packet.get("current_work_kind")
+        or ""
+    ).strip()
+    if not kind:
+        raw_kinds = packet.get("completed_step_kinds")
+        if isinstance(raw_kinds, list) and raw_kinds:
+            kind = str(raw_kinds[-1] or "").strip()
+    return _label_value("brick_kinds", kind, field="ko") or kind or "해당"
 
 
 def _slack_stage_lines(packet: Mapping[str, Any]) -> tuple[str, ...]:
@@ -1436,13 +1438,17 @@ def _slack_ref_line(packet: Mapping[str, Any], *, source_ref: str) -> str:
     parts = [source_ref]
     brick_ref = _short_ref(str(packet.get("current_brick_ref") or "").strip())
     if brick_ref != "-":
-        parts.append(f"brick={brick_ref}")
+        parts.append(_slack_ref_part("brick", brick_ref))
     step_ref = _short_step_ref(str(packet.get("last_completed_step_ref") or "").strip())
     if step_ref != "-":
-        parts.append(f"step={step_ref}")
+        parts.append(_slack_ref_part("step", step_ref))
     frontier_ref = _short_frontier_ref(_required_text(packet.get("frontier_ref"), "frontier_ref"))
-    parts.append(f"frontier={frontier_ref}")
+    parts.append(_slack_ref_part("frontier", frontier_ref))
     return " · ".join(parts)
+
+
+def _slack_ref_part(key: str, value: str) -> str:
+    return f"{key}={value}"
 
 
 def _short_ref(value: str) -> str:
