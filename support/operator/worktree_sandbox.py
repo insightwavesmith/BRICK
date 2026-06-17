@@ -41,7 +41,22 @@ from pathlib import Path
 # (mirrors the ~/.brick precedent; never in-repo). The marker file below stamps
 # each created worktree so cleanup/reap can be gated to ENGINE-created paths
 # only (deny-hook safe -- a stray user directory is never force-removed).
-ENGINE_WORKTREES_ROOT = Path.home() / ".brick" / "worktrees"
+def _engine_worktrees_root() -> Path:
+    """The engine-created worktrees root, resolved at CALL time (not module-load
+    time) so a per-run HOME is honored. P5: a Building executing under a different
+    HOME used to bind this to the load-time HOME, making worktree paths -- and thus
+    checks like building_operator_driver0 -- diverge by environment (the dogfood
+    building-lifecycle friction root). Lazy resolution removes that divergence."""
+    return Path.home() / ".brick" / "worktrees"
+
+
+def __getattr__(name: str) -> object:
+    # Keep ENGINE_WORKTREES_ROOT importable as a module attribute, but resolved
+    # lazily (no module-load-time HOME capture). Internal call sites use
+    # _engine_worktrees_root() directly.
+    if name == "ENGINE_WORKTREES_ROOT":
+        return _engine_worktrees_root()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 _ENGINE_WORKTREE_MARKER = ".brick-engine-worktree"
 
 
@@ -208,10 +223,10 @@ def reap_stale_worktrees(repo_root: Path | str) -> tuple[str, ...]:
 
     repo = Path(repo_root).resolve()
     reaped: list[str] = []
-    if not ENGINE_WORKTREES_ROOT.is_dir():
+    if not _engine_worktrees_root().is_dir():
         _git(repo, "worktree", "prune")
         return ()
-    for child in sorted(ENGINE_WORKTREES_ROOT.iterdir()):
+    for child in sorted(_engine_worktrees_root().iterdir()):
         if not child.is_dir():
             continue
         if not _is_engine_worktree(child):
@@ -240,7 +255,7 @@ def temp_dir_fallback(prefix: str = "bp-customer-sandbox-") -> tempfile.Temporar
 
 
 def _worktree_path_for(building_id: str) -> Path:
-    return ENGINE_WORKTREES_ROOT / _slug(building_id)
+    return _engine_worktrees_root() / _slug(building_id)
 
 
 def _write_engine_marker(wt_path: Path, *, repo: Path, building_id: str, base: str) -> None:
@@ -276,7 +291,7 @@ def _write_engine_marker(wt_path: Path, *, repo: Path, building_id: str, base: s
 def _is_engine_worktree(path: Path) -> bool:
     try:
         resolved = path.resolve()
-        root = ENGINE_WORKTREES_ROOT.resolve()
+        root = _engine_worktrees_root().resolve()
     except OSError:
         return False
     if root not in resolved.parents and resolved != root:
