@@ -605,9 +605,11 @@ def agent_request_read_tier(request: AgentAdapterRequest) -> bool:
     """Return whether this non-write request admits read-only repo inspection.
 
     The admitted read tier is intentionally narrower than generic adapter read
-    capability: it opens only for review/coordination tool-policy refs and only
-    on adapters whose invocation can express a read-only repo-inspection shape.
-    Ambiguous requests fail closed to the none tier.
+    capability: codex/claude open it only for review/coordination tool-policy
+    refs; gemini-local opens it for any known tool-bearing policy because its
+    local CLI branch has no observed-write path and is still constrained by the
+    read-only Gemini admin policy. Ambiguous requests fail closed to the none
+    tier.
     """
 
     if not isinstance(request, AgentAdapterRequest):
@@ -617,9 +619,17 @@ def agent_request_read_tier(request: AgentAdapterRequest) -> bool:
     tool_policy_refs = set(request.tool_policy_refs)
     if any(ref not in KNOWN_TOOL_POLICY_REFS for ref in tool_policy_refs):
         return False
+    if request.adapter_ref == ADAPTER_GEMINI_LOCAL:
+        return bool(tool_policy_refs)
     if not tool_policy_refs.intersection(READ_ONLY_TOOL_POLICY_REFS):
         return False
     return request.adapter_ref in {ADAPTER_CODEX_LOCAL, ADAPTER_CLAUDE_LOCAL, ADAPTER_GEMINI_LOCAL}
+
+
+def _read_tier_policy_refs_for_request(request: AgentAdapterRequest) -> frozenset[str]:
+    if request.adapter_ref == ADAPTER_GEMINI_LOCAL:
+        return KNOWN_TOOL_POLICY_REFS
+    return READ_ONLY_TOOL_POLICY_REFS
 
 
 def project_model_ref_to_cli_arg(adapter_ref: str, selected_model_ref: str = "") -> str:
@@ -883,7 +893,7 @@ def _invoke_local_cli_adapter(
         command_runner=command_runner,
     )
     if completed.return_code != 0:
-        raise ValueError("local CLI adapter command returned non-zero")
+        raise ValueError(_local_cli_nonzero_error_message(spec, completed))
     output_text = _extract_output_text(spec, completed)
     _reject_secret_text("local_cli_output", output_text)
     returned = {
@@ -1766,11 +1776,11 @@ def _build_prompt(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
             )
         )
     elif agent_request_read_tier(request):
-        admitted = ", ".join(sorted(READ_ONLY_TOOL_POLICY_REFS))
+        admitted = ", ".join(sorted(_read_tier_policy_refs_for_request(request)))
         rules.extend(
             (
                 "You may use read-only repository inspection tools only: read files, inspect diffs, search with grep/glob, and run checker commands.",
-                f"Read tier is admitted only by these Agent tool policies: {admitted}.",
+                f"Read tier is admitted for this adapter only by these Agent tool policies: {admitted}.",
                 "Do not edit, create, delete, or write files.",
                 "Do not run git mutations, including commit, push, checkout, reset, merge, rebase, or stash.",
                 "Do not execute hooks or provider SDKs.",
@@ -1952,6 +1962,55 @@ def _strip_code_fence(value: str) -> str:
         if len(lines) >= 2:
             return "\n".join(lines[1:-1]).strip()
     return text
+
+
+_GEMINI_CLIENT_ERROR_PATH_RE = re.compile(
+    r"""[^\s'"`<>]*gemini-client-error-[^\s'"`<>]*\.json"""
+)
+
+
+def _local_cli_nonzero_error_message(spec: LocalCliSpec, completed: LocalCliCompleted) -> str:
+    parts = [
+        "local CLI adapter command returned non-zero",
+        f"adapter_ref={spec.adapter_ref}",
+        f"return_code={completed.return_code}",
+    ]
+    stderr_excerpt = _redacted_diagnostic_excerpt(completed.stderr, limit=420)
+    if stderr_excerpt:
+        parts.append(f"stderr_excerpt={stderr_excerpt}")
+    stdout_error_excerpt = _stdout_error_excerpt(completed.stdout)
+    if stdout_error_excerpt:
+        parts.append(f"stdout_error_excerpt={stdout_error_excerpt}")
+    stderr_error_path = _stderr_gemini_client_error_path(completed.stderr)
+    if stderr_error_path:
+        parts.append(f"stderr_error_path={stderr_error_path}")
+    return "; ".join(parts)
+
+
+def _stdout_error_excerpt(stdout: str) -> str:
+    payload = _try_json_value(stdout)
+    if not isinstance(payload, Mapping) or "error" not in payload:
+        return ""
+    error = payload["error"]
+    if isinstance(error, str):
+        text = error
+    else:
+        text = json.dumps(error, ensure_ascii=True, sort_keys=True)
+    return _redacted_diagnostic_excerpt(text, limit=360)
+
+
+def _stderr_gemini_client_error_path(stderr: str) -> str:
+    match = _GEMINI_CLIENT_ERROR_PATH_RE.search(stderr)
+    if not match:
+        return ""
+    return _redacted_diagnostic_excerpt(match.group(0), limit=240)
+
+
+def _redacted_diagnostic_excerpt(value: str, *, limit: int) -> str:
+    text = value
+    for pattern in (*_RAW_SECRET_PATTERNS, *_RAW_SESSION_PATTERNS):
+        text = pattern.sub("[redacted]", text)
+    return _safe_excerpt(text, limit=limit)
 
 
 def _try_json_value(value: str) -> Any:

@@ -7,6 +7,11 @@ kernel_checks:
   - building_lifecycle_path_shape
   - building_map_graph
   - provider_preflight
+  # GEMINI-INSPECT-READTIER-0617: executes Agent Adapter return/read-tier probes,
+  # including gemini-local read-write-scoped -> read-only browse and redacted
+  # non-zero stderr/stdout-error preservation. Mutation-RED: disable the
+  # gemini-local read-write-scoped branch in agent_request_read_tier -> RED.
+  - agent_adapter_return_shape
   # B6 (ADDITIVE): direct Gemini HTTP API adapter (adapter:gemini-api). Executes
   # IN-PROCESS: admission (READ+REVIEW, not write-capable, not a CLI spec); no-key
   # -> clean local_cli_missing typed adapter-error with NO subprocess; mocked
@@ -188,6 +193,17 @@ text_contains:
       - completed
       - TOP_LEVEL_VERDICT_KEYS
       - ALWAYS_SECRET_KEYS
+  - path: support/connection/agent_adapter.py
+    texts:
+      - if request.adapter_ref == ADAPTER_GEMINI_LOCAL
+      - def _local_cli_nonzero_error_message
+      - stdout_error_excerpt
+      - stderr_error_path
+  - path: support/checkers/lib/kernel_checks.py
+    texts:
+      - gemini-local read-write-scoped request did not enter read tier
+      - gemini-local non-zero adapter error omitted
+      - gemini-client-error-probe.json
   - path: agent/return_fact.py
     texts:
       - TOP_LEVEL_VERDICT_KEYS
