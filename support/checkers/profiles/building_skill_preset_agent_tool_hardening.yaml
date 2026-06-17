@@ -1364,7 +1364,7 @@ preset_building_completion_case:
         - coo:all-presets-completion-smoke
       human_review_refs:
         - human-review:all-presets-completion-smoke
-    expected_preset_count: 26
+    expected_preset_count: 27
     expected_frontier_kind: complete
     expected_portfolio_frontier_kind: complete
     expected_preset_refs:
@@ -1393,6 +1393,7 @@ preset_building_completion_case:
       - building-chain-preset:repair-loop
       - building-chain-preset:research-report
       - building-chain-preset:review-fleet
+      - building-chain-preset:triage-fanout-3
       - building-chain-preset:two-fan-in-graph
 # PART-2 Phase 1 CORE PRODUCT SEAM: the single task.md + chain preset ->
 # running-Building verb (support/operator/driver.py run_building_intake). This
