@@ -114,10 +114,11 @@ result = run_building_intake({
 print(result.building_id, result.run_result.lifecycle_write.root)
 ```
 
-`run_building_intake` 와 그 자매 `run_composed_graph_intake`(이미 조립한
-그래프 + 인라인 task를 바로 굴림)는 둘 다 `support/operator/driver.py` 에
-있고, 둘 다 `plan_shape: graph` 만 받아 같은 `run_building_plan` 입구로
-넘깁니다.
+발주를 **만드는 공개 길은 둘 뿐**입니다: 프리셋이면 `run_building_intake`,
+새 구조면 `assemble`. (`run_composed_graph_intake` 는 RAW dict 직결 뒷문이라
+공개 표면에서 **봉인**됐습니다 — `driver.__all__` 에 없고 체커/내부 전용.
+손-dict 그래프 발주 대신 `assemble` 빌더DSL을 쓰세요.) 두 공개 길 모두
+`plan_shape: graph` 로 같은 `run_building_plan` 입구에 넘어갑니다.
 
 ---
 
