@@ -1,1 +1,0 @@
-{"absent_fact_type":"TransferFact","axis_scope":["Link"],"caller_supplied":false,"event_type":"LinkTransfer","run_segment":1,"sequence_index":55,"source_fact_ref":"absence:link-transfer:06:postmortem-0612-incidents-evidence-lens-codex","spine_schema_version":"spine-v1","support_created_bal_fact":false,"trace_role":"absence_placeholder"}
