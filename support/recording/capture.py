@@ -10,20 +10,78 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import json
+import os
 import re
 from pathlib import Path
-from typing import Any, TypeAlias, Union
+from typing import Any, Callable, TypeAlias, Union
 
 
 JsonScalar: TypeAlias = Union[str, int, float, bool, None]
 JsonValue: TypeAlias = Union[JsonScalar, Mapping[str, "JsonValue"], Sequence["JsonValue"]]
 JsonObject: TypeAlias = Mapping[str, JsonValue]
 
-# Canonical, repo-anchored Building root: derived from this file's location so
-# building output always lands inside the repo regardless of the process working
-# directory. This is the single source for the Building root (other modules
-# import it; see check_building_root_anchor).
+# Canonical repo root: derived from this file's location so project_ref vessel
+# paths do not depend on the process working directory.
 REPO_ROOT = Path(__file__).resolve().parents[2]
+BRICK_EVIDENCE_HOME_ENV = "BRICK_HOME"
+
+
+def BRICK_EVIDENCE_HOME() -> Path:
+    """Return the caller-local Brick evidence home without fixing it at import."""
+
+    configured = os.environ.get(BRICK_EVIDENCE_HOME_ENV)
+    if configured:
+        return Path(configured).expanduser()
+    return Path.home() / ".brick"
+
+
+def default_buildings_root() -> Path:
+    """Return the ref-less default Building root under the evidence home."""
+
+    return BRICK_EVIDENCE_HOME() / "project" / "brick-protocol" / "buildings"
+
+
+class _DefaultBuildingsRoot:
+    """Path-like lazy default so imported defaults resolve at call time."""
+
+    __slots__ = ("_resolver",)
+
+    def __init__(self, evidence_home_resolver: Callable[[], Path]) -> None:
+        self._resolver = evidence_home_resolver
+
+    def path(self) -> Path:
+        return self._resolver() / "project" / "brick-protocol" / "buildings"
+
+    def __fspath__(self) -> str:
+        return str(self.path())
+
+    def __str__(self) -> str:
+        return str(self.path())
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}({str(self.path())!r})"
+
+    def __eq__(self, other: object) -> bool:
+        try:
+            return self.path() == Path(other)  # type: ignore[arg-type]
+        except TypeError:
+            return False
+
+    def __hash__(self) -> int:
+        return object.__hash__(self)
+
+    @property
+    def parent(self) -> Path:
+        # Legacy status projections used DEFAULT_BUILDINGS_ROOT.parent as the
+        # repo-local status vessel. Evidence writes use __fspath__/__truediv__
+        # and remain under the lazy evidence home.
+        return buildings_root_for("project:brick-protocol").parent
+
+    def __truediv__(self, key: str) -> Path:
+        return self.path() / key
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self.path(), name)
 
 # PROJECT-0 S5-FIX: THE single project-id slug law. The declared rule
 # everywhere (loader messages, this seam) is [-_a-z0-9]; the old
@@ -53,8 +111,8 @@ def buildings_root_for(project_ref: str) -> Path:
     ``project:<id>`` -> ``REPO_ROOT / "project" / <id> / "buildings"``. Path is
     the first-class membership fact; this seam is the only place a buildings
     root is derived from a declared project_ref (S3 intake consumes it).
-    Raises ValueError on a malformed ref. DEFAULT_BUILDINGS_ROOT stays the
-    project #1 default for ref-less callers.
+    Raises ValueError on a malformed ref. Ref-less callers use
+    ``default_buildings_root()`` through ``DEFAULT_BUILDINGS_ROOT``.
     """
 
     prefix = "project:"
@@ -106,12 +164,10 @@ def project_ref_for_building_root(
     return project_ref
 
 
-# PROJECT-0 S3-A: the ref-less default root is ITSELF derived through the
-# single seam above (project #1 = project:brick-protocol) — no parallel
-# "project/brick-protocol" path-join literal survives anywhere. The
-# root-anchor checker admits seam-derived values as repo-anchored because the
-# seam's own returns are proven REPO_ROOT-anchored (rule 3 of that checker).
-DEFAULT_BUILDINGS_ROOT = buildings_root_for("project:brick-protocol")
+# EVROOT2 Part A: the ref-less default root is lazy and caller-local under the
+# evidence home ($BRICK_HOME or ~/.brick). Declared project_ref values still use
+# buildings_root_for(project_ref), and explicit output_root values bypass this.
+DEFAULT_BUILDINGS_ROOT = _DefaultBuildingsRoot(BRICK_EVIDENCE_HOME)
 
 
 GRAPH_READY_SCHEMA_VERSION = "graph-ready-v1"
@@ -781,12 +837,15 @@ __all__ = [
     "BuildingLifecyclePacket",
     "BuildingLifecycleRecorder",
     "BuildingLifecycleWriteResult",
+    "BRICK_EVIDENCE_HOME",
+    "BRICK_EVIDENCE_HOME_ENV",
     "buildings_root_for",
     "CAPTURE_AXIS_ATTRIBUTIONS",
     "CAPTURE_EVENT_TYPES",
     "CAPTURE_ROLE_LITERALS",
     "CaptureEvent",
     "DEFAULT_BUILDINGS_ROOT",
+    "default_buildings_root",
     "REPO_ROOT",
     "GRAPH_READY_CONTEXT",
     "GRAPH_READY_DATASCHEMA",

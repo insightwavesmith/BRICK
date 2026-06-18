@@ -23,7 +23,7 @@ JsonValue: TypeAlias = Union[JsonScalar, dict[str, "JsonValue"], list["JsonValue
 JsonObject: TypeAlias = dict[str, JsonValue]
 
 # The Building map lives under the canonical Building root; alias the single
-# repo-anchored source rather than redefine a cwd-relative string.
+# anchored source rather than redefine a cwd-relative string.
 DEFAULT_BUILDING_MAP_ROOT = DEFAULT_BUILDINGS_ROOT
 GRAPH_MAP_KIND = "building_graph_map"
 SAFE_PATH_SEGMENT = re.compile(r"^[A-Za-z0-9._-]+$")
@@ -228,17 +228,18 @@ def building_graph_index_from_evidence_roots(
 ) -> JsonObject:
     """Create a multi-Building support index from Building evidence roots."""
 
-    packets = [building_map_packet_from_evidence(root) for root in building_roots]
+    roots = [Path(root) for root in building_roots]
+    packets = [building_map_packet_from_evidence(root) for root in roots]
     buildings: list[JsonValue] = []
     brick_nodes: list[JsonValue] = []
     agent_binding_nodes: list[JsonValue] = []
     link_edges: list[JsonValue] = []
-    for packet in packets:
+    for root, packet in zip(roots, packets):
         building_id = packet["building_id"]
         buildings.append(
             {
                 "building_id": building_id,
-                "map_ref": f"project/brick-protocol/buildings/{building_id}/work/building-map.json",
+                "map_ref": _building_map_ref(root),
                 "raw_refs": packet.get("raw_refs", []),
             }
         )
@@ -301,6 +302,10 @@ def _building_map_path(building_id: JsonValue, output_root: Path | str) -> Path:
     if not isinstance(building_id, str):
         raise TypeError("building_id must be text")
     return Path(output_root) / building_id / "work" / "building-map.json"
+
+
+def _building_map_ref(building_root: Path) -> str:
+    return (building_root / "work" / "building-map.json").as_posix()
 
 
 def _building_id_from_root(root: Path) -> str:

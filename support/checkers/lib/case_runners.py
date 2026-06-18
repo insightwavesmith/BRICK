@@ -1984,9 +1984,10 @@ def run_intake_project_vessel_case(repo: Path, profile: Mapping[str, Any]) -> in
       3. CHARTERLESS VESSEL — a HAND-MADE ``project/<id>/`` directory without
          charter+declaration rejects loudly with the S1 loader's own voice
          (undeclared vessels are refused at intake, not discovered later).
-      4. COMPAT — the ref-less default root IS the seam-derived project #1
-         root (``DEFAULT_BUILDINGS_ROOT == buildings_root_for(
-         'project:brick-protocol')``; no parallel path-join literal), and a
+      4. COMPAT — the ref-less default root resolves through
+         ``default_buildings_root()`` (caller-local evidence home), while
+         ``buildings_root_for('project:brick-protocol')`` remains the declared
+         project_ref vessel root; no parallel path-join literal survives, and a
          double root declaration (project_ref AND explicit output_root)
          rejects as ambiguous.
 
@@ -2004,7 +2005,11 @@ def run_intake_project_vessel_case(repo: Path, profile: Mapping[str, Any]) -> in
     from support.operator.building_operation import observe_building_frontier
     from support.operator.driver import run_building_intake
     from support.operator.project_creation import create_project
-    from support.recording.capture import DEFAULT_BUILDINGS_ROOT, buildings_root_for
+    from support.recording.capture import (
+        DEFAULT_BUILDINGS_ROOT,
+        buildings_root_for,
+        default_buildings_root,
+    )
 
     # C4 (0615): governed-change-review's QA bricks now declare a write NEED, so
     # the intent carries a broad work-area write_scope and the seam is driven by
@@ -2032,13 +2037,21 @@ def run_intake_project_vessel_case(repo: Path, profile: Mapping[str, Any]) -> in
                 route_decision_basis, f"{label}: route_decision_basis"
             )
 
-        # COMPAT (leg 4a, no filesystem): the ref-less default root must BE the
-        # seam-derived project #1 root — REDs if a parallel literal reappears.
-        if DEFAULT_BUILDINGS_ROOT != buildings_root_for("project:brick-protocol"):
+        # COMPAT (leg 4a, no filesystem): the ref-less default root must resolve
+        # through the lazy caller-local evidence-home seam; declared project_ref
+        # roots still derive through buildings_root_for(project_ref).
+        if Path(DEFAULT_BUILDINGS_ROOT) != default_buildings_root():
             raise ProfileError(
                 f"intake_project_vessel_case rejected {label}: DEFAULT_BUILDINGS_ROOT "
-                "is not buildings_root_for('project:brick-protocol') — the ref-less "
-                "project #1 default must derive through the single seam, no parallel literal"
+                "is not default_buildings_root() — the ref-less default must derive "
+                "through the lazy evidence-home seam, no parallel literal"
+            )
+        expected_project_root = repo / "project" / "brick-protocol" / "buildings"
+        if buildings_root_for("project:brick-protocol") != expected_project_root:
+            raise ProfileError(
+                f"intake_project_vessel_case rejected {label}: buildings_root_for("
+                "'project:brick-protocol') no longer resolves to the declared "
+                "project_ref vessel root"
             )
 
         project_ref = f"project:{vessel_id}"

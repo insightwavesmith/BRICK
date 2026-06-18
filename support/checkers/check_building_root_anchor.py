@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""General invariant: every Building/evidence filesystem write-root is repo-anchored and single-source.
+"""General invariant: every Building/evidence filesystem write-root is anchored and single-source.
 
 The recording/operator write path stores Building lifecycle, map, and evidence
 output under a default root constant. If that constant is not anchored to the
@@ -10,17 +10,19 @@ the process happens to run from. And if the same root name is defined in more
 than one module, the write paths silently disagree. This checker keeps every
 such root:
 
-  1. ANCHORED -- positive proof: the RHS must reference one of the repo-anchor
-     names (REPO_ROOT, __file__) or alias the canonical root constant. A value
-     that references none of these (bare/relative string, Path("rel"),
-     Path.cwd()/..., os.path.join(...), f-string, "a"+"b", None, or an alias to
-     an un-anchored intermediate) is rejected. This is an allowlist, not a
-     "anything-but-a-string-literal" denylist.
+  1. ANCHORED -- positive proof: the RHS must reference one of the admitted
+     anchor names (REPO_ROOT, __file__, BRICK_EVIDENCE_HOME) or alias the
+     canonical root constant. A value that references none of these
+     (bare/relative string, Path("rel"), Path.cwd()/..., os.path.join(...),
+     f-string, "a"+"b", None, or an alias to an un-anchored intermediate) is
+     rejected. This is an allowlist, not a "anything-but-a-string-literal"
+     denylist.
   2. SINGLE-SOURCE -- each root name is assigned in exactly one module (imports
      do not count); every other module imports it.
   3. DERIVATION SEAM (PROJECT-0 S1-D) -- ``buildings_root_for(project_ref)``,
      the one project_ref -> buildings-root derivation, exists EXACTLY ONCE
-     across the code trees and every value it returns references a repo anchor.
+     across the code trees and every value it returns references an admitted
+     anchor.
   4. READ-SIDE VESSEL-LITERAL GUARD (PROJECT-0 S4-A) -- the ledger/dashboard
      read-side modules derive every vessel path through the seam or the
      declared project.json records; a returning project #1 literal (path or
@@ -64,17 +66,26 @@ ROOT_NAMES = frozenset(
 # PROJECT-0 S1-D: the ONE project_ref -> buildings-root derivation seam (one
 # function, one home — support/recording/capture.py). The same anchor rules
 # apply to the seam: it must exist EXACTLY ONCE across the code trees, and
-# every value it returns must reference a repo anchor (REPO_ROOT / __file__ /
-# the canonical root constants). S3 intake consumes this seam; pinning it here
+# every value it returns must reference an admitted anchor (REPO_ROOT /
+# __file__ / BRICK_EVIDENCE_HOME / the canonical root constants). S3 intake
+# consumes this seam; pinning it here
 # keeps a second, divergent derivation from quietly appearing elsewhere.
 DERIVATION_SEAM_NAME = "buildings_root_for"
-# A root RHS is anchored iff it references one of these names: the repo-anchor
-# helpers REPO_ROOT / __file__, the canonical root constant it aliases, or the
-# single derivation seam (PROJECT-0 S3-A: a value derived THROUGH the seam is
-# repo-anchored because the seam's every return is itself proven anchored and
-# the seam is proven single-home below — this is how DEFAULT_BUILDINGS_ROOT
-# absorbs the project #1 literal without a parallel path-join).
-ANCHOR_NAMES = frozenset({"REPO_ROOT", "__file__", DERIVATION_SEAM_NAME}) | ROOT_NAMES
+# The HOME default-evidence root anchor is support mechanics only: it admits the
+# ref-less default root under $BRICK_HOME or ~/.brick without making support a
+# source-truth or Movement authority surface.
+HOME_ANCHOR_NAMES = frozenset({"BRICK_EVIDENCE_HOME", "default_buildings_root"})
+# A root RHS is anchored iff it references one of these names: the repo anchor
+# helpers REPO_ROOT / __file__, the home evidence root helper
+# BRICK_EVIDENCE_HOME, the canonical root constant it aliases, or the single
+# derivation seam (PROJECT-0 S3-A: a value derived THROUGH the seam is anchored
+# because the seam's every return is itself proven anchored and the seam is
+# proven single-home below).
+ANCHOR_NAMES = (
+    frozenset({"REPO_ROOT", "__file__", DERIVATION_SEAM_NAME})
+    | HOME_ANCHOR_NAMES
+    | ROOT_NAMES
+)
 SCAN_DIRS = ("support", "brick", "agent", "link")
 
 # PROJECT-0 S4-A: the multi-project read-side modules must carry NO project #1
@@ -140,7 +151,7 @@ def _seam_function_defs(tree: ast.AST):
 
 
 def _seam_returns_anchored(func: ast.AST) -> bool:
-    """Every non-bare return in the seam references a repo anchor name."""
+    """Every non-bare return in the seam references an admitted anchor name."""
 
     returns = [node for node in ast.walk(func) if isinstance(node, ast.Return)]
     value_returns = [node for node in returns if node.value is not None]
@@ -272,14 +283,15 @@ def find_violations(repo: Path) -> tuple[list[str], int]:
                     if via_tuple:
                         violations.append(
                             f"{rel}: {name} is assigned via tuple/list unpacking; a "
-                            f"Building/evidence root must be a single REPO_ROOT-anchored "
+                            f"Building/evidence root must be a single anchored "
                             f"assignment"
                         )
                     elif not _is_anchored(value):
                         violations.append(
-                            f"{rel}: {name} is not repo-anchored; its value must derive "
-                            f"from REPO_ROOT or Path(__file__) (or alias the canonical "
-                            f"root), not a bare/relative/cwd/dynamic expression"
+                            f"{rel}: {name} is not anchored; its value must derive "
+                            f"from REPO_ROOT, Path(__file__), BRICK_EVIDENCE_HOME, "
+                            f"or the canonical root, not a bare/relative/cwd/dynamic "
+                            f"expression"
                         )
     for name, files in sorted(defs.items()):
         if len(files) > 1:
@@ -305,9 +317,10 @@ def find_violations(repo: Path) -> tuple[list[str], int]:
         seam_rel, anchored = seam_defs[0]
         if not anchored:
             violations.append(
-                f"{seam_rel}: {DERIVATION_SEAM_NAME} must return only repo-anchored "
-                "values (every return references REPO_ROOT/__file__/the canonical "
-                "root constants), not a bare/relative/cwd/dynamic expression"
+                f"{seam_rel}: {DERIVATION_SEAM_NAME} must return only anchored "
+                "values (every return references REPO_ROOT/__file__/"
+                "BRICK_EVIDENCE_HOME/the canonical root constants), not a "
+                "bare/relative/cwd/dynamic expression"
             )
     return sorted(set(violations)), sum(len(f) for f in defs.values()) + len(seam_defs)
 
@@ -316,9 +329,10 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Support-evidence checker: every Building/evidence filesystem "
-            "write-root constant is repo-anchored (positive REPO_ROOT/__file__ "
-            "proof) and single-source. Does not prove the directory exists, nor "
-            "source truth, success, quality, or Movement authority."
+            "write-root constant is anchored (positive REPO_ROOT/__file__/"
+            "BRICK_EVIDENCE_HOME proof) and single-source. Does not prove the "
+            "directory exists, nor source truth, success, quality, or Movement "
+            "authority."
         )
     )
     parser.add_argument("--repo", default=".", help="Repository root to inspect.")
@@ -344,7 +358,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"- {violation}")
         print(
             "proof limit: this checker proves only that Building/evidence root "
-            "constants are repo-anchored and single-source; it does not prove the "
+            "constants are anchored and single-source; it does not prove the "
             "resolved directory exists, nor source truth, success, quality, or "
             "Movement authority."
         )
@@ -353,7 +367,7 @@ def main(argv: list[str] | None = None) -> int:
     print(
         "building root anchor passed: "
         f"{count} Building/evidence root definition(s) (incl. the single "
-        f"{DERIVATION_SEAM_NAME} derivation seam) repo-anchored and single-source."
+        f"{DERIVATION_SEAM_NAME} derivation seam) anchored and single-source."
     )
     return 0
 
