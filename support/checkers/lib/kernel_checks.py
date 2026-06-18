@@ -2240,12 +2240,17 @@ def run_design_ai_text_seams(repo: Path) -> KernelResult:
       (c) command_runner TimeoutExpired propagates unchanged.
       (d) blank/whitespace output raises clean ValueError.
       (e) secret-looking output is rejected by the adapter secret scrub.
+      (f) codex stall watchdog fires only on the conservative dead-connection
+          signature, while slow-but-live / unavailable-health probes keep the
+          existing wait behavior.
 
     Mutation-RED: removing any raise/parse/scrub behavior above turns this check
     red without invoking a live provider CLI.
     """
     _ensure_import_identity(repo)
     adapter = importlib.import_module("brick_protocol.support.connection.agent_adapter")
+    run_module = importlib.import_module("brick_protocol.support.operator.run")
+    walker_resume = importlib.import_module("brick_protocol.support.operator.walker_resume")
     inspected = 0
 
     claude_prompt = "Design prompt\nwith two lines"
@@ -2375,6 +2380,114 @@ def run_design_ai_text_seams(repo: Path) -> KernelResult:
     )
     inspected += 1
 
+    class _FakeCodexProc:
+        pid = 982451653
+        returncode: int | None = None
+
+        def __init__(self, *, timeouts_before_return: int, clock_state: dict[str, float]) -> None:
+            self.timeouts_before_return = timeouts_before_return
+            self.clock_state = clock_state
+            self.communicate_timeouts: list[float] = []
+
+        def poll(self) -> int | None:
+            return self.returncode
+
+        def communicate(self, *, timeout: float) -> tuple[str, str]:
+            self.communicate_timeouts.append(float(timeout))
+            self.clock_state["now"] += float(timeout)
+            if self.timeouts_before_return > 0:
+                self.timeouts_before_return -= 1
+                raise subprocess.TimeoutExpired(cmd=("codex", "exec"), timeout=timeout)
+            self.returncode = 0
+            return ("CODEX buffered final text\n", "")
+
+    watchdog_config = adapter._CodexStallWatchdogConfig(
+        threshold_seconds=0.2,
+        poll_seconds=0.1,
+    )
+
+    dead_clock = {"now": 0.0}
+    dead_proc = _FakeCodexProc(timeouts_before_return=10, clock_state=dead_clock)
+    dead_health = adapter._CodexCliHealth(
+        process_running=True,
+        child_count=0,
+        established_socket_count=0,
+        cpu_seconds=12.0,
+    )
+
+    def _dead_health_probe(proc: Any) -> Any:
+        del proc
+        return dead_health
+
+    try:
+        adapter._communicate_with_optional_codex_stall_watchdog(
+            dead_proc,
+            ("codex", "exec", "--output-last-message", "/tmp/ignored", "buffered prompt"),
+            timeout_seconds=5,
+            watchdog_config=watchdog_config,
+            health_probe=_dead_health_probe,
+            clock=lambda: dead_clock["now"],
+        )
+    except subprocess.TimeoutExpired as exc:
+        if adapter._timeout_expired_reap_reason(exc) != "stall":
+            raise ProfileError("design_ai_text_seams: codex dead-connection timeout was not typed as stall")
+        if run_module._adapter_error_kind(exc) != "local_cli_timeout":
+            raise ProfileError("design_ai_text_seams: codex stall did not map to local_cli_timeout")
+        if not walker_resume._adapter_error_hold_without_return({"hold_reason": "adapter_error_frontier"}):
+            raise ProfileError("design_ai_text_seams: adapter-error HOLD seam no longer recognizes the frontier")
+    else:
+        raise ProfileError("design_ai_text_seams: codex dead-connection watchdog did not fire")
+    if max(dead_proc.communicate_timeouts) > watchdog_config.poll_seconds:
+        raise ProfileError("design_ai_text_seams: codex watchdog fell back to one full communicate wait")
+    if dead_clock["now"] >= 5:
+        raise ProfileError("design_ai_text_seams: codex watchdog waited until the full adapter timeout")
+
+    live_clock = {"now": 0.0}
+    live_proc = _FakeCodexProc(timeouts_before_return=3, clock_state=live_clock)
+    live_samples = [
+        adapter._CodexCliHealth(True, 1, 0, 20.0),
+        adapter._CodexCliHealth(True, 1, 0, 20.0),
+        adapter._CodexCliHealth(True, 0, 1, 20.0),
+        adapter._CodexCliHealth(True, 0, 0, 20.5),
+    ]
+
+    def _live_health_probe(proc: Any) -> Any:
+        del proc
+        return live_samples.pop(0)
+
+    live_stdout, live_stderr = adapter._communicate_with_optional_codex_stall_watchdog(
+        live_proc,
+        ("codex", "exec", "--output-last-message", "/tmp/ignored", "buffered prompt"),
+        timeout_seconds=5,
+        watchdog_config=adapter._CodexStallWatchdogConfig(
+            threshold_seconds=0.0,
+            poll_seconds=0.1,
+        ),
+        health_probe=_live_health_probe,
+        clock=lambda: live_clock["now"],
+    )
+    if (live_stdout, live_stderr) != ("CODEX buffered final text\n", ""):
+        raise ProfileError("design_ai_text_seams: codex slow-live fixture did not preserve final output")
+    if live_proc.returncode != 0:
+        raise ProfileError("design_ai_text_seams: codex slow-live fixture was killed")
+
+    unknown_clock = {"now": 0.0}
+    unknown_proc = _FakeCodexProc(timeouts_before_return=2, clock_state=unknown_clock)
+    unknown_stdout, unknown_stderr = adapter._communicate_with_optional_codex_stall_watchdog(
+        unknown_proc,
+        ("codex", "exec", "--output-last-message", "/tmp/ignored", "buffered prompt"),
+        timeout_seconds=5,
+        watchdog_config=adapter._CodexStallWatchdogConfig(
+            threshold_seconds=0.0,
+            poll_seconds=0.1,
+        ),
+        health_probe=lambda proc: None,
+        clock=lambda: unknown_clock["now"],
+    )
+    if (unknown_stdout, unknown_stderr) != ("CODEX buffered final text\n", ""):
+        raise ProfileError("design_ai_text_seams: codex unknown-health fixture did not degrade to waiting")
+    inspected += 1
+
     def _claude_blank_runner(args: Sequence[str], cwd: Path, timeout: int) -> Any:
         return adapter.LocalCliCompleted(args=tuple(args), return_code=0, stdout=" \n\t", stderr="")
 
@@ -2422,7 +2535,8 @@ def run_design_ai_text_seams(repo: Path) -> KernelResult:
             "design-AI text seams passed: claude/codex prompt-to-text wrappers "
             "returned mocked raw text, preserved CLI shape/cwd/timeout, propagated "
             "FileNotFoundError and TimeoutExpired, rejected blank output, rejected "
-            "secret-looking output, and called NO live provider CLI "
+            "secret-looking output, pinned codex dead-connection fast-fail without "
+            "killing slow-live/unknown-health fixtures, and called NO live provider CLI "
             f"({inspected} group(s) inspected)."
         ),
     )

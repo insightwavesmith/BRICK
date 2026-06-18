@@ -123,6 +123,13 @@ _DEFAULT_NOT_PROVEN = (
     "runtime or scheduler behavior",
     "quality of returned work",
 )
+_CODEX_STALL_WATCHDOG_THRESHOLD_ENV = "BRICK_CODEX_STALL_THRESHOLD_SECONDS"
+_CODEX_STALL_WATCHDOG_POLL_ENV = "BRICK_CODEX_STALL_POLL_SECONDS"
+_CODEX_STALL_WATCHDOG_DEFAULT_THRESHOLD_SECONDS = 20 * 60
+_CODEX_STALL_WATCHDOG_DEFAULT_POLL_SECONDS = 30
+_CODEX_STALL_WATCHDOG_PROBE_TIMEOUT_SECONDS = 2
+_CODEX_STALL_WATCHDOG_SIGTERM_GRACE_SECONDS = 5
+_TIMEOUT_REAP_REASON_ATTR = "_brick_protocol_reap_reason"
 _RETURN_LABEL_FIELDS = frozenset(
     {
         "blocked_or_missing_evidence",
@@ -449,6 +456,27 @@ class LocalCliCompleted:
     return_code: int
     stdout: str
     stderr: str
+
+
+@dataclass(frozen=True)
+class _CodexStallWatchdogConfig:
+    threshold_seconds: float
+    poll_seconds: float
+
+
+@dataclass(frozen=True)
+class _CodexCliHealth:
+    process_running: bool
+    child_count: int
+    established_socket_count: int
+    cpu_seconds: float
+
+
+@dataclass(frozen=True)
+class _ProcessSnapshotRow:
+    ppid: int
+    pgid: int
+    cpu_seconds: float
 
 
 AgentBrainCallable = Callable[[AgentAdapterRequest], Any]
@@ -1597,6 +1625,281 @@ def _run_text_cli(
     return _run_text_cli_command(args, cwd=_REPO_ROOT, timeout_seconds=timeout_seconds)
 
 
+def _codex_stall_watchdog_config(timeout_seconds: int | float) -> _CodexStallWatchdogConfig | None:
+    if timeout_seconds <= 0:
+        return None
+    threshold = _float_env_or_default(
+        _CODEX_STALL_WATCHDOG_THRESHOLD_ENV,
+        float(_CODEX_STALL_WATCHDOG_DEFAULT_THRESHOLD_SECONDS),
+    )
+    poll = _float_env_or_default(
+        _CODEX_STALL_WATCHDOG_POLL_ENV,
+        float(_CODEX_STALL_WATCHDOG_DEFAULT_POLL_SECONDS),
+    )
+    if threshold is None or poll is None:
+        return None
+    if threshold < 0 or poll <= 0:
+        return None
+    return _CodexStallWatchdogConfig(threshold_seconds=threshold, poll_seconds=poll)
+
+
+def _float_env_or_default(name: str, default: float) -> float | None:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    try:
+        parsed = float(value)
+    except ValueError:
+        return None
+    if parsed != parsed or parsed in {float("inf"), float("-inf")}:
+        return None
+    return parsed
+
+
+def _codex_cli_watchdog_applies(args: Sequence[str]) -> bool:
+    return bool(args) and Path(str(args[0])).name == "codex"
+
+
+def _communicate_with_optional_codex_stall_watchdog(
+    proc: "subprocess.Popen[str]",
+    args: Sequence[str],
+    *,
+    timeout_seconds: int | float,
+    watchdog_config: _CodexStallWatchdogConfig | None = None,
+    health_probe: Callable[["subprocess.Popen[str]"], _CodexCliHealth | None] | None = None,
+    clock: Callable[[], float] | None = None,
+) -> tuple[str | None, str | None]:
+    if not _codex_cli_watchdog_applies(args):
+        return proc.communicate(timeout=timeout_seconds)
+    config = watchdog_config
+    if config is None:
+        config = _codex_stall_watchdog_config(timeout_seconds)
+    if config is None:
+        return proc.communicate(timeout=timeout_seconds)
+
+    health = health_probe or _codex_cli_health_sample
+    monotonic = clock or time.monotonic
+    deadline = monotonic() + float(timeout_seconds)
+    previous_sample = health(proc)
+    dead_signature_since: float | None = None
+
+    while True:
+        now = monotonic()
+        remaining = deadline - now
+        if remaining <= 0:
+            raise subprocess.TimeoutExpired(cmd=tuple(str(part) for part in args), timeout=timeout_seconds)
+        try:
+            return proc.communicate(timeout=min(config.poll_seconds, remaining))
+        except subprocess.TimeoutExpired as exc:
+            now = monotonic()
+            if now >= deadline:
+                raise
+            current_sample = health(proc)
+            if _codex_dead_connection_signature(previous_sample, current_sample):
+                if dead_signature_since is None:
+                    dead_signature_since = now
+                if now - dead_signature_since >= config.threshold_seconds:
+                    stall_exc = subprocess.TimeoutExpired(
+                        cmd=_safe_timeout_cmd(args),
+                        timeout=config.threshold_seconds,
+                    )
+                    setattr(stall_exc, _TIMEOUT_REAP_REASON_ATTR, "stall")
+                    raise stall_exc from exc
+            else:
+                dead_signature_since = None
+            previous_sample = current_sample
+
+
+def _safe_timeout_cmd(args: Sequence[str]) -> tuple[str, ...]:
+    executable = Path(str(args[0])).name if args else "codex"
+    if executable == "codex":
+        return ("codex", "exec")
+    return (executable,)
+
+
+def _codex_dead_connection_signature(
+    previous_sample: _CodexCliHealth | None,
+    current_sample: _CodexCliHealth | None,
+) -> bool:
+    if previous_sample is None or current_sample is None:
+        return False
+    if not previous_sample.process_running or not current_sample.process_running:
+        return False
+    if previous_sample.child_count != 0 or current_sample.child_count != 0:
+        return False
+    if previous_sample.established_socket_count != 0 or current_sample.established_socket_count != 0:
+        return False
+    if current_sample.cpu_seconds != previous_sample.cpu_seconds:
+        return False
+    return True
+
+
+def _codex_cli_health_sample(proc: "subprocess.Popen[str]") -> _CodexCliHealth | None:
+    if proc.poll() is not None:
+        return _CodexCliHealth(
+            process_running=False,
+            child_count=0,
+            established_socket_count=0,
+            cpu_seconds=0.0,
+        )
+    rows = _process_snapshot_rows()
+    if rows is None:
+        return None
+    root_pid = int(proc.pid)
+    root_row = rows.get(root_pid)
+    if root_row is None:
+        return None
+    related_pids = _related_process_ids(root_pid, root_row.pgid, rows)
+    if not related_pids:
+        return None
+    established_sockets = _established_tcp_socket_count(related_pids)
+    if established_sockets is None:
+        return None
+    cpu_seconds = sum(rows[pid].cpu_seconds for pid in related_pids if pid in rows)
+    return _CodexCliHealth(
+        process_running=True,
+        child_count=len(related_pids - {root_pid}),
+        established_socket_count=established_sockets,
+        cpu_seconds=cpu_seconds,
+    )
+
+
+def _process_snapshot_rows() -> dict[int, _ProcessSnapshotRow] | None:
+    try:
+        completed = subprocess.run(
+            ["ps", "-axo", "pid=,ppid=,pgid=,time="],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=_CODEX_STALL_WATCHDOG_PROBE_TIMEOUT_SECONDS,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if completed.returncode != 0:
+        return None
+    rows: dict[int, _ProcessSnapshotRow] = {}
+    for line in completed.stdout.splitlines():
+        parts = line.split(None, 3)
+        if len(parts) != 4:
+            continue
+        try:
+            pid = int(parts[0])
+            ppid = int(parts[1])
+            pgid = int(parts[2])
+        except ValueError:
+            continue
+        cpu_seconds = _parse_ps_cpu_seconds(parts[3])
+        if cpu_seconds is None:
+            continue
+        rows[pid] = _ProcessSnapshotRow(ppid=ppid, pgid=pgid, cpu_seconds=cpu_seconds)
+    return rows
+
+
+def _parse_ps_cpu_seconds(value: str) -> float | None:
+    text = value.strip()
+    if not text:
+        return None
+    days = 0
+    if "-" in text:
+        day_text, text = text.split("-", 1)
+        try:
+            days = int(day_text)
+        except ValueError:
+            return None
+    parts = text.split(":")
+    try:
+        if len(parts) == 2:
+            hours = 0
+            minutes = int(parts[0])
+            seconds = float(parts[1])
+        elif len(parts) == 3:
+            hours = int(parts[0])
+            minutes = int(parts[1])
+            seconds = float(parts[2])
+        else:
+            return None
+    except ValueError:
+        return None
+    return float((days * 24 * 60 * 60) + (hours * 60 * 60) + (minutes * 60)) + seconds
+
+
+def _related_process_ids(
+    root_pid: int,
+    root_pgid: int,
+    rows: Mapping[int, _ProcessSnapshotRow],
+) -> set[int]:
+    related = {pid for pid, row in rows.items() if row.pgid == root_pgid}
+    related.add(root_pid)
+    frontier = [root_pid]
+    while frontier:
+        parent = frontier.pop()
+        for pid, row in rows.items():
+            if row.ppid == parent and pid not in related:
+                related.add(pid)
+                frontier.append(pid)
+    return {pid for pid in related if pid in rows}
+
+
+def _established_tcp_socket_count(pids: set[int]) -> int | None:
+    if not pids:
+        return None
+    try:
+        completed = subprocess.run(
+            [
+                "lsof",
+                "-nP",
+                "-a",
+                "-p",
+                ",".join(str(pid) for pid in sorted(pids)),
+                "-iTCP",
+                "-sTCP:ESTABLISHED",
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=_CODEX_STALL_WATCHDOG_PROBE_TIMEOUT_SECONDS,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if completed.returncode not in {0, 1}:
+        return None
+    if not completed.stdout.strip():
+        if completed.stderr.strip():
+            return None
+        return 0
+    return sum(
+        1
+        for line in completed.stdout.splitlines()[1:]
+        if "TCP" in line and "ESTABLISHED" in line
+    )
+
+
+def _timeout_expired_reap_reason(exc: subprocess.TimeoutExpired) -> str:
+    reason = getattr(exc, _TIMEOUT_REAP_REASON_ATTR, "")
+    return reason if reason == "stall" else "timeout"
+
+
+def _reap_timeout_process_group(proc: "subprocess.Popen[str]", *, reason: str) -> None:
+    if reason == "stall":
+        _signal_process_group(proc, signal.SIGTERM)
+        try:
+            proc.wait(timeout=_CODEX_STALL_WATCHDOG_SIGTERM_GRACE_SECONDS)
+            return
+        except subprocess.TimeoutExpired:
+            pass
+    _signal_process_group(proc, signal.SIGKILL)
+    proc.wait()
+
+
+def _signal_process_group(proc: "subprocess.Popen[str]", sig: signal.Signals) -> None:
+    try:
+        os.killpg(os.getpgid(proc.pid), sig)
+    except (ProcessLookupError, PermissionError):
+        pass
+
+
 def _run_text_cli_command(
     args: Sequence[str],
     *,
@@ -1613,14 +1916,15 @@ def _run_text_cli_command(
     )
     _journal_spawn(proc, args, cwd)
     try:
-        stdout, stderr = proc.communicate(timeout=timeout_seconds)
-    except subprocess.TimeoutExpired:
-        try:
-            os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
-        except (ProcessLookupError, PermissionError):
-            pass
-        proc.wait()
-        _journal_reap(proc, reason="timeout")
+        stdout, stderr = _communicate_with_optional_codex_stall_watchdog(
+            proc,
+            args,
+            timeout_seconds=timeout_seconds,
+        )
+    except subprocess.TimeoutExpired as exc:
+        reason = _timeout_expired_reap_reason(exc)
+        _reap_timeout_process_group(proc, reason=reason)
+        _journal_reap(proc, reason=reason)
         raise
     _journal_reap(proc, reason="exit")
     return LocalCliCompleted(
@@ -1726,15 +2030,15 @@ def _run_command(
     )
     _journal_spawn(proc, args, cwd)  # best-effort; never raises
     try:
-        stdout, stderr = proc.communicate(timeout=timeout_seconds)
-    except subprocess.TimeoutExpired:
-        try:
-            # Reap the provider binary AND every grandchild it forked (one group).
-            os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
-        except (ProcessLookupError, PermissionError):
-            pass
-        proc.wait()  # reap the now-dead group leader (no zombie left behind)
-        _journal_reap(proc, reason="timeout")
+        stdout, stderr = _communicate_with_optional_codex_stall_watchdog(
+            proc,
+            args,
+            timeout_seconds=timeout_seconds,
+        )
+    except subprocess.TimeoutExpired as exc:
+        reason = _timeout_expired_reap_reason(exc)
+        _reap_timeout_process_group(proc, reason=reason)
+        _journal_reap(proc, reason=reason)
         raise  # SAME TimeoutExpired -> run.py _adapter_error_kind stays 'local_cli_timeout'
     _journal_reap(proc, reason="exit")
     return LocalCliCompleted(
