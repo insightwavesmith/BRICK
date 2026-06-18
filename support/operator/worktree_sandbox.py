@@ -10,7 +10,7 @@ worktree without touching the customer's checkout.
 
 It owns ONLY mechanics:
 
-  * probe  -> is ``git`` installed and is ``repo_root`` a clean git work tree?
+  * probe  -> is ``git`` installed and is ``repo_root`` a git tree with HEAD?
   * BASE   -> the explicitly resolved HEAD SHA (never a bare ``--detach`` race).
   * create -> ``git worktree add --detach <wt> <BASE>`` under ~/.brick/worktrees.
   * reap   -> force-remove STALE engine-created worktrees (crash-safe), gated to
@@ -69,9 +69,9 @@ class WorktreeProbe:
     """Mechanical probe of whether ``repo_root`` can host a worktree sandbox.
 
     ``ok`` is True ONLY when git is installed AND ``repo_root`` is the top of a
-    clean git work tree at a resolvable HEAD. ANY failure (no git, not a repo,
-    dirty tree, detached/unborn HEAD) yields ok=False + a recorded reason; the
-    caller then falls back to a temp dir and NEVER writes the live tree.
+    git work tree at a resolvable HEAD. ANY failure (no git, not a repo,
+    unresolved/unborn HEAD) yields ok=False + a recorded reason; the caller then
+    falls back to a temp dir and NEVER writes the live tree.
     """
 
     ok: bool
@@ -92,9 +92,9 @@ def probe_worktree_capable(repo_root: Path | str) -> WorktreeProbe:
     """Probe ``repo_root`` for worktree-sandbox capability. NEVER raises.
 
     Decision-4 mitigation: BEFORE any worktree dispatch we check ``git
-    --version`` + ``git rev-parse --is-inside-work-tree`` (+ clean tree + a
-    resolvable HEAD). On ANY failure we return ok=False with a reason; the
-    caller degrades to a temp dir and leaves the live tree untouched.
+    --version`` + ``git rev-parse --is-inside-work-tree`` + a resolvable HEAD.
+    On ANY failure we return ok=False with a reason; the caller degrades to a
+    temp dir and leaves the live tree untouched.
     """
 
     repo = Path(repo_root)
@@ -105,17 +105,10 @@ def probe_worktree_capable(repo_root: Path | str) -> WorktreeProbe:
     inside = _git(repo, "rev-parse", "--is-inside-work-tree")
     if inside is None or inside.strip() != "true":
         return WorktreeProbe(ok=False, reason="not-a-git-work-tree")
-    # Refuse to host a sandbox over a DIRTY tree: a clean base is decision-1, and
-    # a dirty probe means we cannot guarantee carry isolation. Degrade instead.
-    status = _git(repo, "status", "--porcelain", "--untracked-files=all")
-    if status is None:
-        return WorktreeProbe(ok=False, reason="git-status-failed")
-    if status.strip():
-        return WorktreeProbe(ok=False, reason="dirty-work-tree")
     base = _git(repo, "rev-parse", "HEAD")
     if base is None or not base.strip():
         return WorktreeProbe(ok=False, reason="head-unresolved")
-    return WorktreeProbe(ok=True, reason="git-clean-work-tree", base_sha=base.strip())
+    return WorktreeProbe(ok=True, reason="git-head-resolved", base_sha=base.strip())
 
 
 def create_worktree_sandbox(
@@ -240,10 +233,10 @@ def reap_stale_worktrees(repo_root: Path | str) -> tuple[str, ...]:
 def temp_dir_fallback(prefix: str = "bp-customer-sandbox-") -> tempfile.TemporaryDirectory[str]:
     """A disposable temp dir used when the probe refused a worktree.
 
-    Decision-4 mitigation: on a non-git/dirty/no-git environment the caller runs
-    the dispatch with this temp dir as adapter_cwd (the onboard precedent), so
-    even a real provider's writes stay under the temp dir and the live tree is
-    NEVER written. The caller cleans it up.
+    Decision-4 mitigation: on a non-git/no-git/unresolved-HEAD environment the
+    caller runs the dispatch with this temp dir as adapter_cwd (the onboard
+    precedent), so even a real provider's writes stay under the temp dir and the
+    live tree is NEVER written. The caller cleans it up.
     """
 
     return tempfile.TemporaryDirectory(prefix=prefix)

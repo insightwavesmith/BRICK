@@ -976,34 +976,51 @@ def _w1_worktree_sandbox_fire(
         if before_snapshot != after_snapshot:
             violations.append("w1-non-git: the non-git customer dir was mutated")
 
-        # CASE 2b (dirty refuse): a DIRTY git tree must ALSO degrade (a dirty base
-        # cannot guarantee carry isolation) -> temp_dir fallback, dir untouched.
+        # CASE 2b (dirty host): a DIRTY git tree still hosts a detached worktree
+        # at HEAD. The worktree boundary is the isolation; the live dirty tree
+        # stays byte-for-byte in its pre-run dirty state.
         dirty = Path(cust_raw) / "customer-dirty"
         dirty.mkdir(parents=True, exist_ok=True)
         _seed_customer_repo(repo, dirty)
+        dirty_head_before = _git_text(dirty, "rev-parse", "HEAD")
         (dirty / "uncommitted.txt").write_text("dirty carry\n", encoding="utf-8")
         dirty_status_before = _git_text(dirty, "status", "--porcelain", "--untracked-files=all")
         dirty_result = run_customer_building_in_sandbox(
-            _w1_intent("w1-dirty-refuse-0"),
+            _w1_intent("w1-dirty-worktree-0"),
             customer_repo_root=dirty,
             output_root=evidence_root / "dirty",
             overwrite_existing=True,
             command_runner=_w1_completing_codex_runner(write=True),
             adapter_timeout_seconds=30,
         )
+        dirty_head_after = _git_text(dirty, "rev-parse", "HEAD")
         dirty_status_after = _git_text(dirty, "status", "--porcelain", "--untracked-files=all")
         summary["w1_dirty_mode"] = dirty_result.isolation_mode
         summary["w1_dirty_reason"] = dirty_result.isolation_reason
-        if dirty_result.isolation_mode != "temp_dir":
+        summary["w1_dirty_base_sha"] = dirty_result.base_sha
+        if dirty_result.isolation_mode != "worktree":
             violations.append(
-                f"w1-dirty: expected temp_dir fallback over a dirty tree, got "
+                f"w1-dirty: expected worktree isolation over a dirty tree, got "
                 f"{dirty_result.isolation_mode!r}"
             )
-        if dirty_result.isolation_reason != "dirty-work-tree":
-            violations.append(f"w1-dirty: degraded reason drifted: {dirty_result.isolation_reason!r}")
-        if dirty_result.worktree_path or dirty_result.commit_sha:
-            violations.append("w1-dirty: a dirty tree was not refused (worktree/commit produced)")
-        if (dirty / _W1_WRITE_REL).exists() or dirty_status_before != dirty_status_after:
+        if dirty_result.isolation_reason != "git-head-resolved":
+            violations.append(
+                f"w1-dirty: worktree reason drifted: {dirty_result.isolation_reason!r}"
+            )
+        if dirty_result.base_sha != dirty_head_before:
+            violations.append(
+                f"w1-dirty: worktree base did not pin HEAD "
+                f"{dirty_head_before} (got {dirty_result.base_sha!r})"
+            )
+        if not dirty_result.worktree_path:
+            violations.append("w1-dirty: no worktree path was recorded")
+        if not dirty_result.commit_sha:
+            violations.append("w1-dirty: completion over dirty host produced no worktree commit")
+        if (
+            (dirty / _W1_WRITE_REL).exists()
+            or dirty_head_before != dirty_head_after
+            or dirty_status_before != dirty_status_after
+        ):
             violations.append("w1-dirty: the dirty customer tree was further mutated")
 
         # CASE 3 (incomplete = no commit): a building that does NOT complete ->
@@ -1116,7 +1133,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"head_unchanged={summary.get('w1_head_unchanged')} "
         f"live_status_clean={summary.get('w1_live_status_clean')}; "
         f"non-git-refuse mode={summary.get('w1_degraded_mode')} reason={summary.get('w1_degraded_reason')}; "
-        f"dirty-refuse mode={summary.get('w1_dirty_mode')} reason={summary.get('w1_dirty_reason')}; "
+        f"dirty-worktree mode={summary.get('w1_dirty_mode')} reason={summary.get('w1_dirty_reason')} "
+        f"base={summary.get('w1_dirty_base_sha')}; "
         f"incomplete frontier={summary.get('w1_incomplete_frontier')} commit={summary.get('w1_incomplete_commit')!r}; "
         f"mutation-RED bypass_dirtied_live_tree={summary.get('w1_mutation_bypass_dirtied_live_tree')}."
     )
