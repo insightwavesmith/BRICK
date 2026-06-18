@@ -1318,7 +1318,18 @@ def _invoke_local_cli(
             model_arg = _model_cli_arg(request, spec)
             if model_arg:
                 args_list.extend(("-m", model_arg))
-            if os.environ.get("BRICK_CODEX_EPHEMERAL") == "1":
+            # Ephemeral by DEFAULT: a non-ephemeral `codex exec` persists its
+            # session to the shared ~/.codex SQLite state (state/logs/goals/
+            # memories), which is single-writer locked. Two concurrent codex
+            # builds therefore deadlock the second on that write lock -- it
+            # spawns but never connects (0 CPU, 0 sockets) and hangs to the full
+            # adapter timeout. --ephemeral skips SESSION persistence only (the
+            # workspace code write is governed by --sandbox, untouched), so
+            # concurrent codex builds stop contending. BRICK keeps its own
+            # evidence ledger and never reads codex's session, so nothing is
+            # lost. Opt out (rare, e.g. inspecting codex sessions) with
+            # BRICK_CODEX_EPHEMERAL=0.
+            if os.environ.get("BRICK_CODEX_EPHEMERAL") != "0":
                 args_list.append("--ephemeral")
             args_list.extend(("--output-last-message", output_file.name, prompt))
             args = tuple(args_list)

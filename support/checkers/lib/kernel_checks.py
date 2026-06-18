@@ -5477,8 +5477,23 @@ def _assert_codex_ephemeral_env_dial(repo: Path) -> None:
         )
         if "--skip-git-repo-check" not in absent.args:
             raise ProfileError("codex-exec-readonly did not emit --skip-git-repo-check")
-        if "--ephemeral" in absent.args:
-            raise ProfileError("BRICK_CODEX_EPHEMERAL absent still emitted --ephemeral")
+        # Ephemeral is now the DEFAULT (concurrent-codex shared-state deadlock
+        # fix): absent env var must still emit --ephemeral.
+        if "--ephemeral" not in absent.args:
+            raise ProfileError("BRICK_CODEX_EPHEMERAL absent did not emit --ephemeral (default-on)")
+        os.environ["BRICK_CODEX_EPHEMERAL"] = "0"
+        optout = agent_adapter._invoke_local_cli(
+            spec,
+            request,
+            "prompt",
+            cwd=repo,
+            timeout_seconds=5,
+            command_runner=runner,
+        )
+        if "--skip-git-repo-check" not in optout.args:
+            raise ProfileError("codex-exec-readonly dropped --skip-git-repo-check on ephemeral opt-out")
+        if "--ephemeral" in optout.args:
+            raise ProfileError("BRICK_CODEX_EPHEMERAL=0 still emitted --ephemeral (opt-out broken)")
         os.environ["BRICK_CODEX_EPHEMERAL"] = "1"
         enabled = agent_adapter._invoke_local_cli(
             spec,
