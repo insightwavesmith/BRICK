@@ -801,6 +801,7 @@ def _construction_red_outputs(repo: Path) -> tuple[str, ...]:
         declared_by="smith",
         authority=Authority.COO,
         task="good declared by probe",
+        adapter="codex-local",
         repo_root=repo,
     )
     if coo_probe.declared_by != "coo-smith":
@@ -813,6 +814,68 @@ def _construction_red_outputs(repo: Path) -> tuple[str, ...]:
         "construction green observed: declared_by smith + COO lowered to coo-smith.",
         _assert_raises("declared_by colon form", ValueError, declared_by_colon_probe),
         _assert_raises("forbidden derived brick input", TypeError, forbidden_input_probe),
+    )
+
+
+def _verdict_adapter_guard_fire(repo: Path) -> tuple[str, ...]:
+    def local_closure_probe() -> None:
+        assemble(
+            chain(
+                [
+                    brick("work", "local smoke work remains admissible"),
+                    brick("closure", "closure must not fall back to the local stub"),
+                ]
+            ),
+            declared_by=DECLARED_BY,
+            authority=Authority.COO,
+            task="verdict local adapter guard probe",
+            building_id="heart-phase0-verdict-local-guard",
+            repo_root=repo,
+        )
+
+    def local_reviewer_probe() -> None:
+        assemble(
+            chain([brick("axis-attack-qa", "reviewer lane must not fall back to the local stub")]),
+            declared_by=DECLARED_BY,
+            authority=Authority.COO,
+            task="reviewer local adapter guard probe",
+            building_id="heart-phase0-reviewer-local-guard",
+            repo_root=repo,
+        )
+
+    local_smoke = assemble(
+        chain([brick("work", "non-verdict local smoke remains admissible")]),
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task="non-verdict local adapter smoke probe",
+        building_id="heart-phase0-non-verdict-local-smoke",
+        repo_root=repo,
+    )
+    if local_smoke.selected_adapter_ref != "adapter:local":
+        raise AssemblyEquivalenceError("non-verdict local smoke did not preserve adapter:local")
+
+    explicit_adapter = assemble(
+        chain(
+            [
+                brick("work", "explicit non-local work"),
+                brick("closure", "explicit non-local closure"),
+            ]
+        ),
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task="verdict non-local adapter guard probe",
+        building_id="heart-phase0-verdict-non-local-guard",
+        adapter="codex-local",
+        repo_root=repo,
+    )
+    if explicit_adapter.selected_adapter_ref != "adapter:codex-local":
+        raise AssemblyEquivalenceError("explicit non-local adapter was not preserved")
+
+    return (
+        _assert_raises("closure node default local adapter", ValueError, local_closure_probe),
+        _assert_raises("reviewer lane default local adapter", ValueError, local_reviewer_probe),
+        "construction green observed: non-verdict local adapter smoke remains admissible.",
+        "construction green observed: explicit non-local adapter preserved for verdict node.",
     )
 
 
@@ -1109,6 +1172,7 @@ def run(repo: Path) -> list[str]:
         outputs.append(f"discrimination RED observed: {mutation.name} changed P(plan).")
 
     outputs.extend(_construction_red_outputs(repo))
+    outputs.extend(_verdict_adapter_guard_fire(repo))
     outputs.extend(_proposal_approval_fire(repo))
     outputs.append(PROOF_LIMIT)
     return outputs

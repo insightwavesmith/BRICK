@@ -53,6 +53,8 @@ _FORBIDDEN_BRICK_KWARGS = frozenset(
 _TRANSITION_CONCERN_FIELD = "transition_concern_evidence"
 _DEFAULT_BOUNDARY_REF = "building-boundary:closed"
 _PROPOSED_BUILDING_GRAPH_FILENAME = "proposed-building-graph.json"
+_LOCAL_ADAPTER_REF = "adapter:local"
+_VERDICT_LANE_NEEDS = frozenset({"reviewer", "leader"})
 
 
 class Concern(Enum):
@@ -383,6 +385,7 @@ def assemble(
         graph,
         building_id=resolved_building_id,
         declared_by=declared_by_text,
+        selected_adapter_ref=selected_adapter_ref,
         registry=registry,
         gates=gates,
         write_scope=write_scope,
@@ -545,6 +548,7 @@ def _lower_graph(
     *,
     building_id: str,
     declared_by: str,
+    selected_adapter_ref: str,
     registry: Mapping[str, Any],
     gates: Sequence[Gate | str],
     write_scope: Mapping[str, Any] | None,
@@ -563,6 +567,12 @@ def _lower_graph(
             registry=registry,
             fan_in_source=spec in fan_in_sources,
             write_scope=write_scope,
+        )
+        _reject_local_verdict_adapter(
+            node,
+            spec=spec,
+            selected_adapter_ref=selected_adapter_ref,
+            registry=registry,
         )
         lowered_nodes.append(node)
         mutable_nodes_by_handle[spec] = node
@@ -644,6 +654,40 @@ def _lower_node(
         node["write_scope"] = _validated_write_scope(write_scope)
         node["requires_brick_write_scope"] = True
     return node
+
+
+def _reject_local_verdict_adapter(
+    node: Mapping[str, Any],
+    *,
+    spec: BrickSpec,
+    selected_adapter_ref: str,
+    registry: Mapping[str, Any],
+) -> None:
+    effective_adapter_ref = str(node.get("selected_adapter_ref") or selected_adapter_ref).strip()
+    if effective_adapter_ref != _LOCAL_ADAPTER_REF:
+        return
+    if not _is_verdict_bearing_node(node, spec=spec, registry=registry):
+        return
+    node_id = str(node.get("node_id", "")).strip() or spec.kind
+    raise ValueError(f"verdict-bearing node {node_id} needs an explicit non-local adapter")
+
+
+def _is_verdict_bearing_node(
+    node: Mapping[str, Any],
+    *,
+    spec: BrickSpec,
+    registry: Mapping[str, Any],
+) -> bool:
+    if spec.kind == "closure":
+        return True
+    step_template_ref = str(node.get("step_template_ref", "")).strip()
+    step_template = registry.get("step_templates", {}).get(step_template_ref)
+    if not isinstance(step_template, Mapping):
+        return False
+    lane_need = str(
+        step_template.get("performer_lane_need") or step_template.get("role_need") or ""
+    ).strip().lower()
+    return lane_need in _VERDICT_LANE_NEEDS
 
 
 def _lower_edges(

@@ -57,13 +57,16 @@ composed = assemble(
     declared_by="smith",
     authority=Authority.COO,
     task="온보딩 환영 문구를 한 줄로 다듬어 주세요",
-    adapter="local",
+    adapter="codex-local",
 )
 ```
 
 `assemble()` 는 `compose_building` 을 호출해 **검증된 frozen 플랜**
 (`composed.composed_plan`)을 만들어 돌려줍니다. 조립 헬퍼:
 
+- 종합/closure 노드(closure kind 또는 reviewer/leader lane)는
+  `adapter="codex-local"`처럼 명시적인 non-local adapter로 조립하세요.
+  `adapter="local"`/기본값으로 떨어지면 `assemble()`이 fail-closed합니다.
 - `brick(kind, work, ...)` — 한 단계. `alias=`, `write=True`(+ `assemble(write_scope=...)`),
   `returns=`(fan-in 소스 필수), `agent=`, `adapter=`, `model=`.
 - `agent(role, ...)` — 그 단계를 누가 맡는지(레인).
