@@ -1,0 +1,14 @@
+# TransitionConcern · seq 32 · ["Agent","Link"]
+- agent_object_ref: "agent-object:coo"
+- alias_fact_refs: ["transition-concern:p6c-concurrent-dispatch-0617-verification-gap"]
+- attempt_index: 1
+- axis_scope: ["Agent","Link"]
+- binding: false
+- event_type: "TransitionConcern"
+- run_segment: 1
+- sequence_index: 32
+- source_fact_ref: "transition-concern:p6c-concurrent-dispatch-0617-closure:attempt-1"
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/p6c-concurrent-dispatch-0617-closure-attempt-1/step-output.json"
+- step_ref: "p6c-concurrent-dispatch-0617-closure"
+- transition_concern_returned: {"binding":false,"concern_kind":"verification_gap","concern_ref":"transition-concern:p6c-concurrent-dispatch-0617-verification-gap","not_proven":["checker execution in writable-temp environment","pool=1 vs pool=N normalized evidence byte equality from live run","real provider parallel execution"],"proof_limits":["support evidence only","not source truth","not success judgment","not quality judgment","not Movement authority"],"reason_refs":["support/checkers/check_bounded_agent_proposed_routing_loop0.py:1612","support/checkers/profiles/bounded_agent_proposed_routing_loop.yaml:133","command:check_profile.py--profile-bounded_agent_proposed_routing_loop:no-usable-tempdir","command:check_profile.py--all:no-usable-tempdir"],"related_boundary_refs":["brick-p6c-concurrent-dispatch-0617-work","brick-p6c-concurrent-dispatch-0617-code-attack-qa"]}

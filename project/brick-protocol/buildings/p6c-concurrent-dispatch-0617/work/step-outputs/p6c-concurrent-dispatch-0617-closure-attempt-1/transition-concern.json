@@ -1,0 +1,92 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:p6c-concurrent-dispatch-0617::work/step-outputs/p6c-concurrent-dispatch-0617-closure-attempt-1/transition-concern.json",
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "binding": false,
+  "building_id": "p6c-concurrent-dispatch-0617",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-06-18T01:04:00.917284Z",
+  "id": "urn:bp:building:p6c-concurrent-dispatch-0617::work/step-outputs/p6c-concurrent-dispatch-0617-closure-attempt-1/transition-concern.json",
+  "link_role": "non-binding Agent transition concern evidence only",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "transition concern semantic correctness",
+    "Link disposition correctness",
+    "automatic repair/replay execution"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "transition_concern_evidence is Agent returned evidence only",
+    "not Link Movement",
+    "not Link target choice",
+    "not route policy matching",
+    "not route materialization",
+    "not automatic repair/replay execution",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-06-18T01:04:00.917284Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:p6c-concurrent-dispatch-0617",
+  "specversion": "1.0",
+  "step_output_ref": "work/step-outputs/p6c-concurrent-dispatch-0617-closure-attempt-1/step-output.json",
+  "step_ref": "p6c-concurrent-dispatch-0617-closure",
+  "subject": "p6c-concurrent-dispatch-0617-closure",
+  "time": "2026-06-18T01:04:00.917284Z",
+  "transition_boundary": "Agent concern only; Link may adopt, not adopt, or override",
+  "transition_concern_ref": "transition-concern:p6c-concurrent-dispatch-0617-closure:attempt-1",
+  "transition_concern_returned": {
+    "binding": false,
+    "concern_kind": "verification_gap",
+    "concern_ref": "transition-concern:p6c-concurrent-dispatch-0617-verification-gap",
+    "not_proven": [
+      "checker execution in writable-temp environment",
+      "pool=1 vs pool=N normalized evidence byte equality from live run",
+      "real provider parallel execution"
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "reason_refs": [
+      "support/checkers/check_bounded_agent_proposed_routing_loop0.py:1612",
+      "support/checkers/profiles/bounded_agent_proposed_routing_loop.yaml:133",
+      "command:check_profile.py--profile-bounded_agent_proposed_routing_loop:no-usable-tempdir",
+      "command:check_profile.py--all:no-usable-tempdir"
+    ],
+    "related_boundary_refs": [
+      "brick-p6c-concurrent-dispatch-0617-work",
+      "brick-p6c-concurrent-dispatch-0617-code-attack-qa"
+    ]
+  },
+  "type": "bp.step_output.transition_concern"
+}

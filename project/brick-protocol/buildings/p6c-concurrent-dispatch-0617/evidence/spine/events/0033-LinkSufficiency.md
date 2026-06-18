@@ -1,0 +1,12 @@
+# LinkSufficiency · seq 33 · ["Link"]
+- axis_scope: ["Link"]
+- checked_public_fact: "brick-comparison:p6c-concurrent-dispatch-0617:p6c-concurrent-dispatch-0617-closure"
+- event_type: "LinkSufficiency"
+- missing_required_facts: []
+- required_public_facts: ["BrickComparisonFact.required_return_shape_evidence","BrickComparisonFact.comparison_evidence","BrickComparisonFact.comparison_evidence.returned_field.observed_evidence","BrickComparisonFact.comparison_evidence.returned_field.narrowly_proven","BrickComparisonFact.comparison_evidence.returned_field.not_proven","BrickComparisonFact.comparison_evidence.returned_field.remaining_delta","BrickComparisonFact.comparison_evidence.returned_field.parent_goal_delta_status","BrickComparisonFact.comparison_evidence.returned_field.next_target_candidates","BrickComparisonFact.comparison_evidence.returned_field.deferred_smith_review_queue","BrickComparisonFact.comparison_evidence.returned_field.transition_concern_evidence"]
+- run_segment: 1
+- sequence_index: 33
+- source_fact_ref: "sufficiency-fact-movement:04:p6c-concurrent-dispatch-0617-closure"
+- spine_schema_version: "spine-v1"
+- stage: "movement"
+- sufficiency: "sufficient"

@@ -1,0 +1,13 @@
+# AgentReturn · seq 31 · ["Agent"]
+- agent_object_ref: "agent-object:coo"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-p6c-concurrent-dispatch-0617-closure"
+- event_type: "AgentReturn"
+- observed_fields: ["received_work","returned"]
+- returned_fact_ref: "agent-fact:04:p6c-concurrent-dispatch-0617-closure"
+- route_request_ref: ""
+- run_segment: 1
+- sequence_index: 31
+- spine_schema_version: "spine-v1"
+- step_output_ref: "step-output:p6c-concurrent-dispatch-0617-closure:attempt-1"
+- step_ref: "p6c-concurrent-dispatch-0617-closure"

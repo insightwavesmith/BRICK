@@ -1,0 +1,12 @@
+# AgentBinding · seq 29 · ["Agent"]
+- agent_object_ref: "agent-object:coo"
+- agent_performer_ref: "agent-performer:agent-object:coo"
+- axis_scope: ["Agent"]
+- binding_role: "primary"
+- brick_instance_ref: "brick-p6c-concurrent-dispatch-0617-closure"
+- event_type: "AgentBinding"
+- run_segment: 1
+- sequence_index: 29
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/p6c-concurrent-dispatch-0617-closure-attempt-1/step-output.json"
+- step_ref: "p6c-concurrent-dispatch-0617-closure"

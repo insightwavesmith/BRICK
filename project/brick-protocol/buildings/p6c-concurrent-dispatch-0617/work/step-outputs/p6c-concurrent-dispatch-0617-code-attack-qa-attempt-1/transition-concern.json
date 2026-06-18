@@ -1,0 +1,91 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:p6c-concurrent-dispatch-0617::work/step-outputs/p6c-concurrent-dispatch-0617-code-attack-qa-attempt-1/transition-concern.json",
+  "agent_object_ref": "agent-object:qa",
+  "attempt_index": 1,
+  "binding": false,
+  "building_id": "p6c-concurrent-dispatch-0617",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-06-18T00:52:41.786853Z",
+  "id": "urn:bp:building:p6c-concurrent-dispatch-0617::work/step-outputs/p6c-concurrent-dispatch-0617-code-attack-qa-attempt-1/transition-concern.json",
+  "link_role": "non-binding Agent transition concern evidence only",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "transition concern semantic correctness",
+    "Link disposition correctness",
+    "automatic repair/replay execution"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "transition_concern_evidence is Agent returned evidence only",
+    "not Link Movement",
+    "not Link target choice",
+    "not route policy matching",
+    "not route materialization",
+    "not automatic repair/replay execution",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-06-18T00:52:41.786853Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:p6c-concurrent-dispatch-0617",
+  "specversion": "1.0",
+  "step_output_ref": "work/step-outputs/p6c-concurrent-dispatch-0617-code-attack-qa-attempt-1/step-output.json",
+  "step_ref": "p6c-concurrent-dispatch-0617-code-attack-qa",
+  "subject": "p6c-concurrent-dispatch-0617-code-attack-qa",
+  "time": "2026-06-18T00:52:41.786853Z",
+  "transition_boundary": "Agent concern only; Link may adopt, not adopt, or override",
+  "transition_concern_ref": "transition-concern:p6c-concurrent-dispatch-0617-code-attack-qa:attempt-1",
+  "transition_concern_returned": {
+    "binding": false,
+    "concern_kind": "implementation_gap",
+    "concern_ref": "transition-concern:p6c-qa-fan-route-replay-pool-parity",
+    "not_proven": [
+      "whether repair should force pool=1 for route_replay_plan items",
+      "whether repair should narrow ready_items to declared independent fan-out siblings",
+      "complete absence of other pool>N uncovered graph shapes"
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "reason_refs": [
+      "support-checker:bounded-agent-proposed-routing-loop:P6C-route-replay-gap",
+      "source:walker_kernel.py:ready_items-dispatch-drain",
+      "source:check_bounded_agent_proposed_routing_loop0.py:P6C-fixture-coverage-gap"
+    ],
+    "related_boundary_refs": [
+      "brick-p6c-concurrent-dispatch-0617-work"
+    ]
+  },
+  "type": "bp.step_output.transition_concern"
+}

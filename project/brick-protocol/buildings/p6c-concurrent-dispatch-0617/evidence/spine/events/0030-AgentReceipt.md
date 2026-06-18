@@ -1,0 +1,12 @@
+# AgentReceipt · seq 30 · ["Agent"]
+- agent_object_ref: "agent-object:coo"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-p6c-concurrent-dispatch-0617-closure"
+- event_type: "AgentReceipt"
+- evidence_reference: "raw:agent:04"
+- received_work_ref: "brick-work:04:p6c-concurrent-dispatch-0617-closure"
+- run_segment: 1
+- sequence_index: 30
+- source_fact_ref: "agent-fact:04:p6c-concurrent-dispatch-0617-closure"
+- spine_schema_version: "spine-v1"
+- step_ref: "p6c-concurrent-dispatch-0617-closure"

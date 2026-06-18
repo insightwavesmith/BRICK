@@ -1,0 +1,13 @@
+# AgentReturn · seq 7 · ["Agent"]
+- agent_object_ref: "agent-object:dev"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-p6c-concurrent-dispatch-0617-work"
+- event_type: "AgentReturn"
+- observed_fields: ["received_work","returned"]
+- returned_fact_ref: "agent-fact:01:p6c-concurrent-dispatch-0617-work"
+- route_request_ref: ""
+- run_segment: 1
+- sequence_index: 7
+- spine_schema_version: "spine-v1"
+- step_output_ref: "step-output:p6c-concurrent-dispatch-0617-work:attempt-1"
+- step_ref: "p6c-concurrent-dispatch-0617-work"

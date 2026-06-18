@@ -1,0 +1,243 @@
+{
+  "brick_steps": [
+    {
+      "completion_edge_ref": "edge:p6c-concurrent-dispatch-0617-work-to-p6c-concurrent-dispatch-0617-code-attack-qa",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-p6c-concurrent-dispatch-0617-work",
+          "brick_work_ref": "work:p6c-concurrent-dispatch-0617-work",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "made_changes, observed_evidence, not_proven",
+          "requires_brick_write_scope": true,
+          "row_ref": "brick-row:p6c-concurrent-dispatch-0617-work",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "work Brick for task-source:inline-statement: # P6-C: \ub3c5\ub9bd fan-out \uac00\uc9c0 \ub3d9\uc2dc \ub514\uc2a4\ud328\uce58 (\uc804\uc9c4 \ubcd1\ub82c, pool=1 \uae30\ubcf8=byte-identical, pool=N \uc635\ud2b8\uc778=\uc99d\uba85)",
+          "write_scope": {
+            "allowed_paths": [
+              "support/operator/walker_kernel.py",
+              "support/operator/walker_fan_in.py",
+              "support/checkers/**"
+            ],
+            "forbidden_paths": []
+          }
+        },
+        {
+          "agent_object_ref": "agent-object:dev",
+          "axis": "Agent",
+          "row_ref": "agent-row:p6c-concurrent-dispatch-0617-work"
+        }
+      ],
+      "step_ref": "p6c-concurrent-dispatch-0617-work",
+      "step_template_ref": "building-step-template:work"
+    },
+    {
+      "completion_edge_ref": "edge:p6c-concurrent-dispatch-0617-code-attack-qa-to-p6c-concurrent-dispatch-0617-closure",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-p6c-concurrent-dispatch-0617-code-attack-qa",
+          "brick_work_ref": "work:p6c-concurrent-dispatch-0617-code-attack-qa",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence,attacked_work,checked_sources,regression_risks,negative_probe_observations,failing_or_missing_probes,boundary_violations,transition_concern_evidence,evidence_used,not_proven",
+          "requires_brick_write_scope": true,
+          "row_ref": "brick-row:p6c-concurrent-dispatch-0617-code-attack-qa",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "code_attack_qa Brick for task-source:inline-statement: # P6-C: \ub3c5\ub9bd fan-out \uac00\uc9c0 \ub3d9\uc2dc \ub514\uc2a4\ud328\uce58 (\uc804\uc9c4 \ubcd1\ub82c, pool=1 \uae30\ubcf8=byte-identical, pool=N \uc635\ud2b8\uc778=\uc99d\uba85)",
+          "write_scope": {
+            "allowed_paths": [
+              "support/operator/walker_kernel.py",
+              "support/operator/walker_fan_in.py",
+              "support/checkers/**"
+            ],
+            "forbidden_paths": []
+          }
+        },
+        {
+          "agent_object_ref": "agent-object:qa",
+          "axis": "Agent",
+          "row_ref": "agent-row:p6c-concurrent-dispatch-0617-code-attack-qa"
+        }
+      ],
+      "step_ref": "p6c-concurrent-dispatch-0617-code-attack-qa",
+      "step_template_ref": "building-step-template:code-attack-qa"
+    },
+    {
+      "completion_edge_ref": "edge:p6c-concurrent-dispatch-0617-closure-to-boundary",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-p6c-concurrent-dispatch-0617-closure",
+          "brick_work_ref": "work:p6c-concurrent-dispatch-0617-closure",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence",
+          "row_ref": "brick-row:p6c-concurrent-dispatch-0617-closure",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "closure Brick for task-source:inline-statement: # P6-C: \ub3c5\ub9bd fan-out \uac00\uc9c0 \ub3d9\uc2dc \ub514\uc2a4\ud328\uce58 (\uc804\uc9c4 \ubcd1\ub82c, pool=1 \uae30\ubcf8=byte-identical, pool=N \uc635\ud2b8\uc778=\uc99d\uba85)"
+        },
+        {
+          "agent_object_ref": "agent-object:coo",
+          "axis": "Agent",
+          "row_ref": "agent-row:p6c-concurrent-dispatch-0617-closure"
+        }
+      ],
+      "step_ref": "p6c-concurrent-dispatch-0617-closure",
+      "step_template_ref": "building-step-template:closure"
+    }
+  ],
+  "building_id": "p6c-concurrent-dispatch-0617",
+  "chain_preset_ref": "building-chain-preset:fast-fix",
+  "composition_mode": "caller_or_coo_declared_graph_composition",
+  "declared_by": "caller-claude-operator",
+  "execution_order": [
+    "p6c-concurrent-dispatch-0617-work",
+    "p6c-concurrent-dispatch-0617-code-attack-qa",
+    "p6c-concurrent-dispatch-0617-closure"
+  ],
+  "link_edges": [
+    {
+      "edge_ref": "edge:p6c-concurrent-dispatch-0617-work-to-p6c-concurrent-dispatch-0617-code-attack-qa",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition"
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:p6c-concurrent-dispatch-0617-work-to-p6c-concurrent-dispatch-0617-code-attack-qa",
+          "target_ref": "brick-p6c-concurrent-dispatch-0617-code-attack-qa"
+        }
+      ],
+      "source_step_ref": "p6c-concurrent-dispatch-0617-work",
+      "target_step_ref": "p6c-concurrent-dispatch-0617-code-attack-qa"
+    },
+    {
+      "edge_ref": "edge:p6c-concurrent-dispatch-0617-code-attack-qa-to-p6c-concurrent-dispatch-0617-closure",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition"
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:p6c-concurrent-dispatch-0617-code-attack-qa-to-p6c-concurrent-dispatch-0617-closure",
+          "target_ref": "brick-p6c-concurrent-dispatch-0617-closure"
+        }
+      ],
+      "source_step_ref": "p6c-concurrent-dispatch-0617-code-attack-qa",
+      "target_step_ref": "p6c-concurrent-dispatch-0617-closure"
+    },
+    {
+      "edge_ref": "edge:p6c-concurrent-dispatch-0617-closure-to-boundary",
+      "rows": [
+        {
+          "axis": "Link",
+          "building_lifecycle": {
+            "reason": "declared closure boundary for p6c-concurrent-dispatch-0617",
+            "state": "closed"
+          },
+          "declared_gate_refs": [
+            "link-gate:default-transition"
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:p6c-concurrent-dispatch-0617-closure-to-boundary",
+          "target_ref": "building-boundary:p6c-concurrent-dispatch-0617-closed"
+        }
+      ],
+      "source_step_ref": "p6c-concurrent-dispatch-0617-closure"
+    }
+  ],
+  "materialization_rule": "caller_or_coo_declared_task_source_plus_graph_chain_preset",
+  "node_reroute_budgets": {
+    "brick-p6c-concurrent-dispatch-0617-work": 5
+  },
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality"
+  ],
+  "owner_axis": "Brick",
+  "plan_ref": "building-plan:p6c-concurrent-dispatch-0617",
+  "plan_shape": "graph",
+  "preset_expansion": {
+    "agent_object_refs": [
+      "agent-object:dev",
+      "agent-object:qa",
+      "agent-object:coo"
+    ],
+    "canonical_chain_preset_ref": "building-chain-preset:fast-fix",
+    "chain_preset_ref": "building-chain-preset:fast-fix",
+    "chain_preset_requires_graph": true,
+    "expanded_brick_spec_refs": [
+      "brick/templates/bricks/work/brick.md",
+      "brick/templates/bricks/code-attack-qa/brick.md",
+      "brick/templates/bricks/closure/brick.md"
+    ],
+    "expanded_brick_template_refs": [
+      "brick/templates/bricks/work/return.yaml",
+      "brick/templates/bricks/transition-concern-return.yaml",
+      "brick/templates/bricks/code-attack-qa/return.yaml",
+      "brick/templates/bricks/closure/return.yaml"
+    ],
+    "expanded_step_template_refs": [
+      "building-step-template:work",
+      "building-step-template:code-attack-qa",
+      "building-step-template:closure"
+    ],
+    "not_proven": [
+      "semantic fitness of selected shape",
+      "selected preset ref was not declared unless separately present"
+    ],
+    "proof_limits": [
+      "support records caller / COO declared graph composition only",
+      "not automatic preset selection",
+      "not automatic shape selection",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "selected_shape_ref": "building-shape:reviewable-work",
+    "selection_rule": "caller_or_coo_declared_only"
+  },
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "route_policy_provenance": {
+    "allowed_provenance": [
+      "constitutional-default",
+      "per-building",
+      "preset-default"
+    ],
+    "by_node": {
+      "p6c-concurrent-dispatch-0617-work": {
+        "node_reroute_budget": "preset-default"
+      }
+    },
+    "rule": "route reroute budget + closure routing policy are HUMAN Movement decisions; support records but never synthesizes them (provenance is constitutional-default for Smith-declared reroute defaults, preset-default for a reusable preset default, or per-building for a per-Building override, NEVER support)"
+  },
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:default",
+  "selected_shape_ref": "building-shape:reviewable-work",
+  "selection_rule": "caller_or_coo_declared_only",
+  "task_source_hash": "f5b0c2c5d0f41ced0d972070b4a82865055e511ee4382a0df673abf01c3c5b3d",
+  "task_source_hash_algorithm": "sha256",
+  "task_source_hash_basis": "utf-8 inline task_statement body at materialization time",
+  "task_source_ref": "task-source:inline-statement",
+  "task_statement": "# P6-C: \ub3c5\ub9bd fan-out \uac00\uc9c0 \ub3d9\uc2dc \ub514\uc2a4\ud328\uce58 (\uc804\uc9c4 \ubcd1\ub82c, pool=1 \uae30\ubcf8=byte-identical, pool=N \uc635\ud2b8\uc778=\uc99d\uba85)\n\n## Operator pre-analysis (VERIFIED \u2014 bounded reading list)\nA(running\uc2e0\ud638 da49aae)\u00b7B0(process_one_node 493df63)\u00b7B1(_FrontierDriver f31e000) \uc644\ub8cc. Read ONLY:\n- support/operator/walker_kernel.py:\n  - 123-200 (`_FrontierDriver`: _items/_cursor/_scheduled_fan_steps, next_item() \ud604\uc7ac front 1\uac1c, append/defer/splice_after_current/splice_declared_successors_after_current)\n  - 1995-2010 (\ub8e8\ud504 `while (item := frontier_driver.next_item())`) + \uadf8 \uc548 fan-in wait(_fan_in_wait_all_state, running_fan_steps \uc778\uc790 \uc774\ubbf8 \ubc1b\uc74c) + process_one_node \ud638\ucd9c + outcome \uc801\uc6a9 \uacb0\uc815\ubd80\n  - completed_fan_steps/held_fan_steps/running_fan_steps \uc120\uc5b8\ubd80 + resume_seed/replay_consumed(\ub418\uac10\uae30)\n- support/operator/walker_fan_in.py:_fan_in_wait_all_state(running_fan_steps \ubd84\uae30 \uc774\ubbf8 \uc788\uc74c, A\uc5d0\uc11c \uae5c)\n- support/recording: \uac01 Brick\uc774 \uc790\uae30 \uc99d\uac70\ub97c (step_ref,attempt_index) \uacbd\ub85c\uc5d0 \ub530\ub85c \uc4f0\ub294\uc9c0(\ubcd1\ub82c \uc548\uc804 \ud655\uc778)\n\n## Reproduced facts (operator-verified, \uc124\uacc4 w3br8mkmh)\n\ubaa8\ub378\uc740 \uc774\ubbf8 \ubcd1\ub82c(Brick=\ub3c5\ub9bd\ub2e8\uc704\u00b7Link=\uc758\uc874). walker\ub9cc \uc9c1\ub82c. _FrontierDriver.next_item\uc774 \"\ub2e4\uc74c 1\uac1c\"\ub97c \uc8fc\ub294 seam. \uac01 Brick\uc740 \uc790\uae30 \uc99d\uac70 \uc790\uae30\uac00 \ub514\uc2a4\ud06c\uc5d0 \uc500(\ubcd1\ub82c \uc548\uc804). \ud575\uc2ec \uc6d0\uce59: **\uc77c(process_one_node)\uc740 \uc5ec\ub7ff\uc774 \ub3d9\uc2dc, \uacb0\uc815/\ubcc0\uc774(outcome \uc801\uc6a9\u00b7budget\uc18c\ube44\u00b7\ubc88\ud638\u00b7hold)\ub294 \ub4dc\ub77c\uc774\ubc84\uac00 \uc815\ud574\uc9c4 \uc21c\uc11c\ub85c \uc9c1\ub82c.** \ub418\uac10\uae30(resume replay)\ub294 \ubcf8\uc9c8 \uc9c1\ub82c \u2014 \ub3d9\uc2dc\ud654 \uc548 \ud568.\n\n## Objective (invariant)\n\ub3c5\ub9bd fan-out \uac00\uc9c0(\uc11c\ub85c \ub2e4\ub978 step_ref, \uc758\uc874 \ucda9\uc871\ub41c ready \ub178\ub4dc)\uc758 **process_one_node\ub97c \ub3d9\uc2dc \uc2e4\ud589**\ud55c\ub2e4. \ub2e8:\n- **pool \ud06c\uae30 \uc124\uc815 \uac00\ub2a5, \uae30\ubcf8=1.** pool=1\uc774\uba74 \ub3d9\uc791\uc774 B1\uacfc **byte-identical**(--all \ud68c\uadc0 0). pool>1\ub9cc \ub3d9\uc2dc.\n- **\uacb0\uc815/\ubcc0\uc774\ub294 \uc9c1\ub82c \ub4dc\ub77c\uc774\ubc84**\uac00 outcome\uc744 **\uc815\ud574\uc9c4 \uc21c\uc11c(frontier \ub4f1\ub85d \uc21c/(step_ref,cascade_depth) \uc815\ub82c)\ub85c** \uc801\uc6a9 \u2014 wall-clock \ub3c4\ucc29\uc21c \uc544\ub2d8(deterministic drain). budget \uc18c\ube44\u00b7adoption_sequence_number\u00b7hold\u00b7\ubc88\ud638 \uc804\ubd80 \uc5ec\uae30\uc11c \uc9c1\ub82c.\n- **running_fan_steps \ub77c\uc774\ube0c**: \ub178\ub4dc dispatch \uc2dc add((step_ref,depth)), \uc644\ub8cc \uc2dc remove. (A\uc5d0\uc11c \uae50 fan-in \uac70\uc9d3HOLD \ubc29\uc9c0 \ubd84\uae30\uac00 \ube44\ub85c\uc18c \uc0b4\uc544\ub0a8.)\n- **resume/replay\ub294 \uc9c1\ub82c \uc720\uc9c0**(pool=1 \uac15\uc81c). replay_consumed FIFO\u00b7disposition once-only\u00b7held_occurrence_index \ubd88\ubcc0.\n- adoption_sequence_number\ub294 \ub3d9\uc2dc increment \uae08\uc9c0 \u2192 \ub4dc\ub77c\uc774\ubc84 \uc9c1\ub82c \uc801\uc6a9\uc5d0\uc11c\ub9cc.\n\n## Deliverables (\ubc88\ud638)\n1. **_FrontierDriver \ub3d9\uc2dc \ubaa8\ub4dc**: ready-batch \ubc18\ud658(ready_items() \u2014 \uc758\uc874\ucda9\uc871\u00b7\ubbf8\uc2a4\ucf00\uc904 \ub3c5\ub9bd\ub178\ub4dc \uc9d1\ud569) + pool(worker) \ub514\uc2a4\ud328\uce58. process_one_node\ub97c batch\uc5d0 \ub300\ud574 \ub3d9\uc2dc \uc2e4\ud589(ThreadPoolExecutor \ub4f1, pool=1\uc774\uba74 1\uac1c=\uc9c1\ub82c). \uc6cc\ucee4\ub294 \uc21c\uc218(outcome \ubc18\ud658, \uacf5\uc720\uc0c1\ud0dc \ubcc0\uc774 0).\n2. **deterministic drain**: \uc644\ub8cc outcome\uc744 \ub3c4\ucc29\uc21c\uc774 \uc544\ub2c8\ub77c **canonical \uc21c\uc11c**(frontier \ub4f1\ub85d index \ub610\ub294 (step_ref,cascade_depth) \uc815\ub82c)\ub85c \ubc84\ud37c\ub9c1\ud588\ub2e4 \uc9c1\ub82c \uc801\uc6a9. outcome \uc801\uc6a9 \uacb0\uc815\ubd80(\uae30\uc874 2011-2720 \ub85c\uc9c1)\ub294 \ubd88\ubcc0, \ud638\ucd9c \uc21c\uc11c\ub9cc canonical \ubcf4\uc7a5.\n3. **running_fan_steps \ubc30\uc120** + **pool size seam**(\uc124\uc815\u00b7\uae30\ubcf81). resume \uacbd\ub85c\ub294 pool=1 \uac15\uc81c.\n4. **FIRE \uc99d\uba85 \ud504\ub85c\ube0c(\uccb4\ucee4)**: fan-out fixture\ub97c pool=1\uacfc pool=N(\uc608: 4)\ub85c \uac01\uac01 walk \u2192 evidence-manifest/spine/building-map\uc744 \uc815\uaddc\ud654(timestamp/tempdir) \ud6c4 **byte-equal** \ub2e8\uc5b8. + \ub2e4\uc911-reroute-into-shared-fan-in fixture \ud3ec\ud568(\uc124\uacc4\uac00 \"\uc9c1\ub82c\uac80\uc99d\uc774 \uc790\ub3d9 \uc774\uc804 \uc548 \ub418\ub294 \uc720\uc77c \ucf00\uc774\uc2a4\"\ub77c \uba85\uc2dc). support/checkers\uc5d0 \ucd94\uac00.\n\n## Proof required (run yourself, report honestly \u2014 claims only from execution)\n- **pool=1 \uae30\ubcf8 byte-identical**: \ud3b8\uc9d1 \uc804/\ud6c4 `--all` \uc815\uaddc\ud654 byte-diff = \ube48 \ucd9c\ub825(\uae30\ubcf8 pool=1\uc774\ub77c \uc9c1\ub82c FIRE \ube4c\ub529\ub4e4 \ub3d9\uc791 \ubd88\ubcc0, \ud68c\uadc0 0).\n- `python -m compileall` + `git diff --check`.\n- `check_profile.py --all` exit 0 (12 \ud504\ub85c\ud30c\uc77c + \uc0c8 \ub3d9\uc2dc\uc131 FIRE \ud504\ub85c\ube0c).\n- **\ub3d9\uc2dc\uc131 \uc815\ud655\uc131**: \uc0c8 FIRE \ud504\ub85c\ube0c\uac00 pool=1 vs pool=N evidence byte-equal \ub2e8\uc5b8\ud558\uba70 green. \ub2e4\uc911-reroute-fan-in fixture\uac00 byte-equal \uc548 \ub418\uba74 STOP+\ubcf4\uace0(\uc815\uaddc\ud654\ub85c \ub36e\uc9c0 \ub9d0 \uac83).\n- **\ubcc0\uc774 RED**: drain\uc744 wall-clock \ub3c4\ucc29\uc21c\uc73c\ub85c \ubc14\uafb8\uba74(canonical \uae68\uae30) \ub3d9\uc2dc\uc131 FIRE\uac00 RED \u2192 \ubcf5\uc6d0. deterministic drain\uc774 load-bearing\uc784 \uc99d\uba85.\n\n## Hard constraints (law)\n- write_scope: support/operator/walker_kernel.py, support/operator/walker_fan_in.py, support/checkers/**. (composition/driver/recording \uc77d\uae30\ub9cc.)\n- **pool=1 \uae30\ubcf8 byte-identical \ud544\uc218.** resume/replay \ub3d9\uc2dc\ud654 \uc808\ub300 \uae08\uc9c0(pool=1 \uac15\uc81c). \uacb0\uc815/\ubcc0\uc774\ub294 \uc9c1\ub82c \ub4dc\ub77c\uc774\ubc84\ub9cc(\uc6cc\ucee4 \uc21c\uc218). deterministic drain(canonical \uc21c\uc11c) \ud544\uc218 \u2014 wall-clock \uc801\uc6a9 \uae08\uc9c0. \uc2a4\ucf00\uc904\ub7ec/\ud050/retry \uc2e0\uaddc \uc758\uc874\uc131 \uc678 \uae08\uc9c0(ThreadPool\uc740 stdlib \ud5c8\uc6a9). \uae30\uc874 \uacb0\uc815 \ub85c\uc9c1 \ubd88\ubcc0.\n- \uae68\ub057\uc774 \uc548 \ub418\uac70\ub098 byte-equal \uc99d\uba85 \uc548 \ub418\uba74 STOP \ud558\uace0 file:line \ubcf4\uace0(\uac15\ud589\u00b7\uc815\uaddc\ud654-\ub36e\uae30 \uae08\uc9c0).\n"
+}

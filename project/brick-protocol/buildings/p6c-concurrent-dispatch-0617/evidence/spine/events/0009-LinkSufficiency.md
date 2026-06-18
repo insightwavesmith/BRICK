@@ -1,0 +1,12 @@
+# LinkSufficiency · seq 9 · ["Link"]
+- axis_scope: ["Link"]
+- checked_public_fact: "brick-comparison:p6c-concurrent-dispatch-0617:p6c-concurrent-dispatch-0617-work"
+- event_type: "LinkSufficiency"
+- missing_required_facts: []
+- required_public_facts: ["BrickComparisonFact.required_return_shape_evidence","BrickComparisonFact.comparison_evidence","BrickComparisonFact.comparison_evidence.returned_field.made_changes","BrickComparisonFact.comparison_evidence.returned_field.observed_evidence","BrickComparisonFact.comparison_evidence.returned_field.not_proven"]
+- run_segment: 1
+- sequence_index: 9
+- source_fact_ref: "sufficiency-fact-movement:03:p6c-concurrent-dispatch-0617-work"
+- spine_schema_version: "spine-v1"
+- stage: "movement"
+- sufficiency: "sufficient"

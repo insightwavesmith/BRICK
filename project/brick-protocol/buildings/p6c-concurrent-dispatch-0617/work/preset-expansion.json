@@ -1,0 +1,76 @@
+{
+  "agent_binding_declarations": [
+    {
+      "agent_object_ref": "agent-object:dev",
+      "row_ref": "agent-row:p6c-concurrent-dispatch-0617-work",
+      "step_ref": "p6c-concurrent-dispatch-0617-work"
+    },
+    {
+      "agent_object_ref": "agent-object:qa",
+      "row_ref": "agent-row:p6c-concurrent-dispatch-0617-code-attack-qa",
+      "step_ref": "p6c-concurrent-dispatch-0617-code-attack-qa"
+    },
+    {
+      "agent_object_ref": "agent-object:coo",
+      "row_ref": "agent-row:p6c-concurrent-dispatch-0617-closure",
+      "step_ref": "p6c-concurrent-dispatch-0617-closure"
+    }
+  ],
+  "building_id": "p6c-concurrent-dispatch-0617",
+  "canonical_chain_preset_ref": "building-chain-preset:fast-fix",
+  "chain_preset_catalog_scope": "common",
+  "chain_preset_catalog_source": "common_chain_presets",
+  "chain_preset_ref": "building-chain-preset:fast-fix",
+  "common_basis_ref": "",
+  "compat_chain_preset_ref": "",
+  "composition_mode": "caller_or_coo_declared_graph_composition",
+  "expanded_brick_spec_refs": [
+    "brick/templates/bricks/work/brick.md",
+    "brick/templates/bricks/code-attack-qa/brick.md",
+    "brick/templates/bricks/closure/brick.md"
+  ],
+  "expanded_brick_template_refs": [
+    "brick/templates/bricks/work/return.yaml",
+    "brick/templates/bricks/transition-concern-return.yaml",
+    "brick/templates/bricks/code-attack-qa/return.yaml",
+    "brick/templates/bricks/closure/return.yaml"
+  ],
+  "expanded_step_template_refs": [
+    "building-step-template:work",
+    "building-step-template:code-attack-qa",
+    "building-step-template:closure"
+  ],
+  "kind": "preset_expansion_provenance",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "plan_ref": "building-plan:p6c-concurrent-dispatch-0617",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target"
+  ],
+  "selected_preset_ref": "building-chain-preset:fast-fix",
+  "selected_shape_ref": "building-shape:reviewable-work",
+  "shape_catalog_ref": "brick-template-catalog:split-p3b-p4"
+}
