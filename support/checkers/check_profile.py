@@ -402,6 +402,19 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "driver_public_intake_seal",
         "support.checkers.check_driver_public_intake_seal",
     ),
+    # CONNECT-STALL PRIMARY CURE (stdin 0619). Parses (AST, no import) the real
+    # support/connection/agent_adapter.py and asserts the two CLI-runner spawns
+    # (_run_text_cli_command, _run_command) pass an immediate-EOF child input (the
+    # DEVNULL guard) so a provider CLI that inherits an open-no-EOF input pipe cannot
+    # block forever at startup (the connect-stall). FAILS CLOSED: a CLI-runner spawn
+    # WITHOUT the DEVNULL guard makes main() return non-zero and raises ProfileError,
+    # so --all EXITs non-zero. Includes an in-process mutation-RED (a spawn with the
+    # guard removed is rejected). This is the PRIMARY cure; the TrackB watchdog stays
+    # as defense-in-depth for genuine network hangs.
+    "cli_runner_stdin_devnull": _repo_main(
+        "cli_runner_stdin_devnull",
+        "support.checkers.check_cli_runner_stdin_devnull",
+    ),
     # Executes the declaration-integrity checker IN-PROCESS: runs the three
     # anti-tautological negative probes (composition-mode, chain artifacts,
     # provenance<->returned acceptance) AND inspects every persisted building

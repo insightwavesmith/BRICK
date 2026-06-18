@@ -281,6 +281,16 @@ modules:
     decomposition_target: ""
     pinned_by: driver_public_intake_seal kernel check (driver.py __all__ exposes only run_building_intake as the public Building-making intake; assemble is owned by support/operator/assembly.py)
 
+  - module: support/checkers/check_cli_runner_stdin_devnull.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: cli_runner_stdin_devnull kernel check (the two CLI-runner subprocess spawns in support/connection/agent_adapter.py -- _run_text_cli_command + _run_command -- pass stdin=subprocess.DEVNULL so a provider CLI inheriting an open-no-EOF stdin pipe cannot block forever at startup; the connect-stall primary cure)
+
   - module: support/checkers/check_bounded_agent_proposed_routing_loop0.py
     layer: checkers
     role: checker

@@ -1,0 +1,30 @@
+schema: checker-profile/v1
+profile_id: cli-runner-stdin-devnull
+description: Pins the two CLI-runner subprocess spawns in support/connection/agent_adapter.py to stdin=subprocess.DEVNULL so a provider CLI inheriting an open-no-EOF stdin pipe cannot block forever at startup (the connect-stall primary cure). Fails closed.
+kernel_checks:
+  - cli_runner_stdin_devnull
+path_exists:
+  - support/connection/agent_adapter.py
+  - support/checkers/check_cli_runner_stdin_devnull.py
+  - support/checkers/profiles/cli_runner_stdin_devnull.yaml
+text_contains:
+  - path: support/connection/agent_adapter.py
+    texts:
+      - def _run_text_cli_command
+      - def _run_command
+      - stdin=subprocess.DEVNULL
+  - path: support/checkers/check_cli_runner_stdin_devnull.py
+    texts:
+      - CLI_RUNNER_FUNCTIONS
+      - _stdin_is_subprocess_devnull
+      - mutation RED observed
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+  - not provider proof
+not_proven:
+  - semantic correctness of the spawned CLI invocation
+  - that the connect-stall never recurs through an unrelated network hang (the TrackB watchdog remains the defense-in-depth for that)

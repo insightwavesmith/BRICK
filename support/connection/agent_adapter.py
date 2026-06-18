@@ -2007,6 +2007,14 @@ def _run_text_cli_command(
         list(args),
         cwd=str(cwd),
         text=True,
+        # stdin=DEVNULL gives the child an IMMEDIATE EOF on fd 0. codex/claude/gemini
+        # `exec` unconditionally read() stdin at startup; if BRICK inherited a pipe/FIFO
+        # whose write-end is held open with no data and no EOF, that startup read blocks
+        # FOREVER (0 CPU, 0 sockets) to the adapter timeout -- the "connect-stall". BRICK
+        # passes the prompt as a positional/flag argv item (never via stdin), so DEVNULL
+        # cannot break any input path. This is the PRIMARY structural cure; the watchdog
+        # stays as defense-in-depth for genuine network hangs.
+        stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         start_new_session=True,
@@ -2133,6 +2141,14 @@ def _run_command(
         cwd=str(cwd),
         env=dict(env) if env is not None else None,
         text=True,
+        # stdin=DEVNULL gives the child an IMMEDIATE EOF on fd 0. codex/claude/gemini
+        # `exec` unconditionally read() stdin at startup; if BRICK inherited a pipe/FIFO
+        # whose write-end is held open with no data and no EOF, that startup read blocks
+        # FOREVER (0 CPU, 0 sockets) to the adapter timeout -- the "connect-stall". BRICK
+        # passes the prompt as a positional/flag argv item (never via stdin), so DEVNULL
+        # cannot break any input path. This is the PRIMARY structural cure; the watchdog
+        # stays as defense-in-depth for genuine network hangs.
+        stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         start_new_session=True,  # proc becomes its own process-group leader (setsid)
