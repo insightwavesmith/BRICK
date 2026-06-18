@@ -1250,6 +1250,10 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
         tool_policy_refs=(adapter.REVIEWER_READONLY_TOOL_POLICY_REF,),
         agent_instruction_packet=qa_packet,
     )
+    if adapter.ADAPTER_GEMINI_LOCAL not in set(qa_packet.get("adapter_refs", ())):
+        raise ProfileError("qa instruction packet did not admit adapter:gemini-local")
+    if adapter.agent_request_effective_write(gemini_request):
+        raise ProfileError("gemini-local reviewer-readonly request opened effective write")
     if not adapter.agent_request_read_tier(gemini_request):
         raise ProfileError("gemini-local reviewer-readonly request did not enter read tier")
     gemini_prompt = json.loads(

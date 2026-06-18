@@ -3512,6 +3512,11 @@ agent_resource_boundary:
       - hook:resource-ref-redaction
     required_tool_policy_refs:
       - tool-policy:read-write-scoped
+    required_adapter_refs:
+      - adapter:local
+      - adapter:codex-local
+      - adapter:claude-local
+      - adapter:gemini-local
     forbidden_tool_policy_refs:
       - tool-policy:review-readonly
     forbidden_adapter_refs:

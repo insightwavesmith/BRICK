@@ -28,6 +28,7 @@
   "adapter_refs": [
     "adapter:local",
     "adapter:codex-local",
-    "adapter:claude-local"
+    "adapter:claude-local",
+    "adapter:gemini-local"
   ]
 }
