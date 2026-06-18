@@ -2668,6 +2668,14 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
                 f"{prod_config.threshold_seconds!r} is NOT strictly less than the 120s "
                 "adapter deadline -- the watchdog can never fire before the plain timeout"
             )
+        # non-finite timeouts (NaN/inf) must be REJECTED, not silently activated
+        # (codex re-review): a bare <=0 timeout guard lets NaN through.
+        for bad_timeout in (float("nan"), float("inf")):
+            if adapter._codex_stall_watchdog_config(timeout_seconds=bad_timeout) is not None:
+                raise ProfileError(
+                    "codex_connect_stall_classification A2: non-finite timeout "
+                    f"{bad_timeout!r} was not rejected by the watchdog config"
+                )
         # (b) a dead-connection signature AT the 120s default still classifies as a
         # stall and run._adapter_error_kind maps it to local_cli_connect_stall.
         prod_clock = {"now": 0.0}
@@ -2684,7 +2692,10 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
                 prod_proc,
                 ("codex", "exec", "--output-last-message", "/tmp/ignored", "prompt"),
                 timeout_seconds=prod_default_timeout,
-                watchdog_config=prod_config,
+                # NO watchdog_config injection (codex re-review): exercise the exact
+                # production path where _communicate computes the config INTERNALLY
+                # from timeout_seconds=120 -- proving the real wiring, not just the
+                # arithmetic already pinned in (a) above.
                 health_probe=lambda proc: prod_health,
                 clock=lambda: prod_clock["now"],
             )

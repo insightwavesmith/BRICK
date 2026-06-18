@@ -129,8 +129,9 @@ _CODEX_STALL_WATCHDOG_POLL_ENV = "BRICK_CODEX_STALL_POLL_SECONDS"
 # alive, 0 children, 0 established sockets, cpu_seconds frozen) must be reaped and
 # surfaced to a human within the 90-180s band, not after ~20 minutes. The 150s
 # default sits inside that band, but the EFFECTIVE threshold is clamped to
-# (adapter timeout - poll) so it always fires BEFORE the subprocess deadline
-# (codex-review F1): at the 120s production default the effective threshold is 90s.
+# (adapter timeout - 2*poll) so it always fires BEFORE the subprocess deadline with
+# room for the 2-sample dead-signature (codex-review F1): at the 120s production
+# default the effective threshold is 60s (fires at ~90s, before the 120s deadline).
 # BRICK_CODEX_STALL_THRESHOLD_SECONDS still overrides the default but is clamped the
 # same way and must be > 0 (NaN/inf/negative/ZERO all rejected -> default; F2). This
 # is the DEAD-worker (connect-stall) watchdog ONLY -- it never touches a live worker.
@@ -1664,7 +1665,14 @@ def _codex_stall_watchdog_config(timeout_seconds: int | float) -> _CodexStallWat
     # it has two polls of room (timeout-poll alone fires AT the deadline = still dead
     # code, proven by execution). The env override is clamped the SAME way so an
     # operator-set env can never reintroduce the inversion.
-    if timeout_seconds <= 0:
+    # Reject non-finite timeouts (NaN/inf) as well as <= 0 (codex re-review): a NaN
+    # timeout slips past a bare <=0 check (nan comparisons are False) and would yield
+    # an unclamped active watchdog. Same idiom as _float_env_or_default below.
+    if (
+        timeout_seconds != timeout_seconds
+        or timeout_seconds in {float("inf"), float("-inf")}
+        or timeout_seconds <= 0
+    ):
         return None
     poll = _float_env_or_default(
         _CODEX_STALL_WATCHDOG_POLL_ENV,
