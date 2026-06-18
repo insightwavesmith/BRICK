@@ -53,6 +53,9 @@ text_contains:
       - def _run_dynamic_graph_walker
       - transition_concern_adoption
       - advisory
+      - BRICK_FANOUT_DISPATCH_POOL_SIZE
+      - ThreadPoolExecutor
+      - ready_items
   # per-TARGET-node, Link-assigned budget, shared across landings (P3c rehome)
   - path: support/operator/walker_reroute_budget.py
     texts:
@@ -127,6 +130,9 @@ text_contains:
       - "knot4-strip-self-ambiguous: source+two-siblings adopted a target"
       - "knot4-strip-self-kind-agnostic: source kind"
       - "knot4-other-target-control: expected one adopted true reroute"
+      - "p6c-byte-fanout: normalized evidence-manifest/spine/building-map"
+      - "p6c-byte-fanout-red: timed fixture failed to invert wall-clock"
+      - "p6c-shared-fanin-reroute: normalized evidence-manifest/spine/"
   # MAIL-REPAIR (0611): the engine-side mail lane stays wired -- the kernel
   # carries runtime_handoffs on adopted-reroute redo items, reads the recorded
   # row back from the ledger, and HOLDs loudly on a broken ledger address.
@@ -189,7 +195,7 @@ proof_limits:
   - not quality judgment
   - not Movement authority
 not_proven:
-  - parallel runtime fan-in/fan-out (P-walker-2, out of scope)
+  - real provider parallel execution
   - semantic correctness of the agent-proposed reroute
   - caller/COO disposition after a HOLD
   - checker profile pass as source truth

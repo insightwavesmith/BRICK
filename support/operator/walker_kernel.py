@@ -24,8 +24,10 @@ from __future__ import annotations
 
 import dataclasses
 import json
+import os
 import shutil
 from collections.abc import Mapping, Sequence
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Callable
 
@@ -120,8 +122,17 @@ from brick_protocol.support.recording.walker_evidence import (
 )
 
 
+@dataclasses.dataclass(frozen=True)
+class _ReadyItemsResult:
+    """Support-only ready batch returned by the live frontier driver."""
+
+    items: tuple[dict[str, Any], ...]
+    hold_item: Mapping[str, Any] | None = None
+    hold_observation: Mapping[str, Any] | None = None
+
+
 class _FrontierDriver:
-    """Own the live frontier queue and its serial cursor."""
+    """Own the live frontier queue and cursor."""
 
     def __init__(
         self,
@@ -136,14 +147,61 @@ class _FrontierDriver:
         )
 
     def next_item(self) -> dict[str, Any] | None:
-        # P6-B1: serial mode returns exactly one cursor-front item. A later C
-        # change can widen this seam to ready-node batches without opening
-        # parallel dispatch here.
+        # Serial/default mode returns exactly one cursor-front item. P6-C's
+        # opt-in pool path uses ready_items() and leaves this path byte-stable.
         if self._cursor >= len(self._items):
             return None
         item = self._items[self._cursor]
         self._cursor += 1
         return item
+
+    def ready_items(
+        self,
+        *,
+        max_items: int,
+        has_fan_groups: bool,
+        fan_in_sources_by_target: Mapping[str, tuple[str, ...]],
+        completed_fan_steps: set[tuple[str, int]],
+        running_fan_steps: set[tuple[str, int]],
+        held_fan_steps: set[tuple[str, int]],
+        fan_in_deferrals: dict[tuple[str, int], int],
+    ) -> _ReadyItemsResult:
+        if max_items <= 0:
+            raise ValueError("frontier ready max_items must be positive")
+        ready: list[dict[str, Any]] = []
+        while self._cursor < len(self._items) and len(ready) < max_items:
+            item = self._items[self._cursor]
+            step_ref = str(item.get("step_ref", ""))
+            cascade_depth = int(item.get("cascade_depth", 0))
+            if has_fan_groups:
+                wait_state, wait_observation = _fan_in_wait_all_state(
+                    step_ref=step_ref,
+                    cascade_depth=cascade_depth,
+                    fan_in_sources_by_target=fan_in_sources_by_target,
+                    completed_fan_steps=completed_fan_steps,
+                    running_fan_steps=running_fan_steps,
+                    held_fan_steps=held_fan_steps,
+                    pending_queue=self._items[self._cursor + 1 :],
+                    fan_in_deferrals=fan_in_deferrals,
+                )
+                if wait_state == "defer":
+                    self._cursor += 1
+                    self.defer(item)
+                    continue
+                if wait_state == "hold":
+                    if ready:
+                        break
+                    self._cursor += 1
+                    return _ReadyItemsResult(
+                        items=(),
+                        hold_item=item,
+                        hold_observation=wait_observation,
+                    )
+            self._cursor += 1
+            ready.append(item)
+            if has_fan_groups:
+                running_fan_steps.add((step_ref, cascade_depth))
+        return _ReadyItemsResult(items=tuple(ready))
 
     def pending_items(self) -> list[dict[str, Any]]:
         return self._items[self._cursor :]
@@ -185,6 +243,26 @@ class _FrontierDriver:
             scheduled_fan_steps=self._scheduled_fan_steps,
         )
         self.splice_after_current(successor_items, offset=offset)
+
+
+def _fanout_dispatch_pool_size(plan: Mapping[str, Any]) -> int:
+    raw_value = os.environ.get(
+        "BRICK_FANOUT_DISPATCH_POOL_SIZE",
+        plan.get("fanout_dispatch_pool_size", 1),
+    )
+    if raw_value is None or raw_value == "":
+        return 1
+    if isinstance(raw_value, bool):
+        raise ValueError("fanout_dispatch_pool_size must be a positive integer")
+    if isinstance(raw_value, int):
+        value = raw_value
+    elif isinstance(raw_value, str) and raw_value.strip().isdecimal():
+        value = int(raw_value.strip())
+    else:
+        raise ValueError("fanout_dispatch_pool_size must be a positive integer")
+    if value < 1:
+        raise ValueError("fanout_dispatch_pool_size must be a positive integer")
+    return value
 
 
 def _source_fact_body_carry_for_step(
@@ -1457,6 +1535,7 @@ class NodeProcessingOutcome:
     park_frontier: Mapping[str, Any] | None = None
     fan_in_hold_record: Mapping[str, Any] | None = None
     step_result_event: Mapping[str, Any] | None = None
+    step_output_recorded: bool = True
 
 
 def process_one_node(
@@ -1505,6 +1584,7 @@ def process_one_node(
     repo_root_path: Path,
     report_env: Mapping[str, str] | None,
     report_slack_sender: Any | None,
+    record_step_output_immediately: bool = True,
 ) -> NodeProcessingOutcome:
     """Process one node without mutating queue/reroute scheduling state."""
 
@@ -1752,36 +1832,40 @@ def process_one_node(
         step_result = dataclasses.replace(
             step_result, gate_sequence_decision=gate_sequence_decision
         )
-    attempt_index = 1 + sum(
-        1
-        for completed in step_results_snapshot
-        if completed.preparation.step_rows.step_ref == step_ref
-    )
-    step_result = record_step_output(
-        building_root=building_root,
-        building_id=building_id,
-        step_result=step_result,
-        completed_step_results=step_results_snapshot,
-        proof_limits=checked_proof_limits,
-        task_source_ref=task_source_ref,
-        overwrite_existing=overwrite_existing,
-    )
-    report_events = tuple(
-        _emit_brick_grain_step_events(
-            report_event_policy,
-            linear_plan=linear_plan,
-            building_id=building_id,
+    if record_step_output_immediately:
+        attempt_index = 1 + sum(
+            1
+            for completed in step_results_snapshot
+            if completed.preparation.step_rows.step_ref == step_ref
+        )
+        step_result = record_step_output(
             building_root=building_root,
-            repo_root=repo_root_path,
+            building_id=building_id,
             step_result=step_result,
-            step_index=len(step_results_snapshot) + 1,
-            attempt_index=attempt_index,
-            gate_sequence_decision=gate_sequence_decision,
-            report_env=report_env,
-            report_slack_sender=report_slack_sender,
+            completed_step_results=step_results_snapshot,
+            proof_limits=checked_proof_limits,
+            task_source_ref=task_source_ref,
             overwrite_existing=overwrite_existing,
         )
-    )
+        report_events = tuple(
+            _emit_brick_grain_step_events(
+                report_event_policy,
+                linear_plan=linear_plan,
+                building_id=building_id,
+                building_root=building_root,
+                repo_root=repo_root_path,
+                step_result=step_result,
+                step_index=len(step_results_snapshot) + 1,
+                attempt_index=attempt_index,
+                gate_sequence_decision=gate_sequence_decision,
+                report_env=report_env,
+                report_slack_sender=report_slack_sender,
+                overwrite_existing=overwrite_existing,
+            )
+        )
+    else:
+        attempt_index = 0
+        report_events = ()
     return NodeProcessingOutcome(
         step_result=step_result,
         attempt_index=attempt_index,
@@ -1794,6 +1878,7 @@ def process_one_node(
             "step_ref": step_ref,
             "cascade_depth": cascade_depth,
         },
+        step_output_recorded=record_step_output_immediately,
     )
 
 
@@ -1994,45 +2079,21 @@ def _run_dynamic_graph_walker(
     # on the held occurrence (not a later same-step_ref occurrence a raise re-adopts).
     held_occurrence_index: int | None = None
     resume_body_carry_observations: list[Mapping[str, Any]] = []
-    while (item := frontier_driver.next_item()) is not None:
-        step_ref = item["step_ref"]
+    dispatch_pool_size = _fanout_dispatch_pool_size(linear_plan)
+    if resume_seed is not None or not has_fan_groups:
+        dispatch_pool_size = 1
+    pending_outcomes: list[tuple[dict[str, Any], NodeProcessingOutcome]] = []
+
+    def _process_item(
+        item: dict[str, Any],
+        *,
+        record_step_output_immediately: bool,
+    ) -> NodeProcessingOutcome:
+        step_ref = str(item["step_ref"])
         cascade_depth = int(item.get("cascade_depth", 0))
-        # MAIL-REPAIR (0611, B3 lane 2): the resume disposition row's mail entry,
-        # set ONLY in this iteration's disposition hook (raise lane) and consumed
-        # ONLY by this iteration's adoption (the held landing re-adoption).
-        # Iteration-local so it can never leak onto a later unrelated adoption.
-        disposition_runtime_handoff: dict[str, Any] | None = None
-        if has_fan_groups:
-            wait_state, wait_observation = _fan_in_wait_all_state(
-                step_ref=step_ref,
-                cascade_depth=cascade_depth,
-                fan_in_sources_by_target=fan_in_sources_by_target,
-                completed_fan_steps=completed_fan_steps,
-                running_fan_steps=running_fan_steps,
-                held_fan_steps=held_fan_steps,
-                pending_queue=frontier_driver.pending_items(),
-                fan_in_deferrals=fan_in_deferrals,
-            )
-            if wait_observation is not None and wait_state == "hold":
-                fan_in_wait_all_observations.append(wait_observation)
-            if wait_state == "defer":
-                frontier_driver.defer(item)
-                continue
-            if wait_state == "hold":
-                fan_in_hold_record = _build_fan_in_wait_all_hold(
-                    building_id=building_id,
-                    plan_ref=plan_ref,
-                    target_step_ref=step_ref,
-                    target_brick=brick_ref_by_step[step_ref],
-                    cascade_depth=cascade_depth,
-                    observation=wait_observation or {},
-                    step_results=step_results,
-                )
-                break
-        step = steps_by_ref[step_ref]
-        outcome = process_one_node(
+        return process_one_node(
             step_ref,
-            step,
+            steps_by_ref[step_ref],
             linear_plan=linear_plan,
             linear_steps=linear_steps,
             forward_order=forward_order,
@@ -2075,7 +2136,182 @@ def _run_dynamic_graph_walker(
             repo_root_path=repo_root_path,
             report_env=report_env,
             report_slack_sender=report_slack_sender,
+            record_step_output_immediately=record_step_output_immediately,
         )
+
+    def _clear_running(items: Sequence[Mapping[str, Any]]) -> None:
+        for item in items:
+            running_fan_steps.discard(
+                (str(item.get("step_ref", "")), int(item.get("cascade_depth", 0)))
+            )
+
+    def _dispatch_ready_batch(
+        items: Sequence[dict[str, Any]],
+    ) -> list[tuple[dict[str, Any], NodeProcessingOutcome]]:
+        try:
+            if len(items) == 1:
+                return [
+                    (
+                        items[0],
+                        _process_item(
+                            items[0],
+                            record_step_output_immediately=False,
+                        ),
+                    )
+                ]
+            worker_count = min(dispatch_pool_size, len(items))
+            with ThreadPoolExecutor(max_workers=worker_count) as executor:
+                futures = [
+                    (
+                        item,
+                        executor.submit(
+                            _process_item,
+                            item,
+                            record_step_output_immediately=False,
+                        ),
+                    )
+                    for item in items
+                ]
+                return [(item, future.result()) for item, future in futures]
+        finally:
+            _clear_running(items)
+
+    def _record_deferred_step_output(
+        item: dict[str, Any],
+        outcome: NodeProcessingOutcome,
+    ) -> NodeProcessingOutcome:
+        if outcome.step_output_recorded:
+            return outcome
+        if outcome.step_result is None:
+            return outcome
+        step_ref = str(item["step_ref"])
+        attempt_index = 1 + sum(
+            1
+            for completed in step_results
+            if completed.preparation.step_rows.step_ref == step_ref
+        )
+        step_result = record_step_output(
+            building_root=building_root,
+            building_id=building_id,
+            step_result=outcome.step_result,
+            completed_step_results=step_results,
+            proof_limits=checked_proof_limits,
+            task_source_ref=task_source_ref,
+            overwrite_existing=overwrite_existing,
+        )
+        report_events = tuple(
+            _emit_brick_grain_step_events(
+                report_event_policy,
+                linear_plan=linear_plan,
+                building_id=building_id,
+                building_root=building_root,
+                repo_root=repo_root_path,
+                step_result=step_result,
+                step_index=len(step_results) + 1,
+                attempt_index=attempt_index,
+                gate_sequence_decision=outcome.gate_sequence_decision,
+                report_env=report_env,
+                report_slack_sender=report_slack_sender,
+                overwrite_existing=overwrite_existing,
+            )
+        )
+        return dataclasses.replace(
+            outcome,
+            step_result=step_result,
+            attempt_index=attempt_index,
+            report_events=report_events,
+            step_output_recorded=True,
+        )
+
+    while True:
+        if pending_outcomes:
+            item, outcome = pending_outcomes.pop(0)
+            outcome = _record_deferred_step_output(item, outcome)
+        else:
+            if dispatch_pool_size > 1:
+                ready_result = frontier_driver.ready_items(
+                    max_items=dispatch_pool_size,
+                    has_fan_groups=has_fan_groups,
+                    fan_in_sources_by_target=fan_in_sources_by_target,
+                    completed_fan_steps=completed_fan_steps,
+                    running_fan_steps=running_fan_steps,
+                    held_fan_steps=held_fan_steps,
+                    fan_in_deferrals=fan_in_deferrals,
+                )
+                if ready_result.hold_item is not None:
+                    hold_step_ref = str(ready_result.hold_item["step_ref"])
+                    hold_cascade_depth = int(
+                        ready_result.hold_item.get("cascade_depth", 0)
+                    )
+                    if ready_result.hold_observation is not None:
+                        fan_in_wait_all_observations.append(
+                            ready_result.hold_observation
+                        )
+                    fan_in_hold_record = _build_fan_in_wait_all_hold(
+                        building_id=building_id,
+                        plan_ref=plan_ref,
+                        target_step_ref=hold_step_ref,
+                        target_brick=brick_ref_by_step[hold_step_ref],
+                        cascade_depth=hold_cascade_depth,
+                        observation=ready_result.hold_observation or {},
+                        step_results=step_results,
+                    )
+                    break
+                if not ready_result.items:
+                    break
+                pending_outcomes.extend(_dispatch_ready_batch(ready_result.items))
+                continue
+
+            item = frontier_driver.next_item()
+            if item is None:
+                break
+            step_ref = str(item["step_ref"])
+            cascade_depth = int(item.get("cascade_depth", 0))
+            if has_fan_groups:
+                wait_state, wait_observation = _fan_in_wait_all_state(
+                    step_ref=step_ref,
+                    cascade_depth=cascade_depth,
+                    fan_in_sources_by_target=fan_in_sources_by_target,
+                    completed_fan_steps=completed_fan_steps,
+                    running_fan_steps=running_fan_steps,
+                    held_fan_steps=held_fan_steps,
+                    pending_queue=frontier_driver.pending_items(),
+                    fan_in_deferrals=fan_in_deferrals,
+                )
+                if wait_observation is not None and wait_state == "hold":
+                    fan_in_wait_all_observations.append(wait_observation)
+                if wait_state == "defer":
+                    frontier_driver.defer(item)
+                    continue
+                if wait_state == "hold":
+                    fan_in_hold_record = _build_fan_in_wait_all_hold(
+                        building_id=building_id,
+                        plan_ref=plan_ref,
+                        target_step_ref=step_ref,
+                        target_brick=brick_ref_by_step[step_ref],
+                        cascade_depth=cascade_depth,
+                        observation=wait_observation or {},
+                        step_results=step_results,
+                    )
+                    break
+                running_fan_steps.add((step_ref, cascade_depth))
+            try:
+                outcome = _process_item(
+                    item,
+                    record_step_output_immediately=True,
+                )
+            finally:
+                if has_fan_groups:
+                    running_fan_steps.discard((step_ref, cascade_depth))
+
+        step_ref = str(item["step_ref"])
+        cascade_depth = int(item.get("cascade_depth", 0))
+        step = steps_by_ref[step_ref]
+        # MAIL-REPAIR (0611, B3 lane 2): the resume disposition row's mail entry,
+        # set ONLY in this iteration's disposition hook (raise lane) and consumed
+        # ONLY by this iteration's adoption (the held landing re-adoption).
+        # Iteration-local so it can never leak onto a later unrelated adoption.
+        disposition_runtime_handoff: dict[str, Any] | None = None
         if outcome.source_fact_body_carry_observation is not None:
             source_fact_body_carry_observations.append(
                 outcome.source_fact_body_carry_observation

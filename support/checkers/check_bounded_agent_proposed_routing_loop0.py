@@ -39,8 +39,11 @@ import argparse
 import copy
 import json
 import os
+import re
 import sys
 import tempfile
+import threading
+import time
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -911,6 +914,162 @@ def _run(plan: Mapping[str, Any], callable_, repo: Path):
         return result, frontier, records
 
 
+def _run_to_output_root(
+    plan: Mapping[str, Any],
+    callable_,
+    repo: Path,
+    output_root: Path,
+):
+    from brick_protocol.support.operator.run import run_building_plan
+    from brick_protocol.support.operator.building_operation import observe_building_frontier
+
+    result = run_building_plan(
+        plan,
+        output_root=output_root,
+        overwrite_existing=True,
+        local_callables={"callable:local:agent-invoke0-smoke": callable_},
+        adapter_cwd=repo,
+        adapter_timeout_seconds=30,
+    )
+    frontier = observe_building_frontier(result.lifecycle_write.root, repo_root=repo)
+    records = list(getattr(result, "_dynamic_walker_reroute_records", ()))
+    object.__setattr__(
+        result,
+        "_checker_carry_trace_facts",
+        tuple(_carry_trace_facts_from_root(result.lifecycle_write.root)),
+    )
+    return result, frontier, records
+
+
+def _run_with_fanout_pool(
+    plan: Mapping[str, Any],
+    callable_,
+    repo: Path,
+    output_root: Path,
+    *,
+    pool_size: int,
+):
+    original = os.environ.get("BRICK_FANOUT_DISPATCH_POOL_SIZE")
+    os.environ["BRICK_FANOUT_DISPATCH_POOL_SIZE"] = str(pool_size)
+    try:
+        return _run_to_output_root(plan, callable_, repo, output_root)
+    finally:
+        if original is None:
+            os.environ.pop("BRICK_FANOUT_DISPATCH_POOL_SIZE", None)
+        else:
+            os.environ["BRICK_FANOUT_DISPATCH_POOL_SIZE"] = original
+
+
+_P6C_TIMESTAMP_RE = re.compile(
+    r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?"
+)
+_P6C_VOLATILE_TIME_KEYS = {
+    "generatedAtTime",
+    "recorded_at",
+    "time",
+}
+
+
+def _p6c_normalize_text(text: str, root: Path) -> str:
+    normalized = text
+    replacements = [
+        (str(root.resolve()), "<BUILDING_ROOT>"),
+        (str(root.parent.resolve()), "<OUTPUT_ROOT>"),
+    ]
+    for source, target in sorted(replacements, key=lambda item: len(item[0]), reverse=True):
+        normalized = normalized.replace(source, target)
+    return _P6C_TIMESTAMP_RE.sub("<TIMESTAMP>", normalized)
+
+
+def _p6c_normalize_json(value: Any, root: Path, *, key_name: str = "") -> Any:
+    if key_name in _P6C_VOLATILE_TIME_KEYS and isinstance(value, str):
+        return "<TIMESTAMP>"
+    if isinstance(value, Mapping):
+        return {
+            str(key): _p6c_normalize_json(child, root, key_name=str(key))
+            for key, child in value.items()
+        }
+    if isinstance(value, list):
+        return [_p6c_normalize_json(child, root) for child in value]
+    if isinstance(value, str):
+        return _p6c_normalize_text(value, root)
+    return value
+
+
+def _p6c_normalized_evidence_files(root: Path) -> dict[str, str]:
+    selected: list[Path] = [root / "evidence" / "evidence-manifest.json"]
+    selected.extend(path for path in sorted((root / "evidence" / "spine").rglob("*")) if path.is_file())
+    selected.append(root / "work" / "building-map.json")
+    normalized: dict[str, str] = {}
+    for path in selected:
+        if not path.is_file():
+            raise AssertionError(f"P6-C evidence file missing: {path.relative_to(root)}")
+        relative = path.relative_to(root).as_posix()
+        text = path.read_text(encoding="utf-8")
+        if path.suffix == ".json":
+            value = json.loads(text)
+            normalized[relative] = json.dumps(
+                _p6c_normalize_json(value, root),
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+        elif path.suffix == ".jsonl":
+            rows = [
+                json.dumps(
+                    _p6c_normalize_json(json.loads(line), root),
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+                for line in text.splitlines()
+                if line.strip()
+            ]
+            normalized[relative] = "\n".join(rows)
+        else:
+            normalized[relative] = _p6c_normalize_text(text, root)
+    return normalized
+
+
+def _p6c_timed_fan_callable(*, prefix: str):
+    lock = threading.Lock()
+    state = {
+        "active": 0,
+        "max_active": 0,
+        "completion_order": [],
+    }
+    lane_a = f"brick-{prefix}-lane-a"
+    lane_b = f"brick-{prefix}-lane-b"
+
+    def _callable(request: Any) -> Mapping[str, Any]:
+        with lock:
+            state["active"] += 1
+            state["max_active"] = max(state["max_active"], state["active"])
+        try:
+            if request.brick_instance_ref == lane_a:
+                time.sleep(0.08)
+            elif request.brick_instance_ref == lane_b:
+                time.sleep(0.01)
+            else:
+                time.sleep(0.005)
+            return {
+                "observed_evidence": [f"obs {request.brick_instance_ref}"],
+                "not_proven": ["semantic correctness", "provider behavior"],
+            }
+        finally:
+            with lock:
+                state["completion_order"].append(request.brick_instance_ref)
+                state["active"] -= 1
+
+    def _stats() -> Mapping[str, Any]:
+        with lock:
+            return {
+                "max_active": int(state["max_active"]),
+                "completion_order": list(state["completion_order"]),
+            }
+
+    setattr(_callable, "stats", _stats)
+    return _callable
+
+
 def _carry_trace_facts(result: Any) -> list[Mapping[str, Any]]:
     cached = getattr(result, "_checker_carry_trace_facts", None)
     if isinstance(cached, tuple):
@@ -1449,6 +1608,145 @@ def check(repo: Path) -> list[str]:
         violations.append("b3-happy: duplicate link_edge_id emitted")
     if fr_fan["frontier_kind"] != "complete":
         violations.append(f"b3-happy: frontier did not close after join+closure (frontier={fr_fan['frontier_kind']})")
+
+    # P6-C: independent fan-out branches may dispatch concurrently only when the
+    # caller opts into pool>N. The drain remains deterministic: pool=1 and pool=4
+    # produce byte-equal normalized evidence-manifest/spine/building-map packets,
+    # while the timed fixture proves wall-clock completion order was inverted.
+    p6c_prefix = "bapr-loop0-p6c-byte-fanout"
+    p6c_plan = _fan_plan(p6c_prefix)
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-p6c-byte-fanout-") as tmp_p6c:
+        tmp_root = Path(tmp_p6c)
+        pool1_callable = _p6c_timed_fan_callable(prefix=p6c_prefix)
+        pool4_callable = _p6c_timed_fan_callable(prefix=p6c_prefix)
+        res_p6c_1, fr_p6c_1, _ = _run_with_fanout_pool(
+            p6c_plan,
+            pool1_callable,
+            repo,
+            tmp_root / "pool1",
+            pool_size=1,
+        )
+        res_p6c_4, fr_p6c_4, _ = _run_with_fanout_pool(
+            p6c_plan,
+            pool4_callable,
+            repo,
+            tmp_root / "pool4",
+            pool_size=4,
+        )
+        if fr_p6c_1["frontier_kind"] != "complete" or fr_p6c_4["frontier_kind"] != "complete":
+            violations.append(
+                "p6c-byte-fanout: pool=1/pool=4 did not both complete "
+                f"(pool1={fr_p6c_1['frontier_kind']} pool4={fr_p6c_4['frontier_kind']})"
+            )
+        normalized_p6c_1 = _p6c_normalized_evidence_files(res_p6c_1.lifecycle_write.root)
+        normalized_p6c_4 = _p6c_normalized_evidence_files(res_p6c_4.lifecycle_write.root)
+        if normalized_p6c_1 != normalized_p6c_4:
+            differing = sorted(
+                set(normalized_p6c_1).symmetric_difference(normalized_p6c_4)
+                or {
+                    key
+                    for key in normalized_p6c_1
+                    if normalized_p6c_1.get(key) != normalized_p6c_4.get(key)
+                }
+            )
+            violations.append(
+                "p6c-byte-fanout: normalized evidence-manifest/spine/building-map "
+                f"differs between pool=1 and pool=4 (first={differing[:3]})"
+            )
+        stats_p6c_1 = pool1_callable.stats()
+        stats_p6c_4 = pool4_callable.stats()
+        if stats_p6c_1.get("max_active") != 1:
+            violations.append(
+                "p6c-byte-fanout: pool=1 observed concurrent callable execution "
+                f"({stats_p6c_1})"
+            )
+        if int(stats_p6c_4.get("max_active", 0)) < 2:
+            violations.append(
+                "p6c-byte-fanout: pool=4 did not overlap independent fan-out branches "
+                f"({stats_p6c_4})"
+            )
+        lane_a_p6c = f"brick-{p6c_prefix}-lane-a"
+        lane_b_p6c = f"brick-{p6c_prefix}-lane-b"
+        bricks_p6c_4 = _step_bricks(res_p6c_4)
+        completion_order_p6c_4 = list(stats_p6c_4.get("completion_order", []))
+        if bricks_p6c_4.index(lane_a_p6c) > bricks_p6c_4.index(lane_b_p6c):
+            violations.append(
+                "p6c-byte-fanout: deterministic drain applied pool=4 outcomes in "
+                f"non-frontier order ({bricks_p6c_4})"
+            )
+        if completion_order_p6c_4.index(lane_b_p6c) > completion_order_p6c_4.index(lane_a_p6c):
+            violations.append(
+                "p6c-byte-fanout-red: timed fixture failed to invert wall-clock "
+                f"arrival order ({completion_order_p6c_4})"
+            )
+        if (
+            completion_order_p6c_4.index(lane_b_p6c)
+            < completion_order_p6c_4.index(lane_a_p6c)
+            and bricks_p6c_4.index(lane_a_p6c) < bricks_p6c_4.index(lane_b_p6c)
+        ):
+            pass
+        else:
+            violations.append(
+                "p6c-byte-fanout-red: arrival-order drain would not be detected by "
+                "this fixture"
+            )
+
+    # P6-C shared fan-in reroute fixture: pool>N must not reorder the
+    # multi-attempt reroute into a fan-in source or stale the shared join evidence.
+    shared_prefix = "bapr-loop0-p6c-shared-fanin-reroute"
+    shared_plan = _cohort_fan_plan(shared_prefix)
+    shared_lane_a = f"brick-{shared_prefix}-lane-a"
+    shared_join = f"brick-{shared_prefix}-join"
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-p6c-shared-fanin-") as tmp_shared:
+        tmp_root = Path(tmp_shared)
+        shared_pool1_callable = _fan_callable(
+            held_brick=shared_join,
+            reroute_target=shared_lane_a,
+        )
+        shared_pool4_callable = _fan_callable(
+            held_brick=shared_join,
+            reroute_target=shared_lane_a,
+        )
+        res_shared_1, fr_shared_1, _ = _run_with_fanout_pool(
+            shared_plan,
+            shared_pool1_callable,
+            repo,
+            tmp_root / "pool1",
+            pool_size=1,
+        )
+        res_shared_4, fr_shared_4, _ = _run_with_fanout_pool(
+            shared_plan,
+            shared_pool4_callable,
+            repo,
+            tmp_root / "pool4",
+            pool_size=4,
+        )
+        if fr_shared_1["frontier_kind"] != "link_paused" or fr_shared_4["frontier_kind"] != "link_paused":
+            violations.append(
+                "p6c-shared-fanin-reroute: pool=1/pool=4 did not both reach the "
+                "same bounded reroute HOLD "
+                f"(pool1={fr_shared_1['frontier_kind']} pool4={fr_shared_4['frontier_kind']})"
+            )
+        normalized_shared_1 = _p6c_normalized_evidence_files(
+            res_shared_1.lifecycle_write.root
+        )
+        normalized_shared_4 = _p6c_normalized_evidence_files(
+            res_shared_4.lifecycle_write.root
+        )
+        if normalized_shared_1 != normalized_shared_4:
+            differing = sorted(
+                set(normalized_shared_1).symmetric_difference(normalized_shared_4)
+                or {
+                    key
+                    for key in normalized_shared_1
+                    if normalized_shared_1.get(key) != normalized_shared_4.get(key)
+                }
+            )
+            violations.append(
+                "p6c-shared-fanin-reroute: normalized evidence-manifest/spine/"
+                "building-map differs between pool=1 and pool=4 "
+                f"(first={differing[:3]})"
+            )
 
     # Invariant F: a held fan-in source never lets the join/closure make the
     # Building look complete. It must surface through an existing frontier kind.
@@ -5734,7 +6032,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         "nested different-node budget / no-target walk-on / monotonic "
         "no-judgment records / self-reroute walk-on / invalid-concern paused "
         "frontier over adapter:local "
-        "deterministic fixtures, proved onboard approve C-2 adapter_cwd/timeout "
+        "deterministic fixtures, proved P6-C pool=1 vs pool=4 normalized "
+        "evidence parity for independent fan-out and shared fan-in reroute "
+        "fixtures with an arrival-order RED probe, proved onboard approve C-2 adapter_cwd/timeout "
         "forwarding + coo forward disposition handoff + fail-closed RED cases, persisted "
         "human/COO reroute disposition target selection from an ambiguous HOLD "
         "(declared non-source target replays; self/boundary/undeclared targets reject), "
@@ -5766,8 +6066,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     print(
         "proof limit: support evidence only; checker pass does not prove source "
-        "truth, success judgment, quality judgment, Movement authority, parallel "
-        "execution, or full process integrity."
+        "truth, success judgment, quality judgment, Movement authority, real "
+        "provider parallel execution, or full process integrity."
     )
     return 0
 

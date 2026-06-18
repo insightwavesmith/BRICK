@@ -894,7 +894,7 @@ modules:
     imports_axis: []
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
-    pinned_by: bounded_agent_proposed_routing_loop (declared fan-out splice + fan-in wait-all observation/HOLD; serial walk only, chooses no Movement)
+    pinned_by: bounded_agent_proposed_routing_loop (declared fan-out splice + fan-in wait-all observation/HOLD; supports walker_kernel opt-in pool readiness, chooses no Movement)
 
   - module: support/operator/walker_transition_concern.py
     layer: operator

@@ -4,8 +4,9 @@ ELEGANT-REFACTOR P3c (engine blueprint 0531 §5 / detail-design §D-3 Opt B): th
 graph fan-topology readers, the successor splice into the live queue, and the
 fan-in wait-all state machine (ready / defer / hold) plus its observation and
 HOLD record builders were lifted out of the dynamic_walker god-module into this
-single-concern collaborator. It serially walks declared fan-out edges and pauses
-on a missing fan-in source; it is NOT parallel runtime execution.
+single-concern collaborator. It decides fan-in readiness for the live frontier
+and pauses on a missing fan-in source; opt-in pool dispatch lives in
+walker_kernel.py, not in this fan-in observation helper.
 
 Support mechanics only. Homes NO axis crossing (it reads declared graph edges via
 the plan_graph projection and emits the field-set observation via the recording
