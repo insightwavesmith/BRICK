@@ -166,6 +166,7 @@ from brick_protocol.support.recording.capture import (
     DEFAULT_BUILDINGS_ROOT,
     graph_ready_json_object,
     graph_ready_timestamp,
+    project_ref_for_building_root,
 )
 from brick_protocol.support.recording.contracts import StepOutputObservation
 from brick_protocol.support.recording.step_outputs import (
@@ -1096,7 +1097,19 @@ def run_building_once(
         prepared.step_rows.brick_row,
         require_write_need_marker=True,
     )
-    adapter_request = _adapter_request_from_prepared(packet, prepared)
+    # CHARTER-INJECT (0618): derive the vessel project_ref from this single-step
+    # building's root (output_root + building_id) so its README charter is
+    # injected into the role packet, parity with the plan walker. A
+    # default-root / legacy building -> None (no charter, no crash).
+    single_step_project_ref = project_ref_for_building_root(
+        Path(output_root) / prepared.building_id,
+        repo_root=_REPO_ROOT,
+    )
+    adapter_request = _adapter_request_from_prepared(
+        packet,
+        prepared,
+        project_ref=single_step_project_ref,
+    )
     try:
         adapter_result = _adapter_result_or_interrupt(
             prepared,
@@ -2547,6 +2560,8 @@ def _brick_work_from_row(row: Mapping[str, Any]) -> BrickWork:
 def _adapter_request_from_prepared(
     packet: Mapping[str, Any],
     prepared: AgentRunPreparationRecord,
+    *,
+    project_ref: str | None = None,
 ) -> AgentAdapterRequest:
     if "selected_adapter_ref" not in packet:
         raise ValueError("selected_adapter_ref must be declared by caller or Building Plan step")
@@ -2559,9 +2574,21 @@ def _adapter_request_from_prepared(
     callable_ref = ""
     if selected_adapter_ref == "adapter:local":
         callable_ref = _first_text(prepared.agent_object.callable_performer_refs)
+    # CHARTER-INJECT (0618): the vessel project_ref reaches here two ways — the
+    # live plan walker stamps it onto the step packet (from the building_root
+    # via project_ref_for_building_root), and the single-step surface passes it
+    # explicitly (derived from output_root + building_id). The explicit arg wins;
+    # otherwise read it off the packet. render_agent_instruction_packet injects
+    # that project's README charter into EVERY role's runtime packet so the
+    # work/qa/closure Agent knows WHAT it builds and WHY. Absent/undeclared
+    # (ref-less or default-root builds) -> no charter, no crash.
+    resolved_project_ref = (
+        project_ref or _optional_text_from_mapping(packet, "project_ref") or None
+    )
     agent_instruction_packet = render_agent_instruction_packet(
         prepared.agent_object.object_ref,
         repo_root=_REPO_ROOT,
+        project_ref=resolved_project_ref,
     )
     request_kwargs = {
         "building_id": prepared.building_id,

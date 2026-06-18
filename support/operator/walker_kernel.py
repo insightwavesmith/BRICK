@@ -69,7 +69,10 @@ from brick_protocol.support.operator.reporter import (
 from brick_protocol.support.recording.declaration_packets import (
     _write_declaration_work_evidence,
 )
-from brick_protocol.support.recording.capture import graph_ready_timestamp
+from brick_protocol.support.recording.capture import (
+    graph_ready_timestamp,
+    project_ref_for_building_root,
+)
 from brick_protocol.support.recording.step_outputs import _step_output_manifest_ref
 from brick_protocol.support.operator.walker_common import (
     FAN_TOPOLOGY_NOT_PROVEN,
@@ -1656,6 +1659,15 @@ def process_one_node(
         if step_ref in forward_order
         else {},
     )
+    # CHARTER-INJECT (0618): stamp the vessel project_ref onto the step packet
+    # from the building_root PATH (the canonical inverse seam). A building under
+    # project/<id>/buildings/ -> 'project:<id>'; a default-root / legacy / tmp
+    # building -> None (loudly nothing). _adapter_request_from_prepared reads
+    # this to inject that project's README charter into every role's packet.
+    step_project_ref = project_ref_for_building_root(building_root, repo_root=repo_root_path)
+    if step_project_ref:
+        step_fixture = dict(step_fixture)
+        step_fixture["project_ref"] = step_project_ref
     # MAIL-REPAIR (0611) -- the ONE assembler widening: a redo step scheduled
     # by an ADOPTED runtime reroute carries the eligible runtime rows' mail
     # (B3: the gate-adopted concern + this resume's disposition row) into its

@@ -364,6 +364,18 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "project_declaration",
         "support.checkers.check_project_declaration",
     ),
+    # CHARTER-INJECT (0618): the declared project vessel's README charter is
+    # injected into EVERY role's runtime instruction packet (work/qa/closure
+    # lanes), reaches the built codex+claude prompt, and stamps the charter_ref
+    # evidence field. Runs IN-PROCESS over a synthetic declared vessel (agent/
+    # symlinked to the real axis) driving the REAL renderer. A non-zero main()
+    # raises ProfileError, so a regressed/disabled charter injection (the 0%
+    # gap the discipline audit found) drives --all RED. Mutation-RED witness:
+    # disable _charter_resources -> every role + both providers RED.
+    "charter_injection": _repo_main(
+        "charter_injection",
+        "support.checkers.check_charter_injection",
+    ),
     # Executes the standalone walker checker IN-PROCESS: imports + runs the
     # real dynamic graph walker over adapter:local fixtures (adopt within
     # budget / HOLD on exhaustion / nested shares budget). A non-zero

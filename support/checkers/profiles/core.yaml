@@ -60,6 +60,7 @@ path_allowlist:
       - support/checkers/profiles/building_automation.yaml
       - support/checkers/profiles/brick_cli_entrypoint.yaml
       - support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml
+      - support/checkers/profiles/charter_injection.yaml
       - support/checkers/profiles/coo_operating_chain.yaml
       - support/checkers/profiles/core.yaml
       - support/checkers/profiles/link_routing_behavioral.yaml

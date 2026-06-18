@@ -164,6 +164,14 @@ class AgentResourceError(ValueError):
     """Raised when an Agent resource reference cannot be resolved safely."""
 
 
+# CHARTER-INJECT (0618): the kind label every charter resource carries (a
+# project README delivered into the work packet so the work/qa/closure Agent
+# knows WHAT project it is building and WHY before it judges anything). This is
+# a soft INJECTION (the Agent reads it); it is NOT enforcement (no checker uses
+# it to block) and it carries NO Movement / success / quality authority.
+_CHARTER_RESOURCE_KIND = "charter"
+
+
 def _repo_root(repo_root: str | Path | None) -> Path:
     return Path(repo_root).resolve() if repo_root is not None else _DEFAULT_REPO_ROOT
 
@@ -383,6 +391,53 @@ def _text_resources(repo: Path, refs: list[str], *, kind: str) -> list[dict[str,
     return resources
 
 
+def _charter_resources(repo: Path, project_ref: str | None) -> list[dict[str, Any]]:
+    """CHARTER-INJECT (0618): the project's README charter (헌장 — why the
+    project exists, what it builds, what it must keep), delivered into EVERY
+    role's work packet so a work/qa/closure Agent judges with the project's
+    direction in hand instead of blind.
+
+    Mechanism only (Support reads a declared project record; it does NOT own
+    project meaning, success, quality, or Movement). The single project_ref ->
+    charter README seam is the project_declaration loader, which already
+    resolves and validates ``charter_ref`` -> the project's own README.md.
+
+    Graceful degrade (NEVER crash a Building run on a charter problem):
+      * ``project_ref is None`` (ref-less / default-root building) -> no charter;
+      * a malformed ref or an undeclared/charterless project -> no charter.
+    A returned list of 0 or 1 mirrors the other ``_*_resources`` shapes, so the
+    packet renderer treats charter exactly like disciplines/skills (add-only).
+    """
+
+    if not project_ref:
+        return []
+    try:
+        from brick_protocol.support.operator.project_declaration import (
+            PROJECT_REF_PREFIX,
+            load_project_declaration,
+        )
+
+        if not isinstance(project_ref, str) or not project_ref.startswith(PROJECT_REF_PREFIX):
+            return []
+        project_id = project_ref[len(PROJECT_REF_PREFIX) :]
+        declaration = load_project_declaration(repo, project_id)
+        body = declaration.charter_path.read_text(encoding="utf-8")
+    except (AgentResourceError, ValueError, OSError, UnicodeDecodeError):
+        # Loudly-nothing: a charter problem degrades to "no charter injected",
+        # it never aborts the build (the project-declaration checker is the
+        # place a missing/broken charter is RED, not the live work packet).
+        return []
+    return [
+        {
+            "ref": declaration.charter_ref,
+            "kind": _CHARTER_RESOURCE_KIND,
+            "project_ref": declaration.project_ref,
+            "path": declaration.charter_path.relative_to(repo).as_posix(),
+            "body": body,
+        }
+    ]
+
+
 def _data_resources(repo: Path, refs: list[str], *, kind: str) -> list[dict[str, Any]]:
     resources: list[dict[str, Any]] = []
     for ref in refs:
@@ -427,8 +482,19 @@ def _resource_refs(agent_object: Mapping[str, Any]) -> dict[str, list[str]]:
     return {field: list(agent_object.get(field, [])) for field in _REF_FIELDS}
 
 
-def resolve_agent_object(role_or_ref: str, repo_root: str | Path | None = None) -> dict[str, Any]:
-    """Resolve one Agent Object and its referenced Agent resources."""
+def resolve_agent_object(
+    role_or_ref: str,
+    repo_root: str | Path | None = None,
+    *,
+    project_ref: str | None = None,
+) -> dict[str, Any]:
+    """Resolve one Agent Object and its referenced Agent resources.
+
+    CHARTER-INJECT (0618): ``project_ref`` (optional) names the project vessel
+    this resolution serves; its README charter is added to every role's
+    resources (graceful degrade when absent). It rides ALONGSIDE the existing
+    Agent-axis resources and changes none of them.
+    """
 
     repo = _repo_root(repo_root)
     role = _normalize_role(role_or_ref, repo)
@@ -449,6 +515,7 @@ def resolve_agent_object(role_or_ref: str, repo_root: str | Path | None = None) 
         "hook_resources": _hook_resources(repo, hook_refs, object_ref),
         "tool_policy_resources": _data_resources(repo, tool_policy_refs, kind="tool_policy"),
         "discipline_resources": _text_resources(repo, discipline_refs, kind="discipline"),
+        "charter_resources": _charter_resources(repo, project_ref),
         "adapter_refs": list(agent_object["adapter_refs"]),
         "proof_limits": list(_PROOF_LIMITS),
         "not_proven": list(_NOT_PROVEN),
@@ -521,10 +588,20 @@ def validate_agent_refs(role_or_ref: str, repo_root: str | Path | None = None) -
     }
 
 
-def render_agent_packet(role_or_ref: str, repo_root: str | Path | None = None) -> dict[str, Any]:
-    """Render a JSON-compatible support packet from Agent-axis resources."""
+def render_agent_packet(
+    role_or_ref: str,
+    repo_root: str | Path | None = None,
+    *,
+    project_ref: str | None = None,
+) -> dict[str, Any]:
+    """Render a JSON-compatible support packet from Agent-axis resources.
 
-    resolution = resolve_agent_object(role_or_ref, repo_root=repo_root)
+    CHARTER-INJECT (0618): when ``project_ref`` is supplied the packet also
+    carries the project's README charter (``charter_resources``) so every role
+    sees what project it builds; absent/undeclared -> an empty charter list.
+    """
+
+    resolution = resolve_agent_object(role_or_ref, repo_root=repo_root, project_ref=project_ref)
     return {
         "kind": "agent-resource-packet",
         "role": resolution["role"],
@@ -534,6 +611,7 @@ def render_agent_packet(role_or_ref: str, repo_root: str | Path | None = None) -
         "hook_resources": resolution["hook_resources"],
         "tool_policy_resources": resolution["tool_policy_resources"],
         "discipline_resources": resolution["discipline_resources"],
+        "charter_resources": resolution["charter_resources"],
         "adapter_refs": resolution["adapter_refs"],
         "proof_limits": list(_PROOF_LIMITS),
         "not_proven": list(_NOT_PROVEN),
@@ -543,12 +621,25 @@ def render_agent_packet(role_or_ref: str, repo_root: str | Path | None = None) -
 def render_agent_instruction_packet(
     role_or_ref: str,
     repo_root: str | Path | None = None,
+    *,
+    project_ref: str | None = None,
 ) -> dict[str, Any]:
-    """Render runtime Agent instructions from Agent resources, not projection seed text."""
+    """Render runtime Agent instructions from Agent resources, not projection seed text.
 
-    packet = render_agent_packet(role_or_ref, repo_root=repo_root)
+    CHARTER-INJECT (0618): ``project_ref`` (optional) injects the project's
+    README charter into the runtime instruction packet for EVERY role
+    (work/qa/closure alike), so the work packet that reaches the provider
+    carries WHAT project the Agent builds and WHY. The injection is add-only:
+    the existing prompt/skill/discipline/hook/tool-policy resources are
+    byte-identical whether or not a charter is present, and an absent or
+    undeclared project degrades to an empty ``charter_resources`` list with no
+    ``charter_ref`` field (never a crash).
+    """
+
+    packet = render_agent_packet(role_or_ref, repo_root=repo_root, project_ref=project_ref)
     agent_object = _require_mapping("agent_resource_packet.agent_object", packet["agent_object"])
-    return {
+    charter_resources = list(packet["charter_resources"])
+    instruction: dict[str, Any] = {
         "kind": "agent-instruction-packet",
         "agent_object_ref": str(agent_object["object_ref"]),
         "role": str(packet["role"]),
@@ -557,6 +648,7 @@ def render_agent_instruction_packet(
         "hook_resources": packet["hook_resources"],
         "tool_policy_resources": list(packet["tool_policy_resources"]),
         "discipline_resources": list(packet["discipline_resources"]),
+        "charter_resources": charter_resources,
         "adapter_refs": list(packet["adapter_refs"]),
         "proof_limits": [
             "runtime AgentInstructionPacket support input only",
@@ -565,6 +657,15 @@ def render_agent_instruction_packet(
         ],
         "not_proven": list(packet["not_proven"]),
     }
+    # Evidence mirror: stamp the injected charter_ref as a TOP-LEVEL fact next
+    # to agent_object_ref (the same level the discipline/agent refs record),
+    # so any sink that records the instruction packet records WHICH charter the
+    # Agent saw. Omitted entirely when no charter was injected (so a charterless
+    # building's evidence carries no empty charter_ref claim).
+    if charter_resources:
+        instruction["charter_ref"] = str(charter_resources[0]["ref"])
+        instruction["project_ref"] = str(charter_resources[0]["project_ref"])
+    return instruction
 
 
 def _render_instruction_text(packet: Mapping[str, Any], *, target: str) -> str:
@@ -579,6 +680,18 @@ def _render_instruction_text(packet: Mapping[str, Any], *, target: str) -> str:
         "This is a projection seed only. The source remains agent/.",
         "",
     ]
+    for resource in packet.get("charter_resources", []):
+        lines.extend(
+            [
+                f"## Project Charter {resource['ref']}",
+                "",
+                "Why this project exists, what it builds, and what it must keep. "
+                "Judge the work against this direction.",
+                "",
+                str(resource["body"]).strip(),
+                "",
+            ]
+        )
     for resource in packet["prompt_resources"]:
         lines.extend([f"## Prompt {resource['ref']}", "", str(resource["body"]).strip(), ""])
     for resource in packet["skill_resources"]:
