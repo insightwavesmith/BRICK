@@ -250,9 +250,11 @@ priority = 998
 [[rule]]
 toolName = [
   "exit_plan_mode",
+  "google_web_search",
   "replace",
   "run_shell_command",
   "update_topic",
+  "web_fetch",
   "write_file",
 ]
 decision = "deny"
