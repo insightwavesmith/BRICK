@@ -19,6 +19,9 @@ dependencies = [
   "PyYAML>=6.0",
 ]
 
+[project.scripts]
+brick = "brick_protocol.support.operator.cli:main"
+
 [tool.pytest.ini_options]
 testpaths = ["support/checkers"]
 

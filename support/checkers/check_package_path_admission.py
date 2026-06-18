@@ -154,6 +154,14 @@ ONBOARD_WIZARD0_TARGETS = {
     "support/operator/onboard.py",
 }
 
+# BRICK-CLI-ENTRYPOINT-0: the customer-facing `brick` console-script support
+# wrapper. It bootstraps repo/import-identity paths, then delegates to existing
+# doctor/build/verify/status seams. Support operator mechanics only: owns no
+# crossing, judges nothing, chooses no Movement.
+BRICK_CLI_ENTRYPOINT0_TARGETS = {
+    "support/operator/cli.py",
+}
+
 # PROJECT-0 S1-A: the project declaration record loader (reads + validates
 # project/<id>/project.json against the closed 9-key charter-shadow schema).
 # Support operator mechanics only: records facts, owns no crossing, judges
@@ -1619,6 +1627,9 @@ def allowed_path(path: str) -> bool:
         return True
 
     if clean in ONBOARD_WIZARD0_TARGETS:
+        return True
+
+    if clean in BRICK_CLI_ENTRYPOINT0_TARGETS:
         return True
 
     if clean in PROJECT_DECLARATION0_TARGETS:

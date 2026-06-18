@@ -23,9 +23,9 @@
 #      fresh-machine failure becomes a one-line Korean prescription, not a raw
 #      git error
 #   4. runs `uv sync` in the checkout
-#   5. runs the onboard doctor itself (rustup-style self-check: every provider
-#      preflight + the symptom -> prescription table; doctor always exits 0)
-#   6. prints the next step: the onboard wizard
+#   5. installs the `brick` entrypoint through pipx from this editable checkout
+#   6. runs `brick init --non-interactive` by ABSOLUTE executable path
+#   7. prints the next step commands
 #
 # SAFETY / LIMITS (read this honestly):
 #   - This script is HTTPS-only and carries NO secret / token. It relies on the
@@ -141,23 +141,59 @@ main() {
     ( cd "$target" && uv sync )
     printf '%s\n' "4) 의존성 설치 완료 ✅"
 
-    # --- step 5: self-check (rustup-style "Great!") -------------------------
-    # The script runs the preflight ITSELF instead of only telling you to.
-    # The onboard doctor diagnoses (gh + every provider preflight + the
-    # symptom -> prescription table) and ALWAYS exits 0 -- a missing provider
-    # shows a ❌ row + a one-line prescription, never kills the install.
-    printf '%s\n' "" "5) 설치 점검을 바로 돌려볼게요 (onboard doctor)..."
-    ( cd "$target" && uv run python3 -m brick_protocol.support.operator.onboard doctor )
-    printf '%s\n' "5) 설치 점검 완료 ✅"
+    # --- step 5: install the customer entrypoint through pipx ----------------
+    if ! command -v pipx >/dev/null 2>&1; then
+        printf '%s\n' \
+            "pipx 가 없어요. 'brick' 한 단어 진입점을 PATH에 놓기 위해 pipx가 필요해요." \
+            "  - macOS: brew install pipx && pipx ensurepath" \
+            "  - 그 다음 터미널을 새로 열고 이 설치 스크립트를 다시 실행해 주세요." >&2
+        return 1
+    fi
+    printf '%s\n' "5) brick 진입점을 pipx로 설치할게요 (editable checkout)..."
+    pipx install --force --editable "$target"
+    pipx_bin_dir="$(pipx environment --value PIPX_BIN_DIR 2>/dev/null || true)"
+    if [ -z "$pipx_bin_dir" ]; then
+        pipx_bin_dir="$HOME/.local/bin"
+    fi
+    brick_entry="$pipx_bin_dir/brick"
+    if [ ! -x "$brick_entry" ]; then
+        brick_entry="$(command -v brick || true)"
+    fi
+    case "$brick_entry" in
+        /*) ;;
+        *)
+            printf '%s\n' \
+                "pipx 설치는 끝났지만 brick 실행 파일의 절대경로를 찾지 못했어요." \
+                "  - 'pipx ensurepath' 후 터미널을 새로 열고 다시 실행해 주세요." >&2
+            return 1
+            ;;
+    esac
+    if [ ! -x "$brick_entry" ]; then
+        printf '%s\n' \
+            "brick 실행 파일을 찾았지만 실행할 수 없어요: $brick_entry" \
+            "  - 'pipx reinstall brick-protocol' 후 다시 실행해 주세요." >&2
+        return 1
+    fi
+    printf '%s\n' "5) brick 진입점 설치 완료 ✅ ($brick_entry)"
 
-    # --- step 6: next-step pointer (plain Korean) --------------------------
+    # --- step 6: run first-use init by ABSOLUTE path -------------------------
+    # Do not rely on this shell's PATH refresh for first success. The executable
+    # path resolved above is used directly.
+    printf '%s\n' "" "6) brick init 을 바로 실행할게요 (절대경로 사용)..."
+    "$brick_entry" init --non-interactive --repo "$target"
+    printf '%s\n' "6) brick init 완료 ✅"
+
+    # --- step 7: next-step pointer (plain Korean) --------------------------
     printf '%s\n' \
         "" \
         "받은 게 멀쩡한지 확인하려면 (verify your download):" \
-        "  cd $target && $CHECKER_ENTRY" \
+        "  $brick_entry verify" \
         "  (초록불 = exit 0 이면 정상이에요.)" \
         "" \
-        "끝! 다음 한 줄만 그대로 붙여넣으면 온보딩 마법사가 이어서 안내해요:" \
+        "끝! 다음 한 줄부터 쓰면 돼요:" \
+        "  brick status" \
+        "" \
+        "옛 온보딩 seam 확인이 필요하면:" \
         "  cd $target && $ONBOARD_ENTRY" \
         "" \
         "막히면 그냥 한국어로 에이전트한테 물어보면 돼요. 천천히 하셔도 괜찮아요 🙂"

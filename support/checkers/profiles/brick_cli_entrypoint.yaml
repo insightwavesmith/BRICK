@@ -1,0 +1,43 @@
+schema: checker-profile/v1
+profile_id: brick-cli-entrypoint
+description: P1 customer-facing brick CLI entrypoint bootstrap profile.
+kernel_checks:
+  - brick_cli_entrypoint_smoke
+path_exists:
+  - pyproject.toml
+  - support/operator/cli.py
+  - support/checkers/profiles/brick_cli_entrypoint.yaml
+text_contains:
+  - path: pyproject.toml
+    texts:
+      - '[project.scripts]'
+      - 'brick = "brick_protocol.support.operator.cli:main"'
+  - path: support/operator/cli.py
+    texts:
+      - '_REPO_ROOT = Path(__file__).resolve().parents[2]'
+      - '_IMPORT_IDENTITY_ROOT = _REPO_ROOT / "support" / "import_identity"'
+      - 'sys.path.insert(0, str(_REPO_ROOT))'
+      - 'sys.path.insert(0, str(_IMPORT_IDENTITY_ROOT))'
+      - 'from support.checkers import check_profile'
+      - 'run_customer_building_in_sandbox'
+      - 'onboard.run_doctor()'
+      - 'check_profile.main(verify_argv)'
+text_absent:
+  - path: support/operator/cli.py
+    texts:
+      - os.system
+      - eval(
+      - exec(
+      - choose_movement
+      - success_judgment
+      - quality_judgment
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - real provider behavior
+  - customer PATH shell behavior beyond the observed entrypoint launch
+  - future Building correctness

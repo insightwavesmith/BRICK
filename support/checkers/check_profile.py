@@ -139,6 +139,7 @@ from support.checkers.lib.kernel_checks import (
     run_claude_projection_native,
     run_agent_session_id_redaction,
     run_dashboard_productization_projection,
+    run_brick_cli_entrypoint_smoke,
 )
 
 
@@ -480,6 +481,13 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
     "chat_session_park_seam": run_chat_session_park_seam,
     "adapter_error_frontier_manifest_consistency": run_adapter_error_frontier_manifest_consistency,
     "adapter_error_path_hardening": run_adapter_error_path_hardening,
+    # P1 brick CLI entrypoint. Externally observes support/operator/cli.py from
+    # outside the repo with PYTHONPATH unset, both as a direct script and through
+    # the import-identity package route that mirrors console_script startup. It
+    # then imports an existing bare-support module to prove the CLI bootstrap
+    # inserted repo root before support seams are loaded. Removing the two
+    # sys.path.insert bootstrap lines drives this RED with ModuleNotFoundError.
+    "brick_cli_entrypoint_smoke": run_brick_cli_entrypoint_smoke,
     # Execution smoke: bare-launches support/connection/mcp_projection.py with
     # a CLEAN env (no PYTHONPATH) like a real MCP host and asserts it answers
     # initialize without crashing at import. Catches the bootstrap regression

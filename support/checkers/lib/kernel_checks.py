@@ -7892,6 +7892,103 @@ def _chat_session_slug(value: str) -> str:
 _MCP_STDIO_SMOKE_TIMEOUT_SECONDS = 30
 
 
+_BRICK_CLI_ENTRYPOINT_TIMEOUT_SECONDS = 30
+
+
+def _assert_brick_cli_probe(label: str, completed: subprocess.CompletedProcess[str]) -> None:
+    stdout = completed.stdout or ""
+    stderr = completed.stderr or ""
+    if "Traceback" in stderr or "ModuleNotFoundError" in stderr:
+        raise ProfileError(
+            f"brick_cli_entrypoint_smoke: {label} crashed at startup:\n"
+            + stderr.strip()
+        )
+    if completed.returncode != 0:
+        raise ProfileError(
+            f"brick_cli_entrypoint_smoke: {label} exited {completed.returncode}.\n"
+            f"stdout:\n{stdout.strip()}\nstderr:\n{stderr.strip()}"
+        )
+    try:
+        packet = json.loads(stdout)
+    except json.JSONDecodeError as exc:
+        raise ProfileError(
+            f"brick_cli_entrypoint_smoke: {label} did not emit JSON status evidence.\n"
+            f"stdout:\n{stdout.strip()}\nstderr:\n{stderr.strip()}"
+        ) from exc
+    if not isinstance(packet, dict) or packet.get("command") != "status":
+        raise ProfileError(
+            f"brick_cli_entrypoint_smoke: {label} emitted unexpected packet: {packet!r}"
+        )
+
+
+def run_brick_cli_entrypoint_smoke(repo: Path) -> KernelResult:
+    """Bare-entrypoint smoke for the customer-facing ``brick`` CLI.
+
+    The R1 trap is a console-script/import context launched from outside the repo
+    with PYTHONPATH unset: the import-identity router can expose
+    ``brick_protocol.*``, but existing transitive modules may still import bare
+    ``support.*``. ``support/operator/cli.py`` must therefore insert BOTH the repo
+    root and ``support/import_identity`` before importing support seams.
+    """
+
+    script = repo / "support" / "operator" / "cli.py"
+    if not script.is_file():
+        raise ProfileError(f"brick_cli_entrypoint_smoke could not find CLI script: {script}")
+
+    clean_env = dict(os.environ)
+    clean_env.pop("PYTHONPATH", None)
+    clean_env["BRICK_CLI_ENTRYPOINT_REPO"] = str(repo)
+
+    with tempfile.TemporaryDirectory(prefix="bp-cli-entrypoint-cwd-") as cwd:
+        direct = subprocess.run(
+            [
+                sys.executable,
+                str(script),
+                "status",
+                "--json",
+                "--repo",
+                str(repo),
+            ],
+            capture_output=True,
+            text=True,
+            env=clean_env,
+            cwd=cwd,
+            timeout=_BRICK_CLI_ENTRYPOINT_TIMEOUT_SECONDS,
+        )
+        _assert_brick_cli_probe("direct script launch", direct)
+
+        import_code = """
+import os
+import sys
+from pathlib import Path
+
+repo = Path(os.environ["BRICK_CLI_ENTRYPOINT_REPO"])
+sys.path.insert(0, str(repo / "support" / "import_identity"))
+import brick_protocol.support.operator.cli as cli
+import support.operator.coo_operating_chain
+raise SystemExit(cli.main(["status", "--json", "--repo", str(repo)]))
+"""
+        imported = subprocess.run(
+            [sys.executable, "-c", import_code],
+            capture_output=True,
+            text=True,
+            env=clean_env,
+            cwd=cwd,
+            timeout=_BRICK_CLI_ENTRYPOINT_TIMEOUT_SECONDS,
+        )
+        _assert_brick_cli_probe("import-identity console-script simulation", imported)
+
+    return KernelResult(
+        check_id="brick_cli_entrypoint_smoke",
+        inspected=2,
+        output=(
+            "brick CLI entrypoint smoke passed: direct script and import-identity "
+            "console-script simulation ran from outside the repo with PYTHONPATH "
+            "unset and emitted status JSON without ModuleNotFoundError"
+        ),
+    )
+
+
 def run_mcp_stdio_smoke(repo: Path) -> KernelResult:
     """Execution smoke: bare-launch the MCP projection server like a real host.
 
