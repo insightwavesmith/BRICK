@@ -3617,7 +3617,31 @@ def _assert_reporter_brick_grain_threading(
 
     inspected = 0
 
+    sent_payloads: list[Mapping[str, Any]] = []
+
     def _brain(request: Any) -> Mapping[str, Any]:
+        thread_payloads_during_work = [payload for payload in sent_payloads if payload.get("thread_ts")]
+        received_during_work = [
+            payload
+            for payload in thread_payloads_during_work
+            if "시작했어요." in str(payload.get("text") or "")
+            and "진행되는 대로" not in str(payload.get("text") or "")
+        ]
+        returned_or_gate_during_work = [
+            payload
+            for payload in thread_payloads_during_work
+            if "단계 끝났어요" in str(payload.get("text") or "")
+            or "마무리예요" in str(payload.get("text") or "")
+        ]
+        if len(received_during_work) != 1:
+            raise ProfileError(
+                "brick grain work-time probe expected brick_received before Agent work, "
+                f"got {len(received_during_work)}"
+            )
+        if returned_or_gate_during_work:
+            raise ProfileError(
+                "brick grain work-time probe observed brick_returned/gate_passed before Agent work"
+            )
         returned: dict[str, Any] = {}
         for label in parse_required_return_shape(request.required_return_shape):
             if label == "made_changes":
@@ -3675,9 +3699,7 @@ def _assert_reporter_brick_grain_threading(
             "absent report policy did not default to brick grain: "
             f"{default_policy!r}"
         )
-    inspected += 3
-
-    sent_payloads: list[Mapping[str, Any]] = []
+    inspected += 6
 
     def _fake_thread_slack_sender(request: Any, timeout_seconds: float) -> tuple[int, bytes]:
         del timeout_seconds

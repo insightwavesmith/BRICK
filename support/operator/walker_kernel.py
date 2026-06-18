@@ -69,6 +69,7 @@ from brick_protocol.support.operator.reporter import (
 from brick_protocol.support.recording.declaration_packets import (
     _write_declaration_work_evidence,
 )
+from brick_protocol.support.recording.capture import graph_ready_timestamp
 from brick_protocol.support.recording.step_outputs import _step_output_manifest_ref
 from brick_protocol.support.operator.walker_common import (
     FAN_TOPOLOGY_NOT_PROVEN,
@@ -1296,7 +1297,44 @@ def _report_policy_uses_brick_grain(policy: Mapping[str, Any] | None) -> bool:
     return bool(policy and policy.get("report_event_grain") == "brick")
 
 
-def _emit_brick_grain_step_events(
+def _emit_brick_received_step_event(
+    policy: Mapping[str, Any] | None,
+    *,
+    linear_plan: Mapping[str, Any],
+    building_id: str,
+    building_root: Path | str,
+    repo_root: Path,
+    current_brick_ref: str,
+    step_ref: str,
+    step_index: int,
+    report_env: Mapping[str, str] | None,
+    report_slack_sender: Any | None,
+    overwrite_existing: bool,
+) -> tuple[Mapping[str, Any], ...]:
+    if not _report_policy_uses_brick_grain(policy):
+        return ()
+    context = _brick_grain_step_received_context(
+        linear_plan=linear_plan,
+        step_ref=step_ref,
+        step_index=step_index,
+        received_at=graph_ready_timestamp(),
+    )
+    event = _emit_building_event_best_effort(
+        policy,
+        event_kind="brick_received",
+        building_id=building_id,
+        building_root=building_root,
+        repo_root=repo_root,
+        current_brick_ref=current_brick_ref,
+        overwrite_existing=overwrite_existing,
+        report_env=report_env,
+        report_slack_sender=report_slack_sender,
+        event_context={**context, "event_stage": "brick_received"},
+    )
+    return (event,) if event is not None else ()
+
+
+def _emit_brick_grain_completion_step_events(
     policy: Mapping[str, Any] | None,
     *,
     linear_plan: Mapping[str, Any],
@@ -1322,7 +1360,7 @@ def _emit_brick_grain_step_events(
     )
     last_completed_step_ref = _step_output_manifest_ref(step_ref, attempt_index)
     observations: list[Mapping[str, Any]] = []
-    for event_kind in ("brick_received", "brick_returned", "gate_passed"):
+    for event_kind in ("brick_returned", "gate_passed"):
         event = _emit_building_event_best_effort(
             policy,
             event_kind=event_kind,
@@ -1339,6 +1377,21 @@ def _emit_brick_grain_step_events(
         if event is not None:
             observations.append(event)
     return tuple(observations)
+
+
+def _brick_grain_step_received_context(
+    *,
+    linear_plan: Mapping[str, Any],
+    step_ref: str,
+    step_index: int,
+    received_at: str,
+) -> Mapping[str, Any]:
+    return {
+        "step_ref": step_ref,
+        "sequence_index": step_index,
+        "work_kind": _brick_grain_work_kind_for_step_ref(linear_plan, step_ref),
+        "received_at": received_at,
+    }
 
 
 def _brick_grain_step_context(
@@ -1674,6 +1727,21 @@ def process_one_node(
     recorded_return, recorded_gate_record, recorded_at, is_replay = _next_recorded_return(
         resume_seed, step_ref, replay_consumed
     )
+    pre_step_report_events: tuple[Mapping[str, Any], ...] = ()
+    if not is_replay:
+        pre_step_report_events = _emit_brick_received_step_event(
+            report_event_policy,
+            linear_plan=linear_plan,
+            building_id=building_id,
+            building_root=building_root,
+            repo_root=repo_root_path,
+            current_brick_ref=brick_ref_by_step[step_ref],
+            step_ref=step_ref,
+            step_index=index + 1,
+            report_env=report_env,
+            report_slack_sender=report_slack_sender,
+            overwrite_existing=overwrite_existing,
+        )
     try:
         if is_replay:
             # gap-6: preserve the ORIGINAL recorded_at through the replay path
@@ -1702,7 +1770,7 @@ def process_one_node(
                     attempt_index=0,
                     gate_sequence_decision=GateSequenceDecision(),
                     source_fact_body_carry_observation=source_fact_body_carry_observation,
-                    report_events=(),
+                    report_events=pre_step_report_events,
                     is_replay=is_replay,
                     failure_reason="chat_session_park_frontier_deferred",
                     raised_exception=exc,
@@ -1763,7 +1831,7 @@ def process_one_node(
                 attempt_index=0,
                 gate_sequence_decision=GateSequenceDecision(),
                 source_fact_body_carry_observation=source_fact_body_carry_observation,
-                report_events=(),
+                report_events=pre_step_report_events,
                 is_replay=is_replay,
                 failure_reason="adapter_error_frontier_deferred",
                 raised_exception=exc,
@@ -1873,8 +1941,8 @@ def process_one_node(
             task_source_ref=task_source_ref,
             overwrite_existing=overwrite_existing,
         )
-        report_events = tuple(
-            _emit_brick_grain_step_events(
+        report_events = pre_step_report_events + tuple(
+            _emit_brick_grain_completion_step_events(
                 report_event_policy,
                 linear_plan=linear_plan,
                 building_id=building_id,
@@ -1891,7 +1959,7 @@ def process_one_node(
         )
     else:
         attempt_index = 0
-        report_events = ()
+        report_events = pre_step_report_events
     return NodeProcessingOutcome(
         step_result=step_result,
         attempt_index=attempt_index,
@@ -2229,8 +2297,8 @@ def _run_dynamic_graph_walker(
             task_source_ref=task_source_ref,
             overwrite_existing=overwrite_existing,
         )
-        report_events = tuple(
-            _emit_brick_grain_step_events(
+        report_events = outcome.report_events + tuple(
+            _emit_brick_grain_completion_step_events(
                 report_event_policy,
                 linear_plan=linear_plan,
                 building_id=building_id,
