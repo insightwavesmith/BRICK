@@ -11,7 +11,7 @@ import time
 import urllib.error
 import urllib.request
 from collections.abc import Callable, Iterable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -27,6 +27,7 @@ SLACK_BOT_TOKEN_ENV = "BRICK_REPORT_SLACK_BOT_TOKEN"
 SLACK_CHANNEL_ID_ENV = "BRICK_REPORT_SLACK_CHANNEL_ID"
 SLACK_API_URL = "https://slack.com/api/chat.postMessage"
 SLACK_THREAD_PARENT_RECORD = "raw/report-thread.jsonl"
+REPORT_DELIVERY_RECORD = "raw/report-delivery.jsonl"
 SLACK_THREAD_REPLY_EVENT_KINDS = frozenset(
     {
         "brick_received",
@@ -277,6 +278,7 @@ class ReportSinkObservation:
     written_path: str
     proof_limits: tuple[str, ...]
     not_proven: tuple[str, ...]
+    delivered_at: str = ""
     delivery_status_class: str = ""
     provider_response_status_class: str = ""
     environment_presence: Mapping[str, str] | None = None
@@ -291,6 +293,8 @@ class ReportSinkObservation:
             "proof_limits": list(self.proof_limits),
             "not_proven": list(self.not_proven),
         }
+        if self.delivered_at:
+            packet["delivered_at"] = self.delivered_at
         if self.delivery_status_class:
             packet["delivery_status_class"] = self.delivery_status_class
         if self.provider_response_status_class:
@@ -324,9 +328,16 @@ def deliver_report_packet(
     _validate_packet_for_sink(packet)
     refs = _sink_refs(packet, sink_refs)
     observations: list[ReportSinkObservation] = []
+
+    def _append_observation(observation: ReportSinkObservation) -> None:
+        delivered_at = _report_delivery_timestamp()
+        observed = replace(observation, delivered_at=delivered_at)
+        _record_report_delivery_observation(repo, packet, observed)
+        observations.append(observed)
+
     for sink_ref in refs:
         if sink_ref == LOCAL_INBOX_SINK_REF:
-            observations.append(
+            _append_observation(
                 write_local_inbox_packet(
                     packet,
                     repo_root=repo,
@@ -336,7 +347,7 @@ def deliver_report_packet(
             )
             continue
         if sink_ref == OPERATOR_WAKE_LOCAL_SINK_REF:
-            observations.append(
+            _append_observation(
                 write_operator_wake_packet(
                     packet,
                     repo_root=repo,
@@ -347,9 +358,9 @@ def deliver_report_packet(
             continue
         if sink_ref == SLACK_SINK_REF:
             if not _packet_allows_external_delivery(packet):
-                observations.append(_external_guard_observation(sink_ref, packet))
+                _append_observation(_external_guard_observation(sink_ref, packet))
                 continue
-            observations.append(
+            _append_observation(
                 send_slack_report_packet(
                     packet,
                     repo_root=repo,
@@ -367,13 +378,13 @@ def deliver_report_packet(
             building_id = str(packet.get("building_id") or "").strip()
             if building_id:
                 if not _packet_allows_external_delivery(packet):
-                    observations.append(_external_guard_observation(sink_ref, packet))
+                    _append_observation(_external_guard_observation(sink_ref, packet))
                     continue
                 # PROJECT-0 S4-B: an OPTIONAL packet project_ref narrows the
                 # delta to one vessel (building_id uniqueness is per-vessel);
                 # without it an id living in 2+ vessels fails closed downstream.
                 packet_project_ref = str(packet.get("project_ref") or "").strip() or None
-                observations.append(
+                _append_observation(
                     send_dashboard_building_delta(
                         building_id,
                         project_ref=packet_project_ref,
@@ -385,7 +396,7 @@ def deliver_report_packet(
                     )
                 )
             else:
-                observations.append(
+                _append_observation(
                     send_dashboard_seed(
                         repo_root=repo,
                         allow_real_delivery=allow_real_dashboard_delivery,
@@ -397,6 +408,56 @@ def deliver_report_packet(
             continue
         raise ValueError(f"unadmitted report sink ref: {sink_ref}")
     return tuple(observations)
+
+
+def _report_delivery_timestamp() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _record_report_delivery_observation(
+    repo: Path,
+    packet: Mapping[str, Any],
+    observation: ReportSinkObservation,
+) -> None:
+    root = _building_root_for_packet(repo, packet)
+    if root is None:
+        return
+    path = root / REPORT_DELIVERY_RECORD
+    path.parent.mkdir(parents=True, exist_ok=True)
+    record = {
+        "kind": "report_delivery_observation",
+        "schema_version": "report-delivery-0",
+        "report_id": _required_text(packet.get("report_id"), "report_id"),
+        "report_kind": str(packet.get("report_kind") or ""),
+        "building_id": str(packet.get("building_id") or ""),
+        "trigger_event_ref": str(packet.get("trigger_event_ref") or ""),
+        "event_kind": _slack_event_kind(packet),
+        "sink_ref": observation.sink_ref,
+        "packet_ref": observation.packet_ref,
+        "delivered": observation.delivered,
+        "delivered_at": observation.delivered_at,
+        "written_path": observation.written_path,
+        "delivery_status_class": observation.delivery_status_class,
+        "provider_response_status_class": observation.provider_response_status_class,
+        "source_truth": False,
+        "proof_limits": [
+            "report delivery timing support observation only",
+            "records sink refs, packet refs, status classes, and delivered_at only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ],
+        "not_proven": [
+            "reader noticed report packet",
+            "external provider delivery reliability",
+        ],
+    }
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(
+            json.dumps(record, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+            + "\n"
+        )
 
 
 def dry_run_report_packet(

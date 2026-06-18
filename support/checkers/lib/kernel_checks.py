@@ -28,6 +28,7 @@ import urllib.request
 from collections import Counter
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, fields
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -3759,6 +3760,77 @@ def _assert_reporter_brick_grain_threading(
         for event_kind in ("brick_received", "brick_returned", "gate_passed"):
             if not any(event_kind in trigger for trigger in trigger_refs):
                 raise ProfileError(f"brick grain did not emit {event_kind} support event")
+        delivery_path = root / "raw" / "report-delivery.jsonl"
+        if not delivery_path.is_file():
+            raise ProfileError("brick grain delivery timing was not recorded in raw/report-delivery.jsonl")
+        delivery_records: list[Mapping[str, Any]] = []
+        for line in delivery_path.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError as exc:
+                raise ProfileError("raw/report-delivery.jsonl contained invalid JSON") from exc
+            if not isinstance(record, Mapping):
+                raise ProfileError("raw/report-delivery.jsonl contained a non-mapping record")
+            if record.get("kind") == "report_delivery_observation":
+                delivery_records.append(record)
+        if not delivery_records:
+            raise ProfileError("raw/report-delivery.jsonl contained no report delivery observations")
+
+        def _delivery_timestamp(record: Mapping[str, Any]) -> datetime:
+            delivered_at = str(record.get("delivered_at") or "").strip()
+            if not delivered_at:
+                raise ProfileError(f"report delivery record missing delivered_at: {record!r}")
+            try:
+                return datetime.fromisoformat(delivered_at.replace("Z", "+00:00"))
+            except ValueError as exc:
+                raise ProfileError(
+                    f"report delivery record delivered_at is not ISO datetime: {delivered_at!r}"
+                ) from exc
+
+        active_sink_refs = {
+            str(record.get("sink_ref") or "")
+            for record in delivery_records
+            if str(record.get("event_kind") or "") == "brick_received"
+        }
+        active_sink_refs.discard("")
+        if active_sink_refs != {"report-sink:local-inbox", "report-sink:slack"}:
+            raise ProfileError(
+                "brick grain expected local-inbox and Slack brick_received delivery records, "
+                f"got {sorted(active_sink_refs)!r}"
+            )
+        by_event_and_sink: dict[tuple[str, str], list[Mapping[str, Any]]] = {}
+        for record in delivery_records:
+            if record.get("source_truth") is not False:
+                raise ProfileError("report delivery record source_truth is not false")
+            key = (
+                str(record.get("event_kind") or ""),
+                str(record.get("sink_ref") or ""),
+            )
+            by_event_and_sink.setdefault(key, []).append(record)
+        for sink_ref in sorted(active_sink_refs):
+            received_records = by_event_and_sink.get(("brick_received", sink_ref), [])
+            if len(received_records) != 1:
+                raise ProfileError(
+                    f"brick grain expected one brick_received delivery record for {sink_ref}, "
+                    f"got {len(received_records)}"
+                )
+            received_at = _delivery_timestamp(received_records[0])
+            for later_event in ("brick_returned", "gate_passed", "building_finished"):
+                later_records = by_event_and_sink.get((later_event, sink_ref), [])
+                if len(later_records) != 1:
+                    raise ProfileError(
+                        f"brick grain expected one {later_event} delivery record for {sink_ref}, "
+                        f"got {len(later_records)}"
+                    )
+                later_at = _delivery_timestamp(later_records[0])
+                if not received_at < later_at:
+                    raise ProfileError(
+                        "brick_received delivery was not earlier than completion delivery "
+                        f"for {sink_ref}/{later_event}: {received_at.isoformat()} >= "
+                        f"{later_at.isoformat()}"
+                    )
 
         thread_payloads = [payload for payload in sent_payloads if payload.get("thread_ts")]
         if len(thread_payloads) != 4:
@@ -3873,7 +3945,7 @@ def _assert_reporter_brick_grain_threading(
             raise ProfileError(
                 f"building_finished Slack reply leaked parent title marker:\n{finished_reply_text}"
             )
-        inspected += 15
+        inspected += 21
 
         intervention_payloads: list[Mapping[str, Any]] = []
 
