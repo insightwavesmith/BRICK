@@ -127,9 +127,12 @@ _CODEX_STALL_WATCHDOG_THRESHOLD_ENV = "BRICK_CODEX_STALL_THRESHOLD_SECONDS"
 _CODEX_STALL_WATCHDOG_POLL_ENV = "BRICK_CODEX_STALL_POLL_SECONDS"
 # CONNECT-STALL FAST-FAIL (TrackB 0619): a dead-connection codex worker (process
 # alive, 0 children, 0 established sockets, cpu_seconds frozen) must be reaped and
-# surfaced to a human within the 90-180s band, not after ~20 minutes. The default
-# sits inside that band; BRICK_CODEX_STALL_THRESHOLD_SECONDS still overrides it and
-# every NaN/negative/zero guard in _codex_stall_watchdog_config is unchanged. This
+# surfaced to a human within the 90-180s band, not after ~20 minutes. The 150s
+# default sits inside that band, but the EFFECTIVE threshold is clamped to
+# (adapter timeout - poll) so it always fires BEFORE the subprocess deadline
+# (codex-review F1): at the 120s production default the effective threshold is 90s.
+# BRICK_CODEX_STALL_THRESHOLD_SECONDS still overrides the default but is clamped the
+# same way and must be > 0 (NaN/inf/negative/ZERO all rejected -> default; F2). This
 # is the DEAD-worker (connect-stall) watchdog ONLY -- it never touches a live worker.
 _CODEX_STALL_WATCHDOG_DEFAULT_THRESHOLD_SECONDS = 150
 _CODEX_STALL_WATCHDOG_DEFAULT_POLL_SECONDS = 30
@@ -1648,24 +1651,47 @@ def _run_text_cli(
 
 
 def _codex_stall_watchdog_config(timeout_seconds: int | float) -> _CodexStallWatchdogConfig | None:
+    # CONNECT-STALL THRESHOLD COUPLING (TrackB 0619, codex-review F1/F2): the
+    # watchdog threshold is COUPLED to the adapter timeout. The subprocess
+    # communicate(timeout=timeout_seconds) raises a PLAIN (untagged) TimeoutExpired
+    # at the adapter deadline; if the dead-signature threshold is >= that deadline
+    # the watchdog can NEVER fire and a connect-stall is mislabeled
+    # local_cli_timeout. At the production default (adapter_timeout_seconds=120 in
+    # driver.py / run.py) the unclamped 150s default was pure dead code. So the
+    # EFFECTIVE threshold is clamped to (timeout_seconds - 2*poll): the dead-signature
+    # needs TWO samples to confirm (it anchors at the FIRST dead poll, ~poll seconds
+    # in), so the watchdog can only confirm-and-fire before the adapter deadline when
+    # it has two polls of room (timeout-poll alone fires AT the deadline = still dead
+    # code, proven by execution). The env override is clamped the SAME way so an
+    # operator-set env can never reintroduce the inversion.
     if timeout_seconds <= 0:
         return None
-    threshold = _float_env_or_default(
-        _CODEX_STALL_WATCHDOG_THRESHOLD_ENV,
-        float(_CODEX_STALL_WATCHDOG_DEFAULT_THRESHOLD_SECONDS),
-    )
     poll = _float_env_or_default(
         _CODEX_STALL_WATCHDOG_POLL_ENV,
         float(_CODEX_STALL_WATCHDOG_DEFAULT_POLL_SECONDS),
     )
-    if threshold is None or poll is None:
+    if poll is None or poll <= 0:
         return None
-    if threshold < 0 or poll <= 0:
+    # F2: reject env values <= 0 (and NaN/inf via _float_env_or_default) -> fall
+    # back to the 150 default. The chosen threshold is then F1-clamped below.
+    env_threshold = _float_env_or_default(_CODEX_STALL_WATCHDOG_THRESHOLD_ENV, None)
+    if env_threshold is not None and env_threshold > 0:
+        chosen_threshold = env_threshold
+    else:
+        chosen_threshold = float(_CODEX_STALL_WATCHDOG_DEFAULT_THRESHOLD_SECONDS)
+    # F1: cap the chosen threshold so it fires BEFORE the adapter deadline. Two polls
+    # of room (not one): the dead-signature needs 2 samples, anchored at the first
+    # dead poll, so timeout-poll would only confirm AT the deadline (dead code).
+    effective_threshold = min(chosen_threshold, float(timeout_seconds) - 2 * poll)
+    # Require room for at least 2 health samples before the deadline; otherwise the
+    # run is too short to sample a dead-signature, so the adapter timeout is itself
+    # the fast-fail -> watchdog OFF.
+    if effective_threshold < 2 * poll:
         return None
-    return _CodexStallWatchdogConfig(threshold_seconds=threshold, poll_seconds=poll)
+    return _CodexStallWatchdogConfig(threshold_seconds=effective_threshold, poll_seconds=poll)
 
 
-def _float_env_or_default(name: str, default: float) -> float | None:
+def _float_env_or_default(name: str, default: float | None) -> float | None:
     value = os.environ.get(name)
     if value is None:
         return default

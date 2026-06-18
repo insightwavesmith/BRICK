@@ -2216,7 +2216,13 @@ def _gemini_api_classify_error_kind(exc: Exception) -> str:
     The B2-hardened hold path classifies adapter exceptions by type/message. We
     replicate the mapping here ONLY to assert (in-process) that a gemini-api
     no-key error flows the SAME clean typed adapter-error path, never a crash.
-    Kept structurally identical to support/operator/run.py:_adapter_error_kind.
+
+    INTENTIONAL DIVERGENCE from run.py._adapter_error_kind (codex-review F4): the
+    TimeoutExpired branch here maps to plain 'local_cli_timeout' and is NOT given
+    the connect-stall split. Gemini is an HTTP API adapter with no codex
+    dead-connection watchdog, so a stall-tagged TimeoutExpired can never reach it
+    and 'local_cli_connect_stall' is correctly absent. Every OTHER branch mirrors
+    run.py._adapter_error_kind.
     """
     message = str(exc).lower()
     if isinstance(exc, FileNotFoundError):
@@ -2597,13 +2603,21 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
                 "codex_connect_stall_classification A: env override did not replace "
                 "the default stall threshold"
             )
-        # NaN / negative / zero guards still reject bad env values.
-        for bad_value in ("nan", "inf", "-5"):
+        # NaN / inf / negative / ZERO guards reject bad env values. A bad env value
+        # must NOT yield the env number itself; it falls back to the (clamped)
+        # default. At timeout=600 the default clamps to 150, so a rejected env still
+        # yields the 150 default -- never (0.0, 30.0) or a negative band. F2: 0 is in
+        # this set (the <= 0 guard, not a strict < 0 guard, is what rejects it).
+        for bad_value in ("nan", "inf", "-5", "0"):
             os.environ[adapter._CODEX_STALL_WATCHDOG_THRESHOLD_ENV] = bad_value
-            if adapter._codex_stall_watchdog_config(timeout_seconds=600) is not None:
+            bad_config = adapter._codex_stall_watchdog_config(timeout_seconds=600)
+            if bad_config is None or bad_config.threshold_seconds != float(
+                adapter._CODEX_STALL_WATCHDOG_DEFAULT_THRESHOLD_SECONDS
+            ):
                 raise ProfileError(
-                    "codex_connect_stall_classification A: stall watchdog guard "
-                    f"accepted a bad env threshold {bad_value!r}"
+                    "codex_connect_stall_classification A: stall watchdog guard did "
+                    f"not fall back to the 150s default for bad env threshold {bad_value!r} "
+                    f"(got {bad_config!r})"
                 )
     finally:
         if prior_env is None:
@@ -2612,9 +2626,6 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
             os.environ[adapter._CODEX_STALL_WATCHDOG_THRESHOLD_ENV] = prior_env
     inspected += 1
 
-    # (B) a dead-connection signature classifies WITHIN the threshold (fast clock +
-    # fast watchdog config: no real 20-min sleep). The watchdog raises a stall-tagged
-    # TimeoutExpired and run._adapter_error_kind maps it to local_cli_connect_stall.
     class _DeadCodexProc:
         pid = 982451653
         returncode: int | None = None
@@ -2631,6 +2642,88 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
             self.clock_state["now"] += float(timeout)
             raise subprocess.TimeoutExpired(cmd=("codex", "exec"), timeout=timeout)
 
+    # (A2) PRODUCTION DEFAULT (codex-review F3): the real blocker is the 120s default
+    # adapter_timeout_seconds (driver.py / run.py), NOT the 3600 used below. At 3600
+    # the 150s threshold trivially fits, hiding the inversion. Here we pin the default
+    # timeout directly. NO live CLI / NO real wait -- the watchdog runs on an injected
+    # fast clock; the mock proc advances that clock instead of sleeping.
+    prod_env = os.environ.get(adapter._CODEX_STALL_WATCHDOG_THRESHOLD_ENV)
+    prod_poll_env = os.environ.get(adapter._CODEX_STALL_WATCHDOG_POLL_ENV)
+    os.environ.pop(adapter._CODEX_STALL_WATCHDOG_THRESHOLD_ENV, None)
+    os.environ.pop(adapter._CODEX_STALL_WATCHDOG_POLL_ENV, None)
+    try:
+        # (a) the EFFECTIVE threshold at the 120s default is STRICTLY LESS THAN 120,
+        # so the watchdog fires BEFORE the adapter deadline (no plain untagged
+        # TimeoutExpired beats it to the punch).
+        prod_default_timeout = 120
+        prod_config = adapter._codex_stall_watchdog_config(timeout_seconds=prod_default_timeout)
+        if prod_config is None:
+            raise ProfileError(
+                "codex_connect_stall_classification A2: watchdog is OFF at the 120s "
+                "production default timeout (dead code -- a connect-stall mislabels)"
+            )
+        if not (prod_config.threshold_seconds < prod_default_timeout):
+            raise ProfileError(
+                "codex_connect_stall_classification A2: effective stall threshold "
+                f"{prod_config.threshold_seconds!r} is NOT strictly less than the 120s "
+                "adapter deadline -- the watchdog can never fire before the plain timeout"
+            )
+        # (b) a dead-connection signature AT the 120s default still classifies as a
+        # stall and run._adapter_error_kind maps it to local_cli_connect_stall.
+        prod_clock = {"now": 0.0}
+        prod_proc = _DeadCodexProc(prod_clock)
+        prod_health = adapter._CodexCliHealth(
+            process_running=True,
+            child_count=0,
+            established_socket_count=0,
+            cpu_seconds=7.0,
+        )
+        prod_stall_exc: subprocess.TimeoutExpired | None = None
+        try:
+            adapter._communicate_with_optional_codex_stall_watchdog(
+                prod_proc,
+                ("codex", "exec", "--output-last-message", "/tmp/ignored", "prompt"),
+                timeout_seconds=prod_default_timeout,
+                watchdog_config=prod_config,
+                health_probe=lambda proc: prod_health,
+                clock=lambda: prod_clock["now"],
+            )
+        except subprocess.TimeoutExpired as exc:
+            prod_stall_exc = exc
+        if prod_stall_exc is None:
+            raise ProfileError(
+                "codex_connect_stall_classification A2: dead-connection watchdog did "
+                "not fire at the 120s production default timeout"
+            )
+        if prod_clock["now"] >= prod_default_timeout:
+            raise ProfileError(
+                "codex_connect_stall_classification A2: dead-connection did not "
+                "fast-fail BEFORE the 120s adapter deadline (it ran to the full timeout)"
+            )
+        if adapter._timeout_expired_reap_reason(prod_stall_exc) != "stall":
+            raise ProfileError(
+                "codex_connect_stall_classification A2: dead-connection timeout at the "
+                "120s default was not tagged reap_reason == 'stall'"
+            )
+        if run_module._adapter_error_kind(prod_stall_exc) != "local_cli_connect_stall":
+            raise ProfileError(
+                "codex_connect_stall_classification A2: a dead-connection at the 120s "
+                "production default did NOT map to local_cli_connect_stall"
+            )
+    finally:
+        if prod_env is None:
+            os.environ.pop(adapter._CODEX_STALL_WATCHDOG_THRESHOLD_ENV, None)
+        else:
+            os.environ[adapter._CODEX_STALL_WATCHDOG_THRESHOLD_ENV] = prod_env
+        if prod_poll_env is None:
+            os.environ.pop(adapter._CODEX_STALL_WATCHDOG_POLL_ENV, None)
+        else:
+            os.environ[adapter._CODEX_STALL_WATCHDOG_POLL_ENV] = prod_poll_env
+    inspected += 1
+
+    # (B) a dead-connection signature classifies WITHIN the threshold (fast clock +
+    # fast watchdog config: no real 20-min sleep). The watchdog raises a stall-tagged
+    # TimeoutExpired and run._adapter_error_kind maps it to local_cli_connect_stall.
     fast_config = adapter._CodexStallWatchdogConfig(threshold_seconds=0.2, poll_seconds=0.1)
     dead_clock = {"now": 0.0}
     dead_proc = _DeadCodexProc(dead_clock)
