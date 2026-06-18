@@ -1533,6 +1533,7 @@ class NodeProcessingOutcome:
     failure_reason: str = ""
     adapter_frontier: Mapping[str, Any] | None = None
     park_frontier: Mapping[str, Any] | None = None
+    raised_exception: BaseException | None = None
     fan_in_hold_record: Mapping[str, Any] | None = None
     step_result_event: Mapping[str, Any] | None = None
     step_output_recorded: bool = True
@@ -1585,6 +1586,7 @@ def process_one_node(
     report_env: Mapping[str, str] | None,
     report_slack_sender: Any | None,
     record_step_output_immediately: bool = True,
+    defer_frontier_writes: bool = False,
 ) -> NodeProcessingOutcome:
     """Process one node without mutating queue/reroute scheduling state."""
 
@@ -1694,6 +1696,18 @@ def process_one_node(
             )
     except Exception as exc:  # noqa: BLE001 - distinguish adapter frontier below
         if getattr(exc, "parked", None) is not None:
+            if defer_frontier_writes:
+                return NodeProcessingOutcome(
+                    step_result=None,
+                    attempt_index=0,
+                    gate_sequence_decision=GateSequenceDecision(),
+                    source_fact_body_carry_observation=source_fact_body_carry_observation,
+                    report_events=(),
+                    is_replay=is_replay,
+                    failure_reason="chat_session_park_frontier_deferred",
+                    raised_exception=exc,
+                    step_output_recorded=True,
+                )
             evidence_write = _write_dynamic_chat_session_park_frontier(
                 exc,
                 building_id=building_id,
@@ -1743,6 +1757,18 @@ def process_one_node(
                 building_root=evidence_write.lifecycle_write.root,
                 written_files=evidence_write.written_files,
             ) from exc
+        if defer_frontier_writes:
+            return NodeProcessingOutcome(
+                step_result=None,
+                attempt_index=0,
+                gate_sequence_decision=GateSequenceDecision(),
+                source_fact_body_carry_observation=source_fact_body_carry_observation,
+                report_events=(),
+                is_replay=is_replay,
+                failure_reason="adapter_error_frontier_deferred",
+                raised_exception=exc,
+                step_output_recorded=True,
+            )
         _write_dynamic_adapter_error_frontier(
             exc,
             building_id=building_id,
@@ -2088,6 +2114,7 @@ def _run_dynamic_graph_walker(
         item: dict[str, Any],
         *,
         record_step_output_immediately: bool,
+        defer_frontier_writes: bool = False,
     ) -> NodeProcessingOutcome:
         step_ref = str(item["step_ref"])
         cascade_depth = int(item.get("cascade_depth", 0))
@@ -2137,6 +2164,7 @@ def _run_dynamic_graph_walker(
             report_env=report_env,
             report_slack_sender=report_slack_sender,
             record_step_output_immediately=record_step_output_immediately,
+            defer_frontier_writes=defer_frontier_writes,
         )
 
     def _clear_running(items: Sequence[Mapping[str, Any]]) -> None:
@@ -2156,6 +2184,7 @@ def _run_dynamic_graph_walker(
                         _process_item(
                             items[0],
                             record_step_output_immediately=False,
+                            defer_frontier_writes=True,
                         ),
                     )
                 ]
@@ -2168,6 +2197,7 @@ def _run_dynamic_graph_walker(
                             _process_item,
                             item,
                             record_step_output_immediately=False,
+                            defer_frontier_writes=True,
                         ),
                     )
                     for item in items
@@ -2223,6 +2253,129 @@ def _run_dynamic_graph_walker(
             step_output_recorded=True,
         )
 
+    def _append_recorded_sibling_outcome(
+        item: dict[str, Any],
+        outcome: NodeProcessingOutcome,
+    ) -> None:
+        nonlocal fan_in_hold_record
+        if outcome.source_fact_body_carry_observation is not None:
+            source_fact_body_carry_observations.append(
+                outcome.source_fact_body_carry_observation
+            )
+        if outcome.fan_in_hold_record is not None:
+            fan_in_hold_record = outcome.fan_in_hold_record
+            return
+        if outcome.raised_exception is not None:
+            return
+        if outcome.step_result is None or outcome.step_result_event is None:
+            raise AssertionError("process_one_node returned no step result")
+        step_ref = str(item["step_ref"])
+        cascade_depth = int(item.get("cascade_depth", 0))
+        step_results.append(outcome.step_result)
+        step_result_events.append(outcome.step_result_event)
+        report_event_observations.extend(outcome.report_events)
+        if has_fan_groups:
+            completed_fan_steps.add((step_ref, cascade_depth))
+
+    def _drain_pending_outcomes_before_terminal() -> None:
+        while pending_outcomes:
+            pending_item, pending_outcome = pending_outcomes.pop(0)
+            pending_outcome = _record_deferred_step_output(
+                pending_item,
+                pending_outcome,
+            )
+            if pending_outcome.raised_exception is not None:
+                pending_outcomes.insert(0, (pending_item, pending_outcome))
+                return
+            _append_recorded_sibling_outcome(pending_item, pending_outcome)
+
+    def _write_deferred_frontier(
+        item: dict[str, Any],
+        outcome: NodeProcessingOutcome,
+    ) -> None:
+        exc = outcome.raised_exception
+        if exc is None:
+            return
+        if getattr(exc, "parked", None) is not None:
+            evidence_write = _write_dynamic_chat_session_park_frontier(
+                exc,
+                building_id=building_id,
+                plan_ref=plan_ref,
+                linear_plan=linear_plan,
+                completed_step_results=step_results,
+                output_root=output_root,
+                overwrite_existing=overwrite_existing or bool(step_results),
+                checked_proof_limits=checked_proof_limits,
+                graph_context=graph_context,
+                reroute_records=reroute_records,
+                node_budget=node_budget,
+                node_landings=node_landings,
+                held=False,
+                hold_record=None,
+                cascade_depth=int(item.get("cascade_depth", 0)),
+                parent_reroute_ref=item["parent_reroute_ref"],
+                fan_in_wait_all_observations=fan_in_wait_all_observations,
+                has_fan_groups=has_fan_groups,
+                write_chat_session_park_frontier=write_chat_session_park_frontier,
+                declaration_plan=plan,
+                resume_observations=_resume_observations_for_frontier(
+                    resume_seed,
+                    disposition_applied=disposition_applied,
+                    node_budget=node_budget,
+                    node_landings=node_landings,
+                ),
+            )
+            if report_event_policy:
+                terminal_event_kind = building_event_kind_from_frontier(
+                    evidence_write.lifecycle_write.root,
+                    repo_root=repo_root_path,
+                )
+                _emit_building_event_best_effort(
+                    report_event_policy,
+                    event_kind=terminal_event_kind,
+                    building_id=building_id,
+                    building_root=evidence_write.lifecycle_write.root,
+                    repo_root=repo_root_path,
+                    report_env=report_env,
+                    report_slack_sender=report_slack_sender,
+                    overwrite_existing=overwrite_existing,
+                )
+            raise chat_session_park_frontier_exception(
+                "chat-session park frontier evidence written before AgentFact returned",
+                building_id=building_id,
+                building_root=evidence_write.lifecycle_write.root,
+                written_files=evidence_write.written_files,
+            ) from exc
+        _write_dynamic_adapter_error_frontier(
+            exc,
+            building_id=building_id,
+            plan_ref=plan_ref,
+            linear_plan=linear_plan,
+            completed_step_results=step_results,
+            output_root=output_root,
+            overwrite_existing=overwrite_existing or bool(step_results),
+            checked_proof_limits=checked_proof_limits,
+            graph_context=graph_context,
+            reroute_records=reroute_records,
+            node_budget=node_budget,
+            node_landings=node_landings,
+            held=False,
+            hold_record=None,
+            cascade_depth=int(item.get("cascade_depth", 0)),
+            parent_reroute_ref=item["parent_reroute_ref"],
+            fan_in_wait_all_observations=fan_in_wait_all_observations,
+            has_fan_groups=has_fan_groups,
+            write_adapter_error_frontier=write_adapter_error_frontier,
+            adapter_frontier_exception=adapter_frontier_exception,
+            resume_observations=_resume_observations_for_frontier(
+                resume_seed,
+                disposition_applied=disposition_applied,
+                node_budget=node_budget,
+                node_landings=node_landings,
+            ),
+        )
+        raise AssertionError("unreachable after dynamic adapter frontier write")
+
     while True:
         if pending_outcomes:
             item, outcome = pending_outcomes.pop(0)
@@ -2256,6 +2409,7 @@ def _run_dynamic_graph_walker(
                         observation=ready_result.hold_observation or {},
                         step_results=step_results,
                     )
+                    _drain_pending_outcomes_before_terminal()
                     break
                 if not ready_result.items:
                     break
@@ -2293,6 +2447,7 @@ def _run_dynamic_graph_walker(
                         observation=wait_observation or {},
                         step_results=step_results,
                     )
+                    _drain_pending_outcomes_before_terminal()
                     break
                 running_fan_steps.add((step_ref, cascade_depth))
             try:
@@ -2318,7 +2473,11 @@ def _run_dynamic_graph_walker(
             )
         if outcome.fan_in_hold_record is not None:
             fan_in_hold_record = outcome.fan_in_hold_record
+            _drain_pending_outcomes_before_terminal()
             break
+        if outcome.raised_exception is not None:
+            _drain_pending_outcomes_before_terminal()
+            _write_deferred_frontier(item, outcome)
         if outcome.step_result is None or outcome.step_result_event is None:
             raise AssertionError("process_one_node returned no step result")
         step_result = outcome.step_result
@@ -2371,6 +2530,7 @@ def _run_dynamic_graph_walker(
                     checked_proof_limits=checked_proof_limits,
                     held_occurrence_index=held_occurrence_index,
                 )
+                _drain_pending_outcomes_before_terminal()
                 break
             if resume_seed.disposition_action == "forward":
                 # Walk ON past the held gate without a reroute landing: splice the
@@ -2484,6 +2644,7 @@ def _run_dynamic_graph_walker(
                 continue
             hold_record = prospective_hold
             reroute_records.append(hold_record)
+            _drain_pending_outcomes_before_terminal()
             if has_fan_groups:
                 held_fan_steps.add((step_ref, cascade_depth))
                 fan_in_wait_all_observations.extend(
@@ -2523,6 +2684,7 @@ def _run_dynamic_graph_walker(
                     step_result=step_result,
                 )
                 reroute_records.append(hold_record)
+                _drain_pending_outcomes_before_terminal()
                 if has_fan_groups:
                     held_fan_steps.add((step_ref, cascade_depth))
                     fan_in_wait_all_observations.extend(
@@ -2606,6 +2768,7 @@ def _run_dynamic_graph_walker(
                 step_result=step_result,
             )
             reroute_records.append(hold_record)
+            _drain_pending_outcomes_before_terminal()
             if has_fan_groups:
                 held_fan_steps.add((step_ref, cascade_depth))
                 fan_in_wait_all_observations.extend(
@@ -2692,6 +2855,7 @@ def _run_dynamic_graph_walker(
                     step_result=step_result,
                 )
                 reroute_records.append(hold_record)
+                _drain_pending_outcomes_before_terminal()
                 if has_fan_groups:
                     held_fan_steps.add((step_ref, cascade_depth))
                     fan_in_wait_all_observations.extend(
@@ -2728,6 +2892,7 @@ def _run_dynamic_graph_walker(
                         step_result=step_result,
                     )
                     reroute_records.append(hold_record)
+                    _drain_pending_outcomes_before_terminal()
                     if has_fan_groups:
                         held_fan_steps.add((step_ref, cascade_depth))
                         fan_in_wait_all_observations.extend(
@@ -2765,6 +2930,7 @@ def _run_dynamic_graph_walker(
                         step_result=step_result,
                     )
                     reroute_records.append(hold_record)
+                    _drain_pending_outcomes_before_terminal()
                     if has_fan_groups:
                         held_fan_steps.add((step_ref, cascade_depth))
                         fan_in_wait_all_observations.extend(
@@ -2799,6 +2965,7 @@ def _run_dynamic_graph_walker(
                         step_result=step_result,
                     )
                     reroute_records.append(hold_record)
+                    _drain_pending_outcomes_before_terminal()
                     if has_fan_groups:
                         held_fan_steps.add((step_ref, cascade_depth))
                         fan_in_wait_all_observations.extend(
@@ -2854,6 +3021,7 @@ def _run_dynamic_graph_walker(
                         step_result=step_result,
                     )
                     reroute_records.append(hold_record)
+                    _drain_pending_outcomes_before_terminal()
                     if has_fan_groups:
                         held_fan_steps.add((step_ref, cascade_depth))
                         fan_in_wait_all_observations.extend(

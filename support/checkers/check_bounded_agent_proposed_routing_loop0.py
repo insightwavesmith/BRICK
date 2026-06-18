@@ -223,6 +223,103 @@ def _fan_plan(prefix: str, *, held_source: bool = False) -> Mapping[str, Any]:
     }
 
 
+def _fan3_plan(
+    prefix: str,
+    *,
+    held_source: bool = False,
+    parked_source: bool = False,
+) -> Mapping[str, Any]:
+    root = f"brick-{prefix}-root"
+    lane_a = f"brick-{prefix}-lane-a"
+    lane_b = f"brick-{prefix}-lane-b"
+    lane_c = f"brick-{prefix}-lane-c"
+    join = f"brick-{prefix}-join"
+    close = f"brick-{prefix}-close"
+    b_gate = ["link-gate:default-transition", "link-gate:human"] if held_source else None
+    lane_b_step = dict(
+        _brick_step(
+            f"{prefix}-lane-b",
+            lane_b,
+            "agent-object:dev" if parked_source else "agent-object:qa",
+            f"edge:{prefix}-b-to-join",
+        )
+    )
+    if parked_source:
+        lane_b_step["selected_adapter_ref"] = "adapter:chat-session"
+    return {
+        "plan_ref": f"building-plan:{prefix}",
+        "owner_axis": "Brick",
+        "building_id": f"{prefix}-0618",
+        "plan_shape": "graph",
+        "selected_adapter_ref": "adapter:local",
+        "proof_limits": _proof_limits(),
+        "not_proven": ["parallel runtime execution"],
+        "execution_order": [
+            f"{prefix}-root",
+            f"{prefix}-lane-a",
+            f"{prefix}-lane-c",
+            f"{prefix}-lane-b",
+            f"{prefix}-join",
+            f"{prefix}-close",
+        ],
+        "brick_steps": [
+            _brick_step(f"{prefix}-root", root, "agent-object:coo", f"edge:{prefix}-root-to-a"),
+            _brick_step(f"{prefix}-lane-a", lane_a, "agent-object:qa", f"edge:{prefix}-a-to-join"),
+            _brick_step(f"{prefix}-lane-c", lane_c, "agent-object:qa", f"edge:{prefix}-c-to-join"),
+            lane_b_step,
+            _brick_step(f"{prefix}-join", join, "agent-object:coo", f"edge:{prefix}-join-to-close"),
+            _brick_step(f"{prefix}-close", close, "agent-object:coo", f"edge:{prefix}-close-to-boundary"),
+        ],
+        "link_edges": [
+            _fwd_edge(f"edge:{prefix}-root-to-a", f"{prefix}-root", f"{prefix}-lane-a", lane_a),
+            _fwd_edge(f"edge:{prefix}-root-to-c", f"{prefix}-root", f"{prefix}-lane-c", lane_c),
+            _fwd_edge(f"edge:{prefix}-root-to-b", f"{prefix}-root", f"{prefix}-lane-b", lane_b),
+            _fwd_edge(f"edge:{prefix}-a-to-join", f"{prefix}-lane-a", f"{prefix}-join", join),
+            _fwd_edge(f"edge:{prefix}-c-to-join", f"{prefix}-lane-c", f"{prefix}-join", join),
+            _fwd_edge(
+                f"edge:{prefix}-b-to-join",
+                f"{prefix}-lane-b",
+                f"{prefix}-join",
+                join,
+                gate=b_gate,
+            ),
+            _fwd_edge(f"edge:{prefix}-join-to-close", f"{prefix}-join", f"{prefix}-close", close),
+            _close_edge(
+                f"edge:{prefix}-close-to-boundary",
+                f"{prefix}-close",
+                f"{prefix} closed",
+                f"building-boundary:{prefix}-closed",
+            ),
+        ],
+        "groups": [
+            {
+                "group_id": f"group:{prefix}-fan-out",
+                "group_role": "fan_out",
+                "member_ref_kind": "link_edge",
+                "member_refs": [
+                    f"edge:{prefix}-root-to-a",
+                    f"edge:{prefix}-root-to-c",
+                    f"edge:{prefix}-root-to-b",
+                ],
+                "proof_limits": ["support topology label only"],
+                "not_proven": ["parallel runtime execution"],
+            },
+            {
+                "group_id": f"group:{prefix}-fan-in",
+                "group_role": "fan_in",
+                "member_ref_kind": "link_edge",
+                "member_refs": [
+                    f"edge:{prefix}-a-to-join",
+                    f"edge:{prefix}-c-to-join",
+                    f"edge:{prefix}-b-to-join",
+                ],
+                "proof_limits": ["support topology label only"],
+                "not_proven": ["synthesis quality"],
+            },
+        ],
+    }
+
+
 def _cohort_fan_plan(
     prefix: str,
     *,
@@ -958,6 +1055,75 @@ def _run_with_fanout_pool(
             os.environ.pop("BRICK_FANOUT_DISPATCH_POOL_SIZE", None)
         else:
             os.environ["BRICK_FANOUT_DISPATCH_POOL_SIZE"] = original
+
+
+def _run_frontier_root_with_fanout_pool(
+    plan: Mapping[str, Any],
+    callable_,
+    repo: Path,
+    output_root: Path,
+    *,
+    pool_size: int,
+):
+    from brick_protocol.support.operator.building_operation import observe_building_frontier
+    from brick_protocol.support.operator.run import (
+        ChatSessionParkFrontierEvidenceWritten,
+        run_building_plan,
+    )
+
+    original = os.environ.get("BRICK_FANOUT_DISPATCH_POOL_SIZE")
+    os.environ["BRICK_FANOUT_DISPATCH_POOL_SIZE"] = str(pool_size)
+    try:
+        try:
+            result = run_building_plan(
+                plan,
+                output_root=output_root,
+                overwrite_existing=True,
+                local_callables={"callable:local:agent-invoke0-smoke": callable_},
+                adapter_cwd=repo,
+                adapter_timeout_seconds=30,
+            )
+            root = result.lifecycle_write.root
+            return root, observe_building_frontier(root, repo_root=repo)
+        except ChatSessionParkFrontierEvidenceWritten as parked:
+            root = parked.building_root
+            return root, observe_building_frontier(root, repo_root=repo)
+    finally:
+        if original is None:
+            os.environ.pop("BRICK_FANOUT_DISPATCH_POOL_SIZE", None)
+        else:
+            os.environ["BRICK_FANOUT_DISPATCH_POOL_SIZE"] = original
+
+
+def _step_output_recorded(root: Path, step_ref: str) -> bool:
+    return (root / "work" / "step-outputs" / f"{step_ref}-attempt-1" / "step-output.json").is_file()
+
+
+def _f1_assert_surviving_sibling_outputs(
+    *,
+    mode: str,
+    root: Path,
+    prefix: str,
+) -> list[str]:
+    violations: list[str] = []
+    for lane in ("lane-a", "lane-c"):
+        step_ref = f"{prefix}-{lane}"
+        if not _step_output_recorded(root, step_ref):
+            violations.append(
+                f"f1-{mode}: survivor {step_ref} did not persist step-output.json"
+            )
+    return violations
+
+
+def _f1_assert_frontier_stopped_before_closure(
+    *,
+    mode: str,
+    frontier: Mapping[str, Any],
+) -> list[str]:
+    frontier_kind = frontier.get("frontier_kind")
+    if frontier_kind in {"complete", "closure_pending"}:
+        return [f"f1-{mode}: sibling interruption surfaced as forbidden frontier={frontier_kind}"]
+    return []
 
 
 _P6C_TIMESTAMP_RE = re.compile(
@@ -1747,6 +1913,92 @@ def check(repo: Path) -> list[str]:
                 "building-map differs between pool=1 and pool=4 "
                 f"(first={differing[:3]})"
             )
+
+    # F1: if one concurrently dispatched fan-out sibling errors, parks, or HOLDs,
+    # the completed sibling branches must survive in written evidence before the
+    # frontier is observed. The failing/held/parked lane is ordered after lane-a
+    # and lane-c, so pool=1 is the deterministic survivor baseline.
+    f1_cases = [
+        (
+            "error",
+            "bapr-loop0-f1-error-survivors",
+            _fan3_plan("bapr-loop0-f1-error-survivors"),
+            _adapter_error_callable("brick-bapr-loop0-f1-error-survivors-lane-b"),
+        ),
+        (
+            "hold",
+            "bapr-loop0-f1-hold-survivors",
+            _fan3_plan("bapr-loop0-f1-hold-survivors", held_source=True),
+            _fan_callable(
+                held_brick="brick-bapr-loop0-f1-hold-survivors-lane-b",
+                reroute_target="brick-bapr-loop0-f1-hold-survivors-join",
+            ),
+        ),
+        (
+            "park",
+            "bapr-loop0-f1-park-survivors",
+            _fan3_plan("bapr-loop0-f1-park-survivors", parked_source=True),
+            _fan_callable(),
+        ),
+    ]
+    for mode, prefix, plan_f1, callable_f1 in f1_cases:
+        with tempfile.TemporaryDirectory(prefix=f"bp-bapr-f1-{mode}-") as tmp_f1:
+            tmp_root = Path(tmp_f1)
+            root_pool1, frontier_pool1 = _run_frontier_root_with_fanout_pool(
+                plan_f1,
+                callable_f1,
+                repo,
+                tmp_root / "pool1",
+                pool_size=1,
+            )
+            root_pool4, frontier_pool4 = _run_frontier_root_with_fanout_pool(
+                plan_f1,
+                callable_f1,
+                repo,
+                tmp_root / "pool4",
+                pool_size=4,
+            )
+            violations.extend(
+                _f1_assert_surviving_sibling_outputs(
+                    mode=f"{mode}-pool1",
+                    root=root_pool1,
+                    prefix=prefix,
+                )
+            )
+            violations.extend(
+                _f1_assert_surviving_sibling_outputs(
+                    mode=f"{mode}-pool4",
+                    root=root_pool4,
+                    prefix=prefix,
+                )
+            )
+            violations.extend(
+                _f1_assert_frontier_stopped_before_closure(
+                    mode=f"{mode}-pool1",
+                    frontier=frontier_pool1,
+                )
+            )
+            violations.extend(
+                _f1_assert_frontier_stopped_before_closure(
+                    mode=f"{mode}-pool4",
+                    frontier=frontier_pool4,
+                )
+            )
+            normalized_pool1 = _p6c_normalized_evidence_files(root_pool1)
+            normalized_pool4 = _p6c_normalized_evidence_files(root_pool4)
+            if normalized_pool1 != normalized_pool4:
+                differing = sorted(
+                    set(normalized_pool1).symmetric_difference(normalized_pool4)
+                    or {
+                        key
+                        for key in normalized_pool1
+                        if normalized_pool1.get(key) != normalized_pool4.get(key)
+                    }
+                )
+                violations.append(
+                    f"f1-{mode}: normalized pool=1/pool=4 evidence differs "
+                    f"after sibling interruption (first={differing[:3]})"
+                )
 
     # Invariant F: a held fan-in source never lets the join/closure make the
     # Building look complete. It must surface through an existing frontier kind.
