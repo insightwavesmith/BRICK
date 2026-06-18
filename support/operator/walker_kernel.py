@@ -120,6 +120,73 @@ from brick_protocol.support.recording.walker_evidence import (
 )
 
 
+class _FrontierDriver:
+    """Own the live frontier queue and its serial cursor."""
+
+    def __init__(
+        self,
+        items: Sequence[dict[str, Any]],
+        *,
+        scheduled_fan_steps: set[tuple[str, int]] | None = None,
+    ) -> None:
+        self._items = list(items)
+        self._cursor = 0
+        self._scheduled_fan_steps = (
+            scheduled_fan_steps if scheduled_fan_steps is not None else set()
+        )
+
+    def next_item(self) -> dict[str, Any] | None:
+        # P6-B1: serial mode returns exactly one cursor-front item. A later C
+        # change can widen this seam to ready-node batches without opening
+        # parallel dispatch here.
+        if self._cursor >= len(self._items):
+            return None
+        item = self._items[self._cursor]
+        self._cursor += 1
+        return item
+
+    def pending_items(self) -> list[dict[str, Any]]:
+        return self._items[self._cursor :]
+
+    def append(self, items: Sequence[dict[str, Any]]) -> None:
+        self._items.extend(items)
+
+    def defer(self, item: dict[str, Any]) -> None:
+        self.append([item])
+
+    def splice_after_current(
+        self,
+        items: Sequence[dict[str, Any]],
+        *,
+        offset: int = 0,
+    ) -> None:
+        if not items:
+            return
+        insert_at = self._cursor + offset
+        self._items[insert_at:insert_at] = list(items)
+
+    def splice_declared_successors_after_current(
+        self,
+        *,
+        source_step_ref: str,
+        cascade_depth: int,
+        parent_reroute_ref: str,
+        successors_by_source: Mapping[str, tuple[str, ...]],
+        offset: int = 0,
+    ) -> None:
+        successor_items: list[dict[str, Any]] = []
+        _splice_declared_successors(
+            successor_items,
+            insert_at=0,
+            source_step_ref=source_step_ref,
+            cascade_depth=cascade_depth,
+            parent_reroute_ref=parent_reroute_ref,
+            successors_by_source=successors_by_source,
+            scheduled_fan_steps=self._scheduled_fan_steps,
+        )
+        self.splice_after_current(successor_items, offset=offset)
+
+
 def _source_fact_body_carry_for_step(
     *,
     building_root: Path,
@@ -1876,7 +1943,7 @@ def _run_dynamic_graph_walker(
     # splice declared successors into the live queue.
     if has_fan_groups:
         root_order = _graph_root_step_refs(forward_order, graph_context)
-        attempt_queue: list[dict[str, Any]] = [
+        initial_attempt_queue: list[dict[str, Any]] = [
             {
                 "step_ref": step_ref,
                 "cascade_depth": 0,
@@ -1885,15 +1952,19 @@ def _run_dynamic_graph_walker(
             }
             for step_ref in root_order
         ]
-        scheduled_fan_steps: set[tuple[str, int]] = {
+        initial_scheduled_fan_steps: set[tuple[str, int]] = {
             (step_ref, 0) for step_ref in root_order
         }
     else:
-        attempt_queue = [
+        initial_attempt_queue = [
             {"step_ref": step_ref, "cascade_depth": 0, "parent_reroute_ref": "", "is_reroute_landing": False}
             for step_ref in forward_order
         ]
-        scheduled_fan_steps = set()
+        initial_scheduled_fan_steps = set()
+    frontier_driver = _FrontierDriver(
+        initial_attempt_queue,
+        scheduled_fan_steps=initial_scheduled_fan_steps,
+    )
 
     step_results: list[BuildingRunSupportResult] = []
     reroute_records: list[Mapping[str, Any]] = []
@@ -1923,10 +1994,7 @@ def _run_dynamic_graph_walker(
     # on the held occurrence (not a later same-step_ref occurrence a raise re-adopts).
     held_occurrence_index: int | None = None
     resume_body_carry_observations: list[Mapping[str, Any]] = []
-    cursor = 0
-    while cursor < len(attempt_queue):
-        item = attempt_queue[cursor]
-        cursor += 1
+    while (item := frontier_driver.next_item()) is not None:
         step_ref = item["step_ref"]
         cascade_depth = int(item.get("cascade_depth", 0))
         # MAIL-REPAIR (0611, B3 lane 2): the resume disposition row's mail entry,
@@ -1942,13 +2010,13 @@ def _run_dynamic_graph_walker(
                 completed_fan_steps=completed_fan_steps,
                 running_fan_steps=running_fan_steps,
                 held_fan_steps=held_fan_steps,
-                pending_queue=attempt_queue[cursor:],
+                pending_queue=frontier_driver.pending_items(),
                 fan_in_deferrals=fan_in_deferrals,
             )
             if wait_observation is not None and wait_state == "hold":
                 fan_in_wait_all_observations.append(wait_observation)
             if wait_state == "defer":
-                attempt_queue.append(item)
+                frontier_driver.defer(item)
                 continue
             if wait_state == "hold":
                 fan_in_hold_record = _build_fan_in_wait_all_hold(
@@ -2074,14 +2142,11 @@ def _run_dynamic_graph_walker(
                 # next queued step (serial), exactly like the kernel's no-actionable-
                 # concern walk-on. The held concern/gate is NOT re-evaluated here.
                 if has_fan_groups:
-                    _splice_declared_successors(
-                        attempt_queue,
-                        insert_at=cursor,
+                    frontier_driver.splice_declared_successors_after_current(
                         source_step_ref=step_ref,
                         cascade_depth=cascade_depth,
                         parent_reroute_ref=item["parent_reroute_ref"],
                         successors_by_source=fan_successors_by_source,
-                        scheduled_fan_steps=scheduled_fan_steps,
                     )
                 continue
             if resume_seed.disposition_action == "reroute":
@@ -2174,14 +2239,11 @@ def _run_dynamic_graph_walker(
                         f"{previous_disposition.get('disposition_action')!r}"
                     )
                 if has_fan_groups:
-                    _splice_declared_successors(
-                        attempt_queue,
-                        insert_at=cursor,
+                    frontier_driver.splice_declared_successors_after_current(
                         source_step_ref=step_ref,
                         cascade_depth=cascade_depth,
                         parent_reroute_ref=item["parent_reroute_ref"],
                         successors_by_source=fan_successors_by_source,
-                        scheduled_fan_steps=scheduled_fan_steps,
                     )
                 continue
             hold_record = prospective_hold
@@ -2246,14 +2308,16 @@ def _run_dynamic_graph_walker(
                 f"{target_brick.replace(':', '-')}"
             )
             reroute_cascade_depth = item["cascade_depth"] + 1
-            attempt_queue[cursor:cursor] = [
-                {
-                    "step_ref": target_step_ref,
-                    "cascade_depth": reroute_cascade_depth,
-                    "parent_reroute_ref": reroute_ref,
-                    "is_reroute_landing": True,
-                }
-            ]
+            frontier_driver.splice_after_current(
+                [
+                    {
+                        "step_ref": target_step_ref,
+                        "cascade_depth": reroute_cascade_depth,
+                        "parent_reroute_ref": reroute_ref,
+                        "is_reroute_landing": True,
+                    }
+                ]
+            )
             reroute_records.append(
                 build_reroute_adoption_record(
                     reroute_ref=reroute_ref,
@@ -2654,7 +2718,7 @@ def _run_dynamic_graph_walker(
                         (skipped_step_ref, reroute_cascade_depth)
                     )
                 fan_in_cohort_records.extend(cohort_records)
-                attempt_queue[cursor:cursor] = appended
+                frontier_driver.splice_after_current(appended)
                 reroute_insert_width = len(appended)
                 # CONTRACT-DERIVED emission (ζ6): build the record FROM the recording
                 # contract field-spec (support/recording/walker_evidence.py iterates
@@ -2702,14 +2766,12 @@ def _run_dynamic_graph_walker(
                 reroute_records.append(adoption_record)
                 adopted_reroute = True
         if has_fan_groups and not adopted_reroute:
-            _splice_declared_successors(
-                attempt_queue,
-                insert_at=cursor + reroute_insert_width,
+            frontier_driver.splice_declared_successors_after_current(
                 source_step_ref=step_ref,
                 cascade_depth=cascade_depth,
                 parent_reroute_ref=item["parent_reroute_ref"],
                 successors_by_source=fan_successors_by_source,
-                scheduled_fan_steps=scheduled_fan_steps,
+                offset=reroute_insert_width,
             )
 
     # RESUME: stamp the human/COO-authored resumed transition_lifecycle on the held
