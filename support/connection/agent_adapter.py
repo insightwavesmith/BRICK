@@ -1268,6 +1268,7 @@ def _invoke_local_cli(
             args_list = [
                 executable_path,
                 "exec",
+                "--skip-git-repo-check",
                 "--cd",
                 str(cwd),
                 "--sandbox",

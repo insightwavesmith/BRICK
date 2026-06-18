@@ -5263,6 +5263,8 @@ def _assert_codex_ephemeral_env_dial(repo: Path) -> None:
             timeout_seconds=5,
             command_runner=runner,
         )
+        if "--skip-git-repo-check" not in absent.args:
+            raise ProfileError("codex-exec-readonly did not emit --skip-git-repo-check")
         if "--ephemeral" in absent.args:
             raise ProfileError("BRICK_CODEX_EPHEMERAL absent still emitted --ephemeral")
         os.environ["BRICK_CODEX_EPHEMERAL"] = "1"
@@ -5274,6 +5276,8 @@ def _assert_codex_ephemeral_env_dial(repo: Path) -> None:
             timeout_seconds=5,
             command_runner=runner,
         )
+        if "--skip-git-repo-check" not in enabled.args:
+            raise ProfileError("codex-exec-readonly dropped --skip-git-repo-check with --ephemeral")
         if "--ephemeral" not in enabled.args:
             raise ProfileError("BRICK_CODEX_EPHEMERAL=1 did not emit --ephemeral")
     finally:
