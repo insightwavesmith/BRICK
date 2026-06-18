@@ -123,6 +123,7 @@ from support.checkers.lib.kernel_checks import (
     run_building_plans_boundary_sweep,
     run_agent_adapter_return_shape,
     run_provider_preflight,
+    run_codex_connect_stall_classification,
     run_design_ai_text_seams,
     run_gemini_api_adapter,
     run_onboard_smoke,
@@ -434,6 +435,17 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
     # missing executable, timeout propagation, blank-output rejection, and
     # secret-output rejection. NO live provider CLI is called.
     "design_ai_text_seams": run_design_ai_text_seams,
+    # CONNECT-STALL CLASSIFICATION (TrackB 0619). Pins the codex DEAD-worker label
+    # split IN-PROCESS with mock fixtures only (NO live CLI, NO 20-min wait): the
+    # default stall threshold sits in the 90-180s fast-fail band (env override +
+    # NaN/neg/zero guards intact); a dead-connection signature fast-fails WITHIN the
+    # threshold and maps to the distinct 'local_cli_connect_stall' kind while a plain
+    # timeout stays 'local_cli_timeout'; both route to the SAME adapter_error_frontier
+    # HOLD with NO auto-retry/scheduler token; and the reap journal carries the last
+    # health triple + dead_signature_seconds as support facts only. Mutation-RED:
+    # re-flatten _adapter_error_kind (stall -> local_cli_timeout) or restore the
+    # ~20-min default threshold -> RED.
+    "codex_connect_stall_classification": run_codex_connect_stall_classification,
     # B6 GEMINI-API-ADAPTER. Executes the direct Gemini HTTP API adapter
     # IN-PROCESS: asserts adapter:gemini-api is admitted (READ+REVIEW, not
     # write-capable, not a CLI spec); that a no-key call raises a CLEAN typed

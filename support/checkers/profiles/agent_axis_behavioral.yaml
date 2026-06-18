@@ -25,6 +25,17 @@ kernel_checks:
   # executable, timeout propagation, blank-output rejection, and secret-output
   # rejection. NO live provider CLI is called.
   - design_ai_text_seams
+  # CONNECT-STALL CLASSIFICATION (TrackB 0619): pins the codex DEAD-worker label
+  # split IN-PROCESS (no live CLI, no 20-min wait). Default stall threshold sits in
+  # the 90-180s fast-fail band (env override + NaN/neg/zero guards intact); a
+  # dead-connection signature fast-fails WITHIN the threshold and maps to the
+  # distinct local_cli_connect_stall kind while a plain timeout stays
+  # local_cli_timeout; both route to the SAME adapter_error_frontier HOLD with NO
+  # auto-retry/scheduler; the reap journal carries the last health triple +
+  # dead_signature_seconds as support facts only. Mutation-RED: re-flatten
+  # _adapter_error_kind (stall -> local_cli_timeout) or restore the ~20-min default
+  # threshold -> RED.
+  - codex_connect_stall_classification
   # TREASURE PORT 2 (0611, lifted from 2d44fc7): no provider/runtime session id
   # in kernel/buildings/reviews/archive surfaces; 6 frozen-history legacy leak
   # files ride an explicit per-path allowlist of frozen line-content hashes

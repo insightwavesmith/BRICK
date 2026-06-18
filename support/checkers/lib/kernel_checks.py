@@ -2431,8 +2431,13 @@ def run_design_ai_text_seams(repo: Path) -> KernelResult:
     except subprocess.TimeoutExpired as exc:
         if adapter._timeout_expired_reap_reason(exc) != "stall":
             raise ProfileError("design_ai_text_seams: codex dead-connection timeout was not typed as stall")
-        if run_module._adapter_error_kind(exc) != "local_cli_timeout":
-            raise ProfileError("design_ai_text_seams: codex stall did not map to local_cli_timeout")
+        # CONNECT-STALL LABEL SPLIT (TrackB 0619): a stall-tagged timeout now maps to
+        # the DISTINCT local_cli_connect_stall kind (no longer flattened into the
+        # generic local_cli_timeout). The dedicated codex_connect_stall_classification
+        # checker pins the full A/B contract; here we only keep design-AI-seam's stall
+        # path tracking the new label so it does not assert the retired flattening.
+        if run_module._adapter_error_kind(exc) != "local_cli_connect_stall":
+            raise ProfileError("design_ai_text_seams: codex stall did not map to local_cli_connect_stall")
         if not walker_resume._adapter_error_hold_without_return({"hold_reason": "adapter_error_frontier"}):
             raise ProfileError("design_ai_text_seams: adapter-error HOLD seam no longer recognizes the frontier")
     else:
@@ -2538,6 +2543,267 @@ def run_design_ai_text_seams(repo: Path) -> KernelResult:
             "secret-looking output, pinned codex dead-connection fast-fail without "
             "killing slow-live/unknown-health fixtures, and called NO live provider CLI "
             f"({inspected} group(s) inspected)."
+        ),
+    )
+
+
+def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
+    """CONNECT-STALL CLASSIFICATION (TrackB 0619): pin the dead-worker label split.
+
+    Two diseases are never conflated. This checker pins ONLY the connect-stall
+    (DEAD worker: process alive, 0 children, 0 established sockets, cpu_seconds
+    frozen) path -- NOT token-amplification (a LIVE worker re-reading a transcript).
+
+    FIREs, IN-PROCESS with mock fixtures only (NO live provider CLI, NO 20-min wait):
+      (A) the stall watchdog DEFAULT threshold sits inside the 90-180s fast-fail
+          band, the BRICK_CODEX_STALL_THRESHOLD_SECONDS env override still wins, and
+          the NaN / negative / zero guards still reject bad env values.
+      (B) a dead-connection signature classifies as a stall WITHIN the threshold (a
+          fast clock + fast watchdog config, no real sleep): the raised
+          TimeoutExpired is tagged reap_reason == "stall" and
+          run._adapter_error_kind maps it to the DISTINCT 'local_cli_connect_stall'.
+      (C) a PLAIN TimeoutExpired (no stall tag) still maps to 'local_cli_timeout'.
+      (D) BOTH kinds route to the SAME adapter-error HOLD seam (label split, not a
+          new lifecycle) and there is NO auto-retry / scheduler surface.
+      (E) the reap journal carries the last health-sample triple (child_count,
+          established_socket_count, cpu_seconds) + dead_signature_seconds as SUPPORT
+          FACTS ONLY (no fault label, no Movement decision).
+
+    Mutation-RED: re-flatten run._adapter_error_kind so a stall maps back to
+    'local_cli_timeout' (or restore the ~20-min default threshold) and this check
+    goes RED without invoking any live provider CLI.
+    """
+    _ensure_import_identity(repo)
+    adapter = importlib.import_module("brick_protocol.support.connection.agent_adapter")
+    run_module = importlib.import_module("brick_protocol.support.operator.run")
+    walker_resume = importlib.import_module("brick_protocol.support.operator.walker_resume")
+    inspected = 0
+
+    # (A) DEFAULT threshold inside the 90-180s connect-stall fast-fail band.
+    default_threshold = adapter._CODEX_STALL_WATCHDOG_DEFAULT_THRESHOLD_SECONDS
+    if not (90 <= default_threshold <= 180):
+        raise ProfileError(
+            "codex_connect_stall_classification A: default stall threshold "
+            f"{default_threshold!r} is outside the 90-180s fast-fail band"
+        )
+    # env override still wins (a parseable value replaces the default).
+    override_seconds = 137.0
+    prior_env = os.environ.get(adapter._CODEX_STALL_WATCHDOG_THRESHOLD_ENV)
+    try:
+        os.environ[adapter._CODEX_STALL_WATCHDOG_THRESHOLD_ENV] = str(override_seconds)
+        override_config = adapter._codex_stall_watchdog_config(timeout_seconds=600)
+        if override_config is None or override_config.threshold_seconds != override_seconds:
+            raise ProfileError(
+                "codex_connect_stall_classification A: env override did not replace "
+                "the default stall threshold"
+            )
+        # NaN / negative / zero guards still reject bad env values.
+        for bad_value in ("nan", "inf", "-5"):
+            os.environ[adapter._CODEX_STALL_WATCHDOG_THRESHOLD_ENV] = bad_value
+            if adapter._codex_stall_watchdog_config(timeout_seconds=600) is not None:
+                raise ProfileError(
+                    "codex_connect_stall_classification A: stall watchdog guard "
+                    f"accepted a bad env threshold {bad_value!r}"
+                )
+    finally:
+        if prior_env is None:
+            os.environ.pop(adapter._CODEX_STALL_WATCHDOG_THRESHOLD_ENV, None)
+        else:
+            os.environ[adapter._CODEX_STALL_WATCHDOG_THRESHOLD_ENV] = prior_env
+    inspected += 1
+
+    # (B) a dead-connection signature classifies WITHIN the threshold (fast clock +
+    # fast watchdog config: no real 20-min sleep). The watchdog raises a stall-tagged
+    # TimeoutExpired and run._adapter_error_kind maps it to local_cli_connect_stall.
+    class _DeadCodexProc:
+        pid = 982451653
+        returncode: int | None = None
+
+        def __init__(self, clock_state: dict[str, float]) -> None:
+            self.clock_state = clock_state
+            self.communicate_timeouts: list[float] = []
+
+        def poll(self) -> int | None:
+            return self.returncode
+
+        def communicate(self, *, timeout: float) -> tuple[str, str]:
+            self.communicate_timeouts.append(float(timeout))
+            self.clock_state["now"] += float(timeout)
+            raise subprocess.TimeoutExpired(cmd=("codex", "exec"), timeout=timeout)
+
+    fast_config = adapter._CodexStallWatchdogConfig(threshold_seconds=0.2, poll_seconds=0.1)
+    dead_clock = {"now": 0.0}
+    dead_proc = _DeadCodexProc(dead_clock)
+    dead_health = adapter._CodexCliHealth(
+        process_running=True,
+        child_count=0,
+        established_socket_count=0,
+        cpu_seconds=42.0,
+    )
+
+    stall_exc: subprocess.TimeoutExpired | None = None
+    try:
+        adapter._communicate_with_optional_codex_stall_watchdog(
+            dead_proc,
+            ("codex", "exec", "--output-last-message", "/tmp/ignored", "prompt"),
+            timeout_seconds=3600,
+            watchdog_config=fast_config,
+            health_probe=lambda proc: dead_health,
+            clock=lambda: dead_clock["now"],
+        )
+    except subprocess.TimeoutExpired as exc:
+        stall_exc = exc
+    if stall_exc is None:
+        raise ProfileError(
+            "codex_connect_stall_classification B: dead-connection watchdog did not fire"
+        )
+    if dead_clock["now"] >= 3600:
+        raise ProfileError(
+            "codex_connect_stall_classification B: dead-connection did not fast-fail "
+            "WITHIN the threshold (it waited until the full adapter timeout)"
+        )
+    if adapter._timeout_expired_reap_reason(stall_exc) != "stall":
+        raise ProfileError(
+            "codex_connect_stall_classification B: dead-connection timeout was not "
+            "tagged reap_reason == 'stall'"
+        )
+    if run_module._adapter_error_kind(stall_exc) != "local_cli_connect_stall":
+        raise ProfileError(
+            "codex_connect_stall_classification B: a stall-tagged timeout did NOT map "
+            "to the distinct 'local_cli_connect_stall' kind (the un-flatten regressed)"
+        )
+    inspected += 1
+
+    # (C) a PLAIN TimeoutExpired (no stall tag) still maps to local_cli_timeout.
+    plain_exc = subprocess.TimeoutExpired(cmd=("codex", "exec"), timeout=5)
+    if adapter._timeout_expired_reap_reason(plain_exc) != "timeout":
+        raise ProfileError(
+            "codex_connect_stall_classification C: an untagged timeout was mis-read "
+            "as a stall"
+        )
+    if run_module._adapter_error_kind(plain_exc) != "local_cli_timeout":
+        raise ProfileError(
+            "codex_connect_stall_classification C: a plain timeout no longer maps to "
+            "'local_cli_timeout'"
+        )
+    inspected += 1
+
+    # (D) BOTH kinds route to the SAME adapter-error HOLD seam (label split, not a new
+    # lifecycle). The error_kind only labels the carried mapping; the hold_reason is
+    # identical, so the resume HOLD seam recognizes the frontier for both.
+    stall_mapping = run_module._adapter_error_mapping(stall_exc)
+    timeout_mapping = run_module._adapter_error_mapping(plain_exc)
+    if stall_mapping.get("error_kind") != "local_cli_connect_stall":
+        raise ProfileError(
+            "codex_connect_stall_classification D: stall mapping lost its connect-stall label"
+        )
+    if timeout_mapping.get("error_kind") != "local_cli_timeout":
+        raise ProfileError(
+            "codex_connect_stall_classification D: timeout mapping lost its timeout label"
+        )
+    hold_record = {"hold_reason": "adapter_error_frontier"}
+    if not walker_resume._adapter_error_hold_without_return(hold_record):
+        raise ProfileError(
+            "codex_connect_stall_classification D: adapter-error HOLD seam no longer "
+            "recognizes the frontier both kinds route to"
+        )
+    # NO auto-retry / queue / scheduler surface in either mapping.
+    for mapping in (stall_mapping, timeout_mapping):
+        flat = json.dumps(mapping).lower()
+        for forbidden in ("retry", "schedule", "requeue", "re-fire", "refire"):
+            if forbidden in flat:
+                raise ProfileError(
+                    "codex_connect_stall_classification D: adapter-error mapping leaked "
+                    f"an auto-retry/scheduler token {forbidden!r} (no-scheduler invariant)"
+                )
+    inspected += 1
+
+    # (E) reap journal carries the last health triple + dead_signature_seconds as
+    # SUPPORT FACTS ONLY. Drive the live journal seam (_journal_reap) with the facts a
+    # stall reap carries, redirect the journal to a temp file, and read it back.
+    signature_facts = adapter._timeout_expired_stall_dead_signature(stall_exc)
+    if not isinstance(signature_facts, Mapping):
+        raise ProfileError(
+            "codex_connect_stall_classification E: stall exception did not carry the "
+            "dead-signature support facts"
+        )
+    for key in ("child_count", "established_socket_count", "cpu_seconds", "dead_signature_seconds"):
+        if key not in signature_facts:
+            raise ProfileError(
+                f"codex_connect_stall_classification E: dead-signature facts missing {key!r}"
+            )
+    if (
+        signature_facts["child_count"] != 0
+        or signature_facts["established_socket_count"] != 0
+        or signature_facts["cpu_seconds"] != 42.0
+    ):
+        raise ProfileError(
+            "codex_connect_stall_classification E: dead-signature triple did not mirror "
+            f"the observed health sample: {dict(signature_facts)!r}"
+        )
+
+    class _ReapProc:
+        pid = 982451653
+        returncode = -15
+
+        def poll(self) -> int | None:
+            return self.returncode
+
+    with tempfile.TemporaryDirectory(prefix="bp-connect-stall-journal-") as tmp:
+        journal_path = Path(tmp) / "adapter-spawn-journal.jsonl"
+        prior_journal = os.environ.get("BRICK_ADAPTER_SPAWN_JOURNAL_PATH")
+        os.environ["BRICK_ADAPTER_SPAWN_JOURNAL_PATH"] = str(journal_path)
+        try:
+            adapter._journal_reap(_ReapProc(), reason="stall", dead_signature=signature_facts)
+        finally:
+            if prior_journal is None:
+                os.environ.pop("BRICK_ADAPTER_SPAWN_JOURNAL_PATH", None)
+            else:
+                os.environ["BRICK_ADAPTER_SPAWN_JOURNAL_PATH"] = prior_journal
+        if not journal_path.is_file():
+            raise ProfileError(
+                "codex_connect_stall_classification E: reap journal was not written"
+            )
+        records = [
+            json.loads(line)
+            for line in journal_path.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+    reap_records = [r for r in records if r.get("event") == "reap" and r.get("reason") == "stall"]
+    if not reap_records:
+        raise ProfileError(
+            "codex_connect_stall_classification E: no stall reap record in the journal"
+        )
+    journaled = reap_records[-1].get("dead_signature")
+    if not isinstance(journaled, Mapping):
+        raise ProfileError(
+            "codex_connect_stall_classification E: stall reap record carried no "
+            "dead_signature support facts"
+        )
+    if (
+        journaled.get("child_count") != 0
+        or journaled.get("established_socket_count") != 0
+        or journaled.get("cpu_seconds") != 42.0
+        or "dead_signature_seconds" not in journaled
+    ):
+        raise ProfileError(
+            "codex_connect_stall_classification E: journaled dead_signature did not "
+            f"carry the health triple + duration: {dict(journaled)!r}"
+        )
+    inspected += 1
+
+    return KernelResult(
+        check_id="codex_connect_stall_classification",
+        inspected=inspected,
+        output=(
+            "codex connect-stall classification passed: default stall threshold sits "
+            f"in the 90-180s fast-fail band ({default_threshold}s), env override wins, "
+            "NaN/negative/zero guards hold; a dead-connection signature fast-fails "
+            "WITHIN the threshold and maps to the distinct local_cli_connect_stall "
+            "kind while a plain timeout stays local_cli_timeout; both route to the same "
+            "adapter_error_frontier HOLD with NO auto-retry/scheduler token; and the "
+            "reap journal carries the last health triple + dead_signature_seconds as "
+            f"support facts only -- NO live provider CLI ({inspected} group(s) inspected)."
         ),
     )
 

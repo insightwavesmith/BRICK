@@ -44,6 +44,7 @@ from brick_protocol.support.connection.agent_adapter import (
     AgentAdapterResult,
     AgentBrainCallable,
     CommandRunner,
+    _timeout_expired_reap_reason,
     connect_agent_brain,
     safe_source_fact_body,
 )
@@ -1959,6 +1960,17 @@ def _adapter_error_kind(exc: Exception) -> str:
     if isinstance(exc, FileNotFoundError):
         return "local_cli_missing"
     if isinstance(exc, subprocess.TimeoutExpired):
+        # CONNECT-STALL LABEL SPLIT (TrackB 0619): the codex stall watchdog tags a
+        # DEAD-connection reap with reap_reason == "stall" on the TimeoutExpired it
+        # raises (agent_adapter._communicate_with_optional_codex_stall_watchdog).
+        # Surface that as a DISTINCT kind so a connect-stall (dead worker) is no
+        # longer hidden inside a generic timeout. This is a LABEL split only: both
+        # kinds route to the SAME adapter-error HOLD/frontier outcome downstream
+        # (_adapter_error_mapping -> _AdapterRunInterrupted -> adapter_error_frontier).
+        # NO auto-retry / queue / scheduler: a connect-stall fast-fails to HOLD and
+        # STOPS for a human (BRICK no-scheduler invariant).
+        if _timeout_expired_reap_reason(exc) == "stall":
+            return "local_cli_connect_stall"
         return "local_cli_timeout"
     if "non-zero" in message or "returned non-zero" in message:
         return "local_cli_nonzero"

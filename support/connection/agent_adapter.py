@@ -125,11 +125,22 @@ _DEFAULT_NOT_PROVEN = (
 )
 _CODEX_STALL_WATCHDOG_THRESHOLD_ENV = "BRICK_CODEX_STALL_THRESHOLD_SECONDS"
 _CODEX_STALL_WATCHDOG_POLL_ENV = "BRICK_CODEX_STALL_POLL_SECONDS"
-_CODEX_STALL_WATCHDOG_DEFAULT_THRESHOLD_SECONDS = 20 * 60
+# CONNECT-STALL FAST-FAIL (TrackB 0619): a dead-connection codex worker (process
+# alive, 0 children, 0 established sockets, cpu_seconds frozen) must be reaped and
+# surfaced to a human within the 90-180s band, not after ~20 minutes. The default
+# sits inside that band; BRICK_CODEX_STALL_THRESHOLD_SECONDS still overrides it and
+# every NaN/negative/zero guard in _codex_stall_watchdog_config is unchanged. This
+# is the DEAD-worker (connect-stall) watchdog ONLY -- it never touches a live worker.
+_CODEX_STALL_WATCHDOG_DEFAULT_THRESHOLD_SECONDS = 150
 _CODEX_STALL_WATCHDOG_DEFAULT_POLL_SECONDS = 30
 _CODEX_STALL_WATCHDOG_PROBE_TIMEOUT_SECONDS = 2
 _CODEX_STALL_WATCHDOG_SIGTERM_GRACE_SECONDS = 5
 _TIMEOUT_REAP_REASON_ATTR = "_brick_protocol_reap_reason"
+# SUPPORT FACTS ONLY: raw dead-connection observation carried on a stall
+# TimeoutExpired so the reap journal can record the last health-sample triple +
+# how long the dead signature persisted. Never an Agent-fault label or a Link
+# decision -- just the numbers the watchdog saw at reap time.
+_STALL_DEAD_SIGNATURE_ATTR = "_brick_protocol_stall_dead_signature"
 _RETURN_LABEL_FIELDS = frozenset(
     {
         "blocked_or_missing_evidence",
@@ -1715,6 +1726,16 @@ def _communicate_with_optional_codex_stall_watchdog(
                         timeout=config.threshold_seconds,
                     )
                     setattr(stall_exc, _TIMEOUT_REAP_REASON_ATTR, "stall")
+                    # SUPPORT FACTS ONLY (TrackB 0619 step E): carry the last
+                    # health-sample triple + how long the dead-connection signature
+                    # persisted so the reap journal can record WHY this was reaped as
+                    # a connect-stall. No Agent-fault label, no Link decision -- these
+                    # are raw observations of the dead worker at reap time.
+                    setattr(
+                        stall_exc,
+                        _STALL_DEAD_SIGNATURE_ATTR,
+                        _stall_dead_signature_facts(current_sample, now - dead_signature_since),
+                    )
                     raise stall_exc from exc
             else:
                 dead_signature_since = None
@@ -1892,6 +1913,37 @@ def _timeout_expired_reap_reason(exc: subprocess.TimeoutExpired) -> str:
     return reason if reason == "stall" else "timeout"
 
 
+def _stall_dead_signature_facts(
+    last_sample: _CodexCliHealth | None,
+    dead_signature_seconds: float,
+) -> dict[str, Any]:
+    """Raw dead-connection observation for the reap journal (SUPPORT FACTS ONLY).
+
+    Records the last health-sample triple (child_count, established_socket_count,
+    cpu_seconds) the watchdog saw plus how long the dead-connection signature
+    persisted before the threshold tripped. No fault attribution, no Movement
+    decision -- only the numbers, so an operator can see the dead worker forensics.
+    """
+
+    facts: dict[str, Any] = {
+        "dead_signature_seconds": round(float(dead_signature_seconds), 3),
+    }
+    if last_sample is not None:
+        facts["child_count"] = last_sample.child_count
+        facts["established_socket_count"] = last_sample.established_socket_count
+        facts["cpu_seconds"] = last_sample.cpu_seconds
+    return facts
+
+
+def _timeout_expired_stall_dead_signature(
+    exc: subprocess.TimeoutExpired,
+) -> Mapping[str, Any] | None:
+    facts = getattr(exc, _STALL_DEAD_SIGNATURE_ATTR, None)
+    if isinstance(facts, Mapping):
+        return facts
+    return None
+
+
 def _reap_timeout_process_group(proc: "subprocess.Popen[str]", *, reason: str) -> None:
     if reason == "stall":
         _signal_process_group(proc, signal.SIGTERM)
@@ -1935,7 +1987,11 @@ def _run_text_cli_command(
     except subprocess.TimeoutExpired as exc:
         reason = _timeout_expired_reap_reason(exc)
         _reap_timeout_process_group(proc, reason=reason)
-        _journal_reap(proc, reason=reason)
+        _journal_reap(
+            proc,
+            reason=reason,
+            dead_signature=_timeout_expired_stall_dead_signature(exc),
+        )
         raise
     _journal_reap(proc, reason="exit")
     return LocalCliCompleted(
@@ -2005,21 +2061,29 @@ def _journal_spawn(proc: "subprocess.Popen[str]", args: Sequence[str], cwd: Path
     )
 
 
-def _journal_reap(proc: "subprocess.Popen[str]", *, reason: str) -> None:
+def _journal_reap(
+    proc: "subprocess.Popen[str]",
+    *,
+    reason: str,
+    dead_signature: Mapping[str, Any] | None = None,
+) -> None:
     try:
         pgid = os.getpgid(proc.pid)
     except OSError:
         pgid = -1
-    _journal_write(
-        {
-            "event": "reap",
-            "pid": proc.pid,
-            "pgid": pgid,
-            "reason": reason,
-            "return_code": proc.returncode,
-            "reaped_at": time.time(),
-        }
-    )
+    record: dict[str, Any] = {
+        "event": "reap",
+        "pid": proc.pid,
+        "pgid": pgid,
+        "reason": reason,
+        "return_code": proc.returncode,
+        "reaped_at": time.time(),
+    }
+    if dead_signature is not None:
+        # SUPPORT FACTS ONLY: last health triple + dead-signature duration the
+        # connect-stall watchdog observed. Forensic trace, not a fault label.
+        record["dead_signature"] = dict(dead_signature)
+    _journal_write(record)
 
 
 def _run_command(
@@ -2049,8 +2113,15 @@ def _run_command(
     except subprocess.TimeoutExpired as exc:
         reason = _timeout_expired_reap_reason(exc)
         _reap_timeout_process_group(proc, reason=reason)
-        _journal_reap(proc, reason=reason)
-        raise  # SAME TimeoutExpired -> run.py _adapter_error_kind stays 'local_cli_timeout'
+        _journal_reap(
+            proc,
+            reason=reason,
+            dead_signature=_timeout_expired_stall_dead_signature(exc),
+        )
+        # SAME TimeoutExpired re-raised. run.py _adapter_error_kind reads the
+        # reap_reason tag: a 'stall' reap -> 'local_cli_connect_stall', a plain
+        # timeout -> 'local_cli_timeout' (both route to the same adapter-error HOLD).
+        raise
     _journal_reap(proc, reason="exit")
     return LocalCliCompleted(
         args=tuple(str(part) for part in args),
