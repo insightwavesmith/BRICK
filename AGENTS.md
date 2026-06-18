@@ -475,6 +475,17 @@ propose non-binding transition concerns; declared Link gate/policy adopts or
 pauses; support walks and records. Per-node budgets and HOLD/frontier evidence
 bound the route. Support authors no route or Movement.
 
+Fan-out sibling-evidence independence (F1, the 0609 cross-vouch invariant): the
+fan-out sibling nodes that split from one parent each hold their OWN independent
+evidence. One sibling's returned-evidence body (its AgentFact/claim_trace) must
+never appear as another sibling's evidence — a copied/shared sibling body is a
+cross-vouch leak (sibling A standing in for sibling B). Each fan-out sibling is
+walked and recorded on its own per-branch lane (`sibling_independence` is the
+narrow human-vouched skip exception, never an evidence copy). This independence
+is scoped to FAN-OUT SIBLINGS ONLY: sequential/chain Bricks share carry/spine by
+design, and parent->child evidence sharing is expected — only same-parent
+fan-out sibling bodies must be byte-distinct.
+
 Runtime mail (MAIL-REPAIR, Smith rulings 0611): a redo step scheduled by an
 ADOPTED runtime reroute receives, in its Link handoff packet
 (`link_handoff_refs.runtime_handoffs`), the eligible runtime rows' ADDRESSES —

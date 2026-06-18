@@ -311,6 +311,43 @@ modules:
     decomposition_target: ""
     pinned_by: axis_crossing_elegance kernel check (this guard; self-registered, anti-tautological)
 
+  # FAULT-SEPARATION gate-no-measure half (0618): the Link gate JUDGES
+  # sufficiency and must not re-compute Brick MEASUREMENT (BrickComparisonFact,
+  # the brick_comparison crossing owned by brick/comparison.py). Twin of
+  # check_recording_checker_derived_contract._check_emitter_axis_separation,
+  # applied to link/gate.py: AST-scans the gate source and rejects any import of
+  # the Brick measurement module/symbol or any construction/derivation of
+  # BrickComparisonFact (string-form public-fact references stay allowed). Parses
+  # gate.py, imports no axis module, judges nothing.
+  - module: support/checkers/check_link_gate_measurement_separation.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: link_gate_measurement_separation kernel check (core profile; AST seal — link/gate.py imports/recomputes no Brick measurement; built-in synthetic mutation-RED probe)
+
+  # FAULT-SEPARATION fan-out sibling-evidence independence (F1, the 0609
+  # cross-vouch invariant, 0618): same-parent fan-out sibling nodes each hold
+  # their OWN evidence — one sibling's returned-evidence body (AgentFact /
+  # claim_trace) must never appear as another sibling's body (a cross-vouch
+  # leak). General byte-distinctness GUARD complementing the structural defence
+  # (walker_kernel sibling_independence + per-branch exception isolation, 0609).
+  # Scan/read checker scoped to fan-out siblings only (sequential/chain carry-
+  # sharing + parent->child sharing excluded); self-contained synthetic GREEN +
+  # mutation-RED FIRE probe; reaches no axis module, judges nothing.
+  - module: support/checkers/check_fan_out_sibling_evidence_independence.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: fan_out_sibling_evidence_independence kernel check (core profile; same-parent fan-out sibling evidence bodies byte-distinct; synthetic GREEN + cross-vouch-leak mutation-RED probe)
+
   - module: support/checkers/check_brick_template_catalog_restructure.py
     layer: checkers
     role: checker

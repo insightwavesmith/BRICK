@@ -552,6 +552,34 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "recording_checker_derived_contract",
         "support.checkers.check_recording_checker_derived_contract",
     ),
+    # FAULT-SEPARATION gate-no-measure half (0618). Executes the link-gate
+    # measurement-separation seal IN-PROCESS: AST-scans link/gate.py and rejects
+    # any import of the Brick measurement module/symbol (brick/comparison.py
+    # BrickComparisonFact, the brick_comparison crossing) or any
+    # construction/derivation of that measurement -- the gate JUDGES sufficiency
+    # and must never re-compute the measurement it reads (string-form public-fact
+    # references stay allowed). A built-in synthetic mutation-RED probe asserts a
+    # gate body that imports + constructs the measurement is rejected; a non-zero
+    # main() raises ProfileError, so a measurement leak into the gate makes --all
+    # EXIT non-zero. Parses gate.py, imports no axis module, judges nothing.
+    "link_gate_measurement_separation": _repo_main(
+        "link_gate_measurement_separation",
+        "support.checkers.check_link_gate_measurement_separation",
+    ),
+    # FAULT-SEPARATION fan-out sibling-evidence independence (F1, the 0609
+    # cross-vouch invariant, 0618). Executes the byte-distinctness guard
+    # IN-PROCESS over a self-contained synthetic building-map fixture: a parent
+    # that fans out to siblings whose returned-evidence bodies (AgentFact /
+    # claim_trace) are all byte-distinct passes, while copying one fan-out
+    # sibling's body onto a SAME-PARENT sibling (the cross-vouch leak) is
+    # rejected. Scoped to fan-out siblings only (sequential/chain carry-sharing +
+    # parent->child sharing excluded). A non-zero main() raises ProfileError, so
+    # a weakened guard makes --all EXIT non-zero. Reaches no axis module, judges
+    # nothing; complements the walker_kernel structural defence (0609).
+    "fan_out_sibling_evidence_independence": _repo_main(
+        "fan_out_sibling_evidence_independence",
+        "support.checkers.check_fan_out_sibling_evidence_independence",
+    ),
     # ELEGANT-REFACTOR P-guard. Executes the elegance guard IN-PROCESS: runs
     # the six anti-tautological G1-G6 negative probes AND validates the live
     # crossing_registry.yaml + module_registry.yaml + the support module

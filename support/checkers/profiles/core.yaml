@@ -18,6 +18,8 @@ kernel_checks:
   - building_declaration_integrity
   - building_plans_boundary_sweep
   - axis_crossing_elegance
+  - link_gate_measurement_separation
+  - fan_out_sibling_evidence_independence
   - evidence_spine
   - evidence_spine_projection
 path_exists:
@@ -37,6 +39,8 @@ path_exists:
   - support/checkers/check_project_declaration.py
   - support/checkers/check_building_declaration_integrity.py
   - support/checkers/check_axis_crossing_elegance.py
+  - support/checkers/check_link_gate_measurement_separation.py
+  - support/checkers/check_fan_out_sibling_evidence_independence.py
   - support/checkers/check_evidence_spine.py
   - support/checkers/check_evidence_spine_projection.py
   - support/checkers/crossing_registry.yaml
