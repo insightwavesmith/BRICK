@@ -7305,18 +7305,65 @@ def _check_source_fact_body_expectations(
                 f"source_fact_body_carry_case rejected {label}: "
                 f"missing body for {source_fact_ref}"
             )
+        from support.operator.walker_kernel import (
+            _WIKI_CARRY_NOTE,
+            _WIKI_CARRY_VIEW_HEADER,
+            wiki_carry_path_text,
+            wiki_carry_summary_text,
+        )
+
+        # WIKI-CARRY shape pin: the carried body is a compact wiki VIEW
+        # (summary + absolute path + note), NOT the full step-output envelope.
+        if not body.startswith(_WIKI_CARRY_VIEW_HEADER):
+            raise ProfileError(
+                f"source_fact_body_carry_case rejected {label}: "
+                f"{source_fact_ref} body is not a wiki carry view"
+            )
+        if _WIKI_CARRY_NOTE not in body:
+            raise ProfileError(
+                f"source_fact_body_carry_case rejected {label}: "
+                f"{source_fact_ref} wiki carry view missing note"
+            )
+        carry_path = wiki_carry_path_text(body)
+        if not carry_path or not Path(carry_path).is_absolute():
+            raise ProfileError(
+                f"source_fact_body_carry_case rejected {label}: "
+                f"{source_fact_ref} wiki carry view missing absolute path"
+            )
+        if not carry_path.endswith("step-output.json"):
+            raise ProfileError(
+                f"source_fact_body_carry_case rejected {label}: "
+                f"{source_fact_ref} wiki carry path does not point at a step-output file"
+            )
+        summary = wiki_carry_summary_text(body)
+        if summary is None:
+            raise ProfileError(
+                f"source_fact_body_carry_case rejected {label}: "
+                f"{source_fact_ref} wiki carry view missing summary"
+            )
         try:
-            packet = json.loads(body)
+            returned = json.loads(summary)
         except json.JSONDecodeError as exc:
             raise ProfileError(
-                f"source_fact_body_carry_case rejected {label}: body is not JSON"
+                f"source_fact_body_carry_case rejected {label}: "
+                f"{source_fact_ref} wiki carry summary is not JSON"
             ) from exc
-        returned = packet.get("returned")
         if not isinstance(returned, Mapping) or returned.get("body_marker") != returned_marker:
             raise ProfileError(
                 f"source_fact_body_carry_case rejected {label}: "
                 f"{source_fact_ref} returned_marker mismatch"
             )
+        # The FULL step-output envelope must NOT be inline: only `returned`
+        # rides in the summary. ``raw_stream_ref``/``agent_fact_fields`` are
+        # envelope-only keys (never inside the agent's ``returned``); their
+        # presence means the full body leaked in.
+        for envelope_only_key in ("raw_stream_ref", "agent_fact_fields"):
+            if envelope_only_key in body:
+                raise ProfileError(
+                    f"source_fact_body_carry_case rejected {label}: "
+                    f"{source_fact_ref} full step-output envelope leaked into carry "
+                    f"({envelope_only_key})"
+                )
 
 
 def run_step_output_drain_case(repo: Path, profile: Mapping[str, Any]) -> int:
@@ -7510,18 +7557,26 @@ class _StepOutputDrainObserved:
         refs = list(request.source_fact_bodies)
         file_exists: dict[str, bool] = {}
         markers: list[str] = []
+        from support.operator.walker_kernel import wiki_carry_summary_text
+
         for ref, body in request.source_fact_bodies.items():
             relative_ref = _checker_step_output_relative_ref(ref)
             path = self.output_root / request.building_id / relative_ref
             file_exists[ref] = path.is_file()
             if path.is_file():
                 self.body_text_at_call[ref] = path.read_text(encoding="utf-8")
+            # WIKI-CARRY: the carried body is a compact wiki view; the worker's
+            # curated `returned` rides in the summary section, not the full
+            # step-output JSON. Recover the summary and parse it back.
+            summary = wiki_carry_summary_text(body)
+            if summary is None:
+                markers.append("")
+                continue
             try:
-                packet = json.loads(body)
+                returned = json.loads(summary)
             except json.JSONDecodeError:
                 markers.append("")
                 continue
-            returned = packet.get("returned")
             markers.append(
                 str(returned.get("body_marker"))
                 if isinstance(returned, Mapping) and returned.get("body_marker") is not None
