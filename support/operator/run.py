@@ -170,6 +170,9 @@ from brick_protocol.support.recording.capture import (
     graph_ready_timestamp,
     project_ref_for_building_root,
 )
+from brick_protocol.support.recording.adapter_usage_meter import (
+    write_adapter_usage_meter,
+)
 from brick_protocol.support.recording.contracts import StepOutputObservation
 from brick_protocol.support.recording.step_outputs import (
     _step_output_dir_ref,
@@ -1892,7 +1895,56 @@ def _write_step_output_on_step_close(
         recorded_at=step_result.recorded_at,
         existing_policy="replace" if overwrite_existing else "same_content_or_error",
     )
+    # TrackA-A1 METER (SUPPORT FACT only): record this step's adapter token usage
+    # in the raw/adapter-usage.jsonl meter journal. The count rides the adapter
+    # result's adapter_usage SIDE-CHANNEL -- it never touched AgentFact.returned or
+    # any Link field. Absent/empty usage (no codex --json turn.completed, or a
+    # non-usage adapter) writes NO meter row at all -- the step is simply skipped;
+    # the meter only records steps that actually emitted usage. MEASUREMENT ONLY;
+    # no cap is applied.
+    _write_adapter_usage_meter_on_step_close(
+        building_root=building_root,
+        building_id=building_id,
+        step_result=step_result,
+        step_ref=step_ref,
+        attempt_index=attempt_index,
+    )
     return step_result
+
+
+def _write_adapter_usage_meter_on_step_close(
+    *,
+    building_root: Path,
+    building_id: str,
+    step_result: BuildingRunSupportResult,
+    step_ref: str,
+    attempt_index: int,
+) -> None:
+    adapter_result = step_result.adapter_result
+    request = adapter_result.request
+    # TrackA-A1 REGRESSION FIX (no null-usage noise): write a meter row ONLY when
+    # usage is actually present -- a non-empty Mapping. Non-usage adapters
+    # (claude-local / gemini-local / adapter:local, and an older codex with no
+    # --json) surface adapter_usage=None, and an empty Mapping carries no counter;
+    # neither should generate a usage_present=False row. The meter stays tight:
+    # only adapters that actually emitted usage write to raw/adapter-usage.jsonl.
+    # (claude/gemini usage plug is a SEPARATE later task #58 -- not added here.)
+    adapter_usage = adapter_result.adapter_usage
+    if not isinstance(adapter_usage, Mapping) or not adapter_usage:
+        return
+    # PURE APPEND-ONLY: the writer appends ONE new record line to the END of
+    # raw/adapter-usage.jsonl and never reads, re-parses, reorders, or rewrites any
+    # pre-existing line. There is no read+separate+rewrite path to preserve raw
+    # evidence -- the bytes already on disk are never touched in the first place.
+    write_adapter_usage_meter(
+        building_root,
+        building_id,
+        step_ref=step_ref,
+        adapter_ref=request.adapter_ref,
+        selected_model_ref=request.selected_model_ref,
+        attempt_index=attempt_index,
+        adapter_usage=adapter_usage,
+    )
 
 
 def _step_output_observation_from_result(

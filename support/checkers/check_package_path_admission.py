@@ -357,6 +357,12 @@ PRH_B_RECORDER_TARGETS = {
     "support/recording/spine_projection.py",
     "support/recording/raw_claim_trace.py",
     "support/recording/step_outputs.py",
+    # TrackA-A1 (INSTRUMENT FIRST 0619): the per-step adapter token-usage METER
+    # journal writer (raw/adapter-usage.jsonl). A support recording shape module
+    # only: NESTED graph-ready JSONL, no BAL fact class, no fourth axis. Records
+    # the codex turn.completed token counters as a Brick-axis SUPPORT FACT with no
+    # quality/fault label and no cap (measurement only).
+    "support/recording/adapter_usage_meter.py",
     # P-evidence-arch / ζ6 contract-derived dynamic-walker evidence emitters
     # (reroute-adoption record, HOLD record, structured field observation). A
     # support recording shape module only: NESTED evidence, no BAL fact class.

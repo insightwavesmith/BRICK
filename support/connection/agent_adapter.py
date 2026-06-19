@@ -409,6 +409,12 @@ class AgentAdapterResult:
     returned_value: Any
     proof_limits: tuple[str, ...] = field(default_factory=tuple)
     not_proven: tuple[str, ...] = field(default_factory=tuple)
+    # TrackA-A1 METER side-channel (SUPPORT FACT only): per-step codex token usage
+    # parsed from `codex exec --json`. This rides ALONGSIDE returned_value, never
+    # INSIDE it -- the adapter meter writer reads this; AgentFact.returned and the
+    # Link facts never see it. None when the adapter emitted no usage. NO quality
+    # or fault label is attached.
+    adapter_usage: Mapping[str, Any] | None = None
 
 
 class AgentAdapterParked(RuntimeError):
@@ -471,6 +477,13 @@ class LocalCliCompleted:
     return_code: int
     stdout: str
     stderr: str
+    # TrackA-A1 METER (SUPPORT FACT only): per-turn codex token usage parsed from
+    # the `codex exec --json` JSONL stdout (last turn.completed.usage), already
+    # mapped onto the allowlisted token-counter key names. None means "no usage
+    # observed" -- older codex without --json, or no turn.completed event. This
+    # field NEVER flows into AgentFact.returned or any Link field; it is a Brick-
+    # axis meter input carrying NO quality/fault label.
+    adapter_usage: Mapping[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -570,6 +583,9 @@ def connect_agent_brain(
         raise AgentAdapterParked(request)
     dispatch_cwd = Path(cwd) if cwd is not None else _REPO_ROOT
     _consume_effective_write_observation_path(request, cwd=dispatch_cwd)
+    # TrackA-A1 METER: only the local-CLI codex path emits token usage today. The
+    # local-callable and gemini-api paths carry no per-turn usage, so it stays None.
+    adapter_usage: Mapping[str, Any] | None = None
     if request.adapter_ref == ADAPTER_LOCAL:
         returned_value = _invoke_local_callable(request, local_callables)
         proof_limits = _merge_texts(_DEFAULT_PROOF_LIMITS, request.proof_limits)
@@ -580,7 +596,7 @@ def connect_agent_brain(
             timeout_seconds=timeout_seconds,
         )
     else:
-        returned_value, proof_limits, not_proven = _invoke_local_cli_adapter(
+        returned_value, proof_limits, not_proven, adapter_usage = _invoke_local_cli_adapter(
             request,
             cwd=dispatch_cwd,
             timeout_seconds=timeout_seconds,
@@ -592,6 +608,7 @@ def connect_agent_brain(
         returned_value=returned_value,
         proof_limits=proof_limits,
         not_proven=not_proven,
+        adapter_usage=adapter_usage,
     )
 
 
@@ -928,7 +945,7 @@ def _invoke_local_cli_adapter(
     cwd: Path,
     timeout_seconds: int,
     command_runner: CommandRunner | None,
-) -> tuple[Mapping[str, Any], tuple[str, ...], tuple[str, ...]]:
+) -> tuple[Mapping[str, Any], tuple[str, ...], tuple[str, ...], Mapping[str, Any] | None]:
     spec = _local_cli_spec(request.adapter_ref)
     probe = probe_local_cli_adapter(
         spec.adapter_ref,
@@ -986,9 +1003,13 @@ def _invoke_local_cli_adapter(
             request.required_return_shape,
         ),
     )
-    return returned, _merge_texts(proof_limits, request.proof_limits), _merge_texts(
-        not_proven,
-        request.not_proven,
+    # TrackA-A1 METER: the codex token usage rides back as a SEPARATE 4th element,
+    # NOT inside `returned` (which becomes AgentFact.returned). Support fact only.
+    return (
+        returned,
+        _merge_texts(proof_limits, request.proof_limits),
+        _merge_texts(not_proven, request.not_proven),
+        completed.adapter_usage,
     )
 
 
@@ -1293,6 +1314,169 @@ def _local_cli_spec(adapter_ref: str) -> LocalCliSpec:
         raise ValueError("adapter_ref is not a local CLI adapter") from exc
 
 
+# TrackA-A1 METER (codex token usage): `codex exec --json` emits one JSONL event
+# per line on stdout, ending each turn with
+#   {"type":"turn.completed","usage":{"input_tokens","cached_input_tokens",
+#    "output_tokens","reasoning_output_tokens"}}
+# We parse the LAST turn.completed.usage and expose the four counters under a
+# STABLE codex-vocabulary key set. These are SUPPORT FACTS only -- the meter
+# writer (support/recording/adapter_usage_meter.py) maps the subset that overlaps
+# the WORKFLOW_IMPORT_USAGE_METRIC_KEYS allowlist; nothing here is a verdict.
+CODEX_TURN_COMPLETED_USAGE_KEYS: tuple[str, ...] = (
+    "input_tokens",
+    "cached_input_tokens",
+    "output_tokens",
+    "reasoning_output_tokens",
+)
+
+
+def codex_usage_from_json_stdout(stdout: str) -> Mapping[str, Any] | None:
+    """Parse the LAST ``turn.completed`` usage from ``codex exec --json`` stdout.
+
+    Returns a mapping carrying ONLY the codex usage counter keys, or ``None`` when
+    the stdout is empty / not JSONL / has no ``turn.completed`` with a ``usage``
+    block (older codex without ``--json``). Per the graceful-fallback contract,
+    absent is ``None`` and a missing individual counter is recorded as ``None``;
+    this function NEVER fabricates a count and NEVER raises on malformed input.
+    """
+
+    if not isinstance(stdout, str) or not stdout.strip():
+        return None
+    last_usage: Mapping[str, Any] | None = None
+    for line in stdout.splitlines():
+        text = line.strip()
+        if not text or text[0] != "{":
+            continue
+        try:
+            event = json.loads(text)
+        except (ValueError, TypeError):
+            continue
+        if not isinstance(event, Mapping):
+            continue
+        if event.get("type") != "turn.completed":
+            continue
+        usage = event.get("usage")
+        if isinstance(usage, Mapping):
+            last_usage = usage
+    if last_usage is None:
+        return None
+    parsed: dict[str, Any] = {}
+    for key in CODEX_TURN_COMPLETED_USAGE_KEYS:
+        value = last_usage.get(key)
+        parsed[key] = value if isinstance(value, int) and not isinstance(value, bool) else None
+    return parsed
+
+
+# TrackA-A1 ROOT FIX (TEXT SAFETY + GATE-NO-MEASURE): the assistant message TEXT
+# keys codex emits inside its `--json` JSONL events. When the --output-last-message
+# file is empty/unwritten under --json, we recover the assistant text from THESE
+# event fields ONLY -- never by handing raw JSONL back as the assistant text. The
+# raw JSONL must never become output_text (it would leak the event structure into
+# output_excerpt and, worse, let a JSONL "usage" key be lifted into
+# AgentFact.returned via _extract_required_return_fields -- a gate-no-measure
+# violation). Tolerant of the known codex item/message event shapes; on no match
+# returns "" (treated as no-text), NEVER the raw JSONL stdout.
+_CODEX_ASSISTANT_MESSAGE_EVENT_TYPES: frozenset[str] = frozenset(
+    {"item.completed", "agent_message", "assistant_message", "response.completed"}
+)
+_CODEX_ASSISTANT_MESSAGE_ITEM_TYPES: frozenset[str] = frozenset(
+    {"agent_message", "assistant_message", "message"}
+)
+_CODEX_ASSISTANT_TEXT_KEYS: tuple[str, ...] = ("text", "message", "content")
+
+
+def codex_assistant_text_from_json_stdout(stdout: str) -> str:
+    """Recover the LAST assistant message TEXT from ``codex exec --json`` stdout.
+
+    Returns the assistant's text content drawn from the JSONL event fields, or the
+    empty string when no assistant-message event/text is present. It NEVER returns
+    the raw JSONL and NEVER raises on malformed input. This is the safe replacement
+    for the old ``completed.stdout`` fallback: under ``--json`` the stdout is raw
+    JSONL events, so the previous fallback leaked event structure (and any embedded
+    ``usage`` key) into the assistant-text path. Here only real message text is ever
+    returned; absence is the empty string, treated downstream as no-text.
+    """
+
+    if not isinstance(stdout, str) or not stdout.strip():
+        return ""
+    last_text = ""
+    for line in stdout.splitlines():
+        text = line.strip()
+        if not text or text[0] != "{":
+            continue
+        try:
+            event = json.loads(text)
+        except (ValueError, TypeError):
+            continue
+        if not isinstance(event, Mapping):
+            continue
+        if event.get("type") not in _CODEX_ASSISTANT_MESSAGE_EVENT_TYPES:
+            continue
+        candidate = _codex_event_assistant_text(event)
+        if candidate:
+            last_text = candidate
+    return last_text
+
+
+def _codex_event_assistant_text(event: Mapping[str, Any]) -> str:
+    """Pull assistant text out of one codex JSONL event mapping (best-effort)."""
+
+    # Newer codex nests the message under an "item" with its own type/text.
+    item = event.get("item")
+    if isinstance(item, Mapping):
+        item_type = item.get("type")
+        if item_type is None or item_type in _CODEX_ASSISTANT_MESSAGE_ITEM_TYPES:
+            nested = _codex_text_from_keys(item)
+            if nested:
+                return nested
+    return _codex_text_from_keys(event)
+
+
+def _codex_text_from_keys(source: Mapping[str, Any]) -> str:
+    for key in _CODEX_ASSISTANT_TEXT_KEYS:
+        value = source.get(key)
+        if isinstance(value, str) and value.strip():
+            return value
+        # codex content can be a list of {type:"text"/"output_text", text:...} parts.
+        if isinstance(value, list):
+            joined = "".join(
+                part.get("text", "")
+                for part in value
+                if isinstance(part, Mapping) and isinstance(part.get("text"), str)
+            )
+            if joined.strip():
+                return joined
+    return ""
+
+
+# TrackA-A1 MAJOR FIX (graceful older-codex --json): a codex binary that does not
+# understand ``--json`` exits NONZERO with an "unrecognized/unknown --json"-shaped
+# diagnostic. The meter is INSTRUMENTATION; it must NEVER break a build. So when a
+# ``--json`` invocation fails with this signature we retry ONCE without ``--json``
+# (the meter just records absent usage). Any OTHER nonzero failure is a real build
+# error and is returned untouched for the normal nonzero path.
+_CODEX_JSON_UNSUPPORTED_MARKERS: tuple[str, ...] = (
+    "unrecognized",
+    "unknown option",
+    "unexpected argument",
+    "no such option",
+    "invalid option",
+    "unknown flag",
+    "unknown argument",
+)
+
+
+def _codex_json_unsupported(completed: LocalCliCompleted) -> bool:
+    """True when a nonzero codex result looks like ``--json`` is unsupported."""
+
+    if completed.return_code == 0:
+        return False
+    haystack = f"{completed.stderr}\n{completed.stdout}".lower()
+    if "--json" not in haystack and "json" not in haystack:
+        return False
+    return any(marker in haystack for marker in _CODEX_JSON_UNSUPPORTED_MARKERS)
+
+
 def _invoke_local_cli(
     spec: LocalCliSpec,
     request: AgentAdapterRequest,
@@ -1346,20 +1530,62 @@ def _invoke_local_cli(
             # BRICK_CODEX_EPHEMERAL=0.
             if os.environ.get("BRICK_CODEX_EPHEMERAL") != "0":
                 args_list.append("--ephemeral")
-            args_list.extend(("--output-last-message", output_file.name, prompt))
-            args = tuple(args_list)
-            completed = _run_or_delegate(args, cwd, timeout_seconds, command_runner)
-            if not completed.stdout:
-                output_file.seek(0)
-                file_text = output_file.read().decode("utf-8", errors="replace")
-                if file_text.strip():
-                    completed = LocalCliCompleted(
-                        args=completed.args,
-                        return_code=completed.return_code,
-                        stdout=file_text,
-                        stderr=completed.stderr,
-                    )
-            return completed
+            # TrackA-A1 METER: `--json` turns codex's stdout into per-event JSONL so
+            # we can read the turn.completed token usage. It does NOT change where
+            # the TEXT response lives: codex still writes the last assistant message
+            # to the --output-last-message FILE regardless of --json. So below we
+            # read the TEXT from that FILE ALWAYS (the JSONL stdout is NOT text), and
+            # parse the JSONL stdout ONLY for the usage meter. stdin=DEVNULL (the
+            # connect-stall cure) and --output-last-message are untouched.
+            #
+            # GRACEFUL OLDER-CODEX (the meter is instrumentation, never break a
+            # build): we try WITH --json first; if that exact invocation fails with
+            # an "unrecognized --json"-shaped diagnostic (older codex), we retry ONCE
+            # WITHOUT --json. The meter then records absent usage (None) and the build
+            # proceeds. Any OTHER nonzero is a real build error, returned untouched.
+            tail_args = ("--output-last-message", output_file.name, prompt)
+            json_args = tuple((*args_list, "--json", *tail_args))
+            completed = _run_or_delegate(json_args, cwd, timeout_seconds, command_runner)
+            json_active = True
+            if _codex_json_unsupported(completed):
+                # Older codex: re-run WITHOUT --json so the build still completes.
+                # The file may have been left empty by the rejected first attempt;
+                # re-running with a fresh seek keeps the text path identical.
+                plain_args = tuple((*args_list, *tail_args))
+                completed = _run_or_delegate(
+                    plain_args, cwd, timeout_seconds, command_runner
+                )
+                json_active = False
+            # SUPPORT meter input (Brick-axis fact, no verdict): the LAST
+            # turn.completed.usage from the JSONL stdout. None when --json is
+            # unavailable (older codex) or no turn.completed/usage is present.
+            adapter_usage = (
+                codex_usage_from_json_stdout(completed.stdout) if json_active else None
+            )
+            # TEXT response ALWAYS from the --output-last-message file. When the file
+            # is empty/unwritten we must NOT fall back to raw stdout under --json --
+            # that stdout is JSONL events, and feeding it to the assistant-text path
+            # leaks the event structure into output_excerpt AND can let a JSONL
+            # "usage" key be lifted into AgentFact.returned (gate-no-measure). So with
+            # --json on we recover the assistant message TEXT from the JSONL events
+            # (codex_assistant_text_from_json_stdout), which returns "" when no
+            # message text is present -- never the raw JSONL. Without --json (older
+            # codex), the stdout is plain text and the original fallback is restored.
+            output_file.seek(0)
+            file_text = output_file.read().decode("utf-8", errors="replace")
+            if file_text.strip():
+                text_stdout = file_text
+            elif json_active:
+                text_stdout = codex_assistant_text_from_json_stdout(completed.stdout)
+            else:
+                text_stdout = completed.stdout
+            return LocalCliCompleted(
+                args=completed.args,
+                return_code=completed.return_code,
+                stdout=text_stdout,
+                stderr=completed.stderr,
+                adapter_usage=adapter_usage,
+            )
     if spec.invocation_args_kind == "claude-plan-json":
         knobs = _claude_cli_invocation(request)
         args_list = [
