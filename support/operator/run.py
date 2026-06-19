@@ -1072,6 +1072,19 @@ def run_building_once(
 
     packet = _fixture_mapping(fixture)
     _validate_no_payload_forbidden("fixture", packet, _FORBIDDEN_PAYLOAD_KEYS)
+    # ENGINE SEAM (#56, MAJOR-6 codex review 0619): run_building_once is a PUBLIC
+    # building-execution entry that emits report events (terminal events below) but
+    # is NOT dispatched through run_building_plan, so it must cross the loader on
+    # its own. Auto-load the allowlisted slack/dashboard creds and THREAD them as
+    # report_env into the sink gating + delivery. Report keys are returned for
+    # threading and are NOT injected into os.environ (no child leak); only the
+    # provider key (GEMINI/GOOGLE) lands in os.environ for the gemini adapter.
+    # When the caller already supplied report_env, still cross the loader so the
+    # provider key reaches os.environ, but the caller's mapping wins for threading.
+    if report_env is None:
+        report_env = load_report_env_into_process()
+    else:
+        load_report_env_into_process()
     report_event_policy = report_event_policy_from_plan(packet)
     # FIX-C (codex review 0611) TASK-SOURCE ADMISSION on the SINGLE-STEP
     # surface, parity with run_building_plan strictness (P11b): a declared
@@ -1293,12 +1306,15 @@ def run_building_plan(
     packet = _fixture_mapping(plan)
     _validate_no_payload_forbidden("plan", packet, _FORBIDDEN_PAYLOAD_KEYS)
     # ENGINE SEAM (#56): auto-load the allowlisted slack/dashboard/provider creds
-    # from ~/.brick/report.env (+ ~/.brick/credentials.env) into os.environ so the
-    # environment-gated report sinks can deliver, regardless of how the operator
-    # launched. Idempotent, env-precedence-respecting, 0600-gated, never echoes a
-    # value, no-ops when the files are absent. The injection into os.environ is the
-    # primary effect (the sinks read os.environ); the returned mapping fills the
-    # report_env argument when the caller did not supply one.
+    # from ~/.brick/report.env (+ ~/.brick/credentials.env), regardless of how the
+    # operator launched. Idempotent, env-precedence-respecting, 0600-gated (TOCTOU-
+    # safe fd-tied), never echoes a value, no-ops when the files are absent.
+    # INJECTION SCOPE (MAJOR-5, narrowed): the report keys are RETURNED for
+    # threading into the report-sink gating + delivery (NOT injected into
+    # os.environ, so no child-subprocess leak); only the provider key
+    # (GEMINI/GOOGLE) is injected into os.environ for the gemini adapter. The
+    # returned report_env is threaded to the walker below, so the env-gated sinks
+    # always see the creds through the threaded mapping (never the global env).
     if report_env is None:
         report_env = load_report_env_into_process()
     else:
@@ -1361,8 +1377,11 @@ def resume_building_plan(
     root = Path(building_root)
     # ENGINE SEAM (#56): resume passes through here for held->disposition walks, so
     # auto-load the env-gated report creds on the resume path too (same discipline
-    # as run_building_plan: allowlist, 0600 gate, env precedence, no value echo,
-    # absent-file no-op). The os.environ injection is the primary effect.
+    # as run_building_plan: allowlist, 0600 gate TOCTOU-safe, env precedence, no
+    # value echo, absent-file no-op). INJECTION SCOPE (MAJOR-5, narrowed): report
+    # keys are RETURNED for threading (not injected into os.environ -> no child
+    # leak); only the provider key lands in os.environ. The threaded report_env
+    # flows to the resumed walker so its sinks read the threaded mapping.
     if report_env is None:
         report_env = load_report_env_into_process()
     else:
