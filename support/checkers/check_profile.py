@@ -415,6 +415,21 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "cli_runner_stdin_devnull",
         "support.checkers.check_cli_runner_stdin_devnull",
     ),
+    # REPORT-ENV-AUTOLOAD (#56). Executes the report.env engine auto-loader
+    # IN-PROCESS over TEMP env fixtures (never the operator's real ~/.brick
+    # files, never the live os.environ): an allowlisted key from a 0600 file is
+    # injected into a fresh env, a NON-allowlisted key is NOT (no blanket load),
+    # a 0644 file is REFUSED with a typed observation, a pre-set key is preserved
+    # (env precedence / operator env wins), and no credential VALUE is echoed.
+    # Includes two in-process mutation-RED probes (defeat the 0600 gate -> the
+    # 0644 file loads; widen the allowlist -> the non-allowlisted key loads), and
+    # asserts the loader is wired at the run.py engine seam (run + resume). A
+    # non-zero main() raises ProfileError, so a regressed gate/allowlist/seam
+    # makes --all EXIT non-zero.
+    "report_env_autoload": _repo_main(
+        "report_env_autoload",
+        "support.checkers.check_report_env_autoload",
+    ),
     # Executes the declaration-integrity checker IN-PROCESS: runs the three
     # anti-tautological negative probes (composition-mode, chain artifacts,
     # provenance<->returned acceptance) AND inspects every persisted building

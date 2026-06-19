@@ -77,6 +77,7 @@ from brick_protocol.support.operator.gate_sequence import (
     run_gate_sequence_policy,
 )
 from brick_protocol.support.operator.frontier_observation import observe_building_frontier
+from brick_protocol.support.operator.runtime_env import load_report_env_into_process
 from brick_protocol.support.operator.reporter import (
     building_event_kind_from_frontier,
     emit_building_event_for_policy,
@@ -1291,6 +1292,17 @@ def run_building_plan(
 
     packet = _fixture_mapping(plan)
     _validate_no_payload_forbidden("plan", packet, _FORBIDDEN_PAYLOAD_KEYS)
+    # ENGINE SEAM (#56): auto-load the allowlisted slack/dashboard/provider creds
+    # from ~/.brick/report.env (+ ~/.brick/credentials.env) into os.environ so the
+    # environment-gated report sinks can deliver, regardless of how the operator
+    # launched. Idempotent, env-precedence-respecting, 0600-gated, never echoes a
+    # value, no-ops when the files are absent. The injection into os.environ is the
+    # primary effect (the sinks read os.environ); the returned mapping fills the
+    # report_env argument when the caller did not supply one.
+    if report_env is None:
+        report_env = load_report_env_into_process()
+    else:
+        load_report_env_into_process()
     checked_proof_limits = _proof_limits_tuple(
         proof_limits if proof_limits is not None else packet.get("proof_limits")
     )
@@ -1347,6 +1359,14 @@ def resume_building_plan(
     """
 
     root = Path(building_root)
+    # ENGINE SEAM (#56): resume passes through here for held->disposition walks, so
+    # auto-load the env-gated report creds on the resume path too (same discipline
+    # as run_building_plan: allowlist, 0600 gate, env precedence, no value echo,
+    # absent-file no-op). The os.environ injection is the primary effect.
+    if report_env is None:
+        report_env = load_report_env_into_process()
+    else:
+        load_report_env_into_process()
     checked_proof_limits = _proof_limits_tuple(proof_limits)
     frontier = observe_building_frontier(root, repo_root=_REPO_ROOT)
     if frontier.get("frontier_kind") == "chat_session_parked":

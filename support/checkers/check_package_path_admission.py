@@ -260,6 +260,17 @@ REPORTER_NOTIFICATION_PROJECTION0_TARGETS = {
     "support/operator/report_sinks.py",
 }
 
+# REPORT-ENV-AUTOLOAD-0 (#56): the engine-entry auto-loader that injects the
+# narrow allowlist of slack/dashboard/provider credential keys from
+# ~/.brick/report.env (+ ~/.brick/credentials.env) into os.environ at the run.py
+# building seam, so the environment-gated report sinks can deliver regardless of
+# how the operator launched. Support operator mechanics only: allowlist-only,
+# 0600-gated, env-precedence, no value echo; owns no crossing, stores no secret
+# at rest, chooses no Movement, judges nothing.
+REPORT_ENV_AUTOLOAD0_TARGETS = {
+    "support/operator/runtime_env.py",
+}
+
 # DASHBOARD-EVENT-DELTA-0 + DASHBOARD-SURFACE-0 (M-union 0610): the read-side
 # dashboard projection module (reshapes the ledger packet into a dashboard-readable
 # snapshot, and one building into the same per-building row/detail shape as an
@@ -1658,6 +1669,9 @@ def allowed_path(path: str) -> bool:
         return True
 
     if clean in REPORTER_NOTIFICATION_PROJECTION0_TARGETS:
+        return True
+
+    if clean in REPORT_ENV_AUTOLOAD0_TARGETS:
         return True
 
     if clean in DASHBOARD_EXPORT0_TARGETS:

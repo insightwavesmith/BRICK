@@ -1,0 +1,35 @@
+schema: checker-profile/v1
+profile_id: report-env-autoload
+description: Behavioral guard for the report.env engine auto-loader (#56). Exercises support/operator/runtime_env.py in-process over temp env fixtures -- an allowlisted credential key from a 0600 file is injected into a fresh env, a non-allowlisted key is NOT (no blanket load), a 0644 file is REFUSED with a typed observation, a pre-set key is preserved (env precedence / operator env wins), and no credential value is echoed -- plus two mutation-RED probes (defeat the 0600 gate -> the loose file loads; widen the allowlist -> the non-allowlisted key loads) and the run.py engine-seam wiring assertion. Fails closed.
+kernel_checks:
+  - report_env_autoload
+path_exists:
+  - support/operator/runtime_env.py
+  - support/operator/run.py
+  - support/checkers/check_report_env_autoload.py
+  - support/checkers/profiles/report_env_autoload.yaml
+text_contains:
+  - path: support/operator/runtime_env.py
+    texts:
+      - ALLOWED_ENV_PREFIXES
+      - ALLOWED_ENV_EXACT
+      - _file_is_loose_permissioned
+      - load_report_env_into_process
+  - path: support/operator/run.py
+    texts:
+      - load_report_env_into_process
+  - path: support/checkers/check_report_env_autoload.py
+    texts:
+      - mutation RED observed (permission gate)
+      - mutation RED observed (allowlist)
+      - _assert_no_value_echo
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+  - not provider proof
+not_proven:
+  - that a loaded credential is valid or that slack/dashboard delivery actually succeeds over the network
+  - semantic correctness of the report sink/policy delivery logic (unchanged by this loader)

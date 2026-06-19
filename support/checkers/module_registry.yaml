@@ -301,6 +301,16 @@ modules:
     decomposition_target: ""
     pinned_by: cli_runner_stdin_devnull kernel check (the two CLI-runner subprocess spawns in support/connection/agent_adapter.py -- _run_text_cli_command + _run_command -- pass stdin=subprocess.DEVNULL so a provider CLI inheriting an open-no-EOF stdin pipe cannot block forever at startup; the connect-stall primary cure)
 
+  - module: support/checkers/check_report_env_autoload.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: report_env_autoload kernel check (#56; exercises support/operator/runtime_env.py in-process over temp env fixtures -- allowlisted key injected, non-allowlisted dropped, 0644 refused, env precedence preserved, no value echo -- plus two mutation-RED probes and the run.py engine-seam wiring assertion)
+
   - module: support/checkers/check_bounded_agent_proposed_routing_loop0.py
     layer: checkers
     role: checker
@@ -1200,6 +1210,16 @@ modules:
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
     pinned_by: dashboard read-side projection (reshapes the ledger packet + agent/brick/building-map evidence into a dashboard-readable snapshot, and one building into the same per-building row/detail shape as an event delta; not a dashboard runtime, chooses no Movement, judges nothing)
+
+  - module: support/operator/runtime_env.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: report_env_autoload kernel check (#56; the engine-entry auto-loader that injects the NARROW allowlist of slack/dashboard/provider credential keys from ~/.brick/report.env + ~/.brick/credentials.env into os.environ at the run.py building seam so the environment-gated report sinks can deliver; allowlist-only, 0600-gated, env-precedence, no value echo, absent-file no-op; owns no crossing, stores no secret at rest, judges nothing)
 
   # ---- support/recording --------------------------------------------------
   - module: support/recording/records.py
