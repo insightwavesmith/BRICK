@@ -11,9 +11,6 @@ steps:
     target_word: design
   - step_template_ref: building-step-template:design
     brick_spec_ref: brick/templates/bricks/design/brick.md
-    target_word: development
-  - step_template_ref: building-step-template:development
-    brick_spec_ref: brick/templates/bricks/development/brick.md
     target_word: work
   - step_template_ref: building-step-template:work
     brick_spec_ref: brick/templates/bricks/work/brick.md

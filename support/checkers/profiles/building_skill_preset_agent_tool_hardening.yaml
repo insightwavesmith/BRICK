@@ -363,13 +363,11 @@ materialize_building_intent_case:
       step_refs:
         - materialize-app-feature-basic-graph-plan
         - materialize-app-feature-basic-graph-design
-        - materialize-app-feature-basic-graph-development
         - materialize-app-feature-basic-graph-work
         - materialize-app-feature-basic-graph-review
         - materialize-app-feature-basic-graph-closure
       target_refs:
         - brick-materialize-app-feature-basic-graph-design
-        - brick-materialize-app-feature-basic-graph-development
         - brick-materialize-app-feature-basic-graph-work
         - brick-materialize-app-feature-basic-graph-review
         - brick-materialize-app-feature-basic-graph-closure
@@ -382,9 +380,7 @@ materialize_building_intent_case:
         - link-gate:default-transition
         - link-gate:default-transition
         - link-gate:default-transition
-        - link-gate:default-transition
       gate_sequence_policy_gate_refs_by_row:
-        - ""
         - ""
         - ""
         - ""
@@ -393,7 +389,6 @@ materialize_building_intent_case:
       # GATE-WIRING FIRE A4-absence (0610): no profile -> NO row carries
       # gate_concept_provenance (support never invents provenance).
       gate_concept_provenance_by_row:
-        - ""
         - ""
         - ""
         - ""
