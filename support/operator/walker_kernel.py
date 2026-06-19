@@ -686,13 +686,25 @@ def _step_output_body_from_file(building_root: Path, step_output_ref: str) -> st
 # agent prompt (agent_adapter._source_fact_bodies_for_prompt -> prompt JSON);
 # no runtime program parses it (the checker simulators that parse it read the
 # SUMMARY section back via ``wiki_carry_summary_text``).
+#
+# VIEW ORDER (load-bearing): PATH + NOTE come FIRST, the SUMMARY comes LAST.
+# The view is floored by ``safe_source_fact_body`` here, and the agent adapter
+# floors it AGAIN downstream (``_clean_source_fact_bodies`` and
+# ``_source_fact_bodies_for_prompt``, limit 12000 / gemini 4000). All of those
+# floors truncate the TAIL (``body[:limit]``). A large ``returned`` can push the
+# whole view past a downstream limit; if the PATH/NOTE were in the tail they
+# would be silently amputated and the worker would lose the "go look" address.
+# By placing the absolute PATH and the NOTE BEFORE the summary, any tail-
+# truncate (whichever limit fires) eats only the END of the summary and ALWAYS
+# preserves the load-bearing path + note. This is adapter-agnostic: it does not
+# matter which floor cuts -- the head is preserved.
 # ---------------------------------------------------------------------------
 
 _WIKI_CARRY_VIEW_HEADER = "[BRICK WIKI CARRY VIEW]"
 _WIKI_CARRY_SUMMARY_PREFIX = "summary (this step's returned -- agent's curated output):"
 _WIKI_CARRY_PATH_PREFIX = "full step output path:"
 _WIKI_CARRY_NOTE = (
-    "note: the summary above is THIS step's returned (the agent's curated "
+    "note: the summary below is THIS step's returned (the agent's curated "
     "output) only. The FULL step output (the whole step-output document with "
     "its evidence pointers, proof limits, and metadata) is NOT inline here -- "
     "it lives in the file at the path above. If the summary is not enough, "
@@ -730,12 +742,16 @@ def _wiki_carry_view(building_root: Path, step_output_ref: str, body: str) -> st
 
     absolute_path = str((building_root / step_output_ref).resolve())
     summary = _returned_summary_for_carry(body)
+    # PATH + NOTE FIRST, SUMMARY LAST: downstream re-truncation
+    # (safe_source_fact_body, limit 12000 / gemini 4000) cuts the TAIL, so the
+    # load-bearing absolute path and note always survive while only the END of an
+    # oversize summary is trimmed. See the VIEW ORDER note above.
     return (
         f"{_WIKI_CARRY_VIEW_HEADER}\n"
-        f"{_WIKI_CARRY_SUMMARY_PREFIX}\n"
-        f"{summary}\n"
         f"{_WIKI_CARRY_PATH_PREFIX} {absolute_path}\n"
-        f"{_WIKI_CARRY_NOTE}"
+        f"{_WIKI_CARRY_NOTE}\n"
+        f"{_WIKI_CARRY_SUMMARY_PREFIX}\n"
+        f"{summary}"
     )
 
 
@@ -757,6 +773,13 @@ def wiki_carry_summary_text(view: str) -> str | None:
     wiki-carry view, else None. Consumers that need the structured ``returned``
     JSON parse this summary; they MUST NOT expect the full step-output envelope
     to be inline.
+
+    ORDER-INDEPENDENT: this scans for the SUMMARY_PREFIX line and captures every
+    line AFTER it. In the current layout the SUMMARY is LAST (PATH + NOTE lead),
+    so capture runs to the end of the view; the ``startswith(PATH_PREFIX)`` break
+    is a defensive guard kept so an older layout (summary before path) is parsed
+    identically. Either way the summary is delimited by its own PREFIX line, not
+    by position.
     """
 
     if not view.startswith(_WIKI_CARRY_VIEW_HEADER):

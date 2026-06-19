@@ -173,6 +173,7 @@ text_contains:
       - compose_building_case
       - compose_building_rejects
       - source_fact_body_carry_case
+      - wiki_carry_truncation_survival_case
       - step_output_drain_case
       - step_output_drain_rejects
   # ELEGANT-REFACTOR P3d: compose_building + CompositionError/CompositionProblem
@@ -1714,6 +1715,16 @@ source_fact_body_carry_case:
       body_expectations:
         - source_fact_ref: source-fact:linear/work/step-outputs/linear-source-attempt-1/step-output.json
           returned_marker: linear-body
+# WIKI-CARRY downstream-truncation survival (0619 adversarial-verify blocker):
+# the wiki view's load-bearing absolute PATH + NOTE must survive being
+# re-truncated by safe_source_fact_body downstream (agent adapter floors the
+# carried body AGAIN at limit 12000 / gemini 4000, tail-cut). PATH/NOTE lead the
+# view, SUMMARY trails, so a large `returned` only loses its summary tail. This
+# pin builds an oversize view via the real _wiki_carry_view, re-truncates at
+# both limits, and asserts the path text + note survive (reorder->tail REDs it).
+wiki_carry_truncation_survival_case:
+  - label: oversize-returned-path-and-note-survive-downstream-retruncation
+    oversize_returned_chars: 20000
 step_output_drain_case:
   - label: p5-live-linear-n1-step-close-handoff
     case_kind: live_linear_n1
