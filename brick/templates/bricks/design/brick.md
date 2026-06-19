@@ -21,6 +21,10 @@ Input: the prior Brick's report (carried via the Link edge) plus this node's dec
 change is shaped, which axis owns each responsibility, the invariants it must hold, the edge cases
 it must survive, and the checker/verifier that would enforce it. Name `candidate_file_changes` as
 *proposed* targets only — do not edit, create, or mutate any file.
+Produce `reading_scope_map`: an ordered, most-important-first list of file/dir paths the work step
+should START reading from to make this change — the bounded read-set you prescribe to the worker so it
+need not explore the repository blindly. It is GUIDANCE the worker may exceed (read further as the work
+requires); it is never a write fence and is never fed to the Link gate.
 `evidence_refs` MUST include inspected repository artifact references (file paths such as
 `support/...`, `brick/...`, `agent/...`, `link/...`, `project/...`, or diff hunks actually read).
 Packet-only labels are not enough for this grounding requirement.
@@ -29,7 +33,7 @@ Return: fill the `required_return_shape` from the return_template
 (`brick/templates/bricks/design/return.yaml`):
 `observed_evidence`, `design_summary`, `relevant_current_structure`, `proposed_changes`, `unchanged_surfaces`,
 `axis_responsibility`, `invariants`, `edge_cases`, `checker_or_verifier_plan`,
-`candidate_file_changes`, `evidence_refs`, `not_proven`.
+`candidate_file_changes`, `evidence_refs`, `not_proven`, `reading_scope_map`.
 Keep everything as observed facts, options, and gaps — record what is *not yet proven*
 (implementation readiness, semantic fitness of the proposed design) rather than asserting it works.
 
