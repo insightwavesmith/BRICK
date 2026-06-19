@@ -28,7 +28,7 @@ import urllib.request
 from collections import Counter
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, fields
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -7412,6 +7412,21 @@ def _dashboard_state_agent_return_record(case_id: str) -> Mapping[str, Any]:
     }
 
 
+def _dashboard_state_recent_recorded_at() -> str:
+    """Relative-recent fixture timestamp (DETERMINISM FIX 0619).
+
+    Previously hardcoded "2026-06-12T00:00:00Z"; the dashboard staleness
+    projection (dashboard_export._disp_state: age_days >= stale_days=7 ->
+    archived_stale) compares last-evidence vs now(), so a fixed fixture date
+    aged past the 7-day window and flipped projection-mid-walk from the expected
+    'running' to 'archived_stale' (a time-bomb that turned --all RED on 0619 = the
+    fixture date + 7d). A recent (now - 1 day) timestamp keeps the mid-walk fixture
+    inside the live window deterministically -> always 'running'.
+    """
+
+    return (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def _dashboard_state_link_record(
     case_id: str,
     *,
@@ -7420,7 +7435,7 @@ def _dashboard_state_link_record(
 ) -> Mapping[str, Any]:
     record = {
         "raw_ref": f"raw:link:{case_id}",
-        "recorded_at": "2026-06-12T00:00:00Z",
+        "recorded_at": _dashboard_state_recent_recorded_at(),
         "step_ref": f"step:{case_id}",
         "source_brick_instance_ref": f"brick:{case_id}:work",
         "target_brick_instance_ref": target_ref,
@@ -7439,7 +7454,7 @@ def _dashboard_state_declared_graph_link_record(
     return {
         "raw_ref": f"raw:link-graph:01:edge-{case_id}-closure-to-boundary",
         "raw_refs": [f"raw:link-graph:01:edge-{case_id}-closure-to-boundary"],
-        "recorded_at": "2026-06-12T00:00:00Z",
+        "recorded_at": _dashboard_state_recent_recorded_at(),
         "step_ref": f"step:{case_id}:closure",
         "source_step_ref": f"step:{case_id}:closure",
         "source_brick_instance_ref": f"brick:{case_id}:closure",
