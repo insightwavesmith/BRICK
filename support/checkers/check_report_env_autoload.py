@@ -36,12 +36,30 @@ the live os.environ) and asserts the behavioral contract:
      symlink at the path (``O_NOFOLLOW``) is refused and the 0644 refusal is tied
      to the open inode -- not a separate ``path.stat()`` re-resolve.
 
+It ALSO guards the EVROOT2 VESSEL-GATE (slack-wiring-gap 0619). The building-event
+emit path runs TWO sequential gates: the #56 ENV gate (does the threaded env carry
+slack/dashboard creds?) and a SECOND, independent VESSEL gate
+(``_sink_refs_for_building_event_root`` -> ``_building_root_is_real_vessel``) that
+strips the external sinks unless the building root is a real vessel. The pre-fix
+guard hard-required ``repo == REPO_ROOT`` (the SOURCE worktree), so EVERY building
+whose evidence root lives under the EVROOT2 evidence home (~/.brick / $BRICK_HOME)
+was mis-classified as a non-vessel and had slack+dashboard silently stripped to
+inbox-only -- a strip (delivered=true, no slack line), not a delivery failure. This
+checker drives the REAL emit path through BOTH gates against a synthetic EVROOT2
+evidence-home building root (TEMP, never the real ~/.brick) and asserts slack +
+dashboard SURVIVE for an evidence-home-rooted vessel, while NOT widening: a no-creds
+env still drops slack at the env gate, and a garbage / repo-root-mismatched root is
+still rejected by the vessel check.
+
 It also runs IN-PROCESS MUTATION-RED probes: with the 0600 permission gate
 defeated, the 0644 file would be loaded (RED); with the allowlist widened, the
 non-allowlisted key would be loaded (RED); with the report/provider injection
 split defeated (all-keys treated as provider), the report key would leak into the
-target env (RED). These prove the checker is not vacuously green if the loader
-ever loses the gate, widens the allowlist, or re-globalizes the report keys.
+target env (RED); and with the pre-fix repo==REPO_ROOT vessel guard reinstated, the
+EVROOT2 evidence-home building's slack+dashboard sinks would be stripped to
+inbox-only (RED). These prove the checker is not vacuously green if the loader ever
+loses the gate, widens the allowlist, re-globalizes the report keys, or the vessel
+check regresses to rejecting evidence-home-rooted vessels.
 
 It does NOT call providers, run a real CLI, choose Movement, judge source truth,
 judge success or quality, classify Building outcomes, or touch the operator's real
@@ -596,6 +614,276 @@ def _check_mutation_red_allowlist(runtime_env, tmp: Path) -> str:
     )
 
 
+def _check_evroot2_vessel_gate(runtime_env, tmp: Path) -> list[str]:
+    """EVROOT2 VESSEL-GATE (slack-wiring-gap 0619): a building whose evidence root
+    lives under the EVROOT2 evidence home (~/.brick / $BRICK_HOME), NOT under the
+    source worktree REPO_ROOT, must STILL be recognized as a real vessel so the
+    env-gated external sinks (slack, dashboard) survive the post-policy vessel gate.
+
+    The live bug: ``emit_building_event_for_policy`` runs TWO sequential gates --
+    (1) the #56 ENV gate ``_event_policy_sink_refs`` (slack survives with threaded
+    creds), then (2) the VESSEL gate ``_sink_refs_for_building_event_root`` which
+    strips slack+dashboard unless ``_building_root_is_real_vessel(repo, root)`` is
+    True. The old guard ``if repo != REPO_ROOT: return False`` rejected EVERY
+    ~/.brick-rooted building, so slack+dashboard were silently stripped to
+    inbox-only -- a strip (delivered=true, no slack line), not a delivery failure,
+    exactly matching the live wiki-dogfood-0619 evidence.
+
+    This probe drives the REAL emit path through BOTH gates against a synthetic
+    EVROOT2 building root under a TEMP evidence home (never the operator's real
+    ~/.brick, never live os.environ) and asserts: with a THREADED report_env
+    carrying slack+dashboard creds, the default-policy emit lists slack AND
+    dashboard as delivered sinks even though the building root is under the
+    evidence home, not REPO_ROOT. It also asserts the gate does NOT widen: a
+    no-creds env still drops slack at the env gate, and a non-vessel garbage root
+    under the same repo still has external sinks stripped.
+    """
+
+    reporter = _import_reporter()
+
+    policy = reporter._default_report_event_policy()  # noqa: SLF001
+    # Sanity: the default (omitted) policy fans out to all three sinks and
+    # environment-gates slack + dashboard -- the exact shape the bug acts on.
+    if reporter.SLACK_SINK_REF not in policy["sink_refs"]:
+        raise ReportEnvAutoloadError(
+            "evroot2-vessel: the default report policy no longer includes the slack "
+            "sink; the vessel-gate pin is mis-anchored"
+        )
+
+    threaded_env = {
+        "BRICK_REPORT_SLACK_BOT_TOKEN": _FAKE_SLACK_TOKEN,
+        "BRICK_REPORT_SLACK_CHANNEL_ID": _FAKE_CHANNEL_ID,
+        "BRICK_DASHBOARD_INGEST_URL": _FAKE_DASHBOARD_URL,
+        "BRICK_DASHBOARD_INGEST_SECRET": _FAKE_DASHBOARD_SECRET,
+    }
+
+    # A synthetic EVROOT2 evidence home + building vessel under a TEMP dir. We
+    # point $BRICK_HOME at it so BRICK_EVIDENCE_HOME() (which the vessel check
+    # consults) recognizes THIS temp tree as the evidence home -- exactly as the
+    # real ~/.brick is recognized in production -- without ever touching the
+    # operator's real ~/.brick.
+    evidence_home = (tmp / "evroot2-home").resolve()
+    root = evidence_home / "project" / "brick-protocol" / "buildings" / "wiki-dogfood-fixture-0619"
+    root.mkdir(parents=True, exist_ok=True)
+    repo = evidence_home
+
+    # Gate 1: ENV gate -- with threaded creds, slack + dashboard survive. This is
+    # the gate diagnostic 1 stopped at; it was always intact.
+    env_refs = reporter._event_policy_sink_refs(  # noqa: SLF001
+        policy, slack_env=threaded_env, dashboard_env=threaded_env
+    )
+    for ref in (reporter.SLACK_SINK_REF, reporter.DASHBOARD_SINK_REF):
+        if ref not in env_refs:
+            raise ReportEnvAutoloadError(
+                f"evroot2-vessel: the ENV gate dropped {ref} even with threaded "
+                "creds -- the #56 threading chain is broken (not the vessel gate)"
+            )
+
+    prior_brick_home = os.environ.get("BRICK_HOME")
+    os.environ["BRICK_HOME"] = str(evidence_home)
+    try:
+        event_root = reporter._building_event_root(repo, root)  # noqa: SLF001
+
+        # Gate 2: VESSEL gate -- the bug site. With the fix, the evidence-home
+        # vessel is recognized and slack + dashboard SURVIVE; with the bug they are
+        # stripped to inbox-only.
+        final_refs = reporter._sink_refs_for_building_event_root(  # noqa: SLF001
+            env_refs, repo=repo, root=event_root
+        )
+        if reporter.SLACK_SINK_REF not in final_refs:
+            raise ReportEnvAutoloadError(
+                "evroot2-vessel REGRESSION: a building whose evidence root is under "
+                "the EVROOT2 evidence home (~/.brick / $BRICK_HOME) had its slack sink "
+                "STRIPPED by the vessel gate _sink_refs_for_building_event_root even "
+                "though the env gate confirmed creds are threaded -- "
+                "_building_root_is_real_vessel rejected the evidence-home-rooted "
+                "vessel (the slack-wiring-gap bug). Slack would silently degrade to "
+                "inbox-only."
+            )
+        if reporter.DASHBOARD_SINK_REF not in final_refs:
+            raise ReportEnvAutoloadError(
+                "evroot2-vessel REGRESSION: the dashboard sink was stripped by the "
+                "vessel gate for an EVROOT2 evidence-home-rooted building (same root "
+                "cause as the slack strip)"
+            )
+
+        # Direct vessel-predicate truth on the evidence-home root.
+        if not reporter._building_root_is_real_vessel(repo, root):  # noqa: SLF001
+            raise ReportEnvAutoloadError(
+                "evroot2-vessel REGRESSION: _building_root_is_real_vessel returned "
+                "False for a genuine EVROOT2 evidence-home vessel root "
+                "<evidence_home>/project/brick-protocol/buildings/<id>"
+            )
+
+        # NO WIDENING (1): a no-creds env still drops slack at the ENV gate -- the
+        # fix does not bypass the credential check.
+        no_creds_refs = reporter._event_policy_sink_refs(  # noqa: SLF001
+            policy, slack_env=None, dashboard_env=None
+        )
+        if reporter.SLACK_SINK_REF in no_creds_refs:
+            raise ReportEnvAutoloadError(
+                "evroot2-vessel: slack survived the ENV gate with NO creds -- the "
+                "vessel fix must not bypass the credential gate"
+            )
+
+        # NO WIDENING (2): a non-vessel garbage path under the SAME (recognized
+        # home) repo is still not a vessel; external sinks are stripped.
+        garbage = evidence_home / "not-a-vessel" / "scratch"
+        garbage.mkdir(parents=True, exist_ok=True)
+        garbage_root = reporter._building_event_root(repo, garbage)  # noqa: SLF001
+        garbage_refs = reporter._sink_refs_for_building_event_root(  # noqa: SLF001
+            env_refs, repo=repo, root=garbage_root
+        )
+        if reporter.SLACK_SINK_REF in garbage_refs or reporter.DASHBOARD_SINK_REF in garbage_refs:
+            raise ReportEnvAutoloadError(
+                "evroot2-vessel: a non-vessel garbage path was accepted as a real "
+                "vessel -- the fix widened the vessel check (external sinks must be "
+                "stripped for non-vessel roots)"
+            )
+
+        # NO WIDENING (3): a repo/root mismatch (root under the evidence home but
+        # repo claimed as the SOURCE REPO_ROOT) derives project_ref=None and is
+        # rejected.
+        if reporter._building_root_is_real_vessel(reporter.REPO_ROOT, root):  # noqa: SLF001
+            raise ReportEnvAutoloadError(
+                "evroot2-vessel: a repo/root mismatch (evidence-home root claimed "
+                "under the source REPO_ROOT) was accepted as a vessel -- the "
+                "path-membership check is not enforcing that root is under the GIVEN "
+                "repo"
+            )
+
+        # NO WIDENING (4) -- the CRITICAL non-widening guard: an UNRECOGNIZED repo
+        # that merely carries the project/<id>/buildings path shape (a throwaway
+        # dir that is NEITHER the source REPO_ROOT NOR the evidence home) is NOT a
+        # real vessel. This is the property the original repo==REPO_ROOT equality
+        # guard protected; the fix must keep it. Here BRICK_HOME points at
+        # ``evidence_home``, so a SIBLING temp tree with the same layout is an
+        # unrecognized home.
+        stranger_home = (tmp / "stranger-not-a-home").resolve()
+        stranger_root = (
+            stranger_home / "project" / "brick-protocol" / "buildings" / "stranger-0619"
+        )
+        stranger_root.mkdir(parents=True, exist_ok=True)
+        if reporter._building_root_is_real_vessel(stranger_home, stranger_root):  # noqa: SLF001
+            raise ReportEnvAutoloadError(
+                "evroot2-vessel: an UNRECOGNIZED repo (neither the source REPO_ROOT "
+                "nor the $BRICK_HOME evidence home) that merely carries the "
+                "project/<id>/buildings path shape was accepted as a real vessel -- "
+                "the fix over-widened (any temp tree with the right shape would now "
+                "fire slack/dashboard); acceptance must be scoped to the recognized "
+                "homes only"
+            )
+        stranger_refs = reporter._sink_refs_for_building_event_root(  # noqa: SLF001
+            env_refs, repo=stranger_home, root=stranger_root
+        )
+        if reporter.SLACK_SINK_REF in stranger_refs or reporter.DASHBOARD_SINK_REF in stranger_refs:
+            raise ReportEnvAutoloadError(
+                "evroot2-vessel: external sinks survived for an UNRECOGNIZED-repo "
+                "building (over-widening)"
+            )
+    finally:
+        if prior_brick_home is None:
+            os.environ.pop("BRICK_HOME", None)
+        else:
+            os.environ["BRICK_HOME"] = prior_brick_home
+
+    return [
+        "evroot2-vessel-gate green: a building whose evidence root lives under the "
+        "EVROOT2 evidence home ($BRICK_HOME / ~/.brick), NOT under the source "
+        "REPO_ROOT, is recognized as a real vessel -- with a threaded report_env "
+        "the default-policy emit lists slack AND dashboard as delivered sinks "
+        "through BOTH the env gate and the vessel gate; no-creds still drops slack "
+        "at the env gate, a non-vessel/garbage or mismatched root still has its "
+        "external sinks stripped, and an UNRECOGNIZED repo (neither REPO_ROOT nor "
+        "the evidence home) with the right path shape is STILL rejected (no "
+        "widening).",
+    ]
+
+
+def _check_mutation_red_vessel_gate(runtime_env, tmp: Path) -> str:
+    """If the vessel check is re-broken (repo==REPO_ROOT hard-required again), the
+    EVROOT2 evidence-home building's slack sink WOULD be stripped -> RED.
+
+    Monkeypatches ``_building_root_is_real_vessel`` to reinstate the pre-fix guard
+    (reject any repo != REPO_ROOT) and confirms the SAME emit path then strips
+    slack+dashboard from the EVROOT2-rooted building down to inbox-only -- proving
+    the real fix (recognizing the evidence-home vessel) is what keeps slack
+    delivered, and that this pin is not vacuously green.
+    """
+
+    reporter = _import_reporter()
+
+    policy = reporter._default_report_event_policy()  # noqa: SLF001
+    threaded_env = {
+        "BRICK_REPORT_SLACK_BOT_TOKEN": _FAKE_SLACK_TOKEN,
+        "BRICK_REPORT_SLACK_CHANNEL_ID": _FAKE_CHANNEL_ID,
+        "BRICK_DASHBOARD_INGEST_URL": _FAKE_DASHBOARD_URL,
+        "BRICK_DASHBOARD_INGEST_SECRET": _FAKE_DASHBOARD_SECRET,
+    }
+    evidence_home = (tmp / "evroot2-mutation-home").resolve()
+    root = evidence_home / "project" / "brick-protocol" / "buildings" / "wiki-dogfood-mutation-0619"
+    root.mkdir(parents=True, exist_ok=True)
+    repo = evidence_home
+    env_refs = reporter._event_policy_sink_refs(  # noqa: SLF001
+        policy, slack_env=threaded_env, dashboard_env=threaded_env
+    )
+
+    original = reporter._building_root_is_real_vessel
+    repo_root_const = reporter.REPO_ROOT
+
+    def _pre_fix_vessel(vrepo, vroot):
+        # The re-introduced bug: the source-worktree REPO_ROOT equality guard.
+        if vrepo.resolve() != repo_root_const.resolve():
+            return False
+        return original(vrepo, vroot)
+
+    prior_brick_home = os.environ.get("BRICK_HOME")
+    os.environ["BRICK_HOME"] = str(evidence_home)
+    try:
+        event_root = reporter._building_event_root(repo, root)  # noqa: SLF001
+        # Sanity: with the REAL (unmutated) fix the evidence-home vessel keeps slack
+        # -- so the strip below is attributable to the mutation, not the fixture.
+        baseline_refs = reporter._sink_refs_for_building_event_root(  # noqa: SLF001
+            env_refs, repo=repo, root=event_root
+        )
+        if reporter.SLACK_SINK_REF not in baseline_refs:
+            raise ReportEnvAutoloadError(
+                "mutation RED setup invalid (vessel gate): the REAL fix did not keep "
+                "slack for the EVROOT2 fixture, so the mutation comparison is "
+                "confounded"
+            )
+        reporter._building_root_is_real_vessel = _pre_fix_vessel  # noqa: SLF001
+        mutated_refs = reporter._sink_refs_for_building_event_root(  # noqa: SLF001
+            env_refs, repo=repo, root=event_root
+        )
+    finally:
+        reporter._building_root_is_real_vessel = original  # noqa: SLF001
+        if prior_brick_home is None:
+            os.environ.pop("BRICK_HOME", None)
+        else:
+            os.environ["BRICK_HOME"] = prior_brick_home
+
+    if reporter.SLACK_SINK_REF in mutated_refs:
+        raise ReportEnvAutoloadError(
+            "mutation RED failed (vessel gate): with the pre-fix repo==REPO_ROOT "
+            "guard reinstated, the EVROOT2 evidence-home building STILL kept its "
+            "slack sink -- so the behavioral check that the real vessel fix is what "
+            "keeps slack delivered is vacuous"
+        )
+    if reporter.DASHBOARD_SINK_REF in mutated_refs:
+        raise ReportEnvAutoloadError(
+            "mutation RED failed (vessel gate): the dashboard sink survived the "
+            "reinstated pre-fix guard for an EVROOT2-rooted building"
+        )
+    return (
+        "mutation RED observed (vessel gate): with the pre-fix repo==REPO_ROOT "
+        "guard reinstated in _building_root_is_real_vessel, the EVROOT2 "
+        "evidence-home building's slack+dashboard sinks ARE stripped to inbox-only "
+        "-- the real fix (recognizing the ~/.brick-rooted vessel) is what keeps "
+        "slack delivered."
+    )
+
+
 def _function_calls(func_node: "ast.AST") -> set[str]:
     """The set of simple-name call targets made anywhere inside a function node."""
 
@@ -715,10 +1003,12 @@ def check(repo: Path) -> list[str]:
         outputs.extend(_check_absent_file_noop(runtime_env, tmp))
         outputs.extend(_check_narrowed_injection_scope(runtime_env, tmp))
         outputs.extend(_check_fd_tied_permission_gate(runtime_env, tmp))
+        outputs.extend(_check_evroot2_vessel_gate(runtime_env, tmp))
         outputs.append(_check_mutation_red_permission_gate(runtime_env, tmp))
         outputs.append(_check_mutation_red_allowlist(runtime_env, tmp))
         outputs.append(_check_mutation_red_fd_permission_gate(runtime_env, tmp))
         outputs.append(_check_mutation_red_injection_split(runtime_env, tmp))
+        outputs.append(_check_mutation_red_vessel_gate(runtime_env, tmp))
     outputs.append(_assert_seam_wires_loader(repo))
     outputs.append(PROOF_LIMIT)
     return outputs

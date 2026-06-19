@@ -1,6 +1,6 @@
 schema: checker-profile/v1
 profile_id: report-env-autoload
-description: Behavioral guard for the report.env engine auto-loader (#56). Exercises support/operator/runtime_env.py in-process over temp env fixtures -- an allowlisted credential key from a 0600 file is injected into a fresh env, a non-allowlisted key is NOT (no blanket load), a 0644 file is REFUSED with a typed observation, a pre-set key is preserved (env precedence / operator env wins), and no credential value is echoed -- plus two mutation-RED probes (defeat the 0600 gate -> the loose file loads; widen the allowlist -> the non-allowlisted key loads) and the run.py engine-seam wiring assertion. Fails closed.
+description: Behavioral guard for the report.env engine auto-loader (#56) plus the EVROOT2 vessel-gate (slack-wiring-gap 0619). Exercises support/operator/runtime_env.py in-process over temp env fixtures -- an allowlisted credential key from a 0600 file is injected into a fresh env, a non-allowlisted key is NOT (no blanket load), a 0644 file is REFUSED with a typed observation, a pre-set key is preserved (env precedence / operator env wins), and no credential value is echoed -- plus mutation-RED probes (defeat the 0600 gate -> the loose file loads; widen the allowlist -> the non-allowlisted key loads). It also drives the REAL building-event emit path through BOTH gates against a synthetic EVROOT2 evidence-home (~/.brick / $BRICK_HOME) building root and asserts the post-policy vessel gate (_sink_refs_for_building_event_root / _building_root_is_real_vessel) keeps slack+dashboard delivered for an evidence-home-rooted vessel (not just REPO_ROOT), with no widening for no-creds / garbage / mismatched roots, and a mutation-RED that re-breaks the vessel check strips slack back to inbox-only. Plus the run.py engine-seam wiring assertion. Fails closed.
 kernel_checks:
   - report_env_autoload
 path_exists:
@@ -22,7 +22,13 @@ text_contains:
     texts:
       - mutation RED observed (permission gate)
       - mutation RED observed (allowlist)
+      - mutation RED observed (vessel gate)
+      - evroot2-vessel-gate green
       - _assert_no_value_echo
+  - path: support/operator/reporter.py
+    texts:
+      - _building_root_is_real_vessel
+      - project_ref_for_building_root
 proof_limits:
   - support evidence only
   - not source truth

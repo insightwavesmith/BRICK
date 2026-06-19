@@ -16,6 +16,7 @@ from brick_protocol.support.connection.agent_resources import (
 )
 from brick_protocol.support.operator.building_operation import observe_building_frontier
 from brick_protocol.support.recording.capture import (
+    BRICK_EVIDENCE_HOME,
     REPO_ROOT as _CAPTURE_REPO_ROOT,
     buildings_root_for,
     is_project_id_slug,
@@ -1300,7 +1301,27 @@ def _resolved_vessel(
 
 
 def _building_root_is_real_vessel(repo: Path, root: Path) -> bool:
-    if repo.resolve() != REPO_ROOT.resolve():
+    # EVROOT2 RECONCILIATION (slack-wiring-gap 0619): the building's evidence
+    # root no longer has to live under the SOURCE worktree REPO_ROOT. Under the
+    # EVROOT2 relocation the evidence home is decoupled to ~/.brick (or
+    # $BRICK_HOME), so ``repo`` derived by _report_repo_root_for_building_root is
+    # the evidence home, not REPO_ROOT. The pre-fix guard ``repo != REPO_ROOT ->
+    # not-a-vessel`` mis-classified EVERY ~/.brick-rooted building as a non-vessel
+    # and silently stripped slack+dashboard to inbox-only (the live bug).
+    #
+    # The fix accepts a real vessel under EITHER recognized home -- the source
+    # REPO_ROOT *or* the EVROOT2 evidence home (BRICK_EVIDENCE_HOME() = $BRICK_HOME
+    # or ~/.brick) -- and STILL rejects an arbitrary ``repo`` that merely happens to
+    # carry the project/<id>/buildings path shape (e.g. a throwaway temp dir). This
+    # keeps the property the original equality guard protected: a non-home repo is
+    # not a real vessel, so its external (slack/dashboard) sinks stay stripped. The
+    # vessel fact is then a PATH fact under a recognized home:
+    # project_ref_for_building_root(root, repo_root=repo) returns None for any path
+    # not under the GIVEN repo's project/<id>/buildings layout, so a garbage path or
+    # a repo/root mismatch is still rejected. The slack creds were independently
+    # confirmed present by the env gate, so this does NOT widen credential exposure.
+    recognized_homes = {REPO_ROOT.resolve(), BRICK_EVIDENCE_HOME().resolve()}
+    if repo.resolve() not in recognized_homes:
         return False
     project_ref = project_ref_for_building_root(root, repo_root=repo)
     if project_ref is None:
