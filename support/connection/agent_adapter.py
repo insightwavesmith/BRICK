@@ -1367,6 +1367,116 @@ def codex_usage_from_json_stdout(stdout: str) -> Mapping[str, Any] | None:
     return parsed
 
 
+# TrackA-A1 ROOT FIX (TEXT SAFETY + GATE-NO-MEASURE): the assistant message TEXT
+# keys codex emits inside its `--json` JSONL events. When the --output-last-message
+# file is empty/unwritten under --json, we recover the assistant text from THESE
+# event fields ONLY -- never by handing raw JSONL back as the assistant text. The
+# raw JSONL must never become output_text (it would leak the event structure into
+# output_excerpt and, worse, let a JSONL "usage" key be lifted into
+# AgentFact.returned via _extract_required_return_fields -- a gate-no-measure
+# violation). Tolerant of the known codex item/message event shapes; on no match
+# returns "" (treated as no-text), NEVER the raw JSONL stdout.
+_CODEX_ASSISTANT_MESSAGE_EVENT_TYPES: frozenset[str] = frozenset(
+    {"item.completed", "agent_message", "assistant_message", "response.completed"}
+)
+_CODEX_ASSISTANT_MESSAGE_ITEM_TYPES: frozenset[str] = frozenset(
+    {"agent_message", "assistant_message", "message"}
+)
+_CODEX_ASSISTANT_TEXT_KEYS: tuple[str, ...] = ("text", "message", "content")
+
+
+def codex_assistant_text_from_json_stdout(stdout: str) -> str:
+    """Recover the LAST assistant message TEXT from ``codex exec --json`` stdout.
+
+    Returns the assistant's text content drawn from the JSONL event fields, or the
+    empty string when no assistant-message event/text is present. It NEVER returns
+    the raw JSONL and NEVER raises on malformed input. This is the safe replacement
+    for the old ``completed.stdout`` fallback: under ``--json`` the stdout is raw
+    JSONL events, so the previous fallback leaked event structure (and any embedded
+    ``usage`` key) into the assistant-text path. Here only real message text is ever
+    returned; absence is the empty string, treated downstream as no-text.
+    """
+
+    if not isinstance(stdout, str) or not stdout.strip():
+        return ""
+    last_text = ""
+    for line in stdout.splitlines():
+        text = line.strip()
+        if not text or text[0] != "{":
+            continue
+        try:
+            event = json.loads(text)
+        except (ValueError, TypeError):
+            continue
+        if not isinstance(event, Mapping):
+            continue
+        if event.get("type") not in _CODEX_ASSISTANT_MESSAGE_EVENT_TYPES:
+            continue
+        candidate = _codex_event_assistant_text(event)
+        if candidate:
+            last_text = candidate
+    return last_text
+
+
+def _codex_event_assistant_text(event: Mapping[str, Any]) -> str:
+    """Pull assistant text out of one codex JSONL event mapping (best-effort)."""
+
+    # Newer codex nests the message under an "item" with its own type/text.
+    item = event.get("item")
+    if isinstance(item, Mapping):
+        item_type = item.get("type")
+        if item_type is None or item_type in _CODEX_ASSISTANT_MESSAGE_ITEM_TYPES:
+            nested = _codex_text_from_keys(item)
+            if nested:
+                return nested
+    return _codex_text_from_keys(event)
+
+
+def _codex_text_from_keys(source: Mapping[str, Any]) -> str:
+    for key in _CODEX_ASSISTANT_TEXT_KEYS:
+        value = source.get(key)
+        if isinstance(value, str) and value.strip():
+            return value
+        # codex content can be a list of {type:"text"/"output_text", text:...} parts.
+        if isinstance(value, list):
+            joined = "".join(
+                part.get("text", "")
+                for part in value
+                if isinstance(part, Mapping) and isinstance(part.get("text"), str)
+            )
+            if joined.strip():
+                return joined
+    return ""
+
+
+# TrackA-A1 MAJOR FIX (graceful older-codex --json): a codex binary that does not
+# understand ``--json`` exits NONZERO with an "unrecognized/unknown --json"-shaped
+# diagnostic. The meter is INSTRUMENTATION; it must NEVER break a build. So when a
+# ``--json`` invocation fails with this signature we retry ONCE without ``--json``
+# (the meter just records absent usage). Any OTHER nonzero failure is a real build
+# error and is returned untouched for the normal nonzero path.
+_CODEX_JSON_UNSUPPORTED_MARKERS: tuple[str, ...] = (
+    "unrecognized",
+    "unknown option",
+    "unexpected argument",
+    "no such option",
+    "invalid option",
+    "unknown flag",
+    "unknown argument",
+)
+
+
+def _codex_json_unsupported(completed: LocalCliCompleted) -> bool:
+    """True when a nonzero codex result looks like ``--json`` is unsupported."""
+
+    if completed.return_code == 0:
+        return False
+    haystack = f"{completed.stderr}\n{completed.stdout}".lower()
+    if "--json" not in haystack and "json" not in haystack:
+        return False
+    return any(marker in haystack for marker in _CODEX_JSON_UNSUPPORTED_MARKERS)
+
+
 def _invoke_local_cli(
     spec: LocalCliSpec,
     request: AgentAdapterRequest,
@@ -1427,21 +1537,48 @@ def _invoke_local_cli(
             # read the TEXT from that FILE ALWAYS (the JSONL stdout is NOT text), and
             # parse the JSONL stdout ONLY for the usage meter. stdin=DEVNULL (the
             # connect-stall cure) and --output-last-message are untouched.
-            args_list.append("--json")
-            args_list.extend(("--output-last-message", output_file.name, prompt))
-            args = tuple(args_list)
-            completed = _run_or_delegate(args, cwd, timeout_seconds, command_runner)
+            #
+            # GRACEFUL OLDER-CODEX (the meter is instrumentation, never break a
+            # build): we try WITH --json first; if that exact invocation fails with
+            # an "unrecognized --json"-shaped diagnostic (older codex), we retry ONCE
+            # WITHOUT --json. The meter then records absent usage (None) and the build
+            # proceeds. Any OTHER nonzero is a real build error, returned untouched.
+            tail_args = ("--output-last-message", output_file.name, prompt)
+            json_args = tuple((*args_list, "--json", *tail_args))
+            completed = _run_or_delegate(json_args, cwd, timeout_seconds, command_runner)
+            json_active = True
+            if _codex_json_unsupported(completed):
+                # Older codex: re-run WITHOUT --json so the build still completes.
+                # The file may have been left empty by the rejected first attempt;
+                # re-running with a fresh seek keeps the text path identical.
+                plain_args = tuple((*args_list, *tail_args))
+                completed = _run_or_delegate(
+                    plain_args, cwd, timeout_seconds, command_runner
+                )
+                json_active = False
             # SUPPORT meter input (Brick-axis fact, no verdict): the LAST
             # turn.completed.usage from the JSONL stdout. None when --json is
             # unavailable (older codex) or no turn.completed/usage is present.
-            adapter_usage = codex_usage_from_json_stdout(completed.stdout)
-            # TEXT response ALWAYS from the --output-last-message file (with --json
-            # the stdout is JSONL, never the assistant text). Fall back to the
-            # original stdout only when the file was not written / is empty, exactly
-            # as before, so non-JSON / older-codex invocations stay behavior-stable.
+            adapter_usage = (
+                codex_usage_from_json_stdout(completed.stdout) if json_active else None
+            )
+            # TEXT response ALWAYS from the --output-last-message file. When the file
+            # is empty/unwritten we must NOT fall back to raw stdout under --json --
+            # that stdout is JSONL events, and feeding it to the assistant-text path
+            # leaks the event structure into output_excerpt AND can let a JSONL
+            # "usage" key be lifted into AgentFact.returned (gate-no-measure). So with
+            # --json on we recover the assistant message TEXT from the JSONL events
+            # (codex_assistant_text_from_json_stdout), which returns "" when no
+            # message text is present -- never the raw JSONL. Without --json (older
+            # codex), the stdout is plain text and the original fallback is restored.
             output_file.seek(0)
             file_text = output_file.read().decode("utf-8", errors="replace")
-            text_stdout = file_text if file_text.strip() else completed.stdout
+            if file_text.strip():
+                text_stdout = file_text
+            elif json_active:
+                text_stdout = codex_assistant_text_from_json_stdout(completed.stdout)
+            else:
+                text_stdout = completed.stdout
             return LocalCliCompleted(
                 args=completed.args,
                 return_code=completed.return_code,

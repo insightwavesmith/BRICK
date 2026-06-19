@@ -36,6 +36,18 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 _ADAPTER_REL = Path("support/connection/agent_adapter.py")
 _STEP_OUTPUTS_REL = Path("support/recording/step_outputs.py")
 _METER_REL = Path("support/recording/adapter_usage_meter.py")
+_RUN_REL = Path("support/operator/run.py")
+
+# A realistic codex ``exec --json`` JSONL stdout: one assistant-message event plus
+# a terminal turn.completed carrying a usage block. Used to pin that, when the
+# --output-last-message file is EMPTY, the assistant TEXT is recovered from the
+# message event ONLY -- the raw JSONL (and any embedded usage) is never returned.
+_CODEX_JSONL_STDOUT = (
+    '{"type":"item.completed","item":{"type":"agent_message",'
+    '"text":"the real assistant answer"}}\n'
+    '{"type":"turn.completed","usage":{"input_tokens":11,"cached_input_tokens":2,'
+    '"output_tokens":3,"reasoning_output_tokens":4}}\n'
+)
 
 # The allowlisted token-counter keys the meter record MUST carry (always present;
 # null when absent). These are the only token-quantity keys admitted into the
@@ -243,6 +255,160 @@ def _assert_mutation_red_usage_into_returned() -> str:
 
 
 # --------------------------------------------------------------------------- #
+# Behavioral: --json JSONL stdout NEVER becomes assistant text (text safety).  #
+# --------------------------------------------------------------------------- #
+
+
+def _assert_jsonl_never_becomes_text() -> str:
+    """Under --json, an EMPTY output file must NOT fall back to raw JSONL as text.
+
+    Pins the ROOT fix: codex_assistant_text_from_json_stdout recovers ONLY the real
+    assistant message text from the JSONL events, never the raw JSONL stdout. This
+    is what stops the event structure (and any embedded ``usage`` key) from leaking
+    into output_excerpt / AgentFact.returned when the file is empty + return_code 0.
+    """
+    from brick_protocol.support.connection.agent_adapter import (
+        codex_assistant_text_from_json_stdout,
+    )
+
+    recovered = codex_assistant_text_from_json_stdout(_CODEX_JSONL_STDOUT)
+    if recovered != "the real assistant answer":
+        raise AdapterUsageMeterError(
+            "assistant-text recovery did not return the message text "
+            f"(got {recovered!r})"
+        )
+    # The recovered text must be the message ONLY -- never the raw JSONL structure.
+    for marker in ('"type"', "turn.completed", '"usage"', "input_tokens"):
+        if marker in recovered:
+            raise AdapterUsageMeterError(
+                f"recovered assistant text leaks raw JSONL marker {marker!r}"
+            )
+    # No assistant-message event at all -> empty string, never the raw JSONL.
+    usage_only = (
+        '{"type":"turn.completed","usage":{"input_tokens":7,'
+        '"cached_input_tokens":1,"output_tokens":2,"reasoning_output_tokens":3}}\n'
+    )
+    if codex_assistant_text_from_json_stdout(usage_only) != "":
+        raise AdapterUsageMeterError(
+            "usage-only JSONL (no message event) must recover empty text, not JSONL"
+        )
+    return (
+        "text-safety: codex_assistant_text_from_json_stdout recovers ONLY the "
+        "assistant message text from --json JSONL (raw JSONL/usage never returned; "
+        "no message event -> empty text)"
+    )
+
+
+def _assert_mutation_red_jsonl_text_fallback() -> str:
+    """Mutation RED: a recovery that returns the raw JSONL stdout must be rejected.
+
+    Simulates the OLD vulnerable fallback (return the raw JSONL as the assistant
+    text) and confirms the text-safety assertion above catches it -- so the guard
+    is not vacuously green if someone reinstates the raw-stdout fallback."""
+
+    def _leaking_recovery(stdout: str) -> str:
+        return stdout  # the OLD bug: raw JSONL handed back as assistant text
+
+    recovered = _leaking_recovery(_CODEX_JSONL_STDOUT)
+    leaks = any(
+        marker in recovered
+        for marker in ('"type"', "turn.completed", '"usage"', "input_tokens")
+    )
+    if not leaks:
+        raise AdapterUsageMeterError(
+            "mutation RED failed: a raw-JSONL text fallback was not detected as a leak"
+        )
+    return (
+        "mutation RED observed: a raw-JSONL assistant-text fallback is detected as "
+        "a text-safety/gate-no-measure leak"
+    )
+
+
+# --------------------------------------------------------------------------- #
+# Static (AST): meter is written ONLY when usage is present (no null-row noise).#
+# --------------------------------------------------------------------------- #
+
+
+def _assert_meter_write_guarded_by_usage_present(repo: Path) -> str:
+    """The step-close meter writer must SKIP when usage is absent/empty.
+
+    Pins the regression fix: _write_adapter_usage_meter_on_step_close must early-
+    return when adapter_usage is not a non-empty Mapping, so claude/gemini/local
+    (and older-codex no-usage) steps write NO adapter-usage row. We confirm a
+    guarded early return GATES the write_adapter_usage_meter call: the call must be
+    dominated by a `return` that triggers when adapter_usage is None / not a Mapping
+    / empty."""
+    module = _parse(repo, _RUN_REL)
+    func = _function_node(module, "_write_adapter_usage_meter_on_step_close")
+    has_guard_return = False
+    write_call_present = False
+    for node in ast.walk(func):
+        if isinstance(node, ast.Call):
+            target = node.func
+            if isinstance(target, ast.Name) and target.id == "write_adapter_usage_meter":
+                write_call_present = True
+        # An `if <cond>: return` with no value, where cond references adapter_usage.
+        if isinstance(node, ast.If):
+            returns_in_body = any(
+                isinstance(inner, ast.Return) and inner.value is None
+                for inner in node.body
+            )
+            cond_text = ast.dump(node.test)
+            if returns_in_body and "adapter_usage" in cond_text and (
+                "Mapping" in cond_text or "isinstance" in cond_text
+            ):
+                has_guard_return = True
+    if not write_call_present:
+        raise AdapterUsageMeterError(
+            f"{_RUN_REL}: _write_adapter_usage_meter_on_step_close no longer calls "
+            "write_adapter_usage_meter"
+        )
+    if not has_guard_return:
+        raise AdapterUsageMeterError(
+            f"{_RUN_REL}: _write_adapter_usage_meter_on_step_close does not guard the "
+            "meter write with an early `return` when adapter_usage is absent/empty -- "
+            "non-usage adapters would write null-usage noise rows."
+        )
+    return (
+        f"{_RUN_REL}: the per-step meter write is guarded by an early return when "
+        "adapter_usage is absent/empty (only usage-present steps write a row)"
+    )
+
+
+def _assert_mutation_red_unguarded_meter_write() -> str:
+    """Mutation RED: an UNGUARDED step-close writer (no usage-present return) must
+    be detected. Builds a synthetic function that calls write_adapter_usage_meter
+    with no adapter_usage guard and confirms the guard detector flags it."""
+    unguarded_source = (
+        "def _write_adapter_usage_meter_on_step_close():\n"
+        "    adapter_usage = adapter_result.adapter_usage\n"
+        "    write_adapter_usage_meter(adapter_usage=adapter_usage)\n"
+    )
+    module = ast.parse(unguarded_source)
+    func = _function_node(module, "_write_adapter_usage_meter_on_step_close")
+    has_guard_return = False
+    for node in ast.walk(func):
+        if isinstance(node, ast.If):
+            returns_in_body = any(
+                isinstance(inner, ast.Return) and inner.value is None
+                for inner in node.body
+            )
+            cond_text = ast.dump(node.test)
+            if returns_in_body and "adapter_usage" in cond_text and (
+                "Mapping" in cond_text or "isinstance" in cond_text
+            ):
+                has_guard_return = True
+    if has_guard_return:
+        raise AdapterUsageMeterError(
+            "mutation RED failed: an unguarded meter writer was reported as guarded"
+        )
+    return (
+        "mutation RED observed: an unguarded step-close meter writer (no usage-"
+        "present early return) is detected"
+    )
+
+
+# --------------------------------------------------------------------------- #
 # Static (AST) gate-no-measure guard over the real source modules.            #
 # --------------------------------------------------------------------------- #
 
@@ -354,8 +520,12 @@ def check(repo: Path) -> list[str]:
         _assert_no_forbidden_keys_in_record(),
         _assert_no_usage_in_codex_returned(repo),
         _assert_step_output_carries_no_usage(repo),
+        _assert_jsonl_never_becomes_text(),
+        _assert_meter_write_guarded_by_usage_present(repo),
         _assert_mutation_red_dropped_key(),
         _assert_mutation_red_usage_into_returned(),
+        _assert_mutation_red_jsonl_text_fallback(),
+        _assert_mutation_red_unguarded_meter_write(),
         PROOF_LIMIT,
     ]
     return [

@@ -3223,14 +3223,52 @@ def _preset_completion_command_runner(completed_cls: type[Any]) -> Callable[[Seq
             "not_proven",
             ["semantic correctness", "real Slack delivery", "real provider behavior"],
         )
+        assistant_text = json.dumps(returned, sort_keys=True)
+        # TrackA-A1 FIXTURE FAITHFULNESS: real `codex exec --json` writes the
+        # assistant text to the --output-last-message FILE and emits JSONL events on
+        # stdout (the assistant payload is NOT on raw stdout). Model that here when
+        # the invocation carries --output-last-message (codex): write the text to
+        # the file, and put a terminal turn.completed usage event on stdout so the
+        # meter side-channel is exercised. The adapter reads text from the file (it
+        # must NEVER treat the JSONL stdout as assistant text). Non-codex
+        # invocations (no --output-last-message) keep the plain-text stdout shape.
+        output_path = _output_last_message_path(checked_args)
+        if output_path is not None:
+            Path(output_path).write_text(assistant_text, encoding="utf-8")
+            stdout = (
+                json.dumps(
+                    {
+                        "type": "turn.completed",
+                        "usage": {
+                            "input_tokens": 12,
+                            "cached_input_tokens": 3,
+                            "output_tokens": 4,
+                            "reasoning_output_tokens": 5,
+                        },
+                    },
+                    sort_keys=True,
+                )
+                + "\n"
+            )
+        else:
+            stdout = assistant_text
         return completed_cls(
             args=checked_args,
             return_code=0,
-            stdout=json.dumps(returned, sort_keys=True),
+            stdout=stdout,
             stderr="",
         )
 
     return _runner
+
+
+def _output_last_message_path(args: Sequence[str]) -> str | None:
+    """Return the --output-last-message path from a codex invocation, else None."""
+    args = list(args)
+    for index, value in enumerate(args):
+        if value == "--output-last-message" and index + 1 < len(args):
+            return args[index + 1]
+    return None
 
 
 _PRESET_COMPLETION_LIST_RETURN_FIELDS = frozenset(
@@ -8713,10 +8751,35 @@ def run_intake_evidence_projection_case(repo: Path, profile: Mapping[str, Any]) 
                 ],
                 "not_proven": ["semantic correctness of the fixture note"],
             }
+            assistant_text = json.dumps(returned, sort_keys=True)
+            # TrackA-A1 FIXTURE FAITHFULNESS: real `codex exec --json` writes the
+            # assistant text to the --output-last-message FILE; stdout carries JSONL
+            # events only (the adapter must NEVER treat that JSONL as text). Model
+            # that here so the empty-file path is never exercised with raw stdout.
+            output_path = _output_last_message_path(checked_args)
+            if output_path is not None:
+                Path(output_path).write_text(assistant_text, encoding="utf-8")
+                stdout = (
+                    json.dumps(
+                        {
+                            "type": "turn.completed",
+                            "usage": {
+                                "input_tokens": 12,
+                                "cached_input_tokens": 3,
+                                "output_tokens": 4,
+                                "reasoning_output_tokens": 5,
+                            },
+                        },
+                        sort_keys=True,
+                    )
+                    + "\n"
+                )
+            else:
+                stdout = assistant_text
             return LocalCliCompleted(
                 args=checked_args,
                 return_code=0,
-                stdout=json.dumps(returned, sort_keys=True),
+                stdout=stdout,
                 stderr="",
             )
 

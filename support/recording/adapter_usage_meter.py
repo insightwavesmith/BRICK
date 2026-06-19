@@ -77,12 +77,17 @@ def write_adapter_usage_meter(
     attempt_index: int = 1,
     adapter_usage: Mapping[str, Any] | None,
     existing_records: tuple[Mapping[str, Any], ...] = (),
+    existing_raw_lines: tuple[str, ...] = (),
 ) -> tuple[Path, Mapping[str, Any]]:
     """Append one per-step adapter token-usage record to the meter journal.
 
     ``adapter_usage`` is the codex-native usage mapping (counter keys ->
     int | None) parsed by the adapter, or ``None`` when no usage was observed.
     Returns the written path plus the graph-ready record that was appended.
+
+    ``existing_raw_lines`` carries any pre-existing journal lines that were NOT
+    parseable JSON objects. They are preserved verbatim on the rewrite (append-only
+    raw evidence is never destroyed); they do not count toward record_index.
     """
 
     if not isinstance(building_root, Path):
@@ -98,7 +103,7 @@ def write_adapter_usage_meter(
     )
     path = building_root / _ADAPTER_USAGE_RAW_STREAM
     records = (*existing_records, record)
-    _append_jsonl(path, records)
+    _append_jsonl(path, records, raw_lines=existing_raw_lines)
     return path, record
 
 
@@ -194,9 +199,17 @@ def _optional_int(value: Any) -> int | None:
     return None
 
 
-def _append_jsonl(path: Path, records: tuple[Mapping[str, Any], ...]) -> None:
+def _append_jsonl(
+    path: Path,
+    records: tuple[Mapping[str, Any], ...],
+    *,
+    raw_lines: tuple[str, ...] = (),
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    text = "".join(
+    # Preserve any pre-existing unparseable raw lines FIRST (verbatim), then the
+    # parsed records. The journal is append-only raw evidence: a malformed line
+    # must survive a rewrite, never be silently discarded.
+    text = "".join(raw_line + "\n" for raw_line in raw_lines) + "".join(
         json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
         for value in records
     )
