@@ -134,7 +134,7 @@ text_contains:
       - READ_ONLY_TOOL_POLICY_REFS
       - def agent_request_read_tier
       - read-only repository inspection tools only
-      - Gemini local read tier may use only read_file, glob, grep_search, search_file_content, list_directory, and read_many_files
+      - Gemini local native grant may use only read_file, glob, grep_search, search_file_content, list_directory, read_many_files, and when web-capable is present google_web_search/web_fetch; write and shell tools remain blocked.
   - path: support/operator/plan_validation.py
     texts:
       - evidence_used.repository_artifact_ref

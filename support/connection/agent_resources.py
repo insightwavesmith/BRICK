@@ -42,6 +42,7 @@ _HOOK_RESOURCE_REF_REDACTION = "hook:resource-ref-redaction"
 _TOOL_POLICY_LEADER_COORDINATION = "tool-policy:leader-coordination"
 _TOOL_POLICY_READ_WRITE_SCOPED = "tool-policy:read-write-scoped"
 _TOOL_POLICY_REVIEWER_READONLY = "tool-policy:reviewer-readonly"
+_TOOL_POLICY_WEB_CAPABLE = "tool-policy:web-capable"
 # WAVE-B renames (0610): a retired name stated the OPPOSITE of current law
 # (e.g. the leader policy is scoped-write coordination, not readonly). A
 # retired name on an Agent Object REJECTS loudly naming the canonical
@@ -67,6 +68,39 @@ _RETIRED_HOOK_REFS: dict[str, str | None] = {
 # renderer stamps into developer_instructions + the trailing TOML comment).
 _CODEX_SANDBOX_WORKSPACE_WRITE = "workspace-write"
 _CODEX_SANDBOX_READ_ONLY = "read-only"
+_NATIVE_GRANT_SCHEMA = "native-grant/v1"
+_NATIVE_GRANT_RESOLUTION_SCHEMA = "native-grant-resolution/v1"
+_NATIVE_GRANT_CAPABILITY_READ = "read"
+_NATIVE_GRANT_CAPABILITY_WRITE = "write"
+_NATIVE_GRANT_CAPABILITY_WEB = "web"
+_NATIVE_GRANT_CAPABILITY_ORDER = (
+    _NATIVE_GRANT_CAPABILITY_READ,
+    _NATIVE_GRANT_CAPABILITY_WRITE,
+    _NATIVE_GRANT_CAPABILITY_WEB,
+)
+_NATIVE_GRANT_ALLOWED_KEYS = frozenset(
+    {
+        "schema",
+        "capabilities",
+        "write_mode",
+        "web_scope",
+        "exfiltration_enforced",
+        "proof_limits",
+    }
+)
+_NATIVE_GRANT_FORBIDDEN_KEYS = frozenset(
+    {
+        "model",
+        "model_ref",
+        "selected_model_ref",
+        "credential",
+        "credential_body",
+        "setup_token",
+        "setup_token_value",
+        "session_id",
+        "provider_session_id",
+    }
+)
 # Claude DOES have a real per-agent tool allow/deny list in a subagent .md
 # (`tools` allowlist + optional `disallowedTools` denylist). Unlike Codex (which
 # has only sandbox_mode), the SAME Brick-axis tool-policy must project to a
@@ -80,6 +114,17 @@ _CODEX_SANDBOX_READ_ONLY = "read-only"
 # the evidence spine (see the honesty note the renderer stamps into the body).
 _CLAUDE_TOOLS_READ_ONLY = ("Read", "Grep", "Glob")
 _CLAUDE_TOOLS_WRITE_EXTRA = ("Edit", "Write", "Bash")
+_CLAUDE_TOOLS_WEB = ("WebFetch", "WebSearch")
+_CLAUDE_TOOLS_BY_NATIVE_CAPABILITY = {
+    _NATIVE_GRANT_CAPABILITY_READ: _CLAUDE_TOOLS_READ_ONLY,
+    _NATIVE_GRANT_CAPABILITY_WRITE: _CLAUDE_TOOLS_WRITE_EXTRA,
+    _NATIVE_GRANT_CAPABILITY_WEB: _CLAUDE_TOOLS_WEB,
+}
+_CLAUDE_CANONICAL_TOOL_UNIVERSE = tuple(
+    tool
+    for capability in _NATIVE_GRANT_CAPABILITY_ORDER
+    for tool in _CLAUDE_TOOLS_BY_NATIVE_CAPABILITY[capability]
+)
 _RETIRED_WRITE_ADAPTER_REFS = frozenset(
     {
         "adapter:codex-write-local",
@@ -245,6 +290,102 @@ def _string_list(label: str, value: Any) -> list[str]:
     return list(value)
 
 
+def _string_sequence(label: str, value: Any) -> list[str]:
+    if value is None:
+        return []
+    if not isinstance(value, (list, tuple)) or not all(isinstance(item, str) for item in value):
+        raise AgentResourceError(f"{label} must be an array of strings")
+    return list(value)
+
+
+def _validate_native_grant(
+    label: str,
+    policy: Mapping[str, Any],
+    *,
+    expected_ref: str | None = None,
+) -> dict[str, Any]:
+    policy_ref = policy.get("tool_policy_ref")
+    if not isinstance(policy_ref, str) or not policy_ref.strip():
+        raise AgentResourceError(f"{label}: tool_policy_ref must be non-empty text")
+    policy_ref = policy_ref.strip()
+    if expected_ref is not None and policy_ref != expected_ref:
+        raise AgentResourceError(f"{label}: tool_policy_ref must match {expected_ref}")
+    grant_raw = policy.get("native_grant")
+    if not isinstance(grant_raw, Mapping):
+        raise AgentResourceError(f"{label}: missing native_grant JSON object")
+    grant = dict(grant_raw)
+    forbidden = sorted(set(grant) & _NATIVE_GRANT_FORBIDDEN_KEYS)
+    if forbidden:
+        raise AgentResourceError(f"{label}: native_grant carries forbidden keys: {', '.join(forbidden)}")
+    unknown = sorted(set(grant) - _NATIVE_GRANT_ALLOWED_KEYS)
+    if unknown:
+        raise AgentResourceError(f"{label}: native_grant has unknown keys: {', '.join(unknown)}")
+    if grant.get("schema") != _NATIVE_GRANT_SCHEMA:
+        raise AgentResourceError(f"{label}: native_grant.schema must be {_NATIVE_GRANT_SCHEMA}")
+    capabilities = _string_list(f"{label}:native_grant.capabilities", grant.get("capabilities"))
+    if not capabilities:
+        raise AgentResourceError(f"{label}: native_grant.capabilities must not be empty")
+    seen: set[str] = set()
+    for capability in capabilities:
+        if capability not in _NATIVE_GRANT_CAPABILITY_ORDER:
+            raise AgentResourceError(
+                f"{label}: native_grant capability {capability!r} is not admitted"
+            )
+        if capability in seen:
+            raise AgentResourceError(f"{label}: native_grant capability {capability!r} is duplicated")
+        seen.add(capability)
+    ordered = [cap for cap in _NATIVE_GRANT_CAPABILITY_ORDER if cap in seen]
+    if capabilities != ordered:
+        raise AgentResourceError(
+            f"{label}: native_grant.capabilities must use admitted order {ordered!r}"
+        )
+    if _NATIVE_GRANT_CAPABILITY_WRITE in seen:
+        if policy_ref != _TOOL_POLICY_READ_WRITE_SCOPED:
+            raise AgentResourceError(
+                f"{label}: native_grant write capability is pinned to "
+                f"{_TOOL_POLICY_READ_WRITE_SCOPED}"
+            )
+        if grant.get("write_mode") != "runtime_intersection":
+            raise AgentResourceError(
+                f"{label}: native_grant.write_mode must be runtime_intersection"
+            )
+    elif "write_mode" in grant:
+        raise AgentResourceError(f"{label}: native_grant.write_mode requires write capability")
+    if _NATIVE_GRANT_CAPABILITY_WEB in seen:
+        if grant.get("web_scope") != "exfiltration_not_enforced":
+            raise AgentResourceError(
+                f"{label}: native_grant.web_scope must be exfiltration_not_enforced"
+            )
+        if grant.get("exfiltration_enforced") is not False:
+            raise AgentResourceError(
+                f"{label}: native_grant.exfiltration_enforced must be false"
+            )
+    elif "web_scope" in grant or "exfiltration_enforced" in grant:
+        raise AgentResourceError(
+            f"{label}: native_grant web fields require web capability"
+        )
+    if "proof_limits" in grant:
+        _string_list(f"{label}:native_grant.proof_limits", grant["proof_limits"])
+    return {
+        **grant,
+        "capabilities": capabilities,
+    }
+
+
+def _validate_tool_policy_resource(
+    label: str,
+    value: Any,
+    *,
+    expected_ref: str,
+) -> dict[str, Any]:
+    policy = _require_mapping(label, value)
+    grant = _validate_native_grant(label, policy, expected_ref=expected_ref)
+    return {
+        **policy,
+        "native_grant": grant,
+    }
+
+
 def _load_agent_object(role: str, repo: Path) -> dict[str, Any]:
     path = repo / "agent" / "objects" / f"{role}.yaml"
     agent_object = _require_mapping(str(path), _read_data(path))
@@ -291,6 +432,10 @@ def _validate_agent_authority(role: str, agent_object: Mapping[str, Any], path: 
                 if replacement
                 else "retired outright with no replacement (never bound by any Agent Object)"
             )
+        )
+    if _TOOL_POLICY_WEB_CAPABLE in tool_policy_refs and role not in {"pm-lead", "design-lead"}:
+        raise AgentResourceError(
+            f"{path}: tool-policy:web-capable is admitted only for pm-lead and design-lead"
         )
     for retired_ref in sorted(hook_refs & set(_RETIRED_HOOK_REFS)):
         replacement = _RETIRED_HOOK_REFS[retired_ref]
@@ -442,15 +587,130 @@ def _data_resources(repo: Path, refs: list[str], *, kind: str) -> list[dict[str,
     resources: list[dict[str, Any]] = []
     for ref in refs:
         path = _resource_path(repo, ref)
+        data = _read_data(path)
+        if kind == "tool_policy":
+            data = _validate_tool_policy_resource(str(path), data, expected_ref=ref)
         resources.append(
             {
                 "ref": ref,
                 "kind": kind,
                 "path": path.relative_to(repo).as_posix(),
-                "data": _read_data(path),
+                "data": data,
             }
         )
     return resources
+
+
+def _empty_native_grant_resolution(
+    tool_policy_refs: list[str],
+    *,
+    missing_refs: list[str] | None = None,
+) -> dict[str, Any]:
+    return {
+        "schema": _NATIVE_GRANT_RESOLUTION_SCHEMA,
+        "tool_policy_refs": list(tool_policy_refs),
+        "declared_capabilities": [],
+        "capabilities": [],
+        "write_effective": False,
+        "web_requested": False,
+        "missing_tool_policy_refs": list(missing_refs or []),
+        "proof_limits": [
+            "native_grant resolution uses already-loaded tool-policy data only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ],
+    }
+
+
+def _tool_policy_resource_data(label: str, value: Any) -> tuple[str, dict[str, Any]]:
+    if not isinstance(value, Mapping):
+        raise AgentResourceError(f"{label} item must be a JSON object")
+    if "data" in value:
+        ref = value.get("ref")
+        data = _require_mapping(f"{label}.data", value.get("data"))
+    else:
+        data = _require_mapping(label, value)
+        ref = data.get("tool_policy_ref")
+    if not isinstance(ref, str) or not ref.strip():
+        raise AgentResourceError(f"{label}: tool-policy resource ref must be non-empty text")
+    ref = ref.strip()
+    data = _validate_tool_policy_resource(label, data, expected_ref=ref)
+    return ref, data
+
+
+def resolve_native_grant(
+    tool_policy_resources: Any,
+    *,
+    tool_policy_refs: Any | None = None,
+    write_need: bool = False,
+) -> dict[str, Any]:
+    """Resolve already-loaded tool-policy native_grant data into native capability.
+
+    This is the single support chokepoint for CLI grant projection. It is pure:
+    callers pass the tool-policy resource data already present in the Agent
+    instruction packet; this function never reads files or consults repo globals.
+    Missing policy data fails closed to no capabilities. Malformed loaded data
+    raises AgentResourceError, which keeps the live Building from projecting an
+    ambiguous native grant.
+    """
+
+    refs = _string_sequence("tool_policy_refs", tool_policy_refs)
+    selected_refs = set(refs)
+    if tool_policy_resources is None:
+        return _empty_native_grant_resolution(refs)
+    if not isinstance(tool_policy_resources, (list, tuple)):
+        raise AgentResourceError("tool_policy_resources must be an array")
+    loaded_by_ref: dict[str, dict[str, Any]] = {}
+    for index, item in enumerate(tool_policy_resources):
+        ref, data = _tool_policy_resource_data(f"tool_policy_resources[{index}]", item)
+        loaded_by_ref[ref] = data
+    if not refs:
+        refs = list(loaded_by_ref)
+        selected_refs = set(refs)
+    missing_refs = sorted(selected_refs - set(loaded_by_ref))
+    if missing_refs:
+        return _empty_native_grant_resolution(refs, missing_refs=missing_refs)
+
+    declared: set[str] = set()
+    for ref in refs:
+        policy = loaded_by_ref.get(ref)
+        if policy is None:
+            continue
+        grant = policy["native_grant"]
+        for capability in grant["capabilities"]:
+            if capability == _NATIVE_GRANT_CAPABILITY_WRITE and ref != _TOOL_POLICY_READ_WRITE_SCOPED:
+                raise AgentResourceError(
+                    "native_grant write capability may resolve only from "
+                    f"{_TOOL_POLICY_READ_WRITE_SCOPED}"
+                )
+            declared.add(capability)
+    declared_ordered = [cap for cap in _NATIVE_GRANT_CAPABILITY_ORDER if cap in declared]
+    effective: list[str] = []
+    for capability in declared_ordered:
+        if capability == _NATIVE_GRANT_CAPABILITY_WRITE:
+            if bool(write_need) and _TOOL_POLICY_READ_WRITE_SCOPED in selected_refs:
+                effective.append(capability)
+            continue
+        effective.append(capability)
+    return {
+        "schema": _NATIVE_GRANT_RESOLUTION_SCHEMA,
+        "tool_policy_refs": refs,
+        "declared_capabilities": declared_ordered,
+        "capabilities": effective,
+        "write_effective": _NATIVE_GRANT_CAPABILITY_WRITE in effective,
+        "web_requested": _NATIVE_GRANT_CAPABILITY_WEB in declared,
+        "missing_tool_policy_refs": [],
+        "proof_limits": [
+            "native_grant resolution uses already-loaded tool-policy data only",
+            "write requires Brick write_scope NEED plus tool-policy:read-write-scoped",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ],
+    }
 
 
 def _hook_resources(repo: Path, refs: list[str], object_ref: str) -> dict[str, Any]:
@@ -743,8 +1003,27 @@ _BRICK_MCP_ENFORCED_NOTES = (
 )
 
 
+def codex_sandbox_mode_for_native_grant(
+    native_grant_resources: Any,
+    *,
+    tool_policy_refs: Any | None = None,
+    write_need: bool = True,
+) -> str:
+    resolution = resolve_native_grant(
+        native_grant_resources,
+        tool_policy_refs=tool_policy_refs,
+        write_need=write_need,
+    )
+    if _NATIVE_GRANT_CAPABILITY_WRITE in resolution["capabilities"]:
+        return _CODEX_SANDBOX_WORKSPACE_WRITE
+    return _CODEX_SANDBOX_READ_ONLY
+
+
 def codex_sandbox_mode_for_tool_policies(
-    tool_policy_refs: Any, *, write_need: bool = True
+    tool_policy_refs: Any,
+    *,
+    write_need: bool = True,
+    native_grant_resources: Any | None = None,
 ) -> str:
     """Map an Agent's Brick-axis tool policy refs to a Codex sandbox_mode.
 
@@ -766,10 +1045,11 @@ def codex_sandbox_mode_for_tool_policies(
     no authority and proves no provider behavior.
     """
 
-    refs = set(_string_list("tool_policy_refs", tool_policy_refs))
-    if _TOOL_POLICY_READ_WRITE_SCOPED in refs and bool(write_need):
-        return _CODEX_SANDBOX_WORKSPACE_WRITE
-    return _CODEX_SANDBOX_READ_ONLY
+    return codex_sandbox_mode_for_native_grant(
+        native_grant_resources,
+        tool_policy_refs=tool_policy_refs,
+        write_need=write_need,
+    )
 
 
 def _toml_basic_string(value: str) -> str:
@@ -910,7 +1190,11 @@ def render_codex_subagent_toml(
     role = str(packet["role"])
     adapter_refs = list(packet["agent_object"]["adapter_refs"])
     tool_policy_refs = list(packet["agent_object"]["tool_policy_refs"])
-    sandbox_mode = codex_sandbox_mode_for_tool_policies(tool_policy_refs)
+    tool_policy_resources = list(packet["tool_policy_resources"])
+    sandbox_mode = codex_sandbox_mode_for_tool_policies(
+        tool_policy_refs,
+        native_grant_resources=tool_policy_resources,
+    )
     model_value = _codex_model_key_for_adapter_refs(adapter_refs)
     description = _codex_description(packet)
     developer_instructions = _codex_developer_instructions(
@@ -999,8 +1283,39 @@ def render_skill_md(
 # ---------------------------------------------------------------------------
 
 
+def claude_tools_for_native_grant(
+    native_grant_resources: Any,
+    *,
+    tool_policy_refs: Any | None = None,
+    write_need: bool = True,
+) -> dict[str, Any]:
+    resolution = resolve_native_grant(
+        native_grant_resources,
+        tool_policy_refs=tool_policy_refs,
+        write_need=write_need,
+    )
+    tools: list[str] = []
+    for capability in _NATIVE_GRANT_CAPABILITY_ORDER:
+        if capability not in resolution["capabilities"]:
+            continue
+        for tool_name in _CLAUDE_TOOLS_BY_NATIVE_CAPABILITY[capability]:
+            if tool_name not in tools:
+                tools.append(tool_name)
+    disallowed = [tool_name for tool_name in _CLAUDE_CANONICAL_TOOL_UNIVERSE if tool_name not in tools]
+    return {
+        "tools": tools,
+        "disallowedTools": disallowed,
+        "write_capable": _NATIVE_GRANT_CAPABILITY_WRITE in resolution["capabilities"],
+        "web_capable": _NATIVE_GRANT_CAPABILITY_WEB in resolution["capabilities"],
+        "native_grant": resolution,
+    }
+
+
 def claude_tools_for_tool_policies(
-    tool_policy_refs: Any, *, write_need: bool = True
+    tool_policy_refs: Any,
+    *,
+    write_need: bool = True,
+    native_grant_resources: Any | None = None,
 ) -> dict[str, Any]:
     """Map an Agent's Brick-axis tool policy refs to a Claude tool allow/deny set.
 
@@ -1026,18 +1341,11 @@ def claude_tools_for_tool_policies(
     decision; it grants no authority and proves no provider behavior.
     """
 
-    refs = set(_string_list("tool_policy_refs", tool_policy_refs))
-    if _TOOL_POLICY_READ_WRITE_SCOPED in refs and bool(write_need):
-        return {
-            "tools": [*_CLAUDE_TOOLS_READ_ONLY, *_CLAUDE_TOOLS_WRITE_EXTRA],
-            "disallowedTools": [],
-            "write_capable": True,
-        }
-    return {
-        "tools": list(_CLAUDE_TOOLS_READ_ONLY),
-        "disallowedTools": list(_CLAUDE_TOOLS_WRITE_EXTRA),
-        "write_capable": False,
-    }
+    return claude_tools_for_native_grant(
+        native_grant_resources,
+        tool_policy_refs=tool_policy_refs,
+        write_need=write_need,
+    )
 
 
 def _claude_model_key_for_adapter_refs(adapter_refs: list[str]) -> str:
@@ -1222,7 +1530,11 @@ def render_claude_subagent_md(
     role = str(packet["role"])
     adapter_refs = list(packet["agent_object"]["adapter_refs"])
     tool_policy_refs = list(packet["agent_object"]["tool_policy_refs"])
-    tool_mapping = claude_tools_for_tool_policies(tool_policy_refs)
+    tool_policy_resources = list(packet["tool_policy_resources"])
+    tool_mapping = claude_tools_for_tool_policies(
+        tool_policy_refs,
+        native_grant_resources=tool_policy_resources,
+    )
     model_value = _claude_model_key_for_adapter_refs(adapter_refs)
     non_native_note = _claude_non_native_provider_note(adapter_refs)
     description = _claude_description(packet)
@@ -1307,10 +1619,10 @@ def render_codex_projection_seed(
     """
 
     toml_text = render_codex_subagent_toml(role_or_ref, repo_root=repo_root)
+    packet = render_agent_packet(role_or_ref, repo_root=repo_root)
     sandbox_mode = codex_sandbox_mode_for_tool_policies(
-        render_agent_packet(role_or_ref, repo_root=repo_root)["agent_object"][
-            "tool_policy_refs"
-        ]
+        packet["agent_object"]["tool_policy_refs"],
+        native_grant_resources=packet["tool_policy_resources"],
     )
     return _projection_seed(
         role_or_ref,
@@ -1338,10 +1650,10 @@ def render_claude_projection_seed(
     """
 
     md_text = render_claude_subagent_md(role_or_ref, repo_root=repo_root)
+    packet = render_agent_packet(role_or_ref, repo_root=repo_root)
     claude_tools = claude_tools_for_tool_policies(
-        render_agent_packet(role_or_ref, repo_root=repo_root)["agent_object"][
-            "tool_policy_refs"
-        ]
+        packet["agent_object"]["tool_policy_refs"],
+        native_grant_resources=packet["tool_policy_resources"],
     )
     return _projection_seed(
         role_or_ref,
@@ -1367,6 +1679,9 @@ __all__ = [
     "render_codex_subagent_toml",
     "render_claude_subagent_md",
     "render_skill_md",
+    "resolve_native_grant",
+    "codex_sandbox_mode_for_native_grant",
     "codex_sandbox_mode_for_tool_policies",
+    "claude_tools_for_native_grant",
     "claude_tools_for_tool_policies",
 ]

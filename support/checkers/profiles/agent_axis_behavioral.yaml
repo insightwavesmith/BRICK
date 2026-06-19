@@ -47,6 +47,7 @@ path_exists:
   - support/checkers/profiles/agent_axis_behavioral.yaml
   - AGENTS.md
   - agent/tool_policies/read-write-scoped.yaml
+  - agent/tool_policies/web-capable.yaml
   - support/connection/agent_adapter.py
   - support/connection/agent_resources.py
   - support/operator/plan_validation.py
@@ -98,9 +99,27 @@ text_contains:
     texts:
       - compatible write-capable adapter support
       - not adapter identity alone
+      - native_grant
+      - runtime_intersection
+  - path: agent/tool_policies/web-capable.yaml
+    texts:
+      - tool-policy:web-capable
+      - native_grant
+      - exfiltration_not_enforced
+      - web exfiltration is NOT enforced by this policy
+  - path: agent/objects/pm-lead.yaml
+    texts:
+      - tool-policy:web-capable
+  - path: agent/objects/design-lead.yaml
+    texts:
+      - tool-policy:web-capable
   - path: support/connection/agent_adapter.py
     texts:
       - ADAPTER_CAPABILITY_LITERALS
+      - WEB_CAPABLE_TOOL_POLICY_REF
+      - _CANONICAL_TOOL_UNIVERSE_GEMINI
+      - _gemini_admin_policy_partition_for_request
+      - Web NOT available on this adapter
       - def adapter_capabilities
       - def adapter_has_capability
       - def adapter_is_write_capable
@@ -113,6 +132,10 @@ text_contains:
     texts:
       - adapter_is_write_capable
       - missing_adapter_write_capability
+      - def resolve_native_grant
+      - def codex_sandbox_mode_for_native_grant
+      - def claude_tools_for_native_grant
+      - tool-policy:web-capable is admitted only for pm-lead and design-lead
   - path: support/operator/plan_validation.py
     texts:
       - missing_adapter_write_capability
@@ -298,6 +321,16 @@ adapter_capability_rehome_case:
     case_kind: write_capable_leader_read_only_brick_projection_read_only
   - label: write-capable-leader-write-needed-brick-projects-write
     case_kind: write_capable_leader_write_needed_brick_projection_write
+  - label: native-grant-roundtrip
+    case_kind: native_grant_roundtrip
+  - label: native-grant-policy-only-fails-closed
+    case_kind: native_grant_policy_only_fails_closed
+  - label: native-grant-write-home-pin
+    case_kind: native_grant_write_home_pin
+    expected_reason: "native_grant write capability is pinned"
+  - label: native-grant-unknown-capability
+    case_kind: native_grant_unknown_capability
+    expected_reason: "native_grant capability 'unknown' is not admitted"
   - label: write-scope-on-read-only-brick-rejected
     case_kind: write_scope_on_read_only_brick_rejected
     expected_reason: "write_scope present on a read-only Brick"

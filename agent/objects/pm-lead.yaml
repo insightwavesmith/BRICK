@@ -21,7 +21,8 @@
   ],
   "tool_policy_refs": [
     "tool-policy:leader-coordination",
-    "tool-policy:read-write-scoped"
+    "tool-policy:read-write-scoped",
+    "tool-policy:web-capable"
   ],
   "discipline_refs": [
     "discipline:closed-agentfact",

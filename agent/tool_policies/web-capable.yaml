@@ -1,0 +1,41 @@
+{
+  "tool_policy_ref": "tool-policy:web-capable",
+  "owner_axis": "Agent",
+  "allowed_use": "use adapter-native web tools for caller-declared live public context only",
+  "mutation_scope": "none; web access is data gathering only and is not a write grant",
+  "execution_opened": true,
+  "execution_opening_condition": "Only adapters with an admitted web native projection may use web tools; codex-local documents web as unavailable",
+  "native_grant": {
+    "schema": "native-grant/v1",
+    "capabilities": [
+      "web"
+    ],
+    "web_scope": "exfiltration_not_enforced",
+    "exfiltration_enforced": false,
+    "proof_limits": [
+      "native grant data only",
+      "web exfiltration is NOT enforced by this policy",
+      "not provider runtime",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ]
+  },
+  "forbidden_use": [
+    "write files",
+    "send secrets, tokens, credentials, auth bodies, or raw provider sessions to web tools",
+    "choose Link Movement",
+    "choose route target",
+    "classify success, failure, quality, or approval"
+  ],
+  "proof_limits": [
+    "Agent-axis tool policy only",
+    "web exfiltration is NOT enforced by this policy",
+    "not a provider runtime",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ]
+}

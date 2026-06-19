@@ -1072,7 +1072,9 @@ def _agent_effective_write_probe(
 
 
 def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
+    resources = importlib.import_module("brick_protocol.support.connection.agent_resources")
     qa_packet = _agent_instruction_packet_for_role(repo, "qa")
+    pm_packet = _agent_instruction_packet_for_role(repo, "pm-lead")
     cto_packet = _agent_instruction_packet_for_role(repo, "cto-lead")
     dev_packet = _agent_instruction_packet_for_role(repo, "dev")
     inspector_packet = _agent_instruction_packet_for_role(repo, "inspector")
@@ -1080,11 +1082,88 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
         adapter.LEADER_COORDINATION_TOOL_POLICY_REF,
         adapter.READ_WRITE_TOOL_POLICY_REF,
         adapter.REVIEWER_READONLY_TOOL_POLICY_REF,
+        adapter.WEB_CAPABLE_TOOL_POLICY_REF,
     }
     if set(adapter.KNOWN_TOOL_POLICY_REFS) != expected_known_policies:
         raise ProfileError(
             "read-tier known tool-policy vocabulary drifted; observed "
             f"{sorted(adapter.KNOWN_TOOL_POLICY_REFS)!r}"
+        )
+    tool_policy_dir = repo / "agent" / "tool_policies"
+    discovered_policy_refs: set[str] = set()
+    for path in sorted(tool_policy_dir.glob("*.yaml")):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(data, Mapping):
+            raise ProfileError(f"{path.relative_to(repo).as_posix()} must load as a JSON object")
+        ref = data.get("tool_policy_ref")
+        if not isinstance(ref, str):
+            raise ProfileError(f"{path.relative_to(repo).as_posix()} missing tool_policy_ref")
+        discovered_policy_refs.add(ref)
+        resources.resolve_native_grant(
+            [
+                {
+                    "ref": ref,
+                    "kind": "tool_policy",
+                    "path": path.relative_to(repo).as_posix(),
+                    "data": data,
+                }
+            ],
+            tool_policy_refs=[ref],
+            write_need=(ref == adapter.READ_WRITE_TOOL_POLICY_REF),
+        )
+    if not expected_known_policies.issubset(discovered_policy_refs):
+        raise ProfileError(
+            "native_grant discovery missed known tool-policy refs: "
+            f"{sorted(expected_known_policies - discovered_policy_refs)!r}"
+        )
+    web_roles: list[str] = []
+    for object_ref in resources.list_agent_object_refs(repo):
+        role = object_ref.removeprefix("agent-object:")
+        packet = _agent_instruction_packet_for_role(repo, role)
+        tool_policy_refs = {
+            resource["ref"]
+            for resource in packet.get("tool_policy_resources", [])
+            if isinstance(resource, Mapping) and isinstance(resource.get("ref"), str)
+        }
+        if adapter.WEB_CAPABLE_TOOL_POLICY_REF in tool_policy_refs:
+            web_roles.append(role)
+        for resource in packet.get("tool_policy_resources", []):
+            data = resource.get("data") if isinstance(resource, Mapping) else None
+            grant = data.get("native_grant") if isinstance(data, Mapping) else None
+            if not isinstance(grant, Mapping):
+                raise ProfileError(f"{role} tool policy resource missing native_grant")
+            if any(key in grant for key in ("model", "credential_body", "provider_session_id")):
+                raise ProfileError(f"{role} native_grant leaked forbidden axis/provider key")
+    if sorted(web_roles) != ["design-lead", "pm-lead"]:
+        raise ProfileError(
+            "tool-policy:web-capable must be attached only to pm-lead/design-lead, "
+            f"observed {sorted(web_roles)!r}"
+        )
+    dev_resolution = resources.resolve_native_grant(
+        dev_packet["tool_policy_resources"],
+        tool_policy_refs=[
+            resource["ref"]
+            for resource in dev_packet["tool_policy_resources"]
+            if isinstance(resource, Mapping)
+        ],
+        write_need=False,
+    )
+    if dev_resolution.get("capabilities") != ["read"]:
+        raise ProfileError(
+            "read-write-scoped without Brick write NEED must resolve native capabilities to read only"
+        )
+    dev_write_resolution = resources.resolve_native_grant(
+        dev_packet["tool_policy_resources"],
+        tool_policy_refs=[
+            resource["ref"]
+            for resource in dev_packet["tool_policy_resources"]
+            if isinstance(resource, Mapping)
+        ],
+        write_need=True,
+    )
+    if dev_write_resolution.get("capabilities") != ["read", "write"]:
+        raise ProfileError(
+            "read-write-scoped with Brick write NEED must resolve native capabilities to read/write"
         )
 
     reviewer_request = adapter.AgentAdapterRequest(
@@ -1239,7 +1318,7 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
         raise ProfileError("gemini-local read-write-scoped prompt did not expose repository inspection rule")
     if not any(adapter.READ_WRITE_TOOL_POLICY_REF in rule for rule in gemini_inspect_rules):
         raise ProfileError("gemini-local read-write-scoped prompt omitted its admitted policy ref")
-    if not any("Gemini local read tier may use only read_file" in rule for rule in gemini_inspect_rules):
+    if not any("Gemini local native grant may use only read_file" in rule for rule in gemini_inspect_rules):
         raise ProfileError("gemini-local read-write-scoped prompt did not pin read-only tool allow-list")
 
     gemini_request = adapter.AgentAdapterRequest(
@@ -1270,8 +1349,82 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
         raise ProfileError("read-tier gemini-local prompt did not expose repository inspection rule")
     if any("adapter:gemini-local remains in the none tier" in rule for rule in gemini_rules):
         raise ProfileError("read-tier gemini-local prompt still documented the retired none-tier limit")
-    if not any("Gemini local read tier may use only read_file" in rule for rule in gemini_rules):
+    if not any("Gemini local native grant may use only read_file" in rule for rule in gemini_rules):
         raise ProfileError("read-tier gemini-local prompt did not pin its read-only tool allow-list")
+
+    pm_web_request = adapter.AgentAdapterRequest(
+        building_id="agent-web-tier-pm-probe",
+        agent_object_ref="agent-object:pm-lead",
+        adapter_ref=adapter.ADAPTER_CLAUDE_LOCAL,
+        brick_instance_ref="brick-live-context",
+        next_brick_instance_ref="brick-design",
+        tool_policy_refs=(
+            adapter.LEADER_COORDINATION_TOOL_POLICY_REF,
+            adapter.READ_WRITE_TOOL_POLICY_REF,
+            adapter.WEB_CAPABLE_TOOL_POLICY_REF,
+        ),
+        agent_instruction_packet=pm_packet,
+    )
+    pm_claude_knobs = adapter._claude_cli_invocation(pm_web_request)
+    pm_claude_tools = [tool.strip() for tool in pm_claude_knobs["tools"].split(",") if tool.strip()]
+    if "WebFetch" not in pm_claude_tools:
+        raise ProfileError("claude-local web-capable PM request did not project WebFetch")
+    if "WebSearch" not in pm_claude_tools:
+        raise ProfileError("claude-local web-capable PM request did not project WebSearch")
+    pm_codex_request = adapter.AgentAdapterRequest(
+        building_id="agent-web-tier-codex-probe",
+        agent_object_ref="agent-object:pm-lead",
+        adapter_ref=adapter.ADAPTER_CODEX_LOCAL,
+        brick_instance_ref="brick-live-context",
+        next_brick_instance_ref="brick-design",
+        tool_policy_refs=pm_web_request.tool_policy_refs,
+        agent_instruction_packet=pm_packet,
+    )
+    pm_codex_prompt = json.loads(
+        adapter._build_prompt(
+            pm_codex_request,
+            adapter._LOCAL_CLI_SPECS[adapter.ADAPTER_CODEX_LOCAL],
+        )
+    )
+    if not any("Web NOT available on this adapter" in rule for rule in pm_codex_prompt.get("rules", [])):
+        raise ProfileError("codex-local web-capable request did not document web as unavailable")
+    if pm_codex_prompt.get("native_grant", {}).get("web_requested") is not True:
+        raise ProfileError("codex-local web-capable prompt did not preserve web_requested evidence")
+
+    pm_gemini_request = adapter.AgentAdapterRequest(
+        building_id="agent-web-tier-gemini-probe",
+        agent_object_ref="agent-object:pm-lead",
+        adapter_ref=adapter.ADAPTER_GEMINI_LOCAL,
+        brick_instance_ref="brick-live-context",
+        next_brick_instance_ref="brick-design",
+        tool_policy_refs=pm_web_request.tool_policy_refs,
+        agent_instruction_packet=pm_packet,
+    )
+    gemini_allow, gemini_deny = adapter._gemini_admin_policy_partition_for_request(pm_gemini_request)
+    if "web_fetch" not in gemini_allow or "google_web_search" not in gemini_allow:
+        raise ProfileError("gemini-local web-capable request did not allow web tools")
+    if "run_shell_command" not in gemini_deny or "write_file" not in gemini_deny:
+        raise ProfileError("gemini-local web-capable request did not deny residual write/shell tools")
+    web_tool_payload = json.dumps(
+        {
+            "response": "web tools accepted",
+            "stats": {"tools": {"totalCalls": 1, "byName": {"web_fetch": 1}}},
+        }
+    )
+    try:
+        adapter._extract_gemini_response(web_tool_payload)
+    except ValueError:
+        pass
+    else:
+        raise ProfileError("gemini-local non-web extraction globally accepted web_fetch")
+    if (
+        adapter._extract_gemini_response(
+            web_tool_payload,
+            allowed_tool_names=adapter._gemini_allowed_tool_names_for_request(pm_gemini_request),
+        )
+        != "web tools accepted"
+    ):
+        raise ProfileError("gemini-local web-capable extraction did not accept request-threaded web_fetch")
 
     gemini_cli_capture: dict[str, Any] = {}
 
@@ -1483,7 +1636,7 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
                 f"gemini-local non-zero adapter error omitted {label}: {nonzero_message!r}"
             )
 
-    return 27
+    return 39
 
 
 def _artifact_grounding_probe(repo: Path) -> int:
@@ -8677,6 +8830,7 @@ def run_codex_projection_native(repo: Path) -> KernelResult:
     list_refs = agent_resources.list_agent_object_refs
     render_toml = agent_resources.render_codex_subagent_toml
     render_claude_seed = agent_resources.render_claude_projection_seed
+    render_packet = agent_resources.render_agent_packet
     render_codex_seed = agent_resources.render_codex_projection_seed
 
     refs = list(list_refs(repo))
@@ -8762,15 +8916,26 @@ def run_codex_projection_native(repo: Path) -> KernelResult:
     # override the Brick NEED. Removing the write_need gate (back to keying on
     # tool_policy alone) turns this RED.
     sandbox_for_policies = agent_resources.codex_sandbox_mode_for_tool_policies
-    write_capable_policies = ["tool-policy:leader-coordination", "tool-policy:read-write-scoped"]
-    leak_sandbox = sandbox_for_policies(write_capable_policies, write_need=False)
+    write_probe_role = "pm-lead" if "pm-lead" in roles else "dev"
+    write_probe_packet = render_packet(write_probe_role, repo_root=repo)
+    write_capable_policies = list(write_probe_packet["agent_object"]["tool_policy_refs"])
+    write_capable_resources = list(write_probe_packet["tool_policy_resources"])
+    leak_sandbox = sandbox_for_policies(
+        write_capable_policies,
+        write_need=False,
+        native_grant_resources=write_capable_resources,
+    )
     if leak_sandbox != "read-only":
         raise ProfileError(
             "codex_projection_native: a write-capable agent on a read-only Brick "
             f"(write_need=False) must project sandbox_mode read-only, got "
             f"{leak_sandbox!r} (capability overrode the Brick NEED)"
         )
-    write_sandbox = sandbox_for_policies(write_capable_policies, write_need=True)
+    write_sandbox = sandbox_for_policies(
+        write_capable_policies,
+        write_need=True,
+        native_grant_resources=write_capable_resources,
+    )
     if write_sandbox != "workspace-write":
         raise ProfileError(
             "codex_projection_native: a write-capable agent on a write-needed "
@@ -8912,6 +9077,7 @@ def run_claude_projection_native(repo: Path) -> KernelResult:
     render_md = agent_resources.render_claude_subagent_md
     render_toml = agent_resources.render_codex_subagent_toml
     render_claude_seed = agent_resources.render_claude_projection_seed
+    render_packet = agent_resources.render_agent_packet
 
     refs = list(list_refs(repo))
     if not refs:
@@ -9003,15 +9169,30 @@ def run_claude_projection_native(repo: Path) -> KernelResult:
     # must never override the Brick NEED. Removing the write_need gate (back to
     # keying on tool_policy alone) turns this RED.
     tools_for_policies = agent_resources.claude_tools_for_tool_policies
-    write_capable_policies = ["tool-policy:leader-coordination", "tool-policy:read-write-scoped"]
-    leak_tools = list(tools_for_policies(write_capable_policies, write_need=False)["tools"])
+    write_probe_role = "pm-lead" if "pm-lead" in roles else "dev"
+    write_probe_packet = render_packet(write_probe_role, repo_root=repo)
+    write_capable_policies = list(write_probe_packet["agent_object"]["tool_policy_refs"])
+    write_capable_resources = list(write_probe_packet["tool_policy_resources"])
+    leak_tools = list(
+        tools_for_policies(
+            write_capable_policies,
+            write_need=False,
+            native_grant_resources=write_capable_resources,
+        )["tools"]
+    )
     if not write_tool_names.isdisjoint(set(leak_tools)):
         raise ProfileError(
             "claude_projection_native: a write-capable agent on a read-only Brick "
             f"(write_need=False) must project a tool set with NO Edit/Write/Bash, got "
             f"{leak_tools} (capability overrode the Brick NEED)"
         )
-    write_tools = list(tools_for_policies(write_capable_policies, write_need=True)["tools"])
+    write_tools = list(
+        tools_for_policies(
+            write_capable_policies,
+            write_need=True,
+            native_grant_resources=write_capable_resources,
+        )["tools"]
+    )
     if not write_tool_names.issubset(set(write_tools)):
         raise ProfileError(
             "claude_projection_native: a write-capable agent on a write-needed "

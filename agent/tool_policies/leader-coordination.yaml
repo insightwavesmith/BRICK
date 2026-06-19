@@ -4,6 +4,20 @@
   "allowed_use": "read declared task, design, evidence, and resource refs; prepare coordination or assignment returns",
   "mutation_scope": "write only within a Brick-declared write_scope; no Movement/quality/route authority",
   "execution_opened": false,
+  "native_grant": {
+    "schema": "native-grant/v1",
+    "capabilities": [
+      "read"
+    ],
+    "proof_limits": [
+      "native grant data only",
+      "not provider runtime",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ]
+  },
   "forbidden_use": [
     "write outside Brick-declared write_scope",
     "git commit or git push",

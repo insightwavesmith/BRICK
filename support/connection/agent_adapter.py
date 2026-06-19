@@ -40,21 +40,25 @@ ADAPTER_CHAT_SESSION = "adapter:chat-session"
 READ_WRITE_TOOL_POLICY_REF = "tool-policy:read-write-scoped"
 REVIEWER_READONLY_TOOL_POLICY_REF = "tool-policy:reviewer-readonly"
 LEADER_COORDINATION_TOOL_POLICY_REF = "tool-policy:leader-coordination"
+WEB_CAPABLE_TOOL_POLICY_REF = "tool-policy:web-capable"
 READ_ONLY_TOOL_POLICY_REFS = frozenset(
     {
         REVIEWER_READONLY_TOOL_POLICY_REF,
         LEADER_COORDINATION_TOOL_POLICY_REF,
     }
 )
-KNOWN_TOOL_POLICY_REFS = READ_ONLY_TOOL_POLICY_REFS | frozenset({READ_WRITE_TOOL_POLICY_REF})
+READ_TIER_TOOL_POLICY_REFS = READ_ONLY_TOOL_POLICY_REFS | frozenset({READ_WRITE_TOOL_POLICY_REF})
+KNOWN_TOOL_POLICY_REFS = READ_TIER_TOOL_POLICY_REFS | frozenset({WEB_CAPABLE_TOOL_POLICY_REF})
 ADAPTER_CAPABILITY_READ = "read"
 ADAPTER_CAPABILITY_WRITE = "write"
 ADAPTER_CAPABILITY_REVIEW = "review"
+ADAPTER_CAPABILITY_WEB = "web"
 ADAPTER_CAPABILITY_LITERALS = frozenset(
     {
         ADAPTER_CAPABILITY_READ,
         ADAPTER_CAPABILITY_WRITE,
         ADAPTER_CAPABILITY_REVIEW,
+        ADAPTER_CAPABILITY_WEB,
     }
 )
 MODEL_REF_DEFAULT = "model:default"
@@ -99,8 +103,12 @@ ALLOWED_ADAPTER_REFS = frozenset(
 _ADAPTER_CAPABILITIES = {
     ADAPTER_LOCAL: frozenset({ADAPTER_CAPABILITY_READ}),
     ADAPTER_CODEX_LOCAL: frozenset({ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_WRITE}),
-    ADAPTER_CLAUDE_LOCAL: frozenset({ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_WRITE}),
-    ADAPTER_GEMINI_LOCAL: frozenset({ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_REVIEW}),
+    ADAPTER_CLAUDE_LOCAL: frozenset(
+        {ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_WRITE, ADAPTER_CAPABILITY_WEB}
+    ),
+    ADAPTER_GEMINI_LOCAL: frozenset(
+        {ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_REVIEW, ADAPTER_CAPABILITY_WEB}
+    ),
     # gemini-api is the direct-HTTP sibling of gemini-local: same READ+REVIEW
     # brain capability (review/read, not write). It calls the Gemini HTTP API
     # directly (stdlib urllib, API key from env) and spawns NO subprocess.
@@ -229,24 +237,6 @@ _CLAUDE_SCOPED_WRITE_SYSTEM_PROMPT = (
     "Return concise text matching the requested return shape. "
     "Do not claim source truth, success judgment, quality judgment, or Movement authority."
 )
-_GEMINI_NO_TOOL_POLICY = """[[rule]]
-toolName = [
-  "glob",
-  "grep_search",
-  "list_directory",
-  "read_file",
-  "read_many_files",
-  "replace",
-  "run_shell_command",
-  "search_file_content",
-  "update_topic",
-  "write_file",
-  "exit_plan_mode",
-]
-decision = "deny"
-priority = 999
-"""
-
 _GEMINI_READ_TOOL_NAMES = frozenset(
     {
         "glob",
@@ -257,31 +247,27 @@ _GEMINI_READ_TOOL_NAMES = frozenset(
         "search_file_content",
     }
 )
-_GEMINI_READONLY_POLICY = """[[rule]]
-toolName = [
-  "glob",
-  "grep_search",
-  "list_directory",
-  "read_file",
-  "read_many_files",
-  "search_file_content",
-]
-decision = "allow"
-priority = 998
-
-[[rule]]
-toolName = [
-  "exit_plan_mode",
-  "google_web_search",
-  "replace",
-  "run_shell_command",
-  "update_topic",
-  "web_fetch",
-  "write_file",
-]
-decision = "deny"
-priority = 999
-"""
+_GEMINI_WEB_TOOL_NAMES = frozenset({"google_web_search", "web_fetch"})
+_CANONICAL_TOOL_UNIVERSE_GEMINI = (
+    "exit_plan_mode",
+    "glob",
+    "google_web_search",
+    "grep_search",
+    "list_directory",
+    "read_file",
+    "read_many_files",
+    "replace",
+    "run_shell_command",
+    "search_file_content",
+    "update_topic",
+    "web_fetch",
+    "write_file",
+)
+_GEMINI_TOOLS_BY_NATIVE_CAPABILITY = {
+    ADAPTER_CAPABILITY_READ: _GEMINI_READ_TOOL_NAMES,
+    ADAPTER_CAPABILITY_WEB: _GEMINI_WEB_TOOL_NAMES,
+    ADAPTER_CAPABILITY_WRITE: frozenset(),
+}
 
 
 def adapter_capabilities(adapter_ref: str) -> tuple[str, ...]:
@@ -298,6 +284,7 @@ def adapter_capabilities(adapter_ref: str) -> tuple[str, ...]:
             ADAPTER_CAPABILITY_READ,
             ADAPTER_CAPABILITY_WRITE,
             ADAPTER_CAPABILITY_REVIEW,
+            ADAPTER_CAPABILITY_WEB,
         )
         if capability in capabilities
     )
@@ -693,13 +680,101 @@ def agent_request_read_tier(request: AgentAdapterRequest) -> bool:
         return False
     if any(ref not in KNOWN_TOOL_POLICY_REFS for ref in tool_policy_refs):
         return False
+    if not tool_policy_refs.intersection(READ_TIER_TOOL_POLICY_REFS):
+        return False
     return request.adapter_ref in {ADAPTER_CODEX_LOCAL, ADAPTER_CLAUDE_LOCAL, ADAPTER_GEMINI_LOCAL}
 
 
 def _read_tier_policy_refs_for_request(request: AgentAdapterRequest) -> frozenset[str]:
     if request.adapter_ref == ADAPTER_GEMINI_LOCAL:
         return KNOWN_TOOL_POLICY_REFS
-    return READ_ONLY_TOOL_POLICY_REFS
+    return READ_TIER_TOOL_POLICY_REFS
+
+
+def _native_grant_resolution_for_request(
+    request: AgentAdapterRequest,
+    *,
+    write_need: bool | None = None,
+) -> Mapping[str, Any]:
+    resources = request.agent_instruction_packet.get("tool_policy_resources")
+    if resources is None:
+        resources = []
+    from .agent_resources import resolve_native_grant
+
+    return resolve_native_grant(
+        resources,
+        tool_policy_refs=list(request.tool_policy_refs),
+        write_need=bool(request.write_scope) if write_need is None else bool(write_need),
+    )
+
+
+def _native_capabilities_for_request(request: AgentAdapterRequest) -> frozenset[str]:
+    resolution = _native_grant_resolution_for_request(request)
+    capabilities = resolution.get("capabilities", ())
+    if not isinstance(capabilities, list):
+        return frozenset()
+    return frozenset(str(capability) for capability in capabilities)
+
+
+def _native_web_requested_for_request(request: AgentAdapterRequest) -> bool:
+    resolution = _native_grant_resolution_for_request(request)
+    return bool(resolution.get("web_requested"))
+
+
+def _adapter_projects_web_for_request(request: AgentAdapterRequest) -> bool:
+    return (
+        ADAPTER_CAPABILITY_WEB in _native_capabilities_for_request(request)
+        and adapter_has_capability(request.adapter_ref, ADAPTER_CAPABILITY_WEB)
+    )
+
+
+def _gemini_allowed_tool_names_for_request(request: AgentAdapterRequest) -> frozenset[str]:
+    capabilities = _native_capabilities_for_request(request)
+    allowed: set[str] = set()
+    for capability in (ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_WEB, ADAPTER_CAPABILITY_WRITE):
+        if capability in capabilities:
+            allowed.update(_GEMINI_TOOLS_BY_NATIVE_CAPABILITY.get(capability, frozenset()))
+    return frozenset(allowed)
+
+
+def _gemini_admin_policy_partition_for_request(
+    request: AgentAdapterRequest,
+) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    allowed_set = _gemini_allowed_tool_names_for_request(request)
+    universe_set = set(_CANONICAL_TOOL_UNIVERSE_GEMINI)
+    unknown_allowed = sorted(allowed_set - universe_set)
+    if unknown_allowed:
+        raise ValueError(
+            "gemini native grant projected tools outside canonical universe: "
+            + ", ".join(unknown_allowed)
+        )
+    allowed = tuple(tool for tool in _CANONICAL_TOOL_UNIVERSE_GEMINI if tool in allowed_set)
+    denied = tuple(tool for tool in _CANONICAL_TOOL_UNIVERSE_GEMINI if tool not in allowed_set)
+    if set(allowed).intersection(denied) or set(allowed).union(denied) != universe_set:
+        raise ValueError("gemini native grant tool partition is not exhaustive")
+    return allowed, denied
+
+
+def _toml_tool_rule(tool_names: tuple[str, ...], *, decision: str, priority: int) -> str:
+    lines = [
+        "[[rule]]",
+        "toolName = [",
+        *[f'  "{tool_name}",' for tool_name in tool_names],
+        "]",
+        f'decision = "{decision}"',
+        f"priority = {priority}",
+    ]
+    return "\n".join(lines)
+
+
+def _gemini_admin_policy_for_request(request: AgentAdapterRequest) -> str:
+    allowed, denied = _gemini_admin_policy_partition_for_request(request)
+    blocks: list[str] = []
+    if allowed:
+        blocks.append(_toml_tool_rule(allowed, decision="allow", priority=998))
+    if denied:
+        blocks.append(_toml_tool_rule(denied, decision="deny", priority=999))
+    return "\n\n".join(blocks) + "\n"
 
 
 def project_model_ref_to_cli_arg(adapter_ref: str, selected_model_ref: str = "") -> str:
@@ -964,7 +1039,7 @@ def _invoke_local_cli_adapter(
     )
     if completed.return_code != 0:
         raise ValueError(_local_cli_nonzero_error_message(spec, completed))
-    output_text = _extract_output_text(spec, completed)
+    output_text = _extract_output_text(spec, completed, request=request)
     _reject_secret_text("local_cli_output", output_text)
     returned = {
         "returned_summary": "local CLI Agent Adapter returned support evidence",
@@ -1612,20 +1687,24 @@ def _invoke_local_cli(
         with tempfile.TemporaryDirectory(prefix="bp-gemini-cli-") as tmpdir:
             temp_root = Path(tmpdir)
             read_tier = agent_request_read_tier(request)
-            policy_path = temp_root / ("readonly-policy.toml" if read_tier else "no-tools-policy.toml")
+            allowed_gemini_tools = _gemini_allowed_tool_names_for_request(request)
+            native_tool_tier = bool(allowed_gemini_tools)
+            policy_path = temp_root / (
+                "native-grant-policy.toml" if native_tool_tier else "no-tools-policy.toml"
+            )
             policy_path.write_text(
-                _GEMINI_READONLY_POLICY if read_tier else _GEMINI_NO_TOOL_POLICY,
+                _gemini_admin_policy_for_request(request),
                 encoding="utf-8",
             )
             run_cwd = cwd if read_tier else temp_root
             run_env = None
             approval_mode = "plan"
             model_arg = _model_cli_arg(request, spec) or "gemini-2.5-flash"
-            if read_tier:
+            if native_tool_tier:
                 run_env = dict(os.environ)
                 if not _gemini_api_key_env_present(run_env):
                     raise FileNotFoundError(
-                        "gemini-local read tier requires an API key in env "
+                        "gemini-local native tool tier requires an API key in env "
                         + " or ".join(_GEMINI_API_KEY_ENV_VARS)
                         + " (none set)"
                     )
@@ -1738,7 +1817,16 @@ def _not_proven_for_request(
 
 
 def _codex_sandbox_for_request(request: AgentAdapterRequest) -> str:
-    return "workspace-write" if agent_request_effective_write(request) else "read-only"
+    if not agent_request_effective_write(request):
+        return "read-only"
+    from .agent_resources import codex_sandbox_mode_for_tool_policies
+
+    projected = codex_sandbox_mode_for_tool_policies(
+        list(request.tool_policy_refs),
+        write_need=bool(request.write_scope),
+        native_grant_resources=request.agent_instruction_packet.get("tool_policy_resources", []),
+    )
+    return "workspace-write" if projected == "workspace-write" else "read-only"
 
 
 def _claude_cli_invocation(request: AgentAdapterRequest) -> dict[str, str]:
@@ -1767,21 +1855,29 @@ def _claude_cli_invocation(request: AgentAdapterRequest) -> dict[str, str]:
         # (a non-empty Brick write_scope) gates the physical tool set -- matching
         # the agent_request_effective_write gate this branch already passed, never
         # the agent's bare capability.
-        tools = ",".join(
-            claude_tools_for_tool_policies(
-                list(request.tool_policy_refs),
-                write_need=bool(request.write_scope),
-            )["tools"]
+        mapping = claude_tools_for_tool_policies(
+            list(request.tool_policy_refs),
+            write_need=bool(request.write_scope),
+            native_grant_resources=request.agent_instruction_packet.get("tool_policy_resources", []),
+        )
+        if mapping.get("write_capable") is True:
+            tools = ",".join(mapping["tools"])
+            return {
+                "permission_mode": "acceptEdits",
+                "tools": tools,
+                "system_prompt": _CLAUDE_SCOPED_WRITE_SYSTEM_PROMPT,
+            }
+    if agent_request_read_tier(request):
+        from .agent_resources import claude_tools_for_tool_policies
+
+        mapping = claude_tools_for_tool_policies(
+            list(request.tool_policy_refs),
+            write_need=False,
+            native_grant_resources=request.agent_instruction_packet.get("tool_policy_resources", []),
         )
         return {
-            "permission_mode": "acceptEdits",
-            "tools": tools,
-            "system_prompt": _CLAUDE_SCOPED_WRITE_SYSTEM_PROMPT,
-        }
-    if agent_request_read_tier(request):
-        return {
             "permission_mode": "plan",
-            "tools": "Read,Grep,Glob",
+            "tools": ",".join(mapping["tools"]),
             "system_prompt": _CLAUDE_READ_ONLY_SYSTEM_PROMPT,
         }
     return {
@@ -2424,6 +2520,9 @@ def _build_prompt(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
     required_labels = _required_return_shape_fields(request.required_return_shape)
     waiver_labels = _return_field_waivers(required_labels)
     reserved_top_level_return_keys = ", ".join(sorted(_TOP_LEVEL_VERDICT_KEYS))
+    native_grant = _native_grant_resolution_for_request(request)
+    web_requested = bool(native_grant.get("web_requested"))
+    web_projected = _adapter_projects_web_for_request(request)
     rules = [
         "Do not claim source truth.",
         "Do not judge success or quality.",
@@ -2448,25 +2547,47 @@ def _build_prompt(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
                 "Return non-judgmental support evidence only.",
             )
         )
-    elif agent_request_read_tier(request):
+    elif agent_request_read_tier(request) or web_projected or (
+        web_requested and spec.adapter_ref == ADAPTER_CODEX_LOCAL
+    ):
         admitted = ", ".join(sorted(_read_tier_policy_refs_for_request(request)))
+        if agent_request_read_tier(request):
+            rules.extend(
+                (
+                    "You may use read-only repository inspection tools only: read files, inspect diffs, search with grep/glob, and run checker commands.",
+                    f"Read tier is admitted for this adapter only by these Agent tool policies: {admitted}.",
+                )
+            )
+        elif web_requested and spec.adapter_ref == ADAPTER_CODEX_LOCAL:
+            rules.append(
+                "No adapter-native web tools are available on codex-local for this native_grant."
+            )
+        else:
+            rules.append(
+                "You may use only adapter-native web tools granted by native_grant; do not inspect repository files."
+            )
         rules.extend(
             (
-                "You may use read-only repository inspection tools only: read files, inspect diffs, search with grep/glob, and run checker commands.",
-                f"Read tier is admitted for this adapter only by these Agent tool policies: {admitted}.",
                 "Do not edit, create, delete, or write files.",
                 "Do not run git mutations, including commit, push, checkout, reset, merge, rebase, or stash.",
                 "Do not execute hooks or provider SDKs.",
-                "Do not use network beyond the selected provider itself.",
                 "Return non-judgmental support evidence only.",
             )
         )
+        if web_projected:
+            rules.append(
+                "Web access is adapter-projected from tool-policy:web-capable; use only the adapter-native web tools granted by native_grant."
+            )
+        elif web_requested and spec.adapter_ref == ADAPTER_CODEX_LOCAL:
+            rules.append("Web NOT available on this adapter; do not use network beyond the selected provider itself.")
+        else:
+            rules.append("Do not use network beyond the selected provider itself.")
     else:
         rules.append("Do not use tools or hooks.")
     if spec.adapter_ref == ADAPTER_GEMINI_LOCAL:
-        if agent_request_read_tier(request):
+        if agent_request_read_tier(request) or web_projected:
             rules.append(
-                "Gemini local read tier may use only read_file, glob, grep_search, search_file_content, list_directory, and read_many_files through the read-only admin policy; write and shell tools remain blocked."
+                "Gemini local native grant may use only read_file, glob, grep_search, search_file_content, list_directory, read_many_files, and when web-capable is present google_web_search/web_fetch; write and shell tools remain blocked."
             )
         rules.extend(
             (
@@ -2497,6 +2618,7 @@ def _build_prompt(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
         "source_fact_bodies": _source_fact_bodies_for_prompt(request, spec),
         "link_handoff_refs": dict(request.link_handoff_refs),
         "agent_instruction_packet": _instruction_packet_for_prompt(request, spec),
+        "native_grant": dict(native_grant),
         "write_scope": dict(request.write_scope),
         "building_session_ref": request.building_session_ref,
         "session_scope_ref": request.session_scope_ref,
@@ -2696,9 +2818,17 @@ def _try_json_value(value: str) -> Any:
         return None
 
 
-def _extract_output_text(spec: LocalCliSpec, completed: LocalCliCompleted) -> str:
+def _extract_output_text(
+    spec: LocalCliSpec,
+    completed: LocalCliCompleted,
+    *,
+    request: AgentAdapterRequest,
+) -> str:
     if spec.adapter_ref == ADAPTER_GEMINI_LOCAL:
-        return _extract_gemini_response(completed.stdout)
+        return _extract_gemini_response(
+            completed.stdout,
+            allowed_tool_names=_gemini_allowed_tool_names_for_request(request),
+        )
     if spec.adapter_ref == ADAPTER_CLAUDE_LOCAL and completed.stdout.strip():
         try:
             payload = json.loads(completed.stdout)
@@ -2728,7 +2858,11 @@ def _source_fact_bodies_for_prompt(
     }
 
 
-def _extract_gemini_response(stdout: str) -> str:
+def _extract_gemini_response(
+    stdout: str,
+    *,
+    allowed_tool_names: Iterable[str] | None = None,
+) -> str:
     try:
         payload = json.loads(stdout)
     except json.JSONDecodeError as exc:
@@ -2736,7 +2870,10 @@ def _extract_gemini_response(stdout: str) -> str:
     if not isinstance(payload, Mapping):
         raise ValueError("Gemini local CLI JSON output must be an object")
     stats = payload.get("stats")
-    nonread_tool_names = _gemini_nonread_tool_names(stats)
+    nonread_tool_names = _gemini_nonread_tool_names(
+        stats,
+        allowed_tool_names=allowed_tool_names,
+    )
     if nonread_tool_names:
         raise ValueError(
             "Gemini local CLI reported non-read tool calls; refusing support payload: "
@@ -2752,7 +2889,11 @@ def _gemini_api_key_env_present(env: Mapping[str, str]) -> bool:
     return any((env.get(env_var) or "").strip() for env_var in _GEMINI_API_KEY_ENV_VARS)
 
 
-def _gemini_nonread_tool_names(stats: Any) -> tuple[str, ...]:
+def _gemini_nonread_tool_names(
+    stats: Any,
+    *,
+    allowed_tool_names: Iterable[str] | None = None,
+) -> tuple[str, ...]:
     if not isinstance(stats, Mapping):
         return ()
     tools = stats.get("tools")
@@ -2774,7 +2915,8 @@ def _gemini_nonread_tool_names(stats: Any) -> tuple[str, ...]:
                 names.add(str(item))
     else:
         raise ValueError("Gemini local CLI stats.tools.byName must be an object or list")
-    return tuple(sorted(name for name in names if name not in _GEMINI_READ_TOOL_NAMES))
+    allowed = set(_GEMINI_READ_TOOL_NAMES if allowed_tool_names is None else allowed_tool_names)
+    return tuple(sorted(name for name in names if name not in allowed))
 
 
 def _validate_returned_payload(label: str, value: Any, *, depth: int = 0) -> None:
@@ -3128,6 +3270,7 @@ __all__ = [
     "ADAPTER_CAPABILITY_LITERALS",
     "ADAPTER_CAPABILITY_READ",
     "ADAPTER_CAPABILITY_REVIEW",
+    "ADAPTER_CAPABILITY_WEB",
     "ADAPTER_CAPABILITY_WRITE",
     "ADAPTER_CLAUDE_LOCAL",
     "ADAPTER_CHAT_SESSION",
@@ -3148,8 +3291,10 @@ __all__ = [
     "KNOWN_TOOL_POLICY_REFS",
     "LEADER_COORDINATION_TOOL_POLICY_REF",
     "READ_ONLY_TOOL_POLICY_REFS",
+    "READ_TIER_TOOL_POLICY_REFS",
     "READ_WRITE_TOOL_POLICY_REF",
     "REVIEWER_READONLY_TOOL_POLICY_REF",
+    "WEB_CAPABLE_TOOL_POLICY_REF",
     "adapter_capabilities",
     "adapter_has_capability",
     "adapter_is_write_capable",

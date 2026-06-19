@@ -4,6 +4,20 @@
   "allowed_use": "read scoped files and run verification commands",
   "mutation_scope": "none unless an in-scope repair is separately assigned",
   "execution_opened": false,
+  "native_grant": {
+    "schema": "native-grant/v1",
+    "capabilities": [
+      "read"
+    ],
+    "proof_limits": [
+      "native grant data only",
+      "not provider runtime",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ]
+  },
   "forbidden_use": [
     "mutate files by default",
     "write outside a separately declared repair Brick",

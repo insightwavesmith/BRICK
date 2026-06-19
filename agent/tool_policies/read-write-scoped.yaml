@@ -5,6 +5,23 @@
   "mutation_scope": "Brick-declared write_scope only; no free tool execution",
   "execution_opened": true,
   "execution_opening_condition": "Effective write opens only when Brick write_scope, this read-write scoped Agent policy, compatible adapter mapping/technical capability, and support write observation are all present; not adapter identity alone",
+  "native_grant": {
+    "schema": "native-grant/v1",
+    "capabilities": [
+      "read",
+      "write"
+    ],
+    "write_mode": "runtime_intersection",
+    "proof_limits": [
+      "native grant data only",
+      "write projects only through runtime intersection with Brick write_scope NEED",
+      "not provider runtime",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ]
+  },
   "forbidden_use": [
     "write outside Brick-declared write_scope",
     "write secret, token, credential, auth, or .git paths",

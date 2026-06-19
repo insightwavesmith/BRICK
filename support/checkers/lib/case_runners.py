@@ -5759,6 +5759,22 @@ def run_adapter_capability_rehome_case(repo: Path, profile: Mapping[str, Any]) -
             _check_adapter_capability_write_capable_leader_write_needed_brick_projection(
                 label
             )
+        elif case_kind == "native_grant_roundtrip":
+            _check_adapter_capability_native_grant_roundtrip(label)
+        elif case_kind == "native_grant_policy_only_fails_closed":
+            _check_adapter_capability_native_grant_policy_only_fails_closed(label)
+        elif case_kind == "native_grant_write_home_pin":
+            _expect_adapter_capability_rejection(
+                label,
+                expected_reason,
+                lambda: _check_adapter_capability_native_grant_write_home_pin(label),
+            )
+        elif case_kind == "native_grant_unknown_capability":
+            _expect_adapter_capability_rejection(
+                label,
+                expected_reason,
+                lambda: _check_adapter_capability_native_grant_unknown_capability(label),
+            )
         elif case_kind == "write_scope_on_read_only_brick_rejected":
             _expect_adapter_capability_rejection(
                 label,
@@ -5851,6 +5867,7 @@ def _adapter_capability_request(
 ) -> Any:
     from brick_protocol.support.connection.agent_adapter import AgentAdapterRequest
 
+    role = agent_object_ref.removeprefix("agent-object:")
     return AgentAdapterRequest(
         building_id="adapter-capability-rehome-case",
         agent_object_ref=agent_object_ref,
@@ -5862,6 +5879,12 @@ def _adapter_capability_request(
         work_statement="Exercise adapter capability intersection.",
         comparison_rule="Support observes stable deny reason categories only.",
         required_return_shape="observed_evidence, not_proven",
+        agent_instruction_packet={
+            "kind": "agent-instruction-packet",
+            "agent_object_ref": agent_object_ref,
+            "role": role,
+            "tool_policy_resources": _native_grant_policy_resources(tool_policy_refs),
+        },
     )
 
 
@@ -5961,10 +5984,10 @@ def _check_adapter_capability_claude_write_ok(label: str) -> None:
             f"adapter canonical {sorted(_ADAPTER_OBSERVED_WRITE)!r}"
         )
     capabilities = adapter_capabilities("adapter:claude-local")
-    if capabilities != ("read", "write"):
+    if capabilities != ("read", "write", "web"):
         raise ProfileError(
             f"adapter_capability_rehome_case rejected {label}: expected claude "
-            f"read/write capabilities, observed {capabilities!r}"
+            f"read/write/web capabilities, observed {capabilities!r}"
         )
     # claude-local + Brick write_scope must be ACCEPTED by preflight write_scope
     # validation (fires RED against a codex-only stale observed-write copy).
@@ -6105,6 +6128,171 @@ _WRITE_CAPABLE_LEADER_POLICIES = (
 )
 
 
+def _native_grant_policy_resource(policy_ref: str) -> Mapping[str, Any]:
+    if policy_ref == "tool-policy:leader-coordination":
+        grant = {"schema": "native-grant/v1", "capabilities": ["read"]}
+    elif policy_ref == "tool-policy:reviewer-readonly":
+        grant = {"schema": "native-grant/v1", "capabilities": ["read"]}
+    elif policy_ref == "tool-policy:read-write-scoped":
+        grant = {
+            "schema": "native-grant/v1",
+            "capabilities": ["read", "write"],
+            "write_mode": "runtime_intersection",
+        }
+    elif policy_ref == "tool-policy:web-capable":
+        grant = {
+            "schema": "native-grant/v1",
+            "capabilities": ["web"],
+            "web_scope": "exfiltration_not_enforced",
+            "exfiltration_enforced": False,
+        }
+    else:
+        grant = {"schema": "native-grant/v1", "capabilities": ["unknown"]}
+    return {
+        "ref": policy_ref,
+        "kind": "tool_policy",
+        "path": f"agent/tool_policies/{policy_ref.removeprefix('tool-policy:')}.yaml",
+        "data": {
+            "tool_policy_ref": policy_ref,
+            "owner_axis": "Agent",
+            "native_grant": grant,
+        },
+    }
+
+
+def _native_grant_policy_resources(policy_refs: tuple[str, ...]) -> list[Mapping[str, Any]]:
+    return [_native_grant_policy_resource(policy_ref) for policy_ref in policy_refs]
+
+
+def _check_adapter_capability_native_grant_roundtrip(label: str) -> None:
+    from brick_protocol.support.connection import agent_resources
+
+    refs = (
+        "tool-policy:leader-coordination",
+        "tool-policy:read-write-scoped",
+        "tool-policy:web-capable",
+    )
+    native_grant_resources = _native_grant_policy_resources(refs)
+    read_resolution = agent_resources.resolve_native_grant(
+        native_grant_resources,
+        tool_policy_refs=list(refs),
+        write_need=False,
+    )
+    if read_resolution["capabilities"] != ["read", "web"]:
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: read-only Brick "
+            f"must resolve read+web but no write, got {read_resolution['capabilities']!r}"
+        )
+    write_resolution = agent_resources.resolve_native_grant(
+        native_grant_resources,
+        tool_policy_refs=list(refs),
+        write_need=True,
+    )
+    if write_resolution["capabilities"] != ["read", "write", "web"]:
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: write-needed Brick "
+            f"must resolve read+write+web, got {write_resolution['capabilities']!r}"
+        )
+    if agent_resources.codex_sandbox_mode_for_tool_policies(
+        list(refs),
+        write_need=False,
+        native_grant_resources=native_grant_resources,
+    ) != "read-only":
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: codex read-only "
+            "Brick did not stay read-only from native_grant"
+        )
+    if agent_resources.codex_sandbox_mode_for_tool_policies(
+        list(refs),
+        write_need=True,
+        native_grant_resources=native_grant_resources,
+    ) != "workspace-write":
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: codex write-needed "
+            "Brick did not project workspace-write from native_grant"
+        )
+    claude_read = agent_resources.claude_tools_for_tool_policies(
+        list(refs),
+        write_need=False,
+        native_grant_resources=native_grant_resources,
+    )
+    if "WebFetch" not in claude_read["tools"] or "Edit" in claude_read["tools"]:
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: claude read/web "
+            f"projection drifted: {claude_read['tools']!r}"
+        )
+    claude_write = agent_resources.claude_tools_for_tool_policies(
+        list(refs),
+        write_need=True,
+        native_grant_resources=native_grant_resources,
+    )
+    if "WebFetch" not in claude_write["tools"] or "Edit" not in claude_write["tools"]:
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: claude write/web "
+            f"projection drifted: {claude_write['tools']!r}"
+        )
+
+
+def _check_adapter_capability_native_grant_policy_only_fails_closed(label: str) -> None:
+    from brick_protocol.support.connection import agent_resources
+
+    refs = ("tool-policy:read-write-scoped",)
+    if agent_resources.codex_sandbox_mode_for_tool_policies(
+        list(refs),
+        write_need=True,
+    ) != "read-only":
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: policy-ref-only "
+            "codex projection must fail closed to read-only"
+        )
+    claude = agent_resources.claude_tools_for_tool_policies(
+        list(refs),
+        write_need=True,
+    )
+    if claude["tools"]:
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: policy-ref-only "
+            f"claude projection must fail closed to no tools, got {claude['tools']!r}"
+        )
+
+
+def _check_adapter_capability_native_grant_write_home_pin(label: str) -> None:
+    from brick_protocol.support.connection import agent_resources
+
+    resource = _native_grant_policy_resource("tool-policy:leader-coordination")
+    resource = dict(resource)
+    data = dict(resource["data"])
+    data["native_grant"] = {
+        "schema": "native-grant/v1",
+        "capabilities": ["read", "write"],
+        "write_mode": "runtime_intersection",
+    }
+    resource["data"] = data
+    agent_resources.resolve_native_grant(
+        [resource],
+        tool_policy_refs=["tool-policy:leader-coordination"],
+        write_need=True,
+    )
+
+
+def _check_adapter_capability_native_grant_unknown_capability(label: str) -> None:
+    from brick_protocol.support.connection import agent_resources
+
+    resource = _native_grant_policy_resource("tool-policy:read-write-scoped")
+    resource = dict(resource)
+    data = dict(resource["data"])
+    data["native_grant"] = {
+        "schema": "native-grant/v1",
+        "capabilities": ["read", "unknown"],
+    }
+    resource["data"] = data
+    agent_resources.resolve_native_grant(
+        [resource],
+        tool_policy_refs=["tool-policy:read-write-scoped"],
+        write_need=True,
+    )
+
+
 def _check_adapter_capability_write_capable_leader_read_only_brick_projection(
     label: str,
 ) -> None:
@@ -6128,8 +6316,11 @@ def _check_adapter_capability_write_capable_leader_read_only_brick_projection(
         codex_sandbox_mode_for_tool_policies,
     )
 
+    native_grant_resources = _native_grant_policy_resources(_WRITE_CAPABLE_LEADER_POLICIES)
     sandbox = codex_sandbox_mode_for_tool_policies(
-        list(_WRITE_CAPABLE_LEADER_POLICIES), write_need=False
+        list(_WRITE_CAPABLE_LEADER_POLICIES),
+        write_need=False,
+        native_grant_resources=native_grant_resources,
     )
     if sandbox != "read-only":
         raise ProfileError(
@@ -6139,7 +6330,9 @@ def _check_adapter_capability_write_capable_leader_read_only_brick_projection(
             "Brick NEED)"
         )
     claude = claude_tools_for_tool_policies(
-        list(_WRITE_CAPABLE_LEADER_POLICIES), write_need=False
+        list(_WRITE_CAPABLE_LEADER_POLICIES),
+        write_need=False,
+        native_grant_resources=native_grant_resources,
     )
     tools = list(claude["tools"])
     if "Edit" in tools or "Write" in tools:
@@ -6173,8 +6366,11 @@ def _check_adapter_capability_write_capable_leader_write_needed_brick_projection
         codex_sandbox_mode_for_tool_policies,
     )
 
+    native_grant_resources = _native_grant_policy_resources(_WRITE_CAPABLE_LEADER_POLICIES)
     sandbox = codex_sandbox_mode_for_tool_policies(
-        list(_WRITE_CAPABLE_LEADER_POLICIES), write_need=True
+        list(_WRITE_CAPABLE_LEADER_POLICIES),
+        write_need=True,
+        native_grant_resources=native_grant_resources,
     )
     if sandbox != "workspace-write":
         raise ProfileError(
@@ -6184,7 +6380,9 @@ def _check_adapter_capability_write_capable_leader_write_needed_brick_projection
             "legitimate write)"
         )
     claude = claude_tools_for_tool_policies(
-        list(_WRITE_CAPABLE_LEADER_POLICIES), write_need=True
+        list(_WRITE_CAPABLE_LEADER_POLICIES),
+        write_need=True,
+        native_grant_resources=native_grant_resources,
     )
     tools = list(claude["tools"])
     if "Edit" not in tools or "Write" not in tools:
