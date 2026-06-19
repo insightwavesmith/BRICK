@@ -54,26 +54,6 @@ def prepare_child_building_candidate_case(case: Mapping[str, Any]) -> dict[str, 
     }
 
 
-def generate_child_building_candidate(
-    case_path: Path | str | Mapping[str, Any],
-    *,
-    repo: Path | str,
-    overwrite_existing: bool = True,
-) -> dict[str, Any]:
-    """Return a declared child Building candidate plan without writing axis files."""
-
-    repo_path = Path(repo).resolve()
-    if isinstance(case_path, Mapping):
-        case = case_path
-    else:
-        case = _load_mapping(repo_path / _require_relative_path(case_path, "case_path"))
-    prepared = prepare_child_building_candidate_case(case)
-    return {
-        **prepared,
-        "written": False,
-    }
-
-
 def _load_mapping(path: Path) -> Mapping[str, Any]:
     text = path.read_text(encoding="utf-8")
     if path.suffix in {".yaml", ".yml"}:

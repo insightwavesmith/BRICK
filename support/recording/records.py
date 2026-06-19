@@ -155,21 +155,6 @@ class JsonObject:
         object.__setattr__(self, "fields", fields)
 
     @classmethod
-    def from_pairs(
-        cls,
-        *pairs: JsonField | tuple[str, JsonValue],
-    ) -> "JsonObject":
-        fields: list[JsonField] = []
-        for index, pair in enumerate(pairs):
-            if isinstance(pair, JsonField):
-                fields.append(pair)
-                continue
-            if not isinstance(pair, tuple) or len(pair) != 2:
-                raise TypeError(f"pairs[{index}] must be JsonField or (key, value)")
-            fields.append(JsonField(pair[0], pair[1]))
-        return cls(tuple(fields))
-
-    @classmethod
     def from_mapping(cls, value: Mapping[str, Any]) -> "JsonObject":
         _reject_forbidden_packet_keys(value)
         return cls(tuple(JsonField(str(key), nested) for key, nested in value.items()))

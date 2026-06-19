@@ -120,13 +120,6 @@ class CompositionProblem:
     node_id: str
     detail: str
 
-    def to_dict(self) -> Mapping[str, str]:
-        return {
-            "code": self.code,
-            "node_id": self.node_id,
-            "detail": self.detail,
-        }
-
 
 class CompositionError(ValueError):
     """Raised when compose_building collects one or more problems."""
@@ -781,23 +774,6 @@ def _materializer_preset_step_with_selection_override(
     return merged
 
 
-def _materializer_texts(*sources: Any) -> tuple[str, ...]:
-    values: list[str] = []
-    for source in sources:
-        if source in (None, ""):
-            continue
-        if isinstance(source, str):
-            candidates = (source,)
-        elif isinstance(source, Sequence) and not isinstance(source, (str, bytes)):
-            candidates = tuple(source)
-        else:
-            continue
-        for item in candidates:
-            if isinstance(item, str) and item.strip() and item.strip() not in values:
-                values.append(item.strip())
-    return tuple(values)
-
-
 def _materializer_task_summary(task_body: str, task_source_ref: str) -> str:
     for heading in ("## First-Line Contract", "## Objective", "## Desired Output"):
         section = _materializer_markdown_section(task_body, heading)
@@ -864,29 +840,6 @@ def _materializer_profile_gate_translations(
         if "human-review" in tokens:
             pairs.append(("human-review", GATE_CONCEPT_TOKEN_GATE_REFS["human-review"]))
     return tuple(pairs)
-
-
-def _materializer_profile_gate_refs(
-    tokens: Sequence[str],
-    *,
-    qa_row: bool,
-    final_transition_row: bool,
-) -> tuple[str, ...]:
-    """Translate declared profile tokens into the EXTRA gate refs for one row.
-
-    Placement per the operator design rule (see GATE_CONCEPT_TOKEN_GATE_REFS
-    comment): strict on QA rows; coo + human on the final transition row only.
-    Returns refs WITHOUT the leading default-transition (caller prepends it).
-    """
-
-    return tuple(
-        gate_ref
-        for _token, gate_ref in _materializer_profile_gate_translations(
-            tokens,
-            qa_row=qa_row,
-            final_transition_row=final_transition_row,
-        )
-    )
 
 
 def _materializer_gate_concept_provenance(
@@ -1138,23 +1091,6 @@ def stamp_declared_portfolio_closure_gates(
         "already_declared_rows": already_declared_rows,
         "stamped_gate_refs": tuple(stamped_gate_refs),
     }
-
-
-def _materializer_target_ref(target_word: str) -> str:
-    if any(token in target_word for token in (" or ", " and ", ",", "|", "/")):
-        raise ValueError("target_word must name one target")
-    if target_word in UNSUPPORTED_MATERIALIZER_TARGET_WORDS:
-        raise ValueError(
-            "target_word requires explicit portfolio/manual materialization; "
-            "support must not turn portfolio targets into Brick refs"
-        )
-    if any(marker in target_word for marker in GRAPH_CHAIN_TARGET_MARKERS):
-        raise ValueError("graph preset materialization remains explicit; use compose_building")
-    if target_word.startswith(("brick-", "building-boundary:")):
-        return target_word
-    if ":" in target_word:
-        raise ValueError("target_word must be a Brick word or declared boundary ref")
-    return f"brick-{_composition_slug(target_word)}"
 
 
 def _materializer_graph_plan(

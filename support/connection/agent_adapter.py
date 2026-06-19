@@ -2777,25 +2777,6 @@ def _gemini_nonread_tool_names(stats: Any) -> tuple[str, ...]:
     return tuple(sorted(name for name in names if name not in _GEMINI_READ_TOOL_NAMES))
 
 
-def _gemini_tool_call_count(payload: Mapping[str, Any]) -> int:
-    stats = payload.get("stats")
-    if not isinstance(stats, Mapping):
-        return 0
-    tools = stats.get("tools")
-    if not isinstance(tools, Mapping):
-        return 0
-    total_calls = tools.get("totalCalls", 0)
-    if isinstance(total_calls, bool):
-        return int(total_calls)
-    if isinstance(total_calls, int):
-        return total_calls
-    if isinstance(total_calls, float) and total_calls.is_integer():
-        return int(total_calls)
-    if isinstance(total_calls, str) and total_calls.strip().isdigit():
-        return int(total_calls.strip())
-    raise ValueError("Gemini local CLI tool-call count must be numeric")
-
-
 def _validate_returned_payload(label: str, value: Any, *, depth: int = 0) -> None:
     if isinstance(value, Mapping):
         for raw_key, child in value.items():

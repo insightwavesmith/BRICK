@@ -1487,20 +1487,6 @@ def _slack_lane_label(packet: Mapping[str, Any]) -> str:
     return _label_value("lanes", lane) or lane or "담당자"
 
 
-def _slack_stage_lines(packet: Mapping[str, Any]) -> tuple[str, ...]:
-    raw_kinds = packet.get("completed_step_kinds")
-    if not isinstance(raw_kinds, list):
-        return ()
-    lines: list[str] = []
-    for raw_kind in raw_kinds:
-        kind = str(raw_kind or "").strip()
-        if not kind:
-            continue
-        label = _label_value("brick_kinds", kind, field="ko") or kind
-        lines.append(f"단계: {label}")
-    return tuple(lines)
-
-
 def _slack_event_kind(packet: Mapping[str, Any]) -> str:
     trigger = str(packet.get("trigger_event_ref") or "")
     for event_kind in SLACK_BRICK_GRAIN_EVENT_KINDS:
@@ -1556,34 +1542,6 @@ def _slack_event_label(packet: Mapping[str, Any], *, event_kind: str) -> str:
         return label
     state = str(packet.get("observed_board_state") or "")
     return _label_value("observed_board_states", state) or "상태 관찰"
-
-
-def _slack_action_line(packet: Mapping[str, Any], *, event_kind: str) -> str:
-    action = _label_value("actions", event_kind) or _label_value("actions", "state_observed")
-    if event_kind != "intervention_required":
-        return action or "상태 확인"
-    owner = str(packet.get("required_disposition_owner") or "").strip()
-    owner_label = _label_value("disposition_owners", owner) or owner
-    if owner_label:
-        return f"{owner_label} {action or '처분 필요'}"
-    return action or "처분 필요"
-
-
-def _slack_ref_line(packet: Mapping[str, Any], *, source_ref: str) -> str:
-    parts = [source_ref]
-    brick_ref = _short_ref(str(packet.get("current_brick_ref") or "").strip())
-    if brick_ref != "-":
-        parts.append(_slack_ref_part("brick", brick_ref))
-    step_ref = _short_step_ref(str(packet.get("last_completed_step_ref") or "").strip())
-    if step_ref != "-":
-        parts.append(_slack_ref_part("step", step_ref))
-    frontier_ref = _short_frontier_ref(_required_text(packet.get("frontier_ref"), "frontier_ref"))
-    parts.append(_slack_ref_part("frontier", frontier_ref))
-    return " · ".join(parts)
-
-
-def _slack_ref_part(key: str, value: str) -> str:
-    return f"{key}={value}"
 
 
 def _short_ref(value: str) -> str:
