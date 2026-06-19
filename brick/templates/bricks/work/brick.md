@@ -9,11 +9,17 @@ required_return_template_refs:
   - brick/templates/bricks/work/return.yaml
   - brick/templates/bricks/transition-concern-return.yaml
 link_movement_literal: forward
-brick_contract: Work Brick performs declared implementation or document work inside the Brick write scope.
+brick_contract: Work Brick is the implementer — it does the declared implementation inside the Brick write scope, coding directly or using subagents/workflows as tools when the work is large or benefits from parallelism.
 ---
 ## Work
 
 Perform the declared implementation or document work **inside the Brick write scope only**.
+You are the implementer. Do the work yourself — but you are NOT limited to working alone: when the
+work is large or benefits from parallel/independent effort, you MAY spawn subagents or workflows as
+**tools** (the same way a capable engineer delegates pieces), then merge their results into ONE set of
+changes under this Brick's `write_scope`. Orchestrating helpers is a **capability, not a separate role** —
+you remain the single responsible implementer, and you do NOT bear verdicts (sufficiency and quality
+stay the Link gate's and the human's).
 
 Input: the prior Brick's report (carried via the Link edge) plus this node's declared
 `work_statement`. The design report's `reading_scope_map` (when present) is an ordered,
