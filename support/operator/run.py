@@ -2456,13 +2456,6 @@ def _base_required_return_fields_for_gate(
     )
 
 
-def _brick_comparison_fields_from_evidence(
-    brick_comparison: BrickComparisonFact,
-    prefix: str,
-) -> tuple[str, ...]:
-    return brick_comparison.fields_from_evidence(prefix)
-
-
 def _required_return_shape_fields(value: Any) -> tuple[str, ...]:
     return parse_required_return_shape(value)
 
@@ -2873,14 +2866,6 @@ def _is_step_output_source_fact_ref(source_fact: str) -> bool:
         or normalized.startswith("step-output:")
         or normalized.endswith("/step-output.json")
     )
-
-
-def _step_output_relative_ref(source_fact: str) -> str | None:
-    text = _required_text("source_fact", source_fact).replace("\\", "/")
-    marker = "work/step-outputs/"
-    if marker not in text:
-        return None
-    return text[text.index(marker) :]
 
 
 def _readable_source_fact_path(source_fact: str) -> Path | None:
