@@ -1320,6 +1320,23 @@ def _building_root_is_real_vessel(repo: Path, root: Path) -> bool:
     # not under the GIVEN repo's project/<id>/buildings layout, so a garbage path or
     # a repo/root mismatch is still rejected. The slack creds were independently
     # confirmed present by the env gate, so this does NOT widen credential exposure.
+    #
+    # SLACK VESSEL-GATE MIN-FIX (slack-wiring-gap 0619, codex adversarial review):
+    # the recognized-home + path-shape checks alone are NOT enough. The evidence
+    # home (BRICK_EVIDENCE_HOME() = $BRICK_HOME) is CALLER-controlled, and
+    # project_ref_for_building_root only verifies the project/<id>/buildings PATH
+    # SHAPE -- it never looks at whether a real building actually lives there. So a
+    # caller can point $BRICK_HOME at a throwaway tree, ``mkdir -p`` an empty
+    # project/<slug>/buildings/<id> path, and that empty mimic would pass every
+    # check above and fire slack/dashboard -- a test or foreign-project building
+    # could spam the real Slack, defeating the whole reason the vessel gate exists.
+    #
+    # The narrowing requires ONE MORE proof before an external (slack/dashboard)
+    # sink survives: the root must carry REAL building-spine evidence -- a declared
+    # building plan (root/declared-building-plan.json or root/work/..., the same
+    # spine _declared_plan_for_building consumes). An empty path-shape mkdir has no
+    # plan and is rejected; the genuine EVROOT2 ~/.brick building (which always
+    # writes its declared plan) still passes, so its slack stays alive.
     recognized_homes = {REPO_ROOT.resolve(), BRICK_EVIDENCE_HOME().resolve()}
     if repo.resolve() not in recognized_homes:
         return False
@@ -1331,7 +1348,37 @@ def _building_root_is_real_vessel(repo: Path, root: Path) -> bool:
         root.resolve().relative_to(vessel_root.resolve())
     except ValueError:
         return False
+    if not _building_root_has_declared_spine(root):
+        return False
     return True
+
+
+def _building_root_has_declared_spine(root: Path) -> bool:
+    """True iff ``root`` carries a real building's declared-plan spine.
+
+    This is the EVIDENCE-EXISTENCE proof the vessel gate requires before an
+    external (slack/dashboard) sink survives: a real building writes its declared
+    building plan at the building root (or under work/); an empty path-shape mkdir
+    -- the exact mimic a caller could conjure under a caller-controlled
+    $BRICK_HOME -- has no such plan. Mirrors the on-disk spine locations
+    _declared_plan_for_building reads (the declaration-provenance copy carried on
+    the building-map is NOT accepted here on purpose: the on-disk spine FILE is
+    the hard evidence-existence fact, not a map field a mimic could fabricate).
+    """
+
+    for path in (
+        root / "declared-building-plan.json",
+        root / "work" / "declared-building-plan.json",
+    ):
+        if _declared_steps(_declared_plan_packet(path)):
+            return True
+    return False
+
+
+def _declared_plan_packet(path: Path) -> Mapping[str, Any]:
+    packet = _read_json_mapping(path)
+    plan = packet.get("declared_plan_copy")
+    return plan if isinstance(plan, Mapping) else packet
 
 
 def _sink_refs_for_building_event_root(

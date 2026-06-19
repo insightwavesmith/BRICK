@@ -51,6 +51,18 @@ dashboard SURVIVE for an evidence-home-rooted vessel, while NOT widening: a no-c
 env still drops slack at the env gate, and a garbage / repo-root-mismatched root is
 still rejected by the vessel check.
 
+The fix was further NARROWED (slack-wiring-gap 0619, codex adversarial review):
+the recognized-home + path-shape checks alone let a caller point the
+caller-controlled $BRICK_HOME at a throwaway tree, ``mkdir -p`` an EMPTY
+project/<id>/buildings/<id> path, and have that shape-only mimic fire the real
+Slack -- because ``project_ref_for_building_root`` verifies only the PATH SHAPE.
+So ``_building_root_is_real_vessel`` now also requires real building-spine
+evidence (a declared-building-plan with at least one step) before an external sink
+survives. This checker pins the narrowing with an EMPTY-MIMIC negative: an empty
+path-shape building under the SAME recognized evidence home (no declared plan) is
+rejected as a vessel and has slack+dashboard STRIPPED, while the positive fixtures
+write a real declared-plan spine so they model a genuine vessel.
+
 It also runs IN-PROCESS MUTATION-RED probes: with the 0600 permission gate
 defeated, the 0644 file would be loaded (RED); with the allowlist widened, the
 non-allowlisted key would be loaded (RED); with the report/provider injection
@@ -70,6 +82,7 @@ file (only fake fixture tokens that are not real secrets).
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import stat
 import sys
@@ -145,6 +158,36 @@ def _import_reporter():
             f"could not import support/operator/reporter.py: {exc}"
         ) from exc
     return reporter
+
+
+def _write_declared_plan_spine(building_root: Path) -> None:
+    """Write a minimal but REAL declared-building-plan spine at the building root.
+
+    SLACK VESSEL-GATE narrowing (slack-wiring-gap 0619): the vessel predicate now
+    requires real building-spine evidence -- a declared plan with at least one
+    step -- before an external (slack/dashboard) sink survives. A genuine EVROOT2
+    ~/.brick building always writes this; the positive fixtures here must do the
+    same so they model a REAL vessel, not an empty path-shape mimic.
+    """
+
+    building_root.mkdir(parents=True, exist_ok=True)
+    plan = {
+        "brick_steps": [
+            {
+                "completion_edge_ref": "edge:fixture-design-to-fixture-work",
+                "rows": [
+                    {
+                        "axis": "Brick",
+                        "brick_instance_ref": "brick-fixture-design",
+                        "brick_work_ref": "work:fixture-design",
+                    }
+                ],
+            }
+        ]
+    }
+    (building_root / "declared-building-plan.json").write_text(
+        json.dumps(plan), encoding="utf-8"
+    )
 
 
 def _write_env_file(directory: Path, name: str, lines: Sequence[str], *, mode: int) -> Path:
@@ -664,7 +707,10 @@ def _check_evroot2_vessel_gate(runtime_env, tmp: Path) -> list[str]:
     # operator's real ~/.brick.
     evidence_home = (tmp / "evroot2-home").resolve()
     root = evidence_home / "project" / "brick-protocol" / "buildings" / "wiki-dogfood-fixture-0619"
-    root.mkdir(parents=True, exist_ok=True)
+    # A REAL vessel writes its declared-plan spine; the narrowing requires it
+    # before slack/dashboard survive, so the positive fixture must model the
+    # genuine building (not an empty path-shape mkdir).
+    _write_declared_plan_spine(root)
     repo = evidence_home
 
     # Gate 1: ENV gate -- with threaded creds, slack + dashboard survive. This is
@@ -781,6 +827,49 @@ def _check_evroot2_vessel_gate(runtime_env, tmp: Path) -> list[str]:
                 "evroot2-vessel: external sinks survived for an UNRECOGNIZED-repo "
                 "building (over-widening)"
             )
+
+        # NO WIDENING (5) -- the EMPTY-MIMIC guard (slack-wiring-gap 0619, codex
+        # adversarial review). The recognized-home + path-shape checks are NOT
+        # enough: $BRICK_HOME is caller-controlled and
+        # project_ref_for_building_root verifies only the project/<id>/buildings
+        # PATH SHAPE. So a caller can ``mkdir -p`` an EMPTY path-shape building
+        # under the SAME recognized evidence home -- with NO declared-plan spine --
+        # and the pre-narrowing predicate accepted it, letting a test / foreign
+        # building spam the real Slack. The narrowing requires real building-spine
+        # evidence (a declared plan). This empty mimic has none, so it MUST be
+        # rejected as a vessel and its external sinks MUST be stripped. (The
+        # positive fixture ``root`` above DID write a declared plan, so this is a
+        # same-home contrast: shape alone is not enough; only real evidence passes.)
+        empty_mimic_root = (
+            evidence_home / "project" / "brick-protocol" / "buildings" / "empty-mimic-0619"
+        )
+        empty_mimic_root.mkdir(parents=True, exist_ok=True)  # path shape only, NO spine
+        if reporter._building_root_is_real_vessel(repo, empty_mimic_root):  # noqa: SLF001
+            raise ReportEnvAutoloadError(
+                "evroot2-vessel: an EMPTY path-shape building under the recognized "
+                "$BRICK_HOME evidence home (project/<id>/buildings/<id> mkdir with NO "
+                "declared-building-plan spine) was accepted as a real vessel -- the "
+                "vessel gate degraded to a PATH-SHAPE check, so a test or "
+                "foreign-project building under a caller-controlled $BRICK_HOME could "
+                "fire the real Slack/dashboard. The gate must require real "
+                "building-spine evidence, not just the path shape."
+            )
+        empty_mimic_event_root = reporter._building_event_root(  # noqa: SLF001
+            repo, empty_mimic_root
+        )
+        empty_mimic_refs = reporter._sink_refs_for_building_event_root(  # noqa: SLF001
+            env_refs, repo=repo, root=empty_mimic_event_root
+        )
+        if (
+            reporter.SLACK_SINK_REF in empty_mimic_refs
+            or reporter.DASHBOARD_SINK_REF in empty_mimic_refs
+        ):
+            raise ReportEnvAutoloadError(
+                "evroot2-vessel: slack/dashboard SURVIVED for an EMPTY path-shape "
+                "mimic building (no declared-plan spine) under the recognized "
+                "evidence home -- the vessel gate did not STRIP external sinks for a "
+                "shape-only mimic, so a fake building could spam the real Slack"
+            )
     finally:
         if prior_brick_home is None:
             os.environ.pop("BRICK_HOME", None)
@@ -794,9 +883,13 @@ def _check_evroot2_vessel_gate(runtime_env, tmp: Path) -> list[str]:
         "the default-policy emit lists slack AND dashboard as delivered sinks "
         "through BOTH the env gate and the vessel gate; no-creds still drops slack "
         "at the env gate, a non-vessel/garbage or mismatched root still has its "
-        "external sinks stripped, and an UNRECOGNIZED repo (neither REPO_ROOT nor "
-        "the evidence home) with the right path shape is STILL rejected (no "
-        "widening).",
+        "external sinks stripped, an UNRECOGNIZED repo (neither REPO_ROOT nor "
+        "the evidence home) with the right path shape is STILL rejected, and -- the "
+        "slack-wiring-gap 0619 narrowing -- an EMPTY path-shape mimic under the "
+        "SAME recognized evidence home (no declared-building-plan spine) is STILL "
+        "rejected and has slack+dashboard STRIPPED (shape alone is not a vessel; "
+        "only real building-spine evidence passes), so a caller-controlled "
+        "$BRICK_HOME mkdir cannot spam the real Slack (no widening).",
     ]
 
 
@@ -822,7 +915,11 @@ def _check_mutation_red_vessel_gate(runtime_env, tmp: Path) -> str:
     }
     evidence_home = (tmp / "evroot2-mutation-home").resolve()
     root = evidence_home / "project" / "brick-protocol" / "buildings" / "wiki-dogfood-mutation-0619"
-    root.mkdir(parents=True, exist_ok=True)
+    # The REAL fix keeps slack for THIS fixture only if it is a genuine vessel --
+    # the narrowing requires a declared-plan spine, so write one (otherwise the
+    # baseline-keeps-slack sanity check below would fail on the spine gate, not the
+    # mutation).
+    _write_declared_plan_spine(root)
     repo = evidence_home
     env_refs = reporter._event_policy_sink_refs(  # noqa: SLF001
         policy, slack_env=threaded_env, dashboard_env=threaded_env

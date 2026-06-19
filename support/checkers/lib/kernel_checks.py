@@ -4496,6 +4496,34 @@ def _assert_reporter_brick_grain_threading(
         reporter.REPO_ROOT = temp_repo
         missing_thread_root = output_root / "missing-thread-case"
         missing_thread_root.mkdir(parents=True)
+        # SLACK VESSEL-GATE narrowing (slack-wiring-gap 0619): the vessel
+        # predicate now requires a REAL declared-building-plan spine (not just the
+        # project/<id>/buildings path shape) before external Slack delivery is
+        # allowed. This synthetic root models a genuine building that simply has
+        # NOT recorded a Slack thread parent yet -- so it must carry a real spine,
+        # otherwise external_delivery_allowed would be stripped by the vessel gate
+        # and the missing-thread / fallback probes below would observe
+        # not_attempted_non_real_vessel instead of the thread-status classes they
+        # are pinning.
+        (missing_thread_root / "declared-building-plan.json").write_text(
+            json.dumps(
+                {
+                    "brick_steps": [
+                        {
+                            "completion_edge_ref": "edge:missing-thread-design-to-work",
+                            "rows": [
+                                {
+                                    "axis": "Brick",
+                                    "brick_instance_ref": "brick-missing-thread-design",
+                                    "brick_work_ref": "work:missing-thread-design",
+                                }
+                            ],
+                        }
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
         try:
             missing_observations = []
             for event_kind in ("brick_received", "brick_returned", "gate_passed"):
