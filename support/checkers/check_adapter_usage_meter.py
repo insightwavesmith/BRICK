@@ -28,7 +28,10 @@ from __future__ import annotations
 
 import argparse
 import ast
+import os
+import subprocess
 import sys
+import tempfile
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
@@ -469,6 +472,174 @@ def _returned_usage_leak_keys(module: ast.Module, func_name: str) -> list[str]:
     return sorted(set(leaks))
 
 
+def _expr_references_name(node: ast.AST, name: str) -> bool:
+    return any(isinstance(child, ast.Name) and child.id == name for child in ast.walk(node))
+
+
+def _call_references_name(node: ast.Call, name: str) -> bool:
+    func = node.func
+    if isinstance(func, ast.Name):
+        return func.id == name
+    if isinstance(func, ast.Attribute):
+        return func.attr == name
+    return False
+
+
+def _is_completed_stdout(node: ast.AST) -> bool:
+    return (
+        isinstance(node, ast.Attribute)
+        and node.attr == "stdout"
+        and isinstance(node.value, ast.Name)
+        and node.value.id == "completed"
+    )
+
+
+def _targets_text_stdout(targets: Sequence[ast.expr]) -> bool:
+    return any(isinstance(target, ast.Name) and target.id == "text_stdout" for target in targets)
+
+
+def _branch_assigns_text_stdout(statements: Sequence[ast.stmt]) -> bool:
+    for statement in statements:
+        for node in ast.walk(statement):
+            if isinstance(node, ast.Assign) and _targets_text_stdout(node.targets):
+                return True
+            if (
+                isinstance(node, ast.AnnAssign)
+                and isinstance(node.target, ast.Name)
+                and node.target.id == "text_stdout"
+            ):
+                return True
+    return False
+
+
+def _branch_helper_call_lines(statements: Sequence[ast.stmt]) -> list[int]:
+    lines: list[int] = []
+    for statement in statements:
+        for node in ast.walk(statement):
+            if (
+                isinstance(node, ast.Call)
+                and _call_references_name(node, "codex_assistant_text_from_json_stdout")
+            ):
+                lines.append(node.lineno)
+    return lines
+
+
+def _branch_raw_stdout_assignment_lines(statements: Sequence[ast.stmt]) -> list[int]:
+    lines: list[int] = []
+    for statement in statements:
+        for node in ast.walk(statement):
+            if (
+                isinstance(node, ast.Assign)
+                and _targets_text_stdout(node.targets)
+                and _is_completed_stdout(node.value)
+            ):
+                lines.append(node.lineno)
+            if (
+                isinstance(node, ast.AnnAssign)
+                and isinstance(node.target, ast.Name)
+                and node.target.id == "text_stdout"
+                and node.value is not None
+                and _is_completed_stdout(node.value)
+            ):
+                lines.append(node.lineno)
+    return lines
+
+
+def test_invoke_local_cli_uses_helper_not_raw_stdout(repo: Path) -> str:
+    """Pin the --json empty-file fallback to assistant-text recovery, not raw stdout."""
+
+    module = _parse(repo, _ADAPTER_REL)
+    func = _function_node(module, "_invoke_local_cli")
+    candidate_lines: list[int] = []
+    helper_lines: list[int] = []
+    raw_stdout_lines: list[int] = []
+    for node in ast.walk(func):
+        if not isinstance(node, ast.If):
+            continue
+        if not _expr_references_name(node.test, "json_active"):
+            continue
+        if not _branch_assigns_text_stdout(node.body):
+            continue
+        candidate_lines.append(node.lineno)
+        helper_lines.extend(_branch_helper_call_lines(node.body))
+        raw_stdout_lines.extend(_branch_raw_stdout_assignment_lines(node.body))
+    if not candidate_lines:
+        raise AdapterUsageMeterError(
+            f"{_ADAPTER_REL}: _invoke_local_cli no longer has a json_active "
+            "text_stdout fallback branch for the empty output-file path"
+        )
+    if raw_stdout_lines:
+        raise AdapterUsageMeterError(
+            f"{_ADAPTER_REL}: _invoke_local_cli assigns bare completed.stdout to "
+            f"text_stdout inside the json_active fallback branch at line(s) "
+            f"{raw_stdout_lines!r}; --json stdout must pass through "
+            "codex_assistant_text_from_json_stdout"
+        )
+    if not helper_lines:
+        raise AdapterUsageMeterError(
+            f"{_ADAPTER_REL}: _invoke_local_cli json_active fallback branch at "
+            f"line(s) {candidate_lines!r} does not call "
+            "codex_assistant_text_from_json_stdout"
+        )
+    return (
+        f"{_ADAPTER_REL}: _invoke_local_cli json_active empty-file fallback calls "
+        "codex_assistant_text_from_json_stdout and does not assign raw "
+        "completed.stdout to text_stdout"
+    )
+
+
+def probe_mutation_red(repo: Path) -> str:
+    """Temporarily reopen the raw-stdout gap and require this checker to fail RED."""
+
+    adapter_path = repo / _ADAPTER_REL
+    target = "text_stdout = codex_assistant_text_from_json_stdout(completed.stdout)"
+    replacement = "text_stdout = completed.stdout"
+    with tempfile.TemporaryDirectory(prefix="bp-adapter-usage-meter-") as tmpdir:
+        backup_path = Path(tmpdir) / "agent_adapter.py.bak"
+        subprocess.run(("cp", str(adapter_path), str(backup_path)), check=True, cwd=repo)
+        try:
+            source = adapter_path.read_text(encoding="utf-8")
+            if target not in source:
+                raise AdapterUsageMeterError(
+                    f"{_ADAPTER_REL}: mutation target helper call is missing; "
+                    "cannot run mutation-RED probe"
+                )
+            adapter_path.write_text(source.replace(target, replacement, 1), encoding="utf-8")
+            env = os.environ.copy()
+            import_root = str(repo / "support/import_identity")
+            env["PYTHONPATH"] = (
+                import_root
+                if not env.get("PYTHONPATH")
+                else f"{import_root}{os.pathsep}{env['PYTHONPATH']}"
+            )
+            completed = subprocess.run(
+                (
+                    sys.executable,
+                    str(repo / "support/checkers/check_adapter_usage_meter.py"),
+                    "--repo",
+                    str(repo),
+                ),
+                cwd=repo,
+                env=env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False,
+            )
+            if completed.returncode != 1:
+                raise AdapterUsageMeterError(
+                    "mutation RED failed: raw completed.stdout fallback produced "
+                    f"checker exit {completed.returncode}, expected 1"
+                )
+        finally:
+            subprocess.run(("cp", str(backup_path), str(adapter_path)), check=True, cwd=repo)
+    return (
+        "mutation RED observed: replacing the json_active helper fallback with "
+        "bare completed.stdout makes check_adapter_usage_meter.py exit 1, then "
+        "agent_adapter.py is restored with cp"
+    )
+
+
 def _assert_no_usage_in_codex_returned(repo: Path) -> str:
     module = _parse(repo, _ADAPTER_REL)
     leaks = _returned_usage_leak_keys(module, "_invoke_local_cli_adapter")
@@ -519,6 +690,7 @@ def check(repo: Path) -> list[str]:
         _assert_absent_usage_record(),
         _assert_no_forbidden_keys_in_record(),
         _assert_no_usage_in_codex_returned(repo),
+        test_invoke_local_cli_uses_helper_not_raw_stdout(repo),
         _assert_step_output_carries_no_usage(repo),
         _assert_jsonl_never_becomes_text(),
         _assert_meter_write_guarded_by_usage_present(repo),
@@ -545,6 +717,14 @@ def parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
         )
     )
     parser.add_argument("--repo", default=None)
+    parser.add_argument(
+        "--probe-mutation-red",
+        action="store_true",
+        help=(
+            "temporarily mutate agent_adapter.py to the raw stdout fallback, assert "
+            "this checker exits RED, and restore with cp"
+        ),
+    )
     return parser.parse_args(argv)
 
 
@@ -552,7 +732,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     repo = Path(args.repo).resolve() if args.repo else _REPO_ROOT
     try:
-        outputs = check(repo)
+        outputs = [probe_mutation_red(repo)] if args.probe_mutation_red else check(repo)
     except AdapterUsageMeterError as exc:
         print("adapter-usage meter rejected:", file=sys.stderr)
         print(f"- {exc}", file=sys.stderr)
