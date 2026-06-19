@@ -415,6 +415,21 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "cli_runner_stdin_devnull",
         "support.checkers.check_cli_runner_stdin_devnull",
     ),
+    # ADAPTER TOKEN-USAGE METER (TrackA-A1 INSTRUMENT FIRST 0619). Runs the
+    # per-step adapter token-usage meter writer IN-PROCESS with fabricated usage
+    # fixtures (NO live codex, NO child process) and AST-scans the real adapter +
+    # step-output source. Asserts: the meter record carries only the allowlisted
+    # token-counter keys with absent=null (graceful, never fabricated); AND the
+    # gate-no-measure half -- token usage NEVER appears in AgentFact.returned (the
+    # codex adapter builds `returned` with no usage key) or the per-step return
+    # recording writer. Mutation-RED: a dropped allowlist key is rejected, and a
+    # usage key assigned into `returned` is flagged. Applies NO cap (a cap is
+    # TrackA-A2). A leak or dropped key makes main() return non-zero and raises
+    # ProfileError, so --all EXITs non-zero. Reaches no axis module, judges nothing.
+    "adapter_usage_meter": _repo_main(
+        "adapter_usage_meter",
+        "support.checkers.check_adapter_usage_meter",
+    ),
     # Executes the declaration-integrity checker IN-PROCESS: runs the three
     # anti-tautological negative probes (composition-mode, chain artifacts,
     # provenance<->returned acceptance) AND inspects every persisted building

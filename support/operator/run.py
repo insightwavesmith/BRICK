@@ -169,6 +169,9 @@ from brick_protocol.support.recording.capture import (
     graph_ready_timestamp,
     project_ref_for_building_root,
 )
+from brick_protocol.support.recording.adapter_usage_meter import (
+    write_adapter_usage_meter,
+)
 from brick_protocol.support.recording.contracts import StepOutputObservation
 from brick_protocol.support.recording.step_outputs import (
     _step_output_dir_ref,
@@ -1853,7 +1856,59 @@ def _write_step_output_on_step_close(
         recorded_at=step_result.recorded_at,
         existing_policy="replace" if overwrite_existing else "same_content_or_error",
     )
+    # TrackA-A1 METER (SUPPORT FACT only): record this step's adapter token usage
+    # in the raw/adapter-usage.jsonl meter journal. The count rides the adapter
+    # result's adapter_usage SIDE-CHANNEL -- it never touched AgentFact.returned or
+    # any Link field. Absent usage (no codex --json turn.completed) is recorded as
+    # null. MEASUREMENT ONLY; no cap is applied.
+    _write_adapter_usage_meter_on_step_close(
+        building_root=building_root,
+        building_id=building_id,
+        step_result=step_result,
+        step_ref=step_ref,
+        attempt_index=attempt_index,
+    )
     return step_result
+
+
+def _write_adapter_usage_meter_on_step_close(
+    *,
+    building_root: Path,
+    building_id: str,
+    step_result: BuildingRunSupportResult,
+    step_ref: str,
+    attempt_index: int,
+) -> None:
+    adapter_result = step_result.adapter_result
+    request = adapter_result.request
+    write_adapter_usage_meter(
+        building_root,
+        building_id,
+        step_ref=step_ref,
+        adapter_ref=request.adapter_ref,
+        selected_model_ref=request.selected_model_ref,
+        attempt_index=attempt_index,
+        adapter_usage=adapter_result.adapter_usage,
+        existing_records=_existing_adapter_usage_records(building_root),
+    )
+
+
+def _existing_adapter_usage_records(building_root: Path) -> tuple[Mapping[str, Any], ...]:
+    path = building_root / "raw" / "adapter-usage.jsonl"
+    if not path.is_file():
+        return ()
+    records: list[Mapping[str, Any]] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        text = line.strip()
+        if not text:
+            continue
+        try:
+            value = json.loads(text)
+        except ValueError:
+            continue
+        if isinstance(value, Mapping):
+            records.append(value)
+    return tuple(records)
 
 
 def _step_output_observation_from_result(

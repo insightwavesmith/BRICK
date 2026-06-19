@@ -56,6 +56,7 @@ path_absent_glob:
 path_allowlist:
   - root: support/checkers/profiles
     paths:
+      - support/checkers/profiles/adapter_usage_meter.yaml
       - support/checkers/profiles/agent_axis_behavioral.yaml
       - support/checkers/profiles/assembly_equivalence.yaml
       - support/checkers/profiles/bounded_agent_proposed_routing_loop.yaml

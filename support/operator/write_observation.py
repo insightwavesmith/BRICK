@@ -117,6 +117,9 @@ def _adapter_result_with_write_observation(
             adapter_result.not_proven,
             "semantic correctness of file edits",
         ),
+        # TrackA-A1 METER: carry the support-only token usage through the write-
+        # observation rebuild untouched (it never entered returned_value).
+        adapter_usage=adapter_result.adapter_usage,
     )
 
 def _adapter_cwd_path(adapter_cwd: Path | str | None) -> Path:

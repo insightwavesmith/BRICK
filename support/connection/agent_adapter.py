@@ -409,6 +409,12 @@ class AgentAdapterResult:
     returned_value: Any
     proof_limits: tuple[str, ...] = field(default_factory=tuple)
     not_proven: tuple[str, ...] = field(default_factory=tuple)
+    # TrackA-A1 METER side-channel (SUPPORT FACT only): per-step codex token usage
+    # parsed from `codex exec --json`. This rides ALONGSIDE returned_value, never
+    # INSIDE it -- the adapter meter writer reads this; AgentFact.returned and the
+    # Link facts never see it. None when the adapter emitted no usage. NO quality
+    # or fault label is attached.
+    adapter_usage: Mapping[str, Any] | None = None
 
 
 class AgentAdapterParked(RuntimeError):
@@ -471,6 +477,13 @@ class LocalCliCompleted:
     return_code: int
     stdout: str
     stderr: str
+    # TrackA-A1 METER (SUPPORT FACT only): per-turn codex token usage parsed from
+    # the `codex exec --json` JSONL stdout (last turn.completed.usage), already
+    # mapped onto the allowlisted token-counter key names. None means "no usage
+    # observed" -- older codex without --json, or no turn.completed event. This
+    # field NEVER flows into AgentFact.returned or any Link field; it is a Brick-
+    # axis meter input carrying NO quality/fault label.
+    adapter_usage: Mapping[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -570,6 +583,9 @@ def connect_agent_brain(
         raise AgentAdapterParked(request)
     dispatch_cwd = Path(cwd) if cwd is not None else _REPO_ROOT
     _consume_effective_write_observation_path(request, cwd=dispatch_cwd)
+    # TrackA-A1 METER: only the local-CLI codex path emits token usage today. The
+    # local-callable and gemini-api paths carry no per-turn usage, so it stays None.
+    adapter_usage: Mapping[str, Any] | None = None
     if request.adapter_ref == ADAPTER_LOCAL:
         returned_value = _invoke_local_callable(request, local_callables)
         proof_limits = _merge_texts(_DEFAULT_PROOF_LIMITS, request.proof_limits)
@@ -580,7 +596,7 @@ def connect_agent_brain(
             timeout_seconds=timeout_seconds,
         )
     else:
-        returned_value, proof_limits, not_proven = _invoke_local_cli_adapter(
+        returned_value, proof_limits, not_proven, adapter_usage = _invoke_local_cli_adapter(
             request,
             cwd=dispatch_cwd,
             timeout_seconds=timeout_seconds,
@@ -592,6 +608,7 @@ def connect_agent_brain(
         returned_value=returned_value,
         proof_limits=proof_limits,
         not_proven=not_proven,
+        adapter_usage=adapter_usage,
     )
 
 
@@ -928,7 +945,7 @@ def _invoke_local_cli_adapter(
     cwd: Path,
     timeout_seconds: int,
     command_runner: CommandRunner | None,
-) -> tuple[Mapping[str, Any], tuple[str, ...], tuple[str, ...]]:
+) -> tuple[Mapping[str, Any], tuple[str, ...], tuple[str, ...], Mapping[str, Any] | None]:
     spec = _local_cli_spec(request.adapter_ref)
     probe = probe_local_cli_adapter(
         spec.adapter_ref,
@@ -986,9 +1003,13 @@ def _invoke_local_cli_adapter(
             request.required_return_shape,
         ),
     )
-    return returned, _merge_texts(proof_limits, request.proof_limits), _merge_texts(
-        not_proven,
-        request.not_proven,
+    # TrackA-A1 METER: the codex token usage rides back as a SEPARATE 4th element,
+    # NOT inside `returned` (which becomes AgentFact.returned). Support fact only.
+    return (
+        returned,
+        _merge_texts(proof_limits, request.proof_limits),
+        _merge_texts(not_proven, request.not_proven),
+        completed.adapter_usage,
     )
 
 
@@ -1293,6 +1314,59 @@ def _local_cli_spec(adapter_ref: str) -> LocalCliSpec:
         raise ValueError("adapter_ref is not a local CLI adapter") from exc
 
 
+# TrackA-A1 METER (codex token usage): `codex exec --json` emits one JSONL event
+# per line on stdout, ending each turn with
+#   {"type":"turn.completed","usage":{"input_tokens","cached_input_tokens",
+#    "output_tokens","reasoning_output_tokens"}}
+# We parse the LAST turn.completed.usage and expose the four counters under a
+# STABLE codex-vocabulary key set. These are SUPPORT FACTS only -- the meter
+# writer (support/recording/adapter_usage_meter.py) maps the subset that overlaps
+# the WORKFLOW_IMPORT_USAGE_METRIC_KEYS allowlist; nothing here is a verdict.
+CODEX_TURN_COMPLETED_USAGE_KEYS: tuple[str, ...] = (
+    "input_tokens",
+    "cached_input_tokens",
+    "output_tokens",
+    "reasoning_output_tokens",
+)
+
+
+def codex_usage_from_json_stdout(stdout: str) -> Mapping[str, Any] | None:
+    """Parse the LAST ``turn.completed`` usage from ``codex exec --json`` stdout.
+
+    Returns a mapping carrying ONLY the codex usage counter keys, or ``None`` when
+    the stdout is empty / not JSONL / has no ``turn.completed`` with a ``usage``
+    block (older codex without ``--json``). Per the graceful-fallback contract,
+    absent is ``None`` and a missing individual counter is recorded as ``None``;
+    this function NEVER fabricates a count and NEVER raises on malformed input.
+    """
+
+    if not isinstance(stdout, str) or not stdout.strip():
+        return None
+    last_usage: Mapping[str, Any] | None = None
+    for line in stdout.splitlines():
+        text = line.strip()
+        if not text or text[0] != "{":
+            continue
+        try:
+            event = json.loads(text)
+        except (ValueError, TypeError):
+            continue
+        if not isinstance(event, Mapping):
+            continue
+        if event.get("type") != "turn.completed":
+            continue
+        usage = event.get("usage")
+        if isinstance(usage, Mapping):
+            last_usage = usage
+    if last_usage is None:
+        return None
+    parsed: dict[str, Any] = {}
+    for key in CODEX_TURN_COMPLETED_USAGE_KEYS:
+        value = last_usage.get(key)
+        parsed[key] = value if isinstance(value, int) and not isinstance(value, bool) else None
+    return parsed
+
+
 def _invoke_local_cli(
     spec: LocalCliSpec,
     request: AgentAdapterRequest,
@@ -1346,20 +1420,35 @@ def _invoke_local_cli(
             # BRICK_CODEX_EPHEMERAL=0.
             if os.environ.get("BRICK_CODEX_EPHEMERAL") != "0":
                 args_list.append("--ephemeral")
+            # TrackA-A1 METER: `--json` turns codex's stdout into per-event JSONL so
+            # we can read the turn.completed token usage. It does NOT change where
+            # the TEXT response lives: codex still writes the last assistant message
+            # to the --output-last-message FILE regardless of --json. So below we
+            # read the TEXT from that FILE ALWAYS (the JSONL stdout is NOT text), and
+            # parse the JSONL stdout ONLY for the usage meter. stdin=DEVNULL (the
+            # connect-stall cure) and --output-last-message are untouched.
+            args_list.append("--json")
             args_list.extend(("--output-last-message", output_file.name, prompt))
             args = tuple(args_list)
             completed = _run_or_delegate(args, cwd, timeout_seconds, command_runner)
-            if not completed.stdout:
-                output_file.seek(0)
-                file_text = output_file.read().decode("utf-8", errors="replace")
-                if file_text.strip():
-                    completed = LocalCliCompleted(
-                        args=completed.args,
-                        return_code=completed.return_code,
-                        stdout=file_text,
-                        stderr=completed.stderr,
-                    )
-            return completed
+            # SUPPORT meter input (Brick-axis fact, no verdict): the LAST
+            # turn.completed.usage from the JSONL stdout. None when --json is
+            # unavailable (older codex) or no turn.completed/usage is present.
+            adapter_usage = codex_usage_from_json_stdout(completed.stdout)
+            # TEXT response ALWAYS from the --output-last-message file (with --json
+            # the stdout is JSONL, never the assistant text). Fall back to the
+            # original stdout only when the file was not written / is empty, exactly
+            # as before, so non-JSON / older-codex invocations stay behavior-stable.
+            output_file.seek(0)
+            file_text = output_file.read().decode("utf-8", errors="replace")
+            text_stdout = file_text if file_text.strip() else completed.stdout
+            return LocalCliCompleted(
+                args=completed.args,
+                return_code=completed.return_code,
+                stdout=text_stdout,
+                stderr=completed.stderr,
+                adapter_usage=adapter_usage,
+            )
     if spec.invocation_args_kind == "claude-plan-json":
         knobs = _claude_cli_invocation(request)
         args_list = [
