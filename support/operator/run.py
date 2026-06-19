@@ -1859,8 +1859,10 @@ def _write_step_output_on_step_close(
     # TrackA-A1 METER (SUPPORT FACT only): record this step's adapter token usage
     # in the raw/adapter-usage.jsonl meter journal. The count rides the adapter
     # result's adapter_usage SIDE-CHANNEL -- it never touched AgentFact.returned or
-    # any Link field. Absent usage (no codex --json turn.completed) is recorded as
-    # null. MEASUREMENT ONLY; no cap is applied.
+    # any Link field. Absent/empty usage (no codex --json turn.completed, or a
+    # non-usage adapter) writes NO meter row at all -- the step is simply skipped;
+    # the meter only records steps that actually emitted usage. MEASUREMENT ONLY;
+    # no cap is applied.
     _write_adapter_usage_meter_on_step_close(
         building_root=building_root,
         building_id=building_id,

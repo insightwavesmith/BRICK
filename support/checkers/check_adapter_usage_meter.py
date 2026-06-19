@@ -338,10 +338,33 @@ def test_behavioral_probe_usage_only_stdout() -> str:
         call = tuple(str(arg) for arg in args)
         if "--version" in call:
             return adapter.LocalCliCompleted(call, 0, "codex 0.0.0-probe", "")
-        # The real exec invocation. Return rc=0 with USAGE-ONLY JSONL on stdout and
-        # DO NOT write the --output-last-message file (it stays empty), reproducing
-        # the empty-file + --json situation. (codex still passes --json + the temp
-        # output path; we simply never touch that path.)
+        # The real exec invocation. REGRESSION GUARD: the meter depends on codex
+        # being invoked WITH ``--json`` (so stdout is the JSONL we parse usage from)
+        # AND ``--output-last-message <path>`` (so the assistant TEXT comes from the
+        # file, not the raw JSONL stdout). If a future refactor drops either flag,
+        # the usage-leak protection this probe asserts becomes vacuous -- so fail
+        # HERE, at the argv, if the real path stops passing them.
+        if "--json" not in call:
+            raise AdapterUsageMeterError(
+                "behavioral probe: the real codex exec invocation did NOT include "
+                f"--json (argv={call!r}); usage parsing depends on --json JSONL stdout"
+            )
+        if "--output-last-message" not in call:
+            raise AdapterUsageMeterError(
+                "behavioral probe: the real codex exec invocation did NOT include "
+                f"--output-last-message (argv={call!r}); assistant TEXT must come from "
+                "the output file, never the raw --json stdout"
+            )
+        _olm_index = call.index("--output-last-message")
+        if _olm_index + 1 >= len(call) or not call[_olm_index + 1].strip():
+            raise AdapterUsageMeterError(
+                "behavioral probe: --output-last-message was passed with no output "
+                f"path argument following it (argv={call!r})"
+            )
+        # Return rc=0 with USAGE-ONLY JSONL on stdout and DO NOT write the
+        # --output-last-message file (it stays empty), reproducing the empty-file +
+        # --json situation. (codex still passes --json + the temp output path; we
+        # simply never touch that path.)
         return adapter.LocalCliCompleted(call, 0, usage_only_stdout, "")
 
     request = adapter.AgentAdapterRequest(
@@ -530,15 +553,22 @@ def _assert_meter_write_guarded_by_usage_present(repo: Path) -> str:
 # a new line may be added at the very end.
 _SEED_JOURNAL_BYTES = b'{"a":1}\n{ broken json with no closing brace\n{"b":2}\n'
 
+# A TRUNCATED-TAIL seed: a journal whose last line was cut off WITHOUT a trailing
+# newline. A naive ``open(path,"a")`` write would FUSE the new record onto this
+# broken tail (same physical line). The writer must insert a single ``\n``
+# separator first so the new record lands on its own line -- still append-only,
+# since the separator is an ADDITION and no pre-existing byte is touched.
+_SEED_JOURNAL_TRUNCATED_TAIL_BYTES = b"{ broken json with no newline"
 
-def _run_writer_on_seeded_journal(tmp_root: Path) -> bytes:
+
+def _run_writer_on_seeded_journal(tmp_root: Path, seed: bytes = _SEED_JOURNAL_BYTES) -> bytes:
     from brick_protocol.support.recording.adapter_usage_meter import (
         write_adapter_usage_meter,
     )
 
     journal = tmp_root / "raw" / "adapter-usage.jsonl"
     journal.parent.mkdir(parents=True, exist_ok=True)
-    journal.write_bytes(_SEED_JOURNAL_BYTES)
+    journal.write_bytes(seed)
     write_adapter_usage_meter(
         tmp_root,
         "building-append-probe",
@@ -592,10 +622,48 @@ def _assert_pure_append_preserves_existing_lines() -> str:
         raise AdapterUsageMeterError(
             "pure-append: the appended line is not a JSON object"
         )
+    # TRUNCATED-TAIL case: a seed whose last byte is NOT a newline. The writer must
+    # insert a single separator newline so the new record does NOT fuse onto the
+    # broken tail -- while still preserving the original bytes verbatim as a prefix.
+    with tempfile.TemporaryDirectory(prefix="bp-adapter-usage-append-tt-") as tmpdir:
+        tt_result = _run_writer_on_seeded_journal(
+            Path(tmpdir), seed=_SEED_JOURNAL_TRUNCATED_TAIL_BYTES
+        )
+    if not tt_result.startswith(_SEED_JOURNAL_TRUNCATED_TAIL_BYTES):
+        raise AdapterUsageMeterError(
+            "pure-append (truncated tail): the original (newline-less) journal bytes "
+            "are no longer the verbatim prefix of the file"
+        )
+    tt_lines = [ln for ln in tt_result.split(b"\n") if ln.strip()]
+    if len(tt_lines) != 2:
+        raise AdapterUsageMeterError(
+            "pure-append (truncated tail): expected 2 lines (the broken tail kept on "
+            f"its own line + the new record on its own line) but found {len(tt_lines)} "
+            "-- the new record FUSED onto the newline-less tail (missing separator)"
+        )
+    if tt_lines[0] != _SEED_JOURNAL_TRUNCATED_TAIL_BYTES:
+        raise AdapterUsageMeterError(
+            "pure-append (truncated tail): the original broken tail line was altered "
+            f"({tt_lines[0]!r}); existing bytes must be preserved verbatim"
+        )
+    import json as _json_tt
+
+    try:
+        tt_appended = _json_tt.loads(tt_lines[1].decode("utf-8"))
+    except ValueError as exc:
+        raise AdapterUsageMeterError(
+            f"pure-append (truncated tail): the appended line is not valid JSON: {exc}"
+        ) from exc
+    if not isinstance(tt_appended, Mapping):
+        raise AdapterUsageMeterError(
+            "pure-append (truncated tail): the appended line is not a JSON object"
+        )
     return (
         "pure-append: the writer appends exactly ONE new record line to the END of "
         "the journal; the two well-formed records AND the malformed line keep their "
-        "original bytes and order (append-only raw evidence preserved)"
+        "original bytes and order (append-only raw evidence preserved). A truncated "
+        "tail (no trailing newline) gets a single separator newline so the new record "
+        "lands on its own line (2 lines), still byte-preserving the original tail."
     )
 
 
@@ -646,6 +714,37 @@ def _assert_mutation_red_pure_append_rewrite() -> str:
         "mutation RED observed: a writer that reads + reorders (malformed-first) + "
         "re-serializes the existing journal lines breaks the verbatim byte prefix "
         "and is rejected by the pure-append guard"
+    )
+
+
+def _assert_mutation_red_truncated_tail_fusion() -> str:
+    """Mutation RED: a writer that SKIPS the truncated-tail separator must fail.
+
+    Simulates the naive ``open(path,"a")`` writer (no last-byte check), so a new
+    record fuses onto a newline-less tail (yielding ONE physical line). Confirms the
+    truncated-tail self-test would REJECT that -- the separator logic is not
+    vacuously green.
+    """
+
+    import json as _json
+
+    def _no_separator_writer(seed: bytes) -> bytes:
+        # Append directly, never inserting a separator -- the bug this guards against.
+        new_line = _json.dumps({"new": True}, separators=(",", ":")) + "\n"
+        return seed + new_line.encode("utf-8")
+
+    fused = _no_separator_writer(_SEED_JOURNAL_TRUNCATED_TAIL_BYTES)
+    fused_lines = [ln for ln in fused.split(b"\n") if ln.strip()]
+    if len(fused_lines) != 1:
+        raise AdapterUsageMeterError(
+            "mutation RED failed: a separator-less append onto a newline-less tail "
+            f"did NOT fuse into a single line (found {len(fused_lines)} lines) -- the "
+            "truncated-tail self-test would be vacuous"
+        )
+    return (
+        "mutation RED observed: a separator-less append onto a truncated (newline-"
+        "less) tail FUSES the new record onto the broken line (1 line), which the "
+        "truncated-tail self-test rejects (it requires 2 lines)"
     )
 
 
@@ -972,13 +1071,16 @@ def check(repo: Path) -> list[str]:
         _assert_mutation_red_behavioral_probe_leak(),
         _assert_mutation_red_jsonl_text_fallback(),
         _assert_mutation_red_pure_append_rewrite(),
+        _assert_mutation_red_truncated_tail_fusion(),
         _assert_mutation_red_unguarded_meter_write(),
         PROOF_LIMIT,
     ]
     return [
         "adapter-usage meter green: per-step codex token usage is recorded as a "
-        "support fact in raw/adapter-usage.jsonl with allowlisted keys (absent=null) "
-        "and never leaks into AgentFact.returned or any Link field.",
+        "support fact in raw/adapter-usage.jsonl with allowlisted keys (an absent "
+        "individual counter is null WITHIN a row); a step with absent/empty usage "
+        "writes NO meter row at all (the meter only records steps that emitted "
+        "usage), and usage never leaks into AgentFact.returned or any Link field.",
         *lines,
     ]
 

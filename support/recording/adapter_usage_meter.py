@@ -29,6 +29,7 @@ billable-input counter.
 from __future__ import annotations
 
 import json
+import os
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -218,9 +219,29 @@ def _append_one_record(path: Path, record: Mapping[str, Any]) -> None:
     Opens in append mode so no existing byte is read back or rewritten; the new
     line is the only thing written. Pre-existing lines (well-formed or malformed)
     keep their original bytes and order.
+
+    If the file is non-empty and its LAST byte is not a newline (a truncated
+    tail), we first append a single ``\n`` separator so the new record starts on
+    its own line instead of fusing onto the broken tail. The separator is an
+    ADDITION only -- no pre-existing byte is read back, modified, or rewritten, so
+    the append-only / byte-preservation contract holds.
+
+    Concurrency note: this assumes the single Building step-close write path
+    (``record_index = existing-line-count + 1`` then append). Concurrent appends
+    from multiple writers are out of scope here and to be re-examined if a
+    multi-writer path is opened (#58 etc.).
     """
 
     path.parent.mkdir(parents=True, exist_ok=True)
     line = json.dumps(record, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
+    needs_separator = False
+    if path.is_file():
+        size = path.stat().st_size
+        if size > 0:
+            with path.open("rb") as existing:
+                existing.seek(-1, os.SEEK_END)
+                needs_separator = existing.read(1) != b"\n"
     with path.open("a", encoding="utf-8") as journal:
+        if needs_separator:
+            journal.write("\n")
         journal.write(line)
