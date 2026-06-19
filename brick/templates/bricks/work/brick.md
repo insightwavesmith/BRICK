@@ -16,7 +16,11 @@ brick_contract: Work Brick performs declared implementation or document work ins
 Perform the declared implementation or document work **inside the Brick write scope only**.
 
 Input: the prior Brick's report (carried via the Link edge) plus this node's declared
-`work_statement`. Do the real work — implement / edit / write — within `write_scope`.
+`work_statement`. The design report's `reading_scope_map` (when present) is an ordered,
+most-important-first list of paths/dirs the design Brick recommends you START reading from — begin
+there to orient quickly. It is GUIDANCE, not a fence: you MAY read further (any file) as the work
+requires, and nothing enforces or limits your reads. Do the real work — implement / edit / write —
+within `write_scope` (the write fence is separate and hard; reading is unconstrained).
 
 Return: fill the `required_return_shape` from the return_template
 (`brick/templates/bricks/work/return.yaml`):

@@ -1777,7 +1777,8 @@ def _artifact_grounding_probe(repo: Path) -> int:
             "agent-object:design-lead",
             "observed_evidence, design_summary, relevant_current_structure, proposed_changes, "
             "unchanged_surfaces, axis_responsibility, invariants, edge_cases, "
-            "checker_or_verifier_plan, candidate_file_changes, evidence_refs, not_proven",
+            "checker_or_verifier_plan, candidate_file_changes, evidence_refs, not_proven, "
+            "reading_scope_map",
             {
                 "observed_evidence": ["packet-only design observed"],
                 "design_summary": "probe design",
@@ -1791,6 +1792,7 @@ def _artifact_grounding_probe(repo: Path) -> int:
                 "candidate_file_changes": [],
                 "evidence_refs": ["support-packet:design-intake"],
                 "not_proven": [],
+                "reading_scope_map": ["support/operator/walker_kernel.py"],
             },
             {
                 "observed_evidence": ["repository artifact read"],
@@ -1805,6 +1807,7 @@ def _artifact_grounding_probe(repo: Path) -> int:
                 "candidate_file_changes": [],
                 "evidence_refs": ["brick/templates/bricks/design/brick.md:20"],
                 "not_proven": [],
+                "reading_scope_map": ["support/operator/walker_kernel.py"],
             },
             "evidence_refs.repository_artifact_ref",
         ),

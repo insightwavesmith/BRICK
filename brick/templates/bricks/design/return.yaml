@@ -17,6 +17,7 @@ required_return_shape:
   - candidate_file_changes
   - evidence_refs
   - not_proven
+  - reading_scope_map
 next_link_input_sections:
   - public facts available for Link
   - missing facts for Link Gate

@@ -3315,6 +3315,7 @@ _PRESET_COMPLETION_LIST_RETURN_FIELDS = frozenset(
         "proof_limit_findings",
         "proof_limits",
         "proposed_changes",
+        "reading_scope_map",
         "regression_risks",
         "relevant_current_structure",
         "remaining_delta",

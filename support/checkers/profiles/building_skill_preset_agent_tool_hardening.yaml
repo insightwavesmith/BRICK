@@ -1555,7 +1555,7 @@ adapter_gate_shape_union_case:
     chain_preset_ref: building-chain-preset:design-contract-only
     target_step_index: 0
     drop_field: observed_evidence
-    expected_request_labels: "design_summary, relevant_current_structure, proposed_changes, unchanged_surfaces, axis_responsibility, invariants, edge_cases, checker_or_verifier_plan, candidate_file_changes, evidence_refs, not_proven, observed_evidence"
+    expected_request_labels: "design_summary, relevant_current_structure, proposed_changes, unchanged_surfaces, axis_responsibility, invariants, edge_cases, checker_or_verifier_plan, candidate_file_changes, evidence_refs, not_proven, reading_scope_map, observed_evidence"
     passthrough_step_index: 1
 source_fact_body_carry_case:
   - label: p4-compatible-fan-in-n3-no-consumer-source-facts-body-carry
