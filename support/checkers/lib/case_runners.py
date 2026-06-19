@@ -7305,18 +7305,234 @@ def _check_source_fact_body_expectations(
                 f"source_fact_body_carry_case rejected {label}: "
                 f"missing body for {source_fact_ref}"
             )
+        from support.operator.walker_kernel import (
+            _WIKI_CARRY_NOTE,
+            _WIKI_CARRY_VIEW_HEADER,
+            wiki_carry_path_text,
+            wiki_carry_summary_text,
+        )
+
+        # WIKI-CARRY shape pin: the carried body is a compact wiki VIEW
+        # (summary + absolute path + note), NOT the full step-output envelope.
+        if not body.startswith(_WIKI_CARRY_VIEW_HEADER):
+            raise ProfileError(
+                f"source_fact_body_carry_case rejected {label}: "
+                f"{source_fact_ref} body is not a wiki carry view"
+            )
+        if _WIKI_CARRY_NOTE not in body:
+            raise ProfileError(
+                f"source_fact_body_carry_case rejected {label}: "
+                f"{source_fact_ref} wiki carry view missing note"
+            )
+        carry_path = wiki_carry_path_text(body)
+        if not carry_path or not Path(carry_path).is_absolute():
+            raise ProfileError(
+                f"source_fact_body_carry_case rejected {label}: "
+                f"{source_fact_ref} wiki carry view missing absolute path"
+            )
+        if not carry_path.endswith("step-output.json"):
+            raise ProfileError(
+                f"source_fact_body_carry_case rejected {label}: "
+                f"{source_fact_ref} wiki carry path does not point at a step-output file"
+            )
+        summary = wiki_carry_summary_text(body)
+        if summary is None:
+            raise ProfileError(
+                f"source_fact_body_carry_case rejected {label}: "
+                f"{source_fact_ref} wiki carry view missing summary"
+            )
         try:
-            packet = json.loads(body)
+            returned = json.loads(summary)
         except json.JSONDecodeError as exc:
             raise ProfileError(
-                f"source_fact_body_carry_case rejected {label}: body is not JSON"
+                f"source_fact_body_carry_case rejected {label}: "
+                f"{source_fact_ref} wiki carry summary is not JSON"
             ) from exc
-        returned = packet.get("returned")
         if not isinstance(returned, Mapping) or returned.get("body_marker") != returned_marker:
             raise ProfileError(
                 f"source_fact_body_carry_case rejected {label}: "
                 f"{source_fact_ref} returned_marker mismatch"
             )
+        # The FULL step-output envelope must NOT be inline: only `returned`
+        # rides in the summary. ``raw_stream_ref``/``agent_fact_fields`` are
+        # envelope-only keys (never inside the agent's ``returned``); their
+        # presence means the full body leaked in.
+        for envelope_only_key in ("raw_stream_ref", "agent_fact_fields"):
+            if envelope_only_key in body:
+                raise ProfileError(
+                    f"source_fact_body_carry_case rejected {label}: "
+                    f"{source_fact_ref} full step-output envelope leaked into carry "
+                    f"({envelope_only_key})"
+                )
+
+
+def run_wiki_carry_truncation_survival_case(
+    repo: Path, profile: Mapping[str, Any]
+) -> int:
+    """Pin: the load-bearing PATH + NOTE survive DOWNSTREAM re-truncation.
+
+    The blocker (0619 adversarial verify): the wiki view is floored by
+    ``safe_source_fact_body`` once in the walker AND AGAIN downstream in the
+    agent adapter (``_clean_source_fact_bodies`` limit 12000,
+    ``_source_fact_bodies_for_prompt`` limit 12000 / gemini 4000). Every floor
+    truncates the TAIL. When ``returned`` is large the whole serialized view
+    blows past a downstream limit; if PATH/NOTE rode in the tail (the old
+    layout) they were silently amputated and the worker lost the "go look"
+    address (operator measured: 12534-char view -> ``wiki_carry_path_text``
+    None at limit 12000 AND 4000).
+
+    This pin builds the view through the REAL ``_wiki_carry_view`` with an
+    OVERSIZE ``returned`` (well past every limit), re-truncates it at limit
+    12000 AND 4000 via the REAL ``safe_source_fact_body``, and asserts the
+    absolute PATH and the NOTE SURVIVE both. It also asserts a small ``returned``
+    keeps path + note + a JSON-parseable summary. Reordering the view so PATH/
+    NOTE land in the tail REDs this pin (mutation guard).
+    """
+
+    items = rule_items(profile, "wiki_carry_truncation_survival_case")
+    if not items:
+        return 0
+    from brick_protocol.support.connection.agent_adapter import (
+        _GEMINI_SOURCE_FACT_BODY_LIMIT,
+        _SOURCE_FACT_BODY_LIMIT,
+        safe_source_fact_body,
+    )
+    from support.operator.walker_kernel import (
+        _WIKI_CARRY_NOTE,
+        _wiki_carry_view,
+        wiki_carry_path_text,
+        wiki_carry_summary_text,
+    )
+
+    count = 0
+    for raw in items:
+        mapping = require_mapping(raw, "wiki_carry_truncation_survival_case item")
+        label = require_string(
+            mapping.get("label"), "wiki_carry_truncation_survival_case.label"
+        )
+        # The YAML subset returns bare scalars as strings; accept int or
+        # int-valued string and coerce.
+        raw_oversize = mapping.get("oversize_returned_chars", 20000)
+        try:
+            oversize_chars = int(raw_oversize)
+        except (TypeError, ValueError):
+            raise ProfileError(
+                f"wiki_carry_truncation_survival_case rejected {label}: "
+                "oversize_returned_chars must be a positive integer"
+            )
+        if oversize_chars <= 0:
+            raise ProfileError(
+                f"wiki_carry_truncation_survival_case rejected {label}: "
+                "oversize_returned_chars must be a positive integer"
+            )
+
+        # Use a tmp building root so _wiki_carry_view resolves a real absolute
+        # path (the on-disk step-output is never read by this pin; only the path
+        # text is exercised). The blocker is in the VIEW LAYOUT, not file IO.
+        with tempfile.TemporaryDirectory(prefix="bp-wiki-carry-survival-") as tmpdir:
+            building_root = Path(tmpdir)
+            step_output_ref = "work/step-outputs/oversize-attempt-1/step-output.json"
+            absolute_path = str((building_root / step_output_ref).resolve())
+
+            # OVERSIZE returned: a step-output JSON whose `returned.answer` alone
+            # dwarfs every downstream limit, so the serialized view is far past
+            # 12000 (and 4000).
+            oversize_body = json.dumps(
+                {
+                    "envelope_marker": "should-not-ride",
+                    "raw_stream_ref": "should-not-ride",
+                    "returned": {
+                        "body_marker": "oversize-body",
+                        "answer": "X" * oversize_chars,
+                    },
+                }
+            )
+            view = _wiki_carry_view(building_root, step_output_ref, oversize_body)
+
+            # The view itself must already exceed both limits, else this pin is
+            # not actually exercising the re-truncation seam.
+            if len(view) <= _SOURCE_FACT_BODY_LIMIT:
+                raise ProfileError(
+                    f"wiki_carry_truncation_survival_case rejected {label}: "
+                    f"oversize view is only {len(view)} chars, not past limit "
+                    f"{_SOURCE_FACT_BODY_LIMIT} -- raise oversize_returned_chars"
+                )
+
+            for limit in (_SOURCE_FACT_BODY_LIMIT, _GEMINI_SOURCE_FACT_BODY_LIMIT):
+                retruncated = safe_source_fact_body(view, limit=limit)
+                # The downstream floor MUST have actually fired (tail cut), or
+                # the pin proves nothing about survival under truncation.
+                if len(retruncated) <= len(view) and len(view) <= limit:
+                    raise ProfileError(
+                        f"wiki_carry_truncation_survival_case rejected {label}: "
+                        f"view did not exceed limit {limit}"
+                    )
+                carry_path = wiki_carry_path_text(retruncated)
+                if carry_path is None:
+                    raise ProfileError(
+                        f"wiki_carry_truncation_survival_case rejected {label}: "
+                        f"absolute PATH amputated by tail-truncate at limit {limit} "
+                        f"(view layout puts PATH in the tail)"
+                    )
+                if carry_path != absolute_path:
+                    raise ProfileError(
+                        f"wiki_carry_truncation_survival_case rejected {label}: "
+                        f"PATH corrupted at limit {limit}: {carry_path!r} != "
+                        f"{absolute_path!r}"
+                    )
+                if not Path(carry_path).is_absolute():
+                    raise ProfileError(
+                        f"wiki_carry_truncation_survival_case rejected {label}: "
+                        f"surviving PATH is not absolute at limit {limit}"
+                    )
+                if _WIKI_CARRY_NOTE not in retruncated:
+                    raise ProfileError(
+                        f"wiki_carry_truncation_survival_case rejected {label}: "
+                        f"NOTE amputated by tail-truncate at limit {limit}"
+                    )
+
+            # Small returned: full fidelity -- path + note + JSON-parseable
+            # summary all present (no truncation regression on the common case).
+            small_body = json.dumps(
+                {
+                    "envelope_marker": "should-not-ride",
+                    "returned": {"body_marker": "small-body", "answer": "ok"},
+                }
+            )
+            small_view = _wiki_carry_view(building_root, step_output_ref, small_body)
+            if wiki_carry_path_text(small_view) != absolute_path:
+                raise ProfileError(
+                    f"wiki_carry_truncation_survival_case rejected {label}: "
+                    "small-returned view lost its absolute PATH"
+                )
+            if _WIKI_CARRY_NOTE not in small_view:
+                raise ProfileError(
+                    f"wiki_carry_truncation_survival_case rejected {label}: "
+                    "small-returned view lost its NOTE"
+                )
+            summary = wiki_carry_summary_text(small_view)
+            if summary is None:
+                raise ProfileError(
+                    f"wiki_carry_truncation_survival_case rejected {label}: "
+                    "small-returned view lost its SUMMARY"
+                )
+            try:
+                small_returned = json.loads(summary)
+            except json.JSONDecodeError as exc:
+                raise ProfileError(
+                    f"wiki_carry_truncation_survival_case rejected {label}: "
+                    "small-returned summary is not JSON"
+                ) from exc
+            if (
+                not isinstance(small_returned, Mapping)
+                or small_returned.get("body_marker") != "small-body"
+            ):
+                raise ProfileError(
+                    f"wiki_carry_truncation_survival_case rejected {label}: "
+                    "small-returned summary did not round-trip `returned`"
+                )
+        count += 1
+    return count
 
 
 def run_step_output_drain_case(repo: Path, profile: Mapping[str, Any]) -> int:
@@ -7510,18 +7726,26 @@ class _StepOutputDrainObserved:
         refs = list(request.source_fact_bodies)
         file_exists: dict[str, bool] = {}
         markers: list[str] = []
+        from support.operator.walker_kernel import wiki_carry_summary_text
+
         for ref, body in request.source_fact_bodies.items():
             relative_ref = _checker_step_output_relative_ref(ref)
             path = self.output_root / request.building_id / relative_ref
             file_exists[ref] = path.is_file()
             if path.is_file():
                 self.body_text_at_call[ref] = path.read_text(encoding="utf-8")
+            # WIKI-CARRY: the carried body is a compact wiki view; the worker's
+            # curated `returned` rides in the summary section, not the full
+            # step-output JSON. Recover the summary and parse it back.
+            summary = wiki_carry_summary_text(body)
+            if summary is None:
+                markers.append("")
+                continue
             try:
-                packet = json.loads(body)
+                returned = json.loads(summary)
             except json.JSONDecodeError:
                 markers.append("")
                 continue
-            returned = packet.get("returned")
             markers.append(
                 str(returned.get("body_marker"))
                 if isinstance(returned, Mapping) and returned.get("body_marker") is not None

@@ -34,6 +34,7 @@ from typing import Any, Callable
 from brick_protocol.support.connection.agent_adapter import (
     AgentBrainCallable,
     CommandRunner,
+    safe_source_fact_body,
 )
 from brick_protocol.support.operator.contracts import (
     BuildingPlanSupportResult,
@@ -308,7 +309,7 @@ def _source_fact_body_carry_for_step(
             if "step-output" in source_fact:
                 missing_source_fact_refs.append(source_fact)
             continue
-        body = _step_output_body_from_file(building_root, result_refs[match])
+        body = _step_output_wiki_carry_body(building_root, result_refs[match])
         if body is None:
             missing_source_fact_refs.append(source_fact)
             source_step_ref = _step_ref_from_step_output_ref(result_refs[match])
@@ -345,7 +346,7 @@ def _source_fact_body_carry_for_step(
             continue
         if match in carried_result_indices:
             continue
-        body = _step_output_body_from_file(building_root, result_refs[match])
+        body = _step_output_wiki_carry_body(building_root, result_refs[match])
         if body is None:
             missing_source_fact_refs.append(
                 f"fan-in-source:{source_step_ref}:step-output-body-missing:"
@@ -662,6 +663,152 @@ def _step_output_body_from_file(building_root: Path, step_output_ref: str) -> st
         return (building_root / step_output_ref).read_text(encoding="utf-8")
     except (OSError, UnicodeError):
         return None
+
+
+# ---------------------------------------------------------------------------
+# WIKI-CARRY (Kaparthy wiki pattern): the walker carries a COMPACT wiki VIEW
+# between steps -- NOT the full step-output.json body. Carrying the full body
+# (envelope + evidence_refs + proof_limits + graph metadata + returned) made
+# the carried context blow up step over step (token amplification). The wiki
+# view carries only:
+#   * SUMMARY  = the step-output's ``returned`` field (the agent's CURATED
+#                output), serialized compactly and floored by
+#                ``safe_source_fact_body`` (runaway-returned backstop / secret
+#                redaction). No envelope, no evidence_refs, no proof_limits.
+#   * PATH     = the ABSOLUTE path of the real step-output.json on disk, so the
+#                worker can "go look" with its own file-read tool when the
+#                summary is not enough (codex --sandbox read-only reads
+#                ~/.brick absolute paths -- WIKI_READ_PROOF).
+#   * NOTE     = a plain-text instruction telling the worker the body is a
+#                summary and where the full output lives.
+# The on-disk step-output.json / raw/ are NEVER touched -- the path merely
+# points at them. ``source_fact_bodies`` rides ONLY as text context in the
+# agent prompt (agent_adapter._source_fact_bodies_for_prompt -> prompt JSON);
+# no runtime program parses it (the checker simulators that parse it read the
+# SUMMARY section back via ``wiki_carry_summary_text``).
+#
+# VIEW ORDER (load-bearing): PATH + NOTE come FIRST, the SUMMARY comes LAST.
+# The view is floored by ``safe_source_fact_body`` here, and the agent adapter
+# floors it AGAIN downstream (``_clean_source_fact_bodies`` and
+# ``_source_fact_bodies_for_prompt``, limit 12000 / gemini 4000). All of those
+# floors truncate the TAIL (``body[:limit]``). A large ``returned`` can push the
+# whole view past a downstream limit; if the PATH/NOTE were in the tail they
+# would be silently amputated and the worker would lose the "go look" address.
+# By placing the absolute PATH and the NOTE BEFORE the summary, any tail-
+# truncate (whichever limit fires) eats only the END of the summary and ALWAYS
+# preserves the load-bearing path + note. This is adapter-agnostic: it does not
+# matter which floor cuts -- the head is preserved.
+# ---------------------------------------------------------------------------
+
+_WIKI_CARRY_VIEW_HEADER = "[BRICK WIKI CARRY VIEW]"
+_WIKI_CARRY_SUMMARY_PREFIX = "summary (this step's returned -- agent's curated output):"
+_WIKI_CARRY_PATH_PREFIX = "full step output path:"
+_WIKI_CARRY_NOTE = (
+    "note: the summary below is THIS step's returned (the agent's curated "
+    "output) only. The FULL step output (the whole step-output document with "
+    "its evidence pointers, proof limits, and metadata) is NOT inline here -- "
+    "it lives in the file at the path above. If the summary is not enough, "
+    "read that file with your own file-read tool."
+)
+
+
+def _returned_summary_for_carry(body: str) -> str:
+    """The compact wiki SUMMARY = the step-output's ``returned`` field.
+
+    ``returned`` is the agent's CURATED output. We serialize ONLY it (never the
+    surrounding step-output envelope) and floor it through
+    ``safe_source_fact_body`` so a runaway ``returned`` is still truncated and
+    raw secrets are redacted. Fallbacks (missing/oversize/non-JSON file) keep a
+    safe, non-empty summary so the carry never silently drops the worker's
+    context.
+    """
+
+    try:
+        packet = json.loads(body)
+    except (json.JSONDecodeError, ValueError):
+        return safe_source_fact_body(body)
+    if not isinstance(packet, Mapping) or "returned" not in packet:
+        return safe_source_fact_body(body)
+    returned = packet.get("returned")
+    try:
+        rendered = json.dumps(returned, ensure_ascii=False, sort_keys=True)
+    except (TypeError, ValueError):
+        return safe_source_fact_body(body)
+    return safe_source_fact_body(rendered)
+
+
+def _wiki_carry_view(building_root: Path, step_output_ref: str, body: str) -> str:
+    """Build the compact wiki VIEW carried in place of the full step-output body."""
+
+    absolute_path = str((building_root / step_output_ref).resolve())
+    summary = _returned_summary_for_carry(body)
+    # PATH + NOTE FIRST, SUMMARY LAST: downstream re-truncation
+    # (safe_source_fact_body, limit 12000 / gemini 4000) cuts the TAIL, so the
+    # load-bearing absolute path and note always survive while only the END of an
+    # oversize summary is trimmed. See the VIEW ORDER note above.
+    return (
+        f"{_WIKI_CARRY_VIEW_HEADER}\n"
+        f"{_WIKI_CARRY_PATH_PREFIX} {absolute_path}\n"
+        f"{_WIKI_CARRY_NOTE}\n"
+        f"{_WIKI_CARRY_SUMMARY_PREFIX}\n"
+        f"{summary}"
+    )
+
+
+def _step_output_wiki_carry_body(
+    building_root: Path, step_output_ref: str
+) -> str | None:
+    """Read the step-output and return its compact wiki VIEW (or None if absent)."""
+
+    body = _step_output_body_from_file(building_root, step_output_ref)
+    if body is None:
+        return None
+    return _wiki_carry_view(building_root, step_output_ref, body)
+
+
+def wiki_carry_summary_text(view: str) -> str | None:
+    """Recover the SUMMARY section from a carried wiki view (checker/consumer aid).
+
+    Returns the summary text (the serialized ``returned``) when ``view`` is a
+    wiki-carry view, else None. Consumers that need the structured ``returned``
+    JSON parse this summary; they MUST NOT expect the full step-output envelope
+    to be inline.
+
+    ORDER-INDEPENDENT: this scans for the SUMMARY_PREFIX line and captures every
+    line AFTER it. In the current layout the SUMMARY is LAST (PATH + NOTE lead),
+    so capture runs to the end of the view; the ``startswith(PATH_PREFIX)`` break
+    is a defensive guard kept so an older layout (summary before path) is parsed
+    identically. Either way the summary is delimited by its own PREFIX line, not
+    by position.
+    """
+
+    if not view.startswith(_WIKI_CARRY_VIEW_HEADER):
+        return None
+    lines = view.splitlines()
+    summary_lines: list[str] = []
+    capturing = False
+    for line in lines:
+        if not capturing:
+            if line == _WIKI_CARRY_SUMMARY_PREFIX:
+                capturing = True
+            continue
+        if line.startswith(_WIKI_CARRY_PATH_PREFIX):
+            break
+        summary_lines.append(line)
+    if not summary_lines:
+        return None
+    return "\n".join(summary_lines).strip()
+
+
+def wiki_carry_path_text(view: str) -> str | None:
+    """Recover the absolute step-output PATH from a carried wiki view."""
+
+    if not view.startswith(_WIKI_CARRY_VIEW_HEADER):
+        return None
+    for line in view.splitlines():
+        if line.startswith(_WIKI_CARRY_PATH_PREFIX):
+            return line[len(_WIKI_CARRY_PATH_PREFIX):].strip()
+    return None
 
 
 # ---------------------------------------------------------------------------
