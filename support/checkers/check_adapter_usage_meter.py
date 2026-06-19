@@ -302,6 +302,149 @@ def _assert_jsonl_never_becomes_text() -> str:
     )
 
 
+def test_behavioral_probe_usage_only_stdout() -> str:
+    """Drive the REAL codex invoke path end-to-end and prove usage cannot leak.
+
+    AST pins (test_invoke_local_cli_uses_helper_not_raw_stdout) prove the SHAPE of
+    the empty-file fallback. This probe proves the BEHAVIOR: it actually runs the
+    codex-exec-readonly branch of ``_invoke_local_cli`` via _invoke_local_cli_adapter
+    with a fake command_runner -- NO live codex, NO subprocess -- in the exact
+    leak-prone situation:
+
+      * the --output-last-message FILE is left EMPTY (the runner writes nothing);
+      * the ``--json`` stdout is USAGE-ONLY: a single turn.completed.usage event
+        with NO assistant-message event;
+      * the Brick's required_return_shape DECLARES usage-shaped fields
+        (input_tokens / usage), so if usage text ever reached the structured
+        extractor it WOULD be lifted into AgentFact.returned.
+
+    It then asserts, on the real path's output, that (a) the recovered output text
+    is "" (empty file + no message event -> empty, never the raw JSONL), and
+    (b) the ``returned`` dict the codex adapter builds (the AgentFact.returned
+    source) carries NO usage key -- usage stayed on the adapter_usage side-channel.
+    """
+
+    from brick_protocol.support.connection import agent_adapter as adapter
+
+    usage_only_stdout = (
+        '{"type":"turn.completed","usage":{"input_tokens":4242,'
+        '"cached_input_tokens":7,"output_tokens":9,"reasoning_output_tokens":5}}\n'
+    )
+
+    def _fake_codex_runner(
+        args, cwd, timeout_seconds, *, env=None
+    ):  # type: ignore[no-untyped-def]
+        del cwd, timeout_seconds, env
+        call = tuple(str(arg) for arg in args)
+        if "--version" in call:
+            return adapter.LocalCliCompleted(call, 0, "codex 0.0.0-probe", "")
+        # The real exec invocation. Return rc=0 with USAGE-ONLY JSONL on stdout and
+        # DO NOT write the --output-last-message file (it stays empty), reproducing
+        # the empty-file + --json situation. (codex still passes --json + the temp
+        # output path; we simply never touch that path.)
+        return adapter.LocalCliCompleted(call, 0, usage_only_stdout, "")
+
+    request = adapter.AgentAdapterRequest(
+        building_id="adapter-usage-behavioral-probe",
+        agent_object_ref="agent-object:dev",
+        adapter_ref=adapter.ADAPTER_CODEX_LOCAL,
+        brick_instance_ref="brick-probe",
+        next_brick_instance_ref="brick-closure",
+        # Declare usage-shaped return fields: if usage text reached the structured
+        # extractor it would be lifted into returned. It must NOT be, because the
+        # output text is empty.
+        required_return_shape="returned_summary, input_tokens, usage",
+    )
+
+    returned, _proof_limits, _not_proven, adapter_usage = adapter._invoke_local_cli_adapter(
+        request,
+        cwd=_REPO_ROOT,
+        timeout_seconds=5,
+        command_runner=_fake_codex_runner,
+    )
+
+    if not isinstance(returned, Mapping):
+        raise AdapterUsageMeterError(
+            "behavioral probe: codex adapter did not return a mapping"
+        )
+    # (a) the real path recovered EMPTY output text from the empty file + usage-only
+    # JSONL (no message event) -- never the raw JSONL.
+    excerpt = returned.get("output_excerpt")
+    if excerpt not in ("", None):
+        raise AdapterUsageMeterError(
+            "behavioral probe: empty output file + usage-only --json stdout did NOT "
+            f"yield empty output text (output_excerpt={excerpt!r}); raw JSONL may be "
+            "leaking through the assistant-text fallback"
+        )
+    for marker in ("turn.completed", '"usage"', "input_tokens", "4242"):
+        if isinstance(excerpt, str) and marker in excerpt:
+            raise AdapterUsageMeterError(
+                f"behavioral probe: output_excerpt leaks raw JSONL marker {marker!r}"
+            )
+    # (b) NO token-usage key reached AgentFact.returned via structured extraction,
+    # even though required_return_shape declared input_tokens / usage.
+    leaked = sorted(_FORBIDDEN_RETURNED_USAGE_KEYS & set(returned)) + (
+        ["usage"] if "usage" in returned else []
+    )
+    if leaked:
+        raise AdapterUsageMeterError(
+            "behavioral probe: token-usage key(s) "
+            f"{leaked!r} reached AgentFact.returned via the real codex invoke path "
+            "(usage must never leave the adapter_usage side-channel)"
+        )
+    # The usage MUST still be observed on the side-channel (proves the probe drove a
+    # path where usage WAS present -- so the empty-returned result is meaningful, not
+    # vacuous because no usage existed).
+    if not isinstance(adapter_usage, Mapping) or adapter_usage.get("input_tokens") != 4242:
+        raise AdapterUsageMeterError(
+            "behavioral probe: the usage-only --json stdout was not surfaced on the "
+            "adapter_usage side-channel (input_tokens=4242 expected); the probe did "
+            "not actually exercise a usage-present path"
+        )
+    return (
+        "behavioral probe: the REAL codex invoke path (empty output file + usage-"
+        "only --json stdout) recovers empty output text and lifts NO usage key into "
+        "AgentFact.returned, while usage IS present on the adapter_usage side-channel"
+    )
+
+
+def _assert_mutation_red_behavioral_probe_leak() -> str:
+    """Mutation RED: simulate the leak the behavioral probe guards against.
+
+    Reconstructs what the codex adapter ``returned`` dict WOULD contain if the raw
+    JSONL stdout were handed to the structured extractor (the OLD raw-stdout
+    fallback): the usage-only JSONL parses as a JSON object whose ``input_tokens``
+    is a declared return field, so _extract_required_return_fields lifts it INTO
+    returned. Confirms the behavioral probe's leak assertion catches that, so the
+    probe is not vacuously green.
+    """
+
+    from brick_protocol.support.connection import agent_adapter as adapter
+
+    leaking_stdout = (
+        '{"input_tokens": 4242, "usage": {"input_tokens": 4242}, '
+        '"returned_summary": "leaked"}'
+    )
+    # The OLD bug shape: raw stdout flows into the structured extractor.
+    extracted = adapter._extract_required_return_fields(
+        leaking_stdout,
+        "returned_summary, input_tokens, usage",
+    )
+    leaked = sorted(_FORBIDDEN_RETURNED_USAGE_KEYS & set(extracted)) + (
+        ["usage"] if "usage" in extracted else []
+    )
+    if not leaked:
+        raise AdapterUsageMeterError(
+            "mutation RED failed: a raw-stdout structured extraction that lifts "
+            "input_tokens/usage into returned was not detected as a leak"
+        )
+    return (
+        "mutation RED observed: when raw --json stdout reaches the structured "
+        "extractor, declared usage fields (input_tokens/usage) ARE lifted into "
+        "returned -- exactly the leak the behavioral probe rejects"
+    )
+
+
 def _assert_mutation_red_jsonl_text_fallback() -> str:
     """Mutation RED: a recovery that returns the raw JSONL stdout must be rejected.
 
@@ -375,6 +518,134 @@ def _assert_meter_write_guarded_by_usage_present(repo: Path) -> str:
     return (
         f"{_RUN_REL}: the per-step meter write is guarded by an early return when "
         "adapter_usage is absent/empty (only usage-present steps write a row)"
+    )
+
+
+# --------------------------------------------------------------------------- #
+# Behavioral: the meter journal is PURE APPEND-ONLY raw evidence.              #
+# --------------------------------------------------------------------------- #
+
+# A seed journal mixing well-formed records and a MALFORMED (truncated JSON) line.
+# The pure-append writer must leave ALL of these BYTE-FOR-BYTE and in-order; only
+# a new line may be added at the very end.
+_SEED_JOURNAL_BYTES = b'{"a":1}\n{ broken json with no closing brace\n{"b":2}\n'
+
+
+def _run_writer_on_seeded_journal(tmp_root: Path) -> bytes:
+    from brick_protocol.support.recording.adapter_usage_meter import (
+        write_adapter_usage_meter,
+    )
+
+    journal = tmp_root / "raw" / "adapter-usage.jsonl"
+    journal.parent.mkdir(parents=True, exist_ok=True)
+    journal.write_bytes(_SEED_JOURNAL_BYTES)
+    write_adapter_usage_meter(
+        tmp_root,
+        "building-append-probe",
+        step_ref="step:append-probe",
+        adapter_ref="adapter:codex-local",
+        selected_model_ref="model:codex-fixture",
+        attempt_index=1,
+        adapter_usage={"input_tokens": 11, "output_tokens": 3},
+    )
+    return journal.read_bytes()
+
+
+def _assert_pure_append_preserves_existing_lines() -> str:
+    """The writer must APPEND ONE line and leave all prior bytes/order untouched.
+
+    Seeds a journal with two well-formed records and one MALFORMED line, runs the
+    real writer, and asserts the result is EXACTLY the original bytes followed by a
+    single new JSON-object line. If the writer ever read+separated+re-serialized the
+    existing lines (the old rewrite path), the malformed line would move to the
+    front and the well-formed lines would be re-emitted in canonical byte form --
+    both detected here.
+    """
+
+    with tempfile.TemporaryDirectory(prefix="bp-adapter-usage-append-") as tmpdir:
+        result = _run_writer_on_seeded_journal(Path(tmpdir))
+    if not result.startswith(_SEED_JOURNAL_BYTES):
+        raise AdapterUsageMeterError(
+            "pure-append violated: the original journal bytes are no longer the "
+            "verbatim prefix of the file (existing lines were reordered or "
+            "re-serialized instead of left untouched)"
+        )
+    tail = result[len(_SEED_JOURNAL_BYTES):]
+    if not tail.endswith(b"\n"):
+        raise AdapterUsageMeterError(
+            "pure-append: the appended record line is not newline-terminated"
+        )
+    tail_text = tail.decode("utf-8").strip()
+    if "\n" in tail_text:
+        raise AdapterUsageMeterError(
+            "pure-append: more than one line was appended"
+        )
+    import json as _json
+
+    try:
+        appended = _json.loads(tail_text)
+    except ValueError as exc:
+        raise AdapterUsageMeterError(
+            f"pure-append: the appended line is not a JSON object: {exc}"
+        ) from exc
+    if not isinstance(appended, Mapping):
+        raise AdapterUsageMeterError(
+            "pure-append: the appended line is not a JSON object"
+        )
+    return (
+        "pure-append: the writer appends exactly ONE new record line to the END of "
+        "the journal; the two well-formed records AND the malformed line keep their "
+        "original bytes and order (append-only raw evidence preserved)"
+    )
+
+
+def _assert_mutation_red_pure_append_rewrite() -> str:
+    """Mutation RED: a writer that re-serializes/reorders existing lines must fail.
+
+    Simulates the OLD rewrite path (read the journal, split malformed lines to the
+    FRONT, re-serialize the parsed records in canonical form) and confirms the
+    pure-append byte-preservation assertion above REJECTS it -- so that assertion is
+    not vacuously green if the rewrite logic is ever reinstated.
+    """
+
+    import json as _json
+
+    def _rewriting_writer(seed: bytes) -> bytes:
+        records: list[Mapping[str, object]] = []
+        raw_lines: list[str] = []
+        for line in seed.decode("utf-8").splitlines():
+            text = line.strip()
+            if not text:
+                continue
+            try:
+                value = _json.loads(text)
+            except ValueError:
+                raw_lines.append(text)
+                continue
+            if isinstance(value, Mapping):
+                records.append(value)
+            else:
+                raw_lines.append(text)
+        # The OLD shape: malformed lines first, then re-serialized records, plus the
+        # new record -- i.e. the existing lines are reordered AND rewritten.
+        out = "".join(rl + "\n" for rl in raw_lines)
+        out += "".join(
+            _json.dumps(r, sort_keys=True, separators=(",", ":")) + "\n"
+            for r in (*records, {"new": True})
+        )
+        return out.encode("utf-8")
+
+    rewritten = _rewriting_writer(_SEED_JOURNAL_BYTES)
+    if rewritten.startswith(_SEED_JOURNAL_BYTES):
+        raise AdapterUsageMeterError(
+            "mutation RED failed: a rewrite that reorders/re-serializes existing "
+            "lines was NOT detected (it preserved the original byte prefix by "
+            "accident, so the byte-preservation guard is vacuous)"
+        )
+    return (
+        "mutation RED observed: a writer that reads + reorders (malformed-first) + "
+        "re-serializes the existing journal lines breaks the verbatim byte prefix "
+        "and is rejected by the pure-append guard"
     )
 
 
@@ -693,10 +964,14 @@ def check(repo: Path) -> list[str]:
         test_invoke_local_cli_uses_helper_not_raw_stdout(repo),
         _assert_step_output_carries_no_usage(repo),
         _assert_jsonl_never_becomes_text(),
+        test_behavioral_probe_usage_only_stdout(),
         _assert_meter_write_guarded_by_usage_present(repo),
+        _assert_pure_append_preserves_existing_lines(),
         _assert_mutation_red_dropped_key(),
         _assert_mutation_red_usage_into_returned(),
+        _assert_mutation_red_behavioral_probe_leak(),
         _assert_mutation_red_jsonl_text_fallback(),
+        _assert_mutation_red_pure_append_rewrite(),
         _assert_mutation_red_unguarded_meter_write(),
         PROOF_LIMIT,
     ]

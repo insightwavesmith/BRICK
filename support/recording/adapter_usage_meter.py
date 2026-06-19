@@ -76,22 +76,24 @@ def write_adapter_usage_meter(
     selected_model_ref: str = "",
     attempt_index: int = 1,
     adapter_usage: Mapping[str, Any] | None,
-    existing_records: tuple[Mapping[str, Any], ...] = (),
-    existing_raw_lines: tuple[str, ...] = (),
 ) -> tuple[Path, Mapping[str, Any]]:
-    """Append one per-step adapter token-usage record to the meter journal.
+    """Append ONE per-step adapter token-usage record to the meter journal.
 
     ``adapter_usage`` is the codex-native usage mapping (counter keys ->
     int | None) parsed by the adapter, or ``None`` when no usage was observed.
     Returns the written path plus the graph-ready record that was appended.
 
-    ``existing_raw_lines`` carries any pre-existing journal lines that were NOT
-    parseable JSON objects. They are preserved verbatim on the rewrite (append-only
-    raw evidence is never destroyed); they do not count toward record_index.
+    PURE APPEND-ONLY raw evidence: every pre-existing journal line (well-formed
+    record OR malformed text, no distinction) is left BYTE-FOR-BYTE and
+    ORDER untouched. We never read, re-parse, re-serialize, reorder, or rewrite
+    them. We only count the existing non-empty lines to give the new record a
+    monotonic ``record_index`` (so its ``local_id`` stays unique), then write the
+    single new record line to the END of the file.
     """
 
     if not isinstance(building_root, Path):
         raise TypeError("building_root must be a Path")
+    path = building_root / _ADAPTER_USAGE_RAW_STREAM
     record = build_adapter_usage_record(
         building_id=building_id,
         step_ref=step_ref,
@@ -99,11 +101,9 @@ def write_adapter_usage_meter(
         selected_model_ref=selected_model_ref,
         attempt_index=attempt_index,
         adapter_usage=adapter_usage,
-        record_index=len(existing_records) + 1,
+        record_index=_existing_line_count(path) + 1,
     )
-    path = building_root / _ADAPTER_USAGE_RAW_STREAM
-    records = (*existing_records, record)
-    _append_jsonl(path, records, raw_lines=existing_raw_lines)
+    _append_one_record(path, record)
     return path, record
 
 
@@ -199,18 +199,28 @@ def _optional_int(value: Any) -> int | None:
     return None
 
 
-def _append_jsonl(
-    path: Path,
-    records: tuple[Mapping[str, Any], ...],
-    *,
-    raw_lines: tuple[str, ...] = (),
-) -> None:
+def _existing_line_count(path: Path) -> int:
+    """Count the non-empty lines already in the journal (read-only, no rewrite).
+
+    Used ONLY to derive the next record_index. We never parse, classify, or
+    re-emit these lines -- they are append-only raw evidence and stay byte-for-byte
+    where they are.
+    """
+
+    if not path.is_file():
+        return 0
+    return sum(1 for line in path.read_text(encoding="utf-8").splitlines() if line.strip())
+
+
+def _append_one_record(path: Path, record: Mapping[str, Any]) -> None:
+    """Append exactly ONE record line to the END of the journal.
+
+    Opens in append mode so no existing byte is read back or rewritten; the new
+    line is the only thing written. Pre-existing lines (well-formed or malformed)
+    keep their original bytes and order.
+    """
+
     path.parent.mkdir(parents=True, exist_ok=True)
-    # Preserve any pre-existing unparseable raw lines FIRST (verbatim), then the
-    # parsed records. The journal is append-only raw evidence: a malformed line
-    # must survive a rewrite, never be silently discarded.
-    text = "".join(raw_line + "\n" for raw_line in raw_lines) + "".join(
-        json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
-        for value in records
-    )
-    path.write_text(text, encoding="utf-8")
+    line = json.dumps(record, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
+    with path.open("a", encoding="utf-8") as journal:
+        journal.write(line)

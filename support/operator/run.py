@@ -1891,7 +1891,10 @@ def _write_adapter_usage_meter_on_step_close(
     adapter_usage = adapter_result.adapter_usage
     if not isinstance(adapter_usage, Mapping) or not adapter_usage:
         return
-    existing_records, existing_raw_lines = _existing_adapter_usage_records(building_root)
+    # PURE APPEND-ONLY: the writer appends ONE new record line to the END of
+    # raw/adapter-usage.jsonl and never reads, re-parses, reorders, or rewrites any
+    # pre-existing line. There is no read+separate+rewrite path to preserve raw
+    # evidence -- the bytes already on disk are never touched in the first place.
     write_adapter_usage_meter(
         building_root,
         building_id,
@@ -1900,43 +1903,7 @@ def _write_adapter_usage_meter_on_step_close(
         selected_model_ref=request.selected_model_ref,
         attempt_index=attempt_index,
         adapter_usage=adapter_usage,
-        existing_records=existing_records,
-        existing_raw_lines=existing_raw_lines,
     )
-
-
-def _existing_adapter_usage_records(
-    building_root: Path,
-) -> tuple[tuple[Mapping[str, Any], ...], tuple[str, ...]]:
-    """Read the existing meter journal as (parsed records, raw malformed lines).
-
-    TrackA-A1 MINOR FIX (preserve malformed rows): the journal is append-only raw
-    evidence. Previously unparseable JSONL lines were silently dropped here and
-    then lost when the writer rewrote the file. We now CARRY FORWARD any line that
-    is not a JSON object as a raw string, so the rewrite preserves it verbatim and
-    no raw journal evidence is ever destroyed.
-    """
-    path = building_root / "raw" / "adapter-usage.jsonl"
-    if not path.is_file():
-        return (), ()
-    records: list[Mapping[str, Any]] = []
-    raw_lines: list[str] = []
-    for line in path.read_text(encoding="utf-8").splitlines():
-        text = line.strip()
-        if not text:
-            continue
-        try:
-            value = json.loads(text)
-        except ValueError:
-            raw_lines.append(text)
-            continue
-        if isinstance(value, Mapping):
-            records.append(value)
-        else:
-            # Valid JSON but not an object (e.g. a bare list/number): preserve the
-            # original raw text so the journal is never silently rewritten away.
-            raw_lines.append(text)
-    return tuple(records), tuple(raw_lines)
 
 
 def _step_output_observation_from_result(
