@@ -27,6 +27,7 @@ from typing import Any
 from uuid import uuid4
 
 from support.checkers import check_profile
+from support.operator.first_use import FIRST_USE_FILENAME, write_first_use
 from support.operator import onboard
 from support.operator.driver import run_customer_building_in_sandbox
 
@@ -274,6 +275,7 @@ def _cmd_init(args: argparse.Namespace) -> int:
     doctor_packet = onboard.run_doctor()
     build_packet = None
     build_error = None
+    first_use_packet = None
     if not args.skip_build:
         build_args = argparse.Namespace(
             repo=args.repo,
@@ -289,6 +291,11 @@ def _cmd_init(args: argparse.Namespace) -> int:
         )
         try:
             build_packet = _run_build(build_args)
+            first_use_packet = write_first_use(
+                build_packet["output_root"],
+                doctor_packet=doctor_packet,
+                build_packet=build_packet,
+            )
         except Exception as exc:  # noqa: BLE001 -- init reports friendly evidence
             build_error = {
                 "error_kind": type(exc).__name__,
@@ -305,6 +312,8 @@ def _cmd_init(args: argparse.Namespace) -> int:
         "proof_limits": list(PROOF_LIMITS),
         "not_proven": list(NOT_PROVEN),
     }
+    if first_use_packet is not None:
+        packet["first_use"] = first_use_packet
     if args.json:
         print(_json_dump(packet))
     else:
@@ -316,6 +325,10 @@ def _cmd_init(args: argparse.Namespace) -> int:
         if build_error is not None:
             print("")
             print(f"build_error: {build_error['error_kind']}: {build_error['error_message']}")
+        if first_use_packet is not None:
+            print("")
+            print(f"next: read {FIRST_USE_FILENAME}")
+            print(f"first_use_path: {first_use_packet['path']}")
         print("")
         print(_render_status(status_packet))
     return 0 if build_error is None else 1

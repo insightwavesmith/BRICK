@@ -525,6 +525,17 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
     # inserted repo root before support seams are loaded. Removing the two
     # sys.path.insert bootstrap lines drives this RED with ModuleNotFoundError.
     "brick_cli_entrypoint_smoke": run_brick_cli_entrypoint_smoke,
+    # P3 first-use wizard. Executes the brick init FIRST_USE.md branch
+    # IN-PROCESS with simulated doctor/build packets and a temp output root:
+    # generated FIRST_USE.md must carry the example-stub disclaimer, the
+    # `brick auth login` + `--real-provider` funnel, and the CLI must print
+    # "next: read FIRST_USE.md". The checker also mutates the generated temp
+    # file by removing the disclaimer and requires that validation reject it;
+    # simulated build_error must write no FIRST_USE.md.
+    "first_use_wizard": _repo_main(
+        "first_use_wizard",
+        "support.checkers.check_first_use_wizard",
+    ),
     # Execution smoke: bare-launches support/connection/mcp_projection.py with
     # a CLEAN env (no PYTHONPATH) like a real MCP host and asserts it answers
     # initialize without crashing at import. Catches the bootstrap regression

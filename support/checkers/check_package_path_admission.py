@@ -160,6 +160,7 @@ ONBOARD_WIZARD0_TARGETS = {
 # crossing, judges nothing, chooses no Movement.
 BRICK_CLI_ENTRYPOINT0_TARGETS = {
     "support/operator/cli.py",
+    "support/operator/first_use.py",
 }
 
 # PROJECT-0 S1-A: the project declaration record loader (reads + validates

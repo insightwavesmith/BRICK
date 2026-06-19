@@ -169,6 +169,16 @@ modules:
     decomposition_target: ""
     pinned_by: building_lifecycle_path_shape kernel check
 
+  - module: support/checkers/check_first_use_wizard.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: first_use_wizard kernel check (simulated brick init FIRST_USE.md generation, disclaimer + funnel, failure no-write, mutation-RED probe)
+
   - module: support/checkers/check_evidence_spine.py
     layer: checkers
     role: checker
@@ -650,6 +660,16 @@ modules:
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
     pinned_by: brick_cli_entrypoint profile (repo-outside/PYTHONPATH-unset entrypoint smoke)
+
+  - module: support/operator/first_use.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: first_use_wizard kernel check (renders deterministic FIRST_USE.md support note after successful local init example only)
 
   # PROJECT-0 S1-A (0611): project declaration record loader. Reads + validates
   # project/<id>/project.json (closed 9-key set, non-empty direction, judgment

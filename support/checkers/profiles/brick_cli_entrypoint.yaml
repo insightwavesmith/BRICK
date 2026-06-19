@@ -3,9 +3,12 @@ profile_id: brick-cli-entrypoint
 description: P1 customer-facing brick CLI entrypoint bootstrap profile.
 kernel_checks:
   - brick_cli_entrypoint_smoke
+  - first_use_wizard
 path_exists:
   - pyproject.toml
   - support/operator/cli.py
+  - support/operator/first_use.py
+  - support/checkers/check_first_use_wizard.py
   - support/checkers/profiles/brick_cli_entrypoint.yaml
 text_contains:
   - path: pyproject.toml
@@ -19,9 +22,25 @@ text_contains:
       - 'sys.path.insert(0, str(_REPO_ROOT))'
       - 'sys.path.insert(0, str(_IMPORT_IDENTITY_ROOT))'
       - 'from support.checkers import check_profile'
+      - 'from support.operator.first_use import FIRST_USE_FILENAME, write_first_use'
       - 'run_customer_building_in_sandbox'
       - 'onboard.run_doctor()'
       - 'check_profile.main(verify_argv)'
+      - 'write_first_use('
+      - 'next: read {FIRST_USE_FILENAME}'
+  - path: support/operator/first_use.py
+    texts:
+      - 'FIRST_USE_FILENAME = "FIRST_USE.md"'
+      - '이건 예제입니다 -- 실제 빌딩은 `brick auth login` 후 `--real-provider`.'
+      - 'This was a local example stub.'
+      - '`brick auth login`'
+      - '`--real-provider`'
+      - 'not source truth'
+  - path: support/checkers/check_first_use_wizard.py
+    texts:
+      - 'EXPECTED_DISCLAIMER = "이건 예제입니다 -- 실제 빌딩은 `brick auth login` 후 `--real-provider`."'
+      - 'first_use_wizard'
+      - 'removing the example-stub disclaimer did not drive RED'
 text_absent:
   - path: support/operator/cli.py
     texts:
