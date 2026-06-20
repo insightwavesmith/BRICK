@@ -1,0 +1,41 @@
+# E2 / S0 — AXIS FIELD-SET SINGLE-SOURCE REGISTRY (mirror-guard + scatter-guard source).
+#
+# One row per AXIS field-set that is ALREADY single-source on the CURRENT tree.
+# check_axis_field_set_single_source.py AST-scans all of support/ and REDs if any
+# module ENUMERATES a registered field-set (a frozenset / set / tuple literal, OR a
+# whole @dataclass whose complete named-field set equals the registered member-set)
+# anywhere EXCEPT its registered `defining_module` + `source_symbol`. Each registered
+# field-set has exactly ONE defining_module (scatter-guard: a second definition is RED).
+#
+# GUARD-FIRST DISCIPLINE (E2 design §7 item 1, §8 S0 row): this registry holds ONLY
+# field-sets whose member-set has exactly ONE enumeration on the tree today, so the
+# guard is GREEN now and turns RED only on a NEW duplication/regression. Field-sets
+# that are still mirrored in many places (Agent-object key-set, ref-fields, Brick-row,
+# Link-row, work-envelope, AGENTS.md prose) are DELIBERATELY NOT registered yet — they
+# get registered as later steps (S1-S12) collapse each mirror to a single source.
+#
+# WHAT IS *NOT* A MIRROR (never RED): a single-field-by-name read (e.g.
+# `agent_object.get("preferred_adapter_ref")`) is an ordinary field access, not a
+# field-SET enumeration. In particular the explicit-adapter fail-close invariant
+# (selected_adapter_ref presence checks; design §3 / §7.1) reads the adapter field by
+# name on purpose — it is an invariant, not a mirror. The guard REDs ONLY on a literal
+# that enumerates the WHOLE registered member-set, never on a by-name read.
+
+schema: field-set-registry/v1
+
+field_sets:
+  # CASTING field-set (Agent axis WHO-dials: which performer + which brain).
+  # Single source today: the CASTING_FIELDS descriptor tuple in
+  # support/operator/primitives.py — every consumer derives its names from this
+  # tuple (NODE_CASTING_FIELDS, the Agent-object allowlist, the casting_bag/
+  # stamp_casting transport helpers). The member-set below is the set of
+  # CastingField.field_name values; it is enumerated as a literal NOWHERE else on
+  # the tree (the contracts.py `AgentObjectContractData` scalars are interleaved
+  # inside the FULL Agent-object field-list, not a standalone casting-only literal,
+  # so they are not a member-set match — that mirror collapses to the bag in S7).
+  - name: casting_fields
+    defining_module: support/operator/primitives.py
+    source_symbol: CASTING_FIELDS
+    members:
+      - preferred_adapter_ref
+      - preferred_model_ref

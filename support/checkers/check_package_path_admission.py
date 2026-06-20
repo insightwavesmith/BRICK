@@ -50,6 +50,12 @@ CROSSING_ELEGANCE_REGISTRY_FILES = {
     # check_pin_estate_integrity.py. Same governance shape as the registries:
     # append-only support record directly under support/checkers.
     "support/checkers/pin_estate_baseline.yaml",
+    # E2 / S0 AXIS FIELD-SET SINGLE-SOURCE REGISTRY: the mirror-guard +
+    # scatter-guard source listing each axis field-set that is single-source on the
+    # current tree, consumed by check_axis_field_set_single_source.py. Same
+    # governance shape as the registries: append-only support record directly under
+    # support/checkers.
+    "support/checkers/field_set_registry.yaml",
 }
 
 ROOT_FILES = {

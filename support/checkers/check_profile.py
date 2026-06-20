@@ -348,6 +348,26 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "agent_resource_resolution",
         "support.checkers.check_agent_resource_resolution",
     ),
+    # E2 / S0 MIRROR-GUARD + SCATTER-GUARD. Executes the registry-driven axis
+    # field-set single-source guard IN-PROCESS: AST-scans all of support/ and
+    # rejects any module that ENUMERATES a registered axis field-set (a
+    # frozenset/set/tuple/list literal of its members, or a whole @dataclass whose
+    # complete field-set equals it) anywhere except its ONE registered single
+    # source (field_set_registry.yaml). Scatter-guard folded in: a registered
+    # field-set has exactly one defining_module; a second definition is the same
+    # RED. A single-field-by-name read (the explicit-adapter fail-close invariant)
+    # is NOT a field-set enumeration and is never flagged. GUARD-FIRST: the
+    # registry lists only field-sets single-sourced on the current tree, so this is
+    # GREEN now and RED on a regression. A non-zero main() raises ProfileError, so
+    # a re-added mirror makes --all EXIT non-zero. Imports no axis module; an
+    # independent AST oracle.
+    # Mutation-RED: add a second frozenset({"preferred_adapter_ref",
+    # "preferred_model_ref"}) (or a @dataclass with exactly those two fields) in any
+    # support module -> this kernel check RED -> --all RED.
+    "axis_field_set_single_source": _repo_main(
+        "axis_field_set_single_source",
+        "support.checkers.check_axis_field_set_single_source",
+    ),
     "bricks_spec_completeness": _repo_main(
         "bricks_spec_completeness",
         "support.checkers.check_bricks_spec_completeness",

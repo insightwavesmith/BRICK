@@ -149,6 +149,16 @@ modules:
     decomposition_target: ""
     pinned_by: agent_resource_resolution kernel check (file-backed Agent Object refs prefix-match + resolve; adapter refs admitted)
 
+  - module: support/checkers/check_axis_field_set_single_source.py
+    layer: checkers
+    role: oracle
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: axis_field_set_single_source kernel check (E2/S0 mirror-guard + scatter-guard; registry-driven AST oracle, each registered axis field-set enumerated in exactly one single source)
+
   - module: support/checkers/check_bricks_spec_completeness.py
     layer: checkers
     role: checker
