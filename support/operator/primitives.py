@@ -91,6 +91,63 @@ CASTING_FIELDS: tuple[CastingField, ...] = (
     ),
 )
 
+# Node-level casting projection: the plan-layer ``selected_*`` key names derived
+# from the SAME ``CASTING_FIELDS`` table that names the Agent-source
+# ``preferred_*`` side. The mapping is the established convention
+# (``selected_<rest>`` for ``preferred_<rest>``, twin of
+# check_assembly_equivalence._effective_step_ref): one source of truth for the
+# casting field set drives both the Agent ``preferred_*`` projection and the
+# node/plan ``selected_*`` carry, so a new casting field is added in ONE place.
+NODE_CASTING_FIELDS: tuple[str, ...] = tuple(
+    "selected_" + descriptor.field_name.removeprefix("preferred_")
+    for descriptor in CASTING_FIELDS
+)
+
+
+def casting_bag(source: Mapping[str, Any]) -> dict[str, Any]:
+    """Pull the present ``selected_*`` casting keys from ``source``, blind.
+
+    Pure transport: support copies whichever casting keys the caller declared,
+    with no inspection, default-injection, or validation of the carried values.
+    A key absent from ``source`` is simply absent from the bag.
+    """
+
+    return {
+        field_name: source[field_name]
+        for field_name in NODE_CASTING_FIELDS
+        if field_name in source
+    }
+
+
+def merge_casting_bags(
+    step_bag: Mapping[str, Any],
+    plan_bag: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Merge two casting bags with per-field step-OR-plan precedence.
+
+    For each casting field the step value wins when truthy, else the plan value;
+    this preserves the hand-named ``step.get(k) or plan.get(k)`` carry exactly,
+    including the ``None`` result when the field is declared on neither side.
+    """
+
+    return {
+        field_name: (step_bag.get(field_name) or plan_bag.get(field_name))
+        for field_name in NODE_CASTING_FIELDS
+    }
+
+
+def stamp_casting(target: dict[str, Any], bag: Mapping[str, Any]) -> dict[str, Any]:
+    """Stamp every node casting key onto ``target`` from ``bag``.
+
+    Every ``selected_*`` field is written (``None`` when absent from ``bag``) so
+    the stamped node carries the full casting key set, byte-identical to the
+    prior explicit per-field assignment. ``target`` is mutated and returned.
+    """
+
+    for field_name in NODE_CASTING_FIELDS:
+        target[field_name] = bag.get(field_name)
+    return target
+
 _AGENT_OBJECT_REF_FIELDS: tuple[str, ...] = (
     "prompt_refs",
     "skill_refs",

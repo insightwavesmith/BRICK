@@ -885,8 +885,14 @@ modules:
     layer: operator
     role: operator
     owns_crossings: []
-    consumes_crossings: []
-    imports_axis: []
+    consumes_crossings:
+      - agent_return_fact
+      - link_gate
+      - link_movement
+    imports_axis:
+      - agent/return_fact.py
+      - link/gate.py
+      - link/movement.py
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
     pinned_by: compose_building case (compose_building Brick plan assembly + CompositionProblem collection; crosses to Link via the canonical movement/gate-ref contracts through plan_rendering, authors no Movement or route)

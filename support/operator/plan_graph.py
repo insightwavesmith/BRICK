@@ -11,6 +11,9 @@ from typing import Any
 
 from brick_protocol.support.operator.contracts import BuildingRunSupportResult
 from brick_protocol.support.operator.primitives import (
+    casting_bag,
+    merge_casting_bags,
+    stamp_casting,
     _step_fact_ref,
     _require_mapping_value,
     _optional_text_value,
@@ -71,17 +74,20 @@ def _linear_plan_from_graph_plan(plan: Mapping[str, Any]) -> tuple[Mapping[str, 
             raise ValueError("completion_edge_ref must reference an edge sourced from the same Brick step")
         completion_edge_refs.add(completion_edge_ref)
         rows = list(_graph_brick_agent_rows(brick_step)) + [dict(completion_edge["link_row"])]
-        linear_steps.append(
+        linear_step: dict[str, Any] = {"step_ref": step_ref}
+        stamp_casting(
+            linear_step,
+            merge_casting_bags(casting_bag(brick_step), casting_bag(plan)),
+        )
+        linear_step.update(
             {
-                "step_ref": step_ref,
-                "selected_adapter_ref": brick_step.get("selected_adapter_ref") or plan.get("selected_adapter_ref"),
-                "selected_model_ref": brick_step.get("selected_model_ref") or plan.get("selected_model_ref"),
                 "rows": rows,
                 "caller_supplied_link_facts": completion_edge.get("caller_supplied_link_facts"),
                 "proof_limits": brick_step.get("proof_limits") or plan.get("proof_limits"),
                 "not_proven": _merge_texts(plan.get("not_proven"), brick_step.get("not_proven")),
             }
         )
+        linear_steps.append(linear_step)
 
     for edge in link_edges.values():
         if edge["edge_ref"] not in completion_edge_refs and _ROUTE_REPLAY_PLAN_KEY in edge["link_row"]:

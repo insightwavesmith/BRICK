@@ -81,6 +81,7 @@ from support.checkers.lib.rule_runners import (
 )
 from support.checkers.lib.case_runners import (
     run_adapter_capability_rehome_case,
+    run_casting_node_carry,
     run_hook_registry_axis_case,
     run_adapter_model_selection_case,
     run_adapter_model_selection_rejects,
@@ -745,6 +746,18 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
     # is no longer sufficient), and any NEW leak (outside the allowlist,
     # or any non-matching/extra line inside an allowlisted file) REDs.
     "agent_session_id_redaction": run_agent_session_id_redaction,
+    # CASTING-NODE-CARRY (E/S1 follow-on, Smith B-policy). Replaces the brittle
+    # text_contains grep shape-pin (plan_graph.py text_contains selected_model_ref)
+    # that S1 invalidated when it folded the per-field casting carry into the
+    # opaque bag (casting_bag / merge_casting_bags / stamp_casting). Executes the
+    # REAL support/operator/plan_graph._linear_plan_from_graph_plan IN-PROCESS over
+    # a composed graph plan and asserts the projected linear step carries every
+    # primitives.NODE_CASTING_FIELDS member with step-OR-plan precedence (step value
+    # when truthy, else plan; None when declared on neither side). Iterating the real
+    # field table auto-covers any future casting field. Mutation-RED: drop a field in
+    # stamp_casting (or merge_casting_bags) -> the step-wins scenario sees that field
+    # return None instead of the declared step value -> RED.
+    "casting_node_carry": run_casting_node_carry,
 }
 KERNEL_CHECK_IDS = frozenset(KERNEL_DISPATCH)
 

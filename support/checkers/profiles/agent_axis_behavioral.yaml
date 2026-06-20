@@ -43,6 +43,18 @@ kernel_checks:
   # legacy line, so a same-count swap/replacement REDs; operator policy 0611:
   # frozen evidence/history is not rewritten); any NEW leak REDs.
   - agent_session_id_redaction
+  # CASTING-NODE-CARRY (E/S1 follow-on, Smith B-policy strengthen-not-delete):
+  # REAL behavioral probe that replaced the brittle plan_graph.py text_contains
+  # selected_model_ref grep shape-pin (invalidated when S1 folded the per-field
+  # casting carry into the opaque bag). Drives the genuine
+  # plan_graph._linear_plan_from_graph_plan over a composed graph plan and asserts
+  # the projected linear step carries every primitives.NODE_CASTING_FIELDS member
+  # with step-OR-plan precedence (step truthy wins / plan fallback / None on
+  # neither); iterating the real field table auto-covers future casting fields.
+  # Mutation-RED: drop a field in primitives.stamp_casting (or merge_casting_bags)
+  # -> the step-wins scenario sees that field return None instead of the declared
+  # step value -> RED.
+  - casting_node_carry
 path_exists:
   - support/checkers/profiles/agent_axis_behavioral.yaml
   - AGENTS.md
@@ -186,9 +198,12 @@ text_contains:
   - path: support/operator/plan_validation.py
     texts:
       - selected_model_ref
-  - path: support/operator/plan_graph.py
-    texts:
-      - selected_model_ref
+  # CASTING-NODE-CARRY (E/S1): the plan_graph.py text_contains selected_model_ref
+  # grep shape-pin was REMOVED here and REPLACED (not deleted-to-pass) by the
+  # casting_node_carry kernel_check above -- a real behavioral probe of
+  # plan_graph._linear_plan_from_graph_plan over the opaque casting bag. The
+  # plan_validation.py and agent_adapter.py selected_model_ref text pins above
+  # stay (those modules still name the field literally).
   - path: AGENTS.md
     texts:
       - WRITE-SCOPE-DEFAULT-EXCLUDE-0
