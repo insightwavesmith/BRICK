@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import os
 import sys
 import tempfile
 from collections import Counter, defaultdict
@@ -29,6 +30,7 @@ from brick_protocol.support.operator.assembly import (
     Authority,
     Concern,
     Gate,
+    agent,
     assemble,
     brick,
     chain,
@@ -41,10 +43,12 @@ from brick_protocol.support.operator.assembly import (
     reroute,
 )
 from brick_protocol.support.operator.composition import CompositionError, compose_building
+from brick_protocol.support.operator.plan_rendering import _resolve_agent_for_need
 
 
 DEFAULT_GATE = "link-gate:default-transition"
 STRICT_GATE = "link-gate:strict"
+GOAL_PROPOSAL_FILENAME = "proposed-building-graph.json"
 DECLARED_BY = "coo-heart-phase0-checker"
 SELECTED_ADAPTER = "adapter:codex-local"
 SOURCE_RETURN_SHAPE = "observed_evidence, not_proven"
@@ -308,6 +312,40 @@ def _agent_row(step: Mapping[str, Any]) -> Mapping[str, Any]:
         if isinstance(row, Mapping):
             return row
     return {}
+
+
+def _step_for_kind(plan: Mapping[str, Any], kind: str) -> Mapping[str, Any]:
+    matches = [
+        step
+        for step in plan.get("brick_steps", ())
+        if isinstance(step, Mapping)
+        and _kind(str(step.get("step_template_ref", ""))) == kind
+    ]
+    if len(matches) != 1:
+        raise AssemblyEquivalenceError(f"expected exactly one {kind} step, observed {len(matches)}")
+    return matches[0]
+
+
+def _effective_step_adapter(plan: Mapping[str, Any], step: Mapping[str, Any]) -> str:
+    return str(step.get("selected_adapter_ref") or plan.get("selected_adapter_ref") or "").strip()
+
+
+def _with_temp_home(root: Path):
+    class _TempHome:
+        def __enter__(self) -> Path:
+            self._old_home = os.environ.get("HOME")
+            self.home = root / "home"
+            self.home.mkdir(parents=True, exist_ok=True)
+            os.environ["HOME"] = str(self.home)
+            return self.home
+
+        def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
+            if self._old_home is None:
+                os.environ.pop("HOME", None)
+            else:
+                os.environ["HOME"] = self._old_home
+
+    return _TempHome()
 
 
 def _boundary_label(target_ref: str) -> str:
@@ -817,31 +855,140 @@ def _construction_red_outputs(repo: Path) -> tuple[str, ...]:
     )
 
 
+def _write_scope_derivation_fire(repo: Path) -> tuple[str, ...]:
+    derived = assemble(
+        chain([brick("work", "write scope is derived from the worktree boundary", write=True)]),
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task="derived write scope probe",
+        building_id="heart-phase0-derived-write-scope",
+        adapter="codex-local",
+        repo_root=repo,
+    )
+    work_step = _step_for_kind(derived.composed_plan, "work")
+    brick_row = _brick_row(work_step)
+    write_scope = brick_row.get("write_scope")
+    if not isinstance(write_scope, Mapping):
+        raise AssemblyEquivalenceError("derived write_scope was not recorded on the work Brick row")
+    if write_scope.get("allowed_paths") != ["."]:
+        raise AssemblyEquivalenceError(f"derived write_scope.allowed_paths escaped worktree boundary: {write_scope!r}")
+    if write_scope.get("forbidden_paths") != [".git/**"]:
+        raise AssemblyEquivalenceError(f"derived write_scope.forbidden_paths changed: {write_scope!r}")
+    if brick_row.get("requires_brick_write_scope") is not True:
+        raise AssemblyEquivalenceError("derived write_scope did not preserve requires_brick_write_scope=True")
+
+    def malformed_write_scope_probe() -> None:
+        assemble(
+            chain([brick("work", "malformed write scope remains rejected", write=True)]),
+            declared_by=DECLARED_BY,
+            authority=Authority.COO,
+            task="malformed write scope probe",
+            building_id="heart-phase0-malformed-write-scope",
+            adapter="codex-local",
+            repo_root=repo,
+            write_scope={"allowed_paths": [], "forbidden_paths": []},
+        )
+
+    return (
+        "construction green observed: write=True omitted write_scope derived worktree-bounded allowed_paths ['.'].",
+        _assert_raises("malformed explicit write_scope", ValueError, malformed_write_scope_probe),
+    )
+
+
+def _role_derivation_fire(repo: Path) -> tuple[str, ...]:
+    work_default = assemble(
+        chain([brick("work", "omitted agent resolves from kind", write=True)]),
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task="role from kind single candidate probe",
+        building_id="heart-phase0-role-from-kind",
+        adapter="codex-local",
+        repo_root=repo,
+    )
+    work_agent_ref = str(_agent_row(_step_for_kind(work_default.composed_plan, "work")).get("agent_object_ref", ""))
+    if work_agent_ref != "agent-object:dev":
+        raise AssemblyEquivalenceError(f"work kind omitted agent did not resolve dev: {work_agent_ref}")
+
+    def ambiguous_need_probe() -> None:
+        _resolve_agent_for_need(repo, "leader", False)
+
+    def development_override_probe() -> None:
+        assemble(
+            chain([brick("development", "development stays CTO-only", agent=agent("coo"))]),
+            declared_by=DECLARED_BY,
+            authority=Authority.COO,
+            task="development CTO-only probe",
+            building_id="heart-phase0-development-cto-only",
+            adapter="codex-local",
+            repo_root=repo,
+        )
+
+    return (
+        "construction green observed: omitted work agent resolved from kind to agent-object:dev.",
+        _assert_raises("ambiguous leader NEED without hint", ValueError, ambiguous_need_probe),
+        _assert_raises("development CTO-only override", CompositionError, development_override_probe),
+    )
+
+
 def _verdict_adapter_guard_fire(repo: Path) -> tuple[str, ...]:
-    def local_closure_probe() -> None:
+    def explicit_local_closure_probe() -> None:
         assemble(
             chain(
                 [
                     brick("work", "local smoke work remains admissible"),
-                    brick("closure", "closure must not fall back to the local stub"),
+                    brick("closure", "explicit local closure must stay rejected", adapter="local"),
                 ]
             ),
             declared_by=DECLARED_BY,
             authority=Authority.COO,
-            task="verdict local adapter guard probe",
-            building_id="heart-phase0-verdict-local-guard",
+            task="explicit verdict local adapter guard probe",
+            building_id="heart-phase0-explicit-verdict-local-guard",
             repo_root=repo,
         )
 
-    def local_reviewer_probe() -> None:
+    def explicit_local_reviewer_probe() -> None:
         assemble(
-            chain([brick("axis-attack-qa", "reviewer lane must not fall back to the local stub")]),
+            chain([brick("axis-attack-qa", "explicit local reviewer stays rejected", adapter="local")]),
             declared_by=DECLARED_BY,
             authority=Authority.COO,
-            task="reviewer local adapter guard probe",
-            building_id="heart-phase0-reviewer-local-guard",
+            task="explicit reviewer local adapter guard probe",
+            building_id="heart-phase0-explicit-reviewer-local-guard",
             repo_root=repo,
         )
+
+    default_closure = assemble(
+        chain(
+            [
+                brick("work", "default local work remains admissible"),
+                brick("closure", "omitted closure adapter defaults non-local"),
+            ]
+        ),
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task="verdict omitted adapter default probe",
+        building_id="heart-phase0-verdict-default-non-local",
+        repo_root=repo,
+    )
+    closure_step = _step_for_kind(default_closure.composed_plan, "closure")
+    closure_adapter = _effective_step_adapter(default_closure.composed_plan, closure_step)
+    closure_agent = str(_agent_row(closure_step).get("agent_object_ref", "")).strip()
+    if closure_adapter == "adapter:local" or not closure_adapter.startswith("adapter:"):
+        raise AssemblyEquivalenceError(f"closure omitted adapter did not default non-local: {closure_adapter}")
+    if closure_agent != "agent-object:coo":
+        raise AssemblyEquivalenceError(f"closure omitted agent did not resolve coo: {closure_agent}")
+
+    default_reviewer = assemble(
+        chain([brick("axis-attack-qa", "omitted reviewer adapter defaults non-local")]),
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task="reviewer omitted adapter default probe",
+        building_id="heart-phase0-reviewer-default-non-local",
+        repo_root=repo,
+    )
+    reviewer_step = _step_for_kind(default_reviewer.composed_plan, "axis-attack-qa")
+    reviewer_adapter = _effective_step_adapter(default_reviewer.composed_plan, reviewer_step)
+    if reviewer_adapter == "adapter:local" or not reviewer_adapter.startswith("adapter:"):
+        raise AssemblyEquivalenceError(f"reviewer omitted adapter did not default non-local: {reviewer_adapter}")
 
     local_smoke = assemble(
         chain([brick("work", "non-verdict local smoke remains admissible")]),
@@ -872,8 +1019,10 @@ def _verdict_adapter_guard_fire(repo: Path) -> tuple[str, ...]:
         raise AssemblyEquivalenceError("explicit non-local adapter was not preserved")
 
     return (
-        _assert_raises("closure node default local adapter", ValueError, local_closure_probe),
-        _assert_raises("reviewer lane default local adapter", ValueError, local_reviewer_probe),
+        "construction green observed: omitted closure adapter defaulted to admitted non-local adapter.",
+        "construction green observed: omitted reviewer adapter defaulted to admitted non-local adapter.",
+        _assert_raises("explicit closure local adapter", ValueError, explicit_local_closure_probe),
+        _assert_raises("explicit reviewer local adapter", ValueError, explicit_local_reviewer_probe),
         "construction green observed: non-verdict local adapter smoke remains admissible.",
         "construction green observed: explicit non-local adapter preserved for verdict node.",
     )
@@ -953,6 +1102,7 @@ def _assert_no_building_root(root: Path, building_id: str, label: str) -> None:
 
 def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
     from brick_protocol.support.operator.onboard import (
+        build,
         render_proposal_for_human,
         run_goal_approve_entry,
     )
@@ -1111,6 +1261,84 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
             )
         outputs.append("proposal green: multi-fan-in render showed 합류점 2개 and ran frozen plan.")
 
+        with _with_temp_home(tmp / "build-invalid-author"):
+            invalid_author = build(
+                _approval_simple_graph(),
+                goal="build invalid author checker task",
+                declared_by=DECLARED_BY,
+                author_ref="smith",
+                action="forward",
+                command_runner=_approval_runner(),
+                adapter_timeout_seconds=30,
+            )
+        invalid_approval = invalid_author.get("approval_result")
+        if not isinstance(invalid_approval, Mapping):
+            raise AssemblyEquivalenceError(f"build invalid author returned no approval result: {invalid_author!r}")
+        if invalid_approval.get("ran") is not False or invalid_approval.get("error_kind") != "invalid_author_ref":
+            raise AssemblyEquivalenceError(f"build forward without coo:/human: author was not rejected: {invalid_author!r}")
+        outputs.append("build RED observed: forward without coo:/human: author_ref rejected.")
+
+        with _with_temp_home(tmp / "build-stop"):
+            stopped = build(
+                _approval_simple_graph(),
+                goal="build stop checker task",
+                declared_by=DECLARED_BY,
+                author_ref="coo:smith",
+                action="stop",
+                command_runner=_approval_runner(),
+                adapter_timeout_seconds=30,
+            )
+        stop_approval = stopped.get("approval_result")
+        if not isinstance(stop_approval, Mapping):
+            raise AssemblyEquivalenceError(f"build stop returned no approval result: {stopped!r}")
+        if stop_approval.get("ran") is not False or not stop_approval.get("ok"):
+            raise AssemblyEquivalenceError(f"build stop did not halt before running: {stopped!r}")
+        stop_proposal = Path(str(stopped.get("proposal_ref", "")))
+        try:
+            stop_entries = [entry.name for entry in stop_proposal.parent.iterdir()]
+        except FileNotFoundError as exc:
+            raise AssemblyEquivalenceError(f"build stop proposal directory missing: {stop_proposal}") from exc
+        if stop_entries != [GOAL_PROPOSAL_FILENAME]:
+            raise AssemblyEquivalenceError(f"build stop wrote more than the proposal snapshot: {stop_entries!r}")
+        outputs.append("build green: stop approval wrote only the frozen proposal and ran nothing.")
+
+        zero_supply_graph = chain(
+            [
+                brick("work", "zero-supply write work", write=True),
+                brick("closure", "zero-supply closure"),
+            ]
+        )
+        with _with_temp_home(tmp / "build-forward"):
+            forward_build = build(
+                zero_supply_graph,
+                goal="build zero-supply forward checker task",
+                declared_by=DECLARED_BY,
+                author_ref="human:smith",
+                action="forward",
+                command_runner=_approval_runner(),
+                adapter_timeout_seconds=30,
+            )
+        forward_approval = forward_build.get("approval_result")
+        if not isinstance(forward_approval, Mapping):
+            raise AssemblyEquivalenceError(f"build forward returned no approval result: {forward_build!r}")
+        if not forward_approval.get("ran") or forward_approval.get("frontier_kind") != "complete":
+            raise AssemblyEquivalenceError(f"build forward did not complete deterministic run: {forward_build!r}")
+        evidence_root = Path(str(forward_approval.get("evidence_root", ""))).resolve()
+        if not evidence_root.exists():
+            raise AssemblyEquivalenceError(f"build forward evidence root missing: {evidence_root}")
+        worktree_text = str(forward_approval.get("worktree_path") or "").strip()
+        if worktree_text:
+            worktree_path = Path(worktree_text).resolve()
+            try:
+                evidence_inside_worktree = evidence_root.is_relative_to(worktree_path)
+            except AttributeError:  # pragma: no cover - py<3.9 fallback
+                evidence_inside_worktree = str(evidence_root).startswith(str(worktree_path) + "/")
+            if evidence_inside_worktree:
+                raise AssemblyEquivalenceError(
+                    f"build forward evidence root lived inside disposable worktree: {evidence_root}"
+                )
+        outputs.append("build green: zero-supply graph ran forward with durable evidence outside worktree.")
+
     return tuple(outputs)
 
 
@@ -1172,6 +1400,8 @@ def run(repo: Path) -> list[str]:
         outputs.append(f"discrimination RED observed: {mutation.name} changed P(plan).")
 
     outputs.extend(_construction_red_outputs(repo))
+    outputs.extend(_write_scope_derivation_fire(repo))
+    outputs.extend(_role_derivation_fire(repo))
     outputs.extend(_verdict_adapter_guard_fire(repo))
     outputs.extend(_proposal_approval_fire(repo))
     outputs.append(PROOF_LIMIT)

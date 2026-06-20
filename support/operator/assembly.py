@@ -29,6 +29,7 @@ from brick_protocol.support.operator.composition import (
     compose_building,
     inline_task_source_carry,
 )
+from brick_protocol.support.connection.agent_resources import resolve_agent_object
 
 
 _FORBIDDEN_BRICK_KWARGS = frozenset(
@@ -55,6 +56,10 @@ _DEFAULT_BOUNDARY_REF = "building-boundary:closed"
 _PROPOSED_BUILDING_GRAPH_FILENAME = "proposed-building-graph.json"
 _LOCAL_ADAPTER_REF = "adapter:local"
 _VERDICT_LANE_NEEDS = frozenset({"reviewer", "leader"})
+_DERIVED_WORKTREE_WRITE_SCOPE = {
+    "allowed_paths": ["."],
+    "forbidden_paths": [".git/**"],
+}
 
 
 class Concern(Enum):
@@ -386,6 +391,7 @@ def assemble(
         building_id=resolved_building_id,
         declared_by=declared_by_text,
         selected_adapter_ref=selected_adapter_ref,
+        repo=repo,
         registry=registry,
         gates=gates,
         write_scope=write_scope,
@@ -549,6 +555,7 @@ def _lower_graph(
     building_id: str,
     declared_by: str,
     selected_adapter_ref: str,
+    repo: Path,
     registry: Mapping[str, Any],
     gates: Sequence[Gate | str],
     write_scope: Mapping[str, Any] | None,
@@ -567,6 +574,13 @@ def _lower_graph(
             registry=registry,
             fan_in_source=spec in fan_in_sources,
             write_scope=write_scope,
+        )
+        _default_verdict_adapter(
+            node,
+            spec=spec,
+            selected_adapter_ref=selected_adapter_ref,
+            repo=repo,
+            registry=registry,
         )
         _reject_local_verdict_adapter(
             node,
@@ -654,6 +668,53 @@ def _lower_node(
         node["write_scope"] = _validated_write_scope(write_scope)
         node["requires_brick_write_scope"] = True
     return node
+
+
+def _default_verdict_adapter(
+    node: dict[str, Any],
+    *,
+    spec: BrickSpec,
+    selected_adapter_ref: str,
+    repo: Path,
+    registry: Mapping[str, Any],
+) -> None:
+    if node.get("selected_adapter_ref"):
+        return
+    if selected_adapter_ref != _LOCAL_ADAPTER_REF:
+        return
+    if not _is_verdict_bearing_node(node, spec=spec, registry=registry):
+        return
+    agent_object_ref = _node_agent_object_ref(node, registry=registry)
+    adapter_refs = resolve_agent_object(agent_object_ref, repo_root=repo).get("adapter_refs", ())
+    if not isinstance(adapter_refs, Sequence) or isinstance(adapter_refs, (str, bytes)):
+        raise ValueError(f"{agent_object_ref} adapter_refs must be an array")
+    for adapter_ref in adapter_refs:
+        text = str(adapter_ref).strip()
+        if text and text != _LOCAL_ADAPTER_REF:
+            node["selected_adapter_ref"] = text
+            return
+    node_id = str(node.get("node_id", "")).strip() or spec.kind
+    raise ValueError(
+        f"verdict-bearing node {node_id} has no admitted non-local adapter on {agent_object_ref}"
+    )
+
+
+def _node_agent_object_ref(
+    node: Mapping[str, Any],
+    *,
+    registry: Mapping[str, Any],
+) -> str:
+    declared = str(node.get("agent_object_ref") or "").strip()
+    if declared:
+        return declared
+    step_template_ref = str(node.get("step_template_ref") or "").strip()
+    step_template = registry.get("step_templates", {}).get(step_template_ref)
+    if not isinstance(step_template, Mapping):
+        raise ValueError(f"step_template_ref does not resolve: {step_template_ref}")
+    agent_object_ref = str(step_template.get("agent_object_ref") or "").strip()
+    if not agent_object_ref:
+        raise ValueError(f"step_template_ref is missing agent_object_ref: {step_template_ref}")
+    return agent_object_ref
 
 
 def _reject_local_verdict_adapter(
@@ -875,8 +936,10 @@ def _adoption_value(value: Adoption | str) -> str:
 
 
 def _validated_write_scope(value: Mapping[str, Any] | None) -> Mapping[str, Any]:
+    if value is None:
+        return copy.deepcopy(_DERIVED_WORKTREE_WRITE_SCOPE)
     if not isinstance(value, Mapping):
-        raise ValueError("write=True requires assemble(write_scope=...)")
+        raise ValueError("write_scope must be a mapping")
     allowed = value.get("allowed_paths")
     forbidden = value.get("forbidden_paths")
     if not isinstance(allowed, Sequence) or isinstance(allowed, (str, bytes)):

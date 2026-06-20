@@ -34,6 +34,24 @@ def _ensure_import_path(repo: Path) -> None:
             sys.path.insert(0, entry)
 
 
+class _TemporaryHome:
+    def __init__(self, root: Path):
+        self.root = root
+        self._old_home: str | None = None
+
+    def __enter__(self) -> Path:
+        self._old_home = os.environ.get("HOME")
+        self.root.mkdir(parents=True, exist_ok=True)
+        os.environ["HOME"] = str(self.root)
+        return self.root
+
+    def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
+        if self._old_home is None:
+            os.environ.pop("HOME", None)
+        else:
+            os.environ["HOME"] = self._old_home
+
+
 def _proof_limits() -> list[str]:
     return [
         "support evidence only",
@@ -851,7 +869,8 @@ def _w1_worktree_sandbox_fire(
     )
 
     with tempfile.TemporaryDirectory(prefix="bp-w1-customer-") as cust_raw, \
-            tempfile.TemporaryDirectory(prefix="bp-w1-evidence-") as ev_raw:
+            tempfile.TemporaryDirectory(prefix="bp-w1-evidence-") as ev_raw, \
+            _TemporaryHome(Path(cust_raw) / "engine-home"):
         # Each customer "repo" is its OWN subdir so the shared temp root is never
         # itself a git repo (otherwise a subdir whose .git we remove would still
         # resolve UP to the root repo and misreport its probe reason).

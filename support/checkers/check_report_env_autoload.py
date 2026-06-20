@@ -764,7 +764,7 @@ def _check_evroot2_vessel_gate(runtime_env, tmp: Path) -> list[str]:
         # NO WIDENING (1): a no-creds env still drops slack at the ENV gate -- the
         # fix does not bypass the credential check.
         no_creds_refs = reporter._event_policy_sink_refs(  # noqa: SLF001
-            policy, slack_env=None, dashboard_env=None
+            policy, slack_env={}, dashboard_env={}
         )
         if reporter.SLACK_SINK_REF in no_creds_refs:
             raise ReportEnvAutoloadError(

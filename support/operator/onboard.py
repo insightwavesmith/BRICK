@@ -1029,6 +1029,7 @@ def _render_flow_text(result: dict[str, Any]) -> str:
 GOAL_APPROVE_SEAM_VERB = "support.operator.onboard.run_goal_approve_entry"
 GOAL_APPROVE_ACTIONS = ("forward", "stop")
 _GOAL_PROPOSAL_FILENAME = "proposed-building-graph.json"
+_BUILD_SELECTED_ADAPTER = "codex-local"
 
 def render_proposal_for_human(proposal_ref: Any) -> str:
     """Render a frozen proposal snapshot as a plain-Korean pre-run preview.
@@ -1040,6 +1041,56 @@ def render_proposal_for_human(proposal_ref: Any) -> str:
 
     plan, _proposal_path = _load_goal_proposal(proposal_ref)
     return _render_goal_proposal_plan(plan)
+
+
+def build(
+    graph: Any,
+    *,
+    goal: str,
+    declared_by: str,
+    author_ref: str,
+    action: str = "forward",
+    command_runner: Any | None = None,
+    local_callables: Mapping[str, Any] | None = None,
+    adapter_timeout_seconds: int = 120,
+) -> dict[str, Any]:
+    """One-call goal build: compose, freeze, render, then route approval.
+
+    This is a support convenience wrapper over the existing seams. It keeps the
+    pre-run proposal and approval result visible, but hides repo/output/worktree
+    plumbing and never bypasses the human/COO ``forward`` / ``stop`` gate.
+    """
+
+    from brick_protocol.support.operator.assembly import (  # noqa: PLC0415
+        assemble,
+        persist_proposed_building_graph,
+    )
+
+    composed = assemble(
+        graph,
+        declared_by=declared_by,
+        task=goal,
+        repo_root=_REPO_ROOT,
+        adapter=_BUILD_SELECTED_ADAPTER,
+    )
+    output_root = _build_output_root(composed.building_id)
+    proposal_path = persist_proposed_building_graph(composed, output_root)
+    rendered = render_proposal_for_human(proposal_path)
+    approval = run_goal_approve_entry(
+        proposal_path,
+        action=action,
+        author_ref=author_ref,
+        repo_root=_REPO_ROOT,
+        local_callables=local_callables,
+        command_runner=command_runner,
+        adapter_timeout_seconds=adapter_timeout_seconds,
+    )
+    return {
+        "building_id": composed.building_id,
+        "proposal_ref": str(proposal_path),
+        "proposal_render": rendered,
+        "approval_result": approval,
+    }
 
 
 def run_goal_approve_entry(
@@ -1265,6 +1316,17 @@ def _goal_approval_plan_path(
         encoding="utf-8",
     )
     return plan_path
+
+
+def _build_output_root(building_id: str) -> Path:
+    stamp = _utc_timestamp_slug()
+    return Path.home() / ".brick" / "goal-runs" / f"{_path_slug(building_id)}-{stamp}"
+
+
+def _utc_timestamp_slug() -> str:
+    from datetime import datetime, timezone  # noqa: PLC0415
+
+    return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
 
 
 def _proposal_root_is_prerun_only(
@@ -1957,6 +2019,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 __all__ = [
+    "build",
     "DOCTOR_SYMPTOM_PRESCRIPTIONS_KO",
     "GOAL_APPROVE_ACTIONS",
     "GOAL_APPROVE_SEAM_VERB",

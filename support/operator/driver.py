@@ -579,11 +579,7 @@ def _run_in_worktree_sandbox(
        dir); ``durable_output`` (evidence) stays OUTSIDE it.
     """
 
-    # MITIGATION 4 (probe FIRST): is this a clean git work tree with git
-    # installed? ANY failure -> degrade to a temp dir; the live tree is never
-    # written and no worktree is created.
-    probe = probe_worktree_capable(repo)
-    if not probe.ok:
+    def _run_with_temp_dir(reason: str) -> CustomerSandboxRunResult:
         temp_dir = temp_dir_fallback()
         try:
             sandbox_cwd = Path(temp_dir.name).resolve()
@@ -601,7 +597,7 @@ def _run_in_worktree_sandbox(
             return CustomerSandboxRunResult(
                 building_id=intake.building_id,
                 isolation_mode="temp_dir",
-                isolation_reason=probe.reason,
+                isolation_reason=reason,
                 base_sha="",
                 worktree_path="",
                 evidence_root=str(intake.run_result.lifecycle_write.root),
@@ -613,12 +609,22 @@ def _run_in_worktree_sandbox(
         finally:
             temp_dir.cleanup()
 
+    # MITIGATION 4 (probe FIRST): is this a git work tree with git installed?
+    # ANY probe failure -> degrade to a temp dir; if the actual worktree creation
+    # is blocked by host/sandbox metadata permissions, degrade the same way.
+    probe = probe_worktree_capable(repo)
+    if not probe.ok:
+        return _run_with_temp_dir(probe.reason)
+
     # MITIGATION 1: create the engine worktree detached at the resolved BASE SHA.
-    sandbox = create_worktree_sandbox(
-        repo,
-        building_id=building_id,
-        base_sha=probe.base_sha,
-    )
+    try:
+        sandbox = create_worktree_sandbox(
+            repo,
+            building_id=building_id,
+            base_sha=probe.base_sha,
+        )
+    except WorktreeSandboxError as exc:
+        return _run_with_temp_dir(f"worktree-create-failed:{type(exc).__name__}")
     commit_sha = ""
     frontier_kind = ""
     evidence_root = ""
