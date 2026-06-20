@@ -25,6 +25,10 @@ from brick_protocol.support.operator.building_operation_common import (
     DEFAULT_BUILDINGS_ROOT,
     _clean_text,
 )
+from brick_protocol.support.operator.primitives import (
+    _AGENT_OBJECT_ALLOWED_KEYS,
+    _AGENT_OBJECT_REF_FIELDS,
+)
 
 
 NATIVE_DISPATCH_EXECUTION_PATH = NATIVE_DISPATCH_PERFORMANCE_MODE
@@ -293,31 +297,17 @@ NATIVE_DISPATCH_MOVEMENT_AUTHORITY_PROOF_LIMIT: str = (
 )
 
 
-_NATIVE_DISPATCH_AGENT_OBJECT_KEYS = frozenset(
-    {
-        "object_ref",
-        "name",
-        "lane",
-        "callable_performer_refs",
-        "prompt_refs",
-        "skill_refs",
-        "hook_refs",
-        "tool_policy_refs",
-        "discipline_refs",
-        "adapter_refs",
-    }
-)
-
-
-_NATIVE_DISPATCH_AGENT_OBJECT_REF_FIELDS = (
-    "callable_performer_refs",
-    "prompt_refs",
-    "skill_refs",
-    "hook_refs",
-    "tool_policy_refs",
-    "discipline_refs",
-    "adapter_refs",
-)
+# Agent-object key/ref field-sets are SINGLE-SOURCED on the Agent axis
+# (support/operator/primitives.py, derived from CASTING_FIELDS) and IMPORTED here
+# rather than re-enumerated. The prior local copies OMITTED the casting keys
+# (preferred_adapter_ref / preferred_model_ref), so the unknown-key check below
+# RAISED on a real role Agent Object that legitimately carries casting -- a live
+# latent bug. Importing the canonical allowlist (which includes the casting keys)
+# both FIXES that bug and removes a 3rd mirror of the Agent-object field-set
+# (E2 / S1, mirror M8; field_set_registry.yaml enforces this stays single-source).
+# The ref-field coercion below loops ``("callable_performer_refs", *_AGENT_OBJECT_REF_FIELDS)``
+# to preserve the prior behavior (callable_performer_refs was coerced as a text
+# array too); the canonical resolver does the same (agent_resources._load_agent_object).
 
 
 _NATIVE_DISPATCH_FORBIDDEN_AGENT_OBJECT_KEYS = frozenset(
@@ -1086,14 +1076,14 @@ def _validate_native_dispatch_agent_object(agent_object: dict[str, Any]) -> None
     forbidden = sorted(set(agent_object) & _NATIVE_DISPATCH_FORBIDDEN_AGENT_OBJECT_KEYS)
     if forbidden:
         raise ValueError("native-dispatch agent_object forbidden keys: " + ", ".join(forbidden))
-    unknown = sorted(set(agent_object) - _NATIVE_DISPATCH_AGENT_OBJECT_KEYS)
+    unknown = sorted(set(agent_object) - _AGENT_OBJECT_ALLOWED_KEYS)
     if unknown:
         raise ValueError("native-dispatch agent_object unknown keys: " + ", ".join(unknown))
     for key in ("object_ref", "name", "lane"):
         _clean_text(f"agent_object.{key}", agent_object.get(key, ""))
     if agent_object["lane"] != NATIVE_DISPATCH_PERFORMANCE_MODE:
         raise ValueError("native-dispatch agent_object.lane must be native-dispatch")
-    for key in _NATIVE_DISPATCH_AGENT_OBJECT_REF_FIELDS:
+    for key in ("callable_performer_refs", *_AGENT_OBJECT_REF_FIELDS):
         agent_object[key] = _optional_text_array(f"agent_object.{key}", agent_object.get(key, []))
 
 

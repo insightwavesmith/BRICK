@@ -39,3 +39,15 @@ field_sets:
     members:
       - preferred_adapter_ref
       - preferred_model_ref
+
+  # AGENT-OBJECT allowed-key field-set — DELIBERATELY NOT REGISTERED YET (S1 note).
+  # E2 / S1 (mirror M8) removed native_dispatch.py's 3rd flat-literal copy of this
+  # 12-key set (the one that OMITTED the casting keys and RAISED on a real role) by
+  # importing primitives `_AGENT_OBJECT_ALLOWED_KEYS`. But the full member-set is still
+  # enumerated elsewhere on the current tree, so it is NOT single-source yet and cannot
+  # be registered under the S0 GUARD-FIRST rule (registry holds only sets that are green
+  # NOW): contracts.py `AgentObjectContractData` is a whole-@dataclass mirror of exactly
+  # these 12 fields (collapses to the opaque casting/ref bag in S7, mirror M1), and the
+  # 6-name ref subset is still flat-enumerated in agent_resources.py `_REF_FIELDS`
+  # alongside primitives `_AGENT_OBJECT_REF_FIELDS` (consolidates in S6/S7). This set
+  # gets a registry row once those sibling mirrors collapse, per design §8.

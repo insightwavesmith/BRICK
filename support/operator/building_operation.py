@@ -197,8 +197,6 @@ from brick_protocol.support.operator.native_dispatch import (
     NATIVE_DISPATCH_EXECUTION_PATH,
     NATIVE_DISPATCH_DEFAULT_GATE_REFS,
     NATIVE_DISPATCH_PROOF_LIMITS,
-    _NATIVE_DISPATCH_AGENT_OBJECT_KEYS,
-    _NATIVE_DISPATCH_AGENT_OBJECT_REF_FIELDS,
     _NATIVE_DISPATCH_FORBIDDEN_AGENT_OBJECT_KEYS,
     NativeDispatchBrickHandle,
     open_native_dispatch_brick,
