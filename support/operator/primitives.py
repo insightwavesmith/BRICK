@@ -8,9 +8,9 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any, NamedTuple, TypeVar
 
 from brick_protocol.agent.return_fact import RETURNED_FORBIDDEN_KEYS as _RETURN_FORBIDDEN_KEYS
 from brick_protocol.link.gate import DECLARED_GATE_REFS as _DECLARED_GATE_REFS
@@ -22,6 +22,15 @@ from brick_protocol.link.transition import (
     TRANSITION_LIFECYCLE_PROGRESS_STATES as _TRANSITION_LIFECYCLE_PROGRESS_STATES,
     TRANSITION_LIFECYCLE_STATES as _TRANSITION_LIFECYCLE_STATES,
     TransitionFact,
+)
+from brick_protocol.support.connection.agent_adapter import (
+    ADAPTER_CLAUDE_LOCAL as _ADAPTER_CLAUDE_LOCAL,
+    ADAPTER_CODEX_LOCAL as _ADAPTER_CODEX_LOCAL,
+    ADAPTER_GEMINI_LOCAL as _ADAPTER_GEMINI_LOCAL,
+    ALLOWED_ADAPTER_REFS as _ALLOWED_ADAPTER_REFS,
+    MODEL_PROVIDER_BY_ADAPTER as _MODEL_PROVIDER_BY_ADAPTER,
+    MODEL_REF_DEFAULT as _MODEL_REF_DEFAULT,
+    project_model_ref_to_cli_arg as _project_model_ref_to_cli_arg,
 )
 
 _DEFAULT_PROOF_LIMITS: tuple[str, ...] = (
@@ -43,6 +52,45 @@ _DEFAULT_NOT_PROVEN: tuple[str, ...] = (
 )
 _FACT_T = TypeVar("_FACT_T")
 
+
+class CastingField(NamedTuple):
+    field_name: str
+    default_ref: str | None
+    cli_emit: Callable[[str, str], tuple[str, ...]]
+    scope: frozenset[str]
+
+
+def _no_cli_emit(_value: str, _adapter_ref: str) -> tuple[str, ...]:
+    return ()
+
+
+_MODEL_CLI_FLAG_BY_ADAPTER: Mapping[str, str] = {
+    _ADAPTER_CODEX_LOCAL: "-m",
+    _ADAPTER_CLAUDE_LOCAL: "--model",
+    _ADAPTER_GEMINI_LOCAL: "--model",
+}
+
+
+def _model_cli_emit(value: str, adapter_ref: str) -> tuple[str, ...]:
+    model_arg = _project_model_ref_to_cli_arg(adapter_ref, value)
+    if not model_arg:
+        return ()
+    flag = _MODEL_CLI_FLAG_BY_ADAPTER.get(adapter_ref)
+    if flag is None:
+        return ()
+    return (flag, model_arg)
+
+
+CASTING_FIELDS: tuple[CastingField, ...] = (
+    CastingField("preferred_adapter_ref", None, _no_cli_emit, _ALLOWED_ADAPTER_REFS),
+    CastingField(
+        "preferred_model_ref",
+        _MODEL_REF_DEFAULT,
+        _model_cli_emit,
+        frozenset(_MODEL_PROVIDER_BY_ADAPTER),
+    ),
+)
+
 _AGENT_OBJECT_REF_FIELDS: tuple[str, ...] = (
     "prompt_refs",
     "skill_refs",
@@ -57,8 +105,7 @@ _AGENT_OBJECT_ALLOWED_KEYS: frozenset[str] = frozenset(
         "name",
         "lane",
         "callable_performer_refs",
-        "preferred_adapter_ref",
-        "preferred_model_ref",
+        *[descriptor.field_name for descriptor in CASTING_FIELDS],
         *_AGENT_OBJECT_REF_FIELDS,
     }
 )

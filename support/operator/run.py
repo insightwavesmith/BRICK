@@ -125,6 +125,7 @@ from brick_protocol.support.operator.plan_validation import (
     _validate_transition_lifecycle_for_link_row,
 )
 from brick_protocol.support.operator.primitives import (
+    CASTING_FIELDS,
     INLINE_TASK_SOURCE_REF,
     _AGENT_OBJECT_ALLOWED_KEYS,
     _AGENT_ROW_ALLOWED_KEYS,
@@ -2596,16 +2597,12 @@ def _agent_object_from_mapping(value: Mapping[str, Any]) -> AgentObjectContractD
             value.get("callable_performer_refs", ()),
         ),
     }
-    if value.get("preferred_adapter_ref") is not None:
-        kwargs["preferred_adapter_ref"] = _required_text(
-            "Agent Object preferred_adapter_ref",
-            value.get("preferred_adapter_ref"),
-        )
-    if value.get("preferred_model_ref") is not None:
-        kwargs["preferred_model_ref"] = _required_text(
-            "Agent Object preferred_model_ref",
-            value.get("preferred_model_ref"),
-        )
+    for descriptor in CASTING_FIELDS:
+        if value.get(descriptor.field_name) is not None:
+            kwargs[descriptor.field_name] = _required_text(
+                f"Agent Object {descriptor.field_name}",
+                value.get(descriptor.field_name),
+            )
     for key in _AGENT_OBJECT_REF_FIELDS:
         kwargs[key] = _text_tuple(f"Agent Object {key}", value.get(key, ()))
     return AgentObjectContractData(**kwargs)

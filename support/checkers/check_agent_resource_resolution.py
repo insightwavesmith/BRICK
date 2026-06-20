@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from dataclasses import MISSING, fields
 from pathlib import Path
 
 
@@ -49,6 +50,15 @@ FIELD_PREFIX = {
     "discipline_refs": "discipline:",
 }
 OBJECTS_DIR = Path("agent/objects")
+AGENT_OBJECT_HEAD_FIELDS = frozenset(
+    {
+        "object_ref",
+        "name",
+        "lane",
+        "callable_performer_refs",
+    }
+)
+AGENT_OBJECT_RESOURCE_BLOCK_MARKER = "contain only provider-neutral references:"
 
 
 def _load_objects(repo: Path) -> list[tuple[str, dict]]:
@@ -70,6 +80,129 @@ def _load_objects(repo: Path) -> list[tuple[str, dict]]:
     return loaded
 
 
+def _casting_names_from_descriptors(casting_fields: object) -> frozenset[str]:
+    names: list[str] = []
+    for descriptor in casting_fields:  # type: ignore[union-attr]
+        field_name = getattr(descriptor, "field_name", None)
+        if not isinstance(field_name, str) or not field_name:
+            raise ValueError("CASTING_FIELDS must carry non-empty text field_name values")
+        names.append(field_name)
+        if not callable(getattr(descriptor, "cli_emit", None)):
+            raise ValueError(f"CASTING_FIELDS[{field_name}].cli_emit must be callable")
+        scope = getattr(descriptor, "scope", None)
+        if not isinstance(scope, frozenset):
+            raise ValueError(f"CASTING_FIELDS[{field_name}].scope must be a frozenset")
+    if len(set(names)) != len(names):
+        raise ValueError("CASTING_FIELDS field_name values must be unique")
+    return frozenset(names)
+
+
+def _agent_object_resource_doc_fields(repo: Path) -> frozenset[str]:
+    text = (repo / "AGENTS.md").read_text(encoding="utf-8")
+    marker_index = text.find(AGENT_OBJECT_RESOURCE_BLOCK_MARKER)
+    if marker_index < 0:
+        raise ValueError("AGENTS.md is missing the Agent Object provider-neutral references block")
+    block_start = text.find("```text", marker_index)
+    if block_start < 0:
+        raise ValueError("AGENTS.md Agent Object references block is missing a text fence")
+    block_start += len("```text")
+    block_end = text.find("```", block_start)
+    if block_end < 0:
+        raise ValueError("AGENTS.md Agent Object references block fence is not closed")
+    return frozenset(
+        line.strip()
+        for line in text[block_start:block_end].splitlines()
+        if line.strip()
+    )
+
+
+def _optional_scalar_contract_fields(contract_type: object) -> frozenset[str]:
+    return frozenset(
+        field.name
+        for field in fields(contract_type)  # type: ignore[arg-type]
+        if field.default is not MISSING and field.default == ""
+    )
+
+
+def _allowlist_casting_fields(
+    allowed_keys: frozenset[str],
+    ref_fields: tuple[str, ...],
+) -> frozenset[str]:
+    return allowed_keys - AGENT_OBJECT_HEAD_FIELDS - frozenset(ref_fields)
+
+
+def _casting_field_registry_violations(repo: Path) -> list[str]:
+    from brick_protocol.support.connection import agent_resources
+    from brick_protocol.support.connection.agent_adapter import (
+        ALLOWED_ADAPTER_REFS,
+        MODEL_PROVIDER_BY_ADAPTER,
+        MODEL_REF_DEFAULT,
+    )
+    from brick_protocol.support.operator import primitives
+    from brick_protocol.support.operator.contracts import AgentObjectContractData
+
+    violations: list[str] = []
+    casting_fields = primitives.CASTING_FIELDS
+    try:
+        casting_names = _casting_names_from_descriptors(casting_fields)
+    except ValueError as exc:
+        return [str(exc)]
+
+    expected_descriptor_meta = {
+        "preferred_adapter_ref": (None, frozenset(ALLOWED_ADAPTER_REFS)),
+        "preferred_model_ref": (MODEL_REF_DEFAULT, frozenset(MODEL_PROVIDER_BY_ADAPTER)),
+    }
+    for descriptor in casting_fields:
+        field_name = descriptor.field_name
+        expected = expected_descriptor_meta.get(field_name)
+        if expected is None:
+            violations.append(f"CASTING_FIELDS carries unadmitted field: {field_name}")
+            continue
+        expected_default, expected_scope = expected
+        if descriptor.default_ref != expected_default:
+            violations.append(
+                f"CASTING_FIELDS[{field_name}].default_ref drifted: "
+                f"observed {descriptor.default_ref!r}, expected {expected_default!r}"
+            )
+        if descriptor.scope != expected_scope:
+            violations.append(
+                f"CASTING_FIELDS[{field_name}].scope drifted: "
+                f"observed {sorted(descriptor.scope)!r}, expected {sorted(expected_scope)!r}"
+            )
+
+    comparisons = {
+        "AgentObjectContractData optional scalar str fields": _optional_scalar_contract_fields(
+            AgentObjectContractData
+        ),
+        "operator Agent Object allowlist casting fields": _allowlist_casting_fields(
+            primitives._AGENT_OBJECT_ALLOWED_KEYS,
+            primitives._AGENT_OBJECT_REF_FIELDS,
+        ),
+        "agent resource resolver allowlist casting fields": _allowlist_casting_fields(
+            agent_resources._AGENT_OBJECT_KEYS,
+            agent_resources._REF_FIELDS,
+        ),
+        "AGENTS.md Agent Object prose casting fields": (
+            _agent_object_resource_doc_fields(repo)
+            - AGENT_OBJECT_HEAD_FIELDS
+            - frozenset(primitives._AGENT_OBJECT_REF_FIELDS)
+        ),
+    }
+    for label, observed in comparisons.items():
+        if observed != casting_names:
+            violations.append(
+                f"{label} drifted from CASTING_FIELDS: "
+                f"observed {sorted(observed)!r}, expected {sorted(casting_names)!r}"
+            )
+    if tuple(agent_resources._REF_FIELDS) != tuple(primitives._AGENT_OBJECT_REF_FIELDS):
+        violations.append(
+            "Agent Object ref-field registries drifted: "
+            f"agent_resources={tuple(agent_resources._REF_FIELDS)!r}, "
+            f"operator={tuple(primitives._AGENT_OBJECT_REF_FIELDS)!r}"
+        )
+    return violations
+
+
 def find_violations(repo: Path) -> tuple[list[str], int]:
     # Reuse the engine's resolver + admitted adapter set so the checker validates
     # exactly what the engine resolves and adapts to the current adapter vocabulary.
@@ -78,6 +211,7 @@ def find_violations(repo: Path) -> tuple[list[str], int]:
 
     violations: list[str] = []
     refs_checked = 0
+    violations.extend(_casting_field_registry_violations(repo))
     objects = _load_objects(repo)
     for rel, obj in objects:
         object_ref = obj.get("object_ref") or rel

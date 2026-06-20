@@ -45,6 +45,7 @@ from brick_protocol.support.operator.assembly import (
 from brick_protocol.support.connection.agent_resources import resolve_agent_object
 from brick_protocol.support.operator.composition import CompositionError, compose_building
 from brick_protocol.support.operator.plan_rendering import _resolve_agent_for_need
+from brick_protocol.support.operator.primitives import CASTING_FIELDS
 
 
 DEFAULT_GATE = "link-gate:default-transition"
@@ -335,26 +336,49 @@ def _effective_step_model(plan: Mapping[str, Any], step: Mapping[str, Any]) -> s
     return str(step.get("selected_model_ref") or plan.get("selected_model_ref") or "").strip()
 
 
-def _preferred_adapter_ref(repo: Path, agent_object_ref: str) -> str:
+def _effective_step_ref(
+    plan: Mapping[str, Any],
+    step: Mapping[str, Any],
+    field_name: str,
+) -> str:
+    if not field_name.startswith("preferred_"):
+        raise AssemblyEquivalenceError(f"unknown Agent Object preferred field: {field_name}")
+    selected_key = f"selected_{field_name.removeprefix('preferred_')}"
+    return str(step.get(selected_key) or plan.get(selected_key) or "").strip()
+
+
+def _preferred_ref(repo: Path, agent_object_ref: str, field_name: str) -> str:
     resolution = resolve_agent_object(agent_object_ref, repo_root=repo)
     agent_object = resolution.get("agent_object")
     if not isinstance(agent_object, Mapping):
         raise AssemblyEquivalenceError(f"{agent_object_ref} did not resolve an Agent Object")
-    preferred = str(agent_object.get("preferred_adapter_ref") or "").strip()
+    preferred = str(agent_object.get(field_name) or "").strip()
     if not preferred:
-        raise AssemblyEquivalenceError(f"{agent_object_ref} has no preferred_adapter_ref")
+        raise AssemblyEquivalenceError(f"{agent_object_ref} has no {field_name}")
     return preferred
 
 
-def _preferred_model_ref(repo: Path, agent_object_ref: str) -> str:
-    resolution = resolve_agent_object(agent_object_ref, repo_root=repo)
-    agent_object = resolution.get("agent_object")
-    if not isinstance(agent_object, Mapping):
-        raise AssemblyEquivalenceError(f"{agent_object_ref} did not resolve an Agent Object")
-    preferred = str(agent_object.get("preferred_model_ref") or "").strip()
-    if not preferred:
-        raise AssemblyEquivalenceError(f"{agent_object_ref} has no preferred_model_ref")
-    return preferred
+def _preference_label(field_name: str) -> str:
+    return field_name.removeprefix("preferred_").removesuffix("_ref")
+
+
+def _assert_step_resolves_preference(
+    repo: Path,
+    plan: Mapping[str, Any],
+    step: Mapping[str, Any],
+    agent_object_ref: str,
+    *,
+    scenario: str,
+    field_name: str,
+) -> None:
+    observed = _effective_step_ref(plan, step, field_name)
+    expected = _preferred_ref(repo, agent_object_ref, field_name)
+    label = _preference_label(field_name)
+    if observed != expected:
+        raise AssemblyEquivalenceError(
+            f"{scenario} omitted {label} did not resolve the Agent Object preference: "
+            f"observed {observed}, expected {expected}"
+        )
 
 
 def _repo_with_agent_preferred_model_omitted(repo: Path, role: str, root: Path) -> Path:
@@ -1029,22 +1053,17 @@ def _verdict_adapter_guard_fire(repo: Path) -> tuple[str, ...]:
         repo_root=repo,
     )
     closure_step = _step_for_kind(default_closure.composed_plan, "closure")
-    closure_adapter = _effective_step_adapter(default_closure.composed_plan, closure_step)
     closure_agent = str(_agent_row(closure_step).get("agent_object_ref", "")).strip()
     if closure_agent != "agent-object:coo":
         raise AssemblyEquivalenceError(f"closure omitted agent did not resolve coo: {closure_agent}")
-    closure_expected_adapter = _preferred_adapter_ref(repo, closure_agent)
-    if closure_adapter != closure_expected_adapter:
-        raise AssemblyEquivalenceError(
-            "closure omitted adapter did not resolve the Agent Object preference: "
-            f"observed {closure_adapter}, expected {closure_expected_adapter}"
-        )
-    closure_model = _effective_step_model(default_closure.composed_plan, closure_step)
-    closure_expected_model = _preferred_model_ref(repo, closure_agent)
-    if closure_model != closure_expected_model:
-        raise AssemblyEquivalenceError(
-            "closure omitted model did not resolve the Agent Object preference: "
-            f"observed {closure_model}, expected {closure_expected_model}"
+    for descriptor in CASTING_FIELDS:
+        _assert_step_resolves_preference(
+            repo,
+            default_closure.composed_plan,
+            closure_step,
+            closure_agent,
+            scenario="closure",
+            field_name=descriptor.field_name,
         )
 
     default_reviewer = assemble(
@@ -1056,20 +1075,15 @@ def _verdict_adapter_guard_fire(repo: Path) -> tuple[str, ...]:
         repo_root=repo,
     )
     reviewer_step = _step_for_kind(default_reviewer.composed_plan, "axis-attack-qa")
-    reviewer_adapter = _effective_step_adapter(default_reviewer.composed_plan, reviewer_step)
     reviewer_agent = str(_agent_row(reviewer_step).get("agent_object_ref", "")).strip()
-    reviewer_expected_adapter = _preferred_adapter_ref(repo, reviewer_agent)
-    if reviewer_adapter != reviewer_expected_adapter:
-        raise AssemblyEquivalenceError(
-            "reviewer omitted adapter did not resolve the Agent Object preference: "
-            f"observed {reviewer_adapter}, expected {reviewer_expected_adapter}"
-        )
-    reviewer_model = _effective_step_model(default_reviewer.composed_plan, reviewer_step)
-    reviewer_expected_model = _preferred_model_ref(repo, reviewer_agent)
-    if reviewer_model != reviewer_expected_model:
-        raise AssemblyEquivalenceError(
-            "reviewer omitted model did not resolve the Agent Object preference: "
-            f"observed {reviewer_model}, expected {reviewer_expected_model}"
+    for descriptor in CASTING_FIELDS:
+        _assert_step_resolves_preference(
+            repo,
+            default_reviewer.composed_plan,
+            reviewer_step,
+            reviewer_agent,
+            scenario="reviewer",
+            field_name=descriptor.field_name,
         )
 
     local_smoke = assemble(
@@ -1083,20 +1097,15 @@ def _verdict_adapter_guard_fire(repo: Path) -> tuple[str, ...]:
     if local_smoke.selected_adapter_ref != "adapter:local":
         raise AssemblyEquivalenceError("non-verdict local smoke did not preserve adapter:local")
     work_step = _step_for_kind(local_smoke.composed_plan, "work")
-    work_adapter = _effective_step_adapter(local_smoke.composed_plan, work_step)
     work_agent = str(_agent_row(work_step).get("agent_object_ref", "")).strip()
-    work_expected_adapter = _preferred_adapter_ref(repo, work_agent)
-    if work_adapter != work_expected_adapter:
-        raise AssemblyEquivalenceError(
-            "non-verdict omitted adapter did not resolve the Agent Object preference: "
-            f"observed {work_adapter}, expected {work_expected_adapter}"
-        )
-    work_model = _effective_step_model(local_smoke.composed_plan, work_step)
-    work_expected_model = _preferred_model_ref(repo, work_agent)
-    if work_model != work_expected_model:
-        raise AssemblyEquivalenceError(
-            "non-verdict omitted work model did not resolve the Agent Object preference: "
-            f"observed {work_model}, expected {work_expected_model}"
+    for descriptor in CASTING_FIELDS:
+        _assert_step_resolves_preference(
+            repo,
+            local_smoke.composed_plan,
+            work_step,
+            work_agent,
+            scenario="non-verdict omitted work",
+            field_name=descriptor.field_name,
         )
 
     explicit_model = assemble(

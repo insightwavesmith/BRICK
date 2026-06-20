@@ -22,6 +22,7 @@ from .agent_adapter import (
     _validate_model_ref_for_adapter,
     adapter_is_write_capable,
 )
+from brick_protocol.support.operator.primitives import CASTING_FIELDS
 
 
 _DEFAULT_REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -173,8 +174,7 @@ _AGENT_OBJECT_KEYS = frozenset(
         "tool_policy_refs",
         "discipline_refs",
         "adapter_refs",
-        "preferred_adapter_ref",
-        "preferred_model_ref",
+        *[descriptor.field_name for descriptor in CASTING_FIELDS],
     }
 )
 _REF_FIELDS = (
