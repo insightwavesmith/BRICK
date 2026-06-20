@@ -55,6 +55,7 @@ class AgentObjectContractData:
     adapter_refs: tuple[str, ...] = ()
     preferred_adapter_ref: str = ""
     preferred_model_ref: str = ""
+    preferred_reasoning_effort_ref: str = ""
 
 @dataclass(frozen=True)
 class ThreeAxisStepRows:

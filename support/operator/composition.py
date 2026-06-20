@@ -49,7 +49,7 @@ from brick_protocol.support.operator.plan_rendering import (
     _parse_compact_link_expression,
     _is_verdict_bearing_node,
     _resolve_agent_for_need,
-    _step_adapter_and_model_selection,
+    _resolve_casting_selection,
     _validate_declared_plan_projection,
     render_declared_building_plan,
 )
@@ -2811,14 +2811,19 @@ def compose_building(
                     f"agent_object_ref is not admitted: {agent_object_ref}",
                 )
             )
-        step_selected_adapter_ref: str | None = None
-        step_selected_model_ref: str | None = None
+        # Every casting dial's resolved ``selected_<base>`` value, keyed by the
+        # SAME ``NODE_CASTING_FIELDS`` projection the node carries. Default to None
+        # (absent agent / resolution error) for each field so the node always
+        # carries the full key set. E2/S6★: the OUTPUT is generic over
+        # CASTING_FIELDS just like the resolver INPUT, so a new dial (effort) is
+        # stamped here with no per-dial code -- selected_reasoning_effort_ref now
+        # rides along the same way selected_adapter_ref/selected_model_ref do.
+        step_casting_selection: dict[str, str | None] = {
+            field_name: None for field_name in NODE_CASTING_FIELDS
+        }
         if agent_object_ref and agent_object_ref in admitted_agent_refs:
             try:
-                (
-                    step_selected_adapter_ref,
-                    step_selected_model_ref,
-                ) = _step_adapter_and_model_selection(
+                step_casting_selection = _resolve_casting_selection(
                     repo,
                     raw_step=raw_node,
                     agent_object_ref=agent_object_ref,
@@ -2872,8 +2877,14 @@ def compose_building(
                 value=raw_node.get("closure_transition_target_policy"),
                 provenance=raw_node.get("closure_transition_target_policy_provenance"),
             ),
-            "selected_adapter_ref": step_selected_adapter_ref,
-            "selected_model_ref": step_selected_model_ref,
+            # Stamp EVERY resolved casting dial generically (E2/S6★): loop the
+            # single-source NODE_CASTING_FIELDS projection rather than naming
+            # selected_adapter_ref/selected_model_ref by hand, so a new casting
+            # dial (effort) lands on the node with no edit here.
+            **{
+                field_name: step_casting_selection.get(field_name)
+                for field_name in NODE_CASTING_FIELDS
+            },
         }
         node_records.append(node_record)
         for endpoint in (node_id, node_record["step_ref"], brick_ref):
@@ -3131,16 +3142,20 @@ def compose_building(
                 },
             ],
         }
-        if node_record["selected_adapter_ref"] is not None:
-            brick_step["selected_adapter_ref"] = _clean_text(
-                f"{step_ref}.selected_adapter_ref",
-                node_record["selected_adapter_ref"],
-            )
-        if node_record["selected_model_ref"] is not None:
-            brick_step["selected_model_ref"] = _clean_text(
-                f"{step_ref}.selected_model_ref",
-                node_record["selected_model_ref"],
-            )
+        # Stamp EVERY resolved casting dial onto the brick_step generically
+        # (E2/S6★): loop the single-source ``NODE_CASTING_FIELDS`` projection the
+        # node_record already carries rather than hand-naming
+        # selected_adapter_ref/selected_model_ref. A None value defers to the
+        # plan-level casting (omitted from the step), byte-identical to the prior
+        # two-field emission; a NEW casting dial (effort) now reaches brick_steps
+        # with no edit here, so the assemble + compose paths agree.
+        for field_name in NODE_CASTING_FIELDS:
+            value = node_record.get(field_name)
+            if value is not None:
+                brick_step[field_name] = _clean_text(
+                    f"{step_ref}.{field_name}",
+                    value,
+                )
         if node_record.get("step_template_ref"):
             brick_step["step_template_ref"] = _clean_text(
                 f"{step_ref}.step_template_ref",

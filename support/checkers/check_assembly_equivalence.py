@@ -354,6 +354,15 @@ def _preferred_ref(repo: Path, agent_object_ref: str, field_name: str) -> str:
         raise AssemblyEquivalenceError(f"{agent_object_ref} did not resolve an Agent Object")
     preferred = str(agent_object.get(field_name) or "").strip()
     if not preferred:
+        # Constitution: only the fail-closed dial (adapter) is hard-required on a
+        # role. A deferrable dial (model/effort, fail_closed=False) is OPTIONAL —
+        # an omitted role preference defers to the dial's descriptor default, so
+        # a role need not declare every casting field (no 8-role hand-sync).
+        descriptor = next(
+            (d for d in CASTING_FIELDS if d.field_name == field_name), None
+        )
+        if descriptor is not None and not descriptor.fail_closed and descriptor.default_ref:
+            return descriptor.default_ref
         raise AssemblyEquivalenceError(f"{agent_object_ref} has no {field_name}")
     return preferred
 

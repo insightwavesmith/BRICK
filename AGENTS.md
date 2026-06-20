@@ -287,6 +287,7 @@ discipline_refs
 adapter_refs
 preferred_adapter_ref
 preferred_model_ref
+preferred_reasoning_effort_ref
 callable_performer_refs
 ```
 

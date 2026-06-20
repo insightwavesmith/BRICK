@@ -17,7 +17,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from brick_protocol.link.movement import MOVEMENT_LITERALS
-from brick_protocol.agent.spec import CASTING_FIELDS, CastingField
+from brick_protocol.agent.spec import CASTING_FIELDS, CastingField, selected_key
 
 from brick_protocol.support.operator.building_operation_common import (
     COMPACT_LINK_GATE_TOKENS,
@@ -228,7 +228,7 @@ def _declared_step_from_step_template(
             declared_override=declared_override,
                         )
 
-    selected_adapter_ref, selected_model_ref = _step_adapter_and_model_selection(
+    casting_selection = _resolve_casting_selection(
         repo,
         raw_step=raw_step,
         agent_object_ref=agent_object_ref,
@@ -249,8 +249,10 @@ def _declared_step_from_step_template(
     return {
         "step_ref": step_ref,
         "step_template_ref": step_template["step_template_ref"],
-        "selected_adapter_ref": selected_adapter_ref,
-        "selected_model_ref": selected_model_ref,
+        # Every casting dial's selected_<base> value (E2/S6★ generic output): the
+        # full NODE_CASTING_FIELDS set, so the effort dial rides along with
+        # adapter+model -- not just the two hand-named keys.
+        **casting_selection,
         "brick": brick,
         "agent": {
             "row_ref": raw_step.get("agent_row_ref", f"{step_ref}:agent"),
@@ -312,7 +314,7 @@ _STEP_ADAPTER_SOURCE_LANE_PREFERENCE = "lane-preference"
 _STEP_ADAPTER_SOURCE_VERDICT_FLOOR = "verdict-non-local-floor"
 
 
-def _step_adapter_and_model_selection(
+def _resolve_casting_selection(
     repo: Path,
     *,
     raw_step: Mapping[str, Any],
@@ -321,36 +323,39 @@ def _step_adapter_and_model_selection(
     plan_selected_model_ref: str,
     label: str,
     is_verdict_bearing_node: bool = False,
-) -> tuple[str | None, str | None]:
-    """Resolve step-level provider selection without authoring Agent identity.
+) -> dict[str, str | None]:
+    """Resolve EVERY casting dial and project the full ``selected_<base>`` map.
 
-    E2/S6 (mirror M5): the two per-dial ladders are now ONE generic resolver
-    (``_resolve_casting_field``) driven by ``CASTING_FIELDS`` descriptor DATA. The
-    orchestrator LOOPS the casting field-set in order; the fail-closed adapter dial
-    resolves first and records its SOURCE, and the deferrable model dial couples to
-    that source via ``inherits_source_of``. The constitutional asymmetry (adapter
-    explicit-or-fail; model deferrable, coupled to the chosen adapter) is the
-    descriptor data, not two code paths.
+    E2/S6★: the resolver is now generic on BOTH input and output. The INPUT loop
+    drives the per-dial ladder from ``CASTING_FIELDS`` descriptor DATA; the OUTPUT
+    is the matching ``{selected_<base>: value}`` map — one entry per casting dial,
+    not just adapter+model — so a NEW casting dial is carried onto the node with
+    NO new code here (the effort dial's ``selected_reasoning_effort_ref`` is now
+    produced the same way ``selected_adapter_ref``/``selected_model_ref`` are).
 
-    Adapter ladder: explicit step declaration > Agent Object preferred_adapter_ref >
-    verdict non-local floor > building-level declaration. Model ladder: explicit
-    step declaration > Agent Object preferred_model_ref when the adapter came
-    from the Agent Object lane preference > existing default behavior. The
-    building-level fallback is validated against the Agent Object but not
-    re-stamped on the step, preserving the existing step->plan fallback shape.
+    The per-dial resolution and constitutional asymmetry are unchanged: the
+    fail-closed adapter dial resolves first (explicit-or-fail) and records its
+    SOURCE; the deferrable dials (model, effort) couple to that source via
+    ``inherits_source_of`` and resolve to their descriptor default when omitted.
+    The single ``building-default`` -> ``None`` projection rule (defer to the
+    plan-level value rather than re-stamp it on the step) is applied generically
+    to whichever dial resolved from the building-level fallback.
     """
 
+    # Plan-level default per casting dial. Only the adapter + model dials carry a
+    # plan-level default arg; any other (deferrable) dial has no plan default and
+    # resolves to its descriptor default (.get below returns None -> defer). Keyed
+    # lookup is .get so a NEW CastingField never KeyErrors here (single-source: the
+    # resolver loops CASTING_FIELDS, this map only supplies the two plan-arg dials).
     plan_default_by_field = {
         "preferred_adapter_ref": plan_selected_adapter_ref,
         "preferred_model_ref": plan_selected_model_ref,
     }
-    # Per-field resolved (value, source); the model dial reads the adapter dial's
+    # Per-field resolved (value, source); a deferrable dial reads the adapter dial's
     # source + resolved Agent Object via its ``inherits_source_of`` coupling.
     resolved: dict[str, tuple[str | None, str | None]] = {}
     agent_object: Mapping[str, Any] | None = None
-    selected_adapter_ref: str | None = None
-    adapter_source: str | None = None
-    selected_model_ref: str | None = None
+    selection: dict[str, str | None] = {}
     for descriptor in CASTING_FIELDS:
         value, source, agent_object = _resolve_casting_field(
             descriptor,
@@ -358,22 +363,19 @@ def _step_adapter_and_model_selection(
             raw_step=raw_step,
             agent_object=agent_object,
             agent_object_ref=agent_object_ref,
-            plan_default=plan_default_by_field[descriptor.field_name],
+            plan_default=plan_default_by_field.get(descriptor.field_name),
             resolved=resolved,
             label=label,
             is_verdict_bearing_node=is_verdict_bearing_node,
         )
         resolved[descriptor.field_name] = (value, source)
-        if descriptor.field_name == "preferred_adapter_ref":
-            selected_adapter_ref, adapter_source = value, source
-        elif descriptor.field_name == "preferred_model_ref":
-            selected_model_ref = value
-    rendered_adapter_ref = (
-        selected_adapter_ref
-        if adapter_source != _STEP_ADAPTER_SOURCE_BUILDING_DEFAULT
-        else None
-    )
-    return rendered_adapter_ref, selected_model_ref
+        # building-default -> None (defer to the plan-level value, do not re-stamp
+        # it on the step) applied generically over every dial.
+        rendered = (
+            value if source != _STEP_ADAPTER_SOURCE_BUILDING_DEFAULT else None
+        )
+        selection[selected_key(descriptor)] = rendered
+    return selection
 
 
 def _resolve_casting_field(

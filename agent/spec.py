@@ -113,6 +113,48 @@ def _model_cli_emit(value: str, adapter_ref: str) -> tuple[str, ...]:
     return (flag, model_arg)
 
 
+# ---------------------------------------------------------------------------
+# EFFORT DIAL DEFINITION (E2/S6★ — first validation case). The effort dial is a
+# THIRD casting field. Per Smith's constitutional ruling it is MODEL-LIKE, not
+# adapter-like: DEFERRABLE (fail_closed=False), with a default sentinel support
+# never hard-fails on. These few constants + the cli_emit helper ARE the dial
+# definition — adding them alongside the ONE CASTING_FIELDS row is allowed in the
+# single source (the whole point of S6★: a new dial is ~one edit, not a 15-file
+# cascade). The dial is added in ONE place; contracts/adapter/run-ladder/
+# plan_rendering/cli/guard/AGENTS.md all DERIVE.
+# ---------------------------------------------------------------------------
+EFFORT_REF_DEFAULT = "effort:default"  # deferrable sentinel; emits no CLI arg.
+
+# The effort-capable adapters (codex + claude). Gemini-local carries no reasoning
+# effort dial, so it is out of scope — a declared effort on it is out-of-scope.
+EFFORT_SCOPE: frozenset[str] = frozenset({ADAPTER_CODEX_LOCAL, ADAPTER_CLAUDE_LOCAL})
+
+# Per-adapter effort CLI projection. codex takes a config override
+# ``-c model_reasoning_effort=<level>``; claude takes ``--effort <level>``. PLAIN
+# literal data — the per-adapter argv shape each effort-capable adapter expects.
+_EFFORT_CLI_EMIT_BY_ADAPTER: Mapping[str, Callable[[str], tuple[str, ...]]] = {
+    ADAPTER_CODEX_LOCAL: lambda level: ("-c", "model_reasoning_effort=" + level),
+    ADAPTER_CLAUDE_LOCAL: lambda level: ("--effort", level),
+}
+
+
+def _effort_cli_emit(value: str, adapter_ref: str) -> tuple[str, ...]:
+    """Project the effort dial to its spawn argv contribution.
+
+    Deferrable, like the model dial: emit nothing for the default sentinel (the
+    effort defaulted — let the adapter pick its own), and nothing for an adapter
+    with no effort dial (out of ``EFFORT_SCOPE``). Otherwise emit the adapter's
+    effort flag/arg shape (codex ``-c model_reasoning_effort=<level>``, claude
+    ``--effort <level>``)."""
+
+    if not value or value == EFFORT_REF_DEFAULT:
+        return ()
+    emit = _EFFORT_CLI_EMIT_BY_ADAPTER.get(adapter_ref)
+    if emit is None:
+        return ()
+    return emit(value)
+
+
 # The casting field-set. Member ORDER is load-bearing: the adapter dial resolves
 # FIRST so the model dial (inherits_source_of="preferred_adapter_ref") can couple
 # to the adapter's resolved source. ``scope`` for the adapter dial is the full
@@ -134,6 +176,18 @@ CASTING_FIELDS: tuple[CastingField, ...] = (
         scope=frozenset(MODEL_PROVIDER_BY_ADAPTER),
         inherits_source_of="preferred_adapter_ref",
         cli_emit=_model_cli_emit,
+    ),
+    # S6★ FIRST VALIDATION CASE — the effort dial as ONE row. MODEL-LIKE:
+    # deferrable (fail_closed=False), default sentinel ``effort:default`` that
+    # support never hard-fails on, scope = the effort-capable adapters, and it
+    # couples to the resolved adapter source exactly like the model dial.
+    CastingField(
+        field_name="preferred_reasoning_effort_ref",
+        fail_closed=False,
+        default_ref=EFFORT_REF_DEFAULT,
+        scope=EFFORT_SCOPE,
+        inherits_source_of="preferred_adapter_ref",
+        cli_emit=_effort_cli_emit,
     ),
 )
 
