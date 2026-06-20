@@ -30,5 +30,6 @@
     "adapter:claude-local",
     "adapter:chat-session"
   ],
-  "preferred_adapter_ref": "adapter:codex-local"
+  "preferred_adapter_ref": "adapter:codex-local",
+  "preferred_model_ref": "model:codex:default"
 }

@@ -3404,6 +3404,7 @@ agent_resource_boundary:
   - role: coo
     lane: leader
     preferred_adapter_ref: adapter:claude-local
+    preferred_model_ref: model:claude:inherit
     required_hook_refs:
       - hook:leader-write-need-gate
       - hook:unsafe-mutation-guard
@@ -3426,6 +3427,7 @@ agent_resource_boundary:
   - role: pm-lead
     lane: leader
     preferred_adapter_ref: adapter:claude-local
+    preferred_model_ref: model:claude:inherit
     required_hook_refs:
       - hook:leader-write-need-gate
       - hook:unsafe-mutation-guard
@@ -3443,6 +3445,7 @@ agent_resource_boundary:
   - role: design-lead
     lane: leader
     preferred_adapter_ref: adapter:claude-local
+    preferred_model_ref: model:claude:inherit
     required_hook_refs:
       - hook:leader-write-need-gate
       - hook:unsafe-mutation-guard
@@ -3460,6 +3463,7 @@ agent_resource_boundary:
   - role: cto-lead
     lane: leader
     preferred_adapter_ref: adapter:claude-local
+    preferred_model_ref: model:claude:inherit
     required_hook_refs:
       - hook:leader-write-need-gate
       - hook:unsafe-mutation-guard
@@ -3477,6 +3481,7 @@ agent_resource_boundary:
   - role: qa-lead
     lane: leader
     preferred_adapter_ref: adapter:claude-local
+    preferred_model_ref: model:claude:inherit
     required_hook_refs:
       - hook:leader-write-need-gate
       - hook:unsafe-mutation-guard
@@ -3494,6 +3499,7 @@ agent_resource_boundary:
   - role: dev
     lane: worker
     preferred_adapter_ref: adapter:codex-local
+    preferred_model_ref: model:codex:default
     required_hook_refs:
       - hook:unsafe-mutation-guard
       - hook:resource-ref-redaction
@@ -3518,6 +3524,7 @@ agent_resource_boundary:
   - role: qa
     lane: reviewer
     preferred_adapter_ref: adapter:claude-local
+    preferred_model_ref: model:claude:inherit
     required_hook_refs:
       - hook:reviewer-no-mutation
       - hook:unsafe-mutation-guard
@@ -3538,6 +3545,7 @@ agent_resource_boundary:
   - role: inspector
     lane: reviewer
     preferred_adapter_ref: adapter:claude-local
+    preferred_model_ref: model:claude:inherit
     required_hook_refs:
       - hook:reviewer-no-mutation
       - hook:unsafe-mutation-guard
@@ -3584,6 +3592,47 @@ agent_preferred_adapter_rejects:
       adapter_refs:
         - adapter:local
       preferred_adapter_ref: adapter:codex-local
+  - expected_message: preferred_model_ref requires preferred_adapter_ref
+    agent_object:
+      lane: reviewer
+      hook_refs:
+        - hook:instruction-chain-read
+        - hook:reviewer-no-mutation
+        - hook:unsafe-mutation-guard
+        - hook:resource-ref-redaction
+      tool_policy_refs:
+        - tool-policy:reviewer-readonly
+      adapter_refs:
+        - adapter:claude-local
+      preferred_model_ref: model:claude:inherit
+  - expected_message: preferred_model_ref rejected: selected_model_ref provider must match selected adapter
+    agent_object:
+      lane: reviewer
+      hook_refs:
+        - hook:instruction-chain-read
+        - hook:reviewer-no-mutation
+        - hook:unsafe-mutation-guard
+        - hook:resource-ref-redaction
+      tool_policy_refs:
+        - tool-policy:reviewer-readonly
+      adapter_refs:
+        - adapter:claude-local
+      preferred_adapter_ref: adapter:claude-local
+      preferred_model_ref: model:codex:default
+  - expected_message: preferred_model_ref requires preferred_adapter_ref with admitted model provider
+    agent_object:
+      lane: reviewer
+      hook_refs:
+        - hook:instruction-chain-read
+        - hook:reviewer-no-mutation
+        - hook:unsafe-mutation-guard
+        - hook:resource-ref-redaction
+      tool_policy_refs:
+        - tool-policy:reviewer-readonly
+      adapter_refs:
+        - adapter:local
+      preferred_adapter_ref: adapter:local
+      preferred_model_ref: model:claude:inherit
 declared_step_template_plan_case:
   - label: default-parity-omit-adapter
     document:
@@ -3788,7 +3837,7 @@ declared_step_template_plan_case:
       target_ref: brick-closure
       agent_object_ref: agent-object:pm-lead
       selected_adapter_ref: adapter:claude-local
-      selected_model_ref: model:default
+      selected_model_ref: model:claude:inherit
       declared_gate_refs:
         - link-gate:default-transition
 declared_step_template_plan_rejects:

@@ -190,6 +190,15 @@ def run_agent_resource_boundary(repo: Path, profile: Mapping[str, Any]) -> int:
                 f"expected {mapping['preferred_adapter_ref']!r}, "
                 f"observed {agent_object.get('preferred_adapter_ref')!r}"
             )
+        if (
+            "preferred_model_ref" in mapping
+            and agent_object.get("preferred_model_ref") != mapping["preferred_model_ref"]
+        ):
+            raise ProfileError(
+                f"agent_resource_boundary rejected {role}: preferred_model_ref "
+                f"expected {mapping['preferred_model_ref']!r}, "
+                f"observed {agent_object.get('preferred_model_ref')!r}"
+            )
         _validate_required_refs(agent_object, mapping, role)
         _validate_forbidden_refs(agent_object, mapping, role)
         if mapping.get("hooks_execution_opened") is False:

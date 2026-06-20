@@ -331,6 +331,10 @@ def _effective_step_adapter(plan: Mapping[str, Any], step: Mapping[str, Any]) ->
     return str(step.get("selected_adapter_ref") or plan.get("selected_adapter_ref") or "").strip()
 
 
+def _effective_step_model(plan: Mapping[str, Any], step: Mapping[str, Any]) -> str:
+    return str(step.get("selected_model_ref") or plan.get("selected_model_ref") or "").strip()
+
+
 def _preferred_adapter_ref(repo: Path, agent_object_ref: str) -> str:
     resolution = resolve_agent_object(agent_object_ref, repo_root=repo)
     agent_object = resolution.get("agent_object")
@@ -340,6 +344,49 @@ def _preferred_adapter_ref(repo: Path, agent_object_ref: str) -> str:
     if not preferred:
         raise AssemblyEquivalenceError(f"{agent_object_ref} has no preferred_adapter_ref")
     return preferred
+
+
+def _preferred_model_ref(repo: Path, agent_object_ref: str) -> str:
+    resolution = resolve_agent_object(agent_object_ref, repo_root=repo)
+    agent_object = resolution.get("agent_object")
+    if not isinstance(agent_object, Mapping):
+        raise AssemblyEquivalenceError(f"{agent_object_ref} did not resolve an Agent Object")
+    preferred = str(agent_object.get("preferred_model_ref") or "").strip()
+    if not preferred:
+        raise AssemblyEquivalenceError(f"{agent_object_ref} has no preferred_model_ref")
+    return preferred
+
+
+def _repo_with_agent_preferred_model_omitted(repo: Path, role: str, root: Path) -> Path:
+    """Create a temp repo projection with one Agent Object model preference omitted."""
+
+    probe_repo = root / "repo"
+    probe_repo.mkdir()
+    for name in ("AGENTS.md", "brick", "link", "support", "project"):
+        source = repo / name
+        if source.exists():
+            (probe_repo / name).symlink_to(source, target_is_directory=source.is_dir())
+
+    source_agent = repo / "agent"
+    probe_agent = probe_repo / "agent"
+    probe_agent.mkdir()
+    for child in sorted(source_agent.iterdir()):
+        if child.name == "objects":
+            continue
+        (probe_agent / child.name).symlink_to(child, target_is_directory=child.is_dir())
+
+    source_objects = source_agent / "objects"
+    probe_objects = probe_agent / "objects"
+    probe_objects.mkdir()
+    for source in sorted(source_objects.glob("*.yaml")):
+        target = probe_objects / source.name
+        if source.stem == role:
+            agent_object = json.loads(source.read_text(encoding="utf-8"))
+            agent_object.pop("preferred_model_ref", None)
+            target.write_text(json.dumps(agent_object, indent=2) + "\n", encoding="utf-8")
+        else:
+            target.symlink_to(source)
+    return probe_repo
 
 
 def _with_temp_home(root: Path):
@@ -992,6 +1039,13 @@ def _verdict_adapter_guard_fire(repo: Path) -> tuple[str, ...]:
             "closure omitted adapter did not resolve the Agent Object preference: "
             f"observed {closure_adapter}, expected {closure_expected_adapter}"
         )
+    closure_model = _effective_step_model(default_closure.composed_plan, closure_step)
+    closure_expected_model = _preferred_model_ref(repo, closure_agent)
+    if closure_model != closure_expected_model:
+        raise AssemblyEquivalenceError(
+            "closure omitted model did not resolve the Agent Object preference: "
+            f"observed {closure_model}, expected {closure_expected_model}"
+        )
 
     default_reviewer = assemble(
         chain([brick("axis-attack-qa", "omitted reviewer adapter defaults non-local")]),
@@ -1009,6 +1063,13 @@ def _verdict_adapter_guard_fire(repo: Path) -> tuple[str, ...]:
         raise AssemblyEquivalenceError(
             "reviewer omitted adapter did not resolve the Agent Object preference: "
             f"observed {reviewer_adapter}, expected {reviewer_expected_adapter}"
+        )
+    reviewer_model = _effective_step_model(default_reviewer.composed_plan, reviewer_step)
+    reviewer_expected_model = _preferred_model_ref(repo, reviewer_agent)
+    if reviewer_model != reviewer_expected_model:
+        raise AssemblyEquivalenceError(
+            "reviewer omitted model did not resolve the Agent Object preference: "
+            f"observed {reviewer_model}, expected {reviewer_expected_model}"
         )
 
     local_smoke = assemble(
@@ -1029,6 +1090,47 @@ def _verdict_adapter_guard_fire(repo: Path) -> tuple[str, ...]:
         raise AssemblyEquivalenceError(
             "non-verdict omitted adapter did not resolve the Agent Object preference: "
             f"observed {work_adapter}, expected {work_expected_adapter}"
+        )
+    work_model = _effective_step_model(local_smoke.composed_plan, work_step)
+    work_expected_model = _preferred_model_ref(repo, work_agent)
+    if work_model != work_expected_model:
+        raise AssemblyEquivalenceError(
+            "non-verdict omitted work model did not resolve the Agent Object preference: "
+            f"observed {work_model}, expected {work_expected_model}"
+        )
+
+    explicit_model = assemble(
+        chain([brick("work", "explicit step model must beat role preference", model="model:codex:gpt-explicit")]),
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task="explicit step model preference precedence probe",
+        building_id="heart-phase1a-explicit-model-precedence",
+        repo_root=repo,
+    )
+    explicit_model_step = _step_for_kind(explicit_model.composed_plan, "work")
+    explicit_observed_model = _effective_step_model(explicit_model.composed_plan, explicit_model_step)
+    if explicit_observed_model != "model:codex:gpt-explicit":
+        raise AssemblyEquivalenceError(
+            "explicit step model did not override the Agent Object preference: "
+            f"observed {explicit_observed_model}"
+        )
+
+    with tempfile.TemporaryDirectory(prefix="bp-preferred-model-omitted-") as tmp_raw:
+        omitted_repo = _repo_with_agent_preferred_model_omitted(repo, "coo", Path(tmp_raw))
+        omitted_preference = assemble(
+            chain([brick("closure", "omitted role model keeps existing adapter default stamp")]),
+            declared_by=DECLARED_BY,
+            authority=Authority.COO,
+            task="omitted preferred model fallback probe",
+            building_id="heart-phase1a-omitted-preferred-model",
+            repo_root=omitted_repo,
+        )
+    omitted_step = _step_for_kind(omitted_preference.composed_plan, "closure")
+    omitted_model = _effective_step_model(omitted_preference.composed_plan, omitted_step)
+    if omitted_model != "model:default":
+        raise AssemblyEquivalenceError(
+            "role without preferred_model_ref did not preserve existing model default: "
+            f"observed {omitted_model}"
         )
 
     parity_assembly = assemble(
@@ -1091,6 +1193,9 @@ def _verdict_adapter_guard_fire(repo: Path) -> tuple[str, ...]:
         _assert_raises("explicit closure local adapter", ValueError, explicit_local_closure_probe),
         _assert_raises("explicit reviewer local adapter", ValueError, explicit_local_reviewer_probe),
         "construction green observed: non-verdict omitted work adapter resolved through the shared preference seam.",
+        "construction green observed: omitted model nodes resolved Agent Object preferred_model_ref through the shared seam.",
+        "construction green observed: explicit step selected_model_ref beat Agent Object preferred_model_ref.",
+        "construction green observed: role without preferred_model_ref preserved existing model:default fallback.",
         "construction green observed: assemble and direct compose selected the same verdict adapter.",
         "construction green observed: explicit non-local adapter preserved for verdict node.",
     )

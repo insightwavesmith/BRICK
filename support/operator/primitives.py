@@ -58,6 +58,7 @@ _AGENT_OBJECT_ALLOWED_KEYS: frozenset[str] = frozenset(
         "lane",
         "callable_performer_refs",
         "preferred_adapter_ref",
+        "preferred_model_ref",
         *_AGENT_OBJECT_REF_FIELDS,
     }
 )

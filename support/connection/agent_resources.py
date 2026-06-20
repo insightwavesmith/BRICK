@@ -19,6 +19,7 @@ from .agent_adapter import (
     ALLOWED_ADAPTER_REFS as _ALLOWED_ADAPTER_REFS,
     MODEL_PROVIDER_BY_ADAPTER as _MODEL_PROVIDER_BY_ADAPTER,
     _OBSERVED_WRITE_ADAPTER_REFS,
+    _validate_model_ref_for_adapter,
     adapter_is_write_capable,
 )
 
@@ -173,6 +174,7 @@ _AGENT_OBJECT_KEYS = frozenset(
         "discipline_refs",
         "adapter_refs",
         "preferred_adapter_ref",
+        "preferred_model_ref",
     }
 )
 _REF_FIELDS = (
@@ -418,6 +420,7 @@ def _validate_agent_authority(role: str, agent_object: Mapping[str, Any], path: 
     tool_policy_refs = set(agent_object.get("tool_policy_refs", []))
     adapter_refs = set(agent_object.get("adapter_refs", []))
     preferred_adapter_ref = agent_object.get("preferred_adapter_ref")
+    preferred_model_ref = agent_object.get("preferred_model_ref")
     retired_adapters = sorted(adapter_refs & _RETIRED_WRITE_ADAPTER_REFS)
     if retired_adapters:
         raise AgentResourceError(
@@ -459,6 +462,20 @@ def _validate_agent_authority(role: str, agent_object: Mapping[str, Any], path: 
                 f"{path}: preferred_adapter_ref must be one of adapter_refs: "
                 f"{preferred_adapter_ref}"
             )
+    if preferred_model_ref is not None:
+        if not isinstance(preferred_model_ref, str) or not preferred_model_ref.strip():
+            raise AgentResourceError(f"{path}: preferred_model_ref must be non-empty text")
+        preferred_model_ref = preferred_model_ref.strip()
+        if preferred_adapter_ref is None:
+            raise AgentResourceError(f"{path}: preferred_model_ref requires preferred_adapter_ref")
+        if _MODEL_PROVIDER_BY_ADAPTER.get(preferred_adapter_ref) is None:
+            raise AgentResourceError(
+                f"{path}: preferred_model_ref requires preferred_adapter_ref with admitted model provider"
+            )
+        try:
+            _validate_model_ref_for_adapter(preferred_adapter_ref, preferred_model_ref)
+        except ValueError as exc:
+            raise AgentResourceError(f"{path}: preferred_model_ref rejected: {exc}") from exc
     write_capable_adapter_refs = sorted(
         adapter_ref
         for adapter_ref in adapter_refs

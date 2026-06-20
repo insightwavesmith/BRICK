@@ -31,5 +31,6 @@
     "adapter:claude-local",
     "adapter:gemini-local"
   ],
-  "preferred_adapter_ref": "adapter:claude-local"
+  "preferred_adapter_ref": "adapter:claude-local",
+  "preferred_model_ref": "model:claude:inherit"
 }

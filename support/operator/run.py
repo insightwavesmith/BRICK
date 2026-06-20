@@ -2601,6 +2601,11 @@ def _agent_object_from_mapping(value: Mapping[str, Any]) -> AgentObjectContractD
             "Agent Object preferred_adapter_ref",
             value.get("preferred_adapter_ref"),
         )
+    if value.get("preferred_model_ref") is not None:
+        kwargs["preferred_model_ref"] = _required_text(
+            "Agent Object preferred_model_ref",
+            value.get("preferred_model_ref"),
+        )
     for key in _AGENT_OBJECT_REF_FIELDS:
         kwargs[key] = _text_tuple(f"Agent Object {key}", value.get(key, ()))
     return AgentObjectContractData(**kwargs)

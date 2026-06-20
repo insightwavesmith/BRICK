@@ -285,6 +285,8 @@ hook_refs
 tool_policy_refs
 discipline_refs
 adapter_refs
+preferred_adapter_ref
+preferred_model_ref
 callable_performer_refs
 ```
 
@@ -356,8 +358,15 @@ and active Agent Objects. Adapter support remains provider-neutral, is not a
 generic tool executor, and must reject forbidden commit/push side effects.
 
 `selected_model_ref` is a Building Plan / step selection, not Agent identity,
-credential proof, or model availability proof. Model-specific adapter refs are
-not admitted.
+credential proof, or model availability proof. A role's `preferred_model_ref`
+is a SOFT lane-preferred DEFAULT (a selection convenience the shared rendering
+seam reads, exactly as it reads `preferred_adapter_ref`), never a HARD model
+pin: an explicit step `selected_model_ref` overrides it, a node that omits it
+keeps the adapter default (e.g. `model:claude:inherit`), and it carries no
+Agent identity / availability authority. `preferred_model_ref` must name a
+model whose provider matches the provider of the role's
+`preferred_adapter_ref` (fail-closed). Model-specific adapter refs are not
+admitted.
 
 Setup token, auth, credential body, provider runtime state, provider call state,
 and provider-specific session ids must not be stored in Agent resources,
