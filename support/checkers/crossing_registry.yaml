@@ -206,6 +206,25 @@ crossings:
     pinned_by: check_axis_contract_projection + bounded routing checker
     is_axis_crossing: true
 
+  # E2/S3 (mirror M11): the plan-level Link gate-concept grammar — a preset's
+  # declared gate_concept_profile token -> live declared_gate_ref. Single-sourced
+  # in link/spec.py (the start of the Link single-source API, design §2 AXIS C);
+  # the support materializer (composition.py) imports translate_gate_concept
+  # instead of re-stating the table or the 4 inline translation copies. Derives
+  # from the Link-owned DECLARED_GATE_REFS so produced refs cannot drift.
+  - crossing_id: link_spec
+    crossing: "Link plan grammar (gate-concept translation)"
+    seam: "Brick-plan->Link"
+    owner_axis: Link
+    canonical_contract: translate_gate_concept
+    canonical_symbols:
+      - GATE_CONCEPT_TOKEN_GATE_REFS
+      - translate_gate_concept
+    defined_at: link/spec.py
+    projection_yaml: ""
+    pinned_by: compose_building case (gate-concept translation byte-identical) + check_axis_field_set_single_source (gate_concept_token_gate_refs single-source)
+    is_axis_crossing: true
+
   # NOT an axis crossing. Listed only so G1 owns ReportPacket contract-name
   # uniqueness (blueprint §3.1/§7). Report delivery is support mechanics that
   # decides nothing; the "decides nothing" fields are pinned by the reporter

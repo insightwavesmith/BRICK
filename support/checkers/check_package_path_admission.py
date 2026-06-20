@@ -109,6 +109,15 @@ LTC0_LINK_TRANSFER_CARRY_TARGETS = {
     "link/carry.yaml",
 }
 
+# E2 / S3 (mirror M11): link/spec.py — the START of the Link single-source plan-
+# grammar API. Owns the gate-concept translation table + translate_gate_concept
+# (moved from support/operator/composition.py); later E2 steps fold the Link
+# envelope schemas + LINK_ROW_ALLOWED_KEYS here. A code-only axis module (no
+# paired projection YAML yet); admitted as a Link axis surface.
+LINK_SPEC0_TARGETS = {
+    "link/spec.py",
+}
+
 SIMPLE_RUN0_RUN_TARGETS = {
     "support/operator/run.py",
 }
@@ -1563,11 +1572,12 @@ def forbidden_reason(path: str) -> str | None:
             clean not in PACKAGE_MARKERS
             and clean not in PHASE4_TARGETS
             and clean not in LTC0_LINK_TRANSFER_CARRY_TARGETS
+            and clean not in LINK_SPEC0_TARGETS
         ):
             return (
                 f"unadmitted axis path {clean}; only seed markers and "
                 "Phase 4 target surfaces plus the LTC-0 Link transfer/carry "
-                "file pairs are open now"
+                "file pairs and the E2/S3 link/spec.py axis surface are open now"
             )
 
     if clean == "support/runner" or clean.startswith("support/runner/"):
@@ -1620,6 +1630,7 @@ def allowed_path(path: str) -> bool:
         or clean in PACKAGE_MARKERS
         or clean in PHASE4_TARGETS
         or clean in LTC0_LINK_TRANSFER_CARRY_TARGETS
+        or clean in LINK_SPEC0_TARGETS
     ):
         return True
 

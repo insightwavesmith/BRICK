@@ -23,6 +23,7 @@ from brick_protocol.link.gate import (
     HUMAN_GATE_REF,
 )
 from brick_protocol.link.movement import MOVEMENT_LITERALS
+from brick_protocol.link.spec import translate_gate_concept
 from brick_protocol.support.operator.building_operation_common import (
     COMPACT_LINK_GATE_TOKENS,
     DEFAULT_LINK_GATE_REF,
@@ -74,12 +75,13 @@ LINEAR_COMPOSITION_MODE: str = "caller_or_coo_declared_linear_composition"
 # TRANSLATES the preset's DECLARED ``gate_concept_profile`` tokens into live
 # ``declared_gate_refs`` on SPECIFIC rows (mechanical; provenance = the PRESET
 # declared the label; no profile -> nothing stamped). The token -> ref map is
-# single-sourced from link/gate vocabulary (COMPACT_LINK_GATE_TOKENS over
-# link.gate.DECLARED_GATE_REFS); it mirrors link/gate.yaml
-# post_d_base_gate_matrix concept_ref -> live_surface. MODE tokens
-# (default-transition / fan-in-wait-all / portfolio-policy) have NO gate ref
-# here on purpose: they are not Link gates (fan-in-wait-all = declared graph
-# topology requirement, portfolio-policy = driver surface).
+# the Link plan grammar, single-sourced in link/spec.py
+# (``GATE_CONCEPT_TOKEN_GATE_REFS`` over link.gate.DECLARED_GATE_REFS; E2/S3):
+# this support materializer IMPORTS the table + the ``translate_gate_concept``
+# reader instead of re-stating either. MODE tokens (default-transition /
+# fan-in-wait-all / portfolio-policy) have NO gate ref there on purpose: they are
+# not Link gates (fan-in-wait-all = declared graph topology requirement,
+# portfolio-policy = driver surface).
 # PLACEMENT (operator design rule):
 #   * strict-evidence -> link-gate:strict on every QA-row transition (a row
 #     whose SOURCE step template declares performer_lane_need == reviewer).
@@ -99,11 +101,8 @@ LINEAR_COMPOSITION_MODE: str = "caller_or_coo_declared_linear_composition"
 #     (gate_concept_provenance: tokens + declared_by preset ref) -- recorded
 #     ONLY when translation happened, mirroring the budget/closure-policy
 #     provenance stamps below; support never invents provenance.
-GATE_CONCEPT_TOKEN_GATE_REFS: Mapping[str, str] = {
-    "strict-evidence": COMPACT_LINK_GATE_TOKENS["strict"],
-    "coo-review": COMPACT_LINK_GATE_TOKENS["coo"],
-    "human-review": COMPACT_LINK_GATE_TOKENS["human"],
-}
+# (translate_gate_concept is imported from link/spec.py above — the Link single
+# source over GATE_CONCEPT_TOKEN_GATE_REFS; support re-states neither.)
 _QA_ROLE_NEED = "reviewer"
 _CLOSURE_POLICY_REQUIRED_KINDS = (
     "implementation_gap",
@@ -834,12 +833,12 @@ def _materializer_profile_gate_translations(
 
     pairs: list[tuple[str, str]] = []
     if qa_row and "strict-evidence" in tokens:
-        pairs.append(("strict-evidence", GATE_CONCEPT_TOKEN_GATE_REFS["strict-evidence"]))
+        pairs.append(("strict-evidence", translate_gate_concept("strict-evidence")))
     if final_transition_row:
         if "coo-review" in tokens:
-            pairs.append(("coo-review", GATE_CONCEPT_TOKEN_GATE_REFS["coo-review"]))
+            pairs.append(("coo-review", translate_gate_concept("coo-review")))
         if "human-review" in tokens:
-            pairs.append(("human-review", GATE_CONCEPT_TOKEN_GATE_REFS["human-review"]))
+            pairs.append(("human-review", translate_gate_concept("human-review")))
     return tuple(pairs)
 
 
@@ -884,7 +883,7 @@ def _materializer_human_gate_hold_policy() -> list[Mapping[str, Any]]:
 
     return [
         {
-            "gate_ref": GATE_CONCEPT_TOKEN_GATE_REFS["human-review"],
+            "gate_ref": translate_gate_concept("human-review"),
             "on_missing_required_facts": {
                 "action": "hold",
                 "pending_target_basis": "source_brick",
@@ -999,7 +998,7 @@ def stamp_declared_portfolio_closure_gates(
             "stamped_gate_refs": (),
             "reason": "declared gate_concept_profile carries no translating tokens",
         }
-    human_ref = GATE_CONCEPT_TOKEN_GATE_REFS["human-review"]
+    human_ref = translate_gate_concept("human-review")
     basis: Mapping[str, Any] | None = None
     if route_decision_basis:
         if not isinstance(route_decision_basis, Mapping):
@@ -1546,7 +1545,7 @@ def _materializer_graph_declaration(
             terminal_profile_gate_translations,
             chain_preset_ref=chain_preset_ref,
         )
-        if GATE_CONCEPT_TOKEN_GATE_REFS["human-review"] in terminal_profile_gate_refs:
+        if translate_gate_concept("human-review") in terminal_profile_gate_refs:
             terminal_edge["gate_sequence_policy"] = _materializer_human_gate_hold_policy()
     edges.append(terminal_edge)
     completion_edge_by_node[node_ids[closure_index]] = str(terminal_edge["edge_ref"])
@@ -1942,7 +1941,7 @@ def _materializer_declared_graph_declaration(
             terminal_profile_gate_translations,
             chain_preset_ref=chain_preset_ref,
         )
-        if GATE_CONCEPT_TOKEN_GATE_REFS["human-review"] in terminal_profile_gate_refs:
+        if translate_gate_concept("human-review") in terminal_profile_gate_refs:
             terminal_edge["gate_sequence_policy"] = _materializer_human_gate_hold_policy()
     edges.append(terminal_edge)
     completion_edge_by_node[node_ids[terminal_index]] = str(terminal_edge["edge_ref"])
@@ -2156,7 +2155,7 @@ def _materializer_sequential_graph_declaration(
             terminal_profile_gate_translations,
             chain_preset_ref=chain_preset_ref,
         )
-        if GATE_CONCEPT_TOKEN_GATE_REFS["human-review"] in terminal_profile_gate_refs:
+        if translate_gate_concept("human-review") in terminal_profile_gate_refs:
             terminal_edge["gate_sequence_policy"] = _materializer_human_gate_hold_policy()
     edges.append(terminal_edge)
     completion_edge_by_node[node_ids[terminal_index]] = str(terminal_edge["edge_ref"])

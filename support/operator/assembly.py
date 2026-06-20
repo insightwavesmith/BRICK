@@ -20,8 +20,8 @@ from brick_protocol.support.operator.building_operation_common import (
     DEFAULT_LINK_GATE_REF,
     REPO_ROOT,
 )
+from brick_protocol.link.spec import translate_gate_concept
 from brick_protocol.support.operator.composition import (
-    GATE_CONCEPT_TOKEN_GATE_REFS,
     _composition_slug,
     _load_shape_registry,
     _materializer_human_gate_hold_policy,
@@ -497,12 +497,12 @@ def stamp_profile_gates(
         extra_refs: list[str] = []
         provenance_tokens: list[str] = []
         if qa_row and "strict-evidence" in tokens:
-            extra_refs.append(GATE_CONCEPT_TOKEN_GATE_REFS["strict-evidence"])
+            extra_refs.append(translate_gate_concept("strict-evidence"))
             provenance_tokens.append("strict-evidence")
         if final_transition:
             for token in ("coo-review", "human-review"):
                 if token in tokens:
-                    extra_refs.append(GATE_CONCEPT_TOKEN_GATE_REFS[token])
+                    extra_refs.append(translate_gate_concept(token))
                     provenance_tokens.append(token)
         refs = [DEFAULT_LINK_GATE_REF]
         for ref in extra_refs:
@@ -514,7 +514,7 @@ def stamp_profile_gates(
                 "tokens": provenance_tokens,
                 "declared_by": declared_by_origin,
             }
-        if GATE_CONCEPT_TOKEN_GATE_REFS["human-review"] in extra_refs:
+        if translate_gate_concept("human-review") in extra_refs:
             edge_row["gate_sequence_policy"] = _materializer_human_gate_hold_policy()
         stamped.append(edge_row)
     return stamped

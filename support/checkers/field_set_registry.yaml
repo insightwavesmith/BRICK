@@ -80,6 +80,27 @@ field_sets:
       - proof_limits
       - not_proven
 
+  # GATE-CONCEPT token field-set (Link axis plan grammar — E2 / S3, mirror M11).
+  # The preset-declared ``gate_concept_profile`` concept tokens that TRANSLATE to a
+  # live ``declared_gate_ref``. Single source today: the GATE_CONCEPT_TOKEN_GATE_REFS
+  # Mapping in link/spec.py (the start of the Link single-source API). The S3 move
+  # deleted composition.py's local copy + the inline translation copies; composition
+  # and assembly now import the Link-owned translate_gate_concept reader, so this
+  # concept-token member-set is enumerated NOWHERE else on the tree. The members
+  # below are the translating gate-concept tokens (the keys of the Mapping);
+  # re-enumerating them as a literal set/tuple/list anywhere under support/ -> RED.
+  # NOTE (S3 scope): the guard's literal-detector covers set/tuple/list/frozenset
+  # collections + whole-@dataclass field-sets; a dict-literal re-copy of the WHOLE
+  # token->ref Mapping is a known guard-coverage gap (dict keys are not yet a
+  # detected member-set) and is left for a later guard hardening, not S3.
+  - name: gate_concept_token_gate_refs
+    defining_module: link/spec.py
+    source_symbol: GATE_CONCEPT_TOKEN_GATE_REFS
+    members:
+      - strict-evidence
+      - coo-review
+      - human-review
+
   # AGENT-OBJECT allowed-key field-set — DELIBERATELY NOT REGISTERED YET (S1 note).
   # E2 / S1 (mirror M8) removed native_dispatch.py's 3rd flat-literal copy of this
   # 12-key set (the one that OMITTED the casting keys and RAISED on a real role) by
