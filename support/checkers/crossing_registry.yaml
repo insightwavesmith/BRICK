@@ -220,9 +220,32 @@ crossings:
     canonical_symbols:
       - GATE_CONCEPT_TOKEN_GATE_REFS
       - translate_gate_concept
+      # E2/S4 (mirror M12+M13): the Link plan-level envelope grammar single-source.
+      # The row-key + sub-envelope schema field-sets (allowed-keys, forbidden-keys,
+      # value-markers, author/public-fact prefixes), the three distinct
+      # forbidden-ref-prefix vocabularies + the bare-word segment set, and the two
+      # generic descriptor-driven entry points the support validator consumes.
+      - LINK_ROW_ALLOWED_KEYS
+      - ROUTE_REPLAY_ALLOWED_KEYS
+      - ROUTE_REPLAY_FORBIDDEN_KEYS
+      - ROUTE_REPLAY_FORBIDDEN_VALUE_MARKERS
+      - ROUTE_REPLAY_ALLOWED_AUTHOR_PREFIXES
+      - ROUTE_REASON_ALLOWED_PUBLIC_FACT_PREFIXES
+      - ROUTE_DECISION_BASIS_ALLOWED_KEYS
+      - TRANSITION_AUTHORING_ALLOWED_KEYS
+      - TRANSITION_LIFECYCLE_ALLOWED_KEYS
+      - BUILDING_LIFECYCLE_ALLOWED_KEYS
+      - LINK_FORBIDDEN_REF_SEGMENTS
+      - LINK_FORBIDDEN_REF_PREFIXES_AUTHOR
+      - LINK_FORBIDDEN_REF_PREFIXES_ROUTE_REASON
+      - LINK_FORBIDDEN_REF_PREFIXES_ROUTE_ENDPOINT
+      - LINK_FORBIDDEN_REF_PREFIXES_DECISION
+      - LinkEnvelopeContext
+      - validate_link_envelope
+      - link_envelope_evidence_fields
     defined_at: link/spec.py
     projection_yaml: ""
-    pinned_by: compose_building case (gate-concept translation byte-identical) + check_axis_field_set_single_source (gate_concept_token_gate_refs single-source)
+    pinned_by: compose_building case (gate-concept translation byte-identical) + check_axis_field_set_single_source (gate_concept_token_gate_refs single-source) + link_routing_behavioral/structure_template_integrity (envelope grammar byte-identical)
     is_axis_crossing: true
 
   # NOT an axis crossing. Listed only so G1 owns ReportPacket contract-name

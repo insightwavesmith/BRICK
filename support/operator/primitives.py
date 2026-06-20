@@ -194,37 +194,11 @@ _BRICK_ROW_ALLOWED_KEYS: frozenset[str] = frozenset(
         "requires_brick_write_scope",
     }
 )
-_LINK_ROW_ALLOWED_KEYS: frozenset[str] = frozenset(
-    {
-        "axis",
-        "row_ref",
-        "declared_gate_refs",
-        "gate_sequence_policy",
-        # Machine-readable provenance for TRANSLATED gate stamps (gate wiring
-        # 0610): the materializer records {tokens, declared_by} on a Link row
-        # whose declared_gate_refs were stamped from the preset's
-        # gate_concept_profile -- ONLY when translation happened. The key is
-        # ADMITTED here; its VALUE discipline (non-empty tokens + declaring
-        # ref, fail-closed) is owned by
-        # plan_validation._validate_gate_concept_provenance_for_link_row.
-        "gate_concept_provenance",
-        "link_contract_ref",
-        "next_brick_instance_ref",
-        "next_boundary_ref",
-        "movement",
-        "movement_literal",
-        "target",
-        "target_ref",
-        "target_boundary_ref",
-        "route_replay_plan",
-        "route_decision_basis",
-        "transition_authoring",
-        "transition_lifecycle",
-        "building_lifecycle",
-        "public_fact_refs",
-        "raw_refs",
-    }
-)
+# LINK_ROW_ALLOWED_KEYS + the Link sub-envelope schemas (route_replay /
+# route_decision_basis / transition_authoring / building_lifecycle allowed-keys,
+# forbidden-keys, value-markers, author/public-fact prefixes, endpoint-list keys)
+# MOVED to the Link single-source API at link/spec.py (E2/S4, mirror M12/M13).
+# Support imports them through link/spec.py; they no longer live here.
 _FORBIDDEN_PAYLOAD_KEYS: frozenset[str] = frozenset(
     {
         "agent_fact_expansion",
@@ -321,14 +295,6 @@ _GATE_SEQUENCE_POLICY_KEY = "gate_sequence_policy"
 _TRANSITION_AUTHORING_KEY = "transition_authoring"
 _TRANSITION_LIFECYCLE_KEY = "transition_lifecycle"
 _BUILDING_LIFECYCLE_KEY = "building_lifecycle"
-_BUILDING_LIFECYCLE_ALLOWED_KEYS: frozenset[str] = frozenset(
-    {
-        "state",
-        "reason",
-        "proof_limits",
-        "not_proven",
-    }
-)
 _WRITE_OBSERVATION_DEFAULT_EXCLUDED_DIR_NAMES: frozenset[str] = frozenset(
     {
         ".claude",
@@ -346,126 +312,6 @@ _WRITE_OBSERVATION_DEFAULT_EXCLUDED_SUFFIXES: frozenset[str] = frozenset(
         ".pyc",
         ".pyo",
     }
-)
-_TRANSITION_AUTHORING_ALLOWED_KEYS: frozenset[str] = frozenset(
-    {
-        "transition_authoring_ref",
-        "author_ref",
-        "authoring_basis_refs",
-        "transition_reason_refs",
-        "proof_limits",
-        "not_proven",
-    }
-)
-_ROUTE_DECISION_BASIS_ALLOWED_KEYS: frozenset[str] = frozenset(
-    {
-        "adopted_transition_concern_refs",
-        "not_adopted_transition_concern_refs",
-        "override_refs",
-        "reviewer_observation_refs",
-        "human_review_refs",
-        "proof_limits",
-        "not_proven",
-    }
-)
-_ROUTE_REPLAY_ALLOWED_KEYS: frozenset[str] = frozenset(
-    {
-        "route_replay_ref",
-        "author_ref",
-        "authoring_basis_refs",
-        "immediate_target_ref",
-        "source_brick_refs",
-        "route_reason_refs",
-        "affected_downstream_refs",
-        "replay_segment_refs",
-        "max_attempts",
-        "proof_limits",
-        "not_proven",
-    }
-)
-_ROUTE_REPLAY_ALLOWED_AUTHOR_PREFIXES: tuple[str, ...] = (
-    "human:",
-    "coo:",
-    "link-planning-brick:",
-    "template:",
-)
-_ROUTE_REASON_ALLOWED_PUBLIC_FACT_PREFIXES: tuple[str, ...] = (
-    "agent-fact:",
-    "brick-comparison:",
-    "brick-work:",
-    "carry-fact:",
-    "human-review:",
-    "movement-fact:",
-    "observation:",
-    "override:",
-    "review-observation:",
-    "sufficiency-fact-",
-    "transition-concern:",
-    "transfer-fact:",
-)
-_ROUTE_REPLAY_ENDPOINT_LIST_KEYS: tuple[str, ...] = (
-    "source_brick_refs",
-    "affected_downstream_refs",
-    "replay_segment_refs",
-)
-_ROUTE_REPLAY_FORBIDDEN_KEYS: frozenset[str] = frozenset(
-    {
-        "chosen_route_target",
-        "chosen_replay_segment",
-        "completed",
-        "current_block",
-        "current_state",
-        "destination_choice",
-        "engine_loop",
-        "failed",
-        "mutable_state",
-        "mutate",
-        "mutated_instance_ref",
-        "mutates_instance_ref",
-        "mutation",
-        "pending",
-        "queue",
-        "queued",
-        "retry",
-        "retry_policy",
-        "rollback",
-        "rollback_executor",
-        "route_choice",
-        "route_target_choice",
-        "runtime",
-        "runtime_owner",
-        "scheduler",
-        "scheduler_owner",
-        "selected_route_target",
-        "selected_replay_segment",
-        "state",
-        "status",
-        "support_chosen_replay_segment",
-        "support_chosen_route_target",
-        "targets",
-    }
-)
-_ROUTE_REPLAY_FORBIDDEN_VALUE_MARKERS: tuple[str, ...] = (
-    "chosen replay",
-    "chosen route",
-    "current block",
-    "current state",
-    "engine loop",
-    "mutable state",
-    "mutation",
-    "pending",
-    "queue:",
-    "queued",
-    "retry:",
-    "rollback:",
-    "runtime:",
-    "runtime owner",
-    "scheduler:",
-    "scheduler owner",
-    "selected replay",
-    "selected route",
-    "state mutation",
-    "support chosen",
 )
 _GRAPH_PLAN_ALLOWED_GROUP_ROLES: frozenset[str] = frozenset(
     {"fan_out", "fan_in", "revision_chain", "review_flow", "support_flow"}

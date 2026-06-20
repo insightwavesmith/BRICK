@@ -373,6 +373,12 @@ text_contains:
   - path: support/operator/primitives.py
     texts:
       - _RETURN_FORBIDDEN_KEYS
+  # E2/S4: the Link route-replay forbidden-key vocabulary (which carries
+  # 'completed') moved from primitives.py into the Link single-source API at
+  # link/spec.py (mirror M12). The text pin follows the rehome to its new home
+  # (behavior-identical move; the vocabulary is unchanged member-for-member).
+  - path: link/spec.py
+    texts:
       - completed
   - path: support/recording/step_outputs.py
     texts:

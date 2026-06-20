@@ -32,26 +32,36 @@ from brick_protocol.support.operator.contracts import (
     BuildingRunSupportResult,
     MinimalCrossingRecord,
 )
+from brick_protocol.link.spec import (
+    BUILDING_LIFECYCLE_ALLOWED_KEYS as _BUILDING_LIFECYCLE_ALLOWED_KEYS,
+    LINK_FORBIDDEN_REF_PREFIXES_AUTHOR as _LINK_FORBIDDEN_REF_PREFIXES_AUTHOR,
+    LINK_FORBIDDEN_REF_PREFIXES_DECISION as _LINK_FORBIDDEN_REF_PREFIXES_DECISION,
+    LINK_FORBIDDEN_REF_PREFIXES_ROUTE_ENDPOINT as _LINK_FORBIDDEN_REF_PREFIXES_ROUTE_ENDPOINT,
+    LINK_FORBIDDEN_REF_PREFIXES_ROUTE_REASON as _LINK_FORBIDDEN_REF_PREFIXES_ROUTE_REASON,
+    LINK_FORBIDDEN_REF_SEGMENTS as _LINK_FORBIDDEN_REF_SEGMENTS,
+    LinkEnvelopeContext as _LinkEnvelopeContext,
+    ROUTE_DECISION_BASIS_ALLOWED_KEYS as _ROUTE_DECISION_BASIS_ALLOWED_KEYS,
+    ROUTE_REASON_ALLOWED_PUBLIC_FACT_PREFIXES as _ROUTE_REASON_ALLOWED_PUBLIC_FACT_PREFIXES,
+    ROUTE_REPLAY_ALLOWED_AUTHOR_PREFIXES as _ROUTE_REPLAY_ALLOWED_AUTHOR_PREFIXES,
+    ROUTE_REPLAY_ALLOWED_KEYS as _ROUTE_REPLAY_ALLOWED_KEYS,
+    ROUTE_REPLAY_FORBIDDEN_KEYS as _ROUTE_REPLAY_FORBIDDEN_KEYS,
+    ROUTE_REPLAY_FORBIDDEN_VALUE_MARKERS as _ROUTE_REPLAY_FORBIDDEN_VALUE_MARKERS,
+    TRANSITION_AUTHORING_ALLOWED_KEYS as _TRANSITION_AUTHORING_ALLOWED_KEYS,
+    TRANSITION_LIFECYCLE_ALLOWED_KEYS as _TRANSITION_LIFECYCLE_ALLOWED_KEYS,
+    link_envelope_evidence_fields as _link_envelope_evidence_fields,
+    validate_link_envelope as _validate_link_envelope,
+)
 from brick_protocol.support.operator.primitives import (
     INLINE_TASK_SOURCE_REF,
-    _BUILDING_LIFECYCLE_ALLOWED_KEYS,
     _BUILDING_LIFECYCLE_KEY,
     _DECLARED_GATE_REFS,
     _DECLARED_GATE_REFS_KEY,
     _GATE_SEQUENCE_POLICY_KEY,
     _RETURN_FORBIDDEN_KEYS,
-    _ROUTE_DECISION_BASIS_ALLOWED_KEYS,
     _ROUTE_DECISION_BASIS_KEY,
-    _ROUTE_REASON_ALLOWED_PUBLIC_FACT_PREFIXES,
-    _ROUTE_REPLAY_ALLOWED_AUTHOR_PREFIXES,
-    _ROUTE_REPLAY_ALLOWED_KEYS,
-    _ROUTE_REPLAY_FORBIDDEN_KEYS,
-    _ROUTE_REPLAY_FORBIDDEN_VALUE_MARKERS,
     _ROUTE_REPLAY_PLAN_KEY,
     _SESSION_CONTINUITY_REQUEST_FIELDS,
-    _TRANSITION_AUTHORING_ALLOWED_KEYS,
     _TRANSITION_AUTHORING_KEY,
-    _TRANSITION_LIFECYCLE_ALLOWED_KEYS,
     _TRANSITION_LIFECYCLE_DISPOSITION_OWNERS,
     _TRANSITION_LIFECYCLE_KEY,
     _TRANSITION_LIFECYCLE_PROGRESS_STATES,
@@ -1643,16 +1653,27 @@ def _validate_route_replay_plan_for_link_row(
         return
     if movement != "reroute":
         raise ValueError("route_replay_plan is admitted only for movement: reroute")
-    route_plan = _route_replay_plan_from_link_row(link_row)
-    if route_plan is None:
-        raise ValueError("route_replay_plan must be a mapping")
+    _validate_link_envelope(
+        _ROUTE_REPLAY_PLAN_KEY,
+        link_row,
+        _LINK_ENVELOPE_CTX,
+        lambda route_plan: _route_replay_plan_body(
+            route_plan, target=target, declared_brick_refs=declared_brick_refs
+        ),
+    )
+
+def _route_replay_plan_body(
+    route_plan: Mapping[str, Any],
+    *,
+    target: str,
+    declared_brick_refs: frozenset[str] | None = None,
+) -> None:
     _reject_route_replay_authority_keys("route_replay_plan", route_plan)
     _require_only_keys(
         "route_replay_plan",
         route_plan,
         _ROUTE_REPLAY_ALLOWED_KEYS,
     )
-
     route_replay_ref = _required_text(
         "route_replay_plan.route_replay_ref",
         route_plan.get("route_replay_ref"),
@@ -1719,11 +1740,14 @@ def _validate_route_replay_plan_for_link_row(
             )
 
 def _validate_transition_authoring_for_link_row(link_row: Mapping[str, Any]) -> None:
-    if _TRANSITION_AUTHORING_KEY not in link_row:
-        return
-    authoring = _transition_authoring_from_link_row(link_row)
-    if authoring is None:
-        raise ValueError("transition_authoring must be a mapping")
+    _validate_link_envelope(
+        _TRANSITION_AUTHORING_KEY,
+        link_row,
+        _LINK_ENVELOPE_CTX,
+        _transition_authoring_body,
+    )
+
+def _transition_authoring_body(authoring: Mapping[str, Any]) -> None:
     _reject_route_replay_authority_keys("transition_authoring", authoring)
     _require_only_keys(
         "transition_authoring",
@@ -1756,11 +1780,14 @@ def _validate_transition_authoring_for_link_row(link_row: Mapping[str, Any]) -> 
             _reject_forbidden_route_reason_ref("transition_authoring.transition_reason_refs", ref)
 
 def _validate_route_decision_basis_for_link_row(link_row: Mapping[str, Any]) -> None:
-    if _ROUTE_DECISION_BASIS_KEY not in link_row:
-        return
-    basis = _route_decision_basis_from_link_row(link_row)
-    if basis is None:
-        raise ValueError("route_decision_basis must be a mapping")
+    _validate_link_envelope(
+        _ROUTE_DECISION_BASIS_KEY,
+        link_row,
+        _LINK_ENVELOPE_CTX,
+        _route_decision_basis_body,
+    )
+
+def _route_decision_basis_body(basis: Mapping[str, Any]) -> None:
     _reject_route_replay_authority_keys("route_decision_basis", basis)
     _require_only_keys(
         "route_decision_basis",
@@ -1805,11 +1832,17 @@ def _validate_route_decision_basis_for_link_row(link_row: Mapping[str, Any]) -> 
     _text_tuple("route_decision_basis.not_proven", basis.get("not_proven", ()))
 
 def _validate_transition_lifecycle_for_link_row(link_row: Mapping[str, Any]) -> None:
-    if _TRANSITION_LIFECYCLE_KEY not in link_row:
-        return
-    lifecycle = _transition_lifecycle_from_link_row(link_row)
-    if lifecycle is None:
-        raise ValueError("transition_lifecycle must be a mapping")
+    _validate_link_envelope(
+        _TRANSITION_LIFECYCLE_KEY,
+        link_row,
+        _LINK_ENVELOPE_CTX,
+        lambda lifecycle: _transition_lifecycle_body(link_row, lifecycle),
+    )
+
+def _transition_lifecycle_body(
+    link_row: Mapping[str, Any],
+    lifecycle: Mapping[str, Any],
+) -> None:
     _require_only_keys("transition_lifecycle", lifecycle, _TRANSITION_LIFECYCLE_ALLOWED_KEYS)
     _reject_transition_lifecycle_authority_values("transition_lifecycle", lifecycle)
     _validate_transition_lifecycle_disposition_action(link_row, lifecycle)
@@ -1931,6 +1964,18 @@ def _positive_int(field_name: str, value: Any) -> int:
         return int(value)
     raise ValueError(f"{field_name} must be a finite positive integer")
 
+# Injected coercers the Link-axis generic envelope driver delegates to. The DATA
+# (key-sets, prefixes, evidence spec) is single-sourced in link/spec.py; these
+# four coercers are this support validator's own pinned helpers, passed in so the
+# generic validator/extractor produces byte-identical accept/reject + error text
+# without the axis module importing support.
+_LINK_ENVELOPE_CTX = _LinkEnvelopeContext(
+    mapping=_mapping,
+    required_text=_required_text,
+    text_tuple=_text_tuple,
+    positive_int=_positive_int,
+)
+
 def _link_row_declares_hold_gate_policy(link_row: Mapping[str, Any]) -> bool:
     # G5 S1 (gap seal): the graph walker (walker_kernel) does NOT read
     # building_lifecycle.state == "waiting" / transition_lifecycle.state ==
@@ -1961,9 +2006,18 @@ def _link_row_declares_hold_gate_policy(link_row: Mapping[str, Any]) -> bool:
     return False
 
 def _validate_building_lifecycle_for_link_row(link_row: Mapping[str, Any]) -> None:
-    if _BUILDING_LIFECYCLE_KEY not in link_row:
-        return
-    lifecycle = _mapping("building_lifecycle", link_row.get(_BUILDING_LIFECYCLE_KEY))
+    _validate_link_envelope(
+        _BUILDING_LIFECYCLE_KEY,
+        link_row,
+        _LINK_ENVELOPE_CTX,
+        lambda lifecycle: _building_lifecycle_body(link_row, lifecycle),
+        none_is_value_error=False,
+    )
+
+def _building_lifecycle_body(
+    link_row: Mapping[str, Any],
+    lifecycle: Mapping[str, Any],
+) -> None:
     _require_only_keys("building_lifecycle", lifecycle, _BUILDING_LIFECYCLE_ALLOWED_KEYS)
     state = _required_text("building_lifecycle.state", lifecycle.get("state"))
     if state not in _BUILDING_LIFECYCLE_STATES:
@@ -1992,27 +2046,7 @@ def _validate_route_replay_author_ref(value: str) -> None:
             "route_replay_plan.author_ref must start with human:, coo:, "
             "link-planning-brick:, or template:"
         )
-    forbidden_prefixes = (
-        "adapter:",
-        "auth:",
-        "credential:",
-        "env:",
-        "external_secret:",
-        "hook:",
-        "keychain:",
-        "provider:",
-        "queue:",
-        "retry:",
-        "rollback:",
-        "runtime:",
-        "scheduler:",
-        "secret:",
-        "session:",
-        "setup-token:",
-        "setup_token:",
-        "support:",
-        "tool:",
-    )
+    forbidden_prefixes = _LINK_FORBIDDEN_REF_PREFIXES_AUTHOR
     author_payload = lowered.split(":", 1)[1] if ":" in lowered else lowered
     if not author_payload:
         raise ValueError("route_replay_plan.author_ref must include an author id")
@@ -2029,27 +2063,7 @@ def _validate_route_replay_author_ref(value: str) -> None:
 
 def _reject_forbidden_route_reason_ref(field_name: str, value: str) -> None:
     lowered = value.strip().lower()
-    forbidden_prefixes = (
-        "adapter:",
-        "auth:",
-        "credential:",
-        "env:",
-        "external_secret:",
-        "hook:",
-        "keychain:",
-        "mutation:",
-        "provider:",
-        "queue:",
-        "retry:",
-        "rollback:",
-        "runtime:",
-        "secret:",
-        "session:",
-        "setup-token:",
-        "setup_token:",
-        "state:",
-        "tool:",
-    )
+    forbidden_prefixes = _LINK_FORBIDDEN_REF_PREFIXES_ROUTE_REASON
     is_agent_fact_public_ref = lowered.startswith("agent-fact:")
     if (
         not lowered.startswith(_ROUTE_REASON_ALLOWED_PUBLIC_FACT_PREFIXES)
@@ -2061,28 +2075,7 @@ def _reject_forbidden_route_reason_ref(field_name: str, value: str) -> None:
 
 def _contains_forbidden_ref_segment(value: str, *, allow_agent_fact: bool = False) -> bool:
     segments = [segment for segment in value.replace("/", ":").split(":") if segment]
-    forbidden = {
-        "adapter",
-        "agent",
-        "auth",
-        "credential",
-        "env",
-        "external_secret",
-        "hook",
-        "keychain",
-        "provider",
-        "queue",
-        "retry",
-        "rollback",
-        "runtime",
-        "scheduler",
-        "secret",
-        "session",
-        "setup-token",
-        "setup_token",
-        "support",
-        "tool",
-    }
+    forbidden = _LINK_FORBIDDEN_REF_SEGMENTS
     return any(
         segment in forbidden
         or (segment.startswith("agent-") and not (allow_agent_fact and segment == "agent-fact"))
@@ -2155,29 +2148,7 @@ def _require_prefixed_decision_ref(
 ) -> None:
     text = _required_text(field_name, value)
     lowered = text.lower()
-    forbidden_prefixes = (
-        "adapter:",
-        "agent:",
-        "agent-object:",
-        "auth:",
-        "credential:",
-        "env:",
-        "external_secret:",
-        "hook:",
-        "keychain:",
-        "provider:",
-        "queue:",
-        "retry:",
-        "rollback:",
-        "runtime:",
-        "scheduler:",
-        "secret:",
-        "session:",
-        "setup-token:",
-        "setup_token:",
-        "support:",
-        "tool:",
-    )
+    forbidden_prefixes = _LINK_FORBIDDEN_REF_PREFIXES_DECISION
     if not lowered.startswith(allowed_prefixes) or lowered.startswith(forbidden_prefixes):
         raise ValueError(f"{field_name} must use admitted Link decision evidence refs")
     if _looks_like_agent_endpoint(lowered) or _contains_forbidden_ref_segment(lowered):
@@ -2225,65 +2196,14 @@ def _is_brick_boundary_or_instance_ref(value: str) -> bool:
 
 def _reject_forbidden_route_endpoint(field_name: str, value: str) -> None:
     lowered = value.strip().lower()
-    forbidden_prefixes = (
-        "adapter:",
-        "auth:",
-        "credential:",
-        "env:",
-        "external_secret:",
-        "hook:",
-        "keychain:",
-        "mutation:",
-        "provider:",
-        "queue:",
-        "retry:",
-        "rollback:",
-        "runtime:",
-        "secret:",
-        "session:",
-        "setup-token:",
-        "setup_token:",
-        "state:",
-        "tool:",
-    )
+    forbidden_prefixes = _LINK_FORBIDDEN_REF_PREFIXES_ROUTE_ENDPOINT
     if _looks_like_agent_endpoint(value) or lowered.startswith(forbidden_prefixes):
         raise ValueError(f"{field_name} must not use Agent/provider/adapter/session/tool/hook/credential refs")
 
 def _route_replay_evidence_fields(link_row: Mapping[str, Any]) -> dict[str, Any]:
-    route_plan = _route_replay_plan_from_link_row(link_row)
-    if route_plan is None:
-        return {}
-    fields: dict[str, Any] = {
-        "route_replay_ref": _required_text(
-            "route_replay_plan.route_replay_ref",
-            route_plan.get("route_replay_ref"),
-        ),
-        "author_ref": _required_text(
-            "route_replay_plan.author_ref",
-            route_plan.get("author_ref"),
-        ),
-        "immediate_target_ref": _required_text(
-            "route_replay_plan.immediate_target_ref",
-            route_plan.get("immediate_target_ref"),
-        ),
-    }
-    for key in (
-        "authoring_basis_refs",
-        "source_brick_refs",
-        "route_reason_refs",
-        "affected_downstream_refs",
-        "replay_segment_refs",
-        "proof_limits",
-        "not_proven",
-    ):
-        if key in route_plan:
-            fields[key] = list(_text_tuple(f"route_replay_plan.{key}", route_plan.get(key)))
-    if "max_attempts" in route_plan:
-        fields["max_attempts"] = _positive_int(
-            "route_replay_plan.max_attempts",
-            route_plan.get("max_attempts"),
-        )
-    return fields
+    return _link_envelope_evidence_fields(
+        _ROUTE_REPLAY_PLAN_KEY, link_row, _LINK_ENVELOPE_CTX
+    )
 
 def _route_replay_capture_fields(link_row: Mapping[str, Any]) -> dict[str, Any]:
     fields = _route_replay_evidence_fields(link_row)
@@ -2294,89 +2214,19 @@ def _route_replay_capture_fields(link_row: Mapping[str, Any]) -> dict[str, Any]:
     return fields
 
 def _transition_authoring_evidence_fields(link_row: Mapping[str, Any]) -> dict[str, Any]:
-    authoring = _transition_authoring_from_link_row(link_row)
-    if authoring is None:
-        return {}
-    fields: dict[str, Any] = {
-        "transition_authoring_ref": _required_text(
-            "transition_authoring.transition_authoring_ref",
-            authoring.get("transition_authoring_ref"),
-        ),
-        "transition_author_ref": _required_text(
-            "transition_authoring.author_ref",
-            authoring.get("author_ref"),
-        ),
-    }
-    for key in (
-        "authoring_basis_refs",
-        "transition_reason_refs",
-        "proof_limits",
-        "not_proven",
-    ):
-        if key in authoring:
-            fields[f"transition_{key}"] = list(
-                _text_tuple(f"transition_authoring.{key}", authoring.get(key))
-            )
-    return fields
+    return _link_envelope_evidence_fields(
+        _TRANSITION_AUTHORING_KEY, link_row, _LINK_ENVELOPE_CTX
+    )
 
 def _route_decision_basis_evidence_fields(link_row: Mapping[str, Any]) -> dict[str, Any]:
-    basis = _route_decision_basis_from_link_row(link_row)
-    if basis is None:
-        return {}
-    fields: dict[str, Any] = {}
-    for key in (
-        "adopted_transition_concern_refs",
-        "not_adopted_transition_concern_refs",
-        "override_refs",
-        "reviewer_observation_refs",
-        "human_review_refs",
-        "proof_limits",
-        "not_proven",
-    ):
-        if key in basis:
-            fields[f"route_decision_{key}"] = list(
-                _text_tuple(f"route_decision_basis.{key}", basis.get(key))
-            )
-    return fields
+    return _link_envelope_evidence_fields(
+        _ROUTE_DECISION_BASIS_KEY, link_row, _LINK_ENVELOPE_CTX
+    )
 
 def _transition_lifecycle_evidence_fields(link_row: Mapping[str, Any]) -> dict[str, Any]:
-    lifecycle = _transition_lifecycle_from_link_row(link_row)
-    if lifecycle is None:
-        return {}
-    fields: dict[str, Any] = {
-        "transition_lifecycle_state": _required_text(
-            "transition_lifecycle.state",
-            lifecycle.get("state"),
-        ),
-        "transition_lifecycle_progress_state": _required_text(
-            "transition_lifecycle.progress_state",
-            lifecycle.get("progress_state"),
-        ),
-    }
-    for key in (
-        "paused_at_ref",
-        "resumed_from_ref",
-        "from_brick_ref",
-        "pending_target_ref",
-        "required_disposition_owner",
-        "disposition_action",
-    ):
-        if key in lifecycle:
-            fields[f"transition_lifecycle_{key}"] = _required_text(
-                f"transition_lifecycle.{key}",
-                lifecycle.get(key),
-            )
-    if "budget_increment" in lifecycle:
-        fields["transition_lifecycle_budget_increment"] = _positive_int(
-            "transition_lifecycle.budget_increment",
-            lifecycle.get("budget_increment"),
-        )
-    for key in ("reason_refs", "proof_limits", "not_proven"):
-        if key in lifecycle:
-            fields[f"transition_lifecycle_{key}"] = list(
-                _text_tuple(f"transition_lifecycle.{key}", lifecycle.get(key))
-            )
-    return fields
+    return _link_envelope_evidence_fields(
+        _TRANSITION_LIFECYCLE_KEY, link_row, _LINK_ENVELOPE_CTX
+    )
 
 def _building_lifecycle_from_link_row(link_row: Mapping[str, Any]) -> Mapping[str, Any] | None:
     value = link_row.get(_BUILDING_LIFECYCLE_KEY)
@@ -2385,26 +2235,9 @@ def _building_lifecycle_from_link_row(link_row: Mapping[str, Any]) -> Mapping[st
     return _mapping("building_lifecycle", value)
 
 def _building_lifecycle_evidence_fields(link_row: Mapping[str, Any]) -> dict[str, Any]:
-    lifecycle = _building_lifecycle_from_link_row(link_row)
-    if lifecycle is None:
-        return {}
-    fields: dict[str, Any] = {
-        "building_lifecycle_state": _required_text(
-            "building_lifecycle.state",
-            lifecycle.get("state"),
-        ),
-    }
-    if "reason" in lifecycle:
-        fields["building_lifecycle_reason"] = _required_text(
-            "building_lifecycle.reason",
-            lifecycle.get("reason"),
-        )
-    for key in ("proof_limits", "not_proven"):
-        if key in lifecycle:
-            fields[f"building_lifecycle_{key}"] = list(
-                _text_tuple(f"building_lifecycle.{key}", lifecycle.get(key))
-            )
-    return fields
+    return _link_envelope_evidence_fields(
+        _BUILDING_LIFECYCLE_KEY, link_row, _LINK_ENVELOPE_CTX
+    )
 
 def _route_replay_single_edge_fields(
     link_row: Mapping[str, Any],

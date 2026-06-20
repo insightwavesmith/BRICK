@@ -36,6 +36,7 @@ from brick_protocol.link.gate import (
     make_gate_fact,
 )
 from brick_protocol.link.movement import MovementFact
+from brick_protocol.link.spec import LINK_ROW_ALLOWED_KEYS as _LINK_ROW_ALLOWED_KEYS
 from brick_protocol.link.transition import TransitionFact
 from brick_protocol.support.connection.agent_adapter import (
     ADAPTER_CHAT_SESSION,
@@ -134,7 +135,6 @@ from brick_protocol.support.operator.primitives import (
     _DEFAULT_AGENT_OBJECT_ROOT,
     _DECLARED_GATE_REFS_KEY,
     _FORBIDDEN_PAYLOAD_KEYS,
-    _LINK_ROW_ALLOWED_KEYS,
     _REPO_ROOT,
     _RETURN_FORBIDDEN_KEYS,
     _agent_run_not_proven,

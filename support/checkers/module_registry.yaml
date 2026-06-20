@@ -568,6 +568,7 @@ modules:
       - link_transfer
       - link_carry
       - link_transition
+      - link_spec
     imports_axis:
       - brick/work.py
       - brick/comparison.py
@@ -579,6 +580,7 @@ modules:
       - link/transfer.py
       - link/carry.py
       - link/transition.py
+      - link/spec.py
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
     pinned_by: run_surface_split profile (facade entry; delegates each crossing to its axis owner)
@@ -1115,6 +1117,7 @@ modules:
       - link_carry
       - link_transition
       - transition_lifecycle
+      - link_spec
     imports_axis:
       - brick/work.py
       - brick/comparison.py
@@ -1123,6 +1126,7 @@ modules:
       - link/transfer.py
       - link/carry.py
       - link/transition.py
+      - link/spec.py
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
     pinned_by: building_plan_boundary + compose_building cases (validates declared rows; consumes, owns none)
@@ -1150,8 +1154,10 @@ modules:
     layer: operator
     role: operator
     owns_crossings: []
-    consumes_crossings: []
-    imports_axis: []
+    consumes_crossings:
+      - link_spec
+    imports_axis:
+      - link/spec.py
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
     pinned_by: route_materialization_case + transition_concern_disposition_case (literal route matching; chooses no Movement)
@@ -1160,8 +1166,10 @@ modules:
     layer: operator
     role: operator
     owns_crossings: []
-    consumes_crossings: []
-    imports_axis: []
+    consumes_crossings:
+      - link_spec
+    imports_axis:
+      - link/spec.py
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
     pinned_by: compose_building cases (graph->linear projection)

@@ -101,6 +101,265 @@ field_sets:
       - coo-review
       - human-review
 
+  # LINK plan-level envelope grammar field-sets (E2 / S4, mirror M12+M13). Moved
+  # from support/operator/primitives.py into the Link single-source API at
+  # link/spec.py. Each set below is enumerated as a literal collection NOWHERE
+  # under support/ anymore (plan_validation/run/plan_graph import the link/spec
+  # names); re-enumerating any of them under support/ -> RED. link/spec.py is the
+  # axis module (not under support/), so its definitions are the single source and
+  # are never scanned by this guard. The three forbidden-ref-prefix tuples are
+  # THREE DISTINCT vocabularies (verified member-by-member): the design's "one
+  # tuple ×5" was inaccurate, so collapsing them would change accept/reject — each
+  # distinct vocabulary is its own single-source row.
+  - name: link_row_allowed_keys
+    defining_module: link/spec.py
+    source_symbol: LINK_ROW_ALLOWED_KEYS
+    members:
+      - axis
+      - row_ref
+      - declared_gate_refs
+      - gate_sequence_policy
+      - gate_concept_provenance
+      - link_contract_ref
+      - next_brick_instance_ref
+      - next_boundary_ref
+      - movement
+      - movement_literal
+      - target
+      - target_ref
+      - target_boundary_ref
+      - route_replay_plan
+      - route_decision_basis
+      - transition_authoring
+      - transition_lifecycle
+      - building_lifecycle
+      - public_fact_refs
+      - raw_refs
+  - name: route_replay_allowed_keys
+    defining_module: link/spec.py
+    source_symbol: ROUTE_REPLAY_ALLOWED_KEYS
+    members:
+      - route_replay_ref
+      - author_ref
+      - authoring_basis_refs
+      - immediate_target_ref
+      - source_brick_refs
+      - route_reason_refs
+      - affected_downstream_refs
+      - replay_segment_refs
+      - max_attempts
+      - proof_limits
+      - not_proven
+  - name: route_replay_forbidden_keys
+    defining_module: link/spec.py
+    source_symbol: ROUTE_REPLAY_FORBIDDEN_KEYS
+    members:
+      - chosen_route_target
+      - chosen_replay_segment
+      - completed
+      - current_block
+      - current_state
+      - destination_choice
+      - engine_loop
+      - failed
+      - mutable_state
+      - mutate
+      - mutated_instance_ref
+      - mutates_instance_ref
+      - mutation
+      - pending
+      - queue
+      - queued
+      - retry
+      - retry_policy
+      - rollback
+      - rollback_executor
+      - route_choice
+      - route_target_choice
+      - runtime
+      - runtime_owner
+      - scheduler
+      - scheduler_owner
+      - selected_route_target
+      - selected_replay_segment
+      - state
+      - status
+      - support_chosen_replay_segment
+      - support_chosen_route_target
+      - targets
+  - name: route_replay_forbidden_value_markers
+    defining_module: link/spec.py
+    source_symbol: ROUTE_REPLAY_FORBIDDEN_VALUE_MARKERS
+    members:
+      - "chosen replay"
+      - "chosen route"
+      - "current block"
+      - "current state"
+      - "engine loop"
+      - "mutable state"
+      - mutation
+      - pending
+      - "queue:"
+      - queued
+      - "retry:"
+      - "rollback:"
+      - "runtime:"
+      - "runtime owner"
+      - "scheduler:"
+      - "scheduler owner"
+      - "selected replay"
+      - "selected route"
+      - "state mutation"
+      - "support chosen"
+  - name: route_replay_allowed_author_prefixes
+    defining_module: link/spec.py
+    source_symbol: ROUTE_REPLAY_ALLOWED_AUTHOR_PREFIXES
+    members:
+      - "human:"
+      - "coo:"
+      - "link-planning-brick:"
+      - "template:"
+  - name: route_reason_allowed_public_fact_prefixes
+    defining_module: link/spec.py
+    source_symbol: ROUTE_REASON_ALLOWED_PUBLIC_FACT_PREFIXES
+    members:
+      - "agent-fact:"
+      - "brick-comparison:"
+      - "brick-work:"
+      - "carry-fact:"
+      - "human-review:"
+      - "movement-fact:"
+      - "observation:"
+      - "override:"
+      - "review-observation:"
+      - "sufficiency-fact-"
+      - "transition-concern:"
+      - "transfer-fact:"
+  - name: route_decision_basis_allowed_keys
+    defining_module: link/spec.py
+    source_symbol: ROUTE_DECISION_BASIS_ALLOWED_KEYS
+    members:
+      - adopted_transition_concern_refs
+      - not_adopted_transition_concern_refs
+      - override_refs
+      - reviewer_observation_refs
+      - human_review_refs
+      - proof_limits
+      - not_proven
+  - name: transition_authoring_allowed_keys
+    defining_module: link/spec.py
+    source_symbol: TRANSITION_AUTHORING_ALLOWED_KEYS
+    members:
+      - transition_authoring_ref
+      - author_ref
+      - authoring_basis_refs
+      - transition_reason_refs
+      - proof_limits
+      - not_proven
+  - name: building_lifecycle_allowed_keys
+    defining_module: link/spec.py
+    source_symbol: BUILDING_LIFECYCLE_ALLOWED_KEYS
+    members:
+      - state
+      - reason
+      - proof_limits
+      - not_proven
+  - name: link_forbidden_ref_segments
+    defining_module: link/spec.py
+    source_symbol: LINK_FORBIDDEN_REF_SEGMENTS
+    members:
+      - adapter
+      - agent
+      - auth
+      - credential
+      - env
+      - external_secret
+      - hook
+      - keychain
+      - provider
+      - queue
+      - retry
+      - rollback
+      - runtime
+      - scheduler
+      - secret
+      - session
+      - setup-token
+      - setup_token
+      - support
+      - tool
+  - name: link_forbidden_ref_prefixes_author
+    defining_module: link/spec.py
+    source_symbol: LINK_FORBIDDEN_REF_PREFIXES_AUTHOR
+    members:
+      - "adapter:"
+      - "auth:"
+      - "credential:"
+      - "env:"
+      - "external_secret:"
+      - "hook:"
+      - "keychain:"
+      - "provider:"
+      - "queue:"
+      - "retry:"
+      - "rollback:"
+      - "runtime:"
+      - "scheduler:"
+      - "secret:"
+      - "session:"
+      - "setup-token:"
+      - "setup_token:"
+      - "support:"
+      - "tool:"
+  - name: link_forbidden_ref_prefixes_route_reason
+    defining_module: link/spec.py
+    source_symbol: LINK_FORBIDDEN_REF_PREFIXES_ROUTE_REASON
+    members:
+      - "adapter:"
+      - "auth:"
+      - "credential:"
+      - "env:"
+      - "external_secret:"
+      - "hook:"
+      - "keychain:"
+      - "mutation:"
+      - "provider:"
+      - "queue:"
+      - "retry:"
+      - "rollback:"
+      - "runtime:"
+      - "secret:"
+      - "session:"
+      - "setup-token:"
+      - "setup_token:"
+      - "state:"
+      - "tool:"
+  - name: link_forbidden_ref_prefixes_decision
+    defining_module: link/spec.py
+    source_symbol: LINK_FORBIDDEN_REF_PREFIXES_DECISION
+    members:
+      - "adapter:"
+      - "agent:"
+      - "agent-object:"
+      - "auth:"
+      - "credential:"
+      - "env:"
+      - "external_secret:"
+      - "hook:"
+      - "keychain:"
+      - "provider:"
+      - "queue:"
+      - "retry:"
+      - "rollback:"
+      - "runtime:"
+      - "scheduler:"
+      - "secret:"
+      - "session:"
+      - "setup-token:"
+      - "setup_token:"
+      - "support:"
+      - "tool:"
+
   # AGENT-OBJECT allowed-key field-set — DELIBERATELY NOT REGISTERED YET (S1 note).
   # E2 / S1 (mirror M8) removed native_dispatch.py's 3rd flat-literal copy of this
   # 12-key set (the one that OMITTED the casting keys and RAISED on a real role) by

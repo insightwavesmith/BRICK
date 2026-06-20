@@ -9,6 +9,10 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
+from brick_protocol.link.spec import (
+    ROUTE_REPLAY_ALLOWED_AUTHOR_PREFIXES as ALLOWED_AUTHOR_PREFIXES,
+)
+
 
 PROOF_LIMITS = (
     "support evidence only",
@@ -25,7 +29,8 @@ NOT_PROVEN = (
     "automatic repair/replay execution",
     "automatic child Building generation",
 )
-ALLOWED_AUTHOR_PREFIXES = ("human:", "coo:", "link-planning-brick:", "template:")
+# ALLOWED_AUTHOR_PREFIXES is the Link author vocabulary, single-sourced at
+# link/spec.py (E2/S4) and imported above (byte-identical tuple, same order).
 FORBIDDEN_AUTHOR_PREFIXES = (
     "support:",
     "run.py:",

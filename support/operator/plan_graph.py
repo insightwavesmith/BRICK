@@ -9,6 +9,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 from typing import Any
 
+from brick_protocol.link.spec import LINK_ROW_ALLOWED_KEYS as _LINK_ROW_ALLOWED_KEYS
 from brick_protocol.support.operator.contracts import BuildingRunSupportResult
 from brick_protocol.support.operator.primitives import (
     casting_bag,
@@ -21,7 +22,6 @@ from brick_protocol.support.operator.primitives import (
     _normalize_key,
     _merge_texts,
     _ROUTE_REPLAY_PLAN_KEY,
-    _LINK_ROW_ALLOWED_KEYS,
     _BRICK_ROW_ALLOWED_KEYS,
     _AGENT_ROW_ALLOWED_KEYS,
     _GRAPH_PLAN_ALLOWED_GROUP_ROLES,
