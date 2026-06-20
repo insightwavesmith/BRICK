@@ -40,6 +40,46 @@ field_sets:
       - preferred_adapter_ref
       - preferred_model_ref
 
+  # WORK-ENVELOPE key-set (E2 / S2, mirror M7). The on-disk work-envelope.json
+  # key-set the chat-session park seam validates is exactly the AgentAdapterRequest
+  # field-set. Single source today: the @dataclass AgentAdapterRequest in
+  # support/connection/agent_adapter.py — every named field there is a member, and
+  # the dataclass IS the one enumeration (the guard's whole-@dataclass branch
+  # whitelists it by name). check_building_lifecycle_path_shape.py now DERIVES
+  # WORK_ENVELOPE_KEYS from this dataclass via dataclasses.fields() instead of a hand
+  # literal, so this set is enumerated NOWHERE else on the tree. Re-adding a hand copy
+  # (a 26-string frozenset, or a second @dataclass with these same fields) -> guard RED.
+  - name: work_envelope_keys
+    defining_module: support/connection/agent_adapter.py
+    source_symbol: AgentAdapterRequest
+    members:
+      - building_id
+      - agent_object_ref
+      - adapter_ref
+      - brick_instance_ref
+      - next_brick_instance_ref
+      - selected_model_ref
+      - callable_ref
+      - prompt_refs
+      - skill_refs
+      - hook_refs
+      - tool_policy_refs
+      - discipline_refs
+      - input_packet_ref
+      - output_packet_ref
+      - work_statement
+      - comparison_rule
+      - required_return_shape
+      - source_fact_bodies
+      - link_handoff_refs
+      - agent_instruction_packet
+      - write_scope
+      - building_session_ref
+      - session_scope_ref
+      - session_continuity_mode
+      - proof_limits
+      - not_proven
+
   # AGENT-OBJECT allowed-key field-set — DELIBERATELY NOT REGISTERED YET (S1 note).
   # E2 / S1 (mirror M8) removed native_dispatch.py's 3rd flat-literal copy of this
   # 12-key set (the one that OMITTED the casting keys and RAISED on a real role) by

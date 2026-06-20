@@ -30,11 +30,21 @@ if _IMPORT_IDENTITY not in sys.path:
 
 # U5.5 SLICE-1A: the admitted spine event_type set (single-source). The
 # events/<seq>-<type> path predicate admits only a real spine event_type.
+from dataclasses import fields as _dataclass_fields
+
 from brick_protocol.support.recording.spine import SPINE_EVENT_TYPES
 from brick_protocol.agent.return_fact import ALWAYS_SECRET_KEYS
 from brick_protocol.support.operator.primitives import (
     evidence_list_has_repository_artifact_ref,
 )
+
+# E2 / S2 (mirror M7): the work-envelope key-set is a ②MIRROR of the
+# AgentAdapterRequest field-set (the chat-session park seam checks on-disk
+# work-envelope.json keys against it). DERIVE it from the single source instead
+# of re-typing a hand literal, so adding a field to AgentAdapterRequest
+# auto-updates this set (no more hand-sync). Registered in field_set_registry.yaml
+# (work_envelope_keys) so the S0 mirror-guard REDs any future hand-copy.
+from brick_protocol.support.connection.agent_adapter import AgentAdapterRequest
 
 
 PROJECT_ROOT = "project"
@@ -196,34 +206,7 @@ ADAPTER_ERROR_FORBIDDEN_KEYS = {
     "token",
     "returned",
 }
-WORK_ENVELOPE_KEYS = {
-    "building_id",
-    "agent_object_ref",
-    "adapter_ref",
-    "brick_instance_ref",
-    "next_brick_instance_ref",
-    "selected_model_ref",
-    "callable_ref",
-    "prompt_refs",
-    "skill_refs",
-    "hook_refs",
-    "tool_policy_refs",
-    "discipline_refs",
-    "input_packet_ref",
-    "output_packet_ref",
-    "work_statement",
-    "comparison_rule",
-    "required_return_shape",
-    "source_fact_bodies",
-    "link_handoff_refs",
-    "agent_instruction_packet",
-    "write_scope",
-    "building_session_ref",
-    "session_scope_ref",
-    "session_continuity_mode",
-    "proof_limits",
-    "not_proven",
-}
+WORK_ENVELOPE_KEYS = frozenset(f.name for f in _dataclass_fields(AgentAdapterRequest))
 PARK_RECORD_FORBIDDEN_KEYS = {
     "adapter_error_ref",
     "agent_fact_created",
