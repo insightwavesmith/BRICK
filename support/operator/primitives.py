@@ -8,9 +8,9 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Iterable, Mapping
 from pathlib import Path
-from typing import Any, NamedTuple, TypeVar
+from typing import Any, TypeVar
 
 from brick_protocol.agent.return_fact import RETURNED_FORBIDDEN_KEYS as _RETURN_FORBIDDEN_KEYS
 from brick_protocol.link.gate import DECLARED_GATE_REFS as _DECLARED_GATE_REFS
@@ -22,15 +22,6 @@ from brick_protocol.link.transition import (
     TRANSITION_LIFECYCLE_PROGRESS_STATES as _TRANSITION_LIFECYCLE_PROGRESS_STATES,
     TRANSITION_LIFECYCLE_STATES as _TRANSITION_LIFECYCLE_STATES,
     TransitionFact,
-)
-from brick_protocol.support.connection.agent_adapter import (
-    ADAPTER_CLAUDE_LOCAL as _ADAPTER_CLAUDE_LOCAL,
-    ADAPTER_CODEX_LOCAL as _ADAPTER_CODEX_LOCAL,
-    ADAPTER_GEMINI_LOCAL as _ADAPTER_GEMINI_LOCAL,
-    ALLOWED_ADAPTER_REFS as _ALLOWED_ADAPTER_REFS,
-    MODEL_PROVIDER_BY_ADAPTER as _MODEL_PROVIDER_BY_ADAPTER,
-    MODEL_REF_DEFAULT as _MODEL_REF_DEFAULT,
-    project_model_ref_to_cli_arg as _project_model_ref_to_cli_arg,
 )
 
 _DEFAULT_PROOF_LIMITS: tuple[str, ...] = (
@@ -53,100 +44,24 @@ _DEFAULT_NOT_PROVEN: tuple[str, ...] = (
 _FACT_T = TypeVar("_FACT_T")
 
 
-class CastingField(NamedTuple):
-    field_name: str
-    default_ref: str | None
-    cli_emit: Callable[[str, str], tuple[str, ...]]
-    scope: frozenset[str]
-
-
-def _no_cli_emit(_value: str, _adapter_ref: str) -> tuple[str, ...]:
-    return ()
-
-
-_MODEL_CLI_FLAG_BY_ADAPTER: Mapping[str, str] = {
-    _ADAPTER_CODEX_LOCAL: "-m",
-    _ADAPTER_CLAUDE_LOCAL: "--model",
-    _ADAPTER_GEMINI_LOCAL: "--model",
-}
-
-
-def _model_cli_emit(value: str, adapter_ref: str) -> tuple[str, ...]:
-    model_arg = _project_model_ref_to_cli_arg(adapter_ref, value)
-    if not model_arg:
-        return ()
-    flag = _MODEL_CLI_FLAG_BY_ADAPTER.get(adapter_ref)
-    if flag is None:
-        return ()
-    return (flag, model_arg)
-
-
-CASTING_FIELDS: tuple[CastingField, ...] = (
-    CastingField("preferred_adapter_ref", None, _no_cli_emit, _ALLOWED_ADAPTER_REFS),
-    CastingField(
-        "preferred_model_ref",
-        _MODEL_REF_DEFAULT,
-        _model_cli_emit,
-        frozenset(_MODEL_PROVIDER_BY_ADAPTER),
-    ),
+# CASTING single-source API (E2/S6): the CastingField descriptor + CASTING_FIELDS
+# field-set + its ``selected_*`` projection + the casting transport helpers now
+# live on the AGENT axis (agent/spec.py) — the WHO-dials are Agent-axis property,
+# not support mechanics. Support re-imports the public names here so existing
+# callers keep their import sites; the field-set is ENUMERATED nowhere under
+# support/ anymore (agent/spec.py is the single source, registered in
+# field_set_registry.yaml's casting_fields row + crossing_registry.yaml's
+# agent_spec row). Re-importing a name is not a field-set enumeration, so the
+# mirror-guard stays green.
+from brick_protocol.agent.spec import (  # noqa: F401  (re-exported for callers)
+    CASTING_FIELDS,
+    CastingField,
+    NODE_CASTING_FIELDS,
+    casting_bag,
+    merge_casting_bags,
+    selected_key,
+    stamp_casting,
 )
-
-# Node-level casting projection: the plan-layer ``selected_*`` key names derived
-# from the SAME ``CASTING_FIELDS`` table that names the Agent-source
-# ``preferred_*`` side. The mapping is the established convention
-# (``selected_<rest>`` for ``preferred_<rest>``, twin of
-# check_assembly_equivalence._effective_step_ref): one source of truth for the
-# casting field set drives both the Agent ``preferred_*`` projection and the
-# node/plan ``selected_*`` carry, so a new casting field is added in ONE place.
-NODE_CASTING_FIELDS: tuple[str, ...] = tuple(
-    "selected_" + descriptor.field_name.removeprefix("preferred_")
-    for descriptor in CASTING_FIELDS
-)
-
-
-def casting_bag(source: Mapping[str, Any]) -> dict[str, Any]:
-    """Pull the present ``selected_*`` casting keys from ``source``, blind.
-
-    Pure transport: support copies whichever casting keys the caller declared,
-    with no inspection, default-injection, or validation of the carried values.
-    A key absent from ``source`` is simply absent from the bag.
-    """
-
-    return {
-        field_name: source[field_name]
-        for field_name in NODE_CASTING_FIELDS
-        if field_name in source
-    }
-
-
-def merge_casting_bags(
-    step_bag: Mapping[str, Any],
-    plan_bag: Mapping[str, Any],
-) -> dict[str, Any]:
-    """Merge two casting bags with per-field step-OR-plan precedence.
-
-    For each casting field the step value wins when truthy, else the plan value;
-    this preserves the hand-named ``step.get(k) or plan.get(k)`` carry exactly,
-    including the ``None`` result when the field is declared on neither side.
-    """
-
-    return {
-        field_name: (step_bag.get(field_name) or plan_bag.get(field_name))
-        for field_name in NODE_CASTING_FIELDS
-    }
-
-
-def stamp_casting(target: dict[str, Any], bag: Mapping[str, Any]) -> dict[str, Any]:
-    """Stamp every node casting key onto ``target`` from ``bag``.
-
-    Every ``selected_*`` field is written (``None`` when absent from ``bag``) so
-    the stamped node carries the full casting key set, byte-identical to the
-    prior explicit per-field assignment. ``target`` is mutated and returned.
-    """
-
-    for field_name in NODE_CASTING_FIELDS:
-        target[field_name] = bag.get(field_name)
-    return target
 
 _AGENT_OBJECT_REF_FIELDS: tuple[str, ...] = (
     "prompt_refs",

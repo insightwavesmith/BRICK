@@ -169,6 +169,7 @@ def run_agent_resource_boundary(repo: Path, profile: Mapping[str, Any]) -> int:
     if not items:
         return 0
     from support.connection.agent_resources import render_agent_packet
+    from support.operator.primitives import CASTING_FIELDS
 
     count = 0
     for item in items:
@@ -181,24 +182,18 @@ def run_agent_resource_boundary(repo: Path, profile: Mapping[str, Any]) -> int:
                 f"agent_resource_boundary rejected {role}: lane expected {mapping['lane']!r}, "
                 f"observed {agent_object.get('lane')!r}"
             )
-        if (
-            "preferred_adapter_ref" in mapping
-            and agent_object.get("preferred_adapter_ref") != mapping["preferred_adapter_ref"]
-        ):
-            raise ProfileError(
-                f"agent_resource_boundary rejected {role}: preferred_adapter_ref "
-                f"expected {mapping['preferred_adapter_ref']!r}, "
-                f"observed {agent_object.get('preferred_adapter_ref')!r}"
-            )
-        if (
-            "preferred_model_ref" in mapping
-            and agent_object.get("preferred_model_ref") != mapping["preferred_model_ref"]
-        ):
-            raise ProfileError(
-                f"agent_resource_boundary rejected {role}: preferred_model_ref "
-                f"expected {mapping['preferred_model_ref']!r}, "
-                f"observed {agent_object.get('preferred_model_ref')!r}"
-            )
+        # E2/S6 (mirror M9): per-dial expectation check LOOPS CASTING_FIELDS
+        # instead of one hand block per dial. Byte-identical to the prior two
+        # blocks (same field names, same message shape, same expected-vs-observed
+        # order — the loop walks CASTING_FIELDS, which orders adapter then model).
+        for descriptor in CASTING_FIELDS:
+            field_name = descriptor.field_name
+            if field_name in mapping and agent_object.get(field_name) != mapping[field_name]:
+                raise ProfileError(
+                    f"agent_resource_boundary rejected {role}: {field_name} "
+                    f"expected {mapping[field_name]!r}, "
+                    f"observed {agent_object.get(field_name)!r}"
+                )
         _validate_required_refs(agent_object, mapping, role)
         _validate_forbidden_refs(agent_object, mapping, role)
         if mapping.get("hooks_execution_opened") is False:

@@ -118,6 +118,15 @@ LINK_SPEC0_TARGETS = {
     "link/spec.py",
 }
 
+# E2 / S6 (mirror M5+M6+M9): agent/spec.py — the Agent single-source CASTING API.
+# Owns the CastingField descriptor + CASTING_FIELDS field-set (moved from
+# support/operator/primitives.py), its selected_* projection, and the casting
+# transport helpers. A code-only axis module (no paired projection YAML yet);
+# admitted as an Agent axis surface, the Agent-axis sibling of link/spec.py.
+AGENT_SPEC0_TARGETS = {
+    "agent/spec.py",
+}
+
 SIMPLE_RUN0_RUN_TARGETS = {
     "support/operator/run.py",
 }
@@ -1573,11 +1582,13 @@ def forbidden_reason(path: str) -> str | None:
             and clean not in PHASE4_TARGETS
             and clean not in LTC0_LINK_TRANSFER_CARRY_TARGETS
             and clean not in LINK_SPEC0_TARGETS
+            and clean not in AGENT_SPEC0_TARGETS
         ):
             return (
                 f"unadmitted axis path {clean}; only seed markers and "
                 "Phase 4 target surfaces plus the LTC-0 Link transfer/carry "
-                "file pairs and the E2/S3 link/spec.py axis surface are open now"
+                "file pairs and the E2/S3 link/spec.py + E2/S6 agent/spec.py "
+                "axis surfaces are open now"
             )
 
     if clean == "support/runner" or clean.startswith("support/runner/"):
@@ -1631,6 +1642,7 @@ def allowed_path(path: str) -> bool:
         or clean in PHASE4_TARGETS
         or clean in LTC0_LINK_TRANSFER_CARRY_TARGETS
         or clean in LINK_SPEC0_TARGETS
+        or clean in AGENT_SPEC0_TARGETS
     ):
         return True
 

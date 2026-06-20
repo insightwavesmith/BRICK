@@ -1589,9 +1589,10 @@ def _invoke_local_cli(
             # bypasses HOOK TRUST only -- not approvals, not the sandbox.
             if os.environ.get("BRICK_CODEX_HOOK_TRUST_BYPASS") == "1":
                 args_list.append("--dangerously-bypass-hook-trust")
-            model_arg = _model_cli_arg(request, spec)
-            if model_arg:
-                args_list.extend(("-m", model_arg))
+            # E2/S6 (mirror M6): the codex ``-m`` model flag is now DATA on the
+            # casting model dial's cli_emit; the spawn path loops CASTING_FIELDS.
+            # Byte-identical to the deleted inline ``("-m", model_arg)`` literal.
+            args_list.extend(_casting_cli_args(request, spec))
             # Ephemeral by DEFAULT: a non-ephemeral `codex exec` persists its
             # session to the shared ~/.codex SQLite state (state/logs/goals/
             # memories), which is single-writer locked. Two concurrent codex
@@ -1675,9 +1676,10 @@ def _invoke_local_cli(
             "--tools",
             knobs["tools"],
         ]
-        model_arg = _model_cli_arg(request, spec)
-        if model_arg:
-            args_list.extend(("--model", model_arg))
+        # E2/S6 (mirror M6): the claude ``--model`` model flag is now DATA on the
+        # casting model dial's cli_emit; the spawn path loops CASTING_FIELDS.
+        # Byte-identical to the deleted inline ``("--model", model_arg)`` literal.
+        args_list.extend(_casting_cli_args(request, spec))
         if request.session_continuity_mode == "none":
             args_list.append("--no-session-persistence")
         args_list.append(prompt)
@@ -1790,6 +1792,40 @@ def _validate_model_ref_for_adapter(adapter_ref: str, model_ref: str) -> None:
 
 def _model_cli_arg(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
     return _model_cli_arg_from_ref(request.selected_model_ref or spec.default_model_ref, spec)
+
+
+def _casting_cli_args(request: AgentAdapterRequest, spec: LocalCliSpec) -> tuple[str, ...]:
+    """Project the casting dials to their spawn-time CLI args via CASTING_FIELDS.
+
+    E2/S6 (mirror M6): the per-adapter CLI flag knowledge that was inlined twice
+    (the codex ``-m`` / claude ``--model`` literals) is now DATA on each
+    ``CastingField.cli_emit``. The spawn path LOOPS the field-set and concatenates
+    each dial's emit; the adapter dial contributes nothing (``_no_cli_emit``), the
+    model dial contributes ``(flag, model_arg)`` exactly as the deleted literals
+    did. BYTE-IDENTICAL to the inline path: the per-dial spawn VALUE is the
+    declared ``selected_*`` on the request, else — for the deferrable model dial
+    (``default_ref is not None``) — the spec's ``default_model_ref`` (the same
+    ``request.selected_model_ref or spec.default_model_ref`` the inline
+    ``_model_cli_arg`` fed its projector); the fail-closed adapter dial
+    (``default_ref is None``) falls back to the already-chosen ``spec.adapter_ref``
+    and emits nothing. A provider mismatch raises identically (the projector
+    inside ``cli_emit`` raises just as the inline ``_model_cli_arg`` did).
+
+    Imported lazily to avoid an import cycle: ``agent.spec`` re-exports this
+    module's brain catalog, so a top-level import here would be circular.
+    """
+
+    from brick_protocol.agent.spec import CASTING_FIELDS, selected_key
+
+    args: list[str] = []
+    for descriptor in CASTING_FIELDS:
+        declared = getattr(request, selected_key(descriptor), "")
+        spawn_default = (
+            spec.default_model_ref if descriptor.default_ref is not None else spec.adapter_ref
+        )
+        value = declared or spawn_default
+        args.extend(descriptor.cli_emit(value, spec.adapter_ref))
+    return tuple(args)
 
 
 def _proof_limits_for_request(

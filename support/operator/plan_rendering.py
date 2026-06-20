@@ -17,6 +17,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from brick_protocol.link.movement import MOVEMENT_LITERALS
+from brick_protocol.agent.spec import CASTING_FIELDS, CastingField
 
 from brick_protocol.support.operator.building_operation_common import (
     COMPACT_LINK_GATE_TOKENS,
@@ -323,6 +324,14 @@ def _step_adapter_and_model_selection(
 ) -> tuple[str | None, str | None]:
     """Resolve step-level provider selection without authoring Agent identity.
 
+    E2/S6 (mirror M5): the two per-dial ladders are now ONE generic resolver
+    (``_resolve_casting_field``) driven by ``CASTING_FIELDS`` descriptor DATA. The
+    orchestrator LOOPS the casting field-set in order; the fail-closed adapter dial
+    resolves first and records its SOURCE, and the deferrable model dial couples to
+    that source via ``inherits_source_of``. The constitutional asymmetry (adapter
+    explicit-or-fail; model deferrable, coupled to the chosen adapter) is the
+    descriptor data, not two code paths.
+
     Adapter ladder: explicit step declaration > Agent Object preferred_adapter_ref >
     verdict non-local floor > building-level declaration. Model ladder: explicit
     step declaration > Agent Object preferred_model_ref when the adapter came
@@ -331,22 +340,34 @@ def _step_adapter_and_model_selection(
     re-stamped on the step, preserving the existing step->plan fallback shape.
     """
 
-    selected_adapter_ref, adapter_source, agent_object = _step_selected_adapter_ref(
-        repo,
-        raw_step=raw_step,
-        agent_object_ref=agent_object_ref,
-        plan_selected_adapter_ref=plan_selected_adapter_ref,
-        label=label,
-        is_verdict_bearing_node=is_verdict_bearing_node,
-    )
-    selected_model_ref = _step_selected_model_ref(
-        raw_step,
-        agent_object=agent_object,
-        agent_object_ref=agent_object_ref,
-        adapter_source=adapter_source,
-        plan_selected_model_ref=plan_selected_model_ref,
-        label=label,
-    )
+    plan_default_by_field = {
+        "preferred_adapter_ref": plan_selected_adapter_ref,
+        "preferred_model_ref": plan_selected_model_ref,
+    }
+    # Per-field resolved (value, source); the model dial reads the adapter dial's
+    # source + resolved Agent Object via its ``inherits_source_of`` coupling.
+    resolved: dict[str, tuple[str | None, str | None]] = {}
+    agent_object: Mapping[str, Any] | None = None
+    selected_adapter_ref: str | None = None
+    adapter_source: str | None = None
+    selected_model_ref: str | None = None
+    for descriptor in CASTING_FIELDS:
+        value, source, agent_object = _resolve_casting_field(
+            descriptor,
+            repo,
+            raw_step=raw_step,
+            agent_object=agent_object,
+            agent_object_ref=agent_object_ref,
+            plan_default=plan_default_by_field[descriptor.field_name],
+            resolved=resolved,
+            label=label,
+            is_verdict_bearing_node=is_verdict_bearing_node,
+        )
+        resolved[descriptor.field_name] = (value, source)
+        if descriptor.field_name == "preferred_adapter_ref":
+            selected_adapter_ref, adapter_source = value, source
+        elif descriptor.field_name == "preferred_model_ref":
+            selected_model_ref = value
     rendered_adapter_ref = (
         selected_adapter_ref
         if adapter_source != _STEP_ADAPTER_SOURCE_BUILDING_DEFAULT
@@ -355,49 +376,91 @@ def _step_adapter_and_model_selection(
     return rendered_adapter_ref, selected_model_ref
 
 
-def _step_selected_adapter_ref(
+def _resolve_casting_field(
+    descriptor: CastingField,
     repo: Path,
     *,
     raw_step: Mapping[str, Any],
+    agent_object: Mapping[str, Any] | None,
     agent_object_ref: str,
-    plan_selected_adapter_ref: str,
+    plan_default: str,
+    resolved: Mapping[str, tuple[str | None, str | None]],
     label: str,
-    is_verdict_bearing_node: bool = False,
-) -> tuple[str, str, Mapping[str, Any] | None]:
-    raw_step_adapter = raw_step.get("selected_adapter_ref")
-    agent_object: Mapping[str, Any] | None = None
-    if raw_step_adapter is not None:
-        selected = _clean_selected_adapter_ref(
-            f"{label}.selected_adapter_ref",
-            raw_step_adapter,
-        )
-        source = _STEP_ADAPTER_SOURCE_STEP_DECLARATION
-    else:
-        agent_object = _agent_object_for_selection(repo, agent_object_ref, label=label)
-        preferred = agent_object.get("preferred_adapter_ref")
-        if preferred is not None:
+    is_verdict_bearing_node: bool,
+) -> tuple[str | None, str | None, Mapping[str, Any] | None]:
+    """Resolve ONE casting dial from its descriptor POLICY.
+
+    The single generic resolver behind both ladders (E2/S6 mirror M5). The
+    asymmetry is descriptor DATA:
+
+      * ``fail_closed`` True (adapter) -> the explicit-or-fail ladder: explicit
+        step ``selected_<rest>`` > Agent Object ``preferred_<field>`` lane
+        preference > (verdict-bearing) non-local floor > building-level default
+        (CLEANED, never absent — support does NOT default the adapter away). The
+        resolved value is validated against the Agent Object and a verdict-bearing
+        node rejects a local adapter. Returns (value, source, agent_object) so the
+        model dial can couple to the chosen adapter source.
+      * ``fail_closed`` False (model) -> the deferrable ladder: explicit step
+        ``selected_<rest>`` > Agent Object ``preferred_<field>`` ONLY when the
+        ``inherits_source_of`` dial (the adapter) came from the lane preference >
+        the ``default_ref`` sentinel when that dial is non-default > else clean the
+        plan default and DEFER (None). Returns (value, None, agent_object).
+
+    Byte-identical to the prior ``_step_selected_adapter_ref`` /
+    ``_step_selected_model_ref`` ladders.
+    """
+
+    selected_key = "selected_" + descriptor.field_name.removeprefix("preferred_")
+    raw_step_value = raw_step.get(selected_key)
+
+    if descriptor.fail_closed:
+        # ADAPTER dial: explicit-or-fail ladder.
+        if raw_step_value is not None:
             selected = _clean_selected_adapter_ref(
-                f"{agent_object_ref}.preferred_adapter_ref",
-                preferred,
+                f"{label}.{selected_key}",
+                raw_step_value,
             )
-            source = _STEP_ADAPTER_SOURCE_LANE_PREFERENCE
-        elif is_verdict_bearing_node:
-            selected = _verdict_non_local_floor(
-                agent_object,
-                agent_object_ref=agent_object_ref,
-                label=label,
-            )
-            source = _STEP_ADAPTER_SOURCE_VERDICT_FLOOR
+            source = _STEP_ADAPTER_SOURCE_STEP_DECLARATION
         else:
-            selected = _clean_selected_adapter_ref(
-                "selected_adapter_ref",
-                plan_selected_adapter_ref,
-            )
-            source = _STEP_ADAPTER_SOURCE_BUILDING_DEFAULT
-    if is_verdict_bearing_node and selected == _LOCAL_ADAPTER_REF:
-        raise ValueError(f"{label}: verdict-bearing node needs a non-local adapter")
-    _validate_step_adapter_ref(repo, agent_object_ref, selected, label=label)
-    return selected, source, agent_object
+            agent_object = _agent_object_for_selection(repo, agent_object_ref, label=label)
+            preferred = agent_object.get(descriptor.field_name)
+            if preferred is not None:
+                selected = _clean_selected_adapter_ref(
+                    f"{agent_object_ref}.{descriptor.field_name}",
+                    preferred,
+                )
+                source = _STEP_ADAPTER_SOURCE_LANE_PREFERENCE
+            elif is_verdict_bearing_node:
+                selected = _verdict_non_local_floor(
+                    agent_object,
+                    agent_object_ref=agent_object_ref,
+                    label=label,
+                )
+                source = _STEP_ADAPTER_SOURCE_VERDICT_FLOOR
+            else:
+                selected = _clean_selected_adapter_ref(
+                    selected_key,
+                    plan_default,
+                )
+                source = _STEP_ADAPTER_SOURCE_BUILDING_DEFAULT
+        if is_verdict_bearing_node and selected == _LOCAL_ADAPTER_REF:
+            raise ValueError(f"{label}: verdict-bearing node needs a non-local adapter")
+        _validate_step_adapter_ref(repo, agent_object_ref, selected, label=label)
+        return selected, source, agent_object
+
+    # MODEL dial (deferrable, coupled to the adapter via inherits_source_of).
+    if raw_step_value is not None:
+        return _clean_text(f"{label}.{selected_key}", raw_step_value), None, agent_object
+    inherited = resolved.get(descriptor.inherits_source_of or "")
+    inherited_source = inherited[1] if inherited is not None else None
+    if inherited_source == _STEP_ADAPTER_SOURCE_LANE_PREFERENCE and isinstance(agent_object, Mapping):
+        preferred = agent_object.get(descriptor.field_name)
+        if preferred is not None:
+            return _clean_text(f"{agent_object_ref}.{descriptor.field_name}", preferred), None, agent_object
+    if inherited_source != _STEP_ADAPTER_SOURCE_BUILDING_DEFAULT:
+        return descriptor.default_ref, None, agent_object
+    _clean_text(selected_key, plan_default)
+    return None, None, agent_object
 
 
 def _verdict_non_local_floor(
@@ -442,28 +505,6 @@ def _is_verdict_bearing_node(
         step_template.get("performer_lane_need") or step_template.get("role_need") or ""
     ).strip().lower()
     return lane_need in _VERDICT_LANE_NEEDS
-
-
-def _step_selected_model_ref(
-    raw_step: Mapping[str, Any],
-    *,
-    agent_object: Mapping[str, Any] | None,
-    agent_object_ref: str,
-    adapter_source: str,
-    plan_selected_model_ref: str,
-    label: str,
-) -> str | None:
-    raw_step_model = raw_step.get("selected_model_ref")
-    if raw_step_model is not None:
-        return _clean_text(f"{label}.selected_model_ref", raw_step_model)
-    if adapter_source == _STEP_ADAPTER_SOURCE_LANE_PREFERENCE and isinstance(agent_object, Mapping):
-        preferred_model = agent_object.get("preferred_model_ref")
-        if preferred_model is not None:
-            return _clean_text(f"{agent_object_ref}.preferred_model_ref", preferred_model)
-    if adapter_source != _STEP_ADAPTER_SOURCE_BUILDING_DEFAULT:
-        return "model:default"
-    _clean_text("selected_model_ref", plan_selected_model_ref)
-    return None
 
 
 def _agent_object_for_selection(

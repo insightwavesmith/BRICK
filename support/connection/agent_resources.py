@@ -419,8 +419,6 @@ def _validate_agent_authority(role: str, agent_object: Mapping[str, Any], path: 
     hook_refs = set(agent_object.get("hook_refs", []))
     tool_policy_refs = set(agent_object.get("tool_policy_refs", []))
     adapter_refs = set(agent_object.get("adapter_refs", []))
-    preferred_adapter_ref = agent_object.get("preferred_adapter_ref")
-    preferred_model_ref = agent_object.get("preferred_model_ref")
     retired_adapters = sorted(adapter_refs & _RETIRED_WRITE_ADAPTER_REFS)
     if retired_adapters:
         raise AgentResourceError(
@@ -453,29 +451,45 @@ def _validate_agent_authority(role: str, agent_object: Mapping[str, Any], path: 
     unknown_adapters = sorted(adapter_refs - _ALLOWED_ADAPTER_REFS)
     if unknown_adapters:
         raise AgentResourceError(f"{path}: unknown adapter_refs: {', '.join(unknown_adapters)}")
-    if preferred_adapter_ref is not None:
-        if not isinstance(preferred_adapter_ref, str) or not preferred_adapter_ref.strip():
-            raise AgentResourceError(f"{path}: preferred_adapter_ref must be non-empty text")
-        preferred_adapter_ref = preferred_adapter_ref.strip()
-        if preferred_adapter_ref not in adapter_refs:
-            raise AgentResourceError(
-                f"{path}: preferred_adapter_ref must be one of adapter_refs: "
-                f"{preferred_adapter_ref}"
-            )
-    if preferred_model_ref is not None:
-        if not isinstance(preferred_model_ref, str) or not preferred_model_ref.strip():
-            raise AgentResourceError(f"{path}: preferred_model_ref must be non-empty text")
-        preferred_model_ref = preferred_model_ref.strip()
-        if preferred_adapter_ref is None:
-            raise AgentResourceError(f"{path}: preferred_model_ref requires preferred_adapter_ref")
-        if _MODEL_PROVIDER_BY_ADAPTER.get(preferred_adapter_ref) is None:
-            raise AgentResourceError(
-                f"{path}: preferred_model_ref requires preferred_adapter_ref with admitted model provider"
-            )
-        try:
-            _validate_model_ref_for_adapter(preferred_adapter_ref, preferred_model_ref)
-        except ValueError as exc:
-            raise AgentResourceError(f"{path}: preferred_model_ref rejected: {exc}") from exc
+    # E2/S6 (mirror M9): per-dial validation LOOPS CASTING_FIELDS instead of two
+    # hand blocks. The constitutional asymmetry is descriptor DATA: the fail-closed
+    # adapter dial must be a member of the Agent Object's own adapter_refs; the
+    # deferrable model dial (``inherits_source_of`` the adapter) requires the
+    # adapter dial to be present AND to carry an admitted model provider, then
+    # validates the model ref against it. Each cleaned ``preferred_*`` value is
+    # threaded so the model dial can read the (post-strip) adapter it inherits.
+    # Byte-identical accept/raise + messages to the prior blocks (adapter dial
+    # validated first, exactly as before).
+    cleaned: dict[str, str | None] = {}
+    for descriptor in CASTING_FIELDS:
+        value = agent_object.get(descriptor.field_name)
+        if value is None:
+            cleaned[descriptor.field_name] = None
+            continue
+        if not isinstance(value, str) or not value.strip():
+            raise AgentResourceError(f"{path}: {descriptor.field_name} must be non-empty text")
+        value = value.strip()
+        cleaned[descriptor.field_name] = value
+        if descriptor.fail_closed:
+            if value not in adapter_refs:
+                raise AgentResourceError(
+                    f"{path}: {descriptor.field_name} must be one of adapter_refs: "
+                    f"{value}"
+                )
+        else:
+            inherited = cleaned.get(descriptor.inherits_source_of or "")
+            if inherited is None:
+                raise AgentResourceError(
+                    f"{path}: {descriptor.field_name} requires {descriptor.inherits_source_of}"
+                )
+            if _MODEL_PROVIDER_BY_ADAPTER.get(inherited) is None:
+                raise AgentResourceError(
+                    f"{path}: {descriptor.field_name} requires {descriptor.inherits_source_of} with admitted model provider"
+                )
+            try:
+                _validate_model_ref_for_adapter(inherited, value)
+            except ValueError as exc:
+                raise AgentResourceError(f"{path}: {descriptor.field_name} rejected: {exc}") from exc
     write_capable_adapter_refs = sorted(
         adapter_ref
         for adapter_ref in adapter_refs

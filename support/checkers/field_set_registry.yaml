@@ -25,16 +25,21 @@ schema: field-set-registry/v1
 
 field_sets:
   # CASTING field-set (Agent axis WHO-dials: which performer + which brain).
-  # Single source today: the CASTING_FIELDS descriptor tuple in
-  # support/operator/primitives.py — every consumer derives its names from this
-  # tuple (NODE_CASTING_FIELDS, the Agent-object allowlist, the casting_bag/
-  # stamp_casting transport helpers). The member-set below is the set of
-  # CastingField.field_name values; it is enumerated as a literal NOWHERE else on
-  # the tree (the contracts.py `AgentObjectContractData` scalars are interleaved
-  # inside the FULL Agent-object field-list, not a standalone casting-only literal,
-  # so they are not a member-set match — that mirror collapses to the bag in S7).
+  # Single source: the CASTING_FIELDS descriptor tuple on the AGENT axis at
+  # agent/spec.py (E2/S6 moved it there from support/operator/primitives.py — the
+  # casting dials are Agent-axis property, not support mechanics). Every consumer
+  # derives its names from this tuple (NODE_CASTING_FIELDS, the Agent-object
+  # allowlist, the casting_bag/stamp_casting transport helpers, the generic
+  # resolver/validator/spawn loops). agent/spec.py is the axis module (not under
+  # support/), so its definition is the single source and is never scanned by this
+  # guard; primitives.py now RE-IMPORTS the names (a re-import is not a field-set
+  # enumeration). The member-set below is the set of CastingField.field_name
+  # values; it is enumerated as a literal NOWHERE under support/ (the contracts.py
+  # `AgentObjectContractData` scalars are interleaved inside the FULL Agent-object
+  # field-list, not a standalone casting-only literal, so they are not a member-set
+  # match — that mirror collapses to the bag in S7).
   - name: casting_fields
-    defining_module: support/operator/primitives.py
+    defining_module: agent/spec.py
     source_symbol: CASTING_FIELDS
     members:
       - preferred_adapter_ref

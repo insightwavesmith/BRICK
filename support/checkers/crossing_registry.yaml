@@ -90,6 +90,31 @@ crossings:
     pinned_by: check_axis_contract_projection (check_agent_performance)
     is_axis_crossing: true
 
+  - crossing_id: agent_spec
+    crossing: "Agent casting (WHO-dials single-source: performer + brain)"
+    seam: "Brick-plan->Agent"
+    owner_axis: Agent
+    canonical_contract: CASTING_FIELDS
+    canonical_symbols:
+      # E2/S6 (mirror M5+M6+M9): the casting field-set single-source on the Agent
+      # axis. The CastingField descriptor (resolution policy as DATA:
+      # fail_closed/default_ref/scope/inherits_source_of/cli_emit), the field-set
+      # itself, its selected_* projection + selected-key reader, and the casting
+      # transport helpers support imports through the canonical names. One generic
+      # resolver (plan_rendering), validator (agent_resources/rule_runners) and
+      # spawn projector (agent_adapter) read this data instead of two hand paths.
+      - CASTING_FIELDS
+      - CastingField
+      - NODE_CASTING_FIELDS
+      - selected_key
+      - casting_bag
+      - merge_casting_bags
+      - stamp_casting
+    defined_at: agent/spec.py
+    projection_yaml: ""
+    pinned_by: check_assembly_equivalence (loops CASTING_FIELDS; per-dial resolution byte-identical) + check_axis_field_set_single_source (casting_fields single-source) + adapter_model_selection cases
+    is_axis_crossing: true
+
   - crossing_id: brick_comparison
     crossing: "Agent->Brick (comparison)"
     seam: "Agent->Brick"
