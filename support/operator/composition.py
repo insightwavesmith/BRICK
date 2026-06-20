@@ -35,6 +35,7 @@ from brick_protocol.support.operator.building_operation_common import (
 from brick_protocol.support.operator.primitives import (
     INLINE_TASK_SOURCE_REF,
     INLINE_TASK_STATEMENT_MAX_BYTES,
+    NODE_CASTING_FIELDS,
 )
 from brick_protocol.support.operator.project_declaration import load_project_declaration
 from brick_protocol.support.recording.capture import buildings_root_for
@@ -669,8 +670,14 @@ def _materializer_write_scope(intent: Mapping[str, Any]) -> Mapping[str, Any] | 
     return dict(_mapping_value("write_scope", raw_write_scope))
 
 
+# The per-template override row admits the override-map KEY (``step_template_ref``)
+# plus the node-level ``selected_*`` casting keys. The casting half is NOT
+# re-enumerated here: it derives from the single-source ``NODE_CASTING_FIELDS``
+# projection (primitives.py, the ``selected_<rest>`` twin of ``CASTING_FIELDS``),
+# so a new casting field is admitted as an override with ZERO edit here. Only the
+# non-casting map-key ``step_template_ref`` is named locally.
 _STEP_SELECTION_OVERRIDE_KEYS = frozenset(
-    {"step_template_ref", "selected_adapter_ref", "selected_model_ref"}
+    {"step_template_ref", *NODE_CASTING_FIELDS}
 )
 
 
