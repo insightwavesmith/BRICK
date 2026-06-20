@@ -29,7 +29,10 @@ from brick_protocol.support.operator.composition import (
     compose_building,
     inline_task_source_carry,
 )
-from brick_protocol.support.connection.agent_resources import resolve_agent_object
+from brick_protocol.support.operator.plan_rendering import (
+    _LOCAL_ADAPTER_REF,
+    _is_verdict_bearing_node,
+)
 
 
 _FORBIDDEN_BRICK_KWARGS = frozenset(
@@ -54,8 +57,6 @@ _FORBIDDEN_BRICK_KWARGS = frozenset(
 _TRANSITION_CONCERN_FIELD = "transition_concern_evidence"
 _DEFAULT_BOUNDARY_REF = "building-boundary:closed"
 _PROPOSED_BUILDING_GRAPH_FILENAME = "proposed-building-graph.json"
-_LOCAL_ADAPTER_REF = "adapter:local"
-_VERDICT_LANE_NEEDS = frozenset({"reviewer", "leader"})
 _DERIVED_WORKTREE_WRITE_SCOPE = {
     "allowed_paths": ["."],
     "forbidden_paths": [".git/**"],
@@ -575,17 +576,9 @@ def _lower_graph(
             fan_in_source=spec in fan_in_sources,
             write_scope=write_scope,
         )
-        _default_verdict_adapter(
-            node,
-            spec=spec,
-            selected_adapter_ref=selected_adapter_ref,
-            repo=repo,
-            registry=registry,
-        )
         _reject_local_verdict_adapter(
             node,
             spec=spec,
-            selected_adapter_ref=selected_adapter_ref,
             registry=registry,
         )
         lowered_nodes.append(node)
@@ -670,85 +663,19 @@ def _lower_node(
     return node
 
 
-def _default_verdict_adapter(
-    node: dict[str, Any],
-    *,
-    spec: BrickSpec,
-    selected_adapter_ref: str,
-    repo: Path,
-    registry: Mapping[str, Any],
-) -> None:
-    if node.get("selected_adapter_ref"):
-        return
-    if selected_adapter_ref != _LOCAL_ADAPTER_REF:
-        return
-    if not _is_verdict_bearing_node(node, spec=spec, registry=registry):
-        return
-    agent_object_ref = _node_agent_object_ref(node, registry=registry)
-    adapter_refs = resolve_agent_object(agent_object_ref, repo_root=repo).get("adapter_refs", ())
-    if not isinstance(adapter_refs, Sequence) or isinstance(adapter_refs, (str, bytes)):
-        raise ValueError(f"{agent_object_ref} adapter_refs must be an array")
-    for adapter_ref in adapter_refs:
-        text = str(adapter_ref).strip()
-        if text and text != _LOCAL_ADAPTER_REF:
-            node["selected_adapter_ref"] = text
-            return
-    node_id = str(node.get("node_id", "")).strip() or spec.kind
-    raise ValueError(
-        f"verdict-bearing node {node_id} has no admitted non-local adapter on {agent_object_ref}"
-    )
-
-
-def _node_agent_object_ref(
-    node: Mapping[str, Any],
-    *,
-    registry: Mapping[str, Any],
-) -> str:
-    declared = str(node.get("agent_object_ref") or "").strip()
-    if declared:
-        return declared
-    step_template_ref = str(node.get("step_template_ref") or "").strip()
-    step_template = registry.get("step_templates", {}).get(step_template_ref)
-    if not isinstance(step_template, Mapping):
-        raise ValueError(f"step_template_ref does not resolve: {step_template_ref}")
-    agent_object_ref = str(step_template.get("agent_object_ref") or "").strip()
-    if not agent_object_ref:
-        raise ValueError(f"step_template_ref is missing agent_object_ref: {step_template_ref}")
-    return agent_object_ref
-
-
 def _reject_local_verdict_adapter(
     node: Mapping[str, Any],
     *,
     spec: BrickSpec,
-    selected_adapter_ref: str,
     registry: Mapping[str, Any],
 ) -> None:
-    effective_adapter_ref = str(node.get("selected_adapter_ref") or selected_adapter_ref).strip()
+    effective_adapter_ref = str(node.get("selected_adapter_ref") or "").strip()
     if effective_adapter_ref != _LOCAL_ADAPTER_REF:
         return
-    if not _is_verdict_bearing_node(node, spec=spec, registry=registry):
+    if not _is_verdict_bearing_node(node, registry=registry):
         return
     node_id = str(node.get("node_id", "")).strip() or spec.kind
     raise ValueError(f"verdict-bearing node {node_id} needs an explicit non-local adapter")
-
-
-def _is_verdict_bearing_node(
-    node: Mapping[str, Any],
-    *,
-    spec: BrickSpec,
-    registry: Mapping[str, Any],
-) -> bool:
-    if spec.kind == "closure":
-        return True
-    step_template_ref = str(node.get("step_template_ref", "")).strip()
-    step_template = registry.get("step_templates", {}).get(step_template_ref)
-    if not isinstance(step_template, Mapping):
-        return False
-    lane_need = str(
-        step_template.get("performer_lane_need") or step_template.get("role_need") or ""
-    ).strip().lower()
-    return lane_need in _VERDICT_LANE_NEEDS
 
 
 def _lower_edges(

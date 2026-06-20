@@ -1400,17 +1400,17 @@ preset_building_completion_case:
 # no_preset_chain_preset_ref FIRE asserts the seam HARD-FAILS (does not run a
 # Building) when the intent names a preset absent from the registry.
 building_intake_seam_case:
-  # C4 (0615): adapter:local SEAM coverage PRESERVED on a NON-QA, no-write-need
-  # preset. adapter:local is the in-process LOCAL-LLM stub (read-only); it must
-  # NOT drive a write-needing QA preset. onboarding-example-graph is the
-  # design->review->closure graph (no work step, no write_scope NEED), so the
-  # in-process seam still walks the dynamic walker to a complete frontier. The
-  # governed-change-review GATE-WIRING coverage moves to the codex-local
-  # fixtures below (where the write-needing QA bricks are walked for real).
-  - label: building-intake-seam-graph-adapter-local
+  # Preferred-adapter default seam coverage on a NON-QA, no-write-need preset.
+  # onboarding-example-graph is the design->review->closure graph (no work step,
+  # no write_scope NEED), so the deterministic non-local seam still walks the
+  # dynamic walker to a complete frontier while omitted per-step adapters resolve
+  # through Agent Object preferred_adapter_ref. The governed-change-review
+  # GATE-WIRING coverage stays in the codex-local fixtures below (where the
+  # write-needing QA bricks are walked for real).
+  - label: building-intake-seam-graph-preferred-claude
     task_source_ref: brick/templates/tasks/source-template.md
     chain_preset_ref: building-chain-preset:onboarding-example-graph
-    selected_adapter_ref: adapter:local
+    selected_adapter_ref: adapter:claude-local
     expected_plan_shape: graph
     expected_walker_mode: dynamic
     expected_frontier_kind: complete
@@ -3403,6 +3403,7 @@ compose_building_rejects:
 agent_resource_boundary:
   - role: coo
     lane: leader
+    preferred_adapter_ref: adapter:claude-local
     required_hook_refs:
       - hook:leader-write-need-gate
       - hook:unsafe-mutation-guard
@@ -3424,7 +3425,7 @@ agent_resource_boundary:
     hooks_execution_opened: false
   - role: pm-lead
     lane: leader
-    preferred_adapter_ref: adapter:codex-local
+    preferred_adapter_ref: adapter:claude-local
     required_hook_refs:
       - hook:leader-write-need-gate
       - hook:unsafe-mutation-guard
@@ -3441,6 +3442,7 @@ agent_resource_boundary:
     hooks_execution_opened: false
   - role: design-lead
     lane: leader
+    preferred_adapter_ref: adapter:claude-local
     required_hook_refs:
       - hook:leader-write-need-gate
       - hook:unsafe-mutation-guard
@@ -3457,6 +3459,7 @@ agent_resource_boundary:
     hooks_execution_opened: false
   - role: cto-lead
     lane: leader
+    preferred_adapter_ref: adapter:claude-local
     required_hook_refs:
       - hook:leader-write-need-gate
       - hook:unsafe-mutation-guard
@@ -3473,6 +3476,7 @@ agent_resource_boundary:
     hooks_execution_opened: false
   - role: qa-lead
     lane: leader
+    preferred_adapter_ref: adapter:claude-local
     required_hook_refs:
       - hook:leader-write-need-gate
       - hook:unsafe-mutation-guard
@@ -3489,6 +3493,7 @@ agent_resource_boundary:
     hooks_execution_opened: false
   - role: dev
     lane: worker
+    preferred_adapter_ref: adapter:codex-local
     required_hook_refs:
       - hook:unsafe-mutation-guard
       - hook:resource-ref-redaction
@@ -3512,6 +3517,7 @@ agent_resource_boundary:
   # claude-local, carried by the real qa/inspector Agent Objects).
   - role: qa
     lane: reviewer
+    preferred_adapter_ref: adapter:claude-local
     required_hook_refs:
       - hook:reviewer-no-mutation
       - hook:unsafe-mutation-guard
@@ -3531,6 +3537,7 @@ agent_resource_boundary:
     hooks_execution_opened: false
   - role: inspector
     lane: reviewer
+    preferred_adapter_ref: adapter:claude-local
     required_hook_refs:
       - hook:reviewer-no-mutation
       - hook:unsafe-mutation-guard
@@ -3780,7 +3787,7 @@ declared_step_template_plan_case:
       movement: forward
       target_ref: brick-closure
       agent_object_ref: agent-object:pm-lead
-      selected_adapter_ref: adapter:codex-local
+      selected_adapter_ref: adapter:claude-local
       selected_model_ref: model:default
       declared_gate_refs:
         - link-gate:default-transition

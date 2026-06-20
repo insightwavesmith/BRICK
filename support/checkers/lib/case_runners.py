@@ -1731,9 +1731,8 @@ def run_building_intake_seam_case(repo: Path, profile: Mapping[str, Any]) -> int
                     result.plan_path,
                     output_root=replay_root,
                     overwrite_existing=True,
-                    local_callables={
-                        "callable:local:agent-invoke0-smoke": seam_callable
-                    },
+                    local_callables=local_callables,
+                    command_runner=command_runner,
                     adapter_cwd=repo,
                     adapter_timeout_seconds=10,
                 )
@@ -1891,9 +1890,8 @@ def run_building_intake_seam_case(repo: Path, profile: Mapping[str, Any]) -> int
                     repo_root=repo,
                     output_root=retry_output,
                     overwrite_existing=False,
-                    local_callables={
-                        "callable:local:agent-invoke0-smoke": seam_callable
-                    },
+                    local_callables=local_callables,
+                    command_runner=command_runner,
                     adapter_cwd=repo,
                     adapter_timeout_seconds=10,
                 )
@@ -1903,9 +1901,8 @@ def run_building_intake_seam_case(repo: Path, profile: Mapping[str, Any]) -> int
                         repo_root=repo,
                         output_root=retry_output,
                         overwrite_existing=False,
-                        local_callables={
-                            "callable:local:agent-invoke0-smoke": seam_callable
-                        },
+                        local_callables=local_callables,
+                        command_runner=command_runner,
                         adapter_cwd=repo,
                         adapter_timeout_seconds=10,
                     )
@@ -2314,9 +2311,11 @@ def run_onboard_seam_case(repo: Path, profile: Mapping[str, Any]) -> int:
          Korean string. The example_result also records the adapter it used and the
          ``adapter_choice_basis`` (WHY), so the real-vs-local routing is auditable.
       3. HANDOFF-NAMES-SEAM: the closing handoff_message_ko NAMES the seam verb.
-      4. TERMINAL-FRONTIER: the default example runs on adapter:local through the
-         seam and reaches the expected terminal frontier with landed evidence
-         under the TEMP output_root (never the repo).
+      4. FRONTIER-EVIDENCE: the default example routes through the seam and
+         reaches the expected frontier with landed evidence under the TEMP
+         output_root (never the repo). After preferred step-adapter resolution,
+         no-provider machines may honestly record agent_incomplete for verdict
+         rows that resolve to non-local preferred adapters.
       5. NEVER-RAISES-MISSING-PROVIDER: a bogus / missing-provider host stays
          ok-friendly (no raise) and STILL routes the friendly fallback through the
          seam on adapter:local.
@@ -3744,6 +3743,7 @@ def run_compose_building_case(repo: Path, profile: Mapping[str, Any]) -> int:
     if not items:
         return 0
     from support.operator.building_operation import compose_building, observe_building_frontier
+    from support.connection.agent_adapter import LocalCliCompleted
     from support.operator.plan_graph import _linear_plan_from_graph_plan
     from support.operator.plan_validation import validate_declared_building_plan
     from support.operator.run import run_building_plan
@@ -3901,6 +3901,7 @@ def run_compose_building_case(repo: Path, profile: Mapping[str, Any]) -> int:
                     local_callables={
                         "callable:local:agent-invoke0-smoke": _compose_building_ok_callable
                     },
+                    command_runner=_preset_completion_command_runner(LocalCliCompleted),
                     adapter_cwd=repo,
                     adapter_timeout_seconds=10,
                 )
@@ -5913,6 +5914,7 @@ def _adapter_capability_plan(
         "steps": [
             {
                 "step_ref": "adapter-capability-work",
+                "selected_adapter_ref": selected_adapter_ref,
                 "rows": [
                     brick_row,
                     {
@@ -8341,6 +8343,7 @@ def _linear_step(
         }
     return {
         "step_ref": step_ref,
+        "selected_adapter_ref": "adapter:local",
         "rows": [
             _brick_row(step_ref, brick_ref, source_facts=source_facts),
             _agent_row(step_ref),
@@ -8575,6 +8578,7 @@ def _graph_brick_step(
     return {
         "step_ref": step_ref,
         "completion_edge_ref": completion_edge_ref,
+        "selected_adapter_ref": "adapter:local",
         "rows": [
             _brick_row(step_ref, brick_ref, source_facts=source_facts),
             _agent_row(step_ref),

@@ -30,5 +30,6 @@
     "adapter:codex-local",
     "adapter:claude-local",
     "adapter:gemini-local"
-  ]
+  ],
+  "preferred_adapter_ref": "adapter:claude-local"
 }

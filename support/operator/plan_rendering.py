@@ -70,6 +70,8 @@ _RETIRED_WRITE_ADAPTER_REFS = frozenset(
         "adapter:claude-write-local",
     }
 )
+_LOCAL_ADAPTER_REF = "adapter:local"
+_VERDICT_LANE_NEEDS = frozenset({"reviewer", "leader"})
 
 
 # KIND REVERT (0611, Smith ruling): brick kind cto-assignment -> development
@@ -232,6 +234,10 @@ def _declared_step_from_step_template(
         plan_selected_adapter_ref=plan_selected_adapter_ref,
         plan_selected_model_ref=plan_selected_model_ref,
         label=f"steps[{index}]",
+        is_verdict_bearing_node=_is_verdict_bearing_node(
+            raw_step,
+            step_template=step_template,
+        ),
     )
 
     link["movement"] = movement
@@ -302,6 +308,7 @@ def _clean_selected_adapter_ref(label: str, value: str) -> str:
 _STEP_ADAPTER_SOURCE_BUILDING_DEFAULT = "building-default"
 _STEP_ADAPTER_SOURCE_STEP_DECLARATION = "step-declaration"
 _STEP_ADAPTER_SOURCE_LANE_PREFERENCE = "lane-preference"
+_STEP_ADAPTER_SOURCE_VERDICT_FLOOR = "verdict-non-local-floor"
 
 
 def _step_adapter_and_model_selection(
@@ -312,15 +319,17 @@ def _step_adapter_and_model_selection(
     plan_selected_adapter_ref: str,
     plan_selected_model_ref: str,
     label: str,
+    is_verdict_bearing_node: bool = False,
 ) -> tuple[str | None, str | None]:
     """Resolve step-level provider selection without authoring Agent identity.
 
     Ladder: explicit step declaration > Agent Object preferred_adapter_ref >
-    building-level declaration. The building-level fallback is validated against
-    the Agent Object but not re-stamped on the step, preserving the existing
-    step->plan fallback shape. A step/pref adapter stamp gets a step-level
-    model: explicit step model when declared, otherwise model:default so it does
-    not accidentally inherit a provider-specific building model.
+    verdict non-local floor > building-level declaration. The building-level
+    fallback is validated against the Agent Object but not re-stamped on the
+    step, preserving the existing step->plan fallback shape. A step/pref/floor
+    adapter stamp gets a step-level model: explicit step model when declared,
+    otherwise model:default so it does not accidentally inherit a
+    provider-specific building model.
     """
 
     selected_adapter_ref, adapter_source = _step_selected_adapter_ref(
@@ -329,6 +338,7 @@ def _step_adapter_and_model_selection(
         agent_object_ref=agent_object_ref,
         plan_selected_adapter_ref=plan_selected_adapter_ref,
         label=label,
+        is_verdict_bearing_node=is_verdict_bearing_node,
     )
     selected_model_ref = _step_selected_model_ref(
         raw_step,
@@ -351,8 +361,10 @@ def _step_selected_adapter_ref(
     agent_object_ref: str,
     plan_selected_adapter_ref: str,
     label: str,
+    is_verdict_bearing_node: bool = False,
 ) -> tuple[str, str]:
     raw_step_adapter = raw_step.get("selected_adapter_ref")
+    agent_object: Mapping[str, Any] | None = None
     if raw_step_adapter is not None:
         selected = _clean_selected_adapter_ref(
             f"{label}.selected_adapter_ref",
@@ -368,14 +380,67 @@ def _step_selected_adapter_ref(
                 preferred,
             )
             source = _STEP_ADAPTER_SOURCE_LANE_PREFERENCE
+        elif is_verdict_bearing_node:
+            selected = _verdict_non_local_floor(
+                agent_object,
+                agent_object_ref=agent_object_ref,
+                label=label,
+            )
+            source = _STEP_ADAPTER_SOURCE_VERDICT_FLOOR
         else:
             selected = _clean_selected_adapter_ref(
                 "selected_adapter_ref",
                 plan_selected_adapter_ref,
             )
             source = _STEP_ADAPTER_SOURCE_BUILDING_DEFAULT
+    if is_verdict_bearing_node and selected == _LOCAL_ADAPTER_REF:
+        raise ValueError(f"{label}: verdict-bearing node needs a non-local adapter")
     _validate_step_adapter_ref(repo, agent_object_ref, selected, label=label)
     return selected, source
+
+
+def _verdict_non_local_floor(
+    agent_object: Mapping[str, Any],
+    *,
+    agent_object_ref: str,
+    label: str,
+) -> str:
+    adapter_refs = agent_object.get("adapter_refs")
+    if not isinstance(adapter_refs, Sequence) or isinstance(adapter_refs, (str, bytes)):
+        raise ValueError(f"{label}: Agent Object adapter_refs must be an array")
+    for adapter_ref in adapter_refs:
+        selected = _clean_selected_adapter_ref(
+            f"{agent_object_ref}.adapter_refs",
+            str(adapter_ref).strip(),
+        )
+        if selected != _LOCAL_ADAPTER_REF:
+            return selected
+    raise ValueError(f"{label}: verdict-bearing node has no admitted non-local adapter")
+
+
+def _is_verdict_bearing_node(
+    node: Mapping[str, Any],
+    *,
+    step_template: Mapping[str, Any] | None = None,
+    registry: Mapping[str, Any] | None = None,
+) -> bool:
+    step_template_ref = str(node.get("step_template_ref") or "").strip()
+    if not step_template_ref and isinstance(step_template, Mapping):
+        step_template_ref = str(step_template.get("step_template_ref") or "").strip()
+    if step_template_ref.rsplit(":", 1)[-1] == "closure":
+        return True
+    if step_template is None and registry is not None:
+        step_templates = registry.get("step_templates", {})
+        if isinstance(step_templates, Mapping):
+            candidate = step_templates.get(step_template_ref)
+            if isinstance(candidate, Mapping):
+                step_template = candidate
+    if not isinstance(step_template, Mapping):
+        return False
+    lane_need = str(
+        step_template.get("performer_lane_need") or step_template.get("role_need") or ""
+    ).strip().lower()
+    return lane_need in _VERDICT_LANE_NEEDS
 
 
 def _step_selected_model_ref(

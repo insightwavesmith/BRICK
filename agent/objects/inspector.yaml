@@ -32,5 +32,6 @@
     "adapter:claude-local",
     "adapter:gemini-local",
     "adapter:gemini-api"
-  ]
+  ],
+  "preferred_adapter_ref": "adapter:claude-local"
 }

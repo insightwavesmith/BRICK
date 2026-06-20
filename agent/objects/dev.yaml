@@ -29,5 +29,6 @@
     "adapter:codex-local",
     "adapter:claude-local",
     "adapter:chat-session"
-  ]
+  ],
+  "preferred_adapter_ref": "adapter:codex-local"
 }

@@ -83,10 +83,10 @@ proof_limits:
   - not real-provider proof
   - not concurrency proof
 onboard_seam_case:
-  - label: onboarding example routes through the PART-1 seam (adapter:local default)
+  - label: onboarding example routes through the PART-1 seam (preferred-step adapter fallback)
     host: codex
     bogus_host: definitely-not-a-host
-    expected_frontier_kind: complete
+    expected_frontier_kind: agent_incomplete
 not_proven:
   - semantic correctness of Agent transition_concern_evidence
   - caller/COO disposition after a portfolio HOLD

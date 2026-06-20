@@ -4063,10 +4063,13 @@ def _assert_reporter_message_shape(report_sinks: Any) -> tuple[str, int]:
 
 
 def _assert_reporter_auto_wiring(repo: Path, reporter: Any, report_sinks: Any) -> tuple[str, str, str, int]:
+    from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
     from brick_protocol.support.operator.run import run_building_plan
     from brick_protocol.brick.work import parse_required_return_shape
+    from support.checkers.lib.case_runners import _preset_completion_command_runner
 
     inspected = 0
+    command_runner = _preset_completion_command_runner(LocalCliCompleted)
 
     def _brain(request: Any) -> Mapping[str, Any]:
         returned: dict[str, Any] = {}
@@ -4092,6 +4095,7 @@ def _assert_reporter_auto_wiring(repo: Path, reporter: Any, report_sinks: Any) -
                 output_root=output_root,
                 overwrite_existing=True,
                 local_callables={"callable:local:agent-invoke0-smoke": _brain},
+                command_runner=command_runner,
                 adapter_cwd=repo,
                 adapter_timeout_seconds=10,
                 report_env={},
@@ -4137,6 +4141,7 @@ def _assert_reporter_auto_wiring(repo: Path, reporter: Any, report_sinks: Any) -
                 output_root=output_root,
                 overwrite_existing=True,
                 local_callables={"callable:local:agent-invoke0-smoke": _brain},
+                command_runner=command_runner,
                 adapter_cwd=repo,
                 adapter_timeout_seconds=10,
                 report_env=fake_env,
@@ -4190,6 +4195,7 @@ def _assert_reporter_auto_wiring(repo: Path, reporter: Any, report_sinks: Any) -
                 output_root=output_root,
                 overwrite_existing=True,
                 local_callables={"callable:local:agent-invoke0-smoke": _brain},
+                command_runner=command_runner,
                 adapter_cwd=repo,
                 adapter_timeout_seconds=10,
                 report_env=fake_env,
@@ -4229,6 +4235,7 @@ def _assert_reporter_auto_wiring(repo: Path, reporter: Any, report_sinks: Any) -
             output_root=output_root,
             overwrite_existing=True,
             local_callables={"callable:local:agent-invoke0-smoke": _brain},
+            command_runner=command_runner,
             adapter_cwd=repo,
             adapter_timeout_seconds=10,
             report_env={},
@@ -4908,38 +4915,39 @@ def _reporter_auto_wire_plan(
             if index + 1 < len(step_kinds)
             else f"building-boundary:{building_id}-closed"
         )
-        steps.append(
+        step: dict[str, Any] = {
+            "step_ref": step_ref,
+            "step_template_ref": f"building-step-template:{kind}",
+        }
+        if kind == "work":
+            step["selected_adapter_ref"] = "adapter:local"
+        step["rows"] = [
             {
-                "step_ref": step_ref,
-                "step_template_ref": f"building-step-template:{kind}",
-                "rows": [
-                    {
-                        "axis": "Brick",
-                        "row_ref": f"brick-row:{step_ref}",
-                        "brick_work_ref": f"work:{step_ref}",
-                        "brick_instance_ref": brick_instance_ref,
-                        "work_statement": "Exercise reporter auto-wire notification projection.",
-                        "comparison_rule": "Support observes notification projection only.",
-                        "required_return_shape": "made_changes, observed_evidence, not_proven",
-                    },
-                    {
-                        "axis": "Agent",
-                        "row_ref": f"agent-row:{step_ref}",
-                        "agent_object_ref": "agent-object:dev",
-                    },
-                    {
-                        "axis": "Link",
-                        "row_ref": f"link-row:{step_ref}",
-                        "movement": "forward",
-                        "target_ref": next_target,
-                        "building_lifecycle": {
-                            "state": "closed",
-                            "reason": "reporter auto-wire probe closed boundary",
-                        },
-                    },
-                ],
-            }
-        )
+                "axis": "Brick",
+                "row_ref": f"brick-row:{step_ref}",
+                "brick_work_ref": f"work:{step_ref}",
+                "brick_instance_ref": brick_instance_ref,
+                "work_statement": "Exercise reporter auto-wire notification projection.",
+                "comparison_rule": "Support observes notification projection only.",
+                "required_return_shape": "made_changes, observed_evidence, not_proven",
+            },
+            {
+                "axis": "Agent",
+                "row_ref": f"agent-row:{step_ref}",
+                "agent_object_ref": "agent-object:dev",
+            },
+            {
+                "axis": "Link",
+                "row_ref": f"link-row:{step_ref}",
+                "movement": "forward",
+                "target_ref": next_target,
+                "building_lifecycle": {
+                    "state": "closed",
+                    "reason": "reporter auto-wire probe closed boundary",
+                },
+            },
+        ]
+        steps.append(step)
     plan: dict[str, Any] = {
         "plan_ref": f"building-plan:{building_id}",
         "owner_axis": "Brick",

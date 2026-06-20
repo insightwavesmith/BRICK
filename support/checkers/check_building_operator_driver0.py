@@ -112,6 +112,7 @@ def _child_plan(
         "steps": [
             {
                 "step_ref": f"{prefix}-step",
+                "selected_adapter_ref": "adapter:local",
                 "rows": [
                     {
                         "axis": "Brick",

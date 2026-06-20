@@ -42,6 +42,7 @@ from brick_protocol.support.operator.assembly import (
     persist_proposed_building_graph,
     reroute,
 )
+from brick_protocol.support.connection.agent_resources import resolve_agent_object
 from brick_protocol.support.operator.composition import CompositionError, compose_building
 from brick_protocol.support.operator.plan_rendering import _resolve_agent_for_need
 
@@ -328,6 +329,17 @@ def _step_for_kind(plan: Mapping[str, Any], kind: str) -> Mapping[str, Any]:
 
 def _effective_step_adapter(plan: Mapping[str, Any], step: Mapping[str, Any]) -> str:
     return str(step.get("selected_adapter_ref") or plan.get("selected_adapter_ref") or "").strip()
+
+
+def _preferred_adapter_ref(repo: Path, agent_object_ref: str) -> str:
+    resolution = resolve_agent_object(agent_object_ref, repo_root=repo)
+    agent_object = resolution.get("agent_object")
+    if not isinstance(agent_object, Mapping):
+        raise AssemblyEquivalenceError(f"{agent_object_ref} did not resolve an Agent Object")
+    preferred = str(agent_object.get("preferred_adapter_ref") or "").strip()
+    if not preferred:
+        raise AssemblyEquivalenceError(f"{agent_object_ref} has no preferred_adapter_ref")
+    return preferred
 
 
 def _with_temp_home(root: Path):
@@ -972,10 +984,14 @@ def _verdict_adapter_guard_fire(repo: Path) -> tuple[str, ...]:
     closure_step = _step_for_kind(default_closure.composed_plan, "closure")
     closure_adapter = _effective_step_adapter(default_closure.composed_plan, closure_step)
     closure_agent = str(_agent_row(closure_step).get("agent_object_ref", "")).strip()
-    if closure_adapter == "adapter:local" or not closure_adapter.startswith("adapter:"):
-        raise AssemblyEquivalenceError(f"closure omitted adapter did not default non-local: {closure_adapter}")
     if closure_agent != "agent-object:coo":
         raise AssemblyEquivalenceError(f"closure omitted agent did not resolve coo: {closure_agent}")
+    closure_expected_adapter = _preferred_adapter_ref(repo, closure_agent)
+    if closure_adapter != closure_expected_adapter:
+        raise AssemblyEquivalenceError(
+            "closure omitted adapter did not resolve the Agent Object preference: "
+            f"observed {closure_adapter}, expected {closure_expected_adapter}"
+        )
 
     default_reviewer = assemble(
         chain([brick("axis-attack-qa", "omitted reviewer adapter defaults non-local")]),
@@ -987,8 +1003,13 @@ def _verdict_adapter_guard_fire(repo: Path) -> tuple[str, ...]:
     )
     reviewer_step = _step_for_kind(default_reviewer.composed_plan, "axis-attack-qa")
     reviewer_adapter = _effective_step_adapter(default_reviewer.composed_plan, reviewer_step)
-    if reviewer_adapter == "adapter:local" or not reviewer_adapter.startswith("adapter:"):
-        raise AssemblyEquivalenceError(f"reviewer omitted adapter did not default non-local: {reviewer_adapter}")
+    reviewer_agent = str(_agent_row(reviewer_step).get("agent_object_ref", "")).strip()
+    reviewer_expected_adapter = _preferred_adapter_ref(repo, reviewer_agent)
+    if reviewer_adapter != reviewer_expected_adapter:
+        raise AssemblyEquivalenceError(
+            "reviewer omitted adapter did not resolve the Agent Object preference: "
+            f"observed {reviewer_adapter}, expected {reviewer_expected_adapter}"
+        )
 
     local_smoke = assemble(
         chain([brick("work", "non-verdict local smoke remains admissible")]),
@@ -1000,6 +1021,52 @@ def _verdict_adapter_guard_fire(repo: Path) -> tuple[str, ...]:
     )
     if local_smoke.selected_adapter_ref != "adapter:local":
         raise AssemblyEquivalenceError("non-verdict local smoke did not preserve adapter:local")
+    work_step = _step_for_kind(local_smoke.composed_plan, "work")
+    work_adapter = _effective_step_adapter(local_smoke.composed_plan, work_step)
+    work_agent = str(_agent_row(work_step).get("agent_object_ref", "")).strip()
+    work_expected_adapter = _preferred_adapter_ref(repo, work_agent)
+    if work_adapter != work_expected_adapter:
+        raise AssemblyEquivalenceError(
+            "non-verdict omitted adapter did not resolve the Agent Object preference: "
+            f"observed {work_adapter}, expected {work_expected_adapter}"
+        )
+
+    parity_assembly = assemble(
+        chain([brick("closure", "assembly and direct compose adapter parity")]),
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task="assemble direct compose adapter parity probe",
+        building_id="heart-phase0-assemble-compose-adapter-parity",
+        repo_root=repo,
+    )
+    parity_nodes, parity_edges, parity_groups = parity_assembly.as_compose_args()
+    try:
+        parity_direct = compose_building(
+            parity_nodes,
+            parity_edges,
+            groups=parity_groups,
+            declared_by=parity_assembly.declared_by,
+            repo_root=repo,
+            building_id=parity_assembly.building_id,
+            selected_adapter_ref=parity_assembly.selected_adapter_ref,
+            selected_model_ref=parity_assembly.selected_model_ref,
+            selected_shape_ref=parity_assembly.selected_shape_ref,
+            transition_concern_adoption=parity_assembly.transition_concern_adoption,
+        )
+    except CompositionError as exc:
+        raise AssemblyEquivalenceError(f"adapter parity direct compose rejected: {exc}") from exc
+    parity_assembly_step = _step_for_kind(parity_assembly.composed_plan, "closure")
+    parity_direct_step = _step_for_kind(parity_direct, "closure")
+    parity_assembly_adapter = _effective_step_adapter(
+        parity_assembly.composed_plan,
+        parity_assembly_step,
+    )
+    parity_direct_adapter = _effective_step_adapter(parity_direct, parity_direct_step)
+    if parity_assembly_adapter != parity_direct_adapter:
+        raise AssemblyEquivalenceError(
+            "assemble and direct compose selected different closure adapters: "
+            f"assemble {parity_assembly_adapter}, direct {parity_direct_adapter}"
+        )
 
     explicit_adapter = assemble(
         chain(
@@ -1019,11 +1086,12 @@ def _verdict_adapter_guard_fire(repo: Path) -> tuple[str, ...]:
         raise AssemblyEquivalenceError("explicit non-local adapter was not preserved")
 
     return (
-        "construction green observed: omitted closure adapter defaulted to admitted non-local adapter.",
-        "construction green observed: omitted reviewer adapter defaulted to admitted non-local adapter.",
+        "construction green observed: omitted closure adapter resolved the Agent Object preference.",
+        "construction green observed: omitted reviewer adapter resolved the Agent Object preference.",
         _assert_raises("explicit closure local adapter", ValueError, explicit_local_closure_probe),
         _assert_raises("explicit reviewer local adapter", ValueError, explicit_local_reviewer_probe),
-        "construction green observed: non-verdict local adapter smoke remains admissible.",
+        "construction green observed: non-verdict omitted work adapter resolved through the shared preference seam.",
+        "construction green observed: assemble and direct compose selected the same verdict adapter.",
         "construction green observed: explicit non-local adapter preserved for verdict node.",
     )
 

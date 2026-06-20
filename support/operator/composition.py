@@ -45,6 +45,7 @@ from brick_protocol.support.operator.plan_rendering import (
     _load_yaml_mapping,
     _load_shape_registry,
     _parse_compact_link_expression,
+    _is_verdict_bearing_node,
     _resolve_agent_for_need,
     _step_adapter_and_model_selection,
     _validate_declared_plan_projection,
@@ -2818,6 +2819,10 @@ def compose_building(
                     plan_selected_adapter_ref=plan_selected_adapter_ref,
                     plan_selected_model_ref=plan_selected_model_ref,
                     label=node_id,
+                    is_verdict_bearing_node=_is_verdict_bearing_node(
+                        raw_node,
+                        step_template=step_template,
+                    ),
                 )
             except ValueError as exc:
                 problems.append(

@@ -33,5 +33,5 @@
     "adapter:codex-local",
     "adapter:claude-local"
   ],
-  "preferred_adapter_ref": "adapter:codex-local"
+  "preferred_adapter_ref": "adapter:claude-local"
 }
