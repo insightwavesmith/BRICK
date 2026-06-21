@@ -1020,24 +1020,6 @@ modules:
     decomposition_target: ""
     pinned_by: declared_step_template_plan case (declared-plan rendering from shape-registry step templates + compact link expressions; reads declared movement literals via the canonical MOVEMENT_LITERALS contract; E2/S6 reads the casting field-set via the canonical CASTING_FIELDS contract for the one generic resolver; authors no Movement or route)
 
-  - module: support/operator/composition.py
-    layer: operator
-    role: operator
-    owns_crossings: []
-    consumes_crossings:
-      - agent_return_fact
-      - link_gate
-      - link_movement
-      - link_spec
-    imports_axis:
-      - agent/return_fact.py
-      - link/gate.py
-      - link/movement.py
-      - link/spec.py
-    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
-    decomposition_target: ""
-    pinned_by: compose_building case (compose_building Brick plan assembly + CompositionProblem collection; crosses to Link via the canonical movement/gate-ref + gate-concept translate_gate_concept contracts through plan_rendering / link/spec, authors no Movement or route)
-
   - module: support/operator/composition_problem.py
     layer: operator
     role: operator

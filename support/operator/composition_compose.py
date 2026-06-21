@@ -2,16 +2,13 @@
 
 The compose engine -- ``compose_building`` plus the private node/edge/gate
 assembly helpers it alone uses to lay out a caller/COO-declared graph Building
-Plan (the F core). PURE relocation out of composition.py: the members are cut
-VERBATIM (no logic/name/signature/order change). composition.py keeps a facade
-re-export so every existing ``from brick_protocol.support.operator.composition
-import X`` still resolves.
+Plan (the F core).
 
-Sibling helpers that still live in composition.py
-(``_chain_preset_requires_graph``, ``_chain_preset_requires_fan_in_groups``,
-``_chain_preset_steps``, ``_composition_brick_template_refs``,
-``_composition_brick_spec_refs``) are imported LAZILY inside the functions that
-use them to avoid an import cycle with composition.py.
+Sibling helpers (``_chain_preset_requires_graph``,
+``_chain_preset_requires_fan_in_groups``, ``_chain_preset_steps`` in
+composition_common; ``_composition_brick_template_refs``,
+``_composition_brick_spec_refs`` in composition_intent) are imported LAZILY
+inside the functions that use them to avoid an import cycle.
 """
 
 from __future__ import annotations
@@ -89,12 +86,14 @@ def compose_building(
     graph`` plan, then reuses the existing graph and Link validators.
     """
 
-    # Lazy sibling imports (cycle-avoid): these helpers still live in
-    # composition.py (shared with render_declared_step_template_plan), so they are
-    # imported in-function rather than at module top level.
-    from brick_protocol.support.operator.composition import (
+    # Lazy sibling imports (cycle-avoid): these helpers live in composition_common
+    # and composition_intent (shared with render_declared_step_template_plan), so
+    # they are imported in-function rather than at module top level.
+    from brick_protocol.support.operator.composition_common import (
         _chain_preset_requires_fan_in_groups,
         _chain_preset_requires_graph,
+    )
+    from brick_protocol.support.operator.composition_intent import (
         _composition_brick_spec_refs,
         _composition_brick_template_refs,
     )
@@ -787,9 +786,9 @@ def _composition_chain_preset(
 
 
 def _chain_preset_step_template_refs(preset: Mapping[str, Any]) -> tuple[str, ...]:
-    # Lazy sibling import (cycle-avoid): _chain_preset_steps still lives in
-    # composition.py.
-    from brick_protocol.support.operator.composition import _chain_preset_steps
+    # Lazy sibling import (cycle-avoid): _chain_preset_steps lives in
+    # composition_common.
+    from brick_protocol.support.operator.composition_common import _chain_preset_steps
 
     refs: list[str] = []
     for raw_step in _chain_preset_steps(preset):

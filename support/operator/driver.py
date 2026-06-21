@@ -24,12 +24,14 @@ from brick_protocol.support.connection.agent_adapter import (
     CommandRunner,
 )
 from brick_protocol.support.operator.building_operation import observe_building_frontier
-from brick_protocol.support.operator.composition import (
-    compose_building,
+from brick_protocol.support.operator.composition_compose import compose_building
+from brick_protocol.support.operator.composition_gate_translation import (
     declared_portfolio_gate_translations,
+    stamp_declared_portfolio_closure_gates,
+)
+from brick_protocol.support.operator.composition_intent import (
     inline_task_source_carry,
     materialize_building_intent,
-    stamp_declared_portfolio_closure_gates,
 )
 from brick_protocol.support.operator.contracts import BuildingPlanSupportResult
 from brick_protocol.support.operator.run import (

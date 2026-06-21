@@ -24,7 +24,6 @@ path_exists:
   - agent/skills/task_intake/SKILL.md
   - support/operator/run.py
   - support/operator/driver.py
-  - support/operator/composition.py
   - support/operator/auto_repair_replay.py
   - support/operator/building_operation.py
   - support/connection/mcp_projection.py

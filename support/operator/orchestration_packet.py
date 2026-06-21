@@ -18,7 +18,7 @@ from brick_protocol.support.operator.building_operation_common import (
     _rel,
     _repo_path,
 )
-from brick_protocol.support.operator.composition import render_declared_step_template_plan
+from brick_protocol.support.operator.composition_intent import render_declared_step_template_plan
 from brick_protocol.support.operator.coo_operating_chain import (
     closure_draft,
     coo_operating_chain_packet,

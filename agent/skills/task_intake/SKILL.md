@@ -309,9 +309,9 @@ name slack_payload_candidate and payload_delivery_scope_notes only as support
   delivery payload notes, not as route or Movement authority
 name partial_qa_reuse_not_proven when the task asks to reuse prior QA outputs
 name startup_path_candidate only as one of:
-  A: brick_protocol.support.operator.composition.materialize_building_intent
-  B: brick_protocol.support.operator.composition.render_declared_step_template_plan
-  C: brick_protocol.support.operator.composition.compose_building
+  A: brick_protocol.support.operator.composition_intent.materialize_building_intent
+  B: brick_protocol.support.operator.composition_intent.render_declared_step_template_plan
+  C: brick_protocol.support.operator.composition_compose.compose_building
   D: brick_protocol.support.operator.run.run_building_plan
   E: brick_protocol.support.operator.driver.run_declared_portfolio
   F: brick_protocol.support.operator.auto_repair_replay.run_declared_auto_repair_replay_case

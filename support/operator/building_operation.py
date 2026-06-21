@@ -33,7 +33,7 @@ Collaborator sublayer (each a registered module_registry.yaml row, G4):
   operator/ledger_projection.py          project orchestration-ledger read + view
   operator/coo_operating_chain.py        COO operating-chain / operator-loop / closure
   operator/plan_rendering.py             declared-plan rendering from step templates
-  operator/composition.py                compose_building Brick plan assembly
+  operator/composition_*.py              compose_building Brick plan assembly family
   operator/orchestration_packet.py       coo_run_orchestration read packet
   operator/native_dispatch.py            POSITION-A native-dispatch open/close seam
 
@@ -159,29 +159,39 @@ from brick_protocol.support.operator.plan_rendering import (
 )
 
 # compose_building Brick plan assembly (the case-runner import surface).
-from brick_protocol.support.operator.composition import (
+from brick_protocol.support.operator.composition_problem import (
     CompositionProblem,
     CompositionError,
+)
+from brick_protocol.support.operator.composition_intent import (
     materialize_building_intent,
     render_declared_step_template_plan,
+)
+from brick_protocol.support.operator.composition_compose import (
     compose_building,
     _composition_node_items,
     _composition_node_id,
     _composition_step_ref,
     _composition_brick_row,
     _composition_default_brick_ref,
-    _composition_slug,
     _composition_endpoint,
     _composition_terminal_target,
     _composition_declared_gate_refs,
     _composition_gate_text,
     _composition_edge_ref,
     _composition_link_edge,
+    _composition_agent_object_refs,
+)
+from brick_protocol.support.operator.composition_common import (
+    _composition_slug,
+    _composition_optional_text,
+)
+from brick_protocol.support.operator.composition_route_policy import (
     _composition_node_reroute_budgets,
+)
+from brick_protocol.support.operator.composition_graph_validate import (
     _composition_validator_problems,
     _composition_problem_from_validator,
-    _composition_agent_object_refs,
-    _composition_optional_text,
 )
 
 # coo_run_orchestration read packet.

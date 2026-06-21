@@ -335,8 +335,8 @@ def render_coo_operating_chain_context(repo_root: str | Path | None = None) -> d
     startup_surface_refs = [
         "brick_protocol.support.operator.run.run_building_plan",
         "brick_protocol.support.operator.driver.run_declared_portfolio",
-        "brick_protocol.support.operator.composition.render_declared_step_template_plan",
-        "brick_protocol.support.operator.composition.compose_building",
+        "brick_protocol.support.operator.composition_intent.render_declared_step_template_plan",
+        "brick_protocol.support.operator.composition_compose.compose_building",
         "brick_protocol.support.operator.auto_repair_replay.run_declared_auto_repair_replay_case",
     ]
     return {

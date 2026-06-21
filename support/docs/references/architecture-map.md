@@ -127,7 +127,7 @@ run_building_intake                support/operator/driver.py
   read task, confirm declared intent
         |
         v
-materialize_building_intent        support/operator/composition.py
+materialize_building_intent        support/operator/composition_intent.py
   chain preset -> declared steps (preset translation)
   gate stamping (declared gate refs)
   project_ref fail-close: referenced vessel must exist and load

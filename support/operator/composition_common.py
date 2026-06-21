@@ -9,11 +9,15 @@ quality. This module imports siblings DIRECTLY and must never import from
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Any
+
+from brick_protocol.support.operator.building_operation_common import _clean_text
 
 
 ROUTE_POLICY_PROVENANCE_CONSTITUTIONAL_DEFAULT = "constitutional-default"
+
+GRAPH_CHAIN_TARGET_MARKERS = ("parallel", "fan_in")
 
 
 def _materializer_step_template_slug(step_template_ref: str) -> str:
@@ -76,3 +80,55 @@ def _composition_optional_text(value: Any) -> str | None:
         return None
     text = value.strip()
     return text or None
+
+
+def _chain_preset_steps(preset: Mapping[str, Any]) -> tuple[Mapping[str, Any], ...]:
+    steps = preset.get("steps", ())
+    if not isinstance(steps, Sequence) or isinstance(steps, (str, bytes)):
+        return ()
+    return tuple(step for step in steps if isinstance(step, Mapping))
+
+
+def _chain_preset_requires_fan_in_groups(preset: Mapping[str, Any]) -> bool:
+    # E1 FULL-LEGO: an explicit graph_topology that DECLARES fan_in_groups needs
+    # the same graph-group + hard-graph-contract validation the positional
+    # parallel/fan-in markers trigger (the emitted plan must pass the SAME
+    # compose_building validators). Absent the key -> unchanged.
+    topology = preset.get("graph_topology")
+    if isinstance(topology, Mapping):
+        fan_in_groups = topology.get("fan_in_groups")
+        if (
+            isinstance(fan_in_groups, Sequence)
+            and not isinstance(fan_in_groups, (str, bytes))
+            and fan_in_groups
+        ):
+            return True
+    for raw_step in _chain_preset_steps(preset):
+        target_word = str(raw_step.get("target_word", "")).strip().lower()
+        if any(marker in target_word for marker in GRAPH_CHAIN_TARGET_MARKERS):
+            return True
+    gate_concepts = preset.get("gate_concept_profile", ())
+    if isinstance(gate_concepts, Sequence) and not isinstance(gate_concepts, (str, bytes)):
+        return any("fan-in" in str(item).lower() for item in gate_concepts)
+    return False
+
+
+def _chain_preset_requires_graph(preset: Mapping[str, Any]) -> bool:
+    if "node_reroute_budgets" in preset:
+        return True
+    return _chain_preset_requires_fan_in_groups(preset)
+
+
+def _validate_declared_brick_spec_ref(
+    raw_step: Mapping[str, Any],
+    step_template: Mapping[str, Any],
+    *,
+    label: str,
+) -> None:
+    supplied = raw_step.get("brick_spec_ref")
+    if supplied is None:
+        return
+    declared = _clean_text(f"{label}.brick_spec_ref", supplied)
+    expected = step_template.get("brick_spec_ref")
+    if declared != expected:
+        raise ValueError(f"{label}.brick_spec_ref must match the registered single-Brick spec")

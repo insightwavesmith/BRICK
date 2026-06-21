@@ -1,17 +1,14 @@
 """Preset -> graph declaration emit (composition concern submodule).
 
 Positional fan-out + declared-topology + sequential graph emitters plus the
-node/edge builders and the route-decision-basis carry. PURE relocation out of
-composition.py: the members are cut VERBATIM (no logic/name/signature/order
-change). composition.py keeps a facade re-export so every existing
-``from brick_protocol.support.operator.composition import X`` still resolves.
+node/edge builders and the route-decision-basis carry.
 
-Sibling helpers that still live in composition.py (compose_building,
-_chain_preset_steps, _validate_declared_brick_spec_ref,
-_materializer_reject_unused_step_selection_overrides,
-_materializer_preset_step_with_selection_override,
-_composition_gate_sequence_profile_steps) are imported LAZILY inside the
-functions that use them to avoid an import cycle with composition.py.
+Sibling helpers (compose_building in composition_compose; _chain_preset_steps +
+_validate_declared_brick_spec_ref in composition_common;
+_materializer_reject_unused_step_selection_overrides +
+_materializer_preset_step_with_selection_override in composition_intent;
+_composition_gate_sequence_profile_steps in composition_graph_validate) are
+imported LAZILY inside the functions that use them to avoid an import cycle.
 """
 
 from __future__ import annotations
@@ -77,7 +74,7 @@ def _materializer_graph_plan(
     write_scope: Mapping[str, Any] | None,
     step_selection_overrides: Mapping[str, Mapping[str, Any]],
 ) -> Mapping[str, Any]:
-    from brick_protocol.support.operator.composition import compose_building
+    from brick_protocol.support.operator.composition_compose import compose_building
 
     # Per-Building OVERRIDE (config cascade): the caller/COO MAY declare route
     # policy values on the intent that beat the preset default. Support reads them
@@ -235,11 +232,13 @@ def _materializer_graph_declaration(
     chain_preset_ref: str = "",
     step_selection_overrides: Mapping[str, Mapping[str, Any]] | None = None,
 ) -> Mapping[str, list[Mapping[str, Any]]]:
-    from brick_protocol.support.operator.composition import (
+    from brick_protocol.support.operator.composition_common import (
         _chain_preset_steps,
+        _validate_declared_brick_spec_ref,
+    )
+    from brick_protocol.support.operator.composition_intent import (
         _materializer_preset_step_with_selection_override,
         _materializer_reject_unused_step_selection_overrides,
-        _validate_declared_brick_spec_ref,
     )
 
     raw_steps = list(_chain_preset_steps(preset))
@@ -652,7 +651,7 @@ def _materializer_declared_graph_declaration(
     author declared and infers no extra route.
     """
 
-    from brick_protocol.support.operator.composition import (
+    from brick_protocol.support.operator.composition_common import (
         _validate_declared_brick_spec_ref,
     )
 
@@ -1003,7 +1002,7 @@ def _materializer_sequential_graph_declaration(
     override_reroute_budgets: Any = None,
     chain_preset_ref: str = "",
 ) -> Mapping[str, list[Mapping[str, Any]]]:
-    from brick_protocol.support.operator.composition import (
+    from brick_protocol.support.operator.composition_common import (
         _validate_declared_brick_spec_ref,
     )
 
@@ -1351,7 +1350,7 @@ def _materializer_gate_sequence_refs_for_edge(
     source_step_template_ref: str,
     target_step_template_ref: str,
 ) -> tuple[str, ...]:
-    from brick_protocol.support.operator.composition import (
+    from brick_protocol.support.operator.composition_graph_validate import (
         _composition_gate_sequence_profile_steps,
     )
 

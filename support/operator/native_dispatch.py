@@ -794,7 +794,7 @@ def close_native_dispatch_brick(
     # caller-supplied at open; support only wraps them in the fixed single-step
     # shape), and execution_path="native-dispatch" already distinguishes the
     # path, so no new vocabulary literal is invented here.
-    from support.operator.composition import LINEAR_COMPOSITION_MODE  # noqa: PLC0415
+    from support.operator.composition_intent import LINEAR_COMPOSITION_MODE  # noqa: PLC0415
 
     plan: dict[str, Any] = {
         "plan_ref": f"native-dispatch-plan:{prepared.building_id}",

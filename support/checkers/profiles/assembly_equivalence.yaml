@@ -6,7 +6,6 @@ kernel_checks:
 path_exists:
   - support/checkers/check_assembly_equivalence.py
   - support/checkers/profiles/assembly_equivalence.yaml
-  - support/operator/composition.py
   - brick/templates/presets/two-fan-in-graph.md
 proof_limits:
   - support evidence only

@@ -46,7 +46,8 @@ from brick_protocol.support.operator.assembly import (
     reroute,
 )
 from brick_protocol.support.connection.agent_resources import resolve_agent_object
-from brick_protocol.support.operator.composition import CompositionError, compose_building
+from brick_protocol.support.operator.composition_problem import CompositionError
+from brick_protocol.support.operator.composition_compose import compose_building
 from brick_protocol.support.operator.plan_rendering import _resolve_agent_for_need
 from brick_protocol.support.operator.primitives import CASTING_FIELDS
 

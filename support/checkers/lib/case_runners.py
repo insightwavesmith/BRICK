@@ -1081,7 +1081,7 @@ def run_preset_building_completion_case(repo: Path, profile: Mapping[str, Any]) 
         return 0
     from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
     from support.operator.building_operation import materialize_building_intent, observe_building_frontier
-    from support.operator.composition import _load_shape_registry
+    from support.operator.plan_rendering import _load_shape_registry
     from support.operator.driver import run_declared_portfolio
     from support.operator.run import run_building_plan
 
@@ -1852,7 +1852,7 @@ def run_building_intake_seam_case(repo: Path, profile: Mapping[str, Any]) -> int
             # with the existing declared-plan root instead of duplicating
             # roots. REDs if the derivation regresses to a random/per-call id
             # (a or c fails) or to a statement-independent slug (b fails).
-            from support.operator.composition import materialize_building_intent
+            from support.operator.composition_intent import materialize_building_intent
 
             derived_intent = {
                 key: value
@@ -2765,7 +2765,7 @@ def run_preset_ranking_packet_case(repo: Path, profile: Mapping[str, Any]) -> in
     from brick_protocol.support.connection.building_design_toolkit import (
         render_preset_ranking_packet,
     )
-    from brick_protocol.support.operator.composition import materialize_building_intent
+    from brick_protocol.support.operator.composition_intent import materialize_building_intent
 
     count = 0
     for item in items:
@@ -3131,7 +3131,7 @@ def _run_preset_completion_portfolio(
     # portfolio closure boundary), with provenance naming the declaring preset.
     # Expected refs come from the SAME single-source composition translation,
     # so a bypassed/duplicated translation cannot drift past this assertion.
-    from support.operator.composition import declared_portfolio_gate_translations
+    from support.operator.composition_gate_translation import declared_portfolio_gate_translations
 
     expected_gate_refs = tuple(
         declared_portfolio_gate_translations(portfolio_ref, repo_root=repo)["gate_refs"]
@@ -3758,7 +3758,7 @@ def run_compose_building_case(repo: Path, profile: Mapping[str, Any]) -> int:
     # per-building paths still resolve verbatim. Revert the guard (back to
     # `return "per-building"` for
     # absent/blank) and this probe goes RED.
-    from support.operator.composition import _composition_resolve_route_policy_provenance
+    from support.operator.composition_route_policy import _composition_resolve_route_policy_provenance
 
     for absent in (None, "", "   "):
         try:
@@ -3802,7 +3802,7 @@ def run_compose_building_case(repo: Path, profile: Mapping[str, Any]) -> int:
     # `if _composition_policy_target_ref(policy_row): return "target"` fallback and this
     # probe goes RED (support invents the action and the target-without-action row is
     # silently accepted). The explicit-action paths still resolve verbatim.
-    from support.operator.composition import _composition_policy_action
+    from support.operator.composition_graph_validate import _composition_policy_action
 
     inferred = _composition_policy_action(
         {"target_ref": "building-step-template:work"}
@@ -4690,7 +4690,7 @@ def run_native_dispatch_close_case(repo: Path, profile: Mapping[str, Any]) -> in
             # engine stamps for linear plans -- REDs if the stamp is lost OR if
             # native-dispatch drifts to a different literal), then the REAL
             # declaration-law validator is driven over the produced root.
-            from support.operator.composition import (  # noqa: PLC0415
+            from support.operator.composition_intent import (  # noqa: PLC0415
                 LINEAR_COMPOSITION_MODE,
             )
             from support.checkers.check_building_declaration_integrity import (  # noqa: PLC0415
@@ -5012,7 +5012,7 @@ def run_workflow_import_case(repo: Path, profile: Mapping[str, Any]) -> int:
         import_workflow_result,
         open_workflow_recording,
     )
-    from support.operator.composition import LINEAR_COMPOSITION_MODE
+    from support.operator.composition_intent import LINEAR_COMPOSITION_MODE
     from support.checkers.check_building_declaration_integrity import (
         validate_building_root,
     )
@@ -5546,7 +5546,7 @@ def _compose_building_profile_plan(case: Mapping[str, Any], repo: Path) -> Mappi
 def _graph_test_plan_from_linear(linear_plan: Mapping[str, Any]) -> Mapping[str, Any]:
     """Convert a checker-only forward linear plan into a graph plan via compose_building."""
 
-    from support.operator.composition import compose_building
+    from support.operator.composition_compose import compose_building
 
     if linear_plan.get("plan_shape") != "linear":
         raise ProfileError("_graph_test_plan_from_linear requires plan_shape: linear")

@@ -32,17 +32,19 @@ from brick_protocol.link.spec import (
     GATE_CONCEPT_TOKENS,
     translate_gate_concept,
 )
-from brick_protocol.support.operator.composition import (
+from brick_protocol.support.operator.composition_common import (
     _composition_slug,
-    _load_shape_registry,
-    _materializer_human_gate_hold_policy,
     _materializer_strip_field,
-    compose_building,
-    inline_task_source_carry,
 )
+from brick_protocol.support.operator.composition_compose import compose_building
+from brick_protocol.support.operator.composition_gate_translation import (
+    _materializer_human_gate_hold_policy,
+)
+from brick_protocol.support.operator.composition_intent import inline_task_source_carry
 from brick_protocol.support.operator.plan_rendering import (
     _LOCAL_ADAPTER_REF,
     _is_verdict_bearing_node,
+    _load_shape_registry,
 )
 
 

@@ -279,7 +279,7 @@ print(result.run_result.lifecycle_write.root)'
 (No `uv`? Replace `uv run python3` with `PYTHONPATH=support/import_identity python3` — that needs PyYAML installed for your global `python3`.)
 
 Intent dict fields (grounded in
-`support/operator/composition.py::materialize_building_intent` and the
+`support/operator/composition_intent.py::materialize_building_intent` and the
 `run_building_intake` driver seam):
 
 - `declared_by` (required) — a caller / COO declaration containing a

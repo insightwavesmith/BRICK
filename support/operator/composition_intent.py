@@ -2,12 +2,9 @@
 
 The caller/COO-facing materialization entrypoints that turn a confirmed task
 source + selected chain preset / step-template intent into declared Brick / Agent
-/ Link rows. Extracted VERBATIM from composition.py (cluster
-``composition_intent``); composition.py keeps a facade re-export so every existing
-``from brick_protocol.support.operator.composition import X`` still resolves. This
-module imports its siblings DIRECTLY and never imports composition.py at top level
-(cycle); the one back-reference (``_chain_preset_requires_graph``, which still
-lives in composition.py) is imported lazily in-function.
+/ Link rows (cluster ``composition_intent``). This module imports its siblings
+DIRECTLY; the one back-reference (``_chain_preset_requires_graph``, which lives in
+``composition_common``) is imported lazily in-function to avoid a cycle.
 """
 
 from __future__ import annotations
@@ -252,10 +249,10 @@ def render_declared_step_template_plan(
     Brick / Agent / Link rows.
     """
 
-    # Lazy sibling import (cycle-avoid): _chain_preset_requires_graph still
-    # lives in composition.py, so it is imported in-function rather than at
-    # module top level.
-    from brick_protocol.support.operator.composition import _chain_preset_requires_graph
+    # Lazy sibling import (cycle-avoid): _chain_preset_requires_graph lives in
+    # composition_common, so it is imported in-function rather than at module
+    # top level.
+    from brick_protocol.support.operator.composition_common import _chain_preset_requires_graph
 
     if not isinstance(intent, Mapping):
         raise TypeError("intent must be an object")

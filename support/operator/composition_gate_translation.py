@@ -145,7 +145,7 @@ def declared_portfolio_gate_translations(
     route, is a loud ValueError -- a declared label never silently evaporates.
     """
 
-    from brick_protocol.support.operator.composition import _chain_preset_steps
+    from brick_protocol.support.operator.composition_common import _chain_preset_steps
 
     repo = Path(repo_root).resolve() if repo_root is not None else Path.cwd().resolve()
     ref = _clean_text("chain_preset_ref", chain_preset_ref)
