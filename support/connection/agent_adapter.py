@@ -245,6 +245,40 @@ from .adapter_model_casting import (
     _NODE_CASTING_FIELDS_ORDERED_CACHE,
 )
 
+# FACADE re-export: the native-grant resolution + gemini admin-policy TOML +
+# work-envelope prompt build + structured-return extraction cluster now lives in
+# adapter_grant_policy (E2 split, extraction 5/7). agent_adapter STAYS A FACADE
+# for these symbols -- checkers, run.py and other call sites reach them late-bound
+# as agent_adapter.<sym> (and via `from agent_adapter import <sym>`), so EVERY
+# moved name (public AND underscore-private) is re-exported explicitly here. The
+# stay-behind carriers/constants/helpers those functions need at runtime
+# (AgentAdapterRequest, LocalCliSpec, _CANONICAL_TOOL_UNIVERSE_GEMINI,
+# _GEMINI_TOOLS_BY_NATIVE_CAPABILITY, _RETURN_JSON_FIELDS, _RETURN_LIST_FIELDS,
+# _TOP_LEVEL_VERDICT_KEYS, adapter_has_capability, agent_request_effective_write,
+# agent_request_read_tier, _required_return_shape_fields, _return_field_waivers,
+# _allowed_return_fields, _read_tier_policy_refs_for_request,
+# _source_fact_bodies_for_prompt, _transition_concern_schema_rules, _merge_texts,
+# _try_json_value, _node_casting_fields_ordered) are reached by
+# adapter_grant_policy via its module-level __getattr__ back-edge, so there is no
+# import cycle.
+from .adapter_grant_policy import (
+    _native_grant_resolution_for_request,
+    _native_capabilities_for_request,
+    _native_web_requested_for_request,
+    _adapter_projects_web_for_request,
+    _gemini_allowed_tool_names_for_request,
+    _gemini_admin_policy_partition_for_request,
+    _toml_tool_rule,
+    _gemini_admin_policy_for_request,
+    _build_prompt,
+    _instruction_packet_for_prompt,
+    _extract_required_return_fields,
+    _merge_structured_return_fields,
+    _structured_return_payload,
+    _clean_return_field_value,
+    _strip_code_fence,
+)
+
 _GEMINI_SOURCE_FACT_BODY_LIMIT = 4000
 _CLAUDE_NONINTERACTIVE_SYSTEM_PROMPT = (
     "You are a non-interactive Brick Protocol support evidence reviewer. "
@@ -752,92 +786,6 @@ def _read_tier_policy_refs_for_request(request: AgentAdapterRequest) -> frozense
     if request.adapter_ref == ADAPTER_GEMINI_LOCAL:
         return KNOWN_TOOL_POLICY_REFS
     return READ_TIER_TOOL_POLICY_REFS
-
-
-def _native_grant_resolution_for_request(
-    request: AgentAdapterRequest,
-    *,
-    write_need: bool | None = None,
-) -> Mapping[str, Any]:
-    resources = request.agent_instruction_packet.get("tool_policy_resources")
-    if resources is None:
-        resources = []
-    from .agent_resources import resolve_native_grant
-
-    return resolve_native_grant(
-        resources,
-        tool_policy_refs=list(request.tool_policy_refs),
-        write_need=bool(request.write_scope) if write_need is None else bool(write_need),
-    )
-
-
-def _native_capabilities_for_request(request: AgentAdapterRequest) -> frozenset[str]:
-    resolution = _native_grant_resolution_for_request(request)
-    capabilities = resolution.get("capabilities", ())
-    if not isinstance(capabilities, list):
-        return frozenset()
-    return frozenset(str(capability) for capability in capabilities)
-
-
-def _native_web_requested_for_request(request: AgentAdapterRequest) -> bool:
-    resolution = _native_grant_resolution_for_request(request)
-    return bool(resolution.get("web_requested"))
-
-
-def _adapter_projects_web_for_request(request: AgentAdapterRequest) -> bool:
-    return (
-        ADAPTER_CAPABILITY_WEB in _native_capabilities_for_request(request)
-        and adapter_has_capability(request.adapter_ref, ADAPTER_CAPABILITY_WEB)
-    )
-
-
-def _gemini_allowed_tool_names_for_request(request: AgentAdapterRequest) -> frozenset[str]:
-    capabilities = _native_capabilities_for_request(request)
-    allowed: set[str] = set()
-    for capability in (ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_WEB, ADAPTER_CAPABILITY_WRITE):
-        if capability in capabilities:
-            allowed.update(_GEMINI_TOOLS_BY_NATIVE_CAPABILITY.get(capability, frozenset()))
-    return frozenset(allowed)
-
-
-def _gemini_admin_policy_partition_for_request(
-    request: AgentAdapterRequest,
-) -> tuple[tuple[str, ...], tuple[str, ...]]:
-    allowed_set = _gemini_allowed_tool_names_for_request(request)
-    universe_set = set(_CANONICAL_TOOL_UNIVERSE_GEMINI)
-    unknown_allowed = sorted(allowed_set - universe_set)
-    if unknown_allowed:
-        raise ValueError(
-            "gemini native grant projected tools outside canonical universe: "
-            + ", ".join(unknown_allowed)
-        )
-    allowed = tuple(tool for tool in _CANONICAL_TOOL_UNIVERSE_GEMINI if tool in allowed_set)
-    denied = tuple(tool for tool in _CANONICAL_TOOL_UNIVERSE_GEMINI if tool not in allowed_set)
-    if set(allowed).intersection(denied) or set(allowed).union(denied) != universe_set:
-        raise ValueError("gemini native grant tool partition is not exhaustive")
-    return allowed, denied
-
-
-def _toml_tool_rule(tool_names: tuple[str, ...], *, decision: str, priority: int) -> str:
-    lines = [
-        "[[rule]]",
-        "toolName = [",
-        *[f'  "{tool_name}",' for tool_name in tool_names],
-        "]",
-        f'decision = "{decision}"',
-        f"priority = {priority}",
-    ]
-    return "\n".join(lines)
-
-
-def _gemini_admin_policy_for_request(request: AgentAdapterRequest) -> str:
-    allowed, denied = _gemini_admin_policy_partition_for_request(request)
-    blocks: list[str] = []
-    if allowed:
-        blocks.append(_toml_tool_rule(allowed, decision="allow", priority=998))
-    if denied:
-        blocks.append(_toml_tool_rule(denied, decision="deny", priority=999))
-    return "\n\n".join(blocks) + "\n"
 
 
 def probe_local_cli_adapter(
@@ -1671,135 +1619,6 @@ def _raw_text_from_completed(
     return output_text
 
 
-def _build_prompt(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
-    required_labels = _required_return_shape_fields(request.required_return_shape)
-    waiver_labels = _return_field_waivers(required_labels)
-    reserved_top_level_return_keys = ", ".join(sorted(_TOP_LEVEL_VERDICT_KEYS))
-    native_grant = _native_grant_resolution_for_request(request)
-    web_requested = bool(native_grant.get("web_requested"))
-    web_projected = _adapter_projects_web_for_request(request)
-    rules = [
-        "Do not claim source truth.",
-        "Do not judge success or quality.",
-        "Do not choose Link Movement.",
-        "Do not run git commit or git push.",
-        "Do not access or print setup tokens, auth bodies, credentials, or raw provider sessions.",
-        "Return concise text only.",
-        "Return one JSON object. The object may include only required_return_shape fields and listed return_field_waivers.",
-        "Do not use these reserved keys at the top level of the returned JSON object: "
-        + reserved_top_level_return_keys
-        + ".",
-        "If evidence is missing, put it under blocked_or_missing_evidence or not_proven inside that JSON object; do not invent fields.",
-    ]
-    if "transition_concern_evidence" in required_labels:
-        rules.extend(_transition_concern_schema_rules())
-    if agent_request_effective_write(request):
-        rules.extend(
-            (
-                "You may edit files only inside the Brick-declared write_scope.allowed_paths.",
-                "Do not edit files matching write_scope.forbidden_paths.",
-                "Do not execute hooks or provider SDKs.",
-                "Return non-judgmental support evidence only.",
-            )
-        )
-    elif agent_request_read_tier(request) or web_projected or (
-        web_requested and spec.adapter_ref == ADAPTER_CODEX_LOCAL
-    ):
-        admitted = ", ".join(sorted(_read_tier_policy_refs_for_request(request)))
-        if agent_request_read_tier(request):
-            rules.extend(
-                (
-                    "You may use read-only repository inspection tools only: read files, inspect diffs, search with grep/glob, and run checker commands.",
-                    f"Read tier is admitted for this adapter only by these Agent tool policies: {admitted}.",
-                )
-            )
-        elif web_requested and spec.adapter_ref == ADAPTER_CODEX_LOCAL:
-            rules.append(
-                "No adapter-native web tools are available on codex-local for this native_grant."
-            )
-        else:
-            rules.append(
-                "You may use only adapter-native web tools granted by native_grant; do not inspect repository files."
-            )
-        rules.extend(
-            (
-                "Do not edit, create, delete, or write files.",
-                "Do not run git mutations, including commit, push, checkout, reset, merge, rebase, or stash.",
-                "Do not execute hooks or provider SDKs.",
-                "Return non-judgmental support evidence only.",
-            )
-        )
-        if web_projected:
-            rules.append(
-                "Web access is adapter-projected from tool-policy:web-capable; use only the adapter-native web tools granted by native_grant."
-            )
-        elif web_requested and spec.adapter_ref == ADAPTER_CODEX_LOCAL:
-            rules.append("Web NOT available on this adapter; do not use network beyond the selected provider itself.")
-        else:
-            rules.append("Do not use network beyond the selected provider itself.")
-    else:
-        rules.append("Do not use tools or hooks.")
-    if spec.adapter_ref == ADAPTER_GEMINI_LOCAL:
-        if agent_request_read_tier(request) or web_projected:
-            rules.append(
-                "Gemini local native grant may use only read_file, glob, grep_search, search_file_content, list_directory, read_many_files, and when web-capable is present google_web_search/web_fetch; write and shell tools remain blocked."
-            )
-        rules.extend(
-            (
-                "Do not call exit_plan_mode or any plan-finalization tool.",
-                "Do not write output_packet_ref; it is an evidence label, not a file path.",
-                "Return the requested evidence in the CLI response text only.",
-            )
-        )
-    prompt = {
-        "task": "Return provider-neutral Brick Protocol support evidence only.",
-        "rules": rules,
-        "building_id": request.building_id,
-        "agent_object_ref": request.agent_object_ref,
-        "adapter_ref": spec.adapter_ref,
-        # E2/S6★: serialize the casting dials by LOOPING the single-source
-        # NODE_CASTING_FIELDS instead of naming the model dial. Each declared
-        # (truthy) ``selected_<base>`` value joins the bag; an undeclared dial is
-        # absent, so today this emits exactly ``selected_model_ref`` (byte-identical
-        # to the prior single key) and a NEW dial (effort) rides along when declared.
-        **{
-            _ck: getattr(request, _ck)
-            for _ck in _node_casting_fields_ordered()
-            if getattr(request, _ck)
-        },
-        "prompt_refs": list(request.prompt_refs),
-        "skill_refs": list(request.skill_refs),
-        "hook_refs": list(request.hook_refs),
-        "tool_policy_refs": list(request.tool_policy_refs),
-        "discipline_refs": list(request.discipline_refs),
-        "input_packet_ref": request.input_packet_ref,
-        "output_packet_ref": request.output_packet_ref,
-        "work_statement": request.work_statement,
-        "comparison_rule": request.comparison_rule,
-        "required_return_shape": request.required_return_shape,
-        "required_return_labels": list(required_labels),
-        "return_field_waivers": list(waiver_labels),
-        "source_fact_bodies": _source_fact_bodies_for_prompt(request, spec),
-        "link_handoff_refs": dict(request.link_handoff_refs),
-        "agent_instruction_packet": _instruction_packet_for_prompt(request, spec),
-        "native_grant": dict(native_grant),
-        "write_scope": dict(request.write_scope),
-        "building_session_ref": request.building_session_ref,
-        "session_scope_ref": request.session_scope_ref,
-        "session_continuity_mode": request.session_continuity_mode,
-    }
-    return json.dumps(prompt, ensure_ascii=True, sort_keys=True)
-
-
-def _instruction_packet_for_prompt(
-    request: AgentAdapterRequest,
-    spec: LocalCliSpec,
-) -> Mapping[str, Any]:
-    if not request.agent_instruction_packet:
-        return {}
-    return dict(request.agent_instruction_packet)
-
-
 def _transition_concern_schema_rules() -> tuple[str, ...]:
     allowed_keys = ", ".join(sorted(_TRANSITION_CONCERN_ALLOWED_KEYS))
     allowed_kinds = ", ".join(sorted(_TRANSITION_CONCERN_KINDS))
@@ -1815,54 +1634,6 @@ def _transition_concern_schema_rules() -> tuple[str, ...]:
         "For a reproduced defect, set related_boundary_refs to the upstream work node (not yourself/sentinel); put env/runtime constraints in not_proven, not a concern; reason_refs must not be /tmp filesystem paths.",
         "Do not put observation, disposition_note, candidate_pending_target_ref, secondary_concern_kind, route_target, target_ref, or movement inside transition_concern_evidence.",
     )
-
-
-def _extract_required_return_fields(
-    output_text: str,
-    required_return_shape: Any,
-) -> Mapping[str, Any]:
-    """Lift strictly structured Agent return fields from local CLI text.
-
-    This is a mechanical adapter normalization step. It only accepts a JSON
-    object returned by the Agent and only copies keys requested by
-    Brick.required_return_shape. It never infers Movement, target, success,
-    failure, approval, or quality fields from unstructured prose.
-    """
-
-    # Every declared, forbidden-filtered field (U2-3 richer kind shapes). The
-    # earlier `if field in _RETURN_LABEL_FIELDS` clause dropped fields the kind's
-    # required_return_shape declares but the label set never enumerated (e.g.
-    # work: received_work_ref / changed_files / commands_run / handoff_refs), so a
-    # model that DID return them lost them from AgentFact.returned and the gate
-    # reported them missing. This is safe: forbidden keys are stripped upstream
-    # (_required_return_shape_fields) AND re-checked downstream
-    # (_validate_returned_payload); an unknown declared field passes through
-    # _clean_return_field_value's else-branch verbatim; the JSON-shape guard
-    # (_structured_return_payload) is unchanged.
-    fields = _allowed_return_fields(required_return_shape)
-    if not fields:
-        return {}
-    payload = _structured_return_payload(output_text)
-    if payload is None:
-        return {}
-    extracted: dict[str, Any] = {}
-    for field in fields:
-        if field not in payload:
-            continue
-        extracted[field] = _clean_return_field_value(field, payload[field])
-    return extracted
-
-
-def _merge_structured_return_fields(
-    returned: dict[str, Any],
-    extracted: Mapping[str, Any],
-) -> None:
-    for key, value in extracted.items():
-        if key in {"evidence_refs", "not_proven", "proof_limits"} and key in returned:
-            returned[key] = list(_merge_texts(returned[key], value))
-            continue
-        if key not in returned:
-            returned[key] = value
 
 
 def _required_return_shape_fields(value: Any) -> tuple[str, ...]:
@@ -1886,41 +1657,6 @@ def _return_field_waivers(required_fields: Iterable[str]) -> tuple[str, ...]:
 def _allowed_return_fields(value: Any) -> tuple[str, ...]:
     required = _required_return_shape_fields(value)
     return tuple(dict.fromkeys((*required, *_return_field_waivers(required))))
-
-
-def _structured_return_payload(output_text: str) -> Mapping[str, Any] | None:
-    text = output_text.strip()
-    parsed = _try_json_value(_strip_code_fence(text))
-    if isinstance(parsed, Mapping):
-        return parsed
-    for match in re.finditer(r"(?s)```(?:json)?\s*(.*?)```", output_text):
-        parsed = _try_json_value(match.group(1).strip())
-        if isinstance(parsed, Mapping):
-            return parsed
-    return None
-
-
-def _clean_return_field_value(field: str, value: Any) -> Any:
-    if field in _RETURN_JSON_FIELDS:
-        return value
-    if field in _RETURN_LIST_FIELDS:
-        if isinstance(value, list):
-            return value
-        if isinstance(value, Mapping):
-            return [dict(value)]
-        if isinstance(value, str) and value.strip():
-            return [value.strip()]
-        return value
-    return value
-
-
-def _strip_code_fence(value: str) -> str:
-    text = value.strip()
-    if text.startswith("```") and text.endswith("```"):
-        lines = text.splitlines()
-        if len(lines) >= 2:
-            return "\n".join(lines[1:-1]).strip()
-    return text
 
 
 _GEMINI_CLIENT_ERROR_PATH_RE = re.compile(
