@@ -245,6 +245,13 @@ crossings:
     canonical_symbols:
       - GATE_CONCEPT_TOKEN_GATE_REFS
       - translate_gate_concept
+      # E2/S8 (mirror M15): the builder-declarable gate-concept token vocabulary
+      # + transition-concern adoption literals. The friendly builder ``Gate`` /
+      # ``Adoption`` enums (support/operator/assembly.py) DERIVE their ``.value``s
+      # from these single sources instead of re-stating Link tokens as literals.
+      - GATE_CONCEPT_MODE_TOKENS
+      - GATE_CONCEPT_TOKENS
+      - ADOPTION_LITERALS
       # E2/S4 (mirror M12+M13): the Link plan-level envelope grammar single-source.
       # The row-key + sub-envelope schema field-sets (allowed-keys, forbidden-keys,
       # value-markers, author/public-fact prefixes), the three distinct

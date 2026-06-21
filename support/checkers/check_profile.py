@@ -368,6 +368,28 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "axis_field_set_single_source",
         "support.checkers.check_axis_field_set_single_source",
     ),
+    # E2/S8 BUILDER-BYPASS-GUARD (STRUCTURE-DESIGN.md §7 guard 4 + §6). AST-scans
+    # the builder entrypoints (assembly.py + onboard/driver/cli) and REDs if the
+    # builder re-encodes an axis instead of consuming the API: (a) a PER-NODE
+    # casting carrier (AgentSpec/BrickSpec dataclass, brick()/agent() function)
+    # names a CASTING_FIELDS member (preferred_*/selected_*) as a scalar field/param
+    # instead of threading the opaque casting bag; (b) a Gate/Concern/Adoption enum
+    # hardcodes (>=2 of) an axis vocabulary (link/spec GATE_CONCEPT_TOKENS +
+    # ADOPTION_LITERALS, agent/return_fact TRANSITION_CONCERN_KINDS) as literals
+    # rather than deriving from it. The building-WIDE selection envelope
+    # (ComposedGraph/assemble/intent dict) is NOT a per-node carrier, so a single
+    # explicit building-wide selected_adapter_ref scalar there is not flagged.
+    # GUARD-FIRST: green on the current tree (carriers thread the bag, enums are
+    # axis-derived), RED on a NEW bypass. A non-zero main() raises ProfileError, so
+    # a re-encoding makes --all EXIT non-zero. Imports the axis vocab read-only to
+    # derive the member-sets it scans for; authors nothing.
+    # Mutation-RED: re-add a named adapter/model scalar field to AgentSpec, or
+    # `class Gate(Enum): STRICT_EVIDENCE = "strict-evidence"; COO_REVIEW =
+    # "coo-review"` -> this kernel check RED -> --all RED.
+    "builder_consumes_axis_api": _repo_main(
+        "builder_consumes_axis_api",
+        "support.checkers.check_builder_consumes_axis_api",
+    ),
     "bricks_spec_completeness": _repo_main(
         "bricks_spec_completeness",
         "support.checkers.check_bricks_spec_completeness",

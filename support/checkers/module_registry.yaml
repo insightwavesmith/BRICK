@@ -159,6 +159,16 @@ modules:
     decomposition_target: ""
     pinned_by: axis_field_set_single_source kernel check (E2/S0 mirror-guard + scatter-guard; registry-driven AST oracle, each registered axis field-set enumerated in exactly one single source)
 
+  - module: support/checkers/check_builder_consumes_axis_api.py
+    layer: checkers
+    role: oracle
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: builder_consumes_axis_api kernel check (E2/S8 builder-bypass-guard; AST oracle over the builder entrypoints — per-node casting carriers thread the opaque casting bag (no named CASTING_FIELDS member) and the Gate/Concern/Adoption enums derive from the axis vocab (no hardcoded gate/concern/adoption token))
+
   - module: support/checkers/check_bricks_spec_completeness.py
     layer: checkers
     role: checker
@@ -919,11 +929,15 @@ modules:
     owns_crossings: []
     consumes_crossings:
       - link_spec
+      - agent_spec
+      - agent_return_fact
     imports_axis:
       - link/spec.py
+      - agent/spec.py
+      - agent/return_fact.py
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
-    pinned_by: assembly_equivalence kernel check (HEART front door: refined 3-axis builder API; assemble() lowers caller STRUCTURE to compose_building (nodes, edges, groups) + consumes the Link-owned translate_gate_concept gate-concept translation, authors no Movement or route)
+    pinned_by: assembly_equivalence kernel check (HEART front door: refined 3-axis builder API; assemble() lowers caller STRUCTURE to compose_building (nodes, edges, groups), consumes the casting bag (agent/spec CASTING_FIELDS) + the Link-owned translate_gate_concept, and DERIVES its Gate/Concern/Adoption enums from the axis vocab (link/spec GATE_CONCEPT_TOKENS+ADOPTION_LITERALS, agent/return_fact TRANSITION_CONCERN_KINDS); authors no Movement or route) + builder_consumes_axis_api kernel check (builder-bypass-guard)
 
   - module: support/operator/orchestration_packet.py
     layer: operator

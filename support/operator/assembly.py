@@ -16,6 +16,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+from brick_protocol.agent.return_fact import TRANSITION_CONCERN_KINDS
 from brick_protocol.agent.spec import (
     CASTING_FIELDS,
     NODE_CASTING_FIELDS,
@@ -25,7 +26,11 @@ from brick_protocol.support.operator.building_operation_common import (
     DEFAULT_LINK_GATE_REF,
     REPO_ROOT,
 )
-from brick_protocol.link.spec import translate_gate_concept
+from brick_protocol.link.spec import (
+    ADOPTION_LITERALS,
+    GATE_CONCEPT_TOKENS,
+    translate_gate_concept,
+)
 from brick_protocol.support.operator.composition import (
     _composition_slug,
     _load_shape_registry,
@@ -125,28 +130,32 @@ _DERIVED_WORKTREE_WRITE_SCOPE = {
 }
 
 
-class Concern(Enum):
-    UPSTREAM_GAP = "upstream_gap"
-    BOUNDARY_MISMATCH = "boundary_mismatch"
-    INSUFFICIENT_INPUT = "insufficient_input"
-    REPLAY_NEEDED = "replay_needed"
-    UNKNOWN = "unknown"
-    DESIGN_GAP = "design_gap"
-    IMPLEMENTATION_GAP = "implementation_gap"
-    VERIFICATION_GAP = "verification_gap"
+def _axis_enum(name: str, values: Any) -> type[Enum]:
+    """Build a builder enum whose ``.value``s ARE the axis vocabulary (E2/S8 M15).
+
+    The builder DERIVES ``Concern``/``Gate``/``Adoption`` from the owning axis
+    vocab instead of re-stating literals: ``Concern`` from
+    ``agent.return_fact.TRANSITION_CONCERN_KINDS``, ``Gate`` from
+    ``link.spec.GATE_CONCEPT_TOKENS``, ``Adoption`` from
+    ``link.spec.ADOPTION_LITERALS``. The friendly member NAME is the canonical
+    ``value.upper()`` with dashes folded to underscores (``upstream_gap`` ->
+    ``UPSTREAM_GAP``, ``strict-evidence`` -> ``STRICT_EVIDENCE``,
+    ``binding`` -> ``BINDING``) -- byte-identical to the prior hand-written
+    members -- so no axis token string is hardcoded here: add a token to the
+    axis and the builder enum gains the member, drop one and it loses it. The
+    members are ordered by ``.value`` for a stable, vocab-driven member order.
+    """
+
+    members = {
+        str(value).upper().replace("-", "_"): str(value)
+        for value in sorted(values)
+    }
+    return Enum(name, members)  # type: ignore[return-value]
 
 
-class Gate(Enum):
-    STRICT_EVIDENCE = "strict-evidence"
-    COO_REVIEW = "coo-review"
-    HUMAN_REVIEW = "human-review"
-    FAN_IN_WAIT_ALL = "fan-in-wait-all"
-    DEFAULT_TRANSITION = "default-transition"
-
-
-class Adoption(Enum):
-    BINDING = "binding"
-    ADVISORY = "advisory"
+Concern = _axis_enum("Concern", TRANSITION_CONCERN_KINDS)
+Gate = _axis_enum("Gate", GATE_CONCEPT_TOKENS)
+Adoption = _axis_enum("Adoption", ADOPTION_LITERALS)
 
 
 class Authority(Enum):

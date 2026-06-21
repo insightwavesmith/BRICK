@@ -69,6 +69,36 @@ def translate_gate_concept(token: str) -> str:
     return GATE_CONCEPT_TOKEN_GATE_REFS[token]
 
 
+# MODE gate-concept tokens (E2/S8): builder-declarable gate concepts that carry
+# NO live gate ref (they are not Link gates). ``default-transition`` is the
+# concept word of the Link-owned default gate ref ``DECLARED_GATE_REFS[0]``
+# (``link-gate:default-transition``) -- derived from its suffix so the token
+# cannot drift from the gate vocab. ``fan-in-wait-all`` is a declared graph
+# topology requirement (see the GATE_CONCEPT_TOKEN_GATE_REFS comment); it has no
+# gate ref, so it is named once HERE on the Link axis -- the single source the
+# builder ``Gate`` enum derives from rather than re-stating literals.
+GATE_CONCEPT_MODE_TOKENS: tuple[str, ...] = (
+    DECLARED_GATE_REFS[0].split(":", 1)[1],
+    "fan-in-wait-all",
+)
+
+# The full builder-declarable gate-concept token vocabulary (E2/S8): the
+# translatable tokens (single-sourced in GATE_CONCEPT_TOKEN_GATE_REFS) plus the
+# MODE tokens. The friendly ``Gate`` enum in the builder DERIVES its ``.value``s
+# from this set (no hardcoded gate-token strings in the builder).
+GATE_CONCEPT_TOKENS: frozenset[str] = (
+    frozenset(GATE_CONCEPT_TOKEN_GATE_REFS) | frozenset(GATE_CONCEPT_MODE_TOKENS)
+)
+
+# Transition-concern adoption vocabulary (E2/S8): the two adoption literals a
+# builder declares for ``transition_concern_adoption``. ``binding`` is the
+# default (the ref-less plan flow); ``advisory`` downgrades the concern's
+# closure authority (read in walker_kernel.py / composition.py). Single-sourced
+# HERE on the Link axis (adoption is Link-movement property), so the builder
+# ``Adoption`` enum derives its ``.value``s rather than re-stating literals.
+ADOPTION_LITERALS: tuple[str, ...] = ("binding", "advisory")
+
+
 # ---------------------------------------------------------------------------
 # LINK ROW + ENVELOPE KEYS (moved from support/operator/primitives.py at E2/S4).
 # The plan-layer Link row admits exactly these keys; each sub-envelope key names

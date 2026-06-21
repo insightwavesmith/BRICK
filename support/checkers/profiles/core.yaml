@@ -12,6 +12,7 @@ kernel_checks:
   - catalog_reader_sync
   - agent_resource_resolution
   - axis_field_set_single_source
+  - builder_consumes_axis_api
   - bricks_spec_completeness
   - building_lifecycle_path_shape
   - building_map_graph
@@ -36,6 +37,7 @@ path_exists:
   - support/checkers/check_agent_resource_resolution.py
   - support/checkers/check_axis_field_set_single_source.py
   - support/checkers/field_set_registry.yaml
+  - support/checkers/check_builder_consumes_axis_api.py
   - support/checkers/check_bricks_spec_completeness.py
   - support/checkers/check_building_lifecycle_path_shape.py
   - support/checkers/check_building_map_graph.py
