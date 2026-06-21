@@ -9,31 +9,26 @@ steps:
     brick_spec_ref: brick/templates/bricks/inspect/brick.md
     target_word: recon
     selected_adapter_ref: adapter:codex-local
-    selected_model_ref: model:default
   - step_template_ref: building-step-template:code-attack-qa
     step_alias: code-lens
     brick_spec_ref: brick/templates/bricks/code-attack-qa/brick.md
     target_word: code_review
     selected_adapter_ref: adapter:codex-local
-    selected_model_ref: model:default
   - step_template_ref: building-step-template:axis-attack-qa
     step_alias: axis-lens
     brick_spec_ref: brick/templates/bricks/axis-attack-qa/brick.md
     target_word: axis_review
     selected_adapter_ref: adapter:codex-local
-    selected_model_ref: model:default
   - step_template_ref: building-step-template:evidence-integrity
     step_alias: evidence-lens
     brick_spec_ref: brick/templates/bricks/evidence-integrity/brick.md
     target_word: evidence_review
     selected_adapter_ref: adapter:codex-local
-    selected_model_ref: model:default
   - step_template_ref: building-step-template:closure
     step_alias: triage-closure
     brick_spec_ref: brick/templates/bricks/closure/brick.md
     target_word: triage_synthesis
     selected_adapter_ref: adapter:codex-local
-    selected_model_ref: model:default
 # DECLARED graph_topology (E1 full-lego): one recon fans out THREE read-only lenses
 # that all fan in to a single closure. Node identity = step_alias (the inspect root
 # has no alias -> its step_template_ref is the handle). One fan_in_group (single

@@ -9,7 +9,6 @@ steps:
     brick_spec_ref: brick/templates/bricks/design/brick.md
     target_word: parallel_review
     selected_adapter_ref: adapter:codex-local
-    selected_model_ref: model:default
   - step_template_ref: building-step-template:code-attack-qa
     brick_spec_ref: brick/templates/bricks/code-attack-qa/brick.md
     target_word: fan_in_final_gate
@@ -19,17 +18,14 @@ steps:
     brick_spec_ref: brick/templates/bricks/axis-attack-qa/brick.md
     target_word: fan_in_final_gate
     selected_adapter_ref: adapter:codex-local
-    selected_model_ref: model:default
   - step_template_ref: building-step-template:evidence-integrity
     brick_spec_ref: brick/templates/bricks/evidence-integrity/brick.md
     target_word: fan_in_final_gate
     selected_adapter_ref: adapter:codex-local
-    selected_model_ref: model:default
   - step_template_ref: building-step-template:closure
     brick_spec_ref: brick/templates/bricks/closure/brick.md
     target_word: closure
     selected_adapter_ref: adapter:codex-local
-    selected_model_ref: model:default
 gate_concept_profile:
   - strict-evidence
   - fan-in-wait-all

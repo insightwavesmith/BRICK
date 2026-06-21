@@ -9,43 +9,36 @@ steps:
     brick_spec_ref: brick/templates/bricks/inspect/brick.md
     target_word: recon
     selected_adapter_ref: adapter:codex-local
-    selected_model_ref: model:default
   - step_template_ref: building-step-template:code-attack-qa
     step_alias: code-lens-a
     brick_spec_ref: brick/templates/bricks/code-attack-qa/brick.md
     target_word: code_review
     selected_adapter_ref: adapter:codex-local
-    selected_model_ref: model:default
   - step_template_ref: building-step-template:code-attack-qa
     step_alias: code-lens-b
     brick_spec_ref: brick/templates/bricks/code-attack-qa/brick.md
     target_word: code_review
     selected_adapter_ref: adapter:codex-local
-    selected_model_ref: model:default
   - step_template_ref: building-step-template:axis-attack-qa
     step_alias: axis-lens-a
     brick_spec_ref: brick/templates/bricks/axis-attack-qa/brick.md
     target_word: axis_review
     selected_adapter_ref: adapter:codex-local
-    selected_model_ref: model:default
   - step_template_ref: building-step-template:axis-attack-qa
     step_alias: axis-lens-b
     brick_spec_ref: brick/templates/bricks/axis-attack-qa/brick.md
     target_word: axis_review
     selected_adapter_ref: adapter:codex-local
-    selected_model_ref: model:default
   - step_template_ref: building-step-template:closure
     step_alias: mid-closure
     brick_spec_ref: brick/templates/bricks/closure/brick.md
     target_word: mid_synthesis
     selected_adapter_ref: adapter:codex-local
-    selected_model_ref: model:default
   - step_template_ref: building-step-template:closure
     step_alias: final-closure
     brick_spec_ref: brick/templates/bricks/closure/brick.md
     target_word: final_synthesis
     selected_adapter_ref: adapter:codex-local
-    selected_model_ref: model:default
 # E1 FULL-LEGO: the preset DECLARES the graph topology explicitly. The
 # materializer emits EXACTLY these groups+edges (no positional inference): the
 # per-step target_word stays a local descriptive hint and is NOT a
