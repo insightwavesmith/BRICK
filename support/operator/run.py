@@ -38,16 +38,22 @@ from brick_protocol.link.gate import (
 from brick_protocol.link.movement import MovementFact
 from brick_protocol.link.spec import LINK_ROW_ALLOWED_KEYS as _LINK_ROW_ALLOWED_KEYS
 from brick_protocol.link.transition import TransitionFact
-from brick_protocol.support.connection.agent_adapter import (
+from brick_protocol.support.connection.adapter_constants import (
     ADAPTER_CHAT_SESSION,
+)
+from brick_protocol.support.connection.adapter_subprocess import (
+    _timeout_expired_reap_reason,
+)
+from brick_protocol.support.connection.adapter_validation import (
+    safe_source_fact_body,
+)
+from brick_protocol.support.connection.agent_adapter import (
     AgentAdapterRequest,
     AgentAdapterParked,
     AgentAdapterResult,
     AgentBrainCallable,
     CommandRunner,
-    _timeout_expired_reap_reason,
     connect_agent_brain,
-    safe_source_fact_body,
 )
 from brick_protocol.support.connection.agent_resources import (
     render_agent_instruction_packet,

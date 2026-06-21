@@ -47,7 +47,7 @@ def run_adapter_model_selection_case(repo: Path, profile: Mapping[str, Any]) -> 
     items = rule_items(profile, "adapter_model_selection_case")
     if not items:
         return 0
-    from brick_protocol.support.connection.agent_adapter import project_model_ref_to_cli_arg
+    from brick_protocol.support.connection.adapter_model_casting import project_model_ref_to_cli_arg
 
     count = 0
     for item in items:
@@ -76,7 +76,7 @@ def run_adapter_model_selection_rejects(repo: Path, profile: Mapping[str, Any]) 
     items = rule_items(profile, "adapter_model_selection_rejects")
     if not items:
         return 0
-    from brick_protocol.support.connection.agent_adapter import project_model_ref_to_cli_arg
+    from brick_protocol.support.connection.adapter_model_casting import project_model_ref_to_cli_arg
 
     count = 0
     for item in items:
@@ -6129,6 +6129,8 @@ def _check_adapter_capability_ok_all_four(label: str) -> None:
 def _check_adapter_capability_claude_write_ok(label: str) -> None:
     from brick_protocol.support.connection.agent_adapter import (
         adapter_capabilities,
+    )
+    from brick_protocol.support.connection.adapter_constants import (
         _OBSERVED_WRITE_ADAPTER_REFS as _ADAPTER_OBSERVED_WRITE,
     )
     from support.operator.plan_validation import (
@@ -6645,7 +6647,7 @@ def _check_adapter_capability_explicit_write_need_marker_admitted_strict(
        the scope the marker-bearing row declares projects codex 'workspace-write'
        and a claude invocation including Edit + Write.
     """
-    from brick_protocol.support.connection import agent_adapter as adapter
+    from brick_protocol.support.connection import adapter_local_cli
     from support.operator.plan_validation import validate_declared_building_plan
 
     plan = _adapter_capability_plan(
@@ -6672,7 +6674,7 @@ def _check_adapter_capability_explicit_write_need_marker_admitted_strict(
         adapter_ref="adapter:codex-local",
         write_scope=None,
     )
-    observed_sandbox = adapter._codex_sandbox_for_request(no_scope_codex)
+    observed_sandbox = adapter_local_cli._codex_sandbox_for_request(no_scope_codex)
     if observed_sandbox != "read-only":
         raise ProfileError(
             f"adapter_capability_rehome_case rejected {label}: request WITHOUT "
@@ -6682,7 +6684,7 @@ def _check_adapter_capability_explicit_write_need_marker_admitted_strict(
         adapter_ref="adapter:claude-local",
         write_scope=None,
     )
-    no_scope_claude = adapter._claude_cli_invocation(no_scope_claude_request)
+    no_scope_claude = adapter_local_cli._claude_cli_invocation(no_scope_claude_request)
     # CLEAN-READTIER-0617: a read-only Brick (no write_scope) + a tool-capable
     # Agent (read-write-scoped policy) browses read-only -- plan mode with the
     # Read/Grep/Glob browse tools, NEVER Edit/Write/Bash. Read/write tier is no
@@ -6706,14 +6708,14 @@ def _check_adapter_capability_explicit_write_need_marker_admitted_strict(
         adapter_ref="adapter:codex-local",
         write_scope=_adapter_capability_write_scope(),
     )
-    observed_sandbox = adapter._codex_sandbox_for_request(scoped_codex)
+    observed_sandbox = adapter_local_cli._codex_sandbox_for_request(scoped_codex)
     if observed_sandbox != "workspace-write":
         raise ProfileError(
             f"adapter_capability_rehome_case rejected {label}: request WITH the "
             "marker-bearing row's write_scope must project codex sandbox "
             f"'workspace-write', got {observed_sandbox!r}"
         )
-    scoped_claude = adapter._claude_cli_invocation(
+    scoped_claude = adapter_local_cli._claude_cli_invocation(
         _adapter_capability_request(
             adapter_ref="adapter:claude-local",
             write_scope=_adapter_capability_write_scope(),
@@ -7755,6 +7757,8 @@ def run_wiki_carry_truncation_survival_case(
         return 0
     from brick_protocol.support.connection.agent_adapter import (
         _GEMINI_SOURCE_FACT_BODY_LIMIT,
+    )
+    from brick_protocol.support.connection.adapter_validation import (
         _SOURCE_FACT_BODY_LIMIT,
         safe_source_fact_body,
     )

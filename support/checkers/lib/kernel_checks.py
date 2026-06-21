@@ -467,13 +467,19 @@ def _axis_vocab_check_agent_adapter_refs(repo: Path, violations: list[str]) -> N
         repo,
         "support/connection/agent_resources.py",
     )
-    imports = _axis_vocab_import_aliases(resources_tree, "agent_adapter")
-    allowed_alias = imports.get("ALLOWED_ADAPTER_REFS")
-    write_capability_alias = imports.get("adapter_is_write_capable")
+    # MODULE-SEP god-module split (route-B, facade removed): ALLOWED_ADAPTER_REFS
+    # now lives in the adapter_constants.py leaf, so the import-source pin follows
+    # the moved symbol to its real new home; adapter_is_write_capable stays a CORE
+    # symbol on agent_adapter. The invariant (resources imports both from their
+    # canonical single-source home and reads them) is unchanged.
+    constants_imports = _axis_vocab_import_aliases(resources_tree, "adapter_constants")
+    adapter_imports = _axis_vocab_import_aliases(resources_tree, "agent_adapter")
+    allowed_alias = constants_imports.get("ALLOWED_ADAPTER_REFS")
+    write_capability_alias = adapter_imports.get("adapter_is_write_capable")
     if not allowed_alias:
         violations.append(
             "support/connection/agent_resources.py: must import ALLOWED_ADAPTER_REFS "
-            "from .agent_adapter"
+            "from .adapter_constants"
         )
     elif not _axis_vocab_name_used(resources_tree, allowed_alias):
         violations.append(
@@ -847,13 +853,14 @@ def _agent_adapter_request_instruction_packet_probe(
     instruction_packet: Mapping[str, Any],
     required_shape: str,
 ) -> object:
+    adapter_constants = importlib.import_module("brick_protocol.support.connection.adapter_constants")
     request_fields = {field.name for field in fields(adapter.AgentAdapterRequest)}
     if "agent_instruction_packet" not in request_fields:
         raise ProfileError("AgentAdapterRequest must admit agent_instruction_packet")
     request = adapter.AgentAdapterRequest(
         building_id="agent-adapter-return-shape-probe",
         agent_object_ref="agent-object:dev",
-        adapter_ref=adapter.ADAPTER_CODEX_LOCAL,
+        adapter_ref=adapter_constants.ADAPTER_CODEX_LOCAL,
         brick_instance_ref="brick-work",
         next_brick_instance_ref="brick-closure",
         required_return_shape=required_shape,
@@ -873,6 +880,9 @@ def _agent_effective_write_probe(
     adapter: Any,
     instruction_packet: Mapping[str, Any],
 ) -> int:
+    adapter_constants = importlib.import_module("brick_protocol.support.connection.adapter_constants")
+    adapter_grant_policy = importlib.import_module("brick_protocol.support.connection.adapter_grant_policy")
+    adapter_local_cli = importlib.import_module("brick_protocol.support.connection.adapter_local_cli")
     write_scope = {
         "allowed_paths": ["support/connection/agent_adapter.py"],
         "forbidden_paths": [".git/**", ".env"],
@@ -882,21 +892,21 @@ def _agent_effective_write_probe(
     write_request = adapter.AgentAdapterRequest(
         building_id="agent-effective-write-probe",
         agent_object_ref="agent-object:dev",
-        adapter_ref=adapter.ADAPTER_CODEX_LOCAL,
+        adapter_ref=adapter_constants.ADAPTER_CODEX_LOCAL,
         brick_instance_ref="brick-work",
         next_brick_instance_ref="brick-closure",
-        tool_policy_refs=(adapter.READ_WRITE_TOOL_POLICY_REF,),
+        tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
         write_scope=write_scope,
         agent_instruction_packet=instruction_packet,
     )
     if not adapter.agent_request_effective_write(write_request):
         raise ProfileError("codex-local write_scope request did not become effective_write")
-    if adapter._codex_sandbox_for_request(write_request) != "workspace-write":
+    if adapter_local_cli._codex_sandbox_for_request(write_request) != "workspace-write":
         raise ProfileError("effective_write request did not select workspace-write sandbox")
     write_prompt = json.loads(
-        adapter._build_prompt(
+        adapter_grant_policy._build_prompt(
             write_request,
-            adapter._LOCAL_CLI_SPECS[adapter.ADAPTER_CODEX_LOCAL],
+            adapter._LOCAL_CLI_SPECS[adapter_constants.ADAPTER_CODEX_LOCAL],
         )
     )
     if "You may edit files only inside the Brick-declared write_scope.allowed_paths." not in write_prompt.get(
@@ -913,10 +923,10 @@ def _agent_effective_write_probe(
     non_dev_request = adapter.AgentAdapterRequest(
         building_id="agent-effective-write-non-dev-probe",
         agent_object_ref="agent-object:cto-lead",
-        adapter_ref=adapter.ADAPTER_CODEX_LOCAL,
+        adapter_ref=adapter_constants.ADAPTER_CODEX_LOCAL,
         brick_instance_ref="brick-work",
         next_brick_instance_ref="brick-closure",
-        tool_policy_refs=(adapter.READ_WRITE_TOOL_POLICY_REF,),
+        tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
         write_scope=write_scope,
         agent_instruction_packet=non_dev_packet,
     )
@@ -956,7 +966,7 @@ def _agent_effective_write_probe(
         adapter.AgentAdapterRequest(
             building_id="agent-effective-write-negative-no-policy",
             agent_object_ref="agent-object:dev",
-            adapter_ref=adapter.ADAPTER_CODEX_LOCAL,
+            adapter_ref=adapter_constants.ADAPTER_CODEX_LOCAL,
             brick_instance_ref="brick-work",
             next_brick_instance_ref="brick-closure",
             write_scope=write_scope,
@@ -974,10 +984,10 @@ def _agent_effective_write_probe(
             agent_object_ref="agent-object:dev",
             # gemini-local (read + review, NOT observed-write) is the non-observed-write
             # example now; claude-local is write-capable after the claude-write rehome.
-            adapter_ref=adapter.ADAPTER_GEMINI_LOCAL,
+            adapter_ref=adapter_constants.ADAPTER_GEMINI_LOCAL,
             brick_instance_ref="brick-work",
             next_brick_instance_ref="brick-closure",
-            tool_policy_refs=(adapter.READ_WRITE_TOOL_POLICY_REF,),
+            tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
             write_scope=write_scope,
             agent_instruction_packet=instruction_packet,
         )
@@ -995,7 +1005,7 @@ def _agent_effective_write_probe(
                 adapter_ref=retired_adapter_ref,
                 brick_instance_ref="brick-work",
                 next_brick_instance_ref="brick-closure",
-                tool_policy_refs=(adapter.READ_WRITE_TOOL_POLICY_REF,),
+                tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
                 write_scope=write_scope,
                 agent_instruction_packet=instruction_packet,
             )
@@ -1014,7 +1024,7 @@ def _agent_effective_write_probe(
         adapter.AgentAdapterRequest(
             building_id="agent-instruction-packet-negative-mismatch",
             agent_object_ref="agent-object:dev",
-            adapter_ref=adapter.ADAPTER_CODEX_LOCAL,
+            adapter_ref=adapter_constants.ADAPTER_CODEX_LOCAL,
             brick_instance_ref="brick-work",
             next_brick_instance_ref="brick-closure",
             agent_instruction_packet=bad_packet,
@@ -1032,16 +1042,16 @@ def _agent_effective_write_probe(
     claude_write_request = adapter.AgentAdapterRequest(
         building_id="agent-effective-write-claude-positive",
         agent_object_ref="agent-object:dev",
-        adapter_ref=adapter.ADAPTER_CLAUDE_LOCAL,
+        adapter_ref=adapter_constants.ADAPTER_CLAUDE_LOCAL,
         brick_instance_ref="brick-work",
         next_brick_instance_ref="brick-closure",
-        tool_policy_refs=(adapter.READ_WRITE_TOOL_POLICY_REF,),
+        tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
         write_scope=write_scope,
         agent_instruction_packet=instruction_packet,
     )
     if not adapter.agent_request_effective_write(claude_write_request):
         raise ProfileError("claude-local write_scope request did not become effective_write")
-    knobs = adapter._claude_cli_invocation(claude_write_request)
+    knobs = adapter_local_cli._claude_cli_invocation(claude_write_request)
     if knobs["permission_mode"] != "acceptEdits":
         raise ProfileError("claude effective_write did not select acceptEdits")
     write_tools = (
@@ -1060,14 +1070,14 @@ def _agent_effective_write_probe(
     claude_read_request = adapter.AgentAdapterRequest(
         building_id="agent-effective-write-claude-read",
         agent_object_ref="agent-object:dev",
-        adapter_ref=adapter.ADAPTER_CLAUDE_LOCAL,
+        adapter_ref=adapter_constants.ADAPTER_CLAUDE_LOCAL,
         brick_instance_ref="brick-work",
         next_brick_instance_ref="brick-closure",
         agent_instruction_packet=instruction_packet,
     )
     if adapter.agent_request_effective_write(claude_read_request):
         raise ProfileError("claude read request became effective_write")
-    knobs_read = adapter._claude_cli_invocation(claude_read_request)
+    knobs_read = adapter_local_cli._claude_cli_invocation(claude_read_request)
     if knobs_read["permission_mode"] != "plan":
         raise ProfileError("claude read request did not stay in plan mode")
     if knobs_read["tools"] != "":
@@ -1079,6 +1089,9 @@ def _agent_effective_write_probe(
 
 
 def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
+    adapter_constants = importlib.import_module("brick_protocol.support.connection.adapter_constants")
+    adapter_grant_policy = importlib.import_module("brick_protocol.support.connection.adapter_grant_policy")
+    adapter_local_cli = importlib.import_module("brick_protocol.support.connection.adapter_local_cli")
     resources = importlib.import_module("brick_protocol.support.connection.agent_resources")
     qa_packet = _agent_instruction_packet_for_role(repo, "qa")
     pm_packet = _agent_instruction_packet_for_role(repo, "pm-lead")
@@ -1086,15 +1099,15 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     dev_packet = _agent_instruction_packet_for_role(repo, "dev")
     inspector_packet = _agent_instruction_packet_for_role(repo, "inspector")
     expected_known_policies = {
-        adapter.LEADER_COORDINATION_TOOL_POLICY_REF,
-        adapter.READ_WRITE_TOOL_POLICY_REF,
-        adapter.REVIEWER_READONLY_TOOL_POLICY_REF,
-        adapter.WEB_CAPABLE_TOOL_POLICY_REF,
+        adapter_constants.LEADER_COORDINATION_TOOL_POLICY_REF,
+        adapter_constants.READ_WRITE_TOOL_POLICY_REF,
+        adapter_constants.REVIEWER_READONLY_TOOL_POLICY_REF,
+        adapter_constants.WEB_CAPABLE_TOOL_POLICY_REF,
     }
-    if set(adapter.KNOWN_TOOL_POLICY_REFS) != expected_known_policies:
+    if set(adapter_constants.KNOWN_TOOL_POLICY_REFS) != expected_known_policies:
         raise ProfileError(
             "read-tier known tool-policy vocabulary drifted; observed "
-            f"{sorted(adapter.KNOWN_TOOL_POLICY_REFS)!r}"
+            f"{sorted(adapter_constants.KNOWN_TOOL_POLICY_REFS)!r}"
         )
     tool_policy_dir = repo / "agent" / "tool_policies"
     discovered_policy_refs: set[str] = set()
@@ -1116,7 +1129,7 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
                 }
             ],
             tool_policy_refs=[ref],
-            write_need=(ref == adapter.READ_WRITE_TOOL_POLICY_REF),
+            write_need=(ref == adapter_constants.READ_WRITE_TOOL_POLICY_REF),
         )
     if not expected_known_policies.issubset(discovered_policy_refs):
         raise ProfileError(
@@ -1132,7 +1145,7 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
             for resource in packet.get("tool_policy_resources", [])
             if isinstance(resource, Mapping) and isinstance(resource.get("ref"), str)
         }
-        if adapter.WEB_CAPABLE_TOOL_POLICY_REF in tool_policy_refs:
+        if adapter_constants.WEB_CAPABLE_TOOL_POLICY_REF in tool_policy_refs:
             web_roles.append(role)
         for resource in packet.get("tool_policy_resources", []):
             data = resource.get("data") if isinstance(resource, Mapping) else None
@@ -1176,19 +1189,19 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     reviewer_request = adapter.AgentAdapterRequest(
         building_id="agent-read-tier-reviewer-probe",
         agent_object_ref="agent-object:qa",
-        adapter_ref=adapter.ADAPTER_CODEX_LOCAL,
+        adapter_ref=adapter_constants.ADAPTER_CODEX_LOCAL,
         brick_instance_ref="brick-review",
         next_brick_instance_ref="brick-closure",
-        tool_policy_refs=(adapter.REVIEWER_READONLY_TOOL_POLICY_REF,),
+        tool_policy_refs=(adapter_constants.REVIEWER_READONLY_TOOL_POLICY_REF,),
         required_return_shape="observed_evidence, evidence_used, not_proven",
         agent_instruction_packet=qa_packet,
     )
     if not adapter.agent_request_read_tier(reviewer_request):
         raise ProfileError("reviewer-readonly non-write codex request did not enter read tier")
     reviewer_prompt = json.loads(
-        adapter._build_prompt(
+        adapter_grant_policy._build_prompt(
             reviewer_request,
-            adapter._LOCAL_CLI_SPECS[adapter.ADAPTER_CODEX_LOCAL],
+            adapter._LOCAL_CLI_SPECS[adapter_constants.ADAPTER_CODEX_LOCAL],
         )
     )
     reviewer_rules = list(reviewer_prompt.get("rules", []))
@@ -1216,19 +1229,19 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     unknown_policy_request = adapter.AgentAdapterRequest(
         building_id="agent-read-tier-unknown-policy-probe",
         agent_object_ref="agent-object:qa",
-        adapter_ref=adapter.ADAPTER_CODEX_LOCAL,
+        adapter_ref=adapter_constants.ADAPTER_CODEX_LOCAL,
         brick_instance_ref="brick-review",
         next_brick_instance_ref="brick-closure",
-        tool_policy_refs=(adapter.REVIEWER_READONLY_TOOL_POLICY_REF, "tool-policy:unknown"),
+        tool_policy_refs=(adapter_constants.REVIEWER_READONLY_TOOL_POLICY_REF, "tool-policy:unknown"),
         required_return_shape="observed_evidence, evidence_used, not_proven",
         agent_instruction_packet=qa_packet,
     )
     if adapter.agent_request_read_tier(unknown_policy_request):
         raise ProfileError("reviewer-readonly plus unknown tool policy entered read tier")
     unknown_policy_prompt = json.loads(
-        adapter._build_prompt(
+        adapter_grant_policy._build_prompt(
             unknown_policy_request,
-            adapter._LOCAL_CLI_SPECS[adapter.ADAPTER_CODEX_LOCAL],
+            adapter._LOCAL_CLI_SPECS[adapter_constants.ADAPTER_CODEX_LOCAL],
         )
     )
     if "Do not use tools or hooks." not in unknown_policy_prompt.get("rules", []):
@@ -1239,19 +1252,19 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     leader_request = adapter.AgentAdapterRequest(
         building_id="agent-read-tier-leader-probe",
         agent_object_ref="agent-object:cto-lead",
-        adapter_ref=adapter.ADAPTER_CLAUDE_LOCAL,
+        adapter_ref=adapter_constants.ADAPTER_CLAUDE_LOCAL,
         brick_instance_ref="brick-design",
         next_brick_instance_ref="brick-work",
         tool_policy_refs=(
-            adapter.LEADER_COORDINATION_TOOL_POLICY_REF,
-            adapter.READ_WRITE_TOOL_POLICY_REF,
+            adapter_constants.LEADER_COORDINATION_TOOL_POLICY_REF,
+            adapter_constants.READ_WRITE_TOOL_POLICY_REF,
         ),
         required_return_shape="observed_evidence, evidence_refs, not_proven",
         agent_instruction_packet=cto_packet,
     )
     if not adapter.agent_request_read_tier(leader_request):
         raise ProfileError("leader-coordination non-write claude request did not enter read tier")
-    leader_knobs = adapter._claude_cli_invocation(leader_request)
+    leader_knobs = adapter_local_cli._claude_cli_invocation(leader_request)
     if leader_knobs["permission_mode"] != "plan":
         raise ProfileError("read-tier claude request must stay in plan permission mode")
     leader_tools = [tool.strip() for tool in leader_knobs["tools"].split(",") if tool.strip()]
@@ -1270,10 +1283,10 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     dev_nonwrite_request = adapter.AgentAdapterRequest(
         building_id="agent-read-tier-dev-readonly-probe",
         agent_object_ref="agent-object:dev",
-        adapter_ref=adapter.ADAPTER_CODEX_LOCAL,
+        adapter_ref=adapter_constants.ADAPTER_CODEX_LOCAL,
         brick_instance_ref="brick-readonly-worker",
         next_brick_instance_ref="brick-closure",
-        tool_policy_refs=(adapter.READ_WRITE_TOOL_POLICY_REF,),
+        tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
         agent_instruction_packet=dev_packet,
     )
     if adapter.agent_request_effective_write(dev_nonwrite_request):
@@ -1284,9 +1297,9 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
             "did not enter the read tier under the uniform CLEAN-READTIER rule"
         )
     dev_prompt = json.loads(
-        adapter._build_prompt(
+        adapter_grant_policy._build_prompt(
             dev_nonwrite_request,
-            adapter._LOCAL_CLI_SPECS[adapter.ADAPTER_CODEX_LOCAL],
+            adapter._LOCAL_CLI_SPECS[adapter_constants.ADAPTER_CODEX_LOCAL],
         )
     )
     dev_rules = list(dev_prompt.get("rules", []))
@@ -1304,18 +1317,18 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     gemini_inspect_request = adapter.AgentAdapterRequest(
         building_id="agent-read-tier-gemini-inspect-probe",
         agent_object_ref="agent-object:inspector",
-        adapter_ref=adapter.ADAPTER_GEMINI_LOCAL,
+        adapter_ref=adapter_constants.ADAPTER_GEMINI_LOCAL,
         brick_instance_ref="brick-inspect",
         next_brick_instance_ref="brick-closure",
-        tool_policy_refs=(adapter.READ_WRITE_TOOL_POLICY_REF,),
+        tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
         agent_instruction_packet=inspector_packet,
     )
     if not adapter.agent_request_read_tier(gemini_inspect_request):
         raise ProfileError("gemini-local read-write-scoped request did not enter read tier")
     gemini_inspect_prompt = json.loads(
-        adapter._build_prompt(
+        adapter_grant_policy._build_prompt(
             gemini_inspect_request,
-            adapter._LOCAL_CLI_SPECS[adapter.ADAPTER_GEMINI_LOCAL],
+            adapter._LOCAL_CLI_SPECS[adapter_constants.ADAPTER_GEMINI_LOCAL],
         )
     )
     gemini_inspect_rules = list(gemini_inspect_prompt.get("rules", []))
@@ -1323,7 +1336,7 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
         raise ProfileError("gemini-local read-write-scoped prompt still rendered no-tools rule")
     if expected_read_rule not in gemini_inspect_rules:
         raise ProfileError("gemini-local read-write-scoped prompt did not expose repository inspection rule")
-    if not any(adapter.READ_WRITE_TOOL_POLICY_REF in rule for rule in gemini_inspect_rules):
+    if not any(adapter_constants.READ_WRITE_TOOL_POLICY_REF in rule for rule in gemini_inspect_rules):
         raise ProfileError("gemini-local read-write-scoped prompt omitted its admitted policy ref")
     if not any("Gemini local native grant may use only read_file" in rule for rule in gemini_inspect_rules):
         raise ProfileError("gemini-local read-write-scoped prompt did not pin read-only tool allow-list")
@@ -1331,22 +1344,22 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     gemini_request = adapter.AgentAdapterRequest(
         building_id="agent-read-tier-gemini-probe",
         agent_object_ref="agent-object:qa",
-        adapter_ref=adapter.ADAPTER_GEMINI_LOCAL,
+        adapter_ref=adapter_constants.ADAPTER_GEMINI_LOCAL,
         brick_instance_ref="brick-review",
         next_brick_instance_ref="brick-closure",
-        tool_policy_refs=(adapter.REVIEWER_READONLY_TOOL_POLICY_REF,),
+        tool_policy_refs=(adapter_constants.REVIEWER_READONLY_TOOL_POLICY_REF,),
         agent_instruction_packet=qa_packet,
     )
-    if adapter.ADAPTER_GEMINI_LOCAL not in set(qa_packet.get("adapter_refs", ())):
+    if adapter_constants.ADAPTER_GEMINI_LOCAL not in set(qa_packet.get("adapter_refs", ())):
         raise ProfileError("qa instruction packet did not admit adapter:gemini-local")
     if adapter.agent_request_effective_write(gemini_request):
         raise ProfileError("gemini-local reviewer-readonly request opened effective write")
     if not adapter.agent_request_read_tier(gemini_request):
         raise ProfileError("gemini-local reviewer-readonly request did not enter read tier")
     gemini_prompt = json.loads(
-        adapter._build_prompt(
+        adapter_grant_policy._build_prompt(
             gemini_request,
-            adapter._LOCAL_CLI_SPECS[adapter.ADAPTER_GEMINI_LOCAL],
+            adapter._LOCAL_CLI_SPECS[adapter_constants.ADAPTER_GEMINI_LOCAL],
         )
     )
     gemini_rules = list(gemini_prompt.get("rules", []))
@@ -1362,17 +1375,17 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     pm_web_request = adapter.AgentAdapterRequest(
         building_id="agent-web-tier-pm-probe",
         agent_object_ref="agent-object:pm-lead",
-        adapter_ref=adapter.ADAPTER_CLAUDE_LOCAL,
+        adapter_ref=adapter_constants.ADAPTER_CLAUDE_LOCAL,
         brick_instance_ref="brick-live-context",
         next_brick_instance_ref="brick-design",
         tool_policy_refs=(
-            adapter.LEADER_COORDINATION_TOOL_POLICY_REF,
-            adapter.READ_WRITE_TOOL_POLICY_REF,
-            adapter.WEB_CAPABLE_TOOL_POLICY_REF,
+            adapter_constants.LEADER_COORDINATION_TOOL_POLICY_REF,
+            adapter_constants.READ_WRITE_TOOL_POLICY_REF,
+            adapter_constants.WEB_CAPABLE_TOOL_POLICY_REF,
         ),
         agent_instruction_packet=pm_packet,
     )
-    pm_claude_knobs = adapter._claude_cli_invocation(pm_web_request)
+    pm_claude_knobs = adapter_local_cli._claude_cli_invocation(pm_web_request)
     pm_claude_tools = [tool.strip() for tool in pm_claude_knobs["tools"].split(",") if tool.strip()]
     if "WebFetch" not in pm_claude_tools:
         raise ProfileError("claude-local web-capable PM request did not project WebFetch")
@@ -1381,16 +1394,16 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     pm_codex_request = adapter.AgentAdapterRequest(
         building_id="agent-web-tier-codex-probe",
         agent_object_ref="agent-object:pm-lead",
-        adapter_ref=adapter.ADAPTER_CODEX_LOCAL,
+        adapter_ref=adapter_constants.ADAPTER_CODEX_LOCAL,
         brick_instance_ref="brick-live-context",
         next_brick_instance_ref="brick-design",
         tool_policy_refs=pm_web_request.tool_policy_refs,
         agent_instruction_packet=pm_packet,
     )
     pm_codex_prompt = json.loads(
-        adapter._build_prompt(
+        adapter_grant_policy._build_prompt(
             pm_codex_request,
-            adapter._LOCAL_CLI_SPECS[adapter.ADAPTER_CODEX_LOCAL],
+            adapter._LOCAL_CLI_SPECS[adapter_constants.ADAPTER_CODEX_LOCAL],
         )
     )
     if not any("Web NOT available on this adapter" in rule for rule in pm_codex_prompt.get("rules", [])):
@@ -1401,13 +1414,13 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     pm_gemini_request = adapter.AgentAdapterRequest(
         building_id="agent-web-tier-gemini-probe",
         agent_object_ref="agent-object:pm-lead",
-        adapter_ref=adapter.ADAPTER_GEMINI_LOCAL,
+        adapter_ref=adapter_constants.ADAPTER_GEMINI_LOCAL,
         brick_instance_ref="brick-live-context",
         next_brick_instance_ref="brick-design",
         tool_policy_refs=pm_web_request.tool_policy_refs,
         agent_instruction_packet=pm_packet,
     )
-    gemini_allow, gemini_deny = adapter._gemini_admin_policy_partition_for_request(pm_gemini_request)
+    gemini_allow, gemini_deny = adapter_grant_policy._gemini_admin_policy_partition_for_request(pm_gemini_request)
     if "web_fetch" not in gemini_allow or "google_web_search" not in gemini_allow:
         raise ProfileError("gemini-local web-capable request did not allow web tools")
     if "run_shell_command" not in gemini_deny or "write_file" not in gemini_deny:
@@ -1419,15 +1432,15 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
         }
     )
     try:
-        adapter._extract_gemini_response(web_tool_payload)
+        adapter_local_cli._extract_gemini_response(web_tool_payload)
     except ValueError:
         pass
     else:
         raise ProfileError("gemini-local non-web extraction globally accepted web_fetch")
     if (
-        adapter._extract_gemini_response(
+        adapter_local_cli._extract_gemini_response(
             web_tool_payload,
-            allowed_tool_names=adapter._gemini_allowed_tool_names_for_request(pm_gemini_request),
+            allowed_tool_names=adapter_grant_policy._gemini_allowed_tool_names_for_request(pm_gemini_request),
         )
         != "web tools accepted"
     ):
@@ -1463,8 +1476,8 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
         os.environ.pop(name, None)
     os.environ["GEMINI_API_KEY"] = "probe-key"
     try:
-        adapter._invoke_local_cli(
-            adapter._LOCAL_CLI_SPECS[adapter.ADAPTER_GEMINI_LOCAL],
+        adapter_local_cli._invoke_local_cli(
+            adapter._LOCAL_CLI_SPECS[adapter_constants.ADAPTER_GEMINI_LOCAL],
             gemini_inspect_request,
             "prompt",
             cwd=repo,
@@ -1551,7 +1564,7 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
             },
         }
     )
-    if adapter._extract_gemini_response(read_tool_payload) != "read tools accepted":
+    if adapter_local_cli._extract_gemini_response(read_tool_payload) != "read tools accepted":
         raise ProfileError("gemini-local read tool byName payload was not accepted")
     for forbidden_tool in ("write_file", "run_shell_command", "replace"):
         forbidden_payload = json.dumps(
@@ -1561,7 +1574,7 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
             }
         )
         try:
-            adapter._extract_gemini_response(forbidden_payload)
+            adapter_local_cli._extract_gemini_response(forbidden_payload)
         except ValueError as exc:
             if forbidden_tool not in str(exc):
                 raise ProfileError(
@@ -1573,7 +1586,7 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     gemini_none_request = adapter.AgentAdapterRequest(
         building_id="agent-read-tier-gemini-none-probe",
         agent_object_ref="agent-object:qa",
-        adapter_ref=adapter.ADAPTER_GEMINI_LOCAL,
+        adapter_ref=adapter_constants.ADAPTER_GEMINI_LOCAL,
         brick_instance_ref="brick-review",
         next_brick_instance_ref="brick-closure",
         tool_policy_refs=(),
@@ -1582,9 +1595,9 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     if adapter.agent_request_read_tier(gemini_none_request):
         raise ProfileError("gemini-local none-tier request entered read tier without read-only policy")
     gemini_none_prompt = json.loads(
-        adapter._build_prompt(
+        adapter_grant_policy._build_prompt(
             gemini_none_request,
-            adapter._LOCAL_CLI_SPECS[adapter.ADAPTER_GEMINI_LOCAL],
+            adapter._LOCAL_CLI_SPECS[adapter_constants.ADAPTER_GEMINI_LOCAL],
         )
     )
     if "Do not use tools or hooks." not in gemini_none_prompt.get("rules", []):
@@ -1614,7 +1627,7 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     os.environ["GEMINI_API_KEY"] = "probe-key"
     try:
         try:
-            adapter._invoke_local_cli_adapter(
+            adapter_local_cli._invoke_local_cli_adapter(
                 gemini_inspect_request,
                 cwd=repo,
                 timeout_seconds=5,
@@ -1647,8 +1660,10 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
 
 
 def _artifact_grounding_probe(repo: Path) -> int:
-    from brick_protocol.support.connection.agent_adapter import (
+    from brick_protocol.support.connection.adapter_constants import (
         ADAPTER_LOCAL,
+    )
+    from brick_protocol.support.connection.agent_adapter import (
         AgentAdapterRequest,
         AgentAdapterResult,
     )
@@ -2113,6 +2128,9 @@ def _artifact_grounding_probe(repo: Path) -> int:
 def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
     _ensure_import_identity(repo)
     adapter = importlib.import_module("brick_protocol.support.connection.agent_adapter")
+    adapter_constants = importlib.import_module("brick_protocol.support.connection.adapter_constants")
+    adapter_grant_policy = importlib.import_module("brick_protocol.support.connection.adapter_grant_policy")
+    adapter_validation = importlib.import_module("brick_protocol.support.connection.adapter_validation")
     comparison = importlib.import_module("brick_protocol.brick.comparison")
     instruction_packet = _agent_instruction_packet_probe(repo)
 
@@ -2130,7 +2148,7 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
         },
         sort_keys=True,
     )
-    extracted = adapter._extract_required_return_fields(output_text, required_shape)
+    extracted = adapter_grant_policy._extract_required_return_fields(output_text, required_shape)
     if extracted.get("no_changes_reason") != "probe made no file changes":
         raise ProfileError("agent adapter did not preserve made_changes waiver field")
 
@@ -2150,9 +2168,9 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
         required_shape,
     )
     prompt = json.loads(
-        adapter._build_prompt(
+        adapter_grant_policy._build_prompt(
             request,
-            adapter._LOCAL_CLI_SPECS[adapter.ADAPTER_CODEX_LOCAL],
+            adapter._LOCAL_CLI_SPECS[adapter_constants.ADAPTER_CODEX_LOCAL],
         )
     )
     if prompt.get("return_field_waivers") != ["no_changes_reason"]:
@@ -2227,7 +2245,7 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
             "return_fact ALWAYS_SECRET_KEYS"
         )
     try:
-        adapter._validate_returned_payload(
+        adapter_validation._validate_returned_payload(
             "returned",
             {"observed_evidence": [{"checker_profile_run_results": {"pass": 5, "fail": 0}}]},
         )
@@ -2236,13 +2254,13 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
             "agent adapter rejected nested natural evidence keys pass/fail"
         ) from exc
     try:
-        adapter._validate_returned_payload("returned", {"success": True})
+        adapter_validation._validate_returned_payload("returned", {"success": True})
     except ValueError:
         pass
     else:
         raise ProfileError("agent adapter admitted top-level success return key")
     try:
-        adapter._validate_returned_payload(
+        adapter_validation._validate_returned_payload(
             "returned",
             {"e": [{"x": "Bearer ghp_fakesecret123"}]},
         )
@@ -2315,14 +2333,16 @@ def run_provider_preflight(repo: Path) -> KernelResult:
 
     _ensure_import_identity(repo)
     adapter = importlib.import_module("brick_protocol.support.connection.agent_adapter")
+    adapter_constants = importlib.import_module("brick_protocol.support.connection.adapter_constants")
+    adapter_subprocess = importlib.import_module("brick_protocol.support.connection.adapter_subprocess")
 
     inspected = 0
 
     # (a) Active local CLI adapter + in-process adapter:local must each return a
     #     well-shaped status. preflight_provider must NOT raise for either.
-    for label in (adapter.ADAPTER_CODEX_LOCAL, adapter.ADAPTER_LOCAL):
+    for label in (adapter_constants.ADAPTER_CODEX_LOCAL, adapter_constants.ADAPTER_LOCAL):
         try:
-            status = adapter.preflight_provider(label)
+            status = adapter_subprocess.preflight_provider(label)
         except Exception as exc:  # noqa: BLE001 -- no-raise is the invariant under test
             raise ProfileError(
                 f"provider_preflight: preflight_provider({label!r}) raised {type(exc).__name__}: {exc}"
@@ -2335,7 +2355,7 @@ def run_provider_preflight(repo: Path) -> KernelResult:
         inspected += 1
 
     # adapter:local has no CLI: it must report ready.
-    local_status = adapter.preflight_provider(adapter.ADAPTER_LOCAL)
+    local_status = adapter_subprocess.preflight_provider(adapter_constants.ADAPTER_LOCAL)
     if not (local_status["installed"] and local_status["ok"] and local_status["authed"] == "yes"):
         raise ProfileError(
             "provider_preflight: adapter:local must report installed/authed/ok ready"
@@ -2348,7 +2368,7 @@ def run_provider_preflight(repo: Path) -> KernelResult:
         "",
     ):
         try:
-            status = adapter.preflight_provider(bogus_ref)
+            status = adapter_subprocess.preflight_provider(bogus_ref)
         except Exception as exc:  # noqa: BLE001 -- no-raise is the invariant under test
             raise ProfileError(
                 "provider_preflight: preflight_provider must not raise for a bogus/retired "
@@ -2418,6 +2438,8 @@ def run_design_ai_text_seams(repo: Path) -> KernelResult:
     """
     _ensure_import_identity(repo)
     adapter = importlib.import_module("brick_protocol.support.connection.agent_adapter")
+    adapter_gemini_http = importlib.import_module("brick_protocol.support.connection.adapter_gemini_http")
+    adapter_subprocess = importlib.import_module("brick_protocol.support.connection.adapter_subprocess")
     run_module = importlib.import_module("brick_protocol.support.operator.run")
     walker_resume = importlib.import_module("brick_protocol.support.operator.walker_resume")
     inspected = 0
@@ -2436,7 +2458,7 @@ def run_design_ai_text_seams(repo: Path) -> KernelResult:
             stderr="",
         )
 
-    claude_text = adapter.invoke_claude_text(
+    claude_text = adapter_gemini_http.invoke_claude_text(
         claude_prompt,
         model_name="claude-test-model",
         timeout_seconds=41,
@@ -2478,7 +2500,7 @@ def run_design_ai_text_seams(repo: Path) -> KernelResult:
             stderr="",
         )
 
-    codex_text = adapter.invoke_codex_text(
+    codex_text = adapter_gemini_http.invoke_codex_text(
         codex_prompt,
         model_name="codex-test-model",
         timeout_seconds=53,
@@ -2523,12 +2545,12 @@ def run_design_ai_text_seams(repo: Path) -> KernelResult:
         raise FileNotFoundError(f"{Path(str(args[0])).name} missing")
 
     _expect_error(
-        lambda: adapter.invoke_claude_text("p", command_runner=_missing_runner),
+        lambda: adapter_gemini_http.invoke_claude_text("p", command_runner=_missing_runner),
         FileNotFoundError,
         "claude missing executable",
     )
     _expect_error(
-        lambda: adapter.invoke_codex_text("p", command_runner=_missing_runner),
+        lambda: adapter_gemini_http.invoke_codex_text("p", command_runner=_missing_runner),
         FileNotFoundError,
         "codex missing executable",
     )
@@ -2538,12 +2560,12 @@ def run_design_ai_text_seams(repo: Path) -> KernelResult:
         raise subprocess.TimeoutExpired(cmd=tuple(args), timeout=timeout)
 
     _expect_error(
-        lambda: adapter.invoke_claude_text("p", timeout_seconds=7, command_runner=_timeout_runner),
+        lambda: adapter_gemini_http.invoke_claude_text("p", timeout_seconds=7, command_runner=_timeout_runner),
         subprocess.TimeoutExpired,
         "claude timeout propagation",
     )
     _expect_error(
-        lambda: adapter.invoke_codex_text("p", timeout_seconds=11, command_runner=_timeout_runner),
+        lambda: adapter_gemini_http.invoke_codex_text("p", timeout_seconds=11, command_runner=_timeout_runner),
         subprocess.TimeoutExpired,
         "codex timeout propagation",
     )
@@ -2570,14 +2592,14 @@ def run_design_ai_text_seams(repo: Path) -> KernelResult:
             self.returncode = 0
             return ("CODEX buffered final text\n", "")
 
-    watchdog_config = adapter._CodexStallWatchdogConfig(
+    watchdog_config = adapter_subprocess._CodexStallWatchdogConfig(
         threshold_seconds=0.2,
         poll_seconds=0.1,
     )
 
     dead_clock = {"now": 0.0}
     dead_proc = _FakeCodexProc(timeouts_before_return=10, clock_state=dead_clock)
-    dead_health = adapter._CodexCliHealth(
+    dead_health = adapter_subprocess._CodexCliHealth(
         process_running=True,
         child_count=0,
         established_socket_count=0,
@@ -2589,7 +2611,7 @@ def run_design_ai_text_seams(repo: Path) -> KernelResult:
         return dead_health
 
     try:
-        adapter._communicate_with_optional_codex_stall_watchdog(
+        adapter_subprocess._communicate_with_optional_codex_stall_watchdog(
             dead_proc,
             ("codex", "exec", "--output-last-message", "/tmp/ignored", "buffered prompt"),
             timeout_seconds=5,
@@ -2598,7 +2620,7 @@ def run_design_ai_text_seams(repo: Path) -> KernelResult:
             clock=lambda: dead_clock["now"],
         )
     except subprocess.TimeoutExpired as exc:
-        if adapter._timeout_expired_reap_reason(exc) != "stall":
+        if adapter_subprocess._timeout_expired_reap_reason(exc) != "stall":
             raise ProfileError("design_ai_text_seams: codex dead-connection timeout was not typed as stall")
         # CONNECT-STALL LABEL SPLIT (TrackB 0619): a stall-tagged timeout now maps to
         # the DISTINCT local_cli_connect_stall kind (no longer flattened into the
@@ -2619,21 +2641,21 @@ def run_design_ai_text_seams(repo: Path) -> KernelResult:
     live_clock = {"now": 0.0}
     live_proc = _FakeCodexProc(timeouts_before_return=3, clock_state=live_clock)
     live_samples = [
-        adapter._CodexCliHealth(True, 1, 0, 20.0),
-        adapter._CodexCliHealth(True, 1, 0, 20.0),
-        adapter._CodexCliHealth(True, 0, 1, 20.0),
-        adapter._CodexCliHealth(True, 0, 0, 20.5),
+        adapter_subprocess._CodexCliHealth(True, 1, 0, 20.0),
+        adapter_subprocess._CodexCliHealth(True, 1, 0, 20.0),
+        adapter_subprocess._CodexCliHealth(True, 0, 1, 20.0),
+        adapter_subprocess._CodexCliHealth(True, 0, 0, 20.5),
     ]
 
     def _live_health_probe(proc: Any) -> Any:
         del proc
         return live_samples.pop(0)
 
-    live_stdout, live_stderr = adapter._communicate_with_optional_codex_stall_watchdog(
+    live_stdout, live_stderr = adapter_subprocess._communicate_with_optional_codex_stall_watchdog(
         live_proc,
         ("codex", "exec", "--output-last-message", "/tmp/ignored", "buffered prompt"),
         timeout_seconds=5,
-        watchdog_config=adapter._CodexStallWatchdogConfig(
+        watchdog_config=adapter_subprocess._CodexStallWatchdogConfig(
             threshold_seconds=0.0,
             poll_seconds=0.1,
         ),
@@ -2647,11 +2669,11 @@ def run_design_ai_text_seams(repo: Path) -> KernelResult:
 
     unknown_clock = {"now": 0.0}
     unknown_proc = _FakeCodexProc(timeouts_before_return=2, clock_state=unknown_clock)
-    unknown_stdout, unknown_stderr = adapter._communicate_with_optional_codex_stall_watchdog(
+    unknown_stdout, unknown_stderr = adapter_subprocess._communicate_with_optional_codex_stall_watchdog(
         unknown_proc,
         ("codex", "exec", "--output-last-message", "/tmp/ignored", "buffered prompt"),
         timeout_seconds=5,
-        watchdog_config=adapter._CodexStallWatchdogConfig(
+        watchdog_config=adapter_subprocess._CodexStallWatchdogConfig(
             threshold_seconds=0.0,
             poll_seconds=0.1,
         ),
@@ -2670,12 +2692,12 @@ def run_design_ai_text_seams(repo: Path) -> KernelResult:
         return adapter.LocalCliCompleted(args=tuple(args), return_code=0, stdout="", stderr="")
 
     _expect_error(
-        lambda: adapter.invoke_claude_text("p", command_runner=_claude_blank_runner),
+        lambda: adapter_gemini_http.invoke_claude_text("p", command_runner=_claude_blank_runner),
         ValueError,
         "claude blank output",
     )
     _expect_error(
-        lambda: adapter.invoke_codex_text("p", command_runner=_codex_blank_runner),
+        lambda: adapter_gemini_http.invoke_codex_text("p", command_runner=_codex_blank_runner),
         ValueError,
         "codex blank output",
     )
@@ -2691,12 +2713,12 @@ def run_design_ai_text_seams(repo: Path) -> KernelResult:
         return adapter.LocalCliCompleted(args=tuple(args), return_code=0, stdout="", stderr="")
 
     _expect_error(
-        lambda: adapter.invoke_claude_text("p", command_runner=_claude_secret_runner),
+        lambda: adapter_gemini_http.invoke_claude_text("p", command_runner=_claude_secret_runner),
         ValueError,
         "claude secret output",
     )
     _expect_error(
-        lambda: adapter.invoke_codex_text("p", command_runner=_codex_secret_runner),
+        lambda: adapter_gemini_http.invoke_codex_text("p", command_runner=_codex_secret_runner),
         ValueError,
         "codex secret output",
     )
@@ -2744,12 +2766,13 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
     """
     _ensure_import_identity(repo)
     adapter = importlib.import_module("brick_protocol.support.connection.agent_adapter")
+    adapter_subprocess = importlib.import_module("brick_protocol.support.connection.adapter_subprocess")
     run_module = importlib.import_module("brick_protocol.support.operator.run")
     walker_resume = importlib.import_module("brick_protocol.support.operator.walker_resume")
     inspected = 0
 
     # (A) DEFAULT threshold inside the 90-180s connect-stall fast-fail band.
-    default_threshold = adapter._CODEX_STALL_WATCHDOG_DEFAULT_THRESHOLD_SECONDS
+    default_threshold = adapter_subprocess._CODEX_STALL_WATCHDOG_DEFAULT_THRESHOLD_SECONDS
     if not (90 <= default_threshold <= 180):
         raise ProfileError(
             "codex_connect_stall_classification A: default stall threshold "
@@ -2757,10 +2780,10 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
         )
     # env override still wins (a parseable value replaces the default).
     override_seconds = 137.0
-    prior_env = os.environ.get(adapter._CODEX_STALL_WATCHDOG_THRESHOLD_ENV)
+    prior_env = os.environ.get(adapter_subprocess._CODEX_STALL_WATCHDOG_THRESHOLD_ENV)
     try:
-        os.environ[adapter._CODEX_STALL_WATCHDOG_THRESHOLD_ENV] = str(override_seconds)
-        override_config = adapter._codex_stall_watchdog_config(timeout_seconds=600)
+        os.environ[adapter_subprocess._CODEX_STALL_WATCHDOG_THRESHOLD_ENV] = str(override_seconds)
+        override_config = adapter_subprocess._codex_stall_watchdog_config(timeout_seconds=600)
         if override_config is None or override_config.threshold_seconds != override_seconds:
             raise ProfileError(
                 "codex_connect_stall_classification A: env override did not replace "
@@ -2772,10 +2795,10 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
         # yields the 150 default -- never (0.0, 30.0) or a negative band. F2: 0 is in
         # this set (the <= 0 guard, not a strict < 0 guard, is what rejects it).
         for bad_value in ("nan", "inf", "-5", "0"):
-            os.environ[adapter._CODEX_STALL_WATCHDOG_THRESHOLD_ENV] = bad_value
-            bad_config = adapter._codex_stall_watchdog_config(timeout_seconds=600)
+            os.environ[adapter_subprocess._CODEX_STALL_WATCHDOG_THRESHOLD_ENV] = bad_value
+            bad_config = adapter_subprocess._codex_stall_watchdog_config(timeout_seconds=600)
             if bad_config is None or bad_config.threshold_seconds != float(
-                adapter._CODEX_STALL_WATCHDOG_DEFAULT_THRESHOLD_SECONDS
+                adapter_subprocess._CODEX_STALL_WATCHDOG_DEFAULT_THRESHOLD_SECONDS
             ):
                 raise ProfileError(
                     "codex_connect_stall_classification A: stall watchdog guard did "
@@ -2784,9 +2807,9 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
                 )
     finally:
         if prior_env is None:
-            os.environ.pop(adapter._CODEX_STALL_WATCHDOG_THRESHOLD_ENV, None)
+            os.environ.pop(adapter_subprocess._CODEX_STALL_WATCHDOG_THRESHOLD_ENV, None)
         else:
-            os.environ[adapter._CODEX_STALL_WATCHDOG_THRESHOLD_ENV] = prior_env
+            os.environ[adapter_subprocess._CODEX_STALL_WATCHDOG_THRESHOLD_ENV] = prior_env
     inspected += 1
 
     class _DeadCodexProc:
@@ -2810,16 +2833,16 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
     # the 150s threshold trivially fits, hiding the inversion. Here we pin the default
     # timeout directly. NO live CLI / NO real wait -- the watchdog runs on an injected
     # fast clock; the mock proc advances that clock instead of sleeping.
-    prod_env = os.environ.get(adapter._CODEX_STALL_WATCHDOG_THRESHOLD_ENV)
-    prod_poll_env = os.environ.get(adapter._CODEX_STALL_WATCHDOG_POLL_ENV)
-    os.environ.pop(adapter._CODEX_STALL_WATCHDOG_THRESHOLD_ENV, None)
-    os.environ.pop(adapter._CODEX_STALL_WATCHDOG_POLL_ENV, None)
+    prod_env = os.environ.get(adapter_subprocess._CODEX_STALL_WATCHDOG_THRESHOLD_ENV)
+    prod_poll_env = os.environ.get(adapter_subprocess._CODEX_STALL_WATCHDOG_POLL_ENV)
+    os.environ.pop(adapter_subprocess._CODEX_STALL_WATCHDOG_THRESHOLD_ENV, None)
+    os.environ.pop(adapter_subprocess._CODEX_STALL_WATCHDOG_POLL_ENV, None)
     try:
         # (a) the EFFECTIVE threshold at the 120s default is STRICTLY LESS THAN 120,
         # so the watchdog fires BEFORE the adapter deadline (no plain untagged
         # TimeoutExpired beats it to the punch).
         prod_default_timeout = 120
-        prod_config = adapter._codex_stall_watchdog_config(timeout_seconds=prod_default_timeout)
+        prod_config = adapter_subprocess._codex_stall_watchdog_config(timeout_seconds=prod_default_timeout)
         if prod_config is None:
             raise ProfileError(
                 "codex_connect_stall_classification A2: watchdog is OFF at the 120s "
@@ -2834,7 +2857,7 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
         # non-finite timeouts (NaN/inf) must be REJECTED, not silently activated
         # (codex re-review): a bare <=0 timeout guard lets NaN through.
         for bad_timeout in (float("nan"), float("inf")):
-            if adapter._codex_stall_watchdog_config(timeout_seconds=bad_timeout) is not None:
+            if adapter_subprocess._codex_stall_watchdog_config(timeout_seconds=bad_timeout) is not None:
                 raise ProfileError(
                     "codex_connect_stall_classification A2: non-finite timeout "
                     f"{bad_timeout!r} was not rejected by the watchdog config"
@@ -2843,7 +2866,7 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
         # stall and run._adapter_error_kind maps it to local_cli_connect_stall.
         prod_clock = {"now": 0.0}
         prod_proc = _DeadCodexProc(prod_clock)
-        prod_health = adapter._CodexCliHealth(
+        prod_health = adapter_subprocess._CodexCliHealth(
             process_running=True,
             child_count=0,
             established_socket_count=0,
@@ -2851,7 +2874,7 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
         )
         prod_stall_exc: subprocess.TimeoutExpired | None = None
         try:
-            adapter._communicate_with_optional_codex_stall_watchdog(
+            adapter_subprocess._communicate_with_optional_codex_stall_watchdog(
                 prod_proc,
                 ("codex", "exec", "--output-last-message", "/tmp/ignored", "prompt"),
                 timeout_seconds=prod_default_timeout,
@@ -2874,7 +2897,7 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
                 "codex_connect_stall_classification A2: dead-connection did not "
                 "fast-fail BEFORE the 120s adapter deadline (it ran to the full timeout)"
             )
-        if adapter._timeout_expired_reap_reason(prod_stall_exc) != "stall":
+        if adapter_subprocess._timeout_expired_reap_reason(prod_stall_exc) != "stall":
             raise ProfileError(
                 "codex_connect_stall_classification A2: dead-connection timeout at the "
                 "120s default was not tagged reap_reason == 'stall'"
@@ -2886,22 +2909,22 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
             )
     finally:
         if prod_env is None:
-            os.environ.pop(adapter._CODEX_STALL_WATCHDOG_THRESHOLD_ENV, None)
+            os.environ.pop(adapter_subprocess._CODEX_STALL_WATCHDOG_THRESHOLD_ENV, None)
         else:
-            os.environ[adapter._CODEX_STALL_WATCHDOG_THRESHOLD_ENV] = prod_env
+            os.environ[adapter_subprocess._CODEX_STALL_WATCHDOG_THRESHOLD_ENV] = prod_env
         if prod_poll_env is None:
-            os.environ.pop(adapter._CODEX_STALL_WATCHDOG_POLL_ENV, None)
+            os.environ.pop(adapter_subprocess._CODEX_STALL_WATCHDOG_POLL_ENV, None)
         else:
-            os.environ[adapter._CODEX_STALL_WATCHDOG_POLL_ENV] = prod_poll_env
+            os.environ[adapter_subprocess._CODEX_STALL_WATCHDOG_POLL_ENV] = prod_poll_env
     inspected += 1
 
     # (B) a dead-connection signature classifies WITHIN the threshold (fast clock +
     # fast watchdog config: no real 20-min sleep). The watchdog raises a stall-tagged
     # TimeoutExpired and run._adapter_error_kind maps it to local_cli_connect_stall.
-    fast_config = adapter._CodexStallWatchdogConfig(threshold_seconds=0.2, poll_seconds=0.1)
+    fast_config = adapter_subprocess._CodexStallWatchdogConfig(threshold_seconds=0.2, poll_seconds=0.1)
     dead_clock = {"now": 0.0}
     dead_proc = _DeadCodexProc(dead_clock)
-    dead_health = adapter._CodexCliHealth(
+    dead_health = adapter_subprocess._CodexCliHealth(
         process_running=True,
         child_count=0,
         established_socket_count=0,
@@ -2910,7 +2933,7 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
 
     stall_exc: subprocess.TimeoutExpired | None = None
     try:
-        adapter._communicate_with_optional_codex_stall_watchdog(
+        adapter_subprocess._communicate_with_optional_codex_stall_watchdog(
             dead_proc,
             ("codex", "exec", "--output-last-message", "/tmp/ignored", "prompt"),
             timeout_seconds=3600,
@@ -2929,7 +2952,7 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
             "codex_connect_stall_classification B: dead-connection did not fast-fail "
             "WITHIN the threshold (it waited until the full adapter timeout)"
         )
-    if adapter._timeout_expired_reap_reason(stall_exc) != "stall":
+    if adapter_subprocess._timeout_expired_reap_reason(stall_exc) != "stall":
         raise ProfileError(
             "codex_connect_stall_classification B: dead-connection timeout was not "
             "tagged reap_reason == 'stall'"
@@ -2943,7 +2966,7 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
 
     # (C) a PLAIN TimeoutExpired (no stall tag) still maps to local_cli_timeout.
     plain_exc = subprocess.TimeoutExpired(cmd=("codex", "exec"), timeout=5)
-    if adapter._timeout_expired_reap_reason(plain_exc) != "timeout":
+    if adapter_subprocess._timeout_expired_reap_reason(plain_exc) != "timeout":
         raise ProfileError(
             "codex_connect_stall_classification C: an untagged timeout was mis-read "
             "as a stall"
@@ -2988,7 +3011,7 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
     # (E) reap journal carries the last health triple + dead_signature_seconds as
     # SUPPORT FACTS ONLY. Drive the live journal seam (_journal_reap) with the facts a
     # stall reap carries, redirect the journal to a temp file, and read it back.
-    signature_facts = adapter._timeout_expired_stall_dead_signature(stall_exc)
+    signature_facts = adapter_subprocess._timeout_expired_stall_dead_signature(stall_exc)
     if not isinstance(signature_facts, Mapping):
         raise ProfileError(
             "codex_connect_stall_classification E: stall exception did not carry the "
@@ -3021,7 +3044,7 @@ def run_codex_connect_stall_classification(repo: Path) -> KernelResult:
         prior_journal = os.environ.get("BRICK_ADAPTER_SPAWN_JOURNAL_PATH")
         os.environ["BRICK_ADAPTER_SPAWN_JOURNAL_PATH"] = str(journal_path)
         try:
-            adapter._journal_reap(_ReapProc(), reason="stall", dead_signature=signature_facts)
+            adapter_subprocess._journal_reap(_ReapProc(), reason="stall", dead_signature=signature_facts)
         finally:
             if prior_journal is None:
                 os.environ.pop("BRICK_ADAPTER_SPAWN_JOURNAL_PATH", None)
@@ -3098,14 +3121,16 @@ def run_gemini_api_adapter(repo: Path) -> KernelResult:
     """
     _ensure_import_identity(repo)
     adapter = importlib.import_module("brick_protocol.support.connection.agent_adapter")
-    gemini_api = adapter.ADAPTER_GEMINI_API
+    adapter_constants = importlib.import_module("brick_protocol.support.connection.adapter_constants")
+    adapter_gemini_http = importlib.import_module("brick_protocol.support.connection.adapter_gemini_http")
+    gemini_api = adapter_constants.ADAPTER_GEMINI_API
     inspected = 0
 
     # (a) Admission + capability + not-a-CLI.
-    if gemini_api not in adapter.ALLOWED_ADAPTER_REFS:
+    if gemini_api not in adapter_constants.ALLOWED_ADAPTER_REFS:
         raise ProfileError("gemini_api_adapter: adapter:gemini-api is not admitted")
     caps = set(adapter.adapter_capabilities(gemini_api))
-    if caps != {adapter.ADAPTER_CAPABILITY_READ, adapter.ADAPTER_CAPABILITY_REVIEW}:
+    if caps != {adapter_constants.ADAPTER_CAPABILITY_READ, adapter_constants.ADAPTER_CAPABILITY_REVIEW}:
         raise ProfileError(
             f"gemini_api_adapter: gemini-api capabilities must be READ+REVIEW, got {sorted(caps)}"
         )
@@ -3126,8 +3151,8 @@ def run_gemini_api_adapter(repo: Path) -> KernelResult:
             adapter_ref=gemini_api,
             brick_instance_ref="brick-review",
             next_brick_instance_ref="brick-closure",
-            casting={"selected_model_ref": adapter.MODEL_REF_GEMINI_FLASH},
-            tool_policy_refs=(adapter.REVIEWER_READONLY_TOOL_POLICY_REF,),
+            casting={"selected_model_ref": adapter_constants.MODEL_REF_GEMINI_FLASH},
+            tool_policy_refs=(adapter_constants.REVIEWER_READONLY_TOOL_POLICY_REF,),
             work_statement="Return support evidence only.",
         )
 
@@ -3190,7 +3215,7 @@ def run_gemini_api_adapter(repo: Path) -> KernelResult:
     fake_key = "PROBE-FAKE-KEY-NOT-A-REAL-CREDENTIAL"
     os.environ["GEMINI_API_KEY"] = fake_key
     try:
-        returned, _proof_limits, _not_proven = adapter._invoke_gemini_api(
+        returned, _proof_limits, _not_proven = adapter_gemini_http._invoke_gemini_api(
             _make_request(),
             timeout_seconds=37,
             urlopen=_fake_urlopen,
@@ -3244,7 +3269,7 @@ def run_gemini_api_adapter(repo: Path) -> KernelResult:
     inspected += 1
 
     # (d) HTTP-error / timeout / malformed -> clean ValueError (no crash).
-    request_obj = adapter._build_gemini_api_request(fake_key, "gemini-2.5-flash", "p")
+    request_obj = adapter_gemini_http._build_gemini_api_request(fake_key, "gemini-2.5-flash", "p")
 
     import urllib.error as _urllib_error
     import socket as _socket
@@ -3260,7 +3285,7 @@ def run_gemini_api_adapter(repo: Path) -> KernelResult:
             ) from exc
         raise ProfileError(f"gemini_api_adapter: {label} did not raise (expected clean ValueError)")
 
-    saved_urlopen = adapter.urllib.request.urlopen
+    saved_urlopen = adapter_gemini_http.urllib.request.urlopen
 
     def _http_error(_req: Any, timeout: Any = None) -> Any:
         raise _urllib_error.HTTPError(request_obj.full_url, 500, "err", {}, None)
@@ -3268,22 +3293,22 @@ def run_gemini_api_adapter(repo: Path) -> KernelResult:
     def _timeout(_req: Any, timeout: Any = None) -> Any:
         raise _socket.timeout("timed out")
 
-    adapter.urllib.request.urlopen = _http_error
+    adapter_gemini_http.urllib.request.urlopen = _http_error
     try:
         _expect_value_error(
-            lambda: adapter._gemini_api_urlopen(request_obj, timeout_seconds=5), "HTTP 500"
+            lambda: adapter_gemini_http._gemini_api_urlopen(request_obj, timeout_seconds=5), "HTTP 500"
         )
     finally:
-        adapter.urllib.request.urlopen = saved_urlopen
-    adapter.urllib.request.urlopen = _timeout
+        adapter_gemini_http.urllib.request.urlopen = saved_urlopen
+    adapter_gemini_http.urllib.request.urlopen = _timeout
     try:
         _expect_value_error(
-            lambda: adapter._gemini_api_urlopen(request_obj, timeout_seconds=5), "timeout"
+            lambda: adapter_gemini_http._gemini_api_urlopen(request_obj, timeout_seconds=5), "timeout"
         )
     finally:
-        adapter.urllib.request.urlopen = saved_urlopen
+        adapter_gemini_http.urllib.request.urlopen = saved_urlopen
     _expect_value_error(
-        lambda: adapter._parse_gemini_api_response(b'{"candidates": []}'), "malformed response"
+        lambda: adapter_gemini_http._parse_gemini_api_response(b'{"candidates": []}'), "malformed response"
     )
     inspected += 1
 
@@ -6001,6 +6026,7 @@ def _append_adapter_error_stop_disposition(root: Path) -> None:
 
 def _assert_codex_ephemeral_env_dial(repo: Path) -> None:
     from brick_protocol.support.connection import agent_adapter
+    from brick_protocol.support.connection import adapter_local_cli
     from brick_protocol.support.connection.agent_adapter import (
         AgentAdapterRequest,
         LocalCliCompleted,
@@ -6036,7 +6062,7 @@ def _assert_codex_ephemeral_env_dial(repo: Path) -> None:
     old = os.environ.get("BRICK_CODEX_EPHEMERAL")
     try:
         os.environ.pop("BRICK_CODEX_EPHEMERAL", None)
-        absent = agent_adapter._invoke_local_cli(
+        absent = adapter_local_cli._invoke_local_cli(
             spec,
             request,
             "prompt",
@@ -6051,7 +6077,7 @@ def _assert_codex_ephemeral_env_dial(repo: Path) -> None:
         if "--ephemeral" not in absent.args:
             raise ProfileError("BRICK_CODEX_EPHEMERAL absent did not emit --ephemeral (default-on)")
         os.environ["BRICK_CODEX_EPHEMERAL"] = "0"
-        optout = agent_adapter._invoke_local_cli(
+        optout = adapter_local_cli._invoke_local_cli(
             spec,
             request,
             "prompt",
@@ -6064,7 +6090,7 @@ def _assert_codex_ephemeral_env_dial(repo: Path) -> None:
         if "--ephemeral" in optout.args:
             raise ProfileError("BRICK_CODEX_EPHEMERAL=0 still emitted --ephemeral (opt-out broken)")
         os.environ["BRICK_CODEX_EPHEMERAL"] = "1"
-        enabled = agent_adapter._invoke_local_cli(
+        enabled = adapter_local_cli._invoke_local_cli(
             spec,
             request,
             "prompt",

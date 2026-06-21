@@ -203,6 +203,8 @@ def _invoke_gemini_api(
     from .agent_adapter import (
         _GEMINI_API_SPEC,
         _merge_texts,
+    )
+    from .adapter_local_cli import (
         _not_proven_for_request,
         _proof_limits_for_request,
     )

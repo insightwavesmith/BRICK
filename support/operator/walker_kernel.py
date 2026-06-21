@@ -31,10 +31,12 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Callable
 
+from brick_protocol.support.connection.adapter_validation import (
+    safe_source_fact_body,
+)
 from brick_protocol.support.connection.agent_adapter import (
     AgentBrainCallable,
     CommandRunner,
-    safe_source_fact_body,
 )
 from brick_protocol.support.operator.contracts import (
     BuildingPlanSupportResult,

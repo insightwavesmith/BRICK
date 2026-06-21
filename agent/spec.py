@@ -37,7 +37,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from typing import Any, NamedTuple
 
-from brick_protocol.support.connection.agent_adapter import (
+from brick_protocol.support.connection.adapter_constants import (
     ADAPTER_CLAUDE_LOCAL,
     ADAPTER_CODEX_LOCAL,
     ADAPTER_GEMINI_LOCAL,
@@ -46,6 +46,8 @@ from brick_protocol.support.connection.agent_adapter import (
     MODEL_REF_CLAUDE_INHERIT,
     MODEL_REF_CODEX_DEFAULT,
     MODEL_REF_DEFAULT,
+)
+from brick_protocol.support.connection.adapter_model_casting import (
     _validate_model_ref_for_adapter,
     project_model_ref_to_cli_arg,
 )

@@ -45,13 +45,17 @@ from pathlib import Path
 from typing import Any
 
 from brick_protocol.support.connection import connect
-from brick_protocol.support.connection.agent_adapter import (
+from brick_protocol.support.connection.adapter_constants import (
     ADAPTER_CLAUDE_LOCAL,
     ADAPTER_CODEX_LOCAL,
     ADAPTER_GEMINI_LOCAL,
     ADAPTER_LOCAL,
-    adapter_is_write_capable,
+)
+from brick_protocol.support.connection.adapter_subprocess import (
     preflight_provider,
+)
+from brick_protocol.support.connection.agent_adapter import (
+    adapter_is_write_capable,
 )
 from brick_protocol.support.operator.driver import run_building_intake
 from brick_protocol.support.operator.frontier_observation import (

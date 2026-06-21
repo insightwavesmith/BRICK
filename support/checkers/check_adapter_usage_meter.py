@@ -276,7 +276,7 @@ def _assert_jsonl_never_becomes_text() -> str:
     is what stops the event structure (and any embedded ``usage`` key) from leaking
     into output_excerpt / AgentFact.returned when the file is empty + return_code 0.
     """
-    from brick_protocol.support.connection.agent_adapter import (
+    from brick_protocol.support.connection.adapter_subprocess import (
         codex_assistant_text_from_json_stdout,
     )
 
@@ -331,6 +331,8 @@ def test_behavioral_probe_usage_only_stdout() -> str:
     """
 
     from brick_protocol.support.connection import agent_adapter as adapter
+    from brick_protocol.support.connection import adapter_constants
+    from brick_protocol.support.connection import adapter_local_cli
 
     usage_only_stdout = (
         '{"type":"turn.completed","usage":{"input_tokens":4242,'
@@ -376,7 +378,7 @@ def test_behavioral_probe_usage_only_stdout() -> str:
     request = adapter.AgentAdapterRequest(
         building_id="adapter-usage-behavioral-probe",
         agent_object_ref="agent-object:dev",
-        adapter_ref=adapter.ADAPTER_CODEX_LOCAL,
+        adapter_ref=adapter_constants.ADAPTER_CODEX_LOCAL,
         brick_instance_ref="brick-probe",
         next_brick_instance_ref="brick-closure",
         # Declare usage-shaped return fields: if usage text reached the structured
@@ -385,7 +387,7 @@ def test_behavioral_probe_usage_only_stdout() -> str:
         required_return_shape="returned_summary, input_tokens, usage",
     )
 
-    returned, _proof_limits, _not_proven, adapter_usage = adapter._invoke_local_cli_adapter(
+    returned, _proof_limits, _not_proven, adapter_usage = adapter_local_cli._invoke_local_cli_adapter(
         request,
         cwd=_REPO_ROOT,
         timeout_seconds=5,
@@ -448,14 +450,14 @@ def _assert_mutation_red_behavioral_probe_leak() -> str:
     probe is not vacuously green.
     """
 
-    from brick_protocol.support.connection import agent_adapter as adapter
+    from brick_protocol.support.connection import adapter_grant_policy
 
     leaking_stdout = (
         '{"input_tokens": 4242, "usage": {"input_tokens": 4242}, '
         '"returned_summary": "leaked"}'
     )
     # The OLD bug shape: raw stdout flows into the structured extractor.
-    extracted = adapter._extract_required_return_fields(
+    extracted = adapter_grant_policy._extract_required_return_fields(
         leaking_stdout,
         "returned_summary, input_tokens, usage",
     )

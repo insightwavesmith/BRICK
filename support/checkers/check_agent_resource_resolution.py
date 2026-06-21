@@ -133,7 +133,7 @@ def _allowlist_casting_fields(
 
 def _casting_field_registry_violations(repo: Path) -> list[str]:
     from brick_protocol.support.connection import agent_resources
-    from brick_protocol.support.connection.agent_adapter import (
+    from brick_protocol.support.connection.adapter_constants import (
         ALLOWED_ADAPTER_REFS,
         MODEL_PROVIDER_BY_ADAPTER,
         MODEL_REF_DEFAULT,
@@ -211,7 +211,7 @@ def find_violations(repo: Path) -> tuple[list[str], int]:
     # Reuse the engine's resolver + admitted adapter set so the checker validates
     # exactly what the engine resolves and adapts to the current adapter vocabulary.
     from brick_protocol.support.connection.agent_resources import _resource_path
-    from brick_protocol.support.connection.agent_adapter import (
+    from brick_protocol.support.connection.adapter_constants import (
         ADAPTER_LOCAL,
         ALLOWED_ADAPTER_REFS,
     )

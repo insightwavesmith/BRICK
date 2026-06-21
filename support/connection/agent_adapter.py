@@ -17,8 +17,6 @@ import socket
 import subprocess
 import tempfile
 import time
-import urllib.error
-import urllib.request
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -32,11 +30,12 @@ from brick_protocol.brick.work import parse_required_return_shape
 from brick_protocol.brick.spec import WriteScope, WriteScopeContext
 
 
-# adapter_constants is a PURE constant leaf (no intra-package imports) that
-# agent_resources and agent/spec top-import at load. agent_adapter STAYS A
-# FACADE for these symbols: checkers and other code reach them late-bound as
-# agent_adapter.<sym>, so every moved name (public AND underscore-private) is
-# re-exported explicitly here.
+# adapter_constants is a PURE constant leaf (no intra-package imports). The
+# symbols below are the ones agent_adapter's OWN surviving body consumes at
+# runtime (capability literals, adapter refs, model-ref defaults, the
+# read-tier/read-write policy refs, the observed/retired write sets, the
+# capability table, the repo root). Callers that need a moved constant import
+# adapter_constants directly -- this is no longer a re-export facade.
 from .adapter_constants import (
     ADAPTER_LOCAL,
     ADAPTER_CODEX_LOCAL,
@@ -45,10 +44,6 @@ from .adapter_constants import (
     ADAPTER_GEMINI_API,
     ADAPTER_CHAT_SESSION,
     READ_WRITE_TOOL_POLICY_REF,
-    REVIEWER_READONLY_TOOL_POLICY_REF,
-    LEADER_COORDINATION_TOOL_POLICY_REF,
-    WEB_CAPABLE_TOOL_POLICY_REF,
-    READ_ONLY_TOOL_POLICY_REFS,
     READ_TIER_TOOL_POLICY_REFS,
     KNOWN_TOOL_POLICY_REFS,
     ADAPTER_CAPABILITY_READ,
@@ -62,7 +57,6 @@ from .adapter_constants import (
     MODEL_REF_GEMINI_DEFAULT,
     MODEL_REF_GEMINI_FLASH,
     MODEL_REF_GEMINI_LOCAL_FLASH,
-    MODEL_PROVIDER_BY_ADAPTER,
     _RETIRED_WRITE_ADAPTER_REFS,
     _OBSERVED_WRITE_ADAPTER_REFS,
     ALLOWED_ADAPTER_REFS,
@@ -138,21 +132,19 @@ from brick_protocol.support.connection.secret_text import (
     RAW_SECRET_PATTERNS as _RAW_SECRET_PATTERNS,
 )
 # adapter_validation cluster (E2 split, extraction 2/7): Secret/text/JSON
-# cleaning + payload guard relocated VERBATIM to support/connection/
-# adapter_validation.py. EXPLICIT facade re-exports for EVERY moved symbol
-# (public AND underscore-private) so late-bound agent_adapter.<sym> never breaks.
-# _RAW_SESSION_PATTERNS + _SOURCE_FACT_BODY_LIMIT are still used by surviving
-# agent_adapter helpers (_redacted_diagnostic_excerpt / _source_fact_bodies_for_prompt).
+# cleaning + payload guard live in support/connection/adapter_validation.py.
+# The symbols below are the ones agent_adapter's own body consumes at runtime
+# (_RAW_SESSION_PATTERNS + _SOURCE_FACT_BODY_LIMIT feed _redacted_diagnostic_excerpt
+# / _source_fact_bodies_for_prompt; the cleaners + payload guard are called from
+# connect_agent_brain and its helpers). Callers import adapter_validation directly.
 from .adapter_validation import (
     _RAW_SESSION_PATTERNS,
     _SOURCE_FACT_BODY_LIMIT,
     _clean_agent_instruction_packet,
-    _clean_instruction_json_value,
     _clean_json_value,
     _clean_link_handoff_refs,
     _clean_optional_text,
     _clean_source_fact_bodies,
-    _normalize,
     _reject_forbidden_text,
     _reject_secret_text,
     _safe_excerpt,
@@ -160,184 +152,53 @@ from .adapter_validation import (
     safe_source_fact_body,
 )
 
-# FACADE re-export: the subprocess runner + codex connect-stall watchdog + spawn
-# journal + token/text meter + provider preflight cluster now lives in
-# adapter_subprocess. agent_adapter STAYS A FACADE for these symbols -- checkers,
-# run.py, onboard.py and other call sites reach them late-bound as
-# agent_adapter.<sym> (and via `from agent_adapter import <sym>`), so EVERY moved
-# name (public AND underscore-private) is re-exported explicitly here. The
-# stay-behind symbols those functions need at runtime (LocalCliCompleted, the
-# preflight specs/hints, _reject_secret_text) are pulled by adapter_subprocess via
-# direct-sibling / lazy-in-function imports, so there is no import cycle.
+# The subprocess runner + codex connect-stall watchdog + spawn journal +
+# token/text meter + provider preflight cluster lives in adapter_subprocess. The
+# only two symbols agent_adapter's own body still calls at runtime are the
+# command dispatchers (_run_or_delegate / _run_text_cli_command). Callers that
+# need a moved subprocess symbol import adapter_subprocess directly.
 from .adapter_subprocess import (
-    CODEX_TURN_COMPLETED_USAGE_KEYS,
-    codex_assistant_text_from_json_stdout,
-    codex_usage_from_json_stdout,
-    preflight_provider,
-    _ADAPTER_SPAWN_JOURNAL_DEFAULT_PATH,
-    _CODEX_ASSISTANT_MESSAGE_EVENT_TYPES,
-    _CODEX_ASSISTANT_MESSAGE_ITEM_TYPES,
-    _CODEX_ASSISTANT_TEXT_KEYS,
-    _CODEX_JSON_UNSUPPORTED_MARKERS,
-    _CODEX_STALL_WATCHDOG_DEFAULT_POLL_SECONDS,
-    _CODEX_STALL_WATCHDOG_DEFAULT_THRESHOLD_SECONDS,
-    _CODEX_STALL_WATCHDOG_POLL_ENV,
-    _CODEX_STALL_WATCHDOG_PROBE_TIMEOUT_SECONDS,
-    _CODEX_STALL_WATCHDOG_SIGTERM_GRACE_SECONDS,
-    _CODEX_STALL_WATCHDOG_THRESHOLD_ENV,
-    _CodexCliHealth,
-    _CodexStallWatchdogConfig,
-    _ProcessSnapshotRow,
-    _STALL_DEAD_SIGNATURE_ATTR,
-    _TIMEOUT_REAP_REASON_ATTR,
-    _adapter_spawn_journal_path,
-    _codex_cli_health_sample,
-    _codex_cli_watchdog_applies,
-    _codex_dead_connection_signature,
-    _codex_event_assistant_text,
-    _codex_json_unsupported,
-    _codex_stall_watchdog_config,
-    _codex_text_from_keys,
-    _command_runner_accepts_env,
-    _communicate_with_optional_codex_stall_watchdog,
-    _established_tcp_socket_count,
-    _float_env_or_default,
-    _journal_reap,
-    _journal_spawn,
-    _journal_write,
-    _parse_ps_cpu_seconds,
-    _process_snapshot_rows,
-    _reap_timeout_process_group,
-    _related_process_ids,
-    _run_command,
     _run_or_delegate,
     _run_text_cli_command,
-    _safe_timeout_cmd,
-    _signal_process_group,
-    _stall_dead_signature_facts,
-    _timeout_expired_reap_reason,
-    _timeout_expired_stall_dead_signature,
-    _validate_command_args,
 )
 
-# FACADE re-export: the model-ref normalization + casting->CLI-arg projection
-# cluster now lives in adapter_model_casting (E2 split, extraction 4/7).
-# agent_adapter STAYS A FACADE for these symbols -- checkers and other call sites
-# reach them late-bound as agent_adapter.<sym> (and via `from agent_adapter import
-# <sym>`), so EVERY moved name (public AND underscore-private) is re-exported
-# explicitly here. The stay-behind carriers those functions need at runtime
-# (LocalCliSpec, AgentAdapterRequest, _GEMINI_API_SPEC, _local_cli_spec) are
-# reached by adapter_model_casting via lazy-in-function imports, so there is no
-# import cycle.
+# The model-ref normalization + casting->CLI-arg projection cluster lives in
+# adapter_model_casting (E2 split, extraction 4/7). agent_adapter's own body
+# calls only the casting-field accessors + the selected-model-ref normalizer.
+# Callers that need a moved casting symbol import adapter_model_casting directly.
 from .adapter_model_casting import (
-    project_model_ref_to_cli_arg,
-    _adapter_model_spec,
     _normalize_selected_model_ref,
-    _validate_model_ref_for_adapter,
-    _model_cli_arg,
-    _casting_cli_args,
-    _model_cli_arg_from_ref,
     _casting_fields,
     _node_casting_fields,
-    _node_casting_fields_ordered,
-    _CASTING_FIELDS_CACHE,
-    _NODE_CASTING_FIELDS_CACHE,
-    _NODE_CASTING_FIELDS_ORDERED_CACHE,
 )
 
-# FACADE re-export: the native-grant resolution + gemini admin-policy TOML +
-# work-envelope prompt build + structured-return extraction cluster now lives in
-# adapter_grant_policy (E2 split, extraction 5/7). agent_adapter STAYS A FACADE
-# for these symbols -- checkers, run.py and other call sites reach them late-bound
-# as agent_adapter.<sym> (and via `from agent_adapter import <sym>`), so EVERY
-# moved name (public AND underscore-private) is re-exported explicitly here. The
-# stay-behind carriers/constants/helpers those functions need at runtime
-# (AgentAdapterRequest, LocalCliSpec, _CANONICAL_TOOL_UNIVERSE_GEMINI,
-# _GEMINI_TOOLS_BY_NATIVE_CAPABILITY, _RETURN_JSON_FIELDS, _RETURN_LIST_FIELDS,
-# _TOP_LEVEL_VERDICT_KEYS, adapter_has_capability, agent_request_effective_write,
-# agent_request_read_tier, _required_return_shape_fields, _return_field_waivers,
-# _allowed_return_fields, _read_tier_policy_refs_for_request,
-# _source_fact_bodies_for_prompt, _transition_concern_schema_rules, _merge_texts,
-# _try_json_value, _node_casting_fields_ordered) are reached by
-# adapter_grant_policy via its module-level __getattr__ back-edge, so there is no
-# import cycle.
-from .adapter_grant_policy import (
-    _native_grant_resolution_for_request,
-    _native_capabilities_for_request,
-    _native_web_requested_for_request,
-    _adapter_projects_web_for_request,
-    _gemini_allowed_tool_names_for_request,
-    _gemini_admin_policy_partition_for_request,
-    _toml_tool_rule,
-    _gemini_admin_policy_for_request,
-    _build_prompt,
-    _instruction_packet_for_prompt,
-    _extract_required_return_fields,
-    _merge_structured_return_fields,
-    _structured_return_payload,
-    _clean_return_field_value,
-    _strip_code_fence,
-)
+# The native-grant resolution + gemini admin-policy TOML + work-envelope prompt
+# build + structured-return extraction cluster lives in adapter_grant_policy (E2
+# split, extraction 5/7). agent_adapter's own body no longer calls any of these
+# symbols directly (the work-envelope prompt + grant resolution flow runs inside
+# adapter_grant_policy / adapter_local_cli now), so there is NO import of it here.
+# Callers that need a grant-policy symbol import adapter_grant_policy directly.
 
-# FACADE re-export: the Gemini HTTP API adapter (★S11 SEAM★) + the bare prompt ->
+# The Gemini HTTP API adapter (★S11 SEAM★) + the bare prompt ->
 # text design-AI seams (invoke_gemini_text / invoke_claude_text / invoke_codex_text
-# and their _text_cli_* helpers) now live in adapter_gemini_http (E2 split,
-# extraction 6/7). agent_adapter STAYS A FACADE for these symbols -- checkers
-# (kernel_checks.py patches agent_adapter.urllib.request.urlopen and calls
-# agent_adapter._gemini_api_urlopen), run.py and other call sites reach them
-# late-bound as agent_adapter.<sym> (and via `from agent_adapter import <sym>`),
-# so EVERY moved name (public AND underscore-private) is re-exported explicitly
-# here. The stay-behind carriers/constants/helpers those functions need at runtime
-# (_GEMINI_API_SPEC, _GEMINI_API_BASE_URL, _GEMINI_API_MODEL_FALLBACK,
-# _GEMINI_API_KEY_ENV_VARS, _proof_limits_for_request, _not_proven_for_request,
-# _merge_texts, _run_text_cli, _raw_text_from_completed) are reached by
-# adapter_gemini_http via lazy-in-function back-edge imports, so there is no
-# import cycle. ``import urllib.request`` stays at the top of THIS module so the
-# kernel_checks patch target agent_adapter.urllib.request.urlopen resolves.
+# and their _text_cli_* helpers) live in adapter_gemini_http (E2 split, extraction
+# 6/7). The S11 FIRE (urlopen patch + _gemini_api_urlopen) now targets
+# adapter_gemini_http directly (which top-imports urllib.request), so agent_adapter
+# no longer re-exports those seams. The only gemini-http symbol agent_adapter's own
+# body still calls is _invoke_gemini_api (the gemini-api adapter dispatch inside
+# connect_agent_brain). Callers import adapter_gemini_http directly.
 from .adapter_gemini_http import (
-    _gemini_api_key_from_env,
-    _gemini_api_model_name,
-    _build_gemini_api_request,
-    _parse_gemini_api_response,
-    _gemini_api_urlopen,
     _invoke_gemini_api,
-    _gemini_api_key_env_present,
-    invoke_gemini_text,
-    invoke_claude_text,
-    invoke_codex_text,
-    _text_cli_executable,
-    _clean_text_cli_option,
 )
 
-# FACADE re-export: the Local-CLI invocation cluster (argv assembly + local-callable
-# stub + output/nonzero-error extraction) now lives in adapter_local_cli (E2 split,
-# extraction 7/7). agent_adapter STAYS A FACADE for these symbols -- connect_agent_brain
-# (this module), checkers, run.py and other call sites reach them late-bound as
-# agent_adapter.<sym> (and via `from agent_adapter import <sym>`), so EVERY moved
-# name (public AND underscore-private) is re-exported explicitly here. The stay-behind
-# carriers/constants/helpers those functions need at runtime (LocalCliSpec,
-# LocalCliCompleted, AgentBrainCallable, _local_cli_spec, probe_local_cli_adapter,
-# agent_request_effective_write, agent_request_read_tier, _merge_texts,
-# _redacted_diagnostic_excerpt, _try_json_value, the _CLAUDE_*_SYSTEM_PROMPT constants,
-# _GEMINI_API_KEY_ENV_VARS, _GEMINI_READ_TOOL_NAMES) are reached by adapter_local_cli
-# via lazy-in-function back-edge imports, so there is no import cycle.
+# The Local-CLI invocation cluster (argv assembly + local-callable stub +
+# output/nonzero-error extraction) lives in adapter_local_cli (E2 split,
+# extraction 7/7). agent_adapter's own connect_agent_brain dispatch calls the
+# local-callable + local-cli adapter entry points; the rest of the cluster is
+# reached by callers importing adapter_local_cli directly.
 from .adapter_local_cli import (
     _invoke_local_callable,
-    _local_callable_smoke,
-    _BUILTIN_LOCAL_CALLABLES,
     _invoke_local_cli_adapter,
-    _invoke_local_cli,
-    _codex_sandbox_for_request,
-    _claude_cli_invocation,
-    _proof_limits_for_request,
-    _not_proven_for_request,
-    _local_cli_nonzero_error_message,
-    _stdout_error_excerpt,
-    _stderr_gemini_client_error_path,
-    _GEMINI_CLIENT_ERROR_PATH_RE,
-    _extract_output_text,
-    _extract_gemini_response,
-    _gemini_nonread_tool_names,
 )
 
 _GEMINI_SOURCE_FACT_BODY_LIMIT = 4000
@@ -1161,25 +1022,16 @@ __all__ = [
     "LocalCliProbe",
     "LocalCliSpec",
     "KNOWN_TOOL_POLICY_REFS",
-    "LEADER_COORDINATION_TOOL_POLICY_REF",
-    "READ_ONLY_TOOL_POLICY_REFS",
     "READ_TIER_TOOL_POLICY_REFS",
     "READ_WRITE_TOOL_POLICY_REF",
-    "REVIEWER_READONLY_TOOL_POLICY_REF",
-    "WEB_CAPABLE_TOOL_POLICY_REF",
     "adapter_capabilities",
     "adapter_has_capability",
     "adapter_is_write_capable",
     "agent_request_effective_write",
     "agent_request_read_tier",
     "connect_agent_brain",
-    "invoke_claude_text",
-    "invoke_codex_text",
-    "invoke_gemini_text",
     "local_cli_adapter_refs",
-    "preflight_provider",
     "probe_local_cli_adapter",
-    "project_model_ref_to_cli_arg",
     "safe_source_fact_body",
     "supported_model_ref_examples",
 ]

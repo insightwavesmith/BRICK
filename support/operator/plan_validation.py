@@ -87,7 +87,7 @@ from brick_protocol.support.operator.primitives import (
     _text_tuple,
     _validate_no_payload_forbidden,
 )
-from brick_protocol.support.connection.agent_adapter import _OBSERVED_WRITE_ADAPTER_REFS
+from brick_protocol.support.connection.adapter_constants import _OBSERVED_WRITE_ADAPTER_REFS
 
 _ARTIFACT_GROUNDING_REVIEW_FIELD = "evidence_used"
 _ARTIFACT_GROUNDING_DESIGN_FIELD = "evidence_refs"

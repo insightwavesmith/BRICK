@@ -13,12 +13,14 @@ from pathlib import Path
 from typing import Any
 
 from brick_protocol.agent.performance import NATIVE_DISPATCH_PERFORMANCE_MODE
-from .agent_adapter import (
+from .adapter_constants import (
     ADAPTER_CODEX_LOCAL as _ADAPTER_CODEX_LOCAL,
     ADAPTER_CLAUDE_LOCAL as _ADAPTER_CLAUDE_LOCAL,
     ALLOWED_ADAPTER_REFS as _ALLOWED_ADAPTER_REFS,
     MODEL_PROVIDER_BY_ADAPTER as _MODEL_PROVIDER_BY_ADAPTER,
     _OBSERVED_WRITE_ADAPTER_REFS,
+)
+from .agent_adapter import (
     adapter_is_write_capable,
 )
 from brick_protocol.support.operator.primitives import (

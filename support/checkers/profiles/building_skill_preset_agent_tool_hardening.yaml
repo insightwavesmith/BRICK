@@ -133,11 +133,16 @@ text_contains:
       - _RETURN_WAIVER_FIELDS_BY_REQUIRED
       - return_field_waivers
       - no_changes_reason
-      - READ_ONLY_TOOL_POLICY_REFS
       - def agent_request_read_tier
+  # MODULE-SEP god-module split (route-B, facade removed): the read-only
+  # tool-policy ref set relocated to the adapter_constants.py leaf; the pin
+  # follows the moved symbol to its real new home.
+  - path: support/connection/adapter_constants.py
+    texts:
+      - READ_ONLY_TOOL_POLICY_REFS
   # MODULE-SEP god-module split: the native-grant read-tier rule prose relocated
-  # to the adapter_grant_policy.py sibling (re-exported by the agent_adapter
-  # facade); these text pins follow the moved strings to their new home.
+  # to the adapter_grant_policy.py sibling; these text pins follow the moved
+  # strings to their real new home.
   - path: support/connection/adapter_grant_policy.py
     texts:
       - read-only repository inspection tools only

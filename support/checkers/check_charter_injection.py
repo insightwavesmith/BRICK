@@ -123,10 +123,14 @@ def run_fire_probes(repo: Path) -> list[str]:
         render_agent_instruction_packet,
     )
     from brick_protocol.support.connection.agent_adapter import (
-        ADAPTER_CODEX_LOCAL,
-        ADAPTER_CLAUDE_LOCAL,
         AgentAdapterRequest,
         _LOCAL_CLI_SPECS,
+    )
+    from brick_protocol.support.connection.adapter_constants import (
+        ADAPTER_CODEX_LOCAL,
+        ADAPTER_CLAUDE_LOCAL,
+    )
+    from brick_protocol.support.connection.adapter_grant_policy import (
         _build_prompt,
     )
 
