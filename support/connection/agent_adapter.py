@@ -309,6 +309,37 @@ from .adapter_gemini_http import (
     _clean_text_cli_option,
 )
 
+# FACADE re-export: the Local-CLI invocation cluster (argv assembly + local-callable
+# stub + output/nonzero-error extraction) now lives in adapter_local_cli (E2 split,
+# extraction 7/7). agent_adapter STAYS A FACADE for these symbols -- connect_agent_brain
+# (this module), checkers, run.py and other call sites reach them late-bound as
+# agent_adapter.<sym> (and via `from agent_adapter import <sym>`), so EVERY moved
+# name (public AND underscore-private) is re-exported explicitly here. The stay-behind
+# carriers/constants/helpers those functions need at runtime (LocalCliSpec,
+# LocalCliCompleted, AgentBrainCallable, _local_cli_spec, probe_local_cli_adapter,
+# agent_request_effective_write, agent_request_read_tier, _merge_texts,
+# _redacted_diagnostic_excerpt, _try_json_value, the _CLAUDE_*_SYSTEM_PROMPT constants,
+# _GEMINI_API_KEY_ENV_VARS, _GEMINI_READ_TOOL_NAMES) are reached by adapter_local_cli
+# via lazy-in-function back-edge imports, so there is no import cycle.
+from .adapter_local_cli import (
+    _invoke_local_callable,
+    _local_callable_smoke,
+    _BUILTIN_LOCAL_CALLABLES,
+    _invoke_local_cli_adapter,
+    _invoke_local_cli,
+    _codex_sandbox_for_request,
+    _claude_cli_invocation,
+    _proof_limits_for_request,
+    _not_proven_for_request,
+    _local_cli_nonzero_error_message,
+    _stdout_error_excerpt,
+    _stderr_gemini_client_error_path,
+    _GEMINI_CLIENT_ERROR_PATH_RE,
+    _extract_output_text,
+    _extract_gemini_response,
+    _gemini_nonread_tool_names,
+)
+
 _GEMINI_SOURCE_FACT_BODY_LIMIT = 4000
 _CLAUDE_NONINTERACTIVE_SYSTEM_PROMPT = (
     "You are a non-interactive Brick Protocol support evidence reviewer. "
@@ -876,124 +907,6 @@ _PROVIDER_LOGIN_HINT_KO: Mapping[str, str] = {
 }
 
 
-def _invoke_local_callable(
-    request: AgentAdapterRequest,
-    local_callables: Mapping[str, AgentBrainCallable] | None,
-) -> Any:
-    if not request.callable_ref:
-        raise ValueError("adapter:local requires callable_ref")
-    registry = dict(_BUILTIN_LOCAL_CALLABLES)
-    if local_callables:
-        registry.update(local_callables)
-    local_callable = registry.get(request.callable_ref)
-    if local_callable is None:
-        raise ValueError("local callable ref is not registered")
-    return local_callable(request)
-
-
-def _local_callable_smoke(request: AgentAdapterRequest) -> Mapping[str, Any]:
-    return {
-        "returned_summary": "local Agent Adapter callable returned support evidence",
-        "adapter_ref": request.adapter_ref,
-        "agent_object_ref": request.agent_object_ref,
-        "callable_ref": request.callable_ref,
-        "prompt_refs": list(request.prompt_refs),
-        "skill_refs": list(request.skill_refs),
-        "hook_refs": list(request.hook_refs),
-        "tool_policy_refs": list(request.tool_policy_refs),
-        "discipline_refs": list(request.discipline_refs),
-        "evidence_refs": [request.output_packet_ref or "support-ref:agent-adapter-output"],
-    }
-
-
-_BUILTIN_LOCAL_CALLABLES: Mapping[str, AgentBrainCallable] = {
-    "callable:local:agent-invoke0-smoke": _local_callable_smoke,
-}
-
-
-def _invoke_local_cli_adapter(
-    request: AgentAdapterRequest,
-    *,
-    cwd: Path,
-    timeout_seconds: int,
-    command_runner: CommandRunner | None,
-) -> tuple[Mapping[str, Any], tuple[str, ...], tuple[str, ...], Mapping[str, Any] | None]:
-    spec = _local_cli_spec(request.adapter_ref)
-    probe = probe_local_cli_adapter(
-        spec.adapter_ref,
-        command_runner=command_runner,
-    )
-    proof_limits = _proof_limits_for_request(request, spec)
-    not_proven = _not_proven_for_request(request, spec)
-    prompt = _build_prompt(request, spec)
-    completed = _invoke_local_cli(
-        spec,
-        request,
-        prompt,
-        cwd=cwd,
-        timeout_seconds=timeout_seconds,
-        command_runner=command_runner,
-    )
-    if completed.return_code != 0:
-        raise ValueError(_local_cli_nonzero_error_message(spec, completed))
-    output_text = _extract_output_text(spec, completed, request=request)
-    _reject_secret_text("local_cli_output", output_text)
-    returned = {
-        "returned_summary": "local CLI Agent Adapter returned support evidence",
-        "adapter_ref": spec.adapter_ref,
-        # E2/S6★: serialize the casting dials by LOOPING the single-source
-        # NODE_CASTING_FIELDS instead of naming the model dial. Each declared
-        # (truthy) ``selected_<base>`` value joins the bag; an undeclared dial is
-        # absent, so today this emits exactly ``selected_model_ref`` (byte-identical
-        # to the prior single key) and a NEW dial (effort) rides along when declared.
-        **{
-            _ck: getattr(request, _ck)
-            for _ck in _node_casting_fields_ordered()
-            if getattr(request, _ck)
-        },
-        "agent_object_ref": request.agent_object_ref,
-        "brain_surface_ref": spec.brain_surface_ref,
-        "cli_version_text": probe.version_text,
-        # F7 proof-limit (codex review 2, operator decision B 0601): cli_call_ref
-        # is BUILDING-scoped (adapter + building_id), so multiple steps of one
-        # Building share it. _invoke_local_cli DOES spawn a fresh subprocess per
-        # step (each step is a real independent process), but the returned
-        # evidence does NOT carry per-step identifiers (call_index / args /
-        # return_code / cwd). So this evidence proves "a real codex CLI of this
-        # version returned this content" but NOT, by itself, "each step ran as a
-        # distinct OS process". That per-step process-identity is NOT-PROVEN.
-        # HONESTY CORRECTION (codex review 2): this NOT-PROVEN phrase is recorded
-        # in the engine BLUEPRINT §9, NOT in spec.not_proven / the returned
-        # evidence (an earlier comment here overclaimed that). _DEFAULT_NOT_PROVEN
-        # does NOT carry it. Adding it to every returned record would change the
-        # AgentFact returned-evidence shape and require migrating every existing
-        # real-codex building (FQ-2-class) — disproportionate to a P3 labelling
-        # gap where behavior is already correct; left as a blueprint-level limit.
-        "cli_call_ref": f"support-cli-call:{spec.adapter_ref}:{request.building_id}",
-        "output_excerpt": _safe_excerpt(output_text),
-        "evidence_refs": [
-            request.output_packet_ref or f"support-ref:{spec.adapter_ref}:local-cli-output"
-        ],
-        "proof_limits": list(proof_limits),
-        "not_proven": list(not_proven),
-    }
-    _merge_structured_return_fields(
-        returned,
-        _extract_required_return_fields(
-            output_text,
-            request.required_return_shape,
-        ),
-    )
-    # TrackA-A1 METER: the codex token usage rides back as a SEPARATE 4th element,
-    # NOT inside `returned` (which becomes AgentFact.returned). Support fact only.
-    return (
-        returned,
-        _merge_texts(proof_limits, request.proof_limits),
-        _merge_texts(not_proven, request.not_proven),
-        completed.adapter_usage,
-    )
-
-
 def _local_cli_spec(adapter_ref: str) -> LocalCliSpec:
     if adapter_ref in _RETIRED_WRITE_ADAPTER_REFS:
         raise ValueError("adapter_ref is retired and not admitted as an active adapter")
@@ -1001,298 +914,6 @@ def _local_cli_spec(adapter_ref: str) -> LocalCliSpec:
         return _LOCAL_CLI_SPECS[adapter_ref]
     except KeyError as exc:
         raise ValueError("adapter_ref is not a local CLI adapter") from exc
-
-
-def _invoke_local_cli(
-    spec: LocalCliSpec,
-    request: AgentAdapterRequest,
-    prompt: str,
-    *,
-    cwd: Path,
-    timeout_seconds: int,
-    command_runner: CommandRunner | None,
-) -> LocalCliCompleted:
-    executable_path = spec.executable_name if command_runner is not None else shutil.which(spec.executable_name)
-    if not executable_path:
-        raise FileNotFoundError(f"local CLI executable not found for {spec.adapter_ref}")
-    if spec.invocation_args_kind == "codex-exec-readonly":
-        sandbox = _codex_sandbox_for_request(request)
-        with tempfile.NamedTemporaryFile(prefix="bp-codex-cli-", suffix=".txt") as output_file:
-            args_list = [
-                executable_path,
-                "exec",
-                "--skip-git-repo-check",
-                "--cd",
-                str(cwd),
-                "--sandbox",
-                sandbox,
-                "-c",
-                'approval_policy="never"',
-            ]
-            # OPT-IN ONLY (default invocation byte-identical when the env var is
-            # unset/not "1"): codex's non-managed hooks (e.g. the .codex/hooks
-            # native-dispatch recording pair) require a one-time interactive
-            # TRUST review; `codex exec` cannot show that prompt and silently
-            # skips untrusted hooks (empirically observed 0610: a registered
-            # SessionStart canary did not fire under this exact invocation).
-            # Setting BRICK_CODEX_HOOK_TRUST_BYPASS=1 appends codex's own
-            # automation escape hatch so already-vetted repo hooks run. This
-            # bypasses HOOK TRUST only -- not approvals, not the sandbox.
-            if os.environ.get("BRICK_CODEX_HOOK_TRUST_BYPASS") == "1":
-                args_list.append("--dangerously-bypass-hook-trust")
-            # E2/S6 (mirror M6): the codex ``-m`` model flag is now DATA on the
-            # casting model dial's cli_emit; the spawn path loops CASTING_FIELDS.
-            # Byte-identical to the deleted inline ``("-m", model_arg)`` literal.
-            args_list.extend(_casting_cli_args(request, spec))
-            # Ephemeral by DEFAULT: a non-ephemeral `codex exec` persists its
-            # session to the shared ~/.codex SQLite state (state/logs/goals/
-            # memories), which is single-writer locked. Two concurrent codex
-            # builds therefore deadlock the second on that write lock -- it
-            # spawns but never connects (0 CPU, 0 sockets) and hangs to the full
-            # adapter timeout. --ephemeral skips SESSION persistence only (the
-            # workspace code write is governed by --sandbox, untouched), so
-            # concurrent codex builds stop contending. BRICK keeps its own
-            # evidence ledger and never reads codex's session, so nothing is
-            # lost. Opt out (rare, e.g. inspecting codex sessions) with
-            # BRICK_CODEX_EPHEMERAL=0.
-            if os.environ.get("BRICK_CODEX_EPHEMERAL") != "0":
-                args_list.append("--ephemeral")
-            # TrackA-A1 METER: `--json` turns codex's stdout into per-event JSONL so
-            # we can read the turn.completed token usage. It does NOT change where
-            # the TEXT response lives: codex still writes the last assistant message
-            # to the --output-last-message FILE regardless of --json. So below we
-            # read the TEXT from that FILE ALWAYS (the JSONL stdout is NOT text), and
-            # parse the JSONL stdout ONLY for the usage meter. stdin=DEVNULL (the
-            # connect-stall cure) and --output-last-message are untouched.
-            #
-            # GRACEFUL OLDER-CODEX (the meter is instrumentation, never break a
-            # build): we try WITH --json first; if that exact invocation fails with
-            # an "unrecognized --json"-shaped diagnostic (older codex), we retry ONCE
-            # WITHOUT --json. The meter then records absent usage (None) and the build
-            # proceeds. Any OTHER nonzero is a real build error, returned untouched.
-            tail_args = ("--output-last-message", output_file.name, prompt)
-            json_args = tuple((*args_list, "--json", *tail_args))
-            completed = _run_or_delegate(json_args, cwd, timeout_seconds, command_runner)
-            json_active = True
-            if _codex_json_unsupported(completed):
-                # Older codex: re-run WITHOUT --json so the build still completes.
-                # The file may have been left empty by the rejected first attempt;
-                # re-running with a fresh seek keeps the text path identical.
-                plain_args = tuple((*args_list, *tail_args))
-                completed = _run_or_delegate(
-                    plain_args, cwd, timeout_seconds, command_runner
-                )
-                json_active = False
-            # SUPPORT meter input (Brick-axis fact, no verdict): the LAST
-            # turn.completed.usage from the JSONL stdout. None when --json is
-            # unavailable (older codex) or no turn.completed/usage is present.
-            adapter_usage = (
-                codex_usage_from_json_stdout(completed.stdout) if json_active else None
-            )
-            # TEXT response ALWAYS from the --output-last-message file. When the file
-            # is empty/unwritten we must NOT fall back to raw stdout under --json --
-            # that stdout is JSONL events, and feeding it to the assistant-text path
-            # leaks the event structure into output_excerpt AND can let a JSONL
-            # "usage" key be lifted into AgentFact.returned (gate-no-measure). So with
-            # --json on we recover the assistant message TEXT from the JSONL events
-            # (codex_assistant_text_from_json_stdout), which returns "" when no
-            # message text is present -- never the raw JSONL. Without --json (older
-            # codex), the stdout is plain text and the original fallback is restored.
-            output_file.seek(0)
-            file_text = output_file.read().decode("utf-8", errors="replace")
-            if file_text.strip():
-                text_stdout = file_text
-            elif json_active:
-                text_stdout = codex_assistant_text_from_json_stdout(completed.stdout)
-            else:
-                text_stdout = completed.stdout
-            return LocalCliCompleted(
-                args=completed.args,
-                return_code=completed.return_code,
-                stdout=text_stdout,
-                stderr=completed.stderr,
-                adapter_usage=adapter_usage,
-            )
-    if spec.invocation_args_kind == "claude-plan-json":
-        knobs = _claude_cli_invocation(request)
-        args_list = [
-            executable_path,
-            "-p",
-            "--output-format",
-            "json",
-            "--permission-mode",
-            knobs["permission_mode"],
-            "--system-prompt",
-            knobs["system_prompt"],
-            "--tools",
-            knobs["tools"],
-        ]
-        # E2/S6 (mirror M6): the claude ``--model`` model flag is now DATA on the
-        # casting model dial's cli_emit; the spawn path loops CASTING_FIELDS.
-        # Byte-identical to the deleted inline ``("--model", model_arg)`` literal.
-        args_list.extend(_casting_cli_args(request, spec))
-        if request.session_continuity_mode == "none":
-            args_list.append("--no-session-persistence")
-        args_list.append(prompt)
-        args = tuple(args_list)
-        return _run_or_delegate(args, cwd, timeout_seconds, command_runner)
-    if spec.invocation_args_kind == "gemini-p-json-flash":
-        with tempfile.TemporaryDirectory(prefix="bp-gemini-cli-") as tmpdir:
-            temp_root = Path(tmpdir)
-            read_tier = agent_request_read_tier(request)
-            allowed_gemini_tools = _gemini_allowed_tool_names_for_request(request)
-            native_tool_tier = bool(allowed_gemini_tools)
-            policy_path = temp_root / (
-                "native-grant-policy.toml" if native_tool_tier else "no-tools-policy.toml"
-            )
-            policy_path.write_text(
-                _gemini_admin_policy_for_request(request),
-                encoding="utf-8",
-            )
-            run_cwd = cwd if read_tier else temp_root
-            run_env = None
-            approval_mode = "plan"
-            model_arg = _model_cli_arg(request, spec) or "gemini-2.5-flash"
-            if native_tool_tier:
-                run_env = dict(os.environ)
-                if not _gemini_api_key_env_present(run_env):
-                    raise FileNotFoundError(
-                        "gemini-local native tool tier requires an API key in env "
-                        + " or ".join(_GEMINI_API_KEY_ENV_VARS)
-                        + " (none set)"
-                    )
-                gemini_home = temp_root / "home"
-                gemini_settings_dir = gemini_home / ".gemini"
-                gemini_settings_dir.mkdir(parents=True)
-                (gemini_settings_dir / "settings.json").write_text(
-                    json.dumps(
-                        {"security": {"auth": {"selectedType": "gemini-api-key"}}},
-                        sort_keys=True,
-                    ),
-                    encoding="utf-8",
-                )
-                run_env["HOME"] = str(gemini_home)
-                approval_mode = "default"
-                model_arg = _model_cli_arg(request, spec) or "gemini-3.5-flash"
-            args = (
-                executable_path,
-                "-p",
-                prompt,
-                "--output-format",
-                "json",
-                "--model",
-                model_arg,
-                "--approval-mode",
-                approval_mode,
-                "--extensions",
-                "",
-                "--admin-policy",
-                str(policy_path),
-                "--skip-trust",
-            )
-            return _run_or_delegate(
-                args,
-                run_cwd,
-                timeout_seconds,
-                command_runner,
-                env=run_env,
-            )
-    raise ValueError("unsupported local CLI adapter kind")
-
-
-def _proof_limits_for_request(
-    request: AgentAdapterRequest,
-    spec: LocalCliSpec,
-) -> tuple[str, ...]:
-    if not agent_request_effective_write(request):
-        return spec.proof_limits
-    return _merge_texts(
-        spec.proof_limits,
-        "workspace write is limited by Brick-declared write_scope",
-    )
-
-
-def _not_proven_for_request(
-    request: AgentAdapterRequest,
-    spec: LocalCliSpec,
-) -> tuple[str, ...]:
-    if not agent_request_effective_write(request):
-        return spec.not_proven
-    return _merge_texts(
-        spec.not_proven,
-        "semantic correctness of file edits",
-    )
-
-
-def _codex_sandbox_for_request(request: AgentAdapterRequest) -> str:
-    if not agent_request_effective_write(request):
-        return "read-only"
-    from .agent_resources import codex_sandbox_mode_for_tool_policies
-
-    projected = codex_sandbox_mode_for_tool_policies(
-        list(request.tool_policy_refs),
-        write_need=bool(request.write_scope),
-        native_grant_resources=request.agent_instruction_packet.get("tool_policy_resources", []),
-    )
-    return "workspace-write" if projected == "workspace-write" else "read-only"
-
-
-def _claude_cli_invocation(request: AgentAdapterRequest) -> dict[str, str]:
-    """Pure projection of the claude-local CLI knobs for a request.
-
-    Mirrors _codex_sandbox_for_request: the SINGLE place that decides whether a
-    claude-local invocation opens scoped write. When agent_request_effective_write
-    is True the run uses the scoped write tool set (from the Agent's read-write
-    tool policy) + acceptEdits + a write-aware system prompt; otherwise it keeps
-    the unchanged read-only shape (plan + no tools + the non-interactive reviewer
-    prompt). Unlike codex there is NO OS sandbox here -- and NONE of the claude-side
-    knobs is a verified write boundary: the tools allowlist, acceptEdits, claude's
-    own provider-side protected-path prompts, cwd, and the injected prompt rules are
-    all advisory/provider-state, not enforced by this code. The ONLY enforcement
-    this layer owns is the 3-gate effective_write decision + post-hoc write
-    observation; a live in-scope/out-of-scope claude write is NOT-PROVEN.
-    """
-    if agent_request_effective_write(request):
-        # Lazy import: agent_resources imports FROM this module, so a top-level
-        # import would be circular.
-        from .agent_resources import claude_tools_for_tool_policies
-
-        # tool_policy_refs is a tuple on the request; claude_tools_for_tool_policies'
-        # _string_list helper accepts only a list, so pass a list copy. This is the
-        # RUN-TIME provider invocation FOR A STEP, so the step's actual write NEED
-        # (a non-empty Brick write_scope) gates the physical tool set -- matching
-        # the agent_request_effective_write gate this branch already passed, never
-        # the agent's bare capability.
-        mapping = claude_tools_for_tool_policies(
-            list(request.tool_policy_refs),
-            write_need=bool(request.write_scope),
-            native_grant_resources=request.agent_instruction_packet.get("tool_policy_resources", []),
-        )
-        if mapping.get("write_capable") is True:
-            tools = ",".join(mapping["tools"])
-            return {
-                "permission_mode": "acceptEdits",
-                "tools": tools,
-                "system_prompt": _CLAUDE_SCOPED_WRITE_SYSTEM_PROMPT,
-            }
-    if agent_request_read_tier(request):
-        from .agent_resources import claude_tools_for_tool_policies
-
-        mapping = claude_tools_for_tool_policies(
-            list(request.tool_policy_refs),
-            write_need=False,
-            native_grant_resources=request.agent_instruction_packet.get("tool_policy_resources", []),
-        )
-        return {
-            "permission_mode": "plan",
-            "tools": ",".join(mapping["tools"]),
-            "system_prompt": _CLAUDE_READ_ONLY_SYSTEM_PROMPT,
-        }
-    return {
-        "permission_mode": "plan",
-        "tools": "",
-        "system_prompt": _CLAUDE_NONINTERACTIVE_SYSTEM_PROMPT,
-    }
 
 
 def _run_text_cli(
@@ -1370,48 +991,6 @@ def _allowed_return_fields(value: Any) -> tuple[str, ...]:
     return tuple(dict.fromkeys((*required, *_return_field_waivers(required))))
 
 
-_GEMINI_CLIENT_ERROR_PATH_RE = re.compile(
-    r"""[^\s'"`<>]*gemini-client-error-[^\s'"`<>]*\.json"""
-)
-
-
-def _local_cli_nonzero_error_message(spec: LocalCliSpec, completed: LocalCliCompleted) -> str:
-    parts = [
-        "local CLI adapter command returned non-zero",
-        f"adapter_ref={spec.adapter_ref}",
-        f"return_code={completed.return_code}",
-    ]
-    stderr_excerpt = _redacted_diagnostic_excerpt(completed.stderr, limit=420)
-    if stderr_excerpt:
-        parts.append(f"stderr_excerpt={stderr_excerpt}")
-    stdout_error_excerpt = _stdout_error_excerpt(completed.stdout)
-    if stdout_error_excerpt:
-        parts.append(f"stdout_error_excerpt={stdout_error_excerpt}")
-    stderr_error_path = _stderr_gemini_client_error_path(completed.stderr)
-    if stderr_error_path:
-        parts.append(f"stderr_error_path={stderr_error_path}")
-    return "; ".join(parts)
-
-
-def _stdout_error_excerpt(stdout: str) -> str:
-    payload = _try_json_value(stdout)
-    if not isinstance(payload, Mapping) or "error" not in payload:
-        return ""
-    error = payload["error"]
-    if isinstance(error, str):
-        text = error
-    else:
-        text = json.dumps(error, ensure_ascii=True, sort_keys=True)
-    return _redacted_diagnostic_excerpt(text, limit=360)
-
-
-def _stderr_gemini_client_error_path(stderr: str) -> str:
-    match = _GEMINI_CLIENT_ERROR_PATH_RE.search(stderr)
-    if not match:
-        return ""
-    return _redacted_diagnostic_excerpt(match.group(0), limit=240)
-
-
 def _redacted_diagnostic_excerpt(value: str, *, limit: int) -> str:
     text = value
     for pattern in (*_RAW_SECRET_PATTERNS, *_RAW_SESSION_PATTERNS):
@@ -1429,31 +1008,6 @@ def _try_json_value(value: str) -> Any:
         return None
 
 
-def _extract_output_text(
-    spec: LocalCliSpec,
-    completed: LocalCliCompleted,
-    *,
-    request: AgentAdapterRequest,
-) -> str:
-    if spec.adapter_ref == ADAPTER_GEMINI_LOCAL:
-        return _extract_gemini_response(
-            completed.stdout,
-            allowed_tool_names=_gemini_allowed_tool_names_for_request(request),
-        )
-    if spec.adapter_ref == ADAPTER_CLAUDE_LOCAL and completed.stdout.strip():
-        try:
-            payload = json.loads(completed.stdout)
-        except json.JSONDecodeError:
-            return completed.stdout
-        if isinstance(payload, Mapping):
-            for key in ("response", "text", "content", "message", "result"):
-                value = payload.get(key)
-                if isinstance(value, str) and value.strip():
-                    return value
-        return completed.stdout
-    return completed.stdout or completed.stderr
-
-
 def _source_fact_bodies_for_prompt(
     request: AgentAdapterRequest,
     spec: LocalCliSpec,
@@ -1467,63 +1021,6 @@ def _source_fact_bodies_for_prompt(
         ref: safe_source_fact_body(body, limit=limit)
         for ref, body in request.source_fact_bodies.items()
     }
-
-
-def _extract_gemini_response(
-    stdout: str,
-    *,
-    allowed_tool_names: Iterable[str] | None = None,
-) -> str:
-    try:
-        payload = json.loads(stdout)
-    except json.JSONDecodeError as exc:
-        raise ValueError("Gemini local CLI output was not JSON") from exc
-    if not isinstance(payload, Mapping):
-        raise ValueError("Gemini local CLI JSON output must be an object")
-    stats = payload.get("stats")
-    nonread_tool_names = _gemini_nonread_tool_names(
-        stats,
-        allowed_tool_names=allowed_tool_names,
-    )
-    if nonread_tool_names:
-        raise ValueError(
-            "Gemini local CLI reported non-read tool calls; refusing support payload: "
-            + ", ".join(nonread_tool_names)
-        )
-    response = payload.get("response")
-    if not isinstance(response, str) or not response.strip():
-        raise ValueError("Gemini local CLI JSON output missing response text")
-    return response
-
-
-def _gemini_nonread_tool_names(
-    stats: Any,
-    *,
-    allowed_tool_names: Iterable[str] | None = None,
-) -> tuple[str, ...]:
-    if not isinstance(stats, Mapping):
-        return ()
-    tools = stats.get("tools")
-    if not isinstance(tools, Mapping):
-        return ()
-    by_name = tools.get("byName")
-    if by_name is None:
-        return ()
-    names: set[str] = set()
-    if isinstance(by_name, Mapping):
-        names.update(str(name) for name in by_name)
-    elif isinstance(by_name, Sequence) and not isinstance(by_name, (str, bytes, bytearray)):
-        for item in by_name:
-            if isinstance(item, Mapping):
-                raw_name = item.get("name") or item.get("toolName") or item.get("tool_name")
-                if raw_name:
-                    names.add(str(raw_name))
-            elif item:
-                names.add(str(item))
-    else:
-        raise ValueError("Gemini local CLI stats.tools.byName must be an object or list")
-    allowed = set(_GEMINI_READ_TOOL_NAMES if allowed_tool_names is None else allowed_tool_names)
-    return tuple(sorted(name for name in names if name not in allowed))
 
 
 def _validate_adapter_ref(value: Any) -> str:
