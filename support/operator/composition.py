@@ -54,6 +54,10 @@ from brick_protocol.support.operator.plan_rendering import (
     _validate_declared_plan_projection,
     render_declared_building_plan,
 )
+from brick_protocol.support.operator.composition_problem import (
+    CompositionError,
+    CompositionProblem,
+)
 
 
 GRAPH_CHAIN_TARGET_MARKERS = ("parallel", "fan_in")
@@ -112,27 +116,6 @@ _CLOSURE_POLICY_REQUIRED_KINDS = (
 )
 _CLOSURE_POLICY_TARGET_ACTIONS = ("target", "reroute")
 _CLOSURE_POLICY_HOLD_ACTIONS = ("hold",)
-
-
-@dataclass(frozen=True)
-class CompositionProblem:
-    """One support composition problem attributed to a declared node."""
-
-    code: str
-    node_id: str
-    detail: str
-
-
-class CompositionError(ValueError):
-    """Raised when compose_building collects one or more problems."""
-
-    def __init__(self, problems: Sequence[CompositionProblem]) -> None:
-        self.problems = tuple(problems)
-        detail = "; ".join(
-            f"{problem.code}@{problem.node_id}: {problem.detail}"
-            for problem in self.problems
-        )
-        super().__init__(detail or "composition failed")
 
 
 def materialize_building_intent(
