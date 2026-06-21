@@ -33,6 +33,7 @@ from support.operator.driver import run_customer_building_in_sandbox
 
 
 ADAPTER_LOCAL = "adapter:local"
+REAL_PROVIDER_ADAPTER = "adapter:codex-local"
 DEFAULT_EXAMPLE_BUILDING_ID = "brick-cli-example"
 DEFAULT_EXAMPLE_TASK_SOURCE_REF = "brick/templates/tasks/source-template.md"
 DEFAULT_LOCAL_PRESET_REF = "building-chain-preset:onboarding-example-graph"
@@ -79,6 +80,12 @@ def _task_building_id() -> str:
 
 
 def _build_intent(args: argparse.Namespace) -> dict[str, Any]:
+    # --real-provider is friendly sugar: when the customer opts into a real
+    # provider but left --adapter at the local-stub default, upgrade to the
+    # primary real adapter. An explicit --adapter always wins.
+    adapter = args.adapter
+    if getattr(args, "real_provider", False) and adapter == ADAPTER_LOCAL:
+        adapter = REAL_PROVIDER_ADAPTER
     task = (args.task or "").strip()
     if task:
         building_id = args.building_id or _task_building_id()
@@ -86,14 +93,14 @@ def _build_intent(args: argparse.Namespace) -> dict[str, Any]:
             "declared_by": args.declared_by,
             "task_statement": task,
             "chain_preset_ref": args.preset,
-            "selected_adapter_ref": args.adapter,
+            "selected_adapter_ref": adapter,
             "building_id": building_id,
         }
     return {
         "declared_by": args.declared_by,
         "task_source_ref": args.task_source_ref,
         "chain_preset_ref": args.preset,
-        "selected_adapter_ref": args.adapter,
+        "selected_adapter_ref": adapter,
         "building_id": args.building_id or DEFAULT_EXAMPLE_BUILDING_ID,
     }
 
@@ -284,6 +291,7 @@ def _cmd_init(args: argparse.Namespace) -> int:
             task_source_ref=DEFAULT_EXAMPLE_TASK_SOURCE_REF,
             preset=DEFAULT_LOCAL_PRESET_REF,
             adapter=ADAPTER_LOCAL,
+            real_provider=False,
             building_id=DEFAULT_EXAMPLE_BUILDING_ID,
             declared_by=DEFAULT_DECLARED_BY,
             overwrite_existing=True,
@@ -334,6 +342,44 @@ def _cmd_init(args: argparse.Namespace) -> int:
     return 0 if build_error is None else 1
 
 
+def _cmd_auth_login(args: argparse.Namespace) -> int:
+    # Guided readiness funnel. This NEVER enters credentials -- it observes
+    # provider readiness (doctor) and prints per-provider login guidance so the
+    # customer runs the provider-native login themselves.
+    doctor_packet = onboard.run_doctor()
+    guidance = [
+        "codex  -> codex login",
+        "claude -> claude  (실행 후 안내에 따라 로그인 / run it, then follow the prompt)",
+        "gemini -> gemini  (또는 GEMINI_API_KEY 설정 / or set GEMINI_API_KEY)",
+        "local  -> 설치/로그인 불필요 / no install or login needed",
+    ]
+    next_step = 'brick build --task "..." --real-provider'
+    if args.json:
+        print(
+            _json_dump(
+                {
+                    "command": "auth-login",
+                    "doctor": doctor_packet,
+                    "login_guidance": guidance,
+                    "next": next_step,
+                    "proof_limits": list(PROOF_LIMITS),
+                    "not_proven": list(NOT_PROVEN),
+                }
+            )
+        )
+        return 0
+    print("Brick auth login support evidence")
+    print(_render_doctor(doctor_packet))
+    print("")
+    print("로그인 안내 / Login guidance:")
+    for line in guidance:
+        print(f"  {line}")
+    print("")
+    print(f"준비되면 / When ready:  {next_step}")
+    print(f"proof_limits: {', '.join(PROOF_LIMITS)}")
+    return 0
+
+
 def _add_common(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--json", action="store_true", help="Emit JSON support evidence.")
     parser.add_argument(
@@ -368,6 +414,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     build.add_argument("--preset", default=DEFAULT_LOCAL_PRESET_REF, help="Declared chain preset ref.")
     build.add_argument("--adapter", default=ADAPTER_LOCAL, help="Declared adapter ref.")
+    build.add_argument(
+        "--real-provider",
+        action="store_true",
+        help=(
+            "Use a real provider-backed adapter (default adapter:codex-local) instead of "
+            "the local example stub. Run `brick auth login` first to confirm readiness."
+        ),
+    )
     build.add_argument("--building-id", default="", help="Optional explicit Building id.")
     build.add_argument("--declared-by", default=DEFAULT_DECLARED_BY, help="Caller/COO declaration ref.")
     build.add_argument("--output-root", default=None, help="Evidence output root.")
@@ -392,6 +446,14 @@ def build_parser() -> argparse.ArgumentParser:
     status = subparsers.add_parser("status", help="Print local support status evidence.")
     _add_common(status)
     status.set_defaults(func=_cmd_status)
+
+    auth = subparsers.add_parser("auth", help="Provider auth readiness + login guidance.")
+    _add_common(auth)
+    auth_sub = auth.add_subparsers(dest="auth_command")
+    auth_login = auth_sub.add_parser("login", help="Show provider login guidance and readiness.")
+    _add_common(auth_login)
+    auth_login.set_defaults(func=_cmd_auth_login)
+    auth.set_defaults(func=_cmd_auth_login)
     return parser
 
 

@@ -138,8 +138,28 @@ def _assert_disclaimer_mutation_red(path: Path, original_text: str) -> None:
     raise FirstUseWizardError("removing the example-stub disclaimer did not drive RED")
 
 
+def _assert_referenced_commands_resolve(cli: Any) -> None:
+    # FIRST_USE.md's funnel tells the customer to run `brick auth login` and a
+    # `--real-provider` build. Pin that those are REAL CLI commands, not just
+    # text in the doc -- a phantom command in the funnel silently breaks the
+    # onboarding spine (the string check above passes while the command errors).
+    parser = cli.build_parser()
+    for argv in (["auth", "login"], ["build", "--real-provider", "--task", "x"]):
+        try:
+            parser.parse_args(argv)
+        except SystemExit as exc:
+            raise FirstUseWizardError(
+                "FIRST_USE.md references `brick "
+                + " ".join(argv)
+                + "` but the CLI does not resolve it (argparse exited "
+                + f"{exc.code}); the onboarding funnel points at a phantom command"
+            ) from exc
+
+
 def run_check(repo: Path) -> str:
     import brick_protocol.support.operator.cli as cli
+
+    _assert_referenced_commands_resolve(cli)
 
     with tempfile.TemporaryDirectory(prefix="bp-first-use-success-") as raw:
         output_root = Path(raw) / "builds"
