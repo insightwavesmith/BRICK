@@ -131,15 +131,24 @@ text_contains:
       - WEB_CAPABLE_TOOL_POLICY_REF
       - _CANONICAL_TOOL_UNIVERSE_GEMINI
       - _gemini_admin_policy_partition_for_request
-      - Web NOT available on this adapter
       - def adapter_capabilities
       - def adapter_has_capability
       - def adapter_is_write_capable
-      - def preflight_provider
       - message_ko
       - missing_agent_write_policy
       - missing_adapter_write_capability
       - legacy_adapter_identity_only_not_authority
+  # MODULE-SEP god-module split: the tool-grant policy rules ("Web NOT available
+  # on this adapter") relocated to the adapter_grant_policy.py sibling; the
+  # provider preflight (preflight_provider) relocated to the adapter_subprocess.py
+  # sibling. Both re-exported by the agent_adapter facade; pins follow the moved
+  # symbols to their new home.
+  - path: support/connection/adapter_grant_policy.py
+    texts:
+      - Web NOT available on this adapter
+  - path: support/connection/adapter_subprocess.py
+    texts:
+      - def preflight_provider
   - path: support/connection/agent_resources.py
     texts:
       - adapter_is_write_capable
@@ -244,17 +253,27 @@ text_contains:
       - Brick row write_scope.forbidden_paths must be a list
   - path: support/connection/agent_adapter.py
     texts:
-      - def _extract_required_return_fields
-      - Return one JSON object
-      - unstructured prose
       - completed
       - TOP_LEVEL_VERDICT_KEYS
       - ALWAYS_SECRET_KEYS
+  # MODULE-SEP god-module split: the required-return-field extractor /
+  # JSON-return prompt prose relocated to the adapter_grant_policy.py sibling
+  # (re-exported by the agent_adapter facade); pins follow the moved symbols.
+  - path: support/connection/adapter_grant_policy.py
+    texts:
+      - def _extract_required_return_fields
+      - Return one JSON object
+      - unstructured prose
   - path: support/connection/agent_adapter.py
     texts:
       - if request.adapter_ref == ADAPTER_GEMINI_LOCAL
-      - def _local_cli_nonzero_error_message
       - stdout_error_excerpt
+  # MODULE-SEP god-module split: the local-CLI nonzero-error message builder
+  # (_local_cli_nonzero_error_message + stderr_error_path) relocated to the
+  # adapter_local_cli.py sibling (re-exported by the agent_adapter facade).
+  - path: support/connection/adapter_local_cli.py
+    texts:
+      - def _local_cli_nonzero_error_message
       - stderr_error_path
   - path: support/checkers/lib/kernel_checks.py
     texts:

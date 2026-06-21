@@ -135,6 +135,11 @@ text_contains:
       - no_changes_reason
       - READ_ONLY_TOOL_POLICY_REFS
       - def agent_request_read_tier
+  # MODULE-SEP god-module split: the native-grant read-tier rule prose relocated
+  # to the adapter_grant_policy.py sibling (re-exported by the agent_adapter
+  # facade); these text pins follow the moved strings to their new home.
+  - path: support/connection/adapter_grant_policy.py
+    texts:
       - read-only repository inspection tools only
       - Gemini local native grant may use only read_file, glob, grep_search, search_file_content, list_directory, read_many_files, and when web-capable is present google_web_search/web_fetch; write and shell tools remain blocked.
   - path: support/operator/plan_validation.py

@@ -5,14 +5,16 @@ CONNECT-STALL PRIMARY CURE (stdin 0619): codex/claude/gemini `exec` unconditiona
 read() stdin at startup. When BRICK's process tree inherited an open pipe/FIFO on fd 0
 (write-end held open, no data, no EOF), that startup read() blocked FOREVER -- the
 "connect-stall" (process alive, ~0 CPU, 0 ESTABLISHED sockets, runs to the adapter
-timeout). The two CLI-runner spawns in support/connection/agent_adapter.py
-(_run_text_cli_command, _run_command) MUST pass stdin=subprocess.DEVNULL so the child
+timeout). The two CLI-runner spawns in support/connection/adapter_subprocess.py
+(_run_text_cli_command, _run_command; relocated from agent_adapter.py by the
+MODULE-SEP god-module split, re-exported by the agent_adapter facade) MUST pass
+stdin=subprocess.DEVNULL so the child
 gets an immediate stdin EOF and its startup read returns instantly -- structurally
 eliminating the stall regardless of how BRICK's parent stdin was wired, regardless of
 codex version, regardless of --ephemeral.
 
 This checker is support evidence only. It PARSES (AST, no import) the real
-support/connection/agent_adapter.py, finds the two named CLI-runner functions, and
+support/connection/adapter_subprocess.py, finds the two named CLI-runner functions, and
 asserts the subprocess.Popen call inside each passes a stdin= keyword resolving to
 subprocess.DEVNULL. It FAILS CLOSED: a CLI-runner Popen WITHOUT stdin=DEVNULL (or with
 a different stdin value) is RED. It does NOT call providers, run a real CLI, choose
@@ -35,9 +37,12 @@ from pathlib import Path
 
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_ADAPTER_REL = Path("support/connection/agent_adapter.py")
+# MODULE-SEP god-module split: the two CLI-runner functions relocated verbatim
+# from agent_adapter.py into the adapter_subprocess.py sibling (re-exported by the
+# agent_adapter facade). The pin follows the moved symbols to their new home.
+_ADAPTER_REL = Path("support/connection/adapter_subprocess.py")
 
-# The CLI-runner spawns: the ONLY two functions in agent_adapter.py that Popen the
+# The CLI-runner spawns: the ONLY two functions in adapter_subprocess.py that Popen the
 # prompt-reading provider CLI (codex/claude/gemini). The ps/lsof helper spawns
 # (_process_snapshot_rows, _established_tcp_socket_count) use subprocess.run on
 # ps/lsof -- internal probes that never read prompt stdin -- and are out of scope.
@@ -173,7 +178,7 @@ def parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Support-evidence checker: the CLI-runner subprocess spawns in "
-            "agent_adapter.py pass stdin=subprocess.DEVNULL (connect-stall primary cure)."
+            "adapter_subprocess.py pass stdin=subprocess.DEVNULL (connect-stall primary cure)."
         )
     )
     parser.add_argument("--repo", default=None)

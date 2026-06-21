@@ -6,11 +6,17 @@ kernel_checks:
 path_exists:
   - support/recording/adapter_usage_meter.py
   - support/connection/agent_adapter.py
+  - support/connection/adapter_subprocess.py
+  - support/connection/adapter_local_cli.py
   - support/recording/step_outputs.py
   - support/checkers/check_adapter_usage_meter.py
   - support/checkers/profiles/adapter_usage_meter.yaml
 text_contains:
-  - path: support/connection/agent_adapter.py
+  # MODULE-SEP god-module split: the codex --json usage-extraction + CLI-runner
+  # spawns relocated from agent_adapter.py into the adapter_subprocess.py sibling
+  # (re-exported by the agent_adapter facade). All five pinned literals now live
+  # there; the text pin follows the moved symbols to their new home.
+  - path: support/connection/adapter_subprocess.py
     texts:
       - codex_usage_from_json_stdout
       - "--json"

@@ -155,6 +155,18 @@ SIMPLE_RUN0_RUN_TARGETS = {
 
 AGENT_ADAPTER0_TARGETS = {
     "support/connection/agent_adapter.py",
+    # MODULE-SEP agent_adapter god-module split: agent_adapter.py (was 3391
+    # lines) was decomposed into a thin facade + these 7 single-concern sibling
+    # sub-modules (pure no-op relocation; the facade re-exports each name). All
+    # connection-layer adapter mechanics only: no new fact class, no crossing
+    # ownership moved.
+    "support/connection/adapter_constants.py",
+    "support/connection/adapter_validation.py",
+    "support/connection/adapter_subprocess.py",
+    "support/connection/adapter_model_casting.py",
+    "support/connection/adapter_grant_policy.py",
+    "support/connection/adapter_gemini_http.py",
+    "support/connection/adapter_local_cli.py",
 }
 
 AGENT_RESOURCE_TOOLKIT0_TARGETS = {

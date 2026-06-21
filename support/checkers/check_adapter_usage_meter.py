@@ -36,7 +36,13 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_ADAPTER_REL = Path("support/connection/agent_adapter.py")
+# MODULE-SEP god-module split: the codex local-CLI invoke path (_invoke_local_cli,
+# _invoke_local_cli_adapter, and the codex_assistant_text_from_json_stdout empty-file
+# fallback) relocated verbatim from agent_adapter.py into the adapter_local_cli.py
+# sibling (re-exported by the agent_adapter facade). The AST-scan + mutation pins
+# follow the moved symbols to their new home. (The in-process behavioral probes
+# below still import via the agent_adapter facade, whose public surface is preserved.)
+_ADAPTER_REL = Path("support/connection/adapter_local_cli.py")
 _STEP_OUTPUTS_REL = Path("support/recording/step_outputs.py")
 _METER_REL = Path("support/recording/adapter_usage_meter.py")
 _RUN_REL = Path("support/operator/run.py")
@@ -965,7 +971,7 @@ def probe_mutation_red(repo: Path) -> str:
     target = "text_stdout = codex_assistant_text_from_json_stdout(completed.stdout)"
     replacement = "text_stdout = completed.stdout"
     with tempfile.TemporaryDirectory(prefix="bp-adapter-usage-meter-") as tmpdir:
-        backup_path = Path(tmpdir) / "agent_adapter.py.bak"
+        backup_path = Path(tmpdir) / "adapter_local_cli.py.bak"
         subprocess.run(("cp", str(adapter_path), str(backup_path)), check=True, cwd=repo)
         try:
             source = adapter_path.read_text(encoding="utf-8")
@@ -1006,7 +1012,7 @@ def probe_mutation_red(repo: Path) -> str:
     return (
         "mutation RED observed: replacing the json_active helper fallback with "
         "bare completed.stdout makes check_adapter_usage_meter.py exit 1, then "
-        "agent_adapter.py is restored with cp"
+        "adapter_local_cli.py is restored with cp"
     )
 
 

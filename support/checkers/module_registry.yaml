@@ -503,6 +503,87 @@ modules:
     decomposition_target: ""
     pinned_by: agent_adapter_return_shape / design_ai_text_seams kernel checks + adapter_model_selection cases
 
+  # MODULE-SEP 0621: agent_adapter.py (was 3391 lines) decomposed into a thin
+  # ~1185-line FACADE (above) plus the 7 PURE no-op relocation siblings below.
+  # Each re-exported by the facade unchanged. No crossing OWNERSHIP moved
+  # (owns_crossings stays [] for all 7 — the facade still owns agent_return_fact
+  # and still imports all 3 axis files at top level). consumes_crossings /
+  # imports_axis declare each sibling's REAL top-level axis imports only: only
+  # adapter_validation reaches an axis (agent/return_fact.py); the other 6 import
+  # nothing across an axis (stdlib + sibling adapter_* + support secret_text,
+  # which is support->support, not a crossing).
+  - module: support/connection/adapter_constants.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of agent_adapter facade (shared adapter constants — sentinels / env names / preset tables); homes no crossing mechanics, imports no axis
+
+  - module: support/connection/adapter_validation.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings:
+      - agent_return_fact
+    imports_axis:
+      - agent/return_fact.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of agent_adapter facade (secret-text rejection / verdict-key validation); consumes the agent_return_fact contract (ALWAYS_SECRET_KEYS / TOP_LEVEL_VERDICT_KEYS) but homes no crossing
+
+  - module: support/connection/adapter_subprocess.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of agent_adapter facade (CLI subprocess spawn / stdin=DEVNULL connect-stall cure); imports no axis (stdlib + adapter_constants + adapter_validation)
+
+  - module: support/connection/adapter_model_casting.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of agent_adapter facade (model-ref -> CLI-arg casting); imports no axis (stdlib + adapter_constants + adapter_validation)
+
+  - module: support/connection/adapter_grant_policy.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of agent_adapter facade (tool-grant policy mechanics); imports no axis (stdlib + adapter_constants)
+
+  - module: support/connection/adapter_gemini_http.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of agent_adapter facade (S11 Gemini HTTP seam / invoke_gemini_text); imports no axis (stdlib urllib + sibling adapter_* + support secret_text)
+
+  - module: support/connection/adapter_local_cli.py
+    layer: connection
+    role: connection
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of agent_adapter facade (local CLI invokers — invoke_claude_text / invoke_codex_text / preflight_provider); imports no axis (stdlib + sibling adapter_*)
+
   - module: support/connection/agent_resources.py
     layer: connection
     role: connection

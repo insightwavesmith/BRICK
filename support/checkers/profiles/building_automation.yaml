@@ -48,7 +48,10 @@ text_contains:
   # best-effort append-only spawn journal (env-overridable path) records
   # spawn/reap for forensics. These pins keep the process-group reap and the
   # journal seam from silently regressing.
-  - path: support/connection/agent_adapter.py
+  # MODULE-SEP god-module split: the provider subprocess chokepoint relocated
+  # from agent_adapter.py into the adapter_subprocess.py sibling (re-exported by
+  # the agent_adapter facade); the pins follow the moved symbols to their new home.
+  - path: support/connection/adapter_subprocess.py
     texts:
       - start_new_session=True
       - os.killpg

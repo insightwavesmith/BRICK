@@ -436,23 +436,30 @@ def _axis_vocab_check_docs(repo: Path, violations: list[str]) -> None:
 
 
 def _axis_vocab_check_agent_adapter_refs(repo: Path, violations: list[str]) -> None:
-    adapter_tree, _adapter_text = _axis_vocab_parse_python(repo, "support/connection/agent_adapter.py")
+    # MODULE-SEP god-module split: the single-source ALLOWED_ADAPTER_REFS literal
+    # relocated from agent_adapter.py into the adapter_constants.py sibling (the
+    # agent_adapter facade + agent_resources both re-import it from there via the
+    # facade). The literal-set pin follows the moved symbol to its new home; the
+    # invariant (the set equals the expected refs and admits no retired write ref)
+    # is unchanged.
+    adapter_constants_rel = "support/connection/adapter_constants.py"
+    adapter_tree, _adapter_text = _axis_vocab_parse_python(repo, adapter_constants_rel)
     adapter_env = _axis_vocab_module_env(adapter_tree)
     adapter_refs = _axis_vocab_set(
         adapter_env,
         "ALLOWED_ADAPTER_REFS",
-        "support/connection/agent_adapter.py",
+        adapter_constants_rel,
     )
     expected_adapter_refs = frozenset(_AXIS_VOCAB_EXPECTED_ADAPTER_REFS)
     if adapter_refs != expected_adapter_refs:
         violations.append(
-            "support/connection/agent_adapter.py: ALLOWED_ADAPTER_REFS must equal "
+            f"{adapter_constants_rel}: ALLOWED_ADAPTER_REFS must equal "
             f"{sorted(expected_adapter_refs)}, observed {sorted(adapter_refs)}"
         )
     retired_adapter_refs = sorted(set(_AXIS_VOCAB_RETIRED_WRITE_ADAPTER_REFS) & set(adapter_refs))
     if retired_adapter_refs:
         violations.append(
-            "support/connection/agent_adapter.py: retired write adapter refs must not be "
+            f"{adapter_constants_rel}: retired write adapter refs must not be "
             f"admitted active adapters: {retired_adapter_refs}"
         )
 
