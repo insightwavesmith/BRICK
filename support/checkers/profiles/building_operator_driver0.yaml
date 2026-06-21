@@ -86,7 +86,14 @@ onboard_seam_case:
   - label: onboarding example routes through the PART-1 seam (preferred-step adapter fallback)
     host: codex
     bogus_host: definitely-not-a-host
-    expected_frontier_kind: agent_incomplete
+    # provider-availability dependent (measured: 8 runs split agent_incomplete /
+    # complete; this graph has NO human gate so link_paused cannot occur). A
+    # no-provider machine honestly records agent_incomplete (non-local preferred
+    # adapters can't run); a provider-equipped machine's design step completes ->
+    # complete. Both honest; pinning one made this profile flaky on brick verify /
+    # --all. The set is EXACTLY the two outcomes this gate-less graph can reach --
+    # an unexpected link_paused/error/empty still REDs (it would be a real bug).
+    acceptable_frontier_kinds: [agent_incomplete, complete]
 not_proven:
   - semantic correctness of Agent transition_concern_evidence
   - caller/COO disposition after a portfolio HOLD

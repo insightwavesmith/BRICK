@@ -2343,10 +2343,30 @@ def run_onboard_seam_case(repo: Path, profile: Mapping[str, Any]) -> int:
         bogus_host = require_string(
             mapping.get("bogus_host", "definitely-not-a-host"), f"{label}: bogus_host"
         )
-        expected_frontier = require_string(
-            mapping.get("expected_frontier_kind", "complete"),
-            f"{label}: expected_frontier_kind",
-        )
+        # FRONTIER is provider-availability dependent (see docstring): the example's
+        # preferred-step adapters resolve to non-local providers whose readiness + the
+        # design-step outcome decide whether verdict rows complete or honestly record
+        # agent_incomplete. BOTH are honest. Accept the declared honest SET, not a
+        # single machine-dependent value -- a single pin makes this profile flaky on
+        # provider-equipped machines (brick verify / --all). Anything OUTSIDE the set
+        # (error/empty/unexpected) still REDs.
+        acceptable_raw = mapping.get("acceptable_frontier_kinds")
+        if acceptable_raw is not None:
+            if not isinstance(acceptable_raw, (list, tuple)) or not acceptable_raw:
+                raise ProfileError(
+                    f"{label}: acceptable_frontier_kinds must be a non-empty list"
+                )
+            acceptable_frontiers = {
+                require_string(value, f"{label}: acceptable_frontier_kinds item")
+                for value in acceptable_raw
+            }
+        else:
+            acceptable_frontiers = {
+                require_string(
+                    mapping.get("expected_frontier_kind", "complete"),
+                    f"{label}: expected_frontier_kind",
+                )
+            }
 
         # (1)-(4) Default path: no real-provider opt-in -> adapter:local through seam.
         with tempfile.TemporaryDirectory(prefix="bp-onboard-seam-") as tmp:
@@ -2415,10 +2435,11 @@ def run_onboard_seam_case(repo: Path, profile: Mapping[str, Any]) -> int:
                 raise ProfileError(
                     f"onboard_seam_case rejected {label}: example did not run (ran != True)"
                 )
-            if example.get("frontier_kind") != expected_frontier:
+            if example.get("frontier_kind") not in acceptable_frontiers:
                 raise ProfileError(
-                    f"onboard_seam_case rejected {label}: example frontier expected "
-                    f"{expected_frontier!r}, got {example.get('frontier_kind')!r}"
+                    f"onboard_seam_case rejected {label}: example frontier "
+                    f"{example.get('frontier_kind')!r} is not one of the honest "
+                    f"provider-dependent outcomes {sorted(acceptable_frontiers)}"
                 )
             evidence_root = str(example.get("evidence_root") or "")
             if not evidence_root:
