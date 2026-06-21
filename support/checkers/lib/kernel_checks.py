@@ -8125,8 +8125,13 @@ def _chat_session_assert_key_scan_fire(
         lane_ref="lane:key-scan-fire-checker",
     )
     token = str(claim.get("claim_token") or "")
-    original_rejector = run_module._reject_session_like_text
-    run_module._reject_session_like_text = _chat_session_value_only_session_rejector
+    # The chat-session key-scan lives wherever submit_chat_session_return is
+    # DEFINED (S11 relocated it run.py -> run_chat_session.py). Patch the rejector
+    # binding on that module so the FIRE mutation reaches the live call path; run's
+    # facade re-export points at the same function, so .__module__ tracks the home.
+    submit_module = sys.modules[run_module.submit_chat_session_return.__module__]
+    original_rejector = submit_module._reject_session_like_text
+    submit_module._reject_session_like_text = _chat_session_value_only_session_rejector
     try:
         try:
             run_module.submit_chat_session_return(
@@ -8145,7 +8150,7 @@ def _chat_session_assert_key_scan_fire(
                 f"{exc}"
             ) from exc
     finally:
-        run_module._reject_session_like_text = original_rejector
+        submit_module._reject_session_like_text = original_rejector
 
 
 def _chat_session_value_only_session_rejector(label: str, value: Any) -> None:

@@ -607,6 +607,26 @@ modules:
     decomposition_target: ""
     pinned_by: run_surface_split profile (facade entry; delegates each crossing to its axis owner)
 
+  # E2/S11 GOD-MODULE SPLIT: the self-contained chat-session step subsystem
+  # (human-as-agent claim/submit/release envelope + frontier-history
+  # preservation) lifted VERBATIM out of run.py. A pure relocation — it records
+  # support evidence only (chooses no Movement, creates no undeclared GateFact,
+  # judges no success/quality). run.py re-imports the public + internal names it
+  # still references, so every call site (and external run_module.* access) is
+  # unchanged. Consumes only the brick_work crossing (parse_required_return_shape
+  # for the chat-session submission required-return shape check).
+  - module: support/operator/run_chat_session.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - brick_work
+    imports_axis:
+      - brick/work.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: run_surface_split profile (the chat-session claim/submit/release surface the profile exercises through run.py re-exports) + simple_run0_one_run_surface
+
   - module: support/operator/contracts.py
     layer: operator
     role: carrier

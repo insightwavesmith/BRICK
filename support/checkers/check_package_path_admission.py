@@ -148,6 +148,9 @@ BRICK_SPEC0_TARGETS = {
 
 SIMPLE_RUN0_RUN_TARGETS = {
     "support/operator/run.py",
+    # E2/S11 GOD-MODULE SPLIT: the chat-session step subsystem lifted verbatim
+    # out of run.py (pure relocation; run.py re-imports the names it references).
+    "support/operator/run_chat_session.py",
 }
 
 AGENT_ADAPTER0_TARGETS = {
