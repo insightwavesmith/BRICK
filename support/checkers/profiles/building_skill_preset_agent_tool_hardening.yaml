@@ -182,15 +182,21 @@ text_contains:
       - step_output_drain_rejects
   # ELEGANT-REFACTOR P3d: compose_building + CompositionError/CompositionProblem
   # lifted to operator/composition.py behind the building_operation facade
-  # (location-pin-follows-rehome).
-  - path: support/operator/composition.py
+  # (location-pin-follows-rehome). MODULE-SEP: composition.py was then split
+  # again into a facade + single-concern siblings — compose_building +
+  # selection_rule live in composition_compose.py, the CompositionError/
+  # CompositionProblem error types in composition_problem.py; the pin tracks each
+  # to its real new home (same assertion, new path).
+  - path: support/operator/composition_compose.py
     texts:
       - 'def compose_building('
-      - class CompositionError(ValueError)
-      - class CompositionProblem
       - selection_rule
       - caller_or_coo_declared_only
-  - path: support/operator/composition.py
+  - path: support/operator/composition_problem.py
+    texts:
+      - class CompositionError(ValueError)
+      - class CompositionProblem
+  - path: support/operator/composition_compose.py
     texts:
       - 'selection_rule: caller_or_coo_declared_only'
   # REHOME from retiring legacy_agent_harness_system profile (guard-before-retire):

@@ -213,7 +213,10 @@ text_contains:
     texts:
       - "preset_ref: building-chain-preset:brick-protocol-engine-feature-hard"
       - "catalog_scope: brick_protocol_dogfood"
-  - path: support/operator/composition.py
+  # MODULE-SEP location-pin-follows-rehome: chain_preset_ref +
+  # render_declared_step_template_plan (declared-plan rendering) lifted out of the
+  # composition.py facade into composition_intent.py; the pin tracks them there.
+  - path: support/operator/composition_intent.py
     texts:
       - chain_preset_ref
       - render_declared_step_template_plan

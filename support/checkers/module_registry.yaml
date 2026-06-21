@@ -957,6 +957,108 @@ modules:
     decomposition_target: ""
     pinned_by: compose_building case (compose_building Brick plan assembly + CompositionProblem collection; crosses to Link via the canonical movement/gate-ref + gate-concept translate_gate_concept contracts through plan_rendering / link/spec, authors no Movement or route)
 
+  - module: support/operator/composition_problem.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: assembly_equivalence kernel check (composition lowering; CompositionError/CompositionProblem error-collection types — no axis crossing, authors no Movement or route)
+
+  - module: support/operator/composition_common.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: assembly_equivalence kernel check (composition lowering; shared composition constants/helpers — no axis crossing, authors no Movement or route)
+
+  - module: support/operator/composition_kinds.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: assembly_equivalence kernel check (composition lowering; node-kind classification + unknown-kind hints — no axis crossing, authors no Movement or route)
+
+  - module: support/operator/composition_route_policy.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: assembly_equivalence kernel check (composition lowering; declared route-policy provenance resolution — no axis crossing, authors no Movement or route)
+
+  - module: support/operator/composition_gate_translation.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - link_spec
+    imports_axis:
+      - link/spec.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: assembly_equivalence kernel check (composition lowering; gate-concept translation crossing to Link via the canonical translate_gate_concept contract, authors no Movement or route)
+
+  - module: support/operator/composition_graph_emit.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - link_gate
+      - link_spec
+    imports_axis:
+      - link/gate.py
+      - link/spec.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: assembly_equivalence kernel check (composition lowering; graph/edge emission crossing to Link via the canonical gate-ref + translate_gate_concept contracts, authors no Movement or route)
+
+  - module: support/operator/composition_graph_validate.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - agent_return_fact
+    imports_axis:
+      - agent/return_fact.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: assembly_equivalence kernel check (composition lowering; graph validation + CompositionProblem collection reading the canonical TRANSITION_CONCERN_KINDS contract, authors no Movement or route)
+
+  - module: support/operator/composition_compose.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - link_gate
+      - link_movement
+    imports_axis:
+      - link/gate.py
+      - link/movement.py
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: assembly_equivalence kernel check (composition lowering; compose_building Brick plan assembly crossing to Link via the canonical gate-ref + MOVEMENT_LITERALS contracts, authors no Movement or route)
+
+  - module: support/operator/composition_intent.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: assembly_equivalence kernel check (composition lowering; materialize_building_intent + render_declared_step_template_plan declared-plan rendering — no axis crossing, authors no Movement or route)
+
   - module: support/operator/assembly.py
     layer: operator
     role: operator

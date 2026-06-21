@@ -367,6 +367,21 @@ ELEGANT_REFACTOR_BUILDING_OPERATION_TARGETS = {
     "support/operator/coo_operating_chain.py",
     "support/operator/plan_rendering.py",
     "support/operator/composition.py",
+    # MODULE-SEP composition god-module split: composition.py (was 4489 lines)
+    # was decomposed into a thin facade + these single-concern sibling
+    # collaborators (pure no-op relocation; the facade re-exports them). Each is
+    # a registered module_registry.yaml row (G4 bidirectional tie). Support
+    # operator mechanics only: composition lowering, no new fact class, no
+    # fourth axis.
+    "support/operator/composition_problem.py",
+    "support/operator/composition_common.py",
+    "support/operator/composition_kinds.py",
+    "support/operator/composition_route_policy.py",
+    "support/operator/composition_gate_translation.py",
+    "support/operator/composition_graph_emit.py",
+    "support/operator/composition_graph_validate.py",
+    "support/operator/composition_compose.py",
+    "support/operator/composition_intent.py",
     "support/operator/orchestration_packet.py",
     "support/operator/native_dispatch.py",
     # W1: thin worktree-sandbox lifecycle helper for customer-facing dispatch
