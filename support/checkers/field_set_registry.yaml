@@ -370,6 +370,33 @@ field_sets:
       - "support:"
       - "tool:"
 
+  # BRICK-ROW allowed-key field-set (E2 / S9). The admitted Brick-row key-set a
+  # plan may DECLARE. Single source today: the BRICK_ROW_ALLOWED_KEYS frozenset on
+  # the BRICK axis at brick/spec.py (E2/S9 moved it there from
+  # support/operator/primitives.py — the declarable Brick contract surface is
+  # Brick-axis property, not support mechanics). primitives.py now RE-IMPORTS the
+  # name (a re-import is not a field-set enumeration), so this member-set is
+  # enumerated NOWHERE under support/. brick/spec.py is the axis module (not under
+  # support/), so its definition is the single source and is never scanned by this
+  # guard. Re-adding a hand copy of these keys (a frozenset/set/tuple) anywhere
+  # under support/ -> guard RED. The members below are the admitted Brick-row keys.
+  - name: brick_row_allowed_keys
+    defining_module: brick/spec.py
+    source_symbol: BRICK_ROW_ALLOWED_KEYS
+    members:
+      - axis
+      - row_ref
+      - brick_work_ref
+      - brick_instance_ref
+      - boundary_ref
+      - work_statement
+      - comparison_rule
+      - required_return_shape
+      - source_facts
+      - raw_refs
+      - write_scope
+      - requires_brick_write_scope
+
   # AGENT-OBJECT allowed-key field-set — DELIBERATELY NOT REGISTERED YET (S1 note).
   # E2 / S1 (mirror M8) removed native_dispatch.py's 3rd flat-literal copy of this
   # 12-key set (the one that OMITTED the casting keys and RAISED on a real role) by

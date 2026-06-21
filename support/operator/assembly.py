@@ -22,6 +22,7 @@ from brick_protocol.agent.spec import (
     NODE_CASTING_FIELDS,
     selected_key,
 )
+from brick_protocol.brick.spec import derived_worktree_write_scope
 from brick_protocol.support.operator.building_operation_common import (
     DEFAULT_LINK_GATE_REF,
     REPO_ROOT,
@@ -124,10 +125,10 @@ _ADMITTED_CASTING_PREFIXES: frozenset[str] = frozenset(
 
 _DEFAULT_BOUNDARY_REF = "building-boundary:closed"
 _PROPOSED_BUILDING_GRAPH_FILENAME = "proposed-building-graph.json"
-_DERIVED_WORKTREE_WRITE_SCOPE = {
-    "allowed_paths": ["."],
-    "forbidden_paths": [".git/**"],
-}
+# DERIVED_WORKTREE_WRITE_SCOPE default moved to the BRICK axis (brick/spec.py) at
+# E2/S9 — the default write envelope a worktree-isolated build derives is
+# Brick-axis property. ``derived_worktree_write_scope()`` returns a fresh deep
+# copy (byte-identical to the prior ``copy.deepcopy(_DERIVED_WORKTREE_WRITE_SCOPE)``).
 
 
 def _axis_enum(name: str, values: Any) -> type[Enum]:
@@ -948,7 +949,7 @@ def _adoption_value(value: Adoption | str) -> str:
 
 def _validated_write_scope(value: Mapping[str, Any] | None) -> Mapping[str, Any]:
     if value is None:
-        return copy.deepcopy(_DERIVED_WORKTREE_WRITE_SCOPE)
+        return derived_worktree_write_scope()
     if not isinstance(value, Mapping):
         raise ValueError("write_scope must be a mapping")
     allowed = value.get("allowed_paths")

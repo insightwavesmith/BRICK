@@ -280,6 +280,42 @@ crossings:
     pinned_by: compose_building case (gate-concept translation byte-identical) + check_axis_field_set_single_source (gate_concept_token_gate_refs single-source) + link_routing_behavioral/structure_template_integrity (envelope grammar byte-identical)
     is_axis_crossing: true
 
+  # E2/S9 (mirror M + J5 + axis-leak fix): the Brick plan-level DECLARABLE
+  # contract surface — what a builder writes for a valid task (the WHAT face).
+  # Single-sourced in brick/spec.py (the Brick single-source API, design §2 AXIS
+  # A), parallel to agent/spec.py + link/spec.py. It owns the admitted Brick-row
+  # key-set (moved from support/operator/primitives.py), the WriteScope value
+  # object (shape allowed_paths/forbidden_paths + clean/validate, MOVED from
+  # support/connection/agent_adapter.py — a Brick-axis value object that had been
+  # sitting in a support file named for the AGENT axis), the default worktree
+  # write envelope (moved from support/operator/assembly.py), and the write-NEED
+  # value interpreter (J5: the requires_brick_write_scope contract field's
+  # bool/yes/no discipline + the row-level admission rule, moved from
+  # support/operator/plan_validation.py). Support imports these through the
+  # canonical names (primitives/plan_validation re-export under the old _-prefixed
+  # names; agent_adapter injects the two support coercers via WriteScopeContext so
+  # the axis never imports support). brick/work.py + brick/comparison.py keep
+  # their own crossings (brick_work, brick_comparison); this crossing owns only
+  # the NEW declarable-surface symbols support reaches via brick/spec.py.
+  - crossing_id: brick_spec
+    crossing: "Brick declarable contract (write_scope + row-keys + write-need interpreter)"
+    seam: "Brick-plan->Brick"
+    owner_axis: Brick
+    canonical_contract: brick_declarable_contract
+    canonical_symbols:
+      - BRICK_ROW_ALLOWED_KEYS
+      - WriteScope
+      - WriteScopeContext
+      - DERIVED_WORKTREE_WRITE_SCOPE
+      - derived_worktree_write_scope
+      - SILENT_WRITE_GRANT_REJECTION
+      - declared_brick_write_need
+      - validate_brick_row_write_need_for_scope
+    defined_at: brick/spec.py
+    projection_yaml: ""
+    pinned_by: check_axis_field_set_single_source (brick_row_allowed_keys single-source) + write_scope construction/validation cases (clean/validate byte-identical) + strict-write-need admission cases (declared write-need byte-identical)
+    is_axis_crossing: true
+
   # NOT an axis crossing. Listed only so G1 owns ReportPacket contract-name
   # uniqueness (blueprint §3.1/§7). Report delivery is support mechanics that
   # decides nothing; the "decides nothing" fields are pinned by the reporter

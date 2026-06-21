@@ -127,6 +127,20 @@ AGENT_SPEC0_TARGETS = {
     "agent/spec.py",
 }
 
+# E2 / S9 (mirror M + J5 + axis-leak fix): brick/spec.py — the Brick single-source
+# DECLARABLE-contract API. Owns BRICK_ROW_ALLOWED_KEYS (moved from
+# support/operator/primitives.py), the WriteScope value object (shape +
+# clean/validate, MOVED from support/connection/agent_adapter.py — a Brick-axis
+# value object that had been in a support file named for the AGENT axis), the
+# default worktree write envelope (moved from support/operator/assembly.py), and
+# the write-NEED value interpreter (J5, moved from
+# support/operator/plan_validation.py). A code-only axis module (no paired
+# projection YAML yet); admitted as a Brick axis surface, the Brick-axis sibling
+# of link/spec.py + agent/spec.py.
+BRICK_SPEC0_TARGETS = {
+    "brick/spec.py",
+}
+
 SIMPLE_RUN0_RUN_TARGETS = {
     "support/operator/run.py",
 }
@@ -1583,12 +1597,13 @@ def forbidden_reason(path: str) -> str | None:
             and clean not in LTC0_LINK_TRANSFER_CARRY_TARGETS
             and clean not in LINK_SPEC0_TARGETS
             and clean not in AGENT_SPEC0_TARGETS
+            and clean not in BRICK_SPEC0_TARGETS
         ):
             return (
                 f"unadmitted axis path {clean}; only seed markers and "
                 "Phase 4 target surfaces plus the LTC-0 Link transfer/carry "
                 "file pairs and the E2/S3 link/spec.py + E2/S6 agent/spec.py "
-                "axis surfaces are open now"
+                "+ E2/S9 brick/spec.py axis surfaces are open now"
             )
 
     if clean == "support/runner" or clean.startswith("support/runner/"):
@@ -1643,6 +1658,7 @@ def allowed_path(path: str) -> bool:
         or clean in LTC0_LINK_TRANSFER_CARRY_TARGETS
         or clean in LINK_SPEC0_TARGETS
         or clean in AGENT_SPEC0_TARGETS
+        or clean in BRICK_SPEC0_TARGETS
     ):
         return True
 

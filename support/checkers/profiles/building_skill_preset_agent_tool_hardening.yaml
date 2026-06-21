@@ -125,9 +125,11 @@ text_contains:
       - leader lane must carry tool-policy:leader-coordination
       - A reviewer MAY carry tool-policy:read-write-scoped
       - work-area write CAPABILITY
-  - path: support/connection/agent_adapter.py
+  - path: brick/spec.py
     texts:
       - lowered.startswith("/")
+  - path: support/connection/agent_adapter.py
+    texts:
       - _RETURN_WAIVER_FIELDS_BY_REQUIRED
       - return_field_waivers
       - no_changes_reason

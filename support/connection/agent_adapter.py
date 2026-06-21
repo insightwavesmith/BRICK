@@ -29,6 +29,7 @@ from brick_protocol.agent.return_fact import TOP_LEVEL_VERDICT_KEYS as _TOP_LEVE
 from brick_protocol.agent.return_fact import TRANSITION_CONCERN_ALLOWED_KEYS as _TRANSITION_CONCERN_ALLOWED_KEYS
 from brick_protocol.agent.return_fact import TRANSITION_CONCERN_KINDS as _TRANSITION_CONCERN_KINDS
 from brick_protocol.brick.work import parse_required_return_shape
+from brick_protocol.brick.spec import WriteScope, WriteScopeContext
 
 
 ADAPTER_LOCAL = "adapter:local"
@@ -413,7 +414,7 @@ class AgentAdapterRequest:
                 agent_object_ref=self.agent_object_ref,
             ),
         )
-        cleaned_write_scope = _clean_write_scope(self.write_scope)
+        cleaned_write_scope = WriteScope.clean(self.write_scope, _WRITE_SCOPE_CONTEXT)
         object.__setattr__(self, "write_scope", cleaned_write_scope)
         if cleaned_write_scope:
             _validate_effective_write_request(self, cleaned_write_scope)
@@ -3093,17 +3094,6 @@ def _clean_agent_instruction_packet(
     return cleaned
 
 
-def _clean_write_scope(value: Any) -> Mapping[str, Any]:
-    if value is None:
-        return {}
-    if not isinstance(value, Mapping):
-        raise TypeError("write_scope must be a mapping")
-    cleaned = _clean_json_value("write_scope", value)
-    if not isinstance(cleaned, Mapping):
-        raise TypeError("write_scope must clean to a mapping")
-    return cleaned
-
-
 def _validate_effective_write_request(
     request: AgentAdapterRequest,
     write_scope: Mapping[str, Any],
@@ -3142,7 +3132,7 @@ def _validate_effective_write_request(
             "missing_adapter_write_capability: write_scope requires adapter mapping "
             "that supports observed workspace write"
         )
-    _validate_write_scope("write_scope", write_scope)
+    WriteScope.validate("write_scope", write_scope, _WRITE_SCOPE_CONTEXT)
 
 
 def _adapter_ref_supports_observed_write(adapter_ref: str) -> bool:
@@ -3173,82 +3163,6 @@ def _consume_effective_write_observation_path(
     object.__setattr__(request, _EFFECTIVE_WRITE_OBSERVATION_MARKER_ATTR, "")
 
 
-def _validate_write_scope(label: str, value: Mapping[str, Any]) -> None:
-    allowed = value.get("allowed_paths")
-    if not isinstance(allowed, list) or not allowed:
-        raise ValueError(f"{label}.allowed_paths must be a non-empty list")
-    for index, item in enumerate(allowed):
-        if not isinstance(item, str) or not item.strip():
-            raise ValueError(f"{label}.allowed_paths[{index}] must be non-empty text")
-        _reject_forbidden_write_path(f"{label}.allowed_paths[{index}]", item)
-        _reject_bare_dir_write_path(f"{label}.allowed_paths[{index}]", item)
-
-    forbidden = value.get("forbidden_paths")
-    if not isinstance(forbidden, list):
-        raise TypeError(f"{label}.forbidden_paths must be a list")
-    for index, item in enumerate(forbidden):
-        if not isinstance(item, str) or not item.strip():
-            raise ValueError(f"{label}.forbidden_paths[{index}] must be non-empty text")
-        _reject_secret_text(f"{label}.forbidden_paths[{index}]", item)
-        _reject_bare_dir_write_path(f"{label}.forbidden_paths[{index}]", item)
-
-    for key in ("commit_allowed", "push_allowed"):
-        if value.get(key) is True:
-            raise ValueError(f"{label}.{key} must not be true")
-
-
-def _reject_forbidden_write_path(label: str, value: str) -> None:
-    text = value.strip().replace("\\", "/")
-    lowered = text.lower()
-    _reject_secret_text(label, text)
-    if (
-        lowered == ".git"
-        or lowered.startswith(".git/")
-        or lowered.startswith("/")
-        or lowered.startswith("../")
-        or "/../" in lowered
-        or lowered in {".env", "env"}
-        or lowered.endswith((".pem", ".key"))
-        or _path_has_forbidden_write_segment(lowered)
-    ):
-        raise ValueError(f"{label} is not admitted for write_scope")
-
-
-def _reject_bare_dir_write_path(label: str, value: str) -> None:
-    """Fail closed on a bare-directory write_scope entry.
-
-    ``support/operator/write_observation.py:_path_matches_scope`` matches a
-    changed file against an entry via ``fnmatch`` OR exact-path equality
-    (``path == pattern.rstrip("/")``). A bare directory with no glob char (e.g.
-    ``"support/"``) therefore matches ONLY the literal directory entry, never
-    any nested file: it passes construction here but then silently HOLDs every
-    nested file at observation time (write_observation_out_of_scope). Reject it
-    at construction so the author fixes the declaration instead of getting a
-    silent stall. Exact-file entries (``AGENTS.md``, ``brick/work.py``) and
-    glob entries (``support/*``, ``support/**``) are unaffected.
-    """
-
-    text = value.strip().replace("\\", "/")
-    if text.endswith("/") and "*" not in text:
-        raise ValueError(
-            f"{label} is a bare directory ({value!r}) that matches no nested "
-            f"files at write_observation time; use a glob such as "
-            f"'{text.rstrip('/')}/*' or '{text.rstrip('/')}/**' instead"
-        )
-
-
-def _path_has_forbidden_write_segment(path: str) -> bool:
-    segments = [
-        segment
-        for segment in path.replace("\\", "/").replace(".", "/").replace("-", "/").replace("_", "/").split("/")
-        if segment
-    ]
-    for segment in segments:
-        if segment in {"auth", "credential", "credentials", "secret", "secrets", "token", "tokens"}:
-            return True
-    return False
-
-
 def _clean_json_value(label: str, value: Any) -> Any:
     if isinstance(value, Mapping):
         cleaned: dict[str, Any] = {}
@@ -3268,6 +3182,17 @@ def _clean_json_value(label: str, value: Any) -> Any:
     if value is None or isinstance(value, (bool, int, float)):
         return value
     raise TypeError(f"{label} must be JSON-compatible")
+
+
+# Brick WriteScope value-object discipline (E2/S9): the SHAPE + path-safety rules
+# live on the BRICK axis (brick/spec.py). The two support-mechanic coercers it
+# delegates to (deep JSON clean + raw credential/session rejection) are injected
+# here so the axis never imports support; accept/reject + error text stay
+# byte-identical to the prior agent_adapter-local helpers.
+_WRITE_SCOPE_CONTEXT = WriteScopeContext(
+    clean_json=_clean_json_value,
+    reject_secret_text=_reject_secret_text,
+)
 
 
 def _clean_instruction_json_value(label: str, value: Any) -> Any:

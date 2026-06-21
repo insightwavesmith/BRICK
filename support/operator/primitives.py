@@ -84,30 +84,18 @@ _AGENT_OBJECT_ALLOWED_KEYS: frozenset[str] = frozenset(
 _AGENT_ROW_ALLOWED_KEYS: frozenset[str] = frozenset(
     {"axis", "row_ref", "agent_object_ref"}
 )
-_BRICK_ROW_ALLOWED_KEYS: frozenset[str] = frozenset(
-    {
-        "axis",
-        "row_ref",
-        "brick_work_ref",
-        "brick_instance_ref",
-        "boundary_ref",
-        "work_statement",
-        "comparison_rule",
-        "required_return_shape",
-        "source_facts",
-        "raw_refs",
-        "write_scope",
-        # EXPLICIT Brick write NEED marker: composition stamps
-        # requires_brick_write_scope: true next to write_scope so strict run
-        # admission (plan_validation require_write_need_marker) can demand a
-        # DECLARED need instead of inferring it from scope presence. The key is
-        # ADMITTED here; its VALUE discipline (bool / yes / no, fail-closed) is
-        # owned by plan_validation._declared_brick_write_need. The legacy
-        # ``write_need`` synonym is RETIRED (L legacy cut, 0610): it is no longer
-        # an admitted row key, so a row carrying it fails the unadmitted-key
-        # rejection loudly instead of being read or silently ignored.
-        "requires_brick_write_scope",
-    }
+# BRICK-row allowed key-set single-source API (E2/S9): the admitted Brick-row
+# key-set a plan may DECLARE now lives on the BRICK axis (brick/spec.py) — the
+# declarable Brick contract surface is Brick-axis property, not support mechanics.
+# Support re-imports the public name here so existing callers keep their import
+# sites; the key-set is ENUMERATED nowhere under support/ anymore (brick/spec.py
+# is the single source, registered in field_set_registry.yaml's
+# brick_row_allowed_keys row + crossing_registry.yaml's brick_spec row). The
+# requires_brick_write_scope marker's VALUE discipline (bool / yes / no,
+# fail-closed) moved to brick/spec.declared_brick_write_need at the same step. A
+# re-import is not a field-set enumeration, so the mirror-guard stays green.
+from brick_protocol.brick.spec import (  # noqa: F401  (re-exported for callers)
+    BRICK_ROW_ALLOWED_KEYS as _BRICK_ROW_ALLOWED_KEYS,
 )
 # LINK_ROW_ALLOWED_KEYS + the Link sub-envelope schemas (route_replay /
 # route_decision_basis / transition_authoring / building_lifecycle allowed-keys,

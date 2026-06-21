@@ -227,6 +227,14 @@ text_contains:
       - missing_agent_write_policy
       - missing_adapter_write_capability
       - legacy_adapter_identity_only_not_authority
+  # E2/S9: the WriteScope value object (shape + clean/validate) moved from
+  # support/connection/agent_adapter.py to the Brick axis brick/spec.py (a
+  # behavior-identical rehome; the construction-time shape-validation strings
+  # follow the rehome per the checker-pin-follows-rehome rule). The Agent-axis
+  # effective-write rehome reason tokens above stay in agent_adapter
+  # (_validate_effective_write_request was NOT moved).
+  - path: brick/spec.py
+    texts:
       - .allowed_paths must be a non-empty list
       - .forbidden_paths must be a list
   - path: support/operator/plan_validation.py

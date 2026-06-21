@@ -1042,89 +1042,21 @@ def _declared_selected_adapter_ref(plan: Mapping[str, Any], step: Mapping[str, A
     return _optional_text_value(raw_value)
 
 
-# SINGLE SOURCE for the strict no-SILENT-write-grant rejection prose: the live
-# run admission surfaces (run_building_plan linear admission, the dynamic
-# walker/resume admission, and run_building_once single-step admission) must all
-# reject with EXACTLY this text, so it lives here once instead of drifting as
-# copy-pasted literals across call sites.
-_SILENT_WRITE_GRANT_REJECTION = (
-    "write_scope requires an explicit Brick write NEED declaration "
-    "(requires_brick_write_scope: true); silent write grants are not admitted"
+# WRITE-NEED VALUE INTERPRETER single-source API (E2/S9, J5). The
+# ``requires_brick_write_scope`` marker is a BRICK contract field; its bool / yes /
+# no value discipline + the row-level inverse/strict admission rule are Brick-axis
+# judgment and now live on the BRICK axis (brick/spec.py). Support re-imports the
+# public names here (a re-import is not a re-definition) so the live admission
+# surfaces (run_building_plan linear admission, the dynamic walker/resume
+# admission, run_building_once single-step admission) keep their call sites; the
+# strict rejection text + the interpreter are single-sourced there. Registered in
+# crossing_registry.yaml's brick_spec row so support imports them via the canonical
+# names.
+from brick_protocol.brick.spec import (  # noqa: F401  (re-exported for callers)
+    SILENT_WRITE_GRANT_REJECTION as _SILENT_WRITE_GRANT_REJECTION,
+    declared_brick_write_need as _declared_brick_write_need,
+    validate_brick_row_write_need_for_scope as _validate_brick_row_write_need_for_scope,
 )
-
-
-def _declared_brick_write_need(brick_row: Mapping[str, Any]) -> bool | None:
-    """Return the Brick row's declared write NEED, or None when not recorded.
-
-    The NEED marker (``requires_brick_write_scope`` -- the ONLY recognized
-    spelling; the legacy ``write_need`` synonym is retired and deliberately NOT
-    read here, L legacy cut 0610) is OPTIONAL on a declared plan brick row --
-    historical records and externally authored plans may omit it, so an absent
-    marker returns None (the prior behavior, no inverse-guard rejection). A row
-    carrying only the retired ``write_need`` key therefore has NO declared NEED:
-    strict run admission rejects its write_scope loudly
-    (``_SILENT_WRITE_GRANT_REJECTION``) and the row-key whitelist
-    (``primitives._BRICK_ROW_ALLOWED_KEYS``) rejects the key itself as
-    unadmitted. When the canonical marker is present it must be a clean bool
-    or yes/no literal; anything else is a malformed declared road and is
-    rejected fail-closed.
-    """
-
-    if "requires_brick_write_scope" in brick_row:
-        value = brick_row.get("requires_brick_write_scope")
-        label = "Brick row requires_brick_write_scope"
-    else:
-        return None
-    if value is True or value is False:
-        return value
-    if isinstance(value, str):
-        text = value.strip().lower()
-        if text == "yes":
-            return True
-        if text == "no":
-            return False
-    raise ValueError(f"{label} must be a bool or yes/no (got {value!r})")
-
-
-def _validate_brick_row_write_need_for_scope(
-    brick_row: Mapping[str, Any],
-    *,
-    require_write_need_marker: bool,
-) -> None:
-    """Row-level write-NEED admission shared by EVERY live admission surface.
-
-    Inverse guard: a write_scope only exists to serve a Brick's declared write
-    NEED. When the Brick row records its NEED (requires_brick_write_scope) and
-    that NEED is explicitly NO, a present write_scope is an axis leak -- it would
-    let the run-time provider projection open write on a step that declared no
-    write NEED (the same leak effective_write forbids). Reject it. The marker is
-    OPTIONAL on the declared plan, so a brick row that omits it keeps the prior
-    behavior (historical records carry no marker); composition is the
-    authoritative layer that records the NEED and rejects the mismatch at
-    materialization. A write-needed step carries BOTH the NEED and the
-    write_scope, so it is never rejected here.
-
-    STRICT RUN ADMISSION (no SILENT write grant): at the live run admission
-    boundary a write_scope is admissible ONLY when the brick row EXPLICITLY
-    declares its write NEED. An absent marker is tolerated solely by the
-    default (historical read sweep) mode; with the knob on, the NEED must be
-    DECLARED, never inferred from scope presence (Agent capability alone must
-    never suffice to open workspace write). The strict rejection text is the
-    module-level ``_SILENT_WRITE_GRANT_REJECTION`` so all admission surfaces
-    (plan walker, dynamic walker/resume, run_building_once) reject identically.
-    """
-
-    raw_write_scope = brick_row.get("write_scope")
-    declared_write_need = _declared_brick_write_need(brick_row)
-    if declared_write_need is False and raw_write_scope is not None:
-        raise ValueError(
-            "write_scope present on a read-only Brick: a write_scope requires the "
-            "Brick to declare a write NEED (requires_brick_write_scope)"
-        )
-    if raw_write_scope is None:
-        return
-    if require_write_need_marker and declared_write_need is not True:
-        raise ValueError(_SILENT_WRITE_GRANT_REJECTION)
 
 
 def _validate_declared_step_write_scope(

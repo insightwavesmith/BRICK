@@ -1330,7 +1330,7 @@ def _render_declared_step(index: int, raw_step: Mapping[str, Any]) -> Mapping[st
     # dropped here and strict run admission (require_write_need_marker) would
     # reject every freshly rendered write-needed linear plan. Value validation
     # (bool / yes / no, fail-closed) stays owned by
-    # plan_validation._declared_brick_write_need; this is transport only.
+    # brick.spec.declared_brick_write_need; this is transport only.
     if "requires_brick_write_scope" in brick:
         rendered["rows"][0]["requires_brick_write_scope"] = brick.get(
             "requires_brick_write_scope"

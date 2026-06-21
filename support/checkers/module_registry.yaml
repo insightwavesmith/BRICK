@@ -484,9 +484,11 @@ modules:
     consumes_crossings:
       - agent_return_fact
       - brick_work
+      - brick_spec
     imports_axis:
       - agent/return_fact.py
       - brick/work.py
+      - brick/spec.py
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
     pinned_by: agent_adapter_return_shape / design_ai_text_seams kernel checks + adapter_model_selection cases
@@ -931,13 +933,15 @@ modules:
       - link_spec
       - agent_spec
       - agent_return_fact
+      - brick_spec
     imports_axis:
       - link/spec.py
       - agent/spec.py
       - agent/return_fact.py
+      - brick/spec.py
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
-    pinned_by: assembly_equivalence kernel check (HEART front door: refined 3-axis builder API; assemble() lowers caller STRUCTURE to compose_building (nodes, edges, groups), consumes the casting bag (agent/spec CASTING_FIELDS) + the Link-owned translate_gate_concept, and DERIVES its Gate/Concern/Adoption enums from the axis vocab (link/spec GATE_CONCEPT_TOKENS+ADOPTION_LITERALS, agent/return_fact TRANSITION_CONCERN_KINDS); authors no Movement or route) + builder_consumes_axis_api kernel check (builder-bypass-guard)
+    pinned_by: assembly_equivalence kernel check (HEART front door: refined 3-axis builder API; assemble() lowers caller STRUCTURE to compose_building (nodes, edges, groups), consumes the casting bag (agent/spec CASTING_FIELDS) + the Link-owned translate_gate_concept + the Brick-owned derived_worktree_write_scope default (brick/spec), and DERIVES its Gate/Concern/Adoption enums from the axis vocab (link/spec GATE_CONCEPT_TOKENS+ADOPTION_LITERALS, agent/return_fact TRANSITION_CONCERN_KINDS); authors no Movement or route) + builder_consumes_axis_api kernel check (builder-bypass-guard)
 
   - module: support/operator/orchestration_packet.py
     layer: operator
@@ -1127,6 +1131,7 @@ modules:
     consumes_crossings:
       - brick_work
       - brick_comparison
+      - brick_spec
       - link_gate
       - link_movement
       - link_transfer
@@ -1137,6 +1142,7 @@ modules:
     imports_axis:
       - brick/work.py
       - brick/comparison.py
+      - brick/spec.py
       - link/gate.py
       - link/movement.py
       - link/transfer.py
@@ -1145,7 +1151,7 @@ modules:
       - link/spec.py
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
-    pinned_by: building_plan_boundary + compose_building cases (validates declared rows; consumes, owns none)
+    pinned_by: building_plan_boundary + compose_building cases (validates declared rows; consumes, owns none; E2/S9 re-imports the Brick write-NEED interpreter from the Brick axis brick/spec.py)
 
   - module: support/operator/primitives.py
     layer: operator
@@ -1154,6 +1160,7 @@ modules:
     consumes_crossings:
       - agent_return_fact
       - agent_spec
+      - brick_spec
       - link_gate
       - link_movement
       - link_transition
@@ -1161,12 +1168,13 @@ modules:
     imports_axis:
       - agent/return_fact.py
       - agent/spec.py
+      - brick/spec.py
       - link/gate.py
       - link/movement.py
       - link/transition.py
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
-    pinned_by: shared operator primitives; covered by run_surface_split + route_match_and_materialization (E2/S6 re-imports the casting field-set from the Agent axis agent/spec.py)
+    pinned_by: shared operator primitives; covered by run_surface_split + route_match_and_materialization (E2/S6 re-imports the casting field-set from the Agent axis agent/spec.py; E2/S9 re-imports the Brick-row allowed-key set from the Brick axis brick/spec.py)
 
   - module: support/operator/route_materialization.py
     layer: operator

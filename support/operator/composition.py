@@ -3491,7 +3491,7 @@ def _composition_brick_row(
     # graph materializer's stamp would be silently dropped here and strict run
     # admission (require_write_need_marker) would reject every freshly composed
     # write-needed graph plan. Value validation (bool / yes / no, fail-closed on
-    # anything else) stays owned by plan_validation._declared_brick_write_need;
+    # anything else) stays owned by brick.spec.declared_brick_write_need;
     # this is transport only. The legacy ``write_need`` spelling is RETIRED
     # (L legacy cut, 0610): it is REJECTED LOUDLY here instead of being carried
     # or silently dropped (composition keeps no node-key whitelist, so without
