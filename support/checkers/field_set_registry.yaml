@@ -34,10 +34,11 @@ field_sets:
   # support/), so its definition is the single source and is never scanned by this
   # guard; primitives.py now RE-IMPORTS the names (a re-import is not a field-set
   # enumeration). The member-set below is the set of CastingField.field_name
-  # values; it is enumerated as a literal NOWHERE under support/ (the contracts.py
-  # `AgentObjectContractData` scalars are interleaved inside the FULL Agent-object
-  # field-list, not a standalone casting-only literal, so they are not a member-set
-  # match — that mirror collapses to the bag in S7).
+  # values; it is enumerated as a literal NOWHERE under support/. E2/S7 collapsed the
+  # contracts.py `AgentObjectContractData` casting scalars (the M1 mirror) into the
+  # opaque `casting` bag, so that dataclass no longer names a casting dial at all —
+  # the only remaining enumeration of these names is the Agent-axis CASTING_FIELDS
+  # tuple itself.
   - name: casting_fields
     defining_module: agent/spec.py
     source_symbol: CASTING_FIELDS
@@ -54,6 +55,10 @@ field_sets:
   # WORK_ENVELOPE_KEYS from this dataclass via dataclasses.fields() instead of a hand
   # literal, so this set is enumerated NOWHERE else on the tree. Re-adding a hand copy
   # (a 26-string frozenset, or a second @dataclass with these same fields) -> guard RED.
+  # E2/S7 (mirror M2): the per-dial ``selected_model_ref`` scalar collapsed to the
+  # opaque ``casting`` bag, so this member-set now carries ``casting`` (a Mapping
+  # field) in its place; ``selected_model_ref`` is a read-only property derived from
+  # the bag (not a dataclass field), so it is correctly NOT a work-envelope key.
   - name: work_envelope_keys
     defining_module: support/connection/agent_adapter.py
     source_symbol: AgentAdapterRequest
@@ -63,7 +68,7 @@ field_sets:
       - adapter_ref
       - brick_instance_ref
       - next_brick_instance_ref
-      - selected_model_ref
+      - casting
       - callable_ref
       - prompt_refs
       - skill_refs

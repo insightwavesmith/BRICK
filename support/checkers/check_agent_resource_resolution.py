@@ -35,7 +35,6 @@ from __future__ import annotations
 
 import argparse
 import sys
-from dataclasses import MISSING, fields
 from pathlib import Path
 
 
@@ -116,14 +115,6 @@ def _agent_object_resource_doc_fields(repo: Path) -> frozenset[str]:
     )
 
 
-def _optional_scalar_contract_fields(contract_type: object) -> frozenset[str]:
-    return frozenset(
-        field.name
-        for field in fields(contract_type)  # type: ignore[arg-type]
-        if field.default is not MISSING and field.default == ""
-    )
-
-
 def _allowlist_casting_fields(
     allowed_keys: frozenset[str],
     ref_fields: tuple[str, ...],
@@ -139,7 +130,6 @@ def _casting_field_registry_violations(repo: Path) -> list[str]:
         MODEL_REF_DEFAULT,
     )
     from brick_protocol.support.operator import primitives
-    from brick_protocol.support.operator.contracts import AgentObjectContractData
 
     violations: list[str] = []
     casting_fields = primitives.CASTING_FIELDS
@@ -171,10 +161,14 @@ def _casting_field_registry_violations(repo: Path) -> list[str]:
                 f"observed {sorted(descriptor.scope)!r}, expected {sorted(expected_scope)!r}"
             )
 
+    # E2/S7 (mirror M1): the ``AgentObjectContractData optional scalar str fields``
+    # arm is REMOVED. The contract no longer NAMES the casting dials as scalar
+    # fields — they collapsed to the opaque ``casting`` bag — so there is no
+    # contracts-side scalar set left to drift against CASTING_FIELDS. The bag is the
+    # single-source proof: a new dial reaches the contract with NO new named field.
+    # The remaining arms (operator/agent-resource allowlists + AGENTS.md prose) still
+    # enumerate the casting names and are still pinned to CASTING_FIELDS here.
     comparisons = {
-        "AgentObjectContractData optional scalar str fields": _optional_scalar_contract_fields(
-            AgentObjectContractData
-        ),
         "operator Agent Object allowlist casting fields": _allowlist_casting_fields(
             primitives._AGENT_OBJECT_ALLOWED_KEYS,
             primitives._AGENT_OBJECT_REF_FIELDS,

@@ -3119,7 +3119,7 @@ def run_gemini_api_adapter(repo: Path) -> KernelResult:
             adapter_ref=gemini_api,
             brick_instance_ref="brick-review",
             next_brick_instance_ref="brick-closure",
-            selected_model_ref=adapter.MODEL_REF_GEMINI_FLASH,
+            casting={"selected_model_ref": adapter.MODEL_REF_GEMINI_FLASH},
             tool_policy_refs=(adapter.REVIEWER_READONLY_TOOL_POLICY_REF,),
             work_statement="Return support evidence only.",
         )

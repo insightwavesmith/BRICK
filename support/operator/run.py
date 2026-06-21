@@ -2597,12 +2597,20 @@ def _agent_object_from_mapping(value: Mapping[str, Any]) -> AgentObjectContractD
             value.get("callable_performer_refs", ()),
         ),
     }
+    # E2/S7 (mirror M1): the per-dial casting scalars collapsed to ONE opaque
+    # ``casting`` bag keyed by the CASTING_FIELDS names. Built ONCE here by looping
+    # the Agent-axis field-set; a declared dial is cleaned text (byte-identical to
+    # the prior per-scalar _required_text), an undeclared dial is simply absent from
+    # the bag (the dataclass never names a dial). A NEW casting field flows through
+    # with NO edit here.
+    casting: dict[str, str] = {}
     for descriptor in CASTING_FIELDS:
         if value.get(descriptor.field_name) is not None:
-            kwargs[descriptor.field_name] = _required_text(
+            casting[descriptor.field_name] = _required_text(
                 f"Agent Object {descriptor.field_name}",
                 value.get(descriptor.field_name),
             )
+    kwargs["casting"] = casting
     for key in _AGENT_OBJECT_REF_FIELDS:
         kwargs[key] = _text_tuple(f"Agent Object {key}", value.get(key, ()))
     return AgentObjectContractData(**kwargs)
@@ -2695,7 +2703,14 @@ def _adapter_request_from_prepared(
         "callable_ref": callable_ref,
         "brick_instance_ref": prepared.brick_instance_ref,
         "next_brick_instance_ref": prepared.next_brick_instance_ref,
-        "selected_model_ref": _optional_text_from_mapping(packet, "selected_model_ref") or "",
+        # E2/S7 (mirror M2): the model dial rides in the opaque casting bag, built
+        # ONCE here from the same packet value the named scalar read; the request's
+        # __post_init__ normalizes it inside the bag. A NEW casting dial would be
+        # added to this bag, not as a new request field.
+        "casting": {
+            "selected_model_ref": _optional_text_from_mapping(packet, "selected_model_ref")
+            or "",
+        },
         "prompt_refs": prepared.agent_object.prompt_refs,
         "skill_refs": prepared.agent_object.skill_refs,
         "hook_refs": prepared.agent_object.hook_refs,

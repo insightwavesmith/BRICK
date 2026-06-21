@@ -314,7 +314,17 @@ class AgentAdapterRequest:
     adapter_ref: str
     brick_instance_ref: str
     next_brick_instance_ref: str
-    selected_model_ref: str = ""
+    # E2/S7 (mirror M2): the per-dial casting scalar (``selected_model_ref``) that
+    # used to be a NAMED field here is replaced by ONE opaque ``casting`` bag keyed
+    # by the node-level ``selected_*`` casting names. A ``@dataclass`` cannot splice
+    # a tuple into named fields, so a new casting dial would otherwise cost a new
+    # hand-typed scalar; the bag carries them all. The bag is built ONCE at the
+    # ``run._adapter_request_from_prepared`` seam and threaded verbatim. The
+    # ``selected_model_ref`` accessor below reads the bag, so every existing reader
+    # (and the per-adapter __post_init__ normalize) is byte-identical; the dial's
+    # NORMALIZED value is written back INTO the bag so the on-disk work-envelope
+    # carries the same resolved model the named scalar carried.
+    casting: Mapping[str, str] = field(default_factory=dict)
     callable_ref: str = ""
     prompt_refs: tuple[str, ...] = ()
     skill_refs: tuple[str, ...] = ()
@@ -336,6 +346,17 @@ class AgentAdapterRequest:
     proof_limits: tuple[str, ...] = field(default_factory=tuple)
     not_proven: tuple[str, ...] = field(default_factory=tuple)
 
+    @property
+    def selected_model_ref(self) -> str:
+        """The selected model dial, read from the opaque casting bag (E2/S7).
+
+        Byte-identical accessor for every prior ``request.selected_model_ref``
+        reader: the named scalar moved INTO the ``casting`` bag, normalized in
+        __post_init__. Absent from the bag -> empty string (the prior scalar
+        default)."""
+
+        return self.casting.get("selected_model_ref", "")
+
     def __post_init__(self) -> None:
         adapter_ref = _validate_adapter_ref(self.adapter_ref)
         object.__setattr__(self, "adapter_ref", adapter_ref)
@@ -344,9 +365,19 @@ class AgentAdapterRequest:
         if mode not in ALLOWED_SESSION_CONTINUITY_MODES:
             raise ValueError("session_continuity_mode is not admitted for SESSION-CONTINUITY-0")
         object.__setattr__(self, "session_continuity_mode", mode)
-        selected_model_ref = _clean_optional_text("selected_model_ref", self.selected_model_ref)
+        # E2/S7 (mirror M2): normalize the model dial INSIDE the bag. The carried
+        # ``selected_model_ref`` is cleaned + normalized exactly as the prior named
+        # scalar was (``_clean_optional_text`` then ``_normalize_selected_model_ref``)
+        # and written back into a fresh bag, so the resolved value the work-envelope
+        # serializes and every reader sees is byte-identical to before. Other carried
+        # casting keys (none today) pass through untouched.
+        casting = dict(self.casting)
+        selected_model_ref = _clean_optional_text(
+            "selected_model_ref", casting.get("selected_model_ref", "")
+        )
         selected_model_ref = _normalize_selected_model_ref(adapter_ref, selected_model_ref)
-        object.__setattr__(self, "selected_model_ref", selected_model_ref)
+        casting["selected_model_ref"] = selected_model_ref
+        object.__setattr__(self, "casting", casting)
 
         for field_name in (
             "work_statement",

@@ -41,7 +41,19 @@ from brick_protocol.support.operator.primitives import (
 
 @dataclass(frozen=True)
 class AgentObjectContractData:
-    """Provider-neutral Agent Object refs used to prepare an Agent run."""
+    """Provider-neutral Agent Object refs used to prepare an Agent run.
+
+    E2/S7 (mirror M1): the per-dial casting scalars (``preferred_adapter_ref`` /
+    ``preferred_model_ref`` / ``preferred_reasoning_effort_ref``) that used to be
+    NAMED dataclass fields here — a mirror of the Agent-axis casting field-set —
+    are replaced by ONE opaque ``casting`` bag keyed by the ``CASTING_FIELDS``
+    names. A ``@dataclass`` cannot splice a tuple into named fields, so a NEW
+    casting dial would otherwise cost a new hand-typed scalar here; with the bag
+    the dataclass never names a dial. The bag is built ONCE at the intent seam
+    (``run._agent_object_from_mapping`` loops ``CASTING_FIELDS``) and threaded
+    verbatim; support neither inspects nor defaults the carried casting values.
+    A field absent from the source Agent Object is simply absent from the bag.
+    """
 
     object_ref: str
     name: str
@@ -53,9 +65,7 @@ class AgentObjectContractData:
     tool_policy_refs: tuple[str, ...] = ()
     discipline_refs: tuple[str, ...] = ()
     adapter_refs: tuple[str, ...] = ()
-    preferred_adapter_ref: str = ""
-    preferred_model_ref: str = ""
-    preferred_reasoning_effort_ref: str = ""
+    casting: Mapping[str, str] = field(default_factory=dict)
 
 @dataclass(frozen=True)
 class ThreeAxisStepRows:
