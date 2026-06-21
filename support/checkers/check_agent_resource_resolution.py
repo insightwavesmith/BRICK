@@ -23,6 +23,15 @@ adapts to whatever adapter vocabulary the current tree admits (e.g. after an
 adapter retirement) — a half-done retirement that drops an adapter from the
 ALLOWED set but leaves it on an object REDs here.
 
+It also asserts every shipped Agent Object declares a concrete
+preferred_adapter_ref (present, in ALLOWED_ADAPTER_REFS, not adapter:local, and
+listed in the object's own adapter_refs). That field is the lane-preference rung
+of the casting ladder: a node with a kind but no explicit selected adapter
+resolves the kind's default agent and reads THAT role's preferred_adapter_ref. If
+it is missing, the adapter dial silently falls through to the building default —
+the local-adapter footgun a verdict-bearing lane must never hit. This keeps the
+build()/fan() "casting is optional, the role supplies it" promise from rotting.
+
 hook_refs and callable_performer_refs use a different resolution mechanism
 (registry/bindings, performer wiring) and are out of scope.
 
@@ -202,7 +211,10 @@ def find_violations(repo: Path) -> tuple[list[str], int]:
     # Reuse the engine's resolver + admitted adapter set so the checker validates
     # exactly what the engine resolves and adapts to the current adapter vocabulary.
     from brick_protocol.support.connection.agent_resources import _resource_path
-    from brick_protocol.support.connection.agent_adapter import ALLOWED_ADAPTER_REFS
+    from brick_protocol.support.connection.agent_adapter import (
+        ADAPTER_LOCAL,
+        ALLOWED_ADAPTER_REFS,
+    )
 
     violations: list[str] = []
     refs_checked = 0
@@ -242,6 +254,43 @@ def find_violations(repo: Path) -> tuple[list[str], int]:
                 violations.append(
                     f"{object_ref}: adapter_ref {ref!r} is not in ALLOWED_ADAPTER_REFS "
                     f"({sorted(ALLOWED_ADAPTER_REFS)})"
+                )
+        # preferred_adapter_ref REQUIRED (the casting baseline's load-bearing seam).
+        # build()/fan() promise "casting is optional, the role supplies it": a node
+        # with a kind but no selected adapter resolves the kind's default agent and
+        # then reads THAT role's preferred_adapter_ref as its lane preference
+        # (plan_rendering._resolve_casting_field, _STEP_ADAPTER_SOURCE_LANE_PREFERENCE).
+        # If a shipped role lacks preferred_adapter_ref, that lane-preference rung is
+        # gone and the dial silently falls through to the building-level/plan default
+        # -- the #53 local-adapter footgun (a verdict-bearing lane could land on
+        # adapter:local). This statically forbids that rot: every shipped Agent Object
+        # must declare a concrete, admitted, non-local preferred adapter it actually
+        # lists. Reuses the engine's ALLOWED set + ADAPTER_LOCAL so it is drift-proof.
+        refs_checked += 1
+        preferred = obj.get("preferred_adapter_ref")
+        if not isinstance(preferred, str) or not preferred.strip():
+            violations.append(
+                f"{object_ref}: preferred_adapter_ref is required "
+                "(the casting baseline reads it as the lane preference; without it the "
+                "adapter dial falls through to the building default -- the local-adapter footgun)"
+            )
+        elif preferred not in ALLOWED_ADAPTER_REFS:
+            violations.append(
+                f"{object_ref}: preferred_adapter_ref {preferred!r} is not in "
+                f"ALLOWED_ADAPTER_REFS ({sorted(ALLOWED_ADAPTER_REFS)})"
+            )
+        elif preferred == ADAPTER_LOCAL:
+            violations.append(
+                f"{object_ref}: preferred_adapter_ref must not be {ADAPTER_LOCAL!r} "
+                "(a role's lane preference must be a real provider, not the in-process stub)"
+            )
+        else:
+            declared_adapter_refs = obj.get("adapter_refs", []) or []
+            if preferred not in declared_adapter_refs:
+                violations.append(
+                    f"{object_ref}: preferred_adapter_ref {preferred!r} is not listed in "
+                    f"this object's adapter_refs ({list(declared_adapter_refs)}); a role "
+                    "cannot prefer an adapter it does not declare"
                 )
     return sorted(set(violations)), refs_checked
 

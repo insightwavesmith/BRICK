@@ -12,7 +12,6 @@ steps:
   - step_template_ref: building-step-template:code-attack-qa
     brick_spec_ref: brick/templates/bricks/code-attack-qa/brick.md
     target_word: fan_in_final_gate
-    selected_adapter_ref: adapter:claude-local
     selected_model_ref: model:claude:sonnet
   - step_template_ref: building-step-template:axis-attack-qa
     brick_spec_ref: brick/templates/bricks/axis-attack-qa/brick.md

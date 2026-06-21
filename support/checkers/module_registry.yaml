@@ -973,7 +973,7 @@ modules:
       - brick/spec.py
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
-    pinned_by: assembly_equivalence kernel check (HEART front door: refined 3-axis builder API; assemble() lowers caller STRUCTURE to compose_building (nodes, edges, groups), consumes the casting bag (agent/spec CASTING_FIELDS) + the Link-owned translate_gate_concept + the Brick-owned derived_worktree_write_scope default (brick/spec), and DERIVES its Gate/Concern/Adoption enums from the axis vocab (link/spec GATE_CONCEPT_TOKENS+ADOPTION_LITERALS, agent/return_fact TRANSITION_CONCERN_KINDS); authors no Movement or route) + builder_consumes_axis_api kernel check (builder-bypass-guard)
+    pinned_by: assembly_equivalence kernel check (HEART front door: refined 3-axis builder API; assemble() lowers caller STRUCTURE to compose_building (nodes, edges, groups), consumes the casting bag (agent/spec CASTING_FIELDS) + the Link-owned translate_gate_concept + the Brick-owned derived_worktree_write_scope default (brick/spec), and DERIVES its Gate/Concern/Adoption enums from the axis vocab (link/spec GATE_CONCEPT_TOKENS+ADOPTION_LITERALS, agent/return_fact TRANSITION_CONCERN_KINDS); authors no Movement or route; build()/fan() are a pure front-end that lowers BRICK-FIRST node literals to the same chain/fan_out/fan_in/converge primitives, byte-identically) + builder_consumes_axis_api kernel check (builder-bypass-guard)
 
   - module: support/operator/orchestration_packet.py
     layer: operator

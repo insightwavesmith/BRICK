@@ -415,12 +415,374 @@ def converge(*parts: GraphSpec, terminal: BrickSpec) -> GraphSpec:
     )
 
 
-def reroute(on: Concern, to: BrickSpec, *, budget: int) -> RerouteMark:
+# ---------------------------------------------------------------------------
+# build()/fan() — the easy front-of-front-door construction surface (E2 CORE).
+#
+# This is PURE sugar over the existing chain()/fan_out()/fan_in()/converge()
+# lower tier: a BRICK-FIRST node literal ``[kind, work]`` / ``[kind, work, opts]``
+# lowers to ``brick(kind, work, **opts)`` (the kind's default step-template agent
+# is resolved downstream by compose_building -- no explicit ``agent=`` needed),
+# adjacency N->N+1 is a forward edge, and a nested ``fan([...])`` block fans the
+# preceding item out to each branch and the following item is the convergence.
+# It adds NO new resolution, engine concept, field, or checker-meaning.
+# ---------------------------------------------------------------------------
+
+# Friendly node-opts aliases -> canonical brick() kwarg. ``effort`` is the short
+# spoken alias for the ``reasoning_effort`` casting dial; ``label`` for ``alias``.
+_NODE_OPT_ALIASES: Mapping[str, str] = {
+    "effort": "reasoning_effort",
+    "label": "alias",
+}
+_NODE_OPT_ROUTE_KEY = "route"
+
+
+@dataclass(frozen=True)
+class _BackTarget:
+    """A positional reroute target: the node ``count`` items up in the build list."""
+
+    count: int
+
+
+@dataclass(frozen=True)
+class _SurfaceReroute:
+    """A surface reroute mark whose target is a positional ``back(N)`` reference."""
+
+    on: Concern
+    back: _BackTarget
+    budget: int
+
+
+@dataclass(frozen=True)
+class Fan:
+    """A nested fan block marker for build(): the preceding item fans out to each
+    branch and the following item is the fan-in convergence. Not a GraphSpec."""
+
+    branches: tuple[BrickSpec, ...]
+
+
+def back(count: int) -> _BackTarget:
+    """A positional reroute target: the node ``count`` items up in the build list."""
+
+    if not isinstance(count, int) or count <= 0:
+        raise ValueError("back() count must be a finite positive integer")
+    return _BackTarget(count)
+
+
+def _coerce_node(item: Any) -> BrickSpec:
+    """Lower a BRICK-FIRST node literal (or pass a BrickSpec through unchanged).
+
+    ``[kind, work]`` / ``[kind, work, opts]`` -> ``brick(kind, work, **opts)``.
+    The opts dict carries only existing brick() vocabulary (write/returns/adapter/
+    model/effort/label/alias); ``route`` is NOT a brick() field and is consumed by
+    fan_in lowering, so it is stripped here and surfaced separately.
+    """
+
+    if isinstance(item, BrickSpec):
+        return item
+    if isinstance(item, Fan):
+        raise TypeError("a Fan block cannot be coerced to a node; nest it as its own build() item")
+    if not isinstance(item, Sequence) or isinstance(item, (str, bytes)):
+        raise TypeError("build()/fan() items must be [kind, work] / [kind, work, opts] or a BrickSpec")
+    parts = tuple(item)
+    if len(parts) not in (2, 3):
+        raise TypeError("a node literal must be [kind, work] or [kind, work, opts]")
+    kind, work = parts[0], parts[1]
+    opts = parts[2] if len(parts) == 3 else {}
+    if not isinstance(opts, Mapping):
+        raise TypeError("node opts (slot 2) must be a mapping")
+    brick_kwargs: dict[str, Any] = {}
+    for raw_key, value in opts.items():
+        if raw_key == _NODE_OPT_ROUTE_KEY:
+            # route= is NOT a brick() field -- it is the convergence node's fan-in
+            # reroute/hold marks, consumed by build() via _node_route_marks and
+            # lowered onto the fan_in. Strip it from the brick() kwargs here.
+            continue
+        key = _NODE_OPT_ALIASES.get(raw_key, raw_key)
+        brick_kwargs[key] = value
+    return brick(kind, work, **brick_kwargs)
+
+
+def _node_route_marks(item: Any) -> tuple[Any, ...]:
+    """Extract the ``route`` opt (surface reroute()/hold() marks) from a node literal."""
+
+    if isinstance(item, (BrickSpec, Fan)) or not isinstance(item, Sequence) or isinstance(item, (str, bytes)):
+        return ()
+    parts = tuple(item)
+    if len(parts) != 3 or not isinstance(parts[2], Mapping):
+        return ()
+    raw = parts[2].get(_NODE_OPT_ROUTE_KEY, ())
+    if isinstance(raw, (str, bytes)) or not isinstance(raw, Sequence):
+        raise TypeError("node route= must be a list of reroute()/hold() marks")
+    return tuple(raw)
+
+
+def fan(branches: Sequence[Any]) -> Fan:
+    """A nested fan block: the preceding build() item fans out to each branch and
+    the following item is the fan-in convergence. Branches lower like build items."""
+
+    for branch in branches:
+        if _node_route_marks(branch):
+            raise TypeError("route= is a fan-in opt; declare it on the convergence node, not a fan branch")
+    coerced = tuple(_coerce_node(branch) for branch in branches)
+    if not coerced:
+        raise TypeError("fan() requires at least one branch")
+    return Fan(coerced)
+
+
+def _with_fields(spec: BrickSpec, *, alias: str | None = None, returns: str | None = None) -> BrickSpec:
+    """Return a copy of ``spec`` with ``alias``/``returns`` filled (frozen rebuild).
+
+    Used by the EASY tier (``build()``) to mint an auto-id or auto-derive a fan
+    branch's return shape BEFORE lowering. An already-declared value is never
+    overwritten -- the operator's explicit ``alias=``/``returns=`` wins -- so this
+    only fills the gap that lets the easy inputs flow through the strict LOWER tier.
+    """
+
+    if alias is None and returns is None:
+        return spec
+    return BrickSpec(
+        kind=spec.kind,
+        work=spec.work,
+        alias=spec.alias if spec.alias else alias,
+        write=spec.write,
+        returns=spec.returns if spec.returns else returns,
+        agent=spec.agent,
+        casting=spec.casting,
+        source_facts=spec.source_facts,
+    )
+
+
+def _auto_fan_branch_returns(spec: BrickSpec, registry: Mapping[str, Any]) -> BrickSpec:
+    """AUTO-RETURNS: a fan branch carrying a kind whose Brick template supplies
+    ``required_return_shape`` does not force the operator to restate ``returns=``.
+
+    ``fan_in()`` (the LOWER tier) requires every source to declare ``returns=``;
+    the kind's shape is derived from the registry at lowering anyway (``_lower_node``
+    prefers the template's ``required_return_shape``). Here the EASY tier fills the
+    branch's ``returns`` from the SAME template shape so the strict ``fan_in()``
+    contract is satisfied and the lowered node is byte-identical to the hand-built
+    tier. An explicit ``returns=`` is left untouched (back-compat).
+    """
+
+    if _optional_text(spec.returns):
+        return spec
+    step_template = registry.get("step_templates", {}).get(f"building-step-template:{spec.kind}")
+    shape = ""
+    if isinstance(step_template, Mapping):
+        shape = str(step_template.get("required_return_shape", "")).strip()
+    if not shape:
+        return spec
+    derived = _materializer_strip_field(shape, _TRANSITION_CONCERN_FIELD)
+    return _with_fields(spec, returns=derived)
+
+
+def _auto_id_repeated_kinds(coerced_nodes: Sequence[BrickSpec | Fan]) -> list[BrickSpec | Fan]:
+    """AUTO-ID: mint a stable alias for nodes that share a kind so the operator
+    needs NO ``alias=``.
+
+    ``_node_ids()`` (the LOWER tier) raises when two nodes share a kind without an
+    alias. Here the EASY tier assigns a stable per-kind suffix (``kind``,
+    ``kind-2``, ``kind-3``, ...) in declaration order across the WHOLE node set
+    (top-level spine + every fan branch), so the operator declares no alias. A
+    node that ALREADY carries an alias/label keeps it (the optional ``label``/``as``
+    override) and does not consume an auto-suffix slot. The LOWER tier and its
+    strictness are untouched -- only the spec handed to it gains the alias.
+    """
+
+    flat: list[BrickSpec] = []
+    for node in coerced_nodes:
+        if isinstance(node, Fan):
+            flat.extend(node.branches)
+        else:
+            flat.append(node)
+    kind_counts = Counter(spec.kind for spec in flat)
+    repeated = {kind for kind, count in kind_counts.items() if count > 1}
+    if not repeated:
+        return list(coerced_nodes)
+
+    minted: dict[int, BrickSpec] = {}
+    seen_per_kind: Counter[str] = Counter()
+    for spec in flat:
+        if spec.kind not in repeated or spec.alias:
+            continue
+        seen_per_kind[spec.kind] += 1
+        suffix = spec.kind if seen_per_kind[spec.kind] == 1 else f"{spec.kind}-{seen_per_kind[spec.kind]}"
+        minted[id(spec)] = _with_fields(spec, alias=suffix)
+
+    if not minted:
+        return list(coerced_nodes)
+
+    rewritten: list[BrickSpec | Fan] = []
+    for node in coerced_nodes:
+        if isinstance(node, Fan):
+            rewritten.append(Fan(tuple(minted.get(id(branch), branch) for branch in node.branches)))
+        else:
+            rewritten.append(minted.get(id(node), node))
+    return rewritten
+
+
+def build(items: Sequence[Any]) -> GraphSpec:
+    """Compile a top-to-bottom build list to one GraphSpec over existing primitives.
+
+    Item N->N+1 is a forward edge; a ``fan([...])`` block fans the PRECEDING item
+    out to each branch and the FOLLOWING item is the fan-in convergence; the last
+    item is terminal. A convergence node's ``route`` opt becomes reroute()/hold()
+    on the fan_in. The result is exactly the GraphSpec the hand-written
+    chain()/fan_out()/fan_in()/converge() tier emits.
+
+    The EASY tier auto-mints a stable alias for repeated kinds and auto-derives a
+    fan branch's ``returns`` from its kind's Brick template, so the operator writes
+    NO ``alias=`` and NO ``returns=``. Explicit ``alias=``/``label``/``returns=``
+    still win (back-compat); the strict LOWER tier is unchanged.
+    """
+
+    sequence = tuple(items)
+    if not sequence:
+        raise TypeError("build() requires at least one item")
+    if isinstance(sequence[0], Fan):
+        raise TypeError("build() cannot start with a fan() block; a fan needs a preceding source")
+    if isinstance(sequence[-1], Fan):
+        raise TypeError("build() cannot end with a fan() block; a fan needs a following convergence")
+
+    # First pass: coerce every node literal, remembering the linear spine of
+    # plain BrickSpec items so back(N) positional reroutes can resolve.
+    parts: list[GraphSpec] = []
+    fan_in_terminal: BrickSpec | None = None
+    items_list = list(sequence)
+    coerced_nodes: list[BrickSpec | Fan] = [
+        item if isinstance(item, Fan) else _coerce_node(item) for item in items_list
+    ]
+    # EASY-tier sugar, applied BEFORE lowering so the strict LOWER tier
+    # (fan_in/_node_ids) sees fully-formed specs:
+    #   * AUTO-RETURNS: fill each fan branch's returns from its kind's template.
+    #   * AUTO-ID: mint a stable alias for repeated kinds (whole-graph scope).
+    registry = _load_shape_registry(REPO_ROOT)
+    coerced_nodes = [
+        Fan(tuple(_auto_fan_branch_returns(branch, registry) for branch in node.branches))
+        if isinstance(node, Fan)
+        else node
+        for node in coerced_nodes
+    ]
+    coerced_nodes = _auto_id_repeated_kinds(coerced_nodes)
+    linear: list[BrickSpec] = [n for n in coerced_nodes if isinstance(n, BrickSpec)]
+
+    def _resolve_back(source_position: int, target: _BackTarget) -> BrickSpec:
+        # Resolve N items up over the linear spine of plain nodes preceding here.
+        spine_index = sum(1 for n in coerced_nodes[:source_position] if not isinstance(n, Fan))
+        target_index = spine_index - target.count
+        if target_index < 0:
+            raise ValueError(f"back({target.count}) reaches before the start of the build list")
+        return linear[target_index]
+
+    # A node id that is a fan-in convergence: it already has its incoming edges
+    # from the fan_in, so when it is visited as a plain node it must only emit its
+    # OWN outgoing forward edge -- never a duplicate incoming one.
+    last_real: BrickSpec | None = None
+    position = 0
+    while position < len(coerced_nodes):
+        node = coerced_nodes[position]
+        if isinstance(node, Fan):
+            source = last_real
+            if source is None:
+                raise TypeError("a fan() block needs a preceding source node")
+            following_position = position + 1
+            if following_position >= len(coerced_nodes) or isinstance(coerced_nodes[following_position], Fan):
+                raise TypeError("a fan() block needs a following convergence node")
+            convergence = coerced_nodes[following_position]
+            assert isinstance(convergence, BrickSpec)
+            route_marks = _lower_surface_route(
+                _node_route_marks(items_list[following_position]),
+                source_position=following_position,
+                resolve_back=_resolve_back,
+            )
+            parts.append(fan_out(source, node.branches))
+            parts.append(fan_in(node.branches, convergence, route=route_marks))
+            fan_in_terminal = convergence
+            # Consume ONLY the fan; the convergence is visited next as a plain node
+            # so its outgoing forward edge (to any node following it) is emitted.
+            # It already owns its incoming fan_in edges. Clear last_real so the
+            # convergence does not get a spurious leading edge from this source.
+            last_real = None
+            position += 1
+            continue
+        # A plain node. Its forward edge to a following plain node is the adjacency
+        # edge; a following fan block is handled in the branch above. A convergence
+        # node reached here only emits this outgoing edge (its incoming edges were
+        # already emitted by fan_in), which is exactly right.
+        next_position = position + 1
+        if next_position < len(coerced_nodes) and not isinstance(coerced_nodes[next_position], Fan):
+            nxt = coerced_nodes[next_position]
+            assert isinstance(nxt, BrickSpec)
+            parts.append(edge(node, nxt))
+        last_real = node
+        position += 1
+
+    terminal = linear[-1]
+    if fan_in_terminal is not None and terminal is fan_in_terminal:
+        return converge(*parts, terminal=terminal)
+    if fan_in_terminal is not None:
+        # Mixed: at least one fan block plus a linear tail/spine. converge()
+        # requires the terminal to be a fan-in target; when the build ends on a
+        # linear node we still converge the parts and re-home the terminal.
+        return converge(*parts, terminal=terminal) if any(
+            t is terminal for part in parts for t in part.fan_in_targets
+        ) else _converge_linear_tail(parts, terminal)
+    # Pure linear build: one chain over the spine (byte-identical to chain(spine)).
+    return chain(linear)
+
+
+def _converge_linear_tail(parts: Sequence[GraphSpec], terminal: BrickSpec) -> GraphSpec:
+    nodes: list[BrickSpec] = []
+    edges: list[EdgeSpec] = []
+    groups: list[GroupSpec] = []
+    fan_in_targets: list[BrickSpec] = []
+    fan_in_routes: list[FanInRoute] = []
+    for part in parts:
+        nodes.extend(part.nodes)
+        edges.extend(part.edges)
+        groups.extend(part.groups)
+        fan_in_targets.extend(part.fan_in_targets)
+        fan_in_routes.extend(part.fan_in_routes)
+    return GraphSpec(
+        nodes=_unique_nodes((*nodes, terminal)),
+        edges=_unique_edges(edges),
+        groups=tuple(groups),
+        terminal=terminal,
+        fan_in_targets=_unique_nodes(fan_in_targets),
+        fan_in_routes=tuple(fan_in_routes),
+    )
+
+
+def _lower_surface_route(
+    marks: Sequence[Any],
+    *,
+    source_position: int,
+    resolve_back: Any,
+) -> tuple[RerouteMark | HoldMark, ...]:
+    lowered: list[RerouteMark | HoldMark] = []
+    for mark in marks:
+        if isinstance(mark, _SurfaceReroute):
+            target = resolve_back(source_position, mark.back)
+            lowered.append(reroute(mark.on, to=target, budget=mark.budget))
+        elif isinstance(mark, RerouteMark):
+            lowered.append(mark)
+        elif isinstance(mark, HoldMark):
+            lowered.append(mark)
+        else:
+            raise TypeError("route= entries must be reroute()/hold() marks")
+    return tuple(lowered)
+
+
+def reroute(on: Concern, to: BrickSpec | _BackTarget, *, budget: int) -> RerouteMark | _SurfaceReroute:
     if not isinstance(on, Concern):
         raise TypeError("reroute() on must be a Concern")
-    _require_bricks("reroute target", (to,))
     if not isinstance(budget, int) or budget <= 0:
         raise ValueError("reroute() budget must be a finite positive integer")
+    if isinstance(to, _BackTarget):
+        # Surface form: the target is a positional back(N) reference resolved at
+        # build() time against the linear spine. Lowers to a real RerouteMark then.
+        return _SurfaceReroute(on=on, back=to, budget=budget)
+    _require_bricks("reroute target", (to,))
     return RerouteMark(on=on, to=to, budget=budget)
 
 
@@ -1074,14 +1436,18 @@ __all__ = [
     "BrickSpec",
     "ComposedGraph",
     "Concern",
+    "Fan",
     "Gate",
     "GraphSpec",
     "agent",
     "assemble",
+    "back",
     "brick",
+    "build",
     "chain",
     "converge",
     "edge",
+    "fan",
     "fan_in",
     "fan_out",
     "hold",

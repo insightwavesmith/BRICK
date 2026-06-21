@@ -15,7 +15,7 @@ proof_limits:
   - not quality judgment
   - not Movement authority
   - assembly.py is present; assembly.py LHS equivalence is actively checked (P(assemble) == P(hand-built))
+  - build()/fan() front-end equivalence is actively checked (build/fan lowered nodes/edges/groups are BYTE-IDENTICAL to the hand-built chain/fan_out/fan_in/converge tier)
 not_proven:
-  - Phase 1 assembly.py LHS equivalence
   - closure policy semantic validity
   - future provider behavior

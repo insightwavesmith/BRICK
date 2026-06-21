@@ -32,10 +32,13 @@ from brick_protocol.support.operator.assembly import (
     Gate,
     agent,
     assemble,
+    back,
     brick,
+    build,
     chain,
     converge,
     edge as assembly_edge,
+    fan,
     fan_in,
     fan_out,
     hold,
@@ -1533,6 +1536,232 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
     return tuple(outputs)
 
 
+def _build_fan_graphs(fixture_name: str):
+    """The same structural graph as ``_assembly_graph`` but declared through the
+    easy build()/fan() front-end. Returns None when the graph is not a single
+    linear-plus-fan spine that the build() list form expresses."""
+
+    if fixture_name == "fast-fix":
+        return build(
+            [
+                ["work", "checker fixture work for fast-fix-work", {"write": True}],
+                ["axis-attack-qa", "checker fixture work for fast-fix-qa"],
+                ["closure", "checker fixture work for fast-fix-closure"],
+            ]
+        )
+
+    if fixture_name == "engine-feature-hard":
+        return build(
+            [
+                ["development", "checker fixture work for hard-development"],
+                fan(
+                    [
+                        ["code-attack-qa", "checker fixture work for hard-code", {"returns": SOURCE_RETURN_SHAPE}],
+                        ["axis-attack-qa", "checker fixture work for hard-axis", {"returns": SOURCE_RETURN_SHAPE}],
+                        [
+                            "evidence-integrity",
+                            "checker fixture work for hard-evidence",
+                            {"returns": SOURCE_RETURN_SHAPE},
+                        ],
+                    ]
+                ),
+                [
+                    "closure",
+                    "checker fixture work for hard-closure",
+                    {
+                        "route": [
+                            reroute(Concern.IMPLEMENTATION_GAP, to=back(1), budget=5),
+                            hold(Concern.VERIFICATION_GAP),
+                        ]
+                    },
+                ],
+            ]
+        )
+
+    # two-fan-in-graph has split convergences (inspect fans to four lenses that
+    # rejoin at two different closures) -- not a single build() spine.
+    return None
+
+
+def _mandated_example_graphs(repo: Path):
+    """The plan's mandated example, BOTH ways:
+    기획(inspect) -> 개발(development, write) -> QA[code-attack-qa: gemini ∥ claude] -> 종합(closure).
+    """
+
+    insp_work = "기획: inspect the change boundary"
+    dev_work = "개발: implement the bounded change"
+    gemini_work = "QA code lens (gemini)"
+    claude_work = "QA code lens (claude)"
+    close_work = "종합: synthesize closure"
+
+    via_build = build(
+        [
+            ["inspect", insp_work],
+            ["development", dev_work, {"write": True}],
+            fan(
+                [
+                    [
+                        "code-attack-qa",
+                        gemini_work,
+                        {"adapter": "gemini-local", "returns": SOURCE_RETURN_SHAPE, "label": "code-gemini"},
+                    ],
+                    [
+                        "code-attack-qa",
+                        claude_work,
+                        {"adapter": "claude-local", "returns": SOURCE_RETURN_SHAPE, "label": "code-claude"},
+                    ],
+                ]
+            ),
+            ["closure", close_work],
+        ]
+    )
+
+    inspect = brick("inspect", insp_work)
+    dev = brick("development", dev_work, write=True)
+    code_gemini = brick(
+        "code-attack-qa", gemini_work, adapter="gemini-local", returns=SOURCE_RETURN_SHAPE, alias="code-gemini"
+    )
+    code_claude = brick(
+        "code-attack-qa", claude_work, adapter="claude-local", returns=SOURCE_RETURN_SHAPE, alias="code-claude"
+    )
+    close = brick("closure", close_work)
+    via_hand = converge(
+        assembly_edge(inspect, dev),
+        fan_out(dev, [code_gemini, code_claude]),
+        fan_in([code_gemini, code_claude], close),
+        terminal=close,
+    )
+    return via_build, via_hand
+
+
+def _lower_args(repo: Path, graph, *, fixture_name: str, building_id: str, gates):
+    composed = assemble(
+        graph,
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task=f"build/fan equivalence task for {fixture_name}",
+        building_id=building_id,
+        adapter="codex-local",
+        gates=gates,
+        repo_root=repo,
+        write_scope=_write_scope(),
+    )
+    return composed.as_compose_args()
+
+
+def _assert_byte_identical(repo: Path, lhs, rhs, *, fixture_name: str, gates) -> None:
+    # Both sides lower under the SAME building_id so node/edge ids are derived
+    # identically -- any difference is then a STRUCTURAL difference, the thing the
+    # equivalence pin guards. (The building_id only prefixes ids; it carries no
+    # structure.)
+    shared_id = f"heart-buildfan-{fixture_name}"
+    lhs_nodes, lhs_edges, lhs_groups = _lower_args(
+        repo, lhs, fixture_name=f"{fixture_name}-buildfan", building_id=shared_id, gates=gates
+    )
+    rhs_nodes, rhs_edges, rhs_groups = _lower_args(
+        repo, rhs, fixture_name=f"{fixture_name}-hand", building_id=shared_id, gates=gates
+    )
+    if lhs_nodes != rhs_nodes:
+        raise AssemblyEquivalenceError(
+            f"{fixture_name}: build/fan lowered NODES differ from hand-built chain/fan_out/fan_in/converge"
+        )
+    if lhs_edges != rhs_edges:
+        raise AssemblyEquivalenceError(
+            f"{fixture_name}: build/fan lowered EDGES differ from hand-built chain/fan_out/fan_in/converge"
+        )
+    if lhs_groups != rhs_groups:
+        raise AssemblyEquivalenceError(
+            f"{fixture_name}: build/fan lowered GROUPS differ from hand-built chain/fan_out/fan_in/converge"
+        )
+
+
+def _build_fan_equivalence_fire(repo: Path) -> tuple[str, ...]:
+    outputs: list[str] = []
+
+    # 1) The plan's MANDATED example, both ways, asserted byte-identical.
+    via_build, via_hand = _mandated_example_graphs(repo)
+    _assert_byte_identical(
+        repo,
+        via_build,
+        via_hand,
+        fixture_name="mandated-example",
+        gates=(Gate.STRICT_EVIDENCE,),
+    )
+    outputs.append(
+        "build/fan green: mandated inspect->development(write)->QA[gemini||claude]->closure "
+        "lowered byte-identical via build/fan and via hand-built chain/fan_out/fan_in/converge."
+    )
+
+    # 2) Existing single-spine fixtures, both ways, byte-identical.
+    for fixture_name in ("fast-fix", "engine-feature-hard"):
+        build_graph = _build_fan_graphs(fixture_name)
+        hand_graph = _assembly_graph(fixture_name)
+        _assert_byte_identical(
+            repo,
+            build_graph,
+            hand_graph,
+            fixture_name=fixture_name,
+            gates=_assembly_gates(fixture_name),
+        )
+        outputs.append(
+            f"build/fan green: {fixture_name} lowered byte-identical via build/fan and via hand-built tier."
+        )
+
+    # 3) build/fan are PURE sugar: no agent= needed; the kind's default agent
+    #    resolves through compose_building exactly as the hand-built tier.
+    composed = assemble(
+        _build_fan_graphs("engine-feature-hard"),
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task="build/fan default-agent resolution probe",
+        building_id="heart-buildfan-default-agent",
+        adapter="codex-local",
+        gates=_assembly_gates("engine-feature-hard"),
+        repo_root=repo,
+        write_scope=_write_scope(),
+    )
+    dev_step = _step_for_kind(composed.composed_plan, "development")
+    dev_agent = str(_agent_row(dev_step).get("agent_object_ref", "")).strip()
+    if dev_agent != "agent-object:cto-lead":
+        raise AssemblyEquivalenceError(
+            f"build/fan development node default agent did not resolve cto-lead: {dev_agent}"
+        )
+    outputs.append(
+        "build/fan green: no agent= declared -> development kind default agent resolved to agent-object:cto-lead."
+    )
+
+    # 4) Construction RED: a fan branch may not carry route=, build may not start
+    #    or end on a fan block.
+    def branch_route_probe() -> None:
+        fan(
+            [
+                ["code-attack-qa", "branch with route", {"returns": SOURCE_RETURN_SHAPE, "route": [hold(Concern.VERIFICATION_GAP)]}],
+            ]
+        )
+
+    def build_starts_with_fan_probe() -> None:
+        build([fan([["code-attack-qa", "lonely", {"returns": SOURCE_RETURN_SHAPE}]]), ["closure", "close"]])
+
+    def build_ends_with_fan_probe() -> None:
+        build([["development", "dev"], fan([["code-attack-qa", "lonely", {"returns": SOURCE_RETURN_SHAPE}]])])
+
+    def back_underflow_probe() -> None:
+        build(
+            [
+                ["development", "dev"],
+                fan([["code-attack-qa", "c", {"returns": SOURCE_RETURN_SHAPE}]]),
+                ["closure", "close", {"route": [reroute(Concern.IMPLEMENTATION_GAP, to=back(5), budget=1)]}],
+            ]
+        )
+
+    outputs.append(_assert_raises("fan branch route=", TypeError, branch_route_probe))
+    outputs.append(_assert_raises("build starts with fan", TypeError, build_starts_with_fan_probe))
+    outputs.append(_assert_raises("build ends with fan", TypeError, build_ends_with_fan_probe))
+    outputs.append(_assert_raises("back() underflow", ValueError, back_underflow_probe))
+
+    return tuple(outputs)
+
+
 def run(repo: Path) -> list[str]:
     outputs: list[str] = []
     fixtures = {fixture.name: fixture for fixture in _fixtures()}
@@ -1590,6 +1819,7 @@ def run(repo: Path) -> list[str]:
         )
         outputs.append(f"discrimination RED observed: {mutation.name} changed P(plan).")
 
+    outputs.extend(_build_fan_equivalence_fire(repo))
     outputs.extend(_construction_red_outputs(repo))
     outputs.extend(_write_scope_derivation_fire(repo))
     outputs.extend(_role_derivation_fire(repo))

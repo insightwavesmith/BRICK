@@ -18,7 +18,6 @@ steps:
     step_alias: code-lens-claude
     brick_spec_ref: brick/templates/bricks/code-attack-qa/brick.md
     target_word: fan_in_final_gate
-    selected_adapter_ref: adapter:claude-local
     selected_model_ref: model:claude:sonnet
   - step_template_ref: building-step-template:axis-attack-qa
     step_alias: axis-lens-codex
@@ -29,7 +28,6 @@ steps:
     step_alias: axis-lens-claude
     brick_spec_ref: brick/templates/bricks/axis-attack-qa/brick.md
     target_word: fan_in_final_gate
-    selected_adapter_ref: adapter:claude-local
     selected_model_ref: model:claude:sonnet
   - step_template_ref: building-step-template:evidence-integrity
     step_alias: evidence-lens-codex
@@ -40,7 +38,6 @@ steps:
     step_alias: evidence-lens-claude
     brick_spec_ref: brick/templates/bricks/evidence-integrity/brick.md
     target_word: fan_in_final_gate
-    selected_adapter_ref: adapter:claude-local
     selected_model_ref: model:claude:sonnet
   - step_template_ref: building-step-template:closure
     brick_spec_ref: brick/templates/bricks/closure/brick.md
