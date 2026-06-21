@@ -1,0 +1,90 @@
+"""Pure constant leaf for the Agent Adapter support surface.
+
+PURE constants only: adapter refs, tool-policy refs, capability literals,
+model refs, and the adapter capability/allow tables. ZERO intra-package
+imports -- this module is loaded first by ``agent_resources`` and
+``agent/spec`` and must not depend on any sibling connection module.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+
+ADAPTER_LOCAL = "adapter:local"
+ADAPTER_CODEX_LOCAL = "adapter:codex-local"
+ADAPTER_CLAUDE_LOCAL = "adapter:claude-local"
+ADAPTER_GEMINI_LOCAL = "adapter:gemini-local"
+ADAPTER_GEMINI_API = "adapter:gemini-api"
+ADAPTER_CHAT_SESSION = "adapter:chat-session"
+READ_WRITE_TOOL_POLICY_REF = "tool-policy:read-write-scoped"
+REVIEWER_READONLY_TOOL_POLICY_REF = "tool-policy:reviewer-readonly"
+LEADER_COORDINATION_TOOL_POLICY_REF = "tool-policy:leader-coordination"
+WEB_CAPABLE_TOOL_POLICY_REF = "tool-policy:web-capable"
+READ_ONLY_TOOL_POLICY_REFS = frozenset(
+    {
+        REVIEWER_READONLY_TOOL_POLICY_REF,
+        LEADER_COORDINATION_TOOL_POLICY_REF,
+    }
+)
+READ_TIER_TOOL_POLICY_REFS = READ_ONLY_TOOL_POLICY_REFS | frozenset({READ_WRITE_TOOL_POLICY_REF})
+KNOWN_TOOL_POLICY_REFS = READ_TIER_TOOL_POLICY_REFS | frozenset({WEB_CAPABLE_TOOL_POLICY_REF})
+ADAPTER_CAPABILITY_READ = "read"
+ADAPTER_CAPABILITY_WRITE = "write"
+ADAPTER_CAPABILITY_REVIEW = "review"
+ADAPTER_CAPABILITY_WEB = "web"
+ADAPTER_CAPABILITY_LITERALS = frozenset(
+    {
+        ADAPTER_CAPABILITY_READ,
+        ADAPTER_CAPABILITY_WRITE,
+        ADAPTER_CAPABILITY_REVIEW,
+        ADAPTER_CAPABILITY_WEB,
+    }
+)
+MODEL_REF_DEFAULT = "model:default"
+MODEL_REF_CODEX_DEFAULT = "model:codex:default"
+MODEL_REF_CLAUDE_INHERIT = "model:claude:inherit"
+MODEL_REF_GEMINI_DEFAULT = "model:gemini:default"
+MODEL_REF_GEMINI_FLASH = "model:gemini:gemini-2.5-flash"
+MODEL_REF_GEMINI_LOCAL_FLASH = "model:gemini:gemini-3.5-flash"
+MODEL_PROVIDER_BY_ADAPTER = {
+    ADAPTER_CODEX_LOCAL: "codex",
+    ADAPTER_CLAUDE_LOCAL: "claude",
+    ADAPTER_GEMINI_LOCAL: "gemini",
+    ADAPTER_GEMINI_API: "gemini",
+}
+_RETIRED_WRITE_ADAPTER_REFS = frozenset(
+    {
+        "adapter:codex-write-local",
+        "adapter:claude-write-local",
+    }
+)
+_OBSERVED_WRITE_ADAPTER_REFS = frozenset({ADAPTER_CODEX_LOCAL, ADAPTER_CLAUDE_LOCAL})
+
+ALLOWED_ADAPTER_REFS = frozenset(
+    {
+        ADAPTER_LOCAL,
+        ADAPTER_CODEX_LOCAL,
+        ADAPTER_CLAUDE_LOCAL,
+        ADAPTER_GEMINI_LOCAL,
+        ADAPTER_GEMINI_API,
+        ADAPTER_CHAT_SESSION,
+    }
+)
+_ADAPTER_CAPABILITIES = {
+    ADAPTER_LOCAL: frozenset({ADAPTER_CAPABILITY_READ}),
+    ADAPTER_CODEX_LOCAL: frozenset({ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_WRITE}),
+    ADAPTER_CLAUDE_LOCAL: frozenset(
+        {ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_WRITE, ADAPTER_CAPABILITY_WEB}
+    ),
+    ADAPTER_GEMINI_LOCAL: frozenset(
+        {ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_REVIEW, ADAPTER_CAPABILITY_WEB}
+    ),
+    # gemini-api is the direct-HTTP sibling of gemini-local: same READ+REVIEW
+    # brain capability (review/read, not write). It calls the Gemini HTTP API
+    # directly (stdlib urllib, API key from env) and spawns NO subprocess.
+    ADAPTER_GEMINI_API: frozenset({ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_REVIEW}),
+    ADAPTER_CHAT_SESSION: frozenset({ADAPTER_CAPABILITY_READ}),
+}
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
