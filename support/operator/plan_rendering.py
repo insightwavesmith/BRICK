@@ -17,7 +17,12 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from brick_protocol.link.movement import MOVEMENT_LITERALS
-from brick_protocol.agent.spec import CASTING_FIELDS, CastingField, selected_key
+from brick_protocol.agent.spec import (
+    CASTING_FIELDS,
+    NODE_CASTING_FIELDS,
+    CastingField,
+    selected_key,
+)
 
 from brick_protocol.support.operator.building_operation_common import (
     COMPACT_LINK_GATE_TOKENS,
@@ -156,8 +161,7 @@ def _declared_step_from_step_template(
     step_templates: Mapping[str, Mapping[str, Any]],
     repo: Path,
     *,
-    plan_selected_adapter_ref: str = "adapter:local",
-    plan_selected_model_ref: str = "model:default",
+    plan_casting: Mapping[str, str] | None = None,
 ) -> Mapping[str, Any]:
     step_ref = _clean_text(f"steps[{index}].step_ref", raw_step.get("step_ref", ""))
     step_template = _lookup_declared_step_template(index, raw_step, step_templates)
@@ -228,12 +232,16 @@ def _declared_step_from_step_template(
             declared_override=declared_override,
                         )
 
+    # Building-wide plan casting defaults (adapter:local / model:default parity with
+    # the prior named-param defaults) when the caller supplies no bag.
+    resolved_plan_casting = dict(plan_casting or {})
+    resolved_plan_casting.setdefault("selected_adapter_ref", "adapter:local")
+    resolved_plan_casting.setdefault("selected_model_ref", "model:default")
     casting_selection = _resolve_casting_selection(
         repo,
         raw_step=raw_step,
         agent_object_ref=agent_object_ref,
-        plan_selected_adapter_ref=plan_selected_adapter_ref,
-        plan_selected_model_ref=plan_selected_model_ref,
+        plan_casting=resolved_plan_casting,
         label=f"steps[{index}]",
         is_verdict_bearing_node=_is_verdict_bearing_node(
             raw_step,
@@ -319,8 +327,7 @@ def _resolve_casting_selection(
     *,
     raw_step: Mapping[str, Any],
     agent_object_ref: str,
-    plan_selected_adapter_ref: str,
-    plan_selected_model_ref: str,
+    plan_casting: Mapping[str, str],
     label: str,
     is_verdict_bearing_node: bool = False,
 ) -> dict[str, str | None]:
@@ -342,14 +349,15 @@ def _resolve_casting_selection(
     to whichever dial resolved from the building-level fallback.
     """
 
-    # Plan-level default per casting dial. Only the adapter + model dials carry a
-    # plan-level default arg; any other (deferrable) dial has no plan default and
-    # resolves to its descriptor default (.get below returns None -> defer). Keyed
-    # lookup is .get so a NEW CastingField never KeyErrors here (single-source: the
-    # resolver loops CASTING_FIELDS, this map only supplies the two plan-arg dials).
+    # Plan-level default per casting dial, DERIVED generically from the single-source
+    # CASTING_FIELDS (E2/S6★) over the building-wide ``plan_casting`` bag keyed by the
+    # node-layer ``selected_<base>`` names. Only the adapter + model dials carry a
+    # building-wide plan arg today; any other (deferrable) dial — effort — has no plan
+    # default, so ``plan_casting.get(...)`` returns None and that dial resolves to its
+    # descriptor default (defer). A NEW dial never KeyErrors here.
     plan_default_by_field = {
-        "preferred_adapter_ref": plan_selected_adapter_ref,
-        "preferred_model_ref": plan_selected_model_ref,
+        descriptor.field_name: plan_casting.get(selected_key(descriptor))
+        for descriptor in CASTING_FIELDS
     }
     # Per-field resolved (value, source); a deferrable dial reads the adapter dial's
     # source + resolved Agent Object via its ``inherits_source_of`` coupling.
@@ -1247,8 +1255,10 @@ def _validate_declared_plan_projection(plan: Mapping[str, Any]) -> None:
 
 def _render_declared_step(index: int, raw_step: Mapping[str, Any]) -> Mapping[str, Any]:
     step_ref = _clean_text(f"steps[{index}].step_ref", raw_step.get("step_ref", ""))
-    selected_adapter_ref = raw_step.get("selected_adapter_ref")
-    selected_model_ref = raw_step.get("selected_model_ref")
+    # Read EVERY casting dial generically (E2/S6★): loop the single-source
+    # NODE_CASTING_FIELDS rather than naming adapter/model, so a NEW dial (effort)
+    # passes through this declared-step renderer with no edit. None == undeclared.
+    raw_step_casting = {key: raw_step.get(key) for key in NODE_CASTING_FIELDS}
     brick = _mapping_value(f"steps[{index}].brick", raw_step.get("brick"))
     agent = _mapping_value(f"steps[{index}].agent", raw_step.get("agent"))
     link = _mapping_value(f"steps[{index}].link", raw_step.get("link"))
@@ -1381,16 +1391,20 @@ def _render_declared_step(index: int, raw_step: Mapping[str, Any]) -> Mapping[st
                         link.get(optional_link_object),
                     )
                 )
-    if selected_adapter_ref is not None:
-        rendered["selected_adapter_ref"] = _clean_selected_adapter_ref(
-            f"steps[{index}].selected_adapter_ref",
-            selected_adapter_ref,
-        )
-    if selected_model_ref is not None:
-        rendered["selected_model_ref"] = _clean_text(
-            f"steps[{index}].selected_model_ref",
-            selected_model_ref,
-        )
+    # Emit EVERY declared casting dial generically (E2/S6★): loop CASTING_FIELDS,
+    # dispatching the per-dial cleaner — the fail-closed adapter dial keeps its
+    # retired-ref check (_clean_selected_adapter_ref, the LAW-adjacent guard), every
+    # deferrable dial (model/effort) is plain cleaned text. Byte-identical to the
+    # prior two hand-named emits; a NEW dial passes through with no edit.
+    for descriptor in CASTING_FIELDS:
+        key = selected_key(descriptor)
+        value = raw_step_casting.get(key)
+        if value is None:
+            continue
+        if descriptor.fail_closed:
+            rendered[key] = _clean_selected_adapter_ref(f"steps[{index}].{key}", value)
+        else:
+            rendered[key] = _clean_text(f"steps[{index}].{key}", value)
     if raw_step.get("step_template_ref") is not None:
         rendered["step_template_ref"] = _clean_text(
             f"steps[{index}].step_template_ref",

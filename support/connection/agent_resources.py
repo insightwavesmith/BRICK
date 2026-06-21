@@ -19,10 +19,14 @@ from .agent_adapter import (
     ALLOWED_ADAPTER_REFS as _ALLOWED_ADAPTER_REFS,
     MODEL_PROVIDER_BY_ADAPTER as _MODEL_PROVIDER_BY_ADAPTER,
     _OBSERVED_WRITE_ADAPTER_REFS,
-    _validate_model_ref_for_adapter,
     adapter_is_write_capable,
 )
-from brick_protocol.support.operator.primitives import CASTING_FIELDS
+from brick_protocol.support.operator.primitives import (
+    CASTING_FIELDS,
+    NATIVE_TARGET_CLAUDE,
+    NATIVE_TARGET_CODEX,
+    selected_key,
+)
 
 
 _DEFAULT_REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -90,11 +94,21 @@ _NATIVE_GRANT_ALLOWED_KEYS = frozenset(
         "proof_limits",
     }
 )
-_NATIVE_GRANT_FORBIDDEN_KEYS = frozenset(
+# CASTING keys are DERIVED from the single-source CASTING_FIELDS (each dial's
+# Agent-source ``preferred_<base>`` field_name + its node-layer ``selected_<base>``
+# key) so a NEW casting dial (e.g. effort) is auto-forbidden in a native_grant with
+# no edit here. The bare ``model`` / ``model_ref`` legacy aliases stay covered, plus
+# the NON-casting secret keys (credential / session) that are not casting dials.
+_NATIVE_GRANT_CASTING_FORBIDDEN_KEYS = frozenset(
+    field_name for descriptor in CASTING_FIELDS for field_name in (
+        descriptor.field_name,
+        selected_key(descriptor),
+    )
+)
+_NATIVE_GRANT_FORBIDDEN_KEYS = _NATIVE_GRANT_CASTING_FORBIDDEN_KEYS | frozenset(
     {
         "model",
         "model_ref",
-        "selected_model_ref",
         "credential",
         "credential_body",
         "setup_token",
@@ -471,23 +485,23 @@ def _validate_agent_authority(role: str, agent_object: Mapping[str, Any], path: 
         value = value.strip()
         cleaned[descriptor.field_name] = value
         if descriptor.fail_closed:
+            # The fail-closed adapter dial's value MUST be a member of the Agent
+            # Object's own adapter_refs (the constitutional asymmetry stays here:
+            # support refuses an adapter the Agent Object never declared).
             if value not in adapter_refs:
                 raise AgentResourceError(
                     f"{path}: {descriptor.field_name} must be one of adapter_refs: "
                     f"{value}"
                 )
         else:
+            # Deferrable dials (model/effort/...) DISPATCH to the descriptor's own
+            # validate hook against the (post-strip) adapter they inherit. The dial
+            # ships its whole admission policy in ONE row, so a new dial validates
+            # here with no new code path. Byte-identical accept/raise to the prior
+            # inline model block.
             inherited = cleaned.get(descriptor.inherits_source_of or "")
-            if inherited is None:
-                raise AgentResourceError(
-                    f"{path}: {descriptor.field_name} requires {descriptor.inherits_source_of}"
-                )
-            if _MODEL_PROVIDER_BY_ADAPTER.get(inherited) is None:
-                raise AgentResourceError(
-                    f"{path}: {descriptor.field_name} requires {descriptor.inherits_source_of} with admitted model provider"
-                )
             try:
-                _validate_model_ref_for_adapter(inherited, value)
+                descriptor.validate(value, inherited)
             except ValueError as exc:
                 raise AgentResourceError(f"{path}: {descriptor.field_name} rejected: {exc}") from exc
     write_capable_adapter_refs = sorted(
@@ -1113,6 +1127,26 @@ def _toml_multiline_string(value: str) -> str:
     return f'"""\n{body}\n"""'
 
 
+def _native_casting_lines(agent_object: Mapping[str, Any], target: str) -> list[str]:
+    """Project EVERY casting dial to its native-subagent config line(s) generically.
+
+    LOOPS the single-source ``CASTING_FIELDS`` and dispatches each dial's own
+    ``native_config_emit`` against the agent object's declared ``preferred_<base>``
+    value (absent -> empty string). A NEW casting dial (e.g. effort) reaches the
+    native codex .toml / claude .md with NO per-dial code here. BYTE-IDENTICAL to
+    the prior hand-written model-only projection: no admitted Agent Object pins a
+    model id, so the model dial keeps the historical default (codex omits the
+    ``model`` line, claude emits ``model: "inherit"``) and the effort dial — the
+    only other line-bearing dial — emits nothing when undeclared.
+    """
+
+    lines: list[str] = []
+    for descriptor in CASTING_FIELDS:
+        value = agent_object.get(descriptor.field_name) or ""
+        lines.extend(descriptor.native_config_emit(str(value), target))
+    return lines
+
+
 def _codex_model_key_for_adapter_refs(adapter_refs: list[str]) -> str:
     """Project the Agent's adapter refs to an optional Codex `model` key value.
 
@@ -1219,14 +1253,17 @@ def render_codex_subagent_toml(
 
     packet = render_agent_packet(role_or_ref, repo_root=repo_root)
     role = str(packet["role"])
-    adapter_refs = list(packet["agent_object"]["adapter_refs"])
     tool_policy_refs = list(packet["agent_object"]["tool_policy_refs"])
     tool_policy_resources = list(packet["tool_policy_resources"])
     sandbox_mode = codex_sandbox_mode_for_tool_policies(
         tool_policy_refs,
         native_grant_resources=tool_policy_resources,
     )
-    model_value = _codex_model_key_for_adapter_refs(adapter_refs)
+    # The casting LINES loop the single-source CASTING_FIELDS, reading the agent
+    # object's declared ``preferred_<base>`` values: the model dial omits its line
+    # today (no pinned id, byte-identical to the prior _codex_model_key helper) and
+    # the effort dial emits ``model_reasoning_effort = "<level>"`` when declared.
+    casting_lines = _native_casting_lines(packet["agent_object"], NATIVE_TARGET_CODEX)
     description = _codex_description(packet)
     developer_instructions = _codex_developer_instructions(
         packet, sandbox_mode=sandbox_mode
@@ -1240,8 +1277,7 @@ def render_codex_subagent_toml(
         f"name = {_toml_basic_string(role)}",
         f"description = {_toml_basic_string(description)}",
     ]
-    if model_value:
-        lines.append(f"model = {_toml_basic_string(model_value)}")
+    lines.extend(casting_lines)
     lines.append(f"sandbox_mode = {_toml_basic_string(sandbox_mode)}")
     lines.append(
         f"developer_instructions = {_toml_multiline_string(developer_instructions)}"
@@ -1566,7 +1602,12 @@ def render_claude_subagent_md(
         tool_policy_refs,
         native_grant_resources=tool_policy_resources,
     )
-    model_value = _claude_model_key_for_adapter_refs(adapter_refs)
+    # The casting LINES loop the single-source CASTING_FIELDS: the model dial
+    # emits ``model: "inherit"`` today (no pinned id, byte-identical to the prior
+    # _claude_model_key_for_adapter_refs default) and the effort dial emits
+    # ``effort: "<level>"`` when declared. adapter_refs still feeds the non-native
+    # provider note in the body.
+    casting_lines = _native_casting_lines(packet["agent_object"], NATIVE_TARGET_CLAUDE)
     non_native_note = _claude_non_native_provider_note(adapter_refs)
     description = _claude_description(packet)
     body = _claude_subagent_body(
@@ -1583,7 +1624,7 @@ def render_claude_subagent_md(
         frontmatter.append(
             f"disallowedTools: {', '.join(tool_mapping['disallowedTools'])}"
         )
-    frontmatter.append(f"model: {_claude_yaml_quote(model_value)}")
+    frontmatter.extend(casting_lines)
     frontmatter.append("---")
 
     lines = [

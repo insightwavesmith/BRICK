@@ -56,6 +56,8 @@ _FACT_T = TypeVar("_FACT_T")
 from brick_protocol.agent.spec import (  # noqa: F401  (re-exported for callers)
     CASTING_FIELDS,
     CastingField,
+    NATIVE_TARGET_CLAUDE,
+    NATIVE_TARGET_CODEX,
     NODE_CASTING_FIELDS,
     casting_bag,
     merge_casting_bags,

@@ -103,6 +103,10 @@ crossings:
       # transport helpers support imports through the canonical names. One generic
       # resolver (plan_rendering), validator (agent_resources/rule_runners) and
       # spawn projector (agent_adapter) read this data instead of two hand paths.
+      # The descriptor now also ships per-dial validate / spawn_default /
+      # native_config_emit hooks (each dial's whole behavior in ONE row); the
+      # native-subagent projection (agent_resources) loops native_config_emit
+      # against these two host-target tokens, so they cross as canonical names.
       - CASTING_FIELDS
       - CastingField
       - NODE_CASTING_FIELDS
@@ -110,6 +114,8 @@ crossings:
       - casting_bag
       - merge_casting_bags
       - stamp_casting
+      - NATIVE_TARGET_CODEX
+      - NATIVE_TARGET_CLAUDE
     defined_at: agent/spec.py
     projection_yaml: ""
     pinned_by: check_assembly_equivalence (loops CASTING_FIELDS; per-dial resolution byte-identical) + check_axis_field_set_single_source (casting_fields single-source) + adapter_model_selection cases

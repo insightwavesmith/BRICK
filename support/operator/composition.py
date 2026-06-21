@@ -382,8 +382,10 @@ def render_declared_step_template_plan(
                 raw_step,
                 registry["step_templates"],
                 repo,
-                plan_selected_adapter_ref=plan_selected_adapter_ref,
-                plan_selected_model_ref=plan_selected_model_ref,
+                plan_casting={
+                    "selected_adapter_ref": plan_selected_adapter_ref,
+                    "selected_model_ref": plan_selected_model_ref,
+                },
             )
         )
 
@@ -711,13 +713,14 @@ def _materializer_step_selection_overrides(
             declared_ref,
         ) != step_template_ref:
             raise ValueError("step_selection_overrides step_template_ref key must match row")
-        if (
-            "selected_adapter_ref" not in row
-            and "selected_model_ref" not in row
-        ):
+        # The "declare at least one casting dial" guard LOOPS the single-source
+        # NODE_CASTING_FIELDS (E2/S6★) instead of naming adapter/model by hand, so a
+        # NEW dial (effort) is an admissible override with no edit here. Byte-identical
+        # to the prior adapter/model check (those are the first two members).
+        if not any(field_name in row for field_name in NODE_CASTING_FIELDS):
             raise ValueError(
-                "step_selection_overrides row must declare selected_adapter_ref "
-                "and/or selected_model_ref"
+                "step_selection_overrides row must declare at least one casting dial: "
+                + ", ".join(NODE_CASTING_FIELDS)
             )
         if step_template_ref in overrides:
             raise ValueError(
@@ -775,7 +778,10 @@ def _materializer_preset_step_with_selection_override(
     if not override:
         return raw_preset_step
     merged = dict(raw_preset_step)
-    for key in ("selected_adapter_ref", "selected_model_ref"):
+    # Merge EVERY overridden casting dial generically (E2/S6★): loop the single-source
+    # NODE_CASTING_FIELDS rather than naming adapter/model, so a NEW dial (effort)
+    # merges onto the preset step with no edit. Byte-identical for adapter/model.
+    for key in NODE_CASTING_FIELDS:
         if key in override:
             merged[key] = override[key]
     return merged
@@ -2278,10 +2284,13 @@ def _materializer_graph_node(
             )
         node["node_reroute_budget"] = declared_reroute_budget
         node["node_reroute_budget_provenance"] = declared_reroute_budget_provenance
-    if raw_preset_step.get("selected_adapter_ref") is not None:
-        node["selected_adapter_ref"] = raw_preset_step.get("selected_adapter_ref")
-    if raw_preset_step.get("selected_model_ref") is not None:
-        node["selected_model_ref"] = raw_preset_step.get("selected_model_ref")
+    # Copy EVERY present casting dial from the preset step onto the node generically
+    # (E2/S6★): loop the single-source NODE_CASTING_FIELDS rather than naming
+    # adapter/model, so a NEW dial (effort) carries through with no edit. A None value
+    # is skipped (defer to plan-level), byte-identical to the prior two-field copy.
+    for _casting_key in NODE_CASTING_FIELDS:
+        if raw_preset_step.get(_casting_key) is not None:
+            node[_casting_key] = raw_preset_step.get(_casting_key)
     # A: the fan-in closure routing policy is COPIED from a HUMAN-declared
     # closure_transition_target_policy (preset default OR per-Building override). It
     # MUST be declared by one of them (fail closed in the cascade reader); support
@@ -2827,8 +2836,10 @@ def compose_building(
                     repo,
                     raw_step=raw_node,
                     agent_object_ref=agent_object_ref,
-                    plan_selected_adapter_ref=plan_selected_adapter_ref,
-                    plan_selected_model_ref=plan_selected_model_ref,
+                    plan_casting={
+                        "selected_adapter_ref": plan_selected_adapter_ref,
+                        "selected_model_ref": plan_selected_model_ref,
+                    },
                     label=node_id,
                     is_verdict_bearing_node=_is_verdict_bearing_node(
                         raw_node,

@@ -306,6 +306,51 @@ def adapter_is_write_capable(adapter_ref: str) -> bool:
     return adapter_has_capability(adapter_ref, ADAPTER_CAPABILITY_WRITE)
 
 
+# Lazy CASTING_FIELDS / NODE_CASTING_FIELDS access (E2/S6★). ``agent.spec``
+# re-exports THIS module's brain catalog, so a top-level import of the casting
+# field-set here would be circular. The request's generic per-dial casting
+# accessor + normalize LOOP read the field-set through these cached lazy getters
+# so the dataclass names no individual dial.
+_CASTING_FIELDS_CACHE: tuple[Any, ...] | None = None
+_NODE_CASTING_FIELDS_CACHE: frozenset[str] | None = None
+
+
+def _casting_fields() -> tuple[Any, ...]:
+    global _CASTING_FIELDS_CACHE
+    if _CASTING_FIELDS_CACHE is None:
+        from brick_protocol.agent.spec import CASTING_FIELDS
+
+        _CASTING_FIELDS_CACHE = CASTING_FIELDS
+    return _CASTING_FIELDS_CACHE
+
+
+def _node_casting_fields() -> frozenset[str]:
+    global _NODE_CASTING_FIELDS_CACHE
+    if _NODE_CASTING_FIELDS_CACHE is None:
+        from brick_protocol.agent.spec import NODE_CASTING_FIELDS
+
+        _NODE_CASTING_FIELDS_CACHE = frozenset(NODE_CASTING_FIELDS)
+    return _NODE_CASTING_FIELDS_CACHE
+
+
+_NODE_CASTING_FIELDS_ORDERED_CACHE: tuple[str, ...] | None = None
+
+
+def _node_casting_fields_ordered() -> tuple[str, ...]:
+    """The ordered node-layer ``selected_<base>`` keys (load-bearing dial order).
+
+    Used where the casting dials are SERIALIZED into a stable-order mapping (the
+    work-envelope / prompt / returned-evidence) so a NEW dial joins the serialized
+    bag with no edit at each seam."""
+
+    global _NODE_CASTING_FIELDS_ORDERED_CACHE
+    if _NODE_CASTING_FIELDS_ORDERED_CACHE is None:
+        from brick_protocol.agent.spec import NODE_CASTING_FIELDS
+
+        _NODE_CASTING_FIELDS_ORDERED_CACHE = tuple(NODE_CASTING_FIELDS)
+    return _NODE_CASTING_FIELDS_ORDERED_CACHE
+
+
 @dataclass(frozen=True)
 class AgentAdapterRequest:
     """Input passed to one Agent brain adapter without secret/session bodies."""
@@ -347,16 +392,24 @@ class AgentAdapterRequest:
     proof_limits: tuple[str, ...] = field(default_factory=tuple)
     not_proven: tuple[str, ...] = field(default_factory=tuple)
 
-    @property
-    def selected_model_ref(self) -> str:
-        """The selected model dial, read from the opaque casting bag (E2/S7).
+    def __getattr__(self, name: str) -> str:
+        """Generic per-dial casting accessor (E2/S7 -> S6★ generalization).
 
-        Byte-identical accessor for every prior ``request.selected_model_ref``
-        reader: the named scalar moved INTO the ``casting`` bag, normalized in
-        __post_init__. Absent from the bag -> empty string (the prior scalar
-        default)."""
+        REPLACES the single ``selected_model_ref`` @property: any node-layer
+        ``selected_<base>`` casting key (the ``selected_*`` twin of a
+        ``CASTING_FIELDS`` descriptor) resolves out of the opaque ``casting`` bag,
+        so ``getattr(request, selected_key(descriptor))`` works for ALL dials —
+        model (byte-identical to the prior property), effort, and any new dial —
+        with no per-dial property. Absent from the bag -> empty string (the prior
+        scalar default). Non-casting names raise AttributeError as usual.
 
-        return self.casting.get("selected_model_ref", "")
+        ``__getattr__`` runs only when normal attribute lookup fails, so the real
+        ``casting`` field (and every other dataclass field) is unaffected; reading
+        ``self.casting`` here cannot recurse."""
+
+        if name in _node_casting_fields():
+            return self.casting.get(name, "")
+        raise AttributeError(name)
 
     def __post_init__(self) -> None:
         adapter_ref = _validate_adapter_ref(self.adapter_ref)
@@ -366,18 +419,22 @@ class AgentAdapterRequest:
         if mode not in ALLOWED_SESSION_CONTINUITY_MODES:
             raise ValueError("session_continuity_mode is not admitted for SESSION-CONTINUITY-0")
         object.__setattr__(self, "session_continuity_mode", mode)
-        # E2/S7 (mirror M2): normalize the model dial INSIDE the bag. The carried
-        # ``selected_model_ref`` is cleaned + normalized exactly as the prior named
-        # scalar was (``_clean_optional_text`` then ``_normalize_selected_model_ref``)
-        # and written back into a fresh bag, so the resolved value the work-envelope
-        # serializes and every reader sees is byte-identical to before. Other carried
-        # casting keys (none today) pass through untouched.
+        # E2/S6★ (was S7/M2): normalize EVERY casting dial INSIDE the bag by
+        # LOOPING the single-source CASTING_FIELDS rather than hand-naming the model
+        # dial. Each carried ``selected_<base>`` value is cleaned text; the MODEL
+        # dial additionally runs ``_normalize_selected_model_ref`` (validate +
+        # default-fill) exactly as the prior named scalar did — identified by its
+        # ``default_ref == MODEL_REF_DEFAULT`` sentinel (data, not a dial-name
+        # literal). Other dials (effort) get clean/identity. The resolved values are
+        # written back into a fresh bag, so the work-envelope serialization and every
+        # reader see byte-identical model values; a NEW dial flows through with no edit.
         casting = dict(self.casting)
-        selected_model_ref = _clean_optional_text(
-            "selected_model_ref", casting.get("selected_model_ref", "")
-        )
-        selected_model_ref = _normalize_selected_model_ref(adapter_ref, selected_model_ref)
-        casting["selected_model_ref"] = selected_model_ref
+        for descriptor in _casting_fields():
+            key = "selected_" + descriptor.field_name.removeprefix("preferred_")
+            value = _clean_optional_text(key, casting.get(key, ""))
+            if descriptor.default_ref == MODEL_REF_DEFAULT:
+                value = _normalize_selected_model_ref(adapter_ref, value)
+            casting[key] = value
         object.__setattr__(self, "casting", casting)
 
         for field_name in (
@@ -1076,7 +1133,16 @@ def _invoke_local_cli_adapter(
     returned = {
         "returned_summary": "local CLI Agent Adapter returned support evidence",
         "adapter_ref": spec.adapter_ref,
-        "selected_model_ref": request.selected_model_ref,
+        # E2/S6★: serialize the casting dials by LOOPING the single-source
+        # NODE_CASTING_FIELDS instead of naming the model dial. Each declared
+        # (truthy) ``selected_<base>`` value joins the bag; an undeclared dial is
+        # absent, so today this emits exactly ``selected_model_ref`` (byte-identical
+        # to the prior single key) and a NEW dial (effort) rides along when declared.
+        **{
+            _ck: getattr(request, _ck)
+            for _ck in _node_casting_fields_ordered()
+            if getattr(request, _ck)
+        },
         "agent_object_ref": request.agent_object_ref,
         "brain_surface_ref": spec.brain_surface_ref,
         "cli_version_text": probe.version_text,
@@ -1268,7 +1334,16 @@ def _invoke_gemini_api(
     returned = {
         "returned_summary": "Gemini HTTP API Agent Adapter returned support evidence",
         "adapter_ref": spec.adapter_ref,
-        "selected_model_ref": request.selected_model_ref,
+        # E2/S6★: serialize the casting dials by LOOPING the single-source
+        # NODE_CASTING_FIELDS instead of naming the model dial. Each declared
+        # (truthy) ``selected_<base>`` value joins the bag; an undeclared dial is
+        # absent, so today this emits exactly ``selected_model_ref`` (byte-identical
+        # to the prior single key) and a NEW dial (effort) rides along when declared.
+        **{
+            _ck: getattr(request, _ck)
+            for _ck in _node_casting_fields_ordered()
+            if getattr(request, _ck)
+        },
         "agent_object_ref": request.agent_object_ref,
         "brain_surface_ref": spec.brain_surface_ref,
         # No CLI version on the HTTP path; record the resolved endpoint model name
@@ -1852,10 +1927,12 @@ def _casting_cli_args(request: AgentAdapterRequest, spec: LocalCliSpec) -> tuple
     args: list[str] = []
     for descriptor in CASTING_FIELDS:
         declared = getattr(request, selected_key(descriptor), "")
-        spawn_default = (
-            spec.default_model_ref if descriptor.default_ref is not None else spec.adapter_ref
-        )
-        value = declared or spawn_default
+        # The per-dial deferrable spawn default is descriptor DATA now (replaces the
+        # 2-dial ternary): adapter => spec.adapter_ref, model => spec.default_model_ref,
+        # effort => its own sentinel (which cli_emit suppresses to no-arg). A NEW dial
+        # supplies its own spawn_default with no edit here. Byte-identical for the two
+        # existing dials.
+        value = declared or descriptor.spawn_default(spec)
         args.extend(descriptor.cli_emit(value, spec.adapter_ref))
     return tuple(args)
 
@@ -2670,7 +2747,16 @@ def _build_prompt(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
         "building_id": request.building_id,
         "agent_object_ref": request.agent_object_ref,
         "adapter_ref": spec.adapter_ref,
-        "selected_model_ref": request.selected_model_ref,
+        # E2/S6★: serialize the casting dials by LOOPING the single-source
+        # NODE_CASTING_FIELDS instead of naming the model dial. Each declared
+        # (truthy) ``selected_<base>`` value joins the bag; an undeclared dial is
+        # absent, so today this emits exactly ``selected_model_ref`` (byte-identical
+        # to the prior single key) and a NEW dial (effort) rides along when declared.
+        **{
+            _ck: getattr(request, _ck)
+            for _ck in _node_casting_fields_ordered()
+            if getattr(request, _ck)
+        },
         "prompt_refs": list(request.prompt_refs),
         "skill_refs": list(request.skill_refs),
         "hook_refs": list(request.hook_refs),

@@ -127,6 +127,7 @@ from brick_protocol.support.operator.plan_validation import (
 )
 from brick_protocol.support.operator.primitives import (
     CASTING_FIELDS,
+    NODE_CASTING_FIELDS,
     INLINE_TASK_SOURCE_REF,
     _AGENT_OBJECT_ALLOWED_KEYS,
     _AGENT_ROW_ALLOWED_KEYS,
@@ -1177,6 +1178,11 @@ def _write_adapter_usage_meter_on_step_close(
     # raw/adapter-usage.jsonl and never reads, re-parses, reorders, or rewrites any
     # pre-existing line. There is no read+separate+rewrite path to preserve raw
     # evidence -- the bytes already on disk are never touched in the first place.
+    # The token meter records the MODEL dial only (the brain whose tokens are
+    # metered); ``request.selected_model_ref`` is now the GENERIC casting accessor
+    # (__getattr__ over the casting bag), so this reads the model dial through the
+    # same single-source path as every other reader. Effort/adapter are not token
+    # data, so the append-only meter record shape stays byte-stable.
     write_adapter_usage_meter(
         building_root,
         building_id,
@@ -1943,13 +1949,14 @@ def _adapter_request_from_prepared(
         "callable_ref": callable_ref,
         "brick_instance_ref": prepared.brick_instance_ref,
         "next_brick_instance_ref": prepared.next_brick_instance_ref,
-        # E2/S7 (mirror M2): the model dial rides in the opaque casting bag, built
-        # ONCE here from the same packet value the named scalar read; the request's
-        # __post_init__ normalizes it inside the bag. A NEW casting dial would be
-        # added to this bag, not as a new request field.
+        # E2/S6★ (was S7/M2): the casting dials ride in the opaque casting bag,
+        # built ONCE here by LOOPING the single-source NODE_CASTING_FIELDS from the
+        # SAME packet values the named scalars read; the request's __post_init__
+        # normalizes them inside the bag. A NEW casting dial (effort) flows through
+        # with NO edit here — it is added to the field-set, not as a request field.
         "casting": {
-            "selected_model_ref": _optional_text_from_mapping(packet, "selected_model_ref")
-            or "",
+            key: _optional_text_from_mapping(packet, key) or ""
+            for key in NODE_CASTING_FIELDS
         },
         "prompt_refs": prepared.agent_object.prompt_refs,
         "skill_refs": prepared.agent_object.skill_refs,
