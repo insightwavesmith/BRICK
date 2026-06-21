@@ -11,6 +11,10 @@ from pathlib import Path
 from typing import Any
 
 from brick_protocol.brick.comparison import BrickComparisonFact
+from brick_protocol.brick.spec import (
+    ArtifactGroundingFacts,
+    apply_artifact_grounding_completeness,
+)
 from brick_protocol.brick.work import parse_required_return_shape
 from brick_protocol.link.carry import make_carry_fact
 from brick_protocol.link.gate import gate_required_return_fields, make_gate_fact
@@ -614,46 +618,26 @@ def _comparison_with_artifact_grounding(
     comparison: BrickComparisonFact,
     returned_value: Any | None,
 ) -> BrickComparisonFact:
+    # J10 (E2/S10): support GATHERS the grounding FACTS (which evidence/grounding
+    # fields apply for this required shape, and whether the returned grounding field
+    # actually carries an inspected-repository artifact reference); the COMPLETENESS
+    # VERDICT — recompute the missing-field set, downgrade observed_match_kind to
+    # "missing", re-stamp the evidence lines — is the Brick axis's
+    # (brick/spec.apply_artifact_grounding_completeness). Behavior-identical to the
+    # prior inline downgrade.
     evidence_field = _artifact_grounding_evidence_field(prepared)
     if not evidence_field:
         return comparison
-    grounding_field = _ARTIFACT_GROUNDING_FACT_BY_EVIDENCE_FIELD[evidence_field]
-    has_grounding = _returned_field_has_repo_artifact_ref(returned_value, evidence_field)
-    required_fields = _artifact_grounding_required_return_fields(
-        comparison.required_return_shape_evidence,
-        comparison.required_return_fields(),
-    )
-    missing_fields = list(comparison.missing_return_fields())
-    if has_grounding:
-        missing_fields = [field for field in missing_fields if field != grounding_field]
-    elif grounding_field not in missing_fields:
-        missing_fields.append(grounding_field)
-    comparison_evidence = _replace_comparison_evidence_fields(
-        comparison.comparison_evidence,
-        prefix="required_return_fields:",
-        fields=required_fields,
-    )
-    comparison_evidence = _replace_comparison_evidence_fields(
-        comparison_evidence,
-        prefix="missing_return_fields:",
-        fields=tuple(dict.fromkeys(missing_fields)),
-    )
-    comparison_evidence = (
-        *comparison_evidence,
-        (
-            f"artifact_grounding: {evidence_field} includes inspected repository artifact reference"
-            if has_grounding
-            else f"artifact_grounding_missing: {evidence_field} lacks inspected repository artifact reference"
+    facts = ArtifactGroundingFacts(
+        evidence_field=evidence_field,
+        grounding_field=_ARTIFACT_GROUNDING_FACT_BY_EVIDENCE_FIELD[evidence_field],
+        has_grounding=_returned_field_has_repo_artifact_ref(returned_value, evidence_field),
+        required_fields=_artifact_grounding_required_return_fields(
+            comparison.required_return_shape_evidence,
+            comparison.required_return_fields(),
         ),
     )
-    return BrickComparisonFact.from_parts(
-        work_reference=comparison.work_reference,
-        comparison_evidence=comparison_evidence,
-        observed_match_kind="missing" if missing_fields else comparison.observed_match_kind,
-        comparison_rule=comparison.comparison_rule,
-        required_return_shape_evidence=comparison.required_return_shape_evidence,
-        forbidden_shortcut_evidence=comparison.forbidden_shortcut_evidence,
-    )
+    return apply_artifact_grounding_completeness(comparison, facts)
 
 
 def _artifact_grounding_evidence_field(prepared: AgentRunPreparationRecord) -> str:
@@ -706,27 +690,6 @@ def _returned_field_has_repo_artifact_ref(returned_value: Any | None, field_name
     if not isinstance(returned_value, Mapping):
         return False
     return evidence_list_has_repository_artifact_ref(returned_value.get(field_name))
-
-
-def _replace_comparison_evidence_fields(
-    comparison_evidence: tuple[str, ...],
-    *,
-    prefix: str,
-    fields: tuple[str, ...],
-) -> tuple[str, ...]:
-    replacement = f"{prefix} " + (", ".join(fields) if fields else "none")
-    replaced = False
-    lines: list[str] = []
-    for line in comparison_evidence:
-        if line.startswith(prefix):
-            if not replaced:
-                lines.append(replacement)
-                replaced = True
-            continue
-        lines.append(line)
-    if not replaced:
-        lines.append(replacement)
-    return tuple(lines)
 
 
 def _required_agent_return_fields_for_brick_handoff(

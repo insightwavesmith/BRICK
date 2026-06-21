@@ -643,3 +643,110 @@ def link_envelope_evidence_fields(
         elif kind == _OPT_INT:
             fields[out] = ctx.positive_int(f"{envelope.name}.{src}", payload.get(src))
     return fields
+
+
+# ---------------------------------------------------------------------------
+# FRONTIER SUFFICIENCY VERDICT (J6, E2/S10). The Building "frontier" question —
+# given what evidence has been recorded, is the walk COMPLETE, still INCOMPLETE,
+# or PAUSED/waiting? — is a Link SUFFICIENCY decision: it judges whether the
+# recorded movement evidence is *enough* to call a boundary reached. That verdict
+# previously sat inside support (frontier_observation.observe_building_frontier's
+# if/elif ladder), which is the "Link-sufficiency-in-support" leak the design
+# flags. The split (design §4 J6):
+#   * the COUNTS + the FRONTIER_KIND VOCABULARY stay SUPPORT — they are facts
+#     support records (record counts, lifecycle-state strings, missing-file lists)
+#     and the published kind literals (FRONTIER_KINDS). Support gathers them.
+#   * the VERDICT — which frontier_kind applies, in what precedence — is THIS
+#     Link decision. The ladder reads ONLY the support-supplied facts; the kind
+#     LITERALS are passed in (``FrontierSufficiencyVocab``) so support keeps the
+#     single source of the vocabulary while Link owns the precedence logic.
+# Behavior-identical: the if/elif order, conditions, and the (kind, reason) pairs
+# are reproduced verbatim from the original observer, so the observation record is
+# byte-for-byte unchanged (pinned by building_operator_driver0 /
+# bounded_agent_proposed_routing_loop / tier_a frontier cases).
+#
+# This authors no Movement and chooses no route/target: it reports which already-
+# recorded frontier the evidence has reached, nothing more.
+# ---------------------------------------------------------------------------
+
+
+class FrontierSufficiencyFacts(NamedTuple):
+    """Support-recorded facts the Link sufficiency verdict reads (no judgment)."""
+
+    has_missing_files: bool
+    agent_return_count: int
+    agent_received_count: int
+    has_chat_session_park: bool
+    has_parked_step_output: bool
+    has_adapter_error: bool
+    closed_boundary_after_latest_pause: bool
+    latest_transition_lifecycle_state: str
+    latest_building_lifecycle_state: str
+    closed_boundary_observed: bool
+
+
+class FrontierSufficiencyVocab(NamedTuple):
+    """The support-owned frontier_kind literals, passed in so the vocabulary stays
+    single-sourced in support while Link owns only the precedence verdict."""
+
+    closure_pending: str
+    evidence_incomplete: str
+    chat_session_parked: str
+    complete: str
+    agent_incomplete: str
+    link_paused: str
+    human_review_waiting: str
+
+
+class FrontierSufficiencyVerdict(NamedTuple):
+    frontier_kind: str
+    frontier_reason: str
+
+
+def frontier_sufficiency_verdict(
+    facts: FrontierSufficiencyFacts,
+    vocab: FrontierSufficiencyVocab,
+) -> FrontierSufficiencyVerdict:
+    """Decide which frontier the recorded evidence has reached (Link sufficiency).
+
+    Reproduces the original support observer's ladder verbatim: precedence is
+    missing-files -> chat-session park -> closed-after-pause -> agent-incomplete
+    -> link-paused -> human-review-waiting -> closed-boundary; the default (no
+    branch fires) is closure_pending. Returns the (kind, reason) pair; the caller
+    stamps it onto the support observation record unchanged.
+    """
+
+    frontier_kind = vocab.closure_pending
+    frontier_reason = (
+        "evidence root has returned Agent facts and no closed boundary observation"
+    )
+    if facts.has_missing_files:
+        frontier_kind = vocab.evidence_incomplete
+        frontier_reason = "required evidence files are missing"
+    elif facts.agent_return_count == 0 and (
+        facts.has_chat_session_park or facts.has_parked_step_output
+    ):
+        frontier_kind = vocab.chat_session_parked
+        frontier_reason = "chat-session park evidence exists before returned AgentFact"
+    elif facts.closed_boundary_after_latest_pause:
+        frontier_kind = vocab.complete
+        frontier_reason = (
+            "declared closed boundary observed after paused frontier disposition"
+        )
+    elif facts.agent_received_count > facts.agent_return_count:
+        frontier_kind = vocab.agent_incomplete
+        frontier_reason = (
+            "adapter error evidence exists after Agent receipt and before returned AgentFact"
+            if facts.has_adapter_error
+            else "agent received evidence exists without matching returned evidence"
+        )
+    elif facts.latest_transition_lifecycle_state == "paused":
+        frontier_kind = vocab.link_paused
+        frontier_reason = "declared Link transition_lifecycle.state is paused"
+    elif facts.latest_building_lifecycle_state == "waiting":
+        frontier_kind = vocab.human_review_waiting
+        frontier_reason = "declared building_lifecycle.state is waiting"
+    elif facts.closed_boundary_observed:
+        frontier_kind = vocab.complete
+        frontier_reason = "declared closed boundary observed in executed Link evidence"
+    return FrontierSufficiencyVerdict(frontier_kind, frontier_reason)

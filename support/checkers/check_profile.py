@@ -390,6 +390,29 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "builder_consumes_axis_api",
         "support.checkers.check_builder_consumes_axis_api",
     ),
+    # E2 / S10 JUDGMENT-GUARD (G4) (STRUCTURE-DESIGN.md §7 guard 2 + §8 S10 row).
+    # Executes the registry-driven support-no-axis-judgment guard IN-PROCESS:
+    # AST-scans all of support/ (operator/connection/etc.; checkers excluded as the
+    # AST oracle source) and REDs if a module OUTSIDE a judgment family's declared
+    # consumer set contains the relocated VERDICT SHAPE — a CONDITIONAL assignment
+    # of a registered axis verdict FIELD to a registered verdict VALUE literal
+    # (an IfExp ternary, or an assignment inside an if/elif branch). That is the
+    # ladder/downgrade §4 moved to the owning axis (judgment_home.yaml maps each
+    # family J6->Link, J10->Brick, J3->Agent, J5->Brick). An UNCONDITIONAL neutral
+    # construction default (run.py observed_match_kind="unknown") and pure transport
+    # of an already-decided value (reporter/driver re-emit frontier_kind) are NOT
+    # verdicts and are never flagged. GUARD-FIRST: every family is relocated on the
+    # current tree, so this is GREEN now and RED on a regression. A non-zero main()
+    # raises ProfileError, so a re-inlined verdict makes --all EXIT non-zero. Imports
+    # no axis module; an independent AST oracle.
+    # Mutation-RED: re-add `observed_match_kind = "missing" if missing else ...` to a
+    # support operator module (J10 downgrade), or an `elif ...: frontier_kind =
+    # "complete"` ladder branch to a support module other than frontier_observation
+    # (J6 ladder) -> this kernel check RED -> --all RED.
+    "support_no_axis_judgment": _repo_main(
+        "support_no_axis_judgment",
+        "support.checkers.check_support_no_axis_judgment",
+    ),
     "bricks_spec_completeness": _repo_main(
         "bricks_spec_completeness",
         "support.checkers.check_bricks_spec_completeness",

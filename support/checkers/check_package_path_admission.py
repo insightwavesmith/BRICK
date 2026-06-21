@@ -56,6 +56,11 @@ CROSSING_ELEGANCE_REGISTRY_FILES = {
     # governance shape as the registries: append-only support record directly under
     # support/checkers.
     "support/checkers/field_set_registry.yaml",
+    # E2 / S10 JUDGMENT-GUARD REGISTRY: the judgment-home map listing each
+    # relocated judgment family + its owning axis module + declared consumer set,
+    # consumed by check_support_no_axis_judgment.py. Same governance shape as the
+    # registries: append-only support record directly under support/checkers.
+    "support/checkers/judgment_home.yaml",
 }
 
 ROOT_FILES = {

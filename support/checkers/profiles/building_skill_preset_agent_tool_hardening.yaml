@@ -141,6 +141,8 @@ text_contains:
     texts:
       - evidence_used.repository_artifact_ref
       - evidence_refs.repository_artifact_ref
+  - path: brick/spec.py
+    texts:
       - artifact_grounding_missing
   - path: brick/templates/bricks/code-attack-qa/brick.md
     texts:

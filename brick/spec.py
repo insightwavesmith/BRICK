@@ -364,3 +364,115 @@ def validate_brick_row_write_need_for_scope(
         return
     if require_write_need_marker and declared_write_need is not True:
         raise ValueError(SILENT_WRITE_GRANT_REJECTION)
+
+
+# ---------------------------------------------------------------------------
+# ARTIFACT-GROUNDING COMPLETENESS VERDICT (J10, E2/S10). For a Brick return whose
+# required shape includes a grounding-bearing field (a review's ``evidence_used``
+# / a design's ``evidence_refs``), the question "is the return COMPLETE, given
+# that the grounding field must carry an inspected-repository artifact reference?"
+# is a BRICK-return completeness judgment. It previously sat inside support
+# (plan_validation._comparison_with_artifact_grounding), which downgraded the
+# Brick comparison fact's ``observed_match_kind`` to "missing" — a Brick
+# completeness verdict made in a support file (the design's "judge-in-support"
+# erosion path). The split (design §4 J10):
+#   * the FACT — whether the returned grounding field actually carries an
+#     inspected-repository artifact reference (``has_grounding``), plus which
+#     evidence/grounding fields apply — is computed in SUPPORT (it reads the
+#     returned value + the prepared brick_work shape). Support gathers them.
+#   * the VERDICT — given that fact, recompute the missing-field set (drop the
+#     grounding field when grounded, add it when not), DOWNGRADE the match kind to
+#     "missing" when anything is missing, and re-stamp the required/missing/grounding
+#     evidence lines — is THIS Brick decision.
+# Behavior-identical: the missing-field recomputation, the "missing"-downgrade
+# rule, and the evidence-line rewriting reproduce the prior support code verbatim,
+# so the produced BrickComparisonFact is byte-for-byte unchanged (pinned by the
+# comparison/grounding cases). It authors no Movement and judges no Agent quality;
+# it reports whether the Brick RETURN meets its declared grounding-bearing shape.
+# ---------------------------------------------------------------------------
+
+
+class ArtifactGroundingFacts(NamedTuple):
+    """Support-computed grounding facts the Brick completeness verdict reads."""
+
+    evidence_field: str
+    grounding_field: str
+    has_grounding: bool
+    required_fields: tuple[str, ...]
+
+
+def apply_artifact_grounding_completeness(
+    comparison: BrickComparisonFact,
+    facts: ArtifactGroundingFacts,
+) -> BrickComparisonFact:
+    """Apply the Brick-return grounding-completeness verdict to a comparison fact.
+
+    Reproduces the prior support ladder verbatim: when the returned grounding
+    field carries an inspected-repository artifact reference the grounding field is
+    dropped from the missing set, otherwise it is added; the required/missing
+    evidence lines are re-stamped and an ``artifact_grounding[_missing]`` line is
+    appended; the match kind is downgraded to "missing" iff any field is missing.
+    """
+
+    missing_fields = list(comparison.missing_return_fields())
+    if facts.has_grounding:
+        missing_fields = [
+            field_name for field_name in missing_fields if field_name != facts.grounding_field
+        ]
+    elif facts.grounding_field not in missing_fields:
+        missing_fields.append(facts.grounding_field)
+    comparison_evidence = _replace_comparison_evidence_fields(
+        comparison.comparison_evidence,
+        prefix="required_return_fields:",
+        fields=facts.required_fields,
+    )
+    comparison_evidence = _replace_comparison_evidence_fields(
+        comparison_evidence,
+        prefix="missing_return_fields:",
+        fields=tuple(dict.fromkeys(missing_fields)),
+    )
+    comparison_evidence = (
+        *comparison_evidence,
+        (
+            f"artifact_grounding: {facts.evidence_field} includes inspected repository artifact reference"
+            if facts.has_grounding
+            else f"artifact_grounding_missing: {facts.evidence_field} lacks inspected repository artifact reference"
+        ),
+    )
+    return BrickComparisonFact.from_parts(
+        work_reference=comparison.work_reference,
+        comparison_evidence=comparison_evidence,
+        observed_match_kind="missing" if missing_fields else comparison.observed_match_kind,
+        comparison_rule=comparison.comparison_rule,
+        required_return_shape_evidence=comparison.required_return_shape_evidence,
+        forbidden_shortcut_evidence=comparison.forbidden_shortcut_evidence,
+    )
+
+
+def _replace_comparison_evidence_fields(
+    comparison_evidence: tuple[str, ...],
+    *,
+    prefix: str,
+    fields: tuple[str, ...],
+) -> tuple[str, ...]:
+    """Replace (or append) the first ``prefix`` evidence line with ``fields``.
+
+    Behavior-identical to the prior support helper: the first line starting with
+    ``prefix`` is rewritten to ``"<prefix> <comma-joined fields or 'none'>"`` and
+    later duplicates of that prefix are dropped; when no such line exists the new
+    line is appended.
+    """
+
+    replacement = f"{prefix} " + (", ".join(fields) if fields else "none")
+    replaced = False
+    lines: list[str] = []
+    for line in comparison_evidence:
+        if line.startswith(prefix):
+            if not replaced:
+                lines.append(replacement)
+                replaced = True
+            continue
+        lines.append(line)
+    if not replaced:
+        lines.append(replacement)
+    return tuple(lines)

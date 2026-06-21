@@ -169,6 +169,16 @@ modules:
     decomposition_target: ""
     pinned_by: builder_consumes_axis_api kernel check (E2/S8 builder-bypass-guard; AST oracle over the builder entrypoints — per-node casting carriers thread the opaque casting bag (no named CASTING_FIELDS member) and the Gate/Concern/Adoption enums derive from the axis vocab (no hardcoded gate/concern/adoption token))
 
+  - module: support/checkers/check_support_no_axis_judgment.py
+    layer: checkers
+    role: oracle
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: support_no_axis_judgment kernel check (E2/S10 judgment-guard; registry-driven AST oracle, no support module outside a judgment family's declared consumer set re-makes the relocated axis verdict — a conditional assignment of a registered axis verdict field to a registered verdict value literal)
+
   - module: support/checkers/check_bricks_spec_completeness.py
     layer: checkers
     role: checker
@@ -867,11 +877,13 @@ modules:
     layer: operator
     role: operator
     owns_crossings: []
-    consumes_crossings: []
-    imports_axis: []
+    consumes_crossings:
+      - link_spec
+    imports_axis:
+      - link/spec.py
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
-    pinned_by: building_operator_driver0 + bounded_agent_proposed_routing_loop (Building frontier observation over recorded link.jsonl lifecycle records; reads lifecycle state by field name, chooses no Movement or target)
+    pinned_by: building_operator_driver0 + bounded_agent_proposed_routing_loop (Building frontier observation over recorded link.jsonl lifecycle records; reads lifecycle state by field name, chooses no Movement or target; E2/S10 J6 delegates the SUFFICIENCY verdict — which frontier_kind the recorded evidence has reached — to the Link axis link/spec.frontier_sufficiency_verdict, gathering the facts here)
 
   - module: support/operator/worktree_sandbox.py
     layer: operator
