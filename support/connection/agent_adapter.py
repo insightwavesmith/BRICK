@@ -219,6 +219,32 @@ from .adapter_subprocess import (
     _timeout_expired_stall_dead_signature,
     _validate_command_args,
 )
+
+# FACADE re-export: the model-ref normalization + casting->CLI-arg projection
+# cluster now lives in adapter_model_casting (E2 split, extraction 4/7).
+# agent_adapter STAYS A FACADE for these symbols -- checkers and other call sites
+# reach them late-bound as agent_adapter.<sym> (and via `from agent_adapter import
+# <sym>`), so EVERY moved name (public AND underscore-private) is re-exported
+# explicitly here. The stay-behind carriers those functions need at runtime
+# (LocalCliSpec, AgentAdapterRequest, _GEMINI_API_SPEC, _local_cli_spec) are
+# reached by adapter_model_casting via lazy-in-function imports, so there is no
+# import cycle.
+from .adapter_model_casting import (
+    project_model_ref_to_cli_arg,
+    _adapter_model_spec,
+    _normalize_selected_model_ref,
+    _validate_model_ref_for_adapter,
+    _model_cli_arg,
+    _casting_cli_args,
+    _model_cli_arg_from_ref,
+    _casting_fields,
+    _node_casting_fields,
+    _node_casting_fields_ordered,
+    _CASTING_FIELDS_CACHE,
+    _NODE_CASTING_FIELDS_CACHE,
+    _NODE_CASTING_FIELDS_ORDERED_CACHE,
+)
+
 _GEMINI_SOURCE_FACT_BODY_LIMIT = 4000
 _CLAUDE_NONINTERACTIVE_SYSTEM_PROMPT = (
     "You are a non-interactive Brick Protocol support evidence reviewer. "
@@ -316,51 +342,6 @@ def adapter_is_write_capable(adapter_ref: str) -> bool:
     """Return whether the adapter can technically attempt writes."""
 
     return adapter_has_capability(adapter_ref, ADAPTER_CAPABILITY_WRITE)
-
-
-# Lazy CASTING_FIELDS / NODE_CASTING_FIELDS access (E2/S6★). ``agent.spec``
-# re-exports THIS module's brain catalog, so a top-level import of the casting
-# field-set here would be circular. The request's generic per-dial casting
-# accessor + normalize LOOP read the field-set through these cached lazy getters
-# so the dataclass names no individual dial.
-_CASTING_FIELDS_CACHE: tuple[Any, ...] | None = None
-_NODE_CASTING_FIELDS_CACHE: frozenset[str] | None = None
-
-
-def _casting_fields() -> tuple[Any, ...]:
-    global _CASTING_FIELDS_CACHE
-    if _CASTING_FIELDS_CACHE is None:
-        from brick_protocol.agent.spec import CASTING_FIELDS
-
-        _CASTING_FIELDS_CACHE = CASTING_FIELDS
-    return _CASTING_FIELDS_CACHE
-
-
-def _node_casting_fields() -> frozenset[str]:
-    global _NODE_CASTING_FIELDS_CACHE
-    if _NODE_CASTING_FIELDS_CACHE is None:
-        from brick_protocol.agent.spec import NODE_CASTING_FIELDS
-
-        _NODE_CASTING_FIELDS_CACHE = frozenset(NODE_CASTING_FIELDS)
-    return _NODE_CASTING_FIELDS_CACHE
-
-
-_NODE_CASTING_FIELDS_ORDERED_CACHE: tuple[str, ...] | None = None
-
-
-def _node_casting_fields_ordered() -> tuple[str, ...]:
-    """The ordered node-layer ``selected_<base>`` keys (load-bearing dial order).
-
-    Used where the casting dials are SERIALIZED into a stable-order mapping (the
-    work-envelope / prompt / returned-evidence) so a NEW dial joins the serialized
-    bag with no edit at each seam."""
-
-    global _NODE_CASTING_FIELDS_ORDERED_CACHE
-    if _NODE_CASTING_FIELDS_ORDERED_CACHE is None:
-        from brick_protocol.agent.spec import NODE_CASTING_FIELDS
-
-        _NODE_CASTING_FIELDS_ORDERED_CACHE = tuple(NODE_CASTING_FIELDS)
-    return _NODE_CASTING_FIELDS_ORDERED_CACHE
 
 
 @dataclass(frozen=True)
@@ -857,24 +838,6 @@ def _gemini_admin_policy_for_request(request: AgentAdapterRequest) -> str:
     if denied:
         blocks.append(_toml_tool_rule(denied, decision="deny", priority=999))
     return "\n\n".join(blocks) + "\n"
-
-
-def project_model_ref_to_cli_arg(adapter_ref: str, selected_model_ref: str = "") -> str:
-    """Project a selected_model_ref to the local CLI model argument.
-
-    This is support projection only. It does not prove provider availability or
-    model quality.
-    """
-
-    if adapter_ref == ADAPTER_LOCAL:
-        _normalize_selected_model_ref(adapter_ref, selected_model_ref)
-        return ""
-    if adapter_ref == ADAPTER_CHAT_SESSION:
-        _normalize_selected_model_ref(adapter_ref, selected_model_ref)
-        return ""
-    spec = _local_cli_spec(adapter_ref)
-    normalized = _normalize_selected_model_ref(adapter_ref, selected_model_ref)
-    return _model_cli_arg_from_ref(normalized, spec)
 
 
 def probe_local_cli_adapter(
@@ -1560,87 +1523,6 @@ def _invoke_local_cli(
     raise ValueError("unsupported local CLI adapter kind")
 
 
-def _adapter_model_spec(adapter_ref: str) -> LocalCliSpec:
-    """Return the model-selection spec carrier for an adapter ref.
-
-    gemini-api is NOT a CLI (not in _LOCAL_CLI_SPECS), but it shares the gemini
-    model grammar; route it to its inert _GEMINI_API_SPEC carrier so model-ref
-    normalization mirrors the CLI adapters without polluting _LOCAL_CLI_SPECS.
-    """
-    if adapter_ref == ADAPTER_GEMINI_API:
-        return _GEMINI_API_SPEC
-    return _local_cli_spec(adapter_ref)
-
-
-def _normalize_selected_model_ref(adapter_ref: str, selected_model_ref: str) -> str:
-    if adapter_ref in {ADAPTER_LOCAL, ADAPTER_CHAT_SESSION}:
-        if selected_model_ref and selected_model_ref != MODEL_REF_DEFAULT:
-            raise ValueError(f"{adapter_ref} accepts only model:default")
-        return MODEL_REF_DEFAULT
-    spec = _adapter_model_spec(adapter_ref)
-    if not selected_model_ref:
-        return spec.default_model_ref
-    if selected_model_ref == MODEL_REF_DEFAULT:
-        return spec.default_model_ref
-    _validate_model_ref_for_adapter(adapter_ref, selected_model_ref)
-    return selected_model_ref
-
-
-def _validate_model_ref_for_adapter(adapter_ref: str, model_ref: str) -> None:
-    provider = MODEL_PROVIDER_BY_ADAPTER.get(adapter_ref)
-    if provider is None:
-        raise ValueError("selected_model_ref is supported only for admitted local CLI adapters")
-    expected_prefix = f"model:{provider}:"
-    if not model_ref.startswith(expected_prefix):
-        raise ValueError("selected_model_ref provider must match selected adapter")
-    model_id = model_ref.removeprefix(expected_prefix)
-    if not model_id:
-        raise ValueError("selected_model_ref must include a model id")
-    _reject_secret_text("selected_model_ref", model_ref)
-    if not re.fullmatch(r"[A-Za-z0-9._:-]+", model_id):
-        raise ValueError("selected_model_ref model id contains unsupported characters")
-
-
-def _model_cli_arg(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
-    return _model_cli_arg_from_ref(request.selected_model_ref or spec.default_model_ref, spec)
-
-
-def _casting_cli_args(request: AgentAdapterRequest, spec: LocalCliSpec) -> tuple[str, ...]:
-    """Project the casting dials to their spawn-time CLI args via CASTING_FIELDS.
-
-    E2/S6 (mirror M6): the per-adapter CLI flag knowledge that was inlined twice
-    (the codex ``-m`` / claude ``--model`` literals) is now DATA on each
-    ``CastingField.cli_emit``. The spawn path LOOPS the field-set and concatenates
-    each dial's emit; the adapter dial contributes nothing (``_no_cli_emit``), the
-    model dial contributes ``(flag, model_arg)`` exactly as the deleted literals
-    did. BYTE-IDENTICAL to the inline path: the per-dial spawn VALUE is the
-    declared ``selected_*`` on the request, else — for the deferrable model dial
-    (``default_ref is not None``) — the spec's ``default_model_ref`` (the same
-    ``request.selected_model_ref or spec.default_model_ref`` the inline
-    ``_model_cli_arg`` fed its projector); the fail-closed adapter dial
-    (``default_ref is None``) falls back to the already-chosen ``spec.adapter_ref``
-    and emits nothing. A provider mismatch raises identically (the projector
-    inside ``cli_emit`` raises just as the inline ``_model_cli_arg`` did).
-
-    Imported lazily to avoid an import cycle: ``agent.spec`` re-exports this
-    module's brain catalog, so a top-level import here would be circular.
-    """
-
-    from brick_protocol.agent.spec import CASTING_FIELDS, selected_key
-
-    args: list[str] = []
-    for descriptor in CASTING_FIELDS:
-        declared = getattr(request, selected_key(descriptor), "")
-        # The per-dial deferrable spawn default is descriptor DATA now (replaces the
-        # 2-dial ternary): adapter => spec.adapter_ref, model => spec.default_model_ref,
-        # effort => its own sentinel (which cli_emit suppresses to no-arg). A NEW dial
-        # supplies its own spawn_default with no edit here. Byte-identical for the two
-        # existing dials.
-        value = declared or descriptor.spawn_default(spec)
-        args.extend(descriptor.cli_emit(value, spec.adapter_ref))
-    return tuple(args)
-
-
 def _proof_limits_for_request(
     request: AgentAdapterRequest,
     spec: LocalCliSpec,
@@ -1734,24 +1616,6 @@ def _claude_cli_invocation(request: AgentAdapterRequest) -> dict[str, str]:
         "tools": "",
         "system_prompt": _CLAUDE_NONINTERACTIVE_SYSTEM_PROMPT,
     }
-
-
-def _model_cli_arg_from_ref(model_ref: str, spec: LocalCliSpec) -> str:
-    if model_ref in {MODEL_REF_DEFAULT, spec.default_model_ref}:
-        if model_ref in {MODEL_REF_CODEX_DEFAULT, MODEL_REF_CLAUDE_INHERIT, MODEL_REF_DEFAULT}:
-            return ""
-    if spec.adapter_ref == ADAPTER_GEMINI_LOCAL and model_ref == MODEL_REF_GEMINI_DEFAULT:
-        return ""
-    provider = MODEL_PROVIDER_BY_ADAPTER.get(spec.adapter_ref)
-    if provider is None:
-        return ""
-    expected_prefix = f"model:{provider}:"
-    if not model_ref.startswith(expected_prefix):
-        raise ValueError("selected_model_ref provider must match selected adapter")
-    model_id = model_ref.removeprefix(expected_prefix)
-    if model_id in {"default", "inherit"}:
-        return ""
-    return model_id
 
 
 def _text_cli_executable(executable_name: str, command_runner: CommandRunner | None) -> str:
