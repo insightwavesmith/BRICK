@@ -243,6 +243,26 @@ _GEMINI_READ_TOOL_NAMES = frozenset(
     }
 )
 _GEMINI_WEB_TOOL_NAMES = frozenset({"google_web_search", "web_fetch"})
+# GEMINI-CONTROLPLANE-EXEMPT-0622: gemini's OWN orchestration/completion control
+# plane. These names appear in stats.tools.byName when the gemini CLI finishes or
+# fans out internally, but they touch NO repo file and reach NO external surface,
+# so they are NEVER a read-tier violation and must not produce a false-positive HOLD.
+# They are deliberately NOT in the granted/admin-policy set (they are not a
+# capability the Brick grants) -- they are an always-benign exemption layered on top
+# of the granted set in the post-hoc refusal check.
+#   * complete_task  -- gemini signals task completion (control signal, no side effect)
+#   * invoke_agent   -- gemini delegates to an internal sub-agent (orchestration, no
+#                       repo/external write of its own)
+# DELIBERATELY EXCLUDED (stay governed / denied -- do NOT add):
+#   * exit_plan_mode -- the work-envelope prompt explicitly forbids it
+#     (adapter_grant_policy.py "Do not call exit_plan_mode..."); exempting it here
+#     would contradict that deny rule.
+#   * update_topic   -- not demonstrably side-effect-free; never a measured false
+#                       positive; stays a violation if reported.
+#   * google_web_search / web_fetch -- read EXTERNAL state; stay governed by the
+#                       granted set (web exempt ONLY when WEB capability is granted).
+#   * write_file / run_shell_command / replace -- real writes; stay denied.
+_GEMINI_BENIGN_CONTROL_TOOL_NAMES = frozenset({"complete_task", "invoke_agent"})
 _CANONICAL_TOOL_UNIVERSE_GEMINI = (
     "exit_plan_mode",
     "glob",

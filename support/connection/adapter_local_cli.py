@@ -621,7 +621,10 @@ def _gemini_nonread_tool_names(
     *,
     allowed_tool_names: Iterable[str] | None = None,
 ) -> tuple[str, ...]:
-    from .agent_adapter import _GEMINI_READ_TOOL_NAMES
+    from .agent_adapter import (
+        _GEMINI_BENIGN_CONTROL_TOOL_NAMES,
+        _GEMINI_READ_TOOL_NAMES,
+    )
 
     if not isinstance(stats, Mapping):
         return ()
@@ -644,5 +647,17 @@ def _gemini_nonread_tool_names(
                 names.add(str(item))
     else:
         raise ValueError("Gemini local CLI stats.tools.byName must be an object or list")
-    allowed = set(_GEMINI_READ_TOOL_NAMES if allowed_tool_names is None else allowed_tool_names)
+    # PART 1 (faithful-to-grant): treat a reported tool as a violation ONLY if it is
+    # NOT in the full GRANTED allowed set (read + web + write as actually granted,
+    # produced by ``_gemini_allowed_tool_names_for_request`` and threaded in via
+    # ``allowed_tool_names``) -- not merely the read set. A genuinely-granted web/write
+    # tool that already passed the launch-time admin-policy must not be re-flagged here.
+    # Fail-closed: when the granted set was NOT resolved (``allowed_tool_names is None``)
+    # fall back to read-only -- do NOT widen.
+    granted = set(_GEMINI_READ_TOOL_NAMES if allowed_tool_names is None else allowed_tool_names)
+    # PART 2 (benign control plane): gemini's own completion/orchestration control
+    # tools have no repo/external side effect and are NEVER a violation, independent of
+    # what capability the Brick granted. Layered on top of the granted set, never inside
+    # it (they are not a grantable capability).
+    allowed = granted | set(_GEMINI_BENIGN_CONTROL_TOOL_NAMES)
     return tuple(sorted(name for name in names if name not in allowed))

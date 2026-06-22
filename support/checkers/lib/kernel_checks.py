@@ -1583,6 +1583,94 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
         else:
             raise ProfileError(f"gemini-local admitted non-read tool byName {forbidden_tool!r}")
 
+    # GEMINI-CONTROLPLANE-EXEMPT-0622: gemini's own completion/orchestration control
+    # plane (complete_task, invoke_agent) has no repo/external side effect and must
+    # NEVER produce a false-positive refusal/HOLD, even under the read-only fallback
+    # (allowed_tool_names is None). This is the false-positive that the fix removes.
+    benign_payload = json.dumps(
+        {
+            "response": "benign control plane accepted",
+            "stats": {
+                "tools": {
+                    "totalCalls": 3,
+                    "byName": {"complete_task": 1, "invoke_agent": 1, "read_file": 1},
+                }
+            },
+        }
+    )
+    if (
+        adapter_local_cli._extract_gemini_response(benign_payload)
+        != "benign control plane accepted"
+    ):
+        raise ProfileError(
+            "gemini-local benign control-plane tools (complete_task/invoke_agent) "
+            "falsely tripped the non-read refusal"
+        )
+    # MUTATION-RED GUARD: the benign exemption must stay BOUNDED -- a real ungranted
+    # side-effecting tool bundled WITH benign control tools must STILL trip the refusal,
+    # so the exemption cannot silently rot into "accept everything".
+    benign_plus_write_payload = json.dumps(
+        {
+            "response": "benign bundled with real write must still reject",
+            "stats": {
+                "tools": {
+                    "totalCalls": 2,
+                    "byName": {"complete_task": 1, "write_file": 1},
+                }
+            },
+        }
+    )
+    try:
+        adapter_local_cli._extract_gemini_response(benign_plus_write_payload)
+    except ValueError as exc:
+        if "write_file" not in str(exc):
+            raise ProfileError(
+                "gemini-local refusal of write_file bundled with benign control tools "
+                "did not name write_file"
+            ) from exc
+        if "complete_task" in str(exc):
+            raise ProfileError(
+                "gemini-local refusal wrongly flagged the benign complete_task tool"
+            )
+    else:
+        raise ProfileError(
+            "gemini-local benign exemption widened into accepting an ungranted write_file "
+            "(mutation-RED guard breached)"
+        )
+    # PART 1 consistency: a web tool is a violation under the read-only fallback BUT is
+    # accepted once the request's full granted set (web included) is threaded -- the
+    # post-hoc must agree with the launch-time admin-policy grant.
+    web_search_payload = json.dumps(
+        {
+            "response": "web tools accepted",
+            "stats": {"tools": {"totalCalls": 1, "byName": {"google_web_search": 1}}},
+        }
+    )
+    try:
+        adapter_local_cli._extract_gemini_response(web_search_payload)
+    except ValueError as exc:
+        if "google_web_search" not in str(exc):
+            raise ProfileError(
+                "gemini-local ungranted google_web_search refusal did not name the tool"
+            ) from exc
+    else:
+        raise ProfileError(
+            "gemini-local read-only fallback accepted ungranted google_web_search"
+        )
+    if (
+        adapter_local_cli._extract_gemini_response(
+            web_search_payload,
+            allowed_tool_names=adapter_grant_policy._gemini_allowed_tool_names_for_request(
+                pm_gemini_request
+            ),
+        )
+        != "web tools accepted"
+    ):
+        raise ProfileError(
+            "gemini-local web-granted request rejected google_web_search the launch "
+            "admin-policy allows (post-hoc inconsistent with grant)"
+        )
+
     gemini_none_request = adapter.AgentAdapterRequest(
         building_id="agent-read-tier-gemini-none-probe",
         agent_object_ref="agent-object:qa",
