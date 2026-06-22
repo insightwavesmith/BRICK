@@ -483,6 +483,40 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "cli_runner_stdin_devnull",
         "support.checkers.check_cli_runner_stdin_devnull",
     ),
+    # F1 RETURN-FIELD MERGE-SET PARITY (return-LANDING binds to brick contract).
+    # AST-parses (no import) support/connection/adapter_grant_policy.py and
+    # support/connection/agent_adapter.py: every field in the structured-return
+    # merge-set ({evidence_refs, not_proven, proof_limits} inside
+    # _merge_structured_return_fields) MUST also be in _RETURN_LIST_FIELDS, so the
+    # return normalizer list-normalizes (and dict-flattens) it BEFORE the merge
+    # routes it through _merge_texts. A merge-set field absent from the list-set
+    # (exactly how evidence_refs failed F1) lets an agent return it as a bare
+    # Mapping and crashes the return-assembly BEFORE the AgentFact is written ->
+    # zero step-evidence. FAILS CLOSED: a missing field makes main() return
+    # non-zero and raises ProfileError, so --all EXITs non-zero. Includes an
+    # in-process mutation-RED (drop a merge-set field from the list-set -> rejected).
+    "return_field_merge_set_parity": _repo_main(
+        "return_field_merge_set_parity",
+        "support.checkers.check_return_field_merge_set_parity",
+    ),
+    # F2 CHAINED-CARRY DEPENDENCY (brick-to-brick CARRY binds to brick contract).
+    # Runs the real EASY-tier assemble() composition IN-PROCESS: every WRITE/QA
+    # node (write_need=True step template -- work + the QA kinds) reached by a
+    # forward edge from an upstream node MUST receive that upstream's step-output
+    # as a declared source_fact carry (or be a fan-in convergence target the
+    # walker auto-carries), so it does not run blind on the original task alone.
+    # READ-ONLY / inspect / review / design / plan / closure nodes (write_need=
+    # False) are EXEMPT (they legitimately depend only on the repo -> no false-RED).
+    # This is the F2 fake-green regression pin: a downstream writer with no carry
+    # sees only the task, changes nothing meaningful, and the walk greens anyway
+    # (exactly how the perm-flip work node changed 0 files yet greened). FAILS
+    # CLOSED: an unmet dependency raises and main() returns non-zero, so --all
+    # EXITs non-zero. Includes an in-process mutation-RED (strip the auto-declared
+    # carry from a write node -> the same invariant rejects it).
+    "chained_carry_dependency": _repo_main(
+        "chained_carry_dependency",
+        "support.checkers.check_chained_carry_dependency",
+    ),
     # REPORT-ENV-AUTOLOAD (#56). Executes the report.env engine auto-loader
     # IN-PROCESS over TEMP env fixtures (never the operator's real ~/.brick
     # files, never the live os.environ): an allowlisted key from a 0600 file is

@@ -335,6 +335,8 @@ def _merge_structured_return_fields(
 
     for key, value in extracted.items():
         if key in {"evidence_refs", "not_proven", "proof_limits"} and key in returned:
+            if isinstance(value, Mapping):
+                value = _mapping_to_text_list(value)
             returned[key] = list(_merge_texts(returned[key], value))
             continue
         if key not in returned:
@@ -364,11 +366,27 @@ def _clean_return_field_value(field: str, value: Any) -> Any:
         if isinstance(value, list):
             return value
         if isinstance(value, Mapping):
-            return [dict(value)]
+            return _mapping_to_text_list(value)
         if isinstance(value, str) and value.strip():
             return [value.strip()]
         return value
     return value
+
+
+def _mapping_to_text_list(value: Mapping[str, Any]) -> list[str]:
+    """Flatten a dict-of-refs ``{label: path}`` to a flat list of its VALUE
+    strings (the paths), so a list-normalized return field stays text-safe for
+    ``_text_tuple``.
+
+    Codex/gemini sometimes return a text-ref-list field (e.g. ``evidence_refs``)
+    as a Mapping of ``{label: path}`` whose CONTENT (the paths) is correct and
+    only the CONTAINER differs. ``[dict(value)]`` would keep a non-text item and
+    crash ``_text_tuple``; flattening to ``list(value.values())`` lands the
+    correct paths in the flat-string shape the merge path already requires.
+    Non-text values are dropped (the strict ``_text_tuple`` rejects them anyway).
+    """
+
+    return [str(item) for item in value.values() if isinstance(item, str)]
 
 
 def _strip_code_fence(value: str) -> str:

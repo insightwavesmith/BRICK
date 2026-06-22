@@ -73,6 +73,7 @@ path_allowlist:
       - support/checkers/profiles/building_automation.yaml
       - support/checkers/profiles/brick_cli_entrypoint.yaml
       - support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml
+      - support/checkers/profiles/chained_carry_dependency.yaml
       - support/checkers/profiles/charter_injection.yaml
       - support/checkers/profiles/cli_runner_stdin_devnull.yaml
       - support/checkers/profiles/coo_operating_chain.yaml
@@ -81,6 +82,7 @@ path_allowlist:
       - support/checkers/profiles/native_dispatch_brick_backstop.yaml
       - support/checkers/profiles/read_side_projection_boundary.yaml
       - support/checkers/profiles/report_env_autoload.yaml
+      - support/checkers/profiles/return_field_merge_set_parity.yaml
       - support/checkers/profiles/structure_template_integrity.yaml
       - support/checkers/profiles/tier_a_three_axis_conformance.yaml
 text_contains:

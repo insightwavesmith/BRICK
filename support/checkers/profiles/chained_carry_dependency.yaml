@@ -1,0 +1,31 @@
+schema: checker-profile/v1
+profile_id: chained-carry-dependency
+description: F2 fake-green regression pin (brick-to-brick CARRY binds to the brick contract). A chain edge upstream->downstream is a Link MOVEMENT edge (run order), not a data carry. Runs the real EASY-tier assemble() composition (support/operator/assembly.py _auto_declare_chained_carry) in-process and asserts every WRITE/QA node (write_need=True step template -- work + the QA kinds) reached by a forward edge from an upstream node receives that upstream's step-output as a declared source_fact carry (or is a fan-in convergence target the walker auto-carries). READ-ONLY / inspect / review / design / plan / closure nodes (write_need=False) are EXEMPT (they legitimately depend only on the repo). A downstream writer with no carry sees only the original task, changes nothing meaningful, and the walk greens anyway -- exactly how the F2 work node changed 0 files yet greened. Includes a mutation-RED (strip the auto-declared carry from a write node -> the same invariant rejects it). Fails closed.
+kernel_checks:
+  - chained_carry_dependency
+path_exists:
+  - support/operator/assembly.py
+  - support/recording/step_outputs.py
+  - support/checkers/check_chained_carry_dependency.py
+  - support/checkers/profiles/chained_carry_dependency.yaml
+text_contains:
+  - path: support/operator/assembly.py
+    texts:
+      - def _auto_declare_chained_carry
+      - _step_output_manifest_ref
+      - source_facts
+  - path: support/checkers/check_chained_carry_dependency.py
+    texts:
+      - assert_carry_invariant
+      - write_need
+      - mutation RED observed
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+  - not provider proof
+not_proven:
+  - that the carried upstream body is semantically sufficient for the downstream worker
+  - that the downstream agent in fact uses the carried upstream output

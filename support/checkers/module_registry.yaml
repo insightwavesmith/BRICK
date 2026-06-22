@@ -331,6 +331,26 @@ modules:
     decomposition_target: ""
     pinned_by: cli_runner_stdin_devnull kernel check (the two CLI-runner subprocess spawns in support/connection/agent_adapter.py -- _run_text_cli_command + _run_command -- pass stdin=subprocess.DEVNULL so a provider CLI inheriting an open-no-EOF stdin pipe cannot block forever at startup; the connect-stall primary cure)
 
+  - module: support/checkers/check_return_field_merge_set_parity.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: return_field_merge_set_parity kernel check (every field in the structured-return merge-set {evidence_refs, not_proven, proof_limits} inside _merge_structured_return_fields in support/connection/adapter_grant_policy.py is also in _RETURN_LIST_FIELDS in support/connection/agent_adapter.py, so the return normalizer list-normalizes + dict-flattens it before _merge_texts; the F1 coverage-gap regression pin -- a merge-set field absent from the list-set crashes adapter return-assembly before the AgentFact is written)
+
+  - module: support/checkers/check_chained_carry_dependency.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: chained_carry_dependency kernel check (runs the real EASY-tier assemble() composition in-process; every write/QA node -- write_need=True step template -- reached by a forward edge from an upstream node receives that upstream's step-output as a declared source_fact carry, or is a fan-in convergence target the walker auto-carries; read-only/inspect/review/design/plan/closure nodes are exempt; the F2 fake-green regression pin -- a downstream writer with no carry runs blind on the task alone and the walk greens with no real work)
+
   - module: support/checkers/check_report_env_autoload.py
     layer: checkers
     role: checker

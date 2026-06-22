@@ -110,6 +110,7 @@ _RETURN_LABEL_FIELDS = frozenset(
 _RETURN_LIST_FIELDS = frozenset(
     {
         "blocked_or_missing_evidence",
+        "evidence_refs",
         "integration_risks",
         "made_changes",
         "narrowly_proven",
