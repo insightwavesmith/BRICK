@@ -4094,6 +4094,18 @@ def _assert_reporter_message_shape(report_sinks: Any) -> tuple[str, int]:
     return text, len(required_fragments) + len(forbidden_fragments) + len(forbidden_legacy_fragments) + 1
 
 
+# EXPLICIT NO-CREDS REPORT ENV (footgun-fix robustness). An EMPTY report_env
+# ({}) now AUTO-LOADS ~/.brick/report.env at the run.py engine seam (so a caller
+# passing {} can never silently close the Slack gate). That means a literal {}
+# no longer reliably exercises the "no Slack creds -> env-gated sink drops"
+# coverage on a developer machine that HAS report.env. To keep that coverage
+# EXPLICIT (and decoupled from the vessel gate), the no-env probes thread this
+# NON-EMPTY mapping that deliberately carries NO BRICK_REPORT_*/BRICK_DASHBOARD_*
+# credential key: it is truthy (so it bypasses the empty==auto-load branch) yet
+# leaves _slack_environment_ready/_dashboard_environment_ready False on purpose.
+_NO_CREDS_REPORT_ENV: dict[str, str] = {"BRICK_REPORT_PROBE_NO_CREDS": "1"}
+
+
 def _assert_reporter_auto_wiring(repo: Path, reporter: Any, report_sinks: Any) -> tuple[str, str, str, int]:
     from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
     from brick_protocol.support.operator.run import run_building_plan
@@ -4130,7 +4142,12 @@ def _assert_reporter_auto_wiring(repo: Path, reporter: Any, report_sinks: Any) -
                 command_runner=command_runner,
                 adapter_cwd=repo,
                 adapter_timeout_seconds=10,
-                report_env={},
+                # EXPLICIT no-creds env (not {}): {} now auto-loads, so an empty
+                # dict would no longer prove the "no Slack env -> env-gated sink
+                # drops" coverage on a machine WITH ~/.brick/report.env. This
+                # truthy, credential-free mapping suppresses the env-gated sinks
+                # ON PURPOSE and bypasses the empty==auto-load branch.
+                report_env=_NO_CREDS_REPORT_ENV,
             )
         observations = tuple(getattr(result, "_report_event_observations", ()))
         if len(observations) != 5:
@@ -4270,7 +4287,11 @@ def _assert_reporter_auto_wiring(repo: Path, reporter: Any, report_sinks: Any) -
             command_runner=command_runner,
             adapter_cwd=repo,
             adapter_timeout_seconds=10,
-            report_env={},
+            # EXPLICIT no-creds env (not {}): keep this probe credential-free and
+            # off the empty==auto-load path (the policy only declares local-inbox,
+            # so Slack delivery never applies; this just avoids pulling real
+            # ~/.brick/report.env creds into a render-only test).
+            report_env=_NO_CREDS_REPORT_ENV,
         )
         observations = tuple(getattr(result, "_report_event_observations", ()))
         if len(observations) != 1:

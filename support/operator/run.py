@@ -332,7 +332,14 @@ def run_building_once(
     # provider key (GEMINI/GOOGLE) lands in os.environ for the gemini adapter.
     # When the caller already supplied report_env, still cross the loader so the
     # provider key reaches os.environ, but the caller's mapping wins for threading.
-    if report_env is None:
+    # EMPTY == AUTO-LOAD (footgun fix): treat an EMPTY mapping ({}) the same as
+    # None and auto-load. A caller who passes {} means "use the default creds",
+    # NOT "deliberately blank the env" -- so an empty mapping must NEVER silently
+    # win the sink-gating and close the Slack/dashboard gate (the old `is None`
+    # check let {} take the else branch, dropping every env-gated sink with no
+    # error -> "Slack is broken" misdiagnosis). `not report_env` is True for both
+    # None and {}; a NON-EMPTY custom env is still respected for threading.
+    if not report_env:
         report_env = load_report_env_into_process()
     else:
         load_report_env_into_process()
@@ -566,7 +573,11 @@ def run_building_plan(
     # (GEMINI/GOOGLE) is injected into os.environ for the gemini adapter. The
     # returned report_env is threaded to the walker below, so the env-gated sinks
     # always see the creds through the threaded mapping (never the global env).
-    if report_env is None:
+    # EMPTY == AUTO-LOAD (footgun fix): an EMPTY mapping ({}) is treated like None
+    # and auto-loads, so a caller passing {} ("use defaults") can never silently
+    # win the threading and close the env-gated Slack/dashboard sinks. A NON-EMPTY
+    # custom env is still respected. `not report_env` is True for both None and {}.
+    if not report_env:
         report_env = load_report_env_into_process()
     else:
         load_report_env_into_process()
@@ -633,7 +644,11 @@ def resume_building_plan(
     # keys are RETURNED for threading (not injected into os.environ -> no child
     # leak); only the provider key lands in os.environ. The threaded report_env
     # flows to the resumed walker so its sinks read the threaded mapping.
-    if report_env is None:
+    # EMPTY == AUTO-LOAD (footgun fix): an EMPTY mapping ({}) is treated like None
+    # and auto-loads, so a caller passing {} ("use defaults") can never silently
+    # win the threading and close the env-gated Slack/dashboard sinks. A NON-EMPTY
+    # custom env is still respected. `not report_env` is True for both None and {}.
+    if not report_env:
         report_env = load_report_env_into_process()
     else:
         load_report_env_into_process()
