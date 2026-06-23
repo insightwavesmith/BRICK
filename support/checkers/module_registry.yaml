@@ -331,6 +331,16 @@ modules:
     decomposition_target: ""
     pinned_by: cli_runner_stdin_devnull kernel check (the two CLI-runner subprocess spawns in support/connection/agent_adapter.py -- _run_text_cli_command + _run_command -- pass stdin=subprocess.DEVNULL so a provider CLI inheriting an open-no-EOF stdin pipe cannot block forever at startup; the connect-stall primary cure)
 
+  - module: support/checkers/check_mcp_dispatch_wire.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: mcp_dispatch_wire kernel check (the brick-protocol MCP config + the per-provider isolation lever are wired into both _invoke_local_cli dispatch branches in support/connection/adapter_local_cli.py -- claude --mcp-config + --strict-mcp-config; codex -c mcp_servers.* + --ignore-user-config -- reusing connect.py's single-source registration shape, so a dispatched build CLI sees the brick MCP regardless of the user's own ~/.claude / ~/.codex config; INSTALL-WIZARD-0623 engine-native A1)
+
   - module: support/checkers/check_return_field_merge_set_parity.py
     layer: checkers
     role: checker

@@ -279,43 +279,98 @@ def _cmd_verify(args: argparse.Namespace) -> int:
 
 
 def _cmd_init(args: argparse.Namespace) -> int:
-    doctor_packet = onboard.run_doctor()
+    """One-shot install wizard: the ordered, idempotent, friendly-fallback flow.
+
+    INSTALL-WIZARD-0623: converges the previously-thin init (doctor + example)
+    with the richer onboard flow into ONE ordered sequence:
+
+      1 PRESENT  -> doctor             (provider/gh readiness)
+      2 PLUGIN   -> MCP register + skills place + recording hooks
+      3 SLACK    -> provision/validate ~/.brick/report.env (0600)
+      4+5 ONBOARD/EXAMPLE -> preflight + connect + example build + first-use
+      6 VERIFY   -> check_profile --all ONCE (the CADENCE: per-step compileall,
+                    --all once at the end)
+
+    Each plugin/slack step is a friendly advisory that never hard-stops; only a
+    failed example build is fatal (preserving the prior contract). The verify
+    step runs LAST and is skipped when --skip-verify is passed.
+    """
+
+    repo = _repo_from_args(args)
+    wizard = onboard.run_install_wizard(
+        repo_root=repo,
+        host=getattr(args, "host", "claude") or "claude",
+        output_root=args.output_root,
+        allow_real_provider=False,
+        run_example=not args.skip_build,
+        wire_recording=not getattr(args, "skip_recording", False),
+        register_mcp=not getattr(args, "skip_plugin", False),
+        place_skills=not getattr(args, "skip_plugin", False),
+        slack_bot_token=getattr(args, "slack_bot_token", None),
+        slack_channel_id=getattr(args, "slack_channel_id", None),
+    )
+
+    doctor_packet = wizard["steps"].get("present")
+    onboard_step = wizard["steps"].get("onboard", {})
+    example_result = onboard_step.get("example_result", {}) if isinstance(onboard_step, dict) else {}
+
+    # Re-derive the build_packet shape the existing first-use writer expects, from
+    # the example_result the wizard recorded (the wizard runs the example through
+    # run_onboard, not _run_build, so we synthesize the small packet first_use needs).
     build_packet = None
     build_error = None
     first_use_packet = None
     if not args.skip_build:
-        build_args = argparse.Namespace(
-            repo=args.repo,
-            output_root=args.output_root,
-            task="",
-            task_source_ref=DEFAULT_EXAMPLE_TASK_SOURCE_REF,
-            preset=DEFAULT_LOCAL_PRESET_REF,
-            adapter=ADAPTER_LOCAL,
-            real_provider=False,
-            building_id=DEFAULT_EXAMPLE_BUILDING_ID,
-            declared_by=DEFAULT_DECLARED_BY,
-            overwrite_existing=True,
-            timeout=args.timeout,
-        )
-        try:
-            build_packet = _run_build(build_args)
-            first_use_packet = write_first_use(
-                build_packet["output_root"],
-                doctor_packet=doctor_packet,
-                build_packet=build_packet,
-            )
-        except Exception as exc:  # noqa: BLE001 -- init reports friendly evidence
-            build_error = {
-                "error_kind": type(exc).__name__,
-                "error_message": str(exc),
+        if example_result.get("ok") and example_result.get("ran"):
+            build_packet = {
+                "repo_root": str(repo),
+                "output_root": str(args.output_root) if args.output_root else str(_default_builds_root()),
+                "building_id": example_result.get("building_id", DEFAULT_EXAMPLE_BUILDING_ID),
+                "adapter_ref": example_result.get("adapter_ref", ADAPTER_LOCAL),
+                "chain_preset_ref": example_result.get("chain_preset_ref", DEFAULT_LOCAL_PRESET_REF),
+                "isolation_mode": "wizard-onboard-example",
+                "evidence_root": example_result.get("evidence_root", ""),
+                "frontier_kind": example_result.get("frontier_kind", ""),
+                "proof_limits": list(PROOF_LIMITS),
+                "not_proven": list(NOT_PROVEN),
             }
+            try:
+                first_use_packet = write_first_use(
+                    build_packet["output_root"],
+                    doctor_packet=doctor_packet,
+                    build_packet=build_packet,
+                )
+            except Exception as exc:  # noqa: BLE001 -- init reports friendly evidence
+                build_error = {"error_kind": type(exc).__name__, "error_message": str(exc)}
+        else:
+            build_error = {
+                "error_kind": example_result.get("error_kind", "example_not_ok"),
+                "error_message": example_result.get("error_message", "example build did not complete"),
+            }
+
+    # 6 VERIFY: check_profile --all ONCE (CADENCE). Skipped on --skip-verify.
+    verify_packet = None
+    if not getattr(args, "skip_verify", False):
+        verify_argv = ["--repo", str(repo), "--all"]
+        verify_stdout = io.StringIO()
+        verify_stderr = io.StringIO()
+        with contextlib.redirect_stdout(verify_stdout), contextlib.redirect_stderr(verify_stderr):
+            verify_exit = check_profile.main(verify_argv)
+        verify_packet = {
+            "checker_argv": verify_argv,
+            "checker_exit_code": verify_exit,
+            "green": verify_exit == 0,
+        }
+
     status_packet = _status_packet(args)
     packet = {
         "command": "init",
         "non_interactive": bool(args.non_interactive),
+        "wizard": wizard,
         "doctor": doctor_packet,
         "build": build_packet,
         "build_error": build_error,
+        "verify": verify_packet,
         "status": status_packet,
         "proof_limits": list(PROOF_LIMITS),
         "not_proven": list(NOT_PROVEN),
@@ -325,8 +380,11 @@ def _cmd_init(args: argparse.Namespace) -> int:
     if args.json:
         print(_json_dump(packet))
     else:
-        print("Brick init support evidence")
-        print(_render_doctor(doctor_packet))
+        print("Brick init support evidence (install wizard)")
+        if doctor_packet is not None:
+            print(_render_doctor(doctor_packet))
+        print("")
+        print(_render_wizard_steps(wizard))
         if build_packet is not None:
             print("")
             print(_render_build(build_packet))
@@ -337,9 +395,33 @@ def _cmd_init(args: argparse.Namespace) -> int:
             print("")
             print(f"next: read {FIRST_USE_FILENAME}")
             print(f"first_use_path: {first_use_packet['path']}")
+        if verify_packet is not None:
+            print("")
+            print(f"verify: check_profile --all green={verify_packet['green']} (exit {verify_packet['checker_exit_code']})")
         print("")
         print(_render_status(status_packet))
-    return 0 if build_error is None else 1
+    # H3: the exit code reflects BOTH gates. The example build is the hard gate
+    # (build_error => 1); when the VERIFY step ran (--all was actually executed),
+    # a RED suite ALSO fails init -- otherwise `brick init` would pay the full
+    # --all cost and still exit 0 over a RED tree, a fake green. When verify was
+    # skipped (--skip-verify) it does not contribute (verify_packet is None).
+    if build_error is not None:
+        return 1
+    if verify_packet is not None and not verify_packet["green"]:
+        return 1
+    return 0
+
+
+def _render_wizard_steps(wizard: dict[str, Any]) -> str:
+    lines = ["install steps (ordered, idempotent):"]
+    steps = wizard.get("steps", {})
+    for key in ("mcp_register", "skills_place", "recording", "slack"):
+        step = steps.get(key)
+        if not isinstance(step, dict):
+            continue
+        mark = "ok" if step.get("ok", True) else "advisory"
+        lines.append(f"- {key}: {mark}: {step.get('message_ko', '')}")
+    return "\n".join(lines)
 
 
 def _cmd_auth_login(args: argparse.Namespace) -> int:
@@ -397,9 +479,28 @@ def build_parser() -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command")
 
-    init_parser = subparsers.add_parser("init", help="Run non-interactive first-use support checks.")
+    init_parser = subparsers.add_parser(
+        "init",
+        help="One-shot install wizard: doctor + plugin (MCP/skills/hooks) + slack + example + verify.",
+    )
     _add_common(init_parser)
     init_parser.add_argument("--skip-build", action="store_true", help="Skip the local example build.")
+    init_parser.add_argument("--skip-plugin", action="store_true", help="Skip MCP register + skills placement.")
+    init_parser.add_argument("--skip-recording", action="store_true", help="Skip the auto-recording hook wiring.")
+    init_parser.add_argument("--skip-verify", action="store_true", help="Skip the final check_profile --all verify.")
+    init_parser.add_argument("--host", default="claude", help="Onboarding host (codex/claude/gemini/local).")
+    init_parser.add_argument(
+        "--slack-bot-token",
+        dest="slack_bot_token",
+        default=None,
+        help="Slack bot token to provision into ~/.brick/report.env (0600). Optional.",
+    )
+    init_parser.add_argument(
+        "--slack-channel-id",
+        dest="slack_channel_id",
+        default=None,
+        help="Slack channel id to provision into ~/.brick/report.env (0600). Optional.",
+    )
     init_parser.add_argument("--output-root", default=None, help="Evidence output root.")
     init_parser.add_argument("--timeout", type=int, default=120, help="Adapter timeout seconds.")
     init_parser.set_defaults(func=_cmd_init)

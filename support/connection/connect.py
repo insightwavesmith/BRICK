@@ -59,17 +59,39 @@ def render_codex_mcp_config(repo_root: Path) -> str:
     )
 
 
-def render_claude_mcp_command(repo_root: Path) -> str:
-    """Render the ``claude mcp add`` one-liner for repo_root.
+def render_claude_mcp_command_argv(repo_root: Path) -> list[str]:
+    """Render the ``claude mcp add`` registration as an EXACT argv LIST.
 
-    No PYTHONPATH; the server bootstrap self-fixes sys.path on a bare launch.
+    M5: the single source of the registration argv. A caller that needs to RUN the
+    registration (subprocess) passes this list VERBATIM -- never re-derives it by
+    ``.split()``-ing the one-liner, which would shred a repo path containing spaces.
+    ``render_claude_mcp_command`` builds the human one-liner from this same list, so
+    the displayed command and the executed argv never diverge. No PYTHONPATH; the
+    server bootstrap self-fixes sys.path on a bare launch.
     """
 
     script = _server_script(repo_root)
-    return (
-        f"claude mcp add {_SERVER_NAME} -- "
-        f"python3 {script} --repo {repo_root}"
-    )
+    return [
+        "claude",
+        "mcp",
+        "add",
+        _SERVER_NAME,
+        "--",
+        "python3",
+        str(script),
+        "--repo",
+        str(repo_root),
+    ]
+
+
+def render_claude_mcp_command(repo_root: Path) -> str:
+    """Render the ``claude mcp add`` one-liner for repo_root (human display).
+
+    Derived from ``render_claude_mcp_command_argv`` (single source). No PYTHONPATH;
+    the server bootstrap self-fixes sys.path on a bare launch.
+    """
+
+    return " ".join(render_claude_mcp_command_argv(repo_root))
 
 
 def _codex_guidance() -> str:
@@ -124,6 +146,7 @@ __all__ = [
     "repo_root_from_here",
     "render_codex_mcp_config",
     "render_claude_mcp_command",
+    "render_claude_mcp_command_argv",
     "render_connect",
     "main",
 ]

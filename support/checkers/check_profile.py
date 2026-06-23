@@ -483,6 +483,19 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "cli_runner_stdin_devnull",
         "support.checkers.check_cli_runner_stdin_devnull",
     ),
+    # INSTALL-WIZARD-0623 (engine-native A1: MCP auto-wired). AST-parses (no import)
+    # support/connection/adapter_local_cli.py and asserts the brick-protocol MCP
+    # config + the per-provider isolation lever are wired into BOTH dispatch branches
+    # (claude: --mcp-config + --strict-mcp-config; codex: -c mcp_servers.* +
+    # --ignore-user-config), reusing connect.py's single-source registration shape.
+    # FAILS CLOSED: a branch missing its MCP wire / isolation lever makes main()
+    # return non-zero and raises ProfileError, so --all EXITs non-zero. Proof-limit:
+    # pins the WIRING shape only, NOT that a dispatched agent called a brick MCP tool
+    # (a real tools/list round-trip stays NOT-PROVEN until a live dispatch).
+    "mcp_dispatch_wire": _repo_main(
+        "mcp_dispatch_wire",
+        "support.checkers.check_mcp_dispatch_wire",
+    ),
     # F1 RETURN-FIELD MERGE-SET PARITY (return-LANDING binds to brick contract).
     # AST-parses (no import) support/connection/adapter_grant_policy.py and
     # support/connection/agent_adapter.py: every field in the structured-return
