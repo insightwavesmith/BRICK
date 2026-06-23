@@ -10,8 +10,7 @@
   ],
   "skill_refs": [
     "skill:design-depth-check",
-    "skill:gap-detector",
-    "skill:structure-validator"
+    "skill:evidence-shape-check"
   ],
   "hook_refs": [
     "hook:instruction-chain-read",

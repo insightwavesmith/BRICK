@@ -842,6 +842,23 @@ modules:
     decomposition_target: ""
     pinned_by: onboard_smoke kernel check (building_operator_driver0 profile)
 
+  # BUILDING-EASE-0 (0623): the make-a-brick skill's scaffold helper. Pure support
+  # operator mechanics: WRITES a new brick kind's two template files
+  # (bricks/<kind>/brick.md + return.yaml) with the body↔return invariant pre-
+  # satisfied, and REGISTERS the kind's primary return template in the catalog
+  # active list so it is not an orphan. A new kind is DATA (no brick/spec edit).
+  # Owns no crossing, casts no agent, judges nothing.
+  - module: support/operator/brick_kind_scaffold.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings:
+      - link_movement
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: BRICK_KIND_SCAFFOLD0_TARGETS in check_package_path_admission.py (pins the module path). Its scaffolded OUTPUT is the make-a-brick skill's in-repo usability check -- the core profile (wraps check_bricks_spec_completeness, the body<->return invariant) plus the structure_template_integrity profile (wraps check_brick_template_catalog_restructure, catalog orphan + Link-word) must be green; the skill runs those PROFILES, not the standalone checker scripts (which skip the admission gate and false-green).
+
   # BRICK-CLI-ENTRYPOINT-0: customer-facing `brick` console-script support
   # wrapper. Bootstraps repo/import-identity paths before importing existing
   # support seams, then delegates doctor/build/verify/status/init to admitted

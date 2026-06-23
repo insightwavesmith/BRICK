@@ -1256,6 +1256,206 @@ def run_goal_approve_entry(
     return result
 
 
+LAUNCH_ASSEMBLED_SEAM_VERB = "support.operator.onboard.launch_assembled_building"
+
+
+def launch_assembled_building(
+    composed: Any,
+    *,
+    project_ref: str | None = None,
+    declared_by: str = "coo:smith",
+    repo_root: Path | str | None = None,
+    overwrite_existing: bool = False,
+    local_callables: Mapping[str, Any] | None = None,
+    command_runner: Any | None = None,
+    adapter_cwd: Path | str | None = None,
+    adapter_timeout_seconds: int = 120,
+    proof_limits: Any | None = None,
+    report_env: Mapping[str, str] | None = None,
+    report_slack_sender: Any | None = None,
+) -> dict[str, Any]:
+    """Launch an already-``assemble()``-d ``ComposedGraph`` with NO forced human gate.
+
+    This is the assemble-path twin of ``run_goal_approve_entry``'s ``forward``
+    branch. ``build`` (the goal path) and that approval entry always interpose a
+    human/COO ``forward`` / ``stop`` decision; this verb is for the autonomous
+    operator who has ALREADY judged the graph shape (via ``assemble()``) and wants
+    to run it. It hides the four launch sharp-edges so the operator only ever
+    declares the graph:
+
+    1. COMPOSED-OBJECT vs DICT. ``run_building_plan`` reads its plan through
+       ``_fixture_mapping`` (Mapping | str | Path); a ``ComposedGraph`` is none of
+       those and ``Path(composed)`` raises an opaque ``TypeError``. This verb never
+       hands the object across — it persists ``composed.composed_plan`` to a JSON
+       file FIRST (the same on-disk plan the goal path writes) and runs that path.
+    2. OUTPUT_ROOT MUST BE A VESSEL. A free-form root makes
+       ``project_ref_for_building_root`` return ``None`` and the report sinks fall
+       silent. This verb accepts a VESSEL ``project_ref`` and derives the durable
+       root through the ONE seam ``buildings_root_for`` (never a hand-joined path);
+       an omitted ``project_ref`` uses ``DEFAULT_BUILDINGS_ROOT`` (itself the
+       project #1 vessel root), so the derived root is ALWAYS a vessel.
+    3. WORKTREE OWNERSHIP. ``run_building_plan`` writes ``adapter_cwd`` directly;
+       on a real adapter that is the live tree. This verb runs inside the existing
+       ``_run_in_worktree_sandbox`` bracket (probe / create-at-base / commit-on-
+       complete / dispose), so the live tree is never mutated and one worktree is
+       created per launch (NO fan-out).
+    4. NAME COLLISION. ``assembly.build([...])`` (the graph-list builder) and the
+       goal-path ``build(graph, goal=...)`` share a bare verb. This verb has a
+       distinct name and a distinct contract (it takes the COMPOSED graph, not a
+       node list and not a goal string), so the operator never confuses the two.
+
+    It is pure support mechanics: it authors no Movement, chooses no agent outside
+    the kind→lane bind the graph already declares, and judges no success / quality
+    (``ok`` reflects only the observed worktree frontier, support evidence only).
+    """
+
+    from brick_protocol.support.operator.assembly import (  # noqa: PLC0415
+        ComposedGraph,
+        persist_proposed_building_graph,
+    )
+    from brick_protocol.support.operator.driver import (  # noqa: PLC0415
+        BuildingIntakeRunResult,
+        _run_in_worktree_sandbox,
+    )
+    from brick_protocol.support.operator.run import run_building_plan  # noqa: PLC0415
+    from brick_protocol.support.recording.capture import (  # noqa: PLC0415
+        DEFAULT_BUILDINGS_ROOT,
+        buildings_root_for,
+    )
+
+    result: dict[str, Any] = {
+        "ok": False,
+        "ran": False,
+        "declared_by": str(declared_by).strip(),
+        "routed_through": LAUNCH_ASSEMBLED_SEAM_VERB,
+    }
+
+    if not isinstance(composed, ComposedGraph):
+        result.update(
+            {
+                "error_kind": "invalid_composed_graph",
+                "error_message": (
+                    "launch_assembled_building() requires the ComposedGraph returned "
+                    "by assemble(); got " + type(composed).__name__
+                ),
+                "message_ko": "assemble()가 돌려준 ComposedGraph를 그대로 넘겨주세요.",
+            }
+        )
+        return result
+
+    building_id = composed.building_id
+    result["building_id"] = building_id
+
+    # MINE #2 cut: the durable root is ALWAYS a vessel. A declared project_ref is
+    # derived through the ONE seam; an omitted one falls back to the project #1
+    # vessel root (DEFAULT_BUILDINGS_ROOT), which is itself a vessel.
+    try:
+        if project_ref is not None:
+            durable_output = buildings_root_for(project_ref)
+        else:
+            durable_output = Path(DEFAULT_BUILDINGS_ROOT)
+    except Exception as exc:  # noqa: BLE001 -- friendly support entry
+        result.update(
+            {
+                "error_kind": type(exc).__name__,
+                "error_message": str(exc),
+                "message_ko": "project_ref(그릇)에서 buildings 루트를 만들 수 없어요.",
+            }
+        )
+        return result
+    result["durable_output"] = str(durable_output)
+
+    # MINE #1 cut: persist the composed plan to a path FIRST, so the object never
+    # reaches run_building_plan's _fixture_mapping (which would Path() it and raise).
+    try:
+        durable_output.mkdir(parents=True, exist_ok=True)
+        run_plan_path = durable_output / _composition_run_plan_filename(building_id)
+        run_plan_path.write_text(
+            json.dumps(composed.composed_plan, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+    except Exception as exc:  # noqa: BLE001 -- friendly support entry
+        result.update(
+            {
+                "error_kind": type(exc).__name__,
+                "error_message": str(exc),
+                "message_ko": "composed plan을 디스크에 기록할 수 없어요.",
+            }
+        )
+        return result
+    result["plan_path"] = str(run_plan_path)
+
+    repo = _safe_repo_root(repo_root)
+
+    def _run_composed_plan(
+        repo_root_inner: Path, sandbox_cwd: Path
+    ) -> BuildingIntakeRunResult:
+        del repo_root_inner
+        run_result = run_building_plan(
+            run_plan_path,
+            output_root=durable_output,
+            overwrite_existing=overwrite_existing,
+            local_callables=local_callables,
+            command_runner=command_runner,
+            adapter_cwd=adapter_cwd if adapter_cwd is not None else sandbox_cwd,
+            adapter_timeout_seconds=adapter_timeout_seconds,
+            proof_limits=proof_limits,
+            report_env=report_env,
+            report_slack_sender=report_slack_sender,
+        )
+        return BuildingIntakeRunResult(
+            building_id=building_id,
+            plan_path=run_plan_path,
+            plan_shape=str(composed.composed_plan.get("plan_shape") or ""),
+            walker_mode="dynamic",
+            walker_mode_basis=(
+                "launch_assembled_building ran an assemble()-composed plan through "
+                "run_building_plan; no human forward/stop gate"
+            ),
+            run_result=run_result,
+            task_source_basis="task_statement",
+        )
+
+    # MINE #3 cut: one worktree per launch (NO fan-out); the live tree is untouched.
+    try:
+        sandbox_result = _run_in_worktree_sandbox(
+            repo,
+            building_id=building_id,
+            durable_output=durable_output,
+            run_dispatch=_run_composed_plan,
+        )
+    except Exception as exc:  # noqa: BLE001 -- friendly support entry
+        result.update(
+            {
+                "error_kind": type(exc).__name__,
+                "error_message": str(exc),
+                "message_ko": "composed plan 실행 중 문제가 생겼어요.",
+            }
+        )
+        return result
+
+    result.update(
+        {
+            "ok": sandbox_result.frontier_kind == "complete",
+            "ran": True,
+            "evidence_root": sandbox_result.evidence_root,
+            "frontier_kind": sandbox_result.frontier_kind,
+            "isolation_mode": sandbox_result.isolation_mode,
+            "isolation_reason": sandbox_result.isolation_reason,
+            "commit_sha": sandbox_result.commit_sha,
+            "worktree_path": sandbox_result.worktree_path,
+            "worktree_disposed": sandbox_result.worktree_disposed,
+        }
+    )
+    return result
+
+
+def _composition_run_plan_filename(building_id: str) -> str:
+    """The on-disk plan filename for an assemble-path launch (slug-safe)."""
+
+    return f"{_path_slug(building_id)}-composed-plan.json"
+
+
 def _load_goal_proposal(proposal_ref: Any) -> tuple[Mapping[str, Any], Path | None]:
     from brick_protocol.support.operator.assembly import ComposedGraph  # noqa: PLC0415
 
@@ -2042,6 +2242,8 @@ def main(argv: list[str] | None = None) -> int:
 
 __all__ = [
     "build",
+    "launch_assembled_building",
+    "LAUNCH_ASSEMBLED_SEAM_VERB",
     "DOCTOR_SYMPTOM_PRESCRIPTIONS_KO",
     "GOAL_APPROVE_ACTIONS",
     "GOAL_APPROVE_SEAM_VERB",

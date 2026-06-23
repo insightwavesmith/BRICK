@@ -409,6 +409,16 @@ HEART_FRONTDOOR0_TARGETS = {
     "support/operator/assembly.py",
 }
 
+# BUILDING-EASE-0 (0623): the make-a-brick skill's scaffold helper. Pure support
+# operator mechanics: it WRITES a new brick kind's two template files
+# (bricks/<kind>/brick.md + return.yaml) with the body↔return invariant pre-
+# satisfied and REGISTERS the kind's primary return template in the catalog active
+# list so it is not an orphan. A new kind is DATA (no brick/spec edit). Owns no
+# crossing, casts no agent, judges nothing.
+BRICK_KIND_SCAFFOLD0_TARGETS = {
+    "support/operator/brick_kind_scaffold.py",
+}
+
 PRH_B_RECORDER_TARGETS = {
     "support/recording/__init__.py",
     "support/recording/records.py",
@@ -655,6 +665,7 @@ TEMPLATE0_BRICK_TEMPLATE_DIRS = {
     "brick/templates/presets",
     "brick/templates/review",
     "brick/templates/shapes",
+    "brick/templates/skills",
     "brick/templates/tasks",
 }
 TEMPLATE0_BRICK_KINDS = {
@@ -843,10 +854,19 @@ def is_template0_brick_template_path(path: str, is_dir: bool) -> bool:
         if path in TEMPLATE0_BRICK_TEMPLATE_DIRS:
             return True
         parts = path.split("/")
-        return (
+        if (
             len(parts) == 4
             and parts[:3] == ["brick", "templates", "bricks"]
             and parts[3] in TEMPLATE0_BRICK_KINDS
+        ):
+            return True
+        # BUILDING-EASE-0 (0623): a shipped operator skill is a slug DIR under
+        # skills/ (nested folder model, like bricks/<kind>/). Admit the slug dir;
+        # its SKILL.md file is admitted by the file branch below.
+        return (
+            len(parts) == 4
+            and parts[:3] == ["brick", "templates", "skills"]
+            and bool(slug_part(parts[3]))
         )
     parts = path.split("/")
     if len(parts) == 3 and parts[:2] == ["brick", "templates"]:
@@ -894,6 +914,23 @@ def is_template0_brick_template_path(path: str, is_dir: bool) -> bool:
             and not is_dir
             and parts[3].endswith(".md")
             and slug_part(parts[3].removesuffix(".md"))
+        )
+    if parts[:3] == ["brick", "templates", "skills"]:
+        # BUILDING-EASE-0 (0623): shipped OPERATOR skills (sizing + launch +
+        # the three make-a-* creation skills). Like bricks/, each skill is a slug
+        # dir containing exactly SKILL.md (nested folder model, NOT the flat .md of
+        # tasks/presets). The skills-root also admits exactly the APPLY-LIST.md
+        # operator note (the live ~/.claude/skills copy/delete instructions) — a
+        # closed root filename, never entering skill discovery.
+        if len(parts) == 4 and is_dir:
+            return bool(slug_part(parts[3]))
+        if len(parts) == 4 and not is_dir:
+            return parts[3] == "APPLY-LIST.md"
+        return (
+            len(parts) == 5
+            and not is_dir
+            and bool(slug_part(parts[3]))
+            and parts[4] == "SKILL.md"
         )
     return (
         len(parts) == 4
@@ -1771,6 +1808,9 @@ def allowed_path(path: str) -> bool:
         return True
 
     if clean in HEART_FRONTDOOR0_TARGETS:
+        return True
+
+    if clean in BRICK_KIND_SCAFFOLD0_TARGETS:
         return True
 
     if is_dashboard_surface_path(clean, is_dir=False):

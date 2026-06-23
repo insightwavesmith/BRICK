@@ -9,8 +9,8 @@
     "prompt:inspector"
   ],
   "skill_refs": [
-    "skill:axis-check",
-    "skill:structure-validator",
+    "skill:protocol-boundary-watch",
+    "skill:evidence-shape-check",
     "skill:evidence-verification"
   ],
   "hook_refs": [
