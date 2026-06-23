@@ -105,6 +105,14 @@ BRICK_ROW_ALLOWED_KEYS: frozenset[str] = frozenset(
         # adapter_grant_policy._build_prompt (key ``brick_instruction_body``) and
         # guarded body<->return aligned by check_bricks_spec_completeness.
         "brick_instruction_body",
+        # CARRIES-FORWARD SET (the HANDOFF subset of required_return_shape). The
+        # kind's carries_forward_fields rides as a Brick-row data column BESIDE
+        # required_return_shape so the "쪽지" the next worker needs travels with the
+        # shape it subsets. It is a Brick-axis property (the return-shape DATA that
+        # declares which fields forward); support READS it off the row to FILTER the
+        # carried upstream summary at the walker carry seam, and never judges it.
+        # Comma-joined field-list text, parsed by brick.work.parse_carries_forward_fields.
+        "carries_forward_fields",
         "source_facts",
         "raw_refs",
         "write_scope",

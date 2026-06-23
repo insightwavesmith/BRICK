@@ -12,6 +12,14 @@ required_return_shape:
   - boundary_findings
   - observed_evidence
   - not_proven
+# HANDOFF subset carried inline downstream; support FILTERS to these. Common
+# envelope (observed_evidence, not_proven) stays LOCAL. Every field is a member
+# of required_return_shape above.
+carries_forward_fields:
+  - matched_facts
+  - missing_facts
+  - mismatched_facts
+  - boundary_findings
 next_link_input_sections:
   - observed public facts for Link
   - missing facts for Link Gate

@@ -13,6 +13,13 @@ required_return_shape:
   - observed_evidence
   - not_proven
   - transition_concern_evidence
+# HANDOFF subset carried inline to design / first work; support FILTERS to these.
+# Common envelope (observed_evidence, not_proven, transition_concern_evidence)
+# stays LOCAL. Every field is a member of required_return_shape above.
+carries_forward_fields:
+  - scope_boundaries
+  - constraints
+  - proposed_next_work_boundaries
 next_link_input_sections:
   - public facts available for Link
   - missing facts for Link Gate

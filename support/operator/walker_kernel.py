@@ -31,6 +31,13 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Callable
 
+# Brick-axis canonical symbol crossing the Brick->Agent (work dispatch) seam.
+# The carry seam reads the UPSTREAM kind's HANDOFF subset off the brick_row (the
+# SAME row surface as required_return_shape) and parses it with this canonical
+# parser to FILTER the forwarded summary. Registered under crossing_id
+# `brick_work` canonical_symbols (crossing_registry.yaml); support does NOT read
+# the return.yaml form directly -- it reads the value off the Brick row.
+from brick_protocol.brick.work import parse_carries_forward_fields
 from brick_protocol.support.connection.adapter_validation import (
     safe_source_fact_body,
 )
@@ -272,6 +279,28 @@ def _fanout_dispatch_pool_size(plan: Mapping[str, Any]) -> int:
     return value
 
 
+def _carries_forward_fields_for_result(
+    result: BuildingRunSupportResult,
+) -> tuple[str, ...]:
+    """The UPSTREAM step's declared carries_forward_fields (the HANDOFF subset).
+
+    Read off ``result.preparation.step_rows.brick_row`` -- the SAME Brick row
+    surface that carries ``required_return_shape`` -- and parsed with the
+    canonical Brick parser ``parse_carries_forward_fields``. Returns ``()`` when
+    the row omits the key (a kind with no declared carry-set) OR when the
+    preparation/row is missing, which the carry filter reads as "no filter"
+    (full-summary carry, backward-safe). Support reads the VALUE off the row; it
+    never reads the return.yaml form directly.
+    """
+
+    preparation = getattr(result, "preparation", None)
+    step_rows = getattr(preparation, "step_rows", None)
+    brick_row = getattr(step_rows, "brick_row", None)
+    if not isinstance(brick_row, Mapping):
+        return ()
+    return parse_carries_forward_fields(brick_row.get("carries_forward_fields"))
+
+
 def _source_fact_body_carry_for_step(
     *,
     building_root: Path,
@@ -293,6 +322,15 @@ def _source_fact_body_carry_for_step(
         step_ref = result.preparation.step_rows.step_ref
         result_refs[index] = _step_output_manifest_ref(step_ref, attempt_index)
 
+    # The UPSTREAM kind's HANDOFF subset, keyed by the carried result index. Read
+    # off result.preparation.step_rows.brick_row -- the SAME row carrying
+    # required_return_shape -- and parsed with the canonical Brick parser. Empty
+    # => no filter (full-summary carry). This is what FILTERS the forwarded
+    # summary down to the upstream kind's declared carries_forward_fields.
+    forward_fields_by_index: dict[int, tuple[str, ...]] = {}
+    for index, result in enumerate(step_results):
+        forward_fields_by_index[index] = _carries_forward_fields_for_result(result)
+
     bodies: dict[str, str] = {}
     carried_step_output_refs: list[str] = []
     missing_source_fact_refs: list[str] = []
@@ -311,7 +349,11 @@ def _source_fact_body_carry_for_step(
             if "step-output" in source_fact:
                 missing_source_fact_refs.append(source_fact)
             continue
-        body = _step_output_wiki_carry_body(building_root, result_refs[match])
+        body = _step_output_wiki_carry_body(
+            building_root,
+            result_refs[match],
+            forward_fields_by_index.get(match, ()),
+        )
         if body is None:
             missing_source_fact_refs.append(source_fact)
             source_step_ref = _step_ref_from_step_output_ref(result_refs[match])
@@ -348,7 +390,11 @@ def _source_fact_body_carry_for_step(
             continue
         if match in carried_result_indices:
             continue
-        body = _step_output_wiki_carry_body(building_root, result_refs[match])
+        body = _step_output_wiki_carry_body(
+            building_root,
+            result_refs[match],
+            forward_fields_by_index.get(match, ()),
+        )
         if body is None:
             missing_source_fact_refs.append(
                 f"fan-in-source:{source_step_ref}:step-output-body-missing:"
@@ -714,7 +760,9 @@ _WIKI_CARRY_NOTE = (
 )
 
 
-def _returned_summary_for_carry(body: str) -> str:
+def _returned_summary_for_carry(
+    body: str, forward_fields: tuple[str, ...] = ()
+) -> str:
     """The compact wiki SUMMARY = the step-output's ``returned`` field.
 
     ``returned`` is the agent's CURATED output. We serialize ONLY it (never the
@@ -723,6 +771,16 @@ def _returned_summary_for_carry(body: str) -> str:
     raw secrets are redacted. Fallbacks (missing/oversize/non-JSON file) keep a
     safe, non-empty summary so the carry never silently drops the worker's
     context.
+
+    CARRY FILTER: when ``forward_fields`` is non-empty it is the UPSTREAM kind's
+    declared ``carries_forward_fields`` (the HANDOFF subset). The serialized
+    ``returned`` is then narrowed to JUST those fields (PRESENT ones --
+    ``if k in returned`` -- a real step-output may omit a declared field) before
+    the dump, so the COMMON ENVELOPE (observed_evidence, not_proven, ...) and any
+    adapter cruft never cross inline. Empty ``forward_fields`` => no filter
+    (full ``returned`` carried, the pre-filter behavior). The full step-output
+    stays reachable at the PATH the wiki view prepends -- filtering narrows the
+    INLINE summary only, it never removes reachability.
     """
 
     try:
@@ -732,6 +790,10 @@ def _returned_summary_for_carry(body: str) -> str:
     if not isinstance(packet, Mapping) or "returned" not in packet:
         return safe_source_fact_body(body)
     returned = packet.get("returned")
+    if forward_fields and isinstance(returned, Mapping):
+        returned = {
+            key: returned[key] for key in forward_fields if key in returned
+        }
     try:
         rendered = json.dumps(returned, ensure_ascii=False, sort_keys=True)
     except (TypeError, ValueError):
@@ -739,11 +801,21 @@ def _returned_summary_for_carry(body: str) -> str:
     return safe_source_fact_body(rendered)
 
 
-def _wiki_carry_view(building_root: Path, step_output_ref: str, body: str) -> str:
-    """Build the compact wiki VIEW carried in place of the full step-output body."""
+def _wiki_carry_view(
+    building_root: Path,
+    step_output_ref: str,
+    body: str,
+    forward_fields: tuple[str, ...] = (),
+) -> str:
+    """Build the compact wiki VIEW carried in place of the full step-output body.
+
+    ``forward_fields`` (the upstream kind's carries_forward_fields) narrows the
+    INLINE summary; the PATH + NOTE pointing at the full step-output are always
+    emitted unchanged, so a filtered field stays reachable via the file.
+    """
 
     absolute_path = str((building_root / step_output_ref).resolve())
-    summary = _returned_summary_for_carry(body)
+    summary = _returned_summary_for_carry(body, forward_fields)
     # PATH + NOTE FIRST, SUMMARY LAST: downstream re-truncation
     # (safe_source_fact_body, limit 12000 / gemini 4000) cuts the TAIL, so the
     # load-bearing absolute path and note always survive while only the END of an
@@ -758,14 +830,20 @@ def _wiki_carry_view(building_root: Path, step_output_ref: str, body: str) -> st
 
 
 def _step_output_wiki_carry_body(
-    building_root: Path, step_output_ref: str
+    building_root: Path,
+    step_output_ref: str,
+    forward_fields: tuple[str, ...] = (),
 ) -> str | None:
-    """Read the step-output and return its compact wiki VIEW (or None if absent)."""
+    """Read the step-output and return its compact wiki VIEW (or None if absent).
+
+    ``forward_fields`` is the UPSTREAM step's declared carries_forward_fields;
+    when non-empty the inline summary is FILTERED to that handoff subset.
+    """
 
     body = _step_output_body_from_file(building_root, step_output_ref)
     if body is None:
         return None
-    return _wiki_carry_view(building_root, step_output_ref, body)
+    return _wiki_carry_view(building_root, step_output_ref, body, forward_fields)
 
 
 def wiki_carry_summary_text(view: str) -> str | None:

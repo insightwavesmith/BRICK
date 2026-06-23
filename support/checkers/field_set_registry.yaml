@@ -393,6 +393,7 @@ field_sets:
       - comparison_rule
       - required_return_shape
       - brick_instruction_body
+      - carries_forward_fields
       - source_facts
       - raw_refs
       - write_scope

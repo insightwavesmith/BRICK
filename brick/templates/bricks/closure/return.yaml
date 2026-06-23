@@ -10,6 +10,15 @@ required_return_shape:
   - next_target_candidates
   - deferred_smith_review_queue
   - transition_concern_evidence
+# HANDOFF subset carried inline to the parent goal / next building; support
+# FILTERS to these. Common envelope (observed_evidence, not_proven,
+# transition_concern_evidence) and the record-only deferred_smith_review_queue
+# stay LOCAL. Every field is a member of required_return_shape above.
+carries_forward_fields:
+  - narrowly_proven
+  - remaining_delta
+  - parent_goal_delta_status
+  - next_target_candidates
 parent_goal_delta_status:
   allowed_fields:
     - matched_delta_refs

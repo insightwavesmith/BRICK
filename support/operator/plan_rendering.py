@@ -739,6 +739,18 @@ def _store_step_template(
     # time (the runtime brick_row / BrickWork carry no kind or brick_spec_ref).
     if "brick_instruction_body" in step_template:
         stored["brick_instruction_body"] = str(step_template["brick_instruction_body"])
+    # CARRIES-FORWARD SET: the kind's HANDOFF subset (comma-joined field list from
+    # the primary return_template's optional carries_forward_fields). Carried onto
+    # the registry row -- like required_return_shape, selection metadata, NOT part
+    # of the declared-plan output -- so composition.py can stamp it onto the
+    # brick_row and the walker carry seam can FILTER an upstream summary to it.
+    # Stored only when NON-EMPTY: a kind with no declared carry-set leaves the key
+    # absent and the seam falls back to the full-summary carry (backward-safe).
+    # (_store_step_template is a key WHITELIST -- without this clause the row key
+    # would be silently dropped here, exactly the declared-but-not-wired trap.)
+    carries_forward = str(step_template.get("carries_forward_fields", "")).strip()
+    if carries_forward:
+        stored["carries_forward_fields"] = carries_forward
     step_templates[str(step_template["step_template_ref"])] = stored
 
 
@@ -1038,6 +1050,15 @@ def _step_templates_from_bricks(repo: Path) -> dict[str, dict[str, Any]]:
             "required_return_shape": _required_return_shape_from_primary_template(
                 repo, return_template_refs[0], label
             ),
+            # The kind's HANDOFF subset (carries_forward_fields) read from the SAME
+            # primary return_template, comma-joined the same way as
+            # required_return_shape so it tokenizes identically downstream. Carried
+            # onto the registry row so composition can stamp it onto the brick_row
+            # (beside required_return_shape) and the walker carry seam can FILTER the
+            # forwarded summary to it. EMPTY when the template omits it (no filter).
+            "carries_forward_fields": _carries_forward_fields_from_primary_template(
+                repo, return_template_refs[0], label
+            ),
             # ⑤ the kind's STATIC instruction (the brick.md ## body) carried onto the
             # registry row from the SAME file read once above, so composition.py can
             # stamp it onto the brick_row and the request builder threads it to the
@@ -1102,6 +1123,41 @@ def _required_return_shape_from_primary_template(repo: Path, primary_ref: str, l
         raise ValueError(
             f"{label}: return_template '{primary_ref}' required_return_shape is empty"
         )
+    return ",".join(fields)
+
+
+def _carries_forward_fields_from_primary_template(repo: Path, primary_ref: str, label: str) -> str:
+    """Derive the comma-joined carries_forward_fields from a kind's PRIMARY return_template.
+
+    Reads the primary return_template (refs[0]) and extracts its OPTIONAL top-level
+    ``carries_forward_fields:`` list -- the kind's HANDOFF subset of
+    required_return_shape. Returns the fields comma-joined (compatible with
+    brick.work.parse_carries_forward_fields), or "" when the key is ABSENT or empty.
+
+    Unlike required_return_shape this is OPTIONAL: a kind that has not (yet)
+    declared a carry-forward set yields "", which the walker carry seam reads as
+    "no filter" (full-summary carry preserved, backward-safe). A PRESENT key,
+    however, must be a list of non-empty strings (fail-closed on a malformed
+    declaration so a typo cannot silently disable the filter).
+    """
+    template_path = _split_catalog_file_path(repo, primary_ref)
+    doc = _load_yaml_mapping(template_path, f"{label} return_template {primary_ref}")
+    shape = doc.get("carries_forward_fields")
+    if shape is None:
+        return ""
+    if not isinstance(shape, Sequence) or isinstance(shape, (str, bytes)):
+        raise ValueError(
+            f"{label}: return_template '{primary_ref}' carries_forward_fields must be a "
+            "list of field names when present"
+        )
+    fields: list[str] = []
+    for index, item in enumerate(shape):
+        if not isinstance(item, str) or not item.strip():
+            raise ValueError(
+                f"{label}: return_template '{primary_ref}' carries_forward_fields[{index}] "
+                "must be non-empty text"
+            )
+        fields.append(item.strip())
     return ",".join(fields)
 
 

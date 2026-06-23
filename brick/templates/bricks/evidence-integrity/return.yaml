@@ -14,6 +14,15 @@ required_return_shape:
   - missing_evidence
   - evidence_used
   - not_proven
+# HANDOFF subset carried inline to closure; support FILTERS to these. Common
+# envelope (observed_evidence, evidence_used, not_proven) and evidence_scope stay
+# LOCAL. Every field is a member of required_return_shape above.
+carries_forward_fields:
+  - persisted_evidence_roots
+  - proof_limit_findings
+  - stale_source_risks
+  - missing_evidence
+  - checker_overclaim_risks
 next_link_input_sections:
   - observed public facts for Link
   - missing facts for Link Gate

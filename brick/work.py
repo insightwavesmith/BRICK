@@ -46,6 +46,26 @@ def parse_required_return_shape(value: Any) -> tuple[str, ...]:
     )
 
 
+def parse_carries_forward_fields(value: Any) -> tuple[str, ...]:
+    """Parse a Brick ``carries_forward_fields`` declaration into field names.
+
+    The carry-forward set is the HANDOFF subset of ``required_return_shape`` --
+    the fields a kind's return form declares should be carried INLINE to the next
+    worker (the "쪽지"). Parsing is IDENTICAL to ``parse_required_return_shape``
+    (comma/slash split, strip, ``-``→``_`` normalize, drop empties, preserve
+    order, keep duplicates, reject JSON-shaped text) so the two declarations
+    tokenize the same way and a forward field always matches a return-shape field.
+
+    An EMPTY/absent declaration yields ``()`` -- which the support carry seam
+    reads as "no filter declared" and so carries the FULL upstream summary
+    (the pre-filter, backward-compatible behavior). This keeps the filter
+    OPT-IN per kind: only a kind whose return.yaml declares a non-empty
+    ``carries_forward_fields`` narrows its forwarded summary.
+    """
+
+    return parse_required_return_shape(value)
+
+
 @dataclass(frozen=True)
 class BrickWork:
     """Work definition fact owned by the Brick axis."""
@@ -118,4 +138,4 @@ class BrickWork:
         return tuple(facts)
 
 
-__all__ = ["BrickWork", "parse_required_return_shape"]
+__all__ = ["BrickWork", "parse_required_return_shape", "parse_carries_forward_fields"]

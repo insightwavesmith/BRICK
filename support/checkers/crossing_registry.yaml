@@ -38,6 +38,7 @@ crossings:
     canonical_symbols:
       - BrickWork
       - parse_required_return_shape
+      - parse_carries_forward_fields
     defined_at: brick/work.py
     projection_yaml: brick/work.yaml
     pinned_by: check_axis_contract_projection (check_brick_work)

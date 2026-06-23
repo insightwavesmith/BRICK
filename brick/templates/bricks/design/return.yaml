@@ -18,6 +18,19 @@ required_return_shape:
   - evidence_refs
   - not_proven
   - reading_scope_map
+# The HANDOFF subset of required_return_shape -- the "쪽지" the DOWNSTREAM worker
+# needs inline. Support FILTERS the carried upstream summary to these fields
+# before it becomes the next node's source_facts. The COMMON ENVELOPE
+# (observed_evidence, not_proven, evidence_used, proof_limits, received_work_ref,
+# transition_concern_evidence) stays LOCAL and is never forwarded. Every field
+# here is a member of required_return_shape above (a legitimate subset).
+# downstream = work.
+carries_forward_fields:
+  - proposed_changes
+  - reading_scope_map
+  - invariants
+  - axis_responsibility
+  - candidate_file_changes
 next_link_input_sections:
   - public facts available for Link
   - missing facts for Link Gate

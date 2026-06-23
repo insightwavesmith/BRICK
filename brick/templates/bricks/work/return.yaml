@@ -13,6 +13,17 @@ required_return_shape:
   - blocked_or_missing_evidence
   - handoff_refs
   - not_proven
+# HANDOFF subset of required_return_shape carried inline to the DOWNSTREAM worker
+# (the "쪽지"); support FILTERS the carried summary to these before it becomes the
+# next node's source_facts. Common envelope (observed_evidence, not_proven,
+# received_work_ref, blocked_or_missing_evidence, ...) stays LOCAL. Every field is
+# a member of required_return_shape above. downstream = code-attack-qa,
+# axis-attack-qa, evidence-integrity.
+carries_forward_fields:
+  - made_changes
+  - changed_files
+  - commands_run
+  - handoff_refs
 next_link_input_sections:
   - public facts available for Link
   - missing facts for Link Gate

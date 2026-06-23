@@ -913,6 +913,16 @@ def _composition_brick_row(
         # last-resort literal (no-template branch preserved unchanged).
         "required_return_shape": _composition_optional_text(brick.get("required_return_shape")) or template_required_return_shape or "observed_evidence, not_proven",
     }
+    # Did the AUTHOR override required_return_shape? If so, the template's
+    # carries_forward_fields (a subset of the TEMPLATE's shape) is NOT a valid
+    # subset of the author's shape, so it must NOT be defaulted onto the row (that
+    # would FILTER OUT fields the author's custom shape carries -- a starvation).
+    # The carry-set default below is gated on this: it rides the SAME source as
+    # required_return_shape (template-shape => template-carry; author-shape =>
+    # author-carry-only).
+    author_overrode_return_shape = bool(
+        _composition_optional_text(brick.get("required_return_shape"))
+    )
     # ⑤ STATIC INSTRUCTION BODY: stamp the kind's brick.md ## body (carried on the
     # step_template registry row by plan_rendering) onto the brick_row, beside
     # required_return_shape so the how-to travels with the shape it describes. The
@@ -926,6 +936,32 @@ def _composition_brick_row(
     )
     if template_instruction_body:
         row["brick_instruction_body"] = str(template_instruction_body)
+    # CARRIES-FORWARD SET: stamp the kind's carries_forward_fields (the HANDOFF
+    # subset, carried on the step_template registry row by plan_rendering) onto the
+    # brick_row beside required_return_shape -- the SAME surface the walker carry
+    # seam reads to FILTER an UPSTREAM step's forwarded summary down to its handoff
+    # fields. The forward-set must be a SUBSET of the row's required_return_shape, so
+    # it rides the SAME source as that shape:
+    #   * an AUTHOR-supplied carries_forward_fields always wins (the author owns the
+    #     subset of whatever shape they declared);
+    #   * else the TEMPLATE default applies ONLY when the row's required_return_shape
+    #     is ALSO the template's (i.e. the author did NOT override the shape) -- so a
+    #     node with a CUSTOM required_return_shape gets NO template carry-set (no
+    #     filter, full carry), never one that would drop its custom fields;
+    #   * else empty (no filter -> full carry, backward-safe).
+    # Stamped only when non-empty so a kind with no declared carry-set leaves the
+    # row key absent and the seam falls back to the full-summary carry.
+    template_carries_forward = (
+        _composition_optional_text(step_template.get("carries_forward_fields"))
+        if isinstance(step_template, Mapping)
+        else None
+    )
+    author_carries_forward = _composition_optional_text(brick.get("carries_forward_fields"))
+    carries_forward = author_carries_forward or (
+        "" if author_overrode_return_shape else (template_carries_forward or "")
+    )
+    if carries_forward:
+        row["carries_forward_fields"] = carries_forward
     source_facts = brick.get("source_facts")
     if source_facts is not None:
         row["source_facts"] = list(_text_sequence(f"nodes[{index}].source_facts", source_facts))
