@@ -832,6 +832,33 @@ def _agent_instruction_packet_probe(repo: Path) -> Mapping[str, Any]:
     hook_resources = packet.get("hook_resources")
     if not isinstance(hook_resources, Mapping) or "selected" not in hook_resources:
         raise ProfileError("agent instruction packet hook_resources must preserve selected hooks")
+    # Manifest-shape pin (H4): skill_resources must be a fetch-on-demand MANIFEST
+    # (ref + kind=skill-manifest + path), NOT eager inline bodies. A regression that
+    # re-inlines the body (a 'body' key) is rejected, and the top-level
+    # skill_manifest_refs stamp must mirror the rows so the DECLARED audit stays
+    # honest (the OBSERVED fetch is not proven; only the offered set is recorded).
+    skill_resources = packet.get("skill_resources")
+    for row in skill_resources:  # non-empty list already asserted above
+        if not isinstance(row, Mapping):
+            raise ProfileError("agent instruction packet skill_resources row must be a mapping")
+        if row.get("kind") != "skill-manifest":
+            raise ProfileError(
+                "agent instruction packet skill_resources row must be a skill-manifest "
+                f"item (kind=skill-manifest), got kind={row.get('kind')!r}"
+            )
+        if not row.get("ref") or not row.get("path"):
+            raise ProfileError("agent instruction packet skill-manifest row must carry ref + path")
+        if "body" in row:
+            raise ProfileError(
+                "agent instruction packet skill_resources regressed to an EAGER body "
+                "(a manifest row must not inline the SKILL.md body)"
+            )
+    manifest_refs = packet.get("skill_manifest_refs")
+    if not isinstance(manifest_refs, list) or len(manifest_refs) != len(skill_resources):
+        raise ProfileError(
+            "agent instruction packet skill_manifest_refs stamp must mirror skill_resources "
+            f"(got {manifest_refs!r})"
+        )
     return packet
 
 

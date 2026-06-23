@@ -561,6 +561,66 @@ def _text_resources(repo: Path, refs: list[str], *, kind: str) -> list[dict[str,
     return resources
 
 
+# SKILLS NATIVE (0623): the kind a manifest skill row carries. A manifest row is a
+# LABELED INDEX (name + when-to-use description + path) the build agent FETCHES on
+# demand, instead of the whole SKILL.md body inlined eagerly into the CLI prompt.
+# Claude triggers natively on the description; codex/gemini read the path on demand.
+_SKILL_MANIFEST_RESOURCE_KIND = "skill-manifest"
+
+
+def _parse_skill_front_matter(path: Path) -> dict[str, str]:
+    """Parse ONLY the leading ``--- name: ... description: ... ---`` front-matter.
+
+    Reads the file but returns just the two manifest scalars (name, description) --
+    the SKILL.md BODY is never carried into the manifest row (that is the whole
+    point: the body is fetched on demand, not eagerly inlined). A skill whose
+    front-matter is missing/malformed degrades to empty strings (the renderer falls
+    back to the ref slug for name), never crashing the packet."""
+
+    text = _read_text(path)
+    name = ""
+    description = ""
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return {"name": name, "description": description}
+    for line in lines[1:]:
+        stripped = line.strip()
+        if stripped == "---":
+            break
+        if stripped.startswith("name:"):
+            name = stripped[len("name:") :].strip()
+        elif stripped.startswith("description:"):
+            description = stripped[len("description:") :].strip()
+    return {"name": name, "description": description}
+
+
+def _skill_manifest_resources(repo: Path, skill_refs: list[str]) -> list[dict[str, Any]]:
+    """Render skill refs as a MANIFEST (front-matter only), not eager full bodies.
+
+    Each row carries ``ref / kind=skill-manifest / name / description / path`` so the
+    runtime packet ships a labeled index the build agent fetches on demand. The
+    SKILL.md body is NEVER read into the row -- only the front-matter scalars -- so
+    the CLI argv no longer inlines N full skill bodies. The ``path`` is the
+    repo-relative SKILL.md so codex/gemini can read-on-demand and claude can locate
+    the projected skill file in the isolated HOME."""
+
+    resources: list[dict[str, Any]] = []
+    for ref in skill_refs:
+        path = _resource_path(repo, ref)
+        front = _parse_skill_front_matter(path)
+        name = front["name"] or _ref_slug(ref, "skill:")
+        resources.append(
+            {
+                "ref": ref,
+                "kind": _SKILL_MANIFEST_RESOURCE_KIND,
+                "name": name,
+                "description": front["description"],
+                "path": path.relative_to(repo).as_posix(),
+            }
+        )
+    return resources
+
+
 def _charter_resources(repo: Path, project_ref: str | None) -> list[dict[str, Any]]:
     """CHARTER-INJECT (0618): the project's README charter (헌장 — why the
     project exists, what it builds, what it must keep), delivered into EVERY
@@ -921,15 +981,26 @@ def render_agent_instruction_packet(
     ``charter_ref`` field (never a crash).
     """
 
-    packet = render_agent_packet(role_or_ref, repo_root=repo_root, project_ref=project_ref)
+    repo = _repo_root(repo_root)
+    packet = render_agent_packet(role_or_ref, repo_root=repo, project_ref=project_ref)
     agent_object = _require_mapping("agent_resource_packet.agent_object", packet["agent_object"])
     charter_resources = list(packet["charter_resources"])
+    # SKILLS NATIVE (0623): the RUNTIME packet carries a skill MANIFEST (front-matter
+    # index + path), NOT the eager full SKILL.md bodies. The KEY NAME stays
+    # ``skill_resources`` (so the kernel non-empty-list pin and the charter
+    # byte-identical pin keep passing -- only the item SHAPE changes), but the build
+    # agent now fetches a skill on demand instead of receiving every body inlined in
+    # the CLI argv. ``render_agent_packet`` (MCP resources, projections) is untouched:
+    # it still carries full bodies; only this runtime instruction packet swaps.
+    skill_manifest = _skill_manifest_resources(
+        repo, list(agent_object.get("skill_refs", []))
+    )
     instruction: dict[str, Any] = {
         "kind": "agent-instruction-packet",
         "agent_object_ref": str(agent_object["object_ref"]),
         "role": str(packet["role"]),
         "prompt_resources": list(packet["prompt_resources"]),
-        "skill_resources": list(packet["skill_resources"]),
+        "skill_resources": skill_manifest,
         "hook_resources": packet["hook_resources"],
         "tool_policy_resources": list(packet["tool_policy_resources"]),
         "discipline_resources": list(packet["discipline_resources"]),
@@ -938,10 +1009,29 @@ def render_agent_instruction_packet(
         "proof_limits": [
             "runtime AgentInstructionPacket support input only",
             "not a projection seed",
+            "skill_resources carries a fetch-on-demand manifest, not eager bodies",
             *list(packet["proof_limits"]),
         ],
-        "not_proven": list(packet["not_proven"]),
+        "not_proven": [
+            "skill_manifest_refs is the DECLARED offered set; whether the agent "
+            "actually fetched a given skill is NOT observed/recorded",
+            *list(packet["not_proven"]),
+        ],
     }
+    # DECLARED audit (always-on when skills are offered): stamp the manifest refs +
+    # paths OFFERED as a TOP-LEVEL fact, mirroring the charter_ref/project_ref
+    # stamps. Records WHICH skills were put in front of the agent (the body is no
+    # longer in the prompt, so this DECLARED list replaces the implicit-total record
+    # the eager inline used to carry).
+    #
+    # NOT-PROVEN (honest): this is the DECLARED set (what was offered). The OBSERVED
+    # "which skills the agent actually fetched" is NOT recorded -- no observed
+    # side-channel exists today. The DECLARED stamp does NOT prove a fetch happened.
+    if skill_manifest:
+        instruction["skill_manifest_refs"] = [
+            {"ref": str(row["ref"]), "path": str(row["path"])}
+            for row in skill_manifest
+        ]
     # Evidence mirror: stamp the injected charter_ref as a TOP-LEVEL fact next
     # to agent_object_ref (the same level the discipline/agent refs record),
     # so any sink that records the instruction packet records WHICH charter the

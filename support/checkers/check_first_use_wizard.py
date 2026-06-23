@@ -59,26 +59,52 @@ def _fake_doctor_packet() -> dict[str, Any]:
     }
 
 
-def _fake_build_packet(repo: Path, output_root: Path) -> dict[str, Any]:
+def _fake_wizard_packet(*, example_ok: bool) -> dict[str, Any]:
+    """The install-wizard packet shape ``_cmd_init`` reads to decide FIRST_USE.md.
+
+    INSTALL-WIZARD-0623: ``brick init`` now routes through
+    ``onboard.run_install_wizard`` (doctor + plugin + slack + onboard example),
+    NOT the old ``cli._run_build``. So the checker patches THIS seam: a controlled
+    packet whose ``steps.present`` is the fake doctor and whose
+    ``steps.onboard.example_result`` drives the success / build_error branch. The
+    behavior under test (FIRST_USE.md generated on a good example, none on a
+    failure) is unchanged -- only the internal seam name moved."""
+
+    example_result: dict[str, Any] = (
+        {
+            "ok": True,
+            "ran": True,
+            "building_id": "first-use-checker-fixture",
+            "adapter_ref": "adapter:local",
+            "chain_preset_ref": "building-chain-preset:onboarding-example-graph",
+            "evidence_root": "",
+            "frontier_kind": "complete",
+        }
+        if example_ok
+        else {
+            "ok": False,
+            "ran": True,
+            "error_kind": "RuntimeError",
+            "error_message": "checker simulated build_error",
+        }
+    )
+    # The fixture mirrors the REAL wizard shape (run_install_wizard): ordered_steps
+    # is the actual steps-dict key order (so steps[key] always resolves), the 6-phase
+    # human story lives in phase_narrative, and the hard gate ``ok`` is fail-closed
+    # (explicit True only). _cmd_init reads steps.present + steps.onboard.example_result.
+    steps = {
+        "present": _fake_doctor_packet(),
+        "onboard": {"example_result": example_result},
+    }
     return {
-        "command": "build",
-        "repo_root": str(repo),
-        "output_root": str(output_root),
-        "building_id": "first-use-checker-fixture",
-        "declared_by": "coo",
-        "task_source_basis": "task_source_ref",
-        "chain_preset_ref": "building-chain-preset:onboarding-example-graph",
-        "adapter_ref": "adapter:local",
-        "isolation_mode": "checker-simulated",
-        "isolation_reason": "checker fixture avoids live provider calls",
-        "base_sha": "checker-fixture",
-        "worktree_path": "",
-        "evidence_root": str(output_root / "first-use-checker-fixture"),
-        "frontier_kind": "complete",
-        "commit_sha": "",
-        "worktree_disposed": True,
-        "proof_limits": ["support evidence only"],
-        "not_proven": ["real provider behavior"],
+        "kind": "install-wizard",
+        "ordered_steps": list(steps.keys()),
+        "phase_narrative": ["present", "plugin", "slack", "onboard", "verify"],
+        "steps": steps,
+        "ok": example_ok is True,
+        "advisory_step_ok": {},
+        "not_proven": [],
+        "verify_note": "step 6 (verify) is skipped under the checker drive",
     }
 
 
@@ -86,22 +112,29 @@ def _fake_build_packet(repo: Path, output_root: Path) -> dict[str, Any]:
 def _patched_init_dependencies(
     cli: Any,
     *,
-    build_func: Callable[[Any], Mapping[str, Any]],
+    wizard_func: Callable[..., Mapping[str, Any]],
 ) -> Iterator[None]:
-    original_run_build = cli._run_build
-    original_run_doctor = cli.onboard.run_doctor
-    cli._run_build = build_func
-    cli.onboard.run_doctor = _fake_doctor_packet
+    # INSTALL-WIZARD-0623: ``_cmd_init`` routes through ``onboard.run_install_wizard``
+    # (doctor + plugin install + slack + onboard example), so patch THAT seam to a
+    # controlled packet. Patching it also keeps the checker hermetic: the real wizard
+    # would shell out (``claude mcp add``), write ~/.claude / ~/.codex / ~/.brick, and
+    # run a live example build -- none of which a support checker may cause.
+    original_run_install_wizard = cli.onboard.run_install_wizard
+    cli.onboard.run_install_wizard = wizard_func
     try:
         yield
     finally:
-        cli._run_build = original_run_build
-        cli.onboard.run_doctor = original_run_doctor
+        cli.onboard.run_install_wizard = original_run_install_wizard
 
 
 def _run_cli_init(cli: Any, repo: Path, output_root: Path) -> tuple[int, str, str]:
     stdout = io.StringIO()
     stderr = io.StringIO()
+    # --skip-verify: the wizard's step-6 runs ``check_profile --all``; a checker that
+    # drives ``init`` WITHOUT this would recurse into the whole suite (init -> --all ->
+    # first_use_wizard -> init -> ...). The FIRST_USE.md branch under test does not need
+    # the verify step. --skip-plugin / --skip-recording belt-and-suspenders the hermetic
+    # drive even though the wizard seam itself is patched out above.
     argv = [
         "init",
         "--repo",
@@ -110,6 +143,9 @@ def _run_cli_init(cli: Any, repo: Path, output_root: Path) -> tuple[int, str, st
         str(output_root),
         "--timeout",
         "1",
+        "--skip-verify",
+        "--skip-plugin",
+        "--skip-recording",
     ]
     with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
         code = int(cli.main(argv))
@@ -164,10 +200,10 @@ def run_check(repo: Path) -> str:
     with tempfile.TemporaryDirectory(prefix="bp-first-use-success-") as raw:
         output_root = Path(raw) / "builds"
 
-        def build_ok(_args: Any) -> Mapping[str, Any]:
-            return _fake_build_packet(repo, output_root)
+        def wizard_ok(*_args: Any, **_kwargs: Any) -> Mapping[str, Any]:
+            return _fake_wizard_packet(example_ok=True)
 
-        with _patched_init_dependencies(cli, build_func=build_ok):
+        with _patched_init_dependencies(cli, wizard_func=wizard_ok):
             code, stdout, stderr = _run_cli_init(cli, repo, output_root)
         if code != 0:
             raise FirstUseWizardError(
@@ -182,10 +218,10 @@ def run_check(repo: Path) -> str:
     with tempfile.TemporaryDirectory(prefix="bp-first-use-failure-") as raw:
         output_root = Path(raw) / "builds"
 
-        def build_raises(_args: Any) -> Mapping[str, Any]:
-            raise RuntimeError("checker simulated build_error")
+        def wizard_failed(*_args: Any, **_kwargs: Any) -> Mapping[str, Any]:
+            return _fake_wizard_packet(example_ok=False)
 
-        with _patched_init_dependencies(cli, build_func=build_raises):
+        with _patched_init_dependencies(cli, wizard_func=wizard_failed):
             code, stdout, stderr = _run_cli_init(cli, repo, output_root)
         if code != 1:
             raise FirstUseWizardError(

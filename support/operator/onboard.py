@@ -752,6 +752,474 @@ def _render_recording_text(recording: dict[str, Any]) -> str:
 
 
 # ---------------------------------------------------------------------------
+# INSTALL WIZARD STEPS (INSTALL-WIZARD-0623)
+#
+# B2 plugin install (MCP register + skills place), B3 Slack provision. These are
+# the steps `brick init` runs in order so a beginner gets ONE command that wires
+# everything, idempotently, with friendly fallbacks (never a hard stop).
+#
+# These steps live in the OPERATOR layer (allowed to spawn subprocesses); the
+# read-side connect.py / mcp_projection.py stay subprocess-free. Each step
+# checks-then-acts (idempotent) and returns a friendly evidence packet -- never
+# raises.
+# ---------------------------------------------------------------------------
+
+
+def _claude_cli_available() -> bool:
+    import shutil  # noqa: PLC0415
+
+    return shutil.which("claude") is not None
+
+
+def run_mcp_register_step(repo_root: Path | str | None = None) -> dict[str, Any]:
+    """B2a: REGISTER the brick-protocol MCP for the user's own interactive CLIs.
+
+    For claude: runs the real ``claude mcp add`` (idempotent -- if the server is
+    already registered, claude reports it and we record skipped). For codex: writes
+    the ``[mcp_servers.brick-protocol]`` block connect.py renders into the user's
+    ``~/.codex/config.toml`` (merge-aware: skip if a brick-protocol block already
+    exists, never clobber a hand-edited file). NEVER raises.
+
+    NOTE the split: this persists the MCP for the user's OWN interactive sessions.
+    A DISPATCHED build CLI gets the MCP wired per-invocation by the adapter
+    (A1, --mcp-config / -c overrides into the isolated room), independent of this
+    persistence -- so a build agent sees the MCP even if the user skipped this step.
+    """
+
+    import subprocess  # noqa: PLC0415
+
+    repo = _safe_repo_root(repo_root)
+    actions: list[dict[str, Any]] = []
+
+    # --- claude: real `claude mcp add` ---
+    if _claude_cli_available():
+        # M5: use connect's argv-LIST helper verbatim (single source). A
+        # ``.split()`` of the one-liner would shred a repo path containing spaces,
+        # so the actual registration must reuse the exact argv connect renders.
+        argv = connect.render_claude_mcp_command_argv(repo)
+        try:
+            completed = subprocess.run(  # noqa: S603 -- fixed-shape connect argv
+                argv,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=False,
+            )
+            combined = f"{completed.stdout}\n{completed.stderr}".lower()
+            if completed.returncode == 0:
+                actions.append(
+                    {"target": "claude", "action": "registered", "note": ""}
+                )
+            elif "already exists" in combined or "already configured" in combined:
+                actions.append(
+                    {"target": "claude", "action": "unchanged", "note": "already registered"}
+                )
+            else:
+                actions.append(
+                    {
+                        "target": "claude",
+                        "action": "error",
+                        "note": (completed.stderr or completed.stdout or "").strip()[:200],
+                    }
+                )
+        except Exception as exc:  # noqa: BLE001 -- friendly field, never raise
+            actions.append(
+                {"target": "claude", "action": "error", "note": repr(exc)}
+            )
+    else:
+        actions.append(
+            {"target": "claude", "action": "skipped", "note": "claude CLI not installed"}
+        )
+
+    # --- codex: merge the rendered block into ~/.codex/config.toml ---
+    actions.append(_codex_mcp_config_merge(repo))
+
+    ok = all(action.get("action") != "error" for action in actions)
+    message_ko = (
+        "brick-protocol MCP 서버를 등록했어요 ✅ (codex/claude 내 세션에서 바로 보여요)"
+        if ok
+        else "MCP 등록 중 일부 문제가 있었어요 (아래 안내 확인)."
+    )
+    return {"ok": ok, "repo_root": str(repo), "actions": actions, "message_ko": message_ko}
+
+
+def _codex_mcp_config_merge(repo: Path) -> dict[str, Any]:
+    """Append connect.py's brick-protocol block to ~/.codex/config.toml (idempotent).
+
+    Skip if a ``[mcp_servers.brick-protocol]`` block already exists (never clobber a
+    user-edited config). Create the file 0600 if absent. NEVER raises."""
+
+    block = connect.render_codex_mcp_config(repo)
+    target = Path("~/.codex/config.toml").expanduser()
+    marker = "[mcp_servers.brick-protocol]"
+    try:
+        if target.exists():
+            existing = target.read_text(encoding="utf-8")
+            if marker in existing:
+                return {"target": "codex", "action": "unchanged", "note": "already in ~/.codex/config.toml"}
+            sep = "" if existing.endswith("\n\n") else ("\n" if existing.endswith("\n") else "\n\n")
+            target.write_text(existing + sep + block, encoding="utf-8")
+            return {"target": "codex", "action": "merged", "note": "appended to ~/.codex/config.toml"}
+        target.parent.mkdir(parents=True, exist_ok=True)
+        import os  # noqa: PLC0415
+
+        fd = os.open(str(target), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        try:
+            os.write(fd, block.encode("utf-8"))
+        finally:
+            os.close(fd)
+        return {"target": "codex", "action": "installed", "note": "wrote ~/.codex/config.toml"}
+    except Exception as exc:  # noqa: BLE001 -- friendly field, never raise
+        return {"target": "codex", "action": "error", "note": repr(exc)}
+
+
+def run_skills_place_step(repo_root: Path | str | None = None) -> dict[str, Any]:
+    """B2b: PROJECT the Agent-axis skills into the user's ~/.claude/skills/ index.
+
+    Renders each admitted Agent Object's skills (via the read-only
+    ``render_skill_md`` projection) into ``~/.claude/skills/<name>/SKILL.md`` so
+    claude can NATIVELY trigger them on description (couples with the A2 manifest:
+    the runtime packet ships the index, claude fetches the file). Idempotent
+    (compare + skip), never clobbers a user-modified skill file, NEVER raises.
+    """
+
+    from brick_protocol.support.connection.agent_resources import (  # noqa: PLC0415
+        AgentResourceError,
+        list_agent_object_refs,
+        resolve_agent_object,
+    )
+    from brick_protocol.support.connection.agent_resources import (  # noqa: PLC0415
+        render_skill_md,
+    )
+
+    repo = _safe_repo_root(repo_root)
+    skills_root = Path("~/.claude/skills").expanduser()
+    actions: list[dict[str, Any]] = []
+    seen_skill_refs: set[str] = set()
+    try:
+        for object_ref in list_agent_object_refs(repo):
+            resolution = resolve_agent_object(object_ref, repo_root=repo)
+            for skill in resolution.get("skill_resources", []):
+                ref = str(skill.get("ref") or "")
+                if ref in seen_skill_refs:
+                    continue
+                seen_skill_refs.add(ref)
+                actions.append(_place_one_skill(repo, skills_root, skill, render_skill_md))
+    except (AgentResourceError, OSError, ValueError) as exc:
+        actions.append({"path": "", "action": "error", "note": repr(exc)})
+
+    ok = all(action.get("action") != "error" for action in actions)
+    # L1: _place_one_skill returns unchanged/skipped_modified/installed/error only --
+    # there is no "updated" action, so it is not counted (dead vocab dropped).
+    placed = sum(1 for a in actions if a.get("action") == "installed")
+    message_ko = (
+        f"브릭 스킬 {placed}개를 ~/.claude/skills/ 에 깔았어요 ✅ "
+        "(claude가 설명을 보고 필요할 때 알아서 불러와요)"
+        if ok
+        else "스킬 설치 중 일부 문제가 있었어요 (아래 안내 확인)."
+    )
+    return {"ok": ok, "repo_root": str(repo), "skills_root": str(skills_root), "actions": actions, "message_ko": message_ko}
+
+
+def _place_one_skill(
+    repo: Path,
+    skills_root: Path,
+    skill: Mapping[str, Any],
+    render_skill_md: Any,
+) -> dict[str, Any]:
+    """Render + place ONE skill (compare + skip + warn). Never raises."""
+
+    ref = str(skill.get("ref") or "")
+    # The directory name (the ref slug) is the canonical Agent-Skills name. Normalize
+    # underscores to hyphens (the Agent-Skills standard render_skill_md enforces) so a
+    # source SKILL.md whose front-matter name drifted to an underscore (e.g.
+    # task_intake vs the task-intake dir) still projects cleanly instead of erroring.
+    name = (ref.removeprefix("skill:") if ref.startswith("skill:") else ref).replace("_", "-")
+    rel_path = str(skill.get("path") or "")
+    try:
+        body = str(skill.get("body") or "")
+        # The projected SKILL.md needs a name + description front-matter. The source
+        # SKILL.md already carries them; we use the hyphen-normalized DIR name (so it
+        # matches the placed directory + the Agent-Skills standard) and the source
+        # description, falling back to a generic description.
+        front = _skill_front_matter_from_body(body)
+        rendered = render_skill_md(
+            name,
+            front.get("description") or f"Brick Protocol skill {name}",
+            _skill_body_without_front_matter(body),
+        )
+    except Exception as exc:  # noqa: BLE001 -- friendly field, never raise
+        return {"path": f"~/.claude/skills/{name}/SKILL.md", "action": "error", "note": repr(exc)}
+
+    target = skills_root / name / "SKILL.md"
+    display = f"~/.claude/skills/{name}/SKILL.md"
+    try:
+        if target.exists():
+            current = target.read_text(encoding="utf-8")
+            if current == rendered:
+                return {"path": display, "action": "unchanged", "note": "", "source": rel_path}
+            return {
+                "path": display,
+                "action": "skipped_modified",
+                "note": "existing skill file differs; NOT overwritten",
+                "source": rel_path,
+            }
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(rendered, encoding="utf-8")
+        return {"path": display, "action": "installed", "note": "", "source": rel_path}
+    except Exception as exc:  # noqa: BLE001 -- friendly field, never raise
+        return {"path": display, "action": "error", "note": repr(exc)}
+
+
+def _skill_front_matter_from_body(body: str) -> dict[str, str]:
+    name = ""
+    description = ""
+    lines = body.splitlines()
+    if lines and lines[0].strip() == "---":
+        for line in lines[1:]:
+            stripped = line.strip()
+            if stripped == "---":
+                break
+            if stripped.startswith("name:"):
+                name = stripped[len("name:") :].strip()
+            elif stripped.startswith("description:"):
+                description = stripped[len("description:") :].strip()
+    return {"name": name, "description": description}
+
+
+def _skill_body_without_front_matter(body: str) -> str:
+    lines = body.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return body.strip()
+    for index in range(1, len(lines)):
+        if lines[index].strip() == "---":
+            return "\n".join(lines[index + 1 :]).strip()
+    return body.strip()
+
+
+# B3 SLACK PROVISION: the report-delivery spine is COMPLETE (default policy fans
+# out to local-inbox + slack + dashboard with allow_real=True; the auto-loader is
+# wired at every report seam; pinned by check_report_env_autoload). The ONLY hole
+# is that nothing CREATES/validates ~/.brick/report.env -- the loader silently
+# no-ops on an absent file. This step provisions/validates that file (0600).
+_SLACK_BOT_TOKEN_KEY = "BRICK_REPORT_SLACK_BOT_TOKEN"
+_SLACK_CHANNEL_ID_KEY = "BRICK_REPORT_SLACK_CHANNEL_ID"
+
+
+def _env_key_has_value(text: str, key: str) -> bool:
+    """Shape check: a non-comment ``[export ]KEY=<non-empty>`` line exists for key.
+
+    Presence/shape ONLY -- the value is never echoed, stored, or returned. A comment
+    line (leading ``#``) and an empty RHS (``KEY=`` / ``KEY=   ``) are rejected so a
+    placeholder never reports as configured. Whitespace/quotes are stripped before
+    the emptiness test (``KEY=""`` is empty)."""
+
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        body = line[len("export "):].strip() if line.startswith("export ") else line
+        prefix = key + "="
+        if not body.startswith(prefix):
+            continue
+        value = body[len(prefix):].strip().strip("\"'").strip()
+        if value:
+            return True
+    return False
+
+
+def run_slack_provision_step(
+    *,
+    slack_bot_token: str | None = None,
+    slack_channel_id: str | None = None,
+) -> dict[str, Any]:
+    """B3: provision/validate ~/.brick/report.env (0600) with the two Slack keys.
+
+    Friendly fallback: if no Slack credentials are supplied AND none already exist,
+    this is a NON-FATAL advisory (local-inbox delivery still works) -- it never
+    hard-stops the wizard. When credentials ARE supplied it writes them 0600; when
+    the file already exists it VALIDATES (presence of both keys + 0600 perms) and
+    never overwrites. Reads the values only from the explicit args (never echoes a
+    secret value back). NEVER raises.
+    """
+
+    import os  # noqa: PLC0415
+    import stat as stat_mod  # noqa: PLC0415
+
+    target = Path("~/.brick/report.env").expanduser()
+    result: dict[str, Any] = {
+        "ok": True,
+        "path": str(target),
+        "action": "",
+        "slack_configured": False,
+        "perms_ok": None,
+        "message_ko": "",
+    }
+    try:
+        if target.exists():
+            mode = stat_mod.S_IMODE(target.stat().st_mode)
+            perms_ok = not (mode & (stat_mod.S_IRWXG | stat_mod.S_IRWXO))
+            result["perms_ok"] = perms_ok
+            text = target.read_text(encoding="utf-8")
+            # M3: parse `export KEY=value` with a NON-EMPTY value (shape/presence
+            # only -- never echo or store the value). A bare mention, a comment line,
+            # or an empty value (e.g. `# BRICK_REPORT_SLACK_BOT_TOKEN=` or
+            # `export BRICK_REPORT_SLACK_BOT_TOKEN=`) does NOT count as configured.
+            has_token = _env_key_has_value(text, _SLACK_BOT_TOKEN_KEY)
+            has_channel = _env_key_has_value(text, _SLACK_CHANNEL_ID_KEY)
+            result["slack_configured"] = bool(has_token and has_channel)
+            result["action"] = "validated"
+            if not perms_ok:
+                result["ok"] = False
+                result["message_ko"] = (
+                    f"report.env 권한이 느슨해요 → chmod 600 {target} 를 실행하세요 "
+                    "(0600이어야 슬랙 토큰이 로드돼요)."
+                )
+            elif result["slack_configured"]:
+                result["message_ko"] = "report.env 에 슬랙 키 2개가 이미 있어요 ✅ (그대로 둡니다)"
+            else:
+                result["message_ko"] = (
+                    "report.env 는 있지만 슬랙 키 2개가 다 들어있진 않아요. "
+                    "슬랙 알림을 켜려면 BRICK_REPORT_SLACK_BOT_TOKEN + "
+                    "BRICK_REPORT_SLACK_CHANNEL_ID 를 채우세요 (없어도 로컬 기록은 작동)."
+                )
+            return result
+
+        token = (slack_bot_token or "").strip()
+        channel = (slack_channel_id or "").strip()
+        if not token or not channel:
+            # Friendly fallback: no file, no credentials -> advisory, NOT an error.
+            result["action"] = "skipped"
+            result["message_ko"] = (
+                "슬랙 알림은 아직 안 켰어요 (선택). 켜려면 ~/.brick/report.env (0600) 에 "
+                "BRICK_REPORT_SLACK_BOT_TOKEN 과 BRICK_REPORT_SLACK_CHANNEL_ID 를 넣으세요. "
+                "지금도 로컬 기록(local-inbox)은 그대로 작동해요."
+            )
+            return result
+
+        target.parent.mkdir(parents=True, exist_ok=True)
+        body = (
+            f"export {_SLACK_BOT_TOKEN_KEY}={token}\n"
+            f"export {_SLACK_CHANNEL_ID_KEY}={channel}\n"
+        )
+        fd = os.open(str(target), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        try:
+            os.write(fd, body.encode("utf-8"))
+        finally:
+            os.close(fd)
+        result["action"] = "installed"
+        result["slack_configured"] = True
+        result["perms_ok"] = True
+        result["message_ko"] = "슬랙 키 2개를 ~/.brick/report.env (0600) 에 저장했어요 ✅"
+        return result
+    except Exception as exc:  # noqa: BLE001 -- friendly field, never raise
+        result["ok"] = False
+        result["action"] = "error"
+        result["message_ko"] = "report.env 설정 중 문제가 생겼어요 (아래 안내 확인)."
+        result["error_kind"] = type(exc).__name__
+        result["error_message"] = str(exc)
+        return result
+
+
+def run_install_wizard(
+    repo_root: Path | str | None = None,
+    *,
+    host: str = "claude",
+    output_root: Path | str | None = None,
+    allow_real_provider: bool = False,
+    run_example: bool = True,
+    wire_recording: bool = True,
+    register_mcp: bool = True,
+    place_skills: bool = True,
+    slack_bot_token: str | None = None,
+    slack_channel_id: str | None = None,
+) -> dict[str, Any]:
+    """The ONE ordered, idempotent, friendly-fallback install flow (`brick init`).
+
+    Converges the two previously-disconnected install flows (the thin
+    cli.py:_cmd_init and the richer run_onboard) into one ordered sequence:
+
+      1 PRESENT  -> doctor (provider/gh readiness)
+      2 PLUGIN   -> MCP register + skills place + recording hooks
+      3 SLACK    -> provision/validate ~/.brick/report.env (0600)
+      4+5 ONBOARD/EXAMPLE -> run_onboard (preflight + connect + example build)
+      6 VERIFY   -> the caller (cli.py) runs check_profile --all ONCE at the end
+
+    Each step degrades to a friendly advisory and continues; only a hard failure
+    of the example build is fatal (preserving the prior cli.py contract). NEVER
+    raises. The VERIFY step (6) is intentionally NOT run here -- the CADENCE is
+    per-step compileall + check_profile --all ONCE, which the cli.py wrapper owns.
+    """
+
+    repo = _safe_repo_root(repo_root)
+    steps: dict[str, Any] = {}
+
+    # 1 PRESENT
+    steps["present"] = run_doctor()
+
+    # 2 PLUGIN: MCP register + skills place + recording hooks
+    if register_mcp:
+        steps["mcp_register"] = run_mcp_register_step(repo_root=repo)
+    if place_skills:
+        steps["skills_place"] = run_skills_place_step(repo_root=repo)
+    if wire_recording:
+        steps["recording"] = run_recording_setup(repo_root=repo)
+
+    # 3 SLACK
+    steps["slack"] = run_slack_provision_step(
+        slack_bot_token=slack_bot_token,
+        slack_channel_id=slack_channel_id,
+    )
+
+    # 4+5 ONBOARD + EXAMPLE (preflight + connect + example build + handoff)
+    steps["onboard"] = run_onboard(
+        host,
+        repo_root=repo,
+        run_example=run_example,
+        output_root=output_root,
+        allow_real_provider=allow_real_provider,
+    )
+
+    # Honest aggregate: the example build is the only hard gate (mirrors the prior
+    # cli.py contract); every other step is a friendly advisory that never blocks.
+    #
+    # M4 (FAIL-CLOSED): the hard gate requires example.ok to be EXPLICITLY True. A
+    # missing/None ok (shape drift) is NOT silently treated as green -- it is
+    # not_proven, so the gate stays closed (fatal_ok False). Likewise an advisory
+    # step with a missing ok is recorded as not_proven rather than assumed ok.
+    example = steps["onboard"].get("example_result", {}) if isinstance(steps["onboard"], dict) else {}
+    fatal_ok = example.get("ok") is True
+    advisory_steps = [
+        (key, step) for key, step in steps.items()
+        if key != "onboard" and isinstance(step, dict)
+    ]
+    # OBSERVED facts (support records what each step reported; it does not synthesize
+    # a single boolean verdict). A step is observed-ok only when it EXPLICITLY says so.
+    advisory_step_ok = {key: (step.get("ok") is True) for key, step in advisory_steps}
+    not_proven: list[str] = []
+    if example.get("ok") is None:
+        not_proven.append("onboard.example_result.ok absent -> hard gate not_proven (fatal_ok closed)")
+    for key, step in advisory_steps:
+        if step.get("ok") is None:
+            not_proven.append(f"steps.{key}.ok absent -> advisory step not_proven")
+    # H5: ordered_steps carries the ACTUAL step keys (dict insertion order == run
+    # order) so a consumer that walks ordered_steps to look up steps[key] always
+    # resolves. The 6-phase human narrative (present/plugin/slack/onboard/verify)
+    # lives in phase_narrative, separate from the real per-step keys.
+    return {
+        "kind": "install-wizard",
+        "repo_root": str(repo),
+        "ordered_steps": list(steps.keys()),
+        "phase_narrative": ["present", "plugin", "slack", "onboard", "verify"],
+        "steps": steps,
+        "ok": fatal_ok,
+        "advisory_step_ok": advisory_step_ok,
+        "not_proven": not_proven,
+        "verify_note": "step 6 (verify) runs check_profile --all ONCE in the cli wrapper",
+    }
+
+
+# ---------------------------------------------------------------------------
 # ONBOARD DOCTOR (ONBOARD-POLISH 0611)
 #
 # ``onboard doctor`` exposes the EXISTING never-raising preflight as a one-shot
@@ -2060,6 +2528,10 @@ __all__ = [
     "run_onboard",
     "render_proposal_for_human",
     "run_recording_setup",
+    "run_install_wizard",
+    "run_mcp_register_step",
+    "run_skills_place_step",
+    "run_slack_provision_step",
 ]
 
 

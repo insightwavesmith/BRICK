@@ -1,0 +1,33 @@
+schema: checker-profile/v1
+profile_id: mcp-dispatch-wire
+description: Pins the brick-protocol MCP config + the per-provider isolation lever into BOTH local-CLI dispatch branches in support/connection/adapter_local_cli.py (claude --mcp-config + --strict-mcp-config; codex -c mcp_servers.* + --ignore-user-config), reusing connect.py's single-source registration shape, so a dispatched build CLI sees the brick MCP regardless of the user's own ~/.claude / ~/.codex config (INSTALL-WIZARD-0623 engine-native A1). Fails closed.
+kernel_checks:
+  - mcp_dispatch_wire
+path_exists:
+  - support/connection/adapter_local_cli.py
+  - support/connection/connect.py
+  - support/checkers/check_mcp_dispatch_wire.py
+  - support/checkers/profiles/mcp_dispatch_wire.yaml
+text_contains:
+  - path: support/connection/adapter_local_cli.py
+    texts:
+      - _claude_mcp_config_json
+      - _codex_mcp_config_cli_args
+      - --strict-mcp-config
+      - --ignore-user-config
+      - _brick_mcp_server_argv
+  - path: support/checkers/check_mcp_dispatch_wire.py
+    texts:
+      - _CLAUDE_REQUIRED_NAMES
+      - _CODEX_REQUIRED_NAMES
+      - FAILS CLOSED
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+  - not provider proof
+not_proven:
+  - that a dispatched agent actually called a brick MCP tool (a real tools/list round-trip stays NOT-PROVEN until a live adapter:claude-local dispatch)
+  - provider MCP installation behavior

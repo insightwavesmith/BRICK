@@ -84,6 +84,261 @@ if TYPE_CHECKING:
     )
 
 
+# ISOLATION (Smith 0623 operator decision): a dispatched build CLI must run in a
+# SCRUBBED room, not the user's own ~/.claude / ~/.codex with their skills, hooks,
+# and MCP servers bleeding in. The allowlist below is the ONLY env the child
+# inherits by default; HOME + the provider config-dir + carried auth keys are
+# layered on per provider. This is a clean-env allowlist (NOT dict(os.environ)),
+# so a stray user env var (an unrelated API key, a hook toggle) never reaches the
+# dispatched provider. Support mechanics only: it carries env, it judges nothing.
+_ISOLATED_ENV_ALLOWLIST_KEYS: tuple[str, ...] = (
+    "PATH",
+    "HOME",  # replaced below with the temp HOME; listed so a missing key is explicit
+    "LANG",
+    "LC_ALL",
+    "LC_CTYPE",
+    "TERM",
+    "TMPDIR",
+    "SHELL",
+    "USER",
+    "LOGNAME",
+)
+# Auth env that must be CARRIED THROUGH the scrub so the provider can still talk to
+# its backend (the door key). These are credential-bearing, so they are the ONLY
+# user-env values forwarded; everything else is dropped. Per-provider, narrow.
+_CLAUDE_AUTH_CARRY_ENV_KEYS: tuple[str, ...] = (
+    "ANTHROPIC_API_KEY",
+    "ANTHROPIC_AUTH_TOKEN",
+    "CLAUDE_CODE_OAUTH_TOKEN",
+)
+_CODEX_AUTH_CARRY_ENV_KEYS: tuple[str, ...] = (
+    "OPENAI_API_KEY",
+    "CODEX_API_KEY",
+)
+# Opt OUT of isolation (default ON): a stray legacy caller that genuinely needs the
+# user's own config can set BRICK_BUILD_ISOLATION=0. Default/unset/any-other-value
+# keeps isolation ON (fail-safe toward the clean room).
+_BUILD_ISOLATION_ENV = "BRICK_BUILD_ISOLATION"
+
+
+def _build_isolation_enabled() -> bool:
+    return os.environ.get(_BUILD_ISOLATION_ENV) != "0"
+
+
+def _scrubbed_base_env() -> dict[str, str]:
+    """The clean allowlist env (no user ~/.* config leakage, no stray user vars)."""
+
+    base: dict[str, str] = {}
+    for key in _ISOLATED_ENV_ALLOWLIST_KEYS:
+        if key == "HOME":
+            continue  # HOME is set to the temp room by the caller, never inherited
+        value = os.environ.get(key)
+        if value is not None:
+            base[key] = value
+    return base
+
+
+def _carry_auth_env(base: dict[str, str], carry_keys: tuple[str, ...]) -> None:
+    for key in carry_keys:
+        value = os.environ.get(key)
+        if value:
+            base[key] = value
+
+
+def _brick_mcp_server_argv(repo_root: Path) -> list[str]:
+    """Single-source the brick-protocol MCP server command + args.
+
+    Reuses connect.py's derivation (the same ``parents[2]`` repo-root + server
+    script path it already renders for the hand-paste connect docs), so the
+    DISPATCH-time wiring and the connect docs register byte-identically -- one
+    registration shape, no second copy of the path."""
+
+    from . import connect
+
+    script = connect._server_script(repo_root)
+    return ["python3", str(script), "--repo", str(repo_root)]
+
+
+_BRICK_MCP_SERVER_NAME = "brick-protocol"
+
+
+def _claude_mcp_config_json(repo_root: Path) -> str:
+    """Inline --mcp-config JSON wiring the brick-protocol MCP for a claude dispatch."""
+
+    command, *args = _brick_mcp_server_argv(repo_root)
+    return json.dumps(
+        {
+            "mcpServers": {
+                _BRICK_MCP_SERVER_NAME: {"command": command, "args": args},
+            }
+        },
+        sort_keys=True,
+    )
+
+
+def _codex_mcp_config_cli_args(repo_root: Path) -> list[str]:
+    """`-c mcp_servers.brick-protocol.*` overrides wiring the MCP for a codex dispatch."""
+
+    command, *args = _brick_mcp_server_argv(repo_root)
+    return [
+        "-c",
+        f"mcp_servers.{_BRICK_MCP_SERVER_NAME}.command={json.dumps(command)}",
+        "-c",
+        f"mcp_servers.{_BRICK_MCP_SERVER_NAME}.args={json.dumps(args)}",
+    ]
+
+
+def _repo_root_for_request(spec: LocalCliSpec) -> Path:
+    """The BRICK repo root whose mcp_projection.py the dispatch wires as the MCP.
+
+    Single-sourced from connect.py's own ``parents[2]`` derivation (the same path
+    the connect docs render) so the dispatch-time MCP and the connect docs always
+    agree. ``spec`` is unused today but kept in the signature so a future
+    per-adapter override has a seam without a call-site change."""
+
+    del spec
+    from . import connect
+
+    return connect.repo_root_from_here()
+
+
+def _codex_isolated_run_env(codex_home: Path, repo_root: Path) -> dict[str, str] | None:
+    """Build the scrubbed run env for a codex dispatch (None when isolation is off).
+
+    Writes a clean ``<home>/.codex/config.toml`` carrying ONLY brick's MCP server
+    (no user MCP/hooks), sets HOME + CODEX_HOME to the temp room, carries the codex
+    auth keys through the scrub, and returns the env. Support mechanics only: it
+    carries config + env, it judges nothing and stores no credential of its own."""
+
+    if not _build_isolation_enabled():
+        return None
+    env = _scrubbed_base_env()
+    env["HOME"] = str(codex_home)
+    codex_config_dir = codex_home / ".codex"
+    codex_config_dir.mkdir(parents=True, exist_ok=True)
+    env["CODEX_HOME"] = str(codex_config_dir)
+    from . import connect
+
+    (codex_config_dir / "config.toml").write_text(
+        connect.render_codex_mcp_config(repo_root),
+        encoding="utf-8",
+    )
+    _carry_auth_env(env, _CODEX_AUTH_CARRY_ENV_KEYS)
+    return env
+
+
+def _project_brick_skills_into_home(claude_config_dir: Path, repo_root: Path) -> None:
+    """Project the Agent-axis skills into the dispatch room's ~/.claude/skills/.
+
+    H2 (INSTALL-WIZARD-0623): the claude dispatch runs in a SCRUBBED temp HOME, so
+    the user's real ~/.claude/skills (where ``run_skills_place_step`` installs the
+    brick skills) is NOT visible. The skill manifest the runtime packet ships uses a
+    repo-relative path -- codex/gemini read it from cwd=repo, but claude's NATIVE
+    description-triggered fetch looks in ~/.claude/skills. So we render the same
+    Agent-Skills projection ``run_skills_place_step`` uses straight into the room's
+    HOME, byte-identical to the operator install. Read-only support projection:
+    renders declared skill bodies, judges nothing, NEVER raises (a skill that fails
+    to render is skipped so a single bad skill never breaks the build dispatch)."""
+
+    from .agent_resources import (
+        AgentResourceError,
+        list_agent_object_refs,
+        render_skill_md,
+        resolve_agent_object,
+    )
+
+    skills_root = claude_config_dir / "skills"
+    seen: set[str] = set()
+    try:
+        object_refs = list_agent_object_refs(repo_root)
+    except (AgentResourceError, OSError, ValueError):
+        return
+    for object_ref in object_refs:
+        try:
+            resolution = resolve_agent_object(object_ref, repo_root=repo_root)
+        except (AgentResourceError, OSError, ValueError):
+            continue
+        for skill in resolution.get("skill_resources", []):
+            ref = str(skill.get("ref") or "")
+            if not ref or ref in seen:
+                continue
+            seen.add(ref)
+            name = (ref.removeprefix("skill:") if ref.startswith("skill:") else ref).replace("_", "-")
+            body = str(skill.get("body") or "")
+            front = _skill_front_matter_from_body(body)
+            try:
+                rendered = render_skill_md(
+                    name,
+                    front.get("description") or f"Brick Protocol skill {name}",
+                    _skill_body_without_front_matter(body),
+                )
+            except (AgentResourceError, ValueError):
+                continue
+            target = skills_root / name / "SKILL.md"
+            try:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(rendered, encoding="utf-8")
+            except OSError:
+                continue
+
+
+def _skill_front_matter_from_body(body: str) -> dict[str, str]:
+    name = ""
+    description = ""
+    lines = body.splitlines()
+    if lines and lines[0].strip() == "---":
+        for line in lines[1:]:
+            stripped = line.strip()
+            if stripped == "---":
+                break
+            if stripped.startswith("name:"):
+                name = stripped[len("name:") :].strip()
+            elif stripped.startswith("description:"):
+                description = stripped[len("description:") :].strip()
+    return {"name": name, "description": description}
+
+
+def _skill_body_without_front_matter(body: str) -> str:
+    lines = body.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return body.strip()
+    for index in range(1, len(lines)):
+        if lines[index].strip() == "---":
+            return "\n".join(lines[index + 1 :]).strip()
+    return body.strip()
+
+
+def _claude_isolated_run_env(claude_home: Path, repo_root: Path) -> dict[str, str] | None:
+    """Build the scrubbed run env for a claude dispatch (None when isolation is off).
+
+    Sets HOME to the temp room with a minimal ``<home>/.claude/settings.json`` that
+    disables the user's hooks (the inline --strict-mcp-config handles MCP), projects
+    the brick Agent-axis skills into ``<home>/.claude/skills/`` so claude's NATIVE
+    description-triggered fetch resolves them inside the scrubbed room (H2), carries
+    the claude auth keys through the scrub, and returns the env. ``repo_root`` is the
+    BRICK repo whose declared skills are projected (it also feeds the inline
+    --mcp-config at the call site). Support mechanics only."""
+
+    if not _build_isolation_enabled():
+        return None
+    env = _scrubbed_base_env()
+    env["HOME"] = str(claude_home)
+    claude_config_dir = claude_home / ".claude"
+    claude_config_dir.mkdir(parents=True, exist_ok=True)
+    # Minimal settings: empty hooks so the user's global hooks never fire in the
+    # build room. MCP is governed by the inline --strict-mcp-config at the call
+    # site, so it is intentionally not duplicated here.
+    (claude_config_dir / "settings.json").write_text(
+        json.dumps({"hooks": {}}, sort_keys=True),
+        encoding="utf-8",
+    )
+    # H2: project the brick skills into the room HOME so claude's native skills
+    # trigger path (~/.claude/skills) is not dead inside the scrubbed room.
+    _project_brick_skills_into_home(claude_config_dir, repo_root)
+    _carry_auth_env(env, _CLAUDE_AUTH_CARRY_ENV_KEYS)
+    return env
+
+
 def _invoke_local_callable(
     request: AgentAdapterRequest,
     local_callables: Mapping[str, AgentBrainCallable] | None,
@@ -242,7 +497,17 @@ def _invoke_local_cli(
         raise FileNotFoundError(f"local CLI executable not found for {spec.adapter_ref}")
     if spec.invocation_args_kind == "codex-exec-readonly":
         sandbox = _codex_sandbox_for_request(request)
-        with tempfile.NamedTemporaryFile(prefix="bp-codex-cli-", suffix=".txt") as output_file:
+        repo_root = _repo_root_for_request(spec)
+        # ISOLATION (Smith 0623): the codex dispatch runs in a SCRUBBED room. A temp
+        # HOME holds a clean ~/.codex/config.toml carrying ONLY brick's MCP (no user
+        # MCP/hooks), --ignore-user-config makes codex skip the user's own
+        # ~/.codex/config.toml, and the auth keys are carried through the scrub so
+        # the provider can still reach its backend. When isolation is opted out
+        # (BRICK_BUILD_ISOLATION=0) run_env stays None (byte-identical inherited-env
+        # behavior) and the user-config flag is omitted.
+        with tempfile.TemporaryDirectory(prefix="bp-codex-home-") as codex_home_dir, \
+                tempfile.NamedTemporaryFile(prefix="bp-codex-cli-", suffix=".txt") as output_file:
+            run_env = _codex_isolated_run_env(Path(codex_home_dir), repo_root)
             args_list = [
                 executable_path,
                 "exec",
@@ -254,6 +519,12 @@ def _invoke_local_cli(
                 "-c",
                 'approval_policy="never"',
             ]
+            # ISOLATION lever #2 + MCP wire: ignore the user's ~/.codex config and
+            # attach the brick-protocol MCP server via -c overrides (the same
+            # registration shape connect.py renders). Only when isolation is on.
+            if run_env is not None:
+                args_list.append("--ignore-user-config")
+                args_list.extend(_codex_mcp_config_cli_args(repo_root))
             # OPT-IN ONLY (default invocation byte-identical when the env var is
             # unset/not "1"): codex's non-managed hooks (e.g. the .codex/hooks
             # native-dispatch recording pair) require a one-time interactive
@@ -297,7 +568,9 @@ def _invoke_local_cli(
             # proceeds. Any OTHER nonzero is a real build error, returned untouched.
             tail_args = ("--output-last-message", output_file.name, prompt)
             json_args = tuple((*args_list, "--json", *tail_args))
-            completed = _run_or_delegate(json_args, cwd, timeout_seconds, command_runner)
+            completed = _run_or_delegate(
+                json_args, cwd, timeout_seconds, command_runner, env=run_env
+            )
             json_active = True
             if _codex_json_unsupported(completed):
                 # Older codex: re-run WITHOUT --json so the build still completes.
@@ -305,7 +578,7 @@ def _invoke_local_cli(
                 # re-running with a fresh seek keeps the text path identical.
                 plain_args = tuple((*args_list, *tail_args))
                 completed = _run_or_delegate(
-                    plain_args, cwd, timeout_seconds, command_runner
+                    plain_args, cwd, timeout_seconds, command_runner, env=run_env
                 )
                 json_active = False
             # SUPPORT meter input (Brick-axis fact, no verdict): the LAST
@@ -340,27 +613,46 @@ def _invoke_local_cli(
             )
     if spec.invocation_args_kind == "claude-plan-json":
         knobs = _claude_cli_invocation(request)
-        args_list = [
-            executable_path,
-            "-p",
-            "--output-format",
-            "json",
-            "--permission-mode",
-            knobs["permission_mode"],
-            "--system-prompt",
-            knobs["system_prompt"],
-            "--tools",
-            knobs["tools"],
-        ]
-        # E2/S6 (mirror M6): the claude ``--model`` model flag is now DATA on the
-        # casting model dial's cli_emit; the spawn path loops CASTING_FIELDS.
-        # Byte-identical to the deleted inline ``("--model", model_arg)`` literal.
-        args_list.extend(_casting_cli_args(request, spec))
-        if request.session_continuity_mode == "none":
-            args_list.append("--no-session-persistence")
-        args_list.append(prompt)
-        args = tuple(args_list)
-        return _run_or_delegate(args, cwd, timeout_seconds, command_runner)
+        repo_root = _repo_root_for_request(spec)
+        # ISOLATION (Smith 0623): the claude dispatch runs in a SCRUBBED room. A temp
+        # HOME with a minimal ~/.claude/settings.json disabling user hooks, plus
+        # --strict-mcp-config so the inline --mcp-config (the brick-protocol MCP) is
+        # the ONLY MCP set (the user's ~/.claude MCP servers are suppressed), plus
+        # the auth keys carried through the scrub. Opt out -> run_env None
+        # (byte-identical inherited-env behavior) and the strict/mcp flags omitted.
+        with tempfile.TemporaryDirectory(prefix="bp-claude-home-") as claude_home_dir:
+            run_env = _claude_isolated_run_env(Path(claude_home_dir), repo_root)
+            args_list = [
+                executable_path,
+                "-p",
+                "--output-format",
+                "json",
+                "--permission-mode",
+                knobs["permission_mode"],
+                "--system-prompt",
+                knobs["system_prompt"],
+                "--tools",
+                knobs["tools"],
+            ]
+            # ISOLATION lever #1 + MCP wire: attach ONLY the brick-protocol MCP and
+            # suppress the user's ~/.claude MCP servers. Only when isolation is on.
+            if run_env is not None:
+                args_list.extend(
+                    [
+                        "--mcp-config",
+                        _claude_mcp_config_json(repo_root),
+                        "--strict-mcp-config",
+                    ]
+                )
+            # E2/S6 (mirror M6): the claude ``--model`` model flag is now DATA on the
+            # casting model dial's cli_emit; the spawn path loops CASTING_FIELDS.
+            # Byte-identical to the deleted inline ``("--model", model_arg)`` literal.
+            args_list.extend(_casting_cli_args(request, spec))
+            if request.session_continuity_mode == "none":
+                args_list.append("--no-session-persistence")
+            args_list.append(prompt)
+            args = tuple(args_list)
+            return _run_or_delegate(args, cwd, timeout_seconds, command_runner, env=run_env)
     if spec.invocation_args_kind == "gemini-p-json-flash":
         with tempfile.TemporaryDirectory(prefix="bp-gemini-cli-") as tmpdir:
             temp_root = Path(tmpdir)
