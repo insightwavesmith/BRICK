@@ -736,15 +736,15 @@ AGENT_OBJECT_SCHEMA: AgentObjectSchema = _build_agent_object_schema()
 # change. ``assembly.py`` re-exports ``AgentSpec``/``agent`` so existing callers
 # keep resolving.
 #
-# COMPOSE FORM (③ struct-surgery 0623). ``agent()`` historically only NAMED a
-# pre-authored role yaml (``agent("dev")`` -> resolved at lower time to
-# ``agent-object:dev`` -> agent/objects/dev.yaml). It now ALSO accepts a COMPOSE
-# form that builds the agent-object INLINE — ``agent("dev", tools=[...],
-# skills=[...], hooks=[...], prompt=..., adapter=...)`` — composing the object dict
-# and validating it against the ONE ``AGENT_OBJECT_SCHEMA`` (same schema the
-# role-yaml load path validates against). The role-yaml path is unchanged and
-# stays the default (no compose kwargs -> ``composed_object`` is None); compose is
-# purely additive.
+# ROLE-YAML FORM ONLY. ``agent("dev")`` NAMES a pre-authored role yaml, resolved at
+# lower time to ``agent-object:dev`` -> agent/objects/dev.yaml; the only authoring
+# inputs are the bare ``role`` token and the ``**casting`` dials. (A short-lived
+# inline COMPOSE form that built the agent-object dict in-process was deleted at
+# ③ struct-surgery 0623: it had ZERO downstream readers — node lowering reads only
+# ``role`` + ``casting`` and re-resolves the role yaml from disk — so the composed
+# object was silently dropped. The ONE ``AGENT_OBJECT_SCHEMA`` it validated against
+# survives and is still used by the role-yaml load path in
+# support/connection/agent_resources.py.)
 # ---------------------------------------------------------------------------
 @dataclass(frozen=True, eq=False)
 class AgentSpec:
@@ -755,165 +755,23 @@ class AgentSpec:
     # bag once from ``CASTING_FIELDS``, so a new dial (effort) is carried with no
     # field edit.
     casting: Mapping[str, str] = ()  # type: ignore[assignment]
-    # COMPOSE form (③): the inline-composed agent-object dict, schema-validated at
-    # author time. ``None`` for the role-yaml path (``agent()`` only NAMED a
-    # pre-authored role). A composed object carries the same shape a role yaml does
-    # (head keys + ref fields + casting dials), already validated against
-    # ``AGENT_OBJECT_SCHEMA``.
-    composed_object: Mapping[str, Any] | None = None
 
 
-# Friendly compose kwarg name -> the agent-object ref field it populates. The
-# compose form reads these LIST kwargs (plus the singular ``prompt`` alias) and the
-# ``adapter`` dial; everything else is a casting kwarg or unexpected. A new ref
-# field is added to the schema's ``ref_fields`` once; its friendly kwarg is derived
-# from the base word (``tool_policy_refs`` -> ``tool_policies``, ``skill_refs`` ->
-# ``skills``) so no per-field literal map is hand-maintained — except the two
-# human-friendly aliases the task names verbatim (``tools`` for tool policies,
-# ``prompt``/``prompts`` for prompt refs).
-def _compose_kwarg_for_ref_field(ref_field: str) -> str:
-    """The plural friendly compose kwarg for a ``*_refs`` schema ref field.
-
-    ``prompt_refs`` -> ``prompts``, ``skill_refs`` -> ``skills``,
-    ``hook_refs`` -> ``hooks``, ``tool_policy_refs`` -> ``tool_policies``,
-    ``discipline_refs`` -> ``disciplines``, ``adapter_refs`` -> ``adapters``.
-    A base word ending in ``y`` pluralizes ``y`` -> ``ies`` (``tool_policy`` ->
-    ``tool_policies``); otherwise it appends ``s``.
-    """
-
-    base = ref_field.removesuffix("_refs")
-    if base.endswith("y"):
-        return base[:-1] + "ies"
-    return base + "s"
-
-
-# Derived once from the schema: friendly compose kwarg -> ref field. Adding a ref
-# field to AGENT_OBJECT_SCHEMA.ref_fields gives it a friendly kwarg automatically.
-_COMPOSE_REF_KWARG_BY_NAME: Mapping[str, str] = {
-    _compose_kwarg_for_ref_field(ref_field): ref_field
-    for ref_field in AGENT_OBJECT_SCHEMA.ref_fields
-}
-# Human-friendly ALIASES the compose surface accepts verbatim (the task's literal
-# spelling): ``tools`` -> tool_policy_refs, ``prompt`` -> prompt_refs (singular).
-_COMPOSE_REF_ALIASES: Mapping[str, str] = {
-    "tools": "tool_policy_refs",
-    "prompt": "prompt_refs",
-}
-
-
-def _string_list_kwarg(label: str, value: Any) -> list[str]:
-    """Coerce a compose ref kwarg to a clean text list (str -> one-element list)."""
-
-    if value is None:
-        return []
-    if isinstance(value, str):
-        items: list[Any] = [value]
-    elif isinstance(value, (list, tuple)):
-        items = list(value)
-    else:
-        raise TypeError(f"{label} must be text or a list of text")
-    cleaned: list[str] = []
-    for item in items:
-        text = _non_empty_text(label, item)
-        cleaned.append(text)
-    return cleaned
-
-
-def agent(
-    role: str,
-    *,
-    lane: str | None = None,
-    **kwargs: Any,
-) -> AgentSpec:
+def agent(role: str, **kwargs: Any) -> AgentSpec:
     """Author an Agent lane spec.
 
-    Two forms over ONE carrier:
-
-      * ROLE-YAML (default): ``agent("dev")`` (optionally with casting dials
-        ``adapter=``/``model=``/``reasoning_effort=``) NAMES a pre-authored role;
-        ``composed_object`` stays None and the lower step resolves
-        ``agent-object:<role>`` -> the role yaml exactly as before.
-      * COMPOSE: any of the ref kwargs (``tools``/``skills``/``hooks``/
-        ``prompt``/``prompts``/``tool_policies``/``disciplines``/``adapters``) or an
-        explicit ``lane=`` builds the agent-object INLINE and validates it against
-        ``AGENT_OBJECT_SCHEMA``. The ``adapter=`` casting dial (when given) also
-        seeds ``adapter_refs`` so the composed object lists the adapter it prefers
-        (the same role-yaml invariant: a preferred adapter must be declared).
-
-    Trailing kwargs are partitioned: casting dials (``CASTING_FIELDS`` base words)
-    go to ``_build_casting_bag``; ref kwargs build the composed object; anything
-    else is rejected.
+    ``agent("dev")`` NAMES a pre-authored role yaml: the lower step resolves
+    ``agent-object:<role>`` -> the role yaml. Optional ``**casting`` dials
+    (``adapter=``/``model=``/``reasoning_effort=``, the ``CASTING_FIELDS`` base
+    words) are validated + projected to the ``selected_<base>`` bag by
+    ``_build_casting_bag``. Any other keyword raises a clear ``unexpected casting
+    argument`` (``_build_casting_bag`` rejects every name not in
+    ``_CASTING_KWARG_BY_NAME``).
     """
 
     clean_role = _bare_token("role", role)
-    casting_kwargs = {key: value for key, value in kwargs.items() if key in _CASTING_KWARG_BY_NAME}
-    ref_kwargs = {
-        key: value
-        for key, value in kwargs.items()
-        if key in _COMPOSE_REF_KWARG_BY_NAME or key in _COMPOSE_REF_ALIASES
-    }
-    leftover = {
-        key: value
-        for key, value in kwargs.items()
-        if key not in casting_kwargs and key not in ref_kwargs
-    }
-    if leftover:
-        raise TypeError(
-            "agent() got unexpected keyword argument(s): " + ", ".join(sorted(leftover))
-        )
-    casting = _build_casting_bag("agent()", casting_kwargs)
-    composed_object = None
-    if ref_kwargs or lane is not None:
-        composed_object = _compose_agent_object(clean_role, lane, ref_kwargs, casting_kwargs)
-    return AgentSpec(role=clean_role, casting=casting, composed_object=composed_object)
-
-
-def _compose_agent_object(
-    role: str,
-    lane: str | None,
-    ref_kwargs: Mapping[str, Any],
-    casting_kwargs: Mapping[str, Any],
-) -> dict[str, Any]:
-    """Build an agent-object dict INLINE and validate it against the ONE schema.
-
-    Projects the friendly ref kwargs onto their schema ref fields, seeds
-    ``adapter_refs`` from the ``adapter`` casting dial (a preferred adapter must be
-    declared, the role-yaml invariant), stamps the casting dials in their
-    ref-prefixed form, then runs the shared ``validate_agent_object_keys`` schema
-    check. A composed object is the SAME shape a role yaml carries.
-    """
-
-    obj: dict[str, Any] = {
-        "object_ref": _prefixed_ref("agent-object", role),
-        "name": role,
-        "lane": _bare_token("lane", lane) if lane is not None else "worker",
-        "callable_performer_refs": [],
-    }
-    for ref_field in AGENT_OBJECT_SCHEMA.ref_fields:
-        obj[ref_field] = []
-    # Project the friendly ref kwargs (both the derived plural names and the two
-    # verbatim aliases) onto their schema ref fields.
-    for kwarg_name, raw_value in ref_kwargs.items():
-        ref_field = _COMPOSE_REF_KWARG_BY_NAME.get(kwarg_name) or _COMPOSE_REF_ALIASES[kwarg_name]
-        obj[ref_field] = obj[ref_field] + _string_list_kwarg(f"agent() {kwarg_name}", raw_value)
-    # Seed adapter_refs + the preferred_adapter_ref casting dial from the friendly
-    # ``adapter`` casting kwarg, so the composed object DECLARES the adapter it
-    # prefers (the same invariant check_agent_resource_resolution enforces on role
-    # yamls: preferred_adapter_ref must be listed in adapter_refs).
-    adapter_value = _optional_text(casting_kwargs.get("adapter"))
-    if adapter_value is not None:
-        adapter_ref = _prefixed_ref("adapter", adapter_value)
-        if adapter_ref not in obj["adapter_refs"]:
-            obj["adapter_refs"] = obj["adapter_refs"] + [adapter_ref]
-        obj["preferred_adapter_ref"] = adapter_ref
-    # Stamp the casting dials in their node/agent-object ref-prefixed form.
-    casting_bag = _build_casting_bag("agent()", casting_kwargs)
-    for descriptor in CASTING_FIELDS:
-        node_key = selected_key(descriptor)
-        if node_key in casting_bag:
-            obj[descriptor.field_name] = casting_bag[node_key]
-    validate_agent_object_keys("agent()", obj)
-    return obj
+    casting = _build_casting_bag("agent()", kwargs)
+    return AgentSpec(role=clean_role, casting=casting)
 
 
 def validate_agent_object_keys(label: str, agent_object: Mapping[str, Any]) -> None:

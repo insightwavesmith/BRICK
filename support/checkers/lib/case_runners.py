@@ -6108,7 +6108,6 @@ def _check_adapter_capability_ok_all_four(label: str) -> None:
     from brick_protocol.support.connection.agent_adapter import adapter_capabilities
     from brick_protocol.brick.comparison import compare_changed_paths_to_write_scope
     from support.operator.plan_validation import validate_declared_building_plan
-    from support.operator.write_observation import _validate_observed_write_path
 
     write_scope = _adapter_capability_write_scope()
     capabilities = adapter_capabilities("adapter:codex-local")
@@ -6130,9 +6129,9 @@ def _check_adapter_capability_ok_all_four(label: str) -> None:
         )
     )
     # REDO (Smith 0623 struct-surgery): an in-scope changed path must NOT be recorded
-    # out-of-scope by the Brick comparison and must NOT trip the support ``.git``
-    # floor raise. (The written-vs-scope classification moved to brick.comparison;
-    # write_observation keeps only the ``.git`` integrity raise.)
+    # out-of-scope by the Brick comparison. (The written-vs-scope classification moved
+    # to brick.comparison; write_observation raises nothing -- support is carry +
+    # record only, the disposable worktree is the integrity boundary.)
     in_scope_facts = compare_changed_paths_to_write_scope(
         ["support/connection/agent_adapter.py"],
         write_scope,
@@ -6142,7 +6141,6 @@ def _check_adapter_capability_ok_all_four(label: str) -> None:
             f"adapter_capability_rehome_case rejected {label}: an in-scope changed "
             f"path was wrongly recorded out-of-scope, observed {in_scope_facts!r}"
         )
-    _validate_observed_write_path("support/connection/agent_adapter.py")
 
 
 def _check_adapter_capability_claude_write_ok(label: str) -> None:

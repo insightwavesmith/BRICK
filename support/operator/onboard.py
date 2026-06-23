@@ -1508,6 +1508,7 @@ def run_approve_entry(
     author_ref: str = "coo:smith",
     budget_increment: int | None = None,
     reroute_target_ref: str | None = None,
+    re_instruction: str | None = None,
     output_root: Path | str | None = None,
     repo_root: Path | str | None = None,
     adapter_cwd: Path | str | None = None,
@@ -1738,6 +1739,16 @@ def run_approve_entry(
     }
     if parsed_budget is not None:
         row["transition_lifecycle_budget_increment"] = parsed_budget
+    # ④ RE-INSTRUCTION authoring: the human/COO may carry a corrected how-to to
+    # the retried target Brick on THIS same disposition row. re_instruction is an
+    # already-admitted transition_lifecycle key (link/transition.py) consumed by
+    # the resume seed (walker_resume.py) and stamped onto the redo target's prompt
+    # (walker_kernel.py / adapter_grant_policy.py). It rides the SAME author gate
+    # validated above (coo:/human:) -- NO new authority surface. Free text;
+    # present-only injection: absent => target runs its original work unchanged.
+    re_instruction_text = str(re_instruction or "").strip()
+    if re_instruction_text:
+        row["transition_lifecycle_re_instruction"] = re_instruction_text
     try:
         with link_path.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(row, separators=(",", ":"), ensure_ascii=False) + "\n")
@@ -1914,6 +1925,12 @@ def main(argv: list[str] | None = None) -> int:
             help="Declared Brick node ref selected by the human/COO for --action reroute.",
         )
         approve_parser.add_argument(
+            "--re-instruction",
+            dest="re_instruction",
+            default=None,
+            help="Corrected how-to text carried to the retried target Brick.",
+        )
+        approve_parser.add_argument(
             "--output-root",
             default=None,
             help="Root for relative building ids (default: ~/.brick/goal-runs).",
@@ -1942,6 +1959,7 @@ def main(argv: list[str] | None = None) -> int:
             author_ref=approve_args.author,
             budget_increment=approve_args.budget_increment,
             reroute_target_ref=approve_args.reroute_target_ref,
+            re_instruction=approve_args.re_instruction,
             output_root=approve_args.output_root,
             repo_root=approve_args.repo,
             adapter_cwd=approve_args.adapter_cwd,

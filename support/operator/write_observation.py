@@ -18,7 +18,6 @@ from brick_protocol.support.connection.agent_adapter import (
     AgentAdapterResult,
     _mark_effective_write_observation_path,
     agent_request_effective_write,
-    agent_request_effective_write_raw_inputs,
 )
 from brick_protocol.support.operator.primitives import (
     _REPO_ROOT,
@@ -30,7 +29,6 @@ from brick_protocol.support.operator.primitives import (
 )
 from brick_protocol.support.recording.agent_step_observation import (
     derive_adapter_raw_observation_facts,
-    derive_effective_write_request_facts,
     derive_git_refs_moved,
 )
 
@@ -86,10 +84,11 @@ def _adapter_result_with_write_observation(
 
     # RAW worktree observation only (REDO Smith 0623): the support write observer
     # produces "what changed + before/after git refs" and the RAW structural
-    # sensitive-path flags, plus the ``.git`` floor integrity raise (KEEP). It does
-    # NOT classify changed paths against the recommended scope, does NOT derive the
-    # write-policy reason tokens, and does NOT record the git-ref delta -- those are
-    # the Brick axis (brick.comparison) and support/recording (agent_step_observation).
+    # sensitive-path flags. It RAISES NOTHING -- support is carry + record only; the
+    # disposable worktree is the integrity boundary. It does NOT classify changed
+    # paths against the recommended scope, does NOT derive the write-policy reason
+    # tokens, and does NOT record the git-ref delta -- those are the Brick axis
+    # (brick.comparison) and support/recording (agent_step_observation).
     observed_sensitive_path_writes = _raw_sensitive_path_writes(changed_files)
 
     # COMPARE (Brick axis 정보가공): classify the RAW changed paths against the
@@ -99,12 +98,9 @@ def _adapter_result_with_write_observation(
     )
 
     # RECORD (support/recording): derive the named per-step facts from the RAW
-    # observations (git-ref delta, effective-write reason tokens, adapter raw
-    # side-channel) -- the support write observer no longer assembles these itself.
+    # observations (git-ref delta, adapter raw side-channel) -- the support write
+    # observer no longer assembles these itself.
     git_refs_moved = derive_git_refs_moved(before_git_refs, after_git_refs)
-    effective_write_request_facts = derive_effective_write_request_facts(
-        **agent_request_effective_write_raw_inputs(adapter_result.request)
-    )
     adapter_raw_facts = derive_adapter_raw_observation_facts(
         adapter_result.adapter_raw_observations
     )
@@ -126,12 +122,10 @@ def _adapter_result_with_write_observation(
         "write_scope": dict(adapter_result.request.write_scope),
         # RAW structural sensitive-path observation (no scope knowledge); the
         # building is not stopped on it (worktree is disposable; secret read/egress
-        # stays hard elsewhere -- adapter_validation). The ``.git`` floor is the only
-        # integrity raise and it has already fired above in _raw_sensitive_path_writes.
+        # stays hard elsewhere -- adapter_validation). support RAISES NOTHING here.
         # Brick-comparison + support/recording facts land here as NESTED evidence for
         # the merge-review gate; no policy disposition stops the building.
         "git_refs_moved": dict(git_refs_moved),
-        "effective_write_request_facts": list(effective_write_request_facts),
         "proof_limits": [
             "changed files are support evidence only",
             "not source truth",
@@ -293,11 +287,11 @@ def _raw_sensitive_path_writes(changed_files: Iterable[str]) -> tuple[str, ...]:
     classification (against the recommended write_scope) is the Brick axis's
     (``brick.comparison.compare_changed_paths_to_write_scope``).
 
-    The ``.git`` floor (decision B) is the ONLY integrity raise that survives and it
-    HARD-STOPS the building here: the agent ripping its own git floor is integrity,
-    not policy. Every other disposition (including a sensitive-path write) is
-    RECORDED, not stopped -- the worktree is disposable and secret read/egress stays
-    hard in adapter_validation.
+    support RAISES NOTHING here. Every disposition (including a sensitive-path write)
+    is RECORDED, not stopped -- the disposable worktree is the integrity boundary and
+    secret read/egress stays hard in adapter_validation. (The former ``.git`` floor
+    was removed: changed_files is built from the snapshot/status diff, which excludes
+    ``.git``, so a ``.git`` path never reached the floor -- it could never fire.)
     """
 
     observed: list[str] = []
@@ -305,7 +299,6 @@ def _raw_sensitive_path_writes(changed_files: Iterable[str]) -> tuple[str, ...]:
         clean = str(raw_path).strip().replace("\\", "/")
         if not clean:
             continue
-        _validate_observed_write_path(clean)
         lowered = clean.lower()
         if (
             lowered.endswith((".pem", ".key"))
@@ -315,19 +308,6 @@ def _raw_sensitive_path_writes(changed_files: Iterable[str]) -> tuple[str, ...]:
         ):
             observed.append(clean)
     return tuple(observed)
-
-def _validate_observed_write_path(path: str) -> None:
-    """Enforce the ``.git`` floor (decision B) integrity raise on ONE changed path.
-
-    KEEP: the agent ripping its own git floor is integrity, not policy -- this still
-    HARD-STOPS the building. No other policy disposition stops the building (the
-    written-vs-scope classification moved to brick.comparison; the sensitive-path
-    observation is RAW recorded fact)."""
-
-    clean = path.strip().replace("\\", "/")
-    lowered = clean.lower()
-    if lowered == ".git" or lowered.startswith(".git/"):
-        raise ValueError(f"effective write observed forbidden path: {clean}")
 
 def _path_has_forbidden_write_segment(path: str) -> bool:
     segments = [
