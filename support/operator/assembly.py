@@ -18,11 +18,26 @@ from typing import Any
 
 from brick_protocol.agent.return_fact import TRANSITION_CONCERN_KINDS
 from brick_protocol.agent.spec import (
-    CASTING_FIELDS,
     NODE_CASTING_FIELDS,
-    selected_key,
 )
-from brick_protocol.brick.spec import derived_worktree_write_scope
+# AGENT-axis authoring carrier + verb, single-sourced on the Agent axis at E2/S2.
+# Re-exported below (``__all__``) so existing callers — check_assembly_equivalence
+# and the brick-task-author skill's ``from ...assembly import agent`` — keep
+# resolving while the definition lives on its axis (assembly -> agent, acyclic).
+from brick_protocol.agent.spec import (  # noqa: F401  (re-exported for callers)
+    AgentSpec,
+    agent,
+)
+# BRICK-axis authoring carrier + verb, single-sourced on the Brick axis at E2/S1.
+# ``BrickSpec`` is also the node handle the retained graph-wiring tier below uses
+# pervasively (EdgeSpec/GraphSpec/_coerce_node/_lower_node/...); ``brick()`` is
+# called by ``_coerce_node``. Both are imported here (assembly -> brick, acyclic)
+# and re-exported (``__all__``) so ``from ...assembly import brick`` keeps resolving.
+from brick_protocol.brick.spec import (  # noqa: F401  (re-exported for callers)
+    BrickSpec,
+    brick,
+    derived_worktree_write_scope,
+)
 from brick_protocol.support.operator.building_operation_common import (
     DEFAULT_LINK_GATE_REF,
     REPO_ROOT,
@@ -49,82 +64,17 @@ from brick_protocol.support.operator.plan_rendering import (
 from brick_protocol.support.recording.step_outputs import _step_output_manifest_ref
 
 
-_FORBIDDEN_BRICK_KWARGS = frozenset(
-    {
-        "node_id",
-        "step_template_ref",
-        "brick_instance_ref",
-        "row_ref",
-        "brick_work_ref",
-        "step_ref",
-        "completion_edge_ref",
-        "fan_in_source",
-        "fan_in_target",
-        "closure_transition_target_policy",
-        "node_reroute_budget",
-        "required_return_shape",
-        "write_scope",
-        "target_step_template_ref",
-        "comparison_rule",
-    }
-)
+# _FORBIDDEN_BRICK_KWARGS moved to the BRICK axis (brick/spec.py) at E2/S1 — the
+# forbidden-derived-field guard is part of the ``brick()`` authoring contract.
+# _casting_ref_prefix / _CASTING_KWARG_BY_NAME / _build_casting_bag /
+# _ADMITTED_CASTING_PREFIXES / _optional_bare_or_ref moved to the AGENT axis
+# (agent/spec.py) at E2/S1 — casting authoring is Agent-axis property. The retained
+# graph-wiring tier in this module no longer references any of them (their only
+# callers were the relocated ``brick()``/``agent()`` verbs); the shared value-shape
+# coercers they used (``_prefixed_ref``/``_bare_token``/``_non_empty_text``/
+# ``_optional_text``/``_optional_bare_token``) STAY below for the graph wiring and
+# are duplicated into the axis files so an axis module never imports this builder.
 _TRANSITION_CONCERN_FIELD = "transition_concern_evidence"
-
-
-def _casting_ref_prefix(descriptor: Any) -> str:
-    """The ref-prefix a casting dial's values carry (``adapter``/``model``/``effort``).
-
-    Data-driven from ``CASTING_FIELDS``: a deferrable dial advertises its prefix
-    via the ``<prefix>:`` of its ``default_ref`` sentinel (``model:default`` ->
-    ``model``, ``effort:default`` -> ``effort``); the fail-closed adapter dial has
-    no default sentinel, so its prefix is the base word (``adapter_ref`` ->
-    ``adapter``). No per-dial literal here -- a new dial's prefix derives.
-    """
-
-    if descriptor.default_ref and ":" in descriptor.default_ref:
-        return descriptor.default_ref.split(":", 1)[0]
-    return descriptor.field_name.removeprefix("preferred_").removesuffix("_ref")
-
-
-# Friendly builder kwarg name -> (selected_<base> node key, ref-prefix), derived
-# once from the single-source CASTING_FIELDS. The kwarg name is the bare base word
-# (``adapter``/``model``/``reasoning_effort``); ``agent()``/``brick()`` accept these
-# generically so a NEW dial needs no new named kwarg (E2/§6 M15).
-_CASTING_KWARG_BY_NAME: Mapping[str, tuple[str, str]] = {
-    descriptor.field_name.removeprefix("preferred_").removesuffix("_ref"): (
-        selected_key(descriptor),
-        _casting_ref_prefix(descriptor),
-    )
-    for descriptor in CASTING_FIELDS
-}
-
-
-def _build_casting_bag(label: str, kwargs: Mapping[str, Any]) -> dict[str, str]:
-    """Validate friendly casting kwargs and project to the ``selected_<base>`` bag.
-
-    Generic over ``CASTING_FIELDS``: every admitted dial (adapter/model/effort/...)
-    is read by its bare base-word kwarg, normalized to its ref-prefixed form, and
-    stored under its node-layer ``selected_<base>`` key. An unknown kwarg raises.
-    Byte-identical to the prior hand-named ``adapter``/``model`` normalization for
-    those two dials.
-    """
-
-    bag: dict[str, str] = {}
-    for name, raw_value in kwargs.items():
-        mapping = _CASTING_KWARG_BY_NAME.get(name)
-        if mapping is None:
-            raise TypeError(f"{label} got unexpected casting argument: {name}")
-        node_key, prefix = mapping
-        value = _optional_bare_or_ref(name, raw_value)
-        if value is None:
-            continue
-        bag[node_key] = _prefixed_ref(prefix, value)
-    return bag
-
-
-_ADMITTED_CASTING_PREFIXES: frozenset[str] = frozenset(
-    f"{_casting_ref_prefix(descriptor)}:" for descriptor in CASTING_FIELDS
-) | frozenset({"agent-object:"})
 
 _DEFAULT_BOUNDARY_REF = "building-boundary:closed"
 _PROPOSED_BUILDING_GRAPH_FILENAME = "proposed-building-graph.json"
@@ -167,31 +117,11 @@ class Authority(Enum):
     COO = "coo"
 
 
-@dataclass(frozen=True, eq=False)
-class AgentSpec:
-    role: str
-    # Generic per-lane casting carry (E2/§6 M15): a bag keyed by the node-layer
-    # ``selected_<base>`` names (``NODE_CASTING_FIELDS``), values already
-    # ref-prefixed. The builder NEVER names a dial here -- ``agent()`` builds the
-    # bag once from ``CASTING_FIELDS``, so a new dial (effort) is carried with no
-    # field edit.
-    casting: Mapping[str, str] = ()  # type: ignore[assignment]
-
-
-@dataclass(frozen=True, eq=False)
-class BrickSpec:
-    kind: str
-    work: str
-    alias: str | None = None
-    write: bool = False
-    returns: str | None = None
-    agent: AgentSpec | None = None
-    # Generic per-node casting carry (E2/§6 M15), keyed by ``selected_<base>``;
-    # see AgentSpec.casting. The node's own casting overrides the lane's.
-    casting: Mapping[str, str] = ()  # type: ignore[assignment]
-    source_facts: tuple[str, ...] = ()
-
-
+# AgentSpec moved to the AGENT axis (agent/spec.py) and BrickSpec to the BRICK axis
+# (brick/spec.py) at E2/S1-S2 — the per-lane/per-node authoring carriers belong to
+# their axes. Both are imported at the top of this module and re-exported via
+# ``__all__``; the retained graph-wiring tier below references the ``BrickSpec`` /
+# ``AgentSpec`` names through those imports exactly as before (behavior-identical).
 @dataclass(frozen=True, eq=False)
 class EdgeSpec:
     source: BrickSpec
@@ -274,52 +204,11 @@ class ComposedGraph:
         return args
 
 
-def brick(
-    kind: str,
-    work: str,
-    *,
-    alias: str | None = None,
-    write: bool = False,
-    returns: str | None = None,
-    agent: AgentSpec | None = None,
-    source_facts: Sequence[str] | None = None,
-    **kwargs: Any,
-) -> BrickSpec:
-    # Partition trailing kwargs into casting dials (adapter/model/effort/... ,
-    # generic over CASTING_FIELDS) vs forbidden/unknown. A new dial flows through
-    # _CASTING_KWARG_BY_NAME with no signature edit (E2/§6 M15).
-    casting_kwargs = {key: value for key, value in kwargs.items() if key in _CASTING_KWARG_BY_NAME}
-    leftover = {key: value for key, value in kwargs.items() if key not in _CASTING_KWARG_BY_NAME}
-    if leftover:
-        forbidden = sorted(key for key in leftover if key in _FORBIDDEN_BRICK_KWARGS)
-        if forbidden:
-            raise TypeError(
-                "brick() derives these fields; do not declare them: "
-                + ", ".join(forbidden)
-            )
-        raise TypeError("brick() got unexpected keyword argument(s): " + ", ".join(sorted(leftover)))
-    clean_kind = _bare_token("kind", kind)
-    clean_work = _non_empty_text("work", work)
-    clean_alias = _optional_bare_token("alias", alias)
-    return BrickSpec(
-        kind=clean_kind,
-        work=clean_work,
-        alias=clean_alias,
-        write=bool(write),
-        returns=_optional_text(returns),
-        agent=agent,
-        casting=_build_casting_bag("brick()", casting_kwargs),
-        source_facts=tuple(str(item).strip() for item in (source_facts or ()) if str(item).strip()),
-    )
-
-
-def agent(role: str, **casting: Any) -> AgentSpec:
-    return AgentSpec(
-        role=_bare_token("role", role),
-        casting=_build_casting_bag("agent()", casting),
-    )
-
-
+# The ``brick()`` authoring verb moved to the BRICK axis (brick/spec.py) and the
+# ``agent()`` verb to the AGENT axis (agent/spec.py) at E2/S1-S2. Both are imported
+# at the top of this module and re-exported via ``__all__`` so callers keep the
+# ``from ...assembly import brick, agent`` import path. ``_coerce_node`` below still
+# calls ``brick(...)`` through the imported name (behavior-identical).
 def chain(specs: Sequence[BrickSpec]) -> GraphSpec:
     ordered = tuple(specs)
     if not ordered:
@@ -1410,15 +1299,11 @@ def _prefixed_ref(prefix: str, value: str) -> str:
     return f"{marker}{text}"
 
 
-def _optional_bare_or_ref(label: str, value: str | None) -> str | None:
-    text = _optional_text(value)
-    if text is None:
-        return None
-    if ":" in text and not text.startswith(tuple(_ADMITTED_CASTING_PREFIXES)):
-        raise ValueError(f"{label} must be bare text or an admitted ref")
-    return text
-
-
+# _optional_bare_or_ref moved to the AGENT axis (agent/spec.py) at E2/S1 with the
+# casting authoring it serves (its only caller was ``_build_casting_bag``). The
+# coercers below (``_bare_token``/``_optional_bare_token``/``_optional_text``/
+# ``_non_empty_text``/``_prefixed_ref``) STAY: the retained graph-wiring tier uses
+# them, and they are duplicated into the axis files so an axis never imports here.
 def _bare_token(label: str, value: str) -> str:
     text = _non_empty_text(label, value)
     if ":" in text:

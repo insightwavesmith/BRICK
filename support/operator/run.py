@@ -2003,6 +2003,21 @@ def _adapter_request_from_prepared(
             else {}
         ),
         "write_scope": _write_scope_from_brick_row(prepared.step_rows.brick_row),
+        # ⑤ STATIC INSTRUCTION BODY: read the kind's brick.md ## body off the
+        # brick_row (carried at compose time by plan_rendering/composition) EXACTLY
+        # parallel to write_scope above, and thread it to the prompt. Absent (legacy
+        # rows, no-template branch) -> "" -> the prompt key is present-but-empty
+        # (the adapter injects the labeled section only when non-empty).
+        "brick_instruction_body": _optional_text_value(
+            prepared.step_rows.brick_row.get("brick_instruction_body")
+        )
+        or "",
+        # ④ RE-INSTRUCTION: read the corrected how-to off the step PACKET (a
+        # top-level key the kernel stamps onto the retried target's step packet
+        # from the human/COO disposition row), parallel to session_continuity_mode
+        # below. Absent on every normal run and every non-target step -> "" -> the
+        # adapter injects the labeled correction section only when non-empty.
+        "re_instruction": _optional_text_from_mapping(packet, "re_instruction") or "",
         "building_session_ref": _optional_text_from_mapping(packet, "building_session_ref") or "",
         "session_scope_ref": _optional_text_from_mapping(packet, "session_scope_ref") or "",
         "session_continuity_mode": _optional_text_from_mapping(

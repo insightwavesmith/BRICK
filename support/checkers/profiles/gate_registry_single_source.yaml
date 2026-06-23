@@ -1,0 +1,39 @@
+schema: checker-profile/v1
+profile_id: gate-registry-single-source
+description: struct-surgery ② (0623) data-driven Link gate registry guard. The Link axis owns the gate vocabulary as ONE data table -- GATE_REGISTRY in link/spec.py (one row per declarable gate; ref + concept_token + required_return_fields + placement + disposition). link/gate.py derives DECLARED_GATE_REFS + the disposition partitions + the per-gate required-return field map from the rows; the gate-concept translation table derives from the rows that carry a token; the materializer placement rule (strict on QA rows; coo + human on the final transition row) is READ via link.spec.gate_placement_for_row. The operator-adds-a-gate-by-adding-a-row goal is only real if neither the vocabulary nor the placement rule can be re-stated elsewhere. RULE 1 rejects any collection literal of >= 2 link-gate: string literals outside link/spec.py (a re-stated gate vocabulary -- the old DECLARED_GATE_REFS-tuple shape) while leaving a lone behavioral "if ref == link-gate:human" comparison clean. RULE 2 rejects the support placement helper _materializer_profile_gate_translations if it does not delegate to gate_placement_for_row, or hand-authors placement via translate_gate_concept guarded by row flags. Includes a mutation-RED (a re-enumerated gate tuple + a hand-authored placement helper are both rejected; a lone comparison is left clean). Fails closed.
+kernel_checks:
+  - gate_registry_single_source
+path_exists:
+  - link/spec.py
+  - link/gate.py
+  - support/operator/composition_gate_translation.py
+  - support/checkers/check_gate_registry_single_source.py
+  - support/checkers/profiles/gate_registry_single_source.yaml
+text_contains:
+  - path: link/spec.py
+    texts:
+      - GATE_REGISTRY
+      - def gate_placement_for_row
+      - class GateRegistryRow
+  - path: link/gate.py
+    texts:
+      - from brick_protocol.link.spec import GATE_REGISTRY
+      - tuple(row.ref for row in GATE_REGISTRY)
+  - path: support/operator/composition_gate_translation.py
+    texts:
+      - gate_placement_for_row
+  - path: support/checkers/check_gate_registry_single_source.py
+    texts:
+      - find_gate_ref_enumerations
+      - check_materializer_delegates_placement
+      - mutation RED observed
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+  - not provider proof
+not_proven:
+  - that any individual gate's sufficiency rule is semantically correct
+  - that the runtime placement of a gate onto a plan row is the right Movement decision

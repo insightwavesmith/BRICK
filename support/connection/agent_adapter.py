@@ -65,6 +65,11 @@ from .adapter_constants import (
 )
 
 _EFFECTIVE_WRITE_OBSERVATION_MARKER_ATTR = "_brick_protocol_effective_write_observed_cwd"
+# REDO (Smith 0623 struct-surgery): the adapter exposes RAW effective-write request
+# inputs only -- it derives no reason-token facts. support/recording derives the
+# named write-policy facts (missing_brick_write_scope / identity-only / missing
+# read-write tool policy / missing adapter write capability) from these raw inputs.
+_EFFECTIVE_WRITE_REQUEST_RAW_ATTR = "_brick_protocol_effective_write_request_raw_inputs"
 ALLOWED_SESSION_CONTINUITY_MODES = frozenset(
     {
         "none",
@@ -352,6 +357,22 @@ class AgentAdapterRequest:
     work_statement: str = ""
     comparison_rule: str = ""
     required_return_shape: str = ""
+    # ⑤ STATIC KIND INSTRUCTION (the brick.md ## body). Plain text — the
+    # agent-readable how-to for this Brick kind, delivered to the prompt as its own
+    # labeled section (distinct from work_statement, for fault attribution) by
+    # adapter_grant_policy._build_prompt. Carried verbatim from the brick_row;
+    # cleaned + secret/session-reject-screened in __post_init__ like the other free
+    # text request fields.
+    brick_instruction_body: str = ""
+    # ④ RE-INSTRUCTION (Link-owned, carried by support). The corrected how-to a
+    # human/COO HOLD disposition carries to the retried target Brick; delivered to
+    # the prompt as its OWN labeled "re-instruction / correction" section (distinct
+    # from work_statement and from the static brick_instruction_body, for fault
+    # attribution) by adapter_grant_policy._build_prompt, ONLY when present. Carried
+    # verbatim from the target step packet; cleaned + secret/session-reject-screened
+    # in __post_init__ like the other free-text request fields. Empty on a normal
+    # (non-resume) run and on every step that is not the disposition's redo target.
+    re_instruction: str = ""
     source_fact_bodies: Mapping[str, str] = field(default_factory=dict)
     link_handoff_refs: Mapping[str, Any] = field(default_factory=dict)
     agent_instruction_packet: Mapping[str, Any] = field(default_factory=dict)
@@ -411,6 +432,15 @@ class AgentAdapterRequest:
             "work_statement",
             "comparison_rule",
             "required_return_shape",
+            # ⑤ the static kind instruction is free text authored by human/agent; it
+            # passes through the SAME clean + secret/session-text reject as the other
+            # free-text request fields so a body cannot smuggle raw credentials or a
+            # provider session into the prompt.
+            "brick_instruction_body",
+            # ④ the re-instruction is free text authored by human/COO on the HOLD
+            # disposition row; same clean + secret/session-text reject so a
+            # correction cannot smuggle credentials or a provider session.
+            "re_instruction",
             "building_session_ref",
             "session_scope_ref",
         ):
@@ -443,8 +473,20 @@ class AgentAdapterRequest:
         )
         cleaned_write_scope = WriteScope.clean(self.write_scope, _WRITE_SCOPE_CONTEXT)
         object.__setattr__(self, "write_scope", cleaned_write_scope)
+        # REDO (Smith 0623 struct-surgery): the adapter EXPOSES raw effective-write
+        # request inputs; it RECORDS NO facts and DERIVES NO reason tokens. It stamps
+        # the RAW booleans (write_scope present, read-write tool policy present,
+        # adapter supports observed write) + the agent_object_ref onto the request so
+        # support/recording (agent_step_observation.derive_effective_write_request_facts)
+        # can derive the named write-policy facts. The WriteScope SHAPE validation (a
+        # malformed write_scope is a definition-coherence error, not a runtime
+        # work-policy stop) stays a construction raise here (KEEP).
         if cleaned_write_scope:
-            _validate_effective_write_request(self, cleaned_write_scope)
+            object.__setattr__(
+                self,
+                _EFFECTIVE_WRITE_REQUEST_RAW_ATTR,
+                _observe_effective_write_request_raw_inputs(self, cleaned_write_scope),
+            )
 
 
 @dataclass(frozen=True)
@@ -461,6 +503,14 @@ class AgentAdapterResult:
     # Link facts never see it. None when the adapter emitted no usage. NO quality
     # or fault label is attached.
     adapter_usage: Mapping[str, Any] | None = None
+    # REDO (Smith 0623 struct-surgery) raw side-channel: the adapter EXPOSES the raw
+    # it already saw -- it RECORDS NO facts. This rides ALONGSIDE returned_value,
+    # never INSIDE it. support/recording (agent_step_observation) DERIVES the named
+    # per-step facts from this raw. Keys (see agent_step_observation):
+    #   non_granted_gemini_tool_names      -> observed_non_granted_gemini_tools fact
+    #   ignored_forbidden_return_key_names -> ignored_forbidden_return_key fact
+    # Empty mapping when the adapter saw none of these.
+    adapter_raw_observations: Mapping[str, Any] = field(default_factory=dict)
 
 
 class AgentAdapterParked(RuntimeError):
@@ -613,6 +663,7 @@ def connect_agent_brain(
     # TrackA-A1 METER: only the local-CLI codex path emits token usage today. The
     # local-callable and gemini-api paths carry no per-turn usage, so it stays None.
     adapter_usage: Mapping[str, Any] | None = None
+    observed_non_granted_gemini_tools: tuple[str, ...] = ()
     if request.adapter_ref == ADAPTER_LOCAL:
         returned_value = _invoke_local_callable(request, local_callables)
         proof_limits = _merge_texts(_DEFAULT_PROOF_LIMITS, request.proof_limits)
@@ -623,19 +674,47 @@ def connect_agent_brain(
             timeout_seconds=timeout_seconds,
         )
     else:
-        returned_value, proof_limits, not_proven, adapter_usage = _invoke_local_cli_adapter(
+        (
+            returned_value,
+            proof_limits,
+            not_proven,
+            adapter_usage,
+            observed_non_granted_gemini_tools,
+        ) = _invoke_local_cli_adapter(
             request,
             cwd=dispatch_cwd,
             timeout_seconds=timeout_seconds,
             command_runner=command_runner,
         )
-    _validate_returned_payload("returned_value", returned_value)
+    # REDO (Smith 0623 struct-surgery): the adapter STRIPS a top-level verdict key so
+    # it cannot poison the structured return (minimal return-shaping the adapter is
+    # allowed to do -- removing it keeps the payload uncorrupted), while still
+    # hard-raising on secret keys / raw credential text (KEEP). It RECORDS NOTHING:
+    # the stripped raw key names ride back as RAW on the side-channel so
+    # support/recording records the ``ignored_forbidden_return_key`` fact. Brick
+    # comparison + the Link gate compute the real verdict from the structured return.
+    ignored_keys = _validate_returned_payload("returned_value", returned_value)
+    if ignored_keys and isinstance(returned_value, Mapping):
+        stripped = dict(returned_value)
+        for raw_key in ignored_keys:
+            stripped.pop(raw_key, None)
+        returned_value = stripped
+    raw_observations: dict[str, Any] = {}
+    if observed_non_granted_gemini_tools:
+        raw_observations["non_granted_gemini_tool_names"] = list(
+            observed_non_granted_gemini_tools
+        )
+    if ignored_keys:
+        raw_observations["ignored_forbidden_return_key_names"] = [
+            str(raw_key) for raw_key in ignored_keys
+        ]
     return AgentAdapterResult(
         request=request,
         returned_value=returned_value,
         proof_limits=proof_limits,
         not_proven=not_proven,
         adapter_usage=adapter_usage,
+        adapter_raw_observations=raw_observations,
     )
 
 
@@ -682,6 +761,28 @@ def supported_model_ref_examples(adapter_ref: str) -> tuple[str, ...]:
     if adapter_ref == ADAPTER_CHAT_SESSION:
         return (MODEL_REF_DEFAULT,)
     return (MODEL_REF_DEFAULT,)
+
+
+def agent_request_effective_write_raw_inputs(
+    request: AgentAdapterRequest,
+) -> Mapping[str, Any]:
+    """Return the RAW effective-write request inputs the adapter observed.
+
+    REDO (Smith 0623 struct-surgery): the adapter EXPOSES raw, it RECORDS nothing.
+    These are the raw booleans support/recording
+    (``agent_step_observation.derive_effective_write_request_facts``) needs to derive
+    the named write-policy facts -- it is NOT a derived fact itself:
+
+      - ``write_scope_present``
+      - ``tool_policy_has_read_write``
+      - ``agent_object_ref``
+      - ``adapter_supports_observed_write``
+
+    An empty mapping means no write_scope was declared (nothing to observe)."""
+
+    if not isinstance(request, AgentAdapterRequest):
+        raise TypeError("request must be AgentAdapterRequest")
+    return dict(getattr(request, _EFFECTIVE_WRITE_REQUEST_RAW_ATTR, {}))
 
 
 def agent_request_effective_write(request: AgentAdapterRequest) -> bool:
@@ -916,45 +1017,30 @@ def _validate_adapter_ref(value: Any) -> str:
     return adapter_ref
 
 
-def _validate_effective_write_request(
+def _observe_effective_write_request_raw_inputs(
     request: AgentAdapterRequest,
     write_scope: Mapping[str, Any],
-) -> None:
-    # UNION of two orthogonal write-hardening lines:
-    #  - main (6/4): effective write requires Brick write_scope + read-write tool
-    #    policy + observed-write adapter mapping + write observation; write authority
-    #    is NOT owned by the adapter name or by `dev` alone (a non-dev Agent with the
-    #    full intersection CAN write -- see kernel _agent_effective_write_probe).
-    #  - branch (adapter-capability-rehome): emits the rehome reason tokens
-    #    (missing_brick_write_scope / legacy_adapter_identity_only_not_authority /
-    #    missing_agent_write_policy / missing_adapter_write_capability) that the
-    #    surviving agent_axis_behavioral profile + case_runners assert.
-    # The dev-name check is kept ONLY as a message discriminator for the
-    # policy-missing path; it is NOT an authority gate (non-dev + full intersection
-    # still passes), so main's "not by dev alone" hardening is preserved.
-    if not write_scope:
-        raise ValueError(
-            "missing_brick_write_scope: Brick row write_scope is required for a "
-            "write-capable selected adapter"
-        )
-    if READ_WRITE_TOOL_POLICY_REF not in request.tool_policy_refs:
-        if request.agent_object_ref != "agent-object:dev":
-            raise ValueError(
-                "legacy_adapter_identity_only_not_authority: adapter_capabilities "
-                "write does not authorize a non-dev Agent Object; "
-                "write_scope requires tool-policy:read-write-scoped"
-            )
-        raise ValueError(
-            "missing_agent_write_policy: Agent tool_policy_refs must include "
-            "tool-policy:read-write-scoped for a write attempt; "
-            "write_scope requires tool-policy:read-write-scoped"
-        )
-    if not _adapter_ref_supports_observed_write(request.adapter_ref):
-        raise ValueError(
-            "missing_adapter_write_capability: write_scope requires adapter mapping "
-            "that supports observed workspace write"
-        )
+) -> Mapping[str, Any]:
+    # REDO (Smith 0623 struct-surgery): support = move(carry) + record. The adapter
+    # EXPOSES the RAW request inputs only; it derives NO reason-token facts and stops
+    # NOTHING. support/recording
+    # (agent_step_observation.derive_effective_write_request_facts) DERIVES the named
+    # write-policy facts (missing_brick_write_scope /
+    # legacy_adapter_identity_only_not_authority / missing_agent_write_policy /
+    # missing_adapter_write_capability) from these booleans.
+    #
+    # The WriteScope SHAPE validation (KEEP: a malformed write_scope is a
+    # definition-coherence error, not a runtime work-policy stop) stays a raise.
     WriteScope.validate("write_scope", write_scope, _WRITE_SCOPE_CONTEXT)
+    return {
+        "write_scope_present": bool(write_scope),
+        "tool_policy_has_read_write": READ_WRITE_TOOL_POLICY_REF
+        in request.tool_policy_refs,
+        "agent_object_ref": request.agent_object_ref,
+        "adapter_supports_observed_write": _adapter_ref_supports_observed_write(
+            request.adapter_ref
+        ),
+    }
 
 
 def _adapter_ref_supports_observed_write(adapter_ref: str) -> bool:

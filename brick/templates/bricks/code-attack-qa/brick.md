@@ -67,8 +67,14 @@ reroute is the Link gate's; success / quality are the human's. Report only obser
 or missing probes, and `not_proven` (full regression coverage, semantic correctness of the
 implementation, and support loader behavior are explicitly out of your proof reach).
 
-> This `## code-attack-qa` body is the rich, free-form instruction the AGENT reads; the Builder does
-> not parse it. The frontmatter carries Brick contract fields plus Builder selection metadata
-> (`requires_brick_write_scope`, `performer_lane_need`, `agent_object_hint_ref`,
-> `required_return_template_refs`, `link_movement_literal`) so the Builder can materialize declared
-> BAL rows. Enrich this instruction over time — richer instruction = higher quality, same structure.
+> This `## code-attack-qa` body IS delivered to the Agent in the prompt as the static kind instruction
+> (support/connection/adapter_grant_policy._build_prompt, key `brick_instruction_body`), carried from
+> this file by the Builder (plan_rendering carries the ## body onto the step_template row; composition
+> stamps it onto the brick_row). It is a SEPARATE prompt section from the dynamic `work_statement`.
+> Each `required_return_shape` field is guarded to appear here with guidance, both directions, across
+> EVERY return template (check_bricks_spec_completeness._prose_return_shape_drift_violations), so this
+> body and the return.yaml cannot drift. The frontmatter carries Brick contract fields plus Builder
+> selection metadata (`requires_brick_write_scope`, `performer_lane_need`, `agent_object_hint_ref`,
+> `required_return_template_refs`, `link_movement_literal`) so the Builder can materialize declared BAL
+> rows. Keep this instruction GENERAL to the kind (building-specifics ride `work_statement`); do not
+> claim it raises quality — the Link gate checks sufficiency, quality is the human's.

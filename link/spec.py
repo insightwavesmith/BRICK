@@ -30,29 +30,132 @@ so accept/reject is byte-for-byte what the per-envelope validators produced.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from typing import Any, NamedTuple
 
-from brick_protocol.link.gate import DECLARED_GATE_REFS
 from brick_protocol.link.transition import (
     TRANSITION_LIFECYCLE_ALLOWED_KEYS,
 )
 
 
 # ---------------------------------------------------------------------------
+# GATE REGISTRY (Link gate single-source, struct-surgery ② 0623). The Link axis
+# owns the gate vocabulary as ONE data table: each row IS a declarable Link gate.
+# Adding a gate = adding a GATE_REGISTRY row (data), not editing constitution
+# code. Every other gate fact derives from this table:
+#   * link/gate.py derives ``DECLARED_GATE_REFS`` + the per-gate required-return
+#     field map + the human/coo/auto disposition partitions FROM these rows (no
+#     literal ref list, no scattered placement rule);
+#   * the gate-concept translation table (``GATE_CONCEPT_TOKEN_GATE_REFS``) +
+#     ``translate_gate_concept`` derive from the rows that carry a concept token;
+#   * the materializer placement rule (which gate lands on which row) is READ
+#     from the rows via ``gate_placement_for_row`` — support no longer AUTHORS it.
+#
+# Each row field:
+#   ref                     the live ``declared_gate_ref`` literal (Link-owned).
+#   concept_token           the builder-declarable gate-concept token that
+#                           TRANSLATES to this ref, or None for the implicit
+#                           default-transition gate (no translation; it is the
+#                           default flow, named by its ref suffix as a MODE word).
+#   required_return_fields  the Agent-return fields this gate adds to the
+#                           sufficiency check, in fixed order (empty for the
+#                           human/coo gates: their requirement is a
+#                           route_decision_basis ref, handled in gate.py).
+#   placement               WHERE the materializer stamps this gate when its
+#                           concept token is declared: "qa" (QA/reviewer rows),
+#                           "final_transition" (the final transition / portfolio
+#                           closure row), or "none" (default-transition never
+#                           translates onto a row — it is the implicit flow).
+#   placement_order         the EMISSION rank used when several gates land on the
+#                           SAME row, so the stamped ``declared_gate_refs`` list
+#                           order is byte-identical to the historical materializer
+#                           (strict=0 first, then coo=1, then human=2). This is
+#                           DISTINCT from the row's index in DECLARED_GATE_REFS
+#                           (which carries the historical index meaning
+#                           [2]=human,[3]=coo); the two orders differ on purpose.
+#   disposition             the gate's disposition family: "auto" (auto-adopt /
+#                           default flow), "plain" (sufficiency only, no human
+#                           disposition), "human" (human disposition evidence
+#                           required), "coo" (coo override evidence required).
+#                           gate.py derives the human/auto partitions from this.
+#
+# ROW ORDER IS LOAD-BEARING: ``DECLARED_GATE_REFS`` is the tuple of these refs in
+# this order, and the historical index meaning is preserved
+# ([0]=default-transition, [1]=strict, [2]=human, [3]=coo) so every existing
+# ``DECLARED_GATE_REFS[i]`` subscript stays byte-identical. The materializer
+# placement order (strict on QA first, then coo, then human on the final row) is
+# also reproduced by ``gate_placement_for_row`` walking the table in this order.
+# ---------------------------------------------------------------------------
+class GateRegistryRow(NamedTuple):
+    """One declarable Link gate, carried purely as DATA."""
+
+    ref: str
+    concept_token: str | None
+    required_return_fields: tuple[str, ...]
+    placement: str
+    placement_order: int
+    disposition: str
+
+
+GATE_REGISTRY: tuple[GateRegistryRow, ...] = (
+    GateRegistryRow(
+        ref="link-gate:default-transition",
+        concept_token=None,
+        required_return_fields=("observed_evidence", "not_proven"),
+        placement="none",
+        placement_order=-1,
+        disposition="auto",
+    ),
+    GateRegistryRow(
+        ref="link-gate:strict",
+        concept_token="strict-evidence",
+        required_return_fields=(
+            "blocked_or_missing_evidence",
+            "remaining_delta",
+            "proof_limits",
+        ),
+        placement="qa",
+        placement_order=0,
+        disposition="plain",
+    ),
+    GateRegistryRow(
+        ref="link-gate:human",
+        concept_token="human-review",
+        required_return_fields=(),
+        placement="final_transition",
+        placement_order=2,
+        disposition="human",
+    ),
+    GateRegistryRow(
+        ref="link-gate:coo",
+        concept_token="coo-review",
+        required_return_fields=(),
+        placement="final_transition",
+        placement_order=1,
+        disposition="coo",
+    ),
+)
+
+# The Link-owned ordered gate-ref vocabulary, DERIVED from the registry rows (no
+# literal list). link/gate.py imports this so support's ``DECLARED_GATE_REFS``
+# (re-exported from link/gate.py) stays the byte-identical 4-tuple it always was.
+DECLARED_GATE_REFS: tuple[str, ...] = tuple(row.ref for row in GATE_REGISTRY)
+
+
+# ---------------------------------------------------------------------------
 # GATE-CONCEPT TRANSLATION (Link plan grammar; E2/S3). A preset DECLARES a
 # ``gate_concept_profile`` of concept tokens; the materializer TRANSLATES each
 # token into a live ``declared_gate_ref`` on a specific row. The token -> ref map
-# is single-sourced here over the Link-owned gate vocabulary
-# (``DECLARED_GATE_REFS``: [0]=default-transition, [1]=strict, [2]=human,
-# [3]=coo). MODE tokens (default-transition / fan-in-wait-all / portfolio-policy)
-# have NO gate ref here on purpose: they are not Link gates (fan-in-wait-all =
-# declared graph topology requirement, portfolio-policy = driver surface).
+# is DERIVED from the GATE_REGISTRY rows that carry a ``concept_token`` (the
+# Link-owned gate vocabulary). MODE tokens (default-transition / fan-in-wait-all
+# / portfolio-policy) have NO gate ref here on purpose: they are not Link gates
+# (the default-transition row carries no concept_token; fan-in-wait-all =
+# declared graph topology requirement; portfolio-policy = driver surface).
 # ---------------------------------------------------------------------------
 GATE_CONCEPT_TOKEN_GATE_REFS: Mapping[str, str] = {
-    "strict-evidence": DECLARED_GATE_REFS[1],
-    "coo-review": DECLARED_GATE_REFS[3],
-    "human-review": DECLARED_GATE_REFS[2],
+    row.concept_token: row.ref
+    for row in GATE_REGISTRY
+    if row.concept_token is not None
 }
 
 
@@ -67,6 +170,56 @@ def translate_gate_concept(token: str) -> str:
     """
 
     return GATE_CONCEPT_TOKEN_GATE_REFS[token]
+
+
+# The placement-kind a row exposes for ONE registry gate. The materializer reads
+# ROW FLAGS (is this a QA/reviewer row? the final transition row?) and the
+# DECLARED tokens; this map says which row-flag a given placement kind keys on.
+# "none" (default-transition) never translates onto a row. Single-sourced here so
+# the placement rule lives with the gate it governs, not in a support author body.
+_GATE_PLACEMENT_ROW_FLAG: Mapping[str, str] = {
+    "qa": "qa_row",
+    "final_transition": "final_transition_row",
+}
+
+
+def gate_placement_for_row(
+    *,
+    tokens: Sequence[str],
+    qa_row: bool,
+    final_transition_row: bool,
+) -> tuple[tuple[str, str], ...]:
+    """The ``(concept_token, gate_ref)`` pairs the GATE_REGISTRY places on ONE row.
+
+    Reads the Link gate registry (the single source) instead of an author body in
+    support: for each registry gate that carries a concept_token, if that token is
+    in the DECLARED ``tokens`` AND this row matches the gate's ``placement`` flag
+    (``qa`` -> ``qa_row``, ``final_transition`` -> ``final_transition_row``;
+    ``none`` never places), the (token, ref) pair lands on this row. The pairs are
+    returned in each gate's ``placement_order`` (strict=0, coo=1, human=2), which
+    is byte-identical to the historical materializer order (strict on QA first,
+    then coo, then human on the final transition row). This authors no Movement and
+    chooses no route; it only reads which declared gate the registry stamps where.
+    """
+
+    declared = {
+        str(token).strip()
+        for token in tokens
+        if isinstance(token, str) and str(token).strip()
+    }
+    row_match = {"qa_row": bool(qa_row), "final_transition_row": bool(final_transition_row)}
+    placed: list[GateRegistryRow] = []
+    for row in GATE_REGISTRY:
+        if row.concept_token is None or row.placement == "none":
+            continue
+        if row.concept_token not in declared:
+            continue
+        flag = _GATE_PLACEMENT_ROW_FLAG.get(row.placement)
+        if flag is None or not row_match.get(flag, False):
+            continue
+        placed.append(row)
+    placed.sort(key=lambda row: row.placement_order)
+    return tuple((row.concept_token, row.ref) for row in placed)
 
 
 # MODE gate-concept tokens (E2/S8): builder-declarable gate concepts that carry
@@ -507,7 +660,7 @@ LINK_ENVELOPES: Mapping[str, LinkEnvelope] = {
             ),
         ),
     ),
-    # transition_lifecycle body order: required_text(2) -> text(6) -> int(1) -> list(3).
+    # transition_lifecycle body order: required_text(2) -> text(7) -> int(1) -> list(3).
     TRANSITION_LIFECYCLE_KEY: LinkEnvelope(
         name=TRANSITION_LIFECYCLE_KEY,
         allowed_keys=TRANSITION_LIFECYCLE_ALLOWED_KEYS,
@@ -527,6 +680,9 @@ LINK_ENVELOPES: Mapping[str, LinkEnvelope] = {
                         "pending_target_ref",
                         "required_disposition_owner",
                         "disposition_action",
+                        # ④ RE-INSTRUCTION (Link-owned optional text): the
+                        # corrected how-to carried to the retried target Brick.
+                        "re_instruction",
                     ),
                     prefix="transition_lifecycle_",
                 ),

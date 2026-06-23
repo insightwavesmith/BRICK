@@ -460,6 +460,14 @@ PRH_B_RECORDER_TARGETS = {
     "support/recording/building_map_emit.py",
     "support/recording/lifecycle_emit.py",
     "support/recording/adapter_error_frontier.py",
+    # REDO (Smith 0623 struct-surgery): the per-step Agent support-observation
+    # fact deriver. Support = move+record only -- the ADAPTER exposes raw (gemini
+    # tool-call list, stripped verdict-key names, effective-write request inputs)
+    # and the support WRITE OBSERVER exposes raw worktree observation; this module
+    # RECORDS the named facts and calls brick.comparison for the written-vs-scope
+    # classification. NESTED support evidence, no BAL fact class, no fourth axis,
+    # no building-stop.
+    "support/recording/agent_step_observation.py",
 }
 
 V03_DOGFOOD_ROOT = "project/brick-protocol/status/v03-dogfood"

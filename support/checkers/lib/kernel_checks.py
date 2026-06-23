@@ -962,40 +962,65 @@ def _agent_effective_write_probe(
     else:
         raise ProfileError("effective_write observation marker accepted mismatched cwd")
 
-    try:
-        adapter.AgentAdapterRequest(
-            building_id="agent-effective-write-negative-no-policy",
-            agent_object_ref="agent-object:dev",
-            adapter_ref=adapter_constants.ADAPTER_CODEX_LOCAL,
-            brick_instance_ref="brick-work",
-            next_brick_instance_ref="brick-closure",
-            write_scope=write_scope,
-            agent_instruction_packet=instruction_packet,
-        )
-    except ValueError as exc:
-        if "write_scope requires tool-policy:read-write-scoped" not in str(exc):
-            raise ProfileError("write_scope without tool policy rejected with wrong reason") from exc
-    else:
-        raise ProfileError("write_scope without read-write tool policy was not rejected")
+    # REDO (Smith 0623 struct-surgery): the adapter EXPOSES raw effective-write
+    # request inputs and SUPPORT/RECORDING derives the named write-policy facts. The
+    # request observer derives nothing and stops nothing.
+    from brick_protocol.support.recording.agent_step_observation import (
+        derive_effective_write_request_facts as _derive_write_policy_facts,
+    )
 
-    try:
-        adapter.AgentAdapterRequest(
-            building_id="agent-effective-write-negative-unsupported-adapter",
-            agent_object_ref="agent-object:dev",
-            # gemini-local (read + review, NOT observed-write) is the non-observed-write
-            # example now; claude-local is write-capable after the claude-write rehome.
-            adapter_ref=adapter_constants.ADAPTER_GEMINI_LOCAL,
-            brick_instance_ref="brick-work",
-            next_brick_instance_ref="brick-closure",
-            tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
-            write_scope=write_scope,
-            agent_instruction_packet=instruction_packet,
+    def _recorded_write_policy_facts(request: Any) -> tuple[str, ...]:
+        return _derive_write_policy_facts(
+            **adapter.agent_request_effective_write_raw_inputs(request)
         )
-    except ValueError as exc:
-        if "supports observed workspace write" not in str(exc):
-            raise ProfileError("unsupported observed-write adapter rejected with wrong reason") from exc
-    else:
-        raise ProfileError("unsupported adapter with write_scope was not rejected")
+
+    # A write_scope WITHOUT the read-write tool policy no longer STOPS request
+    # construction -- the dev Agent omitting tool-policy:read-write-scoped is RECORDED
+    # (by support/recording) as missing_agent_write_policy, and the building continues.
+    # Brick recommends, the Agent is free, the worktree isolates, merge-review is the
+    # real gate. The probe asserts the request CONSTRUCTS (no raise) AND the recorded
+    # fact carries the token.
+    no_policy_request = adapter.AgentAdapterRequest(
+        building_id="agent-effective-write-negative-no-policy",
+        agent_object_ref="agent-object:dev",
+        adapter_ref=adapter_constants.ADAPTER_CODEX_LOCAL,
+        brick_instance_ref="brick-work",
+        next_brick_instance_ref="brick-closure",
+        write_scope=write_scope,
+        agent_instruction_packet=instruction_packet,
+    )
+    no_policy_facts = _recorded_write_policy_facts(no_policy_request)
+    if not any("missing_agent_write_policy" in fact for fact in no_policy_facts):
+        raise ProfileError(
+            "write_scope without read-write tool policy must be RECORDED as "
+            f"missing_agent_write_policy (move+record only), observed {no_policy_facts!r}"
+        )
+
+    # A selected adapter whose mapping does not support observed workspace write
+    # (gemini-local: read + review, NOT observed-write) no longer STOPS construction
+    # -- the disposition is RECORDED (by support/recording) as
+    # missing_adapter_write_capability and the building continues. (claude-local is
+    # write-capable after the claude-write rehome.) The probe asserts the request
+    # CONSTRUCTS (no raise) AND the recorded fact carries the token.
+    unsupported_adapter_request = adapter.AgentAdapterRequest(
+        building_id="agent-effective-write-negative-unsupported-adapter",
+        agent_object_ref="agent-object:dev",
+        adapter_ref=adapter_constants.ADAPTER_GEMINI_LOCAL,
+        brick_instance_ref="brick-work",
+        next_brick_instance_ref="brick-closure",
+        tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
+        write_scope=write_scope,
+        agent_instruction_packet=instruction_packet,
+    )
+    unsupported_adapter_facts = _recorded_write_policy_facts(unsupported_adapter_request)
+    if not any(
+        "missing_adapter_write_capability" in fact for fact in unsupported_adapter_facts
+    ):
+        raise ProfileError(
+            "unsupported observed-write adapter with write_scope must be RECORDED as "
+            f"missing_adapter_write_capability (move+record only), observed "
+            f"{unsupported_adapter_facts!r}"
+        )
 
     for retired_adapter_ref in _AXIS_VOCAB_RETIRED_WRITE_ADAPTER_REFS:
         try:
@@ -1431,20 +1456,28 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
             "stats": {"tools": {"totalCalls": 1, "byName": {"web_fetch": 1}}},
         }
     )
-    try:
-        adapter_local_cli._extract_gemini_response(web_tool_payload)
-    except ValueError:
-        pass
-    else:
-        raise ProfileError("gemini-local non-web extraction globally accepted web_fetch")
-    if (
-        adapter_local_cli._extract_gemini_response(
-            web_tool_payload,
-            allowed_tool_names=adapter_grant_policy._gemini_allowed_tool_names_for_request(pm_gemini_request),
+    # Smith 0623 LOCK (move+record only): a non-granted tool no longer refuses the
+    # payload. The read-only fallback returns the real answer AND records web_fetch
+    # as an observed non-granted tool.
+    fallback_response, fallback_tools = adapter_local_cli._extract_gemini_response(web_tool_payload)
+    if fallback_response != "web tools accepted":
+        raise ProfileError("gemini-local read-only fallback dropped the real answer for web_fetch")
+    if "web_fetch" not in fallback_tools:
+        raise ProfileError(
+            "gemini-local non-web extraction did not RECORD ungranted web_fetch as an "
+            "observed non-granted tool"
         )
-        != "web tools accepted"
-    ):
+    granted_response, granted_tools = adapter_local_cli._extract_gemini_response(
+        web_tool_payload,
+        allowed_tool_names=adapter_grant_policy._gemini_allowed_tool_names_for_request(pm_gemini_request),
+    )
+    if granted_response != "web tools accepted":
         raise ProfileError("gemini-local web-capable extraction did not accept request-threaded web_fetch")
+    if granted_tools:
+        raise ProfileError(
+            "gemini-local web-granted request wrongly recorded an observed non-granted "
+            f"tool: {granted_tools!r}"
+        )
 
     gemini_cli_capture: dict[str, Any] = {}
 
@@ -1564,8 +1597,16 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
             },
         }
     )
-    if adapter_local_cli._extract_gemini_response(read_tool_payload) != "read tools accepted":
+    read_response, read_tools = adapter_local_cli._extract_gemini_response(read_tool_payload)
+    if read_response != "read tools accepted":
         raise ProfileError("gemini-local read tool byName payload was not accepted")
+    if read_tools:
+        raise ProfileError(
+            f"gemini-local read-only tools wrongly recorded as non-granted: {read_tools!r}"
+        )
+    # Smith 0623 LOCK (move+record only): a non-read tool no longer refuses the
+    # payload -- it is RECORDED as an observed non-granted tool while the answer
+    # still returns.
     for forbidden_tool in ("write_file", "run_shell_command", "replace"):
         forbidden_payload = json.dumps(
             {
@@ -1573,15 +1614,18 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
                 "stats": {"tools": {"totalCalls": 1, "byName": {forbidden_tool: 1}}},
             }
         )
-        try:
-            adapter_local_cli._extract_gemini_response(forbidden_payload)
-        except ValueError as exc:
-            if forbidden_tool not in str(exc):
-                raise ProfileError(
-                    f"gemini-local non-read tool rejection omitted {forbidden_tool!r}"
-                ) from exc
-        else:
-            raise ProfileError(f"gemini-local admitted non-read tool byName {forbidden_tool!r}")
+        forbidden_response, forbidden_tools = adapter_local_cli._extract_gemini_response(
+            forbidden_payload
+        )
+        if forbidden_response != "non-read tool should reject":
+            raise ProfileError(
+                f"gemini-local dropped the answer for non-read tool {forbidden_tool!r}"
+            )
+        if forbidden_tool not in forbidden_tools:
+            raise ProfileError(
+                f"gemini-local non-read tool record omitted {forbidden_tool!r}: "
+                f"{forbidden_tools!r}"
+            )
 
     # GEMINI-CONTROLPLANE-EXEMPT-0622: gemini's own completion/orchestration control
     # plane (complete_task, invoke_agent) has no repo/external side effect and must
@@ -1598,13 +1642,16 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
             },
         }
     )
-    if (
-        adapter_local_cli._extract_gemini_response(benign_payload)
-        != "benign control plane accepted"
-    ):
+    benign_response, benign_tools = adapter_local_cli._extract_gemini_response(benign_payload)
+    if benign_response != "benign control plane accepted":
         raise ProfileError(
             "gemini-local benign control-plane tools (complete_task/invoke_agent) "
-            "falsely tripped the non-read refusal"
+            "dropped the real answer"
+        )
+    if benign_tools:
+        raise ProfileError(
+            "gemini-local benign control-plane tools (complete_task/invoke_agent) "
+            f"were falsely recorded as observed non-granted tools: {benign_tools!r}"
         )
     # MUTATION-RED GUARD: the benign exemption must stay BOUNDED -- a real ungranted
     # side-effecting tool bundled WITH benign control tools must STILL trip the refusal,
@@ -1620,22 +1667,25 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
             },
         }
     )
-    try:
-        adapter_local_cli._extract_gemini_response(benign_plus_write_payload)
-    except ValueError as exc:
-        if "write_file" not in str(exc):
-            raise ProfileError(
-                "gemini-local refusal of write_file bundled with benign control tools "
-                "did not name write_file"
-            ) from exc
-        if "complete_task" in str(exc):
-            raise ProfileError(
-                "gemini-local refusal wrongly flagged the benign complete_task tool"
-            )
-    else:
+    # Smith 0623 LOCK (move+record only): the answer always returns; the guard is
+    # now that the RECORDED observed-tool set stays BOUNDED -- write_file is recorded,
+    # the benign complete_task is NOT, so the exemption cannot rot into "record
+    # nothing" (or "record everything").
+    bundled_response, bundled_tools = adapter_local_cli._extract_gemini_response(
+        benign_plus_write_payload
+    )
+    if bundled_response != "benign bundled with real write must still reject":
         raise ProfileError(
-            "gemini-local benign exemption widened into accepting an ungranted write_file "
-            "(mutation-RED guard breached)"
+            "gemini-local dropped the answer for write_file bundled with benign tools"
+        )
+    if "write_file" not in bundled_tools:
+        raise ProfileError(
+            "gemini-local benign exemption widened into NOT recording an ungranted "
+            "write_file (mutation-RED guard breached)"
+        )
+    if "complete_task" in bundled_tools:
+        raise ProfileError(
+            "gemini-local wrongly recorded the benign complete_task tool"
         )
     # PART 1 consistency: a web tool is a violation under the read-only fallback BUT is
     # accepted once the request's full granted set (web included) is threaded -- the
@@ -1646,29 +1696,34 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
             "stats": {"tools": {"totalCalls": 1, "byName": {"google_web_search": 1}}},
         }
     )
-    try:
-        adapter_local_cli._extract_gemini_response(web_search_payload)
-    except ValueError as exc:
-        if "google_web_search" not in str(exc):
-            raise ProfileError(
-                "gemini-local ungranted google_web_search refusal did not name the tool"
-            ) from exc
-    else:
+    # Smith 0623 LOCK (move+record only): under the read-only fallback the answer
+    # returns and ungranted google_web_search is RECORDED, not refused.
+    web_search_response, web_search_tools = adapter_local_cli._extract_gemini_response(
+        web_search_payload
+    )
+    if web_search_response != "web tools accepted":
         raise ProfileError(
-            "gemini-local read-only fallback accepted ungranted google_web_search"
+            "gemini-local read-only fallback dropped the answer for google_web_search"
         )
-    if (
-        adapter_local_cli._extract_gemini_response(
-            web_search_payload,
-            allowed_tool_names=adapter_grant_policy._gemini_allowed_tool_names_for_request(
-                pm_gemini_request
-            ),
+    if "google_web_search" not in web_search_tools:
+        raise ProfileError(
+            "gemini-local ungranted google_web_search record did not name the tool"
         )
-        != "web tools accepted"
-    ):
+    granted_search_response, granted_search_tools = adapter_local_cli._extract_gemini_response(
+        web_search_payload,
+        allowed_tool_names=adapter_grant_policy._gemini_allowed_tool_names_for_request(
+            pm_gemini_request
+        ),
+    )
+    if granted_search_response != "web tools accepted":
         raise ProfileError(
             "gemini-local web-granted request rejected google_web_search the launch "
             "admin-policy allows (post-hoc inconsistent with grant)"
+        )
+    if granted_search_tools:
+        raise ProfileError(
+            "gemini-local web-granted request wrongly recorded google_web_search as "
+            f"observed non-granted: {granted_search_tools!r}"
         )
 
     gemini_none_request = adapter.AgentAdapterRequest(
@@ -2341,12 +2396,25 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
         raise ProfileError(
             "agent adapter rejected nested natural evidence keys pass/fail"
         ) from exc
+    # REDO (Smith 0623 struct-surgery): a top-level verdict key is NO LONGER a HOLD.
+    # The payload walker quarantines it -- it must NOT raise and must REPORT the raw
+    # key name. connect_agent_brain STRIPS the key (return-shaping) and exposes the
+    # raw key name on the adapter side-channel; support/recording records the
+    # ignored_forbidden_return_key fact (the adapter records nothing).
     try:
-        adapter_validation._validate_returned_payload("returned", {"success": True})
-    except ValueError:
-        pass
-    else:
-        raise ProfileError("agent adapter admitted top-level success return key")
+        ignored = adapter_validation._validate_returned_payload("returned", {"success": True})
+    except ValueError as exc:
+        raise ProfileError(
+            "agent adapter halted on a top-level verdict key instead of "
+            "quarantining it (move+record only)"
+        ) from exc
+    if "success" not in ignored:
+        raise ProfileError(
+            "agent adapter did not quarantine the top-level verdict key 'success' "
+            f"as a recorded fact, observed {ignored!r}"
+        )
+    # KEEP: nested raw secret text STILL hard-raises (credential egress is a real
+    # stop the worktree does not soften).
     try:
         adapter_validation._validate_returned_payload(
             "returned",

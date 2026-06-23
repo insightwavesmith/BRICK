@@ -35,23 +35,43 @@ _RAW_SESSION_PATTERNS = (
 _SOURCE_FACT_BODY_LIMIT = 12000
 
 
-def _validate_returned_payload(label: str, value: Any, *, depth: int = 0) -> None:
+def _validate_returned_payload(label: str, value: Any, *, depth: int = 0) -> tuple[str, ...]:
+    """Walk a returned payload. Two distinct lines (Smith 0623 LOCK):
+
+    KEEP (egress / integrity raise): a secret/session-bearing key name
+    (``_ALWAYS_SECRET_KEYS``) or raw credential/session text STILL hard-raises at
+    any depth -- credential egress is a real stop the worktree does not soften.
+
+    MOVE+RECORD (no halt): a TOP-LEVEL verdict key (depth==0, in
+    ``_TOP_LEVEL_VERDICT_KEYS``) is NOT halted. It is quarantined -- this walker
+    REPORTS its raw key name so the caller can STRIP it from the structured return
+    and record an ``ignored_forbidden_return_key`` fact. Brick comparison + the Link
+    gate compute the real verdict from the structured return, so a smuggled
+    top-level verdict key is inert evidence, not an authority assertion.
+
+    Returns the raw top-level verdict key names observed at depth 0 (empty tuple
+    otherwise)."""
+
+    ignored_top_level_keys: list[str] = []
     if isinstance(value, Mapping):
         for raw_key, child in value.items():
             key = _normalize(raw_key)
-            # Secret/session-bearing key names stay recursive. A nested key can
-            # still structure credential material even when it is not an
-            # authority assertion.
+            # KEEP: secret/session-bearing key names stay a recursive hard raise. A
+            # nested key can still structure credential material even when it is not
+            # an authority assertion.
             if key in _ALWAYS_SECRET_KEYS:
                 raise ValueError(f"{label} contains forbidden return key {raw_key!r}")
             if depth == 0 and key in _TOP_LEVEL_VERDICT_KEYS:
-                raise ValueError(f"{label} contains forbidden return key {raw_key!r}")
+                # MOVE+RECORD: quarantine, do not halt; the caller strips + records.
+                ignored_top_level_keys.append(str(raw_key))
+                continue
             _validate_returned_payload(f"{label}.{raw_key}", child, depth=depth + 1)
     elif isinstance(value, (list, tuple)):
         for index, child in enumerate(value):
             _validate_returned_payload(f"{label}[{index}]", child, depth=depth + 1)
     elif isinstance(value, str):
         _reject_secret_text(label, value)
+    return tuple(ignored_top_level_keys)
 
 
 def _safe_excerpt(value: str, *, limit: int = 600) -> str:

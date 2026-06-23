@@ -66,6 +66,7 @@ path_allowlist:
     paths:
       - support/checkers/profiles/adapter_usage_meter.yaml
       - support/checkers/profiles/agent_axis_behavioral.yaml
+      - support/checkers/profiles/agent_object_schema_single_source.yaml
       - support/checkers/profiles/assembly_equivalence.yaml
       - support/checkers/profiles/bounded_agent_proposed_routing_loop.yaml
       - support/checkers/profiles/driver_public_intake_seal.yaml
@@ -78,6 +79,7 @@ path_allowlist:
       - support/checkers/profiles/cli_runner_stdin_devnull.yaml
       - support/checkers/profiles/coo_operating_chain.yaml
       - support/checkers/profiles/core.yaml
+      - support/checkers/profiles/gate_registry_single_source.yaml
       - support/checkers/profiles/link_routing_behavioral.yaml
       - support/checkers/profiles/native_dispatch_brick_backstop.yaml
       - support/checkers/profiles/read_side_projection_boundary.yaml

@@ -517,6 +517,49 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "chained_carry_dependency",
         "support.checkers.check_chained_carry_dependency",
     ),
+    # GATE-REGISTRY SINGLE-SOURCE (struct-surgery ② 0623; data-driven Link gate
+    # registry). AST-seals the Link gate-ref VOCABULARY + the materializer
+    # PLACEMENT rule to ONE data table -- link/spec.GATE_REGISTRY (one row per
+    # gate). RULE 1 rejects any collection literal of >= 2 link-gate: literals
+    # outside link/spec.py (a re-stated gate vocabulary -- the old
+    # DECLARED_GATE_REFS-tuple shape that drifts from the registry), while leaving
+    # a lone behavioral "if ref == link-gate:human" comparison clean. RULE 2
+    # rejects the support placement helper _materializer_profile_gate_translations
+    # if it does not delegate to gate_placement_for_row, or hand-authors placement
+    # via translate_gate_concept guarded by row flags. The operator-adds-a-gate-by-
+    # adding-a-row goal is only real if neither can be re-stated elsewhere. FAILS
+    # CLOSED: an enumeration/authoring outside the registry makes main() return
+    # non-zero and raises ProfileError, so --all EXITs non-zero. Includes an
+    # in-process mutation-RED (a re-enumerated gate tuple + a hand-authored
+    # placement helper are both rejected; a lone comparison is left clean).
+    "gate_registry_single_source": _repo_main(
+        "gate_registry_single_source",
+        "support.checkers.check_gate_registry_single_source",
+    ),
+    # AGENT-OBJECT SCHEMA SINGLE-SOURCE (③ struct-surgery 0623). AST-seals the
+    # agent-OBJECT key/ref/forbidden SCHEMA to ONE source on the Agent axis —
+    # agent/spec.AGENT_OBJECT_SCHEMA (assembled over its _AGENT_OBJECT_REF_FIELDS +
+    # _AGENT_OBJECT_FORBIDDEN_KEYS literals, with allowed_keys deriving the casting
+    # names from CASTING_FIELDS) + the validate_agent_object_keys() gate the support
+    # load path AND the inline agent() compose path both call. RULE 1 positively
+    # asserts the schema, the two member literals (exact member-sets), and the gate
+    # are defined on the axis; RULE 2 rejects any collection literal whose member-set
+    # equals the 6-name ref-field set OR the 16-name forbidden-key set anywhere in
+    # the axis/support trees except agent/spec.py (a re-stated schema fragment — the
+    # old _REF_FIELDS / forbidden-frozenset copies that were scattered across
+    # agent_resources.py + primitives.py + native_dispatch.py, one of which had
+    # OMITTED the casting keys and raised on a real role). A lone by-name read
+    # (obj.get("adapter_refs")) can never equal a >=2-member set and is never
+    # flagged. FAILS CLOSED: an enumeration outside the source makes main() return
+    # non-zero and raises ProfileError, so --all EXITs non-zero. Includes an
+    # in-process mutation-RED (a re-stated ref tuple + a re-stated forbidden frozenset
+    # both rejected; a lone by-name read left clean).
+    # Mutation-RED: re-add a frozenset/tuple of the six *_refs names (or the sixteen
+    # forbidden keys) to any axis/support module -> this kernel check RED -> --all RED.
+    "agent_object_schema_single_source": _repo_main(
+        "agent_object_schema_single_source",
+        "support.checkers.check_agent_object_schema_single_source",
+    ),
     # REPORT-ENV-AUTOLOAD (#56). Executes the report.env engine auto-loader
     # IN-PROCESS over TEMP env fixtures (never the operator's real ~/.brick
     # files, never the live os.environ): an allowlisted key from a 0600 file is

@@ -6,18 +6,19 @@ Brick-declared write scope. It does not judge success, quality, or Movement.
 
 from __future__ import annotations
 
-import fnmatch
 import hashlib
 import subprocess
 from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any
 
+from brick_protocol.brick.comparison import compare_changed_paths_to_write_scope
 from brick_protocol.support.connection.agent_adapter import (
     AgentAdapterRequest,
     AgentAdapterResult,
     _mark_effective_write_observation_path,
     agent_request_effective_write,
+    agent_request_effective_write_raw_inputs,
 )
 from brick_protocol.support.operator.primitives import (
     _REPO_ROOT,
@@ -26,6 +27,11 @@ from brick_protocol.support.operator.primitives import (
     _WRITE_OBSERVATION_DEFAULT_EXCLUDED_SUFFIXES,
     _mapping,
     _merge_texts,
+)
+from brick_protocol.support.recording.agent_step_observation import (
+    derive_adapter_raw_observation_facts,
+    derive_effective_write_request_facts,
+    derive_git_refs_moved,
 )
 
 def _write_scope_from_brick_row(row: Mapping[str, Any]) -> Mapping[str, Any]:
@@ -76,16 +82,40 @@ def _adapter_result_with_write_observation(
     }
     after_git_status_paths = _observed_worktree_paths(cwd)
     after_git_refs = _observed_git_refs(cwd)
-    _validate_git_refs_unchanged(before_git_refs, after_git_refs)
     changed_files = _changed_snapshot_paths(before_snapshot, after_snapshot)
-    _validate_observed_write_paths(changed_files, adapter_result.request.write_scope)
+
+    # RAW worktree observation only (REDO Smith 0623): the support write observer
+    # produces "what changed + before/after git refs" and the RAW structural
+    # sensitive-path flags, plus the ``.git`` floor integrity raise (KEEP). It does
+    # NOT classify changed paths against the recommended scope, does NOT derive the
+    # write-policy reason tokens, and does NOT record the git-ref delta -- those are
+    # the Brick axis (brick.comparison) and support/recording (agent_step_observation).
+    observed_sensitive_path_writes = _raw_sensitive_path_writes(changed_files)
+
+    # COMPARE (Brick axis 정보가공): classify the RAW changed paths against the
+    # Brick-recommended write_scope.
+    write_scope_comparison_facts = compare_changed_paths_to_write_scope(
+        changed_files, adapter_result.request.write_scope
+    )
+
+    # RECORD (support/recording): derive the named per-step facts from the RAW
+    # observations (git-ref delta, effective-write reason tokens, adapter raw
+    # side-channel) -- the support write observer no longer assembles these itself.
+    git_refs_moved = derive_git_refs_moved(before_git_refs, after_git_refs)
+    effective_write_request_facts = derive_effective_write_request_facts(
+        **agent_request_effective_write_raw_inputs(adapter_result.request)
+    )
+    adapter_raw_facts = derive_adapter_raw_observation_facts(
+        adapter_result.adapter_raw_observations
+    )
+
     returned_value = adapter_result.returned_value
     if isinstance(returned_value, Mapping):
         returned_mapping = dict(returned_value)
     else:
         returned_mapping = {"returned_excerpt": str(returned_value)}
     returned_mapping["changed_files"] = list(changed_files)
-    returned_mapping["worktree_observation"] = {
+    worktree_observation: dict[str, Any] = {
         "before_path_count": len(before_snapshot),
         "after_path_count": len(after_snapshot),
         "before_git_status_paths": list(before_git_status_paths),
@@ -94,6 +124,14 @@ def _adapter_result_with_write_observation(
         "after_git_refs": dict(after_git_refs),
         "observed_changed_files": list(changed_files),
         "write_scope": dict(adapter_result.request.write_scope),
+        # RAW structural sensitive-path observation (no scope knowledge); the
+        # building is not stopped on it (worktree is disposable; secret read/egress
+        # stays hard elsewhere -- adapter_validation). The ``.git`` floor is the only
+        # integrity raise and it has already fired above in _raw_sensitive_path_writes.
+        # Brick-comparison + support/recording facts land here as NESTED evidence for
+        # the merge-review gate; no policy disposition stops the building.
+        "git_refs_moved": dict(git_refs_moved),
+        "effective_write_request_facts": list(effective_write_request_facts),
         "proof_limits": [
             "changed files are support evidence only",
             "not source truth",
@@ -106,6 +144,15 @@ def _adapter_result_with_write_observation(
             "complete diff attribution for pre-existing dirty paths",
         ],
     }
+    if observed_sensitive_path_writes:
+        worktree_observation["observed_sensitive_path_writes"] = list(
+            observed_sensitive_path_writes
+        )
+    for key, value in write_scope_comparison_facts.items():
+        worktree_observation[key] = list(value)
+    for key, value in adapter_raw_facts.items():
+        worktree_observation[key] = list(value)
+    returned_mapping["worktree_observation"] = worktree_observation
     return AgentAdapterResult(
         request=adapter_result.request,
         returned_value=returned_mapping,
@@ -172,13 +219,6 @@ def _git_output(cwd: Path, args: tuple[str, ...]) -> str:
         return ""
     return completed.stdout.strip()
 
-def _validate_git_refs_unchanged(
-    before_refs: Mapping[str, str],
-    after_refs: Mapping[str, str],
-) -> None:
-    if dict(before_refs) != dict(after_refs):
-        raise ValueError("effective write observed forbidden git ref movement")
-
 def _git_status_path(line: str) -> str:
     if len(line) < 4:
         return ""
@@ -244,50 +284,50 @@ def _changed_snapshot_paths(
     )
     return tuple(sorted(changed))
 
-def _validate_observed_write_paths(
-    changed_files: Iterable[str],
-    write_scope: Mapping[str, Any],
-) -> None:
-    if "forbidden_paths" not in write_scope:
-        raise ValueError("effective write observation requires write_scope.forbidden_paths")
-    raw_forbidden = write_scope.get("forbidden_paths")
-    if not isinstance(raw_forbidden, list):
-        raise TypeError("write_scope.forbidden_paths must be a list")
-    allowed = tuple(
-        str(item).replace("\\", "/")
-        for item in write_scope.get("allowed_paths", ())
-        if isinstance(item, str) and item.strip()
-    )
-    forbidden = tuple(
-        str(item).replace("\\", "/")
-        for item in raw_forbidden
-        if isinstance(item, str) and item.strip()
-    )
-    if not allowed:
-        raise ValueError("effective write observation requires write_scope.allowed_paths")
-    for path in changed_files:
-        _validate_observed_write_path(path, allowed, forbidden)
+def _raw_sensitive_path_writes(changed_files: Iterable[str]) -> tuple[str, ...]:
+    """RAW structural sensitive-path observation (REDO Smith 0623).
 
-def _validate_observed_write_path(
-    path: str,
-    allowed: tuple[str, ...],
-    forbidden: tuple[str, ...],
-) -> None:
+    This is a RAW structural observation that needs NO scope knowledge: which
+    changed paths are .env / *.pem / *.key or carry an auth/credential/secret/token
+    path segment. It is support's own RAW observation; the written-vs-scope
+    classification (against the recommended write_scope) is the Brick axis's
+    (``brick.comparison.compare_changed_paths_to_write_scope``).
+
+    The ``.git`` floor (decision B) is the ONLY integrity raise that survives and it
+    HARD-STOPS the building here: the agent ripping its own git floor is integrity,
+    not policy. Every other disposition (including a sensitive-path write) is
+    RECORDED, not stopped -- the worktree is disposable and secret read/egress stays
+    hard in adapter_validation.
+    """
+
+    observed: list[str] = []
+    for raw_path in changed_files:
+        clean = str(raw_path).strip().replace("\\", "/")
+        if not clean:
+            continue
+        _validate_observed_write_path(clean)
+        lowered = clean.lower()
+        if (
+            lowered.endswith((".pem", ".key"))
+            or _path_has_forbidden_write_segment(lowered)
+            or lowered == ".env"
+            or lowered.startswith(".env/")
+        ):
+            observed.append(clean)
+    return tuple(observed)
+
+def _validate_observed_write_path(path: str) -> None:
+    """Enforce the ``.git`` floor (decision B) integrity raise on ONE changed path.
+
+    KEEP: the agent ripping its own git floor is integrity, not policy -- this still
+    HARD-STOPS the building. No other policy disposition stops the building (the
+    written-vs-scope classification moved to brick.comparison; the sensitive-path
+    observation is RAW recorded fact)."""
+
     clean = path.strip().replace("\\", "/")
     lowered = clean.lower()
-    if (
-        lowered == ".git"
-        or lowered.startswith(".git/")
-        or lowered.endswith((".pem", ".key"))
-        or _path_has_forbidden_write_segment(lowered)
-        or lowered == ".env"
-        or lowered.startswith(".env/")
-    ):
+    if lowered == ".git" or lowered.startswith(".git/"):
         raise ValueError(f"effective write observed forbidden path: {clean}")
-    if any(_path_matches_scope(clean, pattern) for pattern in forbidden):
-        raise ValueError(f"effective write observed forbidden path: {clean}")
-    if not any(_path_matches_scope(clean, pattern) for pattern in allowed):
-        raise ValueError(f"write_observation_out_of_scope: effective write observed path outside write_scope: {clean}")
 
 def _path_has_forbidden_write_segment(path: str) -> bool:
     segments = [
@@ -299,11 +339,3 @@ def _path_has_forbidden_write_segment(path: str) -> bool:
         if segment in {"auth", "credential", "credentials", "secret", "secrets", "token", "tokens"}:
             return True
     return False
-
-def _path_matches_scope(path: str, pattern: str) -> bool:
-    """Match exact paths or explicit globs; directory-looking entries do not include children."""
-
-    clean_pattern = pattern.strip().replace("\\", "/")
-    if not clean_pattern:
-        return False
-    return fnmatch.fnmatch(path, clean_pattern) or path == clean_pattern.rstrip("/")

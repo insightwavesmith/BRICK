@@ -125,7 +125,13 @@ def _invoke_local_cli_adapter(
     cwd: Path,
     timeout_seconds: int,
     command_runner: CommandRunner | None,
-) -> tuple[Mapping[str, Any], tuple[str, ...], tuple[str, ...], Mapping[str, Any] | None]:
+) -> tuple[
+    Mapping[str, Any],
+    tuple[str, ...],
+    tuple[str, ...],
+    Mapping[str, Any] | None,
+    tuple[str, ...],
+]:
     from .agent_adapter import _local_cli_spec, _merge_texts, probe_local_cli_adapter
 
     spec = _local_cli_spec(request.adapter_ref)
@@ -146,7 +152,9 @@ def _invoke_local_cli_adapter(
     )
     if completed.return_code != 0:
         raise ValueError(_local_cli_nonzero_error_message(spec, completed))
-    output_text = _extract_output_text(spec, completed, request=request)
+    output_text, observed_non_granted_gemini_tools = _extract_output_text(
+        spec, completed, request=request
+    )
     _reject_secret_text("local_cli_output", output_text)
     returned = {
         "returned_summary": "local CLI Agent Adapter returned support evidence",
@@ -187,6 +195,12 @@ def _invoke_local_cli_adapter(
         "proof_limits": list(proof_limits),
         "not_proven": list(not_proven),
     }
+    # REDO (Smith 0623 struct-surgery): the adapter EXPOSES the raw it already saw;
+    # it RECORDS NOTHING. A non-granted gemini tool call is no longer attached to the
+    # returned payload here -- the observed tool names ride back as RAW on the 5th
+    # side-channel element so support/recording can record the
+    # ``observed_non_granted_gemini_tools`` fact. The real answer is already in
+    # output_excerpt (the adapter returns the ANSWER, not a fact).
     _merge_structured_return_fields(
         returned,
         _extract_required_return_fields(
@@ -196,11 +210,15 @@ def _invoke_local_cli_adapter(
     )
     # TrackA-A1 METER: the codex token usage rides back as a SEPARATE 4th element,
     # NOT inside `returned` (which becomes AgentFact.returned). Support fact only.
+    # REDO (Smith 0623): the observed non-granted gemini tool names ride back as RAW
+    # on a SEPARATE 5th element -- never inside `returned`. support/recording records
+    # the fact; the adapter only exposes the raw it saw.
     return (
         returned,
         _merge_texts(proof_limits, request.proof_limits),
         _merge_texts(not_proven, request.not_proven),
         completed.adapter_usage,
+        tuple(observed_non_granted_gemini_tools),
     )
 
 
@@ -569,7 +587,12 @@ def _extract_output_text(
     completed: LocalCliCompleted,
     *,
     request: AgentAdapterRequest,
-) -> str:
+) -> tuple[str, tuple[str, ...]]:
+    """Return (output_text, observed_non_granted_gemini_tools).
+
+    Only the gemini path can observe non-granted tools (move+record only); the
+    other adapters always report an empty observed-tool tuple."""
+
     if spec.adapter_ref == ADAPTER_GEMINI_LOCAL:
         return _extract_gemini_response(
             completed.stdout,
@@ -579,21 +602,30 @@ def _extract_output_text(
         try:
             payload = json.loads(completed.stdout)
         except json.JSONDecodeError:
-            return completed.stdout
+            return completed.stdout, ()
         if isinstance(payload, Mapping):
             for key in ("response", "text", "content", "message", "result"):
                 value = payload.get(key)
                 if isinstance(value, str) and value.strip():
-                    return value
-        return completed.stdout
-    return completed.stdout or completed.stderr
+                    return value, ()
+        return completed.stdout, ()
+    return completed.stdout or completed.stderr, ()
 
 
 def _extract_gemini_response(
     stdout: str,
     *,
     allowed_tool_names: Iterable[str] | None = None,
-) -> str:
+) -> tuple[str, tuple[str, ...]]:
+    """Smith 0623 LOCK (move+record only): return the real Gemini answer plus the
+    observed NON-GRANTED tool names as RECORDED FACT.
+
+    The shape/integrity raises (output not JSON, not an object, missing response
+    text) STAY -- those are not policy stops, the support helper cannot carry a
+    payload it failed to parse. But a non-granted tool call is a POLICY observation,
+    not floor-ripping: it no longer refuses the payload. The response is returned and
+    the observed non-read tool names ride back so the caller records them."""
+
     try:
         payload = json.loads(stdout)
     except json.JSONDecodeError as exc:
@@ -605,15 +637,10 @@ def _extract_gemini_response(
         stats,
         allowed_tool_names=allowed_tool_names,
     )
-    if nonread_tool_names:
-        raise ValueError(
-            "Gemini local CLI reported non-read tool calls; refusing support payload: "
-            + ", ".join(nonread_tool_names)
-        )
     response = payload.get("response")
     if not isinstance(response, str) or not response.strip():
         raise ValueError("Gemini local CLI JSON output missing response text")
-    return response
+    return response, tuple(nonread_tool_names)
 
 
 def _gemini_nonread_tool_names(

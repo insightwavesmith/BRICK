@@ -254,6 +254,19 @@ def _declared_step_from_step_template(
     if declared_gate_refs:
         link["declared_gate_refs"] = list(declared_gate_refs)
     link.setdefault("row_ref", f"{step_ref}:link")
+    # ⑤ STATIC INSTRUCTION BODY (linear path): carry the kind's brick.md ## body
+    # (from the step_template registry row) onto the declared brick_row so the
+    # linear path delivers the body to the agent prompt exactly like the graph
+    # path (composition_compose._composition_brick_row). A node author value, if
+    # ever present, wins; else the kind's body. Built on a fresh dict so the
+    # caller's input mapping is not mutated. Empty body -> key omitted (no
+    # delivery), parallel to the graph path.
+    template_instruction_body = step_template.get("brick_instruction_body")
+    author_instruction_body = brick.get("brick_instruction_body")
+    author_has_body = isinstance(author_instruction_body, str) and author_instruction_body.strip()
+    declared_brick: Mapping[str, Any] = brick
+    if template_instruction_body and not author_has_body:
+        declared_brick = {**brick, "brick_instruction_body": str(template_instruction_body)}
     return {
         "step_ref": step_ref,
         "step_template_ref": step_template["step_template_ref"],
@@ -261,7 +274,7 @@ def _declared_step_from_step_template(
         # full NODE_CASTING_FIELDS set, so the effort dial rides along with
         # adapter+model -- not just the two hand-named keys.
         **casting_selection,
-        "brick": brick,
+        "brick": declared_brick,
         "agent": {
             "row_ref": raw_step.get("agent_row_ref", f"{step_ref}:agent"),
             "agent_object_ref": agent_object_ref,
@@ -715,6 +728,17 @@ def _store_step_template(
     # write_need this is selection metadata, NOT part of the declared-plan output.
     if "required_return_shape" in step_template:
         stored["required_return_shape"] = str(step_template["required_return_shape"])
+    # ⑤ STATIC INSTRUCTION BODY: the brick.md ## body (the markdown after the
+    # frontmatter fence) is the agent-readable kind instruction. It is read ONCE
+    # here at compose time (the only place brick.md is parsed) and carried onto the
+    # registry row so composition.py can stamp it onto the brick_row; the request
+    # builder then threads it to the prompt (adapter_grant_policy._build_prompt key
+    # ``brick_instruction_body``). Like required_return_shape it is selection
+    # metadata, NOT part of the declared-plan output (golden compares only the 4
+    # output-affecting fields). Without this carry the body is unreachable at run
+    # time (the runtime brick_row / BrickWork carry no kind or brick_spec_ref).
+    if "brick_instruction_body" in step_template:
+        stored["brick_instruction_body"] = str(step_template["brick_instruction_body"])
     step_templates[str(step_template["step_template_ref"])] = stored
 
 
@@ -734,6 +758,25 @@ def _brick_spec_frontmatter(text: str, label: str) -> Mapping[str, Any]:
     if not isinstance(data, Mapping):
         raise ValueError(f"{label} frontmatter must parse to a mapping")
     return data
+
+
+def _brick_spec_instruction_body(text: str) -> str:
+    """Return the markdown body after the closing frontmatter fence ('' if none).
+
+    ⑤: the body is the agent-readable kind instruction the Builder carries onto the
+    step_template registry row (then the request builder threads it to the prompt).
+    Mirrors check_bricks_spec_completeness._instruction_body so the carried body is
+    byte-identical to what the alignment guard inspects. This is plain-text
+    extraction only; it makes no judgment about the body's content.
+    """
+    if not text.startswith("---"):
+        return text
+    parts = text.split("\n---", 1)
+    if len(parts) < 2:
+        return ""
+    after = parts[1]
+    newline = after.find("\n")
+    return after[newline + 1:] if newline != -1 else ""
 
 
 def _agent_is_writer(agent_object: Mapping[str, Any]) -> bool:
@@ -948,7 +991,8 @@ def _step_templates_from_bricks(repo: Path) -> dict[str, dict[str, Any]]:
     step_templates: dict[str, dict[str, Any]] = {}
     for path in _brick_spec_paths(repo):
         label = f"brick spec {path.relative_to(repo).as_posix()}"
-        fm = _brick_spec_frontmatter(path.read_text(encoding="utf-8"), label)
+        spec_text = path.read_text(encoding="utf-8")
+        fm = _brick_spec_frontmatter(spec_text, label)
         _reject_retired_brick_frontmatter_keys(fm, label)
         kind = _required_yaml_text(fm, "brick_kind", label)
         path_kind = path.parent.name if path.name == "brick.md" else path.stem
@@ -994,6 +1038,11 @@ def _step_templates_from_bricks(repo: Path) -> dict[str, dict[str, Any]]:
             "required_return_shape": _required_return_shape_from_primary_template(
                 repo, return_template_refs[0], label
             ),
+            # ⑤ the kind's STATIC instruction (the brick.md ## body) carried onto the
+            # registry row from the SAME file read once above, so composition.py can
+            # stamp it onto the brick_row and the request builder threads it to the
+            # agent prompt. Selection metadata, not declared-plan output.
+            "brick_instruction_body": _brick_spec_instruction_body(spec_text),
             # carried so the override guard (composition.py) can re-check a node
             # override against the same NEED without re-parsing the Brick spec.
             "role_need": role_need,

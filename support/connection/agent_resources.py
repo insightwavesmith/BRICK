@@ -29,6 +29,16 @@ from brick_protocol.support.operator.primitives import (
     NATIVE_TARGET_CODEX,
     selected_key,
 )
+# AGENT-OBJECT SCHEMA single source (③ struct-surgery 0623): the agent-object
+# key/ref/forbidden sets are Agent-axis property and live ONCE on the axis at
+# agent/spec.AGENT_OBJECT_SCHEMA. This support load path IMPORTS the schema (never
+# a hand copy) to validate the loaded agent-object's key-set and to coerce the
+# ref fields. ``validate_agent_object_keys`` is the SAME key-set gate the inline
+# compose path (agent.spec.agent()) runs, so both paths admit/reject identically.
+from brick_protocol.agent.spec import (
+    AGENT_OBJECT_SCHEMA,
+    validate_agent_object_keys,
+)
 
 
 _DEFAULT_REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -178,49 +188,15 @@ _NOT_PROVEN = (
     "quality judgment",
     "Movement authority",
 )
-_AGENT_OBJECT_KEYS = frozenset(
-    {
-        "object_ref",
-        "name",
-        "lane",
-        "callable_performer_refs",
-        "prompt_refs",
-        "skill_refs",
-        "hook_refs",
-        "tool_policy_refs",
-        "discipline_refs",
-        "adapter_refs",
-        *[descriptor.field_name for descriptor in CASTING_FIELDS],
-    }
-)
-_REF_FIELDS = (
-    "prompt_refs",
-    "skill_refs",
-    "hook_refs",
-    "tool_policy_refs",
-    "discipline_refs",
-    "adapter_refs",
-)
-_FORBIDDEN_AGENT_OBJECT_KEYS = frozenset(
-    {
-        "provider_connector_refs",
-        "provider_request_body",
-        "credential_body",
-        "setup_token",
-        "setup_token_value",
-        "session_id",
-        "provider_session_id",
-        "agent_fact_shape",
-        "agentfact_shape",
-        "success",
-        "failure",
-        "quality",
-        "movement_choice",
-        "choose_movement",
-        "default_gatefact",
-        "default_gate_fact",
-    }
-)
+# Agent-object key/ref/forbidden sets sourced from the ONE schema (③ struct-surgery
+# 0623). These are ALIASES of the Agent-axis single source — NOT re-definitions:
+# the literal members live ONLY in agent/spec.AGENT_OBJECT_SCHEMA, so support holds
+# no hand copy (the mirror guard + check_agent_object_schema_single_source stay
+# green). Existing readers (the load path below, check_agent_resource_resolution)
+# keep their names through these aliases.
+_AGENT_OBJECT_KEYS = AGENT_OBJECT_SCHEMA.allowed_keys
+_REF_FIELDS = AGENT_OBJECT_SCHEMA.ref_fields
+_FORBIDDEN_AGENT_OBJECT_KEYS = AGENT_OBJECT_SCHEMA.forbidden_keys
 
 
 class AgentResourceError(ValueError):
@@ -407,12 +383,14 @@ def _validate_tool_policy_resource(
 def _load_agent_object(role: str, repo: Path) -> dict[str, Any]:
     path = repo / "agent" / "objects" / f"{role}.yaml"
     agent_object = _require_mapping(str(path), _read_data(path))
-    unknown = sorted(set(agent_object) - _AGENT_OBJECT_KEYS)
-    if unknown:
-        raise AgentResourceError(f"{path}: unknown Agent Object keys: {', '.join(unknown)}")
-    forbidden = sorted(set(agent_object) & _FORBIDDEN_AGENT_OBJECT_KEYS)
-    if forbidden:
-        raise AgentResourceError(f"{path}: forbidden Agent Object keys: {', '.join(forbidden)}")
+    # KEY-SET gate via the ONE schema (③ struct-surgery 0623): the same
+    # ``validate_agent_object_keys`` the inline compose path runs. Passing
+    # ``str(path)`` as the label reproduces the prior load-path error text
+    # byte-identically (``{path}: unknown/forbidden Agent Object keys: ...``).
+    try:
+        validate_agent_object_keys(str(path), agent_object)
+    except ValueError as exc:
+        raise AgentResourceError(str(exc)) from exc
     expected_ref = f"agent-object:{role}"
     if agent_object.get("object_ref") != expected_ref:
         raise AgentResourceError(f"{path}: object_ref must be {expected_ref}")

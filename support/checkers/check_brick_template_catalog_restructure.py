@@ -288,6 +288,52 @@ def _py_constant(path: Path, name: str) -> Any:
     raise ProfileError(f"{path}: missing Python constant {name}")
 
 
+def _canonical_gate_refs(repo: Path) -> tuple[str, ...]:
+    """The Link-owned ordered gate-ref vocabulary, read from its SINGLE SOURCE.
+
+    STRUCT-SURGERY (2) (0623): the gate vocabulary moved to the data table
+    ``GATE_REGISTRY`` in ``link/spec.py`` (one ``GateRegistryRow`` per gate);
+    ``link/gate.py``'s ``DECLARED_GATE_REFS`` is now DERIVED from it
+    (``tuple(row.ref for row in GATE_REGISTRY)``), so it is no longer an inline
+    literal ``_py_constant`` can evaluate. This anchor follows the rehome: it
+    reads each row's ``ref=`` string in registry order from ``link/spec.py``.
+    The ``gate_registry_single_source`` checker independently guarantees the
+    vocabulary is not re-stated anywhere else, so this remains the one source.
+    """
+    path = repo / "link/spec.py"
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    registry_value: ast.AST | None = None
+    for node in tree.body:
+        target: ast.AST | None = None
+        if isinstance(node, ast.Assign) and len(node.targets) == 1:
+            target = node.targets[0]
+            value = node.value
+        elif isinstance(node, ast.AnnAssign):
+            target = node.target
+            value = node.value
+        else:
+            continue
+        if isinstance(target, ast.Name) and target.id == "GATE_REGISTRY":
+            registry_value = value
+            break
+    if not isinstance(registry_value, ast.Tuple):
+        raise ProfileError(f"{path}: missing GATE_REGISTRY tuple of GateRegistryRow rows")
+    refs: list[str] = []
+    for row in registry_value.elts:
+        if not isinstance(row, ast.Call):
+            raise ProfileError(f"{path}: GATE_REGISTRY row is not a GateRegistryRow(...) call")
+        ref_value: Any = None
+        for kw in row.keywords:
+            if kw.arg == "ref" and isinstance(kw.value, ast.Constant):
+                ref_value = kw.value.value
+        if not isinstance(ref_value, str):
+            raise ProfileError(f"{path}: GATE_REGISTRY row missing a string ref= keyword")
+        refs.append(ref_value)
+    if not refs:
+        raise ProfileError(f"{path}: GATE_REGISTRY enumerates no gate rows")
+    return tuple(refs)
+
+
 def _gate_refs_from_gate_yaml(repo: Path) -> tuple[str, ...]:
     payload = _as_mapping(_load_structured(repo / "link/gate.yaml"))
     refs: list[str] = []
@@ -316,7 +362,7 @@ def _gate_refs_from_agents(repo: Path) -> tuple[str, ...]:
 
 def _support_gate_refs(repo: Path) -> tuple[str, ...]:
     path = repo / "support/operator/building_operation_common.py"
-    canonical = tuple(_py_constant(repo / "link/gate.py", "DECLARED_GATE_REFS"))
+    canonical = _canonical_gate_refs(repo)
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     alias = ""
     for node in tree.body:
@@ -1702,7 +1748,7 @@ def _live_state(repo: Path) -> Mapping[str, Any]:
     return {
         "seed_violations": agent_violations,
         "catalogs": documents,
-        "declared_gate_refs_py": tuple(_py_constant(repo / "link/gate.py", "DECLARED_GATE_REFS")),
+        "declared_gate_refs_py": _canonical_gate_refs(repo),
         "declared_gate_refs_yaml": _gate_refs_from_gate_yaml(repo),
         "declared_gate_refs_agents": _gate_refs_from_agents(repo),
         "support_gate_refs": _support_gate_refs(repo),

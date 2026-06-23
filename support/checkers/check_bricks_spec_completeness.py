@@ -213,9 +213,17 @@ def find_violations(repo: Path, *, run_u2: bool = True) -> tuple[list[str], int]
         # named in the body, the Agent omits it and a real building HOLDS on a
         # missing required field while every existing checker stays green. Assert
         # every field in the PRIMARY required_return_shape is named in the body text.
+        # ALL refs (primary + concern), so the guard checks the concern template too
+        # (the prior call passed primary_return_ref ONLY). rt_refs is the resolved
+        # required_return_template_refs list parsed above.
+        all_return_refs = [r.strip() for r in rt_refs if isinstance(r, str) and r.strip()]
         violations.extend(
             _prose_return_shape_drift_violations(
-                repo, rel, _instruction_body(text), primary_return_ref
+                repo,
+                rel,
+                _instruction_body(text),
+                primary_return_ref,
+                all_return_refs=all_return_refs,
             )
         )
 
@@ -303,6 +311,17 @@ def _run_fire_fixtures() -> tuple[int, tuple[str, ...]]:
             lambda root: _write_prose_drift_fixture(root),
             "## body prose does not name PRIMARY required_return_shape",
         ),
+        # ⑤ MANDATORY CORRECTION: the guard now iterates the SECONDARY (concern)
+        # return template, not just the primary. A concern-template field that is
+        # part of the kind's primary shape (transition_concern_evidence) but is NOT
+        # named in the body must RED. Anti-tautology: if the guard reverted to
+        # primary-only, primary-shape coverage of transition_concern_evidence would
+        # still pass (it IS named for the un-dropped case) and this concern-specific
+        # message would never fire.
+        "concern_template_drift_rejected": (
+            lambda root: _write_concern_drift_fixture(root),
+            "declared by return template",
+        ),
         # L legacy cut (0610): a retired legacy frontmatter spelling on an active
         # brick spec is a violation here AND a loader rejection (see the
         # loader-level FIRE below).
@@ -353,6 +372,63 @@ def _write_prose_drift_fixture(root: Path) -> None:
         "Do fixture work. Return `observed_evidence`.",
     )
     (kind_dir / BRICK_SPEC_FILENAME).write_text(body_drops_field, encoding="utf-8")
+
+
+def _write_concern_drift_fixture(root: Path) -> None:
+    """Exercise the SECONDARY/concern return template iteration (the skip fix).
+
+    Builds a ``work`` kind whose PRIMARY shape includes ``transition_concern_evidence``
+    AND that lists a SECONDARY concern template (nested ``returned_shape:`` mapping
+    declaring ``transition_concern_evidence``). The body names observed_evidence +
+    not_proven but DROPS transition_concern_evidence. The concern branch reads the
+    concern ref via the NESTED-shape extractor and reports 'declared by return
+    template'. Anti-tautology: reverting _return_template_field_names to the
+    flat-only extractor returns None on the nested concern template -> the concern
+    branch ``continue``s -> the 'declared by return template' message disappears ->
+    this FIRE goes RED.
+    """
+    kind_dir = root / BRICKS_DIR / "work"
+    concern_ref = "brick/templates/bricks/transition-concern-return.yaml"
+    concern_path = root / concern_ref
+    concern_path.parent.mkdir(parents=True, exist_ok=True)
+    concern_path.write_text(
+        "template_ref: brick-template:standard-transition-concern-return\n"
+        "owner_axis: Brick\n"
+        "template_kind: review_return_shape\n"
+        "returned_shape:\n"
+        "  transition_concern_evidence:\n"
+        "    concern_ref: transition-concern:<id>\n"
+        "    binding: false\n",
+        encoding="utf-8",
+    )
+    # Primary shape carries transition_concern_evidence too (concern-engaging kind).
+    primary_path = kind_dir / BRICK_RETURN_FILENAME
+    primary_path.write_text(
+        "template_ref: brick-template:work-return\n"
+        "required_return_shape:\n"
+        "  - observed_evidence\n"
+        "  - not_proven\n"
+        "  - transition_concern_evidence\n",
+        encoding="utf-8",
+    )
+    spec = f"""---
+brick_kind: work
+brick_word: work
+performer_word: dev
+requires_brick_write_scope: yes
+performer_lane_need: maker
+agent_object_hint_ref: agent-object:dev
+required_return_template_refs:
+  - brick/templates/bricks/work/return.yaml
+  - {concern_ref}
+link_movement_literal: forward
+brick_contract: Fixture work Brick for concern-template FIRE.
+---
+## Work
+
+Do fixture work. Return `observed_evidence` and `not_proven`.
+"""
+    (kind_dir / BRICK_SPEC_FILENAME).write_text(spec, encoding="utf-8")
 
 
 def _write_legacy_frontmatter_fixture(root: Path) -> None:
@@ -406,6 +482,50 @@ def _run_loader_legacy_key_fire() -> str:
         )
 
 
+def _run_delivery_seam_meta_fire(repo: Path) -> str:
+    """META-GUARD (⑤): the static ## body is actually DELIVERED to the agent prompt.
+
+    The body-vs-return alignment guard above only proves the body NAMES the return
+    fields; it cannot prove the body REACHES the Agent. This meta-guard asserts the
+    delivery wiring exists by inspecting the REAL source seams, so reverting the
+    delivery (the lying-comment's original sin) reds LOUDLY here -- the precedent is
+    checker-registration-triplicated-0602's meta-guard.
+
+    Three live seams must all reference ``brick_instruction_body``:
+      * the prompt builder injects it (adapter_grant_policy._build_prompt),
+      * the request dataclass carries it (agent_adapter.AgentAdapterRequest), and
+      * the Builder carries the ## body onto the step_template registry row
+        (plan_rendering._step_templates_from_bricks).
+    Anti-tautology: deleting any one wire makes its file stop mentioning the key and
+    this FIRE goes RED.
+    """
+    seams = {
+        "support/connection/adapter_grant_policy.py": (
+            "prompt builder does not inject brick_instruction_body "
+            "(_build_prompt delivery seam missing)"
+        ),
+        "support/connection/agent_adapter.py": (
+            "AgentAdapterRequest does not carry brick_instruction_body "
+            "(request dataclass field missing)"
+        ),
+        "support/operator/plan_rendering.py": (
+            "Builder does not carry the brick.md ## body onto the step_template "
+            "row (brick_instruction_body carry missing)"
+        ),
+    }
+    missing: list[str] = []
+    for rel_path, why in seams.items():
+        path = repo / rel_path
+        if not path.is_file() or "brick_instruction_body" not in path.read_text(encoding="utf-8"):
+            missing.append(f"{rel_path}: {why}")
+    if missing:
+        raise ValueError(
+            "⑤ delivery meta-guard: the static brick.md ## body is no longer wired "
+            "for delivery to the agent prompt -- " + "; ".join(missing)
+        )
+    return "delivery_seam_meta:brick_instruction_body wired in _build_prompt + request + Builder carry"
+
+
 def _primary_return_shape_from_template(repo: Path, primary_ref: str) -> str | None:
     """Independently read refs[0]'s required_return_shape list -> comma-joined text.
 
@@ -438,39 +558,144 @@ def _primary_return_shape_from_template(repo: Path, primary_ref: str) -> str | N
     return ",".join(fields)
 
 
-def _prose_return_shape_drift_violations(
-    repo: Path, rel: str, body: str, primary_return_ref: str
-) -> list[str]:
-    """Every PRIMARY required_return_shape field must be NAMED in the body prose.
+def _return_template_field_names(repo: Path, ref: str) -> list[str] | None:
+    """Top-level return field names declared by ANY return template ref.
 
-    The body (markdown after the frontmatter) is the agent-readable instruction;
-    the primary return.yaml declares the fields the Link gate requires. A field
-    present in the YAML but absent from the body is a drift that makes the Agent
-    omit a now-required field. Matching is by field-name TOKEN presence in the body
-    (the prose legitimately names fields in backticks, e.g. ``observed_evidence``),
-    using a word boundary so a field name is not spuriously matched as a substring
-    of a longer identifier.
+    Handles BOTH return-template shapes:
+      * a PRIMARY/per-kind template's flat ``required_return_shape:`` list (e.g.
+        ``design/return.yaml``), and
+      * the shared transition-concern template's nested ``returned_shape:`` mapping
+        (``transition-concern-return.yaml``), whose top-level keys are the return
+        fields (e.g. ``transition_concern_evidence``).
+
+    Returns None (no exception) if the ref does not resolve to a YAML mapping that
+    declares one of those two shapes with at least one non-empty string field; the
+    caller turns None into a clear violation only for the PRIMARY ref (the concern
+    ref's None is non-fatal -- a kind that does not engage concerns simply has no
+    concern fields to require in its body). Computed WITHOUT the plan_rendering
+    derivation so this stays a genuine regression net rather than a tautology.
     """
+    import yaml  # type: ignore[import-not-found]
+
+    if not isinstance(ref, str) or not ref.strip():
+        return None
+    pure = PurePosixPath(ref.strip())
+    if pure.is_absolute() or ".." in pure.parts:
+        return None
+    path = repo / ref.strip()
+    if not path.is_file():
+        return None
+    doc = yaml.safe_load(path.read_text(encoding="utf-8"))
+    if not isinstance(doc, dict):
+        return None
+    flat = doc.get("required_return_shape")
+    if isinstance(flat, list) and flat:
+        fields: list[str] = []
+        for item in flat:
+            if not isinstance(item, str) or not item.strip():
+                return None
+            fields.append(item.strip())
+        return fields
+    nested = doc.get("returned_shape")
+    if isinstance(nested, dict) and nested:
+        keys = [k.strip() for k in nested if isinstance(k, str) and k.strip()]
+        return keys or None
+    return None
+
+
+def _body_names_field(body: str, field: str) -> bool:
     import re
 
-    expected = _primary_return_shape_from_template(repo, primary_return_ref)
-    if expected is None:
+    return bool(
+        re.search(rf"(?<![0-9A-Za-z_]){re.escape(field)}(?![0-9A-Za-z_])", body)
+    )
+
+
+def _prose_return_shape_drift_violations(
+    repo: Path,
+    rel: str,
+    body: str,
+    primary_return_ref: str,
+    *,
+    all_return_refs: list[str] | None = None,
+    primary_field_names: list[str] | None = None,
+) -> list[str]:
+    """Body<->return.yaml alignment across ALL return templates (the MANDATORY fix).
+
+    The body (markdown after the frontmatter) is the agent-readable instruction
+    DELIVERED to the Agent (adapter_grant_policy._build_prompt key
+    ``brick_instruction_body``); each return template declares the fields the Agent
+    must fill. The guard binds the two so the body cannot omit a field the contract
+    declares. Two FORWARD checks, now across ALL refs (the prior guard ran on the
+    PRIMARY ref ONLY and SKIPPED the concern template at refs[1]):
+
+    (1) PRIMARY: every PRIMARY ``required_return_shape`` field is named in the body
+        (else the Agent omits a field the Link gate may require).
+    (2) CONCERN (the mandatory correction): each SECONDARY/concern-template
+        top-level field (e.g. ``transition_concern_evidence``, read from the nested
+        ``returned_shape:`` mapping, which the prior flat-list extractor returned
+        None on -- silently skipping it) that is ALSO part of THIS kind's primary
+        shape must be named in the body. This genuinely checks the concern template
+        for the kinds that engage it (closure/review/plan/axis-attack-qa/
+        code-attack-qa carry ``transition_concern_evidence`` in their primary shape)
+        WITHOUT forcing concern prose onto a kind whose contract does not include
+        the concern field (design/work/inspect/development/evidence-integrity).
+
+    A bidirectional "body advertises no field absent from the contract" check is
+    deliberately NOT added here: the bodies legitimately backtick frontmatter keys,
+    forbidden-return keys, concern sub-keys, and cross-kind field references, so a
+    token-based reverse check would false-positive on legitimate prose and force the
+    author to fight the guard. Presence-forward across all refs is the precise,
+    non-fragile binding.
+
+    Matching is by field-name TOKEN presence in the body (the prose legitimately
+    names fields in backticks, e.g. ``observed_evidence``), using a word boundary so
+    a field name is not spuriously matched as a substring of a longer identifier.
+    """
+    violations: list[str] = []
+
+    # (1) FORWARD / primary.
+    primary_fields = (
+        primary_field_names
+        if primary_field_names is not None
+        else _return_template_field_names(repo, primary_return_ref)
+    )
+    if primary_fields is None:
         # The U2 regression net already turns an unresolvable primary shape into a
         # clear violation; do not double-report it here.
         return []
-    fields = [f for f in expected.split(",") if f]
-    missing = [
-        field
-        for field in fields
-        if not re.search(rf"(?<![0-9A-Za-z_]){re.escape(field)}(?![0-9A-Za-z_])", body)
-    ]
-    if not missing:
-        return []
-    return [
-        f"{rel}: ## body prose does not name PRIMARY required_return_shape "
-        f"field(s) {', '.join(missing)} (Agent would omit a required field that the "
-        f"Link gate requires -- prose<->return.yaml drift)"
-    ]
+    primary_set = set(primary_fields)
+    missing_primary = [f for f in primary_fields if not _body_names_field(body, f)]
+    if missing_primary:
+        violations.append(
+            f"{rel}: ## body prose does not name PRIMARY required_return_shape "
+            f"field(s) {', '.join(missing_primary)} (Agent would omit a required field that the "
+            f"Link gate requires -- prose<->return.yaml drift)"
+        )
+
+    # (2) FORWARD / concern: iterate the SECONDARY refs (this is the skip the guard
+    # never closed). For each, a field that IS part of this kind's primary shape
+    # must be named in the body (concern-engaging kinds).
+    for ref in list(all_return_refs or [primary_return_ref]):
+        if not isinstance(ref, str) or ref.strip() == primary_return_ref.strip():
+            continue
+        ref_fields = _return_template_field_names(repo, ref)
+        if not ref_fields:
+            continue
+        missing_secondary = [
+            f
+            for f in ref_fields
+            if f in primary_set and not _body_names_field(body, f)
+        ]
+        if missing_secondary:
+            violations.append(
+                f"{rel}: ## body prose does not name return field(s) "
+                f"{', '.join(missing_secondary)} declared by return template '{ref.strip()}' "
+                "and carried in this kind's primary shape (prose<->return.yaml drift "
+                "across ALL return templates, not just the primary)"
+            )
+
+    return violations
 
 
 def _u2_resolution_regression_violations(repo: Path, specs: dict[str, dict]) -> list[str]:
@@ -558,8 +783,9 @@ def main(argv: list[str] | None = None) -> int:
     try:
         fire_count, fire_results = _run_fire_fixtures()
         loader_fire_result = _run_loader_legacy_key_fire()
-        fire_count += 1
-        fire_results = (*fire_results, loader_fire_result)
+        delivery_meta_result = _run_delivery_seam_meta_fire(repo)
+        fire_count += 2
+        fire_results = (*fire_results, loader_fire_result, delivery_meta_result)
         violations, count = find_violations(repo)
     except (OSError, ValueError) as exc:
         print(f"bricks spec completeness rejected: {exc}")

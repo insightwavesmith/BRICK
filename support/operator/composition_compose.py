@@ -913,6 +913,19 @@ def _composition_brick_row(
         # last-resort literal (no-template branch preserved unchanged).
         "required_return_shape": _composition_optional_text(brick.get("required_return_shape")) or template_required_return_shape or "observed_evidence, not_proven",
     }
+    # ⑤ STATIC INSTRUCTION BODY: stamp the kind's brick.md ## body (carried on the
+    # step_template registry row by plan_rendering) onto the brick_row, beside
+    # required_return_shape so the how-to travels with the shape it describes. The
+    # request builder (run._adapter_request_from_prepared) threads it to the agent
+    # prompt. Absent step_template (no-template branch) -> no body (empty at run
+    # time), matching the no-template required_return_shape fallback above.
+    template_instruction_body = (
+        step_template.get("brick_instruction_body")
+        if isinstance(step_template, Mapping)
+        else None
+    )
+    if template_instruction_body:
+        row["brick_instruction_body"] = str(template_instruction_body)
     source_facts = brick.get("source_facts")
     if source_facts is not None:
         row["source_facts"] = list(_text_sequence(f"nodes[{index}].source_facts", source_facts))

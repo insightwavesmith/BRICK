@@ -277,6 +277,23 @@ def _build_prompt(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
         "session_scope_ref": request.session_scope_ref,
         "session_continuity_mode": request.session_continuity_mode,
     }
+    # ⑤ STATIC KIND INSTRUCTION (the brick.md ## body): delivered as its OWN labeled
+    # prompt section, DISTINCT from the dynamic work_statement (fault attribution —
+    # static-kind-how-to vs this-building's task). Added ONLY when the brick_row
+    # carries a body, so a legacy / no-template row adds NO key and the prompt stays
+    # byte-identical to the pre-⑤ output (the design's "two empty-string keys" risk
+    # is avoided by present-only injection).
+    if request.brick_instruction_body:
+        prompt["brick_instruction_body"] = request.brick_instruction_body
+    # ④ RE-INSTRUCTION / CORRECTION (Link disposition): the corrected how-to a
+    # human/COO HOLD disposition carried to THIS retried target. Delivered as its
+    # OWN labeled prompt section, DISTINCT from work_statement (this building's
+    # task) and from brick_instruction_body (the static kind how-to) -- fault
+    # attribution: a redo prompt names WHY it differs from the original attempt.
+    # Added ONLY on the disposition's redo-target step (present-only injection),
+    # so every normal step and every non-target step stays byte-identical.
+    if request.re_instruction:
+        prompt["re_instruction"] = request.re_instruction
     return json.dumps(prompt, ensure_ascii=True, sort_keys=True)
 
 

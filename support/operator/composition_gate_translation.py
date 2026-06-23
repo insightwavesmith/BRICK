@@ -15,7 +15,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
-from brick_protocol.link.spec import translate_gate_concept
+from brick_protocol.link.spec import gate_placement_for_row, translate_gate_concept
 from brick_protocol.support.operator.building_operation_common import (
     _clean_text,
 )
@@ -52,21 +52,19 @@ def _materializer_profile_gate_translations(
 ) -> tuple[tuple[str, str], ...]:
     """The (token, gate_ref) pairs that translate onto ONE row.
 
-    Single placement source of truth (operator design rule, see the
-    GATE_CONCEPT_TOKEN_GATE_REFS comment): strict on QA rows; coo + human on
-    the final transition row only. Both the stamped refs and the stamped
-    provenance derive from this list, so they cannot drift apart.
+    The placement rule is NOT authored here: it is READ from the Link gate
+    single-source data table via ``gate_placement_for_row`` (link/spec.py
+    GATE_REGISTRY). Each gate's registry row declares WHERE it lands (strict on
+    QA rows; coo + human on the final transition row) and its emission order, so
+    both the stamped refs and the stamped provenance derive from the Link axis and
+    cannot drift from the gate vocabulary. Support only carries the row flags in.
     """
 
-    pairs: list[tuple[str, str]] = []
-    if qa_row and "strict-evidence" in tokens:
-        pairs.append(("strict-evidence", translate_gate_concept("strict-evidence")))
-    if final_transition_row:
-        if "coo-review" in tokens:
-            pairs.append(("coo-review", translate_gate_concept("coo-review")))
-        if "human-review" in tokens:
-            pairs.append(("human-review", translate_gate_concept("human-review")))
-    return tuple(pairs)
+    return gate_placement_for_row(
+        tokens=tokens,
+        qa_row=qa_row,
+        final_transition_row=final_transition_row,
+    )
 
 
 def _materializer_gate_concept_provenance(

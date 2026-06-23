@@ -44,8 +44,9 @@ the prior ``agent_adapter`` helpers produced.
 from __future__ import annotations
 
 import copy
-from collections.abc import Callable, Mapping
-from typing import Any, NamedTuple
+from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 # Single Brick import surface (E2/§2 AXIS A): re-export the already-clean Brick
 # work facts so a consumer reaches the whole Brick declarable surface through one
@@ -61,6 +62,23 @@ from brick_protocol.brick.building import (  # noqa: F401  (re-exported for call
 from brick_protocol.brick.comparison import (  # noqa: F401  (re-exported for callers)
     BrickComparisonFact,
 )
+
+# CASTING AUTHORING from the AGENT axis (E2/S1). The Brick verb ``brick()`` partitions
+# its trailing ``**kwargs`` into casting dials and projects them to the node-layer
+# ``selected_<base>`` bag. Casting is AGENT-axis property, so the verb imports the
+# casting kwarg map + bag builder from ``agent/spec.py`` (brick -> agent is acyclic;
+# agent/spec.py imports nothing from brick). These are re-imports, not re-definitions.
+from brick_protocol.agent.spec import (
+    _CASTING_KWARG_BY_NAME,
+    _build_casting_bag,
+)
+
+if TYPE_CHECKING:
+    # ``AgentSpec`` is only a type annotation here (the ``agent=`` field/parameter).
+    # Under ``from __future__ import annotations`` (PEP 563) annotations are strings
+    # and never evaluated at runtime, so the import stays type-checker-only and adds
+    # no runtime brick -> agent coupling beyond the casting helpers above.
+    from brick_protocol.agent.spec import AgentSpec
 
 
 # ---------------------------------------------------------------------------
@@ -79,6 +97,14 @@ BRICK_ROW_ALLOWED_KEYS: frozenset[str] = frozenset(
         "work_statement",
         "comparison_rule",
         "required_return_shape",
+        # STATIC kind-md how-to body (⑤ instruction-ref delivery). The brick.md
+        # ## body — the agent-readable static instruction layer — rides as a Brick-
+        # row data column BESIDE required_return_shape so the how-to travels with
+        # the shape it describes. It is a Brick-axis property (the instruction the
+        # agent reads), carried by support into the prompt at
+        # adapter_grant_policy._build_prompt (key ``brick_instruction_body``) and
+        # guarded body<->return aligned by check_bricks_spec_completeness.
+        "brick_instruction_body",
         "source_facts",
         "raw_refs",
         "write_scope",
@@ -254,15 +280,17 @@ class WriteScope:
     def _reject_bare_dir_write_path(label: str, value: str) -> None:
         """Fail closed on a bare-directory write_scope entry.
 
-        ``support/operator/write_observation.py:_path_matches_scope`` matches a
-        changed file against an entry via ``fnmatch`` OR exact-path equality
-        (``path == pattern.rstrip("/")``). A bare directory with no glob char (e.g.
-        ``"support/"``) therefore matches ONLY the literal directory entry, never
-        any nested file: it passes construction here but then silently HOLDs every
-        nested file at observation time (write_observation_out_of_scope). Reject it
-        at construction so the author fixes the declaration instead of getting a
-        silent stall. Exact-file entries (``AGENTS.md``, ``brick/work.py``) and
-        glob entries (``support/*``, ``support/**``) are unaffected.
+        ``brick/comparison.py:_path_matches_scope`` (the Brick-axis written-vs-scope
+        comparison) matches a changed file against an entry via ``fnmatch`` OR
+        exact-path equality (``path == pattern.rstrip("/")``). A bare directory with
+        no glob char (e.g. ``"support/"``) therefore matches ONLY the literal
+        directory entry, never any nested file: it passes construction here but then
+        every nested file is RECORDED as ``observed_paths_outside_declared_scope`` at
+        comparison time (a recorded fact for the merge-review gate, no longer a
+        building HOLD). Reject it at construction so the author fixes the declaration
+        instead of producing misleading out-of-scope evidence on every nested file.
+        Exact-file entries (``AGENTS.md``, ``brick/work.py``) and glob entries
+        (``support/*``, ``support/**``) are unaffected.
         """
 
         text = value.strip().replace("\\", "/")
@@ -476,3 +504,126 @@ def _replace_comparison_evidence_fields(
     if not replaced:
         lines.append(replacement)
     return tuple(lines)
+
+
+# ---------------------------------------------------------------------------
+# BRICK AUTHORING CONTRACT (E2/S1, moved from support/operator/assembly.py). The
+# ``brick()`` verb + its ``BrickSpec`` carrier + the forbidden-kwarg guard are the
+# Brick-axis declarable surface: WHAT a builder declares as one node of a task
+# (``kind``/``work`` plus the derived/optional fields). Casting authoring is AGENT
+# property and is imported from ``agent/spec.py`` (``_build_casting_bag`` /
+# ``_CASTING_KWARG_BY_NAME``); the few tiny value-shape COERCERS the verb needs are
+# duplicated below (they also stay in assembly.py for the graph wiring) so this
+# axis module never imports the support builder. Bodies are byte-identical to the
+# prior ``assembly.py`` definitions; only the module home + the casting/coercer
+# source change.
+# ---------------------------------------------------------------------------
+_FORBIDDEN_BRICK_KWARGS = frozenset(
+    {
+        "node_id",
+        "step_template_ref",
+        "brick_instance_ref",
+        "row_ref",
+        "brick_work_ref",
+        "step_ref",
+        "completion_edge_ref",
+        "fan_in_source",
+        "fan_in_target",
+        "closure_transition_target_policy",
+        "node_reroute_budget",
+        "required_return_shape",
+        "write_scope",
+        "target_step_template_ref",
+        "comparison_rule",
+    }
+)
+
+
+@dataclass(frozen=True, eq=False)
+class BrickSpec:
+    kind: str
+    work: str
+    alias: str | None = None
+    write: bool = False
+    returns: str | None = None
+    agent: AgentSpec | None = None
+    # Generic per-node casting carry (E2/§6 M15), keyed by ``selected_<base>``;
+    # see AgentSpec.casting. The node's own casting overrides the lane's.
+    casting: Mapping[str, str] = ()  # type: ignore[assignment]
+    source_facts: tuple[str, ...] = ()
+
+
+def brick(
+    kind: str,
+    work: str,
+    *,
+    alias: str | None = None,
+    write: bool = False,
+    returns: str | None = None,
+    agent: AgentSpec | None = None,
+    source_facts: Sequence[str] | None = None,
+    **kwargs: Any,
+) -> BrickSpec:
+    # Partition trailing kwargs into casting dials (adapter/model/effort/... ,
+    # generic over CASTING_FIELDS) vs forbidden/unknown. A new dial flows through
+    # _CASTING_KWARG_BY_NAME with no signature edit (E2/§6 M15).
+    casting_kwargs = {key: value for key, value in kwargs.items() if key in _CASTING_KWARG_BY_NAME}
+    leftover = {key: value for key, value in kwargs.items() if key not in _CASTING_KWARG_BY_NAME}
+    if leftover:
+        forbidden = sorted(key for key in leftover if key in _FORBIDDEN_BRICK_KWARGS)
+        if forbidden:
+            raise TypeError(
+                "brick() derives these fields; do not declare them: "
+                + ", ".join(forbidden)
+            )
+        raise TypeError("brick() got unexpected keyword argument(s): " + ", ".join(sorted(leftover)))
+    clean_kind = _bare_token("kind", kind)
+    clean_work = _non_empty_text("work", work)
+    clean_alias = _optional_bare_token("alias", alias)
+    return BrickSpec(
+        kind=clean_kind,
+        work=clean_work,
+        alias=clean_alias,
+        write=bool(write),
+        returns=_optional_text(returns),
+        agent=agent,
+        casting=_build_casting_bag("brick()", casting_kwargs),
+        source_facts=tuple(str(item).strip() for item in (source_facts or ()) if str(item).strip()),
+    )
+
+
+# ---------------------------------------------------------------------------
+# SHARED COERCERS (E2/S1). Tiny value-shape helpers ``brick()`` needs. Per the
+# E2/S1 plan they STAY in ``support/operator/assembly.py`` (the graph wiring still
+# uses them) AND are duplicated into the axis files that author a spec, so an axis
+# module never imports the support builder. Byte-identical to the ``assembly.py``
+# definitions.
+# ---------------------------------------------------------------------------
+def _bare_token(label: str, value: str) -> str:
+    text = _non_empty_text(label, value)
+    if ":" in text:
+        raise ValueError(f"{label} must be a bare token")
+    return text
+
+
+def _optional_bare_token(label: str, value: str | None) -> str | None:
+    text = _optional_text(value)
+    if text is None:
+        return None
+    if ":" in text:
+        raise ValueError(f"{label} must be a bare token")
+    return text
+
+
+def _optional_text(value: Any) -> str | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
+
+
+def _non_empty_text(label: str, value: Any) -> str:
+    text = _optional_text(value)
+    if not text:
+        raise ValueError(f"{label} must be non-empty text")
+    return text

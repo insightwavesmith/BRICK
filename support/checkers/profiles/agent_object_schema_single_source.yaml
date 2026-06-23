@@ -1,0 +1,50 @@
+schema: checker-profile/v1
+profile_id: agent-object-schema-single-source
+description: struct-surgery ③ (0623) agent-object schema single-source guard. The Agent axis owns the SHAPE of an agent-object record as ONE schema -- AGENT_OBJECT_SCHEMA in agent/spec.py (allowed_keys + ref_fields + forbidden_keys), assembled over the _AGENT_OBJECT_REF_FIELDS (6-name file-backed ref tuple) + _AGENT_OBJECT_FORBIDDEN_KEYS (16-name forbidden frozenset) literals, with the casting key names in allowed_keys DERIVED from CASTING_FIELDS. The support load path (agent_resources._load_agent_object) and the inline COMPOSE form (agent("dev", tools=[...], skills=[...], hooks=[...], prompt=..., adapter=...)) both validate against the ONE schema via validate_agent_object_keys. The role-yaml-and-compose-admit-identically goal is only real if the key/ref/forbidden member-sets cannot be re-enumerated elsewhere. RULE 1 positively asserts agent/spec.py defines AGENT_OBJECT_SCHEMA, the two member literals (exact member-sets), and the validate_agent_object_keys gate. RULE 2 rejects any collection literal whose member-set equals the ref-field set OR the forbidden-key set anywhere in the agent/brick/link/support trees except agent/spec.py (a re-stated schema fragment -- the old _REF_FIELDS / forbidden-frozenset copies that were scattered across agent_resources.py + primitives.py + native_dispatch.py), while leaving a lone by-name read obj.get("adapter_refs") clean. The checker file itself is excluded from RULE 2 as the independent oracle that re-encodes the expected member-sets for RULE 1. Includes a mutation-RED (a re-stated ref tuple + a re-stated forbidden frozenset are both rejected; a lone by-name read is left clean). Fails closed.
+kernel_checks:
+  - agent_object_schema_single_source
+path_exists:
+  - agent/spec.py
+  - support/connection/agent_resources.py
+  - support/operator/primitives.py
+  - support/operator/native_dispatch.py
+  - support/checkers/check_agent_object_schema_single_source.py
+  - support/checkers/profiles/agent_object_schema_single_source.yaml
+text_contains:
+  - path: agent/spec.py
+    texts:
+      - AGENT_OBJECT_SCHEMA
+      - class AgentObjectSchema
+      - def validate_agent_object_keys
+      - _AGENT_OBJECT_REF_FIELDS
+      - _AGENT_OBJECT_FORBIDDEN_KEYS
+      - def agent(
+  - path: support/connection/agent_resources.py
+    texts:
+      - from brick_protocol.agent.spec import
+      - validate_agent_object_keys
+      - AGENT_OBJECT_SCHEMA.allowed_keys
+      - AGENT_OBJECT_SCHEMA.ref_fields
+      - AGENT_OBJECT_SCHEMA.forbidden_keys
+  - path: support/operator/primitives.py
+    texts:
+      - AGENT_OBJECT_SCHEMA.ref_fields
+      - AGENT_OBJECT_SCHEMA.allowed_keys
+  - path: support/operator/native_dispatch.py
+    texts:
+      - AGENT_OBJECT_SCHEMA.forbidden_keys
+  - path: support/checkers/check_agent_object_schema_single_source.py
+    texts:
+      - check_no_member_set_enumeration
+      - check_spec_single_source
+      - mutation RED observed
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+  - not provider proof
+not_proven:
+  - that any individual agent-object's resource refs resolve to real targets
+  - that a composed or loaded agent-object is the right WHO for a given lane

@@ -1142,6 +1142,15 @@ class ResumeSeed:
     # fail-closed). On a raise disposition these ADDRESSES ride to the
     # re-adopted redo landing's handoff packet. Empty => nothing rides.
     disposition_reason_refs: tuple[str, ...] = ()
+    # ④ RE-INSTRUCTION: the corrected how-to the human/COO disposition row
+    # carries (read FROM raw/link.jsonl by walker_resume off the SAME
+    # transition_lifecycle row as the disposition_action). When non-empty it is
+    # stamped onto the LIVE retried target step packet (the pending_target_ref
+    # redo landing) so the redo prompt carries a fixed instruction as its own
+    # labeled section. Empty => the target runs its original plan work unchanged.
+    # Rides INDEPENDENTLY of disposition_reason_refs (it is not an address truck)
+    # and NEVER onto a replayed pre-HOLD occurrence (gated on the live target).
+    re_instruction: str = ""
     # FIX 3 (0611 replay provenance): the SELECTED disposition row's
     # discriminator from walker_resume._read_disposition_row -- the current
     # hold identity (disposition_row_paused_at_ref), the row's own raw_ref
@@ -1888,6 +1897,24 @@ def process_one_node(
     recorded_return, recorded_gate_record, recorded_at, is_replay = _next_recorded_return(
         resume_seed, step_ref, replay_consumed
     )
+    # ④ RE-INSTRUCTION stamp: when the human/COO disposition carried a corrected
+    # how-to, stamp it onto the LIVE retried target's step packet so the redo
+    # prompt delivers it as its own labeled section. Gated on (a) a live run
+    # (NOT a replay -- a replayed pre-HOLD occurrence replays its recorded return
+    # and never builds a prompt, so it must NEVER carry the correction; risk #6),
+    # and (b) this occurrence being the disposition's pending_target_ref (the
+    # redo landing / re-adopted held node -- the retried target; risk #5). This
+    # is INDEPENDENT of the disposition_reason_refs address truck, so a correction
+    # rides even when the disposition carries no reason_refs. The fixture is
+    # copied before mutation so the shared plan step is untouched.
+    if (
+        not is_replay
+        and resume_seed is not None
+        and resume_seed.re_instruction
+        and brick_ref_by_step.get(step_ref) == resume_seed.pending_target_ref
+    ):
+        step_fixture = dict(step_fixture)
+        step_fixture["re_instruction"] = resume_seed.re_instruction
     pre_step_report_events: tuple[Mapping[str, Any], ...] = ()
     if not is_replay:
         pre_step_report_events = _emit_brick_received_step_event(

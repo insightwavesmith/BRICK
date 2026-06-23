@@ -64,25 +64,20 @@ from brick_protocol.agent.spec import (  # noqa: F401  (re-exported for callers)
     selected_key,
     stamp_casting,
 )
+# AGENT-OBJECT SCHEMA single source (③ struct-surgery 0623): the agent-object
+# allowed-key + ref-field sets now live ONCE on the Agent axis at
+# agent/spec.AGENT_OBJECT_SCHEMA (they define the SHAPE of an Agent-axis record).
+# Support re-imports the schema and ALIASES the names so existing callers
+# (run.py / native_dispatch.py via these names) keep resolving; the literal member
+# enumeration lives NOWHERE under support/ anymore (the mirror-guard +
+# check_agent_object_schema_single_source stay green). An alias is not a field-set
+# enumeration.
+from brick_protocol.agent.spec import (  # noqa: F401  (re-exported for callers)
+    AGENT_OBJECT_SCHEMA,
+)
 
-_AGENT_OBJECT_REF_FIELDS: tuple[str, ...] = (
-    "prompt_refs",
-    "skill_refs",
-    "hook_refs",
-    "tool_policy_refs",
-    "discipline_refs",
-    "adapter_refs",
-)
-_AGENT_OBJECT_ALLOWED_KEYS: frozenset[str] = frozenset(
-    {
-        "object_ref",
-        "name",
-        "lane",
-        "callable_performer_refs",
-        *[descriptor.field_name for descriptor in CASTING_FIELDS],
-        *_AGENT_OBJECT_REF_FIELDS,
-    }
-)
+_AGENT_OBJECT_REF_FIELDS: tuple[str, ...] = AGENT_OBJECT_SCHEMA.ref_fields
+_AGENT_OBJECT_ALLOWED_KEYS: frozenset[str] = AGENT_OBJECT_SCHEMA.allowed_keys
 _AGENT_ROW_ALLOWED_KEYS: frozenset[str] = frozenset(
     {"axis", "row_ref", "agent_object_ref"}
 )

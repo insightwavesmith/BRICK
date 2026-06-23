@@ -108,13 +108,24 @@ text_contains:
     texts:
       - '"shape_catalog_ref": "brick/templates/shapes/catalog.yaml"'
       - '"shape_registry_ref": "brick/templates/shapes/catalog.yaml"'
-  - path: link/gate.py
+  # STRUCT-SURGERY ② (0623): the Link gate vocabulary moved to the single-source
+  # data table GATE_REGISTRY in link/spec.py (one row per gate ref). link/gate.py
+  # no longer enumerates the four gate-ref string literals -- it DERIVES
+  # DECLARED_GATE_REFS from the rows (tuple(row.ref for row in GATE_REGISTRY)).
+  # The four canonical gate-ref literals are pinned at their NEW single source
+  # below; gate.py is pinned to carry the derived public name + the derivation.
+  # (gate_registry_single_source.yaml owns the no-re-statement guard; this pin
+  # follows the behavior-identical rehome -- checker-pin-follows-rehome.)
+  - path: link/spec.py
     texts:
-      - DECLARED_GATE_REFS
       - link-gate:default-transition
       - link-gate:strict
       - link-gate:human
       - link-gate:coo
+  - path: link/gate.py
+    texts:
+      - DECLARED_GATE_REFS
+      - tuple(row.ref for row in GATE_REGISTRY)
   - path: brick/templates/shapes/catalog.yaml
     texts:
       - compact_link_authoring_view

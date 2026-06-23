@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import fnmatch
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any, Iterable
@@ -10,6 +11,82 @@ from brick_protocol.brick.work import parse_required_return_shape
 
 
 _OBSERVED_MATCH_KINDS: tuple[str, ...] = ("matched", "missing", "mismatched", "unknown")
+
+
+def _path_matches_scope(path: str, pattern: str) -> bool:
+    """Match exact paths or explicit globs.
+
+    Note: directory-looking entries do not include children (a bare directory
+    entry matches only itself, never a nested file).
+
+    Moved verbatim from ``support/operator/write_observation`` as part of the
+    REDO: comparing a changed path against a declared scope pattern is the
+    written-vs-scope 정보가공 that belongs to the Brick axis, not the support
+    write observer.
+    """
+
+    clean_pattern = pattern.strip().replace("\\", "/")
+    if not clean_pattern:
+        return False
+    return fnmatch.fnmatch(path, clean_pattern) or path == clean_pattern.rstrip("/")
+
+
+def compare_changed_paths_to_write_scope(
+    changed_files: Iterable[str],
+    write_scope: Mapping[str, Any],
+) -> dict[str, list[str]]:
+    """Compare RAW changed paths against the Brick-recommended write_scope.
+
+    This is the written-vs-scope comparison (정보가공) the REDO moves OUT of
+    ``support/operator/write_observation`` into the Brick axis. The support write
+    observer produces the RAW ``changed_files`` (and the before/after git refs);
+    this Brick function classifies them against the *declared* scope and returns
+    the comparison-fact buckets the approval/merge-review gate weighs:
+
+      - ``observed_paths_outside_declared_scope``: a changed path matching NONE of
+        the declared ``allowed_paths`` globs (a declared-empty allowed list
+        records nothing here -- no entry-guard).
+      - ``forbidden_paths_matched``: a changed path matching a user-declared
+        ``write_scope.forbidden_paths`` glob.
+
+    No building-stop is decided here: Brick recommends, the worktree isolates,
+    merge-review is the real gate. Sensitive-path (.env/.pem/.key) detection is a
+    RAW structural observation and stays with the support write observer; the
+    ``.git`` floor stays a support integrity raise. Only buckets with at least one
+    entry are returned.
+    """
+
+    raw_forbidden = write_scope.get("forbidden_paths")
+    if raw_forbidden is not None and not isinstance(raw_forbidden, list):
+        raise TypeError("write_scope.forbidden_paths must be a list")
+    raw_allowed = write_scope.get("allowed_paths")
+    if raw_allowed is not None and not isinstance(raw_allowed, list):
+        raise TypeError("write_scope.allowed_paths must be a list")
+    allowed = tuple(
+        str(item).replace("\\", "/")
+        for item in (raw_allowed or ())
+        if isinstance(item, str) and item.strip()
+    )
+    forbidden = tuple(
+        str(item).replace("\\", "/")
+        for item in (raw_forbidden or ())
+        if isinstance(item, str) and item.strip()
+    )
+    facts: dict[str, list[str]] = {
+        "forbidden_paths_matched": [],
+        "observed_paths_outside_declared_scope": [],
+    }
+    for raw_path in changed_files:
+        clean = str(raw_path).strip().replace("\\", "/")
+        if not clean:
+            continue
+        if any(_path_matches_scope(clean, pattern) for pattern in forbidden):
+            facts["forbidden_paths_matched"].append(clean)
+        if allowed and not any(
+            _path_matches_scope(clean, pattern) for pattern in allowed
+        ):
+            facts["observed_paths_outside_declared_scope"].append(clean)
+    return {key: value for key, value in facts.items() if value}
 
 
 @dataclass(frozen=True)
@@ -241,4 +318,4 @@ class BrickComparisonFact:
         return tuple(facts)
 
 
-__all__ = ["BrickComparisonFact"]
+__all__ = ["BrickComparisonFact", "compare_changed_paths_to_write_scope"]

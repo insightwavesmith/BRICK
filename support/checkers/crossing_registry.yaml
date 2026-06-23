@@ -116,6 +116,27 @@ crossings:
       - stamp_casting
       - NATIVE_TARGET_CODEX
       - NATIVE_TARGET_CLAUDE
+      # E2/S1 (struct-surgery 0623): the AGENT-axis authoring carrier + verb,
+      # single-sourced on the Agent axis (agent/spec.py). The builder assembly
+      # (support/operator/assembly.py) re-exports these so the brick-task-author
+      # surface keeps ``from ...assembly import agent`` resolving while the
+      # definition lives on its axis (assembly -> agent, acyclic).
+      - AgentSpec
+      - agent
+      # ③ (struct-surgery 0623): the agent-OBJECT key/ref/forbidden SCHEMA single
+      # source + the shared key-set gate. agent/spec.AGENT_OBJECT_SCHEMA owns the
+      # allowed_keys / ref_fields / forbidden_keys (allowed_keys derives the casting
+      # names from CASTING_FIELDS); ``validate_agent_object_keys`` is the ONE key-set
+      # gate the support load path (agent_resources._load_agent_object) AND the
+      # inline ``agent()`` compose path both call. Support imports the schema +
+      # gate through these canonical names: agent_resources.py (load path +
+      # _AGENT_OBJECT_KEYS/_REF_FIELDS/_FORBIDDEN_AGENT_OBJECT_KEYS aliases),
+      # primitives.py (_AGENT_OBJECT_ALLOWED_KEYS/_AGENT_OBJECT_REF_FIELDS aliases,
+      # re-exported to run.py + native_dispatch.py). The literal member-sets live
+      # ONLY on the axis (sealed by check_agent_object_schema_single_source).
+      - AGENT_OBJECT_SCHEMA
+      - AgentObjectSchema
+      - validate_agent_object_keys
     defined_at: agent/spec.py
     projection_yaml: ""
     pinned_by: check_assembly_equivalence (loops CASTING_FIELDS; per-dial resolution byte-identical) + check_axis_field_set_single_source (casting_fields single-source) + adapter_model_selection cases
@@ -128,6 +149,12 @@ crossings:
     canonical_contract: BrickComparisonFact
     canonical_symbols:
       - BrickComparisonFact
+      # REDO (Smith 0623 struct-surgery): the written-vs-scope comparison
+      # (정보가공) -- classify RAW changed paths against the recommended
+      # write_scope -- is Brick-axis work. The support operator write observer
+      # imports this and records the buckets; behavior moved OUT of
+      # support/operator/write_observation per the architecture map.
+      - compare_changed_paths_to_write_scope
     defined_at: brick/comparison.py
     projection_yaml: brick/comparison.yaml
     pinned_by: check_axis_contract_projection (check_brick_comparison) + SEQ-0
@@ -251,6 +278,18 @@ crossings:
     canonical_symbols:
       - GATE_CONCEPT_TOKEN_GATE_REFS
       - translate_gate_concept
+      # struct-surgery ② (0623): the Link gate single-source DATA table + its
+      # placement reader. GATE_REGISTRY is the one row-per-gate table the Link
+      # axis owns (ref + concept_token + required_return_fields + placement +
+      # disposition); gate-concept translation, DECLARED_GATE_REFS (in
+      # link/gate.py, intra-axis), and the materializer placement rule all DERIVE
+      # from it. gate_placement_for_row is the reader the composition materializer
+      # CALLS instead of authoring "strict on QA / coo+human on final row"; the
+      # GateRegistryRow descriptor names the row shape so a registered import of
+      # the table type crosses by its canonical name.
+      - GATE_REGISTRY
+      - GateRegistryRow
+      - gate_placement_for_row
       # E2/S8 (mirror M15): the builder-declarable gate-concept token vocabulary
       # + transition-concern adoption literals. The friendly builder ``Gate`` /
       # ``Adoption`` enums (support/operator/assembly.py) DERIVE their ``.value``s
@@ -336,6 +375,14 @@ crossings:
       # moved out of support/operator/plan_validation.py; support gathers the facts.
       - ArtifactGroundingFacts
       - apply_artifact_grounding_completeness
+      # E2/S1 (struct-surgery 0623): the BRICK-axis authoring carrier + verb,
+      # single-sourced on the Brick axis (brick/spec.py). The builder assembly
+      # (support/operator/assembly.py) re-exports these so the brick-task-author
+      # surface keeps ``from ...assembly import brick`` resolving while the
+      # definition lives on its axis (assembly -> brick, acyclic). ``BrickSpec``
+      # is also the node handle the retained graph-wiring tier consumes.
+      - BrickSpec
+      - brick
     defined_at: brick/spec.py
     projection_yaml: ""
     pinned_by: check_axis_field_set_single_source (brick_row_allowed_keys single-source) + write_scope construction/validation cases (clean/validate byte-identical) + strict-write-need admission cases (declared write-need byte-identical)

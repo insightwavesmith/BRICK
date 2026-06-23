@@ -26,6 +26,7 @@ from brick_protocol.support.operator.building_operation_common import (
     _clean_text,
 )
 from brick_protocol.support.operator.primitives import (
+    AGENT_OBJECT_SCHEMA,
     _AGENT_OBJECT_ALLOWED_KEYS,
     _AGENT_OBJECT_REF_FIELDS,
 )
@@ -310,26 +311,11 @@ NATIVE_DISPATCH_MOVEMENT_AUTHORITY_PROOF_LIMIT: str = (
 # array too); the canonical resolver does the same (agent_resources._load_agent_object).
 
 
-_NATIVE_DISPATCH_FORBIDDEN_AGENT_OBJECT_KEYS = frozenset(
-    {
-        "provider_connector_refs",
-        "provider_request_body",
-        "credential_body",
-        "setup_token",
-        "setup_token_value",
-        "session_id",
-        "provider_session_id",
-        "agent_fact_shape",
-        "agentfact_shape",
-        "success",
-        "failure",
-        "quality",
-        "movement_choice",
-        "choose_movement",
-        "default_gatefact",
-        "default_gate_fact",
-    }
-)
+# The agent-object forbidden-key set sourced from the ONE schema (③ struct-surgery
+# 0623): an ALIAS of agent/spec.AGENT_OBJECT_SCHEMA.forbidden_keys, NOT a hand copy
+# (the literal members live only on the Agent axis; native-dispatch's prior
+# byte-identical frozenset is gone). building_operation.py imports this name.
+_NATIVE_DISPATCH_FORBIDDEN_AGENT_OBJECT_KEYS = AGENT_OBJECT_SCHEMA.forbidden_keys
 
 
 @dataclass(frozen=True)

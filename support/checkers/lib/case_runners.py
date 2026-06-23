@@ -5898,11 +5898,8 @@ def run_adapter_capability_rehome_case(repo: Path, profile: Mapping[str, Any]) -
                 lambda: _check_adapter_capability_missing_brick_scope(label),
             )
         elif case_kind == "missing_agent_policy":
-            _expect_adapter_capability_rejection(
-                label,
-                expected_reason,
-                lambda: _check_adapter_capability_missing_agent_policy(label),
-            )
+            # Smith 0623 LOCK: the request no longer raises -- assert the recorded fact.
+            _check_adapter_capability_missing_agent_policy(label, expected_reason)
         elif case_kind == "missing_adapter_capability":
             _expect_adapter_capability_rejection(
                 label,
@@ -5910,23 +5907,14 @@ def run_adapter_capability_rehome_case(repo: Path, profile: Mapping[str, Any]) -
                 lambda: _check_adapter_capability_missing_adapter_capability(label),
             )
         elif case_kind == "observation_out_of_scope":
-            _expect_adapter_capability_rejection(
-                label,
-                expected_reason,
-                lambda: _check_adapter_capability_observation_out_of_scope(label),
-            )
+            # Smith 0623 LOCK: this no longer rejects -- it asserts the recorded fact.
+            _check_adapter_capability_observation_out_of_scope(label)
         elif case_kind == "poc_read_only_adapter_with_write_scope":
-            _expect_adapter_capability_rejection(
-                label,
-                expected_reason,
-                lambda: _check_adapter_capability_poc_read_only_with_write_scope(label),
-            )
+            # Smith 0623 LOCK: the request no longer raises -- assert the recorded fact.
+            _check_adapter_capability_poc_read_only_with_write_scope(label, expected_reason)
         elif case_kind == "legacy_adapter_identity_only_not_authority":
-            _expect_adapter_capability_rejection(
-                label,
-                expected_reason,
-                lambda: _check_adapter_capability_legacy_identity_only(label),
-            )
+            # Smith 0623 LOCK: the request no longer raises -- assert the recorded fact.
+            _check_adapter_capability_legacy_identity_only(label, expected_reason)
         elif case_kind == "write_capable_adapter_without_write_scope_no_write_observation":
             _check_adapter_capability_no_write_observation_without_scope(label)
         elif case_kind == "write_capable_leader_effective_write_gated_by_brick_scope":
@@ -6118,6 +6106,7 @@ def _adapter_capability_plan(
 
 def _check_adapter_capability_ok_all_four(label: str) -> None:
     from brick_protocol.support.connection.agent_adapter import adapter_capabilities
+    from brick_protocol.brick.comparison import compare_changed_paths_to_write_scope
     from support.operator.plan_validation import validate_declared_building_plan
     from support.operator.write_observation import _validate_observed_write_path
 
@@ -6140,11 +6129,20 @@ def _check_adapter_capability_ok_all_four(label: str) -> None:
             )
         )
     )
-    _validate_observed_write_path(
-        "support/connection/agent_adapter.py",
-        tuple(write_scope["allowed_paths"]),
-        tuple(write_scope["forbidden_paths"]),
+    # REDO (Smith 0623 struct-surgery): an in-scope changed path must NOT be recorded
+    # out-of-scope by the Brick comparison and must NOT trip the support ``.git``
+    # floor raise. (The written-vs-scope classification moved to brick.comparison;
+    # write_observation keeps only the ``.git`` integrity raise.)
+    in_scope_facts = compare_changed_paths_to_write_scope(
+        ["support/connection/agent_adapter.py"],
+        write_scope,
     )
+    if in_scope_facts.get("observed_paths_outside_declared_scope"):
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: an in-scope changed "
+            f"path was wrongly recorded out-of-scope, observed {in_scope_facts!r}"
+        )
+    _validate_observed_write_path("support/connection/agent_adapter.py")
 
 
 def _check_adapter_capability_claude_write_ok(label: str) -> None:
@@ -6196,12 +6194,42 @@ def _check_adapter_capability_missing_brick_scope(label: str) -> None:
     )
 
 
-def _check_adapter_capability_missing_agent_policy(label: str) -> None:
-    _adapter_capability_request(
+def _assert_recorded_write_policy_fact(
+    label: str,
+    request: Any,
+    expected_reason: str,
+) -> None:
+    # REDO (Smith 0623 struct-surgery): the request observer no longer raises and no
+    # longer derives the reason-token facts inside the adapter. The ADAPTER exposes
+    # the RAW effective-write request inputs (agent_request_effective_write_raw_inputs)
+    # and SUPPORT/RECORDING derives the named write-policy facts
+    # (derive_effective_write_request_facts). The probe asserts the request constructs
+    # WITHOUT raising AND that the recording-derived fact carries the expected token.
+    from brick_protocol.support.connection.agent_adapter import (
+        agent_request_effective_write_raw_inputs,
+    )
+    from brick_protocol.support.recording.agent_step_observation import (
+        derive_effective_write_request_facts,
+    )
+
+    facts = derive_effective_write_request_facts(
+        **agent_request_effective_write_raw_inputs(request)
+    )
+    if not any(expected_reason in fact for fact in facts):
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: expected "
+            f"support/recording-derived write-policy fact carrying {expected_reason!r} "
+            f"(move+record only; adapter raw -> recording derive), observed {facts!r}"
+        )
+
+
+def _check_adapter_capability_missing_agent_policy(label: str, expected_reason: str) -> None:
+    request = _adapter_capability_request(
         adapter_ref="adapter:codex-local",
         tool_policy_refs=(),
         write_scope=_adapter_capability_write_scope(),
     )
+    _assert_recorded_write_policy_fact(label, request, expected_reason)
 
 
 def _check_adapter_capability_missing_adapter_capability(label: str) -> None:
@@ -6218,29 +6246,47 @@ def _check_adapter_capability_missing_adapter_capability(label: str) -> None:
 
 
 def _check_adapter_capability_observation_out_of_scope(label: str) -> None:
-    from support.operator.write_observation import _validate_observed_write_path
+    # REDO (Smith 0623 struct-surgery): an out-of-scope changed path no longer STOPS
+    # the building, and the written-vs-scope classification moved OUT of
+    # support/operator/write_observation INTO the Brick axis
+    # (brick.comparison.compare_changed_paths_to_write_scope). The probe asserts the
+    # Brick comparison produces the recorded-fact bucket (and does NOT raise) for a
+    # path outside the declared allowed_paths.
+    from brick_protocol.brick.comparison import compare_changed_paths_to_write_scope
 
     write_scope = _adapter_capability_write_scope()
-    _validate_observed_write_path(
-        "support/connection/agent_resources.py",
-        tuple(write_scope["allowed_paths"]),
-        tuple(write_scope["forbidden_paths"]),
+    facts = compare_changed_paths_to_write_scope(
+        ["support/connection/agent_resources.py"],
+        write_scope,
     )
+    outside = facts.get("observed_paths_outside_declared_scope", [])
+    if "support/connection/agent_resources.py" not in outside:
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: an out-of-scope "
+            "changed path must be RECORDED as observed_paths_outside_declared_scope "
+            f"by brick.comparison (move+record only), observed {facts!r}"
+        )
 
-def _check_adapter_capability_poc_read_only_with_write_scope(label: str) -> None:
-    _adapter_capability_request(
+def _check_adapter_capability_poc_read_only_with_write_scope(
+    label: str, expected_reason: str
+) -> None:
+    request = _adapter_capability_request(
         adapter_ref="adapter:local",
         write_scope=_adapter_capability_write_scope(),
     )
+    _assert_recorded_write_policy_fact(label, request, expected_reason)
 
 
-def _check_adapter_capability_legacy_identity_only(label: str) -> None:
-    _adapter_capability_request(
+def _check_adapter_capability_legacy_identity_only(
+    label: str, expected_reason: str
+) -> None:
+    request = _adapter_capability_request(
         adapter_ref="adapter:codex-local",
         agent_object_ref="agent-object:cto-lead",
         tool_policy_refs=("tool-policy:leader-coordination",),
         write_scope=_adapter_capability_write_scope(),
     )
+    _assert_recorded_write_policy_fact(label, request, expected_reason)
 
 
 def _check_adapter_capability_no_write_observation_without_scope(label: str) -> None:
@@ -7320,36 +7366,44 @@ def _check_provider_residue_excluded(label: str) -> None:
 
 
 def _check_directory_allowed_path_is_not_recursive(label: str) -> None:
-    from support.operator.write_observation import _validate_observed_write_path
+    # REDO (Smith 0623 struct-surgery): a directory-style allowed path is still NOT
+    # recursive -- the child path falls outside the declared scope -- but the
+    # written-vs-scope classification moved OUT of write_observation INTO the Brick
+    # axis (brick.comparison) and the disposition is a RECORDED FACT, not a raise.
+    # The probe asserts the Brick comparison records the child under
+    # observed_paths_outside_declared_scope (an explicit wildcard still admits the
+    # child, covered by _check_explicit_wildcard_allows_children).
+    from brick_protocol.brick.comparison import compare_changed_paths_to_write_scope
 
-    try:
-        _validate_observed_write_path(
-            "project/example/work/building-map.json",
-            ("project/example",),
-            (),
+    facts = compare_changed_paths_to_write_scope(
+        ["project/example/work/building-map.json"],
+        {"allowed_paths": ["project/example"]},
+    )
+    outside = facts.get("observed_paths_outside_declared_scope", [])
+    if "project/example/work/building-map.json" not in outside:
+        raise ProfileError(
+            f"write_scope_default_exclude_case rejected {label}: a directory-allowed "
+            "child path must be RECORDED as observed_paths_outside_declared_scope by "
+            f"brick.comparison (directory scope is not recursive; move+record only), "
+            f"observed {facts!r}"
         )
-    except ValueError as exc:
-        if "outside write_scope" not in str(exc):
-            raise ProfileError(
-                f"write_scope_default_exclude_case rejected {label}: wrong rejection {exc}"
-            ) from exc
-        return
-    raise ProfileError(f"write_scope_default_exclude_case expected directory child rejection: {label}")
 
 
 def _check_explicit_wildcard_allows_children(label: str) -> None:
-    from support.operator.write_observation import _validate_observed_write_path
+    # REDO (Smith 0623 struct-surgery): the written-vs-scope comparison moved to the
+    # Brick axis. An explicit ``**`` wildcard must admit the child -- i.e. the Brick
+    # comparison records NO out-of-scope bucket for it.
+    from brick_protocol.brick.comparison import compare_changed_paths_to_write_scope
 
-    try:
-        _validate_observed_write_path(
-            "project/example/work/building-map.json",
-            ("project/example/**",),
-            (),
-        )
-    except ValueError as exc:
+    facts = compare_changed_paths_to_write_scope(
+        ["project/example/work/building-map.json"],
+        {"allowed_paths": ["project/example/**"]},
+    )
+    if facts.get("observed_paths_outside_declared_scope"):
         raise ProfileError(
-            f"write_scope_default_exclude_case rejected {label}: wildcard did not allow child"
-        ) from exc
+            f"write_scope_default_exclude_case rejected {label}: wildcard did not "
+            f"allow child (brick.comparison recorded it out-of-scope), observed {facts!r}"
+        )
 
 
 def _check_token_shaped_filename_short_marker_accepted(label: str) -> None:

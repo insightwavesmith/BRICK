@@ -12,7 +12,10 @@ hand-wire an axis field-set instead of consuming the API.
 
 WHAT IT GUARDS
 --------------
-AST-scans ``assembly.py`` + the onboard/driver/cli entrypoints and REDs if the builder:
+AST-scans ``assembly.py``, the relocated axis homes ``brick/spec.py`` /
+``agent/spec.py`` (where the per-node carriers are now DEFINED — E2/S1-S3 moved
+them off ``assembly.py``, which re-exports), and the onboard/driver/cli
+entrypoints, and REDs if the builder:
 
 (a) HAND-NAMES A CASTING FIELD-SET MEMBER on a PER-NODE casting carrier instead of
     consuming the casting bag. The per-node/per-lane casting carriers are the
@@ -75,18 +78,32 @@ import sys
 from pathlib import Path
 
 
-# The builder entrypoints this guard scans (assembly.py + onboard/driver/cli).
+# The builder entrypoints this guard scans. E2/S1-S3 relocated the per-node
+# casting carriers (``BrickSpec``/``brick()`` and ``AgentSpec``/``agent()``) out of
+# ``assembly.py`` to their axis homes (``brick/spec.py`` / ``agent/spec.py``);
+# ``assembly.py`` now RE-EXPORTS them, so the carrier DEFINITIONS this guard checks
+# live on the axes. Both axis files are scanned here so a re-add of a named casting
+# scalar on the relocated carrier is still caught (re-export alone would let the
+# carrier slip the scan). ``assembly.py`` stays scanned for check (b): the
+# Gate/Concern/Adoption enums (``_axis_enum``) still live there and must stay
+# axis-derived. onboard/driver/cli remain scanned for both checks.
 BUILDER_ENTRYPOINTS: tuple[str, ...] = (
     "support/operator/assembly.py",
+    "brick/spec.py",
+    "agent/spec.py",
     "support/operator/onboard.py",
     "support/operator/driver.py",
     "support/operator/cli.py",
 )
 
 # The PER-NODE casting carriers (check (a) scope). Each must carry the opaque
-# ``casting`` bag and name NO casting field-set member. The building-wide
-# selection envelope (ComposedGraph/assemble/intent dict) is deliberately NOT
-# listed: it is the explicit building-wide intake surface, not a per-node carrier.
+# ``casting`` bag and name NO casting field-set member. After E2/S1-S3 these are
+# DEFINED on their axes (``BrickSpec``/``brick()`` in ``brick/spec.py``,
+# ``AgentSpec``/``agent()`` in ``agent/spec.py``) and merely re-exported by
+# ``assembly.py``; the guard catches the carrier wherever it is DEFINED among the
+# scanned entrypoints. The building-wide selection envelope (ComposedGraph/assemble/
+# intent dict) is deliberately NOT listed: it is the explicit building-wide intake
+# surface, not a per-node carrier.
 PER_NODE_CASTING_CARRIER_CLASSES: frozenset[str] = frozenset({"AgentSpec", "BrickSpec"})
 PER_NODE_CASTING_CARRIER_FUNCS: frozenset[str] = frozenset({"brick", "agent"})
 

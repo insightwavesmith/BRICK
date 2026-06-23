@@ -326,6 +326,13 @@ def _resume_dynamic_graph_walker(
                 "broken address to the redo landing (B1 fails-closed)"
             )
 
+    # ④ RE-INSTRUCTION: read the corrected how-to off the SAME human/COO
+    # disposition transition_lifecycle row (an ADMITTED transition_lifecycle key;
+    # the author-prefix gate above already validated the row authority). Carried
+    # as plain text onto the seed; the kernel stamps it onto the live retried
+    # target's prompt. Absent => "" => the target runs its original work unchanged.
+    re_instruction = _optional_text_value(disposition.get("re_instruction")) or ""
+
     seed = ResumeSeed(
         replay_returns=replay_returns,
         gate_records=gate_records,
@@ -342,6 +349,7 @@ def _resume_dynamic_graph_walker(
         expected_replay_counts=dict(expected_replay_counts),
         replay_recorded_at=replay_recorded_at,
         disposition_reason_refs=disposition_reason_refs,
+        re_instruction=re_instruction,
         # FIX 3 (0611): the SELECTED disposition row's discriminator (current
         # hold identity + row raw_ref + 1-based same-hold index) rides into the
         # runtime-mail provenance so replaying the selection rule lands on the

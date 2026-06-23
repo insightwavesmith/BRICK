@@ -29,6 +29,16 @@ TRANSITION_LIFECYCLE_ALLOWED_KEYS: frozenset[str] = frozenset(
         "required_disposition_owner",
         "disposition_action",
         "budget_increment",
+        # ④ RE-INSTRUCTION (Link-owned): a corrected instruction the
+        # human/COO disposition carries to the retried target Brick so the redo
+        # lands with a fixed how-to (not the original plan row's stale work).
+        # Optional free text; only meaningful with a forward/reroute/raise redo
+        # landing. Authority stays the SAME human:/coo: prefix gate on the
+        # disposition row -- this adds NO new authority surface. Support merely
+        # carries it onto the target step packet and injects it as its own
+        # labeled prompt section; it is NEVER a Movement verdict or a budget dial
+        # (refill = raise + budget_increment is untouched).
+        "re_instruction",
         "proof_limits",
         "not_proven",
     }

@@ -35,6 +35,7 @@ to the prior support-local definitions.
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
+from dataclasses import dataclass
 from typing import Any, NamedTuple
 
 from brick_protocol.support.connection.adapter_constants import (
@@ -500,3 +501,435 @@ def stamp_casting(target: dict[str, Any], bag: Mapping[str, Any]) -> dict[str, A
     for field_name in NODE_CASTING_FIELDS:
         target[field_name] = bag.get(field_name)
     return target
+
+
+# ---------------------------------------------------------------------------
+# CASTING AUTHORING (E2/S1, moved from support/operator/assembly.py). The builder
+# verbs ``agent()``/``brick()`` accept friendly ``**casting`` kwargs validated
+# against ``CASTING_FIELDS`` names and project them to the node-layer
+# ``selected_<base>`` bag. The validation+projection IS Agent-axis property (it is
+# the WHO casting the plan declares), so it lives single-source on this axis; the
+# Brick verb (``brick/spec.py:brick``) imports ``_build_casting_bag`` /
+# ``_CASTING_KWARG_BY_NAME`` from here (brick -> agent, acyclic). Bodies are
+# byte-identical to the prior ``assembly.py`` definitions; only the module home +
+# the shared-coercer source change.
+# ---------------------------------------------------------------------------
+def _casting_ref_prefix(descriptor: Any) -> str:
+    """The ref-prefix a casting dial's values carry (``adapter``/``model``/``effort``).
+
+    Data-driven from ``CASTING_FIELDS``: a deferrable dial advertises its prefix
+    via the ``<prefix>:`` of its ``default_ref`` sentinel (``model:default`` ->
+    ``model``, ``effort:default`` -> ``effort``); the fail-closed adapter dial has
+    no default sentinel, so its prefix is the base word (``adapter_ref`` ->
+    ``adapter``). No per-dial literal here -- a new dial's prefix derives.
+    """
+
+    if descriptor.default_ref and ":" in descriptor.default_ref:
+        return descriptor.default_ref.split(":", 1)[0]
+    return descriptor.field_name.removeprefix("preferred_").removesuffix("_ref")
+
+
+# Friendly builder kwarg name -> (selected_<base> node key, ref-prefix), derived
+# once from the single-source CASTING_FIELDS. The kwarg name is the bare base word
+# (``adapter``/``model``/``reasoning_effort``); ``agent()``/``brick()`` accept these
+# generically so a NEW dial needs no new named kwarg (E2/§6 M15).
+_CASTING_KWARG_BY_NAME: Mapping[str, tuple[str, str]] = {
+    descriptor.field_name.removeprefix("preferred_").removesuffix("_ref"): (
+        selected_key(descriptor),
+        _casting_ref_prefix(descriptor),
+    )
+    for descriptor in CASTING_FIELDS
+}
+
+
+def _build_casting_bag(label: str, kwargs: Mapping[str, Any]) -> dict[str, str]:
+    """Validate friendly casting kwargs and project to the ``selected_<base>`` bag.
+
+    Generic over ``CASTING_FIELDS``: every admitted dial (adapter/model/effort/...)
+    is read by its bare base-word kwarg, normalized to its ref-prefixed form, and
+    stored under its node-layer ``selected_<base>`` key. An unknown kwarg raises.
+    Byte-identical to the prior hand-named ``adapter``/``model`` normalization for
+    those two dials.
+    """
+
+    bag: dict[str, str] = {}
+    for name, raw_value in kwargs.items():
+        mapping = _CASTING_KWARG_BY_NAME.get(name)
+        if mapping is None:
+            raise TypeError(f"{label} got unexpected casting argument: {name}")
+        node_key, prefix = mapping
+        value = _optional_bare_or_ref(name, raw_value)
+        if value is None:
+            continue
+        bag[node_key] = _prefixed_ref(prefix, value)
+    return bag
+
+
+_ADMITTED_CASTING_PREFIXES: frozenset[str] = frozenset(
+    f"{_casting_ref_prefix(descriptor)}:" for descriptor in CASTING_FIELDS
+) | frozenset({"agent-object:"})
+
+
+# ---------------------------------------------------------------------------
+# SHARED COERCERS (E2/S1). Tiny value-shape helpers the casting authoring needs.
+# Per the E2/S1 plan they STAY in ``support/operator/assembly.py`` (the graph
+# wiring still uses them) AND are duplicated into the axis files that author a
+# spec, so an axis module never imports the support builder. Byte-identical to the
+# ``assembly.py`` definitions.
+# ---------------------------------------------------------------------------
+def _prefixed_ref(prefix: str, value: str) -> str:
+    text = _non_empty_text(prefix, value)
+    marker = f"{prefix}:"
+    if text.startswith(marker):
+        return text
+    if ":" in text:
+        raise ValueError(f"{prefix} must be bare or already {marker}-prefixed")
+    return f"{marker}{text}"
+
+
+def _optional_bare_or_ref(label: str, value: str | None) -> str | None:
+    text = _optional_text(value)
+    if text is None:
+        return None
+    if ":" in text and not text.startswith(tuple(_ADMITTED_CASTING_PREFIXES)):
+        raise ValueError(f"{label} must be bare text or an admitted ref")
+    return text
+
+
+def _bare_token(label: str, value: str) -> str:
+    text = _non_empty_text(label, value)
+    if ":" in text:
+        raise ValueError(f"{label} must be a bare token")
+    return text
+
+
+def _optional_text(value: Any) -> str | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
+
+
+def _non_empty_text(label: str, value: Any) -> str:
+    text = _optional_text(value)
+    if not text:
+        raise ValueError(f"{label} must be non-empty text")
+    return text
+
+
+# ---------------------------------------------------------------------------
+# AGENT-OBJECT SCHEMA (③ struct-surgery 0623, moved from
+# support/connection/agent_resources.py:_AGENT_OBJECT_KEYS / _REF_FIELDS /
+# _FORBIDDEN_AGENT_OBJECT_KEYS). The agent-OBJECT is the concrete WHO a lane casts
+# materialized as a record: which prompts/skills/hooks/tool-policies/disciplines/
+# adapters it binds, plus the casting dials. The set of keys an agent-object may
+# carry (``allowed_keys``), the file-backed ref fields (``ref_fields``), and the
+# keys it must NEVER carry (``forbidden_keys`` — provider connectors, credentials,
+# session ids, success/failure/quality/movement authority) are Agent-axis property:
+# they define the SHAPE of an Agent-axis record. They were sitting in a support
+# connection file (and mirror-copied into support/operator/primitives.py +
+# support/operator/native_dispatch.py) — definition belonging on the axis. This
+# ONE schema owns them; support IMPORTS it to validate (load path + compose path)
+# and to coerce/carry. The ``allowed_keys`` set DERIVES the casting key names from
+# ``CASTING_FIELDS`` (the same single source), so a new casting dial flows into the
+# admitted agent-object key-set with no edit here.
+#
+# The ``head_keys`` + ``ref_fields`` + ``forbidden_keys`` literal enumerations live
+# ONLY here. ``ref_fields`` ORDER is load-bearing (the coercion loops it); it is a
+# tuple. ``check_agent_object_schema_single_source`` REDs if these sets are defined
+# anywhere but this schema; the registry-driven mirror guard
+# (check_axis_field_set_single_source) REDs any literal copy under support/.
+# ---------------------------------------------------------------------------
+# The non-casting, non-ref head keys every agent-object carries.
+_AGENT_OBJECT_HEAD_KEYS: tuple[str, ...] = (
+    "object_ref",
+    "name",
+    "lane",
+    "callable_performer_refs",
+)
+# The file-backed ref fields (prefix-resolved to prompt:/skill:/hook:/tool-policy:/
+# discipline: / the admitted adapter vocabulary). ORDER is load-bearing: the
+# coercion loops ``("callable_performer_refs", *ref_fields)`` to coerce each as a
+# text array, byte-identical to the prior _REF_FIELDS / _AGENT_OBJECT_REF_FIELDS.
+_AGENT_OBJECT_REF_FIELDS: tuple[str, ...] = (
+    "prompt_refs",
+    "skill_refs",
+    "hook_refs",
+    "tool_policy_refs",
+    "discipline_refs",
+    "adapter_refs",
+)
+# The keys an agent-object must NEVER carry: a provider connector / credential /
+# session id (provider-coupling an Agent-axis record must never hold) or a
+# success/failure/quality/movement-authority field (judgment an Agent record must
+# never author). Byte-identical to the prior _FORBIDDEN_AGENT_OBJECT_KEYS /
+# _NATIVE_DISPATCH_FORBIDDEN_AGENT_OBJECT_KEYS.
+_AGENT_OBJECT_FORBIDDEN_KEYS: frozenset[str] = frozenset(
+    {
+        "provider_connector_refs",
+        "provider_request_body",
+        "credential_body",
+        "setup_token",
+        "setup_token_value",
+        "session_id",
+        "provider_session_id",
+        "agent_fact_shape",
+        "agentfact_shape",
+        "success",
+        "failure",
+        "quality",
+        "movement_choice",
+        "choose_movement",
+        "default_gatefact",
+        "default_gate_fact",
+    }
+)
+
+
+class AgentObjectSchema(NamedTuple):
+    """The single-source agent-OBJECT key/ref/forbidden schema (Agent axis).
+
+    ``allowed_keys`` is the full admitted key-set (head keys + the casting dial
+    names derived from ``CASTING_FIELDS`` + the ref fields); ``ref_fields`` is the
+    order-bearing tuple of file-backed ref fields; ``forbidden_keys`` is the set an
+    agent-object must never carry. The load path (agent_resources._load_agent_object)
+    and the compose path (``agent()`` below) both validate against this ONE schema.
+    """
+
+    head_keys: tuple[str, ...]
+    ref_fields: tuple[str, ...]
+    forbidden_keys: frozenset[str]
+    allowed_keys: frozenset[str]
+
+
+def _build_agent_object_schema() -> AgentObjectSchema:
+    """Assemble the agent-object schema, deriving the casting key names from the
+    single-source ``CASTING_FIELDS`` so a new dial joins the admitted key-set with
+    no edit. ``allowed_keys`` = head keys + casting field names + ref fields,
+    byte-identical to the prior ``_AGENT_OBJECT_KEYS`` membership."""
+
+    casting_names = tuple(descriptor.field_name for descriptor in CASTING_FIELDS)
+    allowed_keys = frozenset(
+        (*_AGENT_OBJECT_HEAD_KEYS, *casting_names, *_AGENT_OBJECT_REF_FIELDS)
+    )
+    return AgentObjectSchema(
+        head_keys=_AGENT_OBJECT_HEAD_KEYS,
+        ref_fields=_AGENT_OBJECT_REF_FIELDS,
+        forbidden_keys=_AGENT_OBJECT_FORBIDDEN_KEYS,
+        allowed_keys=allowed_keys,
+    )
+
+
+# The ONE agent-object schema. Support imports this (never a hand copy) to validate
+# the load path + the compose path and to coerce the ref fields.
+AGENT_OBJECT_SCHEMA: AgentObjectSchema = _build_agent_object_schema()
+
+
+# ---------------------------------------------------------------------------
+# AGENT AUTHORING (E2/S2, moved from support/operator/assembly.py). The Agent
+# (lane) carrier and its authoring verb live on the Agent axis: an ``AgentSpec``
+# is the WHO a lane casts (role + the generic ``selected_<base>`` casting bag),
+# and ``agent()`` is the friendly verb that builds it — validating the bare
+# ``role`` token and projecting the ``**casting`` dials through the single-source
+# ``_build_casting_bag`` above. Bodies are byte-identical to the prior
+# ``assembly.py`` definitions; only the module home + the shared-coercer source
+# change. ``assembly.py`` re-exports ``AgentSpec``/``agent`` so existing callers
+# keep resolving.
+#
+# COMPOSE FORM (③ struct-surgery 0623). ``agent()`` historically only NAMED a
+# pre-authored role yaml (``agent("dev")`` -> resolved at lower time to
+# ``agent-object:dev`` -> agent/objects/dev.yaml). It now ALSO accepts a COMPOSE
+# form that builds the agent-object INLINE — ``agent("dev", tools=[...],
+# skills=[...], hooks=[...], prompt=..., adapter=...)`` — composing the object dict
+# and validating it against the ONE ``AGENT_OBJECT_SCHEMA`` (same schema the
+# role-yaml load path validates against). The role-yaml path is unchanged and
+# stays the default (no compose kwargs -> ``composed_object`` is None); compose is
+# purely additive.
+# ---------------------------------------------------------------------------
+@dataclass(frozen=True, eq=False)
+class AgentSpec:
+    role: str
+    # Generic per-lane casting carry (E2/§6 M15): a bag keyed by the node-layer
+    # ``selected_<base>`` names (``NODE_CASTING_FIELDS``), values already
+    # ref-prefixed. The builder NEVER names a dial here -- ``agent()`` builds the
+    # bag once from ``CASTING_FIELDS``, so a new dial (effort) is carried with no
+    # field edit.
+    casting: Mapping[str, str] = ()  # type: ignore[assignment]
+    # COMPOSE form (③): the inline-composed agent-object dict, schema-validated at
+    # author time. ``None`` for the role-yaml path (``agent()`` only NAMED a
+    # pre-authored role). A composed object carries the same shape a role yaml does
+    # (head keys + ref fields + casting dials), already validated against
+    # ``AGENT_OBJECT_SCHEMA``.
+    composed_object: Mapping[str, Any] | None = None
+
+
+# Friendly compose kwarg name -> the agent-object ref field it populates. The
+# compose form reads these LIST kwargs (plus the singular ``prompt`` alias) and the
+# ``adapter`` dial; everything else is a casting kwarg or unexpected. A new ref
+# field is added to the schema's ``ref_fields`` once; its friendly kwarg is derived
+# from the base word (``tool_policy_refs`` -> ``tool_policies``, ``skill_refs`` ->
+# ``skills``) so no per-field literal map is hand-maintained — except the two
+# human-friendly aliases the task names verbatim (``tools`` for tool policies,
+# ``prompt``/``prompts`` for prompt refs).
+def _compose_kwarg_for_ref_field(ref_field: str) -> str:
+    """The plural friendly compose kwarg for a ``*_refs`` schema ref field.
+
+    ``prompt_refs`` -> ``prompts``, ``skill_refs`` -> ``skills``,
+    ``hook_refs`` -> ``hooks``, ``tool_policy_refs`` -> ``tool_policies``,
+    ``discipline_refs`` -> ``disciplines``, ``adapter_refs`` -> ``adapters``.
+    A base word ending in ``y`` pluralizes ``y`` -> ``ies`` (``tool_policy`` ->
+    ``tool_policies``); otherwise it appends ``s``.
+    """
+
+    base = ref_field.removesuffix("_refs")
+    if base.endswith("y"):
+        return base[:-1] + "ies"
+    return base + "s"
+
+
+# Derived once from the schema: friendly compose kwarg -> ref field. Adding a ref
+# field to AGENT_OBJECT_SCHEMA.ref_fields gives it a friendly kwarg automatically.
+_COMPOSE_REF_KWARG_BY_NAME: Mapping[str, str] = {
+    _compose_kwarg_for_ref_field(ref_field): ref_field
+    for ref_field in AGENT_OBJECT_SCHEMA.ref_fields
+}
+# Human-friendly ALIASES the compose surface accepts verbatim (the task's literal
+# spelling): ``tools`` -> tool_policy_refs, ``prompt`` -> prompt_refs (singular).
+_COMPOSE_REF_ALIASES: Mapping[str, str] = {
+    "tools": "tool_policy_refs",
+    "prompt": "prompt_refs",
+}
+
+
+def _string_list_kwarg(label: str, value: Any) -> list[str]:
+    """Coerce a compose ref kwarg to a clean text list (str -> one-element list)."""
+
+    if value is None:
+        return []
+    if isinstance(value, str):
+        items: list[Any] = [value]
+    elif isinstance(value, (list, tuple)):
+        items = list(value)
+    else:
+        raise TypeError(f"{label} must be text or a list of text")
+    cleaned: list[str] = []
+    for item in items:
+        text = _non_empty_text(label, item)
+        cleaned.append(text)
+    return cleaned
+
+
+def agent(
+    role: str,
+    *,
+    lane: str | None = None,
+    **kwargs: Any,
+) -> AgentSpec:
+    """Author an Agent lane spec.
+
+    Two forms over ONE carrier:
+
+      * ROLE-YAML (default): ``agent("dev")`` (optionally with casting dials
+        ``adapter=``/``model=``/``reasoning_effort=``) NAMES a pre-authored role;
+        ``composed_object`` stays None and the lower step resolves
+        ``agent-object:<role>`` -> the role yaml exactly as before.
+      * COMPOSE: any of the ref kwargs (``tools``/``skills``/``hooks``/
+        ``prompt``/``prompts``/``tool_policies``/``disciplines``/``adapters``) or an
+        explicit ``lane=`` builds the agent-object INLINE and validates it against
+        ``AGENT_OBJECT_SCHEMA``. The ``adapter=`` casting dial (when given) also
+        seeds ``adapter_refs`` so the composed object lists the adapter it prefers
+        (the same role-yaml invariant: a preferred adapter must be declared).
+
+    Trailing kwargs are partitioned: casting dials (``CASTING_FIELDS`` base words)
+    go to ``_build_casting_bag``; ref kwargs build the composed object; anything
+    else is rejected.
+    """
+
+    clean_role = _bare_token("role", role)
+    casting_kwargs = {key: value for key, value in kwargs.items() if key in _CASTING_KWARG_BY_NAME}
+    ref_kwargs = {
+        key: value
+        for key, value in kwargs.items()
+        if key in _COMPOSE_REF_KWARG_BY_NAME or key in _COMPOSE_REF_ALIASES
+    }
+    leftover = {
+        key: value
+        for key, value in kwargs.items()
+        if key not in casting_kwargs and key not in ref_kwargs
+    }
+    if leftover:
+        raise TypeError(
+            "agent() got unexpected keyword argument(s): " + ", ".join(sorted(leftover))
+        )
+    casting = _build_casting_bag("agent()", casting_kwargs)
+    composed_object = None
+    if ref_kwargs or lane is not None:
+        composed_object = _compose_agent_object(clean_role, lane, ref_kwargs, casting_kwargs)
+    return AgentSpec(role=clean_role, casting=casting, composed_object=composed_object)
+
+
+def _compose_agent_object(
+    role: str,
+    lane: str | None,
+    ref_kwargs: Mapping[str, Any],
+    casting_kwargs: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Build an agent-object dict INLINE and validate it against the ONE schema.
+
+    Projects the friendly ref kwargs onto their schema ref fields, seeds
+    ``adapter_refs`` from the ``adapter`` casting dial (a preferred adapter must be
+    declared, the role-yaml invariant), stamps the casting dials in their
+    ref-prefixed form, then runs the shared ``validate_agent_object_keys`` schema
+    check. A composed object is the SAME shape a role yaml carries.
+    """
+
+    obj: dict[str, Any] = {
+        "object_ref": _prefixed_ref("agent-object", role),
+        "name": role,
+        "lane": _bare_token("lane", lane) if lane is not None else "worker",
+        "callable_performer_refs": [],
+    }
+    for ref_field in AGENT_OBJECT_SCHEMA.ref_fields:
+        obj[ref_field] = []
+    # Project the friendly ref kwargs (both the derived plural names and the two
+    # verbatim aliases) onto their schema ref fields.
+    for kwarg_name, raw_value in ref_kwargs.items():
+        ref_field = _COMPOSE_REF_KWARG_BY_NAME.get(kwarg_name) or _COMPOSE_REF_ALIASES[kwarg_name]
+        obj[ref_field] = obj[ref_field] + _string_list_kwarg(f"agent() {kwarg_name}", raw_value)
+    # Seed adapter_refs + the preferred_adapter_ref casting dial from the friendly
+    # ``adapter`` casting kwarg, so the composed object DECLARES the adapter it
+    # prefers (the same invariant check_agent_resource_resolution enforces on role
+    # yamls: preferred_adapter_ref must be listed in adapter_refs).
+    adapter_value = _optional_text(casting_kwargs.get("adapter"))
+    if adapter_value is not None:
+        adapter_ref = _prefixed_ref("adapter", adapter_value)
+        if adapter_ref not in obj["adapter_refs"]:
+            obj["adapter_refs"] = obj["adapter_refs"] + [adapter_ref]
+        obj["preferred_adapter_ref"] = adapter_ref
+    # Stamp the casting dials in their node/agent-object ref-prefixed form.
+    casting_bag = _build_casting_bag("agent()", casting_kwargs)
+    for descriptor in CASTING_FIELDS:
+        node_key = selected_key(descriptor)
+        if node_key in casting_bag:
+            obj[descriptor.field_name] = casting_bag[node_key]
+    validate_agent_object_keys("agent()", obj)
+    return obj
+
+
+def validate_agent_object_keys(label: str, agent_object: Mapping[str, Any]) -> None:
+    """Validate an agent-object's KEY-SET against the single-source schema.
+
+    Shared by the compose path (``agent()`` above) AND the support load path
+    (agent_resources._load_agent_object imports this). Rejects an unknown key (not
+    in ``AGENT_OBJECT_SCHEMA.allowed_keys``) and a forbidden key (in
+    ``AGENT_OBJECT_SCHEMA.forbidden_keys``). Value-shape / authority / resolution
+    checks stay with their respective callers; this is the ONE key-set gate.
+    """
+
+    keys = set(agent_object)
+    unknown = sorted(keys - AGENT_OBJECT_SCHEMA.allowed_keys)
+    if unknown:
+        raise ValueError(f"{label}: unknown Agent Object keys: {', '.join(unknown)}")
+    forbidden = sorted(keys & AGENT_OBJECT_SCHEMA.forbidden_keys)
+    if forbidden:
+        raise ValueError(f"{label}: forbidden Agent Object keys: {', '.join(forbidden)}")

@@ -369,7 +369,11 @@ text_contains:
     texts:
       - _write_adapter_observation_before
       - _adapter_result_with_write_observation
-      - _validate_observed_write_paths
+      # REDO (Smith 0623): the write observer produces RAW only -- the
+      # written-vs-scope classification moved to brick.comparison and the named
+      # facts to support/recording. The RAW sensitive-path observer + the kept
+      # ``.git`` floor raise live here now.
+      - _raw_sensitive_path_writes
   - path: support/operator/primitives.py
     texts:
       - _RETURN_FORBIDDEN_KEYS

@@ -351,6 +351,26 @@ modules:
     decomposition_target: ""
     pinned_by: chained_carry_dependency kernel check (runs the real EASY-tier assemble() composition in-process; every write/QA node -- write_need=True step template -- reached by a forward edge from an upstream node receives that upstream's step-output as a declared source_fact carry, or is a fan-in convergence target the walker auto-carries; read-only/inspect/review/design/plan/closure nodes are exempt; the F2 fake-green regression pin -- a downstream writer with no carry runs blind on the task alone and the walk greens with no real work)
 
+  - module: support/checkers/check_gate_registry_single_source.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: gate_registry_single_source kernel check (struct-surgery ② 0623; AST seals the Link gate-ref vocabulary + materializer placement rule to ONE data table -- link/spec.GATE_REGISTRY. RULE 1 rejects any collection literal of >= 2 link-gate: literals outside link/spec.py -- a re-stated gate vocabulary, the old DECLARED_GATE_REFS-tuple shape -- while leaving lone behavioral "if ref == link-gate:human" comparisons clean; RULE 2 rejects the support materializer placement helper _materializer_profile_gate_translations if it does not delegate to gate_placement_for_row or hand-authors placement via translate_gate_concept guarded by row flags. Positively asserts GATE_REGISTRY enumerates the vocabulary + gate_placement_for_row is defined on the Link axis. Built-in synthetic mutation-RED probe -- re-enumerated tuple + hand-authored placement both rejected, lone comparison left clean)
+
+  - module: support/checkers/check_agent_object_schema_single_source.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: agent_object_schema_single_source kernel check (struct-surgery ③ 0623; AST seals the agent-OBJECT key/ref/forbidden SCHEMA to ONE source on the Agent axis -- agent/spec.AGENT_OBJECT_SCHEMA, assembled over its _AGENT_OBJECT_REF_FIELDS + _AGENT_OBJECT_FORBIDDEN_KEYS literals with allowed_keys deriving the casting names from CASTING_FIELDS, plus the validate_agent_object_keys gate the support load path AND the inline agent() compose path both call. RULE 1 positively asserts the schema symbol, both member literals (exact 6-name ref + 16-name forbidden member-sets), and the gate are defined on the axis; RULE 2 rejects any collection literal whose member-set equals the ref-field or forbidden-key set anywhere in the agent/brick/link/support trees except agent/spec.py -- the old _REF_FIELDS / forbidden-frozenset copies scattered across agent_resources.py + primitives.py + native_dispatch.py, one of which omitted the casting keys and raised on a real role -- while leaving lone by-name reads obj.get("adapter_refs") clean. This checker file itself is excluded from RULE 2 as the independent oracle re-encoding the expected member-sets for RULE 1. Built-in synthetic mutation-RED probe -- a re-stated ref tuple + a re-stated forbidden frozenset both rejected, a lone by-name read left clean)
+
   - module: support/checkers/check_report_env_autoload.py
     layer: checkers
     role: checker
@@ -1619,6 +1639,27 @@ modules:
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
     pinned_by: recording_checker_derived_contract (dynamic-walker support evidence emitters)
+
+  # REDO (Smith 0623 struct-surgery): the per-step Agent support-observation fact
+  # deriver. Support = move+record only. The ADAPTER exposes raw (gemini tool-call
+  # list, stripped top-level verdict-key names, effective-write request inputs) and
+  # the support write observer exposes raw worktree observation; this module RECORDS
+  # the named per-step facts (observed_non_granted_gemini_tools,
+  # ignored_forbidden_return_key, the effective-write reason-token facts,
+  # git_refs_moved) and calls the Brick axis (brick.comparison) for the
+  # written-vs-scope classification. It owns ZERO crossing, judges nothing, stops
+  # nothing. It is axis-import-free: the Brick comparison call lives in the operator
+  # write observer (which already consumes the brick_comparison crossing), which
+  # passes the comparison result into this deriver.
+  - module: support/recording/agent_step_observation.py
+    layer: recording
+    role: recording
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: recording_checker_derived_contract (per-step Agent support-observation fact deriver; records the adapter raw side-channel + raw worktree observation as named facts, axis-import-free)
 
   # ELEGANT-REFACTOR P3b (engine blueprint 0531 §5 / detail-design §D-2 Opt B):
   # the evidence_assembly god-module's per-crossing-family emitters lifted here as

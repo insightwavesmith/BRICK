@@ -9,6 +9,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable
 
+from brick_protocol.link.spec import GATE_REGISTRY
+
 
 GATE_STAGE_LITERALS: tuple[str, ...] = ("transfer", "carry", "movement")
 GATE_SUFFICIENCY_LITERALS: tuple[str, ...] = (
@@ -16,22 +18,40 @@ GATE_SUFFICIENCY_LITERALS: tuple[str, ...] = (
     "insufficient",
     "missing_required_facts",
 )
-DECLARED_GATE_REFS: tuple[str, ...] = (
-    "link-gate:default-transition",
-    "link-gate:strict",
-    "link-gate:human",
-    "link-gate:coo",
-)
+# DERIVED from the Link gate single-source data table (link/spec.GATE_REGISTRY,
+# struct-surgery ② 0623): the ordered gate-ref vocabulary, the human/auto
+# disposition partitions, and the per-gate required-return field map are all read
+# from the registry rows instead of being re-stated here as literals. Adding a
+# gate is a GATE_REGISTRY row edit (data), not a constitution code edit. The
+# byte-identical historical values are preserved: the row order keeps
+# DECLARED_GATE_REFS == (default-transition, strict, human, coo) so every existing
+# index subscript is unchanged. Support keeps importing these names FROM
+# link/gate.py (the link_gate crossing); the derivation is an intra-axis read.
+DECLARED_GATE_REFS: tuple[str, ...] = tuple(row.ref for row in GATE_REGISTRY)
 HUMAN_DISPOSITION_GATE_REFS: frozenset[str] = frozenset(
-    {DECLARED_GATE_REFS[2], DECLARED_GATE_REFS[3]}
+    row.ref for row in GATE_REGISTRY if row.disposition in ("human", "coo")
 )
-AUTO_ADOPT_GATE_REFS: frozenset[str] = frozenset({DECLARED_GATE_REFS[0]})
-HUMAN_GATE_REF: str = DECLARED_GATE_REFS[2]
-COO_GATE_REF: str = DECLARED_GATE_REFS[3]
+AUTO_ADOPT_GATE_REFS: frozenset[str] = frozenset(
+    row.ref for row in GATE_REGISTRY if row.disposition == "auto"
+)
+HUMAN_GATE_REF: str = next(
+    row.ref for row in GATE_REGISTRY if row.disposition == "human"
+)
+COO_GATE_REF: str = next(
+    row.ref for row in GATE_REGISTRY if row.disposition == "coo"
+)
 
-_GATE_REQUIRED_RETURN_FIELDS: tuple[tuple[str, tuple[str, ...]], ...] = (
-    ("link-gate:default-transition", ("observed_evidence", "not_proven")),
-    ("link-gate:strict", ("blocked_or_missing_evidence", "remaining_delta", "proof_limits")),
+# The per-gate required-return field map (the gate->return-fields contribution).
+# Only gates that ADD return fields appear (default-transition + strict carry the
+# honest-report channels; human/coo carry an empty tuple — their requirement is a
+# route_decision_basis ref, handled in evaluate_declared_gate_ref). Derived from
+# the registry rows so it cannot drift from the gate vocabulary; the ordered tuple
+# form preserves the byte-identical iteration order gate_required_return_fields
+# relies on.
+_GATE_REQUIRED_RETURN_FIELDS: tuple[tuple[str, tuple[str, ...]], ...] = tuple(
+    (row.ref, row.required_return_fields)
+    for row in GATE_REGISTRY
+    if row.required_return_fields
 )
 _GATE_REQUIRED_RETURN_FIELD_MAP = dict(_GATE_REQUIRED_RETURN_FIELDS)
 

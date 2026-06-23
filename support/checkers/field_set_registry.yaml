@@ -392,19 +392,25 @@ field_sets:
       - work_statement
       - comparison_rule
       - required_return_shape
+      - brick_instruction_body
       - source_facts
       - raw_refs
       - write_scope
       - requires_brick_write_scope
 
-  # AGENT-OBJECT allowed-key field-set — DELIBERATELY NOT REGISTERED YET (S1 note).
-  # E2 / S1 (mirror M8) removed native_dispatch.py's 3rd flat-literal copy of this
-  # 12-key set (the one that OMITTED the casting keys and RAISED on a real role) by
-  # importing primitives `_AGENT_OBJECT_ALLOWED_KEYS`. But the full member-set is still
-  # enumerated elsewhere on the current tree, so it is NOT single-source yet and cannot
-  # be registered under the S0 GUARD-FIRST rule (registry holds only sets that are green
-  # NOW): contracts.py `AgentObjectContractData` is a whole-@dataclass mirror of exactly
-  # these 12 fields (collapses to the opaque casting/ref bag in S7, mirror M1), and the
-  # 6-name ref subset is still flat-enumerated in agent_resources.py `_REF_FIELDS`
-  # alongside primitives `_AGENT_OBJECT_REF_FIELDS` (consolidates in S6/S7). This set
-  # gets a registry row once those sibling mirrors collapse, per design §8.
+  # AGENT-OBJECT key/ref/forbidden SCHEMA — sealed by a DEDICATED guard, not this
+  # registry (③ struct-surgery 0623). The agent-object SHAPE (allowed_keys +
+  # ref_fields + forbidden_keys) is single-sourced on the Agent axis at
+  # agent/spec.AGENT_OBJECT_SCHEMA (over its _AGENT_OBJECT_REF_FIELDS +
+  # _AGENT_OBJECT_FORBIDDEN_KEYS literals; allowed_keys derives the casting names
+  # from CASTING_FIELDS). Support (agent_resources / primitives / native_dispatch)
+  # ALIASES the schema fields, so no literal copy survives under support/. It is
+  # sealed by check_agent_object_schema_single_source.py — the agent-axis twin of
+  # check_gate_registry_single_source — NOT registered here, for the SAME reason the
+  # Link gate vocabulary is not: the dedicated guard is the independent ORACLE that
+  # re-encodes the EXPECTED ref/forbidden member-sets to make its positive RULE 1
+  # assertion, and registering those member-sets here would make this generic
+  # mirror-guard flag the oracle's own baseline (a self-attack collision). The
+  # dedicated guard scans agent/brick/link/support (broader than this support-only
+  # guard) and excludes only its own oracle file, so a re-enumeration anywhere is
+  # still RED.
