@@ -463,6 +463,9 @@ adapter_model_selection_case:
   - adapter_ref: adapter:codex-local
     selected_model_ref: model:codex:gpt-test
     expected_cli_arg: gpt-test
+  - adapter_ref: adapter:codex-fugu-local
+    selected_model_ref: model:sakana:fugu-ultra
+    expected_cli_arg: fugu-ultra
   - adapter_ref: adapter:claude-local
     selected_model_ref: model:claude:sonnet
     expected_cli_arg: sonnet
@@ -475,6 +478,8 @@ adapter_model_selection_case:
 adapter_model_selection_rejects:
   - adapter_ref: adapter:codex-local
     selected_model_ref: model:claude:sonnet
+  - adapter_ref: adapter:codex-fugu-local
+    selected_model_ref: model:codex:gpt-test
   - adapter_ref: adapter:local
     selected_model_ref: model:codex:gpt-test
   - adapter_ref: adapter:gemini-local

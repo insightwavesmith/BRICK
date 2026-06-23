@@ -40,6 +40,7 @@ from typing import Any, NamedTuple
 
 from brick_protocol.support.connection.adapter_constants import (
     ADAPTER_CLAUDE_LOCAL,
+    ADAPTER_CODEX_FUGU_LOCAL,
     ADAPTER_CODEX_LOCAL,
     ADAPTER_GEMINI_LOCAL,
     ALLOWED_ADAPTER_REFS,
@@ -113,6 +114,10 @@ def _no_cli_emit(_value: str, _adapter_ref: str) -> tuple[str, ...]:
 # to the prior support-local ``_MODEL_CLI_FLAG_BY_ADAPTER`` map.
 _MODEL_CLI_FLAG_BY_ADAPTER: Mapping[str, str] = {
     ADAPTER_CODEX_LOCAL: "-m",
+    # codex-fugu-local is the SAME codex executable, so its model id rides the
+    # same ``-m`` flag (the Sakana provider/catalog is routed by the spec's
+    # extra_config_overrides, not by the model flag).
+    ADAPTER_CODEX_FUGU_LOCAL: "-m",
     ADAPTER_CLAUDE_LOCAL: "--model",
     ADAPTER_GEMINI_LOCAL: "--model",
 }
@@ -149,9 +154,13 @@ def _model_cli_emit(value: str, adapter_ref: str) -> tuple[str, ...]:
 EFFORT_REF_DEFAULT = "effort:default"  # deferrable sentinel; emits no CLI arg.
 EFFORT_REF_PREFIX = "effort:"  # the effort dial's ref prefix (symmetric to model:).
 
-# The effort-capable adapters (codex + claude). Gemini-local carries no reasoning
-# effort dial, so it is out of scope — a declared effort on it is out-of-scope.
-EFFORT_SCOPE: frozenset[str] = frozenset({ADAPTER_CODEX_LOCAL, ADAPTER_CLAUDE_LOCAL})
+# The effort-capable adapters (codex + codex-fugu + claude). codex-fugu-local is
+# the SAME codex executable, so it carries the SAME reasoning-effort dial as
+# codex-local. Gemini-local carries no reasoning effort dial, so it is out of
+# scope — a declared effort on it is out-of-scope.
+EFFORT_SCOPE: frozenset[str] = frozenset(
+    {ADAPTER_CODEX_LOCAL, ADAPTER_CODEX_FUGU_LOCAL, ADAPTER_CLAUDE_LOCAL}
+)
 
 # The admitted reasoning-effort levels. A declared effort dial (bare ``low`` or
 # the ref form ``effort:low``) must project to one of these levels for an adapter
@@ -177,6 +186,8 @@ def _effort_level(value: str) -> str:
 # literal data — the per-adapter argv shape each effort-capable adapter expects.
 _EFFORT_CLI_EMIT_BY_ADAPTER: Mapping[str, Callable[[str], tuple[str, ...]]] = {
     ADAPTER_CODEX_LOCAL: lambda level: ("-c", "model_reasoning_effort=" + level),
+    # codex-fugu-local: same codex executable -> same effort config-override shape.
+    ADAPTER_CODEX_FUGU_LOCAL: lambda level: ("-c", "model_reasoning_effort=" + level),
     ADAPTER_CLAUDE_LOCAL: lambda level: ("--effort", level),
 }
 

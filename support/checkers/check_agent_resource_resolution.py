@@ -150,7 +150,7 @@ def _casting_field_registry_violations(repo: Path) -> list[str]:
     expected_descriptor_meta = {
         "preferred_adapter_ref": (None, frozenset(ALLOWED_ADAPTER_REFS)),
         "preferred_model_ref": (MODEL_REF_DEFAULT, frozenset(MODEL_PROVIDER_BY_ADAPTER)),
-        "preferred_reasoning_effort_ref": ("effort:default", frozenset({"adapter:codex-local", "adapter:claude-local"})),
+        "preferred_reasoning_effort_ref": ("effort:default", frozenset({"adapter:codex-local", "adapter:codex-fugu-local", "adapter:claude-local"})),
     }
     for descriptor in casting_fields:
         field_name = descriptor.field_name

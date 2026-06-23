@@ -13,6 +13,12 @@ from pathlib import Path
 
 ADAPTER_LOCAL = "adapter:local"
 ADAPTER_CODEX_LOCAL = "adapter:codex-local"
+# codex-fugu-local is a 1:1 SAKANA variant of codex-local: the SAME codex
+# executable + codex-exec invocation, with provider-routing -c overrides
+# (model_provider="sakana" + the Sakana model catalog) carried on the spec as
+# DATA. It is its OWN provider-neutral adapter row (sakana<->codex-fugu-local),
+# not a re-skin of codex-local; codex-local stays byte-identical.
+ADAPTER_CODEX_FUGU_LOCAL = "adapter:codex-fugu-local"
 ADAPTER_CLAUDE_LOCAL = "adapter:claude-local"
 ADAPTER_GEMINI_LOCAL = "adapter:gemini-local"
 ADAPTER_GEMINI_API = "adapter:gemini-api"
@@ -47,8 +53,15 @@ MODEL_REF_CLAUDE_INHERIT = "model:claude:inherit"
 MODEL_REF_GEMINI_DEFAULT = "model:gemini:default"
 MODEL_REF_GEMINI_FLASH = "model:gemini:gemini-2.5-flash"
 MODEL_REF_GEMINI_LOCAL_FLASH = "model:gemini:gemini-3.5-flash"
+# Sakana model refs reachable through the codex-fugu-local adapter. The provider
+# token is "sakana" (matches codex's model_provider="sakana" routing); the model
+# id is the Sakana catalog slug. ``fugu`` is the catalog default; ``fugu-ultra``
+# is the documented upper variant of the same provider grammar.
+MODEL_REF_SAKANA_FUGU = "model:sakana:fugu"
+MODEL_REF_SAKANA_FUGU_ULTRA = "model:sakana:fugu-ultra"
 MODEL_PROVIDER_BY_ADAPTER = {
     ADAPTER_CODEX_LOCAL: "codex",
+    ADAPTER_CODEX_FUGU_LOCAL: "sakana",
     ADAPTER_CLAUDE_LOCAL: "claude",
     ADAPTER_GEMINI_LOCAL: "gemini",
     ADAPTER_GEMINI_API: "gemini",
@@ -59,12 +72,15 @@ _RETIRED_WRITE_ADAPTER_REFS = frozenset(
         "adapter:claude-write-local",
     }
 )
-_OBSERVED_WRITE_ADAPTER_REFS = frozenset({ADAPTER_CODEX_LOCAL, ADAPTER_CLAUDE_LOCAL})
+_OBSERVED_WRITE_ADAPTER_REFS = frozenset(
+    {ADAPTER_CODEX_LOCAL, ADAPTER_CODEX_FUGU_LOCAL, ADAPTER_CLAUDE_LOCAL}
+)
 
 ALLOWED_ADAPTER_REFS = frozenset(
     {
         ADAPTER_LOCAL,
         ADAPTER_CODEX_LOCAL,
+        ADAPTER_CODEX_FUGU_LOCAL,
         ADAPTER_CLAUDE_LOCAL,
         ADAPTER_GEMINI_LOCAL,
         ADAPTER_GEMINI_API,
@@ -74,6 +90,9 @@ ALLOWED_ADAPTER_REFS = frozenset(
 _ADAPTER_CAPABILITIES = {
     ADAPTER_LOCAL: frozenset({ADAPTER_CAPABILITY_READ}),
     ADAPTER_CODEX_LOCAL: frozenset({ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_WRITE}),
+    # codex-fugu-local copies codex-local's READ+WRITE brain capability (same
+    # codex executable + codex-exec path); only the provider routing differs.
+    ADAPTER_CODEX_FUGU_LOCAL: frozenset({ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_WRITE}),
     ADAPTER_CLAUDE_LOCAL: frozenset(
         {ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_WRITE, ADAPTER_CAPABILITY_WEB}
     ),

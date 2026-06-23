@@ -39,6 +39,7 @@ from brick_protocol.brick.spec import WriteScope, WriteScopeContext
 from .adapter_constants import (
     ADAPTER_LOCAL,
     ADAPTER_CODEX_LOCAL,
+    ADAPTER_CODEX_FUGU_LOCAL,
     ADAPTER_CLAUDE_LOCAL,
     ADAPTER_GEMINI_LOCAL,
     ADAPTER_GEMINI_API,
@@ -57,6 +58,8 @@ from .adapter_constants import (
     MODEL_REF_GEMINI_DEFAULT,
     MODEL_REF_GEMINI_FLASH,
     MODEL_REF_GEMINI_LOCAL_FLASH,
+    MODEL_REF_SAKANA_FUGU,
+    MODEL_REF_SAKANA_FUGU_ULTRA,
     _RETIRED_WRITE_ADAPTER_REFS,
     _OBSERVED_WRITE_ADAPTER_REFS,
     ALLOWED_ADAPTER_REFS,
@@ -548,6 +551,14 @@ class LocalCliSpec:
     version_args: tuple[str, ...]
     invocation_args_kind: str
     default_model_ref: str = MODEL_REF_DEFAULT
+    # PROVIDER-ROUTING -c OVERRIDES (DATA, no judgment). Extra ``-c key=value``
+    # codex config-override pairs the spawn path appends verbatim to the codex-exec
+    # argv, AFTER the existing approval/sandbox -c knobs and BEFORE the casting
+    # model/effort args. EMPTY tuple is the default, so every existing spec's argv
+    # is BYTE-IDENTICAL; only the sakana variant carries a non-empty override set
+    # (model_provider + model catalog). Each pair is concatenated as-is by
+    # adapter_local_cli -- support routes the data, it makes no provider decision.
+    extra_config_overrides: tuple[tuple[str, str], ...] = ()
     proof_limits: tuple[str, ...] = field(default_factory=lambda: _DEFAULT_PROOF_LIMITS)
     not_proven: tuple[str, ...] = field(default_factory=lambda: _DEFAULT_NOT_PROVEN)
 
@@ -587,6 +598,42 @@ class LocalCliCompleted:
 AgentBrainCallable = Callable[[AgentAdapterRequest], Any]
 CommandRunner = Callable[..., LocalCliCompleted]
 
+
+def _sakana_fugu_config_overrides() -> tuple[tuple[str, str], ...]:
+    """Resolve the codex-fugu-local provider-routing -c overrides as DATA.
+
+    The MINIMAL routing switch is ``model_provider="sakana"`` -- that one pair is
+    always present (it flips codex onto the Sakana provider). The Sakana model
+    catalog path is resolved DETERMINISTICALLY at ``~/.codex/fugu.json`` (the
+    codex CLI's own catalog location); the ``model_catalog_json`` pair is appended
+    ONLY when that file actually resolves to a real path, otherwise it is omitted
+    (per the plan: keep just the provider switch when the catalog is absent). This
+    is path resolution, not a provider decision -- codex's own
+    ``auth.command`` resolves the Sakana key, which never enters BRICK.
+    """
+
+    overrides: list[tuple[str, str]] = [
+        ("-c", 'model_provider="sakana"'),
+        # Reasoning-effort floor. The Sakana catalog (~/.codex/fugu.json) lists
+        # ONLY {high, xhigh} as supported_reasoning_levels for fugu / fugu-ultra
+        # (no low/medium), and the codex-fugu launcher always pins "high". Carry
+        # the same DATA default; a node's effort dial (later in argv) still wins
+        # to bump xhigh.
+        ("-c", 'model_reasoning_effort="high"'),
+        # Sakana's Responses API (wire_api="responses") rejects codex's built-in
+        # image_generation / apps tools (it answers "Invalid value:
+        # 'image_generation'. Supported values are: 'function' and 'custom'").
+        # The codex-fugu launcher disables BOTH, so carry the same DATA toggles
+        # here -- otherwise every real Fugu turn fails turn.failed at the provider.
+        ("-c", "features.image_generation=false"),
+        ("-c", "features.apps=false"),
+    ]
+    catalog_path = Path.home() / ".codex" / "fugu.json"
+    if catalog_path.is_file():
+        overrides.append(("-c", f'model_catalog_json="{catalog_path.as_posix()}"'))
+    return tuple(overrides)
+
+
 _LOCAL_CLI_SPECS: Mapping[str, LocalCliSpec] = {
     ADAPTER_CODEX_LOCAL: LocalCliSpec(
         adapter_ref=ADAPTER_CODEX_LOCAL,
@@ -595,6 +642,19 @@ _LOCAL_CLI_SPECS: Mapping[str, LocalCliSpec] = {
         version_args=("--version",),
         invocation_args_kind="codex-exec-readonly",
         default_model_ref=MODEL_REF_CODEX_DEFAULT,
+    ),
+    # codex-fugu-local: SAME codex executable + codex-exec invocation kind as
+    # codex-local; the ONLY difference is the provider-routing -c overrides carried
+    # as DATA (model_provider="sakana" + the Sakana model catalog). Default model is
+    # model:sakana:fugu (the Sakana catalog slug). codex-local above is untouched.
+    ADAPTER_CODEX_FUGU_LOCAL: LocalCliSpec(
+        adapter_ref=ADAPTER_CODEX_FUGU_LOCAL,
+        brain_surface_ref="brain-surface:codex-fugu-local-cli",
+        executable_name="codex",
+        version_args=("--version",),
+        invocation_args_kind="codex-exec-readonly",
+        default_model_ref=MODEL_REF_SAKANA_FUGU_ULTRA,
+        extra_config_overrides=_sakana_fugu_config_overrides(),
     ),
     ADAPTER_CLAUDE_LOCAL: LocalCliSpec(
         adapter_ref=ADAPTER_CLAUDE_LOCAL,
@@ -674,6 +734,11 @@ def connect_agent_brain(
             timeout_seconds=timeout_seconds,
         )
     else:
+        # Local-CLI dispatch: codex-local, codex-fugu-local, claude-local, and
+        # gemini-local all route through the SAME _invoke_local_cli_adapter ->
+        # _invoke_local_cli path. codex-fugu-local resolves to the codex-exec
+        # invocation kind (identical to codex-local); its provider-routing -c
+        # overrides ride on the spec as DATA and are appended in adapter_local_cli.
         (
             returned_value,
             proof_limits,
@@ -737,6 +802,11 @@ def supported_model_ref_examples(adapter_ref: str) -> tuple[str, ...]:
         return (
             MODEL_REF_CODEX_DEFAULT,
             "model:codex:<codex-cli-model-name>",
+        )
+    if adapter_ref == ADAPTER_CODEX_FUGU_LOCAL:
+        return (
+            MODEL_REF_SAKANA_FUGU,
+            "model:sakana:<sakana-catalog-model-slug>",
         )
     if adapter_ref == ADAPTER_CLAUDE_LOCAL:
         return (
@@ -1114,6 +1184,7 @@ __all__ = [
     "ADAPTER_CAPABILITY_WRITE",
     "ADAPTER_CLAUDE_LOCAL",
     "ADAPTER_CHAT_SESSION",
+    "ADAPTER_CODEX_FUGU_LOCAL",
     "ADAPTER_CODEX_LOCAL",
     "ADAPTER_GEMINI_API",
     "ADAPTER_GEMINI_LOCAL",

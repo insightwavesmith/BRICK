@@ -79,6 +79,9 @@ _AXIS_VOCAB_CONCERN_KIND_DOC_HEADER = (
 _AXIS_VOCAB_EXPECTED_ADAPTER_REFS = (
     "adapter:local",
     "adapter:codex-local",
+    # ADDITIVE: 1:1 Sakana variant of codex-local (same codex executable +
+    # codex-exec invocation; provider-routing -c overrides carried as DATA).
+    "adapter:codex-fugu-local",
     "adapter:claude-local",
     "adapter:gemini-local",
     # B6 (ADDITIVE): direct Gemini HTTP API adapter, sibling of gemini-local.

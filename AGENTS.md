@@ -336,6 +336,7 @@ Current provider-neutral adapter refs:
 ```text
 adapter:local
 adapter:codex-local
+adapter:codex-fugu-local
 adapter:claude-local
 adapter:gemini-local
 adapter:gemini-api
@@ -345,7 +346,14 @@ adapter:chat-session
 `adapter:gemini-api` is a read/review HTTP API adapter sibling of
 `adapter:gemini-local`, not a write adapter. `adapter:chat-session` is the
 parked / human-as-agent adapter for chat-session handoff, not provider identity
-or Movement authority.
+or Movement authority. `adapter:codex-fugu-local` is a 1:1 Sakana variant of
+`adapter:codex-local`: the SAME codex executable and codex-exec invocation, with
+provider-routing config overrides (`model_provider="sakana"` plus the Sakana
+model catalog) carried on the adapter spec as DATA. It is its own
+provider-neutral adapter row (provider `sakana`), not a re-skin of
+`adapter:codex-local`, and it inherits the same READ+WRITE capability. Auth stays
+out of BRICK: codex's own `auth.command` resolves the Sakana key; no setup token,
+key, or session ever enters BRICK.
 
 Write capability is not owned by the adapter name or by `dev` alone. Effective
 write requires Brick-declared write scope, Agent tool policy, adapter support,
@@ -366,8 +374,9 @@ pin: an explicit step `selected_model_ref` overrides it, a node that omits it
 keeps the adapter default (e.g. `model:claude:inherit`), and it carries no
 Agent identity / availability authority. `preferred_model_ref` must name a
 model whose provider matches the provider of the role's
-`preferred_adapter_ref` (fail-closed). Model-specific adapter refs are not
-admitted.
+`preferred_adapter_ref` (fail-closed): e.g. `model:codex:*` with
+`adapter:codex-local`, `model:sakana:*` (such as `model:sakana:fugu`) with
+`adapter:codex-fugu-local`. Model-specific adapter refs are not admitted.
 
 Setup token, auth, credential body, provider runtime state, provider call state,
 and provider-specific session ids must not be stored in Agent resources,

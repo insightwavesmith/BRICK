@@ -265,6 +265,15 @@ def _invoke_local_cli(
             # bypasses HOOK TRUST only -- not approvals, not the sandbox.
             if os.environ.get("BRICK_CODEX_HOOK_TRUST_BYPASS") == "1":
                 args_list.append("--dangerously-bypass-hook-trust")
+            # PROVIDER-ROUTING -c OVERRIDES (DATA, no judgment). Each spec carries
+            # extra ``-c key=value`` pairs as DATA; support only concatenates them
+            # into argv -- it makes no provider decision. EMPTY for every existing
+            # adapter (codex-local etc.), so their argv is BYTE-IDENTICAL; the sakana
+            # variant (codex-fugu-local) flattens its (model_provider + catalog) pairs
+            # here, AFTER the approval-policy -c knob and BEFORE the casting model/
+            # effort args.
+            for _override_flag, _override_value in spec.extra_config_overrides:
+                args_list.extend((_override_flag, _override_value))
             # E2/S6 (mirror M6): the codex ``-m`` model flag is now DATA on the
             # casting model dial's cli_emit; the spawn path loops CASTING_FIELDS.
             # Byte-identical to the deleted inline ``("-m", model_arg)`` literal.
