@@ -11,8 +11,7 @@
   "skill_refs": [
     "skill:software-architecture",
     "skill:code-analyzer",
-    "skill:structure-validator",
-    "skill:gap-detector"
+    "skill:evidence-shape-check"
   ],
   "hook_refs": [
     "hook:instruction-chain-read",

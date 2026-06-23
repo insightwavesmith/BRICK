@@ -11,7 +11,7 @@
   "skill_refs": [
     "skill:evidence-verification",
     "skill:zero-script-qa",
-    "skill:gap-detector"
+    "skill:evidence-shape-check"
   ],
   "hook_refs": [
     "hook:instruction-chain-read",
