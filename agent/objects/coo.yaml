@@ -11,6 +11,11 @@
   "skill_refs": [
     "skill:building-coordination",
     "skill:task_intake",
+    "skill:building-sizing-method",
+    "skill:brick-task-author",
+    "skill:make-a-brick",
+    "skill:make-an-agent",
+    "skill:make-a-gate",
     "skill:project-creation",
     "skill:protocol-boundary-watch",
     "skill:evidence-verification"

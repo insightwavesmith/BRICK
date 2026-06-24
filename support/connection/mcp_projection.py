@@ -417,6 +417,8 @@ def render_coo_operating_chain_context(repo_root: str | Path | None = None) -> d
             "brick/templates/presets/brick-protocol-portfolio-driver.md",
             "brick/templates/presets/brick-protocol-post-d-cleanup.md",
             "agent/skills/task_intake/SKILL.md",
+            "agent/skills/building-sizing-method/SKILL.md",
+            "agent/skills/brick-task-author/SKILL.md",
             "support/operator/run.py",
         ],
         "startup_surface_refs": startup_surface_refs,

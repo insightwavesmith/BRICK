@@ -22,6 +22,11 @@ path_exists:
   - agent/prompts/coo.md
   - agent/skills/building-coordination/SKILL.md
   - agent/skills/task_intake/SKILL.md
+  - agent/skills/building-sizing-method/SKILL.md
+  - agent/skills/brick-task-author/SKILL.md
+  - agent/skills/make-a-brick/SKILL.md
+  - agent/skills/make-an-agent/SKILL.md
+  - agent/skills/make-a-gate/SKILL.md
   - support/operator/run.py
   - support/operator/driver.py
   - support/operator/auto_repair_replay.py
@@ -110,6 +115,11 @@ text_contains:
   - path: agent/objects/coo.yaml
     texts:
       - "skill:task_intake"
+      - "skill:building-sizing-method"
+      - "skill:brick-task-author"
+      - "skill:make-a-brick"
+      - "skill:make-an-agent"
+      - "skill:make-a-gate"
   - path: agent/prompts/coo.md
     texts:
       - task_source_draft

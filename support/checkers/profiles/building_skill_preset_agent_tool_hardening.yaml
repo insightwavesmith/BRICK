@@ -8,6 +8,11 @@ kernel_checks:
 path_exists:
   - agent/skills/building-coordination/SKILL.md
   - agent/skills/task_intake/SKILL.md
+  - agent/skills/building-sizing-method/SKILL.md
+  - agent/skills/brick-task-author/SKILL.md
+  - agent/skills/make-a-brick/SKILL.md
+  - agent/skills/make-an-agent/SKILL.md
+  - agent/skills/make-a-gate/SKILL.md
   - agent/hooks/registry.yaml
   - agent/hooks/bindings.yaml
   - agent/tool_policies/leader-coordination.yaml
