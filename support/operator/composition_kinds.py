@@ -1,6 +1,6 @@
 """Kind / step-template resolution + did-you-mean hints.
 
-Smallest clean leaf extracted from composition.py: maps a chain preset's
+Smallest clean leaf extracted from the pre-split composition module: maps a chain preset's
 step_template_ref to its catalog entry, and turns an unresolved ref into a
 discoverable error suffix (nearest-kind suggestion + the live kind list).
 """

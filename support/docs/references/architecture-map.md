@@ -1,6 +1,6 @@
 # Architecture map (current tree)
 
-Date: 2026-06-11.
+Date: 2026-06-24.
 Status: support record / navigational reference only. NOT source truth, NOT
 success judgment, NOT quality judgment, NOT Movement authority.
 Supersedes the 0529 engine blueprint (the 34-checker era) as the CURRENT
@@ -19,14 +19,21 @@ trust a number copied here); this page is the human-readable map of the
 builder — materialize a declared plan:
 
 ```text
-plan_rendering.py         the BUILDER surface; auto-fills template nodes from a
-                          work_statement ("rendering" name is historical)
-composition.py            compose_building plan assembly: preset translation,
-                          gate stamping, project_ref fail-close
-                          (materialize_building_intent)
-plan_graph.py             declared plan graph projection helpers (graph -> walk order)
-route_materialization.py  literal route-request matching + route Link row
-                          materialization
+plan_rendering.py              the BUILDER surface; auto-fills template nodes from a
+                               work_statement ("rendering" name is historical)
+composition_intent.py         materialize_building_intent: task/preset intent ->
+                               declared Building Plan evidence
+composition_compose.py        compose_building: final declared-plan assembly seam
+composition_common.py         shared composition support primitives
+composition_kinds.py          kind / role / template resolution helpers
+composition_route_policy.py   route-policy derivation helpers
+composition_gate_translation.py gate-stamping translation helpers
+composition_graph_emit.py     graph row emission helpers
+composition_graph_validate.py graph validation helpers
+composition_problem.py        composition error / problem helpers
+plan_graph.py                 declared plan graph projection helpers (graph -> walk order)
+route_materialization.py      literal route-request matching + route Link row
+                               materialization
 ```
 
 engine — walk the declared plan, record evidence:

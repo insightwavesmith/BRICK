@@ -317,7 +317,7 @@ def coo_operating_chain_packet(
     """
 
     repo = Path(repo_root).resolve()
-    # U5.1 fix: match the composer's fail-closed contract (composition.py). An
+    # U5.1 fix: match the composer's fail-closed contract (composition_compose.py). An
     # omitted/blank shape is OK (-> "" tag below); a PRESENT non-string value is a
     # MALFORMED declaration and must be REJECTED, not silently coerced to a repr.
     if selected_shape_ref is not None and not isinstance(selected_shape_ref, str):

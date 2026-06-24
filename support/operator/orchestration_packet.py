@@ -65,7 +65,7 @@ def coo_run_orchestration_packet(
     declared_by_text = _clean_text("declared_by", declared_by)
     if not _is_caller_or_coo_declaration(declared_by_text):
         raise ValueError("declared_by must record caller / COO declaration")
-    # U5.1 fix: match the composer's fail-closed contract (composition.py
+    # U5.1 fix: match the composer's fail-closed contract (composition_intent.py / composition_compose.py
     # render_declared_step_template_plan + compose_building). An omitted/blank shape is
     # OK (-> "" tag below); a PRESENT non-string value (list / dict / int) is a MALFORMED
     # declaration and must be REJECTED here, not silently coerced to its Python repr.

@@ -1,6 +1,6 @@
 """Gate-concept token -> gate-ref translation + portfolio closure-gate stamping.
 
-Extracted verbatim from composition.py (cluster ``composition_gate_translation``).
+Extracted verbatim from the pre-split composition module (cluster ``composition_gate_translation``).
 The materializer TRANSLATES a preset's DECLARED ``gate_concept_profile`` tokens
 into live ``declared_gate_refs`` on specific rows (mechanical; provenance = the
 preset declared the label). The token -> ref map is the Link plan grammar,

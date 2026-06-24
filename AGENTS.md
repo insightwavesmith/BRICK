@@ -574,12 +574,15 @@ support/operator module map (vocabulary; five families, one folder):
 
 ```text
 builder (materialize a declared plan):
-  plan_rendering.py  composition.py  plan_graph.py  route_materialization.py
+  plan_rendering.py  composition_* split modules  plan_graph.py  route_materialization.py
+  (composition_intent.py = materialize_building_intent;
+   composition_compose.py = compose_building; split helpers carry common/kinds/
+   route-policy/gate-translation/graph-emit/graph-validate/problem mechanics)
 engine (walk the declared plan, record evidence):
   run.py  dynamic_walker.py  walker_*.py  gate_sequence.py  native_dispatch.py
-operator surface (entry points + read-side observation):
+operator surface (entry points + operator observation):
   assembly.py  driver.py  onboard.py  building_operation.py  coo_operating_chain.py
-  frontier_observation.py  evidence_status.py  dashboard_export.py
+  frontier_observation.py  evidence_status.py
   (assembly.py = the refined 3-axis assemble() front door)
 read-side projection (observe + project written evidence, never judge):
   ledger_projection.py  progress_projection.py  dashboard_export.py

@@ -723,7 +723,7 @@ def _store_step_template(
     if "write_need" in step_template:
         stored["write_need"] = bool(step_template["write_need"])
     # The kind's real declared return shape (comma-joined field list from the
-    # primary return_template) is carried so composition.py can default a node's
+    # primary return_template) is carried so composition_compose.py can default a node's
     # required_return_shape to it when the node omits one. Like role_need/
     # write_need this is selection metadata, NOT part of the declared-plan output.
     if "required_return_shape" in step_template:
@@ -731,7 +731,7 @@ def _store_step_template(
     # ⑤ STATIC INSTRUCTION BODY: the brick.md ## body (the markdown after the
     # frontmatter fence) is the agent-readable kind instruction. It is read ONCE
     # here at compose time (the only place brick.md is parsed) and carried onto the
-    # registry row so composition.py can stamp it onto the brick_row; the request
+    # registry row so composition_compose.py can stamp it onto the brick_row; the request
     # builder then threads it to the prompt (adapter_grant_policy._build_prompt key
     # ``brick_instruction_body``). Like required_return_shape it is selection
     # metadata, NOT part of the declared-plan output (golden compares only the 4
@@ -742,7 +742,7 @@ def _store_step_template(
     # CARRIES-FORWARD SET: the kind's HANDOFF subset (comma-joined field list from
     # the primary return_template's optional carries_forward_fields). Carried onto
     # the registry row -- like required_return_shape, selection metadata, NOT part
-    # of the declared-plan output -- so composition.py can stamp it onto the
+    # of the declared-plan output -- so composition_compose.py can stamp it onto the
     # brick_row and the walker carry seam can FILTER an upstream summary to it.
     # Stored only when NON-EMPTY: a kind with no declared carry-set leaves the key
     # absent and the seam falls back to the full-summary carry (backward-safe).
@@ -1060,11 +1060,11 @@ def _step_templates_from_bricks(repo: Path) -> dict[str, dict[str, Any]]:
                 repo, return_template_refs[0], label
             ),
             # ⑤ the kind's STATIC instruction (the brick.md ## body) carried onto the
-            # registry row from the SAME file read once above, so composition.py can
+            # registry row from the SAME file read once above, so composition_compose.py can
             # stamp it onto the brick_row and the request builder threads it to the
             # agent prompt. Selection metadata, not declared-plan output.
             "brick_instruction_body": _brick_spec_instruction_body(spec_text),
-            # carried so the override guard (composition.py) can re-check a node
+            # carried so the override guard (composition_graph_validate.py) can re-check a node
             # override against the same NEED without re-parsing the Brick spec.
             "role_need": role_need,
             "write_need": write_need,

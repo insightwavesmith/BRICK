@@ -1,9 +1,9 @@
 """Composition graph/plan validators: the cohesive validation cluster that builds
 CompositionProblem (collected by compose_building).
 
-Extracted verbatim from composition.py (module-separation). PURE relocation: no
+Extracted verbatim from the pre-split composition module (module-separation). PURE relocation: no
 logic/name/signature/order change. Imports siblings directly (no top-level import
-of composition.py, which would cycle). The plan_graph / plan_validation imports
+of the composer facade, which would cycle). The plan_graph / plan_validation imports
 stay LAZY inside the validator functions (they pull from the heavier graph/plan
 layer and would re-introduce an import cycle if hoisted).
 """

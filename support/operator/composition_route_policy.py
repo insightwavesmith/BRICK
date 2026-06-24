@@ -1,9 +1,9 @@
 """Composition route-policy: reroute-budget + closure-policy cascade, validation,
 provenance (leaf-utility, lowest blast radius).
 
-Extracted verbatim from composition.py (module-separation). PURE relocation: no
+Extracted verbatim from the pre-split composition module (module-separation). PURE relocation: no
 logic/name/signature/order change. Imports siblings directly (no top-level import
-of composition.py, which would cycle).
+of the composer facade, which would cycle).
 """
 
 from __future__ import annotations

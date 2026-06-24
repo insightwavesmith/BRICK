@@ -1,7 +1,7 @@
 """Composition problem records (leaf module).
 
 The two support-composition problem-record classes, extracted from
-composition.py to break the compose<->validate cycle. Stdlib only; this module
+the pre-split composition module to break the compose<->validate cycle. Stdlib only; this module
 imports no siblings so it can be imported first.
 """
 
