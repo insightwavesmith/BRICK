@@ -1,0 +1,399 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:claude-adapter-yaml-control-proof-0625::evidence/claim_trace/agent/returned_claims.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:pm-lead",
+        "received_work": "brick-work:01:claude-adapter-yaml-control-proof-0625-plan",
+        "returned": {
+          "adapter_ref": "adapter:claude-local",
+          "agent_object_ref": "agent-object:pm-lead",
+          "brain_surface_ref": "brain-surface:claude-code-local-cli",
+          "cli_call_ref": "support-cli-call:adapter:claude-local:claude-adapter-yaml-control-proof-0625",
+          "cli_version_text": "2.1.191 (Claude Code)",
+          "constraints": [
+            "This plan Brick is non-implementing: objective/scope/boundary only, no code or verdict.",
+            "Brick write_scope is empty ({}) on this node; per packet native_grant.write_effective=false, so no write is admissible here.",
+            "Returned evidence is provider-neutral Brick Protocol support evidence only: not source truth, not success/quality judgment, not Movement authority.",
+            "Investigation must remain read-only and avoid live Claude runs and --all per task source."
+          ],
+          "evidence_refs": [
+            "support-packet:claude-adapter-yaml-control-proof-0625:agent-object:pm-lead:output"
+          ],
+          "missing_scope": [
+            "File CONTENT of the declared source files is not available to this session: Read and Grep on support/connection/agent_adapter.py, support/connection/agent_resources.py, agent/tool_policies/read-write-scoped.yaml, agent/tool_policies/reviewer-readonly.yaml, agent/objects/pm-lead.yaml, agent/objects/dev.yaml all returned 'permissions ... not granted'. Without granted read-content access the downstream investigator cannot produce the required file:line citations.",
+            "No definition observed (could not read code) for HOW effective_write is computed in agent_adapter.py / agent_resources.py; the intersection rule is only described in packet tool_policy data, not confirmed against code.",
+            "The boundary between candidate (a) adapter capability and (b) provider sandbox/env isolation is undefined here and needs an explicit code locus to separate them.",
+            "No defined acceptance criteria for what counts as 'confirmed' vs 'not_proven' for a seat without a live run; the downstream Brick should fix this threshold."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "WHY Claude behaves read-only at the code level — UNPROVEN this session: file content of agent_adapter.py/agent_resources.py could not be read (read-content permission not granted), so no file:line evidence exists yet for any of the four candidate seats.",
+            "Whether the adapter itself caps Claude to read-only vs exposes full capability gated by NEED — not_proven (code not read).",
+            "Whether the observed read-content denial originates from (b) provider sandbox/env isolation, from a session permission gate, or from (c) Agent YAML/tool_policy — not_proven; the denial is a runtime/environment permission constraint, not evidence of adapter design.",
+            "That write would be admissible for a write-scope Brick with an aligned write-capable lane+adapter — not_proven without reading the effective_write computation and absent a live run; only asserted by packet tool_policy text.",
+            "That write is correctly suppressed for this read-only Brick because write_scope is empty — consistent with packet native_grant.write_effective=false but not confirmed against code structure this session.",
+            "Checker green / --all status — not run (task source excludes); no claim."
+          ],
+          "objective_summary": "Bound a read-only investigation Building that must (a) prove the principle 'adapter = full-power connector; Agent YAML / tool_policy / Brick write_scope = control' and (b) localize WHY the Claude adapter currently behaves read-only, citing file:line evidence per candidate seat (adapter capability / provider sandbox / Agent YAML+tool_policy / Brick write_scope NEED absence) and classifying each as confirmed vs not_proven. This plan node defines objective, scope, and next work boundaries only; it performs no implementation and reaches no verdict.",
+          "observed_evidence": [
+            "Glob succeeded and listed agent/objects/ = {coo,cto-lead,design-lead,dev,inspector,pm-lead,qa,qa-lead}.yaml and agent/tool_policies/ = {leader-coordination,read-write-scoped,reviewer-readonly,web-capable}.yaml; it also confirmed presence of support/connection/agent_adapter.py and support/connection/agent_resources.py.",
+            "Read tool on the 5 declared files returned error 'Claude requested permissions to read ... but you haven't granted it yet' (file content not accessible).",
+            "Grep (ripgrep) content search on agent_adapter.py and read-write-scoped.yaml returned the same 'permissions ... not granted' error; the read-content block is consistent across both Read and Grep and across .py and .yaml, while Glob listing is allowed.",
+            "Packet support input (not code/source truth): native_grant.capabilities=[read,web], native_grant.declared_capabilities=[read,write,web], native_grant.write_effective=false, this Brick write_scope={} (empty).",
+            "Packet support input: tool-policy:read-write-scoped declares execution_opened=true with execution_opening_condition 'write opens only when Brick write_scope, read-write scoped Agent policy, compatible adapter mapping, AND support write observation are all present; not adapter identity alone' (agent/tool_policies/read-write-scoped.yaml, per packet data, not confirmed against file content this session)."
+          ],
+          "output_excerpt": "Both `Read` and `Grep` content-access were denied across every declared file (`.py` and `.yaml`), while `Glob` directory listing succeeded. The actual code-reading investigation cannot be performed in this session. As a `plan` Brick I will bound the work and record this honestly rather than guess at code contents. ```json { \"objective_summary\": \"Bound a read-only investigation Building that must (a) prove the principle 'adapter = full-power connector; Agent YAML / tool_policy / Brick write_scope = control' and (b) localize WHY the Claude adapter currently behaves read-only, citing file:line...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "proposed_next_work_boundaries": [
+            "NEXT-1 (precondition): grant read-CONTENT access to this adapter session (Read/Grep on the declared .py and .yaml files); the current session has directory-list (Glob) only, which is insufficient for file:line evidence.",
+            "NEXT-2 (analyze WORK Brick): with read access, map adapter:claude-local capability/sandbox/tool projection in support/connection/agent_adapter.py + agent_resources.py and cite file:line for whether the adapter caps to read-only or exposes full capability gated by NEED.",
+            "NEXT-3 (analyze WORK Brick): cross-read agent/objects/*.yaml and agent/tool_policies/*.yaml to record which lanes carry tool-policy:read-write-scoped vs reviewer-readonly and trace the effective_write = (Brick write_scope NEED AND tool-policy AND observed-write adapter) computation to its code locus.",
+            "NEXT-4 (findings WORK Brick): classify each of the four seats confirmed/not_proven with citations and state which principle prediction is structure-provable vs not_proven absent a live run.",
+            "These are proposed boundaries only, not a Movement decision; the Link gate owns sufficiency and Movement."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "scope_boundaries": [
+            "In scope: read-only inspection of support/connection/agent_adapter.py, support/connection/agent_resources.py, agent/objects/*.yaml, agent/tool_policies/*.yaml to map adapter:claude-local capability projection and effective_write computation.",
+            "In scope: identify the seat of read-only behavior among four candidates and attach file:line evidence + confirmed/not_proven label to each.",
+            "In scope: state which of the two principle predictions (read-only Brick -> read-only projected tools; write-scope Brick + write-capable lane + aligned adapter -> admissible write) is provable by code structure vs not_proven absent a live run.",
+            "Out of scope: any file edit, git mutation, hook/provider SDK execution, or live Claude provider run.",
+            "Out of scope: success/quality/approval verdicts, Link Movement selection, route target choice.",
+            "Out of scope: --all checker runs and long live-provider runs (task source explicitly excludes)."
+          ],
+          "selected_adapter_ref": "adapter:claude-local",
+          "selected_model_ref": "model:claude:inherit",
+          "transition_concern_evidence": null
+        }
+      },
+      "fact_ref": "agent-fact:01:claude-adapter-yaml-control-proof-0625-plan",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:qa-lead",
+        "received_work": "brick-work:02:claude-adapter-yaml-control-proof-0625-review",
+        "returned": {
+          "adapter_ref": "adapter:claude-local",
+          "agent_object_ref": "agent-object:qa-lead",
+          "boundary_violations": [],
+          "brain_surface_ref": "brain-surface:claude-code-local-cli",
+          "checked_sources": [
+            "project/brick-protocol/buildings/claude-adapter-yaml-control-proof-0625/work/step-outputs/claude-adapter-yaml-control-proof-0625-plan-attempt-1/step-output.json (the reviewed return)",
+            "project/brick-protocol/buildings/claude-adapter-yaml-control-proof-0625/declared-building-plan.json (plan node work_statement + required_return_shape + chain)",
+            "brick/templates/bricks/plan/return.yaml (required shape + forbidden keys for the reviewed node)",
+            "brick/templates/bricks/review/return.yaml (this node's required return shape)",
+            "support/connection/agent_adapter.py (effective_write + read_tier + capability code, to confirm plan-flagged not_proven items)",
+            "Glob listings of agent/objects/*.yaml (8 files) and agent/tool_policies/*.yaml (4 files: leader-coordination, read-write-scoped, reviewer-readonly, web-capable)"
+          ],
+          "checked_work": "Plan node declared work: produce a PLAN (objective_summary, scope_boundaries, constraints, missing_scope, proposed_next_work_boundaries, observed_evidence, not_proven, transition_concern_evidence) bounding the read-only Claude-adapter/YAML-control-proof investigation, without performing implementation or reaching a verdict.",
+          "cli_call_ref": "support-cli-call:adapter:claude-local:claude-adapter-yaml-control-proof-0625",
+          "cli_version_text": "2.1.191 (Claude Code)",
+          "evidence_refs": [
+            "support-packet:claude-adapter-yaml-control-proof-0625:agent-object:qa-lead:output"
+          ],
+          "evidence_used": [
+            "project/brick-protocol/buildings/claude-adapter-yaml-control-proof-0625/work/step-outputs/claude-adapter-yaml-control-proof-0625-plan-attempt-1/step-output.json:56-124",
+            "project/brick-protocol/buildings/claude-adapter-yaml-control-proof-0625/declared-building-plan.json:9,13,18,95-99",
+            "brick/templates/bricks/plan/return.yaml:7-15,28-34",
+            "brick/templates/bricks/review/return.yaml:7-17",
+            "support/connection/agent_adapter.py:297-329,868-877,880-911",
+            "agent/objects/*.yaml (8 files) and agent/tool_policies/*.yaml (leader-coordination, read-write-scoped, reviewer-readonly, web-capable) via Glob"
+          ],
+          "missing_or_mismatched_facts": [
+            "MISMATCH (session-specific, not a code defect): the plan asserts file CONTENT of the declared .py/.yaml sources 'is not available to this session' and that Read/Grep are blocked (step-output.json:72,83-85). In this review session, under the same adapter:claude-local read tier, Read on support/connection/agent_adapter.py succeeded. The read-content block was a per-session permission state, not a repository, adapter-code, or YAML property — the plan correctly left its ORIGIN not_proven.",
+            "UNFULFILLED-BY-CHAIN (not attributable to the plan node): the task-source requires a read-only investigation that emits file:line evidence per candidate seat and a confirmed/not_proven classification. The plan node bounds this (NEXT-2/3/4) but the building chain is research-report = plan -> review -> closure (declared-building-plan.json:95-99) with NO dedicated WORK/investigation node, so the file:line investigation is not performed by any node in this Building. This is a composition observation for the Link/COO, not a plan-return defect.",
+            "Several plan not_proven items (HOW effective_write is computed; whether adapter caps Claude vs gates by NEED) are answerable from code I read here: agent_adapter.py:868-877 (effective_write intersection), 880-911 (read_tier), 297-329 (capability table). The plan's not_proven was honest for ITS session (no read access), but those items are now narrowly proven by code structure (still not_proven by a live run)."
+          ],
+          "narrowly_proven": [
+            "The reviewed plan node's returned payload is return-shape complete (all 8 required plan fields present) and free of forbidden verdict/Movement keys.",
+            "The plan node honored its kind boundary: it bounded objective/scope/constraints/next-work and recorded its read constraint as not_proven rather than a transition_concern, with no Movement/route/quality claim.",
+            "By code structure (agent_adapter.py:868-911), effective workspace write is the intersection of Brick write_scope present AND read-write tool-policy AND observed-write adapter; absent any of these (here write_scope={}) the request stays read-tier — supporting the building's principle and the 'read-only Brick -> read-only tools' prediction at the structure level."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Source truth, success, quality, approval, or Movement — out of this review's authority.",
+            "The ORIGIN of the plan session's read-content denial (provider sandbox/env isolation vs session permission gate vs Agent YAML/tool_policy) — not reproduced here; my session had read access, so the denial was not observed.",
+            "The 'write-scope Brick + write-capable lane + aligned adapter -> admissible write' prediction at runtime — confirmable only by structure here (no live Claude run was performed, per task-source).",
+            "Whether agent_resources.py and the individual tool_policy YAML bodies fully match the plan's packet-described intersection rule — I confirmed the rule in agent_adapter.py but did not open agent_resources.py or each tool_policy file in this review.",
+            "Checker/--all status — not run (task-source excludes it); no claim.",
+            "Whether the absence of a dedicated investigation node in this chain is intended — a Link/COO composition decision, not observed truth."
+          ],
+          "observed_evidence": [
+            "Reviewed node: brick-claude-adapter-yaml-control-proof-0625-plan, attempt 1, agent-object:pm-lead, adapter:claude-local (work/step-outputs/claude-adapter-yaml-control-proof-0625-plan-attempt-1/step-output.json:13-16,56-124).",
+            "Plan node's declared required_return_shape = objective_summary,scope_boundaries,constraints,missing_scope,proposed_next_work_boundaries,observed_evidence,not_proven,transition_concern_evidence (declared-building-plan.json:13; matches brick/templates/bricks/plan/return.yaml:7-15).",
+            "Plan node's declared work_statement = 'plan Brick for task-source:inline-statement: ... Claude adapter / YAML control proof' (declared-building-plan.json:18) — a PLAN kind whose '## plan' body bounds objective/scope/next-work WITHOUT implementation (declared-building-plan.json:9).",
+            "All 8 required_return_shape fields are present in the returned payload: objective_summary (step-output.json:90), scope_boundaries (114-121), constraints (62-67), missing_scope (71-76), proposed_next_work_boundaries (106-112), observed_evidence (91-97), not_proven (77-89), transition_concern_evidence (124, value null).",
+            "No plan forbidden_return_keys (success/failure/approved/quality/movement_choice/route_target — plan/return.yaml:28-34) appear at the top level of the returned object (step-output.json:56-124).",
+            "Plan recorded the read-content denial as missing_scope + not_proven and set transition_concern_evidence=null (step-output.json:72,83-87,124) — consistent with the '## plan' rule that read-only/'live not run'/permission constraints go in not_proven, NOT a transition_concern.",
+            "Independent re-read in THIS review session: support/connection/agent_adapter.py was read successfully under the same adapter:claude-local read tier — contradicting the plan session's claim that file CONTENT was inaccessible (step-output.json:72,83).",
+            "agent_adapter.py:868-877 agent_request_effective_write() = bool(request.write_scope) AND READ_WRITE_TOOL_POLICY_REF in request.tool_policy_refs AND _adapter_ref_supports_observed_write(adapter_ref) — the exact 'write_scope NEED AND read-write tool-policy AND observed-write adapter' intersection the task asked to locate.",
+            "agent_adapter.py:880-911 agent_request_read_tier(): a non-effective-write request carrying a known read-tier tool policy opens read-only browse for codex/claude/gemini-local — structurally supports 'read-only Brick -> read-only projected tools'.",
+            "agent_adapter.py:297-329 adapter_capabilities()/adapter_has_capability()/adapter_is_write_capable() read technical capability from the _ADAPTER_CAPABILITIES table; capability is a connector property separate from the effective-write gate — supports the 'adapter = connector, YAML/tool_policy/write_scope = control' principle."
+          ],
+          "observed_matches": [
+            "Return-shape completeness: every one of the 8 declared plan required_return_shape fields is present in the returned payload.",
+            "Boundary discipline: returned payload carries no success/failure/approved/quality/movement_choice/route_target key; transition_concern_evidence is null and no Movement/route was chosen — the plan stayed in the Brick/Agent lane.",
+            "Honest constraint handling: the read-content permission denial is recorded under missing_scope + not_proven (not as a transition_concern), matching the '## plan' instruction for runtime/environment constraints.",
+            "observed_evidence claim 'Glob listed agent/objects = {coo,cto-lead,design-lead,dev,inspector,pm-lead,qa,qa-lead}.yaml and agent/tool_policies = {leader-coordination,read-write-scoped,reviewer-readonly,web-capable}.yaml' (step-output.json:92) reproduces exactly against my own Glob.",
+            "observed_evidence claim that agent_adapter.py and agent_resources.py are present (step-output.json:92) reproduces — both files exist and agent_adapter.py was re-read here.",
+            "Packet-derived claims native_grant.write_effective=false and this node write_scope={} (step-output.json:95) are consistent with the effective_write code path (agent_adapter.py:868-877: empty write_scope ⇒ False)."
+          ],
+          "output_excerpt": "I have enough grounding. I reviewed the plan node's returned payload against its declared `work_statement` and `required_return_shape`, and confirmed key claims by reading sources directly. Here is my review. ```json { \"observed_evidence\": [ \"Reviewed node: brick-claude-adapter-yaml-control-proof-0625-plan, attempt 1, agent-object:pm-lead, adapter:claude-local (work/step-outputs/claude-adapter-yaml-control-proof-0625-plan-attempt-1/step-output.json:13-16,56-124).\", \"Plan node's declared required_return_shape = objective_summary,scope_boundaries,constraints,missing_scope,proposed_next_work_b...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_adapter_ref": "adapter:claude-local",
+          "selected_model_ref": "model:claude:inherit",
+          "transition_concern_evidence": null
+        }
+      },
+      "fact_ref": "agent-fact:02:claude-adapter-yaml-control-proof-0625-review",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:coo",
+        "received_work": "brick-work:03:claude-adapter-yaml-control-proof-0625-closure",
+        "returned": {
+          "adapter_ref": "adapter:claude-local",
+          "agent_object_ref": "agent-object:coo",
+          "brain_surface_ref": "brain-surface:claude-code-local-cli",
+          "cli_call_ref": "support-cli-call:adapter:claude-local:claude-adapter-yaml-control-proof-0625",
+          "cli_version_text": "2.1.191 (Claude Code)",
+          "deferred_smith_review_queue": [
+            "Composition decision: this Building ran plan -> review -> closure with no dedicated WORK/investigation node; the file:line investigation emerged across the review and closure reads rather than from one owned node. Confirm whether that is the intended shape for read-only proof Buildings.",
+            "The principle 'adapter = full-power connector; YAML/tool_policy/write_scope = control' is proven by code structure only; the live write-admissibility half remains a not_proven prediction pending a deliberately declared write-scope live run."
+          ],
+          "evidence_refs": [
+            "support-packet:claude-adapter-yaml-control-proof-0625:agent-object:coo:output"
+          ],
+          "narrowly_proven": [
+            "Principle (structure level): the adapter is a full-power connector and YAML/tool_policy/write_scope are the control. adapter:claude-local capability = {READ, WRITE, WEB} (adapter_constants.py:96-98) yet effective write requires the three-term intersection (agent_adapter.py:868-877); capability alone never opens write.",
+            "Seat (a) adapter capability — CONFIRMED NOT the cap: claude-local is write-capable and is in _OBSERVED_WRITE_ADAPTER_REFS (adapter_constants.py:75-98).",
+            "Seat (c) Agent YAML/tool_policy — CONFIRMED a control gate: this Building carries tool-policy:leader-coordination, not READ_WRITE_TOOL_POLICY_REF, so the second effective_write term is False (agent_adapter.py:875; adapter_constants.py:26).",
+            "Seat (d) Brick write_scope NEED absence — CONFIRMED a control gate: write_scope={} makes bool(request.write_scope) False (agent_adapter.py:874), so effective_write is False and read_tier opens (agent_adapter.py:880-911).",
+            "Prediction 'read-only Brick -> read-only projected tools' is proven by code structure: with no write_scope and a read-tier policy, effective_write=False and the read browse tier opens for claude-local.",
+            "The carried plan node was return-shape complete and boundary-clean, and the carried review reproduced the structural intersection independently — the parent objective's file:line evidence exists across the carried AgentFacts plus this closure."
+          ],
+          "next_target_candidates": [
+            "brick:write-scope-live-run-proof — a declared write-scope Brick with tool-policy:read-write-scoped on adapter:claude-local to observe effective_write at runtime.",
+            "brick:agent-resources-yaml-body-coverage — read-only sweep of agent_resources.py write-tool projection and each tool_policy/object YAML body for lane-by-lane confirmation.",
+            "brick:provider-sandbox-read-denial-investigation — localize the plan-session read-content denial origin.",
+            "link/COO composition review — decide whether investigation Buildings of this kind should carry a dedicated WORK node."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Seat (b) provider sandbox/env isolation as the read-only ORIGIN — NOT a code seat and not reproduced: the plan session's Read/Grep content denial was a per-session permission state; the review and this closure session had read access. Its origin (env isolation vs session permission grant) is a runtime/environment constraint, not adapter design.",
+            "Prediction 'write-scope Brick + write-capable lane (tool-policy:read-write-scoped) + aligned observed-write adapter -> admissible write' is structure-consistent (all three intersection terms can be satisfied) but NOT confirmed at runtime — no live Claude write run was performed (task-source excludes it).",
+            "Whether agent_resources.py tool projection and each individual tool_policy YAML body fully match this intersection rule — the rule was confirmed in agent_adapter.py / adapter_constants.py; agent_resources.py write-tool projection and per-file YAML bodies were not exhaustively opened here.",
+            "Checker/--all status — not run (task-source excludes); no claim.",
+            "Whether the absence of a dedicated WORK/investigation node in the plan->review->closure chain is intended — a Link/COO composition decision, not observed truth.",
+            "brain surface behavior, credential validity, tool or hook execution, runtime/scheduler behavior, quality of returned work.",
+            "Source truth, success, quality, approval, and Movement — outside this closure's authority."
+          ],
+          "observed_evidence": [
+            "adapter_constants.py:90-98 — _ADAPTER_CAPABILITIES[ADAPTER_CLAUDE_LOCAL] = {READ, WRITE, WEB}; the claude-local connector technically carries WRITE, so the adapter does NOT cap Claude to read-only.",
+            "adapter_constants.py:75-77 — _OBSERVED_WRITE_ADAPTER_REFS = {codex-local, codex-fugu-local, claude-local}; claude-local IS an observed-write adapter.",
+            "agent_adapter.py:1131-1132 — _adapter_ref_supports_observed_write(adapter_ref) returns adapter_ref in _OBSERVED_WRITE_ADAPTER_REFS, so it is True for adapter:claude-local.",
+            "agent_adapter.py:868-877 — agent_request_effective_write() = bool(request.write_scope) AND READ_WRITE_TOOL_POLICY_REF in request.tool_policy_refs AND _adapter_ref_supports_observed_write(adapter_ref): the exact 'write_scope NEED AND read-write tool-policy AND observed-write adapter' intersection the task asked to locate.",
+            "agent_adapter.py:880-911 — agent_request_read_tier(): a non-effective-write request carrying a known tool-bearing policy opens the read-only browse tier for codex/codex-fugu/claude/gemini local; effective-write requests early-return False (write path).",
+            "agent_adapter.py:297-329 — adapter_capabilities()/adapter_has_capability()/adapter_is_write_capable() read technical capability from _ADAPTER_CAPABILITIES; capability is a connector property separate from the effective-write gate.",
+            "adapter_constants.py:26 — READ_WRITE_TOOL_POLICY_REF = 'tool-policy:read-write-scoped'; this Building's packet carries tool_policy_refs=[tool-policy:leader-coordination] (read-tier), NOT read-write-scoped.",
+            "This closure packet: write_scope={} (empty) and native_grant.write_effective=false — both effective_write terms (non-empty write_scope, read-write tool-policy) fail, so the request resolves to the read tier.",
+            "Carried plan AgentFact (work/step-outputs/.../plan-attempt-1/step-output.json:71-96): plan session recorded Read/Grep content denial under missing_scope+not_proven, transition_concern_evidence=null.",
+            "Carried review AgentFact (work/step-outputs/.../review-attempt-1/step-output.json:84,114-116): review re-read agent_adapter.py:868-911 under the same adapter:claude-local read tier and confirmed the intersection rule; the plan-session read denial did NOT reproduce."
+          ],
+          "output_excerpt": "I have direct code confirmation for every candidate seat. Here is the closure synthesis carried from the plan and review AgentFacts plus my own re-reads. ## Closure summary The Building's parent objective — prove \"adapter = full-power connector; Agent YAML / tool_policy / Brick write_scope = control\" and localize WHY Claude behaves read-only — is answerable by code structure. The seat of read-only behavior for this Building is the **control layer (empty Brick write_scope + non-read-write tool-policy)**, NOT the adapter: `adapter:claude-local` is declared write-capable as a connector. The tw...",
+          "parent_goal_delta_status": {
+            "closed_delta_refs": [
+              "delta:seat-a-adapter-capability-not-the-cap (adapter_constants.py:96-98,75-77)",
+              "delta:seat-c-agent-yaml-tool-policy-control-gate (agent_adapter.py:875; adapter_constants.py:26)",
+              "delta:seat-d-brick-write-scope-absence-control-gate (agent_adapter.py:874,868-911)",
+              "delta:prediction-readonly-brick-readonly-tools-structure-proven"
+            ],
+            "evidence_refs": [
+              "support/connection/adapter_constants.py:26,75-77,90-98",
+              "support/connection/agent_adapter.py:297-329,868-877,880-911,1131-1132",
+              "work/step-outputs/claude-adapter-yaml-control-proof-0625-plan-attempt-1/step-output.json:71-96",
+              "work/step-outputs/claude-adapter-yaml-control-proof-0625-review-attempt-1/step-output.json:84,106-117"
+            ],
+            "matched_delta_refs": [
+              "delta:prove-principle-adapter-connector-yaml-control",
+              "delta:localize-read-only-seat-with-file-line"
+            ],
+            "missing_delta_refs": [
+              "delta:no-dedicated-work-investigation-node-in-chain"
+            ],
+            "open_delta_refs": [
+              "delta:seat-b-provider-sandbox-origin-runtime-constraint",
+              "delta:prediction-write-admissibility-needs-live-run",
+              "delta:exhaustive-agent_resources-and-yaml-body-coverage"
+            ],
+            "unknown_delta_refs": [
+              "delta:whether-missing-work-node-is-intended-composition-choice"
+            ]
+          },
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "remaining_delta": [
+            "If a runtime proof of the write-admissibility prediction is wanted, declare a write-scope Brick with a tool-policy:read-write-scoped lane on adapter:claude-local and observe whether effective_write opens (live run, currently excluded).",
+            "If exhaustive structural coverage is wanted, read support/connection/agent_resources.py write-tool projection and each agent/tool_policies/*.yaml + agent/objects/*.yaml body to confirm lane-by-lane which carry read-write-scoped vs reviewer-readonly.",
+            "Decide whether future investigation Buildings of this kind should declare a dedicated WORK node so file:line investigation is owned by one node rather than emerging across plan/review/closure reads.",
+            "Investigate the plan-session read-content denial separately (provider sandbox/session-permission), since it was non-reproducible and is the only unresolved 'read-only' phenomenon."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_adapter_ref": "adapter:claude-local",
+          "selected_model_ref": "model:claude:inherit",
+          "transition_concern_evidence": null
+        }
+      },
+      "fact_ref": "agent-fact:03:claude-adapter-yaml-control-proof-0625-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-24T23:25:05Z",
+  "id": "urn:bp:building:claude-adapter-yaml-control-proof-0625::evidence/claim_trace/agent/returned_claims.json",
+  "recorded_at": "2026-06-24T23:25:05Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:claude-adapter-yaml-control-proof-0625",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/agent/returned_claims.json",
+  "time": "2026-06-24T23:25:05Z",
+  "type": "bp.claim_trace"
+}

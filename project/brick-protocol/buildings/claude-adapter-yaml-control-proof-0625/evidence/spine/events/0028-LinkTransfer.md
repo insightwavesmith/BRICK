@@ -1,0 +1,11 @@
+# LinkTransfer · seq 28 · ["Link"]
+- absent_fact_type: "TransferFact"
+- axis_scope: ["Link"]
+- caller_supplied: false
+- event_type: "LinkTransfer"
+- run_segment: 1
+- sequence_index: 28
+- source_fact_ref: "absence:link-transfer:03:claude-adapter-yaml-control-proof-0625-closure"
+- spine_schema_version: "spine-v1"
+- support_created_bal_fact: false
+- trace_role: "absence_placeholder"
