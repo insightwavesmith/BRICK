@@ -107,6 +107,32 @@ step_output_drain_case:
         - work/step-outputs/linear-producer-attempt-1/step-output.json
       receipt_handoff_refs:
         - work/step-outputs/linear-producer-attempt-1/step-output.json
+  # P2 handoff/carry/receipt closure: linear coverage alone left the dynamic
+  # fan-in consumer receipt unproven. This case locks the fan-in closure
+  # consumer (brick-fan-closure) ReceiptFact.received_handoff_refs to ALL three
+  # upstream QA step-output addresses, so a regression that drops a fan-in
+  # incoming address from the receipt REDs here. Support evidence only; not a
+  # success/quality verdict and not Movement authority.
+  - label: driver0-live-dynamic-fan-in-incoming-handoff-step-output-ref
+    case_kind: live_dynamic_fan_in_n3
+    expected:
+      consumer_brick_instance_ref: brick-fan-closure
+      source_fact_body_refs:
+        - work/step-outputs/fan-code-qa-attempt-1/step-output.json
+        - work/step-outputs/fan-axis-qa-attempt-1/step-output.json
+        - work/step-outputs/fan-evidence-qa-attempt-1/step-output.json
+      carried_markers:
+        - brick-fan-code-qa
+        - brick-fan-axis-qa
+        - brick-fan-evidence-qa
+      incoming_step_output_refs:
+        - work/step-outputs/fan-code-qa-attempt-1/step-output.json
+        - work/step-outputs/fan-axis-qa-attempt-1/step-output.json
+        - work/step-outputs/fan-evidence-qa-attempt-1/step-output.json
+      receipt_handoff_refs:
+        - work/step-outputs/fan-code-qa-attempt-1/step-output.json
+        - work/step-outputs/fan-axis-qa-attempt-1/step-output.json
+        - work/step-outputs/fan-evidence-qa-attempt-1/step-output.json
 not_proven:
   - semantic correctness of Agent transition_concern_evidence
   - caller/COO disposition after a portfolio HOLD
