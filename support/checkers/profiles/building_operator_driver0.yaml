@@ -105,6 +105,8 @@ step_output_drain_case:
         - brick-linear-producer
       incoming_step_output_refs:
         - work/step-outputs/linear-producer-attempt-1/step-output.json
+      receipt_handoff_refs:
+        - work/step-outputs/linear-producer-attempt-1/step-output.json
 not_proven:
   - semantic correctness of Agent transition_concern_evidence
   - caller/COO disposition after a portfolio HOLD

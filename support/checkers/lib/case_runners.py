@@ -8352,6 +8352,28 @@ def _check_step_output_drain_expected(
             raise ProfileError(
                 f"step_output_drain_case rejected {label}: incoming building_root_path mismatch"
             )
+    if expected.get("receipt_handoff_refs") is not None:
+        expected_receipt_refs = require_string_list(
+            expected.get("receipt_handoff_refs", []),
+            f"{label}: expected.receipt_handoff_refs",
+        )
+        consumer_results = [
+            step_result
+            for step_result in getattr(result, "step_results", ())
+            if step_result.preparation.brick_instance_ref == consumer_brick
+        ]
+        if len(consumer_results) != 1:
+            raise ProfileError(
+                f"step_output_drain_case rejected {label}: consumer receipt count "
+                f"expected 1, observed {len(consumer_results)}"
+            )
+        observed_receipt_refs = list(
+            consumer_results[0].preparation.receipt_fact.received_handoff_refs
+        )
+        if observed_receipt_refs != expected_receipt_refs:
+            raise ProfileError(
+                f"step_output_drain_case rejected {label}: receipt handoff refs mismatch"
+            )
 
 
 def _check_step_output_drain_dynamic_hold(

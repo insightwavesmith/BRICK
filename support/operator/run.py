@@ -1889,9 +1889,11 @@ def _handoff_address_refs(value: Any) -> tuple[str, ...]:
     MAIL-REPAIR (Smith ruling B2, 0611): the AgentReceipt records which handoff
     addresses were delivered with the work. Addresses are the text items of
     ``*_refs`` list fields anywhere in the packet (declared incoming /
-    route_replay handoffs AND runtime_handoffs alike); bodies never ride, so
-    nothing else is collected. Order-preserving, de-duplicated; an absent or
-    empty packet -> (). Pure data read; no Movement choice, no judgment.
+    route_replay handoffs AND runtime_handoffs alike), plus the singular
+    ``from_step_output_ref`` address stamped on incoming step-output handoffs.
+    Bodies never ride, so nothing else is collected. Order-preserving,
+    de-duplicated; an absent or empty packet -> (). Pure data read; no Movement
+    choice, no judgment.
     """
 
     collected: list[str] = []
@@ -1900,11 +1902,12 @@ def _handoff_address_refs(value: Any) -> tuple[str, ...]:
     def _walk(node: Any) -> None:
         if isinstance(node, Mapping):
             for key, child in node.items():
-                if (
-                    isinstance(key, str)
-                    and key.endswith("_refs")
-                    and isinstance(child, list)
-                ):
+                if key == "from_step_output_ref":
+                    text = _optional_text_value(child)
+                    if text and text not in seen:
+                        seen.add(text)
+                        collected.append(text)
+                elif isinstance(key, str) and key.endswith("_refs") and isinstance(child, list):
                     for item in child:
                         text = _optional_text_value(item)
                         if text and text not in seen:
