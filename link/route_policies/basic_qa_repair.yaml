@@ -48,8 +48,10 @@ allowed_transition_concerns:
     requested_route_scope: design_gap
   - concern_kind: insufficient_input
     requested_route_scope: design_gap
-  - concern_kind: verification_gap
-    requested_route_scope: qa_only
+# verification_gap is intentionally omitted here: it is non-reroute evidence.
+# A QA environment/runtime/provider/read-only/no-temp/live-not-run gap must be
+# recorded as not_proven or as transition_concern_evidence with no Brick-node
+# reroute address; it must not materialize a Link reroute scope.
 human_gate_required_when:
   - requested_route_scope: unknown
   - requested_route_scope_not_listed

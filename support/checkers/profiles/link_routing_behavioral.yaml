@@ -336,6 +336,40 @@ transition_concern_disposition_case:
         - link_row
         - transition_lifecycle
         - target_ref
+  - label: transition-concern-disposition-case:verification-gap-non-reroute
+    document:
+      route_policy_path: link/route_policies/basic_qa_repair.yaml
+      transition_concern:
+        concern_ref: transition-concern:link-owned-automation-0-verification-gap
+        concern_kind: verification_gap
+        reason_refs:
+          - observation:link-owned-automation-0-verification-gap
+        related_boundary_refs:
+          - building-boundary:link-owned-automation-0-verification-gap-no-reroute
+        binding: false
+      declared_route_replay_plan:
+        route_replay_ref: route-replay:link-owned-automation-0-verification-gap
+        author_ref: coo:link-owned-automation-0
+        authoring_basis_refs:
+          - transition-concern:link-owned-automation-0-verification-gap
+        immediate_target_ref: brick-loa0-dev-attempt-2
+        source_brick_refs:
+          - brick-loa0-dev-attempt-1
+        affected_downstream_refs:
+          - brick-loa0-qa-attempt-1
+        replay_segment_refs:
+          - brick-loa0-qa-attempt-2
+        max_attempts: 2
+    expected:
+      match_state: missing
+      source_transition_concern_ref: transition-concern:link-owned-automation-0-verification-gap
+      materialized: false
+      materialization_state: disposition_required
+      materialization_reason: transition_concern_kind_not_listed
+      absent_keys:
+        - link_row
+        - transition_lifecycle
+        - target_ref
 declared_step_template_plan_case:
   - label: declared-step-template-plan-case:compact-strict-human
     document:
