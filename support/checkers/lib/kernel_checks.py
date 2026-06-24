@@ -1091,9 +1091,11 @@ def _agent_effective_write_probe(
         raise ProfileError("mismatched instruction packet was not rejected")
 
     # claude-local is now write-capable (same observed-write 3-gate as codex).
-    # A claude write request must select scoped write CLI knobs; a claude read
-    # request must keep the EXACT prior read-only shape. Live in-scope/out-of-scope
-    # claude writes remain NOT-PROVEN (no OS sandbox); these assert the knobs only.
+    # A claude write request must select scoped write CLI knobs; an ambiguous
+    # no-tool-policy claude read request must fail closed to the no-tool plan
+    # shape. The separate read-tier probe covers read-only browse through the
+    # declared tool list. Live in-scope/out-of-scope claude writes remain
+    # NOT-PROVEN (no OS sandbox); these assert the knobs only.
     claude_write_request = adapter.AgentAdapterRequest(
         building_id="agent-effective-write-claude-positive",
         agent_object_ref="agent-object:dev",
@@ -1320,8 +1322,8 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     if not adapter.agent_request_read_tier(leader_request):
         raise ProfileError("leader-coordination non-write claude request did not enter read tier")
     leader_knobs = adapter_local_cli._claude_cli_invocation(leader_request)
-    if leader_knobs["permission_mode"] != "plan":
-        raise ProfileError("read-tier claude request must stay in plan permission mode")
+    if leader_knobs["permission_mode"] != "acceptEdits":
+        raise ProfileError("read-tier claude request must use acceptEdits with the declared read-only tool list")
     leader_tools = [tool.strip() for tool in leader_knobs["tools"].split(",") if tool.strip()]
     if leader_tools != ["Read", "Grep", "Glob"]:
         raise ProfileError(f"read-tier claude tools must be Read/Grep/Glob only, got {leader_tools}")
@@ -1330,10 +1332,11 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     if leader_knobs["system_prompt"] != adapter._CLAUDE_READ_ONLY_SYSTEM_PROMPT:
         raise ProfileError("read-tier claude request did not use the read-only system prompt")
 
-    # CLEAN-READTIER-0617: read/write tier is no longer a support-side authority
-    # over the tool-policy label. A read-only Brick (no observed write) paired
-    # with a tool-capable codex Agent that carries read-write-scoped now browses
-    # read-only -- the uniform rule across codex/claude/gemini. (Write still
+    # CLEAN-READTIER-0617 / CLAUDE-READ-FULL-ADAPTER-0624: read/write tier is no
+    # longer a support-side authority over the tool-policy label. A read-only Brick
+    # (no observed write) paired with a tool-capable Agent browses read-only through
+    # declared read tools. Claude uses the normal acceptEdits invocation plane with
+    # only Read/Grep/Glob; provider plan mode is not the read boundary. (Write still
     # requires write_scope, which routes through agent_request_effective_write.)
     dev_nonwrite_request = adapter.AgentAdapterRequest(
         building_id="agent-read-tier-dev-readonly-probe",

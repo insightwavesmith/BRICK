@@ -6706,9 +6706,10 @@ def _check_adapter_capability_explicit_write_need_marker_admitted_strict(
        demands a DECLARED need, it does not block declared writes.
     2. Request construction + sandbox projection (no real CLI launch): a request
        WITHOUT write_scope projects codex sandbox 'read-only' and a read-only
-       claude invocation (plan mode, read-only browse tools Read/Grep/Glob, no
-       Edit/Write/Bash -- CLEAN-READTIER-0617: a read-only Brick + tool-capable
-       Agent browses read-only, it is no longer the none tier); a request WITH
+       claude invocation (normal acceptEdits plane, read-only browse tools
+       Read/Grep/Glob, no Edit/Write/Bash -- CLAUDE-READ-FULL-ADAPTER-0624:
+       a read-only Brick + tool-capable Agent browses read-only through the
+       declared tool list, not provider plan mode); a request WITH
        the scope the marker-bearing row declares projects codex 'workspace-write'
        and a claude invocation including Edit + Write.
     """
@@ -6751,17 +6752,18 @@ def _check_adapter_capability_explicit_write_need_marker_admitted_strict(
     )
     no_scope_claude = adapter_local_cli._claude_cli_invocation(no_scope_claude_request)
     # CLEAN-READTIER-0617: a read-only Brick (no write_scope) + a tool-capable
-    # Agent (read-write-scoped policy) browses read-only -- plan mode with the
-    # Read/Grep/Glob browse tools, NEVER Edit/Write/Bash. Read/write tier is no
-    # longer a support authority over the policy label.
+    # Agent (read-write-scoped policy) browses read-only through the normal
+    # claude invocation plane (acceptEdits) with ONLY Read/Grep/Glob browse
+    # tools, NEVER Edit/Write/Bash. YAML/tool-list projection is the control;
+    # provider plan mode is not the read boundary.
     no_scope_tools = [
         tool.strip() for tool in str(no_scope_claude.get("tools", "")).split(",") if tool.strip()
     ]
-    if no_scope_claude.get("permission_mode") != "plan" or no_scope_tools != ["Read", "Grep", "Glob"]:
+    if no_scope_claude.get("permission_mode") != "acceptEdits" or no_scope_tools != ["Read", "Grep", "Glob"]:
         raise ProfileError(
             f"adapter_capability_rehome_case rejected {label}: request WITHOUT "
             "write_scope must project the read-only browse claude invocation "
-            f"(plan mode, Read/Grep/Glob tools), got {no_scope_claude!r}"
+            f"(acceptEdits, Read/Grep/Glob tools), got {no_scope_claude!r}"
         )
     if any(tool in no_scope_tools for tool in ("Edit", "Write", "Bash")):
         raise ProfileError(

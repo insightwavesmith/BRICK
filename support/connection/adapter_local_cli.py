@@ -836,12 +836,16 @@ def _claude_cli_invocation(request: AgentAdapterRequest) -> dict[str, str]:
     Mirrors _codex_sandbox_for_request: the SINGLE place that decides whether a
     claude-local invocation opens scoped write. When agent_request_effective_write
     is True the run uses the scoped write tool set (from the Agent's read-write
-    tool policy) + acceptEdits + a write-aware system prompt; otherwise it keeps
-    the unchanged read-only shape (plan + no tools + the non-interactive reviewer
-    prompt). Unlike codex there is NO OS sandbox here -- and NONE of the claude-side
-    knobs is a verified write boundary: the tools allowlist, acceptEdits, claude's
-    own provider-side protected-path prompts, cwd, and the injected prompt rules are
-    all advisory/provider-state, not enforced by this code. The ONLY enforcement
+    tool policy) + acceptEdits + a write-aware system prompt. When the request
+    qualifies for the read tier, it also uses the normal claude invocation plane
+    (acceptEdits) but projects ONLY the read-only browse tool list from YAML
+    policy (Read/Grep/Glob). The old plan-mode read tier made Claude refuse Read;
+    BRICK's control boundary is the declared tool list, not provider plan mode.
+    Ambiguous no-tier requests still fail closed to plan + no tools. Unlike codex
+    there is NO OS sandbox here -- and NONE of the claude-side knobs is a verified
+    write boundary: the tools allowlist, acceptEdits, claude's own provider-side
+    protected-path prompts, cwd, and the injected prompt rules are all
+    advisory/provider-state, not enforced by this code. The ONLY enforcement
     this layer owns is the 3-gate effective_write decision + post-hoc write
     observation; a live in-scope/out-of-scope claude write is NOT-PROVEN.
     """
@@ -885,7 +889,7 @@ def _claude_cli_invocation(request: AgentAdapterRequest) -> dict[str, str]:
             native_grant_resources=request.agent_instruction_packet.get("tool_policy_resources", []),
         )
         return {
-            "permission_mode": "plan",
+            "permission_mode": "acceptEdits",
             "tools": ",".join(mapping["tools"]),
             "system_prompt": _CLAUDE_READ_ONLY_SYSTEM_PROMPT,
         }
