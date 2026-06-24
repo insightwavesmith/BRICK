@@ -816,7 +816,6 @@ modules:
   # mechanics any more (owns_crossings shrank 9 -> 0; the agent/performance +
   # link/movement + link/transition axis imports moved into the native_dispatch /
   # plan_rendering collaborators that cross via the canonical contract, G3). The
-  # G6 ceiling bo-god-0 lowered 9 -> 0 (historical; self-consistency ceiling, see proof-limit).
   - module: support/operator/building_operation.py
     layer: operator
     role: operator
@@ -824,7 +823,7 @@ modules:
     consumes_crossings: []
     imports_axis: []
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
-    decomposition_target: bo-god-0
+    decomposition_target: ""
     pinned_by: compose_building / declared_step_template_plan cases + frontier observation (thin facade; concerns lifted to operator/{checker_runner,evidence_status,ledger_projection,frontier_observation,coo_operating_chain,plan_rendering,composition,orchestration_packet,native_dispatch} + building_operation_common in P3d)
 
   - module: support/operator/building_operation_common.py
@@ -1241,7 +1240,6 @@ modules:
   # FACADE (the three public writers as thin orchestrators + re-exported public
   # names). It homes NO crossing mechanics any more (owns_crossings shrank 9 ->
   # 0; the GateFact axis import moved to recording/claims_link). The G6 ceiling
-  # lowered 9 -> 0 (historical; self-consistency ceiling, see proof-limit).
   - module: support/operator/evidence_assembly.py
     layer: operator
     role: operator
@@ -1249,7 +1247,7 @@ modules:
     consumes_crossings: []
     imports_axis: []
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
-    decomposition_target: ea-god-0
+    decomposition_target: ""
     pinned_by: recording_checker_derived_contract + write_single/accumulated evidence (thin facade; crossings lifted to recording/claims_* emitters in P3b)
 
   # ELEGANT-REFACTOR P3c (engine blueprint 0531 §5 / detail-design §D-3 Opt B):
@@ -1263,8 +1261,7 @@ modules:
   # delegators. It homes NO crossing mechanics any more (owns_crossings shrank
   # 10 -> 0; the agent/return_fact + link/transition axis imports moved into the
   # transition-concern / reroute-budget / resume / step-fixture collaborators
-  # that cross via the canonical contract, G3). The G6 ceiling was lowered (historical)
-  # 10 -> 0 accordingly (decomposition_ceilings below).
+  # that cross via the canonical contract, G3).
   - module: support/operator/dynamic_walker.py
     layer: operator
     role: operator
@@ -1272,7 +1269,7 @@ modules:
     consumes_crossings: []
     imports_axis: []
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
-    decomposition_target: dw-god-0
+    decomposition_target: ""
     pinned_by: bounded_agent_proposed_routing_loop + recording_checker_derived_contract (thin facade; walk kernel + per-concern collaborators lifted to operator/walker_* in P3c)
 
   - module: support/operator/walker_common.py
@@ -1808,15 +1805,6 @@ modules:
 # mag-0, not by G6 alone. "shrink-only" below is a HISTORICAL note (P3 actually
 # moved each count down to 0), not a guaranteed mechanism.
 decomposition_ceilings:
-  - target: bo-god-0
-    module: support/operator/building_operation.py
-    ceiling: 0          # P3d DONE: checker-runner / evidence-status / ledger-projection / frontier-observation / coo-operating-chain / plan-rendering / composition / orchestration-packet / native-dispatch collaborators + building_operation_common lifted (§D-1 Opt 2); facade homes no crossing. lowered 9 -> 0 (historical).
-  - target: ea-god-0
-    module: support/operator/evidence_assembly.py
-    ceiling: 0          # P3b DONE: per-crossing-family emitters lifted to recording/claims_* + emitter sublayer (§D-2 Opt B); facade homes no crossing. lowered 9 -> 0 (historical).
-  - target: dw-god-0
-    module: support/operator/dynamic_walker.py
-    ceiling: 0          # P3c DONE: forward walk kernel + resume verb + reroute-budget / HOLD / fan-in / transition-concern / step-fixture / frontier collaborators lifted to operator/walker_* (§D-3 Opt B); facade homes no crossing. lowered 10 -> 0 (historical).
   - target: check-profile-god-0
     module: support/checkers/check_profile.py
     ceiling: 0          # P3a DONE: kernel-check bodies + rule/case runners + YAML parser lifted to checkers/lib/* (§D-4 Opt B); facade homes no crossing. lowered 11 -> 0 (historical).
