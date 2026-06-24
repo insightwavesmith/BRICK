@@ -8198,6 +8198,7 @@ class _StepOutputDrainObserved:
                 "source_fact_body_refs": refs,
                 "carried_markers": markers,
                 "source_fact_files_existed_at_call": file_exists,
+                "link_handoff_refs": dict(request.link_handoff_refs),
             }
         )
         returned: dict[str, Any] = {
@@ -8317,6 +8318,39 @@ def _check_step_output_drain_expected(
         ):
             raise ProfileError(
                 f"step_output_drain_case rejected {label}: carry gate missing facts mismatch"
+            )
+    if expected.get("incoming_step_output_refs") is not None:
+        expected_step_output_refs = require_string_list(
+            expected.get("incoming_step_output_refs", []),
+            f"{label}: expected.incoming_step_output_refs",
+        )
+        handoff_refs = require_mapping(
+            consumer_event.get("link_handoff_refs"),
+            f"{label}: link_handoff_refs",
+        )
+        incoming = handoff_refs.get("incoming")
+        if not isinstance(incoming, list):
+            raise ProfileError(
+                f"step_output_drain_case rejected {label}: incoming handoff refs missing"
+            )
+        observed_step_output_refs = [
+            item.get("from_step_output_ref")
+            for item in incoming
+            if isinstance(item, Mapping) and item.get("from_step_output_ref") is not None
+        ]
+        if observed_step_output_refs != expected_step_output_refs:
+            raise ProfileError(
+                f"step_output_drain_case rejected {label}: incoming step-output refs mismatch"
+            )
+        expected_root = str(building_root.resolve())
+        observed_roots = [
+            item.get("building_root_path")
+            for item in incoming
+            if isinstance(item, Mapping) and item.get("from_step_output_ref") is not None
+        ]
+        if observed_roots != [expected_root for _ in expected_step_output_refs]:
+            raise ProfileError(
+                f"step_output_drain_case rejected {label}: incoming building_root_path mismatch"
             )
 
 

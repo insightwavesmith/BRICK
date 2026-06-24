@@ -94,6 +94,17 @@ onboard_seam_case:
     # --all. The set is EXACTLY the two outcomes this gate-less graph can reach --
     # an unexpected link_paused/error/empty still REDs (it would be a real bug).
     acceptable_frontier_kinds: [agent_incomplete, complete]
+step_output_drain_case:
+  - label: driver0-live-linear-incoming-handoff-step-output-ref
+    case_kind: live_linear_n1
+    expected:
+      consumer_brick_instance_ref: brick-linear-consumer
+      source_fact_body_refs:
+        - work/step-outputs/linear-producer-attempt-1/step-output.json
+      carried_markers:
+        - brick-linear-producer
+      incoming_step_output_refs:
+        - work/step-outputs/linear-producer-attempt-1/step-output.json
 not_proven:
   - semantic correctness of Agent transition_concern_evidence
   - caller/COO disposition after a portfolio HOLD

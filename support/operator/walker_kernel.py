@@ -1860,6 +1860,76 @@ class NodeProcessingOutcome:
     step_output_recorded: bool = True
 
 
+_STEP_OUTPUT_HANDOFF_PROOF_LIMITS = (
+    "support carry metadata only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+)
+
+
+def _completed_step_output_refs_by_step(
+    building_root: Path,
+    step_results_snapshot: Sequence[BuildingRunSupportResult],
+) -> Mapping[str, str]:
+    """Return latest already-written step-output ref by completed step_ref."""
+
+    attempts_by_step: dict[str, int] = {}
+    refs_by_step: dict[str, str] = {}
+    for result in step_results_snapshot:
+        step_ref = result.preparation.step_rows.step_ref
+        attempts_by_step[step_ref] = attempts_by_step.get(step_ref, 0) + 1
+        output_ref = _step_output_manifest_ref(step_ref, attempts_by_step[step_ref])
+        if (building_root / output_ref).is_file():
+            refs_by_step[step_ref] = output_ref
+    return refs_by_step
+
+
+def _incoming_handoffs_with_completed_step_output_refs(
+    handoff_refs: Mapping[str, Any],
+    *,
+    building_root: Path,
+    step_results_snapshot: Sequence[BuildingRunSupportResult],
+) -> Mapping[str, Any]:
+    """Add support evidence addresses for completed upstream incoming steps."""
+
+    incoming = handoff_refs.get("incoming")
+    if not isinstance(incoming, list):
+        return handoff_refs
+    refs_by_step = _completed_step_output_refs_by_step(
+        building_root,
+        step_results_snapshot,
+    )
+    if not refs_by_step:
+        return handoff_refs
+
+    changed = False
+    enriched_incoming: list[Any] = []
+    building_root_path = str(building_root.resolve())
+    for entry in incoming:
+        if not isinstance(entry, Mapping):
+            enriched_incoming.append(entry)
+            continue
+        from_step_ref = _optional_text_from_mapping(entry, "from_step_ref")
+        output_ref = refs_by_step.get(from_step_ref or "")
+        if not output_ref:
+            enriched_incoming.append(entry)
+            continue
+        enriched_entry = dict(entry)
+        enriched_entry["from_step_output_ref"] = output_ref
+        enriched_entry["building_root_path"] = building_root_path
+        enriched_entry.setdefault("proof_limits", list(_STEP_OUTPUT_HANDOFF_PROOF_LIMITS))
+        enriched_incoming.append(enriched_entry)
+        changed = True
+    if not changed:
+        return handoff_refs
+
+    enriched_handoffs = dict(handoff_refs)
+    enriched_handoffs["incoming"] = enriched_incoming
+    return enriched_handoffs
+
+
 def process_one_node(
     node_id: str,
     step: Mapping[str, Any],
@@ -1949,6 +2019,15 @@ def process_one_node(
         ]
         step_fixture = dict(step_fixture)
         step_fixture["link_handoff_refs"] = widened_handoff_refs
+    current_handoff_refs = step_fixture.get("link_handoff_refs") or {}
+    enriched_handoff_refs = _incoming_handoffs_with_completed_step_output_refs(
+        current_handoff_refs,
+        building_root=building_root,
+        step_results_snapshot=step_results_snapshot,
+    )
+    if enriched_handoff_refs is not current_handoff_refs:
+        step_fixture = dict(step_fixture)
+        step_fixture["link_handoff_refs"] = enriched_handoff_refs
     source_fact_body_carry = _source_fact_body_carry_for_step(
         building_root=building_root,
         building_id=building_id,
