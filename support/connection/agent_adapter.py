@@ -627,6 +627,16 @@ def _sakana_fugu_config_overrides() -> tuple[tuple[str, str], ...]:
         # here -- otherwise every real Fugu turn fails turn.failed at the provider.
         ("-c", "features.image_generation=false"),
         ("-c", "features.apps=false"),
+        # Stall guard. A half-open Sakana HTTPS stream (socket ESTABLISHED, no new
+        # data) leaves codex exec asleep in a stream read-wait; the user's
+        # ~/.codex/config.toml pins stream_idle_timeout_ms=7200000 (2h), but an
+        # ISOLATED build dispatch runs --ignore-user-config and so drops that file,
+        # falling back to codex's default (unknown / possibly long). Pin an explicit
+        # SHORT idle so a stalled Fugu node self-fails in ~5min instead of zombieing
+        # the whole building (Fugu's own stall post-mortem: bound the idle, don't
+        # wait 2h). A node still gets its full adapter_timeout_seconds wall-clock for
+        # legitimate long turns -- this caps only the NO-OUTPUT gap.
+        ("-c", "stream_idle_timeout_ms=300000"),
     ]
     catalog_path = Path.home() / ".codex" / "fugu.json"
     if catalog_path.is_file():
