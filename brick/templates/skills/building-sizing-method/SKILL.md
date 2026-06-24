@@ -47,9 +47,12 @@ inspect         읽기전용 점검
 plan/development    리더 변형
 ```
 
-**제약(brick-task-author §알아둘 것에서):** verdict/추론 KIND(design/closure/review/inspect)는
-codex로 override 금지, `adapter:local` 사용 금지. codex는 work(구현)엔 강하지만 추론 출력서
-간헐적으로 빌딩을 죽인다. 분업 고정: **claude=추론 · codex=구현 · QA fan=둘 다.**
+**제약(brick-task-author §알아둘 것에서):** verdict/추론 KIND(design/closure/review/inspect)에
+`adapter:local` 사용 금지(스텁이라 verdict 못 냄). codex-**LOCAL** override는 추론 출력서 간헐적으로
+빌딩을 죽일 수 있어 design/closure엔 피한다. **단, codex-FUGU(Sakana fugu-ultra·high)는 design 노드에
+허용한다** — Fugu의 깊은 설계가 표준 구조의 한 축(`design = Fugu ∥ Claude → Codex 정리`)이고, 운영자가
+명시 채택(Smith 0624). Fugu는 가두지 않는다: 깊은 설계를 직접 *생산*한다. (fugu-on-design 스모크 통과;
+간헐 이슈가 실재하면 도그푸딩이 잡는다.) 기본 분업: **claude=추론 · codex=구현 · Fugu=깊은설계+QA · QA fan=둘 다.**
 
 ## 발사가 무거워 보이는 이유 (4지뢰) — 이제 1동사로 소멸됨
 
