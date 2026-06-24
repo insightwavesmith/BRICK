@@ -1458,8 +1458,8 @@ def _slack_disposition_reply_text(
     source_ref: str,
     context: Mapping[str, Any],
 ) -> str:
-    action = str(context.get("disposition_action") or "forward").strip()
-    action_label = _label_value("disposition_actions", action) or action or "다음 단계로 진행"
+    action = str(context.get("disposition_action") or "").strip()
+    action_label = _label_value("disposition_actions", action) or action or "처분 기록"
     applied_at = _kst_hhmm(context.get("applied_at") or packet.get("generated_at"))
     return f"⤷ COO 확인: {action_label} ({applied_at})"
 

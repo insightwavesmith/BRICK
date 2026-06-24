@@ -5083,7 +5083,35 @@ def _assert_reporter_brick_grain_threading(
             raise ProfileError(
                 f"disposition_applied reply did not render coo stamp:\n{disposition_reply_text}"
             )
-        inspected += 4
+        if "다음 단계로 진행" not in disposition_reply_text:
+            raise ProfileError(
+                "explicit-forward disposition_applied reply did not preserve the forward label:\n"
+                f"{disposition_reply_text}"
+            )
+        missing_action_disposition_text = report_sinks._slack_message_text(
+            {
+                **_minimal_reporter_packet(),
+                "report_id": "reporter-disposition-missing-action-probe",
+                "building_id": "reporter-brick-grain-thread",
+                "trigger_event_ref": (
+                    "building-event:disposition_applied:reporter-brick-grain-thread"
+                ),
+                "current_work_kind": "work",
+                "current_lane": "worker",
+                "generated_at": "2026-06-12T00:02:00+00:00",
+                "event_context": {
+                    "disposition_author_ref": "coo:checker",
+                    "applied_at": "2026-06-12T00:02:00+00:00",
+                },
+            }
+        )
+        for fragment in ("forward", "다음 단계로 진행"):
+            if fragment in missing_action_disposition_text:
+                raise ProfileError(
+                    "missing-action disposition_applied reply rendered Movement-shaped "
+                    f"default {fragment!r}:\n{missing_action_disposition_text}"
+                )
+        inspected += 5
 
         temp_root_payloads: list[Mapping[str, Any]] = []
 
