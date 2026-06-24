@@ -45,6 +45,7 @@ field_sets:
     members:
       - preferred_adapter_ref
       - preferred_model_ref
+      - preferred_reasoning_effort_ref
 
   # WORK-ENVELOPE key-set (E2 / S2, mirror M7). The on-disk work-envelope.json
   # key-set the chat-session park seam validates is exactly the AgentAdapterRequest
@@ -80,6 +81,8 @@ field_sets:
       - work_statement
       - comparison_rule
       - required_return_shape
+      - brick_instruction_body
+      - re_instruction
       - source_fact_bodies
       - link_handoff_refs
       - agent_instruction_packet

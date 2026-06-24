@@ -52,6 +52,7 @@ from __future__ import annotations
 import argparse
 import ast
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -199,6 +200,170 @@ def _dataclass_field_names(node: ast.ClassDef) -> frozenset[str] | None:
     return frozenset(names)
 
 
+def _dict_key_member_set(node: ast.Dict) -> frozenset[str] | None:
+    names: list[str] = []
+    for key in node.keys:
+        if key is None:
+            return None
+        text = _string_constant(key)
+        if text is None:
+            return None
+        names.append(text)
+    if not names or len(set(names)) != len(names):
+        return None
+    return frozenset(names)
+
+
+def _descriptor_call_field_name(node: ast.AST) -> str | None:
+    if not isinstance(node, ast.Call):
+        return None
+    func_name = getattr(node.func, "id", None) or getattr(node.func, "attr", None)
+    if func_name != "CastingField":
+        return None
+    for keyword in node.keywords:
+        if keyword.arg == "field_name":
+            return _string_constant(keyword.value)
+    if node.args:
+        return _string_constant(node.args[0])
+    return None
+
+
+def _descriptor_tuple_member_set(node: ast.AST) -> frozenset[str] | None:
+    if not isinstance(node, (ast.Tuple, ast.List)):
+        return None
+    names: list[str] = []
+    for element in node.elts:
+        field_name = _descriptor_call_field_name(element)
+        if field_name is None:
+            return None
+        names.append(field_name)
+    if not names or len(set(names)) != len(names):
+        return None
+    return frozenset(names)
+
+
+def _namedtuple_tuple_field_values(
+    tree: ast.Module,
+    *,
+    tuple_symbol: str,
+    field_name: str,
+) -> frozenset[str] | None:
+    for stmt in tree.body:
+        if _assigned_symbol(stmt) != tuple_symbol:
+            continue
+        value = getattr(stmt, "value", None)
+        if not isinstance(value, (ast.Tuple, ast.List)):
+            return None
+        values: list[str] = []
+        for element in value.elts:
+            if not isinstance(element, ast.Call):
+                return None
+            matched = False
+            for keyword in element.keywords:
+                if keyword.arg != field_name:
+                    continue
+                if isinstance(keyword.value, ast.Constant) and keyword.value.value is None:
+                    matched = True
+                    break
+                text = _string_constant(keyword.value)
+                if text is None:
+                    return None
+                values.append(text)
+                matched = True
+                break
+            if not matched:
+                return None
+        if not values or len(set(values)) != len(values):
+            return None
+        return frozenset(values)
+    return None
+
+
+def _derived_source_member_set(tree: ast.Module, symbol: str, value: ast.AST) -> frozenset[str] | None:
+    if symbol != "GATE_CONCEPT_TOKEN_GATE_REFS" or not isinstance(value, ast.DictComp):
+        return None
+    if not isinstance(value.key, ast.Attribute) or value.key.attr != "concept_token":
+        return None
+    if len(value.generators) != 1:
+        return None
+    generator = value.generators[0]
+    if not isinstance(generator.iter, ast.Name) or generator.iter.id != "GATE_REGISTRY":
+        return None
+    return _namedtuple_tuple_field_values(
+        tree,
+        tuple_symbol="GATE_REGISTRY",
+        field_name="concept_token",
+    )
+
+
+def _source_value_member_set(node: ast.AST) -> frozenset[str] | None:
+    return (
+        _literal_member_set(node)
+        or (_dict_key_member_set(node) if isinstance(node, ast.Dict) else None)
+        or _descriptor_tuple_member_set(node)
+    )
+
+
+def _source_symbol_member_set(repo: Path, row: dict) -> frozenset[str]:
+    rel = row["defining_module"]
+    symbol = row["source_symbol"]
+    path = repo / rel
+    if not path.is_file():
+        raise ValueError(f"{REGISTRY_REL} {row['name']}: source module {rel} does not exist")
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=rel)
+    except SyntaxError as exc:
+        raise ValueError(f"{REGISTRY_REL} {row['name']}: source module {rel} does not parse: {exc}") from exc
+
+    for stmt in tree.body:
+        if isinstance(stmt, ast.ClassDef) and stmt.name == symbol:
+            member_set = _dataclass_field_names(stmt)
+            if member_set is None:
+                break
+            return member_set
+        assigned = _assigned_symbol(stmt)
+        if assigned != symbol:
+            continue
+        value = getattr(stmt, "value", None)
+        if value is None:
+            break
+        member_set = _source_value_member_set(value) or _derived_source_member_set(
+            tree,
+            symbol,
+            value,
+        )
+        if member_set is None:
+            break
+        return member_set
+
+    raise ValueError(
+        f"{REGISTRY_REL} {row['name']}: could not derive member-set from "
+        f"{symbol} in {rel}"
+    )
+
+
+def _source_parity_violations(repo: Path, registry: list[dict]) -> list[str]:
+    violations: list[str] = []
+    for row in registry:
+        source_members = _source_symbol_member_set(repo, row)
+        registry_members = row["members"]
+        if source_members == registry_members:
+            continue
+        missing = sorted(source_members - registry_members)
+        extra = sorted(registry_members - source_members)
+        details: list[str] = []
+        if missing:
+            details.append(f"missing source member(s) {missing!r}")
+        if extra:
+            details.append(f"extra non-source member(s) {extra!r}")
+        violations.append(
+            f"{REGISTRY_REL} {row['name']}: registry members drifted from "
+            f"{row['source_symbol']} in {row['defining_module']}: "
+            + "; ".join(details)
+        )
+    return violations
+
+
 def _iter_support_modules(repo: Path) -> list[tuple[str, Path]]:
     support_root = repo / SUPPORT_DIR
     if not support_root.is_dir():
@@ -227,7 +392,7 @@ def find_violations(repo: Path) -> tuple[list[str], int]:
     registry = _load_registry(repo)
     by_members: dict[frozenset[str], dict] = {row["members"]: row for row in registry}
 
-    violations: list[str] = []
+    violations: list[str] = _source_parity_violations(repo, registry)
     scanned = 0
     for rel, path in _iter_support_modules(repo):
         try:
@@ -292,6 +457,49 @@ def find_violations(repo: Path) -> tuple[list[str], int]:
     return sorted(set(violations)), scanned
 
 
+def _assert_source_parity_negative_probe() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        repo = Path(tmp)
+        (repo / "support" / "checkers").mkdir(parents=True)
+        (repo / "agent").mkdir()
+        (repo / "support" / "checkers" / "field_set_registry.yaml").write_text(
+            "\n".join(
+                [
+                    "schema: field-set-registry/v1",
+                    "field_sets:",
+                    "  - name: casting_fields",
+                    "    defining_module: agent/spec.py",
+                    "    source_symbol: CASTING_FIELDS",
+                    "    members:",
+                    "      - preferred_adapter_ref",
+                    "      - preferred_model_ref",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        (repo / "agent" / "spec.py").write_text(
+            "\n".join(
+                [
+                    "CASTING_FIELDS = (",
+                    "    CastingField(field_name='preferred_adapter_ref'),",
+                    "    CastingField(field_name='preferred_model_ref'),",
+                    "    CastingField(field_name='preferred_reasoning_effort_ref'),",
+                    ")",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        registry = _load_registry(repo)
+        violations = _source_parity_violations(repo, registry)
+        if not any("preferred_reasoning_effort_ref" in violation for violation in violations):
+            raise ValueError(
+                "axis field-set source-parity negative probe did not reject a stale "
+                "casting_fields registry row"
+            )
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description=(
@@ -307,6 +515,7 @@ def main(argv: list[str] | None = None) -> int:
     repo = Path(args.repo).resolve()
 
     try:
+        _assert_source_parity_negative_probe()
         violations, scanned = find_violations(repo)
     except (OSError, ValueError) as exc:
         print(f"axis field-set single source rejected: {exc}")
@@ -326,7 +535,8 @@ def main(argv: list[str] | None = None) -> int:
     print(
         "axis field-set single source passed: "
         f"{scanned} support module(s) scanned; every registered axis field-set "
-        "has exactly one enumeration (its single source)."
+        "matches its source symbol and has exactly one support-side enumeration "
+        "(its single source)."
     )
     return 0
 
