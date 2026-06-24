@@ -14,8 +14,12 @@ import contextlib
 import importlib
 import io
 import json
+import os
+import signal
 import sys
 import tempfile
+import threading
+import time
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -917,6 +921,116 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
 KERNEL_CHECK_IDS = frozenset(KERNEL_DISPATCH)
 
 
+# CHECKER-PROGRESS-GUARD-0: support-only liveness evidence for long profile runs.
+# A checker/profile pass is still only support evidence; these knobs only make an
+# ongoing support check observable and bounded so an operator can distinguish
+# "working" from "stalled". They do not choose Movement, judge quality, call
+# providers, or change any checker invariant.
+_CHECK_PROFILE_STEP_TIMEOUT_ENV = "BRICK_CHECK_PROFILE_STEP_TIMEOUT_SECONDS"
+_CHECK_PROFILE_HEARTBEAT_ENV = "BRICK_CHECK_PROFILE_HEARTBEAT_SECONDS"
+_DEFAULT_STEP_TIMEOUT_SECONDS = 900.0
+_DEFAULT_HEARTBEAT_SECONDS = 60.0
+
+
+class _ProfileStepTimeout(TimeoutError):
+    pass
+
+
+def _float_env(name: str, default: float) -> float:
+    raw = os.environ.get(name)
+    if raw is None or raw == "":
+        return default
+    try:
+        value = float(raw)
+    except ValueError:
+        return default
+    if value != value or value in {float("inf"), float("-inf")} or value < 0:
+        return default
+    return value
+
+
+@dataclass(frozen=True)
+class _ProfileProgressScope:
+    profile_id: str
+    kind: str
+    item_ref: str
+
+    @property
+    def label(self) -> str:
+        return f"profile={self.profile_id} {self.kind}={self.item_ref}"
+
+
+@contextlib.contextmanager
+def _profile_progress_guard(scope: _ProfileProgressScope):
+    timeout_seconds = _float_env(
+        _CHECK_PROFILE_STEP_TIMEOUT_ENV,
+        _DEFAULT_STEP_TIMEOUT_SECONDS,
+    )
+    heartbeat_seconds = _float_env(
+        _CHECK_PROFILE_HEARTBEAT_ENV,
+        _DEFAULT_HEARTBEAT_SECONDS,
+    )
+    started = time.monotonic()
+    stop = threading.Event()
+    timed_out = False
+    previous_handler: Any = None
+    use_signal_timeout = (
+        timeout_seconds > 0
+        and hasattr(signal, "SIGALRM")
+        and threading.current_thread() is threading.main_thread()
+    )
+
+    def _heartbeat() -> None:
+        if heartbeat_seconds <= 0:
+            return
+        while not stop.wait(heartbeat_seconds):
+            elapsed = time.monotonic() - started
+            print(
+                "profile progress: RUNNING "
+                f"{scope.label} elapsed={elapsed:.1f}s timeout={timeout_seconds:.1f}s",
+                file=sys.stderr,
+                flush=True,
+            )
+
+    def _raise_timeout(_signum: int, _frame: Any) -> None:
+        nonlocal timed_out
+        timed_out = True
+        elapsed = time.monotonic() - started
+        raise _ProfileStepTimeout(
+            f"profile progress timeout: {scope.label} elapsed={elapsed:.1f}s "
+            f"timeout={timeout_seconds:.1f}s"
+        )
+
+    print(
+        "profile progress: START "
+        f"{scope.label} timeout={timeout_seconds:.1f}s heartbeat={heartbeat_seconds:.1f}s",
+        file=sys.stderr,
+        flush=True,
+    )
+    thread = threading.Thread(target=_heartbeat, daemon=True)
+    thread.start()
+    if use_signal_timeout:
+        previous_handler = signal.getsignal(signal.SIGALRM)
+        signal.signal(signal.SIGALRM, _raise_timeout)
+        signal.setitimer(signal.ITIMER_REAL, timeout_seconds)
+    try:
+        yield
+    except _ProfileStepTimeout as exc:
+        raise ProfileError(str(exc)) from exc
+    finally:
+        if use_signal_timeout:
+            signal.setitimer(signal.ITIMER_REAL, 0)
+            signal.signal(signal.SIGALRM, previous_handler)
+        stop.set()
+        elapsed = time.monotonic() - started
+        status = "TIMEOUT" if timed_out else "DONE"
+        print(
+            f"profile progress: {status} {scope.label} elapsed={elapsed:.1f}s",
+            file=sys.stderr,
+            flush=True,
+        )
+
+
 def _raw_profile(path: Path) -> Mapping[str, Any]:
     parsed = parse_yaml_subset(path.read_text(encoding="utf-8"))
     return require_mapping(parsed, str(path))
@@ -1000,23 +1114,54 @@ def profile_paths(repo: Path, args: argparse.Namespace) -> list[Path]:
     raise ProfileError("provide --profile, --all, or --self-test")
 
 
-def run_kernel_check(repo: Path, check_id: str) -> KernelResult:
+def run_kernel_check(
+    repo: Path,
+    check_id: str,
+    *,
+    profile_id: str = "<unknown>",
+) -> KernelResult:
     try:
         runner = KERNEL_DISPATCH[check_id]
     except KeyError as exc:
         raise ProfileError(f"unknown kernel check id: {check_id}") from exc
-    return runner(repo)
+    with _profile_progress_guard(
+        _ProfileProgressScope(profile_id, "kernel_check", check_id)
+    ):
+        return runner(repo)
+
+
+def _run_profile_rule(
+    repo: Path,
+    profile: Mapping[str, Any],
+    *,
+    profile_id: str,
+    rule_key: str,
+) -> int:
+    # Preserve pre-guard semantics: every registered rule runner is called even
+    # when the profile does not carry that top-level key. Some runners include
+    # always-on support checks, so skipping empty/missing keys silently weakens
+    # the profile. The progress guard is observational only.
+    with _profile_progress_guard(
+        _ProfileProgressScope(profile_id, "rule", rule_key)
+    ):
+        return RULE_RUNNERS[rule_key](repo, profile)
 
 
 def run_profile(repo: Path, path: Path) -> tuple[int, list[KernelResult]]:
     _ensure_repo_import_path(repo)
     _evict_foreign_brick_protocol_modules(repo)
     profile = read_profile(path)
+    profile_id = str(profile["profile_id"])
     rule_count = 0
     for key in sorted(RULE_RUNNERS):
-        rule_count += RULE_RUNNERS[key](repo, profile)
+        rule_count += _run_profile_rule(
+            repo,
+            profile,
+            profile_id=profile_id,
+            rule_key=key,
+        )
     kernel_results = [
-        run_kernel_check(repo, check_id)
+        run_kernel_check(repo, check_id, profile_id=profile_id)
         for check_id in require_string_list(profile.get("kernel_checks", []), "kernel_checks")
     ]
     print(
