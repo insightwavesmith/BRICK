@@ -15,11 +15,15 @@
 #                         consumers / validators / projectors / orchestrators /
 #                         emitters and own ZERO axis crossings (they consume
 #                         contracts; they do not home one). Owning <=1 is the
-#                         elegant target (G2). The 4 god-modules own MANY and are
-#                         governed by the G6 ceiling (decomposition_target),
-#                         which exempts them from G2 until P3 shrinks them. (G6 is
-#                         a self-consistency check, NOT a one-way ratchet — see
-#                         the decomposition_ceilings proof-limit note below.)
+#                         elegant target (G2). Only two non-empty
+#                         decomposition_target rows remain: check-profile-god-0
+#                         (historical/self-consistency ceiling on the thin
+#                         checker facade) and rs-sink-ceiling-0 (live report
+#                         sink ceiling). G6 is support-governance
+#                         self-consistency evidence, NOT success/quality/
+#                         Movement authority and NOT the primary re-bloat
+#                         ratchet; see the decomposition_ceilings proof-limit
+#                         note below.
 #   consumes_crossings  = crossings this module reaches via the canonical contract
 #                         (real axis imports). Read-only coupling record.
 #   imports_axis        = the axis source files this module imports from. G3
@@ -28,14 +32,17 @@
 #                         file (per crossing_registry.yaml).
 #   forbidden_ownership = the authoring this support module must NEVER do
 #                         (G5 re-encodes the support baseline independently).
-#   decomposition_target= present only on a god-module: its G6 ceiling id +
-#                         ceiling value (owns_crossings count; lowered to 0 in P3.
-#                         self-consistency check, not an enforced ratchet — see
-#                         decomposition_ceilings proof-limit).
+#   decomposition_target= present only on rows with an admitted G6 ceiling:
+#                         check-profile-god-0 preserves historical checker
+#                         facade self-consistency, and rs-sink-ceiling-0 pins
+#                         the live report sink dispatch ceiling. G6 observes
+#                         ceiling self-consistency only; it does not judge
+#                         quality/success or choose Movement.
 #
 # roles:
 #   facade            delegates each crossing to its owner, authors nothing
-#                     (run.py; the 4 god-module facades arrive in P3).
+#                     (historical god-module decompositions now leave thin
+#                     support facades where admitted).
 #   oracle            independent re-encoder (check_axis_contract_projection).
 #   carrier           aggregates the 5/typed facts by design (operator/contracts).
 #   checker           support-evidence checker (single concern).
@@ -45,7 +52,8 @@
 #   connection        Agent-brain / projection connection surface.
 #   recording         deterministic evidence/packet writer (one seam).
 #   operator          Building operator mechanics (validate / project / route /
-#                     orchestrate); a god-operator carries decomposition_target.
+#                     orchestrate); any non-empty decomposition_target is a
+#                     governance ceiling row, not authority.
 #
 # SUPPORT_FORBIDDEN_OWNERSHIP baseline (G5 re-encodes this, hand-written):
 #   movement_author, target_selector, success_judge, quality_judge, route_invent
