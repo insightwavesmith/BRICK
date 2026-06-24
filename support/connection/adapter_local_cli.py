@@ -45,6 +45,7 @@ import os
 import re
 import shutil
 import tempfile
+import tomllib
 from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
 from typing import Any, TYPE_CHECKING
@@ -84,16 +85,31 @@ if TYPE_CHECKING:
     )
 
 
-# ISOLATION (Smith 0623 operator decision): a dispatched build CLI must run in a
-# SCRUBBED room, not the user's own ~/.claude / ~/.codex with their skills, hooks,
+# ISOLATION (Smith 0623/0624 operator decision): a dispatched build CLI must run in
+# a SCRUBBED room, not the user's own ~/.claude / ~/.codex with their skills, hooks,
 # and MCP servers bleeding in. The allowlist below is the ONLY env the child
 # inherits by default; HOME + the provider config-dir + carried auth keys are
 # layered on per provider. This is a clean-env allowlist (NOT dict(os.environ)),
 # so a stray user env var (an unrelated API key, a hook toggle) never reaches the
 # dispatched provider. Support mechanics only: it carries env, it judges nothing.
+#
+# AUTH-VS-SKILLS asymmetry (0624, OPERATOR-VERIFIED by real dispatch). The two
+# providers store auth in DIFFERENT places, so the room is built differently:
+#   * codex auth = a FILE (~/.codex/auth.json), but codex ALSO reads its personal
+#     skills from CODEX_HOME/skills. --ignore-user-config governs config.toml ONLY,
+#     NOT the skills dir -- with the REAL CODEX_HOME the user's ~/.codex/skills/*
+#     (e.g. brick-protocol-migration-operator) STILL load (verified). So the room is
+#     a TEMP CODEX_HOME whose empty skills/ blocks the personal skills, and auth.json
+#     is COPIED into it so the door key still works. (--ignore-user-config then keeps
+#     the user's config.toml out; only brick's MCP block is written into the temp.)
+#   * claude auth = the macOS KEYCHAIN, pinned to the REAL HOME. A temp HOME cannot
+#     reach the keychain -> auth fails. So the room keeps the REAL HOME and blocks the
+#     personal stuff with FLAGS instead: --setting-sources excludes the `user` source
+#     (drops ~/.claude skills/settings), disableAllHooks turns user hooks off, and
+#     --strict-mcp-config + inline --mcp-config make brick's the ONLY MCP.
 _ISOLATED_ENV_ALLOWLIST_KEYS: tuple[str, ...] = (
     "PATH",
-    "HOME",  # replaced below with the temp HOME; listed so a missing key is explicit
+    "HOME",  # set per provider (codex=temp HOME, claude=real HOME); never inherited raw
     "LANG",
     "LC_ALL",
     "LC_CTYPE",
@@ -103,9 +119,12 @@ _ISOLATED_ENV_ALLOWLIST_KEYS: tuple[str, ...] = (
     "USER",
     "LOGNAME",
 )
-# Auth env that must be CARRIED THROUGH the scrub so the provider can still talk to
-# its backend (the door key). These are credential-bearing, so they are the ONLY
-# user-env values forwarded; everything else is dropped. Per-provider, narrow.
+# Auth env that is CARRIED THROUGH the scrub so an API-KEY-authed user can still
+# reach the backend (the door key). These are credential-bearing, so they are the
+# ONLY user-env values forwarded; everything else is dropped. Per-provider, narrow.
+# NOTE (0624): these are the API-KEY fallback path. The PRIMARY auth on this machine
+# is non-env -- codex via a copied ~/.codex/auth.json, claude via the macOS keychain
+# (real HOME) -- so carrying these keys is belt-and-suspenders, never the sole door.
 _CLAUDE_AUTH_CARRY_ENV_KEYS: tuple[str, ...] = (
     "ANTHROPIC_API_KEY",
     "ANTHROPIC_AUTH_TOKEN",
@@ -115,6 +134,17 @@ _CODEX_AUTH_CARRY_ENV_KEYS: tuple[str, ...] = (
     "OPENAI_API_KEY",
     "CODEX_API_KEY",
 )
+# LOCKED (0624 확정): the claude --setting-sources value that drops the user's
+# personal source (~/.claude skills + settings) while KEEPING project-level
+# settings. Excluding `user` is what makes claude not load the personal skills in
+# the real-HOME room (operator-verified: with this value a "Brick Protocol skills?"
+# prompt answers NO; the personal ~/.claude/skills are not visible).
+_CLAUDE_ISOLATION_SETTING_SOURCES = "project"
+# The codex credential files copied into the temp CODEX_HOME so the door key survives
+# the skills-isolating temp home: auth.json (OpenAI/ChatGPT auth) and .env (the
+# SAKANA_API_KEY etc. a custom provider's auth command reads). No path assumption
+# beyond ~/.codex; a missing file is skipped.
+_CODEX_CREDENTIAL_FILE_NAMES: tuple[str, ...] = ("auth.json", ".env")
 # Opt OUT of isolation (default ON): a stray legacy caller that genuinely needs the
 # user's own config can set BRICK_BUILD_ISOLATION=0. Default/unset/any-other-value
 # keeps isolation ON (fail-safe toward the clean room).
@@ -176,6 +206,18 @@ def _claude_mcp_config_json(repo_root: Path) -> str:
     )
 
 
+def _claude_disable_hooks_settings_json() -> str:
+    """Inline --settings JSON that turns the user's hooks off for a claude dispatch.
+
+    ``disableAllHooks`` is the claude settings key that disables ALL hooks while
+    leaving auth + MCP intact (operator-verified 0624: a real-HOME dispatch with this
+    settings JSON authenticates and runs). This is the FLAG-based replacement for the
+    old temp-HOME ``settings.json`` hooks scrub -- it disables the user's hooks without
+    relocating HOME (which would break keychain auth)."""
+
+    return json.dumps({"disableAllHooks": True}, sort_keys=True)
+
+
 def _codex_mcp_config_cli_args(repo_root: Path) -> list[str]:
     """`-c mcp_servers.brick-protocol.*` overrides wiring the MCP for a codex dispatch."""
 
@@ -205,11 +247,22 @@ def _repo_root_for_request(spec: LocalCliSpec) -> Path:
 def _codex_isolated_run_env(codex_home: Path, repo_root: Path) -> dict[str, str] | None:
     """Build the scrubbed run env for a codex dispatch (None when isolation is off).
 
-    Writes a clean ``<home>/.codex/config.toml`` carrying ONLY brick's MCP server
-    (no user MCP/hooks), sets HOME + CODEX_HOME to the temp room, carries the codex
-    auth keys through the scrub, and returns the env. Support mechanics only: it
-    carries config + env, it judges nothing and stores no credential of its own."""
+    The room is a TEMP CODEX_HOME whose EMPTY ``skills/`` blocks the user's personal
+    ``~/.codex/skills/*`` (operator-verified 0624: --ignore-user-config alone does NOT
+    block skills with the real CODEX_HOME; only a temp CODEX_HOME does). ``codex exec
+    --ignore-user-config`` at the call site does NOT load ``$CODEX_HOME/config.toml``
+    (per codex's own help) -- so the MCP + any custom provider definitions are wired by
+    ``-c`` overrides at the call site, NOT by a config.toml file. AUTH "still uses
+    CODEX_HOME" (codex help), so the real credential files are COPIED into the temp
+    room: ``auth.json`` (the OpenAI/ChatGPT door key) and ``.env`` (carries
+    provider-auth-command secrets such as the Sakana key the codex-fugu auth command
+    reads). HOME + CODEX_HOME point at the temp room and the codex API-key env
+    (fallback) is carried through the scrub. ``repo_root`` is unused here (the MCP is
+    wired by -c at the call site) and kept for call-site signature stability. Support
+    mechanics only: it relocates the user's OWN credential files into a throwaway room,
+    it judges nothing and stores no credential of its own."""
 
+    del repo_root
     if not _build_isolation_enabled():
         return None
     env = _scrubbed_base_env()
@@ -217,124 +270,115 @@ def _codex_isolated_run_env(codex_home: Path, repo_root: Path) -> dict[str, str]
     codex_config_dir = codex_home / ".codex"
     codex_config_dir.mkdir(parents=True, exist_ok=True)
     env["CODEX_HOME"] = str(codex_config_dir)
-    from . import connect
-
-    (codex_config_dir / "config.toml").write_text(
-        connect.render_codex_mcp_config(repo_root),
-        encoding="utf-8",
-    )
+    # Copy the real codex credential files (the door keys) into the temp room so auth
+    # works there. The temp home is what blocks the personal skills; the copied files
+    # are what keep the dispatch logged in. NEVER raises: a user authed only by API key
+    # (no auth.json / no .env) just has nothing to copy and falls back to the carried
+    # env keys below.
+    _copy_codex_credentials_into_home(codex_config_dir)
     _carry_auth_env(env, _CODEX_AUTH_CARRY_ENV_KEYS)
     return env
 
 
-def _project_brick_skills_into_home(claude_config_dir: Path, repo_root: Path) -> None:
-    """Project the Agent-axis skills into the dispatch room's ~/.claude/skills/.
+def _copy_codex_credentials_into_home(codex_config_dir: Path) -> None:
+    """Copy the real codex credential files into the temp CODEX_HOME (best-effort).
 
-    H2 (INSTALL-WIZARD-0623): the claude dispatch runs in a SCRUBBED temp HOME, so
-    the user's real ~/.claude/skills (where ``run_skills_place_step`` installs the
-    brick skills) is NOT visible. The skill manifest the runtime packet ships uses a
-    repo-relative path -- codex/gemini read it from cwd=repo, but claude's NATIVE
-    description-triggered fetch looks in ~/.claude/skills. So we render the same
-    Agent-Skills projection ``run_skills_place_step`` uses straight into the room's
-    HOME, byte-identical to the operator install. Read-only support projection:
-    renders declared skill bodies, judges nothing, NEVER raises (a skill that fails
-    to render is skipped so a single bad skill never breaks the build dispatch)."""
+    The temp CODEX_HOME isolates skills but starts with no credential; codex auth is
+    file-based, so the credential files are copied in: ``auth.json`` (the door key) and
+    ``.env`` (the SAKANA_API_KEY etc. that a custom provider's auth command reads).
+    Support mechanics only -- it relocates the user's own credential files into the
+    throwaway room and stores nothing of its own. NEVER raises: a missing file (e.g.
+    the user authed by API key, so there is no auth.json/.env) is simply skipped."""
 
-    from .agent_resources import (
-        AgentResourceError,
-        list_agent_object_refs,
-        render_skill_md,
-        resolve_agent_object,
-    )
-
-    skills_root = claude_config_dir / "skills"
-    seen: set[str] = set()
-    try:
-        object_refs = list_agent_object_refs(repo_root)
-    except (AgentResourceError, OSError, ValueError):
-        return
-    for object_ref in object_refs:
+    real_codex = Path(os.path.expanduser("~")) / ".codex"
+    for name in _CODEX_CREDENTIAL_FILE_NAMES:
+        source = real_codex / name
         try:
-            resolution = resolve_agent_object(object_ref, repo_root=repo_root)
-        except (AgentResourceError, OSError, ValueError):
+            if source.is_file():
+                shutil.copyfile(source, codex_config_dir / name)
+        except OSError:
             continue
-        for skill in resolution.get("skill_resources", []):
-            ref = str(skill.get("ref") or "")
-            if not ref or ref in seen:
-                continue
-            seen.add(ref)
-            name = (ref.removeprefix("skill:") if ref.startswith("skill:") else ref).replace("_", "-")
-            body = str(skill.get("body") or "")
-            front = _skill_front_matter_from_body(body)
-            try:
-                rendered = render_skill_md(
-                    name,
-                    front.get("description") or f"Brick Protocol skill {name}",
-                    _skill_body_without_front_matter(body),
-                )
-            except (AgentResourceError, ValueError):
-                continue
-            target = skills_root / name / "SKILL.md"
-            try:
-                target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_text(rendered, encoding="utf-8")
-            except OSError:
-                continue
 
 
-def _skill_front_matter_from_body(body: str) -> dict[str, str]:
-    name = ""
-    description = ""
-    lines = body.splitlines()
-    if lines and lines[0].strip() == "---":
-        for line in lines[1:]:
-            stripped = line.strip()
-            if stripped == "---":
-                break
-            if stripped.startswith("name:"):
-                name = stripped[len("name:") :].strip()
-            elif stripped.startswith("description:"):
-                description = stripped[len("description:") :].strip()
-    return {"name": name, "description": description}
+def _codex_user_provider_config_cli_args() -> list[str]:
+    """Re-emit the user's ``[model_providers.*]`` config as ``-c`` overrides.
+
+    WHY (0624, operator-verified): the codex dispatch runs with ``--ignore-user-config``
+    (so the user's ~/.codex/config.toml -- with its skills-trust, hooks, user MCP --
+    is NOT loaded) inside a TEMP CODEX_HOME (so the personal skills dir is empty). But a
+    PROVIDER-ROUTED adapter (codex-fugu-local routes ``model_provider="sakana"``) needs
+    the matching ``[model_providers.sakana]`` DEFINITION (base_url, wire_api, the
+    auth.command), which lived in that now-ignored config.toml. We therefore read ONLY
+    the ``model_providers`` table from the real config and flatten it back to dotted
+    ``-c key=<toml-value>`` overrides -- restoring the provider DEFINITIONS without
+    re-admitting the user's MCP/hooks/skills. Hardcodes NOTHING (reads the user's own
+    config). Returns [] when isolation is off, the config is absent/unreadable, or it
+    declares no model_providers (plain codex-local needs none). Support mechanics only:
+    it relays the user's own provider config as data, it makes no provider decision."""
+
+    if not _build_isolation_enabled():
+        return []
+    config_path = Path(os.path.expanduser("~")) / ".codex" / "config.toml"
+    try:
+        with config_path.open("rb") as handle:
+            data = tomllib.load(handle)
+    except (OSError, tomllib.TOMLDecodeError):
+        return []
+    providers = data.get("model_providers")
+    if not isinstance(providers, Mapping):
+        return []
+    args: list[str] = []
+    _flatten_toml_to_cli_overrides("model_providers", providers, args)
+    return args
 
 
-def _skill_body_without_front_matter(body: str) -> str:
-    lines = body.splitlines()
-    if not lines or lines[0].strip() != "---":
-        return body.strip()
-    for index in range(1, len(lines)):
-        if lines[index].strip() == "---":
-            return "\n".join(lines[index + 1 :]).strip()
-    return body.strip()
+def _flatten_toml_to_cli_overrides(prefix: str, node: Any, out: list[str]) -> None:
+    """Flatten a parsed-TOML subtree into ``-c dotted.key=<toml-value>`` pairs.
+
+    Scalars become a single ``-c`` pair whose value is rendered back as TOML (strings
+    quoted via json.dumps -- valid TOML basic-string syntax -- bools lowercased, numbers
+    repr'd). Nested tables recurse with a dotted prefix. Lists/other are rendered as a
+    JSON array literal (valid TOML inline array for scalars), which is sufficient for
+    the model_providers tables in practice. Pure data shaping, no judgment."""
+
+    if isinstance(node, Mapping):
+        for key, value in node.items():
+            _flatten_toml_to_cli_overrides(f"{prefix}.{key}", value, out)
+        return
+    if isinstance(node, bool):
+        rendered = "true" if node else "false"
+    elif isinstance(node, (int, float)):
+        rendered = repr(node)
+    elif isinstance(node, str):
+        rendered = json.dumps(node)
+    else:
+        rendered = json.dumps(node)
+    out.extend(("-c", f"{prefix}={rendered}"))
 
 
-def _claude_isolated_run_env(claude_home: Path, repo_root: Path) -> dict[str, str] | None:
+def _claude_isolated_run_env() -> dict[str, str] | None:
     """Build the scrubbed run env for a claude dispatch (None when isolation is off).
 
-    Sets HOME to the temp room with a minimal ``<home>/.claude/settings.json`` that
-    disables the user's hooks (the inline --strict-mcp-config handles MCP), projects
-    the brick Agent-axis skills into ``<home>/.claude/skills/`` so claude's NATIVE
-    description-triggered fetch resolves them inside the scrubbed room (H2), carries
-    the claude auth keys through the scrub, and returns the env. ``repo_root`` is the
-    BRICK repo whose declared skills are projected (it also feeds the inline
-    --mcp-config at the call site). Support mechanics only."""
+    KEEPS THE REAL HOME (0624, operator-verified): claude authenticates via the macOS
+    KEYCHAIN, which is pinned to the real HOME -- a temp HOME cannot reach it and auth
+    fails. So the room does NOT relocate HOME; it isolates the personal stuff with
+    FLAGS at the call site instead (``--setting-sources project`` drops the user's
+    skills/settings, ``disableAllHooks`` turns user hooks off, ``--strict-mcp-config``
+    + inline ``--mcp-config`` make brick's the ONLY MCP). This function therefore only
+    builds the env from a clean allowlist (no stray user vars) WITHOUT overriding HOME,
+    and carries the claude API-key env (fallback) through the scrub. Support mechanics
+    only: it carries env, it judges nothing and stores no credential of its own."""
 
     if not _build_isolation_enabled():
         return None
+    # Start from the clean allowlist, then layer the REAL HOME back on (keychain auth
+    # is pinned to it). We deliberately do NOT inherit the full user env -- only the
+    # allowlisted keys plus the real HOME -- so a stray user var still cannot leak,
+    # while the keychain (addressed by HOME) stays reachable.
     env = _scrubbed_base_env()
-    env["HOME"] = str(claude_home)
-    claude_config_dir = claude_home / ".claude"
-    claude_config_dir.mkdir(parents=True, exist_ok=True)
-    # Minimal settings: empty hooks so the user's global hooks never fire in the
-    # build room. MCP is governed by the inline --strict-mcp-config at the call
-    # site, so it is intentionally not duplicated here.
-    (claude_config_dir / "settings.json").write_text(
-        json.dumps({"hooks": {}}, sort_keys=True),
-        encoding="utf-8",
-    )
-    # H2: project the brick skills into the room HOME so claude's native skills
-    # trigger path (~/.claude/skills) is not dead inside the scrubbed room.
-    _project_brick_skills_into_home(claude_config_dir, repo_root)
+    real_home = os.environ.get("HOME")
+    if real_home:
+        env["HOME"] = real_home
     _carry_auth_env(env, _CLAUDE_AUTH_CARRY_ENV_KEYS)
     return env
 
@@ -498,13 +542,15 @@ def _invoke_local_cli(
     if spec.invocation_args_kind == "codex-exec-readonly":
         sandbox = _codex_sandbox_for_request(request)
         repo_root = _repo_root_for_request(spec)
-        # ISOLATION (Smith 0623): the codex dispatch runs in a SCRUBBED room. A temp
-        # HOME holds a clean ~/.codex/config.toml carrying ONLY brick's MCP (no user
-        # MCP/hooks), --ignore-user-config makes codex skip the user's own
-        # ~/.codex/config.toml, and the auth keys are carried through the scrub so
-        # the provider can still reach its backend. When isolation is opted out
-        # (BRICK_BUILD_ISOLATION=0) run_env stays None (byte-identical inherited-env
-        # behavior) and the user-config flag is omitted.
+        # ISOLATION (Smith 0624): the codex dispatch runs in a TEMP CODEX_HOME whose
+        # empty skills/ blocks the user's personal ~/.codex/skills/* (operator-verified:
+        # --ignore-user-config alone does NOT block skills with the real CODEX_HOME).
+        # --ignore-user-config makes codex skip the user's own config.toml entirely, so
+        # the brick MCP + any custom provider DEFINITIONS are re-supplied by -c overrides
+        # (NOT a config.toml file, which would be ignored). AUTH still uses CODEX_HOME, so
+        # the real auth.json + .env are COPIED into the temp room by the env builder.
+        # When isolation is opted out (BRICK_BUILD_ISOLATION=0) run_env stays None
+        # (byte-identical inherited-env behavior) and the flags are omitted.
         with tempfile.TemporaryDirectory(prefix="bp-codex-home-") as codex_home_dir, \
                 tempfile.NamedTemporaryFile(prefix="bp-codex-cli-", suffix=".txt") as output_file:
             run_env = _codex_isolated_run_env(Path(codex_home_dir), repo_root)
@@ -521,10 +567,16 @@ def _invoke_local_cli(
             ]
             # ISOLATION lever #2 + MCP wire: ignore the user's ~/.codex config and
             # attach the brick-protocol MCP server via -c overrides (the same
-            # registration shape connect.py renders). Only when isolation is on.
+            # registration shape connect.py renders). Restore ONLY the user's custom
+            # [model_providers.*] DEFINITIONS as -c overrides (so a provider-routed
+            # adapter like codex-fugu-local resolves model_provider="sakana"), WITHOUT
+            # re-admitting the user's MCP/hooks/skills. Provider defs go BEFORE the
+            # spec's routing overrides below so the routing references a defined
+            # provider. All only when isolation is on.
             if run_env is not None:
                 args_list.append("--ignore-user-config")
                 args_list.extend(_codex_mcp_config_cli_args(repo_root))
+                args_list.extend(_codex_user_provider_config_cli_args())
             # OPT-IN ONLY (default invocation byte-identical when the env var is
             # unset/not "1"): codex's non-managed hooks (e.g. the .codex/hooks
             # native-dispatch recording pair) require a one-time interactive
@@ -623,45 +675,54 @@ def _invoke_local_cli(
     if spec.invocation_args_kind == "claude-plan-json":
         knobs = _claude_cli_invocation(request)
         repo_root = _repo_root_for_request(spec)
-        # ISOLATION (Smith 0623): the claude dispatch runs in a SCRUBBED room. A temp
-        # HOME with a minimal ~/.claude/settings.json disabling user hooks, plus
-        # --strict-mcp-config so the inline --mcp-config (the brick-protocol MCP) is
-        # the ONLY MCP set (the user's ~/.claude MCP servers are suppressed), plus
-        # the auth keys carried through the scrub. Opt out -> run_env None
-        # (byte-identical inherited-env behavior) and the strict/mcp flags omitted.
-        with tempfile.TemporaryDirectory(prefix="bp-claude-home-") as claude_home_dir:
-            run_env = _claude_isolated_run_env(Path(claude_home_dir), repo_root)
-            args_list = [
-                executable_path,
-                "-p",
-                "--output-format",
-                "json",
-                "--permission-mode",
-                knobs["permission_mode"],
-                "--system-prompt",
-                knobs["system_prompt"],
-                "--tools",
-                knobs["tools"],
-            ]
-            # ISOLATION lever #1 + MCP wire: attach ONLY the brick-protocol MCP and
-            # suppress the user's ~/.claude MCP servers. Only when isolation is on.
-            if run_env is not None:
-                args_list.extend(
-                    [
-                        "--mcp-config",
-                        _claude_mcp_config_json(repo_root),
-                        "--strict-mcp-config",
-                    ]
-                )
-            # E2/S6 (mirror M6): the claude ``--model`` model flag is now DATA on the
-            # casting model dial's cli_emit; the spawn path loops CASTING_FIELDS.
-            # Byte-identical to the deleted inline ``("--model", model_arg)`` literal.
-            args_list.extend(_casting_cli_args(request, spec))
-            if request.session_continuity_mode == "none":
-                args_list.append("--no-session-persistence")
-            args_list.append(prompt)
-            args = tuple(args_list)
-            return _run_or_delegate(args, cwd, timeout_seconds, command_runner, env=run_env)
+        # ISOLATION (Smith 0624): the claude dispatch keeps the REAL HOME (claude auths
+        # via the macOS keychain, pinned to the real HOME -- a temp HOME breaks auth)
+        # and isolates the personal stuff with FLAGS:
+        #   * --mcp-config (inline brick MCP) + --strict-mcp-config: brick's is the ONLY
+        #     MCP; the user's ~/.claude MCP servers are suppressed (lever #1);
+        #   * --settings disableAllHooks: the user's hooks are off in the build room
+        #     without a temp-HOME settings.json (which would break keychain auth);
+        #   * --setting-sources project: the user `user` source (personal skills +
+        #     settings) is dropped; only project-level settings load.
+        # Opt out (BRICK_BUILD_ISOLATION=0) -> run_env None (real inherited env, no HOME
+        # override) and all four isolation flags omitted (byte-identical legacy shape).
+        run_env = _claude_isolated_run_env()
+        args_list = [
+            executable_path,
+            "-p",
+            "--output-format",
+            "json",
+            "--permission-mode",
+            knobs["permission_mode"],
+            "--system-prompt",
+            knobs["system_prompt"],
+            "--tools",
+            knobs["tools"],
+        ]
+        # ISOLATION levers + MCP wire: attach ONLY the brick-protocol MCP, suppress the
+        # user's ~/.claude MCP servers, turn user hooks off, and drop the user setting
+        # source (personal skills/settings). Only when isolation is on.
+        if run_env is not None:
+            args_list.extend(
+                [
+                    "--mcp-config",
+                    _claude_mcp_config_json(repo_root),
+                    "--strict-mcp-config",
+                    "--settings",
+                    _claude_disable_hooks_settings_json(),
+                    "--setting-sources",
+                    _CLAUDE_ISOLATION_SETTING_SOURCES,
+                ]
+            )
+        # E2/S6 (mirror M6): the claude ``--model`` model flag is now DATA on the
+        # casting model dial's cli_emit; the spawn path loops CASTING_FIELDS.
+        # Byte-identical to the deleted inline ``("--model", model_arg)`` literal.
+        args_list.extend(_casting_cli_args(request, spec))
+        if request.session_continuity_mode == "none":
+            args_list.append("--no-session-persistence")
+        args_list.append(prompt)
+        args = tuple(args_list)
+        return _run_or_delegate(args, cwd, timeout_seconds, command_runner, env=run_env)
     if spec.invocation_args_kind == "gemini-p-json-flash":
         with tempfile.TemporaryDirectory(prefix="bp-gemini-cli-") as tmpdir:
             temp_root = Path(tmpdir)
