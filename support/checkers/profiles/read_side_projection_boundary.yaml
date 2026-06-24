@@ -488,12 +488,6 @@ intake_evidence_projection_case:
       chain_preset_catalog_source: dogfood_chain_presets
       canonical_chain_preset_ref: building-chain-preset:brick-protocol-engine-feature-hard
       common_basis_ref: building-chain-preset:high-risk-change-inspected
-building_plan_boundary:
-  # CLEAN-YARD v3: the retired-adapter LENIENT leg (allow_retired) re-pointed
-  # from the departed dogfood plan project-orchestration-ledger-0.yaml to the
-  # standing fixture (⚠ §1-2 third prescription).
-  - path: brick/building_plans/fixture-retired-adapter-plan-0.yaml
-    allow_retired_write_adapter_refs: true
 proof_limits:
   - support evidence only
   - read-side view backstop checks renderer SHAPE and boundary text, not semantic correctness

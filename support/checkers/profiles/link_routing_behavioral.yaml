@@ -231,16 +231,10 @@ link_route_evidence_case:
     dev_replay_brick: brick-loa0-dev-attempt-2
     qa_replay_brick: brick-loa0-qa-attempt-2
     concern_ref: transition-concern:link-owned-automation-0-implementation-gap
-building_plan_boundary:
-  # CLEAN-YARD v3 (⚠ §1-2): strict plan-boundary rows re-pointed from the
-  # departed dogfood plans to the standing fixtures (plan files are yaml test
-  # data, not building evidence).
-  - path: brick/building_plans/fixture-link-concern-replay-0.yaml
-  - path: brick/building_plans/fixture-link-route-replay-0.yaml
 # CLEAN-YARD v3 (⚠ §1-2): the strict no-retired-adapter invariant is EXECUTED
 # RED-first on the standing retired-adapter fixture (default allow_retired
-# False must reject; the lenient allow_retired row lives in
-# read_side_projection_boundary; the core sweep stays tolerant by design).
+# False must reject; the lenient allow_retired coverage lives in the core
+# sweep, which stays tolerant by design).
 route_policy_boundary:
   - path: link/route_policies/basic_qa_repair.yaml
 route_materialization_case:

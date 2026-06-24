@@ -282,15 +282,6 @@ text_absent:
   # records left for the frozen museum with their cascade_sweep anti-stale
   # text_absent guards (pin follows file); disposition recorded in
   # support/checkers/pin_estate_baseline.yaml (CLEAN-YARD v3 entry).
-# CLEAN-YARD v3 (Smith 0611, ⚠ §1-2): the 12 per-plan strict rows pointed at
-# dogfood plans that left for the frozen museum. The strict no-retired-adapter
-# variant stays single-sourced on per-profile rows; re-pointed to the standing
-# fixtures + the bundled product example plan. The lenient core sweep
-# (building_plans_boundary_sweep) still validates every remaining plan.
-building_plan_boundary:
-  - path: brick/building_plans/fixture-link-concern-replay-0.yaml
-  - path: brick/building_plans/fixture-link-route-replay-0.yaml
-  - path: brick/building_plans/onboarding-example-0.yaml
 route_policy_boundary:
   - path: link/route_policies/basic_qa_repair.yaml
 fail_fixture_rejects:

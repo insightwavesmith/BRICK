@@ -484,22 +484,6 @@ adapter_model_selection_rejects:
     selected_model_ref: model:codex:gpt-test
   - adapter_ref: adapter:gemini-local
     selected_model_ref: model:gemini:bad model with spaces
-# CLEAN-YARD v3 (Smith 0611): the standing 0528 dogfood evidence
-# (preset-three-axis-contract-repair root + the hand-authored
-# preset-three-axis-contract-audit.json status record) left for the frozen
-# museum. The engine-generatable properties are EXECUTED elsewhere:
-# development-return persistence incl. worker_assignments[]/risks[]/
-# blocked_or_missing_evidence[] + evidence_refs -> intake_evidence_projection_
-# case PART B; review transition_concern_evidence.concern_ref/binding +
-# sufficiency facts[].fact.sufficiency/missing_required_facts ->
-# link_route_evidence_case. The audit json's shape pins were HISTORY of a
-# hand-authored 0528 record (not engine output) and retired with it. Strict
-# plan-boundary rows re-point to the standing fixtures (⚠ §1-2).
-building_plan_boundary:
-  - path: brick/building_plans/fixture-link-concern-replay-0.yaml
-  - path: brick/building_plans/fixture-retired-adapter-plan-0.yaml
-    allow_retired_write_adapter_refs: true
-  - path: brick/building_plans/fixture-link-route-replay-0.yaml
 write_scope_default_exclude_case:
   - label: provider-residue-excluded
     case_kind: provider_residue_excluded
