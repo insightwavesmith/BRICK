@@ -1390,6 +1390,39 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
                 f"read-tier read-write-scoped codex prompt leaked write-tier permission phrase {phrase!r}"
             )
 
+    fugu_nonwrite_request = adapter.AgentAdapterRequest(
+        building_id="agent-read-tier-fugu-readonly-probe",
+        agent_object_ref="agent-object:dev",
+        adapter_ref=adapter_constants.ADAPTER_CODEX_FUGU_LOCAL,
+        brick_instance_ref="brick-readonly-worker",
+        next_brick_instance_ref="brick-closure",
+        tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
+        agent_instruction_packet=dev_packet,
+    )
+    if adapter.agent_request_effective_write(fugu_nonwrite_request):
+        raise ProfileError("fugu read-write-scoped without write_scope must not be effective_write")
+    if not adapter.agent_request_read_tier(fugu_nonwrite_request):
+        raise ProfileError(
+            "read-only Brick + tool-capable fugu Agent (read-write-scoped, no write_scope) "
+            "did not enter the read tier"
+        )
+    fugu_prompt = json.loads(
+        adapter_grant_policy._build_prompt(
+            fugu_nonwrite_request,
+            adapter._LOCAL_CLI_SPECS[adapter_constants.ADAPTER_CODEX_FUGU_LOCAL],
+        )
+    )
+    fugu_rules = list(fugu_prompt.get("rules", []))
+    if "Do not use tools or hooks." in fugu_rules:
+        raise ProfileError("read-tier read-write-scoped fugu prompt still rendered the none-tier no-tools rule")
+    if expected_read_rule not in fugu_rules:
+        raise ProfileError("read-tier read-write-scoped fugu prompt did not expose repository inspection rule")
+    for phrase in ("You may edit files only inside", "write_scope.allowed_paths"):
+        if any(phrase in rule for rule in fugu_rules):
+            raise ProfileError(
+                f"read-tier read-write-scoped fugu prompt leaked write-tier permission phrase {phrase!r}"
+            )
+
     gemini_inspect_request = adapter.AgentAdapterRequest(
         building_id="agent-read-tier-gemini-inspect-probe",
         agent_object_ref="agent-object:inspector",

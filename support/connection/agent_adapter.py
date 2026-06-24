@@ -903,7 +903,12 @@ def agent_request_read_tier(request: AgentAdapterRequest) -> bool:
         return False
     if not tool_policy_refs.intersection(READ_TIER_TOOL_POLICY_REFS):
         return False
-    return request.adapter_ref in {ADAPTER_CODEX_LOCAL, ADAPTER_CLAUDE_LOCAL, ADAPTER_GEMINI_LOCAL}
+    return request.adapter_ref in {
+        ADAPTER_CODEX_LOCAL,
+        ADAPTER_CODEX_FUGU_LOCAL,
+        ADAPTER_CLAUDE_LOCAL,
+        ADAPTER_GEMINI_LOCAL,
+    }
 
 
 def _read_tier_policy_refs_for_request(request: AgentAdapterRequest) -> frozenset[str]:
