@@ -1,0 +1,12 @@
+# BrickInput · seq 4 · ["Brick"]
+- axis_scope: ["Brick"]
+- brick_instance_ref: "brick-four-llm-standard-graph-dogfood-design-0625-design"
+- comparison_rule: "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickInput"
+- required_return_shape: "observed_evidence,design_summary,relevant_current_structure,proposed_changes,unchanged_surfaces,axis_responsibility,invariants,edge_cases,checker_or_verifier_plan,candidate_file_changes,evidence_refs,not_proven,reading_scope_map"
+- run_segment: 1
+- sequence_index: 4
+- source_facts: ["task-source:inline-statement"]
+- spine_schema_version: "spine-v1"
+- step_ref: "four-llm-standard-graph-dogfood-design-0625-design"
+- work_statement: "design Brick for task-source:inline-statement: BRICK COO declared P4 design Building: 4-LLM standard graph dogfood design."

@@ -1,0 +1,168 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:four-llm-standard-graph-dogfood-design-0625::work/step-outputs/four-llm-standard-graph-dogfood-design-0625-closure-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-four-llm-standard-graph-dogfood-design-0625-closure",
+  "building_id": "four-llm-standard-graph-dogfood-design-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:03",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-24T23:34:05.598576Z",
+  "id": "urn:bp:building:four-llm-standard-graph-dogfood-design-0625::work/step-outputs/four-llm-standard-graph-dogfood-design-0625-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:03:four-llm-standard-graph-dogfood-design-0625-closure",
+  "recorded_at": "2026-06-24T23:34:05.598576Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:coo",
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:four-llm-standard-graph-dogfood-design-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "deferred_smith_review_queue": [
+      "Human/quality decision: is the proposed lane->provider mapping (Codex work / Claude QA / Gemini broad / Fugu axis) and a single fan-in closure semantically sufficient, or is a second mid-closure (two-fan-in-graph Y-shape) needed for hard QA?",
+      "Approval to proceed to the write Building that authors the new dogfood preset and to declare the work-codex write_scope.",
+      "Decision on whether to run the read-only 4-provider smoke before, or in place of, the full write run given provider-availability uncertainty."
+    ],
+    "evidence_refs": [
+      "support-packet:four-llm-standard-graph-dogfood-design-0625:agent-object:coo:output"
+    ],
+    "narrowly_proven": [
+      "The design Brick returned a complete, in-shape design: all 13 design/return.yaml fields present, no forbidden top-level keys, and each of the 6 inline-task design items mapped to a named field (topology + core_4llm_graph_nodes; axis_responsibility; invariants + link_movement_and_fanin_policy; node list w/ agent_object_ref/adapter_ref/model_ref/write_scope/return-shape/handoff; run-now-vs-not_proven split; next_building_candidate + minimal_preflight_checks).",
+      "The design is structurally composable on existing substrate: fan_out_groups/fan_in_groups/converge_on/closure_transition_target_policy/gate_concept_profile[strict-evidence,fan-in-wait-all] already exist in triage-fanout-3 and two-fan-in-graph, and review-fleet is a pre-existing per-step mixed-provider precedent — confirmed by both design and review reads.",
+      "Discovered axis constraint reproduces: only agent-object:inspector (gemini-local + gemini-api) and agent-object:qa (gemini-local) admit a gemini adapter, so the Gemini lane MUST bind inspector/qa; gemini is not an observed-write adapter, so the single write node must be work-codex (codex-local).",
+      "The review found no boundary violations and emitted no transition_concern; the design->review->closure chain advanced forward under link-gate:default-transition with no reroute."
+    ],
+    "next_target_candidates": [
+      "A COO-declared write Building to author the four-llm-standard-graph preset (+ optional read-only smoke preset) and run the targeted topology/binding/write-scope/gate checkers (avoid --all).",
+      "A read-only 4-provider connect smoke Building (each provider one tiny read, fan-in closure) as preflight before any write run.",
+      "After smoke passes: a run Building executing work-codex (narrow 'dir/*' write_scope) + 3 read-only lenses + coo closure, with the design's minimal_preflight_checks as the gate.",
+      "These are candidate Movements only; target/Movement selection is the Link gate's and human's, not synthesized here."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Live 4-provider execution — no provider was run (read-only design + read-only review only).",
+      "Provider availability at run: gemini-local CLI / gemini-api key, codex-fugu-local sakana routing reachability, codex-local and claude-local runtime presence.",
+      "Model-ref backend resolution: model:codex:default / model:claude:inherit / model:gemini:default / model:sakana:fugu actually resolving to reachable backends.",
+      "Whether the proposed four-llm-standard-graph preset materializes green — no topology/binding checker was run (review avoided --all and live runs).",
+      "Claude-local runtime write proof (P3 carryover) — structurally write-capable, runtime write still unobserved.",
+      "Runtime parallel fan-out behavior — existing presets state 'preset is not runtime parallel execution'; concurrent execution unobserved.",
+      "Semantic fitness/quality of the lane->provider mapping and whether one fan-in closure suffices for hard QA (a second mid-closure Y-shape may be needed) — quality scope, not judged here.",
+      "Design's 'all six objects admit codex-fugu-local' claim — review re-verified only dev.yaml.",
+      "brain surface behavior, credential validity, tool or hook execution, runtime/scheduler behavior, source truth, success judgment, quality judgment, Movement authority."
+    ],
+    "observed_evidence": [
+      "Read work/step-outputs/four-llm-standard-graph-dogfood-design-0625-design-attempt-1/step-output.json: agent-object:design-lead via adapter:claude-local returned all 13 design return_shape fields; design_summary = smallest standard 4-LLM dogfood graph is a single fan-out/fan-in board (5 nodes: work-codex root + 3 read-only lenses [claude-structure-qa, gemini-broad-review, fugu-axis-attack] fanning into 1 coo closure); proposed_changes names PROPOSED (not written) preset brick/templates/presets/four-llm-standard-graph.md plus optional read-only smoke preset; no engine/agent-object/adapter edits required.",
+      "Read work/step-outputs/four-llm-standard-graph-dogfood-design-0625-review-attempt-1/step-output.json: agent-object:qa-lead via adapter:claude-local returned observed_matches confirming all 6 inline-task design items addressed, all 13 design fields present, no forbidden_return_keys; boundary_violations = []; transition_concern_evidence = null; load-bearing source claims (observed-write adapter set {codex-local,codex-fugu-local,claude-local}; gemini admitted only via inspector/qa; fan-in mechanism pre-exists in triage-fanout-3; mixed-provider precedent in review-fleet) reproduce against worktree artifacts.",
+      "Read declared-building-plan.json: this Building is a 3-node linear design->review->closure chain (chain_preset building-chain-preset:design-contract-only, plan_shape graph, declared_by coo-codex); all edges movement=forward, gate link-gate:default-transition; closure edge closes building-boundary:four-llm-standard-graph-dogfood-design-0625-closed.",
+      "Carried review missing_or_mismatched_facts: one benign wording gap (inline task asked for top-level narrowly_proven + 'next Movement candidate', but design/return.yaml has no such field, so design folded the next-Building/Movement candidate into proposed_changes.next_building_candidate) — recorded as wording gap, not a return-shape violation; plus two spot-check limits (codex-fugu-local admission re-verified only for dev.yaml; gemini model-ref->adapter run resolution unverified)."
+    ],
+    "output_excerpt": "Both prior step outputs and the declared plan are in hand. The design node produced the 4-LLM graph design; the review node confirmed all 13 design fields present, no forbidden keys, source claims reproduce, with only one benign wording gap and no boundary violations. Here is the closure synthesis. ```json { \"observed_evidence\": [ \"Read work/step-outputs/four-llm-standard-graph-dogfood-design-0625-design-attempt-1/step-output.json: agent-object:design-lead via adapter:claude-local returned all 13 design return_shape fields; design_summary = smallest standard 4-LLM dogfood graph is a single ...",
+    "parent_goal_delta_status": {
+      "closed_delta_refs": [
+        "P4-design-deliverable:4llm-graph-design returned and reviewed in-shape (design step-output + review step-output, no boundary violations)"
+      ],
+      "evidence_refs": [
+        "work/step-outputs/four-llm-standard-graph-dogfood-design-0625-design-attempt-1/step-output.json",
+        "work/step-outputs/four-llm-standard-graph-dogfood-design-0625-review-attempt-1/step-output.json",
+        "declared-building-plan.json",
+        "task-source:inline-statement"
+      ],
+      "matched_delta_refs": [
+        "task-item-1:smallest-4llm-graph -> design proposed_changes.topology + core_4llm_graph_nodes",
+        "task-item-2:3-axis-law -> design axis_responsibility (Brick/Agent/Link/support)",
+        "task-item-3:HOLD-safe-fan-in -> design invariants + link_movement_and_fanin_policy (fan-in-wait-all, implementation_gap->reroute, verification_gap->hold)",
+        "task-item-4:concrete-node-list -> design core_4llm_graph_nodes + link_movement_and_fanin_policy + evidence_ref_handoff_expectations",
+        "task-item-5:run-now-vs-not_proven -> design design_summary + not_proven split",
+        "task-item-6:next-building-candidate+preflight -> design proposed_changes.next_building_candidate"
+      ],
+      "missing_delta_refs": [],
+      "open_delta_refs": [
+        "preset-authoring:four-llm-standard-graph.md not written",
+        "read-only-4provider-smoke not run",
+        "full-4llm-graph-run not run",
+        "P2:taxonomy-diet-implementation",
+        "P3:claude-local-runtime-write-proof"
+      ],
+      "unknown_delta_refs": [
+        "semantic-fitness:lane-to-provider-mapping",
+        "sufficiency:single-fan-in-closure-for-hard-QA",
+        "preset-materializes-green (not checker-run)"
+      ]
+    },
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "remaining_delta": [
+      "Author (separate write Building) the proposed preset brick/templates/presets/four-llm-standard-graph.md (catalog_scope brick_protocol_dogfood) plus the optional read-only smoke preset, then run the topology/binding/write-scope-intersection/gate-resolution checkers the design listed — none written or run yet.",
+      "Run a read-only single-pass smoke first (each of the 4 providers reads one fixed file, fan-in closure) to prove each adapter connects with no write and no long run.",
+      "Run the full graph (work-codex with a narrow 'dir/*' write_scope + 3 lenses + closure) only after the smoke proves all 4 providers connect.",
+      "Carry-forward from upstream context still open: P2 taxonomy/diet implementation; P3 claude-local runtime write proof.",
+      "Preflight the write_scope glob form ('dir/*' not bare 'dir/') with an fnmatch probe before any write run (known write_scope glob trap)."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:03:four-llm-standard-graph-dogfood-design-0625-closure",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:four-llm-standard-graph-dogfood-design-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:four-llm-standard-graph-dogfood-design-0625-closure:attempt-1",
+  "step_ref": "four-llm-standard-graph-dogfood-design-0625-closure",
+  "subject": "four-llm-standard-graph-dogfood-design-0625-closure",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-24T23:34:05.598576Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

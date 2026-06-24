@@ -1,0 +1,20 @@
+# PresetExpansion · seq 1 · ["Brick"]
+- axis_scope: ["Brick"]
+- building_id: "four-llm-standard-graph-dogfood-design-0625"
+- canonical_chain_preset_ref: "building-chain-preset:design-contract-only"
+- chain_preset_catalog_scope: "common"
+- chain_preset_catalog_source: "common_chain_presets"
+- chain_preset_ref: "building-chain-preset:design-contract-only"
+- common_basis_ref: ""
+- compat_chain_preset_ref: ""
+- composition_mode: "caller_or_coo_declared_graph_composition"
+- event_type: "PresetExpansion"
+- expanded_brick_template_refs: ["brick/templates/bricks/design/return.yaml","brick/templates/bricks/transition-concern-return.yaml","brick/templates/bricks/review/return.yaml","brick/templates/bricks/closure/return.yaml"]
+- expanded_step_template_refs: ["building-step-template:design","building-step-template:review","building-step-template:closure"]
+- plan_ref: "building-plan:four-llm-standard-graph-dogfood-design-0625"
+- run_segment: 1
+- selected_preset_ref: "building-chain-preset:design-contract-only"
+- selected_shape_ref: ""
+- sequence_index: 1
+- shape_catalog_ref: "brick-template-catalog:split-p3b-p4"
+- spine_schema_version: "spine-v1"

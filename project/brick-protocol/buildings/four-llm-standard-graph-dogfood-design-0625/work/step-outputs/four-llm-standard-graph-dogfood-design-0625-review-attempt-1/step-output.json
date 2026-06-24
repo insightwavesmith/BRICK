@@ -1,0 +1,158 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:four-llm-standard-graph-dogfood-design-0625::work/step-outputs/four-llm-standard-graph-dogfood-design-0625-review-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-four-llm-standard-graph-dogfood-design-0625-review",
+  "building_id": "four-llm-standard-graph-dogfood-design-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-24T23:32:58.879939Z",
+  "id": "urn:bp:building:four-llm-standard-graph-dogfood-design-0625::work/step-outputs/four-llm-standard-graph-dogfood-design-0625-review-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:four-llm-standard-graph-dogfood-design-0625-review",
+  "recorded_at": "2026-06-24T23:32:58.879939Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:qa-lead",
+    "boundary_violations": [],
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "checked_sources": [
+      "project/.../work/step-outputs/four-llm-standard-graph-dogfood-design-0625-design-attempt-1/step-output.json",
+      "brick/templates/bricks/design/return.yaml",
+      "project/.../work/declared-building-plan.json",
+      "support/connection/adapter_constants.py",
+      "agent/objects/inspector.yaml",
+      "agent/objects/qa.yaml",
+      "agent/objects/dev.yaml",
+      "brick/templates/presets/triage-fanout-3.md",
+      "brick/templates/presets/review-fleet.md"
+    ],
+    "checked_work": "design Brick for task-source:inline-statement (P4 design Building: 4-LLM standard graph dogfood design), against design/return.yaml required_return_shape and the inline task's 6 required design items.",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:four-llm-standard-graph-dogfood-design-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "evidence_refs": [
+      "support-packet:four-llm-standard-graph-dogfood-design-0625:agent-object:qa-lead:output"
+    ],
+    "evidence_used": [
+      "project/brick-protocol/buildings/four-llm-standard-graph-dogfood-design-0625/work/step-outputs/four-llm-standard-graph-dogfood-design-0625-design-attempt-1/step-output.json",
+      "brick/templates/bricks/design/return.yaml",
+      "project/brick-protocol/buildings/four-llm-standard-graph-dogfood-design-0625/work/declared-building-plan.json",
+      "support/connection/adapter_constants.py (lines 75-107)",
+      "agent/objects/inspector.yaml (lines 34-35)",
+      "agent/objects/qa.yaml (line 33)",
+      "agent/objects/dev.yaml (lines 27-33)",
+      "brick/templates/presets/triage-fanout-3.md (lines 39-70)",
+      "brick/templates/presets/review-fleet.md (lines 3,11-27)"
+    ],
+    "missing_or_mismatched_facts": [
+      "Inline task asked to 'Return exact observed_evidence refs, narrowly_proven, not_proven, and next Movement candidate', but the governing design/return.yaml has no narrowly_proven field and no movement field (movement_choice is forbidden). The design emitted observed_evidence + evidence_refs + not_proven and folded the next-Building/Movement candidate into proposed_changes.next_building_candidate and candidate_file_changes; there is no top-level narrowly_proven. This is a wording gap between the inline statement and the design template, not a return-shape violation.",
+      "Design's claim 'all six objects admit adapter:codex-fugu-local' was only spot-verified for dev.yaml (admits codex-fugu-local); the other five objects were not individually re-read in this review.",
+      "Gemini-lane node lists model_ref 'model:gemini:default' while pairing 'agent-object:inspector'; adapter/object admission verified, but the model-ref->adapter resolution at run is unverified (design itself lists this under not_proven)."
+    ],
+    "narrowly_proven": [
+      "The design return contains all 13 declared design return_shape fields and no forbidden top-level keys.",
+      "Each cited load-bearing source claim (observed-write adapter set; gemini admission only via inspector/qa; pre-existing fan-out/fan-in/closure mechanism in triage-fanout-3; mixed-provider precedent in review-fleet) reproduces against the worktree artifacts I read.",
+      "All 6 inline-task design items are addressed by named fields in the returned object."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Semantic fitness/quality of the proposed 4-LLM graph and whether one fan-in closure suffices for hard QA — not judged (human/quality scope).",
+      "Whether the proposed preset would materialize green — no checker run (review is read-only; avoided --all and live runs).",
+      "Live 4-provider execution, provider availability, model-ref backend resolution, and claude-local runtime write — all unobserved (carried as design's own not_proven).",
+      "Design's 'all six objects admit codex-fugu-local' claim beyond dev.yaml — not exhaustively re-verified.",
+      "Sufficiency for Link Movement and route target — not decided here (Link gate's authority)."
+    ],
+    "observed_evidence": [
+      "Read prior step-output.json (work/step-outputs/four-llm-standard-graph-dogfood-design-0625-design-attempt-1/step-output.json): agent_object_ref=design-lead, adapter:claude-local, returned object carries all 13 design fields.",
+      "Read brick/templates/bricks/design/return.yaml: required_return_shape = [observed_evidence, design_summary, relevant_current_structure, proposed_changes, unchanged_surfaces, axis_responsibility, invariants, edge_cases, checker_or_verifier_plan, candidate_file_changes, evidence_refs, not_proven, reading_scope_map]; forbidden_return_keys = success/failure/approved/quality/movement_choice/route_target.",
+      "Read declared-building-plan.json: design node required_return_shape string matches the 13-field template; work_statement = 'design Brick for task-source:inline-statement'; design->review->closure all movement=forward, gate link-gate:default-transition.",
+      "Read support/connection/adapter_constants.py: _OBSERVED_WRITE_ADAPTER_REFS={codex-local, codex-fugu-local, claude-local}; gemini-local={read,review,web}, gemini-api={read,review} (no write).",
+      "Grep agent/objects gemini: only inspector.yaml (gemini-local + gemini-api) and qa.yaml (gemini-local) admit a gemini adapter; dev.yaml admits no gemini adapter.",
+      "Read brick/templates/presets/triage-fanout-3.md: graph_topology with fan_out_groups, fan_in_groups(converge_on triage-closure), closure_transition_target_policy, gate_concept_profile incl fan-in-wait-all — fan/fan-in/closure mechanism pre-exists.",
+      "Read brick/templates/presets/review-fleet.md: catalog_scope common; per-step selected_adapter_ref + selected_model_ref(model:claude:sonnet) — mixed-provider precedent confirmed."
+    ],
+    "observed_matches": [
+      "All 13 design return_shape fields present in returned object (observed_evidence, design_summary, relevant_current_structure, proposed_changes, unchanged_surfaces, axis_responsibility, invariants, edge_cases, checker_or_verifier_plan, candidate_file_changes, evidence_refs, not_proven, reading_scope_map).",
+      "No forbidden_return_keys (success/failure/approved/quality/movement_choice/route_target) at top level of returned.",
+      "Task item 1 (smallest 4-LLM graph: Codex work / Claude QA / Gemini broad / Fugu axis) covered by design_summary + proposed_changes.topology + core_4llm_graph_nodes (5 nodes: work-codex + 3 lenses + closure).",
+      "Task item 2 (3-axis law) covered by axis_responsibility mapping Brick/Agent/Link/support.",
+      "Task item 3 (HOLD-safe fan-out/fan-in + closure surfaces non-binding transition_concern) covered by invariants + link_movement_and_fanin_policy (fan-in-wait-all, implementation_gap->reroute, verification_gap->hold).",
+      "Task item 4 (concrete node list w/ agent_object_ref, adapter_ref, model_ref, write_scope need, return-shape intent, Link movement/target/fan-in, evidence handoff) covered by core_4llm_graph_nodes + link_movement_and_fanin_policy + evidence_ref_handoff_expectations.",
+      "Task item 5 (run-now vs not_proven) covered: structural composability asserted now, live 4-provider execution + provider availability + runtime write listed in not_proven.",
+      "Task item 6 (next Building candidate + minimal preflight) covered by proposed_changes.next_building_candidate (full_run, read-only smoke first, minimal_preflight_checks).",
+      "evidence_refs grounding requirement satisfied: list includes inspected repo file paths (support/connection/adapter_constants.py, agent/objects/*, brick/templates/presets/*, link/*.yaml).",
+      "Source claims reproduce: observed-write adapter set, gemini admission only via inspector/qa, fan-in mechanism in triage-fanout-3, mixed-provider precedent in review-fleet — all match worktree artifacts.",
+      "Env constraint (permission-denied under /Users/smith/projects/BRICK) correctly recorded in not_proven rather than as a transition_concern."
+    ],
+    "output_excerpt": "I have sufficient grounding. Here is my review evidence. ## Review summary I checked the prior **design** node's `step-output.json` against (a) its declared `required_return_shape` (`brick/templates/bricks/design/return.yaml`), (b) the inline task source's 6 required design items, and (c) the repository sources the design cited. All 13 design return fields are present, forbidden keys are absent, and the design's load-bearing source claims reproduce against the worktree artifacts. One benign wording mismatch noted (inline task asked for `narrowly_proven`/\"next Movement candidate\" but the gov...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:02:four-llm-standard-graph-dogfood-design-0625-review",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:four-llm-standard-graph-dogfood-design-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:four-llm-standard-graph-dogfood-design-0625-review:attempt-1",
+  "step_ref": "four-llm-standard-graph-dogfood-design-0625-review",
+  "subject": "four-llm-standard-graph-dogfood-design-0625-review",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-24T23:32:58.879939Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}
