@@ -211,10 +211,22 @@ class _FrontierDriver:
                         hold_item=item,
                         hold_observation=wait_observation,
                     )
+            # HOLD-SAFE PARALLEL: a fan-in TARGET (join) dispatches ALONE, never batched
+            # with siblings/sources. A reroute/HOLD only emerges AFTER a node RUNS, and
+            # ready_items cannot foresee it; batching a join alongside a node about to
+            # reroute/HOLD lets the join BODY run before the HOLD applies (the knot3-cohort-g
+            # break). So joins are batch-terminal: this item either starts a fresh batch
+            # alone (ready empty -> append + break) or waits for the next batch (ready
+            # non-empty -> break WITHOUT advancing). Independent fan-out lanes still batch.
+            is_fan_in_target = bool(fan_in_sources_by_target.get(step_ref))
+            if is_fan_in_target and ready:
+                break
             self._cursor += 1
             ready.append(item)
             if has_fan_groups:
                 running_fan_steps.add((step_ref, cascade_depth))
+            if is_fan_in_target:
+                break
         return _ReadyItemsResult(items=tuple(ready))
 
     def pending_items(self) -> list[dict[str, Any]]:
@@ -277,6 +289,23 @@ def _fanout_dispatch_pool_size(plan: Mapping[str, Any]) -> int:
     if value < 1:
         raise ValueError("fanout_dispatch_pool_size must be a positive integer")
     return value
+
+
+# AUTO-PARALLEL default: a drawn fan() IS the parallel declaration. When the plan has fan
+# groups and NO explicit pool override is set, default the dispatch pool to this cap so
+# fan-out runs concurrent BY DEFAULT. HOLD-safe because ready_items forces fan-in TARGETS
+# (joins) to dispatch alone (batch-terminal), so a sibling's data-dependent reroute/HOLD is
+# applied before any join body runs. Record order stays canonical (the drain pops
+# pending_outcomes FIFO = submission/frontier order, independent of completion timing).
+# Resume/replay stays serial via the resume guard. An explicit env/plan override still wins.
+_FANOUT_AUTO_POOL = 8
+
+
+def _has_explicit_fanout_pool_override(plan: Mapping[str, Any]) -> bool:
+    env = os.environ.get("BRICK_FANOUT_DISPATCH_POOL_SIZE")
+    if env not in (None, ""):
+        return True
+    return "fanout_dispatch_pool_size" in plan
 
 
 def _carries_forward_fields_for_result(
@@ -2442,6 +2471,11 @@ def _run_dynamic_graph_walker(
     dispatch_pool_size = _fanout_dispatch_pool_size(linear_plan)
     if resume_seed is not None or not has_fan_groups:
         dispatch_pool_size = 1
+    elif not _has_explicit_fanout_pool_override(linear_plan):
+        # A drawn fan IS the parallel declaration -> run concurrent by default.
+        # HOLD-safe (joins batch-terminal) + record stays canonical (FIFO drain).
+        # Explicit override above still wins; resume stays serial.
+        dispatch_pool_size = _FANOUT_AUTO_POOL
     pending_outcomes: list[tuple[dict[str, Any], NodeProcessingOutcome]] = []
 
     def _process_item(

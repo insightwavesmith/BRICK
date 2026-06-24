@@ -8427,28 +8427,62 @@ def _check_dynamic_full_replay_expected(
     label: str,
 ) -> None:
     events = observed.events or []
-    bricks = [str(event.get("brick_instance_ref", "")) for event in events]
     source_brick = require_string(
         expected.get("reroute_source_brick_instance_ref"),
         f"{label}: expected.reroute_source_brick_instance_ref",
+    )
+    consumer_brick = require_string(
+        expected.get("consumer_brick_instance_ref"),
+        f"{label}: expected.consumer_brick_instance_ref",
     )
     replay_window = require_string_list(
         expected.get("replay_window_brick_instance_refs", []),
         f"{label}: expected.replay_window_brick_instance_refs",
     )
+    # CANONICAL-ORDER ORACLE (P6-C parallel fix): the ORDERED replay window is
+    # asserted on the RECORDED ledger (result.step_results), NOT on
+    # observed.events. observed.events is appended INSIDE the agent callable at
+    # invocation time, so under pool>1 the fan-out siblings (code/axis/evidence
+    # QA) append in thread-COMPLETION order -- a race that has nothing to do with
+    # what BRICK persisted. The drain (walker_kernel._drain_pending_outcomes_
+    # before_terminal) records step_results in canonical frontier/declaration
+    # order, byte-identical for pool=1 and pool=N. So derive the window from the
+    # persisted ledger; the events hook stays the source of truth only for the
+    # ORDER-INDEPENDENT carry/marker/source-fact assertions below.
+    recorded = [
+        str(step_result.preparation.brick_instance_ref)
+        for step_result in result.step_results
+    ]
     try:
-        source_index = bricks.index(source_brick)
+        # LAST occurrence of the reroute source: it is the step the human reroute
+        # fired from; the replay segment is everything recorded AFTER it.
+        source_index = max(
+            index for index, ref in enumerate(recorded) if ref == source_brick
+        )
     except ValueError as exc:
         raise ProfileError(
-            f"step_output_drain_case rejected {label}: reroute source was not called"
+            f"step_output_drain_case rejected {label}: reroute source was not recorded"
         ) from exc
-    closure_index = _check_replay_closure_carry(events, expected, label=label)
-    observed_slice = bricks[source_index + 1 : closure_index + 1]
-    if observed_slice != replay_window:
+    try:
+        # FIRST occurrence of the consumer (fan-in closure) AFTER the source.
+        closure_index = next(
+            index
+            for index, ref in enumerate(recorded)
+            if ref == consumer_brick and index > source_index
+        )
+    except StopIteration as exc:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: replay closure was not recorded"
+        ) from exc
+    recorded_slice = recorded[source_index + 1 : closure_index + 1]
+    if recorded_slice != replay_window:
         raise ProfileError(
             f"step_output_drain_case rejected {label}: full replay window mismatch "
-            f"(got={observed_slice}, expected={replay_window})"
+            f"(got={recorded_slice}, expected={replay_window})"
         )
+    # Order-independent: the consumer event must still carry the full QA cohort
+    # (set/membership + marker check), unaffected by sibling completion order.
+    _check_replay_closure_carry(events, expected, label=label)
     dynamic_evidence = require_mapping(
         getattr(result, "_dynamic_walker_evidence", {}),
         f"{label}: _dynamic_walker_evidence",
