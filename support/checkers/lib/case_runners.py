@@ -7997,11 +7997,15 @@ def run_step_output_drain_case(repo: Path, profile: Mapping[str, Any]) -> int:
                 reroute_once_from_brick=(
                     "brick-replay-closure-a"
                     if case_kind == "live_dynamic_full_replay_n3"
+                    else "brick-qa-reroute-code-attack-qa"
+                    if case_kind == "live_qa_reroute_to_work_n2"
                     else ""
                 ),
                 reroute_target_brick=(
                     "brick-replay-work-b"
                     if case_kind == "live_dynamic_full_replay_n3"
+                    else "brick-qa-reroute-work"
+                    if case_kind == "live_qa_reroute_to_work_n2"
                     else ""
                 ),
             )
@@ -8021,6 +8025,12 @@ def run_step_output_drain_case(repo: Path, profile: Mapping[str, Any]) -> int:
                 _check_dynamic_full_replay_expected(
                     result,
                     observed,
+                    expected,
+                    label=label,
+                )
+            elif case_kind == "live_qa_reroute_to_work_n2":
+                _check_qa_reroute_expected(
+                    result,
                     expected,
                     label=label,
                 )
@@ -8567,6 +8577,58 @@ def _check_dynamic_full_replay_expected(
         raise ProfileError(f"step_output_drain_case rejected {label}: dynamic replay held")
 
 
+def _check_qa_reroute_expected(
+    result: Any,
+    expected: Mapping[str, Any],
+    *,
+    label: str,
+) -> None:
+    recorded = [
+        str(step_result.preparation.brick_instance_ref)
+        for step_result in result.step_results
+    ]
+    expected_recorded = require_string_list(
+        expected.get("recorded_brick_instance_refs", []),
+        f"{label}: expected.recorded_brick_instance_refs",
+    )
+    if recorded != expected_recorded:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: recorded reroute sequence mismatch "
+            f"(got={recorded}, expected={expected_recorded})"
+        )
+    records = getattr(result, "_dynamic_walker_reroute_records", ())
+    adopted = [
+        record
+        for record in records
+        if isinstance(record, Mapping) and not record.get("disposition_required")
+    ]
+    if len(adopted) != 1:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: expected one adopted QA reroute, observed {len(adopted)}"
+        )
+    expected_target = require_string(
+        expected.get("adopted_target_ref"),
+        f"{label}: expected.adopted_target_ref",
+    )
+    observed_target = str(
+        adopted[0].get("target_ref")
+        or adopted[0].get("target_brick_ref")
+        or adopted[0].get("pending_target_ref")
+        or ""
+    )
+    if observed_target and observed_target != expected_target:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: adopted target mismatch "
+            f"(got={observed_target!r}, expected={expected_target!r})"
+        )
+    dynamic_evidence = require_mapping(
+        getattr(result, "_dynamic_walker_evidence", {}),
+        f"{label}: _dynamic_walker_evidence",
+    )
+    if dynamic_evidence.get("held") is True:
+        raise ProfileError(f"step_output_drain_case rejected {label}: QA reroute proof held")
+
+
 def _check_replay_closure_carry(
     events: Sequence[Mapping[str, Any]],
     expected: Mapping[str, Any],
@@ -8610,6 +8672,8 @@ def _step_output_drain_plan(case_kind: str, *, missing: bool) -> tuple[Mapping[s
         return _dynamic_step_output_drain_plan(missing=missing), "dynamic"
     if case_kind == "live_dynamic_full_replay_n3":
         return _dynamic_full_replay_drain_plan(partial=False), "dynamic"
+    if case_kind == "live_qa_reroute_to_work_n2":
+        return _qa_reroute_to_work_drain_plan(), "dynamic"
     if case_kind == "live_dynamic_partial_replay_rejected":
         return _dynamic_full_replay_drain_plan(partial=True), "dynamic"
     if case_kind == "live_linear_missing_step_output_body":
@@ -8761,6 +8825,70 @@ def _dynamic_step_output_drain_plan(*, missing: bool) -> Mapping[str, Any]:
                 ],
             },
         ],
+    }
+
+
+def _qa_reroute_to_work_drain_plan() -> Mapping[str, Any]:
+    """Small graph proving a QA-emitted concern is not decorative.
+
+    work -> code-attack-qa -> closure. The observed callable emits one
+    implementation_gap transition_concern_evidence from the QA brick targeting
+    the upstream work brick. The dynamic walker should adopt the valid concern
+    under default-transition, consume the work node's reroute budget, and record
+    a second work attempt before closure. This is support evidence only: it does
+    not make QA a Movement authority and does not judge success/quality.
+    """
+
+    return {
+        "plan_ref": "building-plan:checker-live-qa-reroute-to-work",
+        "building_id": "checker-live-qa-reroute-to-work",
+        "plan_shape": "graph",
+        "selected_adapter_ref": "adapter:local",
+        "proof_limits": _step_output_drain_proof_limits(),
+        "not_proven": ["checker live runner proof only"],
+        "execution_order": [
+            "qa-reroute-work",
+            "qa-reroute-code-attack-qa",
+            "qa-reroute-closure",
+        ],
+        "brick_steps": [
+            _graph_brick_step(
+                "qa-reroute-work",
+                "brick-qa-reroute-work",
+                "edge:qa-reroute-work-to-code-attack-qa",
+            ),
+            _graph_brick_step(
+                "qa-reroute-code-attack-qa",
+                "brick-qa-reroute-code-attack-qa",
+                "edge:qa-reroute-code-attack-qa-to-closure",
+            ),
+            _graph_brick_step(
+                "qa-reroute-closure",
+                "brick-qa-reroute-closure",
+                "edge:qa-reroute-closure-to-boundary",
+            ),
+        ],
+        "link_edges": [
+            _graph_link_edge(
+                "edge:qa-reroute-work-to-code-attack-qa",
+                "qa-reroute-work",
+                "qa-reroute-code-attack-qa",
+                "brick-qa-reroute-code-attack-qa",
+            ),
+            _graph_link_edge(
+                "edge:qa-reroute-code-attack-qa-to-closure",
+                "qa-reroute-code-attack-qa",
+                "qa-reroute-closure",
+                "brick-qa-reroute-closure",
+            ),
+            _graph_link_edge(
+                "edge:qa-reroute-closure-to-boundary",
+                "qa-reroute-closure",
+                "",
+                "building-boundary:checker-live-qa-reroute-to-work-closed",
+            ),
+        ],
+        "node_reroute_budgets": {"brick-qa-reroute-work": 1},
     }
 
 

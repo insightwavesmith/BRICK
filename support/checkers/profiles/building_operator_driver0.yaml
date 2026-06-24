@@ -133,6 +133,23 @@ step_output_drain_case:
         - work/step-outputs/fan-code-qa-attempt-1/step-output.json
         - work/step-outputs/fan-axis-qa-attempt-1/step-output.json
         - work/step-outputs/fan-evidence-qa-attempt-1/step-output.json
+  # QA concern emission policy guard: a REAL defect concern from a QA
+  # brick must not be decorative. The checker callable emits one valid
+  # implementation_gap transition_concern_evidence from the code-attack-qa
+  # brick, targeting the upstream work brick. default-transition must adopt it
+  # and the dynamic walker must record a second work attempt before closure.
+  # This proves Link can adopt a QA concern; it does NOT make QA a Movement
+  # authority and does NOT convert every failing_or_missing_probes item into a
+  # reroute.
+  - label: driver0-live-qa-concern-reroutes-to-work
+    case_kind: live_qa_reroute_to_work_n2
+    expected:
+      adopted_target_ref: brick-qa-reroute-work
+      recorded_brick_instance_refs:
+        - brick-qa-reroute-work
+        - brick-qa-reroute-code-attack-qa
+        - brick-qa-reroute-work
+        - brick-qa-reroute-closure
 not_proven:
   - semantic correctness of Agent transition_concern_evidence
   - caller/COO disposition after a portfolio HOLD
