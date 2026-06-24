@@ -57,9 +57,11 @@ is **non-binding** Agent evidence — it carries `concern_ref`, `concern_kind`, 
 concern never reroutes by itself.
 When a probe reproduces a REAL defect, aim `related_boundary_refs` at the upstream WORK node
 responsible (e.g. `brick:<the-work-node-id>`) — NOT yourself, NOT a `building-boundary:` sentinel.
-The engine silently walks-on a self-ref or sentinel, so no reroute ever fires. Environment or runtime
-constraints (no temp dir, write-scope limits, provider limits, read-only status, "live not run") are
-NOT defects — record them in `not_proven`, never as a `transition_concern`.
+The engine silently walks-on a self-ref or sentinel, so no reroute ever fires. Environment, runtime,
+provider, read-only, no-temp-dir, missing-probe, or "live not run" constraints are NOT upstream
+implementation defects — record them in `not_proven`, or as non-reroute `verification_gap` evidence
+with empty `related_boundary_refs` or a `building-boundary:` sentinel. Never attach a Brick-node
+reroute address to `verification_gap`.
 
 Do NOT return `success` / `failure` / `approved` / `quality` / `movement_choice` / `route_target` —
 a failing probe is an observed **fact**, not a verdict. Whether the failures are sufficient to

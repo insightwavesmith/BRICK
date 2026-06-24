@@ -627,7 +627,12 @@ def _reroute_callable_by_source(
     return _callable
 
 
-def _multi_ref_concern_callable(source_brick: str, related_boundary_refs: list[str]):
+def _multi_ref_concern_callable(
+    source_brick: str,
+    related_boundary_refs: list[str],
+    *,
+    concern_kind: str = "implementation_gap",
+):
     """Emit a VALID non-binding concern naming an explicit LIST of boundary refs.
 
     Used to drive the no-single-owner classifier seams through the real walker:
@@ -651,7 +656,7 @@ def _multi_ref_concern_callable(source_brick: str, related_boundary_refs: list[s
         if request.brick_instance_ref == source_brick:
             returned["transition_concern_evidence"] = {
                 "concern_ref": f"transition-concern:{request.brick_instance_ref}",
-                "concern_kind": "implementation_gap",
+                "concern_kind": concern_kind,
                 "binding": False,
                 "reason_refs": [f"brick-comparison:{request.brick_instance_ref}"],
                 "related_boundary_refs": list(related_boundary_refs),
@@ -3216,6 +3221,141 @@ def check(repo: Path) -> list[str]:
             f"execution_order ({nr_step_refs})"
         )
 
+    # QA concern-emission policy FIRE: verification_gap is non-reroute evidence.
+    # A verification/runtime/provider gap must not become an automatic reroute just
+    # because it carries a Brick-node address. The validator must reject that shape
+    # before the route classifier can adopt the otherwise-resolving target. The
+    # companion sentinel case proves verification_gap still has a non-reroute
+    # evidence channel and the policy is not a blanket concern ban.
+    from brick_protocol.agent.return_fact import validate_transition_concern_evidence
+
+    plan_vg_target, b2_vg_target = _checker_plan(
+        "bapr-loop0-qa-verification-gap-brick-target",
+        budget=1,
+    )
+    source_vg_target = "brick-bapr-loop0-qa-verification-gap-brick-target-review"
+    pre_policy_classification = _classify_reroute_target(
+        {"related_boundary_refs": [b2_vg_target]},
+        declared_bricks={source_vg_target, b2_vg_target},
+        source_brick_ref=source_vg_target,
+    )
+    if (
+        pre_policy_classification.kind != "single"
+        or pre_policy_classification.target != b2_vg_target
+    ):
+        violations.append(
+            "qa-verification-gap-brick-target: pre-policy classifier control did not "
+            f"show the old auto-reroute path ({pre_policy_classification})"
+        )
+    try:
+        validate_transition_concern_evidence(
+            {
+                "concern_ref": f"transition-concern:{source_vg_target}",
+                "concern_kind": "verification_gap",
+                "binding": False,
+                "reason_refs": [f"brick-comparison:{source_vg_target}"],
+                "related_boundary_refs": [b2_vg_target],
+            }
+        )
+    except ValueError as exc:
+        if "verification_gap must not name a reroute-capable Brick boundary" not in str(exc):
+            violations.append(
+                "qa-verification-gap-brick-target: validator rejected with the wrong "
+                f"reason ({exc})"
+            )
+    else:
+        violations.append(
+            "qa-verification-gap-brick-target: validator accepted a verification_gap "
+            "with a Brick-node reroute address"
+        )
+    res_vg_target, fr_vg_target, rec_vg_target = _run(
+        plan_vg_target,
+        _multi_ref_concern_callable(
+            source_vg_target,
+            [b2_vg_target],
+            concern_kind="verification_gap",
+        ),
+        repo,
+    )
+    adopted_vg_target = _adopted_records(rec_vg_target)
+    held_vg_target = _held_records(rec_vg_target)
+    if adopted_vg_target:
+        violations.append(
+            "qa-verification-gap-brick-target: verification_gap Brick target was "
+            f"adopted as a reroute ({adopted_vg_target})"
+        )
+    if fr_vg_target["frontier_kind"] != "link_paused":
+        violations.append(
+            "qa-verification-gap-brick-target: invalid verification_gap target did "
+            f"not pause (frontier={fr_vg_target['frontier_kind']})"
+        )
+    if len(held_vg_target) != 1:
+        violations.append(
+            "qa-verification-gap-brick-target: expected 1 invalid-concern HOLD, "
+            f"got {len(held_vg_target)}"
+        )
+    elif held_vg_target[0].get("hold_reason") != "invalid_transition_concern_evidence":
+        violations.append(
+            "qa-verification-gap-brick-target: wrong hold_reason="
+            f"{held_vg_target[0].get('hold_reason')}"
+        )
+    vg_target_bricks = _step_bricks(res_vg_target)
+    if vg_target_bricks.count(b2_vg_target) != 1:
+        violations.append(
+            "qa-verification-gap-brick-target: verification_gap caused target "
+            f"re-execution (count={vg_target_bricks.count(b2_vg_target)})"
+        )
+
+    plan_vg_sentinel, _ = _checker_plan(
+        "bapr-loop0-qa-verification-gap-sentinel",
+        budget=1,
+    )
+    source_vg_sentinel = "brick-bapr-loop0-qa-verification-gap-sentinel-review"
+    try:
+        validate_transition_concern_evidence(
+            {
+                "concern_ref": f"transition-concern:{source_vg_sentinel}",
+                "concern_kind": "verification_gap",
+                "binding": False,
+                "reason_refs": [f"brick-comparison:{source_vg_sentinel}"],
+                "related_boundary_refs": [
+                    "building-boundary:bapr-loop0-qa-verification-gap-sentinel-no-reroute"
+                ],
+            }
+        )
+    except ValueError as exc:
+        violations.append(
+            "qa-verification-gap-sentinel: validator rejected the non-reroute "
+            f"sentinel channel ({exc})"
+        )
+    res_vg_sentinel, fr_vg_sentinel, rec_vg_sentinel = _run(
+        plan_vg_sentinel,
+        _multi_ref_concern_callable(
+            source_vg_sentinel,
+            ["building-boundary:bapr-loop0-qa-verification-gap-sentinel-no-reroute"],
+            concern_kind="verification_gap",
+        ),
+        repo,
+    )
+    if rec_vg_sentinel:
+        violations.append(
+            "qa-verification-gap-sentinel: non-reroute verification_gap produced "
+            f"reroute/HOLD records ({rec_vg_sentinel})"
+        )
+    if fr_vg_sentinel["frontier_kind"] not in {"complete", "closure_pending"}:
+        violations.append(
+            "qa-verification-gap-sentinel: non-reroute verification_gap did not "
+            f"walk on (frontier={fr_vg_sentinel['frontier_kind']})"
+        )
+    vg_sentinel_step_refs = [
+        r.preparation.step_rows.step_ref for r in res_vg_sentinel.step_results
+    ]
+    if vg_sentinel_step_refs != list(plan_vg_sentinel["execution_order"]):
+        violations.append(
+            "qa-verification-gap-sentinel: non-reroute verification_gap altered "
+            f"declared execution_order ({vg_sentinel_step_refs})"
+        )
+
     # FIX A -- KNOT-4 resolver FIRE (non-reroute MIXED): the sentinel-only fixture
     # above does NOT catch an all(...)->any(...) mutation at
     # walker_transition_concern.py:121 (with an ALL-sentinel list, all() and any()
@@ -4947,8 +5087,9 @@ def check(repo: Path) -> list[str]:
     #           provenance recorded as data, packet carries ADDRESSES ONLY,
     #           receipt (B2) records the delivered addresses as fact.
     #   mail-2  broken ledger address (B1) -> HOLD loudly, nothing adopted.
-    #   mail-3  declared-only plan: mailbox byte-identical to the declared
-    #           assembler output; NO runtime_handoffs key (regression guard).
+    #   mail-3  declared-only plan: declared routing mailbox body remains
+    #           byte-identical after normalizing support-only step-output handoff
+    #           metadata; NO runtime_handoffs key (regression guard).
     #   mail-4  raise-resume: THIS resume's disposition row reason_refs ride
     #           to the re-adopted redo landing (B3 lane 2).
     # ------------------------------------------------------------------
@@ -5265,12 +5406,20 @@ def check(repo: Path) -> list[str]:
                     _declared_mailbox_assembler(linear_steps_m3, i), default=str
                 )
             )
-            if json.dumps(capture["link_handoff_refs"], sort_keys=True) != json.dumps(
+            observed_mailbox = json.loads(
+                json.dumps(capture["link_handoff_refs"], default=str)
+            )
+            for entry in observed_mailbox.get("incoming", []):
+                if isinstance(entry, dict):
+                    entry.pop("building_root_path", None)
+                    entry.pop("from_step_output_ref", None)
+                    entry.pop("proof_limits", None)
+            if json.dumps(observed_mailbox, sort_keys=True) != json.dumps(
                 declared_mailbox, sort_keys=True
             ):
                 violations.append(
                     f"mail-3: declared-only mailbox [{i}] drifted from the declared "
-                    "assembler output (byte-identity regression)"
+                    "routing body after support metadata normalization (byte-identity regression)"
                 )
             if "runtime_handoffs" in capture["link_handoff_refs"]:
                 violations.append(
@@ -6294,8 +6443,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         "budget evidence, delivered the MAIL-REPAIR (0611) runtime mail (mail-1 "
         "gate-adopted concern reason_refs arrive in every redo input with recorded "
         "provenance + AgentReceipt received_handoff_refs; mail-2 broken ledger "
-        "address HOLDs loudly; mail-3 declared-only mailbox byte-identical to the "
-        "declared assembler; mail-4 raise-resume disposition reason_refs ride to "
+        "address HOLDs loudly; mail-3 declared-only mailbox keeps the declared "
+        "routing body byte-identical after normalizing support-only step-output metadata; mail-4 raise-resume disposition reason_refs ride to "
         "the re-adopted landing with row-specific replay provenance PERSISTED "
         "in the written resume observation (the live _read_disposition_row "
         "replay oracle lands on the same row); mail-5 "

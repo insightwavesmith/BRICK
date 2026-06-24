@@ -130,6 +130,8 @@ text_contains:
       - "knot4-strip-self-ambiguous: source+two-siblings adopted a target"
       - "knot4-strip-self-kind-agnostic: source kind"
       - "knot4-other-target-control: expected one adopted true reroute"
+      - "qa-verification-gap-brick-target: validator accepted a verification_gap"
+      - "qa-verification-gap-sentinel: non-reroute verification_gap produced"
       - "p6c-byte-fanout: normalized evidence-manifest/spine/building-map"
       - "p6c-byte-fanout-red: timed fixture failed to invert wall-clock"
       - "p6c-shared-fanin-reroute: normalized evidence-manifest/spine/"

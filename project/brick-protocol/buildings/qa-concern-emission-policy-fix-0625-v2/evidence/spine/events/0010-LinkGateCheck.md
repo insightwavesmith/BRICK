@@ -1,0 +1,11 @@
+# LinkGateCheck · seq 10 · ["Link"]
+- axis_scope: ["Link"]
+- checked_public_fact: "brick-comparison:qa-concern-emission-policy-fix-0625-v2:qa-concern-emission-policy-fix-0625-v2-design"
+- event_type: "LinkGateCheck"
+- gate_ref: "link-gate:coo"
+- ordinal: 2
+- run_segment: 1
+- sequence_index: 10
+- source_fact_ref: "gate-receipt-fact-2:01:qa-concern-emission-policy-fix-0625-v2-design"
+- spine_schema_version: "spine-v1"
+- sufficiency: "missing_required_facts"

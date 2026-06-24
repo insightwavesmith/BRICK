@@ -18,6 +18,16 @@ TRANSITION_CONCERN_KINDS: frozenset[str] = frozenset(
         "unknown",
     }
 )
+NON_REROUTE_CONCERN_KINDS: frozenset[str] = frozenset({"verification_gap"})
+REROUTE_ELIGIBLE_CONCERN_KINDS: frozenset[str] = (
+    TRANSITION_CONCERN_KINDS - NON_REROUTE_CONCERN_KINDS
+)
+TRANSITION_CONCERN_REROUTE_REF_PREFIXES: tuple[str, ...] = (
+    "brick:",
+    "brick-",
+    "brick-boundary:",
+    "brick-instance:",
+)
 TRANSITION_CONCERN_ALLOWED_KEYS: frozenset[str] = frozenset(
     {
         "concern_ref",
@@ -129,8 +139,14 @@ def validate_transition_concern_evidence(concern: "Mapping[str, Any]") -> dict:
         concern.get("related_boundary_refs", ()),
     )
     for ref in related_refs:
-        if not ref.startswith(("brick:", "brick-", "brick-boundary:", "brick-instance:", "building-boundary:")):
+        if not ref.startswith((*TRANSITION_CONCERN_REROUTE_REF_PREFIXES, "building-boundary:")):
             raise ValueError("transition_concern_evidence.related_boundary_refs must name Brick boundaries")
+        if concern_kind in NON_REROUTE_CONCERN_KINDS and ref.startswith(
+            TRANSITION_CONCERN_REROUTE_REF_PREFIXES
+        ):
+            raise ValueError(
+                "transition_concern_evidence.verification_gap must not name a reroute-capable Brick boundary"
+            )
     return dict(concern)
 
 
@@ -170,6 +186,9 @@ __all__ = (
     "AGENT_FACT_FIELDS",
     "make_agent_fact",
     "TRANSITION_CONCERN_KINDS",
+    "NON_REROUTE_CONCERN_KINDS",
+    "REROUTE_ELIGIBLE_CONCERN_KINDS",
+    "TRANSITION_CONCERN_REROUTE_REF_PREFIXES",
     "TRANSITION_CONCERN_ALLOWED_KEYS",
     "TOP_LEVEL_VERDICT_KEYS",
     "ALWAYS_SECRET_KEYS",

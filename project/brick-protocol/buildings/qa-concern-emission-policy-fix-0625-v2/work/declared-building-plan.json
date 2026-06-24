@@ -1,0 +1,613 @@
+{
+  "building_id": "qa-concern-emission-policy-fix-0625-v2",
+  "declared_plan_copy": {
+    "brick_steps": [
+      {
+        "completion_edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-design-to-qa-concern-emission-policy-fix-0625-v2-work",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-qa-concern-emission-policy-fix-0625-v2-design",
+            "brick_instruction_body": "## Design\n\nTurn the prior plan into **architecture, UX, data, or protocol design boundaries** — design only,\n**without writing implementation**.\n\nInput: the prior Brick's report (carried via the Link edge) plus this node's declared\n`work_statement`. Study the relevant current structure, then propose design boundaries: how the\nchange is shaped, which axis owns each responsibility, the invariants it must hold, the edge cases\nit must survive, and the checker/verifier that would enforce it. Name `candidate_file_changes` as\n*proposed* targets only — do not edit, create, or mutate any file.\nProduce `reading_scope_map`: an ordered, most-important-first list of file/dir paths the work step\nshould START reading from to make this change — the bounded read-set you prescribe to the worker so it\nneed not explore the repository blindly. It is GUIDANCE the worker may exceed (read further as the work\nrequires); it is never a write fence and is never fed to the Link gate.\n`evidence_refs` MUST include inspected repository artifact references (file paths such as\n`support/...`, `brick/...`, `agent/...`, `link/...`, `project/...`, or diff hunks actually read).\nPacket-only labels are not enough for this grounding requirement.\n\nReturn: fill the `required_return_shape` from the return_template\n(`brick/templates/bricks/design/return.yaml`):\n`observed_evidence`, `design_summary`, `relevant_current_structure`, `proposed_changes`, `unchanged_surfaces`,\n`axis_responsibility`, `invariants`, `edge_cases`, `checker_or_verifier_plan`,\n`candidate_file_changes`, `evidence_refs`, `not_proven`, `reading_scope_map`.\nKeep everything as observed facts, options, and gaps — record what is *not yet proven*\n(implementation readiness, semantic fitness of the proposed design) rather than asserting it works.\n\nDo NOT return `success` / `failure` / `approved` / `quality` / `movement_choice` / `route_target` —\nsufficiency + movement are the Link gate's; quality/success are the human's. This Brick designs and\nobserves; it does not implement, judge, or route.\n\n> This `## Design` body IS delivered to the Agent in the prompt as the static kind instruction\n> (support/connection/adapter_grant_policy._build_prompt, key `brick_instruction_body`), carried from\n> this file by the Builder (plan_rendering carries the ## body onto the step_template row; composition\n> stamps it onto the brick_row). It is a SEPARATE prompt section from the dynamic `work_statement`.\n> Each `required_return_shape` field is guarded to appear here with guidance, both directions, across\n> EVERY return template (check_bricks_spec_completeness._prose_return_shape_drift_violations), so this\n> body and the return.yaml cannot drift. The frontmatter carries Brick contract fields plus Builder\n> selection metadata (`requires_brick_write_scope`, `performer_lane_need`, `agent_object_hint_ref`,\n> `required_return_template_refs`, `link_movement_literal`) so the Builder can materialize declared BAL\n> rows. Keep this instruction GENERAL to the kind (building-specifics ride `work_statement`); do not\n> claim it raises quality — the Link gate checks sufficiency, quality is the human's.\n",
+            "brick_work_ref": "work:qa-concern-emission-policy-fix-0625-v2-design",
+            "carries_forward_fields": "proposed_changes,reading_scope_map,invariants,axis_responsibility,candidate_file_changes",
+            "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "observed_evidence,design_summary,relevant_current_structure,proposed_changes,unchanged_surfaces,axis_responsibility,invariants,edge_cases,checker_or_verifier_plan,candidate_file_changes,evidence_refs,not_proven,reading_scope_map",
+            "row_ref": "brick-row:qa-concern-emission-policy-fix-0625-v2-design",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "design Brick for task-source:inline-statement: BRICK COO declared root-fix Building: close the remaining partial patch around QA concern emission policy."
+          },
+          {
+            "agent_object_ref": "agent-object:design-lead",
+            "axis": "Agent",
+            "row_ref": "agent-row:qa-concern-emission-policy-fix-0625-v2-design"
+          }
+        ],
+        "selected_adapter_ref": "adapter:claude-local",
+        "selected_model_ref": "model:claude:inherit",
+        "selected_reasoning_effort_ref": "effort:default",
+        "step_ref": "qa-concern-emission-policy-fix-0625-v2-design",
+        "step_template_ref": "building-step-template:design"
+      },
+      {
+        "completion_edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-work-to-qa-concern-emission-policy-fix-0625-v2-code-attack-qa",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-qa-concern-emission-policy-fix-0625-v2-work",
+            "brick_instruction_body": "## Work\n\nPerform the declared implementation or document work **inside the Brick write scope only**.\nYou are the implementer. Do the work yourself — but you are NOT limited to working alone: when the\nwork is large or benefits from parallel/independent effort, you MAY spawn subagents or workflows as\n**tools** (the same way a capable engineer delegates pieces), then merge their results into ONE set of\nchanges under this Brick's `write_scope`. Orchestrating helpers is a **capability, not a separate role** —\nyou remain the single responsible implementer, and you do NOT bear verdicts (sufficiency and quality\nstay the Link gate's and the human's).\n\nInput: the prior Brick's report (carried via the Link edge) plus this node's declared\n`work_statement`. The design report's `reading_scope_map` (when present) is an ordered,\nmost-important-first list of paths/dirs the design Brick recommends you START reading from — begin\nthere to orient quickly. It is GUIDANCE, not a fence: you MAY read further (any file) as the work\nrequires, and nothing enforces or limits your reads. Do the real work — implement / edit / write —\nwithin `write_scope` (the write fence is separate and hard; reading is unconstrained).\n\nReturn: fill the `required_return_shape` from the return_template\n(`brick/templates/bricks/work/return.yaml`):\n`received_work_ref`, `made_changes`, `changed_files`, `observed_evidence`, `commands_run`,\n`blocked_or_missing_evidence`, `handoff_refs`, `not_proven`.\n(`no_changes_reason` is the `made_changes` waiver when no file/content change was made.)\n\nDo NOT return `success` / `failure` / `approved` / `quality` / `movement_choice` / `route_target` —\nsufficiency + movement are the Link gate's; quality/success are the human's.\n\n> This `## Work` body IS delivered to the Agent in the prompt as the static kind instruction\n> (support/connection/adapter_grant_policy._build_prompt, key `brick_instruction_body`), carried from\n> this file by the Builder (plan_rendering carries the ## body onto the step_template row; composition\n> stamps it onto the brick_row). It is a SEPARATE prompt section from the dynamic `work_statement`.\n> Each `required_return_shape` field is guarded to appear here with guidance, both directions, across\n> EVERY return template (check_bricks_spec_completeness._prose_return_shape_drift_violations), so this\n> body and the return.yaml cannot drift. The frontmatter carries Brick contract fields plus Builder\n> selection metadata (`requires_brick_write_scope`, `performer_lane_need`, `agent_object_hint_ref`,\n> `required_return_template_refs`, `link_movement_literal`) so the Builder can materialize declared BAL\n> rows. Keep this instruction GENERAL to the kind (building-specifics ride `work_statement`); do not\n> claim it raises quality — the Link gate checks sufficiency, quality is the human's.\n",
+            "brick_work_ref": "work:qa-concern-emission-policy-fix-0625-v2-work",
+            "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "made_changes, observed_evidence, not_proven",
+            "requires_brick_write_scope": true,
+            "row_ref": "brick-row:qa-concern-emission-policy-fix-0625-v2-work",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "work Brick for task-source:inline-statement: BRICK COO declared root-fix Building: close the remaining partial patch around QA concern emission policy.",
+            "write_scope": {
+              "allowed_paths": [
+                "agent/return_fact.py",
+                "brick/templates/bricks/**/*",
+                "link/**/*",
+                "support/operator/**/*",
+                "support/checkers/**/*",
+                "agent/**/*",
+                "project/brick-protocol/status/**/*"
+              ],
+              "forbidden_paths": [
+                ".git/**",
+                ".env",
+                "project/brick-protocol/status/inbox/**"
+              ],
+              "requires_brick_write_scope": true
+            }
+          },
+          {
+            "agent_object_ref": "agent-object:dev",
+            "axis": "Agent",
+            "row_ref": "agent-row:qa-concern-emission-policy-fix-0625-v2-work"
+          }
+        ],
+        "selected_adapter_ref": "adapter:codex-local",
+        "selected_model_ref": "model:codex:default",
+        "selected_reasoning_effort_ref": "effort:default",
+        "step_ref": "qa-concern-emission-policy-fix-0625-v2-work",
+        "step_template_ref": "building-step-template:work"
+      },
+      {
+        "completion_edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-code-attack-qa-to-qa-concern-emission-policy-fix-0625-v2-closure",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-qa-concern-emission-policy-fix-0625-v2-code-attack-qa",
+            "brick_instruction_body": "## code-attack-qa\n\nAttack the prior Brick's implementation against the **declared work contract** — probe for\nregression, negative-path failures, and boundary violations. QA-attack verifies by **writing the\nBUILDING WORK-AREA**: run real checkers / FIRE / mutation probes to break the contract. The\nbuilding runs in a **disposable W1 worktree sandbox**, so this work-area write **never touches the\ncustomer live tree**. You still claim **NO Movement authority** and **no source-truth verdict** — a\nfailing probe is an observed fact, not a judgment. Run `check_profile.py --all` from INSIDE this\nbuilding's W1 worktree (your dispatch cwd) — never from a separate `/tmp` git-archive copy: the\narchive lacks the changes under test, and reaching outside the worktree is blocked by the sandbox.\n\nInput: the prior Brick's report (carried via the Link edge) plus this node's declared\n`work_statement` (the work contract under attack). Read the changed files and the evidence the\nupstream Brick returned. Run negative probes / regression probes against the declared contract —\nhunt for the cases that break it, not the ones that confirm it.\n\nDo: read the implementation and its returned evidence; design and run negative probes and\nregression probes; record which probes failed or could not be run; note boundary violations\nagainst the declared contract; capture the exact evidence (commands, outputs, refs) you relied on.\n`evidence_used` MUST include inspected repository artifact references (file paths such as\n`support/...`, `brick/...`, `agent/...`, `link/...`, `project/...`, or diff hunks actually read).\nPacket-only labels are not enough for this grounding requirement.\n\nOuter-lens duty: independently reproduce the reported symptom from this node's task source or\nincoming Link handoff, not from the upstream builder's fixtures or happy-path probes. Build your\nown QA probes for that reproduction; builder fixtures may be inspected as evidence, but they MUST\nNOT be reused as the QA proof. Drive at least one real entry surface that a real caller uses\n(command, function, projection bake, checker profile, or other declared verb/surface) and record\nthe observed output. In `observed_evidence`, include the required evidence triple as structured\nentries: `symptom_reproduction` (what was independently reproduced and how), `own_probes` (QA-built\nprobes distinct from builder fixtures), and `real_entry_surface` (which real verb/surface was\ndriven and what it produced). These are structured `observed_evidence` entries, not additional\ntop-level return keys, so the closed AgentFact return shape stays the one declared below.\n\nReturn: fill the `required_return_shape` from the return_template\n(`brick/templates/bricks/code-attack-qa/return.yaml`):\n`observed_evidence`, `attacked_work`, `checked_sources`, `regression_risks`, `negative_probe_observations`,\n`failing_or_missing_probes`, `boundary_violations`, `transition_concern_evidence`, `evidence_used`,\n`not_proven`.\n`transition_concern_evidence` (shape: `brick/templates/bricks/transition-concern-return.yaml`)\nis **non-binding** Agent evidence — it carries `concern_ref`, `concern_kind`, `reason_refs`,\n`related_boundary_refs`, `binding: false`; it MUST NOT carry `movement` / `target` / `target_ref` /\n`route_target`. Forward Link carries this evidence to the declared fan-in or closure boundary; the\nconcern never reroutes by itself.\nWhen a probe reproduces a REAL defect, aim `related_boundary_refs` at the upstream WORK node\nresponsible (e.g. `brick:<the-work-node-id>`) — NOT yourself, NOT a `building-boundary:` sentinel.\nThe engine silently walks-on a self-ref or sentinel, so no reroute ever fires. Environment or runtime\nconstraints (no temp dir, write-scope limits, provider limits, read-only status, \"live not run\") are\nNOT defects — record them in `not_proven`, never as a `transition_concern`.\n\nDo NOT return `success` / `failure` / `approved` / `quality` / `movement_choice` / `route_target` —\na failing probe is an observed **fact**, not a verdict. Whether the failures are sufficient to\nreroute is the Link gate's; success / quality are the human's. Report only observed facts, failing\nor missing probes, and `not_proven` (full regression coverage, semantic correctness of the\nimplementation, and support loader behavior are explicitly out of your proof reach).\n\n> This `## code-attack-qa` body IS delivered to the Agent in the prompt as the static kind instruction\n> (support/connection/adapter_grant_policy._build_prompt, key `brick_instruction_body`), carried from\n> this file by the Builder (plan_rendering carries the ## body onto the step_template row; composition\n> stamps it onto the brick_row). It is a SEPARATE prompt section from the dynamic `work_statement`.\n> Each `required_return_shape` field is guarded to appear here with guidance, both directions, across\n> EVERY return template (check_bricks_spec_completeness._prose_return_shape_drift_violations), so this\n> body and the return.yaml cannot drift. The frontmatter carries Brick contract fields plus Builder\n> selection metadata (`requires_brick_write_scope`, `performer_lane_need`, `agent_object_hint_ref`,\n> `required_return_template_refs`, `link_movement_literal`) so the Builder can materialize declared BAL\n> rows. Keep this instruction GENERAL to the kind (building-specifics ride `work_statement`); do not\n> claim it raises quality — the Link gate checks sufficiency, quality is the human's.\n",
+            "brick_work_ref": "work:qa-concern-emission-policy-fix-0625-v2-code-attack-qa",
+            "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, evidence_used, not_proven",
+            "requires_brick_write_scope": true,
+            "row_ref": "brick-row:qa-concern-emission-policy-fix-0625-v2-code-attack-qa",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "code_attack_qa Brick for task-source:inline-statement: BRICK COO declared root-fix Building: close the remaining partial patch around QA concern emission policy.",
+            "write_scope": {
+              "allowed_paths": [
+                "agent/return_fact.py",
+                "brick/templates/bricks/**/*",
+                "link/**/*",
+                "support/operator/**/*",
+                "support/checkers/**/*",
+                "agent/**/*",
+                "project/brick-protocol/status/**/*"
+              ],
+              "forbidden_paths": [
+                ".git/**",
+                ".env",
+                "project/brick-protocol/status/inbox/**"
+              ],
+              "requires_brick_write_scope": true
+            }
+          },
+          {
+            "agent_object_ref": "agent-object:qa",
+            "axis": "Agent",
+            "row_ref": "agent-row:qa-concern-emission-policy-fix-0625-v2-code-attack-qa"
+          }
+        ],
+        "selected_adapter_ref": "adapter:claude-local",
+        "selected_model_ref": "model:claude:inherit",
+        "selected_reasoning_effort_ref": "effort:default",
+        "step_ref": "qa-concern-emission-policy-fix-0625-v2-code-attack-qa",
+        "step_template_ref": "building-step-template:code-attack-qa"
+      },
+      {
+        "completion_edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-axis-attack-qa-to-qa-concern-emission-policy-fix-0625-v2-closure",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-qa-concern-emission-policy-fix-0625-v2-axis-attack-qa",
+            "brick_instruction_body": "## axis-attack-qa\n\nAttack the prior Brick output along the **three-axis boundary**: inspect Brick / Agent / Link\nownership, support leakage, projection authority, and evidence integrity. QA-attack verifies by\n**writing the BUILDING WORK-AREA** (run real checkers / FIRE / mutation probes); the building runs\nin a **disposable W1 worktree sandbox**, so this work-area write **never touches the customer live\ntree**. Claim **no source-truth verdict** and **no Movement authority** — your axis findings are\nobserved facts, not reviewer authority. Run `check_profile.py --all` from INSIDE this building's W1\nworktree (your dispatch cwd) — never from a separate `/tmp` git-archive copy: the archive lacks the\nchanges under test, and reaching outside the worktree is blocked by the sandbox.\n\nInput: the prior Brick's report (carried via the Link edge) plus this node's declared\n`work_statement` naming the `attacked_scope` to inspect. Probe whether each meaning lives in its\nowning axis (Brick measures, Link gates Movement, Agent performs), whether `support` has absorbed\nauthority it should not own, whether any projection overclaims beyond persisted evidence, and\nwhether the cited evidence roots actually back the claims.\n`evidence_used` MUST include inspected repository artifact references (file paths such as\n`support/...`, `brick/...`, `agent/...`, `link/...`, `project/...`, or diff hunks actually read).\nPacket-only labels are not enough for this grounding requirement.\n\nOuter-lens duty: independently reproduce the reported boundary symptom from this node's task source\nor incoming Link handoff, not from the upstream builder's fixtures or self-checking examples. Build\nyour own QA probes for that reproduction; builder fixtures may be inspected as evidence, but they\nMUST NOT be reused as the QA proof. Drive at least one real entry surface that a real caller uses\n(command, function, projection bake, checker profile, or other declared verb/surface) and record\nthe observed output. In `observed_evidence`, include the required evidence triple as structured\nentries: `symptom_reproduction` (what was independently reproduced and how), `own_probes` (QA-built\nprobes distinct from builder fixtures), and `real_entry_surface` (which real verb/surface was\ndriven and what it produced). These are structured `observed_evidence` entries, not additional\ntop-level return keys, so the closed AgentFact return shape stays the one declared below.\n\nReturn: fill the `required_return_shape` from the return_template\n(`brick/templates/bricks/axis-attack-qa/return.yaml`):\n`observed_evidence`, `attacked_scope`, `brick_axis_findings`, `agent_axis_findings`, `link_axis_findings`,\n`support_leak_findings`, `projection_authority_findings`, `transition_concern_evidence`,\n`evidence_used`, `not_proven`.\nRecord every finding as an **observed fact / observation** with its evidence ref; where you could\nnot establish a fact, name it under `not_proven` rather than guessing. `transition_concern_evidence`\n(shape: `brick/templates/bricks/transition-concern-return.yaml`) is **non-binding** — it is\nevidence the Link gate may or may not adopt, never your own reroute decision.\nWhen you raise a concern for a REAL reproduced boundary defect, aim `related_boundary_refs` at the\nupstream WORK node responsible (e.g. `brick:<the-work-node-id>`) — NOT yourself, NOT a\n`building-boundary:` sentinel. The engine silently walks-on a self-ref or sentinel, so no reroute\never fires. Environment or runtime constraints (no temp dir, write-scope limits, provider limits,\nread-only status, \"live not run\") are NOT defects — record them in `not_proven`, never as a\n`transition_concern`.\n\nDo NOT return `success` / `failure` / `approved` / `quality` / `movement_choice` / `route_target` —\nsufficiency + movement are the Link gate's; quality/success are the human's. Your axis findings are\nevidence, not reviewer authority.\n\n> This `## axis-attack-qa` body IS delivered to the Agent in the prompt as the static kind instruction\n> (support/connection/adapter_grant_policy._build_prompt, key `brick_instruction_body`), carried from\n> this file by the Builder (plan_rendering carries the ## body onto the step_template row; composition\n> stamps it onto the brick_row). It is a SEPARATE prompt section from the dynamic `work_statement`.\n> Each `required_return_shape` field is guarded to appear here with guidance, both directions, across\n> EVERY return template (check_bricks_spec_completeness._prose_return_shape_drift_violations), so this\n> body and the return.yaml cannot drift. The frontmatter carries Brick contract fields plus Builder\n> selection metadata (`requires_brick_write_scope`, `performer_lane_need`, `agent_object_hint_ref`,\n> `required_return_template_refs`, `link_movement_literal`) so the Builder can materialize declared BAL\n> rows. Keep this instruction GENERAL to the kind (building-specifics ride `work_statement`); do not\n> claim it raises quality — the Link gate checks sufficiency, quality is the human's.\n",
+            "brick_work_ref": "work:qa-concern-emission-policy-fix-0625-v2-axis-attack-qa",
+            "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "observed_evidence, attacked_scope, brick_axis_findings, agent_axis_findings, link_axis_findings, support_leak_findings, projection_authority_findings, evidence_used, not_proven",
+            "requires_brick_write_scope": true,
+            "row_ref": "brick-row:qa-concern-emission-policy-fix-0625-v2-axis-attack-qa",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "axis_attack_qa Brick for task-source:inline-statement: BRICK COO declared root-fix Building: close the remaining partial patch around QA concern emission policy.",
+            "write_scope": {
+              "allowed_paths": [
+                "agent/return_fact.py",
+                "brick/templates/bricks/**/*",
+                "link/**/*",
+                "support/operator/**/*",
+                "support/checkers/**/*",
+                "agent/**/*",
+                "project/brick-protocol/status/**/*"
+              ],
+              "forbidden_paths": [
+                ".git/**",
+                ".env",
+                "project/brick-protocol/status/inbox/**"
+              ],
+              "requires_brick_write_scope": true
+            }
+          },
+          {
+            "agent_object_ref": "agent-object:inspector",
+            "axis": "Agent",
+            "row_ref": "agent-row:qa-concern-emission-policy-fix-0625-v2-axis-attack-qa"
+          }
+        ],
+        "selected_adapter_ref": "adapter:claude-local",
+        "selected_model_ref": "model:claude:inherit",
+        "selected_reasoning_effort_ref": "effort:default",
+        "step_ref": "qa-concern-emission-policy-fix-0625-v2-axis-attack-qa",
+        "step_template_ref": "building-step-template:axis-attack-qa"
+      },
+      {
+        "completion_edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-evidence-integrity-to-qa-concern-emission-policy-fix-0625-v2-closure",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-qa-concern-emission-policy-fix-0625-v2-evidence-integrity",
+            "brick_instruction_body": "## evidence-integrity\n\nCheck persisted evidence roots, proof limits, and checker-overclaim risk. QA-attack verifies by\n**writing the BUILDING WORK-AREA** (run real checkers / FIRE / mutation probes to test the\nevidence); the building runs in a **disposable W1 worktree sandbox**, so this work-area write\n**never touches the customer live tree**. Still declare **no source truth** and claim **no Movement\nauthority**.\n\nInput: the prior Brick's report (carried via the Link edge) plus this node's declared\n`work_statement`. Inspect the persisted evidence — its roots, what it actually proves, where a\nsource may be stale, and where a checker or report may overclaim beyond the evidence it holds.\nYou MAY write the work-area to run checkers / probes (sandboxed in W1); you do NOT mutate the\ncustomer source-truth and do NOT decide what the source truth *is*.\n`evidence_used` MUST include inspected repository artifact references (file paths such as\n`support/...`, `brick/...`, `agent/...`, `link/...`, `project/...`, or diff hunks actually read).\nPacket-only labels are not enough for this grounding requirement.\n\nReturn: fill the `required_return_shape` from the return_template\n(`brick/templates/bricks/evidence-integrity/return.yaml`):\n`observed_evidence`, `evidence_scope`, `persisted_evidence_roots`, `proof_limit_findings`, `stale_source_risks`,\n`checker_overclaim_risks`, `missing_evidence`, `evidence_used`, `not_proven`.\nReport what you observed as facts and observations — evidence gaps, stale-source risks, and\n`not_proven` — never a verdict on whether the evidence is sufficient.\n\nDo NOT return `success` / `failure` / `approved` / `quality` / `movement_choice` / `route_target` —\nsufficiency + movement are the Link gate's; quality/success are the human's; declaring the source\ntruth is not this Brick's to make.\n\n> This `## evidence-integrity` body IS delivered to the Agent in the prompt as the static kind\n> instruction (support/connection/adapter_grant_policy._build_prompt, key `brick_instruction_body`),\n> carried from this file by the Builder (plan_rendering carries the ## body onto the step_template row;\n> composition stamps it onto the brick_row). It is a SEPARATE prompt section from the dynamic\n> `work_statement`. Each `required_return_shape` field is guarded to appear here with guidance, both\n> directions, across EVERY return template\n> (check_bricks_spec_completeness._prose_return_shape_drift_violations), so this body and the\n> return.yaml cannot drift. The frontmatter carries Brick contract fields plus Builder selection\n> metadata (`requires_brick_write_scope`, `performer_lane_need`, `agent_object_hint_ref`,\n> `required_return_template_refs`, `link_movement_literal`) so the Builder can materialize declared BAL\n> rows. Keep this instruction GENERAL to the kind (building-specifics ride `work_statement`); do not\n> claim it raises quality — the Link gate checks sufficiency, quality is the human's.\n",
+            "brick_work_ref": "work:qa-concern-emission-policy-fix-0625-v2-evidence-integrity",
+            "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "observed_evidence, evidence_scope, persisted_evidence_roots, proof_limit_findings, stale_source_risks, checker_overclaim_risks, missing_evidence, evidence_used, not_proven",
+            "requires_brick_write_scope": true,
+            "row_ref": "brick-row:qa-concern-emission-policy-fix-0625-v2-evidence-integrity",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "evidence_integrity Brick for task-source:inline-statement: BRICK COO declared root-fix Building: close the remaining partial patch around QA concern emission policy.",
+            "write_scope": {
+              "allowed_paths": [
+                "agent/return_fact.py",
+                "brick/templates/bricks/**/*",
+                "link/**/*",
+                "support/operator/**/*",
+                "support/checkers/**/*",
+                "agent/**/*",
+                "project/brick-protocol/status/**/*"
+              ],
+              "forbidden_paths": [
+                ".git/**",
+                ".env",
+                "project/brick-protocol/status/inbox/**"
+              ],
+              "requires_brick_write_scope": true
+            }
+          },
+          {
+            "agent_object_ref": "agent-object:inspector",
+            "axis": "Agent",
+            "row_ref": "agent-row:qa-concern-emission-policy-fix-0625-v2-evidence-integrity"
+          }
+        ],
+        "selected_adapter_ref": "adapter:claude-local",
+        "selected_model_ref": "model:claude:inherit",
+        "selected_reasoning_effort_ref": "effort:default",
+        "step_ref": "qa-concern-emission-policy-fix-0625-v2-evidence-integrity",
+        "step_template_ref": "building-step-template:evidence-integrity"
+      },
+      {
+        "completion_edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-closure-to-boundary",
+        "rows": [
+          {
+            "axis": "Brick",
+            "brick_instance_ref": "brick-qa-concern-emission-policy-fix-0625-v2-closure",
+            "brick_instruction_body": "## Closure\n\nRecord the closure synthesis for the Building so the parent objective is carried across child phases —\n**without** judging success, quality, or Movement.\n\nInput: the prior Bricks' reports (carried via the Link edges) plus this node's declared\n`work_statement` / closure scope. Read the accumulated evidence and the parent objective; synthesize\nwhat was observed, what is narrowly proven, what remains, and where the work could go next.\n\nDo: assemble the closure from the carried evidence only. State `narrowly_proven` as the strictly\nevidence-backed slice (proof scope may narrow, but the objective scope must be carried forward).\nName concrete future work in `remaining_delta` and `next_target_candidates`. Express\n`parent_goal_delta_status` as a MAPPING whose keys are ONLY the six allowed sub-fields from the\nreturn_template — `matched_delta_refs`, `closed_delta_refs`, `open_delta_refs`,\n`missing_delta_refs`, `unknown_delta_refs`, `evidence_refs` — each holding plain-text refs.\nNever place a `status`, verdict, or free-text key INSIDE this mapping (a sub-key containing\n`status` is a forbidden return key and the whole return is rejected); it is observation\nlanguage, **not** a percentage or a verdict. Queue anything needing a human decision into\n`deferred_smith_review_queue`.\n\nReturn: fill the `required_return_shape` from the return_template\n(`brick/templates/bricks/closure/return.yaml`):\n`observed_evidence`, `narrowly_proven`, `not_proven`, `remaining_delta`, `parent_goal_delta_status`,\n`next_target_candidates`, `deferred_smith_review_queue`, `transition_concern_evidence`.\n(`not_proven` is next-target material, not a failure verdict.)\n\n`transition_concern_evidence` (shape: `brick/templates/bricks/transition-concern-return.yaml`)\nis **non-binding** Agent evidence — it carries `concern_ref`, `concern_kind`, `reason_refs`,\n`related_boundary_refs`, `binding: false`; it MUST NOT carry `movement` / `target` / `target_ref` /\n`route_target`. The forward Link carries this evidence onward; the concern never reroutes by itself.\nWhen you raise a concern for a REAL reproduced defect, aim `related_boundary_refs` at the upstream\nWORK node responsible (e.g. `brick:<the-work-node-id>`) — NOT yourself, NOT a `building-boundary:`\nsentinel. The engine silently walks-on a self-ref or sentinel, so no reroute ever fires. Environment\nor runtime constraints (no temp dir, write-scope limits, provider limits, read-only status, \"live not\nrun\") are NOT defects — record them in `not_proven`, never as a `transition_concern`.\n\nDo NOT return `success` / `failure` / `approved` / `good_enough` / `movement_choice` / `route_target` —\nsufficiency + movement are the Link gate's; quality/success are the human's. This Brick writes no\nfiles and declares no source truth — it returns closure synthesis (observed facts + remaining delta)\nonly.\n\n> This `## Closure` body IS delivered to the Agent in the prompt as the static kind instruction\n> (support/connection/adapter_grant_policy._build_prompt, key `brick_instruction_body`), carried from\n> this file by the Builder (plan_rendering carries the ## body onto the step_template row; composition\n> stamps it onto the brick_row). It is a SEPARATE prompt section from the dynamic `work_statement`.\n> Each `required_return_shape` field is guarded to appear here with guidance, both directions, across\n> EVERY return template (check_bricks_spec_completeness._prose_return_shape_drift_violations), so this\n> body and the return.yaml cannot drift. The frontmatter carries Brick contract fields plus Builder\n> selection metadata (`requires_brick_write_scope`, `performer_lane_need`, `agent_object_hint_ref`,\n> `required_return_template_refs`, `link_movement_literal`) so the Builder can materialize declared BAL\n> rows. Keep this instruction GENERAL to the kind (building-specifics ride `work_statement`); do not\n> claim it raises quality — the Link gate checks sufficiency, quality is the human's.\n",
+            "brick_work_ref": "work:qa-concern-emission-policy-fix-0625-v2-closure",
+            "carries_forward_fields": "narrowly_proven,remaining_delta,parent_goal_delta_status,next_target_candidates",
+            "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+            "required_return_shape": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence",
+            "row_ref": "brick-row:qa-concern-emission-policy-fix-0625-v2-closure",
+            "source_facts": [
+              "task-source:inline-statement"
+            ],
+            "work_statement": "closure Brick for task-source:inline-statement: BRICK COO declared root-fix Building: close the remaining partial patch around QA concern emission policy."
+          },
+          {
+            "agent_object_ref": "agent-object:coo",
+            "axis": "Agent",
+            "row_ref": "agent-row:qa-concern-emission-policy-fix-0625-v2-closure"
+          }
+        ],
+        "selected_adapter_ref": "adapter:claude-local",
+        "selected_model_ref": "model:claude:inherit",
+        "selected_reasoning_effort_ref": "effort:default",
+        "step_ref": "qa-concern-emission-policy-fix-0625-v2-closure",
+        "step_template_ref": "building-step-template:closure"
+      }
+    ],
+    "building_id": "qa-concern-emission-policy-fix-0625-v2",
+    "chain_preset_ref": "building-chain-preset:brick-protocol-engine-feature-hard",
+    "composition_mode": "caller_or_coo_declared_graph_composition",
+    "declared_by": "coo-codex",
+    "execution_order": [
+      "qa-concern-emission-policy-fix-0625-v2-design",
+      "qa-concern-emission-policy-fix-0625-v2-work",
+      "qa-concern-emission-policy-fix-0625-v2-code-attack-qa",
+      "qa-concern-emission-policy-fix-0625-v2-axis-attack-qa",
+      "qa-concern-emission-policy-fix-0625-v2-evidence-integrity",
+      "qa-concern-emission-policy-fix-0625-v2-closure"
+    ],
+    "groups": [
+      {
+        "group_id": "group:qa-concern-emission-policy-fix-0625-v2-fan-out",
+        "group_role": "fan_out",
+        "member_ref_kind": "link_edge",
+        "member_refs": [
+          "edge:qa-concern-emission-policy-fix-0625-v2-work-to-qa-concern-emission-policy-fix-0625-v2-code-attack-qa",
+          "edge:qa-concern-emission-policy-fix-0625-v2-work-to-qa-concern-emission-policy-fix-0625-v2-axis-attack-qa",
+          "edge:qa-concern-emission-policy-fix-0625-v2-work-to-qa-concern-emission-policy-fix-0625-v2-evidence-integrity"
+        ]
+      },
+      {
+        "group_id": "group:qa-concern-emission-policy-fix-0625-v2-fan-in",
+        "group_role": "fan_in",
+        "member_ref_kind": "link_edge",
+        "member_refs": [
+          "edge:qa-concern-emission-policy-fix-0625-v2-code-attack-qa-to-qa-concern-emission-policy-fix-0625-v2-closure",
+          "edge:qa-concern-emission-policy-fix-0625-v2-axis-attack-qa-to-qa-concern-emission-policy-fix-0625-v2-closure",
+          "edge:qa-concern-emission-policy-fix-0625-v2-evidence-integrity-to-qa-concern-emission-policy-fix-0625-v2-closure"
+        ]
+      }
+    ],
+    "link_edges": [
+      {
+        "edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-design-to-qa-concern-emission-policy-fix-0625-v2-work",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:coo"
+            ],
+            "gate_sequence_policy": [
+              {
+                "gate_ref": "link-gate:default-transition",
+                "on_missing_required_facts": {
+                  "action": "reroute",
+                  "reason_refs": [
+                    "observation:default-transition-missing-required-facts"
+                  ],
+                  "required_target_budget": true,
+                  "target_basis": "source_brick"
+                },
+                "on_sufficient": {
+                  "action": "next",
+                  "next_gate_ref": "link-gate:coo"
+                }
+              },
+              {
+                "gate_ref": "link-gate:coo",
+                "on_missing_required_facts": {
+                  "action": "HOLD",
+                  "pending_target_basis": "target_brick",
+                  "reason_refs": [
+                    "observation:coo-gate-missing-required-facts"
+                  ],
+                  "required_disposition_owner": "coo"
+                },
+                "on_sufficient": {
+                  "action": "forward"
+                }
+              }
+            ],
+            "movement": "forward",
+            "row_ref": "link-row:edge:qa-concern-emission-policy-fix-0625-v2-design-to-qa-concern-emission-policy-fix-0625-v2-work",
+            "target_ref": "brick-qa-concern-emission-policy-fix-0625-v2-work"
+          }
+        ],
+        "source_step_ref": "qa-concern-emission-policy-fix-0625-v2-design",
+        "target_step_ref": "qa-concern-emission-policy-fix-0625-v2-work"
+      },
+      {
+        "edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-work-to-qa-concern-emission-policy-fix-0625-v2-code-attack-qa",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition"
+            ],
+            "movement": "forward",
+            "row_ref": "link-row:edge:qa-concern-emission-policy-fix-0625-v2-work-to-qa-concern-emission-policy-fix-0625-v2-code-attack-qa",
+            "target_ref": "brick-qa-concern-emission-policy-fix-0625-v2-code-attack-qa"
+          }
+        ],
+        "source_step_ref": "qa-concern-emission-policy-fix-0625-v2-work",
+        "target_step_ref": "qa-concern-emission-policy-fix-0625-v2-code-attack-qa"
+      },
+      {
+        "edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-work-to-qa-concern-emission-policy-fix-0625-v2-axis-attack-qa",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition"
+            ],
+            "movement": "forward",
+            "row_ref": "link-row:edge:qa-concern-emission-policy-fix-0625-v2-work-to-qa-concern-emission-policy-fix-0625-v2-axis-attack-qa",
+            "target_ref": "brick-qa-concern-emission-policy-fix-0625-v2-axis-attack-qa"
+          }
+        ],
+        "source_step_ref": "qa-concern-emission-policy-fix-0625-v2-work",
+        "target_step_ref": "qa-concern-emission-policy-fix-0625-v2-axis-attack-qa"
+      },
+      {
+        "edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-work-to-qa-concern-emission-policy-fix-0625-v2-evidence-integrity",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition"
+            ],
+            "movement": "forward",
+            "row_ref": "link-row:edge:qa-concern-emission-policy-fix-0625-v2-work-to-qa-concern-emission-policy-fix-0625-v2-evidence-integrity",
+            "target_ref": "brick-qa-concern-emission-policy-fix-0625-v2-evidence-integrity"
+          }
+        ],
+        "source_step_ref": "qa-concern-emission-policy-fix-0625-v2-work",
+        "target_step_ref": "qa-concern-emission-policy-fix-0625-v2-evidence-integrity"
+      },
+      {
+        "edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-code-attack-qa-to-qa-concern-emission-policy-fix-0625-v2-closure",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:strict"
+            ],
+            "gate_concept_provenance": {
+              "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+              "tokens": [
+                "strict-evidence"
+              ]
+            },
+            "movement": "forward",
+            "row_ref": "link-row:edge:qa-concern-emission-policy-fix-0625-v2-code-attack-qa-to-qa-concern-emission-policy-fix-0625-v2-closure",
+            "target_ref": "brick-qa-concern-emission-policy-fix-0625-v2-closure"
+          }
+        ],
+        "source_step_ref": "qa-concern-emission-policy-fix-0625-v2-code-attack-qa",
+        "target_step_ref": "qa-concern-emission-policy-fix-0625-v2-closure"
+      },
+      {
+        "edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-axis-attack-qa-to-qa-concern-emission-policy-fix-0625-v2-closure",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:strict"
+            ],
+            "gate_concept_provenance": {
+              "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+              "tokens": [
+                "strict-evidence"
+              ]
+            },
+            "movement": "forward",
+            "row_ref": "link-row:edge:qa-concern-emission-policy-fix-0625-v2-axis-attack-qa-to-qa-concern-emission-policy-fix-0625-v2-closure",
+            "target_ref": "brick-qa-concern-emission-policy-fix-0625-v2-closure"
+          }
+        ],
+        "source_step_ref": "qa-concern-emission-policy-fix-0625-v2-axis-attack-qa",
+        "target_step_ref": "qa-concern-emission-policy-fix-0625-v2-closure"
+      },
+      {
+        "edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-evidence-integrity-to-qa-concern-emission-policy-fix-0625-v2-closure",
+        "rows": [
+          {
+            "axis": "Link",
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:strict"
+            ],
+            "gate_concept_provenance": {
+              "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+              "tokens": [
+                "strict-evidence"
+              ]
+            },
+            "movement": "forward",
+            "row_ref": "link-row:edge:qa-concern-emission-policy-fix-0625-v2-evidence-integrity-to-qa-concern-emission-policy-fix-0625-v2-closure",
+            "target_ref": "brick-qa-concern-emission-policy-fix-0625-v2-closure"
+          }
+        ],
+        "source_step_ref": "qa-concern-emission-policy-fix-0625-v2-evidence-integrity",
+        "target_step_ref": "qa-concern-emission-policy-fix-0625-v2-closure"
+      },
+      {
+        "edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-closure-to-boundary",
+        "rows": [
+          {
+            "axis": "Link",
+            "building_lifecycle": {
+              "reason": "declared closure boundary for qa-concern-emission-policy-fix-0625-v2",
+              "state": "closed"
+            },
+            "declared_gate_refs": [
+              "link-gate:default-transition",
+              "link-gate:coo",
+              "link-gate:human"
+            ],
+            "gate_concept_provenance": {
+              "declared_by": "building-chain-preset:brick-protocol-engine-feature-hard",
+              "tokens": [
+                "coo-review",
+                "human-review"
+              ]
+            },
+            "gate_sequence_policy": [
+              {
+                "gate_ref": "link-gate:human",
+                "on_missing_required_facts": {
+                  "action": "hold",
+                  "pending_target_basis": "source_brick",
+                  "reason_refs": [
+                    "observation:human-gate-disposition-missing"
+                  ],
+                  "required_disposition_owner": "caller-or-coo"
+                },
+                "on_sufficient": {
+                  "action": "forward"
+                }
+              }
+            ],
+            "movement": "forward",
+            "row_ref": "link-row:edge:qa-concern-emission-policy-fix-0625-v2-closure-to-boundary",
+            "target_ref": "building-boundary:qa-concern-emission-policy-fix-0625-v2-closed"
+          }
+        ],
+        "source_step_ref": "qa-concern-emission-policy-fix-0625-v2-closure"
+      }
+    ],
+    "materialization_rule": "caller_or_coo_declared_task_source_plus_graph_chain_preset",
+    "not_proven": [
+      "semantic fitness of selected shape",
+      "future Building run correctness",
+      "future Agent or provider quality"
+    ],
+    "owner_axis": "Brick",
+    "plan_ref": "building-plan:qa-concern-emission-policy-fix-0625-v2",
+    "plan_shape": "graph",
+    "preset_expansion": {
+      "agent_object_refs": [
+        "agent-object:design-lead",
+        "agent-object:dev",
+        "agent-object:qa",
+        "agent-object:inspector",
+        "agent-object:inspector",
+        "agent-object:coo"
+      ],
+      "canonical_chain_preset_ref": "building-chain-preset:brick-protocol-engine-feature-hard",
+      "chain_preset_ref": "building-chain-preset:brick-protocol-engine-feature-hard",
+      "chain_preset_requires_graph": true,
+      "expanded_brick_spec_refs": [
+        "brick/templates/bricks/design/brick.md",
+        "brick/templates/bricks/work/brick.md",
+        "brick/templates/bricks/code-attack-qa/brick.md",
+        "brick/templates/bricks/axis-attack-qa/brick.md",
+        "brick/templates/bricks/evidence-integrity/brick.md",
+        "brick/templates/bricks/closure/brick.md"
+      ],
+      "expanded_brick_template_refs": [
+        "brick/templates/bricks/design/return.yaml",
+        "brick/templates/bricks/transition-concern-return.yaml",
+        "brick/templates/bricks/work/return.yaml",
+        "brick/templates/bricks/code-attack-qa/return.yaml",
+        "brick/templates/bricks/axis-attack-qa/return.yaml",
+        "brick/templates/bricks/evidence-integrity/return.yaml",
+        "brick/templates/bricks/closure/return.yaml"
+      ],
+      "expanded_step_template_refs": [
+        "building-step-template:design",
+        "building-step-template:work",
+        "building-step-template:code-attack-qa",
+        "building-step-template:axis-attack-qa",
+        "building-step-template:evidence-integrity",
+        "building-step-template:closure"
+      ],
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "selected preset ref was not declared unless separately present"
+      ],
+      "proof_limits": [
+        "support records caller / COO declared graph composition only",
+        "not automatic preset selection",
+        "not automatic shape selection",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "selected_shape_ref": "building-shape:design-needed",
+      "selection_rule": "caller_or_coo_declared_only"
+    },
+    "project_ref": "project:brick-protocol",
+    "proof_limits": [
+      "support evidence only",
+      "compose_building assembles caller / COO declared node and edge choices only",
+      "not automatic shape selection",
+      "not automatic Agent selection",
+      "not automatic gate selection",
+      "not support-chosen target",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "route_policy_provenance": {
+      "allowed_provenance": [
+        "constitutional-default",
+        "per-building",
+        "preset-default"
+      ],
+      "by_node": {
+        "qa-concern-emission-policy-fix-0625-v2-closure": {
+          "closure_transition_target_policy": "preset-default"
+        },
+        "qa-concern-emission-policy-fix-0625-v2-design": {
+          "node_reroute_budget": "preset-default"
+        },
+        "qa-concern-emission-policy-fix-0625-v2-work": {
+          "node_reroute_budget": "preset-default"
+        }
+      },
+      "rule": "route reroute budget + closure routing policy are HUMAN Movement decisions; support records but never synthesizes them (provenance is constitutional-default for Smith-declared reroute defaults, preset-default for a reusable preset default, or per-building for a per-Building override, NEVER support)"
+    },
+    "selected_adapter_ref": "adapter:codex-local",
+    "selected_model_ref": "model:codex:default",
+    "selected_shape_ref": "building-shape:design-needed",
+    "selection_rule": "caller_or_coo_declared_only",
+    "task_source_hash": "f7ff674b7410e104a6fc2da7830ead66924a72f36cecd23fe7eb84710ad9561b",
+    "task_source_hash_algorithm": "sha256",
+    "task_source_hash_basis": "utf-8 inline task_statement body at materialization time",
+    "task_source_ref": "task-source:inline-statement",
+    "task_statement": "BRICK COO declared root-fix Building: close the remaining partial patch around QA concern emission policy.\n\nContext:\n- 88cd2cc proves Link can adopt a valid QA transition_concern_evidence and reroute/replay work.\n- That proof is partial: it does not define or enforce when QA must emit transition_concern_evidence versus when QA must record not_proven only.\n- Previous Building qa-concern-emission-policy-fix-0625 reached design/COO gate, then resume exposed an operator declaration error: write_scope.allowed_paths used bare directories. This v2 uses globbed write scopes.\n\nRequired work:\n1. Inspect current Brick templates, QA return contracts, Link route policy, walker transition concern handling, and checker coverage relevant to transition_concern_evidence.\n2. Implement the minimal root fix so QA policy is explicit and covered:\n   - Real upstream implementation/design/boundary defect with an upstream work target should produce non-binding transition_concern_evidence that Link may adopt under declared policy.\n   - Environment/runtime/provider/read-only/no-temp/live-not-run/missing-probe cases should be recorded as not_proven or verification gap evidence without automatically requesting reroute.\n   - Preserve truth-before-quality: QA does not judge success/failure/approval, and support/checkers remain support evidence only.\n3. Add or adjust checker/profile coverage so the invariant is locked with positive and negative evidence.\n4. Keep Brick/Agent/Link/support ownership separated; do not add a new Movement literal, fact class, scheduler, provider runtime, success judge, or quality judge.\n5. Return exact changed files, commands/checkers run, narrowly_proven, not_proven, and next Movement candidate.\n\nOperating constraints:\n- Use the existing checker/profile framework where possible.\n- Do not store credential/session/provider bodies.\n- Do not run git commit or push.\n"
+  },
+  "kind": "declared_building_plan_provenance",
+  "not_proven": [
+    "declared plan semantic correctness",
+    "future Agent or provider behavior"
+  ],
+  "plan_hash": "d18436897d8eadc9e73aafd41b868cdf32f2403a4d7530cc65b0681981bf0d29",
+  "plan_hash_algorithm": "sha256",
+  "plan_hash_basis": "canonical sorted-key JSON of the pure declared-building-plan copy (runtime walker state excluded)",
+  "plan_ref": "building-plan:qa-concern-emission-policy-fix-0625-v2",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ]
+}

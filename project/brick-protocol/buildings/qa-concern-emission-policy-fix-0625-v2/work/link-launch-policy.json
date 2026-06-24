@@ -1,0 +1,120 @@
+{
+  "building_id": "qa-concern-emission-policy-fix-0625-v2",
+  "declared_gate_refs": [
+    "link-gate:default-transition",
+    "link-gate:coo",
+    "link-gate:strict",
+    "link-gate:human"
+  ],
+  "kind": "link_launch_policy_provenance",
+  "launch_rows": [
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:coo"
+      ],
+      "edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-design-to-qa-concern-emission-policy-fix-0625-v2-work",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "qa-concern-emission-policy-fix-0625-v2-design",
+      "target_ref": "brick-qa-concern-emission-policy-fix-0625-v2-work"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-work-to-qa-concern-emission-policy-fix-0625-v2-code-attack-qa",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "qa-concern-emission-policy-fix-0625-v2-work",
+      "target_ref": "brick-qa-concern-emission-policy-fix-0625-v2-code-attack-qa"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-work-to-qa-concern-emission-policy-fix-0625-v2-axis-attack-qa",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "qa-concern-emission-policy-fix-0625-v2-work",
+      "target_ref": "brick-qa-concern-emission-policy-fix-0625-v2-axis-attack-qa"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-work-to-qa-concern-emission-policy-fix-0625-v2-evidence-integrity",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "qa-concern-emission-policy-fix-0625-v2-work",
+      "target_ref": "brick-qa-concern-emission-policy-fix-0625-v2-evidence-integrity"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-code-attack-qa-to-qa-concern-emission-policy-fix-0625-v2-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "qa-concern-emission-policy-fix-0625-v2-code-attack-qa",
+      "target_ref": "brick-qa-concern-emission-policy-fix-0625-v2-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-axis-attack-qa-to-qa-concern-emission-policy-fix-0625-v2-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "qa-concern-emission-policy-fix-0625-v2-axis-attack-qa",
+      "target_ref": "brick-qa-concern-emission-policy-fix-0625-v2-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-evidence-integrity-to-qa-concern-emission-policy-fix-0625-v2-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "qa-concern-emission-policy-fix-0625-v2-evidence-integrity",
+      "target_ref": "brick-qa-concern-emission-policy-fix-0625-v2-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:coo",
+        "link-gate:human"
+      ],
+      "edge_ref": "edge:qa-concern-emission-policy-fix-0625-v2-closure-to-boundary",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "qa-concern-emission-policy-fix-0625-v2-closure",
+      "target_ref": "building-boundary:qa-concern-emission-policy-fix-0625-v2-closed"
+    }
+  ],
+  "max_attempts_by_boundary": {},
+  "node_reroute_budgets": {
+    "brick-qa-concern-emission-policy-fix-0625-v2-design": 1,
+    "brick-qa-concern-emission-policy-fix-0625-v2-work": 1
+  },
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality"
+  ],
+  "plan_ref": "building-plan:qa-concern-emission-policy-fix-0625-v2",
+  "plan_shape": "graph",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support evidence only",
+    "P3 records launch parameters only; P4 owns Carry budget evidence"
+  ],
+  "selected_shape_ref": "building-shape:design-needed"
+}

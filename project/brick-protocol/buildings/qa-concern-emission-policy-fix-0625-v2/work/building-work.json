@@ -1,0 +1,61 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:qa-concern-emission-policy-fix-0625-v2::work/building-work.json",
+  "building_id": "qa-concern-emission-policy-fix-0625-v2",
+  "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "frontier_observation": "Agent receipt observed before returned AgentFact",
+  "generatedAtTime": "2026-06-24T22:39:22Z",
+  "id": "urn:bp:building:qa-concern-emission-policy-fix-0625-v2::work/building-work.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "not proven: source truth",
+    "not proven: success judgment",
+    "not proven: quality judgment",
+    "not proven: Movement authority",
+    "provider or local callable behavior after the adapter exception",
+    "semantic correctness of the interrupted work",
+    "caller/COO disposition after frontier observation"
+  ],
+  "plan_ref": "building-plan:qa-concern-emission-policy-fix-0625-v2",
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-06-24T22:39:22Z",
+  "required_return_shape": "observed_evidence,design_summary,relevant_current_structure,proposed_changes,unchanged_surfaces,axis_responsibility,invariants,edge_cases,checker_or_verifier_plan,candidate_file_changes,evidence_refs,not_proven,reading_scope_map",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:qa-concern-emission-policy-fix-0625-v2",
+  "source_facts": [
+    "task-source:inline-statement"
+  ],
+  "specversion": "1.0",
+  "step_refs": [
+    "qa-concern-emission-policy-fix-0625-v2-design",
+    "qa-concern-emission-policy-fix-0625-v2-work"
+  ],
+  "subject": "work/building-work.json",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-24T22:39:22Z",
+  "type": "bp.building_work",
+  "work_statement": "design Brick for task-source:inline-statement: BRICK COO declared root-fix Building: close the remaining partial patch around QA concern emission policy."
+}
