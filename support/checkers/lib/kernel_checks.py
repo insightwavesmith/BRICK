@@ -714,22 +714,23 @@ def run_building_plans_boundary_sweep(repo: Path) -> KernelResult:
     REHOME target: the per-profile ``building_plan_boundary`` pins (bar_v2,
     real_route_repair, provider_json_return_smoke, current_context_prune, ...)
     each pinned ONE frozen/live plan because no global walk existed. This sweep
-    runs the SAME ``validate_building_plan_boundary`` over EVERY linear plan in
-    brick/building_plans/, so those single-sourced per-plan structural guards
-    survive as one general kernel-check and the per-profile pins can retire.
+    runs the SAME ``validate_building_plan_boundary`` over EVERY linear and
+    graph plan in brick/building_plans/, so those single-sourced per-plan
+    structural guards survive as one general kernel-check and the per-profile
+    pins can retire.
 
-    Graph / stepless plans are skipped (they have their own validation path);
-    their count is reported, never silently absorbed. A real boundary violation
-    on any linear plan raises ProfileError -> --all RED.
+    Stepless / non-Building-plan fixtures are skipped; their count is reported,
+    never silently absorbed. A real boundary violation on any linear or graph
+    plan raises ProfileError -> --all RED.
 
     HARDENED (guard-before-retire): when the linear yaml-subset parser fails on a
     plan, fall back to PyYAML (yaml.safe_load). If PyYAML yields a dict with a
-    non-empty ``steps`` list, the plan is a real LINEAR plan that the subset
-    parser merely could not read, so it is validated via the SAME
-    ``validate_building_plan_boundary`` (no silent skip). Only truly graph/stepless
-    plans (no ``steps``) are skipped. A now-included plan that genuinely fails
-    validation is surfaced (--all RED), never hidden. The number of PyYAML-
-    recovered plans is reported separately.
+    non-empty ``steps`` list or ``plan_shape: graph``, the plan is a real
+    Building Plan that the subset parser merely could not read, so it is
+    validated via the SAME ``validate_building_plan_boundary`` (no silent skip).
+    Only truly stepless / non-Building-plan fixtures are skipped. A now-included
+    plan that genuinely fails validation is surfaced (--all RED), never hidden.
+    The number of PyYAML-recovered plans is reported separately.
     """
     plans_dir = repo / "brick" / "building_plans"
     if not plans_dir.is_dir():
@@ -742,7 +743,8 @@ def run_building_plans_boundary_sweep(repo: Path) -> KernelResult:
     )
 
     admitted = _admitted_agent_object_refs(repo)
-    validated = 0
+    linear_validated = 0
+    graph_validated = 0
     skipped = 0
     pyyaml_recovered = 0
     for path in sorted(plans_dir.glob("*.yaml")):
@@ -753,23 +755,34 @@ def run_building_plans_boundary_sweep(repo: Path) -> KernelResult:
             # Subset parser could not read it. Fall back to PyYAML: a real LINEAR
             # plan (dict with non-empty steps) must still be covered, not skipped.
             recovered = yaml.safe_load(path.read_text(encoding="utf-8"))
-            recovered_steps = recovered.get("steps") if isinstance(recovered, Mapping) else None
-            if not (isinstance(recovered_steps, list) and recovered_steps):
-                skipped += 1  # graph / stepless plan -> own validation path
+            if not isinstance(recovered, Mapping):
+                skipped += 1
                 continue
-            # Real linear plan the subset parser missed; validate it (surface any
-            # genuine failure rather than hiding it). This is STRUCTURAL validation
-            # of historical plans, so retired write-adapter refs are tolerated here
-            # (adapter activeness is enforced at run time, not in the boundary sweep).
+            recovered_steps = recovered.get("steps")
+            recovered_is_linear = isinstance(recovered_steps, list) and bool(recovered_steps)
+            recovered_is_graph = recovered.get("plan_shape") == "graph"
+            if not (recovered_is_linear or recovered_is_graph):
+                skipped += 1  # stepless / non-Building-plan fixture
+                continue
+            # Real linear/graph plan the subset parser missed; validate it
+            # (surface any genuine failure rather than hiding it). This is
+            # STRUCTURAL validation of historical plans, so retired write-adapter
+            # refs are tolerated here (adapter activeness is enforced at run time,
+            # not in the boundary sweep).
             validate_building_plan_boundary(
                 recovered, rel, admitted, repo, allow_retired_write_adapter_refs=True
             )
-            validated += 1
+            if recovered_is_graph:
+                graph_validated += 1
+            else:
+                linear_validated += 1
             pyyaml_recovered += 1
             continue
         steps = plan.get("steps")
-        if not (isinstance(steps, list) and steps):
-            skipped += 1  # stepless / graph plan -> own validation path
+        is_linear = isinstance(steps, list) and bool(steps)
+        is_graph = plan.get("plan_shape") == "graph"
+        if not (is_linear or is_graph):
+            skipped += 1  # stepless / non-Building-plan fixture
             continue
         # Reuses the EXACT per-profile boundary validator; a violation raises
         # ProfileError, which fails the check (no swallowing of real failures).
@@ -778,16 +791,21 @@ def run_building_plans_boundary_sweep(repo: Path) -> KernelResult:
         validate_building_plan_boundary(
             plan, rel, admitted, repo, allow_retired_write_adapter_refs=True
         )
-        validated += 1
+        if is_graph:
+            graph_validated += 1
+        else:
+            linear_validated += 1
+    validated = linear_validated + graph_validated
     return KernelResult(
         check_id="building_plans_boundary_sweep",
         inspected=validated,
         output=(
-            f"building plans boundary sweep passed: {validated} linear building "
+            f"building plans boundary sweep passed: {validated} building "
             f"plan(s) validated (Brick owner_axis + plan_ref + non-empty steps + "
-            f"declared-plan validation + per-step rows; {pyyaml_recovered} "
-            f"PyYAML-recovered from subset-parse failure); {skipped} graph/stepless "
-            f"plan(s) skipped (own validation path)."
+            f"declared-plan validation + per-step rows; {linear_validated} linear, "
+            f"{graph_validated} graph via declared graph projection; {pyyaml_recovered} "
+            f"PyYAML-recovered from subset-parse failure); {skipped} stepless / "
+            f"non-Building-plan fixture(s) skipped."
         ),
     )
 
