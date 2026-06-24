@@ -1,0 +1,149 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:checker-profile-diet-measurement-0625::work/step-outputs/checker-profile-diet-measurement-0625-review-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-checker-profile-diet-measurement-0625-review",
+  "building_id": "checker-profile-diet-measurement-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-24T23:12:43.087255Z",
+  "id": "urn:bp:building:checker-profile-diet-measurement-0625::work/step-outputs/checker-profile-diet-measurement-0625-review-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:checker-profile-diet-measurement-0625-review",
+  "recorded_at": "2026-06-24T23:12:43.087255Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:qa-lead",
+    "boundary_violations": [
+      "None observed. Report stays inside the Agent/plan boundary: no edits, no git mutation, no success/quality/Movement claim; proposed_next_work_boundaries is framed as candidate boundaries only. Observation only: the `returned` object also carries envelope/provenance fields beyond the 8 declared plan fields (adapter_ref, agent_object_ref, brain_surface_ref, cli_call_ref, cli_version_text, evidence_refs, output_excerpt, proof_limits, returned_summary, selected_adapter_ref, selected_model_ref); whether those extras are admissible is the Link gate's call, not judged here."
+    ],
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "checked_sources": [
+      "buildings/checker-profile-diet-measurement-0625/work/step-outputs/checker-profile-diet-measurement-0625-plan-attempt-1/step-output.json (prior returned object)",
+      "buildings/checker-profile-diet-measurement-0625/work/declared-building-plan.json (plan-node required_return_shape + task_statement)",
+      "support/checkers/profiles/ (Glob = 24 YAMLs), core.yaml, read_side_projection_boundary.yaml, building_operator_driver0.yaml, brick_cli_entrypoint.yaml, building_skill_preset_agent_tool_hardening.yaml",
+      "support/checkers/check_profile.py, support/checkers/lib/kernel_checks.py"
+    ],
+    "checked_work": "plan Brick for task-source:inline-statement (checker/profile diet measurement): bound a read-only measurement of support/checkers/profiles/*.yaml + check_profile.py, classify core vs dogfood/live/heavy/historical, flag duplicate/over-broad mechanisms and dead/stale names, and frame a measurement report for a later implementation Building.",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:checker-profile-diet-measurement-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "evidence_refs": [
+      "support-packet:checker-profile-diet-measurement-0625:agent-object:qa-lead:output"
+    ],
+    "evidence_used": [
+      "buildings/checker-profile-diet-measurement-0625/work/step-outputs/checker-profile-diet-measurement-0625-plan-attempt-1/step-output.json",
+      "buildings/checker-profile-diet-measurement-0625/work/declared-building-plan.json",
+      "support/checkers/profiles/core.yaml (L1-69)",
+      "support/checkers/profiles/read_side_projection_boundary.yaml (L1-15)",
+      "support/checkers/profiles/building_operator_driver0.yaml (L1-90)",
+      "support/checkers/profiles/brick_cli_entrypoint.yaml (L1-12)",
+      "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml (L1748-1771)",
+      "support/checkers/check_profile.py (L1-45, L169, L637, L921, L1114, L1320, L1355)",
+      "support/checkers/lib/kernel_checks.py (L2539-2625 provider_preflight, L3580 run_onboard_smoke)",
+      "Glob support/checkers/profiles/*.yaml = 24 files; Glob support/checkers/lib/*.py = rule_runners/yaml_subset/kernel_checks/case_runners; Grep mcp_projection.py across profiles = 5 files"
+    ],
+    "missing_or_mismatched_facts": [
+      "Path-precision mismatch vs the task's 'exact file paths' mandate: report cites 'kernel_checks.py:3580' (run_onboard_smoke) and treats kernel-check bodies as in a top-level kernel_checks.py. The actual file is support/checkers/lib/kernel_checks.py — bodies were lifted into the lib/ sublayer (check_profile.py header L28-34). The line number 3580 is correct; the path omits the lib/ prefix.",
+      "Incomplete overlap enumeration: report names 3 profiles (coo_operating_chain, building_skill_preset_agent_tool_hardening, read_side_projection_boundary) + dedicated mcp_dispatch_wire.yaml as touching support/connection/mcp_projection.py. The literal string appears in 5 profile YAMLs — also agent_axis_behavioral.yaml and structure_template_integrity.yaml were not named. Report hedges this as a non-exhaustive 'candidate' in missing_scope, so it is a known-incomplete list rather than a contradicted claim.",
+      "Task-item coverage (observation, not a sufficiency verdict): this is a PLAN node, so its return template has no 'measurement report' field. Task item 4 (emit the measurement-report artifact with the full profile→checks→runner table) is deferred to proposed_next_work_boundaries; task item 2 (per-profile core vs dogfood/live/heavy/historical classification) yields candidate buckets only, with authoritative taxonomy explicitly deferred to the implementation Building (missing_scope #1, constraints #5). The standalone measurement-report deliverable is therefore bounded/proposed, not produced in this node."
+    ],
+    "narrowly_proven": [
+      "The prior plan node's `returned` object fills every field of its declared plan return shape, with no reserved verdict key and a null transition_concern.",
+      "The report's quantitative and line-referenced claims that I spot-checked are accurate: 24 profile YAMLs, the 8 named profiles exist, and the cited line anchors in check_profile.py, core.yaml, read_side_projection_boundary.yaml, building_operator_driver0.yaml, brick_cli_entrypoint.yaml, and lib/kernel_checks.py resolve as stated (line numbers correct).",
+      "The environment constraint (no Read tool for the prior agent) is correctly placed in not_proven, not as a transition_concern."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Sufficiency of this plan node as the full measurement deliverable — the actual measurement-report artifact, complete profile→kernel_checks→runner table, and authoritative core/dogfood/heavy/historical taxonomy are deferred to a later Building and were not produced here (a Link-gate sufficiency question, not mine).",
+      "Whether any profile_id is genuinely dead/stale — no full cross-repo selector scan (CI/operator/docs) was performed by the report or by this review.",
+      "Per-profile/per-check RUNTIME cost, including the '5+ minutes' onboard_seam_case claim, which is carried from the task source and not reproduced (no timing run; --all avoided).",
+      "Whether the mcp_projection.py multi-profile touch is true duplication vs intentional layering — only a literal-reference count (5 profiles) was confirmed; semantic overlap is not judged.",
+      "Exhaustiveness of my own spot-check — I verified a sample of the report's anchors, not every line reference or every profile's full kernel_checks membership.",
+      "Source truth, success, quality, and Movement authority — out of scope for this review."
+    ],
+    "observed_evidence": [
+      "Prior node under review = brick-checker-profile-diet-measurement-0625-plan (kind: plan, agent-object:pm-lead); its step-output.json `returned` object carries the 8 plan-template fields plus an envelope.",
+      "Declared plan return shape (declared-building-plan.json brick-row plan): objective_summary,scope_boundaries,constraints,missing_scope,proposed_next_work_boundaries,observed_evidence,not_proven,transition_concern_evidence.",
+      "Repository state independently inspected to confirm/deny the report's line-referenced claims (24 profile YAMLs, check_profile.py, lib/kernel_checks.py, core.yaml, several profile YAMLs)."
+    ],
+    "observed_matches": [
+      "Return shape: all 8 declared plan fields are present in `returned` (objective_summary, scope_boundaries, constraints, missing_scope, proposed_next_work_boundaries, observed_evidence, not_proven, transition_concern_evidence=null).",
+      "No forbidden/reserved verdict keys (success/failure/approved/quality/movement/route_target/status) appear; transition_concern_evidence is null; report repeatedly self-labels 'support evidence only'.",
+      "Profile count claim '24 YAMLs (core.yaml + 23 named)' matches Glob = 24 files; the 8 named profiles cited (building_skill_preset_agent_tool_hardening, agent_axis_behavioral, coo_operating_chain, building_operator_driver0, read_side_projection_boundary, mcp_dispatch_wire, tier_a_three_axis_conformance, brick_cli_entrypoint) all exist.",
+      "Line-grounded claims confirmed exact: check_profile.py L1114 'provide --profile, --all, or --self-test', parse_args L1320, CHECKER-PROGRESS-GUARD-0 L924, assert_all_profiles_did_not_write_live_fixture_inbox L169, provider_preflight dispatch L637, KERNEL_CHECK_IDS L921; THIN FACADE / 'support evidence only' header (L2-7, L32).",
+      "Profile-line claims confirmed exact: read_side_projection_boundary.yaml L3 PASS-2 fold of the 5 named prior profiles + mcp_stdio_smoke L11; building_operator_driver0.yaml onboard_seam_case L85, 'not real-provider proof' L83, onboard_smoke kernel check; brick_cli_entrypoint.yaml brick_cli_entrypoint_smoke L5; building_skill_preset live_linear_n1/live_dynamic_fan_in_n3/live_dynamic_full_replay_n3 at L1748/1756/1771 (within cited L1747-1802).",
+      "core.yaml confirmed: ~23 kernel_checks (L5-27) incl. axis_vocab_drift, package_path_admission, bricks_spec_completeness, building_map_graph, evidence_spine; plus path_exists/path_absent/path_absent_glob/path_allowlist rules (L28-65).",
+      "Environment/runtime constraint (prior agent lacked Read for absolute paths; Grep/Glob-only) is recorded in not_proven, NOT as a transition_concern — consistent with the plan brick instruction."
+    ],
+    "output_excerpt": "I have enough grounded evidence. Here is my review return. ```json { \"observed_evidence\": [ \"Prior node under review = brick-checker-profile-diet-measurement-0625-plan (kind: plan, agent-object:pm-lead); its step-output.json `returned` object carries the 8 plan-template fields plus an envelope.\", \"Declared plan return shape (declared-building-plan.json brick-row plan): objective_summary,scope_boundaries,constraints,missing_scope,proposed_next_work_boundaries,observed_evidence,not_proven,transition_concern_evidence.\", \"Repository state independently inspected to confirm/deny the report's lin...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:02:checker-profile-diet-measurement-0625-review",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:checker-profile-diet-measurement-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:checker-profile-diet-measurement-0625-review:attempt-1",
+  "step_ref": "checker-profile-diet-measurement-0625-review",
+  "subject": "checker-profile-diet-measurement-0625-review",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-24T23:12:43.087255Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

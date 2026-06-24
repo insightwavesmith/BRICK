@@ -1,0 +1,11 @@
+# LinkCarry · seq 20 · ["Link"]
+- absent_fact_type: "CarryFact"
+- axis_scope: ["Link"]
+- caller_supplied: false
+- event_type: "LinkCarry"
+- run_segment: 1
+- sequence_index: 20
+- source_fact_ref: "absence:link-carry:02:checker-profile-diet-measurement-0625-review"
+- spine_schema_version: "spine-v1"
+- support_created_bal_fact: false
+- trace_role: "absence_placeholder"
