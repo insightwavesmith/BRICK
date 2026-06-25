@@ -1,0 +1,161 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:p5-four-llm-gemini-api-fixture-repair-0625::work/step-outputs/p5-four-llm-gemini-api-fixture-repair-0625-closure-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-p5-four-llm-gemini-api-fixture-repair-0625-closure",
+  "building_id": "p5-four-llm-gemini-api-fixture-repair-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T08:42:34.430832Z",
+  "id": "urn:bp:building:p5-four-llm-gemini-api-fixture-repair-0625::work/step-outputs/p5-four-llm-gemini-api-fixture-repair-0625-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:p5-four-llm-gemini-api-fixture-repair-0625-closure",
+  "recorded_at": "2026-06-25T08:42:34.430832Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:coo",
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:p5-four-llm-gemini-api-fixture-repair-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "deferred_smith_review_queue": [
+      "The step-output's changed_files / git-status list is much broader than the two declared made_changes (includes p7/p10 building evidence, status/inbox events, and support/docs/references/quickstart.md + setup.md). The work Brick labels these pre-existing/unrelated concurrent-building artifacts; Smith may wish to confirm before any commit so the P5 change set is not mixed with unrelated worktree state.",
+      "Live four-LLM validation remains unrun (credentials/write_scope absent). Smith decides whether a credentialed live smoke is required before this fixture repair is considered settled."
+    ],
+    "evidence_refs": [
+      "support-packet:p5-four-llm-gemini-api-fixture-repair-0625:agent-object:coo:output"
+    ],
+    "narrowly_proven": [
+      "The work Brick recorded the four declared verification commands (git diff --check, py_compile of case_runners.py, check_profile building_skill_preset_agent_tool_hardening, check_profile agent_axis_behavioral) each as exit 0 in both the step-output and the status report.",
+      "A status report was produced at the declared path project/brick-protocol/status/kernel/p5-four-llm-gemini-api-fixture-repair-0625.md.",
+      "The declared in-scope code edit targets support/checkers/lib/case_runners.py, which is within the task's allowed write scope (support/checkers/**).",
+      "The report records that strict completion semantics were retained (expected_frontier_kind: complete not relaxed to accept agent_incomplete) per the recorded checker runs."
+    ],
+    "next_target_candidates": [
+      "Declare a follow-up Building with a proper write_scope to run the live four-LLM smoke against four-llm-standard-graph and record complete vs adapter-error.",
+      "A reviewer-readonly pass over support/checkers/lib/case_runners.py to read the deterministic fixture diff against the gemini-api adapter dispatch seam.",
+      "A worktree-hygiene check on branch struct-surgery-0623 to confirm the broad dirty-path set is attributable to the concurrent p7/p10 buildings, not this Brick."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Live Gemini credential validity and live four-LLM provider reachability — the optional smoke stopped at a write_scope admission guard and never reached provider execution (environment/runtime constraint, not a defect).",
+      "Whether the deterministic fixture is semantically correct beyond the recorded checker exit codes; checker output is support evidence only, not source truth.",
+      "Whether the gemini-api lane reaches 'complete' vs 'adapter-error' under actual live credentials.",
+      "That every broad worktree path in changed_files is in fact pre-existing/unrelated and not produced by this Brick — the attribution is the work Brick's own claim, observed but not independently verified here.",
+      "Source truth, success judgment, quality judgment, and Movement authority — outside this closure's authority."
+    ],
+    "observed_evidence": [
+      "Work Brick (agent-object:dev, adapter:codex-local, codex-cli 0.132.0) returned support evidence for task-source:inline-statement (P5 four-LLM Gemini API fixture repair).",
+      "made_changes declared two edits: (1) support/checkers/lib/case_runners.py gained a checker-local deterministic adapter:gemini-api preset-completion fixture that patches the Gemini API adapter dispatch seam in-process during preset_building_completion_case only, returning the HTTP-adapter shape without subprocess/live credentials/response capture; (2) added status/kernel/p5-four-llm-gemini-api-fixture-repair-0625.md report.",
+      "Recorded command evidence: 'git diff --check exited 0', 'uv run python3 -m py_compile support/checkers/lib/case_runners.py exited 0', 'uv run python3 support/checkers/check_profile.py --profile building_skill_preset_agent_tool_hardening exited 0', 'uv run python3 support/checkers/check_profile.py --profile agent_axis_behavioral exited 0'.",
+      "Report states building_skill_preset_agent_tool_hardening keeps expected_frontier_kind: complete and passes for the full current preset set including building-chain-preset:four-llm-standard-graph; an earlier run before the second patch still observed agent_incomplete, final run passed.",
+      "Report states agent_axis_behavioral gemini_api_adapter kernel check still passes: no-key remains a clean local_cli_missing typed adapter error, Gemini API is not treated as a local CLI spec, mocked HTTP request shape is pinned, and HTTP-error/timeout/malformed-response paths raise clean ValueErrors.",
+      "Optional live four-LLM smoke did not reach provider execution; attempts stopped at the admission guard 'write_scope is required for write-needed Brick building-step-template:work' and the agent did not open a live write-capable provider run.",
+      "worktree_observation after_git_refs.head = 036d92d9948aa68cb63ce9764ea342a5b83b788a on branch struct-surgery-0623.",
+      "The step-output changed_files / after_git_status_paths list is far broader than the two declared made_changes (it also contains p10 and p7 building artifacts, status/inbox events, and support/docs/references/quickstart.md and setup.md); the work Brick attributed these to 'Pre-existing/unrelated dirty files' from concurrent buildings."
+    ],
+    "output_excerpt": "I have the prior work Brick's `returned` block and the status report. The remaining ~470 lines of the step-output are file-path lists (worktree git status), already summarized in the `returned` block. I can synthesize the closure now. ```json { \"observed_evidence\": [ \"Work Brick (agent-object:dev, adapter:codex-local, codex-cli 0.132.0) returned support evidence for task-source:inline-statement (P5 four-LLM Gemini API fixture repair).\", \"made_changes declared two edits: (1) support/checkers/lib/case_runners.py gained a checker-local deterministic adapter:gemini-api preset-completion fixture...",
+    "parent_goal_delta_status": {
+      "closed_delta_refs": [
+        "task-item-4:run-and-record-git-diff-check (exit 0)",
+        "task-item-4:run-and-record-py_compile (exit 0)",
+        "task-item-4:run-and-record-check_profile-building_skill_preset_agent_tool_hardening (exit 0)",
+        "task-item-4:run-and-record-check_profile-agent_axis_behavioral (exit 0)"
+      ],
+      "evidence_refs": [
+        "work/step-outputs/p5-four-llm-gemini-api-fixture-repair-0625-work-attempt-1/step-output.json",
+        "project/brick-protocol/status/kernel/p5-four-llm-gemini-api-fixture-repair-0625.md",
+        "support-packet:p5-four-llm-gemini-api-fixture-repair-0625:agent-object:dev:output"
+      ],
+      "matched_delta_refs": [
+        "task-item-1:inspect-agent_incomplete-cause (report narrative present)",
+        "task-item-2:implement-minimal-fixture-in-support-checkers (support/checkers/lib/case_runners.py edit declared)",
+        "task-item-3:preserve-gemini-api-adapter-semantics (agent_axis_behavioral gemini_api_adapter check recorded passing)",
+        "task-item-6:write-report-to-status-kernel (report file declared added)"
+      ],
+      "missing_delta_refs": [
+        "live-gemini-credential-path (absent; admission guard reached)"
+      ],
+      "open_delta_refs": [
+        "task-item-5:four-llm-validation-smoke (did not reach provider execution; recorded not_proven per task instruction rather than weakening fixture semantics)"
+      ],
+      "unknown_delta_refs": [
+        "semantic-correctness-of-fixture-edit-beyond-checker-exit-codes",
+        "completeness-of-pre-existing-dirty-file-attribution"
+      ]
+    },
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "remaining_delta": [
+      "A live four-LLM validation smoke against building-chain-preset:four-llm-standard-graph with real Gemini API credentials, run under a properly declared write_scope, to observe whether the frontier reaches complete or a clean adapter-error.",
+      "Independent confirmation that the broad set of dirty worktree paths (p10/p7 building artifacts, status/inbox, support/docs/references/quickstart.md, setup.md) is unrelated to this Brick's two declared edits.",
+      "Optional: a freshness/Work-Packet review admitting whether the deterministic fixture should be exercised again once credentials are available."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:02:p5-four-llm-gemini-api-fixture-repair-0625-closure",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:p5-four-llm-gemini-api-fixture-repair-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:p5-four-llm-gemini-api-fixture-repair-0625-closure:attempt-1",
+  "step_ref": "p5-four-llm-gemini-api-fixture-repair-0625-closure",
+  "subject": "p5-four-llm-gemini-api-fixture-repair-0625-closure",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T08:42:34.430832Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}
