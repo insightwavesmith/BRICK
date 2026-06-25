@@ -1,0 +1,12 @@
+# AgentBinding · seq 23 · ["Agent"]
+- agent_object_ref: "agent-object:inspector"
+- agent_performer_ref: "agent-performer:agent-object:inspector"
+- axis_scope: ["Agent"]
+- binding_role: "primary"
+- brick_instance_ref: "brick-four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review"
+- event_type: "AgentBinding"
+- run_segment: 1
+- sequence_index: 23
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review-attempt-1/step-output.json"
+- step_ref: "four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review"

@@ -1,0 +1,12 @@
+# LinkSufficiency · seq 35 · ["Link"]
+- axis_scope: ["Link"]
+- checked_public_fact: "brick-comparison:four-llm-standard-graph-readonly-smoke-0625:four-llm-standard-graph-readonly-smoke-0625-fugu-axis-attack"
+- event_type: "LinkSufficiency"
+- missing_required_facts: []
+- required_public_facts: ["BrickComparisonFact.required_return_shape_evidence","BrickComparisonFact.comparison_evidence","BrickComparisonFact.comparison_evidence.returned_field.inspected_scope","BrickComparisonFact.comparison_evidence.returned_field.matched_facts","BrickComparisonFact.comparison_evidence.returned_field.missing_facts","BrickComparisonFact.comparison_evidence.returned_field.mismatched_facts","BrickComparisonFact.comparison_evidence.returned_field.boundary_findings","BrickComparisonFact.comparison_evidence.returned_field.observed_evidence","BrickComparisonFact.comparison_evidence.returned_field.not_proven","BrickComparisonFact.comparison_evidence.returned_field.blocked_or_missing_evidence","BrickComparisonFact.comparison_evidence.returned_field.remaining_delta","BrickComparisonFact.comparison_evidence.returned_field.proof_limits"]
+- run_segment: 1
+- sequence_index: 35
+- source_fact_ref: "sufficiency-fact-movement:04:four-llm-standard-graph-readonly-smoke-0625-fugu-axis-attack"
+- spine_schema_version: "spine-v1"
+- stage: "movement"
+- sufficiency: "sufficient"

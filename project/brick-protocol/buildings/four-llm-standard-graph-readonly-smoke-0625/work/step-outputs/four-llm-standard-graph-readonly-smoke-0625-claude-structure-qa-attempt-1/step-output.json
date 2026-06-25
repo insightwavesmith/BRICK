@@ -1,0 +1,144 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:four-llm-standard-graph-readonly-smoke-0625::work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa",
+  "building_id": "four-llm-standard-graph-readonly-smoke-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T01:52:17.805502Z",
+  "id": "urn:bp:building:four-llm-standard-graph-readonly-smoke-0625::work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa",
+  "recorded_at": "2026-06-25T01:52:17.805502Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:qa-lead",
+    "boundary_violations": [],
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "checked_sources": [
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-work-attempt-1/step-output.json",
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/declared-building-plan.json",
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/task.md",
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/preset-expansion.json",
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/link-launch-policy.json",
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/raw/report-delivery.jsonl"
+    ],
+    "checked_work": "Prior node four-llm-standard-graph-readonly-smoke-0625-work (Codex lane, agent-object:dev, adapter:codex-local). Declared required_return_shape per declared-building-plan.json brick-row: 'made_changes, observed_evidence, not_proven'. Task-source:inline-statement also asks the work to record commands/provider observations, evidence refs, frontier kind, adapter errors if any, and not_proven for a read-only 4-provider graph launch smoke.",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:four-llm-standard-graph-readonly-smoke-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "evidence_refs": [
+      "support-packet:four-llm-standard-graph-readonly-smoke-0625:agent-object:qa-lead:output"
+    ],
+    "evidence_used": [
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-work-attempt-1/step-output.json (returned object, worktree_observation, not_proven, proof_limits)",
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/declared-building-plan.json (brick_steps required_return_shape, selected adapters/models, groups, link_edges, gate refs)",
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/task.md (declared objective and proof-required list)",
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/preset-expansion.json (chain_preset_ref, agent_object_refs, expanded templates)",
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/link-launch-policy.json (launch_rows, declared_gate_refs incl. strict on Gemini/Fugu fan-in)",
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/raw/report-delivery.jsonl (building_started/brick_received/gate_passed/brick_returned delivery rows, sink refs, status classes, source_truth=false)"
+    ],
+    "missing_or_mismatched_facts": [
+      "Relative to the full work return.yaml template fields (received_work_ref, made_changes, changed_files, observed_evidence, commands_run, blocked_or_missing_evidence, handoff_refs, not_proven), the returned object omits explicit commands_run, blocked_or_missing_evidence, and handoff_refs keys. Relative to the DECLARED required_return_shape (made_changes, observed_evidence, not_proven) the return is complete; sufficiency of that narrower shape is the Link gate's call, not mine.",
+      "Task-source asked the work to 'record commands' and 'frontier kind'. No discrete commands_run list and no explicit frontier_kind field appear in the work return; provider/CLI observation is instead carried as cli_call_ref + cli_version_text='codex-cli 0.132.0', and frontier evidence appears only indirectly (raw/report-delivery.jsonl rows carry report_kind='building_frontier', which the work referenced but did not restate as a named field).",
+      "The task objective names provider/frontier evidence for four lanes (Codex, Claude, Gemini, Fugu/Sakana). The work return supplies actual provider observation only for its own Codex/work lane (adapter:codex-local, codex-cli 0.132.0); for the Claude/Gemini/Fugu/closure lanes it observes only their DECLARATION (adapter/model rows in the plan), not actual launched-and-returned provider evidence. This is a structural scope limit of an upstream work node and the work return did not over-claim those lanes."
+    ],
+    "narrowly_proven": [
+      "The work return satisfies its declared required_return_shape (made_changes, observed_evidence, not_proven) and its no_changes_reason waiver is present.",
+      "Each of the work return's 5 observed_evidence statements is corroborated by the actual building artifacts I inspected (preset topology, adapter/model rows, link/gate topology, report-delivery rows).",
+      "The work return's read-only claim is internally consistent with its own worktree_observation (no path-count change, unchanged git head, empty observed_changed_files).",
+      "Codex/work-lane provider observation is present in the return (adapter:codex-local, codex-cli 0.132.0)."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Actual launch-and-return provider/frontier evidence for the Claude, Gemini, and Fugu/Sakana lanes and closure node — the work return observes only their declared adapter/model rows, not their execution; whether those lanes produce real provider evidence is outside this upstream work node and outside this read-only review.",
+      "Whether the omission of explicit commands_run / frontier_kind fields is sufficiency-blocking — that judgment is the Link gate's, not mine.",
+      "Truth/accuracy of the underlying git status snapshot beyond the paths recorded; complete diff attribution for the pre-existing dirty paths (the work return itself flags this).",
+      "Tool, hook, adapter, or provider runtime behavior; credential validity; semantic correctness or quality of the work.",
+      "Source truth, success judgment, quality judgment, and Link Movement authority — none asserted or evaluated here."
+    ],
+    "observed_evidence": [
+      "Inspected the upstream work step-output at work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-work-attempt-1/step-output.json: returned.made_changes=false, returned.changed_files=[], no_changes_reason='Read-only smoke observation only; no product or support files required mutation.', adapter_ref=adapter:codex-local, cli_version_text='codex-cli 0.132.0', brain_surface_ref=brain-surface:codex-local-cli.",
+      "The work return carries received_work_ref, made_changes, changed_files, observed_evidence (5 items), not_proven, plus worktree_observation; no top-level reserved verdict keys (success/quality/movement/route_target) are present.",
+      "Cross-checked each of the work return's 5 observed_evidence statements against the cited artifacts (declared-building-plan.json, work/preset-expansion.json, work/link-launch-policy.json, raw/report-delivery.jsonl); all 5 statements match the inspected files."
+    ],
+    "observed_matches": [
+      "Declared required_return_shape (made_changes, observed_evidence, not_proven) is present in the work return; made_changes=false is accompanied by its no_changes_reason waiver as the template requires.",
+      "made_changes=false / changed_files=[] is consistent with worktree_observation: before_path_count=1571 == after_path_count=1571, before/after git head both ea82b7dae072ccfddac28db2bab9a61ce3933ccb, observed_changed_files=[] (listed dirty paths appear identically in before and after sets, i.e. pre-existing).",
+      "observed_evidence #2 (five-node preset four-llm-standard-graph: Codex work, Claude structure QA, Gemini broad, Fugu/Sakana axis attack, closure) matches preset-expansion.json (chain_preset_ref=building-chain-preset:four-llm-standard-graph) and declared-building-plan.json (5 brick_steps, execution_order of 5 nodes).",
+      "observed_evidence #3 (adapter/model rows: work=codex-local/codex:default, Claude=claude-local/claude:inherit, Gemini=gemini-local/gemini:default, Fugu=codex-fugu-local/sakana:fugu, closure=claude-local/claude:inherit) matches the per-step selected_adapter_ref/selected_model_ref in declared-building-plan.json.",
+      "observed_evidence #4 (fan-out work->Claude/Gemini/Fugu, fan-in those->closure, closure->boundary; forward movement; default-transition gates with strict added on Gemini/Fugu fan-in edges) matches declared-building-plan.json groups+link_edges and work/link-launch-policy.json launch_rows.",
+      "observed_evidence #5 (building_started and brick_received delivery rows to local-inbox, slack, dashboard; slack/dashboard record status classes only) matches raw/report-delivery.jsonl rows (sink_ref local-inbox/slack/dashboard; provider_response_status_class slack_ok_true / http_2xx; source_truth=false on every row).",
+      "Work return preserves proof_limits ('support evidence only', 'not source truth/success/quality/Movement authority') and a populated not_proven list, consistent with discipline:closed-agentfact and discipline:proof-limits."
+    ],
+    "output_excerpt": "I have inspected the prior work Brick's output and verified its claims against the actual repository artifacts. Returning my structure-review observations as a single JSON object matching the required return shape. ```json { \"observed_evidence\": [ \"Inspected the upstream work step-output at work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-work-attempt-1/step-output.json: returned.made_changes=false, returned.changed_files=[], no_changes_reason='Read-only smoke observation only; no product or support files required mutation.', adapter_ref=adapter:codex-local, cli_version_text='c...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit"
+  },
+  "returned_fact_ref": "agent-fact:02:four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:four-llm-standard-graph-readonly-smoke-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa:attempt-1",
+  "step_ref": "four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa",
+  "subject": "four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T01:52:17.805502Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

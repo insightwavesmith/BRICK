@@ -1,0 +1,149 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:four-llm-standard-graph-readonly-smoke-0625::work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:inspector",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review",
+  "building_id": "four-llm-standard-graph-readonly-smoke-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:03",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T01:52:19.127053Z",
+  "id": "urn:bp:building:four-llm-standard-graph-readonly-smoke-0625::work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:03:four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review",
+  "recorded_at": "2026-06-25T01:52:19.127053Z",
+  "returned": {
+    "adapter_ref": "adapter:gemini-local",
+    "agent_object_ref": "agent-object:inspector",
+    "blocked_or_missing_evidence": [
+      "Step output files for the Claude structure-qa lane (four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa) and the Fugu axis-attack lane (four-llm-standard-graph-readonly-smoke-0625-fugu-axis-attack) are missing because those steps are running in parallel and have not yet returned."
+    ],
+    "boundary_findings": [
+      "The prior work step operated strictly as implementer under the work node, with no Link routing or quality judgment.",
+      "The current inspector node operates in read-only mode, respecting tool policies and the reviewer-no-mutation hook.",
+      "No boundary drift or axis crossing was detected in the work step's return."
+    ],
+    "brain_surface_ref": "brain-surface:gemini-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:gemini-local:four-llm-standard-graph-readonly-smoke-0625",
+    "cli_version_text": "0.46.0",
+    "evidence_refs": [
+      "support-packet:four-llm-standard-graph-readonly-smoke-0625:agent-object:inspector:output"
+    ],
+    "inspected_scope": [
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-work-attempt-1/step-output.json",
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/declared-building-plan.json"
+    ],
+    "matched_facts": [
+      "The building ID four-llm-standard-graph-readonly-smoke-0625 matches between plan and status events.",
+      "The work step executed successfully with attempt_index: 1 using Codex adapter:codex-local.",
+      "The work step output step-output.json exists and is structured compliant with bp.step_output schema.",
+      "The work step reported made_changes as false, matching the read-only smoke objective.",
+      "The work step did not violate the write_scope fence (no files were modified or written)."
+    ],
+    "mismatched_facts": [],
+    "missing_facts": [],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "skill_manifest_refs is the DECLARED offered set; whether the agent actually fetched a given skill is NOT observed/recorded",
+      "Codex native sync",
+      "Claude native sync",
+      "MCP projection behavior",
+      "provider quality",
+      "future Building correctness",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority",
+      "whether subsequent parallel review lanes (Claude structure-qa, Fugu axis-attack) will complete correctly",
+      "whether final Claude closure synthesis will successfully receive and merge all parallel review inputs",
+      "liveness or real-time duration of the parallel execution flow under a dynamic scheduler"
+    ],
+    "observed_evidence": [
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/declared-building-plan.json",
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-work-attempt-1/step-output.json",
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/raw/report-delivery.jsonl",
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/raw/adapter-usage.jsonl",
+      "project/brick-protocol/status/inbox/brick-protocol-four-llm-standard-graph-readonly-smoke-0625-brick-received-event-2026-06-25T01-45-50-103360-00-00.json"
+    ],
+    "output_excerpt": "{ \"inspected_scope\": [ \"project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-work-attempt-1/step-output.json\", \"project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/declared-building-plan.json\" ], \"matched_facts\": [ \"The building ID four-llm-standard-graph-readonly-smoke-0625 matches between plan and status events.\", \"The work step executed successfully with attempt_index: 1 using Codex adapter:codex-local.\", \"The work step output step-output.json exists and is structured compliant ...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "runtime AgentInstructionPacket support input only",
+      "not a projection seed",
+      "skill_resources carries a fetch-on-demand manifest, not eager bodies",
+      "support resolver evidence only",
+      "Agent resource meaning remains owned by agent/",
+      "projection seeds are returned dictionaries only",
+      "based on static read-only file observations under the building workspace directory"
+    ],
+    "remaining_delta": [
+      "Complete the execution of the Claude structure-qa review lane.",
+      "Complete the execution of the Fugu axis-attack inspect lane.",
+      "Complete the execution of the final Claude closure synthesis lane."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:gemini-local",
+    "selected_model_ref": "model:gemini:default"
+  },
+  "returned_fact_ref": "agent-fact:03:four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:four-llm-standard-graph-readonly-smoke-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review:attempt-1",
+  "step_ref": "four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review",
+  "subject": "four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T01:52:19.127053Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

@@ -1,0 +1,12 @@
+# AgentReceipt · seq 24 · ["Agent"]
+- agent_object_ref: "agent-object:inspector"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review"
+- event_type: "AgentReceipt"
+- evidence_reference: "raw:agent:03"
+- received_work_ref: "brick-work:03:four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review"
+- run_segment: 1
+- sequence_index: 24
+- source_fact_ref: "agent-fact:03:four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review"
+- spine_schema_version: "spine-v1"
+- step_ref: "four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review"

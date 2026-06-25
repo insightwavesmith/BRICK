@@ -1,0 +1,13 @@
+# AgentReturn · seq 25 · ["Agent"]
+- agent_object_ref: "agent-object:inspector"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review"
+- event_type: "AgentReturn"
+- observed_fields: ["received_work","returned"]
+- returned_fact_ref: "agent-fact:03:four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review"
+- route_request_ref: ""
+- run_segment: 1
+- sequence_index: 25
+- spine_schema_version: "spine-v1"
+- step_output_ref: "step-output:four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review:attempt-1"
+- step_ref: "four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review"

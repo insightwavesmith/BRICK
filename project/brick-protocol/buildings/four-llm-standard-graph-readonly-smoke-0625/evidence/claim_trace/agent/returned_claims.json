@@ -1,0 +1,668 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:four-llm-standard-graph-readonly-smoke-0625::evidence/claim_trace/agent/returned_claims.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:dev",
+        "received_work": "brick-work:01:four-llm-standard-graph-readonly-smoke-0625-work",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:dev",
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "changed_files": [],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:four-llm-standard-graph-readonly-smoke-0625",
+          "cli_version_text": "codex-cli 0.132.0",
+          "evidence_refs": [
+            "support-packet:four-llm-standard-graph-readonly-smoke-0625:agent-object:dev:output"
+          ],
+          "made_changes": false,
+          "no_changes_reason": "Read-only smoke observation only; no product or support files required mutation.",
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "semantic correctness of file edits",
+            "future Agent or provider quality",
+            "semantic correctness of later lens returns",
+            "provider process integrity beyond recorded support observations",
+            "reader noticed Slack/dashboard/local inbox packets",
+            "external provider delivery reliability",
+            "Link sufficiency, Movement, source truth, success, or quality judgment"
+          ],
+          "observed_evidence": [
+            "Observed Building root at project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625 with declared-building-plan.json, work/building-intake.json, work/preset-expansion.json, work/link-launch-policy.json, raw/report-delivery.jsonl, and raw/report-thread.jsonl.",
+            "Observed preset expansion declares building-chain-preset:four-llm-standard-graph with five nodes: Codex work root, Claude structure QA, Gemini broad review, Fugu/Sakana axis attack, and closure.",
+            "Observed materialized adapter/model rows: work uses adapter:codex-local/model:codex:default; Claude lens uses adapter:claude-local/model:claude:inherit; Gemini lens uses adapter:gemini-local/model:gemini:default; Fugu lens uses adapter:codex-fugu-local/model:sakana:fugu; closure uses adapter:claude-local/model:claude:inherit.",
+            "Observed declared Link topology: fan-out from work to Claude/Gemini/Fugu lanes, fan-in from those lanes to closure, then closure to building boundary; movements are declared forward with default-transition gates, and strict gate on Gemini/Fugu fan-in edges.",
+            "Observed report delivery rows for building_started and brick_received to local inbox, Slack, and dashboard sinks; Slack/dashboard rows record status classes only and preserve support-evidence proof limits."
+          ],
+          "output_excerpt": "{ \"made_changes\": false, \"no_changes_reason\": \"Read-only smoke observation only; no product or support files required mutation.\", \"observed_evidence\": [ \"Observed Building root at project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625 with declared-building-plan.json, work/building-intake.json, work/preset-expansion.json, work/link-launch-policy.json, raw/report-delivery.jsonl, and raw/report-thread.jsonl.\", \"Observed preset expansion declares building-chain-preset:four-llm-standard-graph with five nodes: Codex work root, Claude structure QA, Gemini broad review, Fugu/...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "workspace write is limited by Brick-declared write_scope"
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_adapter_ref": "adapter:codex-local",
+          "selected_model_ref": "model:codex:default",
+          "worktree_observation": {
+            "after_git_refs": {
+              "branch": "struct-surgery-0623",
+              "head": "ea82b7dae072ccfddac28db2bab9a61ce3933ccb"
+            },
+            "after_git_status_paths": [
+              "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/declared-building-plan.json",
+              "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/raw/report-delivery.jsonl",
+              "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/raw/report-thread.jsonl",
+              "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/building-intake.json",
+              "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/declared-building-plan.json",
+              "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/link-launch-policy.json",
+              "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/preset-expansion.json",
+              "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/task.md",
+              "project/brick-protocol/status/inbox/brick-protocol-four-llm-standard-graph-readonly-smoke-0625-brick-received-event-2026-06-25T01-44-52-603320-00-00.json",
+              "project/brick-protocol/status/inbox/brick-protocol-four-llm-standard-graph-readonly-smoke-0625-building-started-event-2026-06-25T01-44-51-204359-00-00.json"
+            ],
+            "after_path_count": 1571,
+            "before_git_refs": {
+              "branch": "struct-surgery-0623",
+              "head": "ea82b7dae072ccfddac28db2bab9a61ce3933ccb"
+            },
+            "before_git_status_paths": [
+              "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/declared-building-plan.json",
+              "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/raw/report-delivery.jsonl",
+              "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/raw/report-thread.jsonl",
+              "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/building-intake.json",
+              "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/declared-building-plan.json",
+              "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/link-launch-policy.json",
+              "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/preset-expansion.json",
+              "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/task.md",
+              "project/brick-protocol/status/inbox/brick-protocol-four-llm-standard-graph-readonly-smoke-0625-brick-received-event-2026-06-25T01-44-52-603320-00-00.json",
+              "project/brick-protocol/status/inbox/brick-protocol-four-llm-standard-graph-readonly-smoke-0625-building-started-event-2026-06-25T01-44-51-204359-00-00.json"
+            ],
+            "before_path_count": 1571,
+            "git_refs_moved": {},
+            "not_proven": [
+              "semantic correctness of file edits",
+              "complete diff attribution for pre-existing dirty paths"
+            ],
+            "observed_changed_files": [],
+            "proof_limits": [
+              "changed files are support evidence only",
+              "not source truth",
+              "not success judgment",
+              "not quality judgment",
+              "not Movement authority"
+            ],
+            "write_scope": {
+              "allowed_paths": [
+                "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/**"
+              ],
+              "forbidden_paths": [
+                ".git/**",
+                ".env",
+                "agent/**",
+                "brick/**",
+                "link/**",
+                "support/**"
+              ]
+            }
+          }
+        }
+      },
+      "fact_ref": "agent-fact:01:four-llm-standard-graph-readonly-smoke-0625-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:qa-lead",
+        "received_work": "brick-work:02:four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa",
+        "returned": {
+          "adapter_ref": "adapter:claude-local",
+          "agent_object_ref": "agent-object:qa-lead",
+          "boundary_violations": [],
+          "brain_surface_ref": "brain-surface:claude-code-local-cli",
+          "checked_sources": [
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-work-attempt-1/step-output.json",
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/declared-building-plan.json",
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/task.md",
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/preset-expansion.json",
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/link-launch-policy.json",
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/raw/report-delivery.jsonl"
+          ],
+          "checked_work": "Prior node four-llm-standard-graph-readonly-smoke-0625-work (Codex lane, agent-object:dev, adapter:codex-local). Declared required_return_shape per declared-building-plan.json brick-row: 'made_changes, observed_evidence, not_proven'. Task-source:inline-statement also asks the work to record commands/provider observations, evidence refs, frontier kind, adapter errors if any, and not_proven for a read-only 4-provider graph launch smoke.",
+          "cli_call_ref": "support-cli-call:adapter:claude-local:four-llm-standard-graph-readonly-smoke-0625",
+          "cli_version_text": "2.1.191 (Claude Code)",
+          "evidence_refs": [
+            "support-packet:four-llm-standard-graph-readonly-smoke-0625:agent-object:qa-lead:output"
+          ],
+          "evidence_used": [
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-work-attempt-1/step-output.json (returned object, worktree_observation, not_proven, proof_limits)",
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/declared-building-plan.json (brick_steps required_return_shape, selected adapters/models, groups, link_edges, gate refs)",
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/task.md (declared objective and proof-required list)",
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/preset-expansion.json (chain_preset_ref, agent_object_refs, expanded templates)",
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/link-launch-policy.json (launch_rows, declared_gate_refs incl. strict on Gemini/Fugu fan-in)",
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/raw/report-delivery.jsonl (building_started/brick_received/gate_passed/brick_returned delivery rows, sink refs, status classes, source_truth=false)"
+          ],
+          "missing_or_mismatched_facts": [
+            "Relative to the full work return.yaml template fields (received_work_ref, made_changes, changed_files, observed_evidence, commands_run, blocked_or_missing_evidence, handoff_refs, not_proven), the returned object omits explicit commands_run, blocked_or_missing_evidence, and handoff_refs keys. Relative to the DECLARED required_return_shape (made_changes, observed_evidence, not_proven) the return is complete; sufficiency of that narrower shape is the Link gate's call, not mine.",
+            "Task-source asked the work to 'record commands' and 'frontier kind'. No discrete commands_run list and no explicit frontier_kind field appear in the work return; provider/CLI observation is instead carried as cli_call_ref + cli_version_text='codex-cli 0.132.0', and frontier evidence appears only indirectly (raw/report-delivery.jsonl rows carry report_kind='building_frontier', which the work referenced but did not restate as a named field).",
+            "The task objective names provider/frontier evidence for four lanes (Codex, Claude, Gemini, Fugu/Sakana). The work return supplies actual provider observation only for its own Codex/work lane (adapter:codex-local, codex-cli 0.132.0); for the Claude/Gemini/Fugu/closure lanes it observes only their DECLARATION (adapter/model rows in the plan), not actual launched-and-returned provider evidence. This is a structural scope limit of an upstream work node and the work return did not over-claim those lanes."
+          ],
+          "narrowly_proven": [
+            "The work return satisfies its declared required_return_shape (made_changes, observed_evidence, not_proven) and its no_changes_reason waiver is present.",
+            "Each of the work return's 5 observed_evidence statements is corroborated by the actual building artifacts I inspected (preset topology, adapter/model rows, link/gate topology, report-delivery rows).",
+            "The work return's read-only claim is internally consistent with its own worktree_observation (no path-count change, unchanged git head, empty observed_changed_files).",
+            "Codex/work-lane provider observation is present in the return (adapter:codex-local, codex-cli 0.132.0)."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Actual launch-and-return provider/frontier evidence for the Claude, Gemini, and Fugu/Sakana lanes and closure node — the work return observes only their declared adapter/model rows, not their execution; whether those lanes produce real provider evidence is outside this upstream work node and outside this read-only review.",
+            "Whether the omission of explicit commands_run / frontier_kind fields is sufficiency-blocking — that judgment is the Link gate's, not mine.",
+            "Truth/accuracy of the underlying git status snapshot beyond the paths recorded; complete diff attribution for the pre-existing dirty paths (the work return itself flags this).",
+            "Tool, hook, adapter, or provider runtime behavior; credential validity; semantic correctness or quality of the work.",
+            "Source truth, success judgment, quality judgment, and Link Movement authority — none asserted or evaluated here."
+          ],
+          "observed_evidence": [
+            "Inspected the upstream work step-output at work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-work-attempt-1/step-output.json: returned.made_changes=false, returned.changed_files=[], no_changes_reason='Read-only smoke observation only; no product or support files required mutation.', adapter_ref=adapter:codex-local, cli_version_text='codex-cli 0.132.0', brain_surface_ref=brain-surface:codex-local-cli.",
+            "The work return carries received_work_ref, made_changes, changed_files, observed_evidence (5 items), not_proven, plus worktree_observation; no top-level reserved verdict keys (success/quality/movement/route_target) are present.",
+            "Cross-checked each of the work return's 5 observed_evidence statements against the cited artifacts (declared-building-plan.json, work/preset-expansion.json, work/link-launch-policy.json, raw/report-delivery.jsonl); all 5 statements match the inspected files."
+          ],
+          "observed_matches": [
+            "Declared required_return_shape (made_changes, observed_evidence, not_proven) is present in the work return; made_changes=false is accompanied by its no_changes_reason waiver as the template requires.",
+            "made_changes=false / changed_files=[] is consistent with worktree_observation: before_path_count=1571 == after_path_count=1571, before/after git head both ea82b7dae072ccfddac28db2bab9a61ce3933ccb, observed_changed_files=[] (listed dirty paths appear identically in before and after sets, i.e. pre-existing).",
+            "observed_evidence #2 (five-node preset four-llm-standard-graph: Codex work, Claude structure QA, Gemini broad, Fugu/Sakana axis attack, closure) matches preset-expansion.json (chain_preset_ref=building-chain-preset:four-llm-standard-graph) and declared-building-plan.json (5 brick_steps, execution_order of 5 nodes).",
+            "observed_evidence #3 (adapter/model rows: work=codex-local/codex:default, Claude=claude-local/claude:inherit, Gemini=gemini-local/gemini:default, Fugu=codex-fugu-local/sakana:fugu, closure=claude-local/claude:inherit) matches the per-step selected_adapter_ref/selected_model_ref in declared-building-plan.json.",
+            "observed_evidence #4 (fan-out work->Claude/Gemini/Fugu, fan-in those->closure, closure->boundary; forward movement; default-transition gates with strict added on Gemini/Fugu fan-in edges) matches declared-building-plan.json groups+link_edges and work/link-launch-policy.json launch_rows.",
+            "observed_evidence #5 (building_started and brick_received delivery rows to local-inbox, slack, dashboard; slack/dashboard record status classes only) matches raw/report-delivery.jsonl rows (sink_ref local-inbox/slack/dashboard; provider_response_status_class slack_ok_true / http_2xx; source_truth=false on every row).",
+            "Work return preserves proof_limits ('support evidence only', 'not source truth/success/quality/Movement authority') and a populated not_proven list, consistent with discipline:closed-agentfact and discipline:proof-limits."
+          ],
+          "output_excerpt": "I have inspected the prior work Brick's output and verified its claims against the actual repository artifacts. Returning my structure-review observations as a single JSON object matching the required return shape. ```json { \"observed_evidence\": [ \"Inspected the upstream work step-output at work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-work-attempt-1/step-output.json: returned.made_changes=false, returned.changed_files=[], no_changes_reason='Read-only smoke observation only; no product or support files required mutation.', adapter_ref=adapter:codex-local, cli_version_text='c...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_adapter_ref": "adapter:claude-local",
+          "selected_model_ref": "model:claude:inherit"
+        }
+      },
+      "fact_ref": "agent-fact:02:four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:inspector",
+        "received_work": "brick-work:03:four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review",
+        "returned": {
+          "adapter_ref": "adapter:gemini-local",
+          "agent_object_ref": "agent-object:inspector",
+          "blocked_or_missing_evidence": [
+            "Step output files for the Claude structure-qa lane (four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa) and the Fugu axis-attack lane (four-llm-standard-graph-readonly-smoke-0625-fugu-axis-attack) are missing because those steps are running in parallel and have not yet returned."
+          ],
+          "boundary_findings": [
+            "The prior work step operated strictly as implementer under the work node, with no Link routing or quality judgment.",
+            "The current inspector node operates in read-only mode, respecting tool policies and the reviewer-no-mutation hook.",
+            "No boundary drift or axis crossing was detected in the work step's return."
+          ],
+          "brain_surface_ref": "brain-surface:gemini-local-cli",
+          "cli_call_ref": "support-cli-call:adapter:gemini-local:four-llm-standard-graph-readonly-smoke-0625",
+          "cli_version_text": "0.46.0",
+          "evidence_refs": [
+            "support-packet:four-llm-standard-graph-readonly-smoke-0625:agent-object:inspector:output"
+          ],
+          "inspected_scope": [
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-work-attempt-1/step-output.json",
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/declared-building-plan.json"
+          ],
+          "matched_facts": [
+            "The building ID four-llm-standard-graph-readonly-smoke-0625 matches between plan and status events.",
+            "The work step executed successfully with attempt_index: 1 using Codex adapter:codex-local.",
+            "The work step output step-output.json exists and is structured compliant with bp.step_output schema.",
+            "The work step reported made_changes as false, matching the read-only smoke objective.",
+            "The work step did not violate the write_scope fence (no files were modified or written)."
+          ],
+          "mismatched_facts": [],
+          "missing_facts": [],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "skill_manifest_refs is the DECLARED offered set; whether the agent actually fetched a given skill is NOT observed/recorded",
+            "Codex native sync",
+            "Claude native sync",
+            "MCP projection behavior",
+            "provider quality",
+            "future Building correctness",
+            "source truth",
+            "success judgment",
+            "quality judgment",
+            "Movement authority",
+            "whether subsequent parallel review lanes (Claude structure-qa, Fugu axis-attack) will complete correctly",
+            "whether final Claude closure synthesis will successfully receive and merge all parallel review inputs",
+            "liveness or real-time duration of the parallel execution flow under a dynamic scheduler"
+          ],
+          "observed_evidence": [
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/declared-building-plan.json",
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-work-attempt-1/step-output.json",
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/raw/report-delivery.jsonl",
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/raw/adapter-usage.jsonl",
+            "project/brick-protocol/status/inbox/brick-protocol-four-llm-standard-graph-readonly-smoke-0625-brick-received-event-2026-06-25T01-45-50-103360-00-00.json"
+          ],
+          "output_excerpt": "{ \"inspected_scope\": [ \"project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-work-attempt-1/step-output.json\", \"project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/declared-building-plan.json\" ], \"matched_facts\": [ \"The building ID four-llm-standard-graph-readonly-smoke-0625 matches between plan and status events.\", \"The work step executed successfully with attempt_index: 1 using Codex adapter:codex-local.\", \"The work step output step-output.json exists and is structured compliant ...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "runtime AgentInstructionPacket support input only",
+            "not a projection seed",
+            "skill_resources carries a fetch-on-demand manifest, not eager bodies",
+            "support resolver evidence only",
+            "Agent resource meaning remains owned by agent/",
+            "projection seeds are returned dictionaries only",
+            "based on static read-only file observations under the building workspace directory"
+          ],
+          "remaining_delta": [
+            "Complete the execution of the Claude structure-qa review lane.",
+            "Complete the execution of the Fugu axis-attack inspect lane.",
+            "Complete the execution of the final Claude closure synthesis lane."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_adapter_ref": "adapter:gemini-local",
+          "selected_model_ref": "model:gemini:default"
+        }
+      },
+      "fact_ref": "agent-fact:03:four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:inspector",
+        "received_work": "brick-work:04:four-llm-standard-graph-readonly-smoke-0625-fugu-axis-attack",
+        "returned": {
+          "adapter_ref": "adapter:codex-fugu-local",
+          "agent_object_ref": "agent-object:inspector",
+          "blocked_or_missing_evidence": [
+            "Referenced raw/agent-return.jsonl and evidence/claim_trace/agent/returned_claims.json were not present under the building root at inspection time; could not confirm those derived-claim artifacts exist.",
+            "Lens and closure step-outputs are absent, so downstream fan-in evidence and closure synthesis could not be inspected."
+          ],
+          "boundary_findings": [
+            "Axis ownership clean on inspected rows: Brick rows own kind/write_scope/instruction body, Agent rows own agent_object_ref only (no adapter/Movement leakage into the Agent row), Link rows own movement (forward) + target_ref + declared_gate_refs; no axis re-export or support-as-source-truth observed in the work return.",
+            "The strict-gate asymmetry appears correlated with template choice (claude=review template; gemini/fugu=inspect template) rather than with the preset's stated 'all three lenses fan in' symmetry; flagged as observed drift evidence for caller/COO disposition, not a defect verdict.",
+            "Reporter boundary respected: Slack/dashboard rows record only status classes / written_path, with source_truth field and proof_limits preserved; no credential or response-body leakage observed."
+          ],
+          "brain_surface_ref": "brain-surface:codex-fugu-local-cli",
+          "cli_call_ref": "support-cli-call:adapter:codex-fugu-local:four-llm-standard-graph-readonly-smoke-0625",
+          "cli_version_text": "codex-cli 0.132.0",
+          "evidence_refs": [
+            "support-packet:four-llm-standard-graph-readonly-smoke-0625:agent-object:inspector:output"
+          ],
+          "inspected_scope": "Work-node return (work/step-outputs/.../work-attempt-1/step-output.json) for building four-llm-standard-graph-readonly-smoke-0625, inspected for Brick/Agent/Link axis-ownership, structural completeness, evidence presence, and preset->plan drift; cross-checked against work/declared-building-plan.json, work/building-intake.json, raw/adapter-usage.jsonl, raw/report-delivery.jsonl, and brick/templates/presets/four-llm-standard-graph.md.",
+          "matched_facts": [
+            "Preset->plan topology matches: declared plan brick_steps = 5 nodes (work, claude-structure-qa, gemini-broad-review, fugu-axis-attack, closure) with fan_out group work->3 lenses and fan_in group 3 lenses->closure, terminal closure->boundary, identical to the preset graph_topology.",
+            "Exactly one write node: only the work node carries requires_brick_write_scope: true and a concrete write_scope (allowed work/** ; forbidden .git/.env/agent/brick/link/support); claude/gemini/fugu lens nodes and closure carry no write_scope (read-only), matching the preset 'exactly one write node' invariant.",
+            "Per-node adapter/model rows match preset declaration: work=adapter:codex-local/model:codex:default (agent dev), claude-structure-qa=adapter:claude-local/model:claude:inherit (agent qa-lead, review template), gemini-broad-review=adapter:gemini-local/model:gemini:default (agent inspector, inspect template), fugu-axis-attack=adapter:codex-fugu-local/model:sakana:fugu (agent inspector, inspect template), closure=adapter:claude-local/model:claude:inherit (agent coo, closure template).",
+            "Model<->adapter provider match holds for the Fugu lane: model:sakana:fugu is paired with adapter:codex-fugu-local, consistent with the AGENTS.md fail-closed rule that model:sakana:* binds to adapter:codex-fugu-local.",
+            "All adapters used (codex-local, claude-local, gemini-local, codex-fugu-local) are in the admitted provider-neutral adapter ref set.",
+            "Agent return obeys closed AgentFact shape: step-output carries received_work_ref + returned, agent_fact_fields = [received_work, returned]; the returned body contains no reserved verdict keys (no success/failure/approved/quality/movement_choice/route_target/status/verdict).",
+            "Read-only discipline honored: returned made_changes=false with no_changes_reason ('Read-only smoke observation only...'), changed_files=[] and worktree_observation observed_changed_files=[] with before/after path_count=1571 and unchanged HEAD ea82b7d.",
+            "Report delivery stayed within admitted sinks: distinct sink_refs = report-sink:local-inbox, report-sink:slack, report-sink:dashboard (3 of the 4 admitted sinks; ceiling respected), and rows record delivery_status_class/provider_response_status_class only.",
+            "Proof-limit / not_proven discipline present on the work return and on adapter-usage/intake records (support-evidence-only, not source truth/success/quality/Movement authority)."
+          ],
+          "mismatched_facts": [
+            "Fan-in gate asymmetry vs symmetric preset intent: the preset declares gate_concept_profile [strict-evidence, fan-in-wait-all] for a symmetric 3-lens fan-in, but in the materialized plan link-gate:strict is attached only to the gemini-broad-review->closure and fugu-axis-attack->closure edges; the claude-structure-qa->closure edge carries only link-gate:default-transition. The strict-evidence concept did not translate symmetrically across all three fan-in edges.",
+            "Work observed_evidence #5 reports report-delivery rows for 'building_started and brick_received' only, but raw/report-delivery.jsonl also contains brick_returned and gate_passed rows; the work claim is an honest partial snapshot (rows written at/after its observation time), not a full enumeration."
+          ],
+          "missing_facts": [
+            "No lens or closure step-outputs exist yet: only work-attempt-1 is present under work/step-outputs/, so the three review-lens returns and the closure fan-in synthesis are not yet recorded in this building.",
+            "No raw/agent-return.jsonl or evidence/claim_trace/ directory was found under this building root even though the work step-output references evidence_refs.raw_stream_ref=raw/agent-return.jsonl and claim_trace_ref=evidence/claim_trace/agent/returned_claims.json (referenced-but-not-yet-present evidence)."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Fan-out sibling-evidence independence (F1 cross-vouch invariant) for the three lens siblings is not yet testable: only the work-node attempt exists, so no sibling lens bodies are present to compare for byte-distinctness.",
+            "Live 4-provider execution and runtime parallel fan-out: the smoke is compose/materialize + single read-only work pass; actual Claude/Gemini/Fugu/closure provider returns are not executed here.",
+            "Semantic correctness or quality of the work return, provider process integrity beyond recorded support observations, credential validity, and tool/hook execution.",
+            "Whether the strict-gate fan-in asymmetry is intended caller policy or unintended translation drift (observed only; disposition is caller/COO/human, not inspector).",
+            "Source truth, success judgment, quality judgment, and Movement authority are not established by this inspection."
+          ],
+          "observed_evidence": [
+            "brick/templates/presets/four-llm-standard-graph.md (preset graph_topology: edges, fan_out_groups, fan_in_groups, terminal closure, node_reroute_budgets work:1, gate_concept_profile [strict-evidence, fan-in-wait-all]).",
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/declared-building-plan.json (declared_plan_copy: 5 brick_steps with rows, 7 link_edges, fan_out/fan_in groups, execution_order).",
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-work-attempt-1/step-output.json (returned body, worktree_observation, write_scope).",
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/building-intake.json (task_source_hash_state=matched, declared_by coo-smith, plan_shape graph).",
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/raw/adapter-usage.jsonl (work attempt-1: adapter:codex-local, model:codex:default, codex-cli usage meter, support-evidence proof_limits).",
+            "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/raw/report-delivery.jsonl (distinct sink_refs: local-inbox, slack, dashboard; event_kinds building_started/brick_received/brick_returned/gate_passed)."
+          ],
+          "output_excerpt": "I have completed my read-only axis/boundary inspection (Fugu lens) of the work-node return for `four-llm-standard-graph-readonly-smoke-0625`. All evidence below was inspected directly in the worktree; nothing was mutated. Summary of what I observed: the work node returned an honest closed-AgentFact read-only smoke (`made_changes: false`, no reserved verdict keys), the declared 5-node plan faithfully expands the `four-llm-standard-graph` preset topology, exactly one write node carries `write_scope`, per-node adapter/model rows match the preset (including the Fugu `adapter:codex-fugu-local` +...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "read-only inspection; no files were created, edited, or deleted and no git mutation was run",
+            "observations are non-binding evidence; sufficiency and Movement are the Link gate's and quality/success are the human's"
+          ],
+          "remaining_delta": [
+            "Caller/COO to confirm or reconcile the fan-in strict-gate asymmetry (claude fan-in edge default-transition only vs gemini/fugu fan-in edges default-transition+strict) against the intended symmetric 3-lens fan-in.",
+            "Run/record the three read-only lens returns and the closure fan-in synthesis, then re-check fan-out sibling-evidence independence and the referenced raw/claim_trace artifacts.",
+            "Confirm whether the referenced raw/agent-return.jsonl and evidence/claim_trace paths are expected to be materialized for this read-only smoke or are deferred."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_adapter_ref": "adapter:codex-fugu-local",
+          "selected_model_ref": "model:sakana:fugu"
+        }
+      },
+      "fact_ref": "agent-fact:04:four-llm-standard-graph-readonly-smoke-0625-fugu-axis-attack",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:04"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:coo",
+        "received_work": "brick-work:05:four-llm-standard-graph-readonly-smoke-0625-closure",
+        "returned": {
+          "adapter_ref": "adapter:claude-local",
+          "agent_object_ref": "agent-object:coo",
+          "brain_surface_ref": "brain-surface:claude-code-local-cli",
+          "cli_call_ref": "support-cli-call:adapter:claude-local:four-llm-standard-graph-readonly-smoke-0625",
+          "cli_version_text": "2.1.191 (Claude Code)",
+          "deferred_smith_review_queue": [
+            "Decide whether the fan-in strict-gate asymmetry (link-gate:strict on gemini/fugu fan-in edges but not the claude fan-in edge, vs the preset's symmetric strict-evidence/fan-in-wait-all profile) is intended caller policy or a preset->plan translation defect to repair.",
+            "Decide whether raw/agent-return.jsonl and evidence/claim_trace/agent/returned_claims.json should exist for read-only smokes; their absence was flagged by two lenses."
+          ],
+          "evidence_refs": [
+            "support-packet:four-llm-standard-graph-readonly-smoke-0625:agent-object:coo:output"
+          ],
+          "narrowly_proven": [
+            "The four-llm-standard-graph preset launched and returned through the official Building route across all four distinct provider adapters (codex-local, claude-local, gemini-local, codex-fugu-local) plus a closure node, each producing a recorded step-output return — satisfying the read-only smoke objective of proving the 4-provider graph can launch and return far enough to produce provider/frontier evidence.",
+            "The smoke remained read-only: the single write node (work) reported made_changes=false with no_changes_reason, and worktree_observation shows unchanged path_count and HEAD; no product mutation observed.",
+            "Frontier/report evidence (report_kind='building_frontier') was delivered to three admitted sinks (local-inbox, slack, dashboard) for building_started/brick_received/brick_returned/gate_passed events, all with source_truth=false.",
+            "Preset->plan materialization is structurally faithful to building-chain-preset:four-llm-standard-graph (node count, fan-out/fan-in groups, single write node, per-node adapter/model rows, Fugu model<->adapter binding)."
+          ],
+          "next_target_candidates": [
+            "Caller/COO disposition pass on the fan-in strict-gate asymmetry against intended preset symmetry.",
+            "A freshness / Work Packet Building to materialize and verify the referenced raw/agent-return.jsonl and claim_trace artifacts.",
+            "A follow-on full-execution proof recording sibling-evidence independence and explicit commands_run/frontier_kind fields, if more than launch-and-return proof is desired."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "live real-time parallel fan-out timing or scheduler liveness",
+            "quality, semantic correctness, or success of any lane's returned work",
+            "provider process integrity beyond recorded support observations",
+            "Whether the fan-in strict-gate asymmetry (claude edge default-transition only vs gemini/fugu edges default-transition+strict) is intended caller policy or unintended preset->plan translation drift — observed only; disposition is the human's.",
+            "Whether the referenced raw/agent-return.jsonl and evidence/claim_trace artifacts are expected to be materialized for this read-only smoke or are deferred.",
+            "Whether the narrower declared return shapes are sufficiency-blocking — sufficiency is the Link gate's call.",
+            "source truth, success judgment, quality judgment, and Link Movement authority"
+          ],
+          "observed_evidence": [
+            "All four declared provider lanes plus closure produced returns under building four-llm-standard-graph-readonly-smoke-0625: work=adapter:codex-local (codex-cli 0.132.0, agent-object:dev), claude-structure-qa=adapter:claude-local (Claude Code 2.1.191, agent-object:qa-lead), gemini-broad-review=adapter:gemini-local (0.46.0, agent-object:inspector), fugu-axis-attack=adapter:codex-fugu-local/model:sakana:fugu (codex-cli 0.132.0, agent-object:inspector); this closure runs adapter:claude-local/model:claude:inherit, agent-object:coo.",
+            "Work-node step-output (work/step-outputs/.../work-attempt-1/step-output.json) returns made_changes=false, changed_files=[], no_changes_reason='Read-only smoke observation only; no product or support files required mutation.', with worktree_observation before/after path_count=1571 and unchanged HEAD ea82b7dae072ccfddac28db2bab9a61ce3933ccb, observed_changed_files=[].",
+            "raw/report-delivery.jsonl records building_started, brick_received, brick_returned, and gate_passed frontier rows (report_kind='building_frontier') delivered to report-sink:local-inbox, report-sink:slack, and report-sink:dashboard; every row carries source_truth=false and support-evidence proof_limits, and the 01:52 timestamp band shows the three lens lanes returning and their fan-in gates passing.",
+            "Claude structure-QA lane confirmed the work return satisfies its declared required_return_shape (made_changes, observed_evidence, not_proven) and cross-checked all five work observed_evidence statements against declared-building-plan.json, preset-expansion.json, link-launch-policy.json, and report-delivery.jsonl with no mismatch.",
+            "Fugu axis-attack lane confirmed preset->plan topology fidelity (5 nodes, fan-out work->3 lenses, fan-in 3 lenses->closure, terminal closure->boundary), exactly one write node carrying write_scope (work; allowed work/**, forbidden .git/.env/agent/brick/link/support), closed AgentFact shape with no reserved verdict keys, and model<->adapter binding model:sakana:fugu<->adapter:codex-fugu-local.",
+            "Two read-only lanes flagged a fan-in strict-gate asymmetry: the preset declares gate_concept_profile [strict-evidence, fan-in-wait-all] symmetrically, but in the materialized plan link-gate:strict is attached only to the gemini-broad-review->closure and fugu-axis-attack->closure edges while claude-structure-qa->closure carries only link-gate:default-transition; both lanes recorded this as observed drift for caller/COO disposition, not a defect verdict.",
+            "Gemini and Fugu lenses noted referenced artifacts raw/agent-return.jsonl and evidence/claim_trace/agent/returned_claims.json were not present under the building root at their inspection time (referenced-but-not-yet-present)."
+          ],
+          "output_excerpt": "I have sufficient carried evidence (work return, three lens returns via summaries, report-delivery frontier rows). Assembling the closure synthesis. ```json { \"observed_evidence\": [ \"All four declared provider lanes plus closure produced returns under building four-llm-standard-graph-readonly-smoke-0625: work=adapter:codex-local (codex-cli 0.132.0, agent-object:dev), claude-structure-qa=adapter:claude-local (Claude Code 2.1.191, agent-object:qa-lead), gemini-broad-review=adapter:gemini-local (0.46.0, agent-object:inspector), fugu-axis-attack=adapter:codex-fugu-local/model:sakana:fugu (codex...",
+          "parent_goal_delta_status": {
+            "closed_delta_refs": [
+              "delta:preset-topology-faithful-expansion -> closed: 5-node fan-out/fan-in graph matches building-chain-preset:four-llm-standard-graph",
+              "delta:single-write-node-invariant -> closed: only work carries write_scope (allowed work/**)"
+            ],
+            "evidence_refs": [
+              "work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-work-attempt-1/step-output.json",
+              "work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa-attempt-1/step-output.json",
+              "work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review-attempt-1/step-output.json",
+              "work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-fugu-axis-attack-attempt-1/step-output.json",
+              "raw/report-delivery.jsonl",
+              "work/declared-building-plan.json",
+              "work/preset-expansion.json",
+              "work/link-launch-policy.json"
+            ],
+            "matched_delta_refs": [
+              "delta:4-provider-graph-launch-and-return -> matched: work(codex-local), claude-structure-qa(claude-local), gemini-broad-review(gemini-local), fugu-axis-attack(codex-fugu-local), closure(claude-local) all returned",
+              "delta:read-only-no-product-change -> matched: work made_changes=false, unchanged HEAD ea82b7d, path_count 1571==1571",
+              "delta:provider-frontier-evidence-recorded -> matched: raw/report-delivery.jsonl building_frontier rows across local-inbox/slack/dashboard"
+            ],
+            "missing_delta_refs": [
+              "delta:raw-agent-return-jsonl-present",
+              "delta:evidence-claim_trace-returned_claims-present"
+            ],
+            "open_delta_refs": [
+              "delta:fan-in-strict-gate-asymmetry-disposition",
+              "delta:explicit-commands_run-and-frontier_kind-fields-on-work-lane"
+            ],
+            "unknown_delta_refs": [
+              "delta:asymmetry-intended-vs-drift",
+              "delta:narrower-return-shape-sufficiency (Link gate's call)"
+            ]
+          },
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "remaining_delta": [
+            "Caller/COO/human to disposition the fan-in strict-gate asymmetry: reconcile the preset's symmetric [strict-evidence, fan-in-wait-all] profile against the materialized plan where link-gate:strict landed only on the gemini and fugu fan-in edges, not the claude fan-in edge.",
+            "Confirm whether referenced raw/agent-return.jsonl and evidence/claim_trace/agent/returned_claims.json are expected outputs of this read-only smoke; if so, investigate their absence at the building root.",
+            "If a richer proof is wanted, run a follow-on that re-checks fan-out sibling-evidence byte-distinctness across the three lens returns and records explicit commands_run / frontier_kind fields the task-source asked the work lane to enumerate."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_adapter_ref": "adapter:claude-local",
+          "selected_model_ref": "model:claude:inherit",
+          "transition_concern_evidence": null
+        }
+      },
+      "fact_ref": "agent-fact:05:four-llm-standard-graph-readonly-smoke-0625-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:05"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-25T01:53:43Z",
+  "id": "urn:bp:building:four-llm-standard-graph-readonly-smoke-0625::evidence/claim_trace/agent/returned_claims.json",
+  "recorded_at": "2026-06-25T01:53:43Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:four-llm-standard-graph-readonly-smoke-0625",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/agent/returned_claims.json",
+  "time": "2026-06-25T01:53:43Z",
+  "type": "bp.claim_trace"
+}

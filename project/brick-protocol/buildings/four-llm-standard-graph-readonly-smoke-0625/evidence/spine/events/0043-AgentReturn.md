@@ -1,0 +1,13 @@
+# AgentReturn · seq 43 · ["Agent"]
+- agent_object_ref: "agent-object:coo"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-four-llm-standard-graph-readonly-smoke-0625-closure"
+- event_type: "AgentReturn"
+- observed_fields: ["received_work","returned"]
+- returned_fact_ref: "agent-fact:05:four-llm-standard-graph-readonly-smoke-0625-closure"
+- route_request_ref: ""
+- run_segment: 1
+- sequence_index: 43
+- spine_schema_version: "spine-v1"
+- step_output_ref: "step-output:four-llm-standard-graph-readonly-smoke-0625-closure:attempt-1"
+- step_ref: "four-llm-standard-graph-readonly-smoke-0625-closure"

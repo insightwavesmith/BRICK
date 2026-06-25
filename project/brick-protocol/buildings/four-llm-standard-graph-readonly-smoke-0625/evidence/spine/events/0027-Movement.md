@@ -1,0 +1,12 @@
+# Movement · seq 27 · ["Link"]
+- adopted_transition_concern_refs: []
+- axis_scope: ["Link"]
+- declared_movement: "forward"
+- event_type: "Movement"
+- gate_review_event_ref: "sufficiency-fact-movement:03:four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review"
+- not_adopted_transition_concern_refs: []
+- run_segment: 1
+- sequence_index: 27
+- source_fact_ref: "movement-fact:03:four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review"
+- spine_schema_version: "spine-v1"
+- target_boundary_ref: "brick:brick-four-llm-standard-graph-readonly-smoke-0625-closure"

@@ -1,0 +1,12 @@
+# Movement · seq 36 · ["Link"]
+- adopted_transition_concern_refs: []
+- axis_scope: ["Link"]
+- declared_movement: "forward"
+- event_type: "Movement"
+- gate_review_event_ref: "sufficiency-fact-movement:04:four-llm-standard-graph-readonly-smoke-0625-fugu-axis-attack"
+- not_adopted_transition_concern_refs: []
+- run_segment: 1
+- sequence_index: 36
+- source_fact_ref: "movement-fact:04:four-llm-standard-graph-readonly-smoke-0625-fugu-axis-attack"
+- spine_schema_version: "spine-v1"
+- target_boundary_ref: "brick:brick-four-llm-standard-graph-readonly-smoke-0625-closure"

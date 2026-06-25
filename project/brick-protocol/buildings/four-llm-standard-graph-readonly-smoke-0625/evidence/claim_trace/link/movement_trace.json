@@ -1,0 +1,516 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:four-llm-standard-graph-readonly-smoke-0625::evidence/claim_trace/link/movement_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:01:four-llm-standard-graph-readonly-smoke-0625-work",
+          "brick-comparison:01:four-llm-standard-graph-readonly-smoke-0625-work",
+          "sufficiency-fact-movement:01:four-llm-standard-graph-readonly-smoke-0625-work"
+        ],
+        "target_boundary_ref": "brick:brick-four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa"
+      },
+      "fact_ref": "movement-fact:01:four-llm-standard-graph-readonly-smoke-0625-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:02:four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa",
+          "brick-comparison:02:four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa",
+          "sufficiency-fact-movement:02:four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa"
+        ],
+        "target_boundary_ref": "brick:brick-four-llm-standard-graph-readonly-smoke-0625-closure"
+      },
+      "fact_ref": "movement-fact:02:four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:02"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition",
+          "link-gate:strict"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:03:four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review",
+          "brick-comparison:03:four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review",
+          "sufficiency-fact-movement:03:four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review"
+        ],
+        "target_boundary_ref": "brick:brick-four-llm-standard-graph-readonly-smoke-0625-closure"
+      },
+      "fact_ref": "movement-fact:03:four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:03"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition",
+          "link-gate:strict"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:04:four-llm-standard-graph-readonly-smoke-0625-fugu-axis-attack",
+          "brick-comparison:04:four-llm-standard-graph-readonly-smoke-0625-fugu-axis-attack",
+          "sufficiency-fact-movement:04:four-llm-standard-graph-readonly-smoke-0625-fugu-axis-attack"
+        ],
+        "target_boundary_ref": "brick:brick-four-llm-standard-graph-readonly-smoke-0625-closure"
+      },
+      "fact_ref": "movement-fact:04:four-llm-standard-graph-readonly-smoke-0625-fugu-axis-attack",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:04"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "building_lifecycle_reason": "declared closure boundary for four-llm-standard-graph-readonly-smoke-0625",
+        "building_lifecycle_state": "closed",
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:05:four-llm-standard-graph-readonly-smoke-0625-closure",
+          "brick-comparison:05:four-llm-standard-graph-readonly-smoke-0625-closure",
+          "sufficiency-fact-movement:05:four-llm-standard-graph-readonly-smoke-0625-closure"
+        ],
+        "target_boundary_ref": "brick:building-boundary:four-llm-standard-graph-readonly-smoke-0625-closed"
+      },
+      "fact_ref": "movement-fact:05:four-llm-standard-graph-readonly-smoke-0625-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:05"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:four-llm-standard-graph-readonly-smoke-0625-work-to-four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-four-llm-standard-graph-readonly-smoke-0625-work",
+        "target_boundary_ref": "brick-four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-four-llm-standard-graph-readonly-smoke-0625-work-to-four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:01:edge-four-llm-standard-graph-readonly-smoke-0625-work-to-four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": false,
+        "link_edge_ref": "edge:four-llm-standard-graph-readonly-smoke-0625-work-to-four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-four-llm-standard-graph-readonly-smoke-0625-work",
+        "target_boundary_ref": "brick-four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-four-llm-standard-graph-readonly-smoke-0625-work-to-four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:02:edge-four-llm-standard-graph-readonly-smoke-0625-work-to-four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": false,
+        "link_edge_ref": "edge:four-llm-standard-graph-readonly-smoke-0625-work-to-four-llm-standard-graph-readonly-smoke-0625-fugu-axis-attack",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-four-llm-standard-graph-readonly-smoke-0625-work",
+        "target_boundary_ref": "brick-four-llm-standard-graph-readonly-smoke-0625-fugu-axis-attack"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-four-llm-standard-graph-readonly-smoke-0625-work-to-four-llm-standard-graph-readonly-smoke-0625-fugu-axis-attack",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:03:edge-four-llm-standard-graph-readonly-smoke-0625-work-to-four-llm-standard-graph-readonly-smoke-0625-fugu-axis-attack"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa-to-four-llm-standard-graph-readonly-smoke-0625-closure",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa",
+        "target_boundary_ref": "brick-four-llm-standard-graph-readonly-smoke-0625-closure"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa-to-four-llm-standard-graph-readonly-smoke-0625-closure",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:04:edge-four-llm-standard-graph-readonly-smoke-0625-claude-structure-qa-to-four-llm-standard-graph-readonly-smoke-0625-closure"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review-to-four-llm-standard-graph-readonly-smoke-0625-closure",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review",
+        "target_boundary_ref": "brick-four-llm-standard-graph-readonly-smoke-0625-closure"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review-to-four-llm-standard-graph-readonly-smoke-0625-closure",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:05:edge-four-llm-standard-graph-readonly-smoke-0625-gemini-broad-review-to-four-llm-standard-graph-readonly-smoke-0625-closure"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:four-llm-standard-graph-readonly-smoke-0625-fugu-axis-attack-to-four-llm-standard-graph-readonly-smoke-0625-closure",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-four-llm-standard-graph-readonly-smoke-0625-fugu-axis-attack",
+        "target_boundary_ref": "brick-four-llm-standard-graph-readonly-smoke-0625-closure"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-four-llm-standard-graph-readonly-smoke-0625-fugu-axis-attack-to-four-llm-standard-graph-readonly-smoke-0625-closure",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:06:edge-four-llm-standard-graph-readonly-smoke-0625-fugu-axis-attack-to-four-llm-standard-graph-readonly-smoke-0625-closure"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:four-llm-standard-graph-readonly-smoke-0625-closure-to-boundary",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-four-llm-standard-graph-readonly-smoke-0625-closure",
+        "target_boundary_ref": "building-boundary:four-llm-standard-graph-readonly-smoke-0625-closed"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-four-llm-standard-graph-readonly-smoke-0625-closure-to-boundary",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:07:edge-four-llm-standard-graph-readonly-smoke-0625-closure-to-boundary"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-25T01:53:43Z",
+  "id": "urn:bp:building:four-llm-standard-graph-readonly-smoke-0625::evidence/claim_trace/link/movement_trace.json",
+  "recorded_at": "2026-06-25T01:53:43Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:four-llm-standard-graph-readonly-smoke-0625",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/movement_trace.json",
+  "time": "2026-06-25T01:53:43Z",
+  "type": "bp.claim_trace"
+}
