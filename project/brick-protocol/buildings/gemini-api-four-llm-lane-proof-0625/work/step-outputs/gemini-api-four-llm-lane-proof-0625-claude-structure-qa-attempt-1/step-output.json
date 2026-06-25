@@ -1,0 +1,144 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:gemini-api-four-llm-lane-proof-0625::work/step-outputs/gemini-api-four-llm-lane-proof-0625-claude-structure-qa-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-gemini-api-four-llm-lane-proof-0625-claude-structure-qa",
+  "building_id": "gemini-api-four-llm-lane-proof-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T09:59:33.874160Z",
+  "id": "urn:bp:building:gemini-api-four-llm-lane-proof-0625::work/step-outputs/gemini-api-four-llm-lane-proof-0625-claude-structure-qa-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:gemini-api-four-llm-lane-proof-0625-claude-structure-qa",
+  "recorded_at": "2026-06-25T09:59:33.874160Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:qa-lead",
+    "boundary_violations": [
+      "Observed (attribution unproven, not a confirmed violation by this node): worktree_observation.observed_paths_outside_declared_scope lists 8 paths changed outside the declared write_scope — customer-entry-readiness-doc-repair-0625 building raw/work files, status/inbox customer-entry events, status/kernel/customer-entry-readiness-reconciliation-0625.md, and support/docs/references/setup.md. The only changed path matching this node's declared write_scope is status/kernel/gemini-api-four-llm-lane-proof-0625.md. The work node transparently flagged these out-of-scope paths and recorded 'complete diff attribution for pre-existing dirty paths' under worktree_observation.not_proven; before_git_status_paths shows several already dirty pre-step, and the customer-entry-readiness-doc-repair-0625 building suggests a concurrent run rather than a write by this node. I report this as an observed fact; attribution to this node is not established."
+    ],
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "checked_sources": [
+      "work/step-outputs/.../step-output.json (returned object)",
+      "status/kernel/gemini-api-four-llm-lane-proof-0625.md (created file content)",
+      "declared-building-plan.json (brick_steps, link_edges, preset_expansion)",
+      "work/task.md (inline task requirements)",
+      "work/preset-expansion.json (selected_preset_ref)"
+    ],
+    "checked_work": "Prior WORK node brick-gemini-api-four-llm-lane-proof-0625-work (required_return_shape: 'made_changes, observed_evidence, not_proven'; write_scope allowed_paths: status/kernel/gemini-api-four-llm-lane-proof-0625.md) against task-source:inline-statement G2b requirements 1-5.",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:gemini-api-four-llm-lane-proof-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "evidence_refs": [
+      "support-packet:gemini-api-four-llm-lane-proof-0625:agent-object:qa-lead:output"
+    ],
+    "evidence_used": [
+      "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/step-outputs/gemini-api-four-llm-lane-proof-0625-work-attempt-1/step-output.json",
+      "project/brick-protocol/status/kernel/gemini-api-four-llm-lane-proof-0625.md",
+      "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/declared-building-plan.json",
+      "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/task.md",
+      "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/preset-expansion.json"
+    ],
+    "missing_or_mismatched_facts": [
+      "Task framing says the Gemini lane is 'actually present in a live official Building run'; the work node proves only declared/materialized intent for adapter:gemini-api. At work-step write time no step-output existed for the later review/closure nodes, so actual adapter:gemini-api execution is not demonstrated by this node. The work node disclosed this distinction rather than overclaiming — observed as a deferred (not violated) requirement owned by the gemini-broad-review node and closure (task req 4).",
+      "Task req 3 (clean adapter-error/not_proven if Gemini credentials/provider fail; do not weaken checkers) is conditional on the later gemini-broad-review lane executing; it is outside this WORK node's responsibility and not yet evidenced. The work node recorded credential validity and live provider execution under not_proven.",
+      "Full work/return.yaml template fields commands_run and handoff_refs are not present as explicit keys in the returned object (commands appear narrated inside observed_evidence; received_work_ref present at step-output top level). The guarded required_return_shape subset is nonetheless satisfied."
+    ],
+    "narrowly_proven": [
+      "The declared work artifact status/kernel/gemini-api-four-llm-lane-proof-0625.md was created and records the declared aim and proof limits.",
+      "The returned object satisfies the work node's required_return_shape (made_changes, observed_evidence, not_proven) with no reserved verdict keys.",
+      "The materialized declared plan retains a gemini-broad-review lane bound to adapter:gemini-api distinct from the Claude and Fugu lanes.",
+      "The work node distinguished declared/materialized adapter:gemini-api intent from live provider execution and deferred actual-execution proof downstream."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Whether adapter:gemini-api actually executed against a live Gemini provider (no step-output for the gemini-broad-review node was present at work-step write time).",
+      "Attribution of the out-of-scope changed paths to this work node versus the concurrent customer-entry-readiness-doc-repair-0625 building.",
+      "Semantic correctness/quality of the status file content beyond structural and contractual presence.",
+      "Source truth, success judgment, quality judgment, and Movement authority — all outside this review's scope.",
+      "Whether the later gemini-broad-review and closure nodes will satisfy task reqs 3 and 4 (not yet executed)."
+    ],
+    "observed_evidence": [
+      "Read work node step-output: project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/step-outputs/gemini-api-four-llm-lane-proof-0625-work-attempt-1/step-output.json",
+      "Read created artifact: project/brick-protocol/status/kernel/gemini-api-four-llm-lane-proof-0625.md",
+      "Read declared work contract and materialized plan: project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/declared-building-plan.json",
+      "Read task source: project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/task.md",
+      "Read preset provenance: project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/preset-expansion.json"
+    ],
+    "observed_matches": [
+      "Return shape: returned object contains all three required_return_shape fields (made_changes, observed_evidence, not_proven); also carries changed_files, proof_limits, worktree_observation.",
+      "Task req 1: the status file exists at the declared path and contains '## Declared Aim' and '## Proof Limits' sections.",
+      "Task req 2: declared-building-plan.json materializes gemini-broad-review with selected_adapter_ref 'adapter:gemini-api' (model:gemini:default), with separate adapter:claude-local structure-qa and adapter:codex-fugu-local axis-attack lanes; the Gemini lane is NOT replaced by Claude. preset-expansion.json records selected_preset_ref 'building-chain-preset:four-llm-standard-graph'.",
+      "Task req 4: the status file's '## Adapter Execution Observation' explicitly states it proves declared/materialized adapter:gemini-api intent, NOT live provider execution, and defers actual-execution evidence to the later gemini-broad-review node.",
+      "Task req 5 / axis discipline: returned object and status file proof_limits disclaim source truth, success, quality, and Movement; no reserved verdict keys (success/failure/approved/quality/movement_choice/route_target) appear in the returned object."
+    ],
+    "output_excerpt": "I've inspected the work node's declared contract, its returned step-output, the created status file, and the materialized plan. Here is my review evidence. ```json { \"observed_evidence\": [ \"Read work node step-output: project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/step-outputs/gemini-api-four-llm-lane-proof-0625-work-attempt-1/step-output.json\", \"Read created artifact: project/brick-protocol/status/kernel/gemini-api-four-llm-lane-proof-0625.md\", \"Read declared work contract and materialized plan: project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit"
+  },
+  "returned_fact_ref": "agent-fact:02:gemini-api-four-llm-lane-proof-0625-claude-structure-qa",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:gemini-api-four-llm-lane-proof-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:gemini-api-four-llm-lane-proof-0625-claude-structure-qa:attempt-1",
+  "step_ref": "gemini-api-four-llm-lane-proof-0625-claude-structure-qa",
+  "subject": "gemini-api-four-llm-lane-proof-0625-claude-structure-qa",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T09:59:33.874160Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

@@ -1,0 +1,13 @@
+# AgentReturn · seq 7 · ["Agent"]
+- agent_object_ref: "agent-object:dev"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-customer-entry-readiness-doc-repair-0625-work"
+- event_type: "AgentReturn"
+- observed_fields: ["received_work","returned"]
+- returned_fact_ref: "agent-fact:01:customer-entry-readiness-doc-repair-0625-work"
+- route_request_ref: ""
+- run_segment: 1
+- sequence_index: 7
+- spine_schema_version: "spine-v1"
+- step_output_ref: "step-output:customer-entry-readiness-doc-repair-0625-work:attempt-1"
+- step_ref: "customer-entry-readiness-doc-repair-0625-work"

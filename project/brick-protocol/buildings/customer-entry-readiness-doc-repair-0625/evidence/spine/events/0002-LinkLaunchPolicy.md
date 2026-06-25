@@ -1,0 +1,14 @@
+# LinkLaunchPolicy · seq 2 · ["Link"]
+- axis_scope: ["Link"]
+- building_id: "customer-entry-readiness-doc-repair-0625"
+- declared_gate_refs: ["link-gate:default-transition"]
+- event_type: "LinkLaunchPolicy"
+- launch_rows: [{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"edge:customer-entry-readiness-doc-repair-0625-work-to-customer-entry-readiness-doc-repair-0625-code-attack-qa","route_replay_plan":{},"step_ref":"customer-entry-readiness-doc-repair-0625-work","target_boundary_ref":"brick-customer-entry-readiness-doc-repair-0625-code-attack-qa"},{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"edge:customer-entry-readiness-doc-repair-0625-code-attack-qa-to-customer-entry-readiness-doc-repair-0625-closure","route_replay_plan":{},"step_ref":"customer-entry-readiness-doc-repair-0625-code-attack-qa","target_boundary_ref":"brick-customer-entry-readiness-doc-repair-0625-closure"},{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"edge:customer-entry-readiness-doc-repair-0625-closure-to-boundary","route_replay_plan":{},"step_ref":"customer-entry-readiness-doc-repair-0625-closure","target_boundary_ref":"building-boundary:customer-entry-readiness-doc-repair-0625-closed"}]
+- max_attempts_by_boundary: {}
+- node_reroute_budgets: {"brick-customer-entry-readiness-doc-repair-0625-work":5}
+- plan_ref: "building-plan:customer-entry-readiness-doc-repair-0625"
+- plan_shape: "graph"
+- run_segment: 1
+- selected_shape_ref: "building-shape:reviewable-work"
+- sequence_index: 2
+- spine_schema_version: "spine-v1"

@@ -1,0 +1,14 @@
+# TransitionConcern · seq 17 · ["Agent","Link"]
+- agent_object_ref: "agent-object:qa"
+- alias_fact_refs: ["transition-concern:customer-entry-readiness-doc-repair-0625-code-attack-qa:shared-worktree-changedfiles-contamination"]
+- attempt_index: 1
+- axis_scope: ["Agent","Link"]
+- binding: false
+- event_type: "TransitionConcern"
+- run_segment: 1
+- sequence_index: 17
+- source_fact_ref: "transition-concern:customer-entry-readiness-doc-repair-0625-code-attack-qa:attempt-1"
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/customer-entry-readiness-doc-repair-0625-code-attack-qa-attempt-1/step-output.json"
+- step_ref: "customer-entry-readiness-doc-repair-0625-code-attack-qa"
+- transition_concern_returned: {"binding":false,"concern_kind":"verification_gap","concern_ref":"transition-concern:customer-entry-readiness-doc-repair-0625-code-attack-qa:shared-worktree-changedfiles-contamination","not_proven":["whether the work Agent itself wrote the gemini-api-four-llm-lane-proof-0625.md path or it leaked from the concurrent building sharing the worktree","that this contamination changes the correctness of this node's two in-scope deliverables"],"proof_limits":["support evidence only","not source truth","not success judgment","not quality judgment","not Movement authority"],"reason_refs":["support/docs/references/setup.md","project/brick-protocol/status/kernel/customer-entry-readiness-reconciliation-0625.md","project/brick-protocol/status/kernel/gemini-api-four-llm-lane-proof-0625.md","project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/work/step-outputs/customer-entry-readiness-doc-repair-0625-work-attempt-1/step-output.json"],"related_boundary_refs":["building-boundary:struct-surgery-0623-shared-worktree"]}

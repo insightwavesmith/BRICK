@@ -1,0 +1,157 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:gemini-api-four-llm-lane-proof-0625::work/step-outputs/gemini-api-four-llm-lane-proof-0625-fugu-axis-attack-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:inspector",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-gemini-api-four-llm-lane-proof-0625-fugu-axis-attack",
+  "building_id": "gemini-api-four-llm-lane-proof-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:03",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T09:59:35.191740Z",
+  "id": "urn:bp:building:gemini-api-four-llm-lane-proof-0625::work/step-outputs/gemini-api-four-llm-lane-proof-0625-fugu-axis-attack-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:03:gemini-api-four-llm-lane-proof-0625-fugu-axis-attack",
+  "recorded_at": "2026-06-25T09:59:35.191740Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-fugu-local",
+    "agent_object_ref": "agent-object:inspector",
+    "blocked_or_missing_evidence": [
+      "No AgentFact/step-output for gemini-broad-review, claude-structure-qa, fugu-axis-attack, or closure to inspect.",
+      "No adapter-error or not_proven classification record authored by the Gemini API lane itself (the node did not return).",
+      "No closure-node return document to inspect for the task-req-#4 execution-vs-intent statement."
+    ],
+    "boundary_findings": [
+      "write_observation in the work step-output lists observed_paths_outside_declared_scope (declared write_scope allowed only the kernel .md) including project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/* , project/brick-protocol/status/kernel/customer-entry-readiness-reconciliation-0625.md , and support/docs/references/setup.md. The agent's own made_changes claims only the kernel .md. Attribution is uncertain: customer-entry-readiness-doc-repair-0625 paths were already dirty in before_git_status_paths (concurrent building in the shared worktree), and the observation's own not_proven flags 'complete diff attribution for pre-existing dirty paths'. Reported as observed support evidence, not a write-violation verdict.",
+      "The write_observation recording these out-of-scope paths is the support write-observation correctly recording rather than judging — consistent with the observed-write boundary.",
+      "report-delivery.jsonl: report-sink:dashboard consistently records http_5xx / delivered=false; report-sink:slack records slack_ok_true; report-sink:local-inbox wrote inbox packets. Observed as support projection evidence only."
+    ],
+    "brain_surface_ref": "brain-surface:codex-fugu-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:codex-fugu-local:gemini-api-four-llm-lane-proof-0625",
+    "cli_version_text": "codex-cli 0.132.0",
+    "evidence_refs": [
+      "support-packet:gemini-api-four-llm-lane-proof-0625:agent-object:inspector:output"
+    ],
+    "inspected_scope": "Building gemini-api-four-llm-lane-proof-0625 (G2b Gemini API four-LLM lane proof) against task-source:inline-statement: status kernel file, work-step step-output, declared-building-plan.json, building-intake.json, preset-expansion.json, link-launch-policy.json, raw/adapter-usage.jsonl, raw/report-delivery.jsonl, and status/inbox events.",
+    "matched_facts": [
+      "project/brick-protocol/status/kernel/gemini-api-four-llm-lane-proof-0625.md exists and was created inside the work step's declared write_scope (allowed_paths = that single file) — satisfies task req #1.",
+      "building-intake.json records selected_preset_ref = building-chain-preset:four-llm-standard-graph and plan_shape = graph; preset-expansion.json records canonical_chain_preset_ref = building-chain-preset:four-llm-standard-graph.",
+      "declared-building-plan.json execution_order has 5 nodes: work, claude-structure-qa, gemini-broad-review, fugu-axis-attack, closure.",
+      "gemini-broad-review node carries selected_adapter_ref = adapter:gemini-api (model:gemini:default, inspect template); the Gemini API lane is present and is NOT replaced by Claude — satisfies the declared-intent portion of task req #2.",
+      "Three distinct read-only review lanes fan out from work and fan in to closure: claude-structure-qa (adapter:claude-local), gemini-broad-review (adapter:gemini-api), fugu-axis-attack (adapter:codex-fugu-local).",
+      "link_edges declare forward Movement with link-gate:default-transition on fan-out; gemini-broad-review->closure and fugu-axis-attack->closure additionally carry link-gate:strict; closure->boundary marks lifecycle state closed.",
+      "The status kernel file explicitly records the declared/materialized-intent vs actual-provider-execution distinction (its 'Adapter Execution Observation' and 'Proof Limits' sections).",
+      "step-output.json and the status file carry proof_limits / not_proven and use no reserved success/quality/Movement keys — closed-AgentFact and axis discipline held for the recorded work step."
+    ],
+    "mismatched_facts": [
+      "The task aim says the Gemini API lane is 'actually present in a live official Building run'; the evidence proves the lane is present in the materialized declared plan only, not that it actually executed. The work-step status file scopes its own claim correctly to declared/materialized intent, so there is no internal contradiction — the gap is between the task's 'actually present' framing and the proven scope.",
+      "status/inbox shows building-started, work brick_received/brick_returned/gate_passed, then three brick_received events at 2026-06-25T09:56:46 (the fan-out review nodes), but no corresponding brick_returned/step-output for those nodes — the walk fanned out but did not complete to closure; whether this was an intended single-step proof or an incomplete walk is not stated in the evidence."
+    ],
+    "missing_facts": [
+      "No step-output / AgentFact exists for gemini-broad-review — adapter:gemini-api was NOT actually executed; only the work node ran.",
+      "raw/adapter-usage.jsonl records only one entry (adapter:codex-local for the work step); there is no adapter:gemini-api usage record.",
+      "No step-outputs exist for claude-structure-qa, fugu-axis-attack, or closure (find shows only work/step-outputs/...-work-attempt-1/step-output.json).",
+      "The declared closure node never ran, so task req #4 ('closure must state whether adapter:gemini-api was actually executed or only declared/materialized intent was proven') is satisfied only by the work-step status file, not by an actual closure-node return.",
+      "task req #3 (clean adapter-error/not_proven classification on Gemini credential/provider failure) has no record from the gemini lane itself, because that node produced no return; the distinction lives only in the work-step status file."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Actual adapter:gemini-api provider execution for the gemini-broad-review node.",
+      "Live Gemini API credential validity.",
+      "Whether the claude-structure-qa, gemini-broad-review, fugu-axis-attack, or closure nodes will run in a later attempt.",
+      "Semantic quality or correctness of any provider output or of the status file content.",
+      "Complete diff attribution for the paths observed outside the declared write_scope.",
+      "Source truth, success judgment, quality judgment, or Movement authority."
+    ],
+    "observed_evidence": [
+      "project/brick-protocol/status/kernel/gemini-api-four-llm-lane-proof-0625.md",
+      "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/task.md",
+      "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/building-intake.json",
+      "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/preset-expansion.json",
+      "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/declared-building-plan.json (declared_plan_copy.brick_steps + link_edges + execution_order)",
+      "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/link-launch-policy.json",
+      "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/step-outputs/gemini-api-four-llm-lane-proof-0625-work-attempt-1/step-output.json",
+      "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/raw/adapter-usage.jsonl",
+      "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/raw/report-delivery.jsonl",
+      "project/brick-protocol/status/inbox/brick-protocol-gemini-api-four-llm-lane-proof-0625-*.json (building-started, brick-received x4, brick-returned, gate-passed)"
+    ],
+    "output_excerpt": "I've completed the inspection. Here is my read-only inspector return as a single JSON object conforming to the declared `required_return_shape` (observations only — no success/quality/Movement judgment). ```json { \"inspected_scope\": \"Building gemini-api-four-llm-lane-proof-0625 (G2b Gemini API four-LLM lane proof) against task-source:inline-statement: status kernel file, work-step step-output, declared-building-plan.json, building-intake.json, preset-expansion.json, link-launch-policy.json, raw/adapter-usage.jsonl, raw/report-delivery.jsonl, and status/inbox events.\", \"matched_facts\": [ \"pr...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "Inspector support evidence only; read-only inspection, no files mutated.",
+      "Not source truth.",
+      "Not success judgment.",
+      "Not quality judgment.",
+      "Not Movement authority.",
+      "Sufficiency and Movement remain the Link gate's; quality/success remain the human's."
+    ],
+    "remaining_delta": [
+      "To prove actual Gemini API execution, the gemini-broad-review node must run and produce a step-output plus an adapter-usage entry for adapter:gemini-api, or a clean adapter-error/not_proven record if credentials/provider fail.",
+      "The closure node must run to satisfy task req #4 in the declared closure step rather than only in the work-step status file.",
+      "If a single-step declared-intent proof was the intended scope, that scoping should be stated as the building's declared aim so the absent review/closure returns read as out-of-scope rather than as an incomplete walk."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:codex-fugu-local",
+    "selected_model_ref": "model:sakana:fugu"
+  },
+  "returned_fact_ref": "agent-fact:03:gemini-api-four-llm-lane-proof-0625-fugu-axis-attack",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:gemini-api-four-llm-lane-proof-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:gemini-api-four-llm-lane-proof-0625-fugu-axis-attack:attempt-1",
+  "step_ref": "gemini-api-four-llm-lane-proof-0625-fugu-axis-attack",
+  "subject": "gemini-api-four-llm-lane-proof-0625-fugu-axis-attack",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T09:59:35.191740Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

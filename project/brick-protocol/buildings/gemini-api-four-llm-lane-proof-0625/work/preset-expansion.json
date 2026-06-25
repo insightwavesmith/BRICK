@@ -1,0 +1,79 @@
+{
+  "agent_binding_declarations": [
+    {
+      "agent_object_ref": "agent-object:dev",
+      "row_ref": "agent-row:gemini-api-four-llm-lane-proof-0625-work",
+      "step_ref": "gemini-api-four-llm-lane-proof-0625-work"
+    },
+    {
+      "agent_object_ref": "agent-object:qa-lead",
+      "row_ref": "agent-row:gemini-api-four-llm-lane-proof-0625-claude-structure-qa",
+      "step_ref": "gemini-api-four-llm-lane-proof-0625-claude-structure-qa"
+    },
+    {
+      "agent_object_ref": "agent-object:inspector",
+      "row_ref": "agent-row:gemini-api-four-llm-lane-proof-0625-gemini-broad-review",
+      "step_ref": "gemini-api-four-llm-lane-proof-0625-gemini-broad-review"
+    },
+    {
+      "agent_object_ref": "agent-object:inspector",
+      "row_ref": "agent-row:gemini-api-four-llm-lane-proof-0625-fugu-axis-attack",
+      "step_ref": "gemini-api-four-llm-lane-proof-0625-fugu-axis-attack"
+    },
+    {
+      "agent_object_ref": "agent-object:coo",
+      "row_ref": "agent-row:gemini-api-four-llm-lane-proof-0625-closure",
+      "step_ref": "gemini-api-four-llm-lane-proof-0625-closure"
+    }
+  ],
+  "building_id": "gemini-api-four-llm-lane-proof-0625",
+  "canonical_chain_preset_ref": "building-chain-preset:four-llm-standard-graph",
+  "chain_preset_catalog_scope": "brick_protocol_dogfood",
+  "chain_preset_catalog_source": "dogfood_chain_presets",
+  "chain_preset_ref": "building-chain-preset:four-llm-standard-graph",
+  "common_basis_ref": "building-chain-preset:triage-fanout-3",
+  "compat_chain_preset_ref": "",
+  "composition_mode": "caller_or_coo_declared_graph_composition",
+  "expanded_brick_spec_refs": [
+    "brick/templates/bricks/work/brick.md",
+    "brick/templates/bricks/review/brick.md",
+    "brick/templates/bricks/inspect/brick.md",
+    "brick/templates/bricks/closure/brick.md"
+  ],
+  "expanded_brick_template_refs": [
+    "brick/templates/bricks/work/return.yaml",
+    "brick/templates/bricks/transition-concern-return.yaml",
+    "brick/templates/bricks/review/return.yaml",
+    "brick/templates/bricks/inspect/return.yaml",
+    "brick/templates/bricks/closure/return.yaml"
+  ],
+  "expanded_step_template_refs": [
+    "building-step-template:work",
+    "building-step-template:review",
+    "building-step-template:inspect",
+    "building-step-template:closure"
+  ],
+  "kind": "preset_expansion_provenance",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality"
+  ],
+  "plan_ref": "building-plan:gemini-api-four-llm-lane-proof-0625",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target"
+  ],
+  "selected_preset_ref": "building-chain-preset:four-llm-standard-graph",
+  "selected_shape_ref": "building-shape:design-needed",
+  "shape_catalog_ref": "brick-template-catalog:split-p3b-p4"
+}

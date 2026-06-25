@@ -1,0 +1,539 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:gemini-api-four-llm-lane-proof-0625::work/building-map.json",
+  "agent_bindings": [
+    {
+      "agent_binding_id": "binding:01:gemini-api-four-llm-lane-proof-0625-work",
+      "agent_performer_ref": "agent-performer:agent-object:dev",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-gemini-api-four-llm-lane-proof-0625-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:01:gemini-api-four-llm-lane-proof-0625-work"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ],
+      "step_output_ref": "work/step-outputs/gemini-api-four-llm-lane-proof-0625-work-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:02:gemini-api-four-llm-lane-proof-0625-claude-structure-qa",
+      "agent_performer_ref": "agent-performer:agent-object:qa-lead",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-gemini-api-four-llm-lane-proof-0625-claude-structure-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:02:gemini-api-four-llm-lane-proof-0625-claude-structure-qa"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ],
+      "step_output_ref": "work/step-outputs/gemini-api-four-llm-lane-proof-0625-claude-structure-qa-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:03:gemini-api-four-llm-lane-proof-0625-fugu-axis-attack",
+      "agent_performer_ref": "agent-performer:agent-object:inspector",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-gemini-api-four-llm-lane-proof-0625-fugu-axis-attack",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:03:gemini-api-four-llm-lane-proof-0625-fugu-axis-attack"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ],
+      "step_output_ref": "work/step-outputs/gemini-api-four-llm-lane-proof-0625-fugu-axis-attack-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:04:gemini-api-four-llm-lane-proof-0625-gemini-broad-review",
+      "agent_performer_ref": "agent-performer:agent-object:inspector",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-gemini-api-four-llm-lane-proof-0625-gemini-broad-review",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent-received:04",
+        "raw:adapter-error:04"
+      ],
+      "step_output_ref": "work/step-outputs/gemini-api-four-llm-lane-proof-0625-gemini-broad-review-attempt-1/adapter-error.json"
+    }
+  ],
+  "brick_instances": [
+    {
+      "agent_binding_refs": [
+        "binding:01:gemini-api-four-llm-lane-proof-0625-work"
+      ],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-gemini-api-four-llm-lane-proof-0625-work",
+      "brick_work_ref": "work:gemini-api-four-llm-lane-proof-0625-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01",
+        "raw:link:01"
+      ]
+    },
+    {
+      "agent_binding_refs": [
+        "binding:02:gemini-api-four-llm-lane-proof-0625-claude-structure-qa"
+      ],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-gemini-api-four-llm-lane-proof-0625-claude-structure-qa",
+      "brick_work_ref": "work:gemini-api-four-llm-lane-proof-0625-claude-structure-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01",
+        "raw:link:01"
+      ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 2,
+      "brick_instance_id": "brick-gemini-api-four-llm-lane-proof-0625-closure",
+      "brick_work_ref": "work:gemini-api-four-llm-lane-proof-0625-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02",
+        "raw:link:02"
+      ]
+    },
+    {
+      "agent_binding_refs": [
+        "binding:03:gemini-api-four-llm-lane-proof-0625-fugu-axis-attack"
+      ],
+      "attempt_index": 3,
+      "brick_instance_id": "brick-gemini-api-four-llm-lane-proof-0625-fugu-axis-attack",
+      "brick_work_ref": "work:gemini-api-four-llm-lane-proof-0625-fugu-axis-attack",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03",
+        "raw:link:03"
+      ]
+    },
+    {
+      "agent_binding_refs": [
+        "binding:04:gemini-api-four-llm-lane-proof-0625-gemini-broad-review"
+      ],
+      "attempt_index": 4,
+      "brick_instance_id": "brick-gemini-api-four-llm-lane-proof-0625-gemini-broad-review",
+      "brick_work_ref": "work:gemini-api-four-llm-lane-proof-0625-gemini-broad-review",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "not proven: source truth",
+        "not proven: success judgment",
+        "not proven: quality judgment",
+        "not proven: Movement authority",
+        "provider or local callable behavior after the adapter exception",
+        "semantic correctness of the interrupted work",
+        "caller/COO disposition after frontier observation"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:04",
+        "raw:agent-received:04"
+      ]
+    }
+  ],
+  "building_id": "gemini-api-four-llm-lane-proof-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "frontier_observation": {
+    "adapter_error_ref": "adapter-error:gemini-api-four-llm-lane-proof-0625-gemini-broad-review:attempt-1",
+    "frontier_kind": "agent_incomplete",
+    "proof_limits": [
+      "graph support projection only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ]
+  },
+  "generatedAtTime": "2026-06-25T09:59:36Z",
+  "groups": [],
+  "id": "urn:bp:building:gemini-api-four-llm-lane-proof-0625::work/building-map.json",
+  "kind": "building_graph_map",
+  "link_edges": [
+    {
+      "edge_role": "fan_out",
+      "input_public_fact_refs": [
+        "agent-fact:01:gemini-api-four-llm-lane-proof-0625-work",
+        "brick-comparison:01:gemini-api-four-llm-lane-proof-0625-work",
+        "movement-fact:01:gemini-api-four-llm-lane-proof-0625-work"
+      ],
+      "link_edge_id": "edge:gemini-api-four-llm-lane-proof-0625-work-to-gemini-api-four-llm-lane-proof-0625-claude-structure-qa",
+      "movement_fact_ref": "movement-fact:01:gemini-api-four-llm-lane-proof-0625-work",
+      "public_fact_refs": [
+        "agent-fact:01:gemini-api-four-llm-lane-proof-0625-work",
+        "brick-comparison:01:gemini-api-four-llm-lane-proof-0625-work",
+        "movement-fact:01:gemini-api-four-llm-lane-proof-0625-work"
+      ],
+      "source_brick_instance_ref": "brick-gemini-api-four-llm-lane-proof-0625-work",
+      "step_output_ref": "work/step-outputs/gemini-api-four-llm-lane-proof-0625-work-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-gemini-api-four-llm-lane-proof-0625-claude-structure-qa",
+      "transition_fact_ref": "transition-fact:01:gemini-api-four-llm-lane-proof-0625-work"
+    },
+    {
+      "edge_role": "fan_in",
+      "input_public_fact_refs": [
+        "agent-fact:02:gemini-api-four-llm-lane-proof-0625-claude-structure-qa",
+        "brick-comparison:02:gemini-api-four-llm-lane-proof-0625-claude-structure-qa",
+        "movement-fact:02:gemini-api-four-llm-lane-proof-0625-claude-structure-qa"
+      ],
+      "link_edge_id": "edge:gemini-api-four-llm-lane-proof-0625-claude-structure-qa-to-gemini-api-four-llm-lane-proof-0625-closure",
+      "movement_fact_ref": "movement-fact:02:gemini-api-four-llm-lane-proof-0625-claude-structure-qa",
+      "public_fact_refs": [
+        "agent-fact:02:gemini-api-four-llm-lane-proof-0625-claude-structure-qa",
+        "brick-comparison:02:gemini-api-four-llm-lane-proof-0625-claude-structure-qa",
+        "movement-fact:02:gemini-api-four-llm-lane-proof-0625-claude-structure-qa"
+      ],
+      "source_brick_instance_ref": "brick-gemini-api-four-llm-lane-proof-0625-claude-structure-qa",
+      "step_output_ref": "work/step-outputs/gemini-api-four-llm-lane-proof-0625-claude-structure-qa-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-gemini-api-four-llm-lane-proof-0625-closure",
+      "transition_fact_ref": "transition-fact:02:gemini-api-four-llm-lane-proof-0625-claude-structure-qa"
+    },
+    {
+      "edge_role": "fan_in",
+      "input_public_fact_refs": [
+        "agent-fact:03:gemini-api-four-llm-lane-proof-0625-fugu-axis-attack",
+        "brick-comparison:03:gemini-api-four-llm-lane-proof-0625-fugu-axis-attack",
+        "movement-fact:03:gemini-api-four-llm-lane-proof-0625-fugu-axis-attack"
+      ],
+      "link_edge_id": "edge:gemini-api-four-llm-lane-proof-0625-fugu-axis-attack-to-gemini-api-four-llm-lane-proof-0625-closure",
+      "movement_fact_ref": "movement-fact:03:gemini-api-four-llm-lane-proof-0625-fugu-axis-attack",
+      "public_fact_refs": [
+        "agent-fact:03:gemini-api-four-llm-lane-proof-0625-fugu-axis-attack",
+        "brick-comparison:03:gemini-api-four-llm-lane-proof-0625-fugu-axis-attack",
+        "movement-fact:03:gemini-api-four-llm-lane-proof-0625-fugu-axis-attack"
+      ],
+      "source_brick_instance_ref": "brick-gemini-api-four-llm-lane-proof-0625-fugu-axis-attack",
+      "step_output_ref": "work/step-outputs/gemini-api-four-llm-lane-proof-0625-fugu-axis-attack-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-gemini-api-four-llm-lane-proof-0625-closure",
+      "transition_fact_ref": "transition-fact:03:gemini-api-four-llm-lane-proof-0625-fugu-axis-attack"
+    }
+  ],
+  "not_proven": [
+    "brain surface behavior",
+    "credential validity",
+    "runtime or scheduler behavior",
+    "tool or hook execution",
+    "not proven: source truth",
+    "not proven: success judgment",
+    "not proven: quality judgment",
+    "not proven: Movement authority",
+    "provider or local callable behavior after the adapter exception",
+    "semantic correctness of the interrupted work",
+    "caller/COO disposition after frontier observation"
+  ],
+  "profile": "planning-v0",
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "raw_refs": [
+    "raw:brick:01",
+    "raw:agent:01",
+    "raw:link:01",
+    "raw:brick:02",
+    "raw:agent:02",
+    "raw:link:02",
+    "raw:brick:03",
+    "raw:agent:03",
+    "raw:link:03",
+    "raw:brick:04",
+    "raw:agent-received:04",
+    "raw:adapter-error:04",
+    "raw:link-frontier:04"
+  ],
+  "recorded_at": "2026-06-25T09:59:36Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:gemini-api-four-llm-lane-proof-0625",
+  "specversion": "1.0",
+  "subject": "work/building-map.json",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T09:59:36Z",
+  "type": "bp.building_graph_map"
+}

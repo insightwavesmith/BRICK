@@ -1,0 +1,108 @@
+{
+  "building_id": "gemini-api-four-llm-lane-proof-0625",
+  "declared_gate_refs": [
+    "link-gate:default-transition",
+    "link-gate:strict"
+  ],
+  "kind": "link_launch_policy_provenance",
+  "launch_rows": [
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:gemini-api-four-llm-lane-proof-0625-work-to-gemini-api-four-llm-lane-proof-0625-claude-structure-qa",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "gemini-api-four-llm-lane-proof-0625-work",
+      "target_ref": "brick-gemini-api-four-llm-lane-proof-0625-claude-structure-qa"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:gemini-api-four-llm-lane-proof-0625-work-to-gemini-api-four-llm-lane-proof-0625-gemini-broad-review",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "gemini-api-four-llm-lane-proof-0625-work",
+      "target_ref": "brick-gemini-api-four-llm-lane-proof-0625-gemini-broad-review"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:gemini-api-four-llm-lane-proof-0625-work-to-gemini-api-four-llm-lane-proof-0625-fugu-axis-attack",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "gemini-api-four-llm-lane-proof-0625-work",
+      "target_ref": "brick-gemini-api-four-llm-lane-proof-0625-fugu-axis-attack"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:gemini-api-four-llm-lane-proof-0625-claude-structure-qa-to-gemini-api-four-llm-lane-proof-0625-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "gemini-api-four-llm-lane-proof-0625-claude-structure-qa",
+      "target_ref": "brick-gemini-api-four-llm-lane-proof-0625-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:gemini-api-four-llm-lane-proof-0625-gemini-broad-review-to-gemini-api-four-llm-lane-proof-0625-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "gemini-api-four-llm-lane-proof-0625-gemini-broad-review",
+      "target_ref": "brick-gemini-api-four-llm-lane-proof-0625-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition",
+        "link-gate:strict"
+      ],
+      "edge_ref": "edge:gemini-api-four-llm-lane-proof-0625-fugu-axis-attack-to-gemini-api-four-llm-lane-proof-0625-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "gemini-api-four-llm-lane-proof-0625-fugu-axis-attack",
+      "target_ref": "brick-gemini-api-four-llm-lane-proof-0625-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:gemini-api-four-llm-lane-proof-0625-closure-to-boundary",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "gemini-api-four-llm-lane-proof-0625-closure",
+      "target_ref": "building-boundary:gemini-api-four-llm-lane-proof-0625-closed"
+    }
+  ],
+  "max_attempts_by_boundary": {},
+  "node_reroute_budgets": {
+    "brick-gemini-api-four-llm-lane-proof-0625-work": 1
+  },
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality"
+  ],
+  "plan_ref": "building-plan:gemini-api-four-llm-lane-proof-0625",
+  "plan_shape": "graph",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "P3 records launch parameters only; P4 owns Carry budget evidence"
+  ],
+  "selected_shape_ref": "building-shape:design-needed"
+}

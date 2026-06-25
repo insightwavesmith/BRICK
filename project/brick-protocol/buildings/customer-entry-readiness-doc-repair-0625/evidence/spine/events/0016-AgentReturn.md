@@ -1,0 +1,13 @@
+# AgentReturn · seq 16 · ["Agent"]
+- agent_object_ref: "agent-object:qa"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-customer-entry-readiness-doc-repair-0625-code-attack-qa"
+- event_type: "AgentReturn"
+- observed_fields: ["received_work","returned"]
+- returned_fact_ref: "agent-fact:02:customer-entry-readiness-doc-repair-0625-code-attack-qa"
+- route_request_ref: ""
+- run_segment: 1
+- sequence_index: 16
+- spine_schema_version: "spine-v1"
+- step_output_ref: "step-output:customer-entry-readiness-doc-repair-0625-code-attack-qa:attempt-1"
+- step_ref: "customer-entry-readiness-doc-repair-0625-code-attack-qa"

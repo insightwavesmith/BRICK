@@ -1,0 +1,230 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:gemini-api-four-llm-lane-proof-0625::work/step-outputs/gemini-api-four-llm-lane-proof-0625-work-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:dev",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-gemini-api-four-llm-lane-proof-0625-work",
+  "building_id": "gemini-api-four-llm-lane-proof-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T09:56:45.279980Z",
+  "id": "urn:bp:building:gemini-api-four-llm-lane-proof-0625::work/step-outputs/gemini-api-four-llm-lane-proof-0625-work-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:gemini-api-four-llm-lane-proof-0625-work",
+  "recorded_at": "2026-06-25T09:56:45.279980Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:dev",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "changed_files": [
+      "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/raw/adapter-usage.jsonl",
+      "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/raw/report-delivery.jsonl",
+      "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/work/step-outputs/customer-entry-readiness-doc-repair-0625-work-attempt-1/step-output.json",
+      "project/brick-protocol/status/inbox/brick-protocol-customer-entry-readiness-doc-repair-0625-brick-received-event-2026-06-25T09-56-43-839726-00-00.json",
+      "project/brick-protocol/status/inbox/brick-protocol-customer-entry-readiness-doc-repair-0625-brick-returned-event-2026-06-25T09-56-42-410590-00-00.json",
+      "project/brick-protocol/status/inbox/brick-protocol-customer-entry-readiness-doc-repair-0625-gate-passed-event-2026-06-25T09-56-43-229257-00-00.json",
+      "project/brick-protocol/status/kernel/customer-entry-readiness-reconciliation-0625.md",
+      "project/brick-protocol/status/kernel/gemini-api-four-llm-lane-proof-0625.md",
+      "support/docs/references/setup.md"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:gemini-api-four-llm-lane-proof-0625",
+    "cli_version_text": "codex-cli 0.132.0",
+    "evidence_refs": [
+      "support-packet:gemini-api-four-llm-lane-proof-0625:agent-object:dev:output"
+    ],
+    "made_changes": [
+      "Created project/brick-protocol/status/kernel/gemini-api-four-llm-lane-proof-0625.md inside the declared write scope.",
+      "Recorded the declared aim, observed Building/preset evidence, narrow proof limits, and the adapter execution distinction: this work step proves declared/materialized adapter:gemini-api intent, not live Gemini API provider execution."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "Live Gemini API credential validity.",
+      "Live Gemini API provider execution for the later gemini-broad-review node.",
+      "Semantic quality of any provider output.",
+      "Source truth, success judgment, quality judgment, or Movement authority."
+    ],
+    "observed_evidence": [
+      "Read agent/skills/scoped-implementation/SKILL.md and agent/skills/protocol-boundary-watch/SKILL.md.",
+      "Inspected brick/templates/presets/four-llm-standard-graph.md, project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/task.md, work/building-intake.json, work/preset-expansion.json, work/declared-building-plan.json, and work/link-launch-policy.json.",
+      "Observed the materialized plan includes gemini-api-four-llm-lane-proof-0625-gemini-broad-review with selected_adapter_ref adapter:gemini-api, alongside separate Claude and Fugu review lanes.",
+      "Ran git diff --check -- project/brick-protocol/status/kernel/gemini-api-four-llm-lane-proof-0625.md; exit code 0.",
+      "Ran git status --short -- project/brick-protocol/status/kernel/gemini-api-four-llm-lane-proof-0625.md; observed the new file as untracked."
+    ],
+    "output_excerpt": "{\"made_changes\":[\"Created project/brick-protocol/status/kernel/gemini-api-four-llm-lane-proof-0625.md inside the declared write scope.\",\"Recorded the declared aim, observed Building/preset evidence, narrow proof limits, and the adapter execution distinction: this work step proves declared/materialized adapter:gemini-api intent, not live Gemini API provider execution.\"],\"observed_evidence\":[\"Read agent/skills/scoped-implementation/SKILL.md and agent/skills/protocol-boundary-watch/SKILL.md.\",\"Inspected brick/templates/presets/four-llm-standard-graph.md, project/brick-protocol/buildings/gemini...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:codex-local",
+    "selected_model_ref": "model:codex:default",
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "struct-surgery-0623",
+        "head": "da61835682a5d104ca86d32c3664618d25e2b60c"
+      },
+      "after_git_status_paths": [
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/declared-building-plan.json",
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/raw/adapter-usage.jsonl",
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/work/building-intake.json",
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/work/preset-expansion.json",
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/work/step-outputs/customer-entry-readiness-doc-repair-0625-work-attempt-1/step-output.json",
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/work/task.md",
+        "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/declared-building-plan.json",
+        "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/building-intake.json",
+        "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/preset-expansion.json",
+        "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/task.md",
+        "project/brick-protocol/status/inbox/brick-protocol-customer-entry-readiness-doc-repair-0625-brick-received-event-2026-06-25T09-55-21-875975-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-customer-entry-readiness-doc-repair-0625-brick-received-event-2026-06-25T09-56-43-839726-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-customer-entry-readiness-doc-repair-0625-brick-returned-event-2026-06-25T09-56-42-410590-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-customer-entry-readiness-doc-repair-0625-building-started-event-2026-06-25T09-55-21-237839-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-customer-entry-readiness-doc-repair-0625-gate-passed-event-2026-06-25T09-56-43-229257-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gemini-api-four-llm-lane-proof-0625-brick-received-event-2026-06-25T09-55-21-876071-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gemini-api-four-llm-lane-proof-0625-building-started-event-2026-06-25T09-55-21-239513-00-00.json",
+        "project/brick-protocol/status/kernel/customer-entry-readiness-reconciliation-0625.md",
+        "project/brick-protocol/status/kernel/gemini-api-four-llm-lane-proof-0625.md",
+        "support/docs/references/setup.md"
+      ],
+      "after_path_count": 4371,
+      "before_git_refs": {
+        "branch": "struct-surgery-0623",
+        "head": "da61835682a5d104ca86d32c3664618d25e2b60c"
+      },
+      "before_git_status_paths": [
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/declared-building-plan.json",
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/work/building-intake.json",
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/work/preset-expansion.json",
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/work/task.md",
+        "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/declared-building-plan.json",
+        "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/building-intake.json",
+        "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/preset-expansion.json",
+        "project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/task.md",
+        "project/brick-protocol/status/inbox/brick-protocol-customer-entry-readiness-doc-repair-0625-brick-received-event-2026-06-25T09-55-21-875975-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-customer-entry-readiness-doc-repair-0625-building-started-event-2026-06-25T09-55-21-237839-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gemini-api-four-llm-lane-proof-0625-brick-received-event-2026-06-25T09-55-21-876071-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gemini-api-four-llm-lane-proof-0625-building-started-event-2026-06-25T09-55-21-239513-00-00.json"
+      ],
+      "before_path_count": 4364,
+      "git_refs_moved": {},
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/raw/adapter-usage.jsonl",
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/work/step-outputs/customer-entry-readiness-doc-repair-0625-work-attempt-1/step-output.json",
+        "project/brick-protocol/status/inbox/brick-protocol-customer-entry-readiness-doc-repair-0625-brick-received-event-2026-06-25T09-56-43-839726-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-customer-entry-readiness-doc-repair-0625-brick-returned-event-2026-06-25T09-56-42-410590-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-customer-entry-readiness-doc-repair-0625-gate-passed-event-2026-06-25T09-56-43-229257-00-00.json",
+        "project/brick-protocol/status/kernel/customer-entry-readiness-reconciliation-0625.md",
+        "project/brick-protocol/status/kernel/gemini-api-four-llm-lane-proof-0625.md",
+        "support/docs/references/setup.md"
+      ],
+      "observed_paths_outside_declared_scope": [
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/raw/adapter-usage.jsonl",
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/customer-entry-readiness-doc-repair-0625/work/step-outputs/customer-entry-readiness-doc-repair-0625-work-attempt-1/step-output.json",
+        "project/brick-protocol/status/inbox/brick-protocol-customer-entry-readiness-doc-repair-0625-brick-received-event-2026-06-25T09-56-43-839726-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-customer-entry-readiness-doc-repair-0625-brick-returned-event-2026-06-25T09-56-42-410590-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-customer-entry-readiness-doc-repair-0625-gate-passed-event-2026-06-25T09-56-43-229257-00-00.json",
+        "project/brick-protocol/status/kernel/customer-entry-readiness-reconciliation-0625.md",
+        "support/docs/references/setup.md"
+      ],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "project/brick-protocol/status/kernel/gemini-api-four-llm-lane-proof-0625.md"
+        ],
+        "forbidden_paths": [
+          ".git/**"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:01:gemini-api-four-llm-lane-proof-0625-work",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:gemini-api-four-llm-lane-proof-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:gemini-api-four-llm-lane-proof-0625-work:attempt-1",
+  "step_ref": "gemini-api-four-llm-lane-proof-0625-work",
+  "subject": "gemini-api-four-llm-lane-proof-0625-work",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T09:56:45.279980Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

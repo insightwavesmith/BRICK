@@ -20,7 +20,7 @@ The checker gate is the support-evidence baseline. Run every admitted profile:
 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all
 ```
 
-A green gate is **exit code 0**. On success the runner prints one `profile passed:` line per profile (13 profiles live under `support/checkers/profiles/`), then the closing proof-limit line. On any rejection it prints `profile runner rejected evidence: ...` to stderr and returns exit code 1.
+A green gate is **exit code 0**. On success the runner prints one `profile passed:` line per profile (24 profiles live under `support/checkers/profiles/`), then the closing proof-limit line. On any rejection it prints `profile runner rejected evidence: ...` to stderr and returns exit code 1.
 
 Run a single profile by name (the `.yaml` suffix is optional, and `-`/`_` are interchangeable in the name):
 

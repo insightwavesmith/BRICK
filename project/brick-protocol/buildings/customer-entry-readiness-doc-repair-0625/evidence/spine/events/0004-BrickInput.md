@@ -1,0 +1,12 @@
+# BrickInput · seq 4 · ["Brick"]
+- axis_scope: ["Brick"]
+- brick_instance_ref: "brick-customer-entry-readiness-doc-repair-0625-work"
+- comparison_rule: "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickInput"
+- required_return_shape: "made_changes, observed_evidence, not_proven"
+- run_segment: 1
+- sequence_index: 4
+- source_facts: ["task-source:inline-statement"]
+- spine_schema_version: "spine-v1"
+- step_ref: "customer-entry-readiness-doc-repair-0625-work"
+- work_statement: "work Brick for task-source:inline-statement: # G1b customer-entry/readiness doc repair"
