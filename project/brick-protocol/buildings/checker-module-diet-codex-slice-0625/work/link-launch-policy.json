@@ -1,0 +1,66 @@
+{
+  "building_id": "checker-module-diet-codex-slice-0625",
+  "declared_gate_refs": [
+    "link-gate:default-transition"
+  ],
+  "kind": "link_launch_policy_provenance",
+  "launch_rows": [
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:checker-module-diet-codex-slice-0625-work-to-checker-module-diet-codex-slice-0625-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "checker-module-diet-codex-slice-0625-work",
+      "target_ref": "brick-checker-module-diet-codex-slice-0625-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:checker-module-diet-codex-slice-0625-closure-to-boundary",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "checker-module-diet-codex-slice-0625-closure",
+      "target_ref": "building-boundary:checker-module-diet-codex-slice-0625-closed"
+    }
+  ],
+  "max_attempts_by_boundary": {},
+  "node_reroute_budgets": {
+    "brick-checker-module-diet-codex-slice-0625-closure": 5,
+    "brick-checker-module-diet-codex-slice-0625-work": 5
+  },
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "plan_ref": "building-plan:checker-module-diet-codex-slice-0625",
+  "plan_shape": "graph",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "P3 records launch parameters only; P4 owns Carry budget evidence"
+  ],
+  "selected_shape_ref": "building-shape:one-brick"
+}

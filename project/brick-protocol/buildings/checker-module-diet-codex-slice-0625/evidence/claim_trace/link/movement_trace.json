@@ -1,0 +1,191 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:checker-module-diet-codex-slice-0625::evidence/claim_trace/link/movement_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:01:checker-module-diet-codex-slice-0625-work",
+          "brick-comparison:01:checker-module-diet-codex-slice-0625-work",
+          "sufficiency-fact-movement:01:checker-module-diet-codex-slice-0625-work"
+        ],
+        "target_boundary_ref": "brick:brick-checker-module-diet-codex-slice-0625-closure"
+      },
+      "fact_ref": "movement-fact:01:checker-module-diet-codex-slice-0625-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "building_lifecycle_reason": "declared closure boundary for checker-module-diet-codex-slice-0625",
+        "building_lifecycle_state": "closed",
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:02:checker-module-diet-codex-slice-0625-closure",
+          "brick-comparison:02:checker-module-diet-codex-slice-0625-closure",
+          "sufficiency-fact-movement:02:checker-module-diet-codex-slice-0625-closure"
+        ],
+        "target_boundary_ref": "brick:building-boundary:checker-module-diet-codex-slice-0625-closed"
+      },
+      "fact_ref": "movement-fact:02:checker-module-diet-codex-slice-0625-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:02"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:checker-module-diet-codex-slice-0625-work-to-checker-module-diet-codex-slice-0625-closure",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-checker-module-diet-codex-slice-0625-work",
+        "target_boundary_ref": "brick-checker-module-diet-codex-slice-0625-closure"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-checker-module-diet-codex-slice-0625-work-to-checker-module-diet-codex-slice-0625-closure",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:01:edge-checker-module-diet-codex-slice-0625-work-to-checker-module-diet-codex-slice-0625-closure"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:checker-module-diet-codex-slice-0625-closure-to-boundary",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-checker-module-diet-codex-slice-0625-closure",
+        "target_boundary_ref": "building-boundary:checker-module-diet-codex-slice-0625-closed"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-checker-module-diet-codex-slice-0625-closure-to-boundary",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:02:edge-checker-module-diet-codex-slice-0625-closure-to-boundary"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-25T02:22:52Z",
+  "id": "urn:bp:building:checker-module-diet-codex-slice-0625::evidence/claim_trace/link/movement_trace.json",
+  "recorded_at": "2026-06-25T02:22:52Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:checker-module-diet-codex-slice-0625",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/movement_trace.json",
+  "time": "2026-06-25T02:22:52Z",
+  "type": "bp.claim_trace"
+}
