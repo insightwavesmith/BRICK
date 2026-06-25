@@ -1,0 +1,156 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:gemini-api-http400-repair-design-0625::work/step-outputs/gemini-api-http400-repair-design-0625-review-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-gemini-api-http400-repair-design-0625-review",
+  "building_id": "gemini-api-http400-repair-design-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T11:19:29.981607Z",
+  "id": "urn:bp:building:gemini-api-http400-repair-design-0625::work/step-outputs/gemini-api-http400-repair-design-0625-review-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:gemini-api-http400-repair-design-0625-review",
+  "recorded_at": "2026-06-25T11:19:29.981607Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:qa-lead",
+    "boundary_violations": [],
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "checked_sources": [
+      "brick/templates/bricks/plan/return.yaml",
+      "buildings/gemini-api-http400-repair-design-0625/work/step-outputs/gemini-api-http400-repair-design-0625-plan-attempt-1/step-output.json",
+      "support/connection/adapter_constants.py",
+      "support/connection/agent_adapter.py",
+      "support/connection/adapter_gemini_http.py",
+      "support/connection/adapter_model_casting.py",
+      "support/connection/adapter_local_cli.py",
+      "support/checkers/lib/kernel_checks.py",
+      "support/checkers/profiles/agent_axis_behavioral.yaml"
+    ],
+    "checked_work": "review Brick for task-source:inline-statement '# Gemini API HTTP 400 repair design' — a read-only diagnosis/design plan node whose declared return shape is the plan return template (objective_summary, scope_boundaries, constraints, missing_scope, proposed_next_work_boundaries, observed_evidence, not_proven, transition_concern_evidence).",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:gemini-api-http400-repair-design-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "evidence_refs": [
+      "support-packet:gemini-api-http400-repair-design-0625:agent-object:qa-lead:output"
+    ],
+    "evidence_used": [
+      "buildings/gemini-api-http400-repair-design-0625/work/step-outputs/gemini-api-http400-repair-design-0625-plan-attempt-1/step-output.json",
+      "brick/templates/bricks/plan/return.yaml",
+      "support/connection/adapter_constants.py:54-55",
+      "support/connection/agent_adapter.py:553,683,701,709-710",
+      "support/connection/adapter_gemini_http.py:87-97,108-117,168-186,264-267",
+      "support/connection/adapter_model_casting.py:187-202",
+      "support/connection/adapter_local_cli.py:745,766",
+      "support/checkers/lib/kernel_checks.py:3389-3604 (esp. 3457-3481,3517-3551)",
+      "support/checkers/profiles/agent_axis_behavioral.yaml:22,473-474"
+    ],
+    "missing_or_mismatched_facts": [
+      "Line-number drift in several citations: the plan cites adapter_constants.py:48/49 (actual 54/55), agent_adapter.py:588/589/580 (actual 709/710/701), adapter_local_cli.py:362/383 (actual 745/766), agent_axis_behavioral.yaml:448-449 (actual 473-474), and kernel_checks.py gemini literals at :3242/:3318-3319/:3350/:3360 (the actual run_gemini_api_adapter spans 3389-3604; expected_url 3517-3520, api_model_name 3550, body 3531-3543; the cited 3242/3317-3360 region is the codex_connect_stall checker, not the gemini checker). Symbol names, constant values, and described behaviors all match current sources; only the line anchors are stale. adapter_gemini_http.py line citations (87-97, 108-112, 115, 176-179, 267) are accurate.",
+      "Checker model-literal count: the plan describes 'three model literals (expected_url, api_model_name, build-request)' to update in lockstep, but run_gemini_api_adapter contains two model-name literals (expected_url line 3519, api_model_name line 3550); the body-shape assertion (3531-3543) carries no model name. The cited :3360 '_build_gemini_api_request literal' falls outside the gemini checker. This does not break the repair scope (targets are reachable by symbol) but the literal count/anchor is imprecise.",
+      "adapter-error.json source artifact itself was not re-opened in this review; its contents are taken from the plan's transcription and the task-source restatement (both agree on adapter:gemini-api / model:gemini:default / ValueError / 'HTTP error status 400')."
+    ],
+    "narrowly_proven": [
+      "The plan node's returned object structurally satisfies the declared plan return shape (all 8 required fields present, no forbidden keys).",
+      "Every substantive code/checker claim I re-derived from current sources is accurate at the symbol/value/behavior level; the gemini-api request envelope is doc-aligned except the model id, and the model literal is duplicated across adapter constant, fallback, casting fallbacks, and checker.",
+      "The plan's five required analyses are each present and grounded in named local surfaces."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Whether HTTP 400 root cause is the model-id drift vs another INVALID_ARGUMENT cause — body discarded by design; not locally observable without a live diagnostic call (out of scope, an environment/runtime constraint, not a code defect).",
+      "Whether 'gemini-3.5-flash' is a currently-served v1beta model id — relies on COO-supplied doc evidence, not verified live here.",
+      "Live four-LLM lane behavior, credential/key/project/location validity, and provider response after the repair.",
+      "adapter_local_cli.py lines 745/766 and adapter-error.json contents were partially cross-checked but not the full surrounding control flow; checker --all EXIT 0 was not executed (read-only review, no command run).",
+      "source truth, success judgment, quality judgment, Movement authority — none asserted; sufficiency and Movement belong to the Link gate, quality/approval to the human.",
+      "No transition_concern_evidence is raised: the cited inaccuracies are stale line anchors and an over-count of one checker literal, not a reproduced defect that blocks the downstream WRITE Building (targets remain reachable by symbol); the 400 itself originates in a different building with no in-building upstream WORK node to reroute to."
+    ],
+    "observed_evidence": [
+      "Prior plan step-output read at work/step-outputs/gemini-api-http400-repair-design-0625-plan-attempt-1/step-output.json: returned object carries objective_summary, scope_boundaries, constraints, missing_scope, proposed_next_work_boundaries, observed_evidence, not_proven, transition_concern_evidence (=null), plus proof_limits and CLI envelope fields.",
+      "Plan return template brick/templates/bricks/plan/return.yaml required_return_shape = [objective_summary, scope_boundaries, constraints, missing_scope, proposed_next_work_boundaries, observed_evidence, not_proven, transition_concern_evidence].",
+      "Task-source:inline-statement enumerates 5 required analyses (root-cause candidates; model-vs-classification-vs-both-vs-neither decision; write scope + files/checkers; verification incl. mocked checker/no-key/URL-header-body capture/live lane expectation; proof limits + not_proven).",
+      "support/connection/adapter_constants.py: MODEL_REF_GEMINI_FLASH='model:gemini:gemini-2.5-flash' (line 54), MODEL_REF_GEMINI_LOCAL_FLASH='model:gemini:gemini-3.5-flash' (line 55) — both exist as the plan asserts.",
+      "support/connection/agent_adapter.py: _GEMINI_API_BASE_URL='https://generativelanguage.googleapis.com/v1beta/models' (line 709), _GEMINI_API_MODEL_FALLBACK='gemini-2.5-flash' (line 710), gemini-api spec default_model_ref=MODEL_REF_GEMINI_FLASH (line 701), gemini-LOCAL spec default_model_ref=MODEL_REF_GEMINI_LOCAL_FLASH (line 683).",
+      "support/connection/adapter_gemini_http.py: _gemini_api_model_name falls back to _GEMINI_API_MODEL_FALLBACK (lines 87-97); url='{base}/{model_name}:generateContent' and body {'contents':[{'parts':[{'text':...}]}]} (lines 108-112); header x-goog-api-key (line 115); HTTPError collapsed to 'gemini-api HTTP error status {code}' with body discarded (lines 176-179); invoke_gemini_text default model_name='gemini-2.5-flash' (line 267).",
+      "support/connection/adapter_model_casting.py line 191: GEMINI_LOCAL short-circuit is gated on spec.adapter_ref==ADAPTER_GEMINI_LOCAL, so it does NOT apply to gemini-api; 'model:gemini:default' then returns '' via the model_id in {'default','inherit'} branch (lines 200-201).",
+      "support/checkers/lib/kernel_checks.py run_gemini_api_adapter (lines 3389-3604): expected_url embeds 'gemini-2.5-flash:generateContent' (lines 3517-3520), api_model_name literal 'gemini-2.5-flash' (line 3550), body-shape assertion contents/parts/text (lines 3531-3543), no-key->local_cli_missing with no subprocess (lines 3457-3481).",
+      "support/checkers/profiles/agent_axis_behavioral.yaml: gemini_api_adapter registered (line 22); gemini-LOCAL casting row pins selected_model_ref model:gemini:gemini-3.5-flash / expected_cli_arg gemini-3.5-flash (lines 473-474).",
+      "support/connection/adapter_local_cli.py: gemini fallback 'gemini-2.5-flash' (line 745) vs 'gemini-3.5-flash' (line 766) — the intra-file 2.5/3.5 inconsistency the plan flags exists."
+    ],
+    "observed_matches": [
+      "Return-shape completeness: all 8 plan-return-template required fields are present in the returned object; transition_concern_evidence is explicitly null with a recorded rationale; no forbidden keys (success/failure/approved/quality/movement_choice/route_target) appear.",
+      "All 5 required analyses from the task source are addressed: (1) strongest LOCAL root-cause candidates (gemini-api model-ref drift to 2.5-flash + body-discarding HTTPError classification); (2) decision-2 disposition proposes BOTH (model align + safe status-category recording) as a caller-decided proposal; (3) candidate_write_scope_files + checker_plan name exact files/checkers; (4) verification_plan covers mocked checker, no-key path, URL/header/body capture, and a live four-LLM lane expectation that accepts a clean adapter-error; (5) proof_limits + not_proven are populated.",
+      "Substantive code claims verified against current sources: gemini-api fallback model is 'gemini-2.5-flash'; request envelope (base URL v1beta/models, x-goog-api-key header, contents/parts/text body) matches the COO-supplied doc evidence except the model id; the 400 body is deliberately discarded; the GEMINI_LOCAL casting short-circuit does not cover gemini-api; MODEL_REF_GEMINI_LOCAL_FLASH (gemini-3.5-flash) already exists; the gemini_api_adapter checker locks expected_url + api_model_name + body shape and is registered in agent_axis_behavioral.yaml.",
+      "The checker-lockstep constraint the plan raises is real: changing the gemini-api model literal requires updating the checker's expected_url (kernel_checks.py:3519) and api_model_name (kernel_checks.py:3550) to keep --all green.",
+      "Axis discipline observed in the returned object: read-only posture stated, no Movement/route/quality/success keys, scope explicitly bounds the actual repair to a separate downstream WRITE Building."
+    ],
+    "output_excerpt": "I have enough grounded evidence to complete the review. Here is my observed support evidence. ```json { \"observed_evidence\": [ \"Prior plan step-output read at work/step-outputs/gemini-api-http400-repair-design-0625-plan-attempt-1/step-output.json: returned object carries objective_summary, scope_boundaries, constraints, missing_scope, proposed_next_work_boundaries, observed_evidence, not_proven, transition_concern_evidence (=null), plus proof_limits and CLI envelope fields.\", \"Plan return template brick/templates/bricks/plan/return.yaml required_return_shape = [objective_summary, scope_boun...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:02:gemini-api-http400-repair-design-0625-review",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:gemini-api-http400-repair-design-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:gemini-api-http400-repair-design-0625-review:attempt-1",
+  "step_ref": "gemini-api-http400-repair-design-0625-review",
+  "subject": "gemini-api-http400-repair-design-0625-review",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T11:19:29.981607Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

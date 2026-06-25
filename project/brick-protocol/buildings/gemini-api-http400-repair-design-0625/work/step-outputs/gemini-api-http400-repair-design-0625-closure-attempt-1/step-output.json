@@ -1,0 +1,175 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:gemini-api-http400-repair-design-0625::work/step-outputs/gemini-api-http400-repair-design-0625-closure-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-gemini-api-http400-repair-design-0625-closure",
+  "building_id": "gemini-api-http400-repair-design-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:03",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T11:20:56.645276Z",
+  "id": "urn:bp:building:gemini-api-http400-repair-design-0625::work/step-outputs/gemini-api-http400-repair-design-0625-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:03:gemini-api-http400-repair-design-0625-closure",
+  "recorded_at": "2026-06-25T11:20:56.645276Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:coo",
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:gemini-api-http400-repair-design-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "deferred_smith_review_queue": [
+      "Decision-2 disposition: choose model-alignment only, safe-HTTPError-classification only, BOTH (plan's proposal), or NEITHER — caller/human decision, not made here.",
+      "Confirm 'gemini-3.5-flash' is a currently-served v1beta model id before the write Building hard-codes it (doc-only evidence so far).",
+      "Decide whether to pin the four-llm preset gemini-broad-review node to model:gemini:gemini-3.5-flash explicitly vs rely on the fallback constant.",
+      "Confirm the write lane/adapter (plan suggests codex-local) and the exact write_scope globs at the write Building's intake."
+    ],
+    "evidence_refs": [
+      "support-packet:gemini-api-http400-repair-design-0625:agent-object:coo:output"
+    ],
+    "narrowly_proven": [
+      "Both work nodes (plan, review) returned structurally complete, forbidden-key-free objects matching their declared return templates, and the Building reached its declared closed boundary.",
+      "A measurable local-code drift exists and is reproduced from current sources: the gemini-api lane resolves to model id 'gemini-2.5-flash' (constant + fallback) while the COO-supplied docs and the gemini-local path use 'gemini-3.5-flash'; the request envelope (v1beta/models base, x-goog-api-key header, contents/parts/text body) otherwise matches the supplied doc evidence.",
+      "The downstream WRITE repair is bounded: changed-file candidates, a lockstep checker_plan, stop_conditions, and a verification_plan are all named, and the gemini_api_adapter checker's model literal must be updated in lockstep to keep --all EXIT 0.",
+      "The lockstep checker surface is now pinned to concrete current anchors: kernel_checks.py:3519, :3550, and :3560 each carry 'gemini-2.5-flash' and all three must move together (the plan's 'three literals' count is the accurate one; the review's 'two' undercounted the :3560 build-request site)."
+    ],
+    "next_target_candidates": [
+      "brick:gemini-api-http400-write-repair (new WRITE Building, codex-local lane, write_scope file-form globs over support/connection/* and support/checkers/lib/*) carrying the caller-selected disposition-2 choice.",
+      "brick:four-llm-lane-reproof (live re-run of gemini-api-four-llm-lane-proof after the repair lands) to confirm model/request-shape drift is gone.",
+      "brick:gemini-local-fallback-consistency (reconcile adapter_local_cli.py 2.5-vs-3.5 fallback) if the caller scopes it into the same or a follow-up Building."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "The actual HTTP 400 sub-reason (e.g. INVALID_ARGUMENT vs model-not-found vs another cause) — the adapter discards the 400 body by design, so it is not locally observable without a live diagnostic call (out of scope; an environment/runtime constraint, not a code defect).",
+      "That 'gemini-3.5-flash' is a currently-served v1beta model id — relies on COO-supplied doc evidence, not verified live in this Building.",
+      "That changing the model to gemini-3.5-flash will make the live four-LLM lane return 200 — provider behavior, credential/key/project/location validity, and runtime fan-out are non-local and unproven.",
+      "Whether the body-discarding HTTPError classification (decision-2 item b) is necessary vs the model alignment alone is sufficient — both are proposals; the caller decides disposition.",
+      "Checker --all EXIT 0 was not executed in this read-only Building; lockstep checker greenness is a downstream write-Building obligation.",
+      "source truth, success judgment, quality judgment, Movement authority — none asserted here; sufficiency and Movement belong to the Link gate, quality/approval to the human."
+    ],
+    "observed_evidence": [
+      "Building gemini-api-http400-repair-design-0625 ran the declared research-report graph preset: plan (agent-object:pm-lead) -> review (agent-object:qa-lead) -> closure (agent-object:coo), all forward edges via link-gate:default-transition; closure edge declares building_lifecycle state=closed.",
+      "Plan step-output (work/step-outputs/.../plan-attempt-1/step-output.json) returned all 8 plan-template fields (objective_summary, scope_boundaries, constraints, missing_scope, proposed_next_work_boundaries, observed_evidence, not_proven, transition_concern_evidence=null) with no forbidden keys.",
+      "Plan named the strongest LOCAL root-cause candidate as gemini-api model-ref drift: model:gemini:default casts to '' then falls back to _GEMINI_API_MODEL_FALLBACK='gemini-2.5-flash', so the live URL resolved to .../v1beta/models/gemini-2.5-flash:generateContent, while COO-supplied Google AI docs (crawled 2026-06-25) cite gemini-3.5-flash; secondary candidate is the body-discarding HTTPError classification (adapter_gemini_http.py collapses every HTTPError to 'gemini-api HTTP error status {code}').",
+      "Plan proposed (PROPOSAL ONLY, caller decides) doing BOTH: (a) align gemini-api default+fallback model to gemini-3.5-flash, and (b) add safe HTTPError status-category recording that captures numeric status without storing the body.",
+      "Plan named candidate_write_scope_files (adapter_constants.py, agent_adapter.py, adapter_gemini_http.py, kernel_checks.py, adapter_local_cli.py), a checker_plan (gemini_api_adapter lockstep), stop_conditions, a verification_plan (mocked checker, no-key path, URL/header/body capture, live four-LLM lane expectation accepting a clean adapter-error), and write_scope_glob_guidance (file-form globs; codex-local write lane; gemini-api never a write adapter).",
+      "Review step-output (work/step-outputs/.../review-attempt-1/step-output.json) returned all 10 review-template fields with no forbidden keys; transition_concern_evidence=null with recorded rationale; evidence_used cited 9 inspected repository artifacts.",
+      "Review confirmed every substantive symbol/value/behavior claim against current sources but flagged stale line-number anchors in the plan (e.g. plan cited adapter_constants.py:48/49, agent_adapter.py:588/589/580, kernel_checks.py:3242/3318-3360; review corrected to constants 54/55, agent_adapter 701/709/710, and located run_gemini_api_adapter at 3389-3604).",
+      "Independent closure spot-check of current sources confirms: adapter_constants.py:54 MODEL_REF_GEMINI_FLASH='model:gemini:gemini-2.5-flash'; :55 MODEL_REF_GEMINI_LOCAL_FLASH='model:gemini:gemini-3.5-flash'; agent_adapter.py:701 gemini-api default_model_ref=MODEL_REF_GEMINI_FLASH; :710 _GEMINI_API_MODEL_FALLBACK='gemini-2.5-flash'; :683 gemini-LOCAL default=MODEL_REF_GEMINI_LOCAL_FLASH.",
+      "Independent closure spot-check of kernel_checks.py shows the 'gemini-2.5-flash' literal at THREE sites inside the gemini-api checker region: :3519 (expected_url), :3550 (api_model_name), :3560 (_build_gemini_api_request call) — plus the gemini-local pin 'gemini-3.5-flash' at :1662-1663."
+    ],
+    "output_excerpt": "Spot-check confirms the carried evidence. I note one nuance: `kernel_checks.py` carries the `gemini-2.5-flash` literal at **three** sites (3519 expected_url, 3550 api_model_name, 3560 `_build_gemini_api_request` call) — so the plan's \"three literals to update in lockstep\" was closer than the review's \"two.\" This matters for the downstream write Building's lockstep checker update. Here is the closure synthesis. ```json { \"observed_evidence\": [ \"Building gemini-api-http400-repair-design-0625 ran the declared research-report graph preset: plan (agent-object:pm-lead) -> review (agent-object:qa-...",
+    "parent_goal_delta_status": {
+      "closed_delta_refs": [
+        "analysis-1:local-root-cause-candidates",
+        "analysis-3:write-scope-files-and-checkers",
+        "analysis-4:verification-plan",
+        "analysis-5:proof-limits-and-not-proven"
+      ],
+      "evidence_refs": [
+        "work/step-outputs/gemini-api-http400-repair-design-0625-plan-attempt-1/step-output.json",
+        "work/step-outputs/gemini-api-http400-repair-design-0625-review-attempt-1/step-output.json",
+        "support/connection/adapter_constants.py:54-55",
+        "support/connection/agent_adapter.py:683,701,709-710",
+        "support/connection/adapter_gemini_http.py:89-108,295-300",
+        "support/checkers/lib/kernel_checks.py:3519,3550,3560",
+        "task-source:inline-statement"
+      ],
+      "matched_delta_refs": [
+        "analysis-1:local-root-cause-candidates",
+        "analysis-2:model-vs-classification-vs-both-vs-neither-decision",
+        "analysis-3:write-scope-files-and-checkers",
+        "analysis-4:verification-plan",
+        "analysis-5:proof-limits-and-not-proven"
+      ],
+      "missing_delta_refs": [
+        "live:four-llm-lane-reproof-after-repair"
+      ],
+      "open_delta_refs": [
+        "analysis-2:disposition-is-a-caller-decided-proposal-not-yet-chosen",
+        "downstream:write-repair-building-not-yet-opened",
+        "preset:gemini-broad-review-model-pin-choice-open"
+      ],
+      "unknown_delta_refs": [
+        "provider:400-sub-reason-body-discarded",
+        "provider:gemini-3.5-flash-served-status-doc-only",
+        "env:credential-key-project-location-validity"
+      ]
+    },
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "remaining_delta": [
+      "Open a downstream WRITE repair Building (codex-local write lane) to apply the disposition the caller selects: align gemini-api default+fallback model to gemini-3.5-flash and/or add safe HTTPError status-category recording without storing the body.",
+      "In that write Building, update the gemini_api_adapter checker literals in lockstep at kernel_checks.py:3519 (expected_url), :3550 (api_model_name), and :3560 (_build_gemini_api_request) and keep checker --all EXIT 0.",
+      "Resolve the open product choice: pin the four-llm preset gemini-broad-review node to model:gemini:gemini-3.5-flash explicitly vs rely on the fallback constant.",
+      "Reconcile the intra-file gemini-2.5 vs 3.5 inconsistency in adapter_local_cli.py flagged by the plan.",
+      "Re-run the gemini-api four-LLM lane proof after repair; acceptance gate is that model/request-shape drift is gone (URL shows the new model) — a live 200 is not required to close the repair."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:03:gemini-api-http400-repair-design-0625-closure",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:gemini-api-http400-repair-design-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:gemini-api-http400-repair-design-0625-closure:attempt-1",
+  "step_ref": "gemini-api-http400-repair-design-0625-closure",
+  "subject": "gemini-api-http400-repair-design-0625-closure",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T11:20:56.645276Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

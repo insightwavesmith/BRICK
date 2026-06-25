@@ -1,0 +1,465 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:gemini-api-http400-repair-design-0625::evidence/claim_trace/brick/work_contract.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-gemini-api-http400-repair-design-0625-plan",
+        "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+        "required_return_shape": "objective_summary,scope_boundaries,constraints,missing_scope,proposed_next_work_boundaries,observed_evidence,not_proven,transition_concern_evidence",
+        "source_facts": [
+          "task-source:inline-statement"
+        ],
+        "work_statement": "plan Brick for task-source:inline-statement: # Gemini API HTTP 400 repair design"
+      },
+      "fact_ref": "brick-work:01:gemini-api-http400-repair-design-0625-plan",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: objective_summary, scope_boundaries, constraints, missing_scope, proposed_next_work_boundaries, observed_evidence, not_proven, transition_concern_evidence",
+          "observed_return_fields: adapter_ref, agent_object_ref, brain_surface_ref, cli_call_ref, cli_version_text, constraints, evidence_refs, missing_scope, not_proven, objective_summary, observed_evidence, output_excerpt, proof_limits, proposed_next_work_boundaries, returned_summary, scope_boundaries, selected_adapter_ref, selected_model_ref, transition_concern_evidence",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "objective_summary,scope_boundaries,constraints,missing_scope,proposed_next_work_boundaries,observed_evidence,not_proven,transition_concern_evidence",
+        "work_reference": "plan Brick for task-source:inline-statement: # Gemini API HTTP 400 repair design"
+      },
+      "fact_ref": "brick-comparison:01:gemini-api-http400-repair-design-0625-plan",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:01:gemini-api-http400-repair-design-0625-plan",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: objective_summary, scope_boundaries, constraints, missing_scope, proposed_next_work_boundaries, observed_evidence, not_proven, transition_concern_evidence",
+          "observed_return_fields: adapter_ref, agent_object_ref, brain_surface_ref, cli_call_ref, cli_version_text, constraints, evidence_refs, missing_scope, not_proven, objective_summary, observed_evidence, output_excerpt, proof_limits, proposed_next_work_boundaries, returned_summary, scope_boundaries, selected_adapter_ref, selected_model_ref, transition_concern_evidence",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "objective_summary,scope_boundaries,constraints,missing_scope,proposed_next_work_boundaries,observed_evidence,not_proven,transition_concern_evidence",
+        "work_reference": "plan Brick for task-source:inline-statement: # Gemini API HTTP 400 repair design"
+      },
+      "fact_ref": "brick-comparison:gemini-api-http400-repair-design-0625:gemini-api-http400-repair-design-0625-plan",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-gemini-api-http400-repair-design-0625-review",
+        "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+        "required_return_shape": "observed_evidence,checked_work,checked_sources,observed_matches,missing_or_mismatched_facts,boundary_violations,evidence_used,transition_concern_evidence,narrowly_proven,not_proven",
+        "source_facts": [
+          "task-source:inline-statement"
+        ],
+        "work_statement": "review Brick for task-source:inline-statement: # Gemini API HTTP 400 repair design"
+      },
+      "fact_ref": "brick-work:02:gemini-api-http400-repair-design-0625-review",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, checked_work, checked_sources, observed_matches, missing_or_mismatched_facts, boundary_violations, evidence_used, transition_concern_evidence, narrowly_proven, not_proven, evidence_used.repository_artifact_ref",
+          "observed_return_fields: adapter_ref, agent_object_ref, boundary_violations, brain_surface_ref, checked_sources, checked_work, cli_call_ref, cli_version_text, evidence_refs, evidence_used, missing_or_mismatched_facts, narrowly_proven, not_proven, observed_evidence, observed_matches, output_excerpt, proof_limits, returned_summary, selected_adapter_ref, selected_model_ref, transition_concern_evidence",
+          "missing_return_fields: none",
+          "artifact_grounding: evidence_used includes inspected repository artifact reference"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence,checked_work,checked_sources,observed_matches,missing_or_mismatched_facts,boundary_violations,evidence_used,transition_concern_evidence,narrowly_proven,not_proven",
+        "work_reference": "review Brick for task-source:inline-statement: # Gemini API HTTP 400 repair design"
+      },
+      "fact_ref": "brick-comparison:02:gemini-api-http400-repair-design-0625-review",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:02:gemini-api-http400-repair-design-0625-review",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, checked_work, checked_sources, observed_matches, missing_or_mismatched_facts, boundary_violations, evidence_used, transition_concern_evidence, narrowly_proven, not_proven, evidence_used.repository_artifact_ref",
+          "observed_return_fields: adapter_ref, agent_object_ref, boundary_violations, brain_surface_ref, checked_sources, checked_work, cli_call_ref, cli_version_text, evidence_refs, evidence_used, missing_or_mismatched_facts, narrowly_proven, not_proven, observed_evidence, observed_matches, output_excerpt, proof_limits, returned_summary, selected_adapter_ref, selected_model_ref, transition_concern_evidence",
+          "missing_return_fields: none",
+          "artifact_grounding: evidence_used includes inspected repository artifact reference"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence,checked_work,checked_sources,observed_matches,missing_or_mismatched_facts,boundary_violations,evidence_used,transition_concern_evidence,narrowly_proven,not_proven",
+        "work_reference": "review Brick for task-source:inline-statement: # Gemini API HTTP 400 repair design"
+      },
+      "fact_ref": "brick-comparison:gemini-api-http400-repair-design-0625:gemini-api-http400-repair-design-0625-review",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-gemini-api-http400-repair-design-0625-closure",
+        "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+        "required_return_shape": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence",
+        "source_facts": [
+          "task-source:inline-statement"
+        ],
+        "work_statement": "closure Brick for task-source:inline-statement: # Gemini API HTTP 400 repair design"
+      },
+      "fact_ref": "brick-work:03:gemini-api-http400-repair-design-0625-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, next_target_candidates, deferred_smith_review_queue, transition_concern_evidence",
+          "observed_return_fields: adapter_ref, agent_object_ref, brain_surface_ref, cli_call_ref, cli_version_text, deferred_smith_review_queue, evidence_refs, narrowly_proven, next_target_candidates, not_proven, observed_evidence, output_excerpt, parent_goal_delta_status, proof_limits, remaining_delta, returned_summary, selected_adapter_ref, selected_model_ref, transition_concern_evidence",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence",
+        "work_reference": "closure Brick for task-source:inline-statement: # Gemini API HTTP 400 repair design"
+      },
+      "fact_ref": "brick-comparison:03:gemini-api-http400-repair-design-0625-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:03:gemini-api-http400-repair-design-0625-closure",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, next_target_candidates, deferred_smith_review_queue, transition_concern_evidence",
+          "observed_return_fields: adapter_ref, agent_object_ref, brain_surface_ref, cli_call_ref, cli_version_text, deferred_smith_review_queue, evidence_refs, narrowly_proven, next_target_candidates, not_proven, observed_evidence, output_excerpt, parent_goal_delta_status, proof_limits, remaining_delta, returned_summary, selected_adapter_ref, selected_model_ref, transition_concern_evidence",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence",
+        "work_reference": "closure Brick for task-source:inline-statement: # Gemini API HTTP 400 repair design"
+      },
+      "fact_ref": "brick-comparison:gemini-api-http400-repair-design-0625:gemini-api-http400-repair-design-0625-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-25T11:20:58Z",
+  "id": "urn:bp:building:gemini-api-http400-repair-design-0625::evidence/claim_trace/brick/work_contract.json",
+  "recorded_at": "2026-06-25T11:20:58Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:gemini-api-http400-repair-design-0625",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/brick/work_contract.json",
+  "time": "2026-06-25T11:20:58Z",
+  "type": "bp.claim_trace"
+}

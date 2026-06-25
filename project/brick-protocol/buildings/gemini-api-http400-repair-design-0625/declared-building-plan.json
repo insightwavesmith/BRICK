@@ -1,0 +1,248 @@
+{
+  "brick_steps": [
+    {
+      "completion_edge_ref": "edge:gemini-api-http400-repair-design-0625-plan-to-gemini-api-http400-repair-design-0625-review",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-gemini-api-http400-repair-design-0625-plan",
+          "brick_instruction_body": "## plan\n\nDefine the objective, scope, constraints, and next work boundary **without doing any\nimplementation**.\n\nInput: the prior Brick's report (carried via the Link edge) plus this node's declared\n`work_statement`. Read the instruction chain, detect gaps, and bound the work \u2014 do NOT\nwrite code, edit files, or produce implementation.\n\nReturn: fill the `required_return_shape` from the return_template\n(`brick/templates/bricks/plan/return.yaml`):\n`objective_summary`, `scope_boundaries`, `constraints`, `missing_scope`,\n`proposed_next_work_boundaries`, `observed_evidence`, `not_proven`, `transition_concern_evidence`.\nReport `missing_scope` and `not_proven` honestly \u2014 an unbounded or unknown area is a\nfact to surface, not a gap to fill by guessing.\n\n`transition_concern_evidence` (shape: `brick/templates/bricks/transition-concern-return.yaml`)\nis **non-binding** Agent evidence \u2014 it carries `concern_ref`, `concern_kind`, `reason_refs`,\n`related_boundary_refs`, `binding: false`; it MUST NOT carry `movement` / `target` / `target_ref` /\n`route_target`. The forward Link carries this evidence onward; the concern never reroutes by itself.\nWhen you raise a concern for a REAL reproduced defect, point `related_boundary_refs` at the upstream\nWORK node responsible (e.g. `brick:<the-work-node-id>`) \u2014 NOT yourself, NOT a `building-boundary:`\nsentinel. The engine silently walks-on a self-ref or sentinel, so no reroute ever fires. Environment\nor runtime constraints (no temp dir, write-scope limits, provider limits, read-only status, \"live not\nrun\") are NOT defects \u2014 record them in `not_proven`, never as a `transition_concern`.\n\nDo NOT return `success` / `failure` / `approved` / `quality` / `movement_choice` / `route_target` \u2014\nsufficiency + movement are the Link gate's; quality/success are the human's.\n`proposed_next_work_boundaries` is a proposed boundary only, never a Movement decision.\n\n> This `## plan` body IS delivered to the Agent in the prompt as the static kind instruction\n> (support/connection/adapter_grant_policy._build_prompt, key `brick_instruction_body`), carried from\n> this file by the Builder (plan_rendering carries the ## body onto the step_template row; composition\n> stamps it onto the brick_row). It is a SEPARATE prompt section from the dynamic `work_statement`.\n> Each `required_return_shape` field is guarded to appear here with guidance, both directions, across\n> EVERY return template (check_bricks_spec_completeness._prose_return_shape_drift_violations), so this\n> body and the return.yaml cannot drift. The frontmatter carries Brick contract fields plus Builder\n> selection metadata (`requires_brick_write_scope`, `performer_lane_need`, `agent_object_hint_ref`,\n> `required_return_template_refs`, `link_movement_literal`) so the Builder can materialize declared BAL\n> rows. Keep this instruction GENERAL to the kind (building-specifics ride `work_statement`); do not\n> claim it raises quality \u2014 the Link gate checks sufficiency, quality is the human's.\n",
+          "brick_work_ref": "work:gemini-api-http400-repair-design-0625-plan",
+          "carries_forward_fields": "scope_boundaries,constraints,proposed_next_work_boundaries",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "objective_summary,scope_boundaries,constraints,missing_scope,proposed_next_work_boundaries,observed_evidence,not_proven,transition_concern_evidence",
+          "row_ref": "brick-row:gemini-api-http400-repair-design-0625-plan",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "plan Brick for task-source:inline-statement: # Gemini API HTTP 400 repair design"
+        },
+        {
+          "agent_object_ref": "agent-object:pm-lead",
+          "axis": "Agent",
+          "row_ref": "agent-row:gemini-api-http400-repair-design-0625-plan"
+        }
+      ],
+      "selected_adapter_ref": "adapter:claude-local",
+      "selected_model_ref": "model:claude:inherit",
+      "selected_reasoning_effort_ref": "effort:default",
+      "step_ref": "gemini-api-http400-repair-design-0625-plan",
+      "step_template_ref": "building-step-template:plan"
+    },
+    {
+      "completion_edge_ref": "edge:gemini-api-http400-repair-design-0625-review-to-gemini-api-http400-repair-design-0625-closure",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-gemini-api-http400-repair-design-0625-review",
+          "brick_instruction_body": "## Review\n\nCheck the prior Brick's output against the **declared work** and the **declared return shape** \u2014\nobserve and report, do **not** mutate anything.\n\nInput: the prior Brick's report (carried via the Link edge), the prior node's declared\n`work_statement` / `return_template`, and this node's review intent. Compare what was actually\nreturned against what the work and the return shape required. Read sources to confirm \u2014 never\nedit, write, or fix.\n\nDo: identify what matches, what is missing or mismatched, and any axis/boundary violations,\neach tied to the evidence you actually inspected. Optional `transition_concern_evidence` is\n**non-binding** \u2014 it is evidence a Link disposition *may* adopt, never a Movement decision you make.\n`evidence_used` MUST include inspected repository artifact references (file paths such as\n`support/...`, `brick/...`, `agent/...`, `link/...`, `project/...`, or diff hunks actually read).\nPacket-only labels are not enough for this grounding requirement.\n\n`transition_concern_evidence` (shape: `brick/templates/bricks/transition-concern-return.yaml`) is\n**non-binding** Agent evidence; it carries `concern_ref`, `concern_kind`, `reason_refs`,\n`related_boundary_refs`, `binding: false`. When you raise a concern for a REAL reproduced defect, aim\n`related_boundary_refs` at the upstream WORK node responsible (e.g. `brick:<the-work-node-id>`) \u2014 NOT\nyourself, NOT a `building-boundary:` sentinel. The engine silently walks-on a self-ref or sentinel,\nso no reroute ever fires. Environment or runtime constraints (no temp dir, write-scope limits,\nprovider limits, read-only status, \"live not run\") are NOT defects \u2014 record them in `not_proven`,\nnever as a `transition_concern`.\n\nReturn: fill the `required_return_shape` from the return_template\n(`brick/templates/bricks/review/return.yaml`):\n`observed_evidence`, `checked_work`, `checked_sources`, `observed_matches`, `missing_or_mismatched_facts`,\n`boundary_violations`, `evidence_used`, `transition_concern_evidence`, `narrowly_proven`,\n`not_proven`.\n\nDo NOT return `success` / `failure` / `approved` / `quality` / `movement_choice` / `route_target` \u2014\nsufficiency + movement are the Link gate's; quality/success/approval are the human's. Report only\nobserved FACTS, observations, and `not_proven`; `transition_concern_evidence` stays non-binding.\n\n> This `## Review` body IS delivered to the Agent in the prompt as the static kind instruction\n> (support/connection/adapter_grant_policy._build_prompt, key `brick_instruction_body`), carried from\n> this file by the Builder (plan_rendering carries the ## body onto the step_template row; composition\n> stamps it onto the brick_row). It is a SEPARATE prompt section from the dynamic `work_statement`.\n> Each `required_return_shape` field is guarded to appear here with guidance, both directions, across\n> EVERY return template (check_bricks_spec_completeness._prose_return_shape_drift_violations), so this\n> body and the return.yaml cannot drift. The frontmatter carries Brick contract fields plus Builder\n> selection metadata (`requires_brick_write_scope`, `performer_lane_need`, `agent_object_hint_ref`,\n> `required_return_template_refs`, `link_movement_literal`) so the Builder can materialize declared BAL\n> rows. Keep this instruction GENERAL to the kind (building-specifics ride `work_statement`); do not\n> claim it raises quality \u2014 the Link gate checks sufficiency, quality is the human's.\n",
+          "brick_work_ref": "work:gemini-api-http400-repair-design-0625-review",
+          "carries_forward_fields": "observed_matches,missing_or_mismatched_facts,boundary_violations,narrowly_proven",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence,checked_work,checked_sources,observed_matches,missing_or_mismatched_facts,boundary_violations,evidence_used,transition_concern_evidence,narrowly_proven,not_proven",
+          "row_ref": "brick-row:gemini-api-http400-repair-design-0625-review",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "review Brick for task-source:inline-statement: # Gemini API HTTP 400 repair design"
+        },
+        {
+          "agent_object_ref": "agent-object:qa-lead",
+          "axis": "Agent",
+          "row_ref": "agent-row:gemini-api-http400-repair-design-0625-review"
+        }
+      ],
+      "selected_adapter_ref": "adapter:claude-local",
+      "selected_model_ref": "model:claude:inherit",
+      "selected_reasoning_effort_ref": "effort:default",
+      "step_ref": "gemini-api-http400-repair-design-0625-review",
+      "step_template_ref": "building-step-template:review"
+    },
+    {
+      "completion_edge_ref": "edge:gemini-api-http400-repair-design-0625-closure-to-boundary",
+      "rows": [
+        {
+          "axis": "Brick",
+          "brick_instance_ref": "brick-gemini-api-http400-repair-design-0625-closure",
+          "brick_instruction_body": "## Closure\n\nRecord the closure synthesis for the Building so the parent objective is carried across child phases \u2014\n**without** judging success, quality, or Movement.\n\nInput: the prior Bricks' reports (carried via the Link edges) plus this node's declared\n`work_statement` / closure scope. Read the accumulated evidence and the parent objective; synthesize\nwhat was observed, what is narrowly proven, what remains, and where the work could go next.\n\nDo: assemble the closure from the carried evidence only. State `narrowly_proven` as the strictly\nevidence-backed slice (proof scope may narrow, but the objective scope must be carried forward).\nName concrete future work in `remaining_delta` and `next_target_candidates`. Express\n`parent_goal_delta_status` as a MAPPING whose keys are ONLY the six allowed sub-fields from the\nreturn_template \u2014 `matched_delta_refs`, `closed_delta_refs`, `open_delta_refs`,\n`missing_delta_refs`, `unknown_delta_refs`, `evidence_refs` \u2014 each holding plain-text refs.\nNever place a `status`, verdict, or free-text key INSIDE this mapping (a sub-key containing\n`status` is a forbidden return key and the whole return is rejected); it is observation\nlanguage, **not** a percentage or a verdict. Queue anything needing a human decision into\n`deferred_smith_review_queue`.\n\nReturn: fill the `required_return_shape` from the return_template\n(`brick/templates/bricks/closure/return.yaml`):\n`observed_evidence`, `narrowly_proven`, `not_proven`, `remaining_delta`, `parent_goal_delta_status`,\n`next_target_candidates`, `deferred_smith_review_queue`, `transition_concern_evidence`.\n(`not_proven` is next-target material, not a failure verdict.)\n\n`transition_concern_evidence` (shape: `brick/templates/bricks/transition-concern-return.yaml`)\nis **non-binding** Agent evidence \u2014 it carries `concern_ref`, `concern_kind`, `reason_refs`,\n`related_boundary_refs`, `binding: false`; it MUST NOT carry `movement` / `target` / `target_ref` /\n`route_target`. The forward Link carries this evidence onward; the concern never reroutes by itself.\nWhen you raise a concern for a REAL reproduced defect, aim `related_boundary_refs` at the upstream\nWORK node responsible (e.g. `brick:<the-work-node-id>`) \u2014 NOT yourself, NOT a `building-boundary:`\nsentinel. The engine silently walks-on a self-ref or sentinel, so no reroute ever fires. Environment\nor runtime constraints (no temp dir, write-scope limits, provider limits, read-only status, \"live not\nrun\") are NOT defects \u2014 record them in `not_proven`, never as a `transition_concern`.\n\nDo NOT return `success` / `failure` / `approved` / `good_enough` / `movement_choice` / `route_target` \u2014\nsufficiency + movement are the Link gate's; quality/success are the human's. This Brick writes no\nfiles and declares no source truth \u2014 it returns closure synthesis (observed facts + remaining delta)\nonly.\n\n> This `## Closure` body IS delivered to the Agent in the prompt as the static kind instruction\n> (support/connection/adapter_grant_policy._build_prompt, key `brick_instruction_body`), carried from\n> this file by the Builder (plan_rendering carries the ## body onto the step_template row; composition\n> stamps it onto the brick_row). It is a SEPARATE prompt section from the dynamic `work_statement`.\n> Each `required_return_shape` field is guarded to appear here with guidance, both directions, across\n> EVERY return template (check_bricks_spec_completeness._prose_return_shape_drift_violations), so this\n> body and the return.yaml cannot drift. The frontmatter carries Brick contract fields plus Builder\n> selection metadata (`requires_brick_write_scope`, `performer_lane_need`, `agent_object_hint_ref`,\n> `required_return_template_refs`, `link_movement_literal`) so the Builder can materialize declared BAL\n> rows. Keep this instruction GENERAL to the kind (building-specifics ride `work_statement`); do not\n> claim it raises quality \u2014 the Link gate checks sufficiency, quality is the human's.\n",
+          "brick_work_ref": "work:gemini-api-http400-repair-design-0625-closure",
+          "carries_forward_fields": "narrowly_proven,remaining_delta,parent_goal_delta_status,next_target_candidates",
+          "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+          "required_return_shape": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence",
+          "row_ref": "brick-row:gemini-api-http400-repair-design-0625-closure",
+          "source_facts": [
+            "task-source:inline-statement"
+          ],
+          "work_statement": "closure Brick for task-source:inline-statement: # Gemini API HTTP 400 repair design"
+        },
+        {
+          "agent_object_ref": "agent-object:coo",
+          "axis": "Agent",
+          "row_ref": "agent-row:gemini-api-http400-repair-design-0625-closure"
+        }
+      ],
+      "selected_adapter_ref": "adapter:claude-local",
+      "selected_model_ref": "model:claude:inherit",
+      "selected_reasoning_effort_ref": "effort:default",
+      "step_ref": "gemini-api-http400-repair-design-0625-closure",
+      "step_template_ref": "building-step-template:closure"
+    }
+  ],
+  "building_id": "gemini-api-http400-repair-design-0625",
+  "chain_preset_ref": "building-chain-preset:research-report",
+  "composition_mode": "caller_or_coo_declared_graph_composition",
+  "declared_by": "coo-fugu-operator",
+  "execution_order": [
+    "gemini-api-http400-repair-design-0625-plan",
+    "gemini-api-http400-repair-design-0625-review",
+    "gemini-api-http400-repair-design-0625-closure"
+  ],
+  "link_edges": [
+    {
+      "edge_ref": "edge:gemini-api-http400-repair-design-0625-plan-to-gemini-api-http400-repair-design-0625-review",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition"
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:gemini-api-http400-repair-design-0625-plan-to-gemini-api-http400-repair-design-0625-review",
+          "target_ref": "brick-gemini-api-http400-repair-design-0625-review"
+        }
+      ],
+      "source_step_ref": "gemini-api-http400-repair-design-0625-plan",
+      "target_step_ref": "gemini-api-http400-repair-design-0625-review"
+    },
+    {
+      "edge_ref": "edge:gemini-api-http400-repair-design-0625-review-to-gemini-api-http400-repair-design-0625-closure",
+      "rows": [
+        {
+          "axis": "Link",
+          "declared_gate_refs": [
+            "link-gate:default-transition"
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:gemini-api-http400-repair-design-0625-review-to-gemini-api-http400-repair-design-0625-closure",
+          "target_ref": "brick-gemini-api-http400-repair-design-0625-closure"
+        }
+      ],
+      "source_step_ref": "gemini-api-http400-repair-design-0625-review",
+      "target_step_ref": "gemini-api-http400-repair-design-0625-closure"
+    },
+    {
+      "edge_ref": "edge:gemini-api-http400-repair-design-0625-closure-to-boundary",
+      "rows": [
+        {
+          "axis": "Link",
+          "building_lifecycle": {
+            "reason": "declared closure boundary for gemini-api-http400-repair-design-0625",
+            "state": "closed"
+          },
+          "declared_gate_refs": [
+            "link-gate:default-transition"
+          ],
+          "movement": "forward",
+          "row_ref": "link-row:edge:gemini-api-http400-repair-design-0625-closure-to-boundary",
+          "target_ref": "building-boundary:gemini-api-http400-repair-design-0625-closed"
+        }
+      ],
+      "source_step_ref": "gemini-api-http400-repair-design-0625-closure"
+    }
+  ],
+  "materialization_rule": "caller_or_coo_declared_task_source_plus_graph_chain_preset",
+  "node_reroute_budgets": {
+    "brick-gemini-api-http400-repair-design-0625-closure": 5,
+    "brick-gemini-api-http400-repair-design-0625-plan": 5,
+    "brick-gemini-api-http400-repair-design-0625-review": 5
+  },
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality"
+  ],
+  "owner_axis": "Brick",
+  "plan_ref": "building-plan:gemini-api-http400-repair-design-0625",
+  "plan_shape": "graph",
+  "preset_expansion": {
+    "agent_object_refs": [
+      "agent-object:pm-lead",
+      "agent-object:qa-lead",
+      "agent-object:coo"
+    ],
+    "canonical_chain_preset_ref": "building-chain-preset:research-report",
+    "chain_preset_ref": "building-chain-preset:research-report",
+    "chain_preset_requires_graph": false,
+    "expanded_brick_spec_refs": [
+      "brick/templates/bricks/plan/brick.md",
+      "brick/templates/bricks/review/brick.md",
+      "brick/templates/bricks/closure/brick.md"
+    ],
+    "expanded_brick_template_refs": [
+      "brick/templates/bricks/plan/return.yaml",
+      "brick/templates/bricks/transition-concern-return.yaml",
+      "brick/templates/bricks/review/return.yaml",
+      "brick/templates/bricks/closure/return.yaml"
+    ],
+    "expanded_step_template_refs": [
+      "building-step-template:plan",
+      "building-step-template:review",
+      "building-step-template:closure"
+    ],
+    "not_proven": [
+      "semantic fitness of selected shape",
+      "selected preset ref was not declared unless separately present"
+    ],
+    "proof_limits": [
+      "support records caller / COO declared graph composition only",
+      "not automatic preset selection",
+      "not automatic shape selection",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "selected_shape_ref": null,
+    "selection_rule": "caller_or_coo_declared_only"
+  },
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "route_policy_provenance": {
+    "allowed_provenance": [
+      "constitutional-default",
+      "per-building",
+      "preset-default"
+    ],
+    "by_node": {
+      "gemini-api-http400-repair-design-0625-closure": {
+        "node_reroute_budget": "constitutional-default"
+      },
+      "gemini-api-http400-repair-design-0625-plan": {
+        "node_reroute_budget": "constitutional-default"
+      },
+      "gemini-api-http400-repair-design-0625-review": {
+        "node_reroute_budget": "constitutional-default"
+      }
+    },
+    "rule": "route reroute budget + closure routing policy are HUMAN Movement decisions; support records but never synthesizes them (provenance is constitutional-default for Smith-declared reroute defaults, preset-default for a reusable preset default, or per-building for a per-Building override, NEVER support)"
+  },
+  "selected_adapter_ref": "adapter:claude-local",
+  "selected_model_ref": "model:claude:inherit",
+  "selected_shape_ref": null,
+  "selection_rule": "caller_or_coo_declared_only",
+  "task_source_hash": "c03aa6e9f3d2b2916efca88b3c4bf66d0d0a2afe5b758fcdda9cede338382027",
+  "task_source_hash_algorithm": "sha256",
+  "task_source_hash_basis": "utf-8 inline task_statement body at materialization time",
+  "task_source_ref": "task-source:inline-statement",
+  "task_statement": "# Gemini API HTTP 400 repair design\nRead-only diagnosis/design Building for the P12 blocker found in `gemini-api-four-llm-lane-proof-0625`.\n\nObserved blocker:\n- `project/brick-protocol/buildings/gemini-api-four-llm-lane-proof-0625/work/step-outputs/gemini-api-four-llm-lane-proof-0625-gemini-broad-review-attempt-1/adapter-error.json`\n- adapter_ref: `adapter:gemini-api`\n- selected_model_ref: `model:gemini:default`\n- exception_type: `ValueError`\n- message_excerpt: `gemini-api HTTP error status 400`\n\nCurrent local surfaces to inspect:\n- `support/connection/adapter_gemini_http.py`\n- `support/connection/agent_adapter.py`\n- `support/connection/adapter_constants.py`\n- `support/connection/adapter_model_casting.py`\n- `support/checkers/lib/kernel_checks.py` gemini_api_adapter checker\n- `support/checkers/profiles/agent_axis_behavioral.yaml`\n- `brick/templates/presets/four-llm-standard-graph.md`\n\nOfficial doc evidence supplied by COO from Google AI docs crawled 2026-06-25:\n- Current Gemini generateContent REST example uses `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent`, header `x-goog-api-key`, and body `contents -> parts -> text`.\n- Current repo uses `MODEL_REF_GEMINI_FLASH = model:gemini:gemini-2.5-flash` and `_GEMINI_API_MODEL_FALLBACK = gemini-2.5-flash`, while local Gemini CLI path uses 3.5 flash.\n\nRequired analyses:\n1. Determine the strongest local-code root-cause candidates for HTTP 400 without reading/storing provider body or credentials.\n2. Decide whether the minimal repair should update Gemini API default/fallback model to `gemini-3.5-flash`, improve safe HTTPError classification, both, or neither.\n3. Specify exact write scope for the repair Building and exact files/checkers to update.\n4. Specify verification: deterministic mocked checker, no-key path, request URL/header/body capture, and a live four-LLM lane proof expectation (clean adapter-error is acceptable if provider/key/location fails, but model/request-shape drift should be fixed).\n5. Define proof limits and not_proven. Do not edit files. Do not choose Movement or judge quality/success.\nReturn a precise repair plan, stop conditions, changed-file candidates, checker plan, and next write Building contract.\n"
+}

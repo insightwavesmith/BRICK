@@ -1,0 +1,166 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:gemini-api-http400-repair-design-0625::work/step-outputs/gemini-api-http400-repair-design-0625-plan-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:pm-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-gemini-api-http400-repair-design-0625-plan",
+  "building_id": "gemini-api-http400-repair-design-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T11:16:40.262437Z",
+  "id": "urn:bp:building:gemini-api-http400-repair-design-0625::work/step-outputs/gemini-api-http400-repair-design-0625-plan-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:gemini-api-http400-repair-design-0625-plan",
+  "recorded_at": "2026-06-25T11:16:40.262437Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:pm-lead",
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:gemini-api-http400-repair-design-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "constraints": [
+      "Read-only tool tier only (tool-policy:leader-coordination / read-write-scoped read side); write_effective is false for this packet.",
+      "Must not read/store the provider error body or API key; the adapter deliberately discards the 400 body (adapter_gemini_http.py:176-179), so the 400 sub-reason is not locally observable.",
+      "Root cause of an HTTP 400 cannot be proven from local code alone without a live diagnostic call, which is out of scope.",
+      "Checker constants are coupled to the model literal: any model-name change MUST update the gemini_api_adapter checker expectations in the SAME write Building to keep checker `--all` EXIT 0.",
+      "Recall the write_scope glob trap (directory-form 'support/' excludes children; use 'support/connection/*' style and one path per file)."
+    ],
+    "evidence_refs": [
+      "support-packet:gemini-api-http400-repair-design-0625:agent-object:pm-lead:output"
+    ],
+    "missing_scope": [
+      "Whether the 400 was caused specifically by the model id vs another INVALID_ARGUMENT cause is unknown locally (body discarded by design); disambiguation needs a live diagnostic call outside this read-only scope.",
+      "Whether gemini-3.5-flash is a currently-served v1beta model id is asserted only from COO-supplied doc evidence, not verified live here.",
+      "Whether GEMINI_API_KEY/GOOGLE_API_KEY is present/valid and the project/location/model-access is enabled in the live env — non-local, unknown.",
+      "Final write_scope glob literals and the write-capable adapter for the repair Building are the caller's to declare at intake.",
+      "Open product choice: pin the preset gemini-broad-review node to model:gemini:gemini-3.5-flash explicitly vs rely on the fallback constant."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority",
+      "the local-code root cause of the HTTP 400 — model-drift is the strongest LOCAL candidate but is not proven without a live call; provider/key/location/billing causes are non-local and are not a code defect (recorded here, not as a transition concern, per the kind instruction)",
+      "that changing the model to gemini-3.5-flash will make the live lane return 200 — provider behavior is not proven",
+      "that gemini-3.5-flash is a valid served v1beta model (relies on supplied doc evidence only)",
+      "live four-provider execution, runtime parallel fan-out, credential validity, and provider/local-callable behavior after the adapter exception",
+      "no transition_concern_evidence is raised: this plan node has no in-building upstream WORK node to reroute to, the 400 originates in a different building, and the unproven/non-local causes belong in not_proven rather than a (silently walked-on) concern"
+    ],
+    "objective_summary": "Read-only diagnosis/design to bound a downstream WRITE repair Building for the HTTP 400 blocker on the adapter:gemini-api lane recorded in gemini-api-four-llm-lane-proof-0625. This plan node establishes the strongest LOCAL-code root-cause candidates for the 400, proposes minimal repair scope (Gemini model-ref drift vs safe HTTPError classification), names exact changed-file/checker candidates and write_scope for the repair Building, and defines verification + stop conditions. No implementation, no live calls, no Movement/quality judgment here.",
+    "observed_evidence": [
+      "buildings/gemini-api-four-llm-lane-proof-0625/.../gemini-broad-review-attempt-1/adapter-error.json: adapter_ref adapter:gemini-api, selected_model_ref model:gemini:default, exception_type ValueError, message_excerpt 'gemini-api HTTP error status 400', error_kind adapter_exception, agent_fact_created false, recorded 2026-06-25T09:59:36Z.",
+      "For selected_model_ref 'model:gemini:default' on adapter:gemini-api, adapter_model_casting._model_cli_arg_from_ref returns '' (model_id 'default'); the GEMINI_LOCAL short-circuit at adapter_model_casting.py:191 does NOT apply to gemini-api; so _gemini_api_model_name (adapter_gemini_http.py:87-97) falls back to _GEMINI_API_MODEL_FALLBACK = 'gemini-2.5-flash' (agent_adapter.py:589). The live request URL therefore resolved to .../v1beta/models/gemini-2.5-flash:generateContent.",
+      "Base v1beta/models (agent_adapter.py:588), header x-goog-api-key (adapter_gemini_http.py:115), body {'contents':[{'parts':[{'text':...}]}]} (adapter_gemini_http.py:109-112) all match the COO-supplied doc evidence; gemini_api_adapter checker locks these exact shapes (kernel_checks.py:3317-3343). => the request envelope is doc-aligned EXCEPT the model id.",
+      "adapter_constants.py:48 MODEL_REF_GEMINI_FLASH = 'model:gemini:gemini-2.5-flash' and agent_adapter.py:589 _GEMINI_API_MODEL_FALLBACK = 'gemini-2.5-flash', while the gemini-LOCAL CLI path pins gemini-3.5-flash (adapter_local_cli.py:383; kernel_checks.py:1497-1498; agent_axis_behavioral.yaml:448-449) and COO docs cite gemini-3.5-flash. MODEL_REF_GEMINI_LOCAL_FLASH = 'model:gemini:gemini-3.5-flash' already exists (adapter_constants.py:49).",
+      "_gemini_api_urlopen collapses every urllib HTTPError to 'gemini-api HTTP error status {code}' and discards the body (adapter_gemini_http.py:176-179); the 400 sub-reason (e.g. INVALID_ARGUMENT vs model-not-found) is not locally distinguishable.",
+      "adapter_local_cli.py:362 uses 'gemini-2.5-flash' fallback for a gemini path while :383 uses 'gemini-3.5-flash'; invoke_gemini_text default model_name = 'gemini-2.5-flash' (adapter_gemini_http.py:267).",
+      "kernel_checks.py:3242 (casting via MODEL_REF_GEMINI_FLASH constant), :3318-3319 (expected_url literal), :3350 (api_model_name literal), :3360 (_build_gemini_api_request literal)."
+    ],
+    "output_excerpt": "I have enough evidence to bound this repair-design plan. Returning the `plan` Brick contract as a single JSON object. ```json { \"objective_summary\": \"Read-only diagnosis/design to bound a downstream WRITE repair Building for the HTTP 400 blocker on the adapter:gemini-api lane recorded in gemini-api-four-llm-lane-proof-0625. This plan node establishes the strongest LOCAL-code root-cause candidates for the 400, proposes minimal repair scope (Gemini model-ref drift vs safe HTTPError classification), names exact changed-file/checker candidates and write_scope for the repair Building, and define...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "proposed_next_work_boundaries": {
+      "candidate_write_scope_files": [
+        "support/connection/adapter_constants.py — MODEL_REF_GEMINI_FLASH -> gemini-3.5-flash, OR repoint the gemini-api spec to the existing MODEL_REF_GEMINI_LOCAL_FLASH",
+        "support/connection/agent_adapter.py — _GEMINI_API_MODEL_FALLBACK (line 589); default_model_ref (line 580) follows the constant",
+        "support/connection/adapter_gemini_http.py — invoke_gemini_text default model_name (line 267); optional safe HTTPError classification (lines 176-186)",
+        "support/checkers/lib/kernel_checks.py — expected_url (3318-3319), api_model_name (3350), build-request literal (3360); casting (3242) follows the constant",
+        "support/connection/adapter_local_cli.py — verify line 362 fallback consistency (2.5 vs 3.5)"
+      ],
+      "checker_plan": "Re-run the gemini_api_adapter checker (registered in agent_axis_behavioral.yaml:22). It deterministically asserts: admission READ+REVIEW/not-write/not-a-CLI; no-key -> clean FileNotFoundError mapped to local_cli_missing with NO subprocess; mocked request endpoint URL + POST + x-goog-api-key (key not in URL) + contents/parts/text body + timeout passthrough; mocked parse into CLI-mirror shape; HTTP-error/timeout/malformed -> clean ValueError. The three model literals (expected_url, api_model_name, build-request) MUST be updated in lockstep so it stays green, and the full checker `--all` must remain EXIT 0.",
+      "decision2_disposition_proposal": "PROPOSAL ONLY (caller decides): do BOTH (a) align the gemini-api default+fallback model to gemini-3.5-flash, and (b) add safe HTTPError status-category recording that captures the numeric status WITHOUT storing the body. Rationale: (a) removes the measured local drift; (b) makes any residual non-200 diagnosable next run without a live re-run. 'Neither' is not advisable given the drift is measured, but final disposition is the caller's, not this Agent's.",
+      "stop_conditions": [
+        "Stop if the mocked checker cannot be made green without touching files outside the declared write_scope.",
+        "Stop if a model change would require editing checker secret/auth/.git paths or non-connection/non-checker modules.",
+        "Stop before any live call that would read/store the provider body or a credential."
+      ],
+      "verification_plan": [
+        "Deterministic mocked checker (gemini_api_adapter) green with the new model id in the captured URL.",
+        "No-key path still raises clean FileNotFoundError -> local_cli_missing and spawns no subprocess.",
+        "Request URL/header/body capture asserts the NEW model in the URL and that the key is not in the URL.",
+        "Live four-LLM lane proof rerun expectation: a clean typed adapter-error is ACCEPTABLE if provider/key/location fails; the gate is that model/request-shape drift is gone (URL shows gemini-3.5-flash) and adapter behavior stays clean. A live 200 is NOT required to close the repair."
+      ],
+      "write_scope_glob_guidance": "Declare narrow file-form globs (e.g. 'support/connection/*', 'support/checkers/lib/*'); fnmatch-probe before declaring; write-capable lane is codex-local (gemini-api is never a write adapter)."
+    },
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "scope_boundaries": {
+      "in_scope": [
+        "Read-only inspection of the declared local surfaces (adapter_gemini_http.py, agent_adapter.py gemini constants, adapter_constants.py, adapter_model_casting.py, kernel_checks gemini_api_adapter, agent_axis_behavioral.yaml, four-llm-standard-graph.md, adapter-error.json)",
+        "Producing a repair-design plan, changed-file candidates, checker plan, verification plan, and the next WRITE Building contract"
+      ],
+      "note": "The actual repair is a SEPARATE downstream WRITE Building; this plan node only bounds it.",
+      "out_of_scope": [
+        "Editing/creating/deleting files; git mutations; hook or provider SDK execution",
+        "Live Gemini API calls or any network call to the provider",
+        "Reading or storing the provider 400 response body or any credential/API key",
+        "Choosing Link Movement, route target, or judging success/quality of the prior building"
+      ]
+    },
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:01:gemini-api-http400-repair-design-0625-plan",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:gemini-api-http400-repair-design-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:gemini-api-http400-repair-design-0625-plan:attempt-1",
+  "step_ref": "gemini-api-http400-repair-design-0625-plan",
+  "subject": "gemini-api-http400-repair-design-0625-plan",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T11:16:40.262437Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

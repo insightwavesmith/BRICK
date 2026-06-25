@@ -1,0 +1,12 @@
+# AgentBinding · seq 14 · ["Agent"]
+- agent_object_ref: "agent-object:qa-lead"
+- agent_performer_ref: "agent-performer:agent-object:qa-lead"
+- axis_scope: ["Agent"]
+- binding_role: "primary"
+- brick_instance_ref: "brick-gemini-api-http400-repair-design-0625-review"
+- event_type: "AgentBinding"
+- run_segment: 1
+- sequence_index: 14
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/gemini-api-http400-repair-design-0625-review-attempt-1/step-output.json"
+- step_ref: "gemini-api-http400-repair-design-0625-review"
