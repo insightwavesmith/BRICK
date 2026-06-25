@@ -1,0 +1,13 @@
+# AgentReturn · seq 7 · ["Agent"]
+- agent_object_ref: "agent-object:design-lead"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-checker-module-diet-implementation-0625-design"
+- event_type: "AgentReturn"
+- observed_fields: ["received_work","returned"]
+- returned_fact_ref: "agent-fact:01:checker-module-diet-implementation-0625-design"
+- route_request_ref: ""
+- run_segment: 1
+- sequence_index: 7
+- spine_schema_version: "spine-v1"
+- step_output_ref: "step-output:checker-module-diet-implementation-0625-design:attempt-1"
+- step_ref: "checker-module-diet-implementation-0625-design"
