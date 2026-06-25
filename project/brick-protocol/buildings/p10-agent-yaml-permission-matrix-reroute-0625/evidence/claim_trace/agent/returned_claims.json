@@ -1,0 +1,324 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:p10-agent-yaml-permission-matrix-reroute-0625::evidence/claim_trace/agent/returned_claims.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:dev",
+        "received_work": "brick-work:01:p10-agent-yaml-permission-matrix-reroute-0625-work",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:dev",
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "changed_files": [
+            "project/brick-protocol/status/kernel/p10-agent-yaml-permission-matrix-reroute-0625.md"
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:p10-agent-yaml-permission-matrix-reroute-0625",
+          "cli_version_text": "codex-cli 0.132.0",
+          "evidence_refs": [
+            "support-packet:p10-agent-yaml-permission-matrix-reroute-0625:agent-object:dev:output"
+          ],
+          "made_changes": [
+            "Wrote the corrected permission matrix report treating adapter:codex-fugu-local as an admitted read+write observed-write adapter while preserving the effective_write law and COO read-only coordination posture."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "semantic correctness of file edits",
+            "Provider runtime availability or behavior for Codex, Claude, Gemini, or Sakana/Fugu.",
+            "Quality, approval, source truth, or future Building correctness.",
+            "Link sufficiency or route choice."
+          ],
+          "observed_evidence": [],
+          "output_excerpt": "{ \"made_changes\": { \"changed_files\": [ \"project/brick-protocol/status/kernel/p10-agent-yaml-permission-matrix-reroute-0625.md\" ], \"summary\": \"Wrote the corrected permission matrix report treating adapter:codex-fugu-local as an admitted read+write observed-write adapter while preserving the effective_write law and COO read-only coordination posture.\" }, \"observed_evidence\": { \"source_reads\": [ \"support/connection/adapter_constants.py\", \"support/connection/agent_adapter.py\", \"agent/objects/dev.yaml\", \"agent/objects/qa.yaml\", \"agent/objects/qa-lead.yaml\", \"agent/objects/inspector.yaml\", \"agent...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "workspace write is limited by Brick-declared write_scope"
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_adapter_ref": "adapter:codex-local",
+          "selected_model_ref": "model:codex:default",
+          "worktree_observation": {
+            "after_git_refs": {
+              "branch": "struct-surgery-0623",
+              "head": "299125d666a8b0dd1871d94c0b2e7dbb5b95c287"
+            },
+            "after_git_status_paths": [
+              "project/brick-protocol/buildings/p10-agent-yaml-permission-matrix-reroute-0625/declared-building-plan.json",
+              "project/brick-protocol/buildings/p10-agent-yaml-permission-matrix-reroute-0625/raw/report-delivery.jsonl",
+              "project/brick-protocol/buildings/p10-agent-yaml-permission-matrix-reroute-0625/raw/report-thread.jsonl",
+              "project/brick-protocol/buildings/p10-agent-yaml-permission-matrix-reroute-0625/work/building-intake.json",
+              "project/brick-protocol/buildings/p10-agent-yaml-permission-matrix-reroute-0625/work/declared-building-plan.json",
+              "project/brick-protocol/buildings/p10-agent-yaml-permission-matrix-reroute-0625/work/link-launch-policy.json",
+              "project/brick-protocol/buildings/p10-agent-yaml-permission-matrix-reroute-0625/work/preset-expansion.json",
+              "project/brick-protocol/buildings/p10-agent-yaml-permission-matrix-reroute-0625/work/task.md",
+              "project/brick-protocol/buildings/p9-checker-profile-diet-design-0625/declared-building-plan.json",
+              "project/brick-protocol/buildings/p9-checker-profile-diet-design-0625/raw/report-delivery.jsonl",
+              "project/brick-protocol/buildings/p9-checker-profile-diet-design-0625/raw/report-thread.jsonl",
+              "project/brick-protocol/buildings/p9-checker-profile-diet-design-0625/work/building-intake.json",
+              "project/brick-protocol/buildings/p9-checker-profile-diet-design-0625/work/declared-building-plan.json",
+              "project/brick-protocol/buildings/p9-checker-profile-diet-design-0625/work/link-launch-policy.json",
+              "project/brick-protocol/buildings/p9-checker-profile-diet-design-0625/work/preset-expansion.json",
+              "project/brick-protocol/buildings/p9-checker-profile-diet-design-0625/work/task.md",
+              "project/brick-protocol/status/inbox/brick-protocol-p10-agent-yaml-permission-matrix-reroute-0625-brick-received-event-2026-06-25T08-47-38-682007-00-00.json",
+              "project/brick-protocol/status/inbox/brick-protocol-p10-agent-yaml-permission-matrix-reroute-0625-building-started-event-2026-06-25T08-47-37-939436-00-00.json",
+              "project/brick-protocol/status/inbox/brick-protocol-p9-checker-profile-diet-design-0625-brick-received-event-2026-06-25T08-47-38-694086-00-00.json",
+              "project/brick-protocol/status/inbox/brick-protocol-p9-checker-profile-diet-design-0625-building-started-event-2026-06-25T08-47-37-941915-00-00.json",
+              "project/brick-protocol/status/kernel/p10-agent-yaml-permission-matrix-reroute-0625.md"
+            ],
+            "after_path_count": 3572,
+            "before_git_refs": {
+              "branch": "struct-surgery-0623",
+              "head": "299125d666a8b0dd1871d94c0b2e7dbb5b95c287"
+            },
+            "before_git_status_paths": [
+              "project/brick-protocol/buildings/p10-agent-yaml-permission-matrix-reroute-0625/declared-building-plan.json",
+              "project/brick-protocol/buildings/p10-agent-yaml-permission-matrix-reroute-0625/raw/report-delivery.jsonl",
+              "project/brick-protocol/buildings/p10-agent-yaml-permission-matrix-reroute-0625/raw/report-thread.jsonl",
+              "project/brick-protocol/buildings/p10-agent-yaml-permission-matrix-reroute-0625/work/building-intake.json",
+              "project/brick-protocol/buildings/p10-agent-yaml-permission-matrix-reroute-0625/work/declared-building-plan.json",
+              "project/brick-protocol/buildings/p10-agent-yaml-permission-matrix-reroute-0625/work/link-launch-policy.json",
+              "project/brick-protocol/buildings/p10-agent-yaml-permission-matrix-reroute-0625/work/preset-expansion.json",
+              "project/brick-protocol/buildings/p10-agent-yaml-permission-matrix-reroute-0625/work/task.md",
+              "project/brick-protocol/buildings/p9-checker-profile-diet-design-0625/declared-building-plan.json",
+              "project/brick-protocol/buildings/p9-checker-profile-diet-design-0625/raw/report-delivery.jsonl",
+              "project/brick-protocol/buildings/p9-checker-profile-diet-design-0625/raw/report-thread.jsonl",
+              "project/brick-protocol/buildings/p9-checker-profile-diet-design-0625/work/building-intake.json",
+              "project/brick-protocol/buildings/p9-checker-profile-diet-design-0625/work/declared-building-plan.json",
+              "project/brick-protocol/buildings/p9-checker-profile-diet-design-0625/work/link-launch-policy.json",
+              "project/brick-protocol/buildings/p9-checker-profile-diet-design-0625/work/preset-expansion.json",
+              "project/brick-protocol/buildings/p9-checker-profile-diet-design-0625/work/task.md",
+              "project/brick-protocol/status/inbox/brick-protocol-p10-agent-yaml-permission-matrix-reroute-0625-brick-received-event-2026-06-25T08-47-38-682007-00-00.json",
+              "project/brick-protocol/status/inbox/brick-protocol-p10-agent-yaml-permission-matrix-reroute-0625-building-started-event-2026-06-25T08-47-37-939436-00-00.json",
+              "project/brick-protocol/status/inbox/brick-protocol-p9-checker-profile-diet-design-0625-brick-received-event-2026-06-25T08-47-38-694086-00-00.json",
+              "project/brick-protocol/status/inbox/brick-protocol-p9-checker-profile-diet-design-0625-building-started-event-2026-06-25T08-47-37-941915-00-00.json"
+            ],
+            "before_path_count": 3571,
+            "git_refs_moved": {},
+            "not_proven": [
+              "semantic correctness of file edits",
+              "complete diff attribution for pre-existing dirty paths"
+            ],
+            "observed_changed_files": [
+              "project/brick-protocol/status/kernel/p10-agent-yaml-permission-matrix-reroute-0625.md"
+            ],
+            "proof_limits": [
+              "changed files are support evidence only",
+              "not source truth",
+              "not success judgment",
+              "not quality judgment",
+              "not Movement authority"
+            ],
+            "write_scope": {
+              "allowed_paths": [
+                "project/brick-protocol/status/kernel/p10-agent-yaml-permission-matrix-reroute-0625.md"
+              ],
+              "forbidden_paths": [
+                ".git/**",
+                "AGENTS.md",
+                "brick/**",
+                "agent/**",
+                "link/**",
+                "support/**",
+                "**/*token*",
+                "**/*secret*",
+                "**/*credential*",
+                "**/*auth*"
+              ]
+            }
+          }
+        }
+      },
+      "fact_ref": "agent-fact:01:p10-agent-yaml-permission-matrix-reroute-0625-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:coo",
+        "received_work": "brick-work:02:p10-agent-yaml-permission-matrix-reroute-0625-closure",
+        "returned": {
+          "adapter_ref": "adapter:claude-local",
+          "agent_object_ref": "agent-object:coo",
+          "brain_surface_ref": "brain-surface:claude-code-local-cli",
+          "cli_call_ref": "support-cli-call:adapter:claude-local:p10-agent-yaml-permission-matrix-reroute-0625",
+          "cli_version_text": "2.1.191 (Claude Code)",
+          "deferred_smith_review_queue": [
+            "Confirm whether the corrected permission matrix report is accepted as the canonical P10 outcome, superseding the prior HOLD.",
+            "Decide whether minor report line-number citation drift warrants a follow-up edit."
+          ],
+          "evidence_refs": [
+            "support-packet:p10-agent-yaml-permission-matrix-reroute-0625:agent-object:coo:output"
+          ],
+          "narrowly_proven": [
+            "The reroute deliverable was produced: the corrected permission matrix report exists at the declared output path inside the declared write_scope.",
+            "The report's source citations (adapter_constants.py, agent_adapter.py effective_write formula, work brick.md requires_brick_write_scope, coo.yaml tool policies) match current source as independently read for this closure.",
+            "The prior P10 HOLD finding is addressed: current source admits adapter:codex-fugu-local as a real admitted, observed-write, read+write adapter — not a persona/step-role only.",
+            "The report preserves the BRICK permission law: adapter write capability is technical capability, gated by Brick write_scope AND Agent read-write-scoped policy AND observed-write adapter; COO stays coordination/read-only because its Agent policy term is absent."
+          ],
+          "next_target_candidates": [
+            "Forward the corrected matrix report to the declared Link gate for sufficiency review (candidate only, not Agent authority).",
+            "Optional human review of report citation line-number drift and the empty work-step observed_evidence field."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Quality, success, approval, or completeness judgment of the report — reserved for the human.",
+            "Link sufficiency or final route choice — reserved for the Link gate.",
+            "Provider runtime availability or behavior for Codex, Claude, Gemini, or Sakana/Fugu.",
+            "Semantic correctness of the report beyond the cited current source rows; some report line-number citations (e.g. coo.yaml:29-40/29-42) drift slightly from the verified tool-policy line (L30), though substance matches.",
+            "The dev step-output's top-level returned.observed_evidence was an empty list ([]); narrative evidence rides only in output_excerpt — full claim_trace was not re-read for this closure.",
+            "Future Building correctness and downstream use of this matrix."
+          ],
+          "observed_evidence": [
+            "work/step-outputs/p10-agent-yaml-permission-matrix-reroute-0625-work-attempt-1/step-output.json records the WORK Brick (agent-object:dev, adapter:codex-local, codex-cli 0.132.0) returning changed_files=[project/brick-protocol/status/kernel/p10-agent-yaml-permission-matrix-reroute-0625.md].",
+            "The output file project/brick-protocol/status/kernel/p10-agent-yaml-permission-matrix-reroute-0625.md exists and contains a corrected matrix (Codex Local, Claude Local, Gemini API, Fugu/codex-fugu-local, COO), an effective_write formula section, a Fugu Correction section, Agent Object observations, commands run, observed evidence, narrowly_proven, not_proven, and a next-movement candidate.",
+            "Source verify: support/connection/adapter_constants.py defines ADAPTER_CODEX_FUGU_LOCAL='adapter:codex-fugu-local' (L21), lists it in ALLOWED_ADAPTER_REFS (L83), in _OBSERVED_WRITE_ADAPTER_REFS alongside codex-local and claude-local (L75-77), grants it READ+WRITE in _ADAPTER_CAPABILITIES (L95), and routes it to provider 'sakana' (L64).",
+            "Source verify: support/connection/agent_adapter.py:868-877 agent_request_effective_write returns bool(request.write_scope) AND READ_WRITE_TOOL_POLICY_REF in request.tool_policy_refs AND _adapter_ref_supports_observed_write(adapter_ref) — matching the three-term formula in the report.",
+            "Source verify: brick/templates/bricks/work/brick.md:5 declares requires_brick_write_scope: yes (Brick-side write term).",
+            "Source verify: agent/objects/coo.yaml:30 carries only tool-policy:leader-coordination (no tool-policy:read-write-scoped); dev.yaml, qa.yaml, qa-lead.yaml, inspector.yaml carry tool-policy:read-write-scoped, confirming the report's Agent-policy observations.",
+            "worktree_observation shows before/after HEAD unchanged (299125d) and only the kernel report path added to after_git_status_paths versus before; other dirty paths were pre-existing untracked Building/status evidence."
+          ],
+          "output_excerpt": "All key source claims verified against current source. Synthesizing the closure. ```json { \"observed_evidence\": [ \"work/step-outputs/p10-agent-yaml-permission-matrix-reroute-0625-work-attempt-1/step-output.json records the WORK Brick (agent-object:dev, adapter:codex-local, codex-cli 0.132.0) returning changed_files=[project/brick-protocol/status/kernel/p10-agent-yaml-permission-matrix-reroute-0625.md].\", \"The output file project/brick-protocol/status/kernel/p10-agent-yaml-permission-matrix-reroute-0625.md exists and contains a corrected matrix (Codex Local, Claude Local, Gemini API, Fugu/co...",
+          "parent_goal_delta_status": {
+            "closed_delta_refs": [
+              "delta:prior-hold-fugu-misclassified-persona-only"
+            ],
+            "evidence_refs": [
+              "project/brick-protocol/status/kernel/p10-agent-yaml-permission-matrix-reroute-0625.md",
+              "work/step-outputs/p10-agent-yaml-permission-matrix-reroute-0625-work-attempt-1/step-output.json",
+              "support/connection/adapter_constants.py:21,64,75-77,79-89,90-95",
+              "support/connection/agent_adapter.py:868-877",
+              "brick/templates/bricks/work/brick.md:5",
+              "agent/objects/coo.yaml:30"
+            ],
+            "matched_delta_refs": [
+              "delta:corrected-matrix-five-surfaces",
+              "delta:effective-write-formula-explained",
+              "delta:fugu-admitted-write-capable-but-gated",
+              "delta:coo-coordination-read-only-preserved"
+            ],
+            "missing_delta_refs": [],
+            "open_delta_refs": [
+              "delta:link-sufficiency-review-pending"
+            ],
+            "unknown_delta_refs": [
+              "delta:provider-runtime-behavior",
+              "delta:future-building-correctness"
+            ]
+          },
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "remaining_delta": [
+            "Link gate to assess sufficiency of the corrected report and decide forward vs reroute.",
+            "Optional human review of the report's minor line-number citation drift against current source.",
+            "If desired, a follow-up could fold the verified matrix back into a canonical status/kernel reference and reconcile the empty top-level observed_evidence field in the work step-output."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_adapter_ref": "adapter:claude-local",
+          "selected_model_ref": "model:claude:inherit",
+          "transition_concern_evidence": []
+        }
+      },
+      "fact_ref": "agent-fact:02:p10-agent-yaml-permission-matrix-reroute-0625-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-25T08:50:51Z",
+  "id": "urn:bp:building:p10-agent-yaml-permission-matrix-reroute-0625::evidence/claim_trace/agent/returned_claims.json",
+  "recorded_at": "2026-06-25T08:50:51Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:p10-agent-yaml-permission-matrix-reroute-0625",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/agent/returned_claims.json",
+  "time": "2026-06-25T08:50:51Z",
+  "type": "bp.claim_trace"
+}
