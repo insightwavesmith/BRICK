@@ -1020,7 +1020,11 @@ def _replay_building_step_from_returned(
 # holds ONLY regular non-symlink file(s) named in this set -- any other name,
 # any subdirectory, any symlink, or an EMPTY root still rejects. (The run's
 # own work/declared-building-plan.json declaration packet lives under work/
-# and is a different file.) Parity copy lives in walker_kernel.py.
+# and is a different file.) This PRE-ADAPTER predicate intentionally remains
+# narrower than support.recording.adapter_error_frontier's POST-ADAPTER
+# declaration-chain/root-state handling, which may preserve report/declaration
+# artifacts or mark partial roots after an adapter interruption. Parity copy
+# lives in walker_kernel.py.
 _PREEXISTING_ROOT_INTAKE_ARTIFACTS: frozenset[str] = frozenset(
     {"declared-building-plan.json"}
 )

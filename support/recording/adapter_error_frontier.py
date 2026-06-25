@@ -18,6 +18,7 @@ Support recording shape only: NESTED evidence, no fourth axis or fact class.
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass, fields
 from pathlib import Path
@@ -50,6 +51,7 @@ from brick_protocol.support.recording.capture import (
     BuildingLifecyclePacket,
     BuildingLifecycleWriteResult,
     CaptureEvent,
+    graph_ready_timestamp,
     write_building_lifecycle,
 )
 from brick_protocol.support.recording.claims_agent import (
@@ -184,12 +186,69 @@ def write_adapter_error_frontier_evidence(
         graph_context=frontier_graph_context,
         task_source_ref=task_source_ref,
     )
-    effective_overwrite_existing = (
-        overwrite_existing
-        or _root_holds_only_declaration_chain_artifacts(
+    existing_root_state = _adapter_error_existing_root_state(
+        Path(output_root) / building_id,
+        building_id=building_id,
+    )
+    if existing_root_state == "not_directory":
+        raise NotADirectoryError(
+            "adapter-error frontier root exists but is not a directory; "
+            "existing_root_state=not_directory"
+        )
+    if existing_root_state == "root_exists_without_frontier" or (
+        existing_root_state == "partial_write_risk" and not completed_step_results
+    ):
+        written_files = _write_adapter_error_root_state_marker(
             Path(output_root) / building_id,
             building_id=building_id,
+            observation=observation,
+            root_state=existing_root_state,
+            proof_limits=proof_limits,
         )
+        marker_path = written_files[0]
+        return AdapterErrorFrontierEvidenceWriteResult(
+            lifecycle_write=BuildingLifecycleWriteResult(
+                root=Path(output_root) / building_id,
+                written_files=written_files,
+                proof_limits=_merge_texts(
+                    proof_limits,
+                    (
+                        "adapter-error root-state marker only; lifecycle frontier not overwritten",
+                        "operator/COO must inspect preserved root contents",
+                    ),
+                ),
+            ),
+            building_map_write=BuildingMapWriteResult(
+                root=Path(output_root) / building_id,
+                path=marker_path,
+                written_files=(),
+            ),
+            written_files=written_files,
+            capture_event_types=(),
+            building_map_packet={
+                "building_id": building_id,
+                "frontier_kind": existing_root_state,
+                "root_state_marker": marker_path.name,
+                "source_truth": False,
+                "proof_limits": [
+                    "support observation only",
+                    "not source truth",
+                    "not success judgment",
+                    "not quality judgment",
+                    "not Movement authority",
+                ],
+            },
+            proof_limits=_merge_texts(
+                proof_limits,
+                (
+                    "adapter-error root-state marker only; lifecycle frontier not overwritten",
+                    "operator/COO must inspect preserved root contents",
+                ),
+            ),
+        )
+    effective_overwrite_existing = (
+        overwrite_existing
+        or existing_root_state == "declaration_chain_only"
     )
     lifecycle_write = write_building_lifecycle(
         lifecycle_packet,
@@ -414,6 +473,8 @@ def write_chat_session_park_frontier_evidence(
 _DECLARATION_CHAIN_ROOT_ARTIFACTS: frozenset[Path] = frozenset(
     {
         Path("declared-building-plan.json"),
+        Path("raw/report-delivery.jsonl"),
+        Path("raw/report-thread.jsonl"),
         Path("work/task.md"),
         Path("work/building-intake.json"),
         Path("work/preset-expansion.json"),
@@ -421,7 +482,9 @@ _DECLARATION_CHAIN_ROOT_ARTIFACTS: frozenset[Path] = frozenset(
         Path("work/link-launch-policy.json"),
     }
 )
-_DECLARATION_CHAIN_PARENT_DIRS: frozenset[Path] = frozenset({Path("work")})
+_DECLARATION_CHAIN_PARENT_DIRS: frozenset[Path] = frozenset(
+    {Path("raw"), Path("work")}
+)
 _DECLARATION_CHAIN_PLAN_ARTIFACTS: frozenset[Path] = frozenset(
     {
         Path("declared-building-plan.json"),
@@ -431,6 +494,61 @@ _DECLARATION_CHAIN_PLAN_ARTIFACTS: frozenset[Path] = frozenset(
 _DECLARATION_CHAIN_JSON_ARTIFACTS: frozenset[Path] = frozenset(
     path for path in _DECLARATION_CHAIN_ROOT_ARTIFACTS if path.suffix == ".json"
 )
+_DECLARATION_CHAIN_JSONL_ARTIFACTS: frozenset[Path] = frozenset(
+    {
+        Path("raw/report-delivery.jsonl"),
+        Path("raw/report-thread.jsonl"),
+    }
+)
+_DECLARATION_CHAIN_JSONL_KINDS: Mapping[Path, str] = {
+    Path("raw/report-delivery.jsonl"): "report_delivery_observation",
+    Path("raw/report-thread.jsonl"): "report_slack_thread_parent_observation",
+}
+_ADAPTER_ERROR_PARTIAL_WRITE_RISK_MARKER = "adapter-error-frontier-partial-write-risk.json"
+_ADAPTER_ERROR_ROOT_STATE_MARKER = "adapter-error-frontier-root-state.json"
+_REPORT_EVENT_SUFFIXES: frozenset[str] = frozenset(
+    {
+        "building-started-event",
+        "brick-received-event",
+        "brick-returned-event",
+        "gate-passed-event",
+        "intervention-required-event",
+    }
+)
+_LEGACY_REPORT_SUFFIXES: frozenset[str] = frozenset(
+    {
+        "building-started",
+        "brick-received",
+        "brick-returned",
+        "gate-passed",
+        "intervention-required",
+    }
+)
+_REPORT_VESSEL_SOURCE_PREFIXES: tuple[str, ...] = ("brick-protocol-",)
+_REPORT_EVENT_TIMESTAMP_RE = re.compile(
+    r"\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}(?:-\d{1,6})?(?:Z|-\d{2}-\d{2})?"
+)
+
+
+def _adapter_error_existing_root_state(root: Path, *, building_id: str) -> str:
+    """Classify the pre-frontier root without choosing Movement or judging quality.
+
+    The run/walker preflight admits only the single intake plan artifact before
+    any adapter call. This frontier writer runs after an adapter interruption,
+    where report/declaration support files may already exist; it therefore uses
+    the wider declaration-chain predicate below. Anything else is preserved and
+    marked as partial-write risk instead of being overwritten.
+    """
+
+    if root.is_symlink() or not root.exists():
+        return "absent"
+    if not root.is_dir():
+        return "not_directory"
+    if _root_holds_only_declaration_chain_artifacts(root, building_id=building_id):
+        return "declaration_chain_only"
+    if not any(root.iterdir()):
+        return "root_exists_without_frontier"
+    return "partial_write_risk"
 
 
 def _root_holds_only_declaration_chain_artifacts(root: Path, *, building_id: str) -> bool:
@@ -476,10 +594,210 @@ def _root_holds_only_declaration_chain_artifacts(root: Path, *, building_id: str
                     return False
                 if packet_building_id.strip() != expected_building_id:
                     return False
+        if relative in _DECLARATION_CHAIN_JSONL_ARTIFACTS and not _declaration_chain_jsonl_valid(
+            entry,
+            expected_kind=_DECLARATION_CHAIN_JSONL_KINDS[relative],
+            expected_building_id=expected_building_id,
+        ):
+            return False
         if relative in _DECLARATION_CHAIN_PLAN_ARTIFACTS:
             saw_plan_artifact = True
         saw_file = True
     return saw_file and saw_plan_artifact
+
+
+def _declaration_chain_jsonl_valid(
+    path: Path,
+    *,
+    expected_kind: str,
+    expected_building_id: str,
+) -> bool:
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeDecodeError):
+        return False
+    if not lines:
+        return False
+    saw_record = False
+    for line in lines:
+        if not line.strip():
+            continue
+        try:
+            packet = json.loads(line)
+        except json.JSONDecodeError:
+            return False
+        if not isinstance(packet, Mapping):
+            return False
+        if packet.get("kind") != expected_kind:
+            return False
+        packet_building_id = packet.get("building_id")
+        if packet_building_id is not None:
+            if not isinstance(packet_building_id, str):
+                return False
+            if packet_building_id.strip() != expected_building_id:
+                return False
+        else:
+            report_id = packet.get("report_id")
+            if not isinstance(
+                report_id, str
+            ) or not _declaration_chain_report_id_matches_building(
+                report_id,
+                expected_building_id=expected_building_id,
+            ):
+                return False
+        if packet.get("source_truth") is not False:
+            return False
+        saw_record = True
+    return saw_record
+
+
+def _declaration_chain_report_id_matches_building(
+    report_id: str,
+    *,
+    expected_building_id: str,
+) -> bool:
+    """Accept same-Building report ids without substring collisions.
+
+    Reporter ids are either legacy ``<building_id>-<kind>`` or the admitted
+    live vessel form ``brick-protocol-<building_id>-<kind>``. Some historical
+    fixtures use ``report:<building_id>:<kind>``. Each form compares the parsed
+    source id exactly; no arbitrary prefix/suffix source id is admitted.
+    """
+
+    expected = expected_building_id.strip()
+    if not expected:
+        return False
+    text = report_id.strip()
+    if text.startswith("report:"):
+        rest = text[len("report:") :]
+        source_id, separator, _kind = rest.partition(":")
+        return bool(separator) and source_id == expected
+    return _report_id_source_id(text) in _allowed_report_source_ids(expected)
+
+
+def _allowed_report_source_ids(expected_building_id: str) -> frozenset[str]:
+    return frozenset(
+        (expected_building_id,)
+        + tuple(
+            f"{prefix}{expected_building_id}"
+            for prefix in _REPORT_VESSEL_SOURCE_PREFIXES
+        )
+    )
+
+
+def _report_id_source_id(report_id: str) -> str:
+    event_candidates: list[tuple[int, str]] = []
+    for suffix in _REPORT_EVENT_SUFFIXES:
+        marker = f"-{suffix}-"
+        source_id, separator, timestamp = report_id.rpartition(marker)
+        if not separator or not source_id:
+            continue
+        if _REPORT_EVENT_TIMESTAMP_RE.fullmatch(timestamp):
+            event_candidates.append((len(source_id), source_id))
+    if event_candidates:
+        return max(event_candidates, key=lambda candidate: candidate[0])[1]
+    for suffix in _LEGACY_REPORT_SUFFIXES:
+        marker = f"-{suffix}"
+        if report_id.endswith(marker):
+            return report_id[: -len(marker)]
+    return ""
+
+
+def _write_adapter_error_root_state_marker(
+    root: Path,
+    *,
+    building_id: str,
+    observation: AdapterErrorObservation,
+    root_state: str,
+    proof_limits: tuple[str, ...],
+) -> tuple[Path, ...]:
+    if root_state not in {"partial_write_risk", "root_exists_without_frontier"}:
+        raise ValueError("unsupported adapter-error root state marker")
+    if root.is_symlink() or not root.exists() or not root.is_dir():
+        raise FileExistsError(
+            "adapter-error root-state marker requires an existing non-symlink root"
+        )
+    marker_name = (
+        _ADAPTER_ERROR_PARTIAL_WRITE_RISK_MARKER
+        if root_state == "partial_write_risk"
+        else _ADAPTER_ERROR_ROOT_STATE_MARKER
+    )
+    path = root / marker_name
+    if path.is_symlink() or path.is_dir():
+        raise FileExistsError(
+            "adapter-error root-state marker path is not a regular file"
+        )
+    frontier_kind = (
+        "partial_write_risk"
+        if root_state == "partial_write_risk"
+        else "root_exists_without_frontier"
+    )
+    root_state_detail = (
+        "root_exists_with_non_declaration_artifacts"
+        if root_state == "partial_write_risk"
+        else "root_exists_empty_without_frontier"
+    )
+    packet = {
+        "kind": "adapter_error_frontier_root_state_observation",
+        "schema_version": "adapter-error-frontier-root-state-0",
+        "building_id": building_id,
+        "frontier_kind": frontier_kind,
+        "root_state": root_state_detail,
+        "full_frontier_written": False,
+        "preserved_existing_root": True,
+        "step_ref": observation.step_ref,
+        "adapter_error_ref": observation.adapter_error_ref,
+        "error_kind": observation.error_kind,
+        "exception_type": observation.exception_type,
+        "recorded_at": graph_ready_timestamp(),
+        "source_truth": False,
+        "proof_limits": list(
+            _merge_texts(
+                proof_limits,
+                (
+                    "support observation only",
+                    "records adapter-error root state before AgentFact",
+                    "preserves existing root contents",
+                    "not source truth",
+                    "not success judgment",
+                    "not quality judgment",
+                    "not Movement authority",
+                ),
+            )
+        ),
+        "not_proven": list(
+            _merge_texts(
+                observation.not_proven,
+                (
+                    "complete lifecycle frontier for this interruption",
+                    "semantic meaning of preserved root state",
+                    "caller/COO disposition after root-state observation",
+                ),
+            )
+        ),
+    }
+    path.write_text(
+        json.dumps(packet, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+        + "\n",
+        encoding="utf-8",
+    )
+    return (path,)
+
+
+def _write_adapter_error_partial_write_risk_marker(
+    root: Path,
+    *,
+    building_id: str,
+    observation: AdapterErrorObservation,
+    proof_limits: tuple[str, ...],
+) -> tuple[Path, ...]:
+    return _write_adapter_error_root_state_marker(
+        root,
+        building_id=building_id,
+        observation=observation,
+        root_state="partial_write_risk",
+        proof_limits=proof_limits,
+    )
 
 
 def _realized_frontier_graph_context(

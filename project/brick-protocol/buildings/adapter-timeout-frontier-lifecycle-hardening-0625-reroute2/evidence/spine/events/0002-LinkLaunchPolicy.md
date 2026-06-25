@@ -1,0 +1,14 @@
+# LinkLaunchPolicy · seq 2 · ["Link"]
+- axis_scope: ["Link"]
+- building_id: "adapter-timeout-frontier-lifecycle-hardening-0625-reroute2"
+- declared_gate_refs: ["link-gate:default-transition"]
+- event_type: "LinkLaunchPolicy"
+- launch_rows: [{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"edge:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-work-to-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa","route_replay_plan":{},"step_ref":"adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-work","target_boundary_ref":"brick-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa"},{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"edge:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa-to-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-closure","route_replay_plan":{},"step_ref":"adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa","target_boundary_ref":"brick-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-closure"},{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"edge:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-closure-to-boundary","route_replay_plan":{},"step_ref":"adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-closure","target_boundary_ref":"building-boundary:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-closed"}]
+- max_attempts_by_boundary: {}
+- node_reroute_budgets: {"brick-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-work":5}
+- plan_ref: "building-plan:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2"
+- plan_shape: "graph"
+- run_segment: 1
+- selected_shape_ref: "building-shape:reviewable-work"
+- sequence_index: 2
+- spine_schema_version: "spine-v1"

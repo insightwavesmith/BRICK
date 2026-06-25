@@ -1,0 +1,14 @@
+# TransitionConcern · seq 17 · ["Agent","Link"]
+- agent_object_ref: "agent-object:qa"
+- alias_fact_refs: ["transition-concern:adapter-timeout-frontier-lifecycle-hardening-0625-reroute3-code-attack-qa:report-id-infix-marker-collision-residual"]
+- attempt_index: 1
+- axis_scope: ["Agent","Link"]
+- binding: false
+- event_type: "TransitionConcern"
+- run_segment: 1
+- sequence_index: 17
+- source_fact_ref: "transition-concern:adapter-timeout-frontier-lifecycle-hardening-0625-reroute3-code-attack-qa:attempt-1"
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/adapter-timeout-frontier-lifecycle-hardening-0625-reroute3-code-attack-qa-attempt-1/step-output.json"
+- step_ref: "adapter-timeout-frontier-lifecycle-hardening-0625-reroute3-code-attack-qa"
+- transition_concern_returned: {"binding":false,"concern_kind":"implementation_gap","concern_ref":"transition-concern:adapter-timeout-frontier-lifecycle-hardening-0625-reroute3-code-attack-qa:report-id-infix-marker-collision-residual","not_proven":["live admit/reject outcome of the crafted report_id (python execution blocked)","frequency/probability of the nondeterministic ordering in practice","whether any real workload produces a building_id embedding an event-kind token"],"proof_limits":["support observation only","static source-inspection and hand-trace only; no live execution","not source truth","not success judgment","not quality judgment","not Movement authority"],"reason_refs":["support/recording/adapter_error_frontier.py:685-689 _report_id_source_id uses `marker in report_id` + leftmost str.partition over the unordered frozenset _REPORT_EVENT_SUFFIXES (lines 508-516), not a right-anchored parse of the '-<kind>-event-<timestamp>' tail emitted by support/operator/reporter.py:2172-2177","Consequence: report-thread report_id 'brick-protocol-<expected>-gate-passed-event-evil-building-started-event-<ts>' (a DIFFERENT building) can extract source 'brick-protocol-<expected>' and be FALSE-ADMITTED into _allowed_report_source_ids (lines 674-682), and the outcome varies with PYTHONHASHSEED","This is the embedded-marker infix direction of the same collision class the task requires closed; checker coverage in support/checkers/lib/kernel_checks.py:6043-6128 only tests single-marker inputs and does not exercise or pin determinism for this case"],"related_boundary_refs":["brick:adapter-timeout-frontier-lifecycle-hardening-0625-reroute3-work"]}

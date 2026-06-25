@@ -1,0 +1,164 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:adapter-timeout-frontier-lifecycle-hardening-0625-reroute4::work/step-outputs/adapter-timeout-frontier-lifecycle-hardening-0625-reroute4-closure-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-adapter-timeout-frontier-lifecycle-hardening-0625-reroute4-closure",
+  "building_id": "adapter-timeout-frontier-lifecycle-hardening-0625-reroute4",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:03",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T03:46:48.020442Z",
+  "id": "urn:bp:building:adapter-timeout-frontier-lifecycle-hardening-0625-reroute4::work/step-outputs/adapter-timeout-frontier-lifecycle-hardening-0625-reroute4-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:03:adapter-timeout-frontier-lifecycle-hardening-0625-reroute4-closure",
+  "recorded_at": "2026-06-25T03:46:48.020442Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:coo",
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:adapter-timeout-frontier-lifecycle-hardening-0625-reroute4",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "deferred_smith_review_queue": [
+      "Sufficiency call: the report_id infix collision fix and checker coverage are confirmed by source inspection + real-artifact hand-trace ONLY; no checker/import/compile execution occurred because python3 was approval-gated for the workers. Decide whether to forward on inspection evidence or require a runtime-execution pass first.",
+      "QA returned a non-binding verification_gap concern (transition-concern:adapter-timeout-frontier-lifecycle-hardening-0625-reroute4-code-attack-qa:checker-not-executed-verification-gap) aimed at building-boundary:adapter-timeout-frontier-lifecycle-hardening-0625-reroute4 — an environment constraint, not a reproduced defect."
+    ],
+    "evidence_refs": [
+      "support-packet:adapter-timeout-frontier-lifecycle-hardening-0625-reroute4:agent-object:coo:output"
+    ],
+    "narrowly_proven": [
+      "By source inspection only: the reroute3 infix-collision mechanism is addressed in code — _report_id_source_id no longer uses 'marker in report_id' + leftmost partition over an unordered frozenset; it uses a right-anchored rpartition gated by a timestamp fullmatch, so an embedded event-kind token inside a foreign building id no longer yields the expected building's source id.",
+      "By source inspection only: a checker probe (kernel_checks.py:6126-6152) statically encodes both the exact parse value and the rejection of the crafted embedded-marker foreign report-thread row, and legacy 'report:<building_id>:<kind>' exact-match plus same-building live-vessel forms are preserved in code.",
+      "git diff --check ran clean (whitespace/conflict) per the QA return."
+    ],
+    "next_target_candidates": [
+      "A freshness / Work Packet Building that runs the adapter_error_path_hardening checker and import/compile smoke under an admitted python3 to convert the static infix-collision closure into runtime-observed evidence and discharge the carried checker-not-executed verification_gap.",
+      "A small follow-up work Brick adding the bare-legacy positive probe and a PYTHONHASHSEED determinism assertion, and removing/justifying the unused _write_adapter_error_partial_write_risk_marker wrapper.",
+      "Smith disposition on whether the inspection-level + real-artifact closure of the infix concern is sufficient to forward without live checker execution."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Any LIVE execution result: python3 was approval-gated for the QA worker (python3 -c, .venv/bin/python3 absolute path, and support/checkers/check_profile.py all returned 'requires approval' even with sandbox override), so the adapter_error_path_hardening checker / profile, import/compile smoke, and the crafted admit/reject probes were NOT run — every admit/reject claim is static hand-trace + real-artifact verification only (environment/runtime constraint, not an upstream defect).",
+      "Runtime confirmation that the added checker passes and that the changed modules import/compile cleanly.",
+      "Positive checker coverage for the bare-legacy '<building_id>-<kind>' form (no 'report:' prefix, no '-event-' infix) — handled by the _LEGACY_REPORT_SUFFIXES branch but not exercised by a probe.",
+      "A determinism pin: no probe runs the parser under varied PYTHONHASHSEED for a multi-marker id (QA argues a length tie between two distinct markers is impossible, but it is not asserted in code).",
+      "Source truth, success judgment, quality judgment, and Movement authority — out of this closure's reach.",
+      "Semantic correctness of write_building_lifecycle / build_lifecycle / support loader behavior and full regression coverage of the surrounding root-state classification branches."
+    ],
+    "observed_evidence": [
+      "Parent objective (reroute4 after HOLD): close the residual report_id infix event-marker collision named transition-concern:adapter-timeout-frontier-lifecycle-hardening-0625-reroute3-code-attack-qa:report-id-infix-marker-collision-residual.",
+      "WORK brick (brick-adapter-timeout-frontier-lifecycle-hardening-0625-reroute4-work, adapter:codex-local/dev) returned made_changes=true, changed_files=[support/recording/adapter_error_frontier.py, support/checkers/lib/kernel_checks.py], observed_evidence claiming _report_id_source_id now parses the rightmost valid trailing -<event-kind>-<timestamp> shape and rejects the crafted foreign id for the expected building.",
+      "Direct source inspection (support/recording/adapter_error_frontier.py:688-703) confirms _report_id_source_id was rewritten: it iterates _REPORT_EVENT_SUFFIXES with a right-anchored rpartition over marker '-<suffix>-', requires _REPORT_EVENT_TIMESTAMP_RE.fullmatch on the trailing segment, and selects max-by-source_id-length; legacy '<building_id>-<kind>' falls through to an endswith branch; _declaration_chain_report_id_matches_building (654-675) preserves exact 'report:<building_id>:<kind>' partition compare and compares the parsed source id against _allowed_report_source_ids({expected, brick-protocol-<expected>}).",
+      "Checker coverage exists (support/checkers/lib/kernel_checks.py:6126-6152): an embedded_marker probe asserts _report_id_source_id('brick-protocol-<base>-gate-passed-event-evil-building-started-event-<ts>') == 'brick-protocol-<base>-gate-passed-event-evil' and that _root_holds_only_declaration_chain_artifacts does NOT admit that foreign report-thread row; prior prefix/suffix collision probes remain.",
+      "QA brick (brick-adapter-timeout-frontier-lifecycle-hardening-0625-reroute4-code-attack-qa, adapter:claude-local/qa) returned boundary_violations=[], changed_files=[], and negative_probe_observations recording the crafted INFIX id REJECTED, PREFIX REJECTED, SUFFIX/SIBLING REJECTED, legacy 'report:' exact-compare preserved, and the real reroute1-emitted report_id ADMITTED (verified against project/.../reroute1/raw/report-thread.jsonl) — all by static hand-trace + real-artifact verification.",
+      "QA recorded git diff --check ran clean and confirmed referenced run.py/walker_kernel.py symbols and kernel_checks helper functions exist (no AttributeError at import path by inspection)."
+    ],
+    "output_excerpt": "I have sufficient carried evidence. I've verified the work brick's source change (`_report_id_source_id` rewrite to right-anchored `rpartition` + timestamp `fullmatch` + max-by-length, lines 688–703), the checker's embedded-marker probe (kernel_checks.py 6126–6152), the QA attack return, and the carried reroute3 infix concern. Here is the closure synthesis. ```json { \"observed_evidence\": [ \"Parent objective (reroute4 after HOLD): close the residual report_id infix event-marker collision named transition-concern:adapter-timeout-frontier-lifecycle-hardening-0625-reroute3-code-attack-qa:report...",
+    "parent_goal_delta_status": {
+      "closed_delta_refs": [
+        "transition-concern:adapter-timeout-frontier-lifecycle-hardening-0625-reroute3-code-attack-qa:report-id-infix-marker-collision-residual (mechanism addressed by inspection + checker probe present; runtime confirmation still open)"
+      ],
+      "evidence_refs": [
+        "support/recording/adapter_error_frontier.py:654-703",
+        "support/checkers/lib/kernel_checks.py:6126-6152",
+        "project/brick-protocol/buildings/adapter-timeout-frontier-lifecycle-hardening-0625-reroute4/work/step-outputs/adapter-timeout-frontier-lifecycle-hardening-0625-reroute4-work-attempt-1/step-output.json",
+        "project/brick-protocol/buildings/adapter-timeout-frontier-lifecycle-hardening-0625-reroute4/work/step-outputs/adapter-timeout-frontier-lifecycle-hardening-0625-reroute4-code-attack-qa-attempt-1/step-output.json",
+        "project/brick-protocol/buildings/adapter-timeout-frontier-lifecycle-hardening-0625-reroute3/work/step-outputs/adapter-timeout-frontier-lifecycle-hardening-0625-reroute3-code-attack-qa-attempt-1/transition-concern.json",
+        "project/brick-protocol/buildings/adapter-timeout-frontier-lifecycle-hardening-0625-reroute1/raw/report-thread.jsonl"
+      ],
+      "matched_delta_refs": [
+        "task-source:inline-statement#fix-1 right-anchored deterministic suffix/timestamp parse -> adapter_error_frontier.py:688-703",
+        "task-source:inline-statement#fix-2 reject crafted brick-protocol-<expected>-gate-passed-event-evil-building-started-event-<ts> -> kernel_checks.py:6126-6152 + QA negative_probe_observations",
+        "task-source:inline-statement#fix-3 preserve legacy report:<building_id>:... exact match and same-building forms -> adapter_error_frontier.py:671-675",
+        "task-source:inline-statement#fix-4 checker coverage for embedded event-marker collision + prior prefix/suffix tests -> kernel_checks.py:6126-6152"
+      ],
+      "missing_delta_refs": [
+        "live admit/reject execution evidence for the crafted and legit report ids",
+        "import/compile smoke evidence for support/recording/adapter_error_frontier.py and support/checkers/lib/kernel_checks.py"
+      ],
+      "open_delta_refs": [
+        "task-source:inline-statement#fix-5 run targeted checker / git diff --check / compile-import smoke — only git diff --check ran; checker and smoke remain unexecuted (python3 approval-gated)",
+        "bare-legacy positive probe",
+        "PYTHONHASHSEED determinism pin"
+      ],
+      "unknown_delta_refs": [
+        "runtime pass/fail of the added adapter_error_path_hardening coverage",
+        "whether any real workload ever emits a building_id embedding an event-kind token"
+      ]
+    },
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "remaining_delta": [
+      "Execute the adapter_error_path_hardening checker (or the direct kernel check) plus an import/compile smoke once python3 is admitted, to convert the static infix-collision closure into a runtime-observed result — this is the carried verification_gap.",
+      "Add a positive checker probe for the bare-legacy '<building_id>-<kind>' form.",
+      "Pin parser determinism for multi-marker ids (e.g. assert under varied PYTHONHASHSEED) or document the impossibility-of-tie argument in code.",
+      "Address QA-noted forward coupling: _REPORT_EVENT_TIMESTAMP_RE must continue to match reporter.py's emitted timestamp transform; a future reporter timestamp-format change could silently false-reject legit same-building rows.",
+      "Decide disposition of the now-unused wrapper _write_adapter_error_partial_write_risk_marker (adapter_error_frontier.py:787-800) flagged by QA as dead code (no behavioral risk)."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:03:adapter-timeout-frontier-lifecycle-hardening-0625-reroute4-closure",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:adapter-timeout-frontier-lifecycle-hardening-0625-reroute4",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:adapter-timeout-frontier-lifecycle-hardening-0625-reroute4-closure:attempt-1",
+  "step_ref": "adapter-timeout-frontier-lifecycle-hardening-0625-reroute4-closure",
+  "subject": "adapter-timeout-frontier-lifecycle-hardening-0625-reroute4-closure",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T03:46:48.020442Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

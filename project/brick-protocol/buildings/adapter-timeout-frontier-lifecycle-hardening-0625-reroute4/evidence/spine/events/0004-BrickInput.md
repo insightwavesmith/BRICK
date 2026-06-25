@@ -1,0 +1,12 @@
+# BrickInput · seq 4 · ["Brick"]
+- axis_scope: ["Brick"]
+- brick_instance_ref: "brick-adapter-timeout-frontier-lifecycle-hardening-0625-reroute4-work"
+- comparison_rule: "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickInput"
+- required_return_shape: "made_changes, observed_evidence, not_proven"
+- run_segment: 1
+- sequence_index: 4
+- source_facts: ["task-source:inline-statement"]
+- spine_schema_version: "spine-v1"
+- step_ref: "adapter-timeout-frontier-lifecycle-hardening-0625-reroute4-work"
+- work_statement: "work Brick for task-source:inline-statement: P0 reroute4 after HOLD: close the remaining report_id infix event-marker collision."

@@ -1,0 +1,193 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:adapter-timeout-frontier-lifecycle-hardening-0625::work/step-outputs/adapter-timeout-frontier-lifecycle-hardening-0625-work-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:dev",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-adapter-timeout-frontier-lifecycle-hardening-0625-work",
+  "building_id": "adapter-timeout-frontier-lifecycle-hardening-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T02:49:34.648055Z",
+  "id": "urn:bp:building:adapter-timeout-frontier-lifecycle-hardening-0625::work/step-outputs/adapter-timeout-frontier-lifecycle-hardening-0625-work-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:adapter-timeout-frontier-lifecycle-hardening-0625-work",
+  "recorded_at": "2026-06-25T02:49:34.648055Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:dev",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "changed_files": [
+      "support/checkers/lib/kernel_checks.py",
+      "support/recording/adapter_error_frontier.py"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:adapter-timeout-frontier-lifecycle-hardening-0625",
+    "cli_version_text": "codex-cli 0.132.0",
+    "evidence_refs": [
+      "support-packet:adapter-timeout-frontier-lifecycle-hardening-0625:agent-object:dev:output"
+    ],
+    "made_changes": true,
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "Full --all profile coverage was not run.",
+      "Provider timeout behavior was not exercised against a real Codex process.",
+      "No source truth, success, quality, Movement, or route judgment is claimed."
+    ],
+    "observed_evidence": [
+      "Adapter-error frontier existing-root admission now allows only exact pre-frontier declaration/report artifacts: declared plan files, work declaration files, raw/report-delivery.jsonl, and raw/report-thread.jsonl.",
+      "Report JSONL admission validates kind, source_truth=false, and same-Building identity via building_id or report_id.",
+      "The preserved trigger root at /tmp/brick-partial-gap2-customer-entry-minimum-doc-fix-0625-20260625-114400/gap2-customer-entry-minimum-doc-fix-0625 now passes the declaration/report-only admission predicate.",
+      "Added adapter_error_path_hardening checker coverage for declaration roots carrying pre-frontier report raw logs and wrong-Building rejection."
+    ],
+    "output_excerpt": "{ \"made_changes\": true, \"changed_files\": [ \"support/recording/adapter_error_frontier.py\", \"support/checkers/lib/kernel_checks.py\" ], \"observed_evidence\": [ \"Adapter-error frontier existing-root admission now allows only exact pre-frontier declaration/report artifacts: declared plan files, work declaration files, raw/report-delivery.jsonl, and raw/report-thread.jsonl.\", \"Report JSONL admission validates kind, source_truth=false, and same-Building identity via building_id or report_id.\", \"The preserved trigger root at /tmp/brick-partial-gap2-customer-entry-minimum-doc-fix-0625-20260625-114400...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:codex-local",
+    "selected_model_ref": "model:codex:default",
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "struct-surgery-0623",
+        "head": "42c38bbcbe1fda9e2e39276681695efaec9cab35"
+      },
+      "after_git_status_paths": [
+        "project/brick-protocol/buildings/adapter-timeout-frontier-lifecycle-hardening-0625/declared-building-plan.json",
+        "project/brick-protocol/buildings/adapter-timeout-frontier-lifecycle-hardening-0625/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/adapter-timeout-frontier-lifecycle-hardening-0625/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/adapter-timeout-frontier-lifecycle-hardening-0625/work/building-intake.json",
+        "project/brick-protocol/buildings/adapter-timeout-frontier-lifecycle-hardening-0625/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/adapter-timeout-frontier-lifecycle-hardening-0625/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/adapter-timeout-frontier-lifecycle-hardening-0625/work/preset-expansion.json",
+        "project/brick-protocol/buildings/adapter-timeout-frontier-lifecycle-hardening-0625/work/task.md",
+        "project/brick-protocol/status/inbox/brick-protocol-adapter-timeout-frontier-lifecycle-hardening-0625-brick-received-event-2026-06-25T02-44-34-713343-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-adapter-timeout-frontier-lifecycle-hardening-0625-building-started-event-2026-06-25T02-44-34-065069-00-00.json",
+        "support/checkers/lib/kernel_checks.py",
+        "support/recording/adapter_error_frontier.py"
+      ],
+      "after_path_count": 2207,
+      "before_git_refs": {
+        "branch": "struct-surgery-0623",
+        "head": "42c38bbcbe1fda9e2e39276681695efaec9cab35"
+      },
+      "before_git_status_paths": [
+        "project/brick-protocol/buildings/adapter-timeout-frontier-lifecycle-hardening-0625/declared-building-plan.json",
+        "project/brick-protocol/buildings/adapter-timeout-frontier-lifecycle-hardening-0625/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/adapter-timeout-frontier-lifecycle-hardening-0625/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/adapter-timeout-frontier-lifecycle-hardening-0625/work/building-intake.json",
+        "project/brick-protocol/buildings/adapter-timeout-frontier-lifecycle-hardening-0625/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/adapter-timeout-frontier-lifecycle-hardening-0625/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/adapter-timeout-frontier-lifecycle-hardening-0625/work/preset-expansion.json",
+        "project/brick-protocol/buildings/adapter-timeout-frontier-lifecycle-hardening-0625/work/task.md",
+        "project/brick-protocol/status/inbox/brick-protocol-adapter-timeout-frontier-lifecycle-hardening-0625-brick-received-event-2026-06-25T02-44-34-713343-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-adapter-timeout-frontier-lifecycle-hardening-0625-building-started-event-2026-06-25T02-44-34-065069-00-00.json"
+      ],
+      "before_path_count": 2207,
+      "git_refs_moved": {},
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [
+        "support/checkers/lib/kernel_checks.py",
+        "support/recording/adapter_error_frontier.py"
+      ],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/run.py",
+          "support/operator/walker_kernel.py",
+          "support/operator/walker_frontier.py",
+          "support/operator/driver.py",
+          "support/recording/adapter_error_frontier.py",
+          "support/recording/capture.py",
+          "support/connection/adapter_subprocess.py",
+          "support/connection/adapter_local_cli.py",
+          "support/connection/agent_adapter.py",
+          "support/checkers/check_profile.py",
+          "support/checkers/lib/case_runners.py",
+          "support/checkers/profiles/*.yaml",
+          "support/checkers/*.py",
+          "support/docs/references/*.md",
+          "project/brick-protocol/status/kernel/*.md"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "AGENTS.md",
+          "**/*token*",
+          "**/*secret*",
+          "**/*credential*"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:01:adapter-timeout-frontier-lifecycle-hardening-0625-work",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:adapter-timeout-frontier-lifecycle-hardening-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:adapter-timeout-frontier-lifecycle-hardening-0625-work:attempt-1",
+  "step_ref": "adapter-timeout-frontier-lifecycle-hardening-0625-work",
+  "subject": "adapter-timeout-frontier-lifecycle-hardening-0625-work",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T02:49:34.648055Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

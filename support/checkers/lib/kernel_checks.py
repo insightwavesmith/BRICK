@@ -5738,6 +5738,8 @@ def run_adapter_error_path_hardening(repo: Path) -> KernelResult:
             raise ProfileError("adapter_error_path_hardening did not reach codex adapter probe")
         if not (root / "work" / "declared-building-plan.json").is_file():
             raise ProfileError("adapter_error_path_hardening root lacks birth certificate")
+        _assert_adapter_error_frontier_report_root_admission(run_module, repo, output_root)
+        inspected += 8
         try:
             run_module.resume_building_plan(root, command_runner=failing_codex_runner)
         except ValueError as exc:
@@ -6004,10 +6006,317 @@ def run_adapter_error_path_hardening(repo: Path) -> KernelResult:
             "adapter-error hardening passed: birth certificate existed before first "
             "codex adapter probe, resume no longer birth-certificate-refuses the "
             "first-step adapter-error root, stop disposition paper-closed without "
-            "adapter invocation for flat and legacy reason-ref holds, codex --ephemeral "
-            "is env-gated, overwrite cleared stale claim_trace/raw manifest refs, and "
-            "F16/F16b/F19 mutation probes fired RED."
+            "adapter invocation for flat and legacy reason-ref holds, pre-frontier "
+            "report raw logs are admitted only for the same Building, codex "
+            "--ephemeral is env-gated, overwrite cleared stale claim_trace/raw "
+            "manifest refs, and F16/F16b/F19 mutation probes fired RED."
         ),
+    )
+
+
+def _assert_adapter_error_frontier_report_root_admission(
+    run_module: Any,
+    repo: Path,
+    output_root: Path,
+) -> None:
+    from support.recording import adapter_error_frontier
+
+    base_building_id = "adapter-error-hardening-report-root"
+    reroute_building_id = f"{base_building_id}-reroute1"
+    root = output_root / base_building_id
+    (root / "raw").mkdir(parents=True, exist_ok=True)
+    (root / "work").mkdir(parents=True, exist_ok=True)
+    (root / "declared-building-plan.json").write_text(
+        json.dumps({"building_id": base_building_id}, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    (root / "work" / "declared-building-plan.json").write_text(
+        json.dumps({"building_id": base_building_id}, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    (root / "raw" / "report-delivery.jsonl").write_text(
+        json.dumps(
+            {
+                "kind": "report_delivery_observation",
+                "schema_version": "report-delivery-0",
+                "building_id": base_building_id,
+                "report_id": f"report:{base_building_id}:building-started",
+                "source_truth": False,
+            },
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    thread_path = root / "raw" / "report-thread.jsonl"
+    _write_adapter_error_report_thread_probe(
+        thread_path,
+        report_id=(
+            f"brick-protocol-{base_building_id}-building-started-event-"
+            "2026-06-25T00-00-00-00-00"
+        ),
+    )
+    if not adapter_error_frontier._root_holds_only_declaration_chain_artifacts(
+        root,
+        building_id=base_building_id,
+    ):
+        raise ProfileError(
+            "adapter_error_path_hardening P0: declaration root with pre-frontier "
+            "live vessel report raw logs was rejected"
+        )
+
+    _write_adapter_error_report_thread_probe(
+        thread_path,
+        report_id=f"report:{base_building_id}:building-started",
+    )
+    if not adapter_error_frontier._root_holds_only_declaration_chain_artifacts(
+        root,
+        building_id=base_building_id,
+    ):
+        raise ProfileError(
+            "adapter_error_path_hardening P0: declaration root with exact "
+            "legacy report: report-thread row was rejected"
+        )
+
+    _write_adapter_error_report_thread_probe(
+        thread_path,
+        report_id="report:other-building:building-started",
+    )
+    if adapter_error_frontier._root_holds_only_declaration_chain_artifacts(
+        root,
+        building_id=base_building_id,
+    ):
+        raise ProfileError(
+            "adapter_error_path_hardening P0: wrong-building report-thread row "
+            "was admitted"
+        )
+
+    _write_adapter_error_report_thread_probe(
+        thread_path,
+        report_id=(
+            f"brick-protocol-{reroute_building_id}-building-started-event-"
+            "2026-06-25T00-00-00-00-00"
+        ),
+    )
+    if adapter_error_frontier._root_holds_only_declaration_chain_artifacts(
+        root,
+        building_id=base_building_id,
+    ):
+        raise ProfileError(
+            "adapter_error_path_hardening P0: prefix-related live vessel "
+            "report-thread row was admitted"
+        )
+
+    _write_adapter_error_report_thread_probe(
+        thread_path,
+        report_id=(
+            f"brick-protocol-rogue-prefix-{base_building_id}-building-started-event-"
+            "2026-06-25T00-00-00-00-00"
+        ),
+    )
+    if adapter_error_frontier._root_holds_only_declaration_chain_artifacts(
+        root,
+        building_id=base_building_id,
+    ):
+        raise ProfileError(
+            "adapter_error_path_hardening P0: suffix-collision live vessel "
+            "report-thread row was admitted"
+        )
+
+    embedded_marker_source_id = (
+        f"brick-protocol-{base_building_id}-gate-passed-event-evil"
+    )
+    embedded_marker_report_id = (
+        f"{embedded_marker_source_id}-building-started-event-"
+        "2026-06-25T00-00-00-00-00"
+    )
+    if (
+        adapter_error_frontier._report_id_source_id(embedded_marker_report_id)
+        != embedded_marker_source_id
+    ):
+        raise ProfileError(
+            "adapter_error_path_hardening P0: report id source parser did not "
+            "right-anchor on the trailing event suffix"
+        )
+    _write_adapter_error_report_thread_probe(
+        thread_path,
+        report_id=embedded_marker_report_id,
+    )
+    if adapter_error_frontier._root_holds_only_declaration_chain_artifacts(
+        root,
+        building_id=base_building_id,
+    ):
+        raise ProfileError(
+            "adapter_error_path_hardening P0: embedded event-marker foreign "
+            "report-thread row was admitted"
+        )
+
+    partial_id = "adapter-error-hardening-partial-root"
+    partial_root = output_root / partial_id
+    (partial_root / "raw").mkdir(parents=True, exist_ok=True)
+    (partial_root / "work").mkdir(parents=True, exist_ok=True)
+    (partial_root / "declared-building-plan.json").write_text(
+        json.dumps({"building_id": partial_id}, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    (partial_root / "work" / "declared-building-plan.json").write_text(
+        json.dumps({"building_id": partial_id}, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    (partial_root / "raw" / "partial-write.jsonl").write_text(
+        json.dumps(
+            {
+                "kind": "non_declaration_artifact",
+                "building_id": partial_id,
+                "source_truth": False,
+            },
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    if adapter_error_frontier._adapter_error_existing_root_state(
+        partial_root,
+        building_id=partial_id,
+    ) != "partial_write_risk":
+        raise ProfileError(
+            "adapter_error_path_hardening P0: non-declaration root was not "
+            "classified as partial_write_risk"
+        )
+    partial_result = _write_adapter_error_frontier_direct(
+        run_module,
+        repo=repo,
+        output_root=output_root,
+        building_id=partial_id,
+        overwrite_existing=True,
+    )
+    marker_path = partial_root / "adapter-error-frontier-partial-write-risk.json"
+    if partial_result.written_files != (marker_path,) or not marker_path.is_file():
+        raise ProfileError(
+            "adapter_error_path_hardening P0: partial-write-risk marker was not written"
+        )
+    if not (partial_root / "raw" / "partial-write.jsonl").is_file():
+        raise ProfileError(
+            "adapter_error_path_hardening P0: partial-write-risk artifact was clobbered"
+        )
+    marker = json.loads(marker_path.read_text(encoding="utf-8"))
+    if marker.get("frontier_kind") != "partial_write_risk":
+        raise ProfileError(
+            "adapter_error_path_hardening P0: partial-write-risk marker lacks "
+            "frontier_kind"
+        )
+
+    empty_id = "adapter-error-hardening-empty-root"
+    empty_root = output_root / empty_id
+    empty_root.mkdir(parents=True, exist_ok=True)
+    empty_result = _write_adapter_error_frontier_direct(
+        run_module,
+        repo=repo,
+        output_root=output_root,
+        building_id=empty_id,
+        overwrite_existing=False,
+    )
+    empty_marker_path = empty_root / "adapter-error-frontier-root-state.json"
+    if empty_result.written_files != (empty_marker_path,) or not empty_marker_path.is_file():
+        raise ProfileError(
+            "adapter_error_path_hardening P0: empty-root marker was not written"
+        )
+    empty_marker = json.loads(empty_marker_path.read_text(encoding="utf-8"))
+    if empty_marker.get("frontier_kind") != "root_exists_without_frontier":
+        raise ProfileError(
+            "adapter_error_path_hardening P0: empty-root marker lacks "
+            "root_exists_without_frontier"
+        )
+
+    file_id = "adapter-error-hardening-not-directory"
+    (output_root / file_id).write_text("not a directory\n", encoding="utf-8")
+    try:
+        _write_adapter_error_frontier_direct(
+            run_module,
+            repo=repo,
+            output_root=output_root,
+            building_id=file_id,
+            overwrite_existing=True,
+        )
+    except NotADirectoryError as exc:
+        if "existing_root_state=not_directory" not in str(exc):
+            raise ProfileError(
+                "adapter_error_path_hardening P0: not-directory error lacked "
+                "root-state evidence"
+            ) from exc
+    else:
+        raise ProfileError(
+            "adapter_error_path_hardening P0: not-directory root was not rejected"
+        )
+
+
+def _write_adapter_error_report_thread_probe(path: Path, *, report_id: str) -> None:
+    path.write_text(
+        json.dumps(
+            {
+                "kind": "report_slack_thread_parent_observation",
+                "report_id": report_id,
+                "source_truth": False,
+            },
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def _write_adapter_error_frontier_direct(
+    run_module: Any,
+    *,
+    repo: Path,
+    output_root: Path,
+    building_id: str,
+    overwrite_existing: bool,
+) -> Any:
+    from support.recording import adapter_error_frontier
+
+    plan = _adapter_error_hardening_graph_plan(
+        building_id,
+        first_adapter_ref="adapter:codex-local",
+    )
+    first_step = plan["brick_steps"][0]
+    link_row = plan["link_edges"][0]["rows"][0]
+    brick_row = next(row for row in first_step["rows"] if row.get("axis") == "Brick")
+    agent_row = next(row for row in first_step["rows"] if row.get("axis") == "Agent")
+    packet = {
+        "building_id": building_id,
+        "selected_adapter_ref": "adapter:codex-local",
+        "step_rows": {
+            "step_ref": first_step["step_ref"],
+            "rows": [brick_row, agent_row, link_row],
+        },
+    }
+    prepared = run_module.prepare_agent_run_from_step_rows(
+        packet,
+        proof_limits=("checker fixture support evidence only",),
+    )
+    adapter_request = run_module._adapter_request_from_prepared(
+        packet,
+        prepared,
+        project_ref=None,
+    )
+    return adapter_error_frontier.write_adapter_error_frontier_evidence(
+        building_id=building_id,
+        plan_ref=f"plan:{building_id}",
+        plan=plan,
+        completed_step_results=(),
+        failed_preparation=prepared,
+        adapter_request=adapter_request,
+        adapter_error={
+            "error_kind": "local_cli_timeout",
+            "exception_type": "TimeoutExpired",
+            "message_excerpt": "timeout",
+            "proof_limits": ("checker fixture support evidence only",),
+            "not_proven": ("complete adapter-error lifecycle frontier",),
+        },
+        output_root=output_root,
+        overwrite_existing=overwrite_existing,
+        proof_limits=("checker fixture support evidence only",),
     )
 
 

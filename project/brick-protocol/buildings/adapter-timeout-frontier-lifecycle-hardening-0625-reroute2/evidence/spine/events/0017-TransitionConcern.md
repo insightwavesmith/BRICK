@@ -1,0 +1,14 @@
+# TransitionConcern · seq 17 · ["Agent","Link"]
+- agent_object_ref: "agent-object:qa"
+- alias_fact_refs: ["transition-concern:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa:report-id-suffix-collision-residual"]
+- attempt_index: 1
+- axis_scope: ["Agent","Link"]
+- binding: false
+- event_type: "TransitionConcern"
+- run_segment: 1
+- sequence_index: 17
+- source_fact_ref: "transition-concern:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa:attempt-1"
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa-attempt-1/step-output.json"
+- step_ref: "adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa"
+- transition_concern_returned: {"binding":false,"concern_kind":"implementation_gap","concern_ref":"transition-concern:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa:report-id-suffix-collision-residual","not_proven":["dynamic RED/GREEN of this suffix-collision (could not execute the matcher or checker)","live reachability of a foreign report row whose building id ends with '-<expected>' inside this building's root","whether the documented vessel-prefix tradeoff is an acceptable closure of concern #1 (gate sufficiency call)"],"proof_limits":["support evidence only","static string-trace reproduction; python/checker execution denied in this worker","not source truth","not success judgment","not quality judgment","not Movement authority"],"reason_refs":["support/recording/adapter_error_frontier.py:672-673 vessel/legacy branch returns `source_id == expected or source_id.endswith(f'-{expected}')`; the endswith arm admits any building id of form X-<expected>, leaving concern #1's 'infix collisions rejected / same-building exact' only half-satisfied (prefix direction closed, suffix direction open).","support/recording/adapter_error_frontier.py:676-686 _report_id_source_id yields source_id='<project>-<other-building-id>' for a different building whose id ends with '-<expected>', which then endswith('-<expected>') -> FALSE ADMIT into this building's declaration-chain root.","support/recording/adapter_error_frontier.py:659 docstring documents 'other-<id> may match as a vessel prefix' — the false-admit is acknowledged/intended, so the gate must decide whether this satisfies concern #1.","support/checkers/lib/kernel_checks.py report-root admission cases cover only prefix-related (reroute1) and report:other-building forms; the suffix-collision direction is not exercised, so no checker would catch this."],"related_boundary_refs":["brick-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-work"]}

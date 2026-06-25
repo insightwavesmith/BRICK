@@ -1,0 +1,12 @@
+# AgentReceipt · seq 6 · ["Agent"]
+- agent_object_ref: "agent-object:dev"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-work"
+- event_type: "AgentReceipt"
+- evidence_reference: "raw:agent:01"
+- received_work_ref: "brick-work:01:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-work"
+- run_segment: 1
+- sequence_index: 6
+- source_fact_ref: "agent-fact:01:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-work"
+- spine_schema_version: "spine-v1"
+- step_ref: "adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-work"

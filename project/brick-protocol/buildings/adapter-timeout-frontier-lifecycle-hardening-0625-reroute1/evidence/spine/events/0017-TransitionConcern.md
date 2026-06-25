@@ -1,0 +1,14 @@
+# TransitionConcern · seq 17 · ["Agent","Link"]
+- agent_object_ref: "agent-object:qa"
+- alias_fact_refs: ["transition-concern:adapter-timeout-frontier-lifecycle-hardening-0625-reroute1-code-attack-qa:report-id-substring-collision-and-conditional-partial-write-preservation"]
+- attempt_index: 1
+- axis_scope: ["Agent","Link"]
+- binding: false
+- event_type: "TransitionConcern"
+- run_segment: 1
+- sequence_index: 17
+- source_fact_ref: "transition-concern:adapter-timeout-frontier-lifecycle-hardening-0625-reroute1-code-attack-qa:attempt-1"
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/adapter-timeout-frontier-lifecycle-hardening-0625-reroute1-code-attack-qa-attempt-1/step-output.json"
+- step_ref: "adapter-timeout-frontier-lifecycle-hardening-0625-reroute1-code-attack-qa"
+- transition_concern_returned: {"binding":false,"concern_kind":"implementation_gap","concern_ref":"transition-concern:adapter-timeout-frontier-lifecycle-hardening-0625-reroute1-code-attack-qa:report-id-substring-collision-and-conditional-partial-write-preservation","not_proven":["runtime RED/GREEN of the added checker","exact per-overwrite-mode reachability of each root state in live operator runs"],"proof_limits":["support evidence only","static code-reading reproduction; checker/python execution blocked in sandbox","not source truth","not success judgment","not quality judgment","not Movement authority"],"reason_refs":["support/recording/adapter_error_frontier.py:645 vessel/legacy report_id branch still uses prefix/substring match; reproduced FALSE ADMIT of reroute1 report_id against base building id (dash-prefix collision) using live raw/report-thread.jsonl values","support/recording/adapter_error_frontier.py:192-243 partial-write-risk preservation + marker fire only when not overwrite_existing; resume/overwrite path clobbers existing artifacts with no marker","support/recording/adapter_error_frontier.py:501-519 'root_exists_without_frontier' and 'not_directory' states produce no static marker and fall through to capture.py:506-510 FileExistsError with no frontier for an empty pre-existing root at overwrite_existing=False","support/checkers/lib/kernel_checks.py:6089-6108 substring-collision coverage exercises only the report: branch, leaving the live vessel-form collision branch unverified"],"related_boundary_refs":["brick-adapter-timeout-frontier-lifecycle-hardening-0625-reroute1-work"]}

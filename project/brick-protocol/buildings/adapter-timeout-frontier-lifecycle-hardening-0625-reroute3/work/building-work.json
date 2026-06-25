@@ -1,0 +1,60 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:adapter-timeout-frontier-lifecycle-hardening-0625-reroute3::work/building-work.json",
+  "building_id": "adapter-timeout-frontier-lifecycle-hardening-0625-reroute3",
+  "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-06-25T03:34:46Z",
+  "id": "urn:bp:building:adapter-timeout-frontier-lifecycle-hardening-0625-reroute3::work/building-work.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "plan_ref": "building-plan:adapter-timeout-frontier-lifecycle-hardening-0625-reroute3",
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-06-25T03:34:46Z",
+  "required_return_shape": "made_changes, observed_evidence, not_proven",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:adapter-timeout-frontier-lifecycle-hardening-0625-reroute3",
+  "source_facts": [
+    "task-source:inline-statement"
+  ],
+  "specversion": "1.0",
+  "step_refs": [
+    "adapter-timeout-frontier-lifecycle-hardening-0625-reroute3-work",
+    "adapter-timeout-frontier-lifecycle-hardening-0625-reroute3-code-attack-qa"
+  ],
+  "subject": "work/building-work.json",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T03:34:46Z",
+  "type": "bp.building_work",
+  "work_statement": "work Brick for task-source:inline-statement: P0 reroute3 after HOLD: close the remaining report-id suffix-collision in adapter-error frontier lifecycle hardening."
+}

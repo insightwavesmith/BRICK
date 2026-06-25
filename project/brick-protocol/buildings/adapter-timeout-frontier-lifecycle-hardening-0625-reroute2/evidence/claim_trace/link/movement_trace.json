@@ -1,0 +1,253 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2::evidence/claim_trace/link/movement_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:01:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-work",
+          "brick-comparison:01:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-work",
+          "sufficiency-fact-movement:01:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-work"
+        ],
+        "target_boundary_ref": "brick:brick-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa"
+      },
+      "fact_ref": "movement-fact:01:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:02:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa",
+          "brick-comparison:02:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa",
+          "sufficiency-fact-movement:02:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa"
+        ],
+        "target_boundary_ref": "brick:brick-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-closure",
+        "transition_lifecycle_carry_budget_evidence_ref": "evidence/claim_trace/link/carry_trace.json#carry-budget:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2:node:brick-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-work",
+        "transition_lifecycle_from_brick_ref": "brick-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa",
+        "transition_lifecycle_not_proven": [
+          "semantic correctness of the agent-proposed reroute",
+          "parallel runtime execution (P-walker-2 fan-in/fan-out out of scope here)",
+          "scheduler / queue / retry behavior",
+          "caller/COO disposition after a HOLD"
+        ],
+        "transition_lifecycle_paused_at_ref": "link-transition:reroute-hold-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-01-brick-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-work-src-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa-depth-0-attempt-0",
+        "transition_lifecycle_pending_target_ref": "brick-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-work",
+        "transition_lifecycle_progress_state": "in_progress",
+        "transition_lifecycle_proof_limits": [
+          "support evidence only",
+          "dynamic walker walks declared gate-adopted agent-proposed routes only",
+          "support authors no route or Movement",
+          "not source truth",
+          "not success judgment",
+          "not quality judgment",
+          "not Movement authority"
+        ],
+        "transition_lifecycle_reason_refs": [
+          "transition-concern:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa:report-id-suffix-collision-residual",
+          "observation:reroute-hold-reason-runtime_handoff_address_unresolved_in_ledger:support/recording/adapter_error_frontier.py:672-673 vessel/legacy branch returns `source_id == expected or source_id.endswith(f'-{expected}')`; the endswith arm admits any building id of form X-<expected>, leaving concern #1's 'infix collisions rejected / same-building exact' only half-satisfied (prefix direction closed, suffix direction open)."
+        ],
+        "transition_lifecycle_required_disposition_owner": "caller-or-coo",
+        "transition_lifecycle_state": "paused"
+      },
+      "fact_ref": "movement-fact:02:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:02"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-work-to-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-work",
+        "target_boundary_ref": "brick-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-work-to-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:01:edge-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-work-to-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa-to-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-closure",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa",
+        "target_boundary_ref": "brick-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-closure"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa-to-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-closure",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:02:edge-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-code-attack-qa-to-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-closure"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-closure-to-boundary",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-closure",
+        "target_boundary_ref": "building-boundary:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-closed"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-closure-to-boundary",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:03:edge-adapter-timeout-frontier-lifecycle-hardening-0625-reroute2-closure-to-boundary"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-25T03:24:54Z",
+  "id": "urn:bp:building:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2::evidence/claim_trace/link/movement_trace.json",
+  "recorded_at": "2026-06-25T03:24:54Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:adapter-timeout-frontier-lifecycle-hardening-0625-reroute2",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/movement_trace.json",
+  "time": "2026-06-25T03:24:54Z",
+  "type": "bp.claim_trace"
+}
