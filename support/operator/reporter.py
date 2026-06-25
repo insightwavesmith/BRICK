@@ -441,6 +441,11 @@ def render_building_event_report_packet(
         "current_brick_ref": projected_current_brick_ref,
         "current_work_kind": str(projected_facts.get("current_work_kind") or ""),
         "current_lane": str(projected_facts.get("current_lane") or ""),
+        "current_agent_object_ref": str(
+            projected_facts.get("current_agent_object_ref") or ""
+        ),
+        "current_adapter_ref": str(projected_facts.get("current_adapter_ref") or ""),
+        "current_model_ref": str(projected_facts.get("current_model_ref") or ""),
         "last_completed_step_ref": projected_last_completed_step_ref,
         "frontier_ref": _building_event_frontier_ref(
             repo,
@@ -809,8 +814,16 @@ def validate_report_packet(packet: Mapping[str, Any]) -> None:
                 "report packet project_ref must look like 'project:<id>' with a "
                 f"[-_a-z0-9] slug id when present, got {raw_project_ref!r}"
             )
-    for projected_field in ("current_work_kind", "current_lane"):
-        if not isinstance(packet.get(projected_field), str):
+    for projected_field in (
+        "current_work_kind",
+        "current_lane",
+        "current_agent_object_ref",
+        "current_adapter_ref",
+        "current_model_ref",
+    ):
+        if packet.get(projected_field) is not None and not isinstance(
+            packet.get(projected_field), str
+        ):
             raise ValueError(f"report packet {projected_field} must be a string")
     _required_text(packet.get("report_id"), "report_id")
     _require_list(packet.get("evidence_root_refs"), "evidence_root_refs")
@@ -1447,6 +1460,11 @@ def _building_report_packet(
         "current_brick_ref": current_brick_ref,
         "current_work_kind": str(projected_facts.get("current_work_kind") or ""),
         "current_lane": str(projected_facts.get("current_lane") or ""),
+        "current_agent_object_ref": str(
+            projected_facts.get("current_agent_object_ref") or ""
+        ),
+        "current_adapter_ref": str(projected_facts.get("current_adapter_ref") or ""),
+        "current_model_ref": str(projected_facts.get("current_model_ref") or ""),
         "last_completed_step_ref": last_completed_step_ref,
         "frontier_ref": f"{_rel(repo, root)}#frontier:{frontier_kind}",
         "evidence_root_refs": [_rel(repo, root)],
@@ -1616,6 +1634,9 @@ def _current_declared_projection(
         return {
             "current_work_kind": "",
             "current_lane": "",
+            "current_agent_object_ref": "",
+            "current_adapter_ref": "",
+            "current_model_ref": "",
             "not_proven": ["declared plan evidence for notification labels was not readable"],
         }
     work_brick_ref = _current_work_brick_ref(building_map, frontier_kind, current_brick_ref)
@@ -1627,6 +1648,9 @@ def _current_declared_projection(
         return {
             "current_work_kind": "",
             "current_lane": "",
+            "current_agent_object_ref": "",
+            "current_adapter_ref": "",
+            "current_model_ref": "",
             "not_proven": ["declared step for notification labels was not resolved"],
         }
     work_kind = _step_template_kind(str(step.get("step_template_ref") or ""))
@@ -1640,6 +1664,9 @@ def _current_declared_projection(
     return {
         "current_work_kind": work_kind,
         "current_lane": lane,
+        "current_agent_object_ref": agent_object_ref,
+        "current_adapter_ref": str(step.get("selected_adapter_ref") or "").strip(),
+        "current_model_ref": str(step.get("selected_model_ref") or "").strip(),
         "not_proven": not_proven,
     }
 

@@ -1483,8 +1483,27 @@ def _slack_completed_stage_label(
 
 
 def _slack_lane_label(packet: Mapping[str, Any]) -> str:
+    adapter_label = _slack_adapter_label(packet)
+    if adapter_label:
+        return adapter_label
     lane = str(packet.get("current_lane") or "").strip()
     return _label_value("lanes", lane) or lane or "담당자"
+
+
+def _slack_adapter_label(packet: Mapping[str, Any]) -> str:
+    adapter = str(packet.get("current_adapter_ref") or "").strip()
+    model = str(packet.get("current_model_ref") or "").strip()
+    raw = " ".join(value for value in (adapter, model) if value)
+    lowered = raw.lower()
+    if "codex-fugu" in lowered or "sakana" in lowered or "fugu" in lowered:
+        return "Fugu"
+    if "claude" in lowered:
+        return "Claude"
+    if "gemini" in lowered:
+        return "Gemini"
+    if "codex" in lowered:
+        return "Codex"
+    return ""
 
 
 def _slack_event_kind(packet: Mapping[str, Any]) -> str:
