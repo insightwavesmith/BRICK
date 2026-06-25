@@ -1,0 +1,51 @@
+{
+  "building_id": "p9-checker-profile-diet-design-0625",
+  "composition_mode": "caller_or_coo_declared_graph_composition",
+  "declaration_evidence_refs": [
+    "work/task.md",
+    "work/building-intake.json",
+    "work/preset-expansion.json",
+    "work/declared-building-plan.json",
+    "work/link-launch-policy.json"
+  ],
+  "declared_by": "coo-fugu-operator",
+  "kind": "building_intake_provenance",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "plan_ref": "building-plan:p9-checker-profile-diet-design-0625",
+  "plan_shape": "graph",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target"
+  ],
+  "selected_adapter_ref": "adapter:claude-local",
+  "selected_model_ref": "model:claude:inherit",
+  "selected_preset_ref": "building-chain-preset:research-report",
+  "selected_shape_ref": "",
+  "task_source_hash": "c893cf1350bd7d63c4cac240f01026ae673c87f85ca45f1436bb480ad77550fe",
+  "task_source_hash_algorithm": "sha256",
+  "task_source_hash_basis": "utf-8 inline task_statement body at materialization time",
+  "task_source_hash_state": "matched",
+  "task_source_ref": "task-source:inline-statement"
+}

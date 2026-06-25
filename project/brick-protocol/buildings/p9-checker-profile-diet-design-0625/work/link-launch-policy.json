@@ -1,0 +1,76 @@
+{
+  "building_id": "p9-checker-profile-diet-design-0625",
+  "declared_gate_refs": [
+    "link-gate:default-transition"
+  ],
+  "kind": "link_launch_policy_provenance",
+  "launch_rows": [
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:p9-checker-profile-diet-design-0625-plan-to-p9-checker-profile-diet-design-0625-review",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "p9-checker-profile-diet-design-0625-plan",
+      "target_ref": "brick-p9-checker-profile-diet-design-0625-review"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:p9-checker-profile-diet-design-0625-review-to-p9-checker-profile-diet-design-0625-closure",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "p9-checker-profile-diet-design-0625-review",
+      "target_ref": "brick-p9-checker-profile-diet-design-0625-closure"
+    },
+    {
+      "declared_gate_refs": [
+        "link-gate:default-transition"
+      ],
+      "edge_ref": "edge:p9-checker-profile-diet-design-0625-closure-to-boundary",
+      "movement": "forward",
+      "route_replay_plan": {},
+      "step_ref": "p9-checker-profile-diet-design-0625-closure",
+      "target_ref": "building-boundary:p9-checker-profile-diet-design-0625-closed"
+    }
+  ],
+  "max_attempts_by_boundary": {},
+  "node_reroute_budgets": {
+    "brick-p9-checker-profile-diet-design-0625-closure": 5,
+    "brick-p9-checker-profile-diet-design-0625-plan": 5,
+    "brick-p9-checker-profile-diet-design-0625-review": 5
+  },
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "plan_ref": "building-plan:p9-checker-profile-diet-design-0625",
+  "plan_shape": "graph",
+  "proof_limits": [
+    "support declaration provenance evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "P3 records launch parameters only; P4 owns Carry budget evidence"
+  ],
+  "selected_shape_ref": ""
+}

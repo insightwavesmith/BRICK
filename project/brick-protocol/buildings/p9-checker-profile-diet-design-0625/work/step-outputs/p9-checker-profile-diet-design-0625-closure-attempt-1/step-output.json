@@ -1,0 +1,191 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:p9-checker-profile-diet-design-0625::work/step-outputs/p9-checker-profile-diet-design-0625-closure-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-p9-checker-profile-diet-design-0625-closure",
+  "building_id": "p9-checker-profile-diet-design-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:03",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T08:54:51.009734Z",
+  "id": "urn:bp:building:p9-checker-profile-diet-design-0625::work/step-outputs/p9-checker-profile-diet-design-0625-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:03:p9-checker-profile-diet-design-0625-closure",
+  "recorded_at": "2026-06-25T08:54:51.009734Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:coo",
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:p9-checker-profile-diet-design-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "deferred_smith_review_queue": [
+      "Decide the target end-state profile count for the diet — the task source did not declare one, and the plan flagged it as missing_scope.",
+      "Decide which checkout is canonical (struct-surgery-0623 worktree at preset 28 vs /Users/smith/projects/BRICK at 27) before any diet Building edits profiles.",
+      "Decide whether the six-family classification (incl. customer-proof and reporter/dashboard families) should be completed as design before B1/B2 implementation, or folded into B4."
+    ],
+    "evidence_refs": [
+      "support-packet:p9-checker-profile-diet-design-0625:agent-object:coo:output"
+    ],
+    "narrowly_proven": [
+      "Analyses #3, #4, #5, #6 were delivered by the plan and independently re-grounded by the review against cited cwd-worktree source bodies: deterministic-vs-live separation, four-llm preset ownership (28-count / four-llm-standard-graph), 5 follow-on Buildings within the 3-5 range each carrying write_scope + stop_condition, and substantive not_proven/proof_limits.",
+      "The plan return is shape-complete (all 8 declared fields) and constraint-compliant (read-only, no --all execution, no success/quality/Movement claims, no forbidden return keys), per both the plan payload and the review's checks.",
+      "The registry-closure coupling (core.yaml path_allowlist + check_profile.py self-test) that limits write-scope disjointness was verified in source by the review, so the plan's 'B1/B2 cannot be fully disjoint' caveat is grounded.",
+      "The plan's tree-divergence disclosure (preset 27 vs 28) was confirmed accurate for the cwd worktree value (28) by the review."
+    ],
+    "next_target_candidates": [
+      "A small read-only design follow-on that delivers the explicit six-family bucket map (covering customer-proof and reporter/dashboard/product-projection families) pinned to a single canonical checkout.",
+      "Plan-proposed B1 split-mega-preset-profile and B2 separate-provider-runtime-smoke, sequenced (not parallel) because both touch core.yaml under the registry-closure invariant.",
+      "Plan-proposed B4 checker-profile-family-map-doc to record the taxonomy + ownership map as a reference.",
+      "Plan-proposed B3 trim-coo-chain-pin-estate and B5 live-provider-lane-design as later-stage candidates."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Whether the full six-family classification (admission, boundary, runtime smoke, fixture, customer proof, reporter/dashboard/product projection) exists in untruncated agent prose: the structured 'returned' and visible output_excerpt do not contain it, and the review reported raw/agent-return.jsonl was absent at the declared raw_stream_ref, so fuller prose could not be inspected.",
+      "Profile execution cost/timing and whether any profile makes a live network call — no profile was run (constraint); 'heavy' is structural inference from file size and folded-profile count, not measured runtime; network-free behavior is inferred from docstrings, not execution.",
+      "Semantic adequacy and future correctness of the proposed B1-B5 write scopes and stop conditions — future Building correctness is not observable now.",
+      "The divergent /Users/smith/projects/BRICK tree (preset count 27) was not re-inspected; only the cwd worktree (struct-surgery-0623, count 28) values were confirmed.",
+      "brain surface behavior, credential validity, tool or hook execution, runtime or scheduler behavior, quality of returned work.",
+      "Source truth, success, quality, and Movement are not judged in this closure.",
+      "The DECLARED skill manifest offered to these agents does not prove which skills were actually fetched."
+    ],
+    "observed_evidence": [
+      "Two prior step-outputs were carried into this closure: the 'plan' Brick (agent-object:pm-lead, brick-p9-checker-profile-diet-design-0625-plan) and the 'review' Brick (agent-object:qa-lead, brick-p9-checker-profile-diet-design-0625-review), both read from work/step-outputs/.../step-output.json.",
+      "Task source (task-source:inline-statement) required 6 analyses: (1) classify profiles into six named families, (2) name heavy/duplicative profiles + why, (3) separate deterministic fixture vs live-provider checks (gemini-api vs gemini-local), (4) state which profile owns four-llm preset completion, (5) propose 3-5 follow-on Buildings with write scopes + stop conditions, (6) state not_proven + proof limits; constraints: no file edits, no broad --all, support evidence only.",
+      "The plan returned a flat 24-profile inventory plus a deterministic-vs-live + four-llm-ownership narrative, listed B1-B5 follow-on Buildings each with write_scope + stop_condition, and surfaced a registry-closure coupling (core.yaml path_allowlist enumerates all profile files) and a tree divergence (cwd worktree preset_count 28 with four-llm-standard-graph vs /Users/smith/projects/BRICK at 27).",
+      "The review (qa-lead) verified against the cwd worktree: 24 profiles on disk match the listed names; expected_preset_count 28 with four-llm-standard-graph present in building_skill_preset_agent_tool_hardening.yaml; core.yaml path_allowlist enumerates all 24 profile files; check_profile.py enforces a registry-closure self-test; agent_axis_behavioral.yaml shows gemini_api_adapter is deterministic/in-process. All 8 plan required_return_shape fields present; no forbidden keys; boundary_violations empty; transition_concern_evidence null.",
+      "The review recorded three honest deviations: analysis #1 was not delivered as an explicit six-family bucket map (taxonomy deferred to proposed Building B4; 'customer proof' and 'reporter/dashboard/product projection' families not addressed in the structured return); analysis #2 heaviness appears indirectly inside B1/B3 and missing_scope rather than as a dedicated enumeration; the requested 'disjoint write scopes' are only partial because B1 and B2 both touch support/checkers/profiles/core.yaml."
+    ],
+    "output_excerpt": "I have the carried evidence from both prior Bricks (plan/pm-lead and review/qa-lead). Here is the closure synthesis. ```json { \"observed_evidence\": [ \"Two prior step-outputs were carried into this closure: the 'plan' Brick (agent-object:pm-lead, brick-p9-checker-profile-diet-design-0625-plan) and the 'review' Brick (agent-object:qa-lead, brick-p9-checker-profile-diet-design-0625-review), both read from work/step-outputs/.../step-output.json.\", \"Task source (task-source:inline-statement) required 6 analyses: (1) classify profiles into six named families, (2) name heavy/duplicative profiles +...",
+    "parent_goal_delta_status": {
+      "closed_delta_refs": [
+        "task-analysis:3-deterministic-vs-live",
+        "task-analysis:4-four-llm-ownership",
+        "task-analysis:5-followon-buildings-B1-B5",
+        "task-analysis:6-not-proven-proof-limits"
+      ],
+      "evidence_refs": [
+        "work/step-outputs/p9-checker-profile-diet-design-0625-plan-attempt-1/step-output.json",
+        "work/step-outputs/p9-checker-profile-diet-design-0625-review-attempt-1/step-output.json",
+        "task-source:inline-statement"
+      ],
+      "matched_delta_refs": [
+        "task-analysis:3-deterministic-vs-live",
+        "task-analysis:4-four-llm-ownership",
+        "task-analysis:5-followon-buildings-B1-B5",
+        "task-analysis:6-not-proven-proof-limits",
+        "task-analysis:2-heavy-profiles-indirect"
+      ],
+      "missing_delta_refs": [
+        "task-family:customer-proof-not-addressed",
+        "task-family:reporter-dashboard-product-projection-not-addressed"
+      ],
+      "open_delta_refs": [
+        "task-analysis:1-six-family-classification-partial",
+        "task-constraint:disjoint-write-scopes-B1-B2-share-core.yaml",
+        "task-analysis:2-heavy-profiles-no-dedicated-enumeration"
+      ],
+      "unknown_delta_refs": [
+        "untruncated-agent-prose:six-family-table-presence",
+        "canonical-tree:projects-BRICK-preset-27-not-reinspected"
+      ]
+    },
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "remaining_delta": [
+      "Deliver the explicit six-family bucket map now (not deferred to B4), including the unaddressed 'customer proof' and 'reporter/dashboard/product projection' families, so task-source analysis #1 is fully met rather than partially.",
+      "Re-pin all quantitative anchors (24 profiles, preset_count, kernel_check ids) on ONE canonical checkout to remove the 27-vs-28 tree divergence before any diet Building runs.",
+      "Resolve the partial-disjointness of write scopes: because B1 and B2 share support/checkers/profiles/core.yaml (path_allowlist) under the registry-closure invariant, a sequential/portfolio ordering or a single combined Building scope is the candidate path rather than parallel isolation.",
+      "If real provider/timing weight is ever needed, design a separate live-provider lane outside profiles/ (plan's B5) so the --all suite stays deterministic; live execution remains explicitly not_proven."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": {
+      "binding": false,
+      "concern_kind": "design_gap",
+      "concern_ref": "transition-concern:p9-checker-profile-diet-design-0625-closure:six-family-classification-partial",
+      "not_proven": [
+        "Whether untruncated agent prose contained the full six-family table (raw stream absent at declared raw_stream_ref)",
+        "Quality, success, sufficiency, and Movement — not judged here"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "non-binding Agent observation",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "reason_refs": [
+        "task-source:inline-statement requires analysis #1 to classify profiles into six named families (admission, boundary, runtime smoke, fixture, customer proof, reporter/dashboard/product projection)",
+        "work/step-outputs/p9-checker-profile-diet-design-0625-plan-attempt-1/step-output.json returned a flat 24-profile list and deferred the family taxonomy to proposed Building B4; customer-proof and reporter/dashboard/product-projection families are not addressed in the structured return",
+        "work/step-outputs/p9-checker-profile-diet-design-0625-review-attempt-1/step-output.json missing_or_mismatched_facts reproduced this partial delivery against the declared task requirement"
+      ],
+      "related_boundary_refs": [
+        "brick:p9-checker-profile-diet-design-0625-plan"
+      ]
+    }
+  },
+  "returned_fact_ref": "agent-fact:03:p9-checker-profile-diet-design-0625-closure",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:p9-checker-profile-diet-design-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:p9-checker-profile-diet-design-0625-closure:attempt-1",
+  "step_ref": "p9-checker-profile-diet-design-0625-closure",
+  "subject": "p9-checker-profile-diet-design-0625-closure",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T08:54:51.009734Z",
+  "transition_concern_ref": "work/step-outputs/p9-checker-profile-diet-design-0625-closure-attempt-1/transition-concern.json",
+  "type": "bp.step_output"
+}

@@ -1,0 +1,90 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:p9-checker-profile-diet-design-0625::work/step-outputs/p9-checker-profile-diet-design-0625-closure-attempt-1/transition-concern.json",
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "binding": false,
+  "building_id": "p9-checker-profile-diet-design-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-06-25T08:54:51.009734Z",
+  "id": "urn:bp:building:p9-checker-profile-diet-design-0625::work/step-outputs/p9-checker-profile-diet-design-0625-closure-attempt-1/transition-concern.json",
+  "link_role": "non-binding Agent transition concern evidence only",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "transition concern semantic correctness",
+    "Link disposition correctness",
+    "automatic repair/replay execution"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "transition_concern_evidence is Agent returned evidence only",
+    "not Link Movement",
+    "not Link target choice",
+    "not route policy matching",
+    "not route materialization",
+    "not automatic repair/replay execution",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-06-25T08:54:51.009734Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:p9-checker-profile-diet-design-0625",
+  "specversion": "1.0",
+  "step_output_ref": "work/step-outputs/p9-checker-profile-diet-design-0625-closure-attempt-1/step-output.json",
+  "step_ref": "p9-checker-profile-diet-design-0625-closure",
+  "subject": "p9-checker-profile-diet-design-0625-closure",
+  "time": "2026-06-25T08:54:51.009734Z",
+  "transition_boundary": "Agent concern only; Link may adopt, not adopt, or override",
+  "transition_concern_ref": "transition-concern:p9-checker-profile-diet-design-0625-closure:attempt-1",
+  "transition_concern_returned": {
+    "binding": false,
+    "concern_kind": "design_gap",
+    "concern_ref": "transition-concern:p9-checker-profile-diet-design-0625-closure:six-family-classification-partial",
+    "not_proven": [
+      "Whether untruncated agent prose contained the full six-family table (raw stream absent at declared raw_stream_ref)",
+      "Quality, success, sufficiency, and Movement — not judged here"
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "non-binding Agent observation",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "reason_refs": [
+      "task-source:inline-statement requires analysis #1 to classify profiles into six named families (admission, boundary, runtime smoke, fixture, customer proof, reporter/dashboard/product projection)",
+      "work/step-outputs/p9-checker-profile-diet-design-0625-plan-attempt-1/step-output.json returned a flat 24-profile list and deferred the family taxonomy to proposed Building B4; customer-proof and reporter/dashboard/product-projection families are not addressed in the structured return",
+      "work/step-outputs/p9-checker-profile-diet-design-0625-review-attempt-1/step-output.json missing_or_mismatched_facts reproduced this partial delivery against the declared task requirement"
+    ],
+    "related_boundary_refs": [
+      "brick:p9-checker-profile-diet-design-0625-plan"
+    ]
+  },
+  "type": "bp.step_output.transition_concern"
+}

@@ -1,0 +1,184 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:p9-checker-profile-diet-design-0625::work/step-outputs/p9-checker-profile-diet-design-0625-plan-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:pm-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-p9-checker-profile-diet-design-0625-plan",
+  "building_id": "p9-checker-profile-diet-design-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T08:51:08.729385Z",
+  "id": "urn:bp:building:p9-checker-profile-diet-design-0625::work/step-outputs/p9-checker-profile-diet-design-0625-plan-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:p9-checker-profile-diet-design-0625-plan",
+  "recorded_at": "2026-06-25T08:51:08.729385Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:pm-lead",
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:p9-checker-profile-diet-design-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "constraints": [
+      "Do not modify files; do not run broad --all (task source constraint).",
+      "Registry-closure coupling: check_profile.py asserts every profile kernel_checks id is in KERNEL_DISPATCH, every rule key is in RULE_RUNNERS, and core.yaml path_allowlist enumerates EVERY profile file. Any new profile file must be added to core.yaml path_allowlist AND pass self-test closure, so profile-splitting Buildings cannot have fully parallel write scopes over support/checkers/profiles/** + core.yaml — they share core.yaml.",
+      "--all globs every profiles/*.yaml, so a 'live provider' profile cannot sit in profiles/ without being pulled into the deterministic suite.",
+      "Observed-divergence: deep file bodies (check_profile.py, core.yaml, several profiles) were read from /Users/smith/projects/BRICK while cwd is /Users/smith/.brick/worktrees/struct-surgery-0623; the two trees differ (preset count 27 vs 28). Diet Buildings must pin to one canonical checkout."
+    ],
+    "evidence_refs": [
+      "support-packet:p9-checker-profile-diet-design-0625:agent-object:pm-lead:output"
+    ],
+    "missing_scope": [
+      "Per-line cost/runtime weight of each profile is not measured (no execution allowed); 'heavy' is inferred from file size and folded-profile count, not timing.",
+      "case_runners.py and kernel_checks.py were inspected only via the KERNEL_DISPATCH map and grep, not line-by-line; exact per-case fixture counts are not enumerated.",
+      "Whether any profile actually performs a NETWORK call was not proven by execution; it is inferred from docstrings stating mocks/in-process only.",
+      "The intended target end-state profile count for the diet is not declared by the task source."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Profile execution cost/timing — no profile was run (constraint); 'heavy' is structural inference, not measured runtime.",
+      "That no profile makes a live network call — inferred from docstrings (mocks/in-process), not from execution.",
+      "Disjointness of B1/B2 write scopes is only partial: both must touch support/checkers/profiles/core.yaml (path_allowlist) and share the registry-closure invariant, so true parallel isolation is not proven — sequential (portfolio) ordering is the safer shape.",
+      "Tree divergence between /Users/smith/projects/BRICK and the cwd worktree (preset count 27 vs 28) means some deep bodies were read from a non-cwd tree; classification holds structurally but exact line counts/ids should be re-pinned on the canonical checkout.",
+      "Source truth, success, quality, and Movement are not judged here.",
+      "Per profile, the DECLARED skill manifest offered to this agent does not prove which skills were actually fetched."
+    ],
+    "objective_summary": "Produce a read-only diet design for the checker/profile surface after P5/P7: classify all 24 support/checkers/profiles/*.yaml by function, name the heavy/duplicative bundles and why, separate deterministic fixture checks from any live-provider checks (gemini-api vs gemini-local), state which profile owns four-llm preset completion, and propose 3-5 disjoint-scope follow-on Buildings. No files are edited; output is support evidence only.",
+    "observed_evidence": [
+      "24 profiles: core, building_automation, coo_operating_chain, tier_a_three_axis_conformance, building_skill_preset_agent_tool_hardening, assembly_equivalence, adapter_usage_meter, agent_axis_behavioral, read_side_projection_boundary, cli_runner_stdin_devnull, report_env_autoload, driver_public_intake_seal, link_routing_behavioral, structure_template_integrity, charter_injection, native_dispatch_brick_backstop, brick_cli_entrypoint, building_operator_driver0, bounded_agent_proposed_routing_loop, return_field_merge_set_parity, chained_carry_dependency, gate_registry_single_source, agent_object_schema_single_source, mcp_dispatch_wire.",
+      "Every provider-adjacent kernel check inspected is DETERMINISTIC: gemini_api_adapter mocks the v1beta request and asserts a no-key clean typed error with NO child process / NO live key (agent_axis_behavioral); gemini-local read-tier is probed via agent_adapter_return_shape (in-process, read-only browse); provider_preflight returns a status dict in-process; design_ai_text_seams uses mock command_runners; codex_connect_stall_classification uses mock fixtures (no 20-min wait). No profile in --all is observed to make a live network/provider call. Live 4-provider execution is declared not_proven in the four-llm preset's own proof_limits.",
+      "preset_building_completion_case in building_skill_preset_agent_tool_hardening.yaml OWNS four-llm preset completion: in the worktree expected_preset_count is 28 and the list includes building-chain-preset:four-llm-standard-graph (in the divergent /Users/smith/projects/BRICK tree it is 27 and four-llm is absent). The four-llm preset declares adapters codex-local (sole write root), claude-local, adapter:gemini-api, codex-fugu-local. gemini-api ADMISSION (deterministic) is owned by agent_axis_behavioral.yaml (gemini_api_adapter). Profiles that should NOT own four-llm completion: the runtime/live-smoke profiles must not attempt real 4-provider execution — that stays out of --all and is not_proven."
+    ],
+    "output_excerpt": "Based on read-only inspection of the inspected checkout (cwd worktree `struct-surgery-0623`, 24 profiles) plus deeper file bodies, here is the `plan` Brick return. ```json { \"objective_summary\": \"Produce a read-only diet design for the checker/profile surface after P5/P7: classify all 24 support/checkers/profiles/*.yaml by function, name the heavy/duplicative bundles and why, separate deterministic fixture checks from any live-provider checks (gemini-api vs gemini-local), state which profile owns four-llm preset completion, and propose 3-5 disjoint-scope follow-on Buildings. No files are ed...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "proposed_next_work_boundaries": [
+      {
+        "building": "B1 split-mega-preset-profile",
+        "intent": "Split building_skill_preset_agent_tool_hardening.yaml so the large materialize_building_intent_case + preset_building_completion_case FIXTURE corpus lives in its own profile, leaving the role/tool/hook BOUNDARY pins behind.",
+        "stop_condition": "check_profile.py --self-test green (registry closure) and --all green; no kernel_check id or RULE_RUNNER added/removed; every prior assertion still present across the two files.",
+        "write_scope": [
+          "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml",
+          "support/checkers/profiles/<new>_preset_materialize_fixtures.yaml",
+          "support/checkers/profiles/core.yaml (path_allowlist registration only)"
+        ]
+      },
+      {
+        "building": "B2 separate-provider-runtime-smoke",
+        "intent": "Re-separate provider-touching deterministic runtime smoke (provider_preflight, gemini_api_adapter, design_ai_text_seams, codex_connect_stall_classification, mcp_stdio_smoke, connect_config_launch, projection_native) out of the PASS-2 folds into a dedicated deterministic runtime-smoke profile, keeping pure AST/structural guards separate.",
+        "stop_condition": "--all green; each moved kernel_check appears in exactly one profile; core.yaml path_allowlist updated; coordinate core.yaml edit ordering with B1 (shared file).",
+        "write_scope": [
+          "support/checkers/profiles/agent_axis_behavioral.yaml",
+          "support/checkers/profiles/read_side_projection_boundary.yaml",
+          "support/checkers/profiles/<new>_provider_runtime_smoke.yaml"
+        ]
+      },
+      {
+        "building": "B3 trim-coo-chain-pin-estate",
+        "intent": "Convert brittle decorative text_contains string pins in coo_operating_chain.yaml into executed behavioral cases or move them under pin_estate_baseline with a dated disposition, reducing doc-drift weight.",
+        "stop_condition": "pin_estate_integrity kernel check green; --all green; no behavioral coverage dropped without a recorded baseline entry.",
+        "write_scope": [
+          "support/checkers/profiles/coo_operating_chain.yaml",
+          "support/checkers/pin_estate_baseline.yaml"
+        ]
+      },
+      {
+        "building": "B4 checker-profile-family-map-doc",
+        "intent": "Write a read-only reference doc capturing the family taxonomy + ownership map (four-llm completion, gemini admission, deterministic-vs-live boundary) so future profile authors do not re-fold.",
+        "stop_condition": "doc lands and references real profile ids; no profile/checker code change; structure_template_integrity/pin checks unaffected.",
+        "write_scope": [
+          "support/docs/references/checker-profile-map.md (or architecture-map.md section)"
+        ]
+      },
+      {
+        "building": "B5 live-provider-lane-design (optional)",
+        "intent": "Design a SEPARATE live-provider lane (outside profiles/ so --all never pulls it) for any future real gemini-api/gemini-local or 4-LLM execution proof, keeping the --all suite fully deterministic.",
+        "stop_condition": "lane is declared and excluded from the --all glob; --all stays deterministic and green; live execution remains explicitly not_proven.",
+        "write_scope": [
+          "support/checkers/<new live-lane dir>/**",
+          "support/docs/references/** (lane doc)"
+        ]
+      }
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "scope_boundaries": {
+      "in_scope": [
+        "Functional classification of the 24 profiles in the worktree",
+        "Identifying the heaviest/most-folded profiles as diet candidates",
+        "Deterministic-fixture vs live-provider separation observation",
+        "Ownership map for four-llm preset completion + gemini admission",
+        "Proposing follow-on Buildings with write scopes + stop conditions"
+      ],
+      "out_of_scope": [
+        "Editing any profile, checker, or preset file (read-only design)",
+        "Running `--all` or any profile/self-test execution",
+        "Deciding Link Movement, success, quality, or source truth",
+        "Re-architecting the kernel check registry itself"
+      ]
+    },
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:01:p9-checker-profile-diet-design-0625-plan",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:p9-checker-profile-diet-design-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:p9-checker-profile-diet-design-0625-plan:attempt-1",
+  "step_ref": "p9-checker-profile-diet-design-0625-plan",
+  "subject": "p9-checker-profile-diet-design-0625-plan",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T08:51:08.729385Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

@@ -1,0 +1,12 @@
+# BrickInput · seq 13 · ["Brick"]
+- axis_scope: ["Brick"]
+- brick_instance_ref: "brick-p9-checker-profile-diet-design-0625-review"
+- comparison_rule: "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickInput"
+- required_return_shape: "observed_evidence,checked_work,checked_sources,observed_matches,missing_or_mismatched_facts,boundary_violations,evidence_used,transition_concern_evidence,narrowly_proven,not_proven"
+- run_segment: 1
+- sequence_index: 13
+- source_facts: ["task-source:inline-statement"]
+- spine_schema_version: "spine-v1"
+- step_ref: "p9-checker-profile-diet-design-0625-review"
+- work_statement: "review Brick for task-source:inline-statement: # P9 checker/profile diet design"
