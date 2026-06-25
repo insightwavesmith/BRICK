@@ -742,7 +742,7 @@ def _invoke_local_cli(
             run_cwd = cwd if read_tier else temp_root
             run_env = None
             approval_mode = "plan"
-            model_arg = _model_cli_arg(request, spec) or "gemini-2.5-flash"
+            model_arg = _model_cli_arg(request, spec) or "gemini-3.5-flash"
             if native_tool_tier:
                 run_env = dict(os.environ)
                 if not _gemini_api_key_env_present(run_env):

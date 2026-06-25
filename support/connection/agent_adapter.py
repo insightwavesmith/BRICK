@@ -707,7 +707,7 @@ _GEMINI_API_SPEC = LocalCliSpec(
 #   body    {"contents":[{"parts":[{"text": <prompt>}]}]}
 #   text    candidates[0].content.parts[0].text
 _GEMINI_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
-_GEMINI_API_MODEL_FALLBACK = "gemini-2.5-flash"
+_GEMINI_API_MODEL_FALLBACK = "gemini-3.5-flash"
 # Env var names checked in order (decision 1): GEMINI_API_KEY then GOOGLE_API_KEY.
 _GEMINI_API_KEY_ENV_VARS = ("GEMINI_API_KEY", "GOOGLE_API_KEY")
 

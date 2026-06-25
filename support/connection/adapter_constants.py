@@ -51,7 +51,7 @@ MODEL_REF_DEFAULT = "model:default"
 MODEL_REF_CODEX_DEFAULT = "model:codex:default"
 MODEL_REF_CLAUDE_INHERIT = "model:claude:inherit"
 MODEL_REF_GEMINI_DEFAULT = "model:gemini:default"
-MODEL_REF_GEMINI_FLASH = "model:gemini:gemini-2.5-flash"
+MODEL_REF_GEMINI_FLASH = "model:gemini:gemini-3.5-flash"
 MODEL_REF_GEMINI_LOCAL_FLASH = "model:gemini:gemini-3.5-flash"
 # Sakana model refs reachable through the codex-fugu-local adapter. The provider
 # token is "sakana" (matches codex's model_provider="sakana" routing); the model

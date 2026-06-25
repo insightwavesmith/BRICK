@@ -264,7 +264,7 @@ def _invoke_gemini_api(
 def invoke_gemini_text(
     prompt: str,
     *,
-    model_name: str = "gemini-2.5-flash",
+    model_name: str = "gemini-3.5-flash",
     timeout_seconds: int = 90,
     urlopen: Callable[..., bytes] | None = None,
 ) -> str:

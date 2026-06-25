@@ -3516,7 +3516,7 @@ def run_gemini_api_adapter(repo: Path) -> KernelResult:
 
     expected_url = (
         "https://generativelanguage.googleapis.com/v1beta/models/"
-        "gemini-2.5-flash:generateContent"
+        "gemini-3.5-flash:generateContent"
     )
     if captured.get("url") != expected_url:
         raise ProfileError(
@@ -3547,7 +3547,7 @@ def run_gemini_api_adapter(repo: Path) -> KernelResult:
         raise ProfileError("gemini_api_adapter: returned adapter_ref drifted")
     if returned.get("output_excerpt") != "PROBE gemini evidence":
         raise ProfileError("gemini_api_adapter: mocked response text not parsed into returned shape")
-    if returned.get("api_model_name") != "gemini-2.5-flash":
+    if returned.get("api_model_name") != "gemini-3.5-flash":
         raise ProfileError("gemini_api_adapter: resolved api_model_name drifted")
     # CLI-mirror shape: same engine-facing keys the CLI path returns.
     for key in ("returned_summary", "adapter_ref", "brain_surface_ref", "evidence_refs",
@@ -3557,7 +3557,7 @@ def run_gemini_api_adapter(repo: Path) -> KernelResult:
     inspected += 1
 
     # (d) HTTP-error / timeout / malformed -> clean ValueError (no crash).
-    request_obj = adapter_gemini_http._build_gemini_api_request(fake_key, "gemini-2.5-flash", "p")
+    request_obj = adapter_gemini_http._build_gemini_api_request(fake_key, "gemini-3.5-flash", "p")
 
     import urllib.error as _urllib_error
     import socket as _socket
