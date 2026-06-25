@@ -699,6 +699,9 @@ def _invoke_local_cli(
             "--tools",
             knobs["tools"],
         ]
+        allowed_tools = knobs.get("allowed_tools", "")
+        if allowed_tools:
+            args_list.extend(["--allowedTools", allowed_tools])
         # ISOLATION levers + MCP wire: attach ONLY the brick-protocol MCP, suppress the
         # user's ~/.claude MCP servers, turn user hooks off, and drop the user setting
         # source (personal skills/settings). Only when isolation is on.
@@ -878,6 +881,7 @@ def _claude_cli_invocation(request: AgentAdapterRequest) -> dict[str, str]:
             return {
                 "permission_mode": "acceptEdits",
                 "tools": tools,
+                "allowed_tools": tools,
                 "system_prompt": _CLAUDE_SCOPED_WRITE_SYSTEM_PROMPT,
             }
     if agent_request_read_tier(request):
@@ -891,11 +895,13 @@ def _claude_cli_invocation(request: AgentAdapterRequest) -> dict[str, str]:
         return {
             "permission_mode": "acceptEdits",
             "tools": ",".join(mapping["tools"]),
+            "allowed_tools": ",".join(mapping["tools"]),
             "system_prompt": _CLAUDE_READ_ONLY_SYSTEM_PROMPT,
         }
     return {
         "permission_mode": "plan",
         "tools": "",
+        "allowed_tools": "",
         "system_prompt": _CLAUDE_NONINTERACTIVE_SYSTEM_PROMPT,
     }
 

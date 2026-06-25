@@ -1,0 +1,91 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:qa-execution-permission-hardening-0625::work/step-outputs/qa-execution-permission-hardening-0625-code-attack-qa-attempt-1/transition-concern.json",
+  "agent_object_ref": "agent-object:qa",
+  "attempt_index": 1,
+  "binding": false,
+  "building_id": "qa-execution-permission-hardening-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-06-25T05:13:39.498571Z",
+  "id": "urn:bp:building:qa-execution-permission-hardening-0625::work/step-outputs/qa-execution-permission-hardening-0625-code-attack-qa-attempt-1/transition-concern.json",
+  "link_role": "non-binding Agent transition concern evidence only",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "transition concern semantic correctness",
+    "Link disposition correctness",
+    "automatic repair/replay execution"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "transition_concern_evidence is Agent returned evidence only",
+    "not Link Movement",
+    "not Link target choice",
+    "not route policy matching",
+    "not route materialization",
+    "not automatic repair/replay execution",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-06-25T05:13:39.498571Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:qa-execution-permission-hardening-0625",
+  "specversion": "1.0",
+  "step_output_ref": "work/step-outputs/qa-execution-permission-hardening-0625-code-attack-qa-attempt-1/step-output.json",
+  "step_ref": "qa-execution-permission-hardening-0625-code-attack-qa",
+  "subject": "qa-execution-permission-hardening-0625-code-attack-qa",
+  "time": "2026-06-25T05:13:39.498571Z",
+  "transition_boundary": "Agent concern only; Link may adopt, not adopt, or override",
+  "transition_concern_ref": "transition-concern:qa-execution-permission-hardening-0625-code-attack-qa:attempt-1",
+  "transition_concern_returned": {
+    "binding": false,
+    "concern_kind": "verification_gap",
+    "concern_ref": "transition-concern:qa-execution-permission-hardening-0625-code-attack-qa:live-execution-unproven",
+    "not_proven": [
+      "that the fix does or does not resolve the live approval gate",
+      "provider approval-plane behavior under --allowedTools ...,Bash"
+    ],
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "reason_refs": [
+      "delivered checker (support/checkers/lib/kernel_checks.py:1149-1191) asserts claude argv SHAPE only (--allowedTools present, Bash listed); it does not and cannot prove live provider approval behavior",
+      "live: the building's target verb support/checkers/check_profile.py --profile agent_axis_behavioral returned 'requires approval' inside this claude-local write-effective QA step; python/uv execution remained gated",
+      "could not inspect launch argv (ps and $PPID expansion approval-gated), so 'fix not deployed to this session' vs 'fix insufficient' is undetermined",
+      "constraint is provider/runtime/live-not-run, not an upstream implementation defect; recorded as a non-reroute verification gap"
+    ],
+    "related_boundary_refs": [
+      "building-boundary:qa-execution-permission-hardening-0625"
+    ]
+  },
+  "type": "bp.step_output.transition_concern"
+}

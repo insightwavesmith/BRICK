@@ -1,0 +1,14 @@
+# TransitionConcern · seq 17 · ["Agent","Link"]
+- agent_object_ref: "agent-object:qa"
+- alias_fact_refs: ["transition-concern:qa-execution-permission-hardening-0625-code-attack-qa:live-execution-unproven"]
+- attempt_index: 1
+- axis_scope: ["Agent","Link"]
+- binding: false
+- event_type: "TransitionConcern"
+- run_segment: 1
+- sequence_index: 17
+- source_fact_ref: "transition-concern:qa-execution-permission-hardening-0625-code-attack-qa:attempt-1"
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/qa-execution-permission-hardening-0625-code-attack-qa-attempt-1/step-output.json"
+- step_ref: "qa-execution-permission-hardening-0625-code-attack-qa"
+- transition_concern_returned: {"binding":false,"concern_kind":"verification_gap","concern_ref":"transition-concern:qa-execution-permission-hardening-0625-code-attack-qa:live-execution-unproven","not_proven":["that the fix does or does not resolve the live approval gate","provider approval-plane behavior under --allowedTools ...,Bash"],"proof_limits":["support evidence only","not source truth","not success judgment","not quality judgment","not Movement authority"],"reason_refs":["delivered checker (support/checkers/lib/kernel_checks.py:1149-1191) asserts claude argv SHAPE only (--allowedTools present, Bash listed); it does not and cannot prove live provider approval behavior","live: the building's target verb support/checkers/check_profile.py --profile agent_axis_behavioral returned 'requires approval' inside this claude-local write-effective QA step; python/uv execution remained gated","could not inspect launch argv (ps and $PPID expansion approval-gated), so 'fix not deployed to this session' vs 'fix insufficient' is undetermined","constraint is provider/runtime/live-not-run, not an upstream implementation defect; recorded as a non-reroute verification gap"],"related_boundary_refs":["building-boundary:qa-execution-permission-hardening-0625"]}

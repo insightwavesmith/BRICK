@@ -1139,8 +1139,56 @@ def _agent_effective_write_probe(
             "claude effective_write did not expose the exact comma-separated scoped "
             f"write tool set; observed {knobs['tools']!r}"
         )
+    if knobs.get("allowed_tools") != knobs["tools"]:
+        raise ProfileError(
+            "claude effective_write did not project the scoped tool set into "
+            f"allowed_tools; observed {knobs.get('allowed_tools')!r}"
+        )
     if knobs["system_prompt"] != adapter._CLAUDE_SCOPED_WRITE_SYSTEM_PROMPT:
         raise ProfileError("claude effective_write did not use the scoped-write system prompt")
+    captured_claude_write_args: dict[str, tuple[str, ...]] = {}
+
+    def _capture_claude_write_runner(
+        args: Sequence[str],
+        cwd: Path,
+        timeout: int,
+        *,
+        env: Mapping[str, str] | None = None,
+    ) -> Any:
+        del cwd, timeout, env
+        captured_claude_write_args["args"] = tuple(str(arg) for arg in args)
+        return adapter.LocalCliCompleted(
+            args=captured_claude_write_args["args"],
+            return_code=0,
+            stdout='{"result":"{}"}',
+            stderr="",
+        )
+
+    adapter_local_cli._invoke_local_cli(
+        adapter._LOCAL_CLI_SPECS[adapter_constants.ADAPTER_CLAUDE_LOCAL],
+        claude_write_request,
+        "{}",
+        cwd=repo,
+        timeout_seconds=9,
+        command_runner=_capture_claude_write_runner,
+    )
+    claude_write_args = captured_claude_write_args.get("args", ())
+    if "--tools" not in claude_write_args:
+        raise ProfileError("claude effective_write argv omitted --tools")
+    if "--allowedTools" not in claude_write_args:
+        raise ProfileError(
+            "claude effective_write argv omitted --allowedTools; Bash/checker "
+            "commands would remain provider-approval gated"
+        )
+    tools_arg = claude_write_args[claude_write_args.index("--tools") + 1]
+    allowed_tools_arg = claude_write_args[claude_write_args.index("--allowedTools") + 1]
+    if allowed_tools_arg != tools_arg:
+        raise ProfileError(
+            "claude effective_write argv allowedTools drifted from tools: "
+            f"{allowed_tools_arg!r} != {tools_arg!r}"
+        )
+    if "Bash" not in {tool.strip() for tool in allowed_tools_arg.split(",") if tool.strip()}:
+        raise ProfileError("claude effective_write argv did not pre-allow Bash")
 
     claude_read_request = adapter.AgentAdapterRequest(
         building_id="agent-effective-write-claude-read",

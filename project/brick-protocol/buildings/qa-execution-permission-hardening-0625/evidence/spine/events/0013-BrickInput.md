@@ -1,0 +1,12 @@
+# BrickInput · seq 13 · ["Brick"]
+- axis_scope: ["Brick"]
+- brick_instance_ref: "brick-qa-execution-permission-hardening-0625-code-attack-qa"
+- comparison_rule: "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickInput"
+- required_return_shape: "observed_evidence,attacked_work,checked_sources,regression_risks,negative_probe_observations,failing_or_missing_probes,boundary_violations,transition_concern_evidence,evidence_used,not_proven"
+- run_segment: 1
+- sequence_index: 13
+- source_facts: ["task-source:inline-statement"]
+- spine_schema_version: "spine-v1"
+- step_ref: "qa-execution-permission-hardening-0625-code-attack-qa"
+- work_statement: "code_attack_qa Brick for task-source:inline-statement: P0 repair: fix or precisely classify Claude QA execution-permission gap."

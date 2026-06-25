@@ -1,0 +1,574 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:qa-execution-permission-hardening-0625::evidence/claim_trace/agent/returned_claims.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:dev",
+        "received_work": "brick-work:01:qa-execution-permission-hardening-0625-work",
+        "returned": {
+          "adapter_ref": "adapter:codex-local",
+          "agent_object_ref": "agent-object:dev",
+          "brain_surface_ref": "brain-surface:codex-local-cli",
+          "changed_files": [
+            "support/checkers/lib/kernel_checks.py",
+            "support/connection/adapter_local_cli.py"
+          ],
+          "cli_call_ref": "support-cli-call:adapter:codex-local:qa-execution-permission-hardening-0625",
+          "cli_version_text": "codex-cli 0.132.0",
+          "evidence_refs": [
+            "support-packet:qa-execution-permission-hardening-0625:agent-object:dev:output"
+          ],
+          "made_changes": true,
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "semantic correctness of file edits",
+            "future provider behavior",
+            "Claude backend/model behavior after receiving the corrected argv",
+            "complete checker coverage beyond agent_axis_behavioral and targeted compile/import smoke",
+            "source truth",
+            "success judgment",
+            "quality judgment",
+            "Movement authority"
+          ],
+          "observed_evidence": [
+            "Classified root cause as Claude adapter invocation projection: BRICK emitted --tools with Bash, but did not emit Claude's --allowedTools approval allowlist, so Bash/python/checker commands could remain approval-gated in non-interactive Claude QA.",
+            "Local `claude --help` shows both `--tools` and `--allowedTools`; `--tools` specifies available tools, while `--allowedTools` is the approval allowlist surface.",
+            "Updated Claude local invocation to project the same declared native-grant tool set into `allowed_tools` and emit `--allowedTools <tools>` when non-empty.",
+            "Extended existing agent-axis checker coverage to capture generated Claude argv with a mock runner and assert effective-write Claude includes `--tools`, `--allowedTools`, and pre-allows `Bash`.",
+            "Referenced Building evidence contains the reported symptom: Claude QA recorded python/checker execution as approval-gated in non-interactive runs."
+          ],
+          "output_excerpt": "{ \"made_changes\": true, \"changed_files\": [ \"support/connection/adapter_local_cli.py\", \"support/checkers/lib/kernel_checks.py\" ], \"observed_evidence\": [ \"Classified root cause as Claude adapter invocation projection: BRICK emitted --tools with Bash, but did not emit Claude's --allowedTools approval allowlist, so Bash/python/checker commands could remain approval-gated in non-interactive Claude QA.\", \"Local `claude --help` shows both `--tools` and `--allowedTools`; `--tools` specifies available tools, while `--allowedTools` is the approval allowlist surface.\", \"Updated Claude local invocation...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "workspace write is limited by Brick-declared write_scope"
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_adapter_ref": "adapter:codex-local",
+          "selected_model_ref": "model:codex:default",
+          "worktree_observation": {
+            "after_git_refs": {
+              "branch": "struct-surgery-0623",
+              "head": "fbd4de3052bfee1acc6cfe136e0b4af9c0fe4e92"
+            },
+            "after_git_status_paths": [
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/declared-building-plan.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/raw/report-delivery.jsonl",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/raw/report-thread.jsonl",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/building-intake.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/declared-building-plan.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/link-launch-policy.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/preset-expansion.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/task.md",
+              "project/brick-protocol/status/inbox/brick-protocol-qa-execution-permission-hardening-0625-brick-received-event-2026-06-25T04-56-57-197427-00-00.json",
+              "project/brick-protocol/status/inbox/brick-protocol-qa-execution-permission-hardening-0625-building-started-event-2026-06-25T04-56-56-436963-00-00.json",
+              "support/checkers/lib/kernel_checks.py",
+              "support/connection/adapter_local_cli.py"
+            ],
+            "after_path_count": 2775,
+            "before_git_refs": {
+              "branch": "struct-surgery-0623",
+              "head": "fbd4de3052bfee1acc6cfe136e0b4af9c0fe4e92"
+            },
+            "before_git_status_paths": [
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/declared-building-plan.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/raw/report-delivery.jsonl",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/raw/report-thread.jsonl",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/building-intake.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/declared-building-plan.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/link-launch-policy.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/preset-expansion.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/task.md",
+              "project/brick-protocol/status/inbox/brick-protocol-qa-execution-permission-hardening-0625-brick-received-event-2026-06-25T04-56-57-197427-00-00.json",
+              "project/brick-protocol/status/inbox/brick-protocol-qa-execution-permission-hardening-0625-building-started-event-2026-06-25T04-56-56-436963-00-00.json"
+            ],
+            "before_path_count": 2775,
+            "git_refs_moved": {},
+            "not_proven": [
+              "semantic correctness of file edits",
+              "complete diff attribution for pre-existing dirty paths"
+            ],
+            "observed_changed_files": [
+              "support/checkers/lib/kernel_checks.py",
+              "support/connection/adapter_local_cli.py"
+            ],
+            "proof_limits": [
+              "changed files are support evidence only",
+              "not source truth",
+              "not success judgment",
+              "not quality judgment",
+              "not Movement authority"
+            ],
+            "write_scope": {
+              "allowed_paths": [
+                "support/connection/*.py",
+                "support/operator/*.py",
+                "support/checkers/*.py",
+                "support/checkers/lib/*.py",
+                "support/checkers/profiles/*.yaml",
+                "agent/objects/*.yaml",
+                "agent/tool_policies/*.yaml",
+                "brick/templates/bricks/code-attack-qa/*",
+                "brick/templates/presets/*.md",
+                "support/docs/references/*.md",
+                "project/brick-protocol/status/kernel/*.md"
+              ],
+              "forbidden_paths": [
+                ".git/**",
+                "AGENTS.md",
+                "**/*token*",
+                "**/*secret*",
+                "**/*credential*",
+                "**/*auth*"
+              ]
+            }
+          }
+        }
+      },
+      "fact_ref": "agent-fact:01:qa-execution-permission-hardening-0625-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:qa",
+        "received_work": "brick-work:02:qa-execution-permission-hardening-0625-code-attack-qa",
+        "returned": {
+          "adapter_ref": "adapter:claude-local",
+          "agent_object_ref": "agent-object:qa",
+          "attacked_work": "The upstream brick-qa-execution-permission-hardening-0625-work (agent-object:dev, adapter:codex-local) change: adapter_local_cli.py adds `allowed_tools` to `_claude_cli_invocation` knobs and emits `--allowedTools` in the claude argv; kernel_checks.py extends `_agent_effective_write_probe` to capture the claude write argv via a mock runner and assert `--tools`, `--allowedTools`, allowedTools==tools, and Bash pre-allowed. Attacked against the declared contract: 'fix or precisely classify the Claude QA execution-permission gap; add a checker proving intended behavior OR explicit limitation; QA-with-write_scope can run a harmless checker, OR route execution-QA off claude-local'.",
+          "boundary_violations": [
+            "No protocol-law boundary violation observed in the diff: edits stay within declared write_scope (support/connection/*.py, support/checkers/lib/*.py); no AGENTS.md/.git/credential edits; adapter remains a capability connection (YAML/Brick/tool-policy still own authority); no success/quality/Movement field added to knobs.",
+            "Scope-of-task observation (not a law violation): the building offered two acceptance paths — (a) make claude execution-QA actually work, or (b) enforce routing so execution-QA does NOT use claude-local (claude read-only). Only path (a)'s argv emission + an argv-shape checker was delivered; no preset/routing enforcement was added and no live execution proof exists. Whether argv-shape proof + the live-still-gated symptom in this very QA step is SUFFICIENT to close the P0 'QA without execution verification is unacceptable' is a sufficiency call for the Link gate, not a QA verdict."
+          ],
+          "brain_surface_ref": "brain-surface:claude-code-local-cli",
+          "changed_files": [],
+          "checked_sources": [
+            "support/connection/adapter_local_cli.py (lines 690-728 argv builder; 836-905 _claude_cli_invocation)",
+            "support/checkers/lib/kernel_checks.py (lines 926-1211 _agent_effective_write_probe; 2403-2456 run_agent_adapter_return_shape; imports 29-33)",
+            "support/connection/adapter_subprocess.py (lines 380-405 _run_or_delegate / _command_runner_accepts_env)",
+            "support/connection/agent_adapter.py (LocalCliCompleted line 580; _LOCAL_CLI_SPECS line 647)",
+            "support/checkers/lib/case_runners.py (lines 6749-6801 other _claude_cli_invocation assertions)",
+            "support/checkers/profiles/agent_axis_behavioral.yaml (profile wiring + proof_limits/not_proven)",
+            "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/step-outputs/qa-execution-permission-hardening-0625-work-attempt-1/step-output.json (upstream report)",
+            "live `claude --help` flag listing"
+          ],
+          "cli_call_ref": "support-cli-call:adapter:claude-local:qa-execution-permission-hardening-0625",
+          "cli_version_text": "2.1.191 (Claude Code)",
+          "evidence_refs": [
+            "support-packet:qa-execution-permission-hardening-0625:agent-object:qa:output"
+          ],
+          "evidence_used": [
+            "support/connection/adapter_local_cli.py:690-728,836-905",
+            "support/checkers/lib/kernel_checks.py:29-33,926-949,1129-1211,2403-2456",
+            "support/connection/adapter_subprocess.py:380-405",
+            "support/connection/agent_adapter.py:580,647",
+            "support/checkers/lib/case_runners.py:6749-6801",
+            "support/checkers/profiles/agent_axis_behavioral.yaml:1-14,502-528",
+            "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/step-outputs/qa-execution-permission-hardening-0625-work-attempt-1/step-output.json",
+            "git diff (HEAD) of support/checkers/lib/kernel_checks.py and support/connection/adapter_local_cli.py",
+            "live shell observations: `claude --help`; gated `python3`/`uv run python3`/`check_profile.py --profile agent_axis_behavioral`/`git --version`/`ps`; passing `ls`/`git diff --check`/`git status`/`git rev-parse`"
+          ],
+          "failing_or_missing_probes": [
+            "MISSING (blocked): live execution of `support/checkers/check_profile.py --profile agent_axis_behavioral` to confirm the upstream EXIT-0 claim — blocked by provider approval gate on python in this claude-local QA session.",
+            "MISSING (blocked): compile/import smoke (`py_compile`) on the two changed files — blocked by the same approval gate (`python3`/`uv` gated). Static read shows imports resolve and the argv code is consistent, but no execution proof.",
+            "MISSING (inherently un-runnable in checker harness): a probe proving the LIVE provider honors `--allowedTools ...,Bash` by actually running a harmless shell command without approval. The delivered checker asserts argv SHAPE only; the building's task offered 'QA adapter with write_scope can run a harmless command/checker' as an acceptance path, and that live-behavior proof is absent."
+          ],
+          "negative_probe_observations": [
+            "Negative probe (live): the declared target checker `check_profile.py --profile agent_axis_behavioral` could NOT be executed from this claude-local QA step — provider returned 'requires approval'. The fix being present in the worktree source did NOT make the running claude QA session able to execute python/checkers.",
+            "Negative probe (selective gating): `git diff`/`git status`/`ls` pass while `git --version`/`python3`/`uv` are gated. This selective pattern is consistent with a COMMAND-SPECIFIC allowlist (e.g. Bash(git diff:*)), not a bare `Bash` allowlist. If a bare-`Bash` `--allowedTools` entry (which the fix emits) fully pre-allowed Bash, `python3` would also pass — so whether the fix's bare-`Bash` allowlist actually suppresses per-command approval in non-interactive `-p` is UNCONFIRMED by this live session (and the session may simply predate the patch).",
+            "Negative probe (provenance): could not read my own launch argv — `ps axww` and `$PPID` expansion are themselves approval-gated — so I cannot distinguish 'my session was launched without the patched argv' from 'patched argv is insufficient'."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "semantic correctness of file edits",
+            "Whether emitting `--allowedTools <toolset incl Bash>` actually suppresses the non-interactive claude per-command approval gate (live provider behavior — not executable in checker; not reproducible via my own session which may predate the patch).",
+            "The upstream claim that `agent_axis_behavioral` runs EXIT 0 — I could not execute the checker (python approval-gated in this QA step).",
+            "Compile/import correctness of the two changed files beyond static read — py_compile was approval-gated.",
+            "Whether my own QA session was launched with or without the patched `--allowedTools` argv (process inspection gated).",
+            "Full regression coverage across all checker profiles (only agent_axis_behavioral wiring inspected, not run).",
+            "Semantic correctness of the implementation and support loader behavior (explicitly out of QA proof reach).",
+            "Whether the delivered argv-shape proof is sufficient to close the P0 contract, or whether routing-policy enforcement was required — a Link-gate sufficiency decision, not a QA verdict."
+          ],
+          "observed_evidence": [
+            {
+              "own_probes": "QA-built probes distinct from the builder's mock-runner fixture: (1) executed the real target checker command end-to-end through my Bash tool (gated); (2) executed `claude --help` and confirmed `--allowedTools, --allowed-tools <tools...>` and `--tools <tools...>` are real, distinct flags (allowlist vs available-set); (3) statically traced `_run_or_delegate` -> `_command_runner_accepts_env` to confirm the new keyword-only `env` mock runner is invoked safely; (4) grepped all 7 `_claude_cli_invocation` call sites for exact-dict/key-set equality that the added `allowed_tools` key could break.",
+              "real_entry_surface": "Real caller surface driven: my own claude-local QA Bash tool (the same provider approval plane the symptom is about) AND the declared checker verb `support/checkers/check_profile.py --profile agent_axis_behavioral`. Observed output for the checker verb: 'This command requires approval' (non-zero, never executed). Observed output for `claude --help`: lines for `--allowedTools, --allowed-tools <tools...>`, `--tools <tools...>`, `--permission-mode <mode>` present.",
+              "symptom_reproduction": "In THIS code-attack-qa step (selected_adapter_ref=adapter:claude-local, native_grant.write_effective=true, tool-policy:read-write-scoped, declared write_scope present), I drove my own Bash tool surface and the reported symptom reproduced live: `python3 -m py_compile ...`, `python3 -c \"print('probe')\"`, `uv run python3 -m py_compile ...`, and the building's own target checker `uv run python3 support/checkers/check_profile.py --profile agent_axis_behavioral` ALL returned 'This command requires approval'. `git --version`, `ps axww`, `$PPID` expansion, and compound (`;`/`&&`) commands were likewise approval-gated. By contrast `ls`, `git diff --check`, `git diff --stat`, `git status --short`, `git rev-parse`, and `pwd` ran without approval. This is the exact reported failure mode: execution-QA via claude-local cannot run python/checker commands despite acceptEdits + write_scope."
+            },
+            "git diff --check on the two changed files produced no output (no whitespace/conflict markers).",
+            "support/checkers/profiles/agent_axis_behavioral.yaml line 14 lists kernel_check `agent_adapter_return_shape`; kernel_checks.py:2403 `run_agent_adapter_return_shape` calls `_agent_effective_write_probe` (line 2455) which contains the new --allowedTools argv assertions, so the new probe is statically wired into the profile.",
+            "adapter_local_cli.py `_claude_cli_invocation` (lines 836-905) now returns `allowed_tools` in all three branches (scoped-write=tools incl Bash; read-tier=read tools; plan=''), and `_invoke_local_cli` (lines 702-704) emits `--allowedTools <allowed_tools>` only when non-empty."
+          ],
+          "output_excerpt": "I now have a thorough, execution-grounded picture. Let me compile the final QA evidence return. Key findings from my independent attack: - **Static**: the fix is internally consistent; `--allowedTools`/`--allowed-tools <tools...>` confirmed real via `claude --help`; new checker is wired into `agent_axis_behavioral` via `agent_adapter_return_shape`; all symbols resolve; `_run_or_delegate`'s `_command_runner_accepts_env` makes the keyword-only `env` mock runtime-safe; no regression to the other 5 `_claude_cli_invocation` callers (all use targeted key access). - **Live (own QA session, the rea...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+            "workspace write is limited by Brick-declared write_scope"
+          ],
+          "regression_risks": [
+            "Low for the added knob key: all 7 `_claude_cli_invocation` callers (adapter_local_cli.py:702; case_runners.py:6753,6785; kernel_checks.py:1129,1203,1390,1545) use targeted key access (`.get`/`[\"tools\"]`/`[\"permission_mode\"]`), none asserts exact dict or key-set equality, so the extra `allowed_tools` key does not break existing assertions (verified by read).",
+            "`--allowedTools <tools...>` is a variadic flag receiving a single comma-joined token followed by `--`-prefixed flags or the final prompt; commander stops variadic at the next option, mirroring the pre-existing `--tools` handling — no greedy-consumption regression observed statically, but not executed live.",
+            "The new checker's mock runner declares keyword-only `env`; safe only because `_run_or_delegate` gates the `env=` call behind `_command_runner_accepts_env` (introspects co_varnames). If that introspection helper were ever changed to pass `env` positionally, this probe would raise TypeError. Coupling noted, not currently broken."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_adapter_ref": "adapter:claude-local",
+          "selected_model_ref": "model:claude:inherit",
+          "transition_concern_evidence": {
+            "binding": false,
+            "concern_kind": "verification_gap",
+            "concern_ref": "transition-concern:qa-execution-permission-hardening-0625-code-attack-qa:live-execution-unproven",
+            "not_proven": [
+              "that the fix does or does not resolve the live approval gate",
+              "provider approval-plane behavior under --allowedTools ...,Bash"
+            ],
+            "proof_limits": [
+              "support evidence only",
+              "not source truth",
+              "not success judgment",
+              "not quality judgment",
+              "not Movement authority"
+            ],
+            "reason_refs": [
+              "delivered checker (support/checkers/lib/kernel_checks.py:1149-1191) asserts claude argv SHAPE only (--allowedTools present, Bash listed); it does not and cannot prove live provider approval behavior",
+              "live: the building's target verb support/checkers/check_profile.py --profile agent_axis_behavioral returned 'requires approval' inside this claude-local write-effective QA step; python/uv execution remained gated",
+              "could not inspect launch argv (ps and $PPID expansion approval-gated), so 'fix not deployed to this session' vs 'fix insufficient' is undetermined",
+              "constraint is provider/runtime/live-not-run, not an upstream implementation defect; recorded as a non-reroute verification gap"
+            ],
+            "related_boundary_refs": [
+              "building-boundary:qa-execution-permission-hardening-0625"
+            ]
+          },
+          "worktree_observation": {
+            "after_git_refs": {
+              "branch": "struct-surgery-0623",
+              "head": "fbd4de3052bfee1acc6cfe136e0b4af9c0fe4e92"
+            },
+            "after_git_status_paths": [
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/declared-building-plan.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/raw/adapter-usage.jsonl",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/raw/report-delivery.jsonl",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/raw/report-thread.jsonl",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/building-intake.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/declared-building-plan.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/link-launch-policy.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/preset-expansion.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/step-outputs/qa-execution-permission-hardening-0625-work-attempt-1/step-output.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/task.md",
+              "project/brick-protocol/status/inbox/brick-protocol-qa-execution-permission-hardening-0625-brick-received-event-2026-06-25T04-56-57-197427-00-00.json",
+              "project/brick-protocol/status/inbox/brick-protocol-qa-execution-permission-hardening-0625-brick-received-event-2026-06-25T05-00-19-798849-00-00.json",
+              "project/brick-protocol/status/inbox/brick-protocol-qa-execution-permission-hardening-0625-brick-returned-event-2026-06-25T05-00-18-499290-00-00.json",
+              "project/brick-protocol/status/inbox/brick-protocol-qa-execution-permission-hardening-0625-building-started-event-2026-06-25T04-56-56-436963-00-00.json",
+              "project/brick-protocol/status/inbox/brick-protocol-qa-execution-permission-hardening-0625-gate-passed-event-2026-06-25T05-00-19-196336-00-00.json",
+              "support/checkers/lib/kernel_checks.py",
+              "support/connection/adapter_local_cli.py"
+            ],
+            "after_path_count": 2780,
+            "before_git_refs": {
+              "branch": "struct-surgery-0623",
+              "head": "fbd4de3052bfee1acc6cfe136e0b4af9c0fe4e92"
+            },
+            "before_git_status_paths": [
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/declared-building-plan.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/raw/adapter-usage.jsonl",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/raw/report-delivery.jsonl",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/raw/report-thread.jsonl",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/building-intake.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/declared-building-plan.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/link-launch-policy.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/preset-expansion.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/step-outputs/qa-execution-permission-hardening-0625-work-attempt-1/step-output.json",
+              "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/task.md",
+              "project/brick-protocol/status/inbox/brick-protocol-qa-execution-permission-hardening-0625-brick-received-event-2026-06-25T04-56-57-197427-00-00.json",
+              "project/brick-protocol/status/inbox/brick-protocol-qa-execution-permission-hardening-0625-brick-received-event-2026-06-25T05-00-19-798849-00-00.json",
+              "project/brick-protocol/status/inbox/brick-protocol-qa-execution-permission-hardening-0625-brick-returned-event-2026-06-25T05-00-18-499290-00-00.json",
+              "project/brick-protocol/status/inbox/brick-protocol-qa-execution-permission-hardening-0625-building-started-event-2026-06-25T04-56-56-436963-00-00.json",
+              "project/brick-protocol/status/inbox/brick-protocol-qa-execution-permission-hardening-0625-gate-passed-event-2026-06-25T05-00-19-196336-00-00.json",
+              "support/checkers/lib/kernel_checks.py",
+              "support/connection/adapter_local_cli.py"
+            ],
+            "before_path_count": 2780,
+            "git_refs_moved": {},
+            "not_proven": [
+              "semantic correctness of file edits",
+              "complete diff attribution for pre-existing dirty paths"
+            ],
+            "observed_changed_files": [],
+            "proof_limits": [
+              "changed files are support evidence only",
+              "not source truth",
+              "not success judgment",
+              "not quality judgment",
+              "not Movement authority"
+            ],
+            "write_scope": {
+              "allowed_paths": [
+                "support/connection/*.py",
+                "support/operator/*.py",
+                "support/checkers/*.py",
+                "support/checkers/lib/*.py",
+                "support/checkers/profiles/*.yaml",
+                "agent/objects/*.yaml",
+                "agent/tool_policies/*.yaml",
+                "brick/templates/bricks/code-attack-qa/*",
+                "brick/templates/presets/*.md",
+                "support/docs/references/*.md",
+                "project/brick-protocol/status/kernel/*.md"
+              ],
+              "forbidden_paths": [
+                ".git/**",
+                "AGENTS.md",
+                "**/*token*",
+                "**/*secret*",
+                "**/*credential*",
+                "**/*auth*"
+              ]
+            }
+          }
+        }
+      },
+      "fact_ref": "agent-fact:02:qa-execution-permission-hardening-0625-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:coo",
+        "received_work": "brick-work:03:qa-execution-permission-hardening-0625-closure",
+        "returned": {
+          "adapter_ref": "adapter:claude-local",
+          "agent_object_ref": "agent-object:coo",
+          "brain_surface_ref": "brain-surface:claude-code-local-cli",
+          "cli_call_ref": "support-cli-call:adapter:claude-local:qa-execution-permission-hardening-0625",
+          "cli_version_text": "2.1.191 (Claude Code)",
+          "deferred_smith_review_queue": [
+            "SUFFICIENCY DECISION (human + Link gate): Is argv-shape proof + a reproduced-but-unexplained live gate enough to close the P0, or is live execution proof / routing enforcement required before this Building is accepted?",
+            "ROUTING POLICY DECISION (human): Should Brick Protocol policy make claude-local read-only-review for code-attack-qa and assign execution-QA to an execution-capable adapter by default?",
+            "The two changed files (support/connection/adapter_local_cli.py, support/checkers/lib/kernel_checks.py) remain uncommitted on branch struct-surgery-0623 (HEAD fbd4de3); commit/keep/discard is the human's call — closure writes and commits nothing."
+          ],
+          "evidence_refs": [
+            "support-packet:qa-execution-permission-hardening-0625:agent-object:coo:output"
+          ],
+          "narrowly_proven": [
+            "An adapter-side change exists and is internally consistent on static read: Claude scoped-write and read-tier invocations now project the declared tool set into allowed_tools and the argv emits --allowedTools when non-empty.",
+            "An argv-SHAPE checker exists and is statically wired into the agent_axis_behavioral profile, asserting --allowedTools presence, allowedTools==tools, and Bash membership.",
+            "The reported execution-permission symptom is real and was reproduced live in this Building's claude-local QA step: python/uv/checker commands returned 'requires approval' while several git/ls read commands did not.",
+            "The delivered diff stays within the declared write_scope and introduced no observed protocol-law boundary violation per QA's read."
+          ],
+          "next_target_candidates": [
+            "Re-run a code-attack-qa on a freshly launched claude-local session verified to carry the patched --allowedTools argv, to get a live execute-a-harmless-checker proof (or live disproof).",
+            "If live proof remains unobtainable on claude-local, route execution-QA to an execution-capable adapter (codex-local/gemini/fugu) and add a preset/plan checker enforcing that assignment (acceptance path b).",
+            "Add an argv-provenance evidence path that does not rely on approval-gated process inspection, to settle 'deployed vs insufficient'.",
+            "Run the requested targeted verification suite (agent_axis_behavioral, py_compile, git diff --check) in an execution-capable lane and attach EXIT-code evidence."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Whether emitting --allowedTools <tools incl Bash> actually suppresses the non-interactive claude per-command approval gate — live provider approval-plane behavior was not executed (provider/runtime/live-not-run constraint).",
+            "The upstream EXIT-0 claim for check_profile.py --profile agent_axis_behavioral — the checker was approval-gated in the QA step and was not executed in this closure (closure is read-only and runs no commands).",
+            "Compile/import correctness of the two changed files beyond static read — py_compile was approval-gated for QA and not run here.",
+            "Whether the QA session itself was launched with or without the patched --allowedTools argv — process inspection (ps, $PPID) was approval-gated, so 'fix not deployed to this session' vs 'fix insufficient' is undetermined.",
+            "Whether the live selective gating (git diff passes, python gated) reflects a command-specific allowlist rather than a bare-Bash allowlist as the fix emits.",
+            "Acceptance path (b): no preset/plan/routing-policy change was delivered to keep execution-QA off claude-local; routing enforcement is absent.",
+            "Whether argv-shape proof alone is sufficient to close the P0 'QA without execution verification is unacceptable' contract — this is a Link-gate sufficiency call and the human's quality/success call, not decided here.",
+            "Full regression across checker profiles beyond the statically-inspected agent_axis_behavioral wiring.",
+            "source truth, success judgment, quality judgment, Movement authority."
+          ],
+          "observed_evidence": [
+            "Building qa-execution-permission-hardening-0625 ran two carried Bricks: work (agent-object:dev, adapter:codex-local) then code-attack-qa (agent-object:qa, adapter:claude-local), forwarded to this closure via link-row edge code-attack-qa -> closure.",
+            "DEV step-output (work-attempt-1) reports made_changes=true, changed_files=[support/checkers/lib/kernel_checks.py, support/connection/adapter_local_cli.py]; root cause classified as Claude adapter invocation projection: argv emitted --tools (incl Bash) but omitted Claude's --allowedTools approval allowlist, so Bash/python/checker could stay approval-gated in non-interactive Claude QA.",
+            "Source corroboration (closure read-only): adapter_local_cli.py:702-704 emits --allowedTools <allowed_tools> only when non-empty; _claude_cli_invocation (836-905) returns allowed_tools in all three branches (scoped-write tools incl Bash; read-tier read tools; plan='').",
+            "Source corroboration: kernel_checks.py:1129-1191 captures the generated claude argv via a mock runner and asserts --tools present, --allowedTools present, allowedTools==tools, and Bash pre-allowed; QA reports this probe is wired into profile agent_axis_behavioral via kernel_check agent_adapter_return_shape (kernel_checks.py:2403/2455).",
+            "QA step-output (code-attack-qa-attempt-1) reproduced the live symptom INSIDE its own claude-local write-effective QA step: python3 -m py_compile, python3 -c, uv run python3, and the target verb check_profile.py --profile agent_axis_behavioral ALL returned 'This command requires approval'; ls/git diff --check/git status/git rev-parse/pwd ran without approval.",
+            "QA confirmed via live `claude --help` that --tools (available set) and --allowedTools/--allowed-tools (approval allowlist) are real, distinct flags; reported no protocol-law boundary violation in the diff (edits within declared write_scope; no AGENTS.md/.git/credential edits; no success/quality/Movement field added).",
+            "QA raised a non-binding transition_concern (verification_gap, concern_ref transition-concern:...:live-execution-unproven) pointing at related_boundary_refs building-boundary:qa-execution-permission-hardening-0625; transition-concern.json binding=false.",
+            "Both worktree_observations show before/after HEAD unchanged at fbd4de3052bfee1acc6cfe136e0b4af9c0fe4e92 on branch struct-surgery-0623; observed_changed_files for the diff are the two support/* files (QA observed_changed_files=[] because the files were already dirty in its before-state)."
+          ],
+          "output_excerpt": "I have corroborated the carried evidence against source. Source confirms the QA and DEV reports: `adapter_local_cli.py` now emits `--allowedTools` and `_claude_cli_invocation` returns `allowed_tools` in all three branches; `kernel_checks.py` asserts the argv shape (`--tools`, `--allowedTools`, `allowedTools==tools`, `Bash` pre-allowed). Here is the closure synthesis. ```json { \"observed_evidence\": [ \"Building qa-execution-permission-hardening-0625 ran two carried Bricks: work (agent-object:dev, adapter:codex-local) then code-attack-qa (agent-object:qa, adapter:claude-local), forwarded to th...",
+          "parent_goal_delta_status": {
+            "closed_delta_refs": [
+              "delta:argv-shape-proof -> argv-shape assertion present and statically corroborated against source by this closure"
+            ],
+            "evidence_refs": [
+              "work/step-outputs/qa-execution-permission-hardening-0625-work-attempt-1/step-output.json",
+              "work/step-outputs/qa-execution-permission-hardening-0625-code-attack-qa-attempt-1/step-output.json",
+              "work/step-outputs/qa-execution-permission-hardening-0625-code-attack-qa-attempt-1/transition-concern.json",
+              "support/connection/adapter_local_cli.py:702-704,836-905",
+              "support/checkers/lib/kernel_checks.py:1129-1191,2403-2455",
+              "work/task.md"
+            ],
+            "matched_delta_refs": [
+              "delta:classify-root-cause -> DEV classified the gap as missing --allowedTools approval allowlist in the claude invocation projection",
+              "delta:implement-smallest-fix -> adapter_local_cli.py:702-704,836-905 emits --allowedTools / returns allowed_tools",
+              "delta:add-argv-shape-checker -> kernel_checks.py:1129-1191 wired into profile agent_axis_behavioral"
+            ],
+            "missing_delta_refs": [
+              "delta:routing-enforcement -> acceptance path (b) preset/plan routing of execution-QA off claude-local not delivered",
+              "delta:argv-provenance-probe -> no non-gated way to confirm the running session's launch argv"
+            ],
+            "open_delta_refs": [
+              "delta:live-execution-proof -> claude-local QA write_scope could NOT run a harmless checker live; still approval-gated",
+              "delta:run-targeted-verification -> check_profile / py_compile not executed (approval-gated for QA; not run by read-only closure)"
+            ],
+            "unknown_delta_refs": [
+              "delta:fix-sufficiency -> whether --allowedTools incl Bash suppresses non-interactive per-command approval is undetermined",
+              "delta:session-patch-state -> whether the QA session predated or carried the patched argv is unknown"
+            ]
+          },
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "remaining_delta": [
+            "Obtain a LIVE execution proof that a claude-local write-effective QA session with the patched --allowedTools argv can run a harmless python/checker command without approval (e.g., re-run code-attack-qa on a freshly launched session that is confirmed to carry the patched argv).",
+            "Resolve the 'fix deployed vs fix insufficient' ambiguity by recording the actual launch argv of the QA session (a provenance probe that does not depend on approval-gated ps/$PPID).",
+            "Decide and implement acceptance path (b) if path (a) cannot be proven live: enforce routing so execution-QA uses an execution-capable adapter (codex/gemini/fugu) and claude-local is read-only review — including the preset/plan change and a checker asserting that assignment.",
+            "Run the targeted verification the task requested (check_profile agent_axis_behavioral, py_compile/import smoke, git diff --check) in an execution-capable lane and record EXIT codes as evidence."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_adapter_ref": "adapter:claude-local",
+          "selected_model_ref": "model:claude:inherit",
+          "transition_concern_evidence": null
+        }
+      },
+      "fact_ref": "agent-fact:03:qa-execution-permission-hardening-0625-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-25T05:15:23Z",
+  "id": "urn:bp:building:qa-execution-permission-hardening-0625::evidence/claim_trace/agent/returned_claims.json",
+  "recorded_at": "2026-06-25T05:15:23Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:qa-execution-permission-hardening-0625",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/agent/returned_claims.json",
+  "time": "2026-06-25T05:15:23Z",
+  "type": "bp.claim_trace"
+}

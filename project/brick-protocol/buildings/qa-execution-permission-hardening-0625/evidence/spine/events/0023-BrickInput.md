@@ -1,0 +1,12 @@
+# BrickInput · seq 23 · ["Brick"]
+- axis_scope: ["Brick"]
+- brick_instance_ref: "brick-qa-execution-permission-hardening-0625-closure"
+- comparison_rule: "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickInput"
+- required_return_shape: "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence"
+- run_segment: 1
+- sequence_index: 23
+- source_facts: ["task-source:inline-statement"]
+- spine_schema_version: "spine-v1"
+- step_ref: "qa-execution-permission-hardening-0625-closure"
+- work_statement: "closure Brick for task-source:inline-statement: P0 repair: fix or precisely classify Claude QA execution-permission gap."

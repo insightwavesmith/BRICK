@@ -1,0 +1,195 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:qa-execution-permission-hardening-0625::work/step-outputs/qa-execution-permission-hardening-0625-work-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:dev",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-qa-execution-permission-hardening-0625-work",
+  "building_id": "qa-execution-permission-hardening-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T05:00:18.498367Z",
+  "id": "urn:bp:building:qa-execution-permission-hardening-0625::work/step-outputs/qa-execution-permission-hardening-0625-work-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:qa-execution-permission-hardening-0625-work",
+  "recorded_at": "2026-06-25T05:00:18.498367Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:dev",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "changed_files": [
+      "support/checkers/lib/kernel_checks.py",
+      "support/connection/adapter_local_cli.py"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:qa-execution-permission-hardening-0625",
+    "cli_version_text": "codex-cli 0.132.0",
+    "evidence_refs": [
+      "support-packet:qa-execution-permission-hardening-0625:agent-object:dev:output"
+    ],
+    "made_changes": true,
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "future provider behavior",
+      "Claude backend/model behavior after receiving the corrected argv",
+      "complete checker coverage beyond agent_axis_behavioral and targeted compile/import smoke",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority"
+    ],
+    "observed_evidence": [
+      "Classified root cause as Claude adapter invocation projection: BRICK emitted --tools with Bash, but did not emit Claude's --allowedTools approval allowlist, so Bash/python/checker commands could remain approval-gated in non-interactive Claude QA.",
+      "Local `claude --help` shows both `--tools` and `--allowedTools`; `--tools` specifies available tools, while `--allowedTools` is the approval allowlist surface.",
+      "Updated Claude local invocation to project the same declared native-grant tool set into `allowed_tools` and emit `--allowedTools <tools>` when non-empty.",
+      "Extended existing agent-axis checker coverage to capture generated Claude argv with a mock runner and assert effective-write Claude includes `--tools`, `--allowedTools`, and pre-allows `Bash`.",
+      "Referenced Building evidence contains the reported symptom: Claude QA recorded python/checker execution as approval-gated in non-interactive runs."
+    ],
+    "output_excerpt": "{ \"made_changes\": true, \"changed_files\": [ \"support/connection/adapter_local_cli.py\", \"support/checkers/lib/kernel_checks.py\" ], \"observed_evidence\": [ \"Classified root cause as Claude adapter invocation projection: BRICK emitted --tools with Bash, but did not emit Claude's --allowedTools approval allowlist, so Bash/python/checker commands could remain approval-gated in non-interactive Claude QA.\", \"Local `claude --help` shows both `--tools` and `--allowedTools`; `--tools` specifies available tools, while `--allowedTools` is the approval allowlist surface.\", \"Updated Claude local invocation...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:codex-local",
+    "selected_model_ref": "model:codex:default",
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "struct-surgery-0623",
+        "head": "fbd4de3052bfee1acc6cfe136e0b4af9c0fe4e92"
+      },
+      "after_git_status_paths": [
+        "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/declared-building-plan.json",
+        "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/building-intake.json",
+        "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/preset-expansion.json",
+        "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/task.md",
+        "project/brick-protocol/status/inbox/brick-protocol-qa-execution-permission-hardening-0625-brick-received-event-2026-06-25T04-56-57-197427-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-qa-execution-permission-hardening-0625-building-started-event-2026-06-25T04-56-56-436963-00-00.json",
+        "support/checkers/lib/kernel_checks.py",
+        "support/connection/adapter_local_cli.py"
+      ],
+      "after_path_count": 2775,
+      "before_git_refs": {
+        "branch": "struct-surgery-0623",
+        "head": "fbd4de3052bfee1acc6cfe136e0b4af9c0fe4e92"
+      },
+      "before_git_status_paths": [
+        "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/declared-building-plan.json",
+        "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/building-intake.json",
+        "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/preset-expansion.json",
+        "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/task.md",
+        "project/brick-protocol/status/inbox/brick-protocol-qa-execution-permission-hardening-0625-brick-received-event-2026-06-25T04-56-57-197427-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-qa-execution-permission-hardening-0625-building-started-event-2026-06-25T04-56-56-436963-00-00.json"
+      ],
+      "before_path_count": 2775,
+      "git_refs_moved": {},
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [
+        "support/checkers/lib/kernel_checks.py",
+        "support/connection/adapter_local_cli.py"
+      ],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "support/connection/*.py",
+          "support/operator/*.py",
+          "support/checkers/*.py",
+          "support/checkers/lib/*.py",
+          "support/checkers/profiles/*.yaml",
+          "agent/objects/*.yaml",
+          "agent/tool_policies/*.yaml",
+          "brick/templates/bricks/code-attack-qa/*",
+          "brick/templates/presets/*.md",
+          "support/docs/references/*.md",
+          "project/brick-protocol/status/kernel/*.md"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "AGENTS.md",
+          "**/*token*",
+          "**/*secret*",
+          "**/*credential*",
+          "**/*auth*"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:01:qa-execution-permission-hardening-0625-work",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:qa-execution-permission-hardening-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:qa-execution-permission-hardening-0625-work:attempt-1",
+  "step_ref": "qa-execution-permission-hardening-0625-work",
+  "subject": "qa-execution-permission-hardening-0625-work",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T05:00:18.498367Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}
