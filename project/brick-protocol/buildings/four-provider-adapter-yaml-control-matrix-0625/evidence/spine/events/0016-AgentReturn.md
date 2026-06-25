@@ -1,0 +1,13 @@
+# AgentReturn · seq 16 · ["Agent"]
+- agent_object_ref: "agent-object:qa-lead"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-four-provider-adapter-yaml-control-matrix-0625-review"
+- event_type: "AgentReturn"
+- observed_fields: ["received_work","returned"]
+- returned_fact_ref: "agent-fact:02:four-provider-adapter-yaml-control-matrix-0625-review"
+- route_request_ref: ""
+- run_segment: 1
+- sequence_index: 16
+- spine_schema_version: "spine-v1"
+- step_output_ref: "step-output:four-provider-adapter-yaml-control-matrix-0625-review:attempt-1"
+- step_ref: "four-provider-adapter-yaml-control-matrix-0625-review"

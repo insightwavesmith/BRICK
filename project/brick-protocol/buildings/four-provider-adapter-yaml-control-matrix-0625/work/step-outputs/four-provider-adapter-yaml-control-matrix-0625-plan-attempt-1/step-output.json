@@ -1,0 +1,142 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:four-provider-adapter-yaml-control-matrix-0625::work/step-outputs/four-provider-adapter-yaml-control-matrix-0625-plan-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:pm-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-four-provider-adapter-yaml-control-matrix-0625-plan",
+  "building_id": "four-provider-adapter-yaml-control-matrix-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T02:11:22.735150Z",
+  "id": "urn:bp:building:four-provider-adapter-yaml-control-matrix-0625::work/step-outputs/four-provider-adapter-yaml-control-matrix-0625-plan-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:four-provider-adapter-yaml-control-matrix-0625-plan",
+  "recorded_at": "2026-06-25T02:11:22.735150Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:pm-lead",
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:four-provider-adapter-yaml-control-matrix-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "constraints": [
+      "Read-only tool tier only (Read/Grep/Glob); this adapter request opened write_effective=false (native_grant.write_effective=false), consistent with no Brick write_scope declared on this plan node.",
+      "Closed-AgentFact + proof-limits disciplines: return one JSON object using only the required_return_shape keys; no reserved verdict keys.",
+      "Provider-neutrality must be preserved: matrix is descriptive of declared adapter/YAML control data, not a claim of provider availability or behavior.",
+      "Single-write-node invariant of the preset must be reflected: exactly one write node (work/codex-local); gemini adapters can never be a write lane (not in _OBSERVED_WRITE_ADAPTER_REFS).",
+      "The matrix is support evidence; effective_write is a runtime intersection, never adapter identity alone."
+    ],
+    "evidence_refs": [
+      "support-packet:four-provider-adapter-yaml-control-matrix-0625:agent-object:pm-lead:output"
+    ],
+    "missing_scope": [
+      "Link route/gate policy control surface not yet inspected at the file level for this plan (the smoke flagged a fan-in strict-gate asymmetry: link-gate:strict on gemini/fugu fan-in edges but only default-transition on the claude fan-in edge). The matrix's 'Link route/gate' control column needs a declared source pass before it can be filled non-speculatively.",
+      "gemini-api admission detail: gemini-api appears in agent_constants and inspector.yaml adapter_refs, but its exact MODEL_REF binding and any HTTP-key/env preconditions for the matrix row are not yet read.",
+      "Per-Agent-Object tool_policy_refs were sampled (dev, inspector both carry tool-policy:read-write-scoped); the full mapping across coo/cto-lead/design-lead/pm-lead/qa/qa-lead is not yet exhaustively read for the 'admitted Agent Objects' column.",
+      "Whether the matrix deliverable format is a markdown table, an evidence JSON, or a building artifact path is not specified by task-source; the work node should confirm output location/format before producing it.",
+      "'root-fix/patch-debt implications' per row is an interpretive column with no declared rubric in task-source; its bounding rule needs the work/closure node to define what counts as root-fix vs patch-debt."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Live four-provider execution behavior, real-time parallel fan-out timing, and scheduler liveness (the smoke proved launch-and-return only).",
+      "Provider/brain surface behavior, model availability, credential validity, and tool/hook execution for any adapter row.",
+      "Whether the fan-in strict-gate asymmetry is intended caller policy or preset->plan translation drift — disposition is the human's.",
+      "Whether raw/agent-return.jsonl and evidence/claim_trace artifacts are expected outputs for a read-only smoke or are deferred.",
+      "Link route/gate declared control surface was not file-read in this plan node; the route/gate matrix column is bounded but not yet evidenced.",
+      "The deliverable output format/location for the matrix and the rubric distinguishing root-fix vs patch-debt are unspecified by task-source.",
+      "Environment constraint (not a defect): file Read was only reachable via worktree-relative paths under cwd /Users/smith/.brick/worktrees/struct-surgery-0623; absolute /Users/smith/projects/BRICK paths returned permission/not-found, so inspection was bounded to the active worktree.",
+      "source truth, success judgment, quality judgment, and Link Movement authority."
+    ],
+    "objective_summary": "Bound (not build) a read-only, evidence-backed P4 adapter/YAML control matrix for codex-local, claude-local, gemini-local/gemini-api, and codex-fugu-local that demonstrates the BRICK principle: adapter surfaces supply technical brain/capability, while EFFECTIVE authority (especially write) is controlled by the intersection of Agent Object YAML refs, Brick write_scope NEED, Agent tool-policy, observed-write adapter support, and Link route/gate policy. The downstream work node produces the matrix rows; this plan node defines objective, scope, constraints, and the work boundary, and surfaces gaps honestly.",
+    "observed_evidence": [
+      "support/connection/adapter_constants.py:90-107 _ADAPTER_CAPABILITIES declares: codex-local={read,write}; codex-fugu-local={read,write}; claude-local={read,write,web}; gemini-local={read,review,web}; gemini-api={read,review}. Lines 75-77 _OBSERVED_WRITE_ADAPTER_REFS={codex-local, codex-fugu-local, claude-local} — gemini adapters excluded.",
+      "support/connection/adapter_constants.py:62-68 MODEL_PROVIDER_BY_ADAPTER maps codex-local->codex, codex-fugu-local->sakana, claude-local->claude, gemini-local/gemini-api->gemini; codex-fugu-local is documented (16-21) as the same codex executable with sakana provider-routing -c overrides as DATA.",
+      "support/connection/agent_adapter.py:868-877 agent_request_effective_write returns true ONLY when write_scope present AND tool-policy:read-write-scoped in tool_policy_refs AND adapter supports observed write — the declared triple intersection controlling effective authority; lines 880-902 agent_request_read_tier gives read-only browse otherwise for known tool-bearing policies (codex/claude/gemini local only).",
+      "brick/templates/presets/four-llm-standard-graph.md declares one write root (work, adapter:codex-local) fanning out to three read-only lenses (claude-structure-qa/claude-local, gemini-broad-review/gemini-local, fugu-axis-attack/codex-fugu-local/model:sakana:fugu) fanning into closure (claude-local); frontmatter+Route state effective write opens only at the write_scope NEED ∩ tool policy ∩ observed-write adapter intersection and 'Gemini can never be the write lane'.",
+      "project/.../four-llm-standard-graph-readonly-smoke-0625 closure step-output narrowly_proven: all four distinct provider adapters + closure launched and returned through the official Building route (work=codex-cli 0.132.0, claude=Claude Code 2.1.191, gemini=0.46.0, fugu=codex-cli 0.132.0/sakana); remained read-only (work made_changes=false, unchanged HEAD ea82b7d, path_count 1571==1571); frontier evidence delivered to local-inbox/slack/dashboard with source_truth=false; preset->plan materialization structurally faithful.",
+      "agent/objects YAML adapter_refs: only inspector.yaml and qa.yaml admit gemini-local (inspector also gemini-api); dev/coo/qa-lead/cto-lead/design-lead/pm-lead admit codex-local/codex-fugu-local/claude-local but NOT gemini. dev.yaml and inspector.yaml both carry tool_policy_refs=[tool-policy:read-write-scoped].",
+      "Smoke closure recorded two carried open items: fan-in strict-gate asymmetry (claude fan-in edge default-transition only vs gemini/fugu fan-in edges +strict) and referenced-but-absent raw/agent-return.jsonl + evidence/claim_trace/agent/returned_claims.json — both as observed drift for caller/COO disposition, not defect verdicts."
+    ],
+    "output_excerpt": "I have sufficient evidence to bound this planning work. Here is my `plan` return. ```json { \"objective_summary\": \"Bound (not build) a read-only, evidence-backed P4 adapter/YAML control matrix for codex-local, claude-local, gemini-local/gemini-api, and codex-fugu-local that demonstrates the BRICK principle: adapter surfaces supply technical brain/capability, while EFFECTIVE authority (especially write) is controlled by the intersection of Agent Object YAML refs, Brick write_scope NEED, Agent tool-policy, observed-write adapter support, and Link route/gate policy. The downstream work node pro...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "proposed_next_work_boundaries": [
+      "WORK node: assemble the 5 matrix rows from the declared surfaces only, one capability/control cell per declared fact, citing file+line evidence refs; emit not_proven per row; do not judge.",
+      "WORK node: read Link route/gate declared surfaces and the smoke's link.jsonl / movement_trace to fill the route/gate control column and record the fan-in strict-gate asymmetry as observed drift (caller/COO disposition), not a verdict.",
+      "REVIEW/INSPECT lenses: structure-check the matrix against adapter_constants capability tables and effective_write intersection rule; attack-check the single-write-node and 'gemini never write' invariants.",
+      "CLOSURE: fan-in synthesis of the matrix plus carried open deltas (gate asymmetry disposition, missing claim_trace artifacts) for human disposition."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "scope_boundaries": [
+      "IN: one matrix with rows for codex-local, claude-local, gemini-local, gemini-api, codex-fugu-local. Per row capture (read-only): declared adapter capability set, admitted Agent Objects, observed-write membership, how effective_write is gated, what the four-llm read-only smoke narrowly proved, not_proven, and root-fix/patch-debt implications.",
+      "IN: evidence sourced only from already-committed surfaces named in task-source: brick/templates/presets/four-llm-standard-graph.md, project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/, support/connection/adapter_constants.py, adapter_grant_policy.py, agent_adapter.py, agent_resources.py, agent/objects/*.yaml, brick/templates/bricks/*/brick.md, and Link route/gate surfaces only as needed for the control boundary.",
+      "OUT: no file edits, no git mutation, no live provider execution (the Building runner may invoke its own declared performer; this plan node must not).",
+      "OUT: no success/quality/Movement/approval judgment; checker/model/Slack outputs are support evidence only.",
+      "OUT: not re-running or re-disposing the smoke building's open items (fan-in gate asymmetry, missing claim_trace artifacts) — those are carried as evidence/next-work, not resolved here."
+    ],
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:01:four-provider-adapter-yaml-control-matrix-0625-plan",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:four-provider-adapter-yaml-control-matrix-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:four-provider-adapter-yaml-control-matrix-0625-plan:attempt-1",
+  "step_ref": "four-provider-adapter-yaml-control-matrix-0625-plan",
+  "subject": "four-provider-adapter-yaml-control-matrix-0625-plan",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T02:11:22.735150Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

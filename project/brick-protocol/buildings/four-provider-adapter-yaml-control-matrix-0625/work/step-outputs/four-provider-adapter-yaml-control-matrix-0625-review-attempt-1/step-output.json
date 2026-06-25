@@ -1,0 +1,148 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:four-provider-adapter-yaml-control-matrix-0625::work/step-outputs/four-provider-adapter-yaml-control-matrix-0625-review-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-four-provider-adapter-yaml-control-matrix-0625-review",
+  "building_id": "four-provider-adapter-yaml-control-matrix-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T02:13:20.101122Z",
+  "id": "urn:bp:building:four-provider-adapter-yaml-control-matrix-0625::work/step-outputs/four-provider-adapter-yaml-control-matrix-0625-review-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:four-provider-adapter-yaml-control-matrix-0625-review",
+  "recorded_at": "2026-06-25T02:13:20.101122Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:qa-lead",
+    "boundary_violations": [],
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "checked_sources": [
+      "support/connection/adapter_constants.py:16-21,62-68,75-77,90-107",
+      "support/connection/agent_adapter.py:868-911",
+      "brick/templates/presets/four-llm-standard-graph.md (frontmatter, Route, graph_topology)",
+      "agent/objects/*.yaml (adapter_refs + tool_policy_refs grep)",
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/step-outputs/.../closure-attempt-1/step-output.json",
+      "work/declared-building-plan.json (plan node return shape + ## plan instruction body)"
+    ],
+    "checked_work": "plan node `four-provider-adapter-yaml-control-matrix-0625-plan` work_statement: bound objective/scope/constraints/next-work for the P4 adapter/YAML control matrix without doing implementation; honestly surface missing_scope and not_proven.",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:four-provider-adapter-yaml-control-matrix-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "evidence_refs": [
+      "support-packet:four-provider-adapter-yaml-control-matrix-0625:agent-object:qa-lead:output"
+    ],
+    "evidence_used": [
+      "project/brick-protocol/buildings/four-provider-adapter-yaml-control-matrix-0625/work/step-outputs/four-provider-adapter-yaml-control-matrix-0625-plan-attempt-1/step-output.json",
+      "project/brick-protocol/buildings/four-provider-adapter-yaml-control-matrix-0625/work/declared-building-plan.json",
+      "support/connection/adapter_constants.py:16-21,62-68,75-77,90-107",
+      "support/connection/agent_adapter.py:868-911",
+      "brick/templates/presets/four-llm-standard-graph.md",
+      "agent/objects/inspector.yaml, agent/objects/qa.yaml, agent/objects/pm-lead.yaml, agent/objects/design-lead.yaml, agent/objects/cto-lead.yaml, agent/objects/dev.yaml, agent/objects/qa-lead.yaml, agent/objects/coo.yaml (adapter_refs/tool_policy_refs grep)",
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/step-outputs/four-llm-standard-graph-readonly-smoke-0625-closure-attempt-1/step-output.json"
+    ],
+    "missing_or_mismatched_facts": [
+      "Minor citation-range imprecision (not a substantive mismatch): the plan parenthetical describes agent_request_read_tier as '(codex/claude/gemini local only)'. The function actually spans agent_adapter.py:880-911 and its read-tier adapter set (lines 906-911) also includes adapter:codex-fugu-local; the plan elsewhere lists codex-fugu correctly, so this is an under-enumeration in one parenthetical only.",
+      "Plan observed_evidence asserts the six non-gemini Agent Objects 'admit codex-local/codex-fugu-local/claude-local'. I confirmed the gemini-exclusion for all six via grep, but did not file-read each object's full adapter_refs list to positively confirm all three are admitted per object — that positive enumeration is observed only for the gemini-exclusion side."
+    ],
+    "narrowly_proven": [
+      "The plan return is structurally complete against the declared plan return_template (all 8 fields, no reserved keys, null transition_concern).",
+      "Every code/preset/smoke fact the plan cited that I re-inspected (adapter capability table, observed-write set, provider map, effective-write triple-intersection, preset topology and 'Gemini never write' rule, gemini Agent-Object admission, and the smoke's narrowly_proven read-only launch-and-return) matches the inspected source artifacts.",
+      "The plan stayed within the read-only/no-implementation boundary of a plan node and correctly deferred matrix construction plus Link route/gate file inspection to the downstream WORK node."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Source truth of the inspected worktree (/Users/smith/.brick/worktrees/struct-surgery-0623) versus any canonical/origin state — not asserted; observation only.",
+      "Per-object positive admission of all three write-capable adapters for the six non-gemini Agent Objects (only the gemini-exclusion was confirmed via grep).",
+      "Whether the fan-in strict-gate asymmetry is intended caller policy or preset->plan translation drift — carried as observed drift; disposition is the human's/Link's.",
+      "Whether the downstream WORK node will faithfully produce the 5-row matrix and fill the Link route/gate column the plan deferred — future Building behavior, not observed here.",
+      "Live four-provider execution, scheduler/runtime behavior, credential validity, brain-surface behavior, and tool/hook execution.",
+      "Sufficiency of this plan return for Movement and any success/quality/approval judgment — reserved to the Link gate and the human."
+    ],
+    "observed_evidence": [
+      "Prior node step-output (work/step-outputs/four-provider-adapter-yaml-control-matrix-0625-plan-attempt-1/step-output.json) is a `plan` return by agent-object:pm-lead via adapter:claude-local, write_effective=false, transition_concern_evidence=null.",
+      "Declared plan node (work/declared-building-plan.json) requires return shape: objective_summary,scope_boundaries,constraints,missing_scope,proposed_next_work_boundaries,observed_evidence,not_proven,transition_concern_evidence; work_statement is a `plan` Brick that must bound the work WITHOUT implementation.",
+      "The returned object contains all eight required fields plus the standard support envelope keys (adapter_ref, cli_version_text, evidence_refs, output_excerpt, proof_limits, selected_*). No reserved verdict keys (success/quality/movement/route_target) appear in the Agent return."
+    ],
+    "observed_matches": [
+      "Return-shape match: all 8 required_return_shape fields present; transition_concern_evidence is null (valid); no reserved/verdict keys in the Agent return.",
+      "Posture match: plan node correctly did NOT produce the matrix itself; it bounded objective/scope/constraints and deferred the 5-row build to a downstream WORK node — consistent with the `## plan` no-implementation rule.",
+      "_ADAPTER_CAPABILITIES claim VERIFIED: adapter_constants.py:90-107 — codex-local={read,write}, codex-fugu-local={read,write}, claude-local={read,write,web}, gemini-local={read,review,web}, gemini-api={read,review}.",
+      "_OBSERVED_WRITE_ADAPTER_REFS claim VERIFIED: lines 75-77 = {codex-local, codex-fugu-local, claude-local}; gemini adapters excluded.",
+      "MODEL_PROVIDER_BY_ADAPTER claim VERIFIED: lines 62-68 map codex-local->codex, codex-fugu-local->sakana, claude-local->claude, gemini-local/gemini-api->gemini; fugu-as-sakana-routed-codex documented at 16-21.",
+      "Effective-write intersection claim VERIFIED: agent_adapter.py:868-877 agent_request_effective_write returns true only when write_scope present AND tool-policy:read-write-scoped present AND adapter supports observed write — the declared triple intersection.",
+      "Preset claim VERIFIED: four-llm-standard-graph.md declares one write root (work/codex-local) fanning to three read-only lenses (claude-structure-qa/claude-local, gemini-broad-review/gemini-local, fugu-axis-attack/codex-fugu-local/model:sakana:fugu) into closure/claude-local; Route states effective write opens only at write_scope NEED ∩ tool policy ∩ observed-write adapter and 'Gemini can never be the write lane'.",
+      "Agent Object gemini-admission claim VERIFIED via grep: only inspector.yaml (gemini-local + gemini-api) and qa.yaml (gemini-local) admit gemini; pm-lead/design-lead/cto-lead/dev/coo/qa-lead carry no gemini adapter_ref. dev.yaml and inspector.yaml both carry tool-policy:read-write-scoped.",
+      "Smoke-evidence claim VERIFIED against the smoke closure step-output: four provider adapters + closure launched/returned (codex-cli 0.132.0, Claude Code 2.1.191, gemini 0.46.0, fugu codex-cli 0.132.0/sakana); read-only (work made_changes=false, HEAD ea82b7d unchanged, path_count 1571==1571); frontier delivered to local-inbox/slack/dashboard with source_truth=false; preset->plan structurally faithful; two carried open items (fan-in strict-gate asymmetry; referenced-but-absent raw/agent-return.jsonl + claim_trace returned_claims.json).",
+      "Environment constraint (worktree-only path access) correctly recorded under not_proven, not as a transition_concern — consistent with the discipline."
+    ],
+    "output_excerpt": "I have verified the prior plan Brick's cited evidence against actual sources. Here is my review. ```json { \"observed_evidence\": [ \"Prior node step-output (work/step-outputs/four-provider-adapter-yaml-control-matrix-0625-plan-attempt-1/step-output.json) is a `plan` return by agent-object:pm-lead via adapter:claude-local, write_effective=false, transition_concern_evidence=null.\", \"Declared plan node (work/declared-building-plan.json) requires return shape: objective_summary,scope_boundaries,constraints,missing_scope,proposed_next_work_boundaries,observed_evidence,not_proven,transition_concern...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:02:four-provider-adapter-yaml-control-matrix-0625-review",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:four-provider-adapter-yaml-control-matrix-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:four-provider-adapter-yaml-control-matrix-0625-review:attempt-1",
+  "step_ref": "four-provider-adapter-yaml-control-matrix-0625-review",
+  "subject": "four-provider-adapter-yaml-control-matrix-0625-review",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T02:13:20.101122Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

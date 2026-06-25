@@ -1,0 +1,273 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:four-provider-adapter-yaml-control-matrix-0625::evidence/claim_trace/link/movement_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:01:four-provider-adapter-yaml-control-matrix-0625-plan",
+          "brick-comparison:01:four-provider-adapter-yaml-control-matrix-0625-plan",
+          "sufficiency-fact-movement:01:four-provider-adapter-yaml-control-matrix-0625-plan"
+        ],
+        "target_boundary_ref": "brick:brick-four-provider-adapter-yaml-control-matrix-0625-review"
+      },
+      "fact_ref": "movement-fact:01:four-provider-adapter-yaml-control-matrix-0625-plan",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:02:four-provider-adapter-yaml-control-matrix-0625-review",
+          "brick-comparison:02:four-provider-adapter-yaml-control-matrix-0625-review",
+          "sufficiency-fact-movement:02:four-provider-adapter-yaml-control-matrix-0625-review"
+        ],
+        "target_boundary_ref": "brick:brick-four-provider-adapter-yaml-control-matrix-0625-closure"
+      },
+      "fact_ref": "movement-fact:02:four-provider-adapter-yaml-control-matrix-0625-review",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:02"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "building_lifecycle_reason": "declared closure boundary for four-provider-adapter-yaml-control-matrix-0625",
+        "building_lifecycle_state": "closed",
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:03:four-provider-adapter-yaml-control-matrix-0625-closure",
+          "brick-comparison:03:four-provider-adapter-yaml-control-matrix-0625-closure",
+          "sufficiency-fact-movement:03:four-provider-adapter-yaml-control-matrix-0625-closure"
+        ],
+        "target_boundary_ref": "brick:building-boundary:four-provider-adapter-yaml-control-matrix-0625-closed"
+      },
+      "fact_ref": "movement-fact:03:four-provider-adapter-yaml-control-matrix-0625-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:03"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:four-provider-adapter-yaml-control-matrix-0625-plan-to-four-provider-adapter-yaml-control-matrix-0625-review",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-four-provider-adapter-yaml-control-matrix-0625-plan",
+        "target_boundary_ref": "brick-four-provider-adapter-yaml-control-matrix-0625-review"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-four-provider-adapter-yaml-control-matrix-0625-plan-to-four-provider-adapter-yaml-control-matrix-0625-review",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:01:edge-four-provider-adapter-yaml-control-matrix-0625-plan-to-four-provider-adapter-yaml-control-matrix-0625-review"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:four-provider-adapter-yaml-control-matrix-0625-review-to-four-provider-adapter-yaml-control-matrix-0625-closure",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-four-provider-adapter-yaml-control-matrix-0625-review",
+        "target_boundary_ref": "brick-four-provider-adapter-yaml-control-matrix-0625-closure"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-four-provider-adapter-yaml-control-matrix-0625-review-to-four-provider-adapter-yaml-control-matrix-0625-closure",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:02:edge-four-provider-adapter-yaml-control-matrix-0625-review-to-four-provider-adapter-yaml-control-matrix-0625-closure"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:four-provider-adapter-yaml-control-matrix-0625-closure-to-boundary",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-four-provider-adapter-yaml-control-matrix-0625-closure",
+        "target_boundary_ref": "building-boundary:four-provider-adapter-yaml-control-matrix-0625-closed"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-four-provider-adapter-yaml-control-matrix-0625-closure-to-boundary",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:03:edge-four-provider-adapter-yaml-control-matrix-0625-closure-to-boundary"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-25T02:15:31Z",
+  "id": "urn:bp:building:four-provider-adapter-yaml-control-matrix-0625::evidence/claim_trace/link/movement_trace.json",
+  "recorded_at": "2026-06-25T02:15:31Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:four-provider-adapter-yaml-control-matrix-0625",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/movement_trace.json",
+  "time": "2026-06-25T02:15:31Z",
+  "type": "bp.claim_trace"
+}
