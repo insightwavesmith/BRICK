@@ -1,0 +1,161 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:gap2-customer-entry-readiness-0625::work/step-outputs/gap2-customer-entry-readiness-0625-review-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-gap2-customer-entry-readiness-0625-review",
+  "building_id": "gap2-customer-entry-readiness-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T02:28:02.370794Z",
+  "id": "urn:bp:building:gap2-customer-entry-readiness-0625::work/step-outputs/gap2-customer-entry-readiness-0625-review-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:gap2-customer-entry-readiness-0625-review",
+  "recorded_at": "2026-06-25T02:28:02.370794Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:qa-lead",
+    "boundary_violations": [],
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "checked_sources": [
+      "buildings/gap2-customer-entry-readiness-0625/work/step-outputs/gap2-customer-entry-readiness-0625-plan-attempt-1/step-output.json",
+      "buildings/gap2-customer-entry-readiness-0625/declared-building-plan.json",
+      "agent/objects/*.yaml (8 files)",
+      "agent/prompts/coo.md",
+      "agent/skills/**/SKILL.md",
+      "support/connection/{coo_sync,mcp_projection,agent_resources}.py",
+      "support/operator/first_use.py",
+      "brick/templates/presets/*.md (28)",
+      "brick/building_plans/onboarding-example-0.yaml",
+      "project/brick-protocol/{README.md,PROGRESS.md} and repo-root {README.md,AGENTS.md}",
+      "project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0624.md",
+      "project/brick-protocol/status/kernel/install-ux-design-0618.md (via grep)"
+    ],
+    "checked_work": "plan node work_statement 'plan Brick for task-source:inline-statement: P6 GAP2 customer-entry readiness Building.' and its declared required_return_shape (8 plan fields), assessed against the inline task_statement deliverable (customer-entry readiness matrix + minimum follow-on Building).",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:gap2-customer-entry-readiness-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "evidence_refs": [
+      "support-packet:gap2-customer-entry-readiness-0625:agent-object:qa-lead:output"
+    ],
+    "evidence_used": [
+      "buildings/gap2-customer-entry-readiness-0625/work/step-outputs/gap2-customer-entry-readiness-0625-plan-attempt-1/step-output.json",
+      "buildings/gap2-customer-entry-readiness-0625/declared-building-plan.json",
+      "agent/objects/coo.yaml + 7 sibling role yaml",
+      "agent/prompts/coo.md",
+      "agent/skills/{building-coordination,brick-task-author,task_intake,make-a-brick,make-a-gate,make-an-agent,building-sizing-method,project-creation}/SKILL.md",
+      "support/connection/coo_sync.py, support/connection/mcp_projection.py, support/connection/agent_resources.py",
+      "support/operator/first_use.py (lines 1-40)",
+      "brick/templates/presets/*.md (28 files)",
+      "brick/building_plans/onboarding-example-0.yaml",
+      "project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0624.md (lines 1-60)",
+      "project/brick-protocol/status/kernel/install-ux-design-0618.md (grep match)"
+    ],
+    "missing_or_mismatched_facts": [
+      "MISMATCH (content vs path-level impression): the plan's observed_evidence states 'Glob found NO dedicated onboarding/first-use/operator customer-entry doc', but content inspection shows a real customer-entry surface DOES exist — support/operator/first_use.py renders the customer FIRST_USE.md, support/checkers/check_first_use_wizard.py pins it, and status/kernel/gap2-customer-entry-readiness-0624.md (which the plan saw only as 'a prior work doc exists') actually documents the full entry chain (install.sh -> brick console -> cli _cmd_init -> FIRST_USE.md -> brick verify). The plan's own not_proven flags that Grep was unavailable to confirm this, so the mismatch traces to the read-only session limit, not to a scoping error.",
+      "MISMATCH (Slack): plan reported 'only brick/templates/tasks/slack-alert-all-presets-task.md found; no Slack env/config entry doc'; grep shows Slack guidance content exists in project/brick-protocol/status/kernel/install-ux-design-0618.md and the 0624 kernel doc. Again attributable to the missing Grep capability.",
+      "DELIVERABLE NOTE (not a plan-shape miss): the inline task's headline deliverable — a populated customer-entry readiness matrix (first-read / active-worktree-vs-frozen / launch route / Slack+evidence-root) — was NOT produced as filled cells. This is consistent with a plan node whose declared return_shape excludes the matrix; the plan instead bounded scope and proposed a read-enabled follow-on. The matrix itself remains for a downstream/follow-on Building.",
+      "UNADDRESSED CELL: neither the plan nor this review located/confirmed an active-worktree-vs-frozen-repo discriminator surface; the plan listed it as missing_scope and it remains unconfirmed."
+    ],
+    "narrowly_proven": [
+      "The plan node's return satisfies its declared 8-field return shape and carries no forbidden/reserved keys or success/quality/Movement claims.",
+      "Every path-level existence claim in the plan's observed_evidence is independently verifiable as true against the worktree at /Users/smith/.brick/worktrees/struct-surgery-0623.",
+      "A customer-entry surface (support/operator/first_use.py + FIRST_USE.md generator, brick console entrypoint, brick verify) demonstrably exists at content level and is mapped by the 0624 kernel doc — partially contradicting the plan's path-only 'no entry doc' impression."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "I did not run git; evidence commits ea82b7d, bf407a1, 023cefe, 6faf3a0 and their building roots were not inspected by this review either (read-only, no git mutation).",
+      "Whether the existing install.sh / brick console / first_use / brick verify chain actually delivers a working cold-start customer path was not executed — only source text was read.",
+      "Active-worktree-vs-frozen-repo discriminator surface was not located or confirmed by this review.",
+      "Whether the offered skills (evidence-verification, zero-script-qa, evidence-shape-check) were actually fetched/applied is not recorded.",
+      "Not source truth, not a success/quality judgment, not a Movement decision; sufficiency and Movement remain the Link gate's, quality/approval the human's."
+    ],
+    "observed_evidence": [
+      "Read the prior node step-output at work/step-outputs/gap2-customer-entry-readiness-0625-plan-attempt-1/step-output.json: returned object carries all 8 declared plan fields (objective_summary, scope_boundaries, constraints, missing_scope, proposed_next_work_boundaries, observed_evidence, not_proven, transition_concern_evidence=null).",
+      "Read declared-building-plan.json: plan node required_return_shape = objective_summary,scope_boundaries,constraints,missing_scope,proposed_next_work_boundaries,observed_evidence,not_proven,transition_concern_evidence; agent-object:pm-lead; read-only plan node (no write_scope).",
+      "Confirmed by Glob that agent/objects/ holds exactly 8 role yaml files: coo, cto-lead, design-lead, dev, inspector, pm-lead, qa, qa-lead.",
+      "Confirmed agent/prompts/coo.md exists; support/connection/coo_sync.py, mcp_projection.py, agent_resources.py all exist.",
+      "Confirmed agent/skills/**/SKILL.md includes building-coordination, brick-task-author, task_intake, make-a-brick, make-a-gate, make-an-agent, building-sizing-method, project-creation (plus others).",
+      "Confirmed README.md, AGENTS.md, project/brick-protocol/README.md, project/brick-protocol/PROGRESS.md, and project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0624.md all exist.",
+      "Confirmed 28 presets under brick/templates/presets/ incl. onboarding-example-graph.md, one-brick-do.md, fast-fix.md, docs-simple-review.md; brick/building_plans/onboarding-example-0.yaml exists.",
+      "Read support/operator/first_use.py (module docstring: 'Render the customer FIRST_USE.md support note after the local init example'); Glob also surfaced support/operator/cli.py, support/checkers/check_first_use_wizard.py, support/checkers/check_building_operator_driver0.py, support/checkers/profiles/building_operator_driver0.yaml.",
+      "Read project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0624.md (lines 1-60): it maps a concrete customer-entry chain — support/onboarding/install.sh -> pyproject.toml [project.scripts] 'brick' console -> support/operator/cli.py::_cmd_init -> support/operator/first_use.py -> FIRST_USE.md -> brick verify — plus checker profile brick_cli_entrypoint.yaml and checks brick_cli_entrypoint_smoke / first_use_wizard.",
+      "Grep for slack in project/brick-protocol/**/*.md returned matches in status/kernel/install-ux-design-0618.md and status/kernel/gap2-customer-entry-readiness-0624.md, not only the preset/task template."
+    ],
+    "observed_matches": [
+      "Return shape: all 8 declared plan fields present; transition_concern_evidence is null (allowed); no reserved/forbidden top-level keys (no success/quality/movement/status/verdict); no success/quality/Movement claim made.",
+      "All path-level existence claims in the plan's observed_evidence verified true: 8 role objects in agent/objects/, agent/prompts/coo.md, the three support/connection modules, the named entry skills, root/project entry docs, the 0624 kernel gap doc, the presets (incl. the four named), and brick/building_plans/onboarding-example-0.yaml.",
+      "Preset substance matches though the plan omitted the exact path: presets live under brick/templates/presets/ and number 28, consistent with the plan's '28+ presets'.",
+      "Plan correctly treated the Read/Grep permission denial and absent git/Bash as environment/runtime constraints — recorded in constraints and not_proven, NOT as a transition_concern — matching the plan-Brick discipline.",
+      "Plan stayed within node scope: read-only, no file edits, no Movement/route choice, and proposed (not decided) a read-enabled follow-on and a minimal docs/fast-fix implementation boundary."
+    ],
+    "output_excerpt": "I have enough grounded evidence to return the review. Here is my observed support evidence. ```json { \"observed_evidence\": [ \"Read the prior node step-output at work/step-outputs/gap2-customer-entry-readiness-0625-plan-attempt-1/step-output.json: returned object carries all 8 declared plan fields (objective_summary, scope_boundaries, constraints, missing_scope, proposed_next_work_boundaries, observed_evidence, not_proven, transition_concern_evidence=null).\", \"Read declared-building-plan.json: plan node required_return_shape = objective_summary,scope_boundaries,constraints,missing_scope,prop...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:02:gap2-customer-entry-readiness-0625-review",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:gap2-customer-entry-readiness-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:gap2-customer-entry-readiness-0625-review:attempt-1",
+  "step_ref": "gap2-customer-entry-readiness-0625-review",
+  "subject": "gap2-customer-entry-readiness-0625-review",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T02:28:02.370794Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

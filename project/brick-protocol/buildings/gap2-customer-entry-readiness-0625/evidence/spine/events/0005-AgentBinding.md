@@ -1,0 +1,12 @@
+# AgentBinding · seq 5 · ["Agent"]
+- agent_object_ref: "agent-object:pm-lead"
+- agent_performer_ref: "agent-performer:agent-object:pm-lead"
+- axis_scope: ["Agent"]
+- binding_role: "primary"
+- brick_instance_ref: "brick-gap2-customer-entry-readiness-0625-plan"
+- event_type: "AgentBinding"
+- run_segment: 1
+- sequence_index: 5
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/gap2-customer-entry-readiness-0625-plan-attempt-1/step-output.json"
+- step_ref: "gap2-customer-entry-readiness-0625-plan"

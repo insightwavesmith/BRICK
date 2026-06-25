@@ -1,0 +1,173 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:gap2-customer-entry-readiness-0625::work/step-outputs/gap2-customer-entry-readiness-0625-closure-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-gap2-customer-entry-readiness-0625-closure",
+  "building_id": "gap2-customer-entry-readiness-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:03",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T02:29:36.348814Z",
+  "id": "urn:bp:building:gap2-customer-entry-readiness-0625::work/step-outputs/gap2-customer-entry-readiness-0625-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:03:gap2-customer-entry-readiness-0625-closure",
+  "recorded_at": "2026-06-25T02:29:36.348814Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:coo",
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:gap2-customer-entry-readiness-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "deferred_smith_review_queue": [
+      "Decide whether the populated readiness matrix should be produced in-Building (a follow-on implementation Building) or treated as already covered by status/kernel/gap2-customer-entry-readiness-0624.md, which carries an overlapping P1-P7 readiness delta.",
+      "Decide the catalog scope and preset (docs-simple-review vs fast-fix) for the minimum cold-start entry-doc / matrix Building.",
+      "Confirm whether the active-worktree-vs-frozen-repo discriminator is a real product gap to fill or already encoded somewhere not yet inspected.",
+      "Authorize a non-read-only session (write/run/git) if external cold-start execution evidence and evidence-commit inspection are wanted — both are beyond this read-only Building's scope."
+    ],
+    "evidence_refs": [
+      "support-packet:gap2-customer-entry-readiness-0625:agent-object:coo:output"
+    ],
+    "narrowly_proven": [
+      "A customer-entry surface exists at content level (first_use.py + FIRST_USE.md generator, brick console entrypoint, brick verify) and is documented by the 0624 kernel readiness record — the parent question 'does a discoverable COO/operator entry path exist in-repo' is answered YES at source-text level.",
+      "The named bounded surfaces from the task all exist: 8 role objects under agent/objects/ (incl. coo.yaml), agent/prompts/coo.md, the three support/connection modules (coo_sync.py, mcp_projection.py, agent_resources.py), the COO/building-coordination/brick-task-author/task_intake skills, 28 presets under brick/templates/presets/, and brick/building_plans/onboarding-example-0.yaml.",
+      "Both carried nodes held discipline: read-only, no edits, no Movement/route choice, no success/quality claims; environment/permission limits recorded in not_proven, not as transition concerns."
+    ],
+    "next_target_candidates": [
+      "A docs-simple-review or fast-fix scope implementation Building to author the populated customer-entry readiness matrix and a single consistent cold-start entry doc pointing to: first-read order, active-worktree detection, official Building launch route, Slack/evidence-root expectation.",
+      "A small read-enabled investigation Brick to locate/confirm the active-worktree-vs-frozen-repo discriminator surface and document it.",
+      "A git-enabled evidence-inspection Brick to read commits ea82b7d, bf407a1, 023cefe, 6faf3a0 and their building roots.",
+      "An external execution/transcript Building (release-artifact fresh-machine dry run) to convert the source-confirmed entry chain into run evidence — note this exceeds read-only and needs declared write/run scope.",
+      "(Candidates only — boundary proposals, not a Movement or route decision.)"
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "The full customer-entry readiness MATRIX as filled cells was NOT produced as a deliverable. The plan node's declared return_shape excluded a matrix and its session could not read contents; the review confirmed but did not author the matrix. The populated matrix remains downstream work.",
+      "Active-worktree-vs-frozen-repo discriminator surface was NOT located or confirmed by either node — the single matrix cell that distinguishes an active worktree from a frozen brick-protocol checkout is still unconfirmed.",
+      "Whether the in-repo install.sh -> brick console -> first_use -> brick verify chain actually delivers a working cold-start customer path was not executed by any node — only source text was read; the 0624 kernel itself lists external fresh-machine/release-artifact execution as remaining delta.",
+      "Evidence commits ea82b7d, bf407a1, 023cefe, 6faf3a0 and their building roots were not inspected by any node (no git/Bash access in either session).",
+      "Customer-facing first-read ROUTING (whether README/AGENTS/project README actually steer a cold session to the COO/operator path without re-reading the repo) is content-confirmed only for FIRST_USE.md/0624-kernel, not end-to-end for the top-level docs.",
+      "Whether the offered skills were actually fetched/applied is not recorded.",
+      "Not source truth, not a success/quality judgment, not a Movement decision; sufficiency and Movement remain the Link gate's, quality/approval the human's."
+    ],
+    "observed_evidence": [
+      "Carried plan node (agent-object:pm-lead) returned all 8 declared plan fields and bounded a read-only readiness review. Its session hit a hard capability limit: Read and Grep were permission-denied; only Glob (path enumeration) succeeded. It therefore produced path-level existence facts plus missing_scope, and recorded the read-only/permission limit in not_proven (not as a defect).",
+      "Carried review node (agent-object:qa-lead) had Read/Grep and content-verified the plan: all 8 plan fields present, no forbidden/reserved keys, every path-level existence claim independently verified true against worktree /Users/smith/.brick/worktrees/struct-surgery-0623.",
+      "Review surfaced a content-vs-path mismatch: a real customer-entry surface DOES exist — support/operator/first_use.py (renders customer FIRST_USE.md), brick console entrypoint, brick verify — and is mapped end-to-end by status/kernel/gap2-customer-entry-readiness-0624.md (install.sh -> pyproject [project.scripts] 'brick' -> support/operator/cli.py::_cmd_init -> first_use.py -> FIRST_USE.md -> brick verify), pinned by support/checkers/profiles/brick_cli_entrypoint.yaml and check_first_use_wizard.py. The plan's 'no entry doc' was a path-only impression caused by its read-only session limit, not a scoping error.",
+      "Closure-node direct grounding: project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0624.md exists and documents the entry chain plus a P1-P7 readiness delta and an explicit not_proven/remaining_delta section; support/operator/first_use.py and support/operator/cli.py confirmed to exist at repo-root support/ (not under project/brick-protocol/).",
+      "Slack and evidence-root signals: review found Slack guidance content in status/kernel/install-ux-design-0618.md and the 0624 kernel doc (not only the slack-alert preset/task template); evidence-root structure observed at project/brick-protocol/buildings/<building-id>/evidence/spine/ plus claim_trace/ and evidence-manifest.json.",
+      "Building shape: research-report preset (plan -> review -> closure), all forward edges, no reroute fired; node reroute budgets constitutional-default."
+    ],
+    "output_excerpt": "I have enough carried evidence plus direct grounding (the 0624 kernel doc and `support/operator/first_use.py` both exist at repo root) to synthesize the closure. Note: my first read used a wrong path prefix; `first_use.py` lives at repo-root `support/operator/`, confirming the review's content-level finding. ```json { \"observed_evidence\": [ \"Carried plan node (agent-object:pm-lead) returned all 8 declared plan fields and bounded a read-only readiness review. Its session hit a hard capability limit: Read and Grep were permission-denied; only Glob (path enumeration) succeeded. It therefore pr...",
+    "parent_goal_delta_status": {
+      "closed_delta_refs": [
+        "existence-of-in-repo-customer-entry-surface (answered YES at source-text level)",
+        "existence-of-named-bounded-surfaces (coo object/prompt/skills/connection modules/presets all present)"
+      ],
+      "evidence_refs": [
+        "work/step-outputs/gap2-customer-entry-readiness-0625-plan-attempt-1/step-output.json",
+        "work/step-outputs/gap2-customer-entry-readiness-0625-review-attempt-1/step-output.json",
+        "project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0624.md",
+        "support/operator/first_use.py",
+        "support/operator/cli.py",
+        "project/brick-protocol/status/kernel/install-ux-design-0618.md"
+      ],
+      "matched_delta_refs": [
+        "agent/objects/coo.yaml + 7 sibling role objects",
+        "agent/prompts/coo.md",
+        "support/connection/coo_sync.py, mcp_projection.py, agent_resources.py",
+        "agent/skills/{building-coordination,brick-task-author,task_intake}/SKILL.md",
+        "support/operator/first_use.py + FIRST_USE.md generator + brick console entrypoint + brick verify",
+        "brick/templates/presets/ (28) + brick/building_plans/onboarding-example-0.yaml"
+      ],
+      "missing_delta_refs": [
+        "active-worktree-vs-frozen-repo-discriminator-surface (not located by any node)",
+        "customer-facing-Slack-env-config-entry-doc (only guidance content + slack preset/task observed)"
+      ],
+      "open_delta_refs": [
+        "populated-customer-entry-readiness-matrix (deliverable not authored)",
+        "docs-vs-cli-entry-path-consistency (0624 kernel P7 delta)",
+        "official-launch-route-as-customer-followable-cell"
+      ],
+      "unknown_delta_refs": [
+        "cold-start-execution-actually-works (source read only, not run)",
+        "evidence-commits-ea82b7d-bf407a1-023cefe-6faf3a0 (not inspected, no git)",
+        "whether-offered-skills-were-fetched"
+      ]
+    },
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "remaining_delta": [
+      "Author the populated customer-entry readiness matrix (cells: first-read order / active-worktree-vs-frozen discriminator / official Building launch route / Slack+evidence-root expectation / not_proven) from actual file contents — the headline deliverable still owed.",
+      "Locate and document the active-worktree-vs-frozen-repo discriminator surface (candidate: support/connection/coo_sync.py or a status/kernel doc); if undocumented, add it as a customer-facing signal.",
+      "Reconcile the docs layer with the confirmed CLI entry chain so a cold customer reads one consistent first-use path (the 0624 kernel's P7 delta: README/DEPLOY/release guidance must match the current brick console + FIRST_USE.md flow).",
+      "Capture an external fresh-machine/release-artifact dry-run transcript (clone -> install.sh -> pipx brick -> brick init -> FIRST_USE.md -> brick verify), per the 0624 kernel remaining-delta section.",
+      "Inspect evidence commits ea82b7d, bf407a1, 023cefe, 6faf3a0 and their building roots in a git-enabled session."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:03:gap2-customer-entry-readiness-0625-closure",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:gap2-customer-entry-readiness-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:gap2-customer-entry-readiness-0625-closure:attempt-1",
+  "step_ref": "gap2-customer-entry-readiness-0625-closure",
+  "subject": "gap2-customer-entry-readiness-0625-closure",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T02:29:36.348814Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

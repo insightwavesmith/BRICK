@@ -1,0 +1,12 @@
+# AgentReceipt · seq 24 · ["Agent"]
+- agent_object_ref: "agent-object:coo"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-gap2-customer-entry-readiness-0625-closure"
+- event_type: "AgentReceipt"
+- evidence_reference: "raw:agent:03"
+- received_work_ref: "brick-work:03:gap2-customer-entry-readiness-0625-closure"
+- run_segment: 1
+- sequence_index: 24
+- source_fact_ref: "agent-fact:03:gap2-customer-entry-readiness-0625-closure"
+- spine_schema_version: "spine-v1"
+- step_ref: "gap2-customer-entry-readiness-0625-closure"

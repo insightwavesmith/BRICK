@@ -1,0 +1,13 @@
+# AgentReturn · seq 7 · ["Agent"]
+- agent_object_ref: "agent-object:pm-lead"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-gap2-customer-entry-readiness-0625-plan"
+- event_type: "AgentReturn"
+- observed_fields: ["received_work","returned"]
+- returned_fact_ref: "agent-fact:01:gap2-customer-entry-readiness-0625-plan"
+- route_request_ref: ""
+- run_segment: 1
+- sequence_index: 7
+- spine_schema_version: "spine-v1"
+- step_output_ref: "step-output:gap2-customer-entry-readiness-0625-plan:attempt-1"
+- step_ref: "gap2-customer-entry-readiness-0625-plan"
