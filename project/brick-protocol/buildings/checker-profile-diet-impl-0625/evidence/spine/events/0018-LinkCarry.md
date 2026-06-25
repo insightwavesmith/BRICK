@@ -1,0 +1,23 @@
+# LinkCarry · seq 18 · ["Link"]
+- axis_scope: ["Link"]
+- budget_exhausted: false
+- budget_kind: "node_reroute_budget"
+- budget_scope: "target_brick_node"
+- budget_source_refs: ["work/declared-building-plan.json#node_reroute_budgets.brick-checker-profile-diet-impl-0625-work","work/link-launch-policy.json#node_reroute_budgets.brick-checker-profile-diet-impl-0625-work"]
+- carry_budget_evidence_ref: "evidence/claim_trace/link/carry_trace.json#carry-budget:checker-profile-diet-impl-0625:node:brick-checker-profile-diet-impl-0625-work"
+- declared_budget: 1
+- disposition_required: true
+- event_type: "LinkCarry"
+- exhaustion_record_refs: ["reroute-hold:checker-profile-diet-impl-0625:01:brick-checker-profile-diet-impl-0625-work"]
+- exhaustion_status: "not_observed"
+- not_proven: ["semantic correctness of the reroute or replay budget","caller/COO disposition after a HOLD","future provider/runtime behavior"]
+- observed_reroute_landings: 0
+- observed_step_attempt_count: 0
+- proof_limits: ["Link Carry budget evidence only","records declared and observed carry budget facts only","not source truth","not success judgment","not quality judgment","not Movement authority"]
+- run_segment: 1
+- sequence_index: 18
+- source_fact_ref: "carry-budget:checker-profile-diet-impl-0625:node:brick-checker-profile-diet-impl-0625-work"
+- spine_schema_version: "spine-v1"
+- support_created_bal_fact: false
+- target_boundary_ref: "brick-checker-profile-diet-impl-0625-work"
+- trace_role: "carry_budget_observation"
