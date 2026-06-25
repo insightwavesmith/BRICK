@@ -1,0 +1,188 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:checker-profile-diet-b2a-copy-stage-0625::work/step-outputs/checker-profile-diet-b2a-copy-stage-0625-work-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:dev",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-checker-profile-diet-b2a-copy-stage-0625-work",
+  "building_id": "checker-profile-diet-b2a-copy-stage-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T10:17:56.408191Z",
+  "id": "urn:bp:building:checker-profile-diet-b2a-copy-stage-0625::work/step-outputs/checker-profile-diet-b2a-copy-stage-0625-work-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:checker-profile-diet-b2a-copy-stage-0625-work",
+  "recorded_at": "2026-06-25T10:17:56.408191Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:dev",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "changed_files": [
+      "support/checkers/profiles/building_skill_preset_agent_resource_boundary.yaml",
+      "support/checkers/profiles/building_skill_preset_builder_composition.yaml",
+      "support/checkers/profiles/building_skill_preset_intake_adapter_gate.yaml",
+      "support/checkers/profiles/core.yaml"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:checker-profile-diet-b2a-copy-stage-0625",
+    "cli_version_text": "codex-cli 0.132.0",
+    "evidence_refs": [
+      "support-packet:checker-profile-diet-b2a-copy-stage-0625:agent-object:dev:output"
+    ],
+    "made_changes": true,
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "checker profile pass is not source truth, success judgment, quality judgment, or Movement authority",
+      "complete B2 profile diet is not done",
+      "B2b can thin/delete the original profile only after the pre-existing building_map_graph evidence blocker is separately resolved or scoped out by the next declared Brick"
+    ],
+    "observed_evidence": [
+      "Created three concern-coherent staging-copy profiles and left building_skill_preset_agent_tool_hardening.yaml intact.",
+      "Updated core.yaml path_allowlist for the three new profile files.",
+      "git diff --check: passed.",
+      "check_profile.py --profile building_skill_preset_builder_composition: passed.",
+      "check_profile.py --profile building_skill_preset_agent_resource_boundary: passed.",
+      "check_profile.py --profile building_skill_preset_intake_adapter_gate: passed after removing broad building_map_graph from that new staging profile.",
+      "check_profile.py --self-test: passed.",
+      "check_profile.py --profile core: blocked by pre-existing project/brick-protocol/buildings/checker-profile-diet-impl-0625/work/building-map.json endpoint/group reference errors outside this Brick write scope."
+    ],
+    "output_excerpt": "{ \"made_changes\": true, \"changed_files\": [ \"support/checkers/profiles/building_skill_preset_builder_composition.yaml\", \"support/checkers/profiles/building_skill_preset_agent_resource_boundary.yaml\", \"support/checkers/profiles/building_skill_preset_intake_adapter_gate.yaml\", \"support/checkers/profiles/core.yaml\" ], \"observed_evidence\": [ \"Created three concern-coherent staging-copy profiles and left building_skill_preset_agent_tool_hardening.yaml intact.\", \"Updated core.yaml path_allowlist for the three new profile files.\", \"git diff --check: passed.\", \"check_profile.py --profile building_sk...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:codex-local",
+    "selected_model_ref": "model:codex:default",
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "struct-surgery-0623",
+        "head": "d79de0164a2e281f7ff967af9d5c131c6c924018"
+      },
+      "after_git_status_paths": [
+        "project/brick-protocol/buildings/checker-profile-diet-b2a-copy-stage-0625/declared-building-plan.json",
+        "project/brick-protocol/buildings/checker-profile-diet-b2a-copy-stage-0625/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/checker-profile-diet-b2a-copy-stage-0625/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/checker-profile-diet-b2a-copy-stage-0625/work/building-intake.json",
+        "project/brick-protocol/buildings/checker-profile-diet-b2a-copy-stage-0625/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/checker-profile-diet-b2a-copy-stage-0625/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/checker-profile-diet-b2a-copy-stage-0625/work/preset-expansion.json",
+        "project/brick-protocol/buildings/checker-profile-diet-b2a-copy-stage-0625/work/task.md",
+        "project/brick-protocol/status/inbox/brick-protocol-checker-profile-diet-b2a-copy-stage-0625-brick-received-event-2026-06-25T10-12-18-459312-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-checker-profile-diet-b2a-copy-stage-0625-building-started-event-2026-06-25T10-12-17-700355-00-00.json",
+        "support/checkers/profiles/building_skill_preset_agent_resource_boundary.yaml",
+        "support/checkers/profiles/building_skill_preset_builder_composition.yaml",
+        "support/checkers/profiles/building_skill_preset_intake_adapter_gate.yaml",
+        "support/checkers/profiles/core.yaml"
+      ],
+      "after_path_count": 4583,
+      "before_git_refs": {
+        "branch": "struct-surgery-0623",
+        "head": "d79de0164a2e281f7ff967af9d5c131c6c924018"
+      },
+      "before_git_status_paths": [
+        "project/brick-protocol/buildings/checker-profile-diet-b2a-copy-stage-0625/declared-building-plan.json",
+        "project/brick-protocol/buildings/checker-profile-diet-b2a-copy-stage-0625/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/checker-profile-diet-b2a-copy-stage-0625/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/checker-profile-diet-b2a-copy-stage-0625/work/building-intake.json",
+        "project/brick-protocol/buildings/checker-profile-diet-b2a-copy-stage-0625/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/checker-profile-diet-b2a-copy-stage-0625/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/checker-profile-diet-b2a-copy-stage-0625/work/preset-expansion.json",
+        "project/brick-protocol/buildings/checker-profile-diet-b2a-copy-stage-0625/work/task.md",
+        "project/brick-protocol/status/inbox/brick-protocol-checker-profile-diet-b2a-copy-stage-0625-brick-received-event-2026-06-25T10-12-18-459312-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-checker-profile-diet-b2a-copy-stage-0625-building-started-event-2026-06-25T10-12-17-700355-00-00.json"
+      ],
+      "before_path_count": 4580,
+      "git_refs_moved": {},
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [
+        "support/checkers/profiles/building_skill_preset_agent_resource_boundary.yaml",
+        "support/checkers/profiles/building_skill_preset_builder_composition.yaml",
+        "support/checkers/profiles/building_skill_preset_intake_adapter_gate.yaml",
+        "support/checkers/profiles/core.yaml"
+      ],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "support/checkers/profiles/**",
+          "project/brick-protocol/status/kernel/checker-profile-diet-b2a-copy-stage-0625.md"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "support/checkers/lib/**",
+          "AGENTS.md"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:01:checker-profile-diet-b2a-copy-stage-0625-work",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:checker-profile-diet-b2a-copy-stage-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:checker-profile-diet-b2a-copy-stage-0625-work:attempt-1",
+  "step_ref": "checker-profile-diet-b2a-copy-stage-0625-work",
+  "subject": "checker-profile-diet-b2a-copy-stage-0625-work",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T10:17:56.408191Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

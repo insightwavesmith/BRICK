@@ -1,0 +1,274 @@
+schema: checker-profile/v1
+profile_id: building-skill-preset-builder-composition
+description: Staging copy slice for BUILDING-SKILL-PRESET-AGENT-TOOL-HARDENING-0 builder composition and preset materialization assertions.
+kernel_checks:
+  - package_path_admission
+  - axis_contract_projection
+path_exists:
+  - brick/templates/shapes/catalog.yaml
+  - brick/templates/reroute-defaults.yaml
+  - brick/templates/presets/fast-fix.md
+  - brick/templates/presets/design-build-parallel.md
+  - brick/templates/presets/high-risk-change-inspected.md
+  - brick/templates/presets/governed-change-review.md
+  - brick/templates/presets/app-feature-basic.md
+  - support/connection/building_design_toolkit.py
+  - support/operator/plan_rendering.py
+  - support/operator/composition_compose.py
+  - support/operator/composition_problem.py
+  - support/checkers/check_profile.py
+text_contains:
+  - path: support/connection/building_design_toolkit.py
+    texts:
+      - step_templates
+      - chain_presets
+      - _registry_section_items
+      - 'def render_agent_candidate_packet('
+      - support does not pick among >= 2 candidates
+  - path: support/operator/plan_rendering.py
+    texts:
+      - 'def _render_candidate_agents_for_need('
+      - does NOT pick among >=2
+  - path: support/operator/composition_compose.py
+    texts:
+      - 'def compose_building('
+      - selection_rule
+      - caller_or_coo_declared_only
+  - path: support/operator/composition_problem.py
+    texts:
+      - class CompositionError(ValueError)
+      - class CompositionProblem
+  - path: support/checkers/check_profile.py
+    texts:
+      - materialize_building_intent_case
+      - materialize_building_intent_rejects
+      - compose_building_case
+      - compose_building_rejects
+materialize_building_intent_case:
+  - label: materialize-building-intent:fast-fix-sequential-graph
+    document:
+      plan_ref: building-plan:materialize-fast-fix-sequential-graph
+      building_id: materialize-fast-fix-sequential-graph
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:fast-fix
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+          - .claude/**
+      not_proven:
+        - checker fixture task source only
+    expected:
+      building_id: materialize-fast-fix-sequential-graph
+      chain_preset_ref: building-chain-preset:fast-fix
+      selected_adapter_ref: adapter:codex-local
+      task_source_ref: brick/templates/tasks/source-template.md
+      plan_shape: graph
+      step_refs:
+        - materialize-fast-fix-sequential-graph-work
+        - materialize-fast-fix-sequential-graph-code-attack-qa
+        - materialize-fast-fix-sequential-graph-closure
+      target_refs:
+        - brick-materialize-fast-fix-sequential-graph-code-attack-qa
+        - brick-materialize-fast-fix-sequential-graph-closure
+        - building-boundary:materialize-fast-fix-sequential-graph-closed
+      node_reroute_budgets:
+        brick-materialize-fast-fix-sequential-graph-work: 5
+      assert_route_policy_provenance: true
+      route_policy_provenance:
+        materialize-fast-fix-sequential-graph-work:
+          node_reroute_budget: preset-default
+      task_source_hash_present: true
+  - label: materialize-building-intent:app-feature-basic-graph
+    document:
+      plan_ref: building-plan:materialize-app-feature-basic-graph
+      building_id: materialize-app-feature-basic-graph
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:app-feature-basic
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+          - .claude/**
+      not_proven:
+        - checker fixture task source only
+    expected:
+      plan_shape: graph
+      building_id: materialize-app-feature-basic-graph
+      chain_preset_ref: building-chain-preset:app-feature-basic
+      selected_adapter_ref: adapter:codex-local
+      task_source_ref: brick/templates/tasks/source-template.md
+      step_refs:
+        - materialize-app-feature-basic-graph-plan
+        - materialize-app-feature-basic-graph-design
+        - materialize-app-feature-basic-graph-work
+        - materialize-app-feature-basic-graph-review
+        - materialize-app-feature-basic-graph-closure
+      target_refs:
+        - brick-materialize-app-feature-basic-graph-design
+        - brick-materialize-app-feature-basic-graph-work
+        - brick-materialize-app-feature-basic-graph-review
+        - brick-materialize-app-feature-basic-graph-closure
+        - building-boundary:materialize-app-feature-basic-graph-closed
+      declared_gate_refs_by_row:
+        - link-gate:default-transition
+        - link-gate:default-transition
+        - link-gate:default-transition
+        - link-gate:default-transition
+        - link-gate:default-transition
+      gate_concept_provenance_by_row:
+        - ""
+        - ""
+        - ""
+        - ""
+        - ""
+      task_source_hash_present: true
+materialize_building_intent_rejects:
+  - label: materialize-building-intent:missing-task-source-ref
+    expected_message: task_source_ref must not be blank
+    document:
+      plan_ref: building-plan:materialize-missing-task
+      building_id: materialize-missing-task
+      declared_by: coo
+      chain_preset_ref: building-chain-preset:fast-fix
+      selected_adapter_ref: adapter:codex-local
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+  - label: materialize-building-intent:missing-chain-preset-ref
+    expected_message: chain_preset_ref must not be blank
+    document:
+      plan_ref: building-plan:materialize-missing-preset
+      building_id: materialize-missing-preset
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      selected_adapter_ref: adapter:codex-local
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+  - label: materialize-building-intent:omitted-adapter-fails-closed-linear
+    expected_message: selected_adapter_ref must be declared in the confirmed intent
+    document:
+      plan_ref: building-plan:materialize-omitted-adapter-linear
+      building_id: materialize-omitted-adapter-linear
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:fast-fix
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+compose_building_case:
+  - label: builder-templated-work-statement-only
+    document:
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: caller
+      plan_ref: building-plan:builder-ws-only
+      building_id: builder-ws-only
+      nodes:
+        - node_id: bwso-work
+          step_template_ref: building-step-template:work
+          work_statement: Implement the builder work-statement-only proof.
+        - node_id: bwso-review
+          step_template_ref: building-step-template:review
+          work_statement: Review the builder proof.
+        - node_id: bwso-closure
+          step_template_ref: building-step-template:closure
+          work_statement: Close the builder proof.
+      edges:
+        - edge_ref: edge:bwso-work-to-review
+          source: bwso-work
+          target: bwso-review
+          movement: forward
+        - edge_ref: edge:bwso-review-to-closure
+          source: bwso-review
+          target: bwso-closure
+          movement: forward
+          gate: human
+        - edge_ref: edge:bwso-closure-to-boundary
+          source: bwso-closure
+          target: building-boundary:builder-ws-only-closed
+          movement: forward
+          building_lifecycle:
+            state: closed
+            reason: builder work-statement-only proof closed
+    expected:
+      plan_shape: graph
+      selected_adapter_ref: adapter:local
+      declared_gate_refs:
+        - link-gate:default-transition
+        - link-gate:human
+      frontier_kind: complete
+compose_building_rejects:
+  - label: builder-templated-missing-work-statement
+    expected_code: missing_brick_fields
+    document:
+      selected_shape_ref: building-shape:reviewable-work
+      declared_by: caller
+      plan_ref: building-plan:builder-ws-missing
+      building_id: builder-ws-missing
+      nodes:
+        - node_id: bwsm-work
+          step_template_ref: building-step-template:work
+        - node_id: bwsm-review
+          step_template_ref: building-step-template:review
+          work_statement: Review.
+        - node_id: bwsm-closure
+          step_template_ref: building-step-template:closure
+          work_statement: Close.
+      edges:
+        - edge_ref: edge:bwsm-work-to-review
+          source: bwsm-work
+          target: bwsm-review
+          movement: forward
+        - edge_ref: edge:bwsm-review-to-closure
+          source: bwsm-review
+          target: bwsm-closure
+          movement: forward
+          gate: human
+        - edge_ref: edge:bwsm-closure-to-boundary
+          source: bwsm-closure
+          target: building-boundary:builder-ws-missing-closed
+          movement: forward
+          building_lifecycle:
+            state: closed
+            reason: builder missing work statement
+  - label: c1-bad-gate-token
+    expected_code: bad_gate_token
+    document:
+      selected_shape_ref: building-shape:simple-do
+      declared_by: caller
+      nodes:
+        - node_id: bad-gate-work
+          step_template_ref: building-step-template:work
+          work_statement: Work.
+          comparison_rule: Observe support evidence only.
+          required_return_shape: observed_evidence, not_proven
+      edges:
+        - source: bad-gate-work
+          target: building-boundary:bad-gate-closed
+          movement: forward
+          gate: robot
+proof_limits:
+  - support evidence only
+  - staging copies only; original profile remains intact
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - complete builder profile diet
+  - semantic fitness of future chain preset selection

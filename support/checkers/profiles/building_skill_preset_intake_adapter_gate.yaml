@@ -1,0 +1,131 @@
+schema: checker-profile/v1
+profile_id: building-skill-preset-intake-adapter-gate
+description: Staging copy slice for BUILDING-SKILL-PRESET-AGENT-TOOL-HARDENING-0 task intake, adapter ask-shape, and Link gate seam assertions.
+kernel_checks:
+  - package_path_admission
+  - axis_contract_projection
+  - building_lifecycle_path_shape
+path_exists:
+  - brick/templates/tasks/source-template.md
+  - agent/prompts/coo.md
+  - agent/skills/building-coordination/SKILL.md
+  - agent/skills/task_intake/SKILL.md
+  - support/operator/run.py
+  - support/operator/driver.py
+  - support/operator/building_operation.py
+  - support/operator/plan_validation.py
+  - support/checkers/check_profile.py
+text_contains:
+  - path: agent/prompts/coo.md
+    texts:
+      - MOVEMENT-BINARY-0 as the active Link language
+      - Building-intake trigger
+      - task_source_draft
+      - task-source confirmed first
+      - route_family_candidate
+      - graph_movement_case_analysis
+      - fan_in_first_candidate
+      - Slack is the payload
+      - Partial QA reuse remains
+  - path: agent/skills/building-coordination/SKILL.md
+    texts:
+      - use the active MOVEMENT-BINARY-0 language
+      - Building trigger rule
+      - Run `task_intake` as the first active work step
+      - Confirm `task_source_draft`
+      - support records `work/task.md` as declaration evidence
+      - Builder materializer handoff
+      - graph_movement_case_analysis
+      - fan_in_first_candidate
+      - partial QA reuse remains not_proven
+  - path: agent/skills/task_intake/SKILL.md
+    texts:
+      - route_family_candidate
+      - preset_vs_manual_candidate
+      - preset_vs_manual_case_analysis
+      - manual_graph_candidate
+      - graph_movement_case_analysis
+      - fan_out_candidate
+      - fan_in_first_candidate
+      - reroute_replay_readiness_questions
+      - declared_boundary_candidate_refs
+      - route_policy_candidate_refs
+      - route_replay_plan_candidate_refs
+      - claim partial QA reuse is valid without consumed_input_refs
+  - path: support/operator/plan_validation.py
+    texts:
+      - evidence_used.repository_artifact_ref
+      - evidence_refs.repository_artifact_ref
+  - path: support/operator/run.py
+    texts:
+      - validate_agent_refs
+      - Agent Object resource rejected by Agent resource resolver
+  - path: support/checkers/check_profile.py
+    texts:
+      - adapter_gate_shape_union_case
+      - building_intake_seam_case
+      - run_once_task_source_admission_case
+text_absent:
+  - path: agent/prompts/coo.md
+    texts:
+      - Until MOVEMENT-BINARY-0 is implemented
+      - Open or point to a real Brick-owned Building Plan before changing protocol
+      - Choose the Building shape by work type
+  - path: agent/skills/building-coordination/SKILL.md
+    texts:
+      - until MOVEMENT-BINARY-0 is implemented
+      - Name the Brick work contract and the Building Plan before resource changes.
+      - QA branch cannot route
+      - branch cannot reroute
+      - closure-synthesis means final close
+      - partial QA reuse without consumed_input_refs
+adapter_gate_shape_union_case:
+  - label: legacy-underask-row-gets-gate-union
+    task_source_ref: brick/templates/tasks/source-template.md
+    chain_preset_ref: building-chain-preset:design-contract-only
+    target_step_index: 0
+    drop_field: observed_evidence
+    expected_request_labels: "design_summary, relevant_current_structure, proposed_changes, unchanged_surfaces, axis_responsibility, invariants, edge_cases, checker_or_verifier_plan, candidate_file_changes, evidence_refs, not_proven, reading_scope_map, observed_evidence"
+    passthrough_step_index: 1
+building_intake_seam_case:
+  - label: building-intake-seam-graph-preferred-claude
+    task_source_ref: brick/templates/tasks/source-template.md
+    chain_preset_ref: building-chain-preset:onboarding-example-graph
+    selected_adapter_ref: adapter:claude-local
+    expected_plan_shape: graph
+    expected_walker_mode: dynamic
+    expected_frontier_kind: complete
+    no_preset_chain_preset_ref: building-chain-preset:this-preset-is-not-in-the-registry
+  - label: building-intake-seam-human-gate-hold
+    task_source_ref: brick/templates/tasks/source-template.md
+    chain_preset_ref: building-chain-preset:governed-change-review
+    selected_adapter_ref: adapter:codex-local
+    write_scope:
+      allowed_paths:
+        - "**"
+      forbidden_paths:
+        - ".git/**"
+    expected_plan_shape: graph
+    expected_walker_mode: dynamic
+    expected_frontier_kind: link_paused
+    expected_required_disposition_owner: caller-or-coo
+    expected_missing_required_fact: Link.route_decision_basis.human_review_refs
+    route_decision_basis:
+      override_refs:
+        - coo:intake-seam-checker-override
+    no_preset_chain_preset_ref: building-chain-preset:this-preset-is-not-in-the-registry
+run_once_task_source_admission_case:
+  - label: once-task-source-admission
+    missing_task_source_ref: brick/templates/tasks/this-once-task-source-does-not-exist.md
+    valid_task_source_ref: brick/templates/tasks/source-template.md
+proof_limits:
+  - support evidence only
+  - staging copies only; original profile remains intact
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - complete intake and gate profile diet
+  - provider login/session quality
+  - semantic correctness of future Agent transition concerns
