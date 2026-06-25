@@ -1,0 +1,468 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:gap2-customer-entry-minimum-doc-fix-0625b::work/building-map.json",
+  "agent_bindings": [
+    {
+      "agent_binding_id": "binding:01:gap2-customer-entry-minimum-doc-fix-0625b-work",
+      "agent_performer_ref": "agent-performer:agent-object:dev",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-gap2-customer-entry-minimum-doc-fix-0625b-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:01:gap2-customer-entry-minimum-doc-fix-0625b-work"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ],
+      "step_output_ref": "work/step-outputs/gap2-customer-entry-minimum-doc-fix-0625b-work-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:02:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+      "agent_performer_ref": "agent-performer:agent-object:qa",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:02:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ],
+      "step_output_ref": "work/step-outputs/gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa-attempt-1/step-output.json"
+    },
+    {
+      "agent_binding_id": "binding:03:gap2-customer-entry-minimum-doc-fix-0625b-closure",
+      "agent_performer_ref": "agent-performer:agent-object:coo",
+      "binding_role": "primary",
+      "brick_instance_ref": "brick-gap2-customer-entry-minimum-doc-fix-0625b-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "produced_public_fact_refs": [
+        "agent-fact:03:gap2-customer-entry-minimum-doc-fix-0625b-closure"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ],
+      "step_output_ref": "work/step-outputs/gap2-customer-entry-minimum-doc-fix-0625b-closure-attempt-1/step-output.json"
+    }
+  ],
+  "brick_instances": [
+    {
+      "agent_binding_refs": [
+        "binding:01:gap2-customer-entry-minimum-doc-fix-0625b-work"
+      ],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-gap2-customer-entry-minimum-doc-fix-0625b-work",
+      "brick_work_ref": "work:gap2-customer-entry-minimum-doc-fix-0625b-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01",
+        "raw:link:01"
+      ]
+    },
+    {
+      "agent_binding_refs": [
+        "binding:02:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa"
+      ],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+      "brick_work_ref": "work:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01",
+        "raw:link:01"
+      ]
+    },
+    {
+      "agent_binding_refs": [
+        "binding:03:gap2-customer-entry-minimum-doc-fix-0625b-closure"
+      ],
+      "attempt_index": 2,
+      "brick_instance_id": "brick-gap2-customer-entry-minimum-doc-fix-0625b-closure",
+      "brick_work_ref": "work:gap2-customer-entry-minimum-doc-fix-0625b-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02",
+        "raw:link:02"
+      ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 3,
+      "brick_instance_id": "building-boundary:gap2-customer-entry-minimum-doc-fix-0625b-closed",
+      "brick_work_ref": "building-boundary:gap2-customer-entry-minimum-doc-fix-0625b-closed",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03",
+        "raw:link:03"
+      ]
+    }
+  ],
+  "building_id": "gap2-customer-entry-minimum-doc-fix-0625b",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "declaration_provenance": {
+    "building_id": "gap2-customer-entry-minimum-doc-fix-0625b",
+    "composition_mode": "caller_or_coo_declared_graph_composition",
+    "declaration_evidence_refs": [
+      "work/task.md",
+      "work/building-intake.json",
+      "work/preset-expansion.json",
+      "work/declared-building-plan.json",
+      "work/link-launch-policy.json"
+    ],
+    "declared_by": "coo-fugu-operator",
+    "declared_gate_refs": [
+      "link-gate:default-transition"
+    ],
+    "expanded_brick_spec_refs": [
+      "brick/templates/bricks/work/brick.md",
+      "brick/templates/bricks/code-attack-qa/brick.md",
+      "brick/templates/bricks/closure/brick.md"
+    ],
+    "expanded_brick_template_refs": [
+      "brick/templates/bricks/work/return.yaml",
+      "brick/templates/bricks/transition-concern-return.yaml",
+      "brick/templates/bricks/code-attack-qa/return.yaml",
+      "brick/templates/bricks/closure/return.yaml"
+    ],
+    "expanded_step_template_refs": [
+      "building-step-template:work",
+      "building-step-template:code-attack-qa",
+      "building-step-template:closure"
+    ],
+    "not_proven": [
+      "semantic fitness of selected shape",
+      "future Building run correctness",
+      "future Agent or provider quality",
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "source truth",
+      "success judgment",
+      "quality judgment",
+      "Movement authority"
+    ],
+    "plan_ref": "building-plan:gap2-customer-entry-minimum-doc-fix-0625b",
+    "plan_shape": "graph",
+    "proof_limits": [
+      "support declaration provenance evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "support evidence only",
+      "compose_building assembles caller / COO declared node and edge choices only",
+      "not automatic shape selection",
+      "not automatic Agent selection",
+      "not automatic gate selection",
+      "not support-chosen target"
+    ],
+    "selected_preset_ref": "building-chain-preset:fast-fix",
+    "selected_shape_ref": "building-shape:reviewable-work",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T02:42:11Z",
+  "groups": [],
+  "id": "urn:bp:building:gap2-customer-entry-minimum-doc-fix-0625b::work/building-map.json",
+  "kind": "building_graph_map",
+  "link_edges": [
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:01:gap2-customer-entry-minimum-doc-fix-0625b-work",
+        "brick-comparison:01:gap2-customer-entry-minimum-doc-fix-0625b-work",
+        "movement-fact:01:gap2-customer-entry-minimum-doc-fix-0625b-work"
+      ],
+      "link_edge_id": "edge:gap2-customer-entry-minimum-doc-fix-0625b-work-to-gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+      "movement_fact_ref": "movement-fact:01:gap2-customer-entry-minimum-doc-fix-0625b-work",
+      "public_fact_refs": [
+        "agent-fact:01:gap2-customer-entry-minimum-doc-fix-0625b-work",
+        "brick-comparison:01:gap2-customer-entry-minimum-doc-fix-0625b-work",
+        "movement-fact:01:gap2-customer-entry-minimum-doc-fix-0625b-work"
+      ],
+      "source_brick_instance_ref": "brick-gap2-customer-entry-minimum-doc-fix-0625b-work",
+      "step_output_ref": "work/step-outputs/gap2-customer-entry-minimum-doc-fix-0625b-work-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+      "transition_fact_ref": "transition-fact:01:gap2-customer-entry-minimum-doc-fix-0625b-work"
+    },
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:02:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+        "brick-comparison:02:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+        "movement-fact:02:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa"
+      ],
+      "link_edge_id": "edge:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa-to-gap2-customer-entry-minimum-doc-fix-0625b-closure",
+      "movement_fact_ref": "movement-fact:02:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+      "public_fact_refs": [
+        "agent-fact:02:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+        "brick-comparison:02:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+        "movement-fact:02:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa"
+      ],
+      "source_brick_instance_ref": "brick-gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+      "step_output_ref": "work/step-outputs/gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa-attempt-1/step-output.json",
+      "target_brick_instance_ref": "brick-gap2-customer-entry-minimum-doc-fix-0625b-closure",
+      "transition_fact_ref": "transition-fact:02:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa"
+    },
+    {
+      "edge_role": "primary_flow",
+      "input_public_fact_refs": [
+        "agent-fact:03:gap2-customer-entry-minimum-doc-fix-0625b-closure",
+        "brick-comparison:03:gap2-customer-entry-minimum-doc-fix-0625b-closure",
+        "movement-fact:03:gap2-customer-entry-minimum-doc-fix-0625b-closure"
+      ],
+      "link_edge_id": "edge:gap2-customer-entry-minimum-doc-fix-0625b-closure-to-boundary",
+      "movement_fact_ref": "movement-fact:03:gap2-customer-entry-minimum-doc-fix-0625b-closure",
+      "public_fact_refs": [
+        "agent-fact:03:gap2-customer-entry-minimum-doc-fix-0625b-closure",
+        "brick-comparison:03:gap2-customer-entry-minimum-doc-fix-0625b-closure",
+        "movement-fact:03:gap2-customer-entry-minimum-doc-fix-0625b-closure"
+      ],
+      "source_brick_instance_ref": "brick-gap2-customer-entry-minimum-doc-fix-0625b-closure",
+      "step_output_ref": "work/step-outputs/gap2-customer-entry-minimum-doc-fix-0625b-closure-attempt-1/step-output.json",
+      "target_brick_instance_ref": "building-boundary:gap2-customer-entry-minimum-doc-fix-0625b-closed",
+      "transition_fact_ref": "transition-fact:03:gap2-customer-entry-minimum-doc-fix-0625b-closure"
+    }
+  ],
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "profile": "planning-v0",
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "raw_refs": [
+    "raw:brick:01",
+    "raw:agent:01",
+    "raw:link:01",
+    "raw:brick:02",
+    "raw:agent:02",
+    "raw:link:02",
+    "raw:brick:03",
+    "raw:agent:03",
+    "raw:link:03"
+  ],
+  "recorded_at": "2026-06-25T02:42:11Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:gap2-customer-entry-minimum-doc-fix-0625b",
+  "specversion": "1.0",
+  "subject": "work/building-map.json",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T02:42:11Z",
+  "type": "bp.building_graph_map"
+}

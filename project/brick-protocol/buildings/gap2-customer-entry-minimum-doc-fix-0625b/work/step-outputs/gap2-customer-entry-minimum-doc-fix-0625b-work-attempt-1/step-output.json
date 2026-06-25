@@ -1,0 +1,205 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:gap2-customer-entry-minimum-doc-fix-0625b::work/step-outputs/gap2-customer-entry-minimum-doc-fix-0625b-work-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:dev",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-gap2-customer-entry-minimum-doc-fix-0625b-work",
+  "building_id": "gap2-customer-entry-minimum-doc-fix-0625b",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T02:38:04.823742Z",
+  "id": "urn:bp:building:gap2-customer-entry-minimum-doc-fix-0625b::work/step-outputs/gap2-customer-entry-minimum-doc-fix-0625b-work-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:gap2-customer-entry-minimum-doc-fix-0625b-work",
+  "recorded_at": "2026-06-25T02:38:04.823742Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:dev",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "changed_files": [
+      "project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0625.md"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:gap2-customer-entry-minimum-doc-fix-0625b",
+    "cli_version_text": "codex-cli 0.132.0",
+    "evidence_refs": [
+      "support-packet:gap2-customer-entry-minimum-doc-fix-0625b:agent-object:dev:output"
+    ],
+    "made_changes": true,
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "The narrow `brick_cli_entrypoint` profile covers the customer-entry CLI/FIRST_USE path, not the exact new matrix prose.",
+      "Fresh-machine or release-export transcript remains not proven.",
+      "Provider-backed customer path behavior remains not proven.",
+      "Real Slack delivery reliability and credential readiness remain not proven.",
+      "Whether a new customer distinguishes active checkout/release export from HISTORY without human correction remains not proven.",
+      "Not source truth, not a success judgment, not a quality judgment, not Movement authority."
+    ],
+    "observed_evidence": [
+      "Reviewed the adapter-timeout draft diff. `support/docs/references/quickstart.md` contains a populated customer-entry readiness matrix covering first-read order, active checkout vs frozen/history repo, official Building launch route, Slack expectation, evidence root, and proof limits.",
+      "Reviewed `project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0625.md`; it carries the same readiness matrix plus observed evidence and remaining deltas.",
+      "Added a narrow P6 follow-on observation section to `project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0625.md` recording the re-read, proof limits, and verification commands.",
+      "No runtime behavior, `AGENTS.md`, Brick / Agent / Link contract, gate, Movement, or Slack delivery behavior was changed.",
+      "`git diff --check` returned exit 0.",
+      "`PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --profile brick_cli_entrypoint` returned exit 0 and observed the `brick` entrypoint smoke plus `FIRST_USE.md` wizard path.",
+      "Worktree evidence includes tracked modification to `support/docs/references/quickstart.md` and an untracked in-scope status record at `project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0625.md`."
+    ],
+    "output_excerpt": "{ \"made_changes\": true, \"observed_evidence\": [ \"Reviewed the adapter-timeout draft diff. `support/docs/references/quickstart.md` contains a populated customer-entry readiness matrix covering first-read order, active checkout vs frozen/history repo, official Building launch route, Slack expectation, evidence root, and proof limits.\", \"Reviewed `project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0625.md`; it carries the same readiness matrix plus observed evidence and remaining deltas.\", \"Added a narrow P6 follow-on observation section to `project/brick-protocol/status/kernel/...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:codex-local",
+    "selected_model_ref": "model:codex:default",
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "struct-surgery-0623",
+        "head": "523076f6f72a37f848d18e6cffd9559ef147b174"
+      },
+      "after_git_status_paths": [
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/declared-building-plan.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/work/building-intake.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/work/preset-expansion.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/work/task.md",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/declared-building-plan.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/building-intake.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/preset-expansion.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/task.md",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625-brick-received-event-2026-06-25T02-32-12-030406-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625-building-started-event-2026-06-25T02-32-11-453314-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625b-brick-received-event-2026-06-25T02-34-57-700981-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625b-building-started-event-2026-06-25T02-34-56-957399-00-00.json",
+        "project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0625.md",
+        "support/docs/references/quickstart.md"
+      ],
+      "after_path_count": 2108,
+      "before_git_refs": {
+        "branch": "struct-surgery-0623",
+        "head": "523076f6f72a37f848d18e6cffd9559ef147b174"
+      },
+      "before_git_status_paths": [
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/declared-building-plan.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/work/building-intake.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/work/preset-expansion.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/work/task.md",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/declared-building-plan.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/building-intake.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/preset-expansion.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/task.md",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625-brick-received-event-2026-06-25T02-32-12-030406-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625-building-started-event-2026-06-25T02-32-11-453314-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625b-brick-received-event-2026-06-25T02-34-57-700981-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625b-building-started-event-2026-06-25T02-34-56-957399-00-00.json",
+        "project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0625.md",
+        "support/docs/references/quickstart.md"
+      ],
+      "before_path_count": 2108,
+      "git_refs_moved": {},
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [
+        "project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0625.md"
+      ],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "support/docs/references/quickstart.md",
+          "support/docs/references/launch-guide.md",
+          "project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0625.md",
+          "support/operator/first_use.py"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "AGENTS.md"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:01:gap2-customer-entry-minimum-doc-fix-0625b-work",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:gap2-customer-entry-minimum-doc-fix-0625b",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:gap2-customer-entry-minimum-doc-fix-0625b-work:attempt-1",
+  "step_ref": "gap2-customer-entry-minimum-doc-fix-0625b-work",
+  "subject": "gap2-customer-entry-minimum-doc-fix-0625b-work",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T02:38:04.823742Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

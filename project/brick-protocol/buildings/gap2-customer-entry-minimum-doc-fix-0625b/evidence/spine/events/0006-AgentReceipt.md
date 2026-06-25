@@ -1,0 +1,12 @@
+# AgentReceipt · seq 6 · ["Agent"]
+- agent_object_ref: "agent-object:dev"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-gap2-customer-entry-minimum-doc-fix-0625b-work"
+- event_type: "AgentReceipt"
+- evidence_reference: "raw:agent:01"
+- received_work_ref: "brick-work:01:gap2-customer-entry-minimum-doc-fix-0625b-work"
+- run_segment: 1
+- sequence_index: 6
+- source_fact_ref: "agent-fact:01:gap2-customer-entry-minimum-doc-fix-0625b-work"
+- spine_schema_version: "spine-v1"
+- step_ref: "gap2-customer-entry-minimum-doc-fix-0625b-work"

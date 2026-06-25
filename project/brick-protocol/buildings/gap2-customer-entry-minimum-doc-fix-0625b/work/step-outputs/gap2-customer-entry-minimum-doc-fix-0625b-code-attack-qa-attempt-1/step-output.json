@@ -1,0 +1,277 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:gap2-customer-entry-minimum-doc-fix-0625b::work/step-outputs/gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+  "building_id": "gap2-customer-entry-minimum-doc-fix-0625b",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T02:41:02.554599Z",
+  "id": "urn:bp:building:gap2-customer-entry-minimum-doc-fix-0625b::work/step-outputs/gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+  "recorded_at": "2026-06-25T02:41:02.554599Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:qa",
+    "attacked_work": "brick-gap2-customer-entry-minimum-doc-fix-0625b-work (agent-object:dev, adapter:codex-local): the P6 follow-on doc completion that reviewed the adapter-timeout draft of support/docs/references/quickstart.md and authored project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0625.md against the customer-entry readiness gap.",
+    "boundary_violations": [],
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "changed_files": [],
+    "checked_sources": [
+      "support/docs/references/quickstart.md (diff + cells L11-24)",
+      "project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0625.md (full)",
+      "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/step-outputs/gap2-customer-entry-minimum-doc-fix-0625b-work-attempt-1/step-output.json",
+      "support/operator/cli.py (_status_packet/_render_status L189-220, status subparser L547)",
+      "support/operator/first_use.py (L1-105)",
+      "support/docs/references/launch-guide.md (L10-240)",
+      "README.md (L70-73, L87-102, L204-277)"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:claude-local:gap2-customer-entry-minimum-doc-fix-0625b",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "evidence_refs": [
+      "support-packet:gap2-customer-entry-minimum-doc-fix-0625b:agent-object:qa:output"
+    ],
+    "evidence_used": [
+      "support/docs/references/quickstart.md",
+      "project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0625.md",
+      "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/step-outputs/gap2-customer-entry-minimum-doc-fix-0625b-work-attempt-1/step-output.json",
+      "support/operator/cli.py",
+      "support/operator/first_use.py",
+      "support/docs/references/launch-guide.md",
+      "README.md",
+      "git diff support/docs/references/quickstart.md (output read)",
+      "git diff --check (exit 0, no output)",
+      "git status --porcelain (output read)"
+    ],
+    "failing_or_missing_probes": [
+      "MISSING (could not run): `PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --profile brick_cli_entrypoint` — every python3 invocation in this non-interactive sandbox returns 'requires approval' and cannot execute. The upstream brick reported this profile at exit 0; I could NOT independently reproduce that exit code. This is an environment/runtime constraint, not an upstream implementation defect.",
+      "MISSING: fresh-machine / release-export transcript (clone -> install -> brick init -> FIRST_USE.md -> brick verify) not run — out of sandbox reach.",
+      "MISSING: live `brick status` / `run_building_intake` execution not driven (python blocked); verified only by static read of the implementing source."
+    ],
+    "negative_probe_observations": [
+      "PROBE: does any matrix cell misrepresent source? — Negative result: all checked claims (brick status fields, FIRST_USE.md rendering, README links, release-export omits project/, HISTORY separation, two public launch paths, report.env) are corroborated by the cited files. No fabricated/contradicted claim found.",
+      "PROBE: did the work touch forbidden/out-of-scope paths? — Negative result: AGENTS.md and .git untouched; only allowed_paths members changed.",
+      "PROBE: missing required cell? — Negative result: all 6 task-mandated cells present in quickstart.md.",
+      "PROBE: whitespace/conflict artifacts? — Negative result: git diff --check exit 0."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "brick_cli_entrypoint checker exit code (python execution blocked in this sandbox; not independently reproduced)",
+      "fresh-machine / release-export install-and-run parity",
+      "provider-backed customer path behavior and credential readiness",
+      "real Slack delivery reliability",
+      "whether a real customer comprehends the matrix without human help",
+      "semantic correctness / completeness of the matrix prose beyond the 6 required cells",
+      "full diff attribution of the pre-existing quickstart.md draft (carried from the timed-out 0625 attempt) vs edits made by 0625b",
+      "support loader behavior",
+      "source truth, success judgment, quality judgment, Movement authority"
+    ],
+    "observed_evidence": [
+      {
+        "own_probes": "Built my own grep/read probes distinct from the builder's: (1) enumerated the 6 required matrix cells directly in quickstart.md lines 19-24; (2) cross-checked every factual claim the matrix makes against the cited source files rather than trusting the builder's narrative.",
+        "real_entry_surface": "Drove real correctness surfaces a caller relies on: read `support/operator/cli.py::_status_packet` (lines 189-220) and confirmed `brick status` actually emits repo_root, cwd, entrypoint_file, python_executable, brick_home, default_builds_root — matching the matrix claim. Confirmed `support/operator/first_use.py` (lines 1,15,44,90-105) renders FIRST_USE.md with evidence_root. Confirmed README.md line 70 links quickstart+setup, and README lines 87-102/269 document release-export omitting `project/` and the separate HISTORY repo. Confirmed `support/docs/references/launch-guide.md` lines 120-121 document the two public order paths (run_building_intake / assemble) and lines 151-154 the `source ~/.brick/report.env` step.",
+        "symptom_reproduction": "Independently reproduced the P6 gap target from the task source (not builder fixtures): read the live worktree state. `git diff support/docs/references/quickstart.md` shows a 15-line addition `## Customer-entry readiness matrix`; `git status --porcelain` shows ` M support/docs/references/quickstart.md` (tracked) and `?? project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0625.md` (untracked, in-scope). Both target files exist and carry a populated matrix."
+      },
+      "quickstart.md matrix contains all 6 task-required cells: What reads first (L19), Active checkout vs frozen/history (L20), Official Building launch route (L21), Slack expectation (L22), Where does evidence land (L23), Not proven/proof limits (L24).",
+      "kernel record gap2-customer-entry-readiness-0625.md carries a parallel 6-row matrix plus Observed Evidence, P6 Follow-On Observation, Remaining Delta, and Proof Limits sections.",
+      "`git diff --check` returned exit 0 (no whitespace/conflict errors).",
+      "`git diff --name-only` shows ONLY support/docs/references/quickstart.md as the tracked change; no .py runtime file was modified (first_use.py in scope but untouched)."
+    ],
+    "output_excerpt": "All my independent probes are complete. Every documented claim is corroborated by source; the only thing I could not reproduce is the checker run (python execution is blocked in this non-interactive sandbox). Here is my QA-attack support evidence. ```json { \"observed_evidence\": [ { \"symptom_reproduction\": \"Independently reproduced the P6 gap target from the task source (not builder fixtures): read the live worktree state. `git diff support/docs/references/quickstart.md` shows a 15-line addition `## Customer-entry readiness matrix`; `git status --porcelain` shows ` M support/docs/references/...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "regression_risks": [
+      "Low/none in changed scope: edits are additive Markdown to one tracked doc plus one untracked status record; no runtime/.py/contract/AGENTS.md surface was modified, so no executable regression surface was introduced.",
+      "Doc-drift risk (latent, not a defect now): the matrix hardcodes cli.py field names (repo_root, cwd, entrypoint_file, etc.) and the 'two public paths' claim; if cli.py/launch-guide later change, the matrix could silently drift. No automated check binds the prose to the source today."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": {
+      "binding": false,
+      "concern_kind": "verification_gap",
+      "concern_ref": "transition-concern:gap2-customer-entry-minimum-doc-fix-0625b-qa-checker-not-reproduced",
+      "not_proven": [
+        "independent reproduction of the brick_cli_entrypoint checker result",
+        "live CLI/entry-surface execution"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "reason_refs": [
+        "python3 execution is blocked in this non-interactive sandbox; check_profile.py --profile brick_cli_entrypoint could not be independently re-run",
+        "upstream-reported checker exit 0 remains unverified by QA; doc claims were instead verified by static source read",
+        "no reproduced upstream defect; this is an environment constraint, not an implementation gap"
+      ],
+      "related_boundary_refs": [
+        "building-boundary:gap2-customer-entry-minimum-doc-fix-0625b"
+      ]
+    },
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "struct-surgery-0623",
+        "head": "523076f6f72a37f848d18e6cffd9559ef147b174"
+      },
+      "after_git_status_paths": [
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/declared-building-plan.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/work/building-intake.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/work/preset-expansion.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/work/task.md",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/declared-building-plan.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/raw/adapter-usage.jsonl",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/building-intake.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/preset-expansion.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/step-outputs/gap2-customer-entry-minimum-doc-fix-0625b-work-attempt-1/step-output.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/task.md",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625-brick-received-event-2026-06-25T02-32-12-030406-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625-building-started-event-2026-06-25T02-32-11-453314-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625b-brick-received-event-2026-06-25T02-34-57-700981-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625b-brick-received-event-2026-06-25T02-38-05-971867-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625b-brick-returned-event-2026-06-25T02-38-04-824666-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625b-building-started-event-2026-06-25T02-34-56-957399-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625b-gate-passed-event-2026-06-25T02-38-05-398932-00-00.json",
+        "project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0625.md",
+        "support/docs/references/quickstart.md"
+      ],
+      "after_path_count": 2113,
+      "before_git_refs": {
+        "branch": "struct-surgery-0623",
+        "head": "523076f6f72a37f848d18e6cffd9559ef147b174"
+      },
+      "before_git_status_paths": [
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/declared-building-plan.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/work/building-intake.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/work/preset-expansion.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625/work/task.md",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/declared-building-plan.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/raw/adapter-usage.jsonl",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/building-intake.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/preset-expansion.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/step-outputs/gap2-customer-entry-minimum-doc-fix-0625b-work-attempt-1/step-output.json",
+        "project/brick-protocol/buildings/gap2-customer-entry-minimum-doc-fix-0625b/work/task.md",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625-brick-received-event-2026-06-25T02-32-12-030406-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625-building-started-event-2026-06-25T02-32-11-453314-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625b-brick-received-event-2026-06-25T02-34-57-700981-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625b-brick-received-event-2026-06-25T02-38-05-971867-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625b-brick-returned-event-2026-06-25T02-38-04-824666-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625b-building-started-event-2026-06-25T02-34-56-957399-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-gap2-customer-entry-minimum-doc-fix-0625b-gate-passed-event-2026-06-25T02-38-05-398932-00-00.json",
+        "project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0625.md",
+        "support/docs/references/quickstart.md"
+      ],
+      "before_path_count": 2113,
+      "git_refs_moved": {},
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "support/docs/references/quickstart.md",
+          "support/docs/references/launch-guide.md",
+          "project/brick-protocol/status/kernel/gap2-customer-entry-readiness-0625.md",
+          "support/operator/first_use.py"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "AGENTS.md"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:02:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:gap2-customer-entry-minimum-doc-fix-0625b",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa:attempt-1",
+  "step_ref": "gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+  "subject": "gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T02:41:02.554599Z",
+  "transition_concern_ref": "work/step-outputs/gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa-attempt-1/transition-concern.json",
+  "type": "bp.step_output"
+}

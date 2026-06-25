@@ -1,0 +1,12 @@
+# BrickInput · seq 4 · ["Brick"]
+- axis_scope: ["Brick"]
+- brick_instance_ref: "brick-gap2-customer-entry-minimum-doc-fix-0625b-work"
+- comparison_rule: "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickInput"
+- required_return_shape: "made_changes, observed_evidence, not_proven"
+- run_segment: 1
+- sequence_index: 4
+- source_facts: ["task-source:inline-statement"]
+- spine_schema_version: "spine-v1"
+- step_ref: "gap2-customer-entry-minimum-doc-fix-0625b-work"
+- work_statement: "work Brick for task-source:inline-statement: P6 follow-on completion after adapter-timeout partial write from gap2-customer-entry-minimum-doc-fix-0625."

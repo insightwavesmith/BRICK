@@ -1,0 +1,471 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:gap2-customer-entry-minimum-doc-fix-0625b::evidence/claim_trace/brick/work_contract.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-gap2-customer-entry-minimum-doc-fix-0625b-work",
+        "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+        "required_return_shape": "made_changes, observed_evidence, not_proven",
+        "source_facts": [
+          "task-source:inline-statement"
+        ],
+        "work_statement": "work Brick for task-source:inline-statement: P6 follow-on completion after adapter-timeout partial write from gap2-customer-entry-minimum-doc-fix-0625."
+      },
+      "fact_ref": "brick-work:01:gap2-customer-entry-minimum-doc-fix-0625b-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: made_changes, observed_evidence, not_proven",
+          "observed_return_fields: adapter_ref, agent_object_ref, brain_surface_ref, changed_files, cli_call_ref, cli_version_text, evidence_refs, made_changes, not_proven, observed_evidence, output_excerpt, proof_limits, returned_summary, selected_adapter_ref, selected_model_ref, worktree_observation",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "made_changes, observed_evidence, not_proven",
+        "work_reference": "work Brick for task-source:inline-statement: P6 follow-on completion after adapter-timeout partial write from gap2-customer-entry-minimum-doc-fix-0625."
+      },
+      "fact_ref": "brick-comparison:01:gap2-customer-entry-minimum-doc-fix-0625b-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:01:gap2-customer-entry-minimum-doc-fix-0625b-work",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: made_changes, observed_evidence, not_proven",
+          "observed_return_fields: adapter_ref, agent_object_ref, brain_surface_ref, changed_files, cli_call_ref, cli_version_text, evidence_refs, made_changes, not_proven, observed_evidence, output_excerpt, proof_limits, returned_summary, selected_adapter_ref, selected_model_ref, worktree_observation",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "made_changes, observed_evidence, not_proven",
+        "work_reference": "work Brick for task-source:inline-statement: P6 follow-on completion after adapter-timeout partial write from gap2-customer-entry-minimum-doc-fix-0625."
+      },
+      "fact_ref": "brick-comparison:gap2-customer-entry-minimum-doc-fix-0625b:gap2-customer-entry-minimum-doc-fix-0625b-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:01",
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+        "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+        "required_return_shape": "observed_evidence,attacked_work,checked_sources,regression_risks,negative_probe_observations,failing_or_missing_probes,boundary_violations,transition_concern_evidence,evidence_used,not_proven",
+        "source_facts": [
+          "task-source:inline-statement"
+        ],
+        "work_statement": "code_attack_qa Brick for task-source:inline-statement: P6 follow-on completion after adapter-timeout partial write from gap2-customer-entry-minimum-doc-fix-0625."
+      },
+      "fact_ref": "brick-work:02:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, transition_concern_evidence, evidence_used, not_proven, evidence_used.repository_artifact_ref",
+          "observed_return_fields: adapter_ref, agent_object_ref, attacked_work, boundary_violations, brain_surface_ref, changed_files, checked_sources, cli_call_ref, cli_version_text, evidence_refs, evidence_used, failing_or_missing_probes, negative_probe_observations, not_proven, observed_evidence, output_excerpt, proof_limits, regression_risks, returned_summary, selected_adapter_ref, selected_model_ref, transition_concern_evidence, worktree_observation",
+          "missing_return_fields: none",
+          "artifact_grounding: evidence_used includes inspected repository artifact reference"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence,attacked_work,checked_sources,regression_risks,negative_probe_observations,failing_or_missing_probes,boundary_violations,transition_concern_evidence,evidence_used,not_proven",
+        "work_reference": "code_attack_qa Brick for task-source:inline-statement: P6 follow-on completion after adapter-timeout partial write from gap2-customer-entry-minimum-doc-fix-0625."
+      },
+      "fact_ref": "brick-comparison:02:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:02:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, attacked_work, checked_sources, regression_risks, negative_probe_observations, failing_or_missing_probes, boundary_violations, transition_concern_evidence, evidence_used, not_proven, evidence_used.repository_artifact_ref",
+          "observed_return_fields: adapter_ref, agent_object_ref, attacked_work, boundary_violations, brain_surface_ref, changed_files, checked_sources, cli_call_ref, cli_version_text, evidence_refs, evidence_used, failing_or_missing_probes, negative_probe_observations, not_proven, observed_evidence, output_excerpt, proof_limits, regression_risks, returned_summary, selected_adapter_ref, selected_model_ref, transition_concern_evidence, worktree_observation",
+          "missing_return_fields: none",
+          "artifact_grounding: evidence_used includes inspected repository artifact reference"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence,attacked_work,checked_sources,regression_risks,negative_probe_observations,failing_or_missing_probes,boundary_violations,transition_concern_evidence,evidence_used,not_proven",
+        "work_reference": "code_attack_qa Brick for task-source:inline-statement: P6 follow-on completion after adapter-timeout partial write from gap2-customer-entry-minimum-doc-fix-0625."
+      },
+      "fact_ref": "brick-comparison:gap2-customer-entry-minimum-doc-fix-0625b:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:02",
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "brick_instance_ref": "brick-gap2-customer-entry-minimum-doc-fix-0625b-closure",
+        "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+        "required_return_shape": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence",
+        "source_facts": [
+          "task-source:inline-statement"
+        ],
+        "work_statement": "closure Brick for task-source:inline-statement: P6 follow-on completion after adapter-timeout partial write from gap2-customer-entry-minimum-doc-fix-0625."
+      },
+      "fact_ref": "brick-work:03:gap2-customer-entry-minimum-doc-fix-0625b-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, next_target_candidates, deferred_smith_review_queue, transition_concern_evidence",
+          "observed_return_fields: adapter_ref, agent_object_ref, brain_surface_ref, cli_call_ref, cli_version_text, deferred_smith_review_queue, evidence_refs, narrowly_proven, next_target_candidates, not_proven, observed_evidence, output_excerpt, parent_goal_delta_status, proof_limits, remaining_delta, returned_summary, selected_adapter_ref, selected_model_ref, transition_concern_evidence",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence",
+        "work_reference": "closure Brick for task-source:inline-statement: P6 follow-on completion after adapter-timeout partial write from gap2-customer-entry-minimum-doc-fix-0625."
+      },
+      "fact_ref": "brick-comparison:03:gap2-customer-entry-minimum-doc-fix-0625b-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03"
+      ]
+    },
+    {
+      "axis": "Brick",
+      "fact": {
+        "alias_for": "brick-comparison:03:gap2-customer-entry-minimum-doc-fix-0625b-closure",
+        "comparison_evidence": [
+          "adapter returned value is available for Brick comparison observation",
+          "required_return_fields: observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, next_target_candidates, deferred_smith_review_queue, transition_concern_evidence",
+          "observed_return_fields: adapter_ref, agent_object_ref, brain_surface_ref, cli_call_ref, cli_version_text, deferred_smith_review_queue, evidence_refs, narrowly_proven, next_target_candidates, not_proven, observed_evidence, output_excerpt, parent_goal_delta_status, proof_limits, remaining_delta, returned_summary, selected_adapter_ref, selected_model_ref, transition_concern_evidence",
+          "missing_return_fields: none"
+        ],
+        "comparison_observation": "contract observation only; not success judgment",
+        "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+        "forbidden_shortcut_evidence": [
+          "support/run did not classify Agent return",
+          "support/run did not judge success or quality",
+          "support/run used caller-supplied Link facts"
+        ],
+        "observed_match_kind": "matched",
+        "required_return_shape_evidence": "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence",
+        "work_reference": "closure Brick for task-source:inline-statement: P6 follow-on completion after adapter-timeout partial write from gap2-customer-entry-minimum-doc-fix-0625."
+      },
+      "fact_ref": "brick-comparison:gap2-customer-entry-minimum-doc-fix-0625b:gap2-customer-entry-minimum-doc-fix-0625b-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:brick:03",
+        "raw:agent:03"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-25T02:42:11Z",
+  "id": "urn:bp:building:gap2-customer-entry-minimum-doc-fix-0625b::evidence/claim_trace/brick/work_contract.json",
+  "recorded_at": "2026-06-25T02:42:11Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:gap2-customer-entry-minimum-doc-fix-0625b",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/brick/work_contract.json",
+  "time": "2026-06-25T02:42:11Z",
+  "type": "bp.claim_trace"
+}

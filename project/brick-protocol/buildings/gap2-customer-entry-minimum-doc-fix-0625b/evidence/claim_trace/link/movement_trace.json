@@ -1,0 +1,275 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:gap2-customer-entry-minimum-doc-fix-0625b::evidence/claim_trace/link/movement_trace.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:01:gap2-customer-entry-minimum-doc-fix-0625b-work",
+          "brick-comparison:01:gap2-customer-entry-minimum-doc-fix-0625b-work",
+          "sufficiency-fact-movement:01:gap2-customer-entry-minimum-doc-fix-0625b-work"
+        ],
+        "target_boundary_ref": "brick:brick-gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa"
+      },
+      "fact_ref": "movement-fact:01:gap2-customer-entry-minimum-doc-fix-0625b-work",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:01"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:02:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+          "brick-comparison:02:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+          "sufficiency-fact-movement:02:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa"
+        ],
+        "target_boundary_ref": "brick:brick-gap2-customer-entry-minimum-doc-fix-0625b-closure"
+      },
+      "fact_ref": "movement-fact:02:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "semantic correctness of file edits",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:02"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "building_lifecycle_reason": "declared closure boundary for gap2-customer-entry-minimum-doc-fix-0625b",
+        "building_lifecycle_state": "closed",
+        "declared_gate_refs": [
+          "link-gate:default-transition"
+        ],
+        "movement": "forward",
+        "movement_source": "caller-declared Building Plan Link row",
+        "public_fact_refs": [
+          "agent-fact:03:gap2-customer-entry-minimum-doc-fix-0625b-closure",
+          "brick-comparison:03:gap2-customer-entry-minimum-doc-fix-0625b-closure",
+          "sufficiency-fact-movement:03:gap2-customer-entry-minimum-doc-fix-0625b-closure"
+        ],
+        "target_boundary_ref": "brick:building-boundary:gap2-customer-entry-minimum-doc-fix-0625b-closed"
+      },
+      "fact_ref": "movement-fact:03:gap2-customer-entry-minimum-doc-fix-0625b-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link:03"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:gap2-customer-entry-minimum-doc-fix-0625b-work-to-gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-gap2-customer-entry-minimum-doc-fix-0625b-work",
+        "target_boundary_ref": "brick-gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-gap2-customer-entry-minimum-doc-fix-0625b-work-to-gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:01:edge-gap2-customer-entry-minimum-doc-fix-0625b-work-to-gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa-to-gap2-customer-entry-minimum-doc-fix-0625b-closure",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa",
+        "target_boundary_ref": "brick-gap2-customer-entry-minimum-doc-fix-0625b-closure"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa-to-gap2-customer-entry-minimum-doc-fix-0625b-closure",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:02:edge-gap2-customer-entry-minimum-doc-fix-0625b-code-attack-qa-to-gap2-customer-entry-minimum-doc-fix-0625b-closure"
+      ]
+    },
+    {
+      "axis": "Link",
+      "fact": {
+        "is_completion_edge": true,
+        "link_edge_ref": "edge:gap2-customer-entry-minimum-doc-fix-0625b-closure-to-boundary",
+        "movement": "forward",
+        "movement_source": "declared graph Building Plan Link edge",
+        "source_brick_instance_ref": "brick-gap2-customer-entry-minimum-doc-fix-0625b-closure",
+        "target_boundary_ref": "building-boundary:gap2-customer-entry-minimum-doc-fix-0625b-closed"
+      },
+      "fact_ref": "movement-fact:graph-edge:edge-gap2-customer-entry-minimum-doc-fix-0625b-closure-to-boundary",
+      "not_proven": [
+        "brain surface behavior",
+        "credential validity",
+        "runtime or scheduler behavior",
+        "tool or hook execution",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:03:edge-gap2-customer-entry-minimum-doc-fix-0625b-closure-to-boundary"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-25T02:42:11Z",
+  "id": "urn:bp:building:gap2-customer-entry-minimum-doc-fix-0625b::evidence/claim_trace/link/movement_trace.json",
+  "recorded_at": "2026-06-25T02:42:11Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:gap2-customer-entry-minimum-doc-fix-0625b",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/link/movement_trace.json",
+  "time": "2026-06-25T02:42:11Z",
+  "type": "bp.claim_trace"
+}

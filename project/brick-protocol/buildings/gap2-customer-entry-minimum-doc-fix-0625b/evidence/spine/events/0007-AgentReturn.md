@@ -1,0 +1,13 @@
+# AgentReturn · seq 7 · ["Agent"]
+- agent_object_ref: "agent-object:dev"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-gap2-customer-entry-minimum-doc-fix-0625b-work"
+- event_type: "AgentReturn"
+- observed_fields: ["received_work","returned"]
+- returned_fact_ref: "agent-fact:01:gap2-customer-entry-minimum-doc-fix-0625b-work"
+- route_request_ref: ""
+- run_segment: 1
+- sequence_index: 7
+- spine_schema_version: "spine-v1"
+- step_output_ref: "step-output:gap2-customer-entry-minimum-doc-fix-0625b-work:attempt-1"
+- step_ref: "gap2-customer-entry-minimum-doc-fix-0625b-work"

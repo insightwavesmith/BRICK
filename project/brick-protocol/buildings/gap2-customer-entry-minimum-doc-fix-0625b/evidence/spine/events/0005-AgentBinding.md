@@ -1,0 +1,12 @@
+# AgentBinding · seq 5 · ["Agent"]
+- agent_object_ref: "agent-object:dev"
+- agent_performer_ref: "agent-performer:agent-object:dev"
+- axis_scope: ["Agent"]
+- binding_role: "primary"
+- brick_instance_ref: "brick-gap2-customer-entry-minimum-doc-fix-0625b-work"
+- event_type: "AgentBinding"
+- run_segment: 1
+- sequence_index: 5
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/gap2-customer-entry-minimum-doc-fix-0625b-work-attempt-1/step-output.json"
+- step_ref: "gap2-customer-entry-minimum-doc-fix-0625b-work"
