@@ -1,0 +1,512 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:p9-checker-module-diet-followup-0625::evidence/claim_trace/agent/returned_claims.json",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "facts": [
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:pm-lead",
+        "received_work": "brick-work:01:p9-checker-module-diet-followup-0625-plan",
+        "returned": {
+          "adapter_ref": "adapter:claude-local",
+          "agent_object_ref": "agent-object:pm-lead",
+          "brain_surface_ref": "brain-surface:claude-code-local-cli",
+          "cli_call_ref": "support-cli-call:adapter:claude-local:p9-checker-module-diet-followup-0625",
+          "cli_version_text": "2.1.191 (Claude Code)",
+          "constraints": [
+            "Read-only; no file edits, no git mutation, no hook/SDK execution (Brick declares no write_scope; native_grant write_effective=false).",
+            "Do not run broad --all (task source constraint); classification is structural inference from file bodies, not measured runtime.",
+            "Registry-closure coupling: check_profile.py self-test asserts every profile kernel_checks id is in KERNEL_DISPATCH, every rule key in RULE_RUNNERS, and core.yaml path_allowlist enumerates EVERY profile file. Adding/moving any profile file forces a shared edit to support/checkers/profiles/core.yaml — so profile-diet Buildings cannot have fully parallel write scopes over profiles/** + core.yaml.",
+            "module_registry.yaml is read by the G4 elegance/path-admission guard against the live file tree: every module add/delete/rename forces a registry edit, so module-cleanup Buildings serialize on that one file.",
+            "--all globs every profiles/*.yaml, so a live-provider profile cannot live under profiles/ without being pulled into the deterministic suite.",
+            "Tree divergence: architecture-map.md, module_registry.yaml, core.yaml, and the 24 profiles were all read from the cwd worktree /Users/smith/.brick/worktrees/struct-surgery-0623; the prior building noted /Users/smith/projects/BRICK diverges (preset count 27 vs 28). Diet/cleanup Buildings must pin to one canonical checkout before counts/ids are trusted.",
+            "The 0611 split map (status/kernel/checker-split-map-0611.md) is a dated SUPPORT record, not current truth: it names profiles (post_d_surface_recompile_p7, a p7 profile) absent from the current 24-profile set, so its dispositions must be re-verified before execution."
+          ],
+          "evidence_refs": [
+            "support-packet:p9-checker-module-diet-followup-0625:agent-object:pm-lead:output"
+          ],
+          "missing_scope": [
+            "The task source declares no target end-state profile count or module count for the diet, so 'done' has no numeric boundary — only structural stop conditions.",
+            "Per-profile and per-module runtime/cost weight is unmeasured (no execution); 'heavy/duplicative' is inferred from file size, folded-case count, and registry family size.",
+            "Precise per-profile family assignment was not exhaustively verified: only core.yaml (full), module_registry.yaml (full), and 8 profile headers were read; the remaining profile bodies were not line-read, so the six-family map below is a candidate to be confirmed by the follow-on Building.",
+            "Which profile hosts reporter_notification_projection is not pinned (grep shows the string across 5 profiles); registry pins it to reporter.py/report_sinks.py but the host profile must be confirmed.",
+            "No reproduction of whether any profile makes a live network call (inferred deterministic from docstrings/mocks, not executed)."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Precise per-profile family membership — the six-family map is a candidate grounded in core.yaml + module_registry.yaml + 8 profile headers; the remaining profile bodies were not line-read.",
+            "Which profile hosts the reporter_notification_projection kernel check (string appears across 5 profiles; not pinned by read).",
+            "Profile/module execution cost or timing — no profile or --all was run (constraint); 'heavy/oversized' is structural inference, not measured runtime.",
+            "That no profile makes a live network/provider call — inferred from docstrings/mocks, not from execution.",
+            "Canonical-tree counts: the worktree shows 24 profiles and 28 presets; the /Users/smith/projects/BRICK tree was reported to differ (27 presets), so exact ids/counts must be re-pinned on one checkout.",
+            "Current validity of the 0611 split-map dispositions (it references profiles absent from the current set).",
+            "Whether the proposed Building scopes are truly disjoint beyond the named chokepoints; only the core.yaml / module_registry.yaml / checker-lib shared files were identified.",
+            "Source truth, success, quality, and Movement are not judged here; the DECLARED skill manifest does not prove which skills were actually fetched.",
+            "Whether the prior building's HOLD reroute fired — only the recorded non-binding concern is observed, not the Link disposition."
+          ],
+          "objective_summary": "Read-only plan boundary for the P9 checker/module diet follow-up. The prior design Building (p9-checker-profile-diet-design-0625) HOLD'd with a non-binding design_gap concern: it returned a flat 24-profile list and deferred the six-family taxonomy plus the customer-proof and reporter/projection families to a future doc Building. This follow-up bounds the work to (a) deliver the explicit six-family checker/profile map, (b) add a module-cleanup angle grounded in support/docs/references/architecture-map.md + support/checkers/module_registry.yaml (god modules, duplicate support families, stale/dead surfaces, module-boundary risk), (c) separate delete/merge-now vs needs-admission/checker-first, (d) surface write-scope conflicts (core.yaml, module_registry.yaml, case_runners.py), and (e) propose 3-6 sequenceable follow-on Buildings. No files are edited; output is support evidence only and judges no success/quality/Movement.",
+          "observed_evidence": [
+            "Prior HOLD reproduced: p9-checker-profile-diet-design-0625 closure transition-concern (binding:false, concern_kind design_gap, concern_ref ...six-family-classification-partial) points related_boundary_refs at brick:p9-checker-profile-diet-design-0625-plan; reason: the plan returned a flat 24-profile list and deferred the family taxonomy + customer-proof + reporter/projection families to proposed Building B4.",
+            "CANDIDATE six-family map (worktree 24 profiles + core.yaml kernel checks; profiles can carry checks of MORE than one family, which is itself a diet finding): [admission] package_path_admission, project_declaration, agent_resource_resolution, declared_verifier_exists, building_root_anchor, catalog_reader_sync (core), charter_injection, driver_public_intake_seal, brick_cli_entrypoint; [boundary] axis_contract_projection, axis_field_enum_parity, axis_field_set_single_source, support_no_axis_judgment, link_gate_measurement_separation, axis_crossing_elegance, builder_consumes_axis_api, agentfact_single_home (core), gate_registry_single_source, agent_object_schema_single_source, return_field_merge_set_parity, assembly_equivalence; [runtime smoke, deterministic/mocked] cli_runner_stdin_devnull, report_env_autoload, mcp_dispatch_wire, agent_axis_behavioral, adapter_usage_meter; [deterministic fixture] building_automation, structure_template_integrity, native_dispatch_brick_backstop, bounded_agent_proposed_routing_loop, link_routing_behavioral, chained_carry_dependency + core fixture checks (carry_completeness, bricks_spec_completeness, building_map_graph, building_lifecycle_path_shape, fan_out_sibling_evidence_independence, evidence_spine, evidence_spine_projection); [customer proof] tier_a_three_axis_conformance, building_operator_driver0, coo_operating_chain; [reporter/dashboard/product projection] read_side_projection_boundary, coo_operating_chain (closure projection), report_env_autoload (sink env), reporter_notification_projection kernel check (host profile to confirm).",
+            "God-module status (module_registry.yaml decomposition_ceilings): the four historical god-modules are ALREADY decomposed to thin facades with owns_crossings=0 and ceiling=0 marked DONE — building_operation.py (bo-god-0, P3d), evidence_assembly.py (ea-god-0, P3b), dynamic_walker.py (dw-god-0, P3c), check_profile.py (check-profile-god-0, P3a). Only report_sinks.py carries a live ceiling (rs-sink-ceiling-0, ceiling=1, deliberate 4-sink seam). So by the registry's own ownership measure no live god-module remains; the cleanup angle is facade/family hygiene, not god-module splitting.",
+            "Oversized/duplicate support families (registry rows, candidates for review NOT auto-deletion): composition_*.py = 9 modules (composition_problem/common/kinds/route_policy/gate_translation/graph_emit/graph_validate/compose/intent); walker_*.py = ~9 modules; support/connection/adapter_*.py = 7 pure-relocation siblings behind a still-~1185-line agent_adapter.py facade; support/recording/claims_*.py = 6 modules; support/onboarding hooks = 4 template files. Each was a deliberate decomposition, so 're-merge' must be justified against the G2 (owns<=1) elegance target, not just line count.",
+            "Stale/legacy surfaces (architecture-map.md + split map): brick/building_plans/ (~16 legacy hand-declared plans) is 'no longer the entry' (preset single-entry now) but is load-bearing as checker fixtures for strict plan-boundary (split map §1-2) — deletion requires fixture twins first. The 0611 split map also names post_d_surface_recompile_p7 / a p7 profile that are NOT in the current 24-profile set, so those dispositions are partly already executed or stale.",
+            "Write-scope conflict surfaces (from constraints): support/checkers/profiles/core.yaml (path_allowlist + closure) is the shared chokepoint for ALL profile add/move/split Buildings; support/checkers/module_registry.yaml is the shared chokepoint for ALL module add/delete/rename Buildings; support/checkers/lib/case_runners.py + kernel_checks.py + rule_runners.py are multi-profile-pinned checker-libs (editing risks many profiles at once). These force sequential ordering whenever two Buildings would touch the same chokepoint.",
+            "Phasing observation: delete/merge-NOW (low risk) = phase-name renames (split map E) and exact-duplicate path_exists pins (split map D-1/D-2) IF still present on the canonical tree; needs-admission/checker-FIRST = anything pinned by strict plan-boundary, session-id allowlist, native_dispatch posA, or per-profile building_plan_boundary rows — deleting these before fixture twins yields a silent green (a dead check)."
+          ],
+          "output_excerpt": "I have enough grounded evidence to bound this `plan` Brick. Returning the support-evidence plan packet. ```json { \"objective_summary\": \"Read-only plan boundary for the P9 checker/module diet follow-up. The prior design Building (p9-checker-profile-diet-design-0625) HOLD'd with a non-binding design_gap concern: it returned a flat 24-profile list and deferred the six-family taxonomy plus the customer-proof and reporter/projection families to a future doc Building. This follow-up bounds the work to (a) deliver the explicit six-family checker/profile map, (b) add a module-cleanup angle grounded...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "proposed_next_work_boundaries": [
+            {
+              "building": "B1 six-family + module-map reference doc (completes the prior HOLD)",
+              "checker_gates": [
+                "structure_template_integrity",
+                "pin_estate_integrity (core)"
+              ],
+              "intent": "Land a read-only reference doc that records the verified six-family taxonomy AND the module-family map (god-module status, oversized families, stale surfaces) so future authors do not re-fold profiles or re-bloat modules.",
+              "ordering": "Parallel-safe (disjoint scope); should run first as it carries the taxonomy the others cite.",
+              "stop_condition": "Doc lands referencing real profile_ids + real module_registry rows; no profile/checker/module code change; structure_template_integrity + pin_estate_integrity unaffected.",
+              "write_scope": [
+                "support/docs/references/checker-profile-map.md"
+              ]
+            },
+            {
+              "building": "B2 split mega preset/tool-hardening profile",
+              "checker_gates": [
+                "check_profile --self-test",
+                "building_skill_preset_agent_tool_hardening",
+                "core"
+              ],
+              "intent": "Split building_skill_preset_agent_tool_hardening.yaml so the large materialize/preset-completion FIXTURE corpus moves to its own profile, leaving the role/tool/hook BOUNDARY pins behind.",
+              "ordering": "Touches core.yaml -> SEQUENTIAL with B3 (shared file); run B2 before B3.",
+              "stop_condition": "check_profile.py --self-test green (registry closure) and targeted profiles green; no kernel_check id or RULE_RUNNER added/removed; every prior assertion still present across the two files.",
+              "write_scope": [
+                "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml",
+                "support/checkers/profiles/<new>_preset_materialize_fixtures.yaml",
+                "support/checkers/profiles/core.yaml (path_allowlist registration only)"
+              ]
+            },
+            {
+              "building": "B3 re-separate deterministic provider runtime-smoke",
+              "checker_gates": [
+                "check_profile --self-test",
+                "agent_axis_behavioral",
+                "read_side_projection_boundary"
+              ],
+              "intent": "Pull the provider-touching deterministic smoke checks (provider_preflight, gemini_api_adapter mock, design_ai_text_seams, codex_connect_stall_classification, mcp/connect smoke) out of folded profiles into a dedicated deterministic runtime-smoke profile, keeping pure AST/structural guards separate.",
+              "ordering": "Touches core.yaml -> SEQUENTIAL after B2.",
+              "stop_condition": "Targeted profiles green; each moved kernel_check appears in exactly one profile; core.yaml path_allowlist updated; live execution stays out of profiles/ and explicitly not_proven.",
+              "write_scope": [
+                "support/checkers/profiles/agent_axis_behavioral.yaml",
+                "support/checkers/profiles/read_side_projection_boundary.yaml",
+                "support/checkers/profiles/<new>_provider_runtime_smoke.yaml",
+                "support/checkers/profiles/core.yaml (path_allowlist registration only)"
+              ]
+            },
+            {
+              "building": "B4 module-cleanup admission gate (precondition for any deletion)",
+              "checker_gates": [
+                "check_profile --self-test",
+                "the three affected profiles",
+                "FIRE/mutation-RED probes"
+              ],
+              "intent": "Before deleting/merging any stale surface, author the fixture/checker twins that the split map flags as load-bearing: strict plan-boundary over brick/building_plans/ (split map §1-2), session-id redaction empty-allowlist + synthetic-leak RED (§1-1), native_dispatch posA evidence-shape (§1-4). No deletion happens here.",
+              "ordering": "Must PRECEDE B5; touches core.yaml -> serialize after B3 if scopes overlap.",
+              "stop_condition": "New fixture twins green; FIRE/mutation-RED probes survive for each ported invariant; no source surface deleted yet.",
+              "write_scope": [
+                "support/checkers/<fixtures dir>/**",
+                "support/checkers/profiles/<affected strict/redaction/native profiles>.yaml",
+                "support/checkers/profiles/core.yaml (path_allowlist registration only)"
+              ]
+            },
+            {
+              "building": "B5 stale-surface retire + module-registry cleanup",
+              "checker_gates": [
+                "axis_crossing_elegance",
+                "package_path_admission",
+                "check_profile --self-test"
+              ],
+              "intent": "Execute the verified-safe retirements only after B4 admission: fold split-map RETIRE candidates (D-1/D-2 duplicate preset path_exists, phase-name profile retirement) and rename phase-named surfaces (split map E), updating module_registry.yaml rows accordingly.",
+              "ordering": "Touches module_registry.yaml + core.yaml -> SEQUENTIAL, run alone after B4.",
+              "stop_condition": "axis_crossing_elegance (G4) green vs the registry+tree; check_profile --self-test green; no invariant dropped that B4 did not already re-pin as a fixture; tombstone/path_absent guards added for any removed path.",
+              "write_scope": [
+                "support/checkers/module_registry.yaml",
+                "support/checkers/profiles/<retired/renamed>.yaml",
+                "support/checkers/profiles/core.yaml (path_allowlist)",
+                "<module files being renamed/removed>"
+              ]
+            },
+            {
+              "building": "B6 canonical-checkout reconciliation (optional, read/decision)",
+              "checker_gates": [],
+              "intent": "Resolve the worktree-vs-main divergence (preset count 27 vs 28; four-llm preset presence) so every diet/cleanup Building pins to one canonical tree and counts/ids are trustworthy.",
+              "ordering": "Parallel-safe; resolve before B2-B5 trust any count/id.",
+              "stop_condition": "A single canonical checkout is named for the diet sequence and recorded; no code change required.",
+              "write_scope": []
+            }
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "scope_boundaries": {
+            "in_scope": [
+              "Candidate six-family classification of the 24 worktree profiles (admission / boundary / runtime-smoke / deterministic-fixture / customer-proof / reporter-dashboard-projection)",
+              "Module-cleanup read of module_registry.yaml + architecture-map.md: god-module decomposition status, oversized support families, stale/legacy surfaces, module-boundary/elegance-guard risk",
+              "Phasing: which cleanups are safe now vs which require a fixture/admission/checker first",
+              "Write-scope conflict identification on the shared single-source files and a sequential-vs-parallel ordering proposal",
+              "Proposing 3-6 follow-on Buildings with write_scope, stop condition, and checker gates"
+            ],
+            "out_of_scope": [
+              "Editing any profile, checker, module, registry, or preset file",
+              "Running broad --all or executing any profile/self-test",
+              "Deciding Link Movement, route target, success, quality, or source truth",
+              "Implementing the splits/merges/deletions themselves (those are the proposed follow-on Buildings)",
+              "Measuring per-profile runtime cost (no execution permitted)"
+            ]
+          },
+          "selected_adapter_ref": "adapter:claude-local",
+          "selected_model_ref": "model:claude:inherit",
+          "transition_concern_evidence": null
+        }
+      },
+      "fact_ref": "agent-fact:01:p9-checker-module-diet-followup-0625-plan",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:01"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:qa-lead",
+        "received_work": "brick-work:02:p9-checker-module-diet-followup-0625-review",
+        "returned": {
+          "adapter_ref": "adapter:claude-local",
+          "agent_object_ref": "agent-object:qa-lead",
+          "boundary_violations": [
+            "None observed. The plan mutated nothing, declared no write_scope, returned no success/failure/approved/quality/movement_choice/route_target keys, kept proposed_next_work_boundaries as proposals (not Movement), set transition_concern_evidence to null, and labelled all classification output as support evidence/inference."
+          ],
+          "brain_surface_ref": "brain-surface:claude-code-local-cli",
+          "checked_sources": [
+            "project/brick-protocol/buildings/p9-checker-module-diet-followup-0625/work/step-outputs/p9-checker-module-diet-followup-0625-plan-attempt-1/step-output.json",
+            "project/brick-protocol/buildings/p9-checker-module-diet-followup-0625/declared-building-plan.json",
+            "brick/templates/bricks/plan/return.yaml",
+            "support/checkers/profiles/ (24-file glob) and support/checkers/module_registry.yaml",
+            "support/docs/references/architecture-map.md (existence)",
+            "project/brick-protocol/buildings/p9-checker-profile-diet-design-0625/work/step-outputs/p9-checker-profile-diet-design-0625-closure-attempt-1/transition-concern.json"
+          ],
+          "checked_work": "Compared the prior plan Brick's returned payload against task-source:inline-statement '# P9 checker/module diet follow-up' (six required analyses + four constraints) and against the plan return_template required_return_shape.",
+          "cli_call_ref": "support-cli-call:adapter:claude-local:p9-checker-module-diet-followup-0625",
+          "cli_version_text": "2.1.191 (Claude Code)",
+          "evidence_refs": [
+            "support-packet:p9-checker-module-diet-followup-0625:agent-object:qa-lead:output"
+          ],
+          "evidence_used": [
+            "project/brick-protocol/buildings/p9-checker-module-diet-followup-0625/work/step-outputs/p9-checker-module-diet-followup-0625-plan-attempt-1/step-output.json",
+            "project/brick-protocol/buildings/p9-checker-module-diet-followup-0625/declared-building-plan.json",
+            "brick/templates/bricks/plan/return.yaml",
+            "support/checkers/profiles/*.yaml (24-file glob)",
+            "support/checkers/profiles/read_side_projection_boundary.yaml (reporter_notification_projection grep hit)",
+            "support/checkers/module_registry.yaml (lines 61-1118 read; decomposition_ceilings lines 1815-1821; report_sinks rows 1527-1534)",
+            "support/docs/references/architecture-map.md (existence via glob)",
+            "project/brick-protocol/buildings/p9-checker-profile-diet-design-0625/work/step-outputs/p9-checker-profile-diet-design-0625-closure-attempt-1/transition-concern.json"
+          ],
+          "missing_or_mismatched_facts": [
+            "God-module ceiling attribution mismatch: the plan lists 'bo-god-0 (P3d), ea-god-0 (P3b), dw-god-0 (P3c)' as 'ceiling=0 marked DONE' decomposition rows, but module_registry.yaml decomposition_ceilings contains ONLY two rows (check-profile-god-0 ceiling 0; rs-sink-ceiling-0 ceiling 1); building_operation.py and the other two carry an EMPTY decomposition_target (their ceiling rows were retired entirely, not set to 0). The named ceiling ids bo-god-0/ea-god-0/dw-god-0 are not present in the current registry I read.",
+            "The plan states 'Only report_sinks.py carries a live ceiling'; the registry still carries TWO non-empty decomposition_target rows (check-profile-god-0 at ceiling 0 plus rs-sink-ceiling-0 at ceiling 1). Accurate only under the reading 'only non-zero ceiling' = report_sinks; ambiguous if 'live ceiling' means any non-empty decomposition_target.",
+            "reporter_notification_projection spread: the plan's not_proven says the string 'appears across 5 profiles'; my Grep over support/checkers/profiles/ found the literal string in exactly ONE profile file (read_side_projection_boundary.yaml), and module_registry.yaml pins the kernel check to the 'core profile'. The '5 profiles' figure is not reproduced by my profiles-dir search. (The plan did file host-profile identification under not_proven.)",
+            "The six-family map is by the plan's own admission a CANDIDATE grounded in core.yaml + module_registry.yaml + 8 profile headers only; remaining profile bodies were not line-read, so per-profile family membership is asserted but not exhaustively verified."
+          ],
+          "narrowly_proven": [
+            "The prior plan return is structurally complete against the declared plan return shape (all 8 fields present, no forbidden keys) and the read-only constraints were observed.",
+            "All six required analyses are present and the follow-on Building count (6) is within the declared 3-6 range.",
+            "The cited prior design HOLD (design_gap, six-family-classification-partial, boundary brick:p9-checker-profile-diet-design-0625-plan) exists on disk exactly as the plan describes.",
+            "Three load-bearing factual anchors are corroborated by inspected sources: 24 profile files in the worktree, architecture-map.md present, and the module_registry god-module facade/ceiling state."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Whether the CANDIDATE six-family membership is correct for every profile — I did not line-read all 24 profile bodies; like the plan, I confirmed structure and headers/registry only.",
+            "The plan's '5 profiles' reporter_notification_projection count — my profiles-dir grep found 1; the true repo-wide spread and the host profile remain unconfirmed.",
+            "Runtime/cost weight of any profile or module ('heavy/oversized' is structural inference; no profile or --all was executed, per constraint).",
+            "Whether the proposed B1-B6 write scopes are truly disjoint beyond the named chokepoints (core.yaml / module_registry.yaml / checker-lib).",
+            "Canonical-checkout divergence (worktree vs /Users/smith/projects/BRICK preset/profile counts) — inspected only the struct-surgery-0623 worktree.",
+            "Source truth, success, quality, sufficiency, and Movement — not judged here; whether any HOLD reroute fires is the Link gate's, not observed.",
+            "The DECLARED skill manifest does not prove which skills were actually fetched."
+          ],
+          "observed_evidence": [
+            "Prior plan step-output read at work/step-outputs/p9-checker-module-diet-followup-0625-plan-attempt-1/step-output.json: returned object carries all 8 plan return fields (objective_summary, scope_boundaries, constraints, missing_scope, proposed_next_work_boundaries, observed_evidence, not_proven, transition_concern_evidence) plus adapter/model envelope; transition_concern_evidence is null.",
+            "Declared plan return shape (brick/templates/bricks/plan/return.yaml) lists exactly those 8 required_return_shape fields and forbids success/failure/approved/quality/movement_choice/route_target.",
+            "Declared work (declared-building-plan.json task_statement) requires six numbered analyses (six-family map, module-cleanup angle, delete-now vs checker-first, write-scope conflicts, 3-6 follow-on Buildings, not_proven/proof-limits) under read-only/no-broad---all/no-judgment constraints.",
+            "Worktree support/checkers/profiles/ glob returns 24 .yaml files (including core.yaml), matching the plan's '24 worktree profiles' basis.",
+            "support/docs/references/architecture-map.md exists (the cleanup-angle source the task names).",
+            "module_registry.yaml confirms god-module facades: check_profile.py owns_crossings []; support/operator/building_operation.py owns_crossings [] with decomposition_target ''; decomposition_ceilings section holds exactly two rows (check-profile-god-0 ceiling 0; rs-sink-ceiling-0 / report_sinks.py ceiling 1).",
+            "Prior design HOLD reproduced accurately: buildings/p9-checker-profile-diet-design-0625/.../transition-concern.json carries binding:false, concern_kind design_gap, concern_ref ...six-family-classification-partial, related_boundary_refs [brick:p9-checker-profile-diet-design-0625-plan], reason = prior plan returned a flat 24-profile list and deferred the family taxonomy to proposed Building B4."
+          ],
+          "observed_matches": [
+            "Return shape: all 8 required plan fields present; no forbidden verdict/movement keys present at top level.",
+            "Analysis #1: an explicit six-family map is delivered with all six named families populated (admission, boundary, runtime-smoke, deterministic-fixture, customer-proof, reporter/dashboard/projection); honestly labelled CANDIDATE.",
+            "Analysis #2: module-cleanup angle grounded in architecture-map.md + module_registry.yaml; god-module facade status, oversized support families, and stale surfaces enumerated — and the registry I inspected corroborates the facade/owns_crossings=0 status.",
+            "Analysis #3: delete/merge-now vs needs-admission/checker-first separation provided (phasing observation).",
+            "Analysis #4: write-scope chokepoints core.yaml, module_registry.yaml, and lib/case_runners.py identified with a sequential-vs-parallel ordering rationale.",
+            "Analysis #5: 6 follow-on Buildings (B1-B6) each with write_scope, stop_condition, and checker_gates — within the requested 3-6 range.",
+            "Analysis #6: extensive not_proven and proof_limits stated.",
+            "Constraints honored: no write_scope/native_grant write_effective=false (read-only), explicit no-broad---all, output framed as support evidence, no success/quality/source/Movement claims.",
+            "Prior HOLD reproduction claim is accurate against the actual design-building transition-concern.json (kind, concern_ref, boundary ref, reason all match)."
+          ],
+          "output_excerpt": "I have enough grounded evidence to complete the review. Here is my support-evidence review of the prior `plan` Brick. ```json { \"observed_evidence\": [ \"Prior plan step-output read at work/step-outputs/p9-checker-module-diet-followup-0625-plan-attempt-1/step-output.json: returned object carries all 8 plan return fields (objective_summary, scope_boundaries, constraints, missing_scope, proposed_next_work_boundaries, observed_evidence, not_proven, transition_concern_evidence) plus adapter/model envelope; transition_concern_evidence is null.\", \"Declared plan return shape (brick/templates/bricks/...",
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_adapter_ref": "adapter:claude-local",
+          "selected_model_ref": "model:claude:inherit",
+          "transition_concern_evidence": null
+        }
+      },
+      "fact_ref": "agent-fact:02:p9-checker-module-diet-followup-0625-review",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:02"
+      ]
+    },
+    {
+      "axis": "Agent",
+      "fact": {
+        "agent_fact_fields": [
+          "received_work",
+          "returned"
+        ],
+        "agent_object_ref": "agent-object:coo",
+        "received_work": "brick-work:03:p9-checker-module-diet-followup-0625-closure",
+        "returned": {
+          "adapter_ref": "adapter:claude-local",
+          "agent_object_ref": "agent-object:coo",
+          "brain_surface_ref": "brain-surface:claude-code-local-cli",
+          "cli_call_ref": "support-cli-call:adapter:claude-local:p9-checker-module-diet-followup-0625",
+          "cli_version_text": "2.1.191 (Claude Code)",
+          "deferred_smith_review_queue": [
+            "Movement decision for this closure boundary (forward to closed vs reroute) is the Link gate's / human's, not decided here.",
+            "Human decision: does the god-module ceiling-id attribution mismatch and the 5-vs-1 reporter_notification_projection count flagged by the review warrant a correction pass folded into B1, or a standalone re-pin Building, before any diet Building cites those numbers?",
+            "Human decision: resolve the canonical-checkout divergence (which tree is authoritative) before authorizing B2-B5, since their write_scopes and counts depend on it.",
+            "Human decision: confirm the B-sequence ordering policy (B6/B1 first; B2->B3 serialized on core.yaml; B4 before B5) and whether any pair may run in parallel.",
+            "Quality/success/sufficiency judgment of the diet plan itself is reserved for the human."
+          ],
+          "evidence_refs": [
+            "support-packet:p9-checker-module-diet-followup-0625:agent-object:coo:output"
+          ],
+          "narrowly_proven": [
+            "The Building produced the artifact the parent objective asked for: a read-only, phaseable checker/profile/module cleanup plan with all six required analyses and 6 sequenceable follow-on Buildings (B1-B6), each carrying write_scope, stop_condition, and checker_gates.",
+            "The plan return is structurally complete against brick/templates/bricks/plan/return.yaml (8 fields, no forbidden verdict/movement keys) and the review return is complete against its template (10 fields); both observed the read-only / no-broad---all / no-judgment constraints.",
+            "Three factual anchors underpinning the diet plan are corroborated on disk by the review: 24 profile .yaml files in the struct-surgery-0623 worktree, support/docs/references/architecture-map.md present, and the module_registry.yaml god-module facade state (owns_crossings [] for the named facades; decomposition_ceilings holds two rows).",
+            "The prior design HOLD (design_gap, six-family-classification-partial) that this follow-up was chartered to complete is reproduced accurately against the on-disk transition-concern.json, and a candidate six-family taxonomy is now on record for it."
+          ],
+          "next_target_candidates": [
+            "B1 six-family + module-map reference doc (write_scope support/docs/references/checker-profile-map.md): land the verified six-family taxonomy and module-family map, and fold in the review's three factual corrections; parallel-safe, run first as the taxonomy the others cite.",
+            "B6 canonical-checkout reconciliation (read/decision, no code change): pin one canonical tree before B2-B5 trust any count/id.",
+            "B2 split mega preset/tool-hardening profile, then B3 re-separate deterministic provider runtime-smoke (both serialize on core.yaml path_allowlist).",
+            "B4 module-cleanup admission gate (author fixture/checker twins for the load-bearing strict-plan-boundary / session-id-redaction / native_dispatch invariants) strictly before B5 stale-surface retire + module_registry cleanup."
+          ],
+          "not_proven": [
+            "brain surface behavior",
+            "credential validity",
+            "tool or hook execution",
+            "runtime or scheduler behavior",
+            "quality of returned work",
+            "Per-profile six-family membership correctness — by both the plan's and the review's own statements the six-family map is a CANDIDATE grounded in core.yaml + module_registry.yaml + 8 profile headers; the remaining profile bodies were not line-read.",
+            "The god-module ceiling-id attribution in the plan (bo-god-0/ea-god-0/dw-god-0) — the review could not reproduce those ids in the current registry; the true current decomposition_ceilings rows and the correct attribution are unconfirmed pending a line-read re-pin.",
+            "The reporter_notification_projection profile spread — plan said 5, review's profiles-dir grep found 1; the true repo-wide spread and host profile are unconfirmed.",
+            "Per-profile and per-module runtime/cost weight — no profile or --all was executed (task constraint); 'heavy/oversized/duplicative' is structural inference, not measured runtime.",
+            "Whether the proposed B1-B6 write scopes are truly disjoint beyond the named chokepoints (core.yaml / module_registry.yaml / checker-lib).",
+            "Canonical-checkout divergence — only the struct-surgery-0623 worktree was inspected; the reported worktree-vs-/Users/smith/projects/BRICK preset/profile count difference (e.g. 27 vs 28) is unresolved, so exact ids/counts are not yet trustworthy across checkouts.",
+            "Current validity of the 0611 split-map dispositions (it references profiles absent from the current 24-profile set).",
+            "brain surface behavior, credential validity, tool or hook execution, runtime or scheduler behavior, and quality of returned work.",
+            "Source truth, success, quality, sufficiency, and Movement are not judged here; whether any HOLD reroute fires is the Link gate's. The DECLARED skill manifest does not prove which skills were actually fetched."
+          ],
+          "observed_evidence": [
+            "Building p9-checker-module-diet-followup-0625 ran two prior phases under chain_preset:research-report (plan -> review -> closure), all on adapter:claude-local, read-only (declared write_scope {}, native_grant write_effective=false).",
+            "PLAN phase (agent-object:pm-lead, work/step-outputs/.../plan-attempt-1/step-output.json) returned a structurally complete plan packet: all 8 plan return fields present, transition_concern_evidence null. It delivered the candidate six-family checker/profile map over the 24 worktree profiles, a module-cleanup angle grounded in module_registry.yaml + architecture-map.md, delete/merge-now vs needs-admission-first phasing, write-scope chokepoints (core.yaml / module_registry.yaml / case_runners.py), and 6 follow-on Buildings B1-B6 each with write_scope, stop_condition, and checker_gates.",
+            "PLAN observed_evidence recorded: prior design HOLD reproduced (p9-checker-profile-diet-design-0625 closure transition-concern, binding:false, concern_kind design_gap, concern_ref ...six-family-classification-partial, boundary brick:p9-checker-profile-diet-design-0625-plan); god-module status from module_registry decomposition_ceilings (historical god-modules decomposed to facades, only report_sinks.py carries a live non-zero ceiling); oversized support families (composition_* ~9, walker_* ~9, adapter_* 7, claims_* 6); stale surface brick/building_plans/ load-bearing as checker fixtures; write-scope chokepoints forcing sequential ordering on shared single-source files.",
+            "REVIEW phase (agent-object:qa-lead, work/step-outputs/.../review-attempt-1/step-output.json) inspected the plan against task-source:inline-statement and brick/templates/bricks/plan/return.yaml using named on-disk sources (24-profile glob, module_registry.yaml lines read, architecture-map.md existence, the prior design transition-concern.json). It returned all 10 review fields, transition_concern_evidence null, and recorded zero boundary_violations.",
+            "REVIEW observed_matches confirmed all six required analyses present, follow-on Building count (6) within the declared 3-6 range, and corroborated three load-bearing anchors on disk: 24 profile files, architecture-map.md present, and the module_registry god-module facade/ceiling state.",
+            "REVIEW missing_or_mismatched_facts recorded three reproducible discrepancies in the plan's observed_evidence: (a) god-module ceiling-id attribution mismatch — plan named bo-god-0/ea-god-0/dw-god-0 as 'ceiling=0 DONE' rows, but the registry read carries only check-profile-god-0 (ceiling 0) and rs-sink-ceiling-0 (ceiling 1), with the other modules holding empty decomposition_target; (b) 'only report_sinks carries a live ceiling' is accurate only under 'non-zero ceiling', ambiguous under 'any non-empty decomposition_target' (two rows exist); (c) reporter_notification_projection — plan's not_proven said the string spans 5 profiles, the review's profiles-dir grep found it in exactly 1 (read_side_projection_boundary.yaml), registry pins it to the core profile."
+          ],
+          "output_excerpt": "I have the full carried evidence (plan step-output, review step-output, and the declared Building plan). Synthesizing the closure now. ```json { \"observed_evidence\": [ \"Building p9-checker-module-diet-followup-0625 ran two prior phases under chain_preset:research-report (plan -> review -> closure), all on adapter:claude-local, read-only (declared write_scope {}, native_grant write_effective=false).\", \"PLAN phase (agent-object:pm-lead, work/step-outputs/.../plan-attempt-1/step-output.json) returned a structurally complete plan packet: all 8 plan return fields present, transition_concern_evid...",
+          "parent_goal_delta_status": {
+            "closed_delta_refs": [
+              "delta:plan-return-shape-complete (review-corroborated against plan/return.yaml)",
+              "delta:review-return-shape-complete (10 fields, zero boundary_violations)",
+              "delta:prior-design-HOLD-reproduced (matches on-disk transition-concern.json)"
+            ],
+            "evidence_refs": [
+              "work/step-outputs/p9-checker-module-diet-followup-0625-plan-attempt-1/step-output.json",
+              "work/step-outputs/p9-checker-module-diet-followup-0625-review-attempt-1/step-output.json",
+              "declared-building-plan.json",
+              "support/checkers/module_registry.yaml",
+              "support/checkers/profiles/ (24-file glob)",
+              "support/docs/references/architecture-map.md",
+              "buildings/p9-checker-profile-diet-design-0625/.../transition-concern.json"
+            ],
+            "matched_delta_refs": [
+              "delta:analysis-1-six-family-map (delivered, candidate)",
+              "delta:analysis-2-module-cleanup-angle (delivered, grounded in registry + architecture-map)",
+              "delta:analysis-3-delete-now-vs-checker-first (delivered)",
+              "delta:analysis-4-write-scope-conflicts (delivered: core.yaml / module_registry.yaml / case_runners.py)",
+              "delta:analysis-5-follow-on-buildings (delivered: B1-B6, within 3-6 range)",
+              "delta:analysis-6-not_proven-and-proof-limits (delivered)"
+            ],
+            "missing_delta_refs": [],
+            "open_delta_refs": [
+              "delta:six-family-per-profile-verification (candidate, not line-read)",
+              "delta:god-module-ceiling-id-attribution-recheck",
+              "delta:reporter_notification_projection-profile-count-recheck",
+              "delta:b2-b3-b4-b5-sequential-ordering-execution"
+            ],
+            "unknown_delta_refs": [
+              "delta:canonical-checkout-divergence-unresolved",
+              "delta:per-profile-runtime-cost-unmeasured",
+              "delta:b1-b6-scope-disjointness-beyond-chokepoints",
+              "delta:0611-split-map-disposition-current-validity"
+            ]
+          },
+          "proof_limits": [
+            "support evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority"
+          ],
+          "remaining_delta": [
+            "Run B1 (six-family + module-map reference doc) to (a) convert the CANDIDATE six-family map into a verified per-profile classification by line-reading all 24 profile bodies, and (b) correct the god-module ceiling-id attribution and reporter_notification_projection profile-count discrepancies the review surfaced, before any other diet Building cites them.",
+            "Re-pin canonical-checkout counts/ids (the B6 reconciliation read) so every downstream diet/cleanup Building references one trustworthy tree.",
+            "Sequence the profile-splitting Buildings (B2 then B3) because both edit support/checkers/profiles/core.yaml path_allowlist; keep B4 (module-cleanup admission/fixture twins) strictly before B5 (stale-surface retire + module_registry cleanup), and serialize anything touching module_registry.yaml.",
+            "Re-verify the 0611 split-map RETIRE/RENAME dispositions against the current tree before B5 executes any deletion, since the split map names surfaces absent from the current 24-profile set."
+          ],
+          "returned_summary": "local CLI Agent Adapter returned support evidence",
+          "selected_adapter_ref": "adapter:claude-local",
+          "selected_model_ref": "model:claude:inherit",
+          "transition_concern_evidence": null
+        }
+      },
+      "fact_ref": "agent-fact:03:p9-checker-module-diet-followup-0625-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:agent:03"
+      ]
+    }
+  ],
+  "generatedAtTime": "2026-06-25T09:07:35Z",
+  "id": "urn:bp:building:p9-checker-module-diet-followup-0625::evidence/claim_trace/agent/returned_claims.json",
+  "recorded_at": "2026-06-25T09:07:35Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:p9-checker-module-diet-followup-0625",
+  "specversion": "1.0",
+  "subject": "evidence/claim_trace/agent/returned_claims.json",
+  "time": "2026-06-25T09:07:35Z",
+  "type": "bp.claim_trace"
+}

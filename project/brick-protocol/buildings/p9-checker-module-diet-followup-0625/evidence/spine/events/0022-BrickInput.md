@@ -1,0 +1,12 @@
+# BrickInput · seq 22 · ["Brick"]
+- axis_scope: ["Brick"]
+- brick_instance_ref: "brick-p9-checker-module-diet-followup-0625-closure"
+- comparison_rule: "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickInput"
+- required_return_shape: "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence"
+- run_segment: 1
+- sequence_index: 22
+- source_facts: ["task-source:inline-statement"]
+- spine_schema_version: "spine-v1"
+- step_ref: "p9-checker-module-diet-followup-0625-closure"
+- work_statement: "closure Brick for task-source:inline-statement: # P9 checker/module diet follow-up"
