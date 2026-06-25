@@ -123,6 +123,148 @@
         "raw:agent:01",
         "raw:link:01"
       ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-checker-module-diet-implementation-0625-code-attack-qa",
+      "brick_work_ref": "work:checker-module-diet-implementation-0625-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:02:edge-checker-module-diet-implementation-0625-work-to-checker-module-diet-implementation-0625-code-attack-qa"
+      ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-checker-module-diet-implementation-0625-axis-attack-qa",
+      "brick_work_ref": "work:checker-module-diet-implementation-0625-axis-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:03:edge-checker-module-diet-implementation-0625-work-to-checker-module-diet-implementation-0625-axis-attack-qa"
+      ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-checker-module-diet-implementation-0625-evidence-integrity",
+      "brick_work_ref": "work:checker-module-diet-implementation-0625-evidence-integrity",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:04:edge-checker-module-diet-implementation-0625-work-to-checker-module-diet-implementation-0625-evidence-integrity"
+      ]
+    },
+    {
+      "agent_binding_refs": [],
+      "attempt_index": 1,
+      "brick_instance_id": "brick-checker-module-diet-implementation-0625-closure",
+      "brick_work_ref": "work:checker-module-diet-implementation-0625-closure",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "raw_refs": [
+        "raw:link-graph:05:edge-checker-module-diet-implementation-0625-code-attack-qa-to-checker-module-diet-implementation-0625-closure",
+        "raw:link-graph:06:edge-checker-module-diet-implementation-0625-axis-attack-qa-to-checker-module-diet-implementation-0625-closure",
+        "raw:link-graph:07:edge-checker-module-diet-implementation-0625-evidence-integrity-to-checker-module-diet-implementation-0625-closure"
+      ]
     }
   ],
   "building_id": "checker-module-diet-implementation-0625",
@@ -307,6 +449,49 @@
     {
       "edge_role": "fan_out",
       "input_public_fact_refs": [
+        "movement-fact:graph-edge:edge-checker-module-diet-implementation-0625-work-to-checker-module-diet-implementation-0625-code-attack-qa"
+      ],
+      "link_edge_id": "edge:checker-module-diet-implementation-0625-work-to-checker-module-diet-implementation-0625-code-attack-qa",
+      "movement_fact_ref": "movement-fact:graph-edge:edge-checker-module-diet-implementation-0625-work-to-checker-module-diet-implementation-0625-code-attack-qa",
+      "not_proven": [
+        "semantic fitness of selected shape",
+        "future Building run correctness",
+        "future Agent or provider quality",
+        "brain surface behavior",
+        "credential validity",
+        "tool or hook execution",
+        "runtime or scheduler behavior",
+        "quality of returned work",
+        "source truth",
+        "success judgment",
+        "quality judgment",
+        "Movement authority"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "compose_building assembles caller / COO declared node and edge choices only",
+        "not automatic shape selection",
+        "not automatic Agent selection",
+        "not automatic gate selection",
+        "not support-chosen target",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "public_fact_refs": [
+        "movement-fact:graph-edge:edge-checker-module-diet-implementation-0625-work-to-checker-module-diet-implementation-0625-code-attack-qa"
+      ],
+      "raw_refs": [
+        "raw:link-graph:02:edge-checker-module-diet-implementation-0625-work-to-checker-module-diet-implementation-0625-code-attack-qa"
+      ],
+      "source_brick_instance_ref": "brick-checker-module-diet-implementation-0625-work",
+      "target_brick_instance_ref": "brick-checker-module-diet-implementation-0625-code-attack-qa",
+      "transition_fact_ref": "transition-fact:graph-edge:edge-checker-module-diet-implementation-0625-work-to-checker-module-diet-implementation-0625-code-attack-qa"
+    },
+    {
+      "edge_role": "fan_out",
+      "input_public_fact_refs": [
         "movement-fact:graph-edge:edge-checker-module-diet-implementation-0625-work-to-checker-module-diet-implementation-0625-axis-attack-qa"
       ],
       "link_edge_id": "edge:checker-module-diet-implementation-0625-work-to-checker-module-diet-implementation-0625-axis-attack-qa",
@@ -389,6 +574,33 @@
       "source_brick_instance_ref": "brick-checker-module-diet-implementation-0625-work",
       "target_brick_instance_ref": "brick-checker-module-diet-implementation-0625-evidence-integrity",
       "transition_fact_ref": "transition-fact:graph-edge:edge-checker-module-diet-implementation-0625-work-to-checker-module-diet-implementation-0625-evidence-integrity"
+    },
+    {
+      "edge_role": "fan_in",
+      "link_edge_id": "edge:checker-module-diet-implementation-0625-code-attack-qa-to-checker-module-diet-implementation-0625-closure",
+      "raw_refs": [
+        "raw:link-graph:05:edge-checker-module-diet-implementation-0625-code-attack-qa-to-checker-module-diet-implementation-0625-closure"
+      ],
+      "source_brick_instance_ref": "brick-checker-module-diet-implementation-0625-code-attack-qa",
+      "target_brick_instance_ref": "brick-checker-module-diet-implementation-0625-closure"
+    },
+    {
+      "edge_role": "fan_in",
+      "link_edge_id": "edge:checker-module-diet-implementation-0625-axis-attack-qa-to-checker-module-diet-implementation-0625-closure",
+      "raw_refs": [
+        "raw:link-graph:06:edge-checker-module-diet-implementation-0625-axis-attack-qa-to-checker-module-diet-implementation-0625-closure"
+      ],
+      "source_brick_instance_ref": "brick-checker-module-diet-implementation-0625-axis-attack-qa",
+      "target_brick_instance_ref": "brick-checker-module-diet-implementation-0625-closure"
+    },
+    {
+      "edge_role": "fan_in",
+      "link_edge_id": "edge:checker-module-diet-implementation-0625-evidence-integrity-to-checker-module-diet-implementation-0625-closure",
+      "raw_refs": [
+        "raw:link-graph:07:edge-checker-module-diet-implementation-0625-evidence-integrity-to-checker-module-diet-implementation-0625-closure"
+      ],
+      "source_brick_instance_ref": "brick-checker-module-diet-implementation-0625-evidence-integrity",
+      "target_brick_instance_ref": "brick-checker-module-diet-implementation-0625-closure"
     }
   ],
   "not_proven": [

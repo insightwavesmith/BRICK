@@ -1,0 +1,13 @@
+# AgentReturn · seq 26 · ["Agent"]
+- agent_object_ref: "agent-object:coo"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-building-map-evidence-red-cleanup-0625-closure"
+- event_type: "AgentReturn"
+- observed_fields: ["received_work","returned"]
+- returned_fact_ref: "agent-fact:03:building-map-evidence-red-cleanup-0625-closure"
+- route_request_ref: ""
+- run_segment: 1
+- sequence_index: 26
+- spine_schema_version: "spine-v1"
+- step_output_ref: "step-output:building-map-evidence-red-cleanup-0625-closure:attempt-1"
+- step_ref: "building-map-evidence-red-cleanup-0625-closure"

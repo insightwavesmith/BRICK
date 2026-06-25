@@ -339,6 +339,22 @@ def collect_paths(path: Path) -> tuple[str, list[str]]:
     raise FileNotFoundError(f"target does not exist: {path}")
 
 
+def repo_building_lifecycle_opened(building_root: Path) -> bool:
+    """True once a repo Building root has recorded lifecycle evidence.
+
+    Repo-mode profiles may run while a freshly declared Building only has intake
+    packets and report-thread observations. Those declaration-only roots are
+    not lifecycle evidence candidates yet; once capture/evidence or the raw
+    manifest exists, the normal shape checks apply.
+    """
+
+    return (
+        (building_root / "capture").is_dir()
+        or (building_root / "evidence").is_dir()
+        or (building_root / "raw" / "raw-manifest.json").is_file()
+    )
+
+
 def collect_repo_lifecycle_paths(repo: Path) -> tuple[str, list[str]]:
     """Collect only active CAP-BOOT lifecycle roots from a repo checkout."""
 
@@ -348,7 +364,9 @@ def collect_repo_lifecycle_paths(repo: Path) -> tuple[str, list[str]]:
     paths: list[str] = []
     for buildings_root in sorted(project_root.glob(f"*/{BUILDINGS_SEGMENT}")):
         if buildings_root.is_dir():
-            paths.extend(collect_directory_paths(buildings_root))
+            for building_root in sorted(child for child in buildings_root.iterdir() if child.is_dir()):
+                if repo_building_lifecycle_opened(building_root):
+                    paths.extend(collect_directory_paths(building_root))
     return str(project_root), paths
 
 

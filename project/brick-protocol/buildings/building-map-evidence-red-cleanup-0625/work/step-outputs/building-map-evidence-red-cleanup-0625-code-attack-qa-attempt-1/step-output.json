@@ -1,0 +1,266 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:building-map-evidence-red-cleanup-0625::work/step-outputs/building-map-evidence-red-cleanup-0625-code-attack-qa-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-building-map-evidence-red-cleanup-0625-code-attack-qa",
+  "building_id": "building-map-evidence-red-cleanup-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T03:59:40.049558Z",
+  "id": "urn:bp:building:building-map-evidence-red-cleanup-0625::work/step-outputs/building-map-evidence-red-cleanup-0625-code-attack-qa-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:building-map-evidence-red-cleanup-0625-code-attack-qa",
+  "recorded_at": "2026-06-25T03:59:40.049558Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:qa",
+    "attacked_work": "code_attack_qa against brick-building-map-evidence-red-cleanup-0625-work (upstream dev, adapter codex-local). Contract under attack: smallest BRICK-law-compatible repair of building_automation profile RED from malformed stale Building map evidence, without hiding real current evidence problems and without runtime scheduler/queue/retry behavior.",
+    "boundary_violations": [
+      "Scope-breadth observation (non-binding): the lifecycle-checker change generalizes 'skip in-progress root' into a permanent skip for ALL declaration-only roots. The task contemplated 'adjust checker selection only if the checker is wrongly scanning non-active/held malformed roots', so it is within the contemplated surface, but it is broader than a narrow quarantine of the single transient root and warrants the Link gate's sufficiency judgment.",
+      "No forbidden-key / authority-claim violation found in the added map content: added nodes/edges carry only support proof_limits/not_proven boilerplate; no success/quality/movement authority fields were introduced (consistent with check_building_map_graph forbidden-content rules, by manual inspection).",
+      "Write stayed inside declared write_scope (support/checkers/*.py and the checker-module-diet building tree); AGENTS.md untouched; no scheduler/queue/retry runtime behavior added (confirmed by reading both diffs)."
+    ],
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "changed_files": [],
+    "checked_sources": [
+      "project/brick-protocol/buildings/checker-module-diet-implementation-0625/work/building-map.json (repaired map, full read)",
+      "support/checkers/check_building_map_graph.py (resolution rules under test)",
+      "support/checkers/check_building_lifecycle_path_shape.py (changed checker, full repo-mode read)",
+      "support/checkers/profiles/building_automation.yaml (kernel_checks list)",
+      "project/brick-protocol/buildings/checker-module-diet-implementation-0625/raw/raw-manifest.json",
+      "project/brick-protocol/buildings/checker-module-diet-implementation-0625/raw/link.jsonl",
+      "project/brick-protocol/buildings/checker-module-diet-implementation-0625/evidence/claim_trace/link/movement_trace.json",
+      "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/ (declaration-only tree listing)",
+      "the upstream step-output.json returned by the work node"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:claude-local:building-map-evidence-red-cleanup-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "evidence_refs": [
+      "support-packet:building-map-evidence-red-cleanup-0625:agent-object:qa:output"
+    ],
+    "evidence_used": [
+      "project/brick-protocol/buildings/checker-module-diet-implementation-0625/work/building-map.json",
+      "support/checkers/check_building_map_graph.py",
+      "support/checkers/check_building_lifecycle_path_shape.py",
+      "support/checkers/profiles/building_automation.yaml",
+      "project/brick-protocol/buildings/checker-module-diet-implementation-0625/raw/raw-manifest.json",
+      "project/brick-protocol/buildings/checker-module-diet-implementation-0625/raw/link.jsonl",
+      "project/brick-protocol/buildings/checker-module-diet-implementation-0625/evidence/claim_trace/link/movement_trace.json",
+      "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/work/step-outputs/building-map-evidence-red-cleanup-0625-work-attempt-1/step-output.json",
+      "git diff HEAD (both changed files), git diff --check HEAD, git status --short",
+      "jq -e . on the repaired building-map.json (JSON-VALID)"
+    ],
+    "failing_or_missing_probes": [
+      "MISSING (blocked): live execution of `uv run python3 support/checkers/check_profile.py --profile building_automation` to confirm the profile is now GREEN. Every python invocation in this sandbox (including a trivial `print(42)`) returns 'requires approval'; this is a non-interactive run, so no checker, FIRE, or mutation-probe that requires a python interpreter could be executed.",
+      "MISSING (blocked): live execution of `check_building_map_graph.py --repo` and `check_building_lifecycle_path_shape.py --repo` to independently confirm (a) the repaired map produces ZERO residual violations — including the pre-existing design-edge :01 fact refs and forbidden-label scans I could not fully evaluate by hand — and (b) that the lifecycle-skip change is actually load-bearing (i.e. the repair root would have RED'd lifecycle path shape without it).",
+      "PARTIAL: symptom reproduction was reconstructed analytically from the checker source, not produced by running the failing checker on the pre-fix tree."
+    ],
+    "negative_probe_observations": [
+      "Tried to break the data fix by checking whether added raw_refs escape the raw manifest: NEGATIVE — all added refs (raw:link-graph:02/05/06/07) are enumerated in raw-manifest.json, so no 'graph raw_ref does not resolve through raw manifest' violation is introduced.",
+      "Tried to break it by checking whether the added fan_out edge's movement_fact_ref escapes claim_trace: NEGATIVE — movement-fact:graph-edge:edge-...-work-to-...-code-attack-qa exists in movement_trace.json.",
+      "Tried to break it via JSON malformation: NEGATIVE — jq -e . => JSON-VALID; git diff --check => no whitespace errors.",
+      "Tried to find OTHER building roots that the lifecycle-skip change would newly mask: NEGATIVE for current state — every other building root carries raw-manifest.json + capture/ + evidence/, so only the intended transient root is skipped."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "that building_automation profile is now GREEN (--all EXIT 0) — checker not executed (python exec blocked in sandbox)",
+      "absence of any residual building_map_graph violation beyond the four resolution paths I manually traced",
+      "that the lifecycle-checker change is necessary (i.e. that the repair root would otherwise RED building_lifecycle_path_shape) — checker not executed",
+      "semantic correctness of the reconstructed map vs the original Building's true intended topology",
+      "full regression coverage of building_lifecycle_path_shape across future declaration-only roots",
+      "support loader / claim_trace fact_reference extraction behavior (string presence grep is not equivalent to the checker's fact_reference() key extraction)",
+      "source truth, success judgment, quality judgment, Movement authority"
+    ],
+    "observed_evidence": [
+      {
+        "own_probes": "QA-built (not builder fixtures): (1) jq -e . on the repaired work/building-map.json => JSON-VALID; (2) grep of raw/raw-manifest.json => raw:link-graph:01..08 all admitted, so the builder's added raw_refs 02/05/06/07 resolve through the manifest; (3) grep of raw/link.jsonl => the 4 added edges (work->code-attack-qa, code-attack-qa/axis-attack-qa/evidence-integrity ->closure) all exist as real raw link rows; (4) grep of evidence/claim_trace/link/movement_trace.json => movement-fact:graph-edge:edge-...-work-to-...-code-attack-qa is present, so the added fan_out edge's movement_fact_ref resolves through claim_trace; (5) git diff --check HEAD => no whitespace errors.",
+        "real_entry_surface": "Drove git (diff/diff --check/status), jq JSON validation, and grep over committed Building artifacts as real read surfaces. The real checker verb (uv run python3 support/checkers/check_profile.py --profile building_automation) could NOT be driven: sandbox returns 'requires approval' for all python execution including a trivial print, and this run is non-interactive.",
+        "symptom_reproduction": "Reconstructed the trigger analytically from task source + check_building_map_graph.py (could NOT execute the checker; python exec is blocked in this sandbox). Pre-fix, map link_edges named target_brick_instance_ref = brick-...-code-attack-qa / -axis-attack-qa / -evidence-integrity / -closure that were absent from brick_instances; by endpoint_problem (check_building_map_graph.py:339-341) 'value not in brick_ids' yields 'endpoint must resolve to brick_instance_id, not prefix-only text'. The two fan-in/fan-out group member_refs pointed at link_edge ids absent from link_edges; by the group loop (lines 890-893) 'member_ref does not resolve'. This matches the task's described building_map_graph failure."
+      },
+      "Repaired file project/brick-protocol/buildings/checker-module-diet-implementation-0625/work/building-map.json adds 4 brick_instances (code-attack-qa, axis-attack-qa, evidence-integrity, closure) + 1 fan_out edge (work->code-attack-qa) + 3 fan_in edges (->closure); diff stat = +212/-0 on the map.",
+      "Second changed file support/checkers/check_building_lifecycle_path_shape.py (+19/-1) adds repo_building_lifecycle_opened() and rewrites collect_repo_lifecycle_paths() to skip any building root lacking capture/, evidence/, and raw/raw-manifest.json.",
+      "Inventory of project/brick-protocol/buildings/*: every building root has raw/raw-manifest.json AND capture/ AND evidence/ EXCEPT building-map-evidence-red-cleanup-0625 (this very repair building), which is declaration-only (work/ + raw/*.jsonl, no manifest). So the lifecycle-skip change currently excludes exactly one transient in-progress root.",
+      "check_building_map_graph.py repo glob is project/*/buildings/*/work/building-map.json; the repair building has NO work/building-map.json, so building_map_graph does not scan the repair building — only the checker-module-diet map data fix was needed for that kernel check.",
+      "The added new brick_instances carry agent_binding_refs: [] (permitted by checker lines 828-829) and bindings_by_brick only contains the design binding, so no missing-binding violation is introduced by the new nodes."
+    ],
+    "output_excerpt": "I have completed my static QA attack. The one surface I could not drive is live checker execution — every `python3`/`uv run python` invocation in this sandbox returns \"requires approval\" (confirmed even for `print(42)`), and I am non-interactive, so I could not run `check_profile.py` to confirm GREEN. I record that honestly as a verification gap (environment constraint, not an upstream defect) and report what I did prove by reading artifacts and driving git/jq/grep surfaces. ```json { \"observed_evidence\": [ { \"symptom_reproduction\": \"Reconstructed the trigger analytically from task source +...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "regression_risks": [
+      "BROAD CHECKER WEAKENING: collect_repo_lifecycle_paths now permanently skips ALL declaration-only building roots (no capture/, no evidence/, no raw/raw-manifest.json), not just the transient repair root. Any FUTURE declaration-only building (incl. a stuck/held one that never reaches capture/evidence) will be silently excluded from building_lifecycle_path_shape scanning. Today only building-map-evidence-red-cleanup-0625 is excluded, so no current building's lifecycle problem is masked, but the rule is general and forward-acting.",
+      "Two distinct repair surfaces were combined (data fix to another building's recorded map + checker logic change). The stated trigger named only building_map_graph; the lifecycle-checker edit addresses a different, anticipatory failure (the repair building's own declaration-only root tripping building_lifecycle_path_shape). I could not execute the lifecycle checker to confirm that failure actually exists, so the necessity of the second change is unverified.",
+      "The data fix mutates work/building-map.json of a separate, already-recorded Building (checker-module-diet-implementation-0625). The additions are faithfully backed by that building's own raw-manifest.json, raw/link.jsonl, and movement_trace.json (verified by grep), so it reads as reconstruction rather than fabrication; but editing another building's persisted map is a notable act whose semantic correctness I cannot prove."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": {
+      "binding": false,
+      "concern_kind": "verification_gap",
+      "concern_ref": "transition-concern:building-map-evidence-red-cleanup-0625-code-attack-qa-verification-gap",
+      "not_proven": [
+        "that live checker execution would pass or fail"
+      ],
+      "proof_limits": [
+        "support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "reason_refs": [
+        "sandbox blocks all python execution (uv run python3 and bare python3 -c print both return requires-approval); non-interactive run cannot grant approval",
+        "could not drive the real checker verb check_profile.py --profile building_automation to confirm building_automation is GREEN",
+        "residual building_map_graph violations beyond the four I manually traced (design-edge :01 fact refs, forbidden-label scan) and the necessity of the lifecycle-checker change remain unexecuted"
+      ],
+      "related_boundary_refs": [
+        "building-boundary:building-map-evidence-red-cleanup-0625"
+      ]
+    },
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "struct-surgery-0623",
+        "head": "d8e28396c5bfd064f68c5543e97d3fd9a35f843b"
+      },
+      "after_git_status_paths": [
+        "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/declared-building-plan.json",
+        "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/raw/adapter-usage.jsonl",
+        "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/work/building-intake.json",
+        "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/work/preset-expansion.json",
+        "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/work/step-outputs/building-map-evidence-red-cleanup-0625-work-attempt-1/step-output.json",
+        "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/work/task.md",
+        "project/brick-protocol/buildings/checker-module-diet-implementation-0625/work/building-map.json",
+        "project/brick-protocol/status/inbox/brick-protocol-building-map-evidence-red-cleanup-0625-brick-received-event-2026-06-25T03-48-33-736051-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-building-map-evidence-red-cleanup-0625-brick-received-event-2026-06-25T03-53-26-469455-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-building-map-evidence-red-cleanup-0625-brick-returned-event-2026-06-25T03-53-25-167975-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-building-map-evidence-red-cleanup-0625-building-started-event-2026-06-25T03-48-33-015974-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-building-map-evidence-red-cleanup-0625-gate-passed-event-2026-06-25T03-53-25-893608-00-00.json",
+        "support/checkers/check_building_lifecycle_path_shape.py"
+      ],
+      "after_path_count": 2671,
+      "before_git_refs": {
+        "branch": "struct-surgery-0623",
+        "head": "d8e28396c5bfd064f68c5543e97d3fd9a35f843b"
+      },
+      "before_git_status_paths": [
+        "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/declared-building-plan.json",
+        "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/raw/adapter-usage.jsonl",
+        "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/work/building-intake.json",
+        "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/work/preset-expansion.json",
+        "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/work/step-outputs/building-map-evidence-red-cleanup-0625-work-attempt-1/step-output.json",
+        "project/brick-protocol/buildings/building-map-evidence-red-cleanup-0625/work/task.md",
+        "project/brick-protocol/buildings/checker-module-diet-implementation-0625/work/building-map.json",
+        "project/brick-protocol/status/inbox/brick-protocol-building-map-evidence-red-cleanup-0625-brick-received-event-2026-06-25T03-48-33-736051-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-building-map-evidence-red-cleanup-0625-brick-received-event-2026-06-25T03-53-26-469455-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-building-map-evidence-red-cleanup-0625-brick-returned-event-2026-06-25T03-53-25-167975-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-building-map-evidence-red-cleanup-0625-building-started-event-2026-06-25T03-48-33-015974-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-building-map-evidence-red-cleanup-0625-gate-passed-event-2026-06-25T03-53-25-893608-00-00.json",
+        "support/checkers/check_building_lifecycle_path_shape.py"
+      ],
+      "before_path_count": 2671,
+      "git_refs_moved": {},
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "project/brick-protocol/buildings/checker-module-diet-implementation-0625/**",
+          "project/brick-protocol/status/kernel/*.md",
+          "support/checkers/lib/kernel_checks.py",
+          "support/checkers/profiles/*.yaml",
+          "support/checkers/*.py"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "AGENTS.md",
+          "**/*token*",
+          "**/*secret*",
+          "**/*credential*"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:02:building-map-evidence-red-cleanup-0625-code-attack-qa",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:building-map-evidence-red-cleanup-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:building-map-evidence-red-cleanup-0625-code-attack-qa:attempt-1",
+  "step_ref": "building-map-evidence-red-cleanup-0625-code-attack-qa",
+  "subject": "building-map-evidence-red-cleanup-0625-code-attack-qa",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T03:59:40.049558Z",
+  "transition_concern_ref": "work/step-outputs/building-map-evidence-red-cleanup-0625-code-attack-qa-attempt-1/transition-concern.json",
+  "type": "bp.step_output"
+}
