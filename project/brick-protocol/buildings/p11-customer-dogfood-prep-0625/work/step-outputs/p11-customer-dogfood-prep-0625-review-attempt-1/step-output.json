@@ -1,0 +1,164 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:p11-customer-dogfood-prep-0625::work/step-outputs/p11-customer-dogfood-prep-0625-review-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-p11-customer-dogfood-prep-0625-review",
+  "building_id": "p11-customer-dogfood-prep-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T09:04:44.398909Z",
+  "id": "urn:bp:building:p11-customer-dogfood-prep-0625::work/step-outputs/p11-customer-dogfood-prep-0625-review-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:p11-customer-dogfood-prep-0625-review",
+  "recorded_at": "2026-06-25T09:04:44.398909Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:qa-lead",
+    "boundary_violations": [],
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "checked_sources": [
+      "project/brick-protocol/buildings/p11-customer-dogfood-prep-0625/work/step-outputs/p11-customer-dogfood-prep-0625-plan-attempt-1/step-output.json",
+      "project/brick-protocol/buildings/p11-customer-dogfood-prep-0625/work/declared-building-plan.json",
+      "project/brick-protocol/buildings/p11-customer-dogfood-prep-0625/work/task.md",
+      "brick/templates/bricks/review/return.yaml",
+      "support/checkers/profiles/ (Glob: 24 profile YAMLs)",
+      "support/docs/references/setup.md",
+      "support/docs/references/{quickstart.md,launch-guide.md}",
+      "support/operator/first_use.py",
+      "support/connection/agent_adapter.py:868-877",
+      "brick/templates/presets/four-llm-standard-graph.md",
+      "project/brick-protocol/PROGRESS.md",
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/step-outputs/*",
+      "project/brick-protocol/status/kernel/{p4,p5,p7,p10}-*-0625.md, gap2-customer-entry-readiness-{0624,0625}.md",
+      "project/brick-protocol/buildings/p9-checker-module-diet-followup-0625/work/task.md"
+    ],
+    "checked_work": "review Brick for task-source:inline-statement: # P11 customer dogfood preparation — compared the plan node's returned payload against its declared required_return_shape and the 6 required task-source analyses, and spot-confirmed the plan's factual observed_evidence against repository sources.",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:p11-customer-dogfood-prep-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "evidence_refs": [
+      "support-packet:p11-customer-dogfood-prep-0625:agent-object:qa-lead:output"
+    ],
+    "evidence_used": [
+      "project/brick-protocol/buildings/p11-customer-dogfood-prep-0625/work/step-outputs/p11-customer-dogfood-prep-0625-plan-attempt-1/step-output.json",
+      "project/brick-protocol/buildings/p11-customer-dogfood-prep-0625/work/declared-building-plan.json",
+      "project/brick-protocol/buildings/p11-customer-dogfood-prep-0625/work/task.md",
+      "brick/templates/bricks/review/return.yaml",
+      "support/docs/references/setup.md:23",
+      "support/checkers/profiles/ (24 YAMLs via Glob)",
+      "support/connection/agent_adapter.py:868-877",
+      "brick/templates/presets/four-llm-standard-graph.md:21-24",
+      "project/brick-protocol/PROGRESS.md:11-22",
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/work/step-outputs/*",
+      "project/brick-protocol/status/kernel/p10-agent-yaml-permission-matrix-reroute-0625.md (path located)",
+      "project/brick-protocol/status/kernel/{p4-gemini-api-four-llm-transition,p5-four-llm-gemini-api-fixture-repair,p7-evidence-root-location-policy}-0625.md (paths located)",
+      "project/brick-protocol/status/kernel/gap2-customer-entry-readiness-{0624,0625}.md (paths located)",
+      "project/brick-protocol/buildings/p9-checker-module-diet-followup-0625/work/task.md (path located)"
+    ],
+    "missing_or_mismatched_facts": [
+      "Citation path-prefix imprecision (not substantive): the plan cites kernel docs as 'status/kernel/...' but a repo-root status/kernel/ does not exist — the artifacts actually live under project/brick-protocol/status/kernel/. The PROGRESS.md citation ('project/brick-protocol/PROGRESS.md') and support/* citations are correctly prefixed; the kernel-doc prefix is inconsistent with them. Referenced files were all located, so substance holds; only the cited path prefix is imprecise.",
+      "Plan sub-claim 'the smoke used adapter:gemini-local for the Gemini lane' was NOT confirmed by me — I located the smoke's gemini-broad-review step-output but did not open it to read the adapter_ref actually used; I cannot match or contradict that specific lane-adapter assertion from inspection."
+    ],
+    "narrowly_proven": [
+      "The plan node's returned payload is shape-complete against its declared required_return_shape and carries no forbidden verdict key.",
+      "Every one of the 6 task-source-required analyses is present in the plan return.",
+      "Five spot-checked factual claims in the plan's observed_evidence (24-vs-13 profile drift, 33/29/3/1 PROGRESS counts, agent_adapter effective_write logic, gemini-api preset lane, surface/kernel/building artifact existence) match the inspected sources.",
+      "The plan honored its read-only / no-provider-execution / no-success-quality-Movement constraints in its returned content."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Semantic adequacy/quality of the plan's proposed P12 capstone design or its sequencing — out of review scope (quality is the human gate's).",
+      "The specific adapter (gemini-local vs gemini-api) actually exercised inside the four-llm-standard-graph-readonly-smoke-0625 gemini lane — I did not open that step-output's adapter_ref.",
+      "Whether check_profile.py --all is currently green — read-only review, no checker/provider execution run.",
+      "Truth or completeness of the plan's missing_scope items beyond artifact existence (e.g. live four-provider fan-out, customer cold-start run evidence) — these remain caller/COO/human material.",
+      "Whether the offered review skills (evidence-verification, zero-script-qa, evidence-shape-check) were fetched/applied is not recorded.",
+      "ENVIRONMENT/RUNTIME CONSTRAINT (not a defect): this review ran read-only with no write/git/provider execution; all observations are bounded to file reads in worktree /Users/smith/.brick/worktrees/struct-surgery-0623.",
+      "Not source truth, not success judgment, not quality judgment, not Movement authority."
+    ],
+    "observed_evidence": [
+      "Prior node under review: brick-p11-customer-dogfood-prep-0625-plan (agent-object:pm-lead, adapter:claude-local), step-output at work/step-outputs/p11-customer-dogfood-prep-0625-plan-attempt-1/step-output.json, generatedAtTime 2026-06-25T09:02:12Z, transition_concern_ref empty, transition_concern_evidence null.",
+      "Declared plan contract: required_return_shape = objective_summary,scope_boundaries,constraints,missing_scope,proposed_next_work_boundaries,observed_evidence,not_proven,transition_concern_evidence; work_statement = 'plan Brick for task-source:inline-statement: # P11 customer dogfood preparation' (work/declared-building-plan.json).",
+      "Task source (work/task.md) requires 6 analyses (entry route; current surfaces; green-vs-not_proven; minimal P12 capstone design; P9 diet risks; not_proven/proof limits) under read-only / no-provider-heavy / no-success-quality-truth-Movement constraints."
+    ],
+    "observed_matches": [
+      "Return-shape complete: the plan returned payload carries all 8 required_return_shape fields (objective_summary, scope_boundaries, constraints, missing_scope, proposed_next_work_boundaries, observed_evidence, not_proven, transition_concern_evidence). No declared field is absent.",
+      "No forbidden judgment keys at return level: no success/failure/approved/quality/movement_choice/route_target; transition_concern_evidence is null (admissible — no defect raised). Extra keys present are support-envelope fields (adapter_ref, brain_surface_ref, cli_call_ref, evidence_refs, output_excerpt, returned_summary, selected_adapter_ref/model_ref), not verdict keys.",
+      "All 6 task-source analyses are addressed: (1) entry route in observed_evidence + proposed_next_work_boundaries[0]; (2) current surfaces (quickstart/launch-guide/run_building_intake/report_sinks/evidence-root/gemini-api/Slack) enumerated; (3) green-vs-not_proven split in constraints + not_proven; (4) minimal P12 capstone design (task_statement, preset four-llm-standard-graph, narrow write_scope, provider lanes, stop condition) in proposed_next_work_boundaries[1]; (5) P9 diet risk sequencing (must-do vs can-wait) present; (6) not_proven + proof_limits present.",
+      "Profile-count drift claim CONFIRMED: support/docs/references/setup.md:23 states '13 profiles live under support/checkers/profiles/', while Glob of that directory returns 24 profile YAMLs.",
+      "PROGRESS projection claim CONFIRMED: PROGRESS.md states 총 33개 — closed 29, link_paused 3, observed_running 1, matching the plan's '33 buildings (closed 29, link_paused 3, observed_running 1)'.",
+      "P10 permission-matrix claim CONFIRMED: agent_adapter.py:868-877 agent_request_effective_write returns bool(request.write_scope) AND READ_WRITE_TOOL_POLICY_REF in tool_policy_refs AND _adapter_ref_supports_observed_write(adapter_ref) — matching the plan's 'effective_write = bool(write_scope) AND tool-policy:read-write-scoped AND adapter in _OBSERVED_WRITE_ADAPTER_REFS'.",
+      "P4 preset claim CONFIRMED: brick/templates/presets/four-llm-standard-graph.md declares step_alias gemini-broad-review on selected_adapter_ref: adapter:gemini-api.",
+      "Surface existence CONFIRMED: support/docs/references/{quickstart.md,launch-guide.md,setup.md} and support/operator/first_use.py all exist; smoke building four-llm-standard-graph-readonly-smoke-0625 has step-outputs for work, claude-structure-qa, gemini-broad-review, fugu-axis-attack, closure.",
+      "Cited kernel/building artifacts EXIST: p4/p5/p7/p10 0625 kernel docs, gap2-customer-entry-readiness-0624 & 0625, and the p9-checker-module-diet-followup-0625 task all resolve."
+    ],
+    "output_excerpt": "I have sufficient read-only evidence. Here is my review Brick return as a single JSON object. ```json { \"observed_evidence\": [ \"Prior node under review: brick-p11-customer-dogfood-prep-0625-plan (agent-object:pm-lead, adapter:claude-local), step-output at work/step-outputs/p11-customer-dogfood-prep-0625-plan-attempt-1/step-output.json, generatedAtTime 2026-06-25T09:02:12Z, transition_concern_ref empty, transition_concern_evidence null.\", \"Declared plan contract: required_return_shape = objective_summary,scope_boundaries,constraints,missing_scope,proposed_next_work_boundaries,observed_eviden...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:02:p11-customer-dogfood-prep-0625-review",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:p11-customer-dogfood-prep-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:p11-customer-dogfood-prep-0625-review:attempt-1",
+  "step_ref": "p11-customer-dogfood-prep-0625-review",
+  "subject": "p11-customer-dogfood-prep-0625-review",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T09:04:44.398909Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

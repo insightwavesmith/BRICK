@@ -1,0 +1,164 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:p11-customer-dogfood-prep-0625::work/step-outputs/p11-customer-dogfood-prep-0625-plan-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:pm-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-p11-customer-dogfood-prep-0625-plan",
+  "building_id": "p11-customer-dogfood-prep-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T09:02:12.998671Z",
+  "id": "urn:bp:building:p11-customer-dogfood-prep-0625::work/step-outputs/p11-customer-dogfood-prep-0625-plan-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:p11-customer-dogfood-prep-0625-plan",
+  "recorded_at": "2026-06-25T09:02:12.998671Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:pm-lead",
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:p11-customer-dogfood-prep-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "constraints": [
+      "Read-only per task source and Agent tool policy; native_grant capabilities [read, web], write_effective=false.",
+      "Do not run provider-heavy checks; checker observations here are limited to file-shape reads, not executed --all or live-provider profiles.",
+      "Must not claim customer success/quality/source-truth/Movement authority.",
+      "Pre-P12 green expectations (carried as caller/COO gating, not asserted as proven here): checker gate `--all` exit 0 in-worktree; git diff --check clean; import smoke clean. AGENTS.md historical snapshot lists these; this plan does not execute them.",
+      "Customer-entry launch must declare project_ref OR explicit output_root: the ref-less DEFAULT_BUILDINGS_ROOT resolves under $BRICK_HOME/~/.brick (caller-local evidence home), NOT the repo-local project vessel (P7 evidence-root policy).",
+      "selected_adapter_ref is fail-closed (no support default); the work root in four-llm-standard-graph carries the only write NEED, so the caller must declare a narrow write_scope at intake.",
+      "report.env must be sourced for Slack/dashboard signals; Slack/dashboard real delivery is gated by env credentials plus allow_real_*_delivery flags, dry-run otherwise."
+    ],
+    "evidence_refs": [
+      "support-packet:p11-customer-dogfood-prep-0625:agent-object:pm-lead:output"
+    ],
+    "missing_scope": [
+      "P12 customer success/quality verdict — owned by the human gate, never produced by this Building chain.",
+      "Live four-provider (Codex/Claude/Gemini-API/Fugu) execution-and-return under the full write graph: only a read-only single-pass smoke (four-llm-standard-graph-readonly-smoke-0625) and a deterministic Gemini-API fixture (P5) exist; live API credential validity and parallel fan-out are unproven.",
+      "An active-worktree-vs-frozen-repo discriminator surface for a cold customer session was not located by the gap2 readiness chain (recorded missing there); a customer cannot yet be told how to tell an active worktree from a frozen brick-protocol checkout.",
+      "Docs-vs-CLI entry-path consistency: a populated customer-entry readiness matrix and one reconciled cold-start first-read path (README/DEPLOY vs brick console + FIRST_USE.md) remain owed (gap2-0625 + 0624 kernel P7 delta).",
+      "An external fresh-machine/release-artifact dry-run transcript (clone -> install.sh -> brick init -> FIRST_USE.md -> brick verify) converting the source-confirmed entry chain into run evidence.",
+      "Open four-LLM disposition: the smoke flagged a fan-in strict-gate asymmetry (link-gate:strict on gemini/fugu fan-in edges but not the claude fan-in edge vs the preset's symmetric strict-evidence/fan-in-wait-all profile) and absence of raw/agent-return.jsonl + evidence/claim_trace for read-only smokes — both queued for Smith/COO, undecided.",
+      "Documentation count drift to reconcile before a customer reads it: setup.md and AGENTS.md state '13 profiles' under support/checkers/profiles/, but 24 profile YAMLs are currently present (observed by Glob).",
+      "P9 module-diet write-scope conflict map (core.yaml / module_registry.yaml / case_runners.py) is requested but the followup Building's authored plan was not confirmed produced in this read."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Customer success, quality, or source truth for any P12 dogfood run — owned by the human gate.",
+      "Live gemini-api credential validity and live four-provider (codex/claude/gemini-api/fugu) execution-and-return under the full write graph; runtime parallel fan-out timing/scheduler liveness.",
+      "That the four-llm-standard-graph preset's gemini-api lane works end-to-end: the only graph smoke used gemini-local, and P5 only proved a deterministic in-process fixture, not a live API walk.",
+      "That the in-repo install.sh -> brick console -> first_use -> brick verify chain delivers a working cold-start path on a fresh machine — source text confirmed only, never executed.",
+      "Existence/adequacy of an active-worktree-vs-frozen-repo discriminator for a cold customer session (not located by the gap2 chain).",
+      "Whether the fan-in strict-gate asymmetry is intended caller policy or preset->plan translation drift, and whether raw/agent-return.jsonl + claim_trace are expected for read-only smokes — both queued for Smith/COO, undisposed.",
+      "Whether check_profile.py --all is currently green; not executed here (read-only, no provider-heavy runs).",
+      "Whether the documentation profile-count (13) drift vs actual (24) reflects other stale customer-facing figures.",
+      "ENVIRONMENT/RUNTIME CONSTRAINT (not a defect): this plan node ran read-only with no provider/git execution; all claims are bounded to file reads in worktree /Users/smith/.brick/worktrees/struct-surgery-0623.",
+      "Whether the offered skills (evidence-shape-check, task_intake) were actually fetched/applied is not recorded.",
+      "Not source truth, not success judgment, not quality judgment, not Movement authority."
+    ],
+    "objective_summary": "Bound a read-only preparation plan for the P12 customer dogfood capstone: define a customer-like entry route (install -> setup -> first task -> official Building launch -> evidence -> frontier -> verify -> status), enumerate the current surfaces that route must touch, identify what must be green vs explicitly carried as not_proven before P12, and propose (not author) a minimal P12 capstone Building design. This is a plan node only: it bounds scope and surfaces gaps; it performs no implementation, no edits, no provider-heavy runs, and makes no success/quality/Movement claim.",
+    "observed_evidence": [
+      "Two public launch paths are documented and live: run_building_intake (preset path; task_statement verbatim -> work/task.md; selected_adapter_ref fail-closed) and assemble (new-structure builder DSL); run_composed_graph_intake is sealed from the public surface (support/docs/references/{quickstart.md,launch-guide.md}).",
+      "Customer-entry surface exists at content level: support/operator/first_use.py renders FIRST_USE.md, a 'brick' console entrypoint + brick verify + onboard doctor/wizard exist; the full chain (install.sh -> brick console -> cli _cmd_init -> first_use.py -> FIRST_USE.md -> brick verify) is mapped by status/kernel/gap2-customer-entry-readiness-0624.md (confirmed by the gap2-customer-entry-readiness-0625 review/closure nodes).",
+      "P4 transition: brick/templates/presets/four-llm-standard-graph.md now declares the gemini-broad-review inspect lane on adapter:gemini-api; report_sinks.py distinguishes Slack lane labels for gemini-api/gemini-local/claude-local/codex-local/fugu (status/kernel/p4-gemini-api-four-llm-transition-0625.md).",
+      "P5 repair: support/checkers/lib/case_runners.py added a deterministic in-process gemini-api preset-completion fixture; building_skill_preset_agent_tool_hardening keeps expected_frontier_kind: complete and passes for the full preset set including four-llm-standard-graph (status/kernel/p5-four-llm-gemini-api-fixture-repair-0625.md).",
+      "P10 permission matrix: effective_write = bool(write_scope) AND tool-policy:read-write-scoped AND adapter in _OBSERVED_WRITE_ADAPTER_REFS (agent_adapter.py:868-877). gemini-api is read+review only (never write); codex-local/claude-local/codex-fugu-local are observed-write; COO stays read-only (no read-write-scoped policy) (status/kernel/p10-agent-yaml-permission-matrix-reroute-0625.md).",
+      "Four-LLM read-only smoke (four-llm-standard-graph-readonly-smoke-0625) launched and returned across codex-local, claude-local, gemini-local, codex-fugu-local + a claude-local closure; work made_changes=false, unchanged HEAD ea82b7d, path_count 1571==1571; frontier rows (report_kind=building_frontier, source_truth=false) delivered to local-inbox/slack/dashboard. NOTE: that smoke used adapter:gemini-local for the Gemini lane, whereas the current preset declares adapter:gemini-api — the gemini-api lane is not yet proven by an end-to-end smoke.",
+      "P7 evidence-root policy: ref-less DEFAULT_BUILDINGS_ROOT resolves under BRICK_EVIDENCE_HOME ($BRICK_HOME or ~/.brick); declared project_ref:'project:brick-protocol' resolves to the active checkout's project/brick-protocol/buildings; ambiguous project_ref + explicit output_root rejects (status/kernel/p7-evidence-root-location-policy-0625.md).",
+      "P9 diet: a selector guide (status/kernel/checker-profile-diet-selector-guide-0625.md) buckets profiles into quick/core, dogfood/behavioral, live-heavy/provider, oversized/history so operators avoid --all; the six-family classification + module-cleanup angle (god modules, write-scope conflicts on core.yaml/module_registry.yaml/case_runners.py) is the requested P9 followup scope (p9-checker-module-diet-followup-0625/work/task.md).",
+      "PROGRESS projection: 33 buildings total (closed 29, link_paused 3, observed_running 1) as machine projection from building evidence (project/brick-protocol/PROGRESS.md).",
+      "Observed count drift: support/checkers/profiles/ currently holds 24 profile YAMLs, while setup.md and AGENTS.md state '13 profiles'."
+    ],
+    "output_excerpt": "I have gathered sufficient read-only evidence. Here is my `plan` Brick return as a single JSON object. ```json { \"objective_summary\": \"Bound a read-only preparation plan for the P12 customer dogfood capstone: define a customer-like entry route (install -> setup -> first task -> official Building launch -> evidence -> frontier -> verify -> status), enumerate the current surfaces that route must touch, identify what must be green vs explicitly carried as not_proven before P12, and propose (not author) a minimal P12 capstone Building design. This is a plan node only: it bounds scope and surfac...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "proposed_next_work_boundaries": [
+      "Customer entry route (proposed canonical, for P12 to exercise): install.sh -> onboard doctor (exit 0) -> first Building via run_building_intake with task_statement + a preset + selected_adapter_ref + project_ref -> evidence lands under project/brick-protocol/buildings/<id>/ (capture/raw/evidence/work) -> frontier/report rows to local-inbox(+slack/dashboard if env) -> check_profile.py gate in-worktree -> status inbox watch. Boundary suggestion only.",
+      "Minimal P12 capstone Building (boundary proposal, not authored): task_statement = a small, real, coordinate-bounded brick-protocol dogfood change; chain_preset_ref = building-chain-preset:four-llm-standard-graph (one Codex write root -> Claude structure / Gemini-API broad / Fugu axis read-only lenses -> COO closure synthesis); write_scope = narrow allow on the work root only (forbid .git/.env/agent/brick/link/support), declared at intake; provider lanes = codex-local(write), claude-local, gemini-api, codex-fugu-local, claude-local(closure); stop condition = closure fan-in returned + caller/COO disposition of any concern, with work-root reroute budget 1 and verification_gap -> hold.",
+      "Pre-P12 read-enabled gap-closure boundary: produce the populated customer-entry readiness matrix and reconcile the cold-start first-read doc (likely docs-simple-review or fast-fix scope), and locate/document the active-worktree-vs-frozen discriminator.",
+      "Pre-P12 hygiene boundary: reconcile the profile-count documentation drift (13 stated vs 24 present) so customer-facing setup/quickstart match reality.",
+      "Sequencing suggestion: treat the four-LLM strict-gate-asymmetry disposition and the read-only-smoke artifact-presence question as caller/COO decisions to settle BEFORE the P12 live write run; treat the broader P9 checker/module diet (god-module split, deletions needing admission-first) as can-wait / parallelizable, since a green targeted profile set is sufficient to launch P12 and the full consolidation is not a P12 blocker.",
+      "(All proposals are boundary suggestions only, not Movement or route decisions.)"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "scope_boundaries": {
+      "in_scope": [
+        "Read-only review of customer-entry surfaces: support/docs/references/{quickstart.md,launch-guide.md,setup.md}, support/operator/first_use.py + FIRST_USE.md generator, brick console entrypoint (support/operator/cli.py), onboard wizard/doctor, run_building_intake / assemble two public launch paths.",
+        "Mapping the declared 4-LLM capstone surface (brick/templates/presets/four-llm-standard-graph.md) and its read-only smoke evidence (four-llm-standard-graph-readonly-smoke-0625).",
+        "Stating what must be green or explicitly carried as not_proven before launching P12.",
+        "Proposing a minimal P12 capstone Building design boundary (task statement, preset/graph, write scope, provider lanes, stop condition) as a non-binding boundary suggestion.",
+        "Surfacing risks from the P9 checker/profile/module diet relative to a P12 launch."
+      ],
+      "out_of_scope": [
+        "Any file edit/create/delete (read-only plan node; native_grant write_effective=false, no write_scope declared).",
+        "Running providers, the engine, hooks, or git mutations; no provider-heavy checks.",
+        "Authoring the P12 Building plan, choosing Movement/route, or dispositioning the open fan-in strict-gate asymmetry.",
+        "Judging customer success/quality/source-truth, or asserting Movement authority.",
+        "cross-repo work or non-brick-protocol grafts."
+      ]
+    },
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:01:p11-customer-dogfood-prep-0625-plan",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:p11-customer-dogfood-prep-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:p11-customer-dogfood-prep-0625-plan:attempt-1",
+  "step_ref": "p11-customer-dogfood-prep-0625-plan",
+  "subject": "p11-customer-dogfood-prep-0625-plan",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T09:02:12.998671Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

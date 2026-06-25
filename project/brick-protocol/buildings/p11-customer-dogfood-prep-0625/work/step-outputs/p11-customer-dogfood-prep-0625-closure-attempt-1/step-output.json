@@ -1,0 +1,177 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:p11-customer-dogfood-prep-0625::work/step-outputs/p11-customer-dogfood-prep-0625-closure-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-p11-customer-dogfood-prep-0625-closure",
+  "building_id": "p11-customer-dogfood-prep-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:03",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T09:06:04.607279Z",
+  "id": "urn:bp:building:p11-customer-dogfood-prep-0625::work/step-outputs/p11-customer-dogfood-prep-0625-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:03:p11-customer-dogfood-prep-0625-closure",
+  "recorded_at": "2026-06-25T09:06:04.607279Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:coo",
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:p11-customer-dogfood-prep-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "deferred_smith_review_queue": [
+      "Disposition the four-LLM fan-in strict-gate asymmetry (link-gate:strict on gemini/fugu fan-in edges but not the claude fan-in edge vs the preset's symmetric strict-evidence/fan-in-wait-all profile): intended caller policy or preset->plan translation drift?",
+      "Decide whether raw/agent-return.jsonl + evidence/claim_trace are expected artifacts for read-only smokes.",
+      "Decide the P12 sequencing gate: which remaining_delta items are hard pre-P12 blockers (gemini-api lane proof, cold-start reconciliation, green targeted profile set) vs can-wait (full P9 module diet, broader doc-drift sweep).",
+      "Confirm the minimal P12 capstone task_statement (the small real coordinate-bounded brick-protocol change) and its narrow write_scope before any P12 write run.",
+      "Movement/route decision for this closed Building's next boundary — owned by Smith/Link, not produced here."
+    ],
+    "evidence_refs": [
+      "support-packet:p11-customer-dogfood-prep-0625:agent-object:coo:output"
+    ],
+    "narrowly_proven": [
+      "The P11 preparation parent objective produced a delivered, review-confirmed, shape-complete read-only artifact set across plan and review: the customer-like dogfood entry route is defined and the pre-P12 blockers are enumerated, satisfying all 6 required analyses in the task source.",
+      "Both performing nodes honored the read-only / no-provider-heavy / no-success-quality-truth-Movement constraints in their returned content; no boundary_violations and no transition concerns were raised across the chain.",
+      "Five customer-facing factual claims (profile-count drift, PROGRESS counts, permission-matrix logic, gemini-api preset lane declaration, surface/kernel/building artifact existence) are corroborated against the inspected repository sources."
+    ],
+    "next_target_candidates": [
+      "brick-boundary:author-and-run-minimal-p12-four-llm-standard-graph-capstone (Codex write root + Claude/Gemini-API/Fugu read lenses + COO closure; narrow work-root write_scope) — only after the gemini-api lane and cold-start gaps below are settled.",
+      "brick-boundary:gemini-api-lane-end-to-end-proof-building (live or fixture-bounded four-provider walk).",
+      "brick-boundary:customer-entry-readiness-reconciliation (populate readiness matrix, reconcile README/DEPLOY vs brick console + FIRST_USE.md, document active-worktree-vs-frozen discriminator).",
+      "brick-boundary:fresh-machine-release-dry-run-transcript.",
+      "brick-boundary:customer-facing-doc-drift-fix (profile-count 13 -> 24 in setup.md/AGENTS.md).",
+      "brick-boundary:p9-checker-module-diet-followup-0625 (write-scope conflict map; can-wait relative to P12 if a green targeted profile set exists)."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Customer success, quality, or source truth for any P12 dogfood run — owned by the human gate; this Building only prepares and surfaces, it judges nothing.",
+      "That the four-llm-standard-graph gemini-api lane works end-to-end: the only graph smoke used gemini-local and P5 proved only a deterministic in-process fixture; live gemini-api credential validity and parallel four-provider fan-out remain unproven.",
+      "That the in-repo install.sh -> brick console -> first_use -> brick verify cold-start chain works on a fresh machine — source text confirmed only, never executed.",
+      "Whether check_profile.py --all is currently green — not executed (read-only, no provider-heavy runs).",
+      "The specific adapter (gemini-local vs gemini-api) actually exercised inside four-llm-standard-graph-readonly-smoke-0625 — the smoke's gemini step-output adapter_ref was not opened by either node.",
+      "Whether the documentation profile-count drift (13 stated vs 24 present) reflects other stale customer-facing figures beyond setup.md/AGENTS.md.",
+      "ENVIRONMENT/RUNTIME CONSTRAINT (not a defect): the whole chain ran read-only with no write/git/provider execution; all observations are bounded to file reads in worktree /Users/smith/.brick/worktrees/struct-surgery-0623.",
+      "Whether offered skills were actually fetched/applied is not recorded.",
+      "Not source truth, not success judgment, not quality judgment, not Movement authority."
+    ],
+    "observed_evidence": [
+      "Building p11-customer-dogfood-prep-0625 ran a 3-node research-report graph (plan -> review -> closure) over task-source:inline-statement '# P11 customer dogfood preparation'; execution_order and link_edges all movement=forward, closure edge declares building_lifecycle state=closed (work/declared-building-plan.json).",
+      "plan node (brick-p11-customer-dogfood-prep-0625-plan, agent-object:pm-lead, adapter:claude-local, generatedAtTime 2026-06-25T09:02:12Z) returned a shape-complete plan: objective_summary, scope_boundaries, constraints, missing_scope, proposed_next_work_boundaries, observed_evidence, not_proven, transition_concern_evidence=null. It bounded a customer entry route (install.sh -> onboard doctor -> run_building_intake with task_statement+preset+selected_adapter_ref+project_ref -> evidence under project/brick-protocol/buildings/<id>/ -> frontier/report rows -> check_profile gate -> status inbox) and proposed (not authored) a minimal P12 four-llm-standard-graph capstone (one codex-local write root; claude-local/gemini-api/codex-fugu-local read lenses; claude-local closure; narrow work-root write_scope; stop = closure fan-in + disposition).",
+      "review node (brick-p11-customer-dogfood-prep-0625-review, agent-object:qa-lead, adapter:claude-local, generatedAtTime 2026-06-25T09:04:44Z) returned shape-complete with boundary_violations=[] and transition_concern_evidence=null. It confirmed the plan carries all 8 declared return fields, no forbidden verdict keys, and all 6 task-source-required analyses; and it spot-confirmed 5 factual claims against sources.",
+      "Review-confirmed facts: profile-count drift (setup.md:23 states '13 profiles' vs 24 profile YAMLs present under support/checkers/profiles/); PROGRESS.md projection 33 buildings (closed 29, link_paused 3, observed_running 1); agent_adapter.py:868-877 effective_write = bool(write_scope) AND tool-policy:read-write-scoped AND adapter in observed-write set (gemini-api read+review only, COO read-only); four-llm-standard-graph.md declares gemini-broad-review on adapter:gemini-api; p4/p5/p7/p10 0625 kernel docs, gap2-customer-entry-readiness-0624/0625, and p9-checker-module-diet-followup-0625 task all resolve.",
+      "Review recorded two non-blocking imprecisions: (a) plan cites kernel docs as 'status/kernel/...' but they actually live under project/brick-protocol/status/kernel/ (files all located, substance holds, prefix imprecise); (b) the plan sub-claim 'the readonly smoke used adapter:gemini-local for the Gemini lane' was NOT confirmed — review located the smoke's gemini-broad-review step-output but did not open its adapter_ref."
+    ],
+    "output_excerpt": "I have the full evidence chain (plan node + review node + plan contract + task source). Both prior nodes returned cleanly with no boundary violations and no transition concerns. Here is the closure synthesis. ```json { \"observed_evidence\": [ \"Building p11-customer-dogfood-prep-0625 ran a 3-node research-report graph (plan -> review -> closure) over task-source:inline-statement '# P11 customer dogfood preparation'; execution_order and link_edges all movement=forward, closure edge declares building_lifecycle state=closed (work/declared-building-plan.json).\", \"plan node (brick-p11-customer-dog...",
+    "parent_goal_delta_status": {
+      "closed_delta_refs": [
+        "delta:p11-read-only-prep-artifact-delivered-and-review-confirmed-shape-complete"
+      ],
+      "evidence_refs": [
+        "work/step-outputs/p11-customer-dogfood-prep-0625-plan-attempt-1/step-output.json",
+        "work/step-outputs/p11-customer-dogfood-prep-0625-review-attempt-1/step-output.json",
+        "work/declared-building-plan.json",
+        "work/task.md"
+      ],
+      "matched_delta_refs": [
+        "task-analysis:1-customer-entry-route",
+        "task-analysis:2-required-current-surfaces",
+        "task-analysis:3-green-vs-not_proven-before-p12",
+        "task-analysis:4-minimal-p12-capstone-design",
+        "task-analysis:5-p9-diet-risk-must-do-vs-can-wait",
+        "task-analysis:6-not_proven-and-proof-limits"
+      ],
+      "missing_delta_refs": [
+        "delta:active-worktree-vs-frozen-repo-discriminator-not-located",
+        "delta:external-fresh-machine-dry-run-transcript-absent"
+      ],
+      "open_delta_refs": [
+        "delta:gemini-api-lane-end-to-end-proof",
+        "delta:cold-start-doc-reconciliation-and-readiness-matrix",
+        "delta:profile-count-doc-drift-13-vs-24",
+        "delta:green-targeted-checker-profile-set-for-p12",
+        "delta:author-minimal-p12-capstone-plan"
+      ],
+      "unknown_delta_refs": [
+        "delta:check_profile-all-green-not-executed",
+        "delta:gemini-local-vs-gemini-api-smoke-lane-adapter-unopened",
+        "delta:fan-in-strict-gate-asymmetry-disposition-undecided"
+      ]
+    },
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "remaining_delta": [
+      "Decide gemini-api lane proof: run a live (or fixture-bounded) four-llm-standard-graph walk that actually exercises adapter:gemini-api end-to-end before P12 relies on it.",
+      "Reconcile the cold-start customer-entry docs and produce a populated customer-entry readiness matrix; locate/document the active-worktree-vs-frozen-repo discriminator a cold customer needs (recorded missing by the gap2 chain).",
+      "Produce an external fresh-machine/release-artifact dry-run transcript (clone -> install.sh -> brick init -> FIRST_USE.md -> brick verify) converting the source-confirmed entry chain into run evidence.",
+      "Reconcile the profile-count documentation drift (13 stated vs 24 present) in setup.md/AGENTS.md so customer-facing figures match reality.",
+      "Confirm a green targeted checker-profile set in-worktree (check_profile gate) for the P12 launch scope, and settle the P9 checker/module-diet write-scope conflict map (core.yaml / module_registry.yaml / case_runners.py) as can-wait vs must-do.",
+      "Author (not just propose) the minimal P12 capstone Building plan with a small, real, coordinate-bounded brick-protocol change as task_statement and a narrow work-root write_scope.",
+      "Open the four-llm-standard-graph-readonly-smoke-0625 gemini step-output to confirm/contradict the gemini-local-vs-gemini-api lane sub-claim, and (optionally) correct the plan's 'status/kernel/...' citation prefix to 'project/brick-protocol/status/kernel/...'."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:03:p11-customer-dogfood-prep-0625-closure",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:p11-customer-dogfood-prep-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:p11-customer-dogfood-prep-0625-closure:attempt-1",
+  "step_ref": "p11-customer-dogfood-prep-0625-closure",
+  "subject": "p11-customer-dogfood-prep-0625-closure",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T09:06:04.607279Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

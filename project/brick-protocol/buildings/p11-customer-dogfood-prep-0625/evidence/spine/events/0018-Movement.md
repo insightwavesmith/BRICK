@@ -1,0 +1,12 @@
+# Movement · seq 18 · ["Link"]
+- adopted_transition_concern_refs: []
+- axis_scope: ["Link"]
+- declared_movement: "forward"
+- event_type: "Movement"
+- gate_review_event_ref: "sufficiency-fact-movement:02:p11-customer-dogfood-prep-0625-review"
+- not_adopted_transition_concern_refs: []
+- run_segment: 1
+- sequence_index: 18
+- source_fact_ref: "movement-fact:02:p11-customer-dogfood-prep-0625-review"
+- spine_schema_version: "spine-v1"
+- target_boundary_ref: "brick:brick-p11-customer-dogfood-prep-0625-closure"
