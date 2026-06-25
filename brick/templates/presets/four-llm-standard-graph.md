@@ -21,7 +21,7 @@ steps:
     step_alias: gemini-broad-review
     brick_spec_ref: brick/templates/bricks/inspect/brick.md
     target_word: closure
-    selected_adapter_ref: adapter:gemini-local
+    selected_adapter_ref: adapter:gemini-api
     selected_model_ref: model:gemini:default
   - step_template_ref: building-step-template:inspect
     step_alias: fugu-axis-attack
@@ -56,7 +56,7 @@ steps:
 # evidence-integrity) all carry requires_brick_write_scope: yes, so they would
 # receive write_scope and are NOT used for the read-only lens nodes. Instead:
 # Claude uses the read-only review template (qa-lead admits claude-local), Gemini
-# uses the read-only inspect template (inspector admits gemini-local), and Fugu
+# uses the read-only inspect template (inspector admits gemini-api), and Fugu
 # uses the read-only inspect template (inspector admits codex-fugu-local). Thus
 # the work root is the only node that opens write_scope; all three lens nodes and
 # closure remain read-only while their step_alias names preserve their review
