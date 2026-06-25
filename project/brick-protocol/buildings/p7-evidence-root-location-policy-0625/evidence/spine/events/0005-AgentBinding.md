@@ -1,0 +1,12 @@
+# AgentBinding · seq 5 · ["Agent"]
+- agent_object_ref: "agent-object:dev"
+- agent_performer_ref: "agent-performer:agent-object:dev"
+- axis_scope: ["Agent"]
+- binding_role: "primary"
+- brick_instance_ref: "brick-p7-evidence-root-location-policy-0625-work"
+- event_type: "AgentBinding"
+- run_segment: 1
+- sequence_index: 5
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/p7-evidence-root-location-policy-0625-work-attempt-1/step-output.json"
+- step_ref: "p7-evidence-root-location-policy-0625-work"

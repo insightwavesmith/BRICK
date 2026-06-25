@@ -20,7 +20,7 @@ success judgment, not a quality judgment, and not Movement authority.
 | Active checkout or frozen/history repo? | Use this product checkout or its release export for active work. The frozen HISTORY repository is for archived evidence only; do not start new customer work there. In this checkout, `brick status` reports the resolved `repo_root`, current `cwd`, entrypoint file, and default builds root. Release exports omit `project/`; the first onboard/run creates local project evidence as needed. | `README.md` documents release export and HISTORY separation. `support/operator/cli.py` implements `brick status`. Byte-for-byte release parity and fresh-machine behavior remain not proven until measured. |
 | Official Building launch route? | Common customer path: install, run the onboarding wizard, then speak the task through `run_building_intake` / `task_statement`. For new structure, the main agent uses `assemble`, the human/COO approves the frozen proposal with `onboard goal-approve`, and the support runner walks the declared graph. | This page and `launch-guide.md` document the two public order paths: `run_building_intake` for presets, `assemble` for new structure. Support walks declared rows; it does not choose Movement. |
 | Slack expectation? | Slack is optional. The first local path does not require Slack and should not expect a direct Slack check. Operator notification uses `~/.brick/report.env` only after provisioning/source, and real Slack delivery remains gated by declared delivery flags and environment credentials. | `launch-guide.md` notes `source ~/.brick/report.env` for bell/dashboard notifications. Reporter/Slack delivery is support projection only and must not expose credentials or become a scheduler/queue/retry runtime. |
-| Where does evidence land? | Building evidence lands under `project/brick-protocol/buildings/<building_id>/` by default for repo-local runs. Customer CLI builds use the declared output root and report `evidence_root`; `FIRST_USE.md` repeats that root for the local example. | The root contains `capture/`, `raw/`, `evidence/`, and `work/`. These are support evidence and projections, not source truth or judgments. |
+| Where does evidence land? | Ref-less defaults land under `$BRICK_HOME/project/brick-protocol/buildings/<building_id>/`, or `~/.brick/project/brick-protocol/buildings/<building_id>/` when `BRICK_HOME` is unset. Runs that declare `project_ref: "project:brick-protocol"` land in the repo-local vessel `project/brick-protocol/buildings/<building_id>/`. Customer CLI builds use the declared output root and report `evidence_root`; `FIRST_USE.md` repeats that root for the local example. | The root contains `capture/`, `raw/`, `evidence/`, and `work/`. These are support evidence and projections, not source truth or judgments. |
 | Not proven / proof limits | A green checker or written Building root is evidence only. Provider behavior, credential readiness, customer comprehension, release/export parity, and fresh-machine install/run behavior are not proven by this page. | Close those with separate run evidence, not by wording in docs. |
 
 ## 가장 빠른 길: 위자드
@@ -233,7 +233,20 @@ selected_model_ref: model:codex:default
 
 ## Evidence location
 
-By default, Building evidence is written under:
+Ref-less defaults write Building evidence under:
+
+```text
+$BRICK_HOME/project/brick-protocol/buildings/<building_id>/
+```
+
+or, when `BRICK_HOME` is unset:
+
+```text
+~/.brick/project/brick-protocol/buildings/<building_id>/
+```
+
+When the intent declares `project_ref: "project:brick-protocol"`, the driver
+derives the repo-local project vessel and writes under:
 
 ```text
 project/brick-protocol/buildings/<building_id>/

@@ -78,7 +78,7 @@ def run_building_plan(
 
 The fields most newcomers touch:
 
-- **`output_root`** — directory the Building root is written under. Defaults to `DEFAULT_BUILDINGS_ROOT`, which is `project/brick-protocol/buildings/`. The actual root is `output_root/<building_id>`.
+- **`output_root`** — directory the Building root is written under. Defaults to `DEFAULT_BUILDINGS_ROOT`, the ref-less caller-local evidence home: `$BRICK_HOME/project/brick-protocol/buildings/` when `BRICK_HOME` is set, otherwise `~/.brick/project/brick-protocol/buildings/`. The actual root is `output_root/<building_id>`. If the intent declares `project_ref: "project:brick-protocol"` instead of relying on the ref-less default, the driver derives the repo-local vessel root through `buildings_root_for(project_ref)`: `project/brick-protocol/buildings/`.
 - **`overwrite_existing`** — defaults to `False`. If the Building root already exists and this is `False`, the runner raises `FileExistsError` and tells you to choose a new `building_id` or pass `overwrite_existing=True`. Pass `True` deliberately to reuse a root.
 - **`adapter_cwd`** — the working directory handed to the local CLI adapter (e.g. where `codex` runs). Leave it `None` to use the process default.
 - **`adapter_timeout_seconds`** — per-adapter-call timeout, default `120`. A slower-than-this Codex call raises a `local_cli_timeout` adapter error and the runner records frontier evidence.
@@ -104,7 +104,21 @@ For `adapter:local` the Agent Object uses its registered local callable referenc
 
 ## Where evidence lands
 
-Each run writes one Building root under `output_root/<building_id>` — by default:
+Each run writes one Building root under `output_root/<building_id>`.
+With the ref-less default, that means:
+
+```text
+$BRICK_HOME/project/brick-protocol/buildings/<building_id>/
+```
+
+or, when `BRICK_HOME` is unset:
+
+```text
+~/.brick/project/brick-protocol/buildings/<building_id>/
+```
+
+With a declared `project_ref: "project:brick-protocol"`, the driver writes to
+the repo-local project vessel:
 
 ```text
 project/brick-protocol/buildings/<building_id>/
