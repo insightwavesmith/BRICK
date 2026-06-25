@@ -1,0 +1,12 @@
+# LinkSufficiency · seq 17 · ["Link"]
+- axis_scope: ["Link"]
+- checked_public_fact: "brick-comparison:claude-qa-execution-fresh-smoke-0625:claude-qa-execution-fresh-smoke-0625-code-attack-qa"
+- event_type: "LinkSufficiency"
+- missing_required_facts: []
+- required_public_facts: ["BrickComparisonFact.required_return_shape_evidence","BrickComparisonFact.comparison_evidence","BrickComparisonFact.comparison_evidence.returned_field.observed_evidence","BrickComparisonFact.comparison_evidence.returned_field.attacked_work","BrickComparisonFact.comparison_evidence.returned_field.checked_sources","BrickComparisonFact.comparison_evidence.returned_field.regression_risks","BrickComparisonFact.comparison_evidence.returned_field.negative_probe_observations","BrickComparisonFact.comparison_evidence.returned_field.failing_or_missing_probes","BrickComparisonFact.comparison_evidence.returned_field.boundary_violations","BrickComparisonFact.comparison_evidence.returned_field.transition_concern_evidence","BrickComparisonFact.comparison_evidence.returned_field.evidence_used","BrickComparisonFact.comparison_evidence.returned_field.not_proven","BrickComparisonFact.comparison_evidence.returned_field.evidence_used.repository_artifact_ref"]
+- run_segment: 1
+- sequence_index: 17
+- source_fact_ref: "sufficiency-fact-movement:02:claude-qa-execution-fresh-smoke-0625-code-attack-qa"
+- spine_schema_version: "spine-v1"
+- stage: "movement"
+- sufficiency: "sufficient"

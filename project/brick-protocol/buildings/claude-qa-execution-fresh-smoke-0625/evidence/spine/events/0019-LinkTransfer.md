@@ -1,0 +1,11 @@
+# LinkTransfer · seq 19 · ["Link"]
+- absent_fact_type: "TransferFact"
+- axis_scope: ["Link"]
+- caller_supplied: false
+- event_type: "LinkTransfer"
+- run_segment: 1
+- sequence_index: 19
+- source_fact_ref: "absence:link-transfer:02:claude-qa-execution-fresh-smoke-0625-code-attack-qa"
+- spine_schema_version: "spine-v1"
+- support_created_bal_fact: false
+- trace_role: "absence_placeholder"
