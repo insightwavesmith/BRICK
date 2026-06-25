@@ -1,0 +1,175 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:customer-entry-readiness-reconciliation-0625::work/step-outputs/customer-entry-readiness-reconciliation-0625-review-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-customer-entry-readiness-reconciliation-0625-review",
+  "building_id": "customer-entry-readiness-reconciliation-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T09:45:51.335619Z",
+  "id": "urn:bp:building:customer-entry-readiness-reconciliation-0625::work/step-outputs/customer-entry-readiness-reconciliation-0625-review-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:customer-entry-readiness-reconciliation-0625-review",
+  "recorded_at": "2026-06-25T09:45:51.335619Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:qa-lead",
+    "boundary_violations": [],
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "checked_sources": [
+      "work/step-outputs/customer-entry-readiness-reconciliation-0625-plan-attempt-1/step-output.json (prior Brick return)",
+      "declared-building-plan.json (plan-node required_return_shape + task_statement)",
+      "support/docs/references/setup.md (lines 15-34)",
+      "AGENTS.md (lines 726-743)",
+      "support/checkers/profiles/*.yaml (count)",
+      "brick/templates/presets/* (count)"
+    ],
+    "checked_work": "plan Brick work_statement for task-source:inline-statement (G1 customer-entry/readiness reconciliation, 5 required analyses) and the plan return_template required shape (brick/templates/bricks/plan/return.yaml): objective_summary, scope_boundaries, constraints, missing_scope, proposed_next_work_boundaries, observed_evidence, not_proven, transition_concern_evidence.",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:customer-entry-readiness-reconciliation-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "evidence_refs": [
+      "support-packet:customer-entry-readiness-reconciliation-0625:agent-object:qa-lead:output"
+    ],
+    "evidence_used": [
+      "project/brick-protocol/buildings/customer-entry-readiness-reconciliation-0625/work/step-outputs/customer-entry-readiness-reconciliation-0625-plan-attempt-1/step-output.json",
+      "project/brick-protocol/buildings/customer-entry-readiness-reconciliation-0625/declared-building-plan.json",
+      "support/docs/references/setup.md:23",
+      "AGENTS.md:726-727",
+      "support/checkers/profiles/ (24 *.yaml)",
+      "brick/templates/presets/ (28 files)"
+    ],
+    "missing_or_mismatched_facts": [
+      "observed_evidence field is empty [] although the plan performed concrete inspected observations (setup.md:23, AGENTS.md ~726-728); those facts were lodged in proposed_next_work_boundaries/not_proven instead of observed_evidence.",
+      "Task required analysis #3 (readiness matrix: required-before-P12 / can-carry-as-not_proven / must-be-deferred) is not delivered as an explicit three-bucket matrix in the captured structured fields; only partial items are scattered across not_proven/missing_scope.",
+      "Task item #1 named drift dimension 'active checkout vs release/frozen path' is not visibly addressed in any captured structured field (no 'release'/'frozen'/'checkout' treatment present).",
+      "Task item #4 'name exact checker/profile gates for P12 launch scope' is only partially present (core.yaml, module_registry.yaml, lib/*.py named as chokepoints in constraints); no discrete enumerated launch-gate list is captured.",
+      "Plan asserts (in not_proven) that setup.md:23 and AGENTS.md:727 are the ONLY stale profile/preset-count surfaces, while also acknowledging the sweep did not cover every repo file; a stale PRESET-count (28) surface is not separately identified."
+    ],
+    "narrowly_proven": [
+      "On-disk profile count is 24 and preset count is 28, matching the plan's stated current facts.",
+      "setup.md:23 and AGENTS.md:727 each literally state '13' profile(s)/profile-files and are stale relative to 24 — the two count-drift surfaces the plan named are real.",
+      "The plan return contains all 8 declared plan-template fields and introduces no success/quality/Movement keys."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Completeness of the plan's repo-wide drift sweep — I did not enumerate every customer-facing surface, so the claim that setup.md:23 and AGENTS.md:727 are the ONLY stale count surfaces is unverified.",
+      "Whether the truncated output_excerpt held additional readiness-matrix or gate-enumeration content beyond the fully-captured structured return fields.",
+      "End-to-end FIRST_USE/install/setup/verify route correctness on a fresh machine (read-only Building, no live run).",
+      "The exact P12 launch scope (inferred, not declared in task or repo).",
+      "Checker/profile greenness (not run).",
+      "Source truth, success, quality, completion, and Movement — none judged here."
+    ],
+    "observed_evidence": [
+      "Prior (plan) Brick step-output captured at work/step-outputs/customer-entry-readiness-reconciliation-0625-plan-attempt-1/step-output.json; agent_object pm-lead, adapter claude-local, attempt 1.",
+      "All 8 plan-template return fields are present in returned{}: objective_summary, scope_boundaries, constraints, missing_scope, proposed_next_work_boundaries, observed_evidence, not_proven, transition_concern_evidence.",
+      "support/checkers/profiles/ contains exactly 24 profile .yaml files (on-disk count == plan's 'profiles=24').",
+      "brick/templates/presets/ contains exactly 28 preset files (on-disk count == plan's 'presets=28').",
+      "support/docs/references/setup.md line 23 states '(13 profiles live under support/checkers/profiles/)' — stale vs on-disk 24.",
+      "AGENTS.md line 727 states 'After the split, BRICK has 13 profile files' — stale vs on-disk 24; line 726 confirms it is a monorepo-snapshot/control note (plan's 'control-surface' flag is accurate).",
+      "returned.observed_evidence is an empty list [] while concrete file:line drift facts appear instead inside proposed_next_work_boundaries and not_proven.",
+      "returned.transition_concern_evidence is null; no success/quality/status/movement reserved keys present in the returned object."
+    ],
+    "observed_matches": [
+      "Return-shape: all 8 declared plan-template fields are present.",
+      "Current-fact profiles=24 matches on-disk profile-yaml count (24).",
+      "Current-fact presets=28 matches on-disk preset-file count (28).",
+      "Drift claim setup.md:23 '13 profiles'->24 reproduced as a real stale surface.",
+      "Drift claim AGENTS.md ~726-728 '13 profile files'->24 reproduced; plan's control-surface flag is consistent with line 726 context.",
+      "FIRST_USE handled as runtime-rendered (no committed file) and end-to-end route placed in not_proven as a read-only/no-live-run constraint — recorded as not_proven, not as a concern (consistent with Brick discipline).",
+      "BRICK boundaries preserved: returned object carries no success/quality/movement/route keys, transition_concern_evidence is null, and out_of_scope explicitly excludes Movement/sufficiency/quality.",
+      "proposed_next_work_boundaries present and excludes PROGRESS.md from write scope (regenerate-not-hand-edit)."
+    ],
+    "output_excerpt": "I have verified the key claims. Let me compose the review. Summary of verification: - **profiles=24**: confirmed — exactly 24 `.yaml` under `support/checkers/profiles/`. - **presets=28**: confirmed — exactly 28 files under `brick/templates/presets/`. - **setup.md:23**: confirmed stale — reads \"(13 profiles live under `support/checkers/profiles/`)\" while on-disk = 24. - **AGENTS.md:727**: confirmed stale — \"After the split, BRICK has 13 profile files\"; line 726 context confirms plan's \"control-surface\" flag is accurate. ```json { \"observed_evidence\": [ \"Prior (plan) Brick step-output capture...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": {
+      "binding": false,
+      "concern_kind": "upstream_gap",
+      "concern_ref": "transition-concern:customer-entry-readiness-reconciliation-0625-plan-gaps",
+      "not_proven": [
+        "whether these gaps are sufficiency-blocking (Link gate decision)"
+      ],
+      "proof_limits": [
+        "non-binding review evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "reason_refs": [
+        "task-source:inline-statement analysis #3 readiness matrix (required/can-carry/deferred) not delivered as an explicit three-bucket structure in the plan return",
+        "task-source:inline-statement analysis #1 drift dimension 'active checkout vs release/frozen path' not visibly addressed in captured plan fields",
+        "work/step-outputs/customer-entry-readiness-reconciliation-0625-plan-attempt-1/step-output.json returned.observed_evidence is empty while inspected file:line facts exist elsewhere"
+      ],
+      "related_boundary_refs": [
+        "brick:customer-entry-readiness-reconciliation-0625-plan"
+      ]
+    }
+  },
+  "returned_fact_ref": "agent-fact:02:customer-entry-readiness-reconciliation-0625-review",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:customer-entry-readiness-reconciliation-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:customer-entry-readiness-reconciliation-0625-review:attempt-1",
+  "step_ref": "customer-entry-readiness-reconciliation-0625-review",
+  "subject": "customer-entry-readiness-reconciliation-0625-review",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T09:45:51.335619Z",
+  "transition_concern_ref": "work/step-outputs/customer-entry-readiness-reconciliation-0625-review-attempt-1/transition-concern.json",
+  "type": "bp.step_output"
+}

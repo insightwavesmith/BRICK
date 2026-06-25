@@ -1,0 +1,164 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:ops-disposition-discipline-0625::work/step-outputs/ops-disposition-discipline-0625-plan-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:pm-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-ops-disposition-discipline-0625-plan",
+  "building_id": "ops-disposition-discipline-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T09:41:46.249039Z",
+  "id": "urn:bp:building:ops-disposition-discipline-0625::work/step-outputs/ops-disposition-discipline-0625-plan-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:ops-disposition-discipline-0625-plan",
+  "recorded_at": "2026-06-25T09:41:46.249039Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:pm-lead",
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:ops-disposition-discipline-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "constraints": [
+      "Read-only: tool policy resolves write_effective=false; no git mutations, no hooks/SDK execution",
+      "Preserve BRICK/Agent/Link axis separation and proof limits; disposition owner for the P10 frontier is declared 'caller-or-coo', not this Agent",
+      "Return only required_return_shape fields; no reserved verdict keys",
+      "transition_concern_evidence must stay non-binding; environment/read-only limits go in not_proven, never as a concern"
+    ],
+    "evidence_refs": [
+      "support-packet:ops-disposition-discipline-0625:agent-object:pm-lead:output"
+    ],
+    "missing_scope": [
+      "The task does not specify WHERE the formal P10 disposition record should live (status/inbox disposition-applied event vs. status/kernel doc vs. building evidence) — target path is undeclared",
+      "The task does not declare an actual write_scope for the follow-up repair Building; only asks to 'identify' a minimal one",
+      "No explicit owner is named for authoring/committing the COO polling-folding discipline doc (AGENTS.md vs. status/kernel vs. agent/ operating recipe)",
+      "Acceptance criteria for 'consolidated' / 'cleanup complete' are not defined"
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Whether the P10 link_paused frontier should resume, reroute, or close — this is a caller/COO Movement decision, not observed here",
+      "Whether a status/ or status/kernel/ write_scope would be admitted for the follow-up repair Building (prior sessions noted status-domain write friction)",
+      "Whether any disposition record for P10 already exists outside status/inbox (e.g. uncommitted or in another surface)",
+      "Whether a P10 provider process is currently alive (Frontier is static-evidence only)",
+      "The COO operating-chain MCP context tool (render_coo_operating_chain_context) was not permission-granted in this session, so canonical operating-chain language could not be read directly — environment limit, not a defect",
+      "Semantic correctness/completeness of the proposed write_scope candidates",
+      "Future Building run correctness or provider quality"
+    ],
+    "objective_summary": "Bound (not execute) a read-only consolidation that does two things: (a) name the formal status/disposition records still owed for the P10 link_paused permission-matrix evidence, and (b) state the COO polling/folding anti-stall operating discipline. Output is a proposed work boundary plus honest unknowns; no files are edited and no Movement/quality verdict is made.",
+    "observed_evidence": [
+      "project/brick-protocol/buildings/p10-agent-yaml-permission-matrix-reroute-0625/evidence/spine/events/0024-Frontier.md: frontier_kind='link_paused', reason='declared Link transition_lifecycle.state is paused'; not process liveness, not Movement authority",
+      "status/inbox/brick-protocol-p10-...-reroute-0625-intervention-required-event-2026-06-25T08-50-51...json: required_disposition_owner='caller-or-coo', observed_board_state='observed_paused', source_truth=false",
+      "Glob of status/inbox/*p10* shows for the reroute building: building-started, brick-received/returned (x2), gate-passed (x2), intervention-required — NO disposition-applied event present for the reroute building",
+      "An earlier sibling Building p10-...-readonly-0625 also ended at intervention-required (08-39-10); the reroute Building is the active one at link_paused",
+      "0023-LinkCarry.md: node_reroute_budget declared=5, observed_reroute_landings=0, exhaustion_status='not_observed', disposition_required=false",
+      "ops-disposition-discipline-0625/work/declared-building-plan.json: chain_preset=research-report (plan→review→closure), this node agent=pm-lead, no write_scope declared on any row",
+      "status/kernel/ exists and already holds operating docs (e.g. install-ux-design-0618.md), a plausible home for the discipline doc"
+    ],
+    "output_excerpt": "I have sufficient grounding. Returning the plan contract as a single JSON object. ```json { \"objective_summary\": \"Bound (not execute) a read-only consolidation that does two things: (a) name the formal status/disposition records still owed for the P10 link_paused permission-matrix evidence, and (b) state the COO polling/folding anti-stall operating discipline. Output is a proposed work boundary plus honest unknowns; no files are edited and no Movement/quality verdict is made.\", \"scope_boundaries\": { \"in_scope\": [ \"Identify which P10 disposition records exist vs. remain, from observed status...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "proposed_next_work_boundaries": [
+      {
+        "binding": false,
+        "boundary_ref": "boundary:p10-disposition-record",
+        "candidate_write_scope": [
+          "project/brick-protocol/status/inbox/*"
+        ],
+        "summary": "A follow-up Building authors the formal disposition record for the P10 link_paused frontier (decision = resume | reroute | close), capturing the caller/COO Movement choice as a recorded disposition-applied artifact. The DECISION itself is human/COO Movement; this boundary only covers recording it once decided."
+      },
+      {
+        "binding": false,
+        "boundary_ref": "boundary:coo-polling-folding-discipline-doc",
+        "candidate_write_scope": [
+          "project/brick-protocol/status/kernel/*",
+          "AGENTS.md"
+        ],
+        "summary": "A follow-up Building writes the COO polling/folding anti-stall discipline as operating doc language: direct checks kept short; long checks delegated to a Building/subagent; reporting fired on transition events (not on a busy poll loop); commit performed as a single atomic action."
+      },
+      {
+        "binding": false,
+        "boundary_ref": "boundary:scope-confirmation",
+        "summary": "Before the repair Building runs, caller/COO confirms the target path(s) and that a status/ write_scope is admissible (prior sessions recorded status-domain write friction)."
+      }
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "scope_boundaries": {
+      "in_scope": [
+        "Identify which P10 disposition records exist vs. remain, from observed status/inbox evidence",
+        "Articulate the COO polling/folding discipline as candidate doc language (direct checks short; long checks delegated to a Building/subagent; transition-triggered reporting; commit as one atomic action)",
+        "Propose the minimal status/docs write_scope a follow-up repair Building would need, as a candidate boundary only",
+        "Surface unbounded/unknown areas as not_proven"
+      ],
+      "out_of_scope": [
+        "Editing, creating, or deleting any file (read-only Building)",
+        "Choosing resume/reroute/close for the P10 link_paused frontier (caller-or-COO Movement decision)",
+        "Writing the disposition record or the operating-discipline doc itself",
+        "Judging success, quality, or sufficiency of P10 or of this plan"
+      ]
+    },
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:01:ops-disposition-discipline-0625-plan",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:ops-disposition-discipline-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:ops-disposition-discipline-0625-plan:attempt-1",
+  "step_ref": "ops-disposition-discipline-0625-plan",
+  "subject": "ops-disposition-discipline-0625-plan",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T09:41:46.249039Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

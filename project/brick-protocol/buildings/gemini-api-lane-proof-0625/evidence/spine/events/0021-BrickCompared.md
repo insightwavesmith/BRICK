@@ -1,0 +1,15 @@
+# BrickCompared · seq 21 · ["Brick"]
+- alias_fact_refs: ["brick-comparison:gemini-api-lane-proof-0625:gemini-api-lane-proof-0625-closure"]
+- axis_scope: ["Brick"]
+- comparison_evidence: ["adapter returned value is available for Brick comparison observation","required_return_fields: observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, next_target_candidates, deferred_smith_review_queue, transition_concern_evidence","observed_return_fields: adapter_ref, agent_object_ref, brain_surface_ref, cli_call_ref, cli_version_text, deferred_smith_review_queue, evidence_refs, narrowly_proven, next_target_candidates, not_proven, observed_evidence, output_excerpt, parent_goal_delta_status, proof_limits, remaining_delta, returned_summary, selected_adapter_ref, selected_model_ref, transition_concern_evidence","missing_return_fields: none"]
+- comparison_observation: "contract observation only; not success judgment"
+- comparison_rule: "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality."
+- event_type: "BrickCompared"
+- forbidden_shortcut_evidence: ["support/run did not classify Agent return","support/run did not judge success or quality","support/run used caller-supplied Link facts"]
+- observed_match_kind: "matched"
+- required_return_shape_evidence: "observed_evidence,narrowly_proven,not_proven,remaining_delta,parent_goal_delta_status,next_target_candidates,deferred_smith_review_queue,transition_concern_evidence"
+- run_segment: 1
+- sequence_index: 21
+- source_fact_ref: "brick-comparison:02:gemini-api-lane-proof-0625-closure"
+- spine_schema_version: "spine-v1"
+- work_reference: "closure Brick for task-source:inline-statement: # G2 Gemini API lane proof"

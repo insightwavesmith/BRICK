@@ -1,0 +1,13 @@
+# AgentReturn · seq 25 · ["Agent"]
+- agent_object_ref: "agent-object:coo"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-checker-profile-diet-implementation-plan-0625-closure"
+- event_type: "AgentReturn"
+- observed_fields: ["received_work","returned"]
+- returned_fact_ref: "agent-fact:03:checker-profile-diet-implementation-plan-0625-closure"
+- route_request_ref: ""
+- run_segment: 1
+- sequence_index: 25
+- spine_schema_version: "spine-v1"
+- step_output_ref: "step-output:checker-profile-diet-implementation-plan-0625-closure:attempt-1"
+- step_ref: "checker-profile-diet-implementation-plan-0625-closure"

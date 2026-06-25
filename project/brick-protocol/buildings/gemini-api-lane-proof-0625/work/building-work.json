@@ -1,0 +1,59 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:gemini-api-lane-proof-0625::work/building-work.json",
+  "building_id": "gemini-api-lane-proof-0625",
+  "comparison_rule": "Observe declared task source, preset, and Brick contract only; do not choose Movement or judge success/quality.",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-06-25T09:44:21Z",
+  "id": "urn:bp:building:gemini-api-lane-proof-0625::work/building-work.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "plan_ref": "building-plan:gemini-api-lane-proof-0625",
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-06-25T09:44:21Z",
+  "required_return_shape": "observed_evidence,checked_work,checked_sources,observed_matches,missing_or_mismatched_facts,boundary_violations,evidence_used,transition_concern_evidence,narrowly_proven,not_proven",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:gemini-api-lane-proof-0625",
+  "source_facts": [
+    "task-source:inline-statement"
+  ],
+  "specversion": "1.0",
+  "step_refs": [
+    "gemini-api-lane-proof-0625-review",
+    "gemini-api-lane-proof-0625-closure"
+  ],
+  "subject": "work/building-work.json",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T09:44:21Z",
+  "type": "bp.building_work",
+  "work_statement": "review Brick for task-source:inline-statement: # G2 Gemini API lane proof"
+}

@@ -1,0 +1,88 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:customer-entry-readiness-reconciliation-0625::work/step-outputs/customer-entry-readiness-reconciliation-0625-review-attempt-1/transition-concern.json",
+  "agent_object_ref": "agent-object:qa-lead",
+  "attempt_index": 1,
+  "binding": false,
+  "building_id": "customer-entry-readiness-reconciliation-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-06-25T09:45:51.335619Z",
+  "id": "urn:bp:building:customer-entry-readiness-reconciliation-0625::work/step-outputs/customer-entry-readiness-reconciliation-0625-review-attempt-1/transition-concern.json",
+  "link_role": "non-binding Agent transition concern evidence only",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "transition concern semantic correctness",
+    "Link disposition correctness",
+    "automatic repair/replay execution"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "transition_concern_evidence is Agent returned evidence only",
+    "not Link Movement",
+    "not Link target choice",
+    "not route policy matching",
+    "not route materialization",
+    "not automatic repair/replay execution",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-06-25T09:45:51.335619Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:customer-entry-readiness-reconciliation-0625",
+  "specversion": "1.0",
+  "step_output_ref": "work/step-outputs/customer-entry-readiness-reconciliation-0625-review-attempt-1/step-output.json",
+  "step_ref": "customer-entry-readiness-reconciliation-0625-review",
+  "subject": "customer-entry-readiness-reconciliation-0625-review",
+  "time": "2026-06-25T09:45:51.335619Z",
+  "transition_boundary": "Agent concern only; Link may adopt, not adopt, or override",
+  "transition_concern_ref": "transition-concern:customer-entry-readiness-reconciliation-0625-review:attempt-1",
+  "transition_concern_returned": {
+    "binding": false,
+    "concern_kind": "upstream_gap",
+    "concern_ref": "transition-concern:customer-entry-readiness-reconciliation-0625-plan-gaps",
+    "not_proven": [
+      "whether these gaps are sufficiency-blocking (Link gate decision)"
+    ],
+    "proof_limits": [
+      "non-binding review evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "reason_refs": [
+      "task-source:inline-statement analysis #3 readiness matrix (required/can-carry/deferred) not delivered as an explicit three-bucket structure in the plan return",
+      "task-source:inline-statement analysis #1 drift dimension 'active checkout vs release/frozen path' not visibly addressed in captured plan fields",
+      "work/step-outputs/customer-entry-readiness-reconciliation-0625-plan-attempt-1/step-output.json returned.observed_evidence is empty while inspected file:line facts exist elsewhere"
+    ],
+    "related_boundary_refs": [
+      "brick:customer-entry-readiness-reconciliation-0625-plan"
+    ]
+  },
+  "type": "bp.step_output.transition_concern"
+}

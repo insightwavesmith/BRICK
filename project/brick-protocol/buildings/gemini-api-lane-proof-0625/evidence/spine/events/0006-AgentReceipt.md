@@ -1,0 +1,12 @@
+# AgentReceipt · seq 6 · ["Agent"]
+- agent_object_ref: "agent-object:qa-lead"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-gemini-api-lane-proof-0625-review"
+- event_type: "AgentReceipt"
+- evidence_reference: "raw:agent:01"
+- received_work_ref: "brick-work:01:gemini-api-lane-proof-0625-review"
+- run_segment: 1
+- sequence_index: 6
+- source_fact_ref: "agent-fact:01:gemini-api-lane-proof-0625-review"
+- spine_schema_version: "spine-v1"
+- step_ref: "gemini-api-lane-proof-0625-review"

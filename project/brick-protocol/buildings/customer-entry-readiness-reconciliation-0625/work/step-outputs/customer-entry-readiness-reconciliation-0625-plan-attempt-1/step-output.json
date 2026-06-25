@@ -1,0 +1,138 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:customer-entry-readiness-reconciliation-0625::work/step-outputs/customer-entry-readiness-reconciliation-0625-plan-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:pm-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-customer-entry-readiness-reconciliation-0625-plan",
+  "building_id": "customer-entry-readiness-reconciliation-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T09:43:07.590217Z",
+  "id": "urn:bp:building:customer-entry-readiness-reconciliation-0625::work/step-outputs/customer-entry-readiness-reconciliation-0625-plan-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:customer-entry-readiness-reconciliation-0625-plan",
+  "recorded_at": "2026-06-25T09:43:07.590217Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:pm-lead",
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:customer-entry-readiness-reconciliation-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "constraints": [
+      "Read-only Building; no mutation now.",
+      "PROGRESS.md is machine-generated (header: do-not-hand-edit; support/operator/progress_projection.py); count drift there must be reconciled by regeneration from building evidence, never by hand-edit.",
+      "AGENTS.md is a control surface, not pure customer docs; any count fix there needs explicit caller care, separate from the docs reference fix.",
+      "Checker write-scope chokepoints (support/checkers/profiles/core.yaml, module_registry.yaml, lib/*.py) force serialization with any P9 profile-split Building.",
+      "FIRST_USE.md is rendered at runtime by support/operator/first_use.py — there is no committed FIRST_USE.md to edit in this checkout."
+    ],
+    "evidence_refs": [
+      "support-packet:customer-entry-readiness-reconciliation-0625:agent-object:pm-lead:output"
+    ],
+    "missing_scope": [
+      "The contents/definition of 'P12' are not declared in the task or found in repo status; P12 scope is inferred only from p9-b1 next-movement candidates (P11 reconciliation vs P9 B2). The launch-gate list below assumes 'customer-entry surface' is P12's scope and needs caller confirmation.",
+      "Whether the AGENTS.md '13 profile files' note (control surface) is in-scope for the same docs-repair Building or a separate one.",
+      "No fresh-machine transcript (clone -> install -> brick init -> FIRST_USE -> brick verify) is available in this checkout to confirm route end-to-end."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "That setup.md:23 and AGENTS.md:727 are the ONLY surfaces stating a stale profile/preset count; the sweep covered README.md, support/docs/**/*.md, and AGENTS.md but not every repo file.",
+      "That the FIRST_USE/install/setup/verify route is correct end-to-end on a fresh machine — no live clone/install/verify transcript was run (read-only Building; no execution performed).",
+      "The exact P12 launch scope — inferred, not declared; the named gates assume the customer-entry surface is P12's target.",
+      "Source truth, success, quality, completion, and Movement — none are judged here; checker greenness is unobserved (not run).",
+      "Whether the proposed minimal write scope is sufficient for the repair Building (caller/COO sufficiency decision)."
+    ],
+    "objective_summary": "Read-only reconciliation of customer-entry/readiness surfaces against current on-disk facts (profiles=24, presets=28) before a prospective P12 launch scope. Bound the follow-up docs/status repair without editing now: locate count/route drift, propose minimal write scope, and name the checker/profile gates that protect the customer-entry surface.",
+    "observed_evidence": [],
+    "output_excerpt": "I have sufficient evidence. Here is my plan-Brick support return. ```json { \"objective_summary\": \"Read-only reconciliation of customer-entry/readiness surfaces against current on-disk facts (profiles=24, presets=28) before a prospective P12 launch scope. Bound the follow-up docs/status repair without editing now: locate count/route drift, propose minimal write scope, and name the checker/profile gates that protect the customer-entry surface.\", \"scope_boundaries\": { \"in_scope\": [ \"Observe customer-facing entry surfaces: README.md, support/docs/references/{quickstart,setup,launch-guide}.md, A...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "proposed_next_work_boundaries": {
+      "follow_up_repair_building_minimal_write_scope": [
+        "support/docs/references/setup.md (fix the customer-facing '13 profiles' count -> 24; line 23).",
+        "AGENTS.md (fix '13 profile files' note -> 24; lines ~726-728) — flagged as control-surface, propose as a guarded same-Building cell or a sibling Building per caller.",
+        "Optional: a new project/brick-protocol/status/kernel/*.md support record documenting the reconciliation."
+      ],
+      "note": "Non-binding proposed boundary only; caller/COO declares the actual Building, scope, and Movement. PROGRESS.md is excluded from write scope (regenerate, never hand-edit)."
+    },
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "scope_boundaries": {
+      "in_scope": [
+        "Observe customer-facing entry surfaces: README.md, support/docs/references/{quickstart,setup,launch-guide}.md, AGENTS.md entry notes, status/kernel GAP2 records.",
+        "Compare stated profile/preset counts and the FIRST_USE/install/setup/verify route against current on-disk reality.",
+        "Propose (not apply) the minimal docs/status write scope for a follow-on repair Building.",
+        "Name the existing checker/profile gates that cover the customer-entry surface for P12."
+      ],
+      "out_of_scope": [
+        "Any file edit, commit, or push (this is a read-only plan Brick).",
+        "Choosing Movement / sufficiency / route target.",
+        "Success, quality, or completion judgment.",
+        "Profile/module diet implementation (P9 B2/B4/B5) — disjoint scope."
+      ]
+    },
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:01:customer-entry-readiness-reconciliation-0625-plan",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:customer-entry-readiness-reconciliation-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:customer-entry-readiness-reconciliation-0625-plan:attempt-1",
+  "step_ref": "customer-entry-readiness-reconciliation-0625-plan",
+  "subject": "customer-entry-readiness-reconciliation-0625-plan",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T09:43:07.590217Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

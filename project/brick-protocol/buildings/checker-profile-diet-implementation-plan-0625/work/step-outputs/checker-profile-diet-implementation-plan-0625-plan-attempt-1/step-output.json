@@ -1,0 +1,150 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:checker-profile-diet-implementation-plan-0625::work/step-outputs/checker-profile-diet-implementation-plan-0625-plan-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:pm-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-checker-profile-diet-implementation-plan-0625-plan",
+  "building_id": "checker-profile-diet-implementation-plan-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T09:49:58.897766Z",
+  "id": "urn:bp:building:checker-profile-diet-implementation-plan-0625::work/step-outputs/checker-profile-diet-implementation-plan-0625-plan-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:checker-profile-diet-implementation-plan-0625-plan",
+  "recorded_at": "2026-06-25T09:49:58.897766Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:pm-lead",
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:checker-profile-diet-implementation-plan-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "constraints": [
+      "core.yaml path_allowlist is enforced as an EXACT rglob set over support/checkers/profiles (rule_runners.run_path_allowlist lines 83-91 raise on observed-minus-allowed). Any new profile file NOT added to core.yaml allowlist makes the core profile RED. Both B2 and B3 add files -> both edit core.yaml -> they MUST serialize (B2 then B3); they cannot be parallelized.",
+      "check_profile.py auto-discovers profiles via glob('*.yaml') (lines 1048,1108) under --all; case sections are dispatched by section-name key (SECTION_DISPATCH, e.g. line 251 compose_building_case). Moved sections must keep their recognized section keys verbatim.",
+      "KERNEL_CHECK_IDS is fixed by KERNEL_DISPATCH (line 921); the moved kernel_check IDs already exist, so no new kernel-check registration is needed unless a runner is added.",
+      "Checker-lib chokepoints (reference §5): support/checkers/lib/{case_runners,kernel_checks,rule_runners}.py are multi-profile-pinned; if any split needs a runner change, that lib edit is an additional serialization point.",
+      "agent_axis_behavioral.yaml self-pins its own path (path_exists line 59), so it must remain on disk as a thinned profile after B3; do not delete the file.",
+      "TRUTH-before-QUALITY: this return bounds work only; it does not assert pass/success/quality and does not choose Movement."
+    ],
+    "evidence_refs": [
+      "support-packet:checker-profile-diet-implementation-plan-0625:agent-object:pm-lead:output"
+    ],
+    "missing_scope": [
+      "Exact sub-profile names and the precise section->profile partition for B2 are not declared in the task source; caller/COO must fix the cut (2 vs 3 sub-profiles).",
+      "Whether the original building_skill_preset_agent_tool_hardening.yaml is RETAINED as a thinned shell or fully removed (removal changes core.yaml allowlist and any path pin referencing it).",
+      "Whether gemini_api_adapter and design_ai_text_seams (IN-PROCESS mocked, F4) belong in the B3 runtime-smoke profile or stay with agent-axis behavioral; only provider_preflight is named explicitly in the reference F4 entry.",
+      "Exact verifier invocation (support/operator/run.py / brick_protocol.support.operator.run vs support/checkers/check_profile.py --all) is not pinned by the task.",
+      "Per-moved-check mutation-RED expectations are not enumerated; the write Building must list them.",
+      "Whether any case section is shared/duplicated and would need a fixture twin before relocation."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "I did not execute any checker or runner; this is a read-only plan Brick, so no green/RED state is observed or claimed.",
+      "Semantic correctness/coverage of the relocated checks after a split (each needs its own --self-test / mutation-RED in the write Building; reference §8).",
+      "That the section->sub-profile partition proposed here is the only valid cut (it is a candidate, not an admitted taxonomy).",
+      "Whether any case section requires a checker-lib (case_runners.py) change to relocate cleanly — not inspected line-by-line.",
+      "That core.yaml path_allowlist is the ONLY file needing edit for new profiles (other profiles or catalog_reader_sync/module_registry pins may also reference profile paths).",
+      "Environment note (constraint, not a defect): worktree is /Users/smith/.brick/worktrees/struct-surgery-0623 @ HEAD 4c1958a; counts and lines are this checkout only.",
+      "Source truth, success, quality, and Movement — all outside this Brick's authority."
+    ],
+    "objective_summary": "Produce the implementation plan (no edits) for the P9 checker/profile diet follow-on after the B1 reference doc. Scope is ONE implementation Building that runs two splits in a fixed internal serial order: B2 = decompose the 4172-line building_skill_preset_agent_tool_hardening.yaml into concern-coherent sub-profiles; then B3 = separate the F4 provider runtime-smoke kernel_checks out of agent_axis_behavioral.yaml into a dedicated runtime-smoke profile. Both splits add new profile files, so both must edit support/checkers/profiles/core.yaml path_allowlist, which is the chokepoint forcing B2-before-B3 serialization.",
+    "observed_evidence": [
+      "support/docs/references/checker-profile-map.md (HEAD 4c1958a): §0 measurement, §1 six-family map, §5 write-scope chokepoints (core.yaml, module_registry.yaml, lib/case_runners.py, lib/kernel_checks.py, lib/rule_runners.py), §6 proposes B2 (split hardening, touches core.yaml, seq before B3) and B3 (re-separate provider runtime-smoke, touches core.yaml, seq after B2).",
+      "support/checkers/profiles/core.yaml lines 68-89: path_allowlist root support/checkers/profiles enumerates the 24 profile files including building_skill_preset_agent_tool_hardening.yaml (line 79) and core.yaml itself.",
+      "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml: 4172 lines, kernel_checks = package_path_admission, axis_contract_projection, agent_adapter_return_shape (lines 4-7); ~16 distinct case sections grepped at lines 257,1134,1361,1426,1532,1555,1571,1579,1744,1747,1791,1805,1835,2121,3427,3592,3605,3660,3867,4103,4147.",
+      "support/checkers/profiles/agent_axis_behavioral.yaml lines 4-57: kernel_checks include the F4 runtime-smoke set provider_preflight (9), gemini_api_adapter (22), design_ai_text_seams (27), codex_connect_stall_classification (38); self-path pin at path_exists line 59.",
+      "support/checkers/lib/rule_runners.py lines 74-92: run_path_allowlist computes observed via root.rglob('*') and raises ProfileError on any file not in the allowlist set.",
+      "support/checkers/check_profile.py lines 1048,1108 (glob '*.yaml' discovery), 251 (compose_building_case dispatch), 921 (KERNEL_CHECK_IDS from KERNEL_DISPATCH), 1329 (--all flag)."
+    ],
+    "output_excerpt": "Based on read-only inspection of the reference map, `core.yaml`, the two target profiles, and the checker runner, here is the plan-Brick return. ```json { \"objective_summary\": \"Produce the implementation plan (no edits) for the P9 checker/profile diet follow-on after the B1 reference doc. Scope is ONE implementation Building that runs two splits in a fixed internal serial order: B2 = decompose the 4172-line building_skill_preset_agent_tool_hardening.yaml into concern-coherent sub-profiles; then B3 = separate the F4 provider runtime-smoke kernel_checks out of agent_axis_behavioral.yaml into ...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "proposed_next_work_boundaries": [
+      "Declare ONE write Building (e.g. checker-profile-diet-impl-0625) as a serial graph: step B2 (create concern sub-profiles + update core.yaml path_allowlist) -> step B3 (extract provider-runtime-smoke profile + update core.yaml path_allowlist) -> closure. Internal order is mandatory due to the shared core.yaml edit.",
+      "Proposed write_scope: allowed support/checkers/profiles/** (and support/checkers/lib/** ONLY if a runner change is required); forbidden .git/**, .claude/**.",
+      "Checker-first verifier per step: run the full profile suite to EXIT 0 (--all green) plus each new profile individually after its step; then a mutation-RED probe per relocated check (break the moved check in its new home, confirm RED) to prove no silent-green.",
+      "Defer B4/B5 and the §2 baseline-factoring to their own admission-gated Buildings."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "scope_boundaries": {
+      "in_scope": [
+        "Design only; all edits belong to the next write Building.",
+        "B2: partition building_skill_preset_agent_tool_hardening.yaml's ~16 case sections (materialize_building_intent_case/_rejects, compose_building_case/_rejects [the largest block, lines 1835-3427], declared_step_template_plan_case/_rejects, gate_sequence_policy_case, step_output_drain_case/_rejects, source_fact_body_carry_case, wiki_carry_truncation_survival_case, preset_building_completion_case, building_intake_seam_case, intake_project_vessel_case, run_once_task_source_admission_case, adapter_gate_shape_union_case, agent_resource_boundary, agent_resource_retired_ref_rejects, agent_preferred_adapter_rejects, agent_candidate_packet_case, preset_ranking_packet_case) into coherent sub-profiles by concern: (a) builder/composition materialization, (b) agent-resource boundary (skill/tool/hook/retired-ref), (c) preset-intake + adapter-gate.",
+        "B3: move kernel_checks provider_preflight, gemini_api_adapter, design_ai_text_seams, codex_connect_stall_classification (F4 runtime-smoke) out of agent_axis_behavioral.yaml (lines 9,22,27,38) into a new provider-runtime-smoke profile, keeping the F2/F3 behavioral checks in place.",
+        "Both: register every new profile file in core.yaml path_allowlist.paths; carry schema/profile_id/proof_limits/not_proven on each new file."
+      ],
+      "out_of_scope": [
+        "No god-module splitting (reference §3a: only check-profile-god-0 historical ceiling survives; no live god-module).",
+        "No factoring of the 4-way duplicated baseline preamble (reference §2 — needs a separate admission Building).",
+        "No brick/building_plans deletion (fixture-pinned, reference §3c).",
+        "B4/B5 (module-cleanup admission gate, stale-surface retire) excluded.",
+        "No file edits in THIS Building."
+      ]
+    },
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:01:checker-profile-diet-implementation-plan-0625-plan",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:checker-profile-diet-implementation-plan-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:checker-profile-diet-implementation-plan-0625-plan:attempt-1",
+  "step_ref": "checker-profile-diet-implementation-plan-0625-plan",
+  "subject": "checker-profile-diet-implementation-plan-0625-plan",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T09:49:58.897766Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

@@ -1,0 +1,88 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:ops-disposition-discipline-0625::work/step-outputs/ops-disposition-discipline-0625-review-attempt-1/transition-concern.json",
+  "agent_object_ref": "agent-object:qa-lead",
+  "attempt_index": 1,
+  "binding": false,
+  "building_id": "ops-disposition-discipline-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-06-25T09:44:05.404167Z",
+  "id": "urn:bp:building:ops-disposition-discipline-0625::work/step-outputs/ops-disposition-discipline-0625-review-attempt-1/transition-concern.json",
+  "link_role": "non-binding Agent transition concern evidence only",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "transition concern semantic correctness",
+    "Link disposition correctness",
+    "automatic repair/replay execution"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "transition_concern_evidence is Agent returned evidence only",
+    "not Link Movement",
+    "not Link target choice",
+    "not route policy matching",
+    "not route materialization",
+    "not automatic repair/replay execution",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-06-25T09:44:05.404167Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:ops-disposition-discipline-0625",
+  "specversion": "1.0",
+  "step_output_ref": "work/step-outputs/ops-disposition-discipline-0625-review-attempt-1/step-output.json",
+  "step_ref": "ops-disposition-discipline-0625-review",
+  "subject": "ops-disposition-discipline-0625-review",
+  "time": "2026-06-25T09:44:05.404167Z",
+  "transition_boundary": "Agent concern only; Link may adopt, not adopt, or override",
+  "transition_concern_ref": "transition-concern:ops-disposition-discipline-0625-review:attempt-1",
+  "transition_concern_returned": {
+    "binding": false,
+    "concern_kind": "implementation_gap",
+    "concern_ref": "transition-concern:ops-disposition-discipline-0625-plan:hold-forward-recommendation-and-p10-inventory",
+    "not_proven": [
+      "whether a Link disposition will adopt this concern",
+      "whether the omitted recommendation would change downstream Movement"
+    ],
+    "proof_limits": [
+      "non-binding review evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "reason_refs": [
+      "task.md line 8 requests an immediate HOLD/forward recommendation as non-binding evidence, but the plan return omits any such recommendation (transition_concern_evidence is null and not_proven defers the whole decision)",
+      "returned observed_evidence omits the existing status/kernel/p10-agent-yaml-permission-matrix-reroute-0625.md when inventorying which P10 records exist vs. remain (task analysis 1)"
+    ],
+    "related_boundary_refs": [
+      "brick:ops-disposition-discipline-0625-plan"
+    ]
+  },
+  "type": "bp.step_output.transition_concern"
+}

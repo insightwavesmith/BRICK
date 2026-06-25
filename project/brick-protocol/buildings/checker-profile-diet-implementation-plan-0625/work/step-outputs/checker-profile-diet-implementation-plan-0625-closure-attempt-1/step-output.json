@@ -1,0 +1,171 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:checker-profile-diet-implementation-plan-0625::work/step-outputs/checker-profile-diet-implementation-plan-0625-closure-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-checker-profile-diet-implementation-plan-0625-closure",
+  "building_id": "checker-profile-diet-implementation-plan-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:03",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T09:53:41.843421Z",
+  "id": "urn:bp:building:checker-profile-diet-implementation-plan-0625::work/step-outputs/checker-profile-diet-implementation-plan-0625-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:03:checker-profile-diet-implementation-plan-0625-closure",
+  "recorded_at": "2026-06-25T09:53:41.843421Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:coo",
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:checker-profile-diet-implementation-plan-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "deferred_smith_review_queue": [
+      "Decide the B2 section->sub-profile partition (2 vs 3 sub-profiles) and exact sub-profile names.",
+      "Decide the B3 scope: move all four F4 runtime-smoke checks or only the reference §1-named provider_preflight + graph pins.",
+      "Decide whether building_skill_preset_agent_tool_hardening.yaml is retained as a thinned shell or fully removed.",
+      "Decide the verifier invocation surface for the write Building (operator/run vs check_profile.py --all)."
+    ],
+    "evidence_refs": [
+      "support-packet:checker-profile-diet-implementation-plan-0625:agent-object:coo:output"
+    ],
+    "narrowly_proven": [
+      "The plan Brick produced a read-only implementation plan covering all six required analyses plus the four-part return ask (plan, stop conditions, not_proven, next write Building), and the review Brick independently re-read each cited source and reproduced every load-bearing factual claim it sampled against the same worktree.",
+      "The B2-before-B3 serial-order rationale is grounded in observed behavior: both splits add profile files, both must edit support/checkers/profiles/core.yaml path_allowlist, and rule_runners.run_path_allowlist raises on any observed-minus-allowed file (exact-rglob set), so the shared core.yaml edit is a real chokepoint against parallelization.",
+      "Neither prior Brick raised a transition_concern and neither requested a route; the only review-noted discrepancies are line-citation drift and disclosed open cuts, all already surfaced inside the plan's own missing_scope/not_proven rather than left as hidden defects."
+    ],
+    "next_target_candidates": [
+      "Declare ONE write Building (candidate id checker-profile-diet-impl-0625) as a serial graph: step B2 (create concern sub-profiles from building_skill_preset_agent_tool_hardening.yaml + update core.yaml path_allowlist) -> step B3 (extract provider-runtime-smoke profile from agent_axis_behavioral.yaml + update core.yaml path_allowlist) -> closure; internal order mandatory due to the shared core.yaml edit.",
+      "Pre-write COO intake to resolve the four open cuts (B2 partition, B3 check-move set, hardening-profile retain-vs-remove, verifier invocation) before materializing the write plan.",
+      "Defer B4/B5 (module-cleanup admission gate, stale-surface retire) and the §2 baseline-preamble factoring to their own admission-gated Buildings."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Whether the proposed section->sub-profile partition for B2 is the only valid cut (the plan marks it a candidate taxonomy, not admitted).",
+      "Whether B3 should move all four F4 checks (provider_preflight, gemini_api_adapter, design_ai_text_seams, codex_connect_stall_classification) or only the §1-named provider_preflight + graph pins — an open cut for the caller/COO.",
+      "Per-relocated-check mutation-RED outcomes and full-suite --all EXIT 0: no checker or runner was executed in this read-only chain.",
+      "Whether files beyond core.yaml path_allowlist (e.g. module_registry/catalog pins) also reference the moved profile paths — not exhaustively traced.",
+      "Whether the line-citation drift reflects a file change since reference HEAD 4c1958a or imprecise citation — no git revision comparison was run.",
+      "Environment note (constraint, not a defect): this closure reads the two carried step-outputs in worktree struct-surgery-0623 only.",
+      "brain surface behavior, credential validity, tool or hook execution, runtime or scheduler behavior, quality of returned work, source truth, success judgment, quality judgment, Movement authority."
+    ],
+    "observed_evidence": [
+      "Two prior step-outputs carried via the forward Link into this closure: work/step-outputs/checker-profile-diet-implementation-plan-0625-plan-attempt-1/step-output.json (agent-object:pm-lead, attempt 1, read-only plan Brick) and .../review-attempt-1/step-output.json (agent-object:qa-lead, attempt 1, read-only review Brick). Both returned transition_concern_evidence=null and route_request_ref=''.",
+      "Declared task source (work/task.md '# G5 checker/profile diet implementation plan'): a read-only design Building with six required analyses (1 use checker-profile-map.md, 2 design B2+B3 as ONE Building with internal serial order, 3 identify write scopes + core.yaml/path_allowlist changes, 4 name checker-first verifier + FIRE/mutation expectations, 5 state non-parallelizable parts due to core.yaml/checker-lib chokepoints, 6 do not edit files) and a return ask (implementation plan + stop conditions + not_proven + next proposed write Building).",
+      "Plan Brick returned: objective_summary (ONE write Building, serial B2->B3 because both edit core.yaml path_allowlist), scope_boundaries (in/out), missing_scope (6 stop conditions), constraints (6, incl. run_path_allowlist exact-rglob enforcement forcing serialization), proposed_next_work_boundaries (declare write Building checker-profile-diet-impl-0625 as serial graph B2->B3->closure; write_scope support/checkers/profiles/** + lib/** only if runner change; checker-first --all EXIT 0 + per-relocated-check mutation-RED probe; defer B4/B5).",
+      "Review Brick reproduced load-bearing facts against worktree struct-surgery-0623: building_skill_preset_agent_tool_hardening.yaml = 4172 lines; the 21 case-section anchors match exactly; agent_axis_behavioral.yaml F4 kernel_checks at lines 9/22/27/38 + self path_exists pin line 59; rule_runners.run_path_allowlist exact-rglob raise; check_profile.py glob discovery + dispatch lines; core.yaml 24-file allowlist incl. both targets + core.yaml. Review found all six analyses (1-6) and all four return elements present.",
+      "Review disclosed three non-blocking discrepancies: minor line-citation drift (plan said core.yaml 'lines 68-89'/target 'line 79'; review read paths span 67-90 and target at line 76); B3's four-check move set goes beyond reference §1 F4's explicitly-named 'provider_preflight + graph pins' (plan self-discloses this in missing_scope[2]); FIRE/mutation expectations given as a general per-relocated-check mutation-RED plan rather than an enumerated per-check list (plan defers to write Building, missing_scope[4])."
+    ],
+    "output_excerpt": "I have the full carried evidence (plan by pm-lead, review by qa-lead, both with `transition_concern_evidence: null`) and the task source. Here is the closure synthesis. ```json { \"observed_evidence\": [ \"Two prior step-outputs carried via the forward Link into this closure: work/step-outputs/checker-profile-diet-implementation-plan-0625-plan-attempt-1/step-output.json (agent-object:pm-lead, attempt 1, read-only plan Brick) and .../review-attempt-1/step-output.json (agent-object:qa-lead, attempt 1, read-only review Brick). Both returned transition_concern_evidence=null and route_request_ref='...",
+    "parent_goal_delta_status": {
+      "closed_delta_refs": [
+        "step-output:checker-profile-diet-implementation-plan-0625-plan:attempt-1",
+        "step-output:checker-profile-diet-implementation-plan-0625-review:attempt-1"
+      ],
+      "evidence_refs": [
+        "work/step-outputs/checker-profile-diet-implementation-plan-0625-plan-attempt-1/step-output.json",
+        "work/step-outputs/checker-profile-diet-implementation-plan-0625-review-attempt-1/step-output.json",
+        "work/task.md",
+        "support/docs/references/checker-profile-map.md"
+      ],
+      "matched_delta_refs": [
+        "task-source:inline-statement#analysis-1-checker-profile-map-reference",
+        "task-source:inline-statement#analysis-2-one-building-serial-B2-then-B3",
+        "task-source:inline-statement#analysis-3-write-scopes-and-core.yaml-path_allowlist",
+        "task-source:inline-statement#analysis-4-checker-first-verifier-and-FIRE-mutation",
+        "task-source:inline-statement#analysis-5-non-parallelizable-core.yaml-checker-lib-chokepoints",
+        "task-source:inline-statement#analysis-6-no-file-edits",
+        "task-source:inline-statement#return-ask-plan-stopconditions-notproven-next-write-building"
+      ],
+      "missing_delta_refs": [
+        "task-source:inline-statement#missing-exact-subprofile-partition-not-declared",
+        "task-source:inline-statement#missing-verifier-invocation-not-pinned",
+        "task-source:inline-statement#missing-per-check-mutation-expectations-not-enumerated"
+      ],
+      "open_delta_refs": [
+        "open-cut:B2-subprofile-names-and-section-partition",
+        "open-cut:B3-check-move-set-four-vs-section1-named",
+        "open-cut:hardening-profile-retained-shell-vs-removed",
+        "open-cut:verifier-invocation-operator-run-vs-check_profile-all",
+        "open-cut:per-relocated-check-mutation-RED-enumeration",
+        "next-write-building:checker-profile-diet-impl-0625"
+      ],
+      "unknown_delta_refs": [
+        "unknown:non-core.yaml-references-to-moved-profile-paths",
+        "unknown:line-citation-drift-file-change-vs-imprecise-citation"
+      ]
+    },
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "remaining_delta": [
+      "Caller/COO must fix the open cuts before the write Building: (a) exact sub-profile names and the section->profile partition for B2 (2 vs 3 sub-profiles), (b) the B3 check-move set (four checks vs §1-named subset), (c) whether building_skill_preset_agent_tool_hardening.yaml is retained as a thinned shell or removed (affects core.yaml allowlist + any path pin), (d) the exact verifier invocation (operator/run vs check_profile.py --all).",
+      "The write Building must enumerate per-relocated-check mutation-RED expectations rather than carry the general probe plan.",
+      "Trace whether module_registry/catalog or other profiles reference the moved profile paths in addition to core.yaml path_allowlist.",
+      "Reconcile the line-citation drift (re-cite against current HEAD) so the write Building edits the correct line offsets."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:03:checker-profile-diet-implementation-plan-0625-closure",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:checker-profile-diet-implementation-plan-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:checker-profile-diet-implementation-plan-0625-closure:attempt-1",
+  "step_ref": "checker-profile-diet-implementation-plan-0625-closure",
+  "subject": "checker-profile-diet-implementation-plan-0625-closure",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T09:53:41.843421Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

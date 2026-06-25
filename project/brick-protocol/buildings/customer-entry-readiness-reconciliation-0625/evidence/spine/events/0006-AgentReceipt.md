@@ -1,0 +1,12 @@
+# AgentReceipt · seq 6 · ["Agent"]
+- agent_object_ref: "agent-object:pm-lead"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-customer-entry-readiness-reconciliation-0625-plan"
+- event_type: "AgentReceipt"
+- evidence_reference: "raw:agent:01"
+- received_work_ref: "brick-work:01:customer-entry-readiness-reconciliation-0625-plan"
+- run_segment: 1
+- sequence_index: 6
+- source_fact_ref: "agent-fact:01:customer-entry-readiness-reconciliation-0625-plan"
+- spine_schema_version: "spine-v1"
+- step_ref: "customer-entry-readiness-reconciliation-0625-plan"

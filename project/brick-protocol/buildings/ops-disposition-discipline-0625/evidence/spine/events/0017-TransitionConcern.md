@@ -1,0 +1,14 @@
+# TransitionConcern · seq 17 · ["Agent","Link"]
+- agent_object_ref: "agent-object:qa-lead"
+- alias_fact_refs: ["transition-concern:ops-disposition-discipline-0625-plan:hold-forward-recommendation-and-p10-inventory"]
+- attempt_index: 1
+- axis_scope: ["Agent","Link"]
+- binding: false
+- event_type: "TransitionConcern"
+- run_segment: 1
+- sequence_index: 17
+- source_fact_ref: "transition-concern:ops-disposition-discipline-0625-review:attempt-1"
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/ops-disposition-discipline-0625-review-attempt-1/step-output.json"
+- step_ref: "ops-disposition-discipline-0625-review"
+- transition_concern_returned: {"binding":false,"concern_kind":"implementation_gap","concern_ref":"transition-concern:ops-disposition-discipline-0625-plan:hold-forward-recommendation-and-p10-inventory","not_proven":["whether a Link disposition will adopt this concern","whether the omitted recommendation would change downstream Movement"],"proof_limits":["non-binding review evidence only","not source truth","not success judgment","not quality judgment","not Movement authority"],"reason_refs":["task.md line 8 requests an immediate HOLD/forward recommendation as non-binding evidence, but the plan return omits any such recommendation (transition_concern_evidence is null and not_proven defers the whole decision)","returned observed_evidence omits the existing status/kernel/p10-agent-yaml-permission-matrix-reroute-0625.md when inventorying which P10 records exist vs. remain (task analysis 1)"],"related_boundary_refs":["brick:ops-disposition-discipline-0625-plan"]}

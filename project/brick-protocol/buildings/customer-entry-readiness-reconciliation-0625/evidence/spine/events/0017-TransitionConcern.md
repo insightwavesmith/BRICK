@@ -1,0 +1,14 @@
+# TransitionConcern · seq 17 · ["Agent","Link"]
+- agent_object_ref: "agent-object:qa-lead"
+- alias_fact_refs: ["transition-concern:customer-entry-readiness-reconciliation-0625-plan-gaps"]
+- attempt_index: 1
+- axis_scope: ["Agent","Link"]
+- binding: false
+- event_type: "TransitionConcern"
+- run_segment: 1
+- sequence_index: 17
+- source_fact_ref: "transition-concern:customer-entry-readiness-reconciliation-0625-review:attempt-1"
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/customer-entry-readiness-reconciliation-0625-review-attempt-1/step-output.json"
+- step_ref: "customer-entry-readiness-reconciliation-0625-review"
+- transition_concern_returned: {"binding":false,"concern_kind":"upstream_gap","concern_ref":"transition-concern:customer-entry-readiness-reconciliation-0625-plan-gaps","not_proven":["whether these gaps are sufficiency-blocking (Link gate decision)"],"proof_limits":["non-binding review evidence only","not source truth","not success judgment","not quality judgment","not Movement authority"],"reason_refs":["task-source:inline-statement analysis #3 readiness matrix (required/can-carry/deferred) not delivered as an explicit three-bucket structure in the plan return","task-source:inline-statement analysis #1 drift dimension 'active checkout vs release/frozen path' not visibly addressed in captured plan fields","work/step-outputs/customer-entry-readiness-reconciliation-0625-plan-attempt-1/step-output.json returned.observed_evidence is empty while inspected file:line facts exist elsewhere"],"related_boundary_refs":["brick:customer-entry-readiness-reconciliation-0625-plan"]}
