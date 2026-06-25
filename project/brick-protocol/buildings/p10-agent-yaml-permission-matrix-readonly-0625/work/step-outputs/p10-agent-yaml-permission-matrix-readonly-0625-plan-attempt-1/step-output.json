@@ -1,0 +1,139 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:p10-agent-yaml-permission-matrix-readonly-0625::work/step-outputs/p10-agent-yaml-permission-matrix-readonly-0625-plan-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:pm-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-p10-agent-yaml-permission-matrix-readonly-0625-plan",
+  "building_id": "p10-agent-yaml-permission-matrix-readonly-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T08:36:46.413279Z",
+  "id": "urn:bp:building:p10-agent-yaml-permission-matrix-readonly-0625::work/step-outputs/p10-agent-yaml-permission-matrix-readonly-0625-plan-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:p10-agent-yaml-permission-matrix-readonly-0625-plan",
+  "recorded_at": "2026-06-25T08:36:46.413279Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:pm-lead",
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:p10-agent-yaml-permission-matrix-readonly-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "constraints": [
+      "Plan Brick: define and bound only; no implementation.",
+      "Read-only repository inspection tools only (Read/Grep/Glob).",
+      "Support evidence only — not source truth, success, quality, or Movement authority."
+    ],
+    "evidence_refs": [
+      "support-packet:p10-agent-yaml-permission-matrix-readonly-0625:agent-object:pm-lead:output"
+    ],
+    "missing_scope": [
+      "No admitted adapter named 'adapter:codex-fugu-local' exists in adapter_constants.ALLOWED_ADAPTER_REFS or _ADAPTER_CAPABILITIES; 'fugu' appears only as a Building step-role name (e.g. four-llm-standard-graph '*-fugu-axis-attack' step), so the matrix's 4th provider lane is a persona/role, not a declared adapter. Whether 'Fugu' is an intended future adapter or only a review-step persona is undefined in the inspected files.",
+      "git-diff content of the cited evidence commits (ec43f0b/ac73c86, ff80f23/036d92d) was not inspected (git mutations/diff out of declared read-only checker scope here)."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Live/runtime adapter enforcement of these mappings (this is a static support projection; no provider was executed).",
+      "Identity of 'Fugu' as an adapter: adapter:codex-fugu-local is named in this run's agent_instruction_packet.adapter_refs but has no definition in adapter_constants; only Building step-role uses of 'fugu' were observed.",
+      "Content of evidence commits ec43f0b/ac73c86 and ff80f23/036d92d (treated as cited support evidence only; diffs not inspected under read-only checker scope).",
+      "gemini-local/gemini-api actual write or exec behavior beyond the declared read/review (no observed-write mapping present).",
+      "Source truth, success, quality, and Movement authority — not asserted."
+    ],
+    "objective_summary": "Read-only verification of the declared permission model for the four-provider matrix (Codex, Claude, Gemini, plus the 'Fugu' role) after the current commits. Confirm: (1) work Brick write_scope NEED, (2) Agent YAML capability via tool_policy_refs/adapter_refs, (3) adapter technical capability, (4) the three-axis effective-write formula, (5) read-only lanes for QA/Inspector/COO. No files modified; all output is support evidence only.",
+    "observed_evidence": [
+      "brick/templates/bricks/work/brick.md frontmatter: requires_brick_write_scope: yes; performer_lane_need: worker; agent_object_hint_ref: agent-object:dev.",
+      "agent_adapter.agent_request_effective_write (line ~686): returns True only when bool(write_scope) AND tool-policy:read-write-scoped in tool_policy_refs AND adapter in _OBSERVED_WRITE_ADAPTER_REFS. _validate_effective_write_request enforces the three reasons: missing_brick_write_scope / (legacy_adapter_identity_only_not_authority | missing_agent_write_policy) / missing_adapter_write_capability. No single axis grants write; adapter identity alone is explicitly 'not authority'.",
+      "agent_resources.claude_tools_for_tool_policies: write-capable allowlist (Read,Grep,Glob,Edit,Write,Bash) granted ONLY when read-write-scoped AND non-empty write_scope; otherwise read-only allowlist (Read,Grep,Glob) with Edit+Write in the disallowedTools denylist. Mirrors effective_write. Codex side uses sandbox_mode workspace-write vs read-only (_CODEX_SANDBOX_READ_ONLY).",
+      "kernel_checks.py _agent_effective_write_probe (~878) asserts codex-local write_scope becomes effective_write, selects workspace-write sandbox, rejects without read-write-scoped, and is not tied to agent-object:dev; the claude branch (~1052) asserts acceptEdits + exact scoped tool list and that a claude read request is NOT effective_write; _agent_read_tier_probe (~1091) asserts read-only browse tier resolution and reason tokens."
+    ],
+    "output_excerpt": "I have gathered sufficient read-only evidence across the Agent objects, work brick template, adapter constants, the effective-write/read-tier formulas, the Claude allowedTools mapping, and the kernel probes. Here is the plan Brick return. ```json { \"objective_summary\": \"Read-only verification of the declared permission model for the four-provider matrix (Codex, Claude, Gemini, plus the 'Fugu' role) after the current commits. Confirm: (1) work Brick write_scope NEED, (2) Agent YAML capability via tool_policy_refs/adapter_refs, (3) adapter technical capability, (4) the three-axis effective-wr...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "proposed_next_work_boundaries": [
+      "If a real 4th adapter is intended, a follow-up WORK brick could declare adapter:codex-fugu-local (or equivalent) in adapter_constants with explicit capabilities + observed-write membership; otherwise document 'Fugu' as a step-role persona only.",
+      "Optionally add a checker probe asserting gemini-api/gemini-local stay non-observed-write (review-only) to lock the read-only lane.",
+      "Follow-up review brick may diff the cited commits to confirm they introduced the current three-axis formula."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "scope_boundaries": {
+      "in_scope": [
+        "agent/objects/{dev,qa,qa-lead,inspector,coo}.yaml capability declarations",
+        "brick/templates/bricks/work/brick.md requires_brick_write_scope frontmatter",
+        "support/connection/adapter_constants.py capability + observed-write registry",
+        "support/connection/agent_adapter.py agent_request_effective_write / agent_request_read_tier / _validate_effective_write_request",
+        "support/connection/agent_resources.py claude_tools_for_tool_policies allow/deny mapping",
+        "support/checkers/lib/kernel_checks.py effective-write & read-tier probes"
+      ],
+      "out_of_scope": [
+        "Any file edit, creation, or deletion",
+        "git mutations or diff inspection of ec43f0b/ac73c86/ff80f23/036d92d",
+        "Running broad profile checkers",
+        "Live provider/runtime enforcement; success/quality/Movement judgment"
+      ]
+    },
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:01:p10-agent-yaml-permission-matrix-readonly-0625-plan",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:p10-agent-yaml-permission-matrix-readonly-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:p10-agent-yaml-permission-matrix-readonly-0625-plan:attempt-1",
+  "step_ref": "p10-agent-yaml-permission-matrix-readonly-0625-plan",
+  "subject": "p10-agent-yaml-permission-matrix-readonly-0625-plan",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T08:36:46.413279Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

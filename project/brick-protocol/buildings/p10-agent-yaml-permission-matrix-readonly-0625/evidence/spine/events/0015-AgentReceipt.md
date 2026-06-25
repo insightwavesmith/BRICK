@@ -1,0 +1,12 @@
+# AgentReceipt · seq 15 · ["Agent"]
+- agent_object_ref: "agent-object:qa-lead"
+- axis_scope: ["Agent"]
+- brick_instance_ref: "brick-p10-agent-yaml-permission-matrix-readonly-0625-review"
+- event_type: "AgentReceipt"
+- evidence_reference: "raw:agent:02"
+- received_work_ref: "brick-work:02:p10-agent-yaml-permission-matrix-readonly-0625-review"
+- run_segment: 1
+- sequence_index: 15
+- source_fact_ref: "agent-fact:02:p10-agent-yaml-permission-matrix-readonly-0625-review"
+- spine_schema_version: "spine-v1"
+- step_ref: "p10-agent-yaml-permission-matrix-readonly-0625-review"
