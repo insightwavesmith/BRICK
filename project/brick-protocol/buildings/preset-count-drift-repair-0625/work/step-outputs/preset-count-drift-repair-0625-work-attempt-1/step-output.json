@@ -1,0 +1,184 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:preset-count-drift-repair-0625::work/step-outputs/preset-count-drift-repair-0625-work-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:dev",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-preset-count-drift-repair-0625-work",
+  "building_id": "preset-count-drift-repair-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T05:57:45.561415Z",
+  "id": "urn:bp:building:preset-count-drift-repair-0625::work/step-outputs/preset-count-drift-repair-0625-work-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:preset-count-drift-repair-0625-work",
+  "recorded_at": "2026-06-25T05:57:45.561415Z",
+  "returned": {
+    "adapter_ref": "adapter:codex-local",
+    "agent_object_ref": "agent-object:dev",
+    "brain_surface_ref": "brain-surface:codex-local-cli",
+    "changed_files": [
+      "support/checkers/lib/case_runners.py",
+      "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml"
+    ],
+    "cli_call_ref": "support-cli-call:adapter:codex-local:preset-count-drift-repair-0625",
+    "cli_version_text": "codex-cli 0.132.0",
+    "evidence_refs": [
+      "support-packet:preset-count-drift-repair-0625:agent-object:dev:output"
+    ],
+    "made_changes": true,
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "semantic correctness of file edits",
+      "Checker/profile pass is support evidence only.",
+      "No source truth, quality, success, or Movement authority is claimed.",
+      "Real Gemini provider behavior is not proven; local evidence showed missing GEMINI_API_KEY / GOOGLE_API_KEY can produce agent_incomplete for the four-llm graph."
+    ],
+    "observed_evidence": [
+      "Updated expected_preset_count from 27 to 28.",
+      "Added building-chain-preset:four-llm-standard-graph in sorted preset-ref order.",
+      "Added a profile-declared acceptable frontier override for four-llm-standard-graph because its Gemini lane can honestly observe agent_incomplete when Gemini credentials are absent.",
+      "Updated preset_building_completion_case to honor explicit acceptable_frontier_kinds_by_preset profile data.",
+      "Targeted profile observed green: building-skill-preset-agent-tool-hardening, 279 declarative observations and 3636 kernel targets inspected.",
+      "Full profile suite observed green with --all."
+    ],
+    "output_excerpt": "{ \"made_changes\": true, \"changed_files\": [ \"support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml\", \"support/checkers/lib/case_runners.py\" ], \"observed_evidence\": [ \"Updated expected_preset_count from 27 to 28.\", \"Added building-chain-preset:four-llm-standard-graph in sorted preset-ref order.\", \"Added a profile-declared acceptable frontier override for four-llm-standard-graph because its Gemini lane can honestly observe agent_incomplete when Gemini credentials are absent.\", \"Updated preset_building_completion_case to honor explicit acceptable_frontier_kinds_by_preset pro...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority",
+      "workspace write is limited by Brick-declared write_scope"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:codex-local",
+    "selected_model_ref": "model:codex:default",
+    "worktree_observation": {
+      "after_git_refs": {
+        "branch": "struct-surgery-0623",
+        "head": "397ba7aafb2ccaf6018be7406cedfd960a9e9252"
+      },
+      "after_git_status_paths": [
+        "project/brick-protocol/buildings/preset-count-drift-repair-0625/declared-building-plan.json",
+        "project/brick-protocol/buildings/preset-count-drift-repair-0625/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/preset-count-drift-repair-0625/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/preset-count-drift-repair-0625/work/building-intake.json",
+        "project/brick-protocol/buildings/preset-count-drift-repair-0625/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/preset-count-drift-repair-0625/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/preset-count-drift-repair-0625/work/preset-expansion.json",
+        "project/brick-protocol/buildings/preset-count-drift-repair-0625/work/task.md",
+        "project/brick-protocol/status/inbox/brick-protocol-preset-count-drift-repair-0625-brick-received-event-2026-06-25T05-52-01-796972-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-preset-count-drift-repair-0625-building-started-event-2026-06-25T05-52-00-840174-00-00.json",
+        "support/checkers/lib/case_runners.py",
+        "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml"
+      ],
+      "after_path_count": 3209,
+      "before_git_refs": {
+        "branch": "struct-surgery-0623",
+        "head": "397ba7aafb2ccaf6018be7406cedfd960a9e9252"
+      },
+      "before_git_status_paths": [
+        "project/brick-protocol/buildings/preset-count-drift-repair-0625/declared-building-plan.json",
+        "project/brick-protocol/buildings/preset-count-drift-repair-0625/raw/report-delivery.jsonl",
+        "project/brick-protocol/buildings/preset-count-drift-repair-0625/raw/report-thread.jsonl",
+        "project/brick-protocol/buildings/preset-count-drift-repair-0625/work/building-intake.json",
+        "project/brick-protocol/buildings/preset-count-drift-repair-0625/work/declared-building-plan.json",
+        "project/brick-protocol/buildings/preset-count-drift-repair-0625/work/link-launch-policy.json",
+        "project/brick-protocol/buildings/preset-count-drift-repair-0625/work/preset-expansion.json",
+        "project/brick-protocol/buildings/preset-count-drift-repair-0625/work/task.md",
+        "project/brick-protocol/status/inbox/brick-protocol-preset-count-drift-repair-0625-brick-received-event-2026-06-25T05-52-01-796972-00-00.json",
+        "project/brick-protocol/status/inbox/brick-protocol-preset-count-drift-repair-0625-building-started-event-2026-06-25T05-52-00-840174-00-00.json"
+      ],
+      "before_path_count": 3209,
+      "git_refs_moved": {},
+      "not_proven": [
+        "semantic correctness of file edits",
+        "complete diff attribution for pre-existing dirty paths"
+      ],
+      "observed_changed_files": [
+        "support/checkers/lib/case_runners.py",
+        "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml"
+      ],
+      "proof_limits": [
+        "changed files are support evidence only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority"
+      ],
+      "write_scope": {
+        "allowed_paths": [
+          "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml",
+          "support/checkers/lib/case_runners.py",
+          "project/brick-protocol/status/kernel/*.md"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "AGENTS.md",
+          "**/*token*",
+          "**/*secret*",
+          "**/*credential*",
+          "**/*auth*"
+        ]
+      }
+    }
+  },
+  "returned_fact_ref": "agent-fact:01:preset-count-drift-repair-0625-work",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:preset-count-drift-repair-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:preset-count-drift-repair-0625-work:attempt-1",
+  "step_ref": "preset-count-drift-repair-0625-work",
+  "subject": "preset-count-drift-repair-0625-work",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T05:57:45.561415Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

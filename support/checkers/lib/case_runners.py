@@ -3222,7 +3222,8 @@ def _preset_completion_command_runner(completed_cls: type[Any]) -> Callable[[Seq
                 stdout=f"{executable or 'local-cli'} preset-completion-fixture 0.0\n",
                 stderr="",
             )
-        labels = _return_labels_from_cli_prompt(checked_args[-1] if checked_args else "")
+        prompt = _preset_completion_prompt_from_cli_args(checked_args)
+        labels = _return_labels_from_cli_prompt(prompt)
         returned: dict[str, Any] = {}
         for label in labels:
             if label == "transition_concern_evidence":
@@ -3271,6 +3272,14 @@ def _preset_completion_command_runner(completed_cls: type[Any]) -> Callable[[Seq
                 )
                 + "\n"
             )
+        elif _is_gemini_json_invocation(checked_args):
+            stdout = json.dumps(
+                {
+                    "response": assistant_text,
+                    "stats": {"tools": {"byName": {}}},
+                },
+                sort_keys=True,
+            )
         else:
             stdout = assistant_text
         return completed_cls(
@@ -3281,6 +3290,27 @@ def _preset_completion_command_runner(completed_cls: type[Any]) -> Callable[[Seq
         )
 
     return _runner
+
+
+def _preset_completion_prompt_from_cli_args(args: Sequence[str]) -> str:
+    """Return the prompt from fixture CLI args across codex/claude/gemini shapes."""
+    args = tuple(str(arg) for arg in args)
+    for index, value in enumerate(args):
+        if (
+            value == "-p"
+            and index + 1 < len(args)
+            and not args[index + 1].startswith("-")
+        ):
+            return args[index + 1]
+    return args[-1] if args else ""
+
+
+def _is_gemini_json_invocation(args: Sequence[str]) -> bool:
+    args = tuple(str(arg) for arg in args)
+    for index, value in enumerate(args):
+        if value == "--output-format" and index + 1 < len(args):
+            return args[index + 1] == "json" and "-p" in args
+    return False
 
 
 def _output_last_message_path(args: Sequence[str]) -> str | None:

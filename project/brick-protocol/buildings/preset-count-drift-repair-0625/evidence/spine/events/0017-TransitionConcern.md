@@ -1,0 +1,14 @@
+# TransitionConcern · seq 17 · ["Agent","Link"]
+- agent_object_ref: "agent-object:qa"
+- alias_fact_refs: ["transition-concern:four-llm-acceptable-frontier-override-widens-completion-acceptance"]
+- attempt_index: 1
+- axis_scope: ["Agent","Link"]
+- binding: false
+- event_type: "TransitionConcern"
+- run_segment: 1
+- sequence_index: 17
+- source_fact_ref: "transition-concern:preset-count-drift-repair-0625-code-attack-qa:attempt-1"
+- spine_schema_version: "spine-v1"
+- step_output_ref: "work/step-outputs/preset-count-drift-repair-0625-code-attack-qa-attempt-1/step-output.json"
+- step_ref: "preset-count-drift-repair-0625-code-attack-qa"
+- transition_concern_returned: {"binding":false,"concern_kind":"design_gap","concern_ref":"transition-concern:four-llm-acceptable-frontier-override-widens-completion-acceptance","not_proven":["whether the widened acceptance is acceptable design — that is the human's quality call","whether four-llm reaches 'complete' on a credentialed machine"],"proof_limits":["non-binding Agent support evidence only","not source truth","not success judgment","not quality judgment","not Movement authority"],"reason_refs":["support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml: acceptable_frontier_kinds_by_preset accepts both agent_incomplete and complete for four-llm, masking future genuine agent_incomplete regressions of that preset","support/checkers/lib/case_runners.py: generalized per-preset acceptable-frontier branch is live-covered only by the four-llm key","observed: minimal repair reproduces agent_incomplete for four-llm, so the override is load-bearing but env/credential-dependent"],"related_boundary_refs":["brick-preset-count-drift-repair-0625-work"]}

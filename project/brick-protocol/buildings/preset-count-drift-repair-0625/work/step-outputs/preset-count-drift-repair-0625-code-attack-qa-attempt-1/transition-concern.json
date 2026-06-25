@@ -1,0 +1,90 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:preset-count-drift-repair-0625::work/step-outputs/preset-count-drift-repair-0625-code-attack-qa-attempt-1/transition-concern.json",
+  "agent_object_ref": "agent-object:qa",
+  "attempt_index": 1,
+  "binding": false,
+  "building_id": "preset-count-drift-repair-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "generatedAtTime": "2026-06-25T06:04:43.354410Z",
+  "id": "urn:bp:building:preset-count-drift-repair-0625::work/step-outputs/preset-count-drift-repair-0625-code-attack-qa-attempt-1/transition-concern.json",
+  "link_role": "non-binding Agent transition concern evidence only",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "semantic correctness of file edits",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority",
+    "transition concern semantic correctness",
+    "Link disposition correctness",
+    "automatic repair/replay execution"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "transition_concern_evidence is Agent returned evidence only",
+    "not Link Movement",
+    "not Link target choice",
+    "not route policy matching",
+    "not route materialization",
+    "not automatic repair/replay execution",
+    "not Movement authority"
+  ],
+  "recorded_at": "2026-06-25T06:04:43.354410Z",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:preset-count-drift-repair-0625",
+  "specversion": "1.0",
+  "step_output_ref": "work/step-outputs/preset-count-drift-repair-0625-code-attack-qa-attempt-1/step-output.json",
+  "step_ref": "preset-count-drift-repair-0625-code-attack-qa",
+  "subject": "preset-count-drift-repair-0625-code-attack-qa",
+  "time": "2026-06-25T06:04:43.354410Z",
+  "transition_boundary": "Agent concern only; Link may adopt, not adopt, or override",
+  "transition_concern_ref": "transition-concern:preset-count-drift-repair-0625-code-attack-qa:attempt-1",
+  "transition_concern_returned": {
+    "binding": false,
+    "concern_kind": "design_gap",
+    "concern_ref": "transition-concern:four-llm-acceptable-frontier-override-widens-completion-acceptance",
+    "not_proven": [
+      "whether the widened acceptance is acceptable design — that is the human's quality call",
+      "whether four-llm reaches 'complete' on a credentialed machine"
+    ],
+    "proof_limits": [
+      "non-binding Agent support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "reason_refs": [
+      "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml: acceptable_frontier_kinds_by_preset accepts both agent_incomplete and complete for four-llm, masking future genuine agent_incomplete regressions of that preset",
+      "support/checkers/lib/case_runners.py: generalized per-preset acceptable-frontier branch is live-covered only by the four-llm key",
+      "observed: minimal repair reproduces agent_incomplete for four-llm, so the override is load-bearing but env/credential-dependent"
+    ],
+    "related_boundary_refs": [
+      "brick-preset-count-drift-repair-0625-work"
+    ]
+  },
+  "type": "bp.step_output.transition_concern"
+}
