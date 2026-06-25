@@ -1,0 +1,11 @@
+# LinkCarry · seq 29 · ["Link"]
+- absent_fact_type: "CarryFact"
+- axis_scope: ["Link"]
+- caller_supplied: false
+- event_type: "LinkCarry"
+- run_segment: 1
+- sequence_index: 29
+- source_fact_ref: "absence:link-carry:03:broad-profile-drift-triage-0625-closure"
+- spine_schema_version: "spine-v1"
+- support_created_bal_fact: false
+- trace_role: "absence_placeholder"

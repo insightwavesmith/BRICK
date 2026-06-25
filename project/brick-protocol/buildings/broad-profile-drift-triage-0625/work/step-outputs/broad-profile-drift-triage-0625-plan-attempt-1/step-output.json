@@ -1,0 +1,139 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:broad-profile-drift-triage-0625::work/step-outputs/broad-profile-drift-triage-0625-plan-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:pm-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-broad-profile-drift-triage-0625-plan",
+  "building_id": "broad-profile-drift-triage-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:01",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T05:42:29.854012Z",
+  "id": "urn:bp:building:broad-profile-drift-triage-0625::work/step-outputs/broad-profile-drift-triage-0625-plan-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:01:broad-profile-drift-triage-0625-plan",
+  "recorded_at": "2026-06-25T05:42:29.854012Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:pm-lead",
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:broad-profile-drift-triage-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "constraints": [
+      "Read-only repository inspection only; no file edits, no git mutations, no checker execution.",
+      "Inspection standardized on the working-directory checkout /Users/smith/.brick/worktrees/struct-surgery-0623 (a second checkout at /Users/smith/projects/BRICK also exists and was partially read before standardizing).",
+      "RED is INFERRED from static pin-vs-registry reading, not from an observed checker run.",
+      "No source-truth / success / quality / Movement claims."
+    ],
+    "evidence_refs": [
+      "support-packet:broad-profile-drift-triage-0625:agent-object:pm-lead:output"
+    ],
+    "missing_scope": [
+      "No full sweep of all 24 profiles in support/checkers/profiles/ was performed; only building_skill_preset_agent_tool_hardening was confirmed drifted, check_profile.py was read as the facade, and kernel_checks.py was scanned for preset-count (none found). Other profile drift is not ruled out.",
+      "The preset_building_completion_case also materializes+completes EACH preset through a stub command runner after the count check; whether four-llm-standard-graph's gemini-local / codex-fugu-local / claude-local steps complete in that fixture is unobserved (the count/ref mismatch fails before that loop, so it is untested here).",
+      "Cross-checkout consistency between /Users/smith/projects/BRICK and the worktree was not verified.",
+      "Classification of this drift as P7 'blocker' vs 'deferrable' is a sufficiency/Movement decision left to the Link gate and the human."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "That check_profile.py --all currently EXITs non-zero — this is INFERRED from static reading of the 27-pin vs a 28-preset registry; no checker was executed in this lane.",
+      "That the four-llm preset completes cleanly inside preset_building_completion_case's materialization loop (non-local adapters; untested because the earlier count/ref assertion would fire first).",
+      "That building_skill_preset_agent_tool_hardening is the ONLY drifted profile; the other ~23 profiles were not individually run or read.",
+      "Whether this drift 'blocks' P7 customer dogfood or the 4-LLM workflow validation — that is a sufficiency/quality/Movement judgment outside this Agent's authority; observed context only: (a) charter 진척 기준 includes a green --all, (b) the selector guide already routes ordinary work off --all, (c) the 4-LLM preset already ran a finished readonly smoke building.",
+      "Source truth, success, quality, and Movement are not asserted here."
+    ],
+    "objective_summary": "Read-only triage of remaining checker/profile drift after the recent P0 repairs (building_automation profile + Claude QA execution smoke). One concrete broad-profile drift is reproduced by static reading: the 'building-skill-preset-agent-tool-hardening' profile pins exactly 27 chain presets, but the live preset registry now resolves 28 because brick/templates/presets/four-llm-standard-graph.md was added for the 4-LLM dogfood workflow. The pin set (expected_preset_count + expected_preset_refs) was not updated, so the preset_building_completion_case rule mismatches. This bites check_profile.py --all and a direct --profile building_skill_preset_agent_tool_hardening run; it does not touch the quick/core or dogfood/behavioral lanes the selector guide routes ordinary work to.",
+    "observed_evidence": [
+      "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml:1386 declares 'expected_preset_count: 27' and lines 1389-1416 list exactly 27 expected_preset_refs (app-feature-basic ... two-fan-in-graph); four-llm-standard-graph is NOT in the list.",
+      "support/checkers/lib/case_runners.py:1128-1139 preset_building_completion_case: raises ProfileError when len(preset_refs) != expected_preset_count; lines 1140-1143 also raise when tuple(expected_preset_refs) != preset_refs.",
+      "support/checkers/lib/case_runners.py:2991-3000 _canonical_chain_preset_refs counts EVERY registered chain preset (all catalog_scope values, sorted), so a newly registered preset increments the count regardless of scope.",
+      "brick/templates/shapes/catalog.yaml:17-20 sources chain_presets from the directory brick/templates/presets (per-preset catalog_scope), i.e. the preset set is directory-derived, not an explicit catalog list.",
+      "brick/templates/presets/four-llm-standard-graph.md:2-3 declares preset_ref 'building-chain-preset:four-llm-standard-graph', catalog_scope 'brick_protocol_dogfood' — a well-formed 28th preset (work->3 read-only lenses claude/gemini/fugu->closure).",
+      "Glob of brick/templates/presets/*.md returns 28 files (the 27 pinned + four-llm-standard-graph.md).",
+      "Grep across support/checkers shows the ONLY preset-count pin is in case_runners.py + building_skill_preset_agent_tool_hardening.yaml; no other profile re-pins preset count.",
+      "Selector guide project/brick-protocol/status/kernel/checker-profile-diet-selector-guide-0625.md:36 places 'building-skill-preset-agent-tool-hardening' in the oversized/history lane and steers operators off --all for ordinary work (lines 33-58).",
+      "Evidence the 4-LLM preset already ran: project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/ exists with a building-finished event at 2026-06-25T01:53 (the preset is live-exercised, only the hardening pin lags)."
+    ],
+    "output_excerpt": "I have sufficient evidence for the plan-stage triage. Here is my return. ```json { \"objective_summary\": \"Read-only triage of remaining checker/profile drift after the recent P0 repairs (building_automation profile + Claude QA execution smoke). One concrete broad-profile drift is reproduced by static reading: the 'building-skill-preset-agent-tool-hardening' profile pins exactly 27 chain presets, but the live preset registry now resolves 28 because brick/templates/presets/four-llm-standard-graph.md was added for the 4-LLM dogfood workflow. The pin set (expected_preset_count + expected_preset_...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "proposed_next_work_boundaries": [
+      "Minimal repair Building (support/checkers-only edit): in building_skill_preset_agent_tool_hardening.yaml bump expected_preset_count 27 -> 28 and insert 'building-chain-preset:four-llm-standard-graph' into expected_preset_refs (kept sorted, since _canonical_chain_preset_refs returns sorted refs).",
+      "Verification boundary for that repair: run `PYTHONPATH=.:support/import_identity python3 support/checkers/check_profile.py --profile building_skill_preset_agent_tool_hardening` then `--all`, confirming the preset_building_completion_case passes AND that the new preset materializes/completes through the stub runner (the unobserved second half above).",
+      "Optional follow-up boundary: a broader read-only sweep running each remaining profile to confirm no other drift before any release-style --all gate.",
+      "These are proposed boundaries only, not a Movement or repair decision."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "scope_boundaries": [
+      "In scope: identify and locate remaining checker/profile drift around preset count and the building_skill_preset_agent_tool_hardening profile; bound a minimal repair surface.",
+      "In scope: read support/checkers/profiles/*, support/checkers/check_profile.py, support/checkers/lib/case_runners.py, brick/templates/shapes/catalog.yaml, brick/templates/presets/*, and recent status/building evidence.",
+      "Out of scope: editing any source, profile, preset, or checker (read-only triage).",
+      "Out of scope: executing check_profile.py (no execution tool available in this lane).",
+      "Out of scope: declaring whether this blocks P7, choosing Movement, or judging success/quality."
+    ],
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:01:broad-profile-drift-triage-0625-plan",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:broad-profile-drift-triage-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:broad-profile-drift-triage-0625-plan:attempt-1",
+  "step_ref": "broad-profile-drift-triage-0625-plan",
+  "subject": "broad-profile-drift-triage-0625-plan",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T05:42:29.854012Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

@@ -1,0 +1,155 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:brick-workflow-standard-graph-design-0625::work/step-outputs/brick-workflow-standard-graph-design-0625-review-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-workflow-standard-graph-design-0625-review",
+  "building_id": "brick-workflow-standard-graph-design-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T05:43:49.379181Z",
+  "id": "urn:bp:building:brick-workflow-standard-graph-design-0625::work/step-outputs/brick-workflow-standard-graph-design-0625-review-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:brick-workflow-standard-graph-design-0625-review",
+  "recorded_at": "2026-06-25T05:43:49.379181Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:qa-lead",
+    "boundary_violations": [],
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "checked_sources": [
+      "declared-building-plan.json (building root): chain_preset_ref=building-chain-preset:research-report, plan_shape=graph, execution_order plan->review->closure, agent_object_refs [pm-lead, qa-lead, coo], all selected_adapter_ref adapter:claude-local, declared_by coo-fugu-operator, task_statement with the 8 must-cover points + read-only/no-verdict constraints.",
+      "brick/templates/presets/four-llm-standard-graph.md",
+      "support/connection/adapter_local_cli.py:702-704",
+      "brick/templates/shapes/shapes.yaml",
+      "project/brick-protocol/PROGRESS.md (machine projection header/aggregates)",
+      "project/brick-protocol/buildings/claude-qa-execution-fresh-smoke-0625/.../code-attack-qa-attempt-1/step-output.json",
+      "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/.../code-attack-qa-attempt-1/transition-concern.json"
+    ],
+    "checked_work": "plan Brick for task-source:inline-statement (work_statement: 'plan Brick for ... Design-first Building: define the standard BRICK-style Claude Workflow graph after the recent P0 stabilizations'). Plan-kind contract: bound objective/scope/constraints/next-work-boundary WITHOUT implementation; surface missing_scope and not_proven honestly; no verdict/movement. Underlying task-source asks for an 8-point design report deliverable, but this node is the plan node, not the report-authoring node.",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:brick-workflow-standard-graph-design-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "evidence_refs": [
+      "support-packet:brick-workflow-standard-graph-design-0625:agent-object:qa-lead:output"
+    ],
+    "evidence_used": [
+      "project/brick-protocol/buildings/brick-workflow-standard-graph-design-0625/work/step-outputs/brick-workflow-standard-graph-design-0625-plan-attempt-1/step-output.json",
+      "project/brick-protocol/buildings/brick-workflow-standard-graph-design-0625/declared-building-plan.json",
+      "brick/templates/presets/four-llm-standard-graph.md",
+      "support/connection/adapter_local_cli.py:690-719",
+      "brick/templates/shapes/shapes.yaml",
+      "project/brick-protocol/PROGRESS.md:1-40",
+      "project/brick-protocol/buildings/claude-qa-execution-fresh-smoke-0625/work/step-outputs/claude-qa-execution-fresh-smoke-0625-code-attack-qa-attempt-1/step-output.json",
+      "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/work/step-outputs/qa-execution-permission-hardening-0625-code-attack-qa-attempt-1/transition-concern.json"
+    ],
+    "missing_or_mismatched_facts": [
+      "Task vs materialized shape tension (surfaced by the plan, not resolved): the task-source frames a 'Design-first Building' and a recommended Design->COO-gate->Work->QA-fanout->Closure graph, but the Building was materialized on chain-preset:research-report (plan->review->closure) with no design or work node. The plan flagged this in missing_scope and proposed deciding whether to use a design-needed shape; it is left as an open caller/COO decision, not a returned defect.",
+      "The task-source 'Must cover' deliverable (the full 8-section report incl. the explicit 'recommended graph' artifact) is not produced anywhere in this node's return; the plan defers it to a downstream report-authoring boundary. This is consistent with the plan-kind no-implementation rule, but means the substantive report remains unauthored in this Building as currently shaped.",
+      "Minor wording: the plan's observed_evidence says the fresh-smoke QA ran 'uv run py_compile'; the source record's exact command is 'uv run python3 -m py_compile support/connection/adapter_local_cli.py' (same operation, condensed label) — not a substantive mismatch."
+    ],
+    "narrowly_proven": [
+      "The plan node's returned object contains all 8 fields of its declared required_return_shape and no top-level reserved verdict key.",
+      "The 6 plan observed_evidence items I opened (four-llm-standard-graph.md, adapter_local_cli.py:702-704, shapes.yaml, PROGRESS.md aggregates, the fresh-smoke code-attack-qa step-output, the permission-hardening transition-concern) each match the plan's cited content.",
+      "The plan stayed within the plan-kind boundary: read-only, no implementation, no success/quality/source-truth/Movement claim, transition_concern_evidence=null.",
+      "The shape/deliverable tension between the task-source and the materialized research-report shape was surfaced by the plan itself in missing_scope, not concealed."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "Semantic fitness or quality of the plan's bounded objective and proposed next-work boundaries (quality is the human's; Movement/sufficiency is the Link gate's).",
+      "Whether the 'recommended graph' the plan points to (four-llm-standard-graph.md) is the right standard board for the requested 'Claude Workflow feel' — a caller/COO declaration, not provable here.",
+      "The 2 plan observed_evidence items I did not independently re-open (design-build-parallel.md / brick-protocol-engine-feature-hard.md preset descriptions; check_profile.py profile inventory count '~24 profiles') — cited but not re-verified in this review.",
+      "P0..P7 milestone definitions and the 'P7 customer dogfood capstone' scope — source not located in the plan's read or mine.",
+      "Live multi-provider (codex/claude/gemini/fugu) fan-out execution and runtime parallelism — presets declare topology only.",
+      "Whether the unauthored 8-section report and the design-needed-vs-research-report shape decision are addressed downstream — outside this node's evidence reach.",
+      "This review node is read-only (write_effective=false); it makes no source-truth, success, quality, or Movement claim — those remain the human's and the Link gate's."
+    ],
+    "observed_evidence": [
+      "Reviewed the prior (plan) node step-output at work/step-outputs/brick-workflow-standard-graph-design-0625-plan-attempt-1/step-output.json: brick_instance_ref=brick-workflow-standard-graph-design-0625-plan, agent_object_ref=agent-object:pm-lead, adapter:claude-local, transition_concern_evidence=null.",
+      "The plan node's declared required_return_shape (declared-building-plan.json brick-row:...-plan) is: objective_summary,scope_boundaries,constraints,missing_scope,proposed_next_work_boundaries,observed_evidence,not_proven,transition_concern_evidence.",
+      "The returned object carries all 8 declared fields plus support-envelope metadata (adapter_ref, brain_surface_ref, cli_call_ref, cli_version_text, evidence_refs, output_excerpt, proof_limits, returned_summary, selected_adapter_ref, selected_model_ref, agent_object_ref).",
+      "No reserved verdict key (success/failure/approved/quality/movement_choice/route_target/status) appears at the top level of the returned object.",
+      "Each of the plan's 8 observed_evidence items names a concrete repository artifact; I independently opened 6 of them and the cited content matched."
+    ],
+    "observed_matches": [
+      "Return-shape completeness: all 8 declared required_return_shape fields are present in the returned object; the extra keys are support-layer adapter envelope metadata, not contract fields.",
+      "Plan-kind boundary held: the node bounded the work (objective_summary, scope_boundaries IN/OUT, proposed_next_work_boundaries) and explicitly did NOT author the 8-section report body, citing the plan-kind no-implementation rule and write_effective=false.",
+      "four-llm-standard-graph.md matches the plan's description: selected_shape_ref building-shape:design-needed; one Codex (adapter:codex-local) write root fans out to Claude review + Gemini inspect + Fugu axis-attack read-only lenses; fan_in converge_on closure; node_reroute_budgets work:1; closure_transition_target_policy implementation_gap->target building-step-template:work, verification_gap->hold; gate_concept_profile [strict-evidence, fan-in-wait-all]. (Closure adapter is adapter:claude-local with agent-object COO — consistent with the plan's 'COO closure' wording.)",
+      "adapter_local_cli.py:702-704 matches the cited ec43f0b mechanism verbatim: allowed_tools = knobs.get('allowed_tools', ''); if allowed_tools: args_list.extend(['--allowedTools', allowed_tools]).",
+      "shapes.yaml matches: building-shape:design-needed (design,work,qa,closure), building-shape:reviewable-work (work,qa,closure), building-shape:repairable-work (design_or_work,qa,repair_candidate,replay_candidate,closure); selection_rule caller_or_coo_declared_only.",
+      "PROGRESS.md matches the cited aggregates: 총 33개; board_state closed:29 / link_paused:3; frontier observed running present (link_paused:1 / agent_incomplete:2 / closure_pending:1).",
+      "fresh-smoke QA claim matches: claude-qa-execution-fresh-smoke-0625 code-attack-qa (adapter:claude-local, write_scope write-effective) ran python3 -c 'print(42)' exit 0, git diff --check exit 0, uv run py_compile exit 0, check_profile.py --profile agent_axis_behavioral EXIT 0, no approval gating, transition_concern_evidence=null, and recorded the pre-existing building_skill_preset_agent_tool_hardening red (28 vs 27).",
+      "earlier permission-hardening concern matches: qa-execution-permission-hardening-0625 transition-concern.json carries concern_kind=verification_gap, binding=false, related_boundary_refs=[building-boundary:qa-execution-permission-hardening-0625] (non-reroute), reason 'requires approval' inside a claude-local write-effective QA step — the pre-fix symptom the smoke later did not reproduce.",
+      "Honest gap-surfacing: the plan recorded in missing_scope/not_proven that the research-report shape (plan->review->closure) has no work node to author the report body, that the P0..P7 milestone source was not located, and that 'Gemini/Fugu as needed' optionality is a caller/COO policy choice — rather than guessing.",
+      "Discipline-consistent not_proven: brain surface behavior, credential validity, tool/hook execution, runtime/scheduler behavior, live multi-provider fan-out, provider approval-plane generalization, and source-truth/success/quality/Movement are all listed as not proven."
+    ],
+    "output_excerpt": "I have verified the plan node's output against the declared work and return shape, and confirmed its cited evidence against the actual repository sources. Returning my review observations. ```json { \"observed_evidence\": [ \"Reviewed the prior (plan) node step-output at work/step-outputs/brick-workflow-standard-graph-design-0625-plan-attempt-1/step-output.json: brick_instance_ref=brick-workflow-standard-graph-design-0625-plan, agent_object_ref=agent-object:pm-lead, adapter:claude-local, transition_concern_evidence=null.\", \"The plan node's declared required_return_shape (declared-building-plan...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:02:brick-workflow-standard-graph-design-0625-review",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:brick-workflow-standard-graph-design-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:brick-workflow-standard-graph-design-0625-review:attempt-1",
+  "step_ref": "brick-workflow-standard-graph-design-0625-review",
+  "subject": "brick-workflow-standard-graph-design-0625-review",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T05:43:49.379181Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

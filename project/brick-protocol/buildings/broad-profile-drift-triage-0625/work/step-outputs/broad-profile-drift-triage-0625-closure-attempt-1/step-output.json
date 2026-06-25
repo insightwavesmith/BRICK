@@ -1,0 +1,170 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:broad-profile-drift-triage-0625::work/step-outputs/broad-profile-drift-triage-0625-closure-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-broad-profile-drift-triage-0625-closure",
+  "building_id": "broad-profile-drift-triage-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:03",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T05:46:15.843916Z",
+  "id": "urn:bp:building:broad-profile-drift-triage-0625::work/step-outputs/broad-profile-drift-triage-0625-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:03:broad-profile-drift-triage-0625-closure",
+  "recorded_at": "2026-06-25T05:46:15.843916Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:coo",
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:broad-profile-drift-triage-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "deferred_smith_review_queue": [
+      "Smith / Link-gate decision: is the building_skill_preset_agent_tool_hardening 27->28 preset-count drift a P7 / 4-LLM-validation blocker, or deferrable behind the selector-guide narrow-profile routing? Triage supplies evidence only.",
+      "Confirm desired sequencing: apply minimal pin repair now vs. bundle with a broader profile-drift sweep before the next --all gate."
+    ],
+    "evidence_refs": [
+      "support-packet:broad-profile-drift-triage-0625:agent-object:coo:output"
+    ],
+    "narrowly_proven": [
+      "By static reading, one checker/profile drift is reproduced and located: building_skill_preset_agent_tool_hardening.yaml pins 27 presets while the directory-derived registry resolves 28 (four-llm-standard-graph.md unpinned), so preset_building_completion_case would mismatch on both the count and the ref-set assertion.",
+      "The drift is isolated to that single profile/case: grep across support/checkers shows the preset-count pin lives only in case_runners.py + building_skill_preset_agent_tool_hardening.yaml; no other profile and not kernel_checks.py re-pins it.",
+      "A minimal repair surface was scoped by the plan node: in building_skill_preset_agent_tool_hardening.yaml bump expected_preset_count 27 -> 28 and insert building-chain-preset:four-llm-standard-graph into expected_preset_refs (kept sorted), then verify by running check_profile.py --profile building_skill_preset_agent_tool_hardening and --all.",
+      "The triage's read-only deliverables (observed evidence with exact paths/check names, located drift, minimal repair boundary, not_proven) were produced and cross-verified across two independent Agent lanes."
+    ],
+    "next_target_candidates": [
+      "Minimal repair Building (support/checkers-only): bump expected_preset_count 27->28 and insert building-chain-preset:four-llm-standard-graph (sorted) into building_skill_preset_agent_tool_hardening.yaml.",
+      "Verification Building: EXECUTE check_profile.py --profile building_skill_preset_agent_tool_hardening then --all to turn the static RED into an observed RED/GREEN and confirm the preset completes through the stub runner.",
+      "Broader read-only profile-sweep Building running each remaining profile before any release-style --all gate.",
+      "Human / Link-gate disposition on whether this drift gates P7 dogfood and 4-LLM workflow validation or is deferrable."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "That check_profile.py --all or --profile building_skill_preset_agent_tool_hardening actually EXITs non-zero — the RED is static pin-vs-registry inference; no checker was executed in any lane (read-only, no execution tool).",
+      "Whether the 27/28 drift is a P7 / 4-LLM-validation BLOCKER or deferrable — that is a sufficiency / quality / Movement judgment owned by the Link gate and the human, not asserted here. Observed context only: charter 진척 기준 includes a green --all; the selector guide already routes ordinary work off --all; the four-llm preset already ran a finished readonly smoke building.",
+      "Whether building_skill_preset_agent_tool_hardening is the ONLY drifted profile — the other ~23 profiles in support/checkers/profiles/ were not individually read or run, so additional drift is neither confirmed nor ruled out.",
+      "Whether four-llm-standard-graph materializes/completes cleanly inside preset_building_completion_case's stub-runner loop — the count/ref assertion fires first, so that second half is untested.",
+      "Cross-checkout consistency between /Users/smith/projects/BRICK and the /Users/smith/.brick/worktrees/struct-surgery-0623 worktree — inspection was standardized on the worktree only.",
+      "brain surface behavior, credential validity, tool or hook execution, runtime or scheduler behavior, quality of returned work.",
+      "Source truth, success, quality, and Movement are not asserted by this closure."
+    ],
+    "observed_evidence": [
+      "Carried two upstream AgentFacts via the forward Link: plan node (agent-object:pm-lead) at work/step-outputs/broad-profile-drift-triage-0625-plan-attempt-1/step-output.json and review node (agent-object:qa-lead) at work/step-outputs/broad-profile-drift-triage-0625-review-attempt-1/step-output.json.",
+      "Parent task source (task-source:inline-statement, work/task.md): read-only triage to list remaining checker/profile drift that could block 4-LLM workflow validation or P7 customer dogfood, returning observed evidence with exact paths/check names, a blocker-vs-deferrable classification, a minimal next repair Building, and not_proven.",
+      "Plan node returned all 8 declared fields and reproduced ONE concrete drift by static reading: building_skill_preset_agent_tool_hardening pins 27 chain presets but the live directory-derived registry resolves 28 after brick/templates/presets/four-llm-standard-graph.md was added.",
+      "Review node (qa-lead) independently re-verified all nine plan observed_evidence items against source and recorded boundary_violations: [] and transition_concern_evidence: null; it flagged that the literal blocker-vs-deferrable classification was left to the Link gate/human and that the profile sweep was not exhaustive (~23 other profiles not individually run).",
+      "Closure independently confirmed the central drift: support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml:1386 declares expected_preset_count: 27 with 27 expected_preset_refs (lines 1389-1416, app-feature-basic ... two-fan-in-graph); Glob of brick/templates/presets/*.md returns 28 files including four-llm-standard-graph.md, which is NOT in the pinned ref list.",
+      "Both upstream nodes and this closure agree the drift is isolated to the building_skill_preset_agent_tool_hardening profile / preset_building_completion_case in support/checkers/lib/case_runners.py (~1128-1143, 2991-3000); kernel_checks.py carries no preset-count pin and no other profile re-pins it."
+    ],
+    "output_excerpt": "I've independently confirmed the core drift. The profile pins `expected_preset_count: 27` with 27 listed refs, while the presets directory holds 28 files including `four-llm-standard-graph.md`, which is absent from the pinned list. I have enough to synthesize the closure. ```json { \"observed_evidence\": [ \"Carried two upstream AgentFacts via the forward Link: plan node (agent-object:pm-lead) at work/step-outputs/broad-profile-drift-triage-0625-plan-attempt-1/step-output.json and review node (agent-object:qa-lead) at work/step-outputs/broad-profile-drift-triage-0625-review-attempt-1/step-outp...",
+    "parent_goal_delta_status": {
+      "closed_delta_refs": [
+        "delta:single-profile-drift-identification-and-verification — plan reproduced, review re-verified all 9 items, closure re-confirmed the pin-vs-directory mismatch."
+      ],
+      "evidence_refs": [
+        "work/step-outputs/broad-profile-drift-triage-0625-plan-attempt-1/step-output.json",
+        "work/step-outputs/broad-profile-drift-triage-0625-review-attempt-1/step-output.json",
+        "work/task.md (task-source:inline-statement)",
+        "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml:1386-1416",
+        "support/checkers/lib/case_runners.py:1128-1143,2991-3000",
+        "brick/templates/presets/four-llm-standard-graph.md",
+        "Glob brick/templates/presets/*.md (28 files)",
+        "project/brick-protocol/status/kernel/checker-profile-diet-selector-guide-0625.md:30-58",
+        "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/"
+      ],
+      "matched_delta_refs": [
+        "delta:observed-evidence-with-exact-paths — delivered and cross-verified (profile pin line refs, case_runners refs, preset directory count, selector guide, live smoke building).",
+        "delta:locate-remaining-checker-profile-drift — one concrete drift reproduced and located (building_skill_preset_agent_tool_hardening 27 vs 28).",
+        "delta:minimal-next-repair-building — minimal repair surface + verification boundary scoped by the plan node.",
+        "delta:not-proven-disclosed — execution-not-run, exhaustiveness, and blocker-call limits disclosed across both lanes."
+      ],
+      "missing_delta_refs": [
+        "delta:executed-checker-red-green — no checker was executed in any lane; RED/GREEN remains static inference.",
+        "delta:preset-completion-loop-confirmation — four-llm preset materialization/completion through the stub runner untested.",
+        "delta:cross-checkout-consistency — BRICK vs worktree consistency not verified."
+      ],
+      "open_delta_refs": [
+        "delta:blocker-vs-deferrable-classification — requested by the task but is a sufficiency/quality/Movement call left to the Link gate and human; remains open as a fact.",
+        "delta:apply-and-execute-repair — repair scoped but not applied or executed (read-only lane).",
+        "delta:exhaustive-profile-sweep — ~23 other profiles not individually inspected or run."
+      ],
+      "unknown_delta_refs": [
+        "delta:other-profile-drift-existence — additional profile drift neither confirmed nor ruled out.",
+        "delta:p7-4llm-runtime-impact — actual runtime/scheduler/provider impact on P7 dogfood and 4-LLM validation unobserved."
+      ]
+    },
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "remaining_delta": [
+      "Decide (human / Link gate) whether the 27->28 preset-count drift blocks P7 customer dogfood and 4-LLM workflow validation or is deferrable; the triage supplies evidence but does not make this call.",
+      "If repaired: apply the minimal support/checkers-only edit (expected_preset_count 27->28 + insert building-chain-preset:four-llm-standard-graph sorted) and confirm by EXECUTING check_profile.py --profile building_skill_preset_agent_tool_hardening then --all — execution remains unobserved in this triage.",
+      "Optional broader read-only sweep running each remaining profile to confirm no other drift before any release-style --all gate, since only one of ~24 profiles was confirmed.",
+      "Confirm four-llm-standard-graph completes through preset_building_completion_case's stub runner once the count/ref assertion passes."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:03:broad-profile-drift-triage-0625-closure",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:broad-profile-drift-triage-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:broad-profile-drift-triage-0625-closure:attempt-1",
+  "step_ref": "broad-profile-drift-triage-0625-closure",
+  "subject": "broad-profile-drift-triage-0625-closure",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T05:46:15.843916Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

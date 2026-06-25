@@ -1,0 +1,179 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:brick-workflow-standard-graph-design-0625::work/step-outputs/brick-workflow-standard-graph-design-0625-closure-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:coo",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-workflow-standard-graph-design-0625-closure",
+  "building_id": "brick-workflow-standard-graph-design-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:03",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T05:45:20.508256Z",
+  "id": "urn:bp:building:brick-workflow-standard-graph-design-0625::work/step-outputs/brick-workflow-standard-graph-design-0625-closure-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:03:brick-workflow-standard-graph-design-0625-closure",
+  "recorded_at": "2026-06-25T05:45:20.508256Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:coo",
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:brick-workflow-standard-graph-design-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "deferred_smith_review_queue": [
+      "DECISION: the requested design-report deliverable was bounded but NOT authored — the research-report shape (plan->review->closure) had no design/work node to produce the body. Smith/COO to declare whether to re-run under a design-needed shape that authors the report.",
+      "DECISION: choose the standard board — adopt four-llm-standard-graph.md as-is, or reshape it to the task's Design->COO-gate->Work->QA-fanout->Closure ordering.",
+      "DECISION: are Gemini/Fugu QA lanes required or optional in the standard board; and pin per-phase checker profiles.",
+      "DECISION: source/confirm the P0..P7 milestone definitions and 'P7 customer dogfood capstone' scope.",
+      "CAVEAT to disposition: pre-existing building_skill_preset_agent_tool_hardening preset-count red (28 vs 27) is unrelated to this design task but is an open checker-green caveat carried in the fresh-smoke evidence."
+    ],
+    "evidence_refs": [
+      "support-packet:brick-workflow-standard-graph-design-0625:agent-object:coo:output"
+    ],
+    "narrowly_proven": [
+      "The plan and review nodes each returned their full declared required_return_shape with no top-level reserved verdict key, and both carried transition_concern_evidence=null.",
+      "The plan stayed within the plan-kind boundary (bounded objective/scope/constraints/next-work without implementing) and the review confirmed this read-only, no-implementation, no-verdict posture against the declared work and return shape.",
+      "Of the plan's 8 observed_evidence items, the review independently re-opened 6 and reported matching content; the four-llm-standard-graph.md preset, the adapter_local_cli.py:702-704 ec43f0b mechanism, shapes.yaml shape menu, PROGRESS.md aggregates, the fresh-smoke post-fix run, and the permission-hardening pre-fix concern are corroborated across two nodes.",
+      "The shape/deliverable tension (research-report shape lacks a node to author the 8-section report) was surfaced by the plan in missing_scope and re-confirmed by the review, not concealed.",
+      "An EXISTING candidate standard board (brick/templates/presets/four-llm-standard-graph.md, selected_shape_ref building-shape:design-needed) and the ec43f0b --allowedTools execution-QA evidence are available as concrete anchors for the requested design report."
+    ],
+    "next_target_candidates": [
+      "Open a follow-on design-needed-shape Building (design->work->qa->closure) whose work node AUTHORS the 8-section standard-graph design report, anchored on four-llm-standard-graph.md and the ec43f0b execution-QA evidence carried here.",
+      "Before that, a caller/COO declaration to choose the report-authoring shape and reconcile the task's Design->COO-gate->Work->QA-fanout->Closure ordering with the existing four-LLM preset topology.",
+      "A small evidence-gathering Brick to locate/declare the P0..P7 roadmap source so the next-Building-to-P7 section rests on a confirmed milestone basis.",
+      "A checker-expectations decision (quick/core vs dogfood/heavy per phase) that also dispositions the pre-existing building_skill_preset_agent_tool_hardening preset-count red.",
+      "(These are candidate next boundaries only; shape, preset, gate, route target, and Movement remain caller/COO/human declarations, not chosen here.)"
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "The substantive 8-section design report deliverable was NOT authored in this Building; the carried evidence bounds and anchors it but does not produce the report body (research-report shape has no design/work node by design; closure writes no files).",
+      "Semantic fitness of four-llm-standard-graph.md (or any graph) as the right 'standard board' for the requested Claude-Workflow feel — caller/COO declaration and human judgment, not provable here.",
+      "P0..P7 milestone definitions and the 'P7 customer dogfood capstone' scope — source not located by either the plan or the review.",
+      "Live multi-provider (codex/claude/gemini/fugu) fan-out execution and runtime parallelism — presets declare topology only, not live availability.",
+      "That Claude's no-approval-gating execution-QA run generalizes beyond the single observed post-ec43f0b fresh-smoke run; provider approval-plane behavior is not enforced/proven here.",
+      "The 2 plan observed_evidence items the review did not re-open (design-build-parallel.md / brick-protocol-engine-feature-hard.md preset text; check_profile.py '~24 profiles' count).",
+      "HOLD/reroute-replay runtime mechanics beyond declarative preset policy text.",
+      "brain surface behavior, credential validity, tool/hook execution, runtime/scheduler behavior, quality of returned work.",
+      "source truth, success judgment, quality judgment, Movement authority — out of this node's reach.",
+      "Environment/runtime note (not a defect): this closure node is read-only (write_effective=false) and produces synthesis only."
+    ],
+    "observed_evidence": [
+      "Carried chain (3 nodes, all adapter:claude-local, declared_by coo-fugu-operator, chain_preset_ref=building-chain-preset:research-report, plan_shape=graph, execution_order plan->review->closure): plan(agent-object:pm-lead) -> review(agent-object:qa-lead) -> closure(agent-object:coo); link edges all movement=forward via link-gate:default-transition; final edge declares building_lifecycle state=closed.",
+      "Plan node (work/step-outputs/...-plan-attempt-1/step-output.json): bounded the design-report objective into the 8 must-cover points, returned all 8 declared fields (objective_summary,scope_boundaries,constraints,missing_scope,proposed_next_work_boundaries,observed_evidence,not_proven,transition_concern_evidence), transition_concern_evidence=null. It identified brick/templates/presets/four-llm-standard-graph.md as the ALREADY-EXISTING candidate 'standard board' (one Codex write root -> Claude review + Gemini inspect + Fugu axis-attack read-only lenses -> COO closure fan-in; node_reroute_budgets work:1; closure_transition_target_policy implementation_gap->work, verification_gap->hold; gate_concept_profile [strict-evidence, fan-in-wait-all]).",
+      "Plan node cited the ec43f0b mechanism at support/connection/adapter_local_cli.py:702-704 (argv extends ['--allowedTools', allowed_tools] when knobs.allowed_tools set), plus post-fix evidence from claude-qa-execution-fresh-smoke-0625 code-attack-qa (adapter:claude-local, write-effective) running python3/print, git diff --check, uv run py_compile, and check_profile.py --profile agent_axis_behavioral all at exit 0 with no approval gating; and the earlier pre-fix qa-execution-permission-hardening-0625 verification_gap concern (binding=false) where the same surface returned 'requires approval'.",
+      "Review node (work/step-outputs/...-review-attempt-1/step-output.json): independently re-opened 6 of the plan's 8 observed_evidence artifacts (four-llm-standard-graph.md, adapter_local_cli.py:702-704, shapes.yaml, PROGRESS.md aggregates, fresh-smoke code-attack-qa step-output, permission-hardening transition-concern) and reported each cited content matched; boundary_violations=[]; transition_concern_evidence=null; narrowly_proven that the plan held the plan-kind boundary (read-only, no implementation, no verdict).",
+      "Both nodes surfaced the same structural tension: the task-source frames a 'Design-first Building' with a recommended Design->COO-gate->Work->QA-fanout->Closure graph, but this Building was materialized on the research-report shape (plan->review->closure) which has NO design or work node to author the substantive 8-section report body.",
+      "shapes.yaml menu (cited and confirmed by review): building-shape:design-needed (design,work,qa,closure), building-shape:reviewable-work (work,qa,closure), building-shape:repairable-work; selection_rule caller_or_coo_declared_only."
+    ],
+    "output_excerpt": "I have the full carried evidence chain (plan node by pm-lead, review node by qa-lead, and the declared building plan). Synthesizing the closure from carried evidence only. ```json { \"observed_evidence\": [ \"Carried chain (3 nodes, all adapter:claude-local, declared_by coo-fugu-operator, chain_preset_ref=building-chain-preset:research-report, plan_shape=graph, execution_order plan->review->closure): plan(agent-object:pm-lead) -> review(agent-object:qa-lead) -> closure(agent-object:coo); link edges all movement=forward via link-gate:default-transition; final edge declares building_lifecycle st...",
+    "parent_goal_delta_status": {
+      "closed_delta_refs": [],
+      "evidence_refs": [
+        "work/step-outputs/brick-workflow-standard-graph-design-0625-plan-attempt-1/step-output.json",
+        "work/step-outputs/brick-workflow-standard-graph-design-0625-review-attempt-1/step-output.json",
+        "project/brick-protocol/buildings/brick-workflow-standard-graph-design-0625/declared-building-plan.json",
+        "brick/templates/presets/four-llm-standard-graph.md",
+        "support/connection/adapter_local_cli.py:702-704",
+        "brick/templates/shapes/shapes.yaml",
+        "project/brick-protocol/buildings/claude-qa-execution-fresh-smoke-0625/.../code-attack-qa-attempt-1/step-output.json",
+        "project/brick-protocol/buildings/qa-execution-permission-hardening-0625/.../code-attack-qa-attempt-1/transition-concern.json"
+      ],
+      "matched_delta_refs": [
+        "delta:point4-recommended-graph -> candidate anchor brick/templates/presets/four-llm-standard-graph.md observed (bounded, not authored)",
+        "delta:point5-claude-execution-qa -> ec43f0b mechanism (adapter_local_cli.py:702-704) + fresh-smoke post-fix run evidence observed",
+        "delta:point6-link-hold-reroute -> preset policy patterns observed (implementation_gap->work, verification_gap->hold; concerns non-binding)",
+        "delta:point2-bal-mapping -> shapes.yaml shape menu + node/performer/edge framing observed"
+      ],
+      "missing_delta_refs": [
+        "delta:P0-P7-milestone-source-unlocated",
+        "delta:substantive-report-deliverable-unproduced"
+      ],
+      "open_delta_refs": [
+        "delta:8-section-report-body-authoring",
+        "delta:point1-workflow-ux-writeup",
+        "delta:point3-design-first-vs-direct-work-policy-table",
+        "delta:point7-per-phase-checker-profile-expectations",
+        "delta:point8-next-building-plan-to-P7",
+        "delta:shape-decision-research-report-vs-design-needed"
+      ],
+      "unknown_delta_refs": [
+        "delta:semantic-fitness-of-recommended-standard-board",
+        "delta:live-multi-provider-fanout-availability",
+        "delta:claude-no-approval-generalization-beyond-single-run"
+      ]
+    },
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "remaining_delta": [
+      "Author the substantive 8-section design report deliverable (workflow UX; BAL mapping node=Brick/performer=Agent/edge=Link; design-first vs direct-work policy; recommended graph; Claude execution-QA placement post-ec43f0b; Link/HOLD/reroute policy; per-phase checker/profile expectations; concrete next-Building plan to P7) — none of these were produced as report content, only bounded.",
+      "Resolve the shape decision: re-materialize the report-authoring work under a design-needed shape (design->work->qa->closure) that actually contains a node to author the body, rather than the research-report plan->review->closure shape used here.",
+      "Reconcile the task's requested ordering (Design->COO-gate->Work->QA-fanout->Closure) with the existing four-llm-standard-graph.md topology (Codex write root -> Claude/Gemini/Fugu read-only lenses -> COO closure).",
+      "Locate or declare the P0..P7 roadmap source so the 'next Building plan to the P7 customer dogfood capstone' section has a confirmed milestone basis.",
+      "Decide whether 'Gemini/Fugu as needed' QA lanes are required vs optional in the standard board, and pin per-phase checker profiles (quick/core mid-flow vs dogfood/heavy + check_profile.py --all at closure), including how to handle the pre-existing building_skill_preset_agent_tool_hardening preset-count red (28 vs 27) noted in the fresh-smoke evidence."
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:03:brick-workflow-standard-graph-design-0625-closure",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:brick-workflow-standard-graph-design-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:brick-workflow-standard-graph-design-0625-closure:attempt-1",
+  "step_ref": "brick-workflow-standard-graph-design-0625-closure",
+  "subject": "brick-workflow-standard-graph-design-0625-closure",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T05:45:20.508256Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}

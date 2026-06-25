@@ -1,0 +1,14 @@
+# LinkLaunchPolicy · seq 2 · ["Link"]
+- axis_scope: ["Link"]
+- building_id: "brick-workflow-standard-graph-design-0625"
+- declared_gate_refs: ["link-gate:default-transition"]
+- event_type: "LinkLaunchPolicy"
+- launch_rows: [{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"edge:brick-workflow-standard-graph-design-0625-plan-to-brick-workflow-standard-graph-design-0625-review","route_replay_plan":{},"step_ref":"brick-workflow-standard-graph-design-0625-plan","target_boundary_ref":"brick-workflow-standard-graph-design-0625-review"},{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"edge:brick-workflow-standard-graph-design-0625-review-to-brick-workflow-standard-graph-design-0625-closure","route_replay_plan":{},"step_ref":"brick-workflow-standard-graph-design-0625-review","target_boundary_ref":"brick-workflow-standard-graph-design-0625-closure"},{"declared_gate_refs":["link-gate:default-transition"],"declared_movement":"forward","edge_ref":"edge:brick-workflow-standard-graph-design-0625-closure-to-boundary","route_replay_plan":{},"step_ref":"brick-workflow-standard-graph-design-0625-closure","target_boundary_ref":"building-boundary:brick-workflow-standard-graph-design-0625-closed"}]
+- max_attempts_by_boundary: {}
+- node_reroute_budgets: {"brick-workflow-standard-graph-design-0625-closure":5,"brick-workflow-standard-graph-design-0625-plan":5,"brick-workflow-standard-graph-design-0625-review":5}
+- plan_ref: "building-plan:brick-workflow-standard-graph-design-0625"
+- plan_shape: "graph"
+- run_segment: 1
+- selected_shape_ref: ""
+- sequence_index: 2
+- spine_schema_version: "spine-v1"

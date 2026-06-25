@@ -1,0 +1,157 @@
+{
+  "@context": {
+    "bp": "urn:bp:",
+    "ce": "https://cloudevents.io/spec/v1.0/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "urn:bp:building:broad-profile-drift-triage-0625::work/step-outputs/broad-profile-drift-triage-0625-review-attempt-1/step-output.json",
+  "agent_fact_fields": [
+    "received_work",
+    "returned"
+  ],
+  "agent_object_ref": "agent-object:qa-lead",
+  "attempt_index": 1,
+  "brick_instance_ref": "brick-broad-profile-drift-triage-0625-review",
+  "building_id": "broad-profile-drift-triage-0625",
+  "datacontenttype": "application/json",
+  "dataschema": "urn:bp:schema:graph-ready-v1",
+  "evidence_refs": {
+    "building_map_ref": "work/building-map.json",
+    "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+    "raw_ref": "raw:agent:02",
+    "raw_stream_ref": "raw/agent-return.jsonl",
+    "task_source_ref": "task-source:inline-statement"
+  },
+  "generatedAtTime": "2026-06-25T05:44:50.147794Z",
+  "id": "urn:bp:building:broad-profile-drift-triage-0625::work/step-outputs/broad-profile-drift-triage-0625-review-attempt-1/step-output.json",
+  "not_proven": [
+    "semantic fitness of selected shape",
+    "future Building run correctness",
+    "future Agent or provider quality",
+    "brain surface behavior",
+    "credential validity",
+    "tool or hook execution",
+    "runtime or scheduler behavior",
+    "quality of returned work",
+    "source truth",
+    "success judgment",
+    "quality judgment",
+    "Movement authority"
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "compose_building assembles caller / COO declared node and edge choices only",
+    "not automatic shape selection",
+    "not automatic Agent selection",
+    "not automatic gate selection",
+    "not support-chosen target",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "received_work_ref": "brick-work:02:broad-profile-drift-triage-0625-review",
+  "recorded_at": "2026-06-25T05:44:50.147794Z",
+  "returned": {
+    "adapter_ref": "adapter:claude-local",
+    "agent_object_ref": "agent-object:qa-lead",
+    "boundary_violations": [],
+    "brain_surface_ref": "brain-surface:claude-code-local-cli",
+    "checked_sources": [
+      "work/step-outputs/broad-profile-drift-triage-0625-plan-attempt-1/step-output.json",
+      "declared-building-plan.json (plan row + task_statement)",
+      "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml:1386-1416",
+      "support/checkers/lib/case_runners.py:1128-1143 and :2991-3000",
+      "brick/templates/shapes/catalog.yaml:12-25",
+      "brick/templates/presets/four-llm-standard-graph.md:1-12 (and Glob of brick/templates/presets/*.md = 28 files)",
+      "support/checkers/lib/kernel_checks.py (grep)",
+      "project/brick-protocol/status/kernel/checker-profile-diet-selector-guide-0625.md:30-58",
+      "project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/ (building dir + spine event chain)"
+    ],
+    "checked_work": "plan Brick for task-source:inline-statement: read-only triage to identify remaining checker/profile drift after recent P0 repairs; produce observed evidence with exact paths/check names, blocker-vs-deferrable classification, a minimal next repair Building, and not_proven.",
+    "cli_call_ref": "support-cli-call:adapter:claude-local:broad-profile-drift-triage-0625",
+    "cli_version_text": "2.1.191 (Claude Code)",
+    "evidence_refs": [
+      "support-packet:broad-profile-drift-triage-0625:agent-object:qa-lead:output"
+    ],
+    "evidence_used": [
+      "work/step-outputs/broad-profile-drift-triage-0625-plan-attempt-1/step-output.json (returned.objective_summary, returned.observed_evidence[*], returned.missing_scope, returned.not_proven, returned.proposed_next_work_boundaries, returned.transition_concern_evidence=null)",
+      "declared-building-plan.json (brick-row:broad-profile-drift-triage-0625-plan required_return_shape; task_statement under task-source:inline-statement)",
+      "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml:1386-1416",
+      "support/checkers/lib/case_runners.py:1128-1143",
+      "support/checkers/lib/case_runners.py:2991-3000",
+      "brick/templates/shapes/catalog.yaml:12-25",
+      "brick/templates/presets/four-llm-standard-graph.md:1-12",
+      "Glob brick/templates/presets/*.md (28 entries)",
+      "Grep 'expected_preset_count|four-llm-standard-graph' over support/checkers (2 files: case_runners.py, building_skill_preset_agent_tool_hardening.yaml)",
+      "Grep 'expected_preset_count|preset_count|_canonical_chain_preset_refs' over support/checkers/lib/kernel_checks.py (no matches)",
+      "project/brick-protocol/status/kernel/checker-profile-diet-selector-guide-0625.md:30-58",
+      "Glob project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/** (building + spine event chain)"
+    ],
+    "missing_or_mismatched_facts": [
+      "PARTIAL TASK DELIVERABLE: the parent task asked 'which profile(s) are blockers for P7 vs deferrable'; the plan did not return a classification, instead returning observed context (charter green-`--all` 진척 기준, selector guide off-`--all` routing, the finished 4-LLM smoke building) and deferring the call to the Link gate/human. This is axis-consistent but the literal classification request is left unanswered as a fact.",
+      "SCOPE NOT EXHAUSTIVE: the task framing ('remaining checker/profile drift') is broad, but only one profile (building_skill_preset_agent_tool_hardening) was confirmed drifted; the other ~23 profiles in support/checkers/profiles/ were not individually read or run. The plan disclosed this in missing_scope and not_proven, so other drift is neither confirmed nor ruled out.",
+      "INFERRED-NOT-RUN RED: the claim that check_profile.py --all / --profile building_skill_preset_agent_tool_hardening currently EXITs non-zero is a static pin-vs-registry inference; no checker was executed. The plan labeled this explicitly in constraints and not_proven. I could not execute it either (read-only lane), so it remains inference, not an observed run."
+    ],
+    "narrowly_proven": [
+      "The plan node's return matches the declared required_return_shape (all 8 fields present, no forbidden success/quality/Movement keys, transition_concern_evidence null).",
+      "All nine of the plan node's observed_evidence items are accurate against the inspected sources: the 27-pin, the 27-ref list, the count/tuple ProfileError logic, the sorted directory-derived counting, the well-formed 28th preset, the 28-file directory, the single-location preset-count pin, the selector-guide lane placement, and the existence of a completed 4-LLM smoke building.",
+      "By static reading, the live preset registry resolves 28 chain presets against a 27 pin in one profile (building_skill_preset_agent_tool_hardening), so preset_building_completion_case would mismatch on both count and ref-set assertions; this drift is isolated to that one profile/case and is absent from kernel_checks.py and every other profile."
+    ],
+    "not_proven": [
+      "brain surface behavior",
+      "credential validity",
+      "tool or hook execution",
+      "runtime or scheduler behavior",
+      "quality of returned work",
+      "That check_profile.py --all or --profile building_skill_preset_agent_tool_hardening actually EXITs non-zero — neither the plan node nor this review executed a checker (read-only lane, no execution tool); the RED is static inference only.",
+      "Whether the 27/28 drift is a P7/4-LLM-validation BLOCKER or deferrable — that is a sufficiency/quality/Movement judgment owned by the Link gate and the human, not asserted here.",
+      "Whether building_skill_preset_agent_tool_hardening is the ONLY drifted profile — the other ~23 profiles were not individually inspected or run, so additional drift is neither confirmed nor ruled out.",
+      "That the four-llm-standard-graph-readonly-smoke-0625 building completed cleanly (or the exact finished timestamp) — only the building directory and its spine event chain were observed, not a green completion verdict.",
+      "Cross-checkout consistency between /Users/smith/projects/BRICK and the /Users/smith/.brick/worktrees/struct-surgery-0623 worktree — inspection was standardized on the worktree only.",
+      "Source truth, success, quality, and Movement are not asserted by this review."
+    ],
+    "observed_evidence": [
+      "Reviewed the prior (plan) node output at work/step-outputs/broad-profile-drift-triage-0625-plan-attempt-1/step-output.json (returned by agent-object:pm-lead, adapter:claude-local).",
+      "Reviewed the declared plan contract in declared-building-plan.json (brick-row:broad-profile-drift-triage-0625-plan, required_return_shape = objective_summary,scope_boundaries,constraints,missing_scope,proposed_next_work_boundaries,observed_evidence,not_proven,transition_concern_evidence) and the parent task_statement (task-source:inline-statement).",
+      "Independently confirmed every cited source artifact for the drift claim (profile pin, case_runner logic, preset directory count, new preset frontmatter, selector guide lane, kernel_checks absence, live 4-LLM building)."
+    ],
+    "observed_matches": [
+      "RETURN SHAPE COMPLETE: the plan return carries all 8 required fields (objective_summary, scope_boundaries, constraints, missing_scope, proposed_next_work_boundaries, observed_evidence, not_proven, transition_concern_evidence); transition_concern_evidence is null and no success/quality/Movement key appears.",
+      "CLAIM VERIFIED: building_skill_preset_agent_tool_hardening.yaml line 1386 declares 'expected_preset_count: 27' and lines 1389-1416 list exactly 27 expected_preset_refs (app-feature-basic ... two-fan-in-graph); four-llm-standard-graph is NOT in the list.",
+      "CLAIM VERIFIED: case_runners.py:1135-1139 raises ProfileError on len(preset_refs) != expected_count, and :1140-1143 raises on tuple(expected_preset_refs) != preset_refs.",
+      "CLAIM VERIFIED: case_runners.py:2991-3000 _canonical_chain_preset_refs returns tuple(sorted(refs)) over every chain_presets entry whose preset.get('preset_ref') == ref — so a newly registered preset increments the count regardless of catalog_scope.",
+      "CLAIM VERIFIED: brick/templates/presets/four-llm-standard-graph.md declares preset_ref 'building-chain-preset:four-llm-standard-graph' and catalog_scope 'brick_protocol_dogfood' (a well-formed preset that satisfies the preset_ref==ref counting condition).",
+      "CLAIM VERIFIED: Glob of brick/templates/presets/*.md returns 28 files (the 27 pinned + four-llm-standard-graph.md); catalog.yaml:17-18 sources chain_presets from the directory brick/templates/presets (directory-derived, not an explicit list), so the live registry resolves 28 against a 27 pin.",
+      "CLAIM VERIFIED: grep for 'expected_preset_count' / 'four-llm-standard-graph' across support/checkers returns ONLY case_runners.py and building_skill_preset_agent_tool_hardening.yaml — no other profile re-pins the preset count or references the new preset; kernel_checks.py has no preset-count match (the plan correctly relocated the logic to case_runners.py).",
+      "CLAIM VERIFIED: checker-profile-diet-selector-guide-0625.md line 36 places 'building-skill-preset-agent-tool-hardening' in the oversized/history lane and lines 33-58 steer ordinary work onto narrow profiles and off --all.",
+      "CLAIM VERIFIED: project/brick-protocol/buildings/four-llm-standard-graph-readonly-smoke-0625/ exists with a full spine event chain (work + claude/gemini/fugu review steps + closure step-outputs), corroborating that the new preset is live-exercised while the hardening pin lags.",
+      "AXIS DISCIPLINE OBSERVED: the plan declined to assert a blocker-vs-deferrable verdict, naming it a sufficiency/quality/Movement judgment for the Link gate and human, and surfaced unbounded areas honestly in missing_scope and not_proven."
+    ],
+    "output_excerpt": "All nine of the plan node's observed-evidence claims verify against source. I have enough to return my review. ```json { \"observed_evidence\": [ \"Reviewed the prior (plan) node output at work/step-outputs/broad-profile-drift-triage-0625-plan-attempt-1/step-output.json (returned by agent-object:pm-lead, adapter:claude-local).\", \"Reviewed the declared plan contract in declared-building-plan.json (brick-row:broad-profile-drift-triage-0625-plan, required_return_shape = objective_summary,scope_boundaries,constraints,missing_scope,proposed_next_work_boundaries,observed_evidence,not_proven,transiti...",
+    "proof_limits": [
+      "support evidence only",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ],
+    "returned_summary": "local CLI Agent Adapter returned support evidence",
+    "selected_adapter_ref": "adapter:claude-local",
+    "selected_model_ref": "model:claude:inherit",
+    "transition_concern_evidence": null
+  },
+  "returned_fact_ref": "agent-fact:02:broad-profile-drift-triage-0625-review",
+  "route_request_ref": "",
+  "schema_version": "graph-ready-v1",
+  "source": "urn:bp:building:broad-profile-drift-triage-0625",
+  "specversion": "1.0",
+  "step_output_ref": "step-output:broad-profile-drift-triage-0625-review:attempt-1",
+  "step_ref": "broad-profile-drift-triage-0625-review",
+  "subject": "broad-profile-drift-triage-0625-review",
+  "task_source_ref": "task-source:inline-statement",
+  "time": "2026-06-25T05:44:50.147794Z",
+  "transition_concern_ref": "",
+  "type": "bp.step_output"
+}
