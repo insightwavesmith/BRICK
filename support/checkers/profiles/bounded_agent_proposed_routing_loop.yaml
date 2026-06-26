@@ -53,8 +53,10 @@ text_contains:
       - def _run_dynamic_graph_walker
       - transition_concern_adoption
       - advisory
-      - BRICK_FANOUT_DISPATCH_POOL_SIZE
       - ThreadPoolExecutor
+  - path: support/operator/walker_frontier_driver.py
+    texts:
+      - BRICK_FANOUT_DISPATCH_POOL_SIZE
       - ready_items
   # per-TARGET-node, Link-assigned budget, shared across landings (P3c rehome)
   - path: support/operator/walker_reroute_budget.py
@@ -143,6 +145,8 @@ text_contains:
   - path: support/operator/walker_kernel.py
     texts:
       - runtime_handoffs
+  - path: support/operator/walker_runtime_mail.py
+    texts:
       - _runtime_concern_handoff_from_ledger
       - runtime_handoff_address_unresolved_in_ledger
       - _step_output_address_escapes_ledger

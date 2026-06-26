@@ -360,6 +360,11 @@ ELEGANT_REFACTOR_WALKER_TARGETS = {
     "support/operator/gate_sequence.py",
     "support/operator/walker_hold.py",
     "support/operator/walker_frontier.py",
+    "support/operator/walker_frontier_driver.py",
+    "support/operator/walker_carry.py",
+    "support/operator/walker_runtime_mail.py",
+    "support/operator/walker_resume_seed.py",
+    "support/operator/walker_report_events.py",
     "support/operator/walker_kernel.py",
     "support/operator/walker_resume.py",
 }

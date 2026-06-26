@@ -1381,6 +1381,56 @@ modules:
     decomposition_target: ""
     pinned_by: bounded_agent_proposed_routing_loop (adapter-error frontier write-plan + writer; records the frontier through the injected support writer, chooses no Movement)
 
+  - module: support/operator/walker_frontier_driver.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (live frontier queue/cursor and fan-out ready-batch helper; schedules only declared queue items, chooses no Movement)
+
+  - module: support/operator/walker_carry.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (carry, step-output, and compact wiki-view helpers; observes declared refs and carries recorded addresses, chooses no Movement)
+
+  - module: support/operator/walker_runtime_mail.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (runtime-mail ledger address resolution and adopted concern handoff assembly; delivers addresses only, chooses no Movement)
+
+  - module: support/operator/walker_resume_seed.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: bounded_agent_proposed_routing_loop (resume seed/replay gate and disposition observation helpers; reads recorded resume facts, authors no disposition)
+
+  - module: support/operator/walker_report_events.py
+    layer: operator
+    role: operator
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: reporter_notification_projection + bounded_agent_proposed_routing_loop (brick-grain report event projection helpers; notification observations only, not source truth or Movement)
+
   - module: support/operator/walker_kernel.py
     layer: operator
     role: operator
