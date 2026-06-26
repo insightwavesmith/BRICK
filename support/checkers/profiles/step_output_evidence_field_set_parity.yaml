@@ -1,0 +1,31 @@
+schema: checker-profile/v1
+profile_id: step-output-evidence-field-set-parity
+description: Regression pin for support/recording/step_outputs.py evidence-shape packets. The normal step-output manifest, adapter-error record, and chat-session park record must carry the same always-present evidence field set ({evidence_refs, proof_limits, not_proven}) from EVIDENCE_SHAPE_FIELDS through the writer helper, while task_source_ref stays an optional mirror outside the field set. Fails closed.
+kernel_checks:
+  - step_output_evidence_field_set_parity
+path_exists:
+  - support/recording/step_outputs.py
+  - support/checkers/check_step_output_evidence_field_set_parity.py
+  - support/checkers/profiles/step_output_evidence_field_set_parity.yaml
+text_contains:
+  - path: support/recording/step_outputs.py
+    texts:
+      - EVIDENCE_SHAPE_FIELDS
+      - def _evidence_shape_fields
+      - '**_evidence_shape_fields'
+  - path: support/checkers/check_step_output_evidence_field_set_parity.py
+    texts:
+      - SINGLE_SOURCE_SYMBOL
+      - EVIDENCE_SHAPE_HELPER
+      - mutation RED observed
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+  - not provider proof
+not_proven:
+  - runtime evidence correctness of any emitted packet
+  - provider behavior
+  - semantic correctness of Agent returned content

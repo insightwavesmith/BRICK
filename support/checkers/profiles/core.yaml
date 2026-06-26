@@ -89,6 +89,7 @@ path_allowlist:
       - support/checkers/profiles/read_side_projection_boundary.yaml
       - support/checkers/profiles/report_env_autoload.yaml
       - support/checkers/profiles/return_field_merge_set_parity.yaml
+      - support/checkers/profiles/step_output_evidence_field_set_parity.yaml
       - support/checkers/profiles/structure_template_integrity.yaml
       - support/checkers/profiles/tier_a_three_axis_conformance.yaml
 text_contains:

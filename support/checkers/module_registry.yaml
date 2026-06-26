@@ -359,6 +359,16 @@ modules:
     decomposition_target: ""
     pinned_by: return_field_merge_set_parity kernel check (every field in the structured-return merge-set {evidence_refs, not_proven, proof_limits} inside _merge_structured_return_fields in support/connection/adapter_grant_policy.py is also in _RETURN_LIST_FIELDS in support/connection/agent_adapter.py, so the return normalizer list-normalizes + dict-flattens it before _merge_texts; the F1 coverage-gap regression pin -- a merge-set field absent from the list-set crashes adapter return-assembly before the AgentFact is written)
 
+  - module: support/checkers/check_step_output_evidence_field_set_parity.py
+    layer: checkers
+    role: checker
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: step_output_evidence_field_set_parity kernel check (the three step-output-family packet builders in support/recording/step_outputs.py -- normal step-output manifest, adapter-error record, and chat-session park record -- carry the same always-present evidence-shape field set {evidence_refs, not_proven, proof_limits} through EVIDENCE_SHAPE_FIELDS and the writer helper; task_source_ref remains an optional mirror outside the set; mutation-RED drops one builder helper spread and is rejected)
+
   - module: support/checkers/check_chained_carry_dependency.py
     layer: checkers
     role: checker

@@ -516,6 +516,17 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "return_field_merge_set_parity",
         "support.checkers.check_return_field_merge_set_parity",
     ),
+    # F3 STEP-OUTPUT EVIDENCE FIELD-SET PARITY. AST-parses (no import)
+    # support/recording/step_outputs.py: the normal step-output manifest,
+    # adapter-error record, and chat-session park record all carry the same
+    # always-present evidence-shape fields through EVIDENCE_SHAPE_FIELDS and the
+    # writer helper. task_source_ref remains an optional mirror outside the set.
+    # Includes an in-process mutation-RED (drop one builder helper spread ->
+    # rejected).
+    "step_output_evidence_field_set_parity": _repo_main(
+        "step_output_evidence_field_set_parity",
+        "support.checkers.check_step_output_evidence_field_set_parity",
+    ),
     # F2 CHAINED-CARRY DEPENDENCY (brick-to-brick CARRY binds to brick contract).
     # Runs the real EASY-tier assemble() composition IN-PROCESS: every WRITE/QA
     # node (write_need=True step template -- work + the QA kinds) reached by a

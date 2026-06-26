@@ -23,6 +23,9 @@ from brick_protocol.support.recording.contracts import (
 from brick_protocol.support.connection.secret_text import contains_raw_secret_text
 
 
+EVIDENCE_SHAPE_FIELDS = frozenset({"evidence_refs", "proof_limits", "not_proven"})
+
+
 def write_step_outputs(
     building_root: Path,
     building_id: str,
@@ -89,14 +92,16 @@ def write_step_output(
         "returned": observation.returned,
         "transition_concern_ref": transition_concern_ref if transition_concern is not None else "",
         "route_request_ref": route_request_ref if route_request is not None else "",
-        "evidence_refs": {
-            "raw_ref": observation.raw_ref,
-            "raw_stream_ref": "raw/agent-return.jsonl",
-            "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
-            "building_map_ref": "work/building-map.json",
-        },
-        "proof_limits": list(proof_limits),
-        "not_proven": list(observation.not_proven),
+        **_evidence_shape_fields(
+            evidence_refs={
+                "raw_ref": observation.raw_ref,
+                "raw_stream_ref": "raw/agent-return.jsonl",
+                "claim_trace_ref": "evidence/claim_trace/agent/returned_claims.json",
+                "building_map_ref": "work/building-map.json",
+            },
+            proof_limits=proof_limits,
+            not_proven=observation.not_proven,
+        ),
     }
     if observation.task_source_ref:
         output_packet["task_source_ref"] = observation.task_source_ref
@@ -238,15 +243,17 @@ def write_adapter_error_outputs(
             "message_excerpt": observation.message_excerpt,
             "agent_fact_created": False,
             "received_work_ref": observation.received_work_ref,
-            "evidence_refs": {
-                "raw_ref": observation.raw_ref,
-                "raw_stream_ref": "raw/adapter-error.jsonl",
-                "receipt_trace_ref": "evidence/claim_trace/agent/receipt_trace.json",
-                "frontier_trace_ref": "evidence/claim_trace/link/frontier_trace.json",
-                "building_map_ref": "work/building-map.json",
-            },
-            "proof_limits": list(_merge_texts(proof_limits, observation.proof_limits)),
-            "not_proven": list(observation.not_proven),
+            **_evidence_shape_fields(
+                evidence_refs={
+                    "raw_ref": observation.raw_ref,
+                    "raw_stream_ref": "raw/adapter-error.jsonl",
+                    "receipt_trace_ref": "evidence/claim_trace/agent/receipt_trace.json",
+                    "frontier_trace_ref": "evidence/claim_trace/link/frontier_trace.json",
+                    "building_map_ref": "work/building-map.json",
+                },
+                proof_limits=_merge_texts(proof_limits, observation.proof_limits),
+                not_proven=observation.not_proven,
+            ),
         }
         if observation.task_source_ref:
             packet["task_source_ref"] = observation.task_source_ref
@@ -300,16 +307,18 @@ def write_chat_session_park_outputs(
             "work_envelope_ref": observation.work_envelope_ref,
             "park_reason": "chat-session adapter parks declared work before provider invocation",
             "support_record_role": "waiting-for-chat-session-submission",
-            "evidence_refs": {
-                "raw_ref": observation.raw_ref,
-                "raw_stream_ref": "raw/chat-session-park.jsonl",
-                "work_envelope_ref": observation.work_envelope_ref,
-                "receipt_trace_ref": "evidence/claim_trace/agent/receipt_trace.json",
-                "frontier_trace_ref": "evidence/claim_trace/link/frontier_trace.json",
-                "building_map_ref": "work/building-map.json",
-            },
-            "proof_limits": list(_merge_texts(proof_limits, observation.proof_limits)),
-            "not_proven": list(observation.not_proven),
+            **_evidence_shape_fields(
+                evidence_refs={
+                    "raw_ref": observation.raw_ref,
+                    "raw_stream_ref": "raw/chat-session-park.jsonl",
+                    "work_envelope_ref": observation.work_envelope_ref,
+                    "receipt_trace_ref": "evidence/claim_trace/agent/receipt_trace.json",
+                    "frontier_trace_ref": "evidence/claim_trace/link/frontier_trace.json",
+                    "building_map_ref": "work/building-map.json",
+                },
+                proof_limits=_merge_texts(proof_limits, observation.proof_limits),
+                not_proven=observation.not_proven,
+            ),
         }
         if observation.task_source_ref:
             packet["task_source_ref"] = observation.task_source_ref
@@ -433,6 +442,22 @@ def _merge_texts(*values: Any) -> tuple[str, ...]:
             if item not in merged:
                 merged.append(item)
     return tuple(merged)
+
+
+def _evidence_shape_fields(
+    *,
+    evidence_refs: Mapping[str, Any],
+    proof_limits: Any,
+    not_proven: Any,
+) -> dict[str, Any]:
+    fields = {
+        "evidence_refs": dict(evidence_refs),
+        "proof_limits": list(_text_tuple("proof_limits", proof_limits)),
+        "not_proven": list(_text_tuple("not_proven", not_proven)),
+    }
+    if frozenset(fields) != EVIDENCE_SHAPE_FIELDS:
+        raise AssertionError("evidence-shape helper drifted from EVIDENCE_SHAPE_FIELDS")
+    return fields
 
 
 def _path_segment(field_name: str, value: Any) -> str:
