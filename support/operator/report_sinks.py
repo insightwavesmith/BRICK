@@ -1499,8 +1499,6 @@ def _slack_adapter_label(packet: Mapping[str, Any]) -> str:
         return "Fugu"
     if adapter == "adapter:gemini-api":
         return "Gemini API"
-    if adapter == "adapter:gemini-local":
-        return "Gemini Local"
     if adapter == "adapter:claude-local":
         return "Claude Local"
     if adapter == "adapter:codex-local":

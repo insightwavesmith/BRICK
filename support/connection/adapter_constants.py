@@ -20,7 +20,6 @@ ADAPTER_CODEX_LOCAL = "adapter:codex-local"
 # not a re-skin of codex-local; codex-local stays byte-identical.
 ADAPTER_CODEX_FUGU_LOCAL = "adapter:codex-fugu-local"
 ADAPTER_CLAUDE_LOCAL = "adapter:claude-local"
-ADAPTER_GEMINI_LOCAL = "adapter:gemini-local"
 ADAPTER_GEMINI_API = "adapter:gemini-api"
 ADAPTER_CHAT_SESSION = "adapter:chat-session"
 READ_WRITE_TOOL_POLICY_REF = "tool-policy:read-write-scoped"
@@ -52,7 +51,6 @@ MODEL_REF_CODEX_DEFAULT = "model:codex:default"
 MODEL_REF_CLAUDE_INHERIT = "model:claude:inherit"
 MODEL_REF_GEMINI_DEFAULT = "model:gemini:default"
 MODEL_REF_GEMINI_FLASH = "model:gemini:gemini-3.5-flash"
-MODEL_REF_GEMINI_LOCAL_FLASH = "model:gemini:gemini-3.5-flash"
 # Sakana model refs reachable through the codex-fugu-local adapter. The provider
 # token is "sakana" (matches codex's model_provider="sakana" routing); the model
 # id is the Sakana catalog slug. ``fugu`` is the catalog default; ``fugu-ultra``
@@ -63,7 +61,6 @@ MODEL_PROVIDER_BY_ADAPTER = {
     ADAPTER_CODEX_LOCAL: "codex",
     ADAPTER_CODEX_FUGU_LOCAL: "sakana",
     ADAPTER_CLAUDE_LOCAL: "claude",
-    ADAPTER_GEMINI_LOCAL: "gemini",
     ADAPTER_GEMINI_API: "gemini",
 }
 _RETIRED_WRITE_ADAPTER_REFS = frozenset(
@@ -82,7 +79,6 @@ ALLOWED_ADAPTER_REFS = frozenset(
         ADAPTER_CODEX_LOCAL,
         ADAPTER_CODEX_FUGU_LOCAL,
         ADAPTER_CLAUDE_LOCAL,
-        ADAPTER_GEMINI_LOCAL,
         ADAPTER_GEMINI_API,
         ADAPTER_CHAT_SESSION,
     }
@@ -96,12 +92,9 @@ _ADAPTER_CAPABILITIES = {
     ADAPTER_CLAUDE_LOCAL: frozenset(
         {ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_WRITE, ADAPTER_CAPABILITY_WEB}
     ),
-    ADAPTER_GEMINI_LOCAL: frozenset(
-        {ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_REVIEW, ADAPTER_CAPABILITY_WEB}
-    ),
-    # gemini-api is the direct-HTTP sibling of gemini-local: same READ+REVIEW
-    # brain capability (review/read, not write). It calls the Gemini HTTP API
-    # directly (stdlib urllib, API key from env) and spawns NO subprocess.
+    # gemini-api is a direct HTTP API adapter with READ+REVIEW brain capability
+    # (review/read, not write). It calls the Gemini HTTP API directly (stdlib
+    # urllib, API key from env) and spawns NO subprocess.
     ADAPTER_GEMINI_API: frozenset({ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_REVIEW}),
     ADAPTER_CHAT_SESSION: frozenset({ADAPTER_CAPABILITY_READ}),
 }

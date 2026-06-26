@@ -42,7 +42,6 @@ from brick_protocol.support.connection.adapter_constants import (
     ADAPTER_CLAUDE_LOCAL,
     ADAPTER_CODEX_FUGU_LOCAL,
     ADAPTER_CODEX_LOCAL,
-    ADAPTER_GEMINI_LOCAL,
     ALLOWED_ADAPTER_REFS,
     MODEL_PROVIDER_BY_ADAPTER,
     MODEL_REF_CLAUDE_INHERIT,
@@ -109,7 +108,7 @@ def _no_cli_emit(_value: str, _adapter_ref: str) -> tuple[str, ...]:
 
 
 # Per-adapter model CLI flag. PLAIN literal data (no support coupling): codex
-# uses ``-m``, claude/gemini-local use ``--model``. Byte-identical to the inline
+# uses ``-m`` and claude uses ``--model``. Byte-identical to the inline
 # literals at agent_adapter._invoke_local_cli (codex `-m`, claude `--model`) and
 # to the prior support-local ``_MODEL_CLI_FLAG_BY_ADAPTER`` map.
 _MODEL_CLI_FLAG_BY_ADAPTER: Mapping[str, str] = {
@@ -119,7 +118,6 @@ _MODEL_CLI_FLAG_BY_ADAPTER: Mapping[str, str] = {
     # extra_config_overrides, not by the model flag).
     ADAPTER_CODEX_FUGU_LOCAL: "-m",
     ADAPTER_CLAUDE_LOCAL: "--model",
-    ADAPTER_GEMINI_LOCAL: "--model",
 }
 
 
@@ -156,8 +154,8 @@ EFFORT_REF_PREFIX = "effort:"  # the effort dial's ref prefix (symmetric to mode
 
 # The effort-capable adapters (codex + codex-fugu + claude). codex-fugu-local is
 # the SAME codex executable, so it carries the SAME reasoning-effort dial as
-# codex-local. Gemini-local carries no reasoning effort dial, so it is out of
-# scope — a declared effort on it is out-of-scope.
+# codex-local. Gemini API carries no reasoning effort dial, so it is out of
+# scope: a declared effort on it is out-of-scope.
 EFFORT_SCOPE: frozenset[str] = frozenset(
     {ADAPTER_CODEX_LOCAL, ADAPTER_CODEX_FUGU_LOCAL, ADAPTER_CLAUDE_LOCAL}
 )

@@ -338,15 +338,14 @@ adapter:local
 adapter:codex-local
 adapter:codex-fugu-local
 adapter:claude-local
-adapter:gemini-local
 adapter:gemini-api
 adapter:chat-session
 ```
 
-`adapter:gemini-api` is a read/review HTTP API adapter sibling of
-`adapter:gemini-local`, not a write adapter. `adapter:chat-session` is the
-parked / human-as-agent adapter for chat-session handoff, not provider identity
-or Movement authority. `adapter:codex-fugu-local` is a 1:1 Sakana variant of
+`adapter:gemini-api` is a read/review HTTP API adapter, not a write adapter.
+`adapter:chat-session` is the parked / human-as-agent adapter for chat-session
+handoff, not provider identity or Movement authority. `adapter:codex-fugu-local`
+is a 1:1 Sakana variant of
 `adapter:codex-local`: the SAME codex executable and codex-exec invocation, with
 provider-routing config overrides (`model_provider="sakana"` plus the Sakana
 model catalog) carried on the adapter spec as DATA. It is its own

@@ -83,8 +83,7 @@ _AXIS_VOCAB_EXPECTED_ADAPTER_REFS = (
     # codex-exec invocation; provider-routing -c overrides carried as DATA).
     "adapter:codex-fugu-local",
     "adapter:claude-local",
-    "adapter:gemini-local",
-    # B6 (ADDITIVE): direct Gemini HTTP API adapter, sibling of gemini-local.
+    # Direct Gemini HTTP API adapter; no CLI / no subprocess identity.
     "adapter:gemini-api",
     "adapter:chat-session",
 )
@@ -1045,7 +1044,7 @@ def _agent_effective_write_probe(
         )
 
     # A selected adapter whose mapping does not support observed workspace write
-    # (gemini-local: read + review, NOT observed-write) no longer STOPS construction
+    # (gemini-api: read + review, NOT observed-write) no longer STOPS construction
     # -- the disposition is RECORDED (by support/recording) as
     # missing_adapter_write_capability and the building continues. (claude-local is
     # write-capable after the claude-write rehome.) The probe asserts the request
@@ -1053,7 +1052,7 @@ def _agent_effective_write_probe(
     unsupported_adapter_request = adapter.AgentAdapterRequest(
         building_id="agent-effective-write-negative-unsupported-adapter",
         agent_object_ref="agent-object:dev",
-        adapter_ref=adapter_constants.ADAPTER_GEMINI_LOCAL,
+        adapter_ref=adapter_constants.ADAPTER_GEMINI_API,
         brick_instance_ref="brick-work",
         next_brick_instance_ref="brick-closure",
         tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
@@ -1471,64 +1470,6 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
                 f"read-tier read-write-scoped fugu prompt leaked write-tier permission phrase {phrase!r}"
             )
 
-    gemini_inspect_request = adapter.AgentAdapterRequest(
-        building_id="agent-read-tier-gemini-inspect-probe",
-        agent_object_ref="agent-object:inspector",
-        adapter_ref=adapter_constants.ADAPTER_GEMINI_LOCAL,
-        brick_instance_ref="brick-inspect",
-        next_brick_instance_ref="brick-closure",
-        tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
-        agent_instruction_packet=inspector_packet,
-    )
-    if not adapter.agent_request_read_tier(gemini_inspect_request):
-        raise ProfileError("gemini-local read-write-scoped request did not enter read tier")
-    gemini_inspect_prompt = json.loads(
-        adapter_grant_policy._build_prompt(
-            gemini_inspect_request,
-            adapter._LOCAL_CLI_SPECS[adapter_constants.ADAPTER_GEMINI_LOCAL],
-        )
-    )
-    gemini_inspect_rules = list(gemini_inspect_prompt.get("rules", []))
-    if "Do not use tools or hooks." in gemini_inspect_rules:
-        raise ProfileError("gemini-local read-write-scoped prompt still rendered no-tools rule")
-    if expected_read_rule not in gemini_inspect_rules:
-        raise ProfileError("gemini-local read-write-scoped prompt did not expose repository inspection rule")
-    if not any(adapter_constants.READ_WRITE_TOOL_POLICY_REF in rule for rule in gemini_inspect_rules):
-        raise ProfileError("gemini-local read-write-scoped prompt omitted its admitted policy ref")
-    if not any("Gemini local native grant may use only read_file" in rule for rule in gemini_inspect_rules):
-        raise ProfileError("gemini-local read-write-scoped prompt did not pin read-only tool allow-list")
-
-    gemini_request = adapter.AgentAdapterRequest(
-        building_id="agent-read-tier-gemini-probe",
-        agent_object_ref="agent-object:qa",
-        adapter_ref=adapter_constants.ADAPTER_GEMINI_LOCAL,
-        brick_instance_ref="brick-review",
-        next_brick_instance_ref="brick-closure",
-        tool_policy_refs=(adapter_constants.REVIEWER_READONLY_TOOL_POLICY_REF,),
-        agent_instruction_packet=qa_packet,
-    )
-    if adapter_constants.ADAPTER_GEMINI_LOCAL not in set(qa_packet.get("adapter_refs", ())):
-        raise ProfileError("qa instruction packet did not admit adapter:gemini-local")
-    if adapter.agent_request_effective_write(gemini_request):
-        raise ProfileError("gemini-local reviewer-readonly request opened effective write")
-    if not adapter.agent_request_read_tier(gemini_request):
-        raise ProfileError("gemini-local reviewer-readonly request did not enter read tier")
-    gemini_prompt = json.loads(
-        adapter_grant_policy._build_prompt(
-            gemini_request,
-            adapter._LOCAL_CLI_SPECS[adapter_constants.ADAPTER_GEMINI_LOCAL],
-        )
-    )
-    gemini_rules = list(gemini_prompt.get("rules", []))
-    if "Do not use tools or hooks." in gemini_rules:
-        raise ProfileError("read-tier gemini-local prompt still rendered the none-tier no-tools rule")
-    if expected_read_rule not in gemini_rules:
-        raise ProfileError("read-tier gemini-local prompt did not expose repository inspection rule")
-    if any("adapter:gemini-local remains in the none tier" in rule for rule in gemini_rules):
-        raise ProfileError("read-tier gemini-local prompt still documented the retired none-tier limit")
-    if not any("Gemini local native grant may use only read_file" in rule for rule in gemini_rules):
-        raise ProfileError("read-tier gemini-local prompt did not pin its read-only tool allow-list")
-
     pm_web_request = adapter.AgentAdapterRequest(
         building_id="agent-web-tier-pm-probe",
         agent_object_ref="agent-object:pm-lead",
@@ -1567,371 +1508,7 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
         raise ProfileError("codex-local web-capable request did not document web as unavailable")
     if pm_codex_prompt.get("native_grant", {}).get("web_requested") is not True:
         raise ProfileError("codex-local web-capable prompt did not preserve web_requested evidence")
-
-    pm_gemini_request = adapter.AgentAdapterRequest(
-        building_id="agent-web-tier-gemini-probe",
-        agent_object_ref="agent-object:pm-lead",
-        adapter_ref=adapter_constants.ADAPTER_GEMINI_LOCAL,
-        brick_instance_ref="brick-live-context",
-        next_brick_instance_ref="brick-design",
-        tool_policy_refs=pm_web_request.tool_policy_refs,
-        agent_instruction_packet=pm_packet,
-    )
-    gemini_allow, gemini_deny = adapter_grant_policy._gemini_admin_policy_partition_for_request(pm_gemini_request)
-    if "web_fetch" not in gemini_allow or "google_web_search" not in gemini_allow:
-        raise ProfileError("gemini-local web-capable request did not allow web tools")
-    if "run_shell_command" not in gemini_deny or "write_file" not in gemini_deny:
-        raise ProfileError("gemini-local web-capable request did not deny residual write/shell tools")
-    web_tool_payload = json.dumps(
-        {
-            "response": "web tools accepted",
-            "stats": {"tools": {"totalCalls": 1, "byName": {"web_fetch": 1}}},
-        }
-    )
-    # Smith 0623 LOCK (move+record only): a non-granted tool no longer refuses the
-    # payload. The read-only fallback returns the real answer AND records web_fetch
-    # as an observed non-granted tool.
-    fallback_response, fallback_tools = adapter_local_cli._extract_gemini_response(web_tool_payload)
-    if fallback_response != "web tools accepted":
-        raise ProfileError("gemini-local read-only fallback dropped the real answer for web_fetch")
-    if "web_fetch" not in fallback_tools:
-        raise ProfileError(
-            "gemini-local non-web extraction did not RECORD ungranted web_fetch as an "
-            "observed non-granted tool"
-        )
-    granted_response, granted_tools = adapter_local_cli._extract_gemini_response(
-        web_tool_payload,
-        allowed_tool_names=adapter_grant_policy._gemini_allowed_tool_names_for_request(pm_gemini_request),
-    )
-    if granted_response != "web tools accepted":
-        raise ProfileError("gemini-local web-capable extraction did not accept request-threaded web_fetch")
-    if granted_tools:
-        raise ProfileError(
-            "gemini-local web-granted request wrongly recorded an observed non-granted "
-            f"tool: {granted_tools!r}"
-        )
-
-    gemini_cli_capture: dict[str, Any] = {}
-
-    def _gemini_readonly_runner(
-        args: Sequence[str],
-        cwd: Path,
-        timeout_seconds: int,
-        *,
-        env: Mapping[str, str] | None = None,
-    ) -> Any:
-        del timeout_seconds
-        call = tuple(str(arg) for arg in args)
-        gemini_cli_capture["args"] = call
-        gemini_cli_capture["cwd"] = cwd
-        gemini_cli_capture["env_home"] = (env or {}).get("HOME")
-        gemini_cli_capture["env_has_api_key"] = bool(
-            (env or {}).get("GEMINI_API_KEY") or (env or {}).get("GOOGLE_API_KEY")
-        )
-        if "--admin-policy" in call:
-            policy_path = Path(call[call.index("--admin-policy") + 1])
-            gemini_cli_capture["policy_text"] = policy_path.read_text(encoding="utf-8")
-        if env and env.get("HOME"):
-            settings_path = Path(env["HOME"]) / ".gemini" / "settings.json"
-            gemini_cli_capture["settings"] = json.loads(settings_path.read_text(encoding="utf-8"))
-        return adapter.LocalCliCompleted(call, 0, '{"response": "mocked"}', "")
-
-    saved_env = {name: os.environ.get(name) for name in adapter._GEMINI_API_KEY_ENV_VARS}
-    for name in adapter._GEMINI_API_KEY_ENV_VARS:
-        os.environ.pop(name, None)
-    os.environ["GEMINI_API_KEY"] = "probe-key"
-    try:
-        adapter_local_cli._invoke_local_cli(
-            adapter._LOCAL_CLI_SPECS[adapter_constants.ADAPTER_GEMINI_LOCAL],
-            gemini_inspect_request,
-            "prompt",
-            cwd=repo,
-            timeout_seconds=5,
-            command_runner=_gemini_readonly_runner,
-        )
-    finally:
-        for name in adapter._GEMINI_API_KEY_ENV_VARS:
-            os.environ.pop(name, None)
-            if saved_env[name] is not None:
-                os.environ[name] = saved_env[name]
-    gemini_args = tuple(gemini_cli_capture.get("args", ()))
-    if "--approval-mode" not in gemini_args:
-        raise ProfileError("gemini-local CLI projection dropped --approval-mode")
-    if gemini_args[gemini_args.index("--approval-mode") + 1] != "default":
-        raise ProfileError(f"gemini-local read tier must use default approval mode: {gemini_args!r}")
-    if "--model" not in gemini_args or gemini_args[gemini_args.index("--model") + 1] != "gemini-3.5-flash":
-        raise ProfileError(f"gemini-local read tier did not pin gemini-3.5-flash: {gemini_args!r}")
-    if "--yolo" in gemini_args or "auto_edit" in gemini_args or "yolo" in gemini_args:
-        raise ProfileError(f"gemini-local CLI projection exposed write/auto-approve mode: {gemini_args!r}")
-    if "--admin-policy" not in gemini_args:
-        raise ProfileError("gemini-local CLI projection dropped read-only admin policy")
-    if gemini_cli_capture.get("cwd") != repo:
-        raise ProfileError("gemini-local read tier did not run from the dispatch worktree cwd")
-    if not gemini_cli_capture.get("env_home"):
-        raise ProfileError("gemini-local read tier did not pass a temporary HOME")
-    if not gemini_cli_capture.get("env_has_api_key"):
-        raise ProfileError("gemini-local read tier did not pass API-key env into subprocess")
-    if gemini_cli_capture.get("settings") != {
-        "security": {"auth": {"selectedType": "gemini-api-key"}}
-    }:
-        raise ProfileError("gemini-local read tier did not force temp HOME gemini-api-key auth")
-    policy_text = str(gemini_cli_capture.get("policy_text", ""))
-    for required_allow in (
-        "read_file",
-        "glob",
-        "grep_search",
-        "list_directory",
-        "search_file_content",
-        "read_many_files",
-        'decision = "allow"',
-        "priority = 998",
-    ):
-        if required_allow not in policy_text:
-            raise ProfileError(
-                "gemini-local read-only admin policy stopped allowing read tooling token "
-                f"{required_allow!r}"
-            )
-    for required_deny in (
-        "run_shell_command",
-        "write_file",
-        "replace",
-        'decision = "deny"',
-        "priority = 999",
-    ):
-        if required_deny not in policy_text:
-            raise ProfileError(
-                "gemini-local read-only admin policy stopped denying write/command "
-                f"tooling token {required_deny!r}"
-            )
-    if "priority = 1000" in policy_text:
-        raise ProfileError("gemini-local read-only admin policy exceeded priority ceiling")
-
-    read_tool_payload = json.dumps(
-        {
-            "response": "read tools accepted",
-            "stats": {
-                "tools": {
-                    "totalCalls": 6,
-                    "byName": {
-                        "read_file": 1,
-                        "glob": 1,
-                        # CLEAN-READTIER-0617: gemini CLI 0.46 SearchText is named
-                        # grep_search (search_file_content is the legacy alias) and
-                        # list_directory (ReadFolder) is a read-only browse tool;
-                        # both must pass the non-read rejection set or read browse
-                        # gets falsely rejected.
-                        "grep_search": 1,
-                        "list_directory": 1,
-                        "search_file_content": 1,
-                        "read_many_files": 1,
-                    },
-                }
-            },
-        }
-    )
-    read_response, read_tools = adapter_local_cli._extract_gemini_response(read_tool_payload)
-    if read_response != "read tools accepted":
-        raise ProfileError("gemini-local read tool byName payload was not accepted")
-    if read_tools:
-        raise ProfileError(
-            f"gemini-local read-only tools wrongly recorded as non-granted: {read_tools!r}"
-        )
-    # Smith 0623 LOCK (move+record only): a non-read tool no longer refuses the
-    # payload -- it is RECORDED as an observed non-granted tool while the answer
-    # still returns.
-    for forbidden_tool in ("write_file", "run_shell_command", "replace"):
-        forbidden_payload = json.dumps(
-            {
-                "response": "non-read tool should reject",
-                "stats": {"tools": {"totalCalls": 1, "byName": {forbidden_tool: 1}}},
-            }
-        )
-        forbidden_response, forbidden_tools = adapter_local_cli._extract_gemini_response(
-            forbidden_payload
-        )
-        if forbidden_response != "non-read tool should reject":
-            raise ProfileError(
-                f"gemini-local dropped the answer for non-read tool {forbidden_tool!r}"
-            )
-        if forbidden_tool not in forbidden_tools:
-            raise ProfileError(
-                f"gemini-local non-read tool record omitted {forbidden_tool!r}: "
-                f"{forbidden_tools!r}"
-            )
-
-    # GEMINI-CONTROLPLANE-EXEMPT-0622: gemini's own completion/orchestration control
-    # plane (complete_task, invoke_agent) has no repo/external side effect and must
-    # NEVER produce a false-positive refusal/HOLD, even under the read-only fallback
-    # (allowed_tool_names is None). This is the false-positive that the fix removes.
-    benign_payload = json.dumps(
-        {
-            "response": "benign control plane accepted",
-            "stats": {
-                "tools": {
-                    "totalCalls": 3,
-                    "byName": {"complete_task": 1, "invoke_agent": 1, "read_file": 1},
-                }
-            },
-        }
-    )
-    benign_response, benign_tools = adapter_local_cli._extract_gemini_response(benign_payload)
-    if benign_response != "benign control plane accepted":
-        raise ProfileError(
-            "gemini-local benign control-plane tools (complete_task/invoke_agent) "
-            "dropped the real answer"
-        )
-    if benign_tools:
-        raise ProfileError(
-            "gemini-local benign control-plane tools (complete_task/invoke_agent) "
-            f"were falsely recorded as observed non-granted tools: {benign_tools!r}"
-        )
-    # MUTATION-RED GUARD: the benign exemption must stay BOUNDED -- a real ungranted
-    # side-effecting tool bundled WITH benign control tools must STILL trip the refusal,
-    # so the exemption cannot silently rot into "accept everything".
-    benign_plus_write_payload = json.dumps(
-        {
-            "response": "benign bundled with real write must still reject",
-            "stats": {
-                "tools": {
-                    "totalCalls": 2,
-                    "byName": {"complete_task": 1, "write_file": 1},
-                }
-            },
-        }
-    )
-    # Smith 0623 LOCK (move+record only): the answer always returns; the guard is
-    # now that the RECORDED observed-tool set stays BOUNDED -- write_file is recorded,
-    # the benign complete_task is NOT, so the exemption cannot rot into "record
-    # nothing" (or "record everything").
-    bundled_response, bundled_tools = adapter_local_cli._extract_gemini_response(
-        benign_plus_write_payload
-    )
-    if bundled_response != "benign bundled with real write must still reject":
-        raise ProfileError(
-            "gemini-local dropped the answer for write_file bundled with benign tools"
-        )
-    if "write_file" not in bundled_tools:
-        raise ProfileError(
-            "gemini-local benign exemption widened into NOT recording an ungranted "
-            "write_file (mutation-RED guard breached)"
-        )
-    if "complete_task" in bundled_tools:
-        raise ProfileError(
-            "gemini-local wrongly recorded the benign complete_task tool"
-        )
-    # PART 1 consistency: a web tool is a violation under the read-only fallback BUT is
-    # accepted once the request's full granted set (web included) is threaded -- the
-    # post-hoc must agree with the launch-time admin-policy grant.
-    web_search_payload = json.dumps(
-        {
-            "response": "web tools accepted",
-            "stats": {"tools": {"totalCalls": 1, "byName": {"google_web_search": 1}}},
-        }
-    )
-    # Smith 0623 LOCK (move+record only): under the read-only fallback the answer
-    # returns and ungranted google_web_search is RECORDED, not refused.
-    web_search_response, web_search_tools = adapter_local_cli._extract_gemini_response(
-        web_search_payload
-    )
-    if web_search_response != "web tools accepted":
-        raise ProfileError(
-            "gemini-local read-only fallback dropped the answer for google_web_search"
-        )
-    if "google_web_search" not in web_search_tools:
-        raise ProfileError(
-            "gemini-local ungranted google_web_search record did not name the tool"
-        )
-    granted_search_response, granted_search_tools = adapter_local_cli._extract_gemini_response(
-        web_search_payload,
-        allowed_tool_names=adapter_grant_policy._gemini_allowed_tool_names_for_request(
-            pm_gemini_request
-        ),
-    )
-    if granted_search_response != "web tools accepted":
-        raise ProfileError(
-            "gemini-local web-granted request rejected google_web_search the launch "
-            "admin-policy allows (post-hoc inconsistent with grant)"
-        )
-    if granted_search_tools:
-        raise ProfileError(
-            "gemini-local web-granted request wrongly recorded google_web_search as "
-            f"observed non-granted: {granted_search_tools!r}"
-        )
-
-    gemini_none_request = adapter.AgentAdapterRequest(
-        building_id="agent-read-tier-gemini-none-probe",
-        agent_object_ref="agent-object:qa",
-        adapter_ref=adapter_constants.ADAPTER_GEMINI_LOCAL,
-        brick_instance_ref="brick-review",
-        next_brick_instance_ref="brick-closure",
-        tool_policy_refs=(),
-        agent_instruction_packet=qa_packet,
-    )
-    if adapter.agent_request_read_tier(gemini_none_request):
-        raise ProfileError("gemini-local none-tier request entered read tier without read-only policy")
-    gemini_none_prompt = json.loads(
-        adapter_grant_policy._build_prompt(
-            gemini_none_request,
-            adapter._LOCAL_CLI_SPECS[adapter_constants.ADAPTER_GEMINI_LOCAL],
-        )
-    )
-    if "Do not use tools or hooks." not in gemini_none_prompt.get("rules", []):
-        raise ProfileError("gemini-local none-tier request stopped rendering no-tools prompt")
-
-    def _gemini_nonzero_runner(
-        args: Sequence[str],
-        cwd: Path,
-        timeout_seconds: int,
-        *,
-        env: Mapping[str, str] | None = None,
-    ) -> Any:
-        del cwd, timeout_seconds, env
-        call = tuple(str(arg) for arg in args)
-        if "--version" in call:
-            return adapter.LocalCliCompleted(call, 0, "0.46.0", "")
-        return adapter.LocalCliCompleted(
-            call,
-            1,
-            json.dumps({"error": {"code": 404, "message": "model not found for probe"}}),
-            "Gemini CLI failed; details: /tmp/gemini-client-error-probe.json",
-        )
-
-    saved_env = {name: os.environ.get(name) for name in adapter._GEMINI_API_KEY_ENV_VARS}
-    for name in adapter._GEMINI_API_KEY_ENV_VARS:
-        os.environ.pop(name, None)
-    os.environ["GEMINI_API_KEY"] = "probe-key"
-    try:
-        try:
-            adapter_local_cli._invoke_local_cli_adapter(
-                gemini_inspect_request,
-                cwd=repo,
-                timeout_seconds=5,
-                command_runner=_gemini_nonzero_runner,
-            )
-        except ValueError as exc:
-            nonzero_message = str(exc)
-        else:
-            raise ProfileError("gemini-local non-zero adapter probe did not raise")
-    finally:
-        for name in adapter._GEMINI_API_KEY_ENV_VARS:
-            os.environ.pop(name, None)
-            if saved_env[name] is not None:
-                os.environ[name] = saved_env[name]
-    for expected_fragment, label in (
-        ("local CLI adapter command returned non-zero", "non-zero marker"),
-        ("adapter_ref=adapter:gemini-local", "adapter ref"),
-        ("return_code=1", "return code"),
-        ("stderr_excerpt=Gemini CLI failed", "stderr excerpt"),
-        ("stdout_error_excerpt=", "stdout error excerpt"),
-        ("model not found for probe", "stdout error detail"),
-        ("stderr_error_path=/tmp/gemini-client-error-probe.json", "stderr error path"),
-    ):
-        if expected_fragment not in nonzero_message:
-            raise ProfileError(
-                f"gemini-local non-zero adapter error omitted {label}: {nonzero_message!r}"
-            )
-
-    return 39
+    return 21
 
 
 def _artifact_grounding_probe(repo: Path) -> int:
@@ -3390,8 +2967,8 @@ def run_gemini_api_adapter(repo: Path) -> KernelResult:
     """B6 gemini-api adapter execution checker (ADDITIVE, no new profile).
 
     FIREs, IN-PROCESS:
-      (a) adapter:gemini-api is admitted with READ+REVIEW capability (same brain
-          class as gemini-local), is NOT write-capable, and is DELIBERATELY not a
+      (a) adapter:gemini-api is admitted with READ+REVIEW capability, is NOT
+          write-capable, and is DELIBERATELY not a
           _LOCAL_CLI_SPECS member (no CLI / no subprocess identity).
       (b) no-key (env unset): connect_agent_brain raises a CLEAN typed
           FileNotFoundError that maps to 'local_cli_missing' (the B2 hold shape),

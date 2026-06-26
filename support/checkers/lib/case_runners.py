@@ -7948,7 +7948,7 @@ def run_wiki_carry_truncation_survival_case(
     The blocker (0619 adversarial verify): the wiki view is floored by
     ``safe_source_fact_body`` once in the walker AND AGAIN downstream in the
     agent adapter (``_clean_source_fact_bodies`` limit 12000,
-    ``_source_fact_bodies_for_prompt`` limit 12000 / gemini 4000). Every floor
+    ``_source_fact_bodies_for_prompt`` limit 12000 / small-limit probe 4000). Every floor
     truncates the TAIL. When ``returned`` is large the whole serialized view
     blows past a downstream limit; if PATH/NOTE rode in the tail (the old
     layout) they were silently amputated and the worker lost the "go look"
@@ -7966,9 +7966,6 @@ def run_wiki_carry_truncation_survival_case(
     items = rule_items(profile, "wiki_carry_truncation_survival_case")
     if not items:
         return 0
-    from brick_protocol.support.connection.agent_adapter import (
-        _GEMINI_SOURCE_FACT_BODY_LIMIT,
-    )
     from brick_protocol.support.connection.adapter_validation import (
         _SOURCE_FACT_BODY_LIMIT,
         safe_source_fact_body,
@@ -8034,7 +8031,7 @@ def run_wiki_carry_truncation_survival_case(
                     f"{_SOURCE_FACT_BODY_LIMIT} -- raise oversize_returned_chars"
                 )
 
-            for limit in (_SOURCE_FACT_BODY_LIMIT, _GEMINI_SOURCE_FACT_BODY_LIMIT):
+            for limit in (_SOURCE_FACT_BODY_LIMIT, 4000):
                 retruncated = safe_source_fact_body(view, limit=limit)
                 # The downstream floor MUST have actually fired (tail cut), or
                 # the pin proves nothing about survival under truncation.

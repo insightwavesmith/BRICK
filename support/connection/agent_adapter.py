@@ -41,7 +41,6 @@ from .adapter_constants import (
     ADAPTER_CODEX_LOCAL,
     ADAPTER_CODEX_FUGU_LOCAL,
     ADAPTER_CLAUDE_LOCAL,
-    ADAPTER_GEMINI_LOCAL,
     ADAPTER_GEMINI_API,
     ADAPTER_CHAT_SESSION,
     READ_WRITE_TOOL_POLICY_REF,
@@ -57,7 +56,6 @@ from .adapter_constants import (
     MODEL_REF_CLAUDE_INHERIT,
     MODEL_REF_GEMINI_DEFAULT,
     MODEL_REF_GEMINI_FLASH,
-    MODEL_REF_GEMINI_LOCAL_FLASH,
     MODEL_REF_SAKANA_FUGU,
     MODEL_REF_SAKANA_FUGU_ULTRA,
     _RETIRED_WRITE_ADAPTER_REFS,
@@ -210,7 +208,6 @@ from .adapter_local_cli import (
     _invoke_local_cli_adapter,
 )
 
-_GEMINI_SOURCE_FACT_BODY_LIMIT = 4000
 _CLAUDE_NONINTERACTIVE_SYSTEM_PROMPT = (
     "You are a non-interactive Brick Protocol support evidence reviewer. "
     "Do not use tools, do not call hooks, do not enter or discuss plan-mode "
@@ -241,59 +238,6 @@ _CLAUDE_SCOPED_WRITE_SYSTEM_PROMPT = (
     "Return concise text matching the requested return shape. "
     "Do not claim source truth, success judgment, quality judgment, or Movement authority."
 )
-_GEMINI_READ_TOOL_NAMES = frozenset(
-    {
-        "glob",
-        "grep_search",
-        "list_directory",
-        "read_file",
-        "read_many_files",
-        "search_file_content",
-    }
-)
-_GEMINI_WEB_TOOL_NAMES = frozenset({"google_web_search", "web_fetch"})
-# GEMINI-CONTROLPLANE-EXEMPT-0622: gemini's OWN orchestration/completion control
-# plane. These names appear in stats.tools.byName when the gemini CLI finishes or
-# fans out internally, but they touch NO repo file and reach NO external surface,
-# so they are NEVER a read-tier violation and must not produce a false-positive HOLD.
-# They are deliberately NOT in the granted/admin-policy set (they are not a
-# capability the Brick grants) -- they are an always-benign exemption layered on top
-# of the granted set in the post-hoc refusal check.
-#   * complete_task  -- gemini signals task completion (control signal, no side effect)
-#   * invoke_agent   -- gemini delegates to an internal sub-agent (orchestration, no
-#                       repo/external write of its own)
-# DELIBERATELY EXCLUDED (stay governed / denied -- do NOT add):
-#   * exit_plan_mode -- the work-envelope prompt explicitly forbids it
-#     (adapter_grant_policy.py "Do not call exit_plan_mode..."); exempting it here
-#     would contradict that deny rule.
-#   * update_topic   -- not demonstrably side-effect-free; never a measured false
-#                       positive; stays a violation if reported.
-#   * google_web_search / web_fetch -- read EXTERNAL state; stay governed by the
-#                       granted set (web exempt ONLY when WEB capability is granted).
-#   * write_file / run_shell_command / replace -- real writes; stay denied.
-_GEMINI_BENIGN_CONTROL_TOOL_NAMES = frozenset({"complete_task", "invoke_agent"})
-_CANONICAL_TOOL_UNIVERSE_GEMINI = (
-    "exit_plan_mode",
-    "glob",
-    "google_web_search",
-    "grep_search",
-    "list_directory",
-    "read_file",
-    "read_many_files",
-    "replace",
-    "run_shell_command",
-    "search_file_content",
-    "update_topic",
-    "web_fetch",
-    "write_file",
-)
-_GEMINI_TOOLS_BY_NATIVE_CAPABILITY = {
-    ADAPTER_CAPABILITY_READ: _GEMINI_READ_TOOL_NAMES,
-    ADAPTER_CAPABILITY_WEB: _GEMINI_WEB_TOOL_NAMES,
-    ADAPTER_CAPABILITY_WRITE: frozenset(),
-}
-
-
 def adapter_capabilities(adapter_ref: str) -> tuple[str, ...]:
     """Return v1 technical capabilities for an admitted adapter ref."""
 
@@ -674,24 +618,15 @@ _LOCAL_CLI_SPECS: Mapping[str, LocalCliSpec] = {
         invocation_args_kind="claude-plan-json",
         default_model_ref=MODEL_REF_CLAUDE_INHERIT,
     ),
-    ADAPTER_GEMINI_LOCAL: LocalCliSpec(
-        adapter_ref=ADAPTER_GEMINI_LOCAL,
-        brain_surface_ref="brain-surface:gemini-local-cli",
-        executable_name="gemini",
-        version_args=("--version",),
-        invocation_args_kind="gemini-p-json-flash",
-        default_model_ref=MODEL_REF_GEMINI_LOCAL_FLASH,
-    ),
 }
 
-# Gemini HTTP API adapter (gemini-api) — ADDITIVE sibling of the gemini-local
-# CLI. It is DELIBERATELY NOT a member of _LOCAL_CLI_SPECS: there is no CLI, no
-# subprocess, no executable. We reuse the LocalCliSpec dataclass purely as an
-# inert carrier of the same descriptive fields (adapter_ref, brain_surface_ref,
-# default_model_ref, proof_limits, not_proven) so the prompt builder and the
-# returned-evidence shape mirror the CLI path exactly — keeping the engine
-# adapter-agnostic. executable_name/version_args/invocation_args_kind are unused
-# on this path (the HTTP call is made directly via stdlib urllib).
+# Gemini HTTP API adapter (gemini-api). It is DELIBERATELY NOT a member of
+# _LOCAL_CLI_SPECS: there is no CLI, no subprocess, no executable. We reuse the
+# LocalCliSpec dataclass purely as an inert carrier of the descriptive fields
+# (adapter_ref, brain_surface_ref, default_model_ref, proof_limits, not_proven)
+# so the prompt builder and returned-evidence shape stay adapter-agnostic.
+# executable_name/version_args/invocation_args_kind are unused on this path (the
+# HTTP call is made directly via stdlib urllib).
 _GEMINI_API_SPEC = LocalCliSpec(
     adapter_ref=ADAPTER_GEMINI_API,
     brain_surface_ref="brain-surface:gemini-http-api",
@@ -744,9 +679,9 @@ def connect_agent_brain(
             timeout_seconds=timeout_seconds,
         )
     else:
-        # Local-CLI dispatch: codex-local, codex-fugu-local, claude-local, and
-        # gemini-local all route through the SAME _invoke_local_cli_adapter ->
-        # _invoke_local_cli path. codex-fugu-local resolves to the codex-exec
+        # Local-CLI dispatch: codex-local, codex-fugu-local, and claude-local
+        # route through the SAME _invoke_local_cli_adapter -> _invoke_local_cli
+        # path. codex-fugu-local resolves to the codex-exec
         # invocation kind (identical to codex-local); its provider-routing -c
         # overrides ride on the spec as DATA and are appended in adapter_local_cli.
         (
@@ -826,12 +761,6 @@ def supported_model_ref_examples(adapter_ref: str) -> tuple[str, ...]:
             "model:claude:haiku",
             "model:claude:<claude-model-id>",
         )
-    if adapter_ref == ADAPTER_GEMINI_LOCAL:
-        return (
-            MODEL_REF_GEMINI_DEFAULT,
-            MODEL_REF_GEMINI_LOCAL_FLASH,
-            "model:gemini:<gemini-model-id>",
-        )
     if adapter_ref == ADAPTER_GEMINI_API:
         return (
             MODEL_REF_GEMINI_DEFAULT,
@@ -881,7 +810,7 @@ def agent_request_read_tier(request: AgentAdapterRequest) -> bool:
     """Return whether this non-write request admits read-only repo inspection.
 
     Read/write tier is NOT a support-side authority over the tool-policy label.
-    The uniform rule across codex-local/claude-local/gemini-local is: if the
+    The uniform rule across codex-local/claude-local is: if the
     request does not open observed workspace write AND it carries a known,
     tool-bearing Agent policy (every ref in KNOWN_TOOL_POLICY_REFS, at least
     one present), the adapter opens the read-only browse tier -- regardless of
@@ -889,7 +818,7 @@ def agent_request_read_tier(request: AgentAdapterRequest) -> bool:
     tool-capable Agent therefore browses read-only. Effective-write requests
     still take the write path (early return). Ambiguous requests -- no tool
     policy, or any unknown policy ref -- fail closed to the none tier. Only
-    codex/claude/gemini local adapters can reach the read tier.
+    codex/claude local adapters can reach the read tier.
     """
 
     if not isinstance(request, AgentAdapterRequest):
@@ -907,13 +836,11 @@ def agent_request_read_tier(request: AgentAdapterRequest) -> bool:
         ADAPTER_CODEX_LOCAL,
         ADAPTER_CODEX_FUGU_LOCAL,
         ADAPTER_CLAUDE_LOCAL,
-        ADAPTER_GEMINI_LOCAL,
     }
 
 
 def _read_tier_policy_refs_for_request(request: AgentAdapterRequest) -> frozenset[str]:
-    if request.adapter_ref == ADAPTER_GEMINI_LOCAL:
-        return KNOWN_TOOL_POLICY_REFS
+    del request
     return READ_TIER_TOOL_POLICY_REFS
 
 
@@ -963,15 +890,10 @@ _PROVIDER_INSTALL_HINT_KO: Mapping[str, str] = {
         "claude가 설치돼 있지 않아요. 터미널에 이걸 붙여넣어 설치하세요: "
         "npm install -g @anthropic-ai/claude-code"
     ),
-    ADAPTER_GEMINI_LOCAL: (
-        "gemini가 설치돼 있지 않아요. 터미널에 이걸 붙여넣어 설치하세요: "
-        "npm install -g @google/gemini-cli"
-    ),
 }
 _PROVIDER_LOGIN_HINT_KO: Mapping[str, str] = {
     ADAPTER_CODEX_LOCAL: "codex login",
     ADAPTER_CLAUDE_LOCAL: "claude (실행 후 안내에 따라 로그인)",
-    ADAPTER_GEMINI_LOCAL: "gemini (실행 후 안내에 따라 로그인)",
 }
 
 
@@ -1080,13 +1002,9 @@ def _source_fact_bodies_for_prompt(
     request: AgentAdapterRequest,
     spec: LocalCliSpec,
 ) -> Mapping[str, str]:
-    limit = (
-        _GEMINI_SOURCE_FACT_BODY_LIMIT
-        if spec.adapter_ref == ADAPTER_GEMINI_LOCAL
-        else _SOURCE_FACT_BODY_LIMIT
-    )
+    del spec
     return {
-        ref: safe_source_fact_body(body, limit=limit)
+        ref: safe_source_fact_body(body, limit=_SOURCE_FACT_BODY_LIMIT)
         for ref, body in request.source_fact_bodies.items()
     }
 
@@ -1202,7 +1120,6 @@ __all__ = [
     "ADAPTER_CODEX_FUGU_LOCAL",
     "ADAPTER_CODEX_LOCAL",
     "ADAPTER_GEMINI_API",
-    "ADAPTER_GEMINI_LOCAL",
     "ADAPTER_LOCAL",
     "ALLOWED_ADAPTER_REFS",
     "ALLOWED_SESSION_CONTINUITY_MODES",

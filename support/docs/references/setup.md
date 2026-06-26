@@ -87,7 +87,7 @@ The public `run_building_plan` always dispatches to the dynamic graph walker, so
 
 ### Choosing the adapter
 
-The adapter is declared in the plan, not passed as an argument. The example uses `adapter:codex-local`, which invokes the local `codex` CLI. The selected adapter must be one of the Agent Object's `adapter_refs`. The admitted provider-neutral adapter refs are `adapter:local`, `adapter:codex-local`, `adapter:claude-local`, `adapter:gemini-local`, `adapter:gemini-api`, and `adapter:chat-session`. `adapter:gemini-api` is a read/review API adapter; `adapter:chat-session` is the parked / human-as-agent adapter.
+The adapter is declared in the plan, not passed as an argument. The example uses `adapter:codex-local`, which invokes the local `codex` CLI. The selected adapter must be one of the Agent Object's `adapter_refs`. The admitted provider-neutral adapter refs are `adapter:local`, `adapter:codex-local`, `adapter:codex-fugu-local`, `adapter:claude-local`, `adapter:gemini-api`, and `adapter:chat-session`. `adapter:gemini-api` is a read/review API adapter; `adapter:chat-session` is the parked / human-as-agent adapter.
 
 To smoke-test the support path without any provider, switch the plan to the built-in local callable:
 

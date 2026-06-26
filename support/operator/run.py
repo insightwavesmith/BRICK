@@ -1191,7 +1191,7 @@ def _write_adapter_usage_meter_on_step_close(
     request = adapter_result.request
     # TrackA-A1 REGRESSION FIX (no null-usage noise): write a meter row ONLY when
     # usage is actually present -- a non-empty Mapping. Non-usage adapters
-    # (claude-local / gemini-local / adapter:local, and an older codex with no
+    # (claude-local / adapter:local, and an older codex with no
     # --json) surface adapter_usage=None, and an empty Mapping carries no counter;
     # neither should generate a usage_present=False row. The meter stays tight:
     # only adapters that actually emitted usage write to raw/adapter-usage.jsonl.

@@ -23,7 +23,6 @@ from .adapter_constants import (
     ADAPTER_LOCAL,
     ADAPTER_CHAT_SESSION,
     ADAPTER_GEMINI_API,
-    ADAPTER_GEMINI_LOCAL,
     MODEL_REF_DEFAULT,
     MODEL_REF_CODEX_DEFAULT,
     MODEL_REF_CLAUDE_INHERIT,
@@ -188,7 +187,7 @@ def _model_cli_arg_from_ref(model_ref: str, spec: "LocalCliSpec") -> str:
     if model_ref in {MODEL_REF_DEFAULT, spec.default_model_ref}:
         if model_ref in {MODEL_REF_CODEX_DEFAULT, MODEL_REF_CLAUDE_INHERIT, MODEL_REF_DEFAULT}:
             return ""
-    if spec.adapter_ref == ADAPTER_GEMINI_LOCAL and model_ref == MODEL_REF_GEMINI_DEFAULT:
+    if spec.adapter_ref == ADAPTER_GEMINI_API and model_ref == MODEL_REF_GEMINI_DEFAULT:
         return ""
     provider = MODEL_PROVIDER_BY_ADAPTER.get(spec.adapter_ref)
     if provider is None:

@@ -48,7 +48,6 @@ from brick_protocol.support.connection import connect
 from brick_protocol.support.connection.adapter_constants import (
     ADAPTER_CLAUDE_LOCAL,
     ADAPTER_CODEX_LOCAL,
-    ADAPTER_GEMINI_LOCAL,
     ADAPTER_LOCAL,
 )
 from brick_protocol.support.connection.adapter_subprocess import (
@@ -130,11 +129,10 @@ _EXAMPLE_WRITE_SCOPE: dict[str, Any] = {
 }
 
 # Friendly host -> adapter ref map. ``local`` is the in-process smoke host (no
-# CLI); ``codex``/``claude``/``gemini`` are the admitted local CLI providers.
+# CLI); ``codex``/``claude`` are the admitted local CLI providers.
 _HOST_ADAPTER_REF = {
     "codex": ADAPTER_CODEX_LOCAL,
     "claude": ADAPTER_CLAUDE_LOCAL,
-    "gemini": ADAPTER_GEMINI_LOCAL,
     "local": ADAPTER_LOCAL,
 }
 # ``connect`` only renders codex/claude config; other hosts get a friendly note.
