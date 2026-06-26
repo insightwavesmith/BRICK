@@ -1635,6 +1635,38 @@ def _mandated_example_graphs(repo: Path):
     return via_build, via_hand
 
 
+def _fan_first_example_graphs(repo: Path):
+    """Parallel-first workflow: build([fan([a, b, c]), converge])."""
+
+    code_work = "fan-first code attack lens"
+    axis_work = "fan-first axis attack lens"
+    evidence_work = "fan-first evidence integrity lens"
+    close_work = "fan-first convergence closure"
+
+    via_build = build(
+        [
+            fan(
+                [
+                    ["code-attack-qa", code_work],
+                    ["axis-attack-qa", axis_work],
+                    ["evidence-integrity", evidence_work],
+                ]
+            ),
+            ["closure", close_work],
+        ]
+    )
+
+    code = brick("code-attack-qa", code_work, returns=SOURCE_RETURN_SHAPE)
+    axis = brick("axis-attack-qa", axis_work, returns=SOURCE_RETURN_SHAPE)
+    evidence = brick("evidence-integrity", evidence_work, returns=SOURCE_RETURN_SHAPE)
+    close = brick("closure", close_work)
+    via_hand = converge(
+        fan_in([code, axis, evidence], close),
+        terminal=close,
+    )
+    return via_build, via_hand
+
+
 def _lower_args(repo: Path, graph, *, fixture_name: str, building_id: str, gates):
     composed = assemble(
         graph,
@@ -1693,6 +1725,20 @@ def _build_fan_equivalence_fire(repo: Path) -> tuple[str, ...]:
         "lowered byte-identical via build/fan and via hand-built chain/fan_out/fan_in/converge."
     )
 
+    # 1b) Fan-first build() is multi-root sugar over fan_in([roots], converge).
+    via_build, via_hand = _fan_first_example_graphs(repo)
+    _assert_byte_identical(
+        repo,
+        via_build,
+        via_hand,
+        fixture_name="fan-first-example",
+        gates=(Gate.STRICT_EVIDENCE,),
+    )
+    outputs.append(
+        "build/fan green: fan-first build([fan([a,b,c]), converge]) lowered byte-identical "
+        "to hand-built multi-root fan_in."
+    )
+
     # 2) Existing single-spine fixtures, both ways, byte-identical.
     for fixture_name in ("fast-fix", "engine-feature-hard"):
         build_graph = _build_fan_graphs(fixture_name)
@@ -1731,8 +1777,8 @@ def _build_fan_equivalence_fire(repo: Path) -> tuple[str, ...]:
         "build/fan green: no agent= declared -> development kind default agent resolved to agent-object:cto-lead."
     )
 
-    # 4) Construction RED: a fan branch may not carry route=, build may not start
-    #    or end on a fan block.
+    # 4) Construction RED: a fan branch may not carry route=, build may not end
+    #    on a fan block, and fan-first still needs a following convergence node.
     def branch_route_probe() -> None:
         fan(
             [
@@ -1740,11 +1786,17 @@ def _build_fan_equivalence_fire(repo: Path) -> tuple[str, ...]:
             ]
         )
 
-    def build_starts_with_fan_probe() -> None:
-        build([fan([["code-attack-qa", "lonely", {"returns": SOURCE_RETURN_SHAPE}]]), ["closure", "close"]])
-
     def build_ends_with_fan_probe() -> None:
         build([["development", "dev"], fan([["code-attack-qa", "lonely", {"returns": SOURCE_RETURN_SHAPE}]])])
+
+    def fan_first_without_convergence_probe() -> None:
+        build(
+            [
+                fan([["code-attack-qa", "lonely", {"returns": SOURCE_RETURN_SHAPE}]]),
+                fan([["axis-attack-qa", "also lonely", {"returns": SOURCE_RETURN_SHAPE}]]),
+                ["closure", "close"],
+            ]
+        )
 
     def back_underflow_probe() -> None:
         build(
@@ -1756,8 +1808,8 @@ def _build_fan_equivalence_fire(repo: Path) -> tuple[str, ...]:
         )
 
     outputs.append(_assert_raises("fan branch route=", TypeError, branch_route_probe))
-    outputs.append(_assert_raises("build starts with fan", TypeError, build_starts_with_fan_probe))
     outputs.append(_assert_raises("build ends with fan", TypeError, build_ends_with_fan_probe))
+    outputs.append(_assert_raises("fan-first without convergence", TypeError, fan_first_without_convergence_probe))
     outputs.append(_assert_raises("back() underflow", ValueError, back_underflow_probe))
 
     return tuple(outputs)

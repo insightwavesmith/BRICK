@@ -517,10 +517,12 @@ def build(items: Sequence[Any]) -> GraphSpec:
     """Compile a top-to-bottom build list to one GraphSpec over existing primitives.
 
     Item N->N+1 is a forward edge; a ``fan([...])`` block fans the PRECEDING item
-    out to each branch and the FOLLOWING item is the fan-in convergence; the last
-    item is terminal. A convergence node's ``route`` opt becomes reroute()/hold()
-    on the fan_in. The result is exactly the GraphSpec the hand-written
-    chain()/fan_out()/fan_in()/converge() tier emits.
+    out to each branch and the FOLLOWING item is the fan-in convergence. When the
+    first item is ``fan([...])``, its branches are parallel roots and the following
+    item is their fan-in convergence. The last item is terminal. A convergence
+    node's ``route`` opt becomes reroute()/hold() on the fan_in. The result is
+    exactly the GraphSpec the hand-written chain()/fan_out()/fan_in()/converge()
+    tier emits.
 
     The EASY tier auto-mints a stable alias for repeated kinds and auto-derives a
     fan branch's ``returns`` from its kind's Brick template, so the operator writes
@@ -531,8 +533,6 @@ def build(items: Sequence[Any]) -> GraphSpec:
     sequence = tuple(items)
     if not sequence:
         raise TypeError("build() requires at least one item")
-    if isinstance(sequence[0], Fan):
-        raise TypeError("build() cannot start with a fan() block; a fan needs a preceding source")
     if isinstance(sequence[-1], Fan):
         raise TypeError("build() cannot end with a fan() block; a fan needs a following convergence")
 
@@ -575,8 +575,6 @@ def build(items: Sequence[Any]) -> GraphSpec:
         node = coerced_nodes[position]
         if isinstance(node, Fan):
             source = last_real
-            if source is None:
-                raise TypeError("a fan() block needs a preceding source node")
             following_position = position + 1
             if following_position >= len(coerced_nodes) or isinstance(coerced_nodes[following_position], Fan):
                 raise TypeError("a fan() block needs a following convergence node")
@@ -587,7 +585,8 @@ def build(items: Sequence[Any]) -> GraphSpec:
                 source_position=following_position,
                 resolve_back=_resolve_back,
             )
-            parts.append(fan_out(source, node.branches))
+            if source is not None:
+                parts.append(fan_out(source, node.branches))
             parts.append(fan_in(node.branches, convergence, route=route_marks))
             fan_in_terminal = convergence
             # Consume ONLY the fan; the convergence is visited next as a plain node
