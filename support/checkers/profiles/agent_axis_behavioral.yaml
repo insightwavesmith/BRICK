@@ -7,7 +7,10 @@ kernel_checks:
   - building_lifecycle_path_shape
   - building_map_graph
   - provider_preflight
-  # Executes Agent Adapter return/read-tier probes for admitted local adapters.
+  # GEMINI-INSPECT-READTIER-0617: executes Agent Adapter return/read-tier probes,
+  # including gemini-local read-write-scoped -> read-only browse and redacted
+  # non-zero stderr/stdout-error preservation. Mutation-RED: disable the
+  # gemini-local read-write-scoped branch in agent_request_read_tier -> RED.
   - agent_adapter_return_shape
   # B6 (ADDITIVE): direct Gemini HTTP API adapter (adapter:gemini-api). Executes
   # IN-PROCESS: admission (READ+REVIEW, not write-capable, not a CLI spec); no-key
@@ -124,6 +127,7 @@ text_contains:
       - tool-policy:web-capable
   - path: support/connection/agent_adapter.py
     texts:
+      - _CANONICAL_TOOL_UNIVERSE_GEMINI
       - def adapter_capabilities
       - def adapter_has_capability
       - def adapter_is_write_capable
@@ -144,6 +148,7 @@ text_contains:
       - WEB_CAPABLE_TOOL_POLICY_REF
   - path: support/connection/adapter_grant_policy.py
     texts:
+      - _gemini_admin_policy_partition_for_request
       - Web NOT available on this adapter
   - path: support/connection/adapter_subprocess.py
     texts:
@@ -291,14 +296,23 @@ text_contains:
       - def _extract_required_return_fields
       - Return one JSON object
       - unstructured prose
+  - path: support/connection/agent_adapter.py
+    texts:
+      - if request.adapter_ref == ADAPTER_GEMINI_LOCAL
   # MODULE-SEP god-module split (route-B, facade removed): the local-CLI
   # nonzero-error message builder (_local_cli_nonzero_error_message +
-  # stdout_error_excerpt) relocated to the adapter_local_cli.py sibling; the pins
-  # follow the moved strings to their real new home.
+  # stderr_error_path + stdout_error_excerpt) relocated to the adapter_local_cli.py
+  # sibling; the pins follow the moved strings to their real new home.
   - path: support/connection/adapter_local_cli.py
     texts:
       - stdout_error_excerpt
       - def _local_cli_nonzero_error_message
+      - stderr_error_path
+  - path: support/checkers/lib/kernel_checks.py
+    texts:
+      - gemini-local read-write-scoped request did not enter read tier
+      - gemini-local non-zero adapter error omitted
+      - gemini-client-error-probe.json
   - path: agent/return_fact.py
     texts:
       - TOP_LEVEL_VERDICT_KEYS
@@ -455,6 +469,9 @@ adapter_model_selection_case:
   - adapter_ref: adapter:claude-local
     selected_model_ref: model:claude:sonnet
     expected_cli_arg: sonnet
+  - adapter_ref: adapter:gemini-local
+    selected_model_ref: model:gemini:gemini-3.5-flash
+    expected_cli_arg: gemini-3.5-flash
   - adapter_ref: adapter:local
     selected_model_ref: model:default
     expected_cli_arg: ""
@@ -465,6 +482,8 @@ adapter_model_selection_rejects:
     selected_model_ref: model:codex:gpt-test
   - adapter_ref: adapter:local
     selected_model_ref: model:codex:gpt-test
+  - adapter_ref: adapter:gemini-local
+    selected_model_ref: model:gemini:bad model with spaces
 write_scope_default_exclude_case:
   - label: provider-residue-excluded
     case_kind: provider_residue_excluded

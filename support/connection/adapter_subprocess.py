@@ -154,8 +154,8 @@ def preflight_provider(adapter_ref: str) -> dict[str, Any]:
             "ok": False,
             "message_ko": (
                 "알 수 없는 provider예요. 지원하는 것: adapter:local, "
-                "adapter:codex-local, adapter:claude-local, adapter:gemini-api, "
-                "adapter:chat-session"
+                "adapter:codex-local, adapter:claude-local, adapter:gemini-local, "
+                "adapter:gemini-api, adapter:chat-session"
             ),
         }
 

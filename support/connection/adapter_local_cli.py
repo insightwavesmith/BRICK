@@ -5,14 +5,16 @@ extraction 7/7). PURE relocation -- no logic/name/signature change. This module
 owns the local-CLI invocation surface:
 
 * argv assembly + per-adapter CLI knobs: ``_invoke_local_cli`` (codex-exec /
-  claude-plan-json branches), ``_codex_sandbox_for_request``,
+  claude-plan-json / gemini-p-json-flash branches), ``_codex_sandbox_for_request``,
   ``_claude_cli_invocation``, ``_proof_limits_for_request``,
   ``_not_proven_for_request``;
 * the local-callable stub path: ``_invoke_local_callable``,
   ``_local_callable_smoke``, ``_BUILTIN_LOCAL_CALLABLES``;
 * the local-CLI dispatch + output/nonzero-error extraction:
   ``_invoke_local_cli_adapter``, ``_local_cli_nonzero_error_message``,
-  ``_stdout_error_excerpt``, ``_extract_output_text``.
+  ``_stdout_error_excerpt``, ``_stderr_gemini_client_error_path``,
+  ``_GEMINI_CLIENT_ERROR_PATH_RE``, ``_extract_output_text``,
+  ``_extract_gemini_response``, ``_gemini_nonread_tool_names``.
 
 The ``agent_adapter`` facade re-exports every symbol here (public AND
 underscore-private) so late-bound ``agent_adapter.<sym>`` access never breaks.
@@ -26,8 +28,8 @@ functions that still live in ``agent_adapter`` (the ``LocalCliSpec`` /
 ``probe_local_cli_adapter``, ``agent_request_effective_write`` /
 ``agent_request_read_tier``, ``_merge_texts``, ``_redacted_diagnostic_excerpt``,
 ``_try_json_value``, the ``_CLAUDE_*_SYSTEM_PROMPT`` constants,
-``_DEFAULT_PROOF_LIMITS`` / ``_DEFAULT_NOT_PROVEN``,
-``_BUILTIN_LOCAL_CALLABLES`` consumers) are reached
+``_DEFAULT_PROOF_LIMITS`` / ``_DEFAULT_NOT_PROVEN``, ``_GEMINI_API_KEY_ENV_VARS``,
+``_GEMINI_READ_TOOL_NAMES``, ``_BUILTIN_LOCAL_CALLABLES`` consumers) are reached
 LAZILY in-function (the ``from .agent_adapter import ...`` back-edge runs only at
 call time, after both modules are fully loaded) so there is no import cycle and
 the moved bodies keep their exact statements. ``AgentAdapterRequest`` /
@@ -50,10 +52,14 @@ from typing import Any, TYPE_CHECKING
 
 from .adapter_constants import (
     ADAPTER_CLAUDE_LOCAL,
+    ADAPTER_GEMINI_LOCAL,
 )
+from .adapter_gemini_http import _gemini_api_key_env_present
 from .adapter_grant_policy import (
     _build_prompt,
     _extract_required_return_fields,
+    _gemini_admin_policy_for_request,
+    _gemini_allowed_tool_names_for_request,
     _merge_structured_return_fields,
 )
 from .adapter_model_casting import (
@@ -127,6 +133,10 @@ _CLAUDE_AUTH_CARRY_ENV_KEYS: tuple[str, ...] = (
 _CODEX_AUTH_CARRY_ENV_KEYS: tuple[str, ...] = (
     "OPENAI_API_KEY",
     "CODEX_API_KEY",
+)
+_GEMINI_AUTH_CARRY_ENV_KEYS: tuple[str, ...] = (
+    "GEMINI_API_KEY",
+    "GOOGLE_API_KEY",
 )
 # LOCKED (0624 확정): the claude --setting-sources value that drops the user's
 # personal source (~/.claude skills + settings) while KEEPING project-level
@@ -377,6 +387,16 @@ def _claude_isolated_run_env() -> dict[str, str] | None:
     return env
 
 
+def _gemini_api_key_run_env(gemini_home: Path) -> dict[str, str]:
+    """Build the Gemini CLI room that forces API-key auth without touching user HOME."""
+
+    env = _scrubbed_base_env()
+    env["HOME"] = str(gemini_home)
+    env["GEMINI_CLI_TRUST_WORKSPACE"] = "true"
+    _carry_auth_env(env, _GEMINI_AUTH_CARRY_ENV_KEYS)
+    return env
+
+
 def _invoke_local_callable(
     request: AgentAdapterRequest,
     local_callables: Mapping[str, AgentBrainCallable] | None,
@@ -526,6 +546,7 @@ def _invoke_local_cli(
 ) -> LocalCliCompleted:
     from .agent_adapter import (
         LocalCliCompleted,
+        _GEMINI_API_KEY_ENV_VARS,
         agent_request_read_tier,
     )
 
@@ -719,6 +740,60 @@ def _invoke_local_cli(
         args_list.append(prompt)
         args = tuple(args_list)
         return _run_or_delegate(args, cwd, timeout_seconds, command_runner, env=run_env)
+    if spec.invocation_args_kind == "gemini-p-json-flash":
+        with tempfile.TemporaryDirectory(prefix="bp-gemini-cli-") as tmpdir:
+            temp_root = Path(tmpdir)
+            read_tier = agent_request_read_tier(request)
+            allowed_gemini_tools = _gemini_allowed_tool_names_for_request(request)
+            native_tool_tier = bool(allowed_gemini_tools)
+            policy_path = temp_root / (
+                "native-grant-policy.toml" if native_tool_tier else "no-tools-policy.toml"
+            )
+            policy_path.write_text(
+                _gemini_admin_policy_for_request(request),
+                encoding="utf-8",
+            )
+            run_cwd = cwd if read_tier else temp_root
+            gemini_home = temp_root / "home"
+            gemini_settings_dir = gemini_home / ".gemini"
+            gemini_settings_dir.mkdir(parents=True)
+            (gemini_settings_dir / "settings.json").write_text(
+                json.dumps(
+                    {"security": {"auth": {"selectedType": "gemini-api-key"}}},
+                    sort_keys=True,
+                ),
+                encoding="utf-8",
+            )
+            run_env = _gemini_api_key_run_env(gemini_home)
+            if not _gemini_api_key_env_present(run_env):
+                raise FileNotFoundError(
+                    "gemini-local requires an API key in env "
+                    + " or ".join(_GEMINI_API_KEY_ENV_VARS)
+                    + " (none set)"
+                )
+            model_arg = _model_cli_arg(request, spec) or "gemini-3.5-flash"
+            args = (
+                executable_path,
+                "-p",
+                prompt,
+                "--output-format",
+                "json",
+                "--model",
+                model_arg,
+                "--yolo",
+                "--extensions",
+                "",
+                "--admin-policy",
+                str(policy_path),
+                "--skip-trust",
+            )
+            return _run_or_delegate(
+                args,
+                run_cwd,
+                timeout_seconds,
+                command_runner,
+                env=run_env,
+            )
     raise ValueError("unsupported local CLI adapter kind")
 
 
@@ -838,6 +913,11 @@ def _claude_cli_invocation(request: AgentAdapterRequest) -> dict[str, str]:
     }
 
 
+_GEMINI_CLIENT_ERROR_PATH_RE = re.compile(
+    r"""[^\s'"`<>]*gemini-client-error-[^\s'"`<>]*\.json"""
+)
+
+
 def _local_cli_nonzero_error_message(spec: LocalCliSpec, completed: LocalCliCompleted) -> str:
     from .agent_adapter import _redacted_diagnostic_excerpt
 
@@ -852,6 +932,9 @@ def _local_cli_nonzero_error_message(spec: LocalCliSpec, completed: LocalCliComp
     stdout_error_excerpt = _stdout_error_excerpt(completed.stdout)
     if stdout_error_excerpt:
         parts.append(f"stdout_error_excerpt={stdout_error_excerpt}")
+    stderr_error_path = _stderr_gemini_client_error_path(completed.stderr)
+    if stderr_error_path:
+        parts.append(f"stderr_error_path={stderr_error_path}")
     return "; ".join(parts)
 
 
@@ -869,14 +952,31 @@ def _stdout_error_excerpt(stdout: str) -> str:
     return _redacted_diagnostic_excerpt(text, limit=360)
 
 
+def _stderr_gemini_client_error_path(stderr: str) -> str:
+    from .agent_adapter import _redacted_diagnostic_excerpt
+
+    match = _GEMINI_CLIENT_ERROR_PATH_RE.search(stderr)
+    if not match:
+        return ""
+    return _redacted_diagnostic_excerpt(match.group(0), limit=240)
+
+
 def _extract_output_text(
     spec: LocalCliSpec,
     completed: LocalCliCompleted,
     *,
     request: AgentAdapterRequest,
 ) -> tuple[str, tuple[str, ...]]:
-    """Return (output_text, observed_non_granted_gemini_tools)."""
+    """Return (output_text, observed_non_granted_gemini_tools).
 
+    Only the gemini path can observe non-granted tools (move+record only); the
+    other adapters always report an empty observed-tool tuple."""
+
+    if spec.adapter_ref == ADAPTER_GEMINI_LOCAL:
+        return _extract_gemini_response(
+            completed.stdout,
+            allowed_tool_names=_gemini_allowed_tool_names_for_request(request),
+        )
     if spec.adapter_ref == ADAPTER_CLAUDE_LOCAL and completed.stdout.strip():
         try:
             payload = json.loads(completed.stdout)
@@ -889,3 +989,81 @@ def _extract_output_text(
                     return value, ()
         return completed.stdout, ()
     return completed.stdout or completed.stderr, ()
+
+
+def _extract_gemini_response(
+    stdout: str,
+    *,
+    allowed_tool_names: Iterable[str] | None = None,
+) -> tuple[str, tuple[str, ...]]:
+    """Smith 0623 LOCK (move+record only): return the real Gemini answer plus the
+    observed NON-GRANTED tool names as RECORDED FACT.
+
+    The shape/integrity raises (output not JSON, not an object, missing response
+    text) STAY -- those are not policy stops, the support helper cannot carry a
+    payload it failed to parse. But a non-granted tool call is a POLICY observation,
+    not floor-ripping: it no longer refuses the payload. The response is returned and
+    the observed non-read tool names ride back so the caller records them."""
+
+    try:
+        payload = json.loads(stdout)
+    except json.JSONDecodeError as exc:
+        raise ValueError("Gemini local CLI output was not JSON") from exc
+    if not isinstance(payload, Mapping):
+        raise ValueError("Gemini local CLI JSON output must be an object")
+    stats = payload.get("stats")
+    nonread_tool_names = _gemini_nonread_tool_names(
+        stats,
+        allowed_tool_names=allowed_tool_names,
+    )
+    response = payload.get("response")
+    if not isinstance(response, str) or not response.strip():
+        raise ValueError("Gemini local CLI JSON output missing response text")
+    return response, tuple(nonread_tool_names)
+
+
+def _gemini_nonread_tool_names(
+    stats: Any,
+    *,
+    allowed_tool_names: Iterable[str] | None = None,
+) -> tuple[str, ...]:
+    from .agent_adapter import (
+        _GEMINI_BENIGN_CONTROL_TOOL_NAMES,
+        _GEMINI_READ_TOOL_NAMES,
+    )
+
+    if not isinstance(stats, Mapping):
+        return ()
+    tools = stats.get("tools")
+    if not isinstance(tools, Mapping):
+        return ()
+    by_name = tools.get("byName")
+    if by_name is None:
+        return ()
+    names: set[str] = set()
+    if isinstance(by_name, Mapping):
+        names.update(str(name) for name in by_name)
+    elif isinstance(by_name, Sequence) and not isinstance(by_name, (str, bytes, bytearray)):
+        for item in by_name:
+            if isinstance(item, Mapping):
+                raw_name = item.get("name") or item.get("toolName") or item.get("tool_name")
+                if raw_name:
+                    names.add(str(raw_name))
+            elif item:
+                names.add(str(item))
+    else:
+        raise ValueError("Gemini local CLI stats.tools.byName must be an object or list")
+    # PART 1 (faithful-to-grant): treat a reported tool as a violation ONLY if it is
+    # NOT in the full GRANTED allowed set (read + web + write as actually granted,
+    # produced by ``_gemini_allowed_tool_names_for_request`` and threaded in via
+    # ``allowed_tool_names``) -- not merely the read set. A genuinely-granted web/write
+    # tool that already passed the launch-time admin-policy must not be re-flagged here.
+    # Fail-closed: when the granted set was NOT resolved (``allowed_tool_names is None``)
+    # fall back to read-only -- do NOT widen.
+    granted = set(_GEMINI_READ_TOOL_NAMES if allowed_tool_names is None else allowed_tool_names)
+    # PART 2 (benign control plane): gemini's own completion/orchestration control
+    # tools have no repo/external side effect and are NEVER a violation, independent of
+    # what capability the Brick granted. Layered on top of the granted set, never inside
+    # it (they are not a grantable capability).
+    allowed = granted | set(_GEMINI_BENIGN_CONTROL_TOOL_NAMES)
+    return tuple(sorted(name for name in names if name not in allowed))

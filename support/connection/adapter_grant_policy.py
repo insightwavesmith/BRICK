@@ -1,4 +1,4 @@
-"""Native-grant resolution + work-envelope prompt build.
+"""Native-grant resolution + gemini admin-policy + work-envelope prompt build.
 
 Extracted VERBATIM from ``support/connection/agent_adapter.py`` (E2 split,
 extraction 5/7). PURE relocation -- no logic/name/signature change. This module
@@ -6,6 +6,8 @@ owns:
 
 * Native-grant resolution (``_native_grant_resolution_for_request`` and the
   capability/web projection helpers built on it).
+* Gemini admin-policy TOML projection (``_gemini_*`` partition/policy helpers +
+  ``_toml_tool_rule``).
 * Work-envelope prompt build (``_build_prompt`` +
   ``_instruction_packet_for_prompt``).
 * Structured-return extraction (``_extract_required_return_fields``,
@@ -18,8 +20,9 @@ underscore-private) so late-bound ``agent_adapter.<sym>`` access never breaks.
 This module imports siblings DIRECTLY (adapter_constants) and NEVER
 ``from support.connection.agent_adapter import ...`` at top level (cycle). The
 stay-behind carriers, constants, and helper functions that still live in
-``agent_adapter`` (``_RETURN_JSON_FIELDS``, ``_RETURN_LIST_FIELDS``,
-``_TOP_LEVEL_VERDICT_KEYS``, ``adapter_has_capability``,
+``agent_adapter`` (``_CANONICAL_TOOL_UNIVERSE_GEMINI``,
+``_GEMINI_TOOLS_BY_NATIVE_CAPABILITY``, ``_RETURN_JSON_FIELDS``,
+``_RETURN_LIST_FIELDS``, ``_TOP_LEVEL_VERDICT_KEYS``, ``adapter_has_capability``,
 ``agent_request_effective_write``, ``agent_request_read_tier``,
 ``_required_return_shape_fields``, ``_return_field_waivers``,
 ``_allowed_return_fields``, ``_read_tier_policy_refs_for_request``,
@@ -44,7 +47,9 @@ from typing import Any, TYPE_CHECKING
 from .adapter_constants import (
     ADAPTER_CAPABILITY_READ,
     ADAPTER_CAPABILITY_WEB,
+    ADAPTER_CAPABILITY_WRITE,
     ADAPTER_CODEX_LOCAL,
+    ADAPTER_GEMINI_LOCAL,
 )
 
 if TYPE_CHECKING:
@@ -88,6 +93,59 @@ def _adapter_projects_web_for_request(request: AgentAdapterRequest) -> bool:
         ADAPTER_CAPABILITY_WEB in _native_capabilities_for_request(request)
         and adapter_has_capability(request.adapter_ref, ADAPTER_CAPABILITY_WEB)
     )
+
+
+def _gemini_allowed_tool_names_for_request(request: AgentAdapterRequest) -> frozenset[str]:
+    from .agent_adapter import _GEMINI_TOOLS_BY_NATIVE_CAPABILITY
+
+    capabilities = _native_capabilities_for_request(request)
+    allowed: set[str] = set()
+    for capability in (ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_WEB, ADAPTER_CAPABILITY_WRITE):
+        if capability in capabilities:
+            allowed.update(_GEMINI_TOOLS_BY_NATIVE_CAPABILITY.get(capability, frozenset()))
+    return frozenset(allowed)
+
+
+def _gemini_admin_policy_partition_for_request(
+    request: AgentAdapterRequest,
+) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    from .agent_adapter import _CANONICAL_TOOL_UNIVERSE_GEMINI
+
+    allowed_set = _gemini_allowed_tool_names_for_request(request)
+    universe_set = set(_CANONICAL_TOOL_UNIVERSE_GEMINI)
+    unknown_allowed = sorted(allowed_set - universe_set)
+    if unknown_allowed:
+        raise ValueError(
+            "gemini native grant projected tools outside canonical universe: "
+            + ", ".join(unknown_allowed)
+        )
+    allowed = tuple(tool for tool in _CANONICAL_TOOL_UNIVERSE_GEMINI if tool in allowed_set)
+    denied = tuple(tool for tool in _CANONICAL_TOOL_UNIVERSE_GEMINI if tool not in allowed_set)
+    if set(allowed).intersection(denied) or set(allowed).union(denied) != universe_set:
+        raise ValueError("gemini native grant tool partition is not exhaustive")
+    return allowed, denied
+
+
+def _toml_tool_rule(tool_names: tuple[str, ...], *, decision: str, priority: int) -> str:
+    lines = [
+        "[[rule]]",
+        "toolName = [",
+        *[f'  "{tool_name}",' for tool_name in tool_names],
+        "]",
+        f'decision = "{decision}"',
+        f"priority = {priority}",
+    ]
+    return "\n".join(lines)
+
+
+def _gemini_admin_policy_for_request(request: AgentAdapterRequest) -> str:
+    allowed, denied = _gemini_admin_policy_partition_for_request(request)
+    blocks: list[str] = []
+    if allowed:
+        blocks.append(_toml_tool_rule(allowed, decision="allow", priority=998))
+    if denied:
+        blocks.append(_toml_tool_rule(denied, decision="deny", priority=999))
+    return "\n\n".join(blocks) + "\n"
 
 
 def _build_prompt(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
@@ -170,6 +228,18 @@ def _build_prompt(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
             rules.append("Do not use network beyond the selected provider itself.")
     else:
         rules.append("Do not use tools or hooks.")
+    if spec.adapter_ref == ADAPTER_GEMINI_LOCAL:
+        if agent_request_read_tier(request) or web_projected:
+            rules.append(
+                "Gemini local native grant may use only read_file, glob, grep_search, search_file_content, list_directory, read_many_files, and when web-capable is present google_web_search/web_fetch; write and shell tools remain blocked."
+            )
+        rules.extend(
+            (
+                "Do not call exit_plan_mode or any plan-finalization tool.",
+                "Do not write output_packet_ref; it is an evidence label, not a file path.",
+                "Return the requested evidence in the CLI response text only.",
+            )
+        )
     prompt = {
         "task": "Return provider-neutral Brick Protocol support evidence only.",
         "rules": rules,

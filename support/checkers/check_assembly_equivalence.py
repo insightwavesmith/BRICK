@@ -1604,7 +1604,7 @@ def _mandated_example_graphs(repo: Path):
                     [
                         "code-attack-qa",
                         gemini_work,
-                        {"adapter": "gemini-api", "returns": SOURCE_RETURN_SHAPE, "label": "code-gemini"},
+                        {"adapter": "gemini-local", "returns": SOURCE_RETURN_SHAPE, "label": "code-gemini"},
                     ],
                     [
                         "code-attack-qa",
@@ -1620,7 +1620,7 @@ def _mandated_example_graphs(repo: Path):
     inspect = brick("inspect", insp_work)
     dev = brick("development", dev_work, write=True)
     code_gemini = brick(
-        "code-attack-qa", gemini_work, adapter="gemini-api", returns=SOURCE_RETURN_SHAPE, alias="code-gemini"
+        "code-attack-qa", gemini_work, adapter="gemini-local", returns=SOURCE_RETURN_SHAPE, alias="code-gemini"
     )
     code_claude = brick(
         "code-attack-qa", claude_work, adapter="claude-local", returns=SOURCE_RETURN_SHAPE, alias="code-claude"

@@ -57,6 +57,7 @@ text_contains:
   - path: support/connection/adapter_grant_policy.py
     texts:
       - read-only repository inspection tools only
+      - Gemini local native grant may use only read_file, glob, grep_search, search_file_content, list_directory, read_many_files, and when web-capable is present google_web_search/web_fetch; write and shell tools remain blocked.
 json_required_paths:
   - path: agent/objects/cto-lead.yaml
     required:
@@ -118,7 +119,7 @@ agent_resource_boundary:
       - adapter:local
       - adapter:codex-local
       - adapter:claude-local
-      - adapter:gemini-api
+      - adapter:gemini-local
     forbidden_tool_policy_refs:
       - tool-policy:review-readonly
     forbidden_adapter_refs:
