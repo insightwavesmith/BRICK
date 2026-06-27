@@ -23,10 +23,16 @@ ADMITTED_PROFILES = {"planning-v0"}
 # FRONTIER-FOSSIL (Smith disposition 0612, option c): adapter-30-s1-park's map
 # was REWRITTEN by the PRE-REPAIR crashed-resume frontier writer (phantom
 # binding/edge/group refs), and the building is unresumable by design (no held
-# record predates the fix). Evidence is append-only, so the map cannot be
-# corrected. This dated registry names THAT ONE building as a preserved fossil;
-# it exempts nothing else — any other map with the same defects still REDs.
-CRASHED_RESUME_FOSSIL_BUILDING_IDS: set[str] = {"adapter-30-s1-park"}
+# record predates the fix). gemini-adapter-fileread-0626 is the same append-only
+# malformed frontier-map class from the 0626 Gemini adapter investigation: raw
+# evidence shows the run paused after one Agent return, while the map mixed
+# unresolved declared fan-out/fan-in edges into the realized projection. Evidence
+# is append-only, so these maps cannot be corrected. This dated registry names
+# only the preserved fossils; any other map with the same defects still REDs.
+CRASHED_RESUME_FOSSIL_BUILDING_IDS: set[str] = {
+    "adapter-30-s1-park",
+    "gemini-adapter-fileread-0626",
+}
 
 BINDING_ROLES = {"primary", "support", "review"}
 EDGE_ROLES = {
