@@ -21,7 +21,10 @@ import dataclasses
 from collections.abc import Mapping
 from typing import Any
 
-from brick_protocol.agent.return_fact import validate_transition_concern_evidence
+from brick_protocol.agent.return_fact import (
+    NON_REROUTE_CONCERN_KINDS,
+    validate_transition_concern_evidence,
+)
 from brick_protocol.support.operator.contracts import BuildingRunSupportResult
 from brick_protocol.support.operator.primitives import _optional_text_value
 from brick_protocol.support.operator.walker_hold import _build_hold
@@ -57,15 +60,17 @@ class _RerouteTargetClassification:
     - ``ambiguous``   two or more named refs remain after the source Brick node
                       is stripped -> NO single owner; the machine must NOT pick
                       one -> the caller HOLDs.
-    - ``non_reroute`` no actionable Brick ref remains: either zero brick refs
-                      resolve, the list is NON-EMPTY, and EVERY named ref is a
-                      building-boundary: sentinel (no Brick node targeted), OR
-                      stripping the source Brick node leaves no resolving Brick
-                      node -> an EXPLICIT non-reroute concern -> the caller
-                      WALKS ON (carry forward), it does NOT HOLD.
+    - ``non_reroute`` no actionable Brick ref remains: either the concern kind
+                      is admitted as non-reroute and names no refs, zero brick
+                      refs resolve, the list is NON-EMPTY, and EVERY named ref
+                      is a building-boundary: sentinel (no Brick node targeted),
+                      OR stripping the source Brick node leaves no resolving
+                      Brick node -> an EXPLICIT non-reroute concern -> the
+                      caller WALKS ON (carry forward), it does NOT HOLD.
     - ``none``        zero named refs resolve while a concern IS present AND the
-                      non_reroute carve-out does not apply (empty list, or a
-                      brick-targeting ref that failed to resolve) -> the
+                      non_reroute carve-out does not apply (empty list for a
+                      reroute-eligible concern kind, or a brick-targeting ref
+                      that failed to resolve) -> the
                       unaddressable concern must NOT be silently dropped -> the
                       caller HOLDs.
 
@@ -107,10 +112,10 @@ def _classify_reroute_target(
     ALL building-boundary: sentinels (NO Brick-targeting ref) is an EXPLICIT
     non-reroute concern -- the Agent raised a concern but proposed no reroute
     address -- and is classified ``non_reroute`` so the caller WALKS ON (the old
-    engine did) instead of HOLDing on an absent address. The walk-on is allowed
-    ONLY when the list is non-empty AND every ref is building-boundary:-prefixed;
-    an empty list, or any non-building-boundary ref that fails to resolve, still
-    falls through to ``none`` (HOLD).
+    engine did) instead of HOLDing on an absent address. For concern kinds that
+    are admitted as non-reroute (currently verification_gap), an empty
+    related_boundary_refs list is also non-reroute evidence. Empty refs for
+    reroute-eligible kinds still fall through to ``none`` (HOLD).
 
     STRICT carve-out (Smith ruling): an UNRESOLVABLE brick-targeting ref (named,
     not a declared Brick, not a building-boundary: sentinel = a garbage/typo/stale
@@ -141,6 +146,9 @@ def _classify_reroute_target(
             if brick_ref in declared_bricks and brick_ref not in seen:
                 seen.add(brick_ref)
                 resolved.append(brick_ref)
+    concern_kind = _optional_text_value(concern.get("concern_kind"))
+    if concern_kind in NON_REROUTE_CONCERN_KINDS and not text_refs:
+        return _RerouteTargetClassification(kind="non_reroute", resolved=())
     # STRICT (Smith ruling): a named, non-resolving, non-building-boundary: ref is
     # a garbage brick-targeting address. When such garbage CO-OCCURS with an
     # otherwise-valid resolving ref, today the garbage is silently dropped and the

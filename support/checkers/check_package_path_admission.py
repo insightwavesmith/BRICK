@@ -1324,6 +1324,15 @@ def is_project_building_lifecycle_path(path: str, *, is_dir: bool) -> bool:
     if len(parts) == 3:
         return is_dir
 
+    if len(parts) == 4 and not is_dir:
+        filename = parts[3]
+        suffix = "-composed-plan.json"
+        stem = filename[: -len(suffix)] if filename.endswith(suffix) else ""
+        # support/operator/onboard.py persists a pre-run frozen composed-plan
+        # input at the buildings root before the Building evidence root exists.
+        # The later run copies the same declared plan into the Building root.
+        return bool(stem and slug_part(stem))
+
     building_id = parts[3]
     if not building_id:
         return False

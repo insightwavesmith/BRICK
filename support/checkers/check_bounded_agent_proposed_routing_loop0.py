@@ -3356,6 +3356,54 @@ def check(repo: Path) -> list[str]:
             f"declared execution_order ({vg_sentinel_step_refs})"
         )
 
+    plan_vg_empty, _ = _checker_plan(
+        "bapr-loop0-qa-verification-gap-empty",
+        budget=1,
+    )
+    source_vg_empty = "brick-bapr-loop0-qa-verification-gap-empty-review"
+    try:
+        validate_transition_concern_evidence(
+            {
+                "concern_ref": f"transition-concern:{source_vg_empty}",
+                "concern_kind": "verification_gap",
+                "binding": False,
+                "reason_refs": [f"brick-comparison:{source_vg_empty}"],
+                "related_boundary_refs": [],
+            }
+        )
+    except ValueError as exc:
+        violations.append(
+            "qa-verification-gap-empty: validator rejected the empty non-reroute "
+            f"channel ({exc})"
+        )
+    res_vg_empty, fr_vg_empty, rec_vg_empty = _run(
+        plan_vg_empty,
+        _multi_ref_concern_callable(
+            source_vg_empty,
+            [],
+            concern_kind="verification_gap",
+        ),
+        repo,
+    )
+    if rec_vg_empty:
+        violations.append(
+            "qa-verification-gap-empty: empty non-reroute verification_gap produced "
+            f"reroute/HOLD records ({rec_vg_empty})"
+        )
+    if fr_vg_empty["frontier_kind"] not in {"complete", "closure_pending"}:
+        violations.append(
+            "qa-verification-gap-empty: empty non-reroute verification_gap did not "
+            f"walk on (frontier={fr_vg_empty['frontier_kind']})"
+        )
+    vg_empty_step_refs = [
+        r.preparation.step_rows.step_ref for r in res_vg_empty.step_results
+    ]
+    if vg_empty_step_refs != list(plan_vg_empty["execution_order"]):
+        violations.append(
+            "qa-verification-gap-empty: empty non-reroute verification_gap altered "
+            f"declared execution_order ({vg_empty_step_refs})"
+        )
+
     # FIX A -- KNOT-4 resolver FIRE (non-reroute MIXED): the sentinel-only fixture
     # above does NOT catch an all(...)->any(...) mutation at
     # walker_transition_concern.py:121 (with an ALL-sentinel list, all() and any()
