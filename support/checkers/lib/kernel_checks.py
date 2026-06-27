@@ -9581,6 +9581,7 @@ def _assert_brick_cli_probe(label: str, completed: subprocess.CompletedProcess[s
 
 
 def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
+    from brick_protocol.support.operator.composition_compose import compose_building
     from brick_protocol.support.operator.composition_intent import materialize_building_intent
 
     parser = cli.build_parser()
@@ -9926,6 +9927,172 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
                 "brick_cli_entrypoint_smoke: graph render did not expose build_input_mode"
             )
 
+    with tempfile.TemporaryDirectory(prefix="bp-cli-large-invalid-") as tmp:
+        invalid_large_output = Path(tmp) / "must-not-exist"
+        invalid_large_args = parser.parse_args(
+            [
+                "build",
+                "--large",
+                "--task",
+                "large fixture task",
+                "--dev-lanes",
+                "1",
+                "--output-root",
+                str(invalid_large_output),
+            ]
+        )
+        try:
+            cli._run_build(invalid_large_args)
+        except ValueError as exc:
+            if "--dev-lanes must be an integer from 2 through 8" not in str(exc):
+                raise ProfileError(
+                    "brick_cli_entrypoint_smoke: --dev-lanes 1 rejected "
+                    f"with wrong reason: {exc}"
+                ) from exc
+        else:
+            raise ProfileError("brick_cli_entrypoint_smoke: --dev-lanes 1 was accepted")
+        if invalid_large_output.exists():
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: invalid --large invocation created "
+                "output_root before lower-bound validation"
+            )
+
+    for lane_count in (2, 3, 8):
+        lane_args = parser.parse_args(
+            [
+                "build",
+                "--large",
+                "--task",
+                "large fixture task",
+                "--building-id",
+                f"cli-large-{lane_count}",
+                "--adapter",
+                "adapter:codex-local",
+                "--dev-lanes",
+                str(lane_count),
+            ]
+        )
+        lane_packet = cli._p3_easy_large_graph_packet(lane_args)
+        packet_text = json.dumps(lane_packet, sort_keys=True)
+        if "adapter:gemini-api" in packet_text:
+            raise ProfileError("brick_cli_entrypoint_smoke: --large packet revived adapter:gemini-api")
+        if lane_packet.get("dev_lanes") != lane_count:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large packet recorded wrong dev_lanes "
+                f"for {lane_count}: {lane_packet.get('dev_lanes')!r}"
+            )
+        groups = lane_packet.get("groups")
+        if not isinstance(groups, list) or len(groups) != 2:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large packet must declare fan_out and fan_in groups"
+            )
+        for group in groups:
+            member_refs = group.get("member_refs") if isinstance(group, Mapping) else None
+            if not isinstance(member_refs, list) or len(member_refs) != lane_count:
+                raise ProfileError(
+                    "brick_cli_entrypoint_smoke: --large group member count did not "
+                    f"match dev lanes {lane_count}: {groups!r}"
+                )
+        if "adapter:gemini-local" not in packet_text:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large packet did not include final "
+                "adapter:gemini-local axis/evidence QA"
+            )
+        try:
+            compose_building(
+                lane_packet["nodes"],
+                lane_packet["edges"],
+                groups=lane_packet["groups"],
+                selected_shape_ref=str(lane_packet.get("selected_shape_ref") or ""),
+                declared_by=str(lane_packet["declared_by"]),
+                chain_preset_ref="",
+                building_id=str(lane_packet["building_id"]),
+                selected_adapter_ref=str(lane_packet["selected_adapter_ref"]),
+                selected_model_ref=str(lane_packet["selected_model_ref"]),
+                transition_concern_adoption=str(lane_packet["transition_concern_adoption"]),
+                repo_root=repo,
+            )
+        except Exception as exc:  # noqa: BLE001 - checker reports exact composition symptom
+            raise ProfileError(
+                f"brick_cli_entrypoint_smoke: --large --dev-lanes {lane_count} "
+                f"did not compose through the graph seam: {exc}"
+            ) from exc
+
+    with tempfile.TemporaryDirectory(prefix="bp-cli-large-home-") as home_tmp:
+        large_call: dict[str, Any] = {}
+
+        class FakeLargeResult:
+            building_id = "cli-large-wrapper"
+            isolation_mode = "worktree"
+            isolation_reason = "checker synthetic"
+            base_sha = "abc123"
+            worktree_path = "/tmp/checker-large-worktree"
+            evidence_root = "/Users/smith/.brick/project/brick-protocol/buildings/cli-large-wrapper"
+            frontier_kind = "agent_incomplete"
+            commit_sha = ""
+            worktree_disposed = True
+            intake_result = None
+
+        original_graph_runner = cli.run_customer_graph_building_in_sandbox
+        old_home = os.environ.get("HOME")
+        try:
+            os.environ["HOME"] = home_tmp
+
+            def fake_large_runner(packet: Mapping[str, Any], **kwargs: Any) -> FakeLargeResult:
+                large_call["packet"] = dict(packet)
+                large_call["kwargs"] = dict(kwargs)
+                return FakeLargeResult()
+
+            cli.run_customer_graph_building_in_sandbox = fake_large_runner
+            large_build_args = parser.parse_args(
+                [
+                    "build",
+                    "--large",
+                    "--task",
+                    "large wrapper task",
+                    "--building-id",
+                    "cli-large-wrapper",
+                    "--dev-lanes",
+                    "3",
+                    "--json",
+                ]
+            )
+            large_result = cli._run_build(large_build_args)
+        finally:
+            cli.run_customer_graph_building_in_sandbox = original_graph_runner
+            if old_home is None:
+                os.environ.pop("HOME", None)
+            else:
+                os.environ["HOME"] = old_home
+
+        expected_root = "/Users/smith/.brick/project/brick-protocol/buildings"
+        if large_result.get("build_input_mode") != "p3_easy_large_graph":
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large build did not expose "
+                "build_input_mode=p3_easy_large_graph"
+            )
+        if large_result.get("dev_lanes") != 3:
+            raise ProfileError("brick_cli_entrypoint_smoke: --large result lost dev_lanes")
+        if str(large_call.get("kwargs", {}).get("output_root")) != expected_root:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large graph wrapper dispatch did not "
+                "receive the active Slack-facing vessel root"
+            )
+        if large_call.get("kwargs", {}).get("customer_repo_root") != repo:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large graph wrapper dispatch did not receive repo root"
+            )
+        if large_call.get("packet", {}).get("dev_lanes") != 3:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large graph wrapper dispatch did not "
+                "receive declared dev_lanes"
+            )
+        rendered_large = cli._render_build(large_result)
+        if "build_input_mode: p3_easy_large_graph" not in rendered_large:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large render did not expose build_input_mode"
+            )
+
     conflict_args = parser.parse_args(
         ["build", "--graph", str(graph_path), "--task", "also task"]
     )
@@ -9939,7 +10106,7 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
     else:
         raise ProfileError("brick_cli_entrypoint_smoke: graph/task conflict was accepted")
 
-    return 6
+    return 10
 
 
 def _brick_cli_work_brick_rows(plan: Mapping[str, Any]) -> list[Mapping[str, Any]]:

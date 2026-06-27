@@ -58,6 +58,9 @@ DEFAULT_EXAMPLE_TASK_SOURCE_REF = "brick/templates/tasks/source-template.md"
 DEFAULT_LOCAL_PRESET_REF = "building-chain-preset:onboarding-example-graph"
 DEFAULT_REAL_TASK_PRESET_REF = "building-chain-preset:fast-fix"
 DEFAULT_DECLARED_BY = "coo"
+P3_EASY_LARGE_DEFAULT_DEV_LANES = 2
+P3_EASY_LARGE_MIN_DEV_LANES = 2
+P3_EASY_LARGE_MAX_DEV_LANES = 8
 REAL_PROVIDER_MODEL_REFS = {
     ADAPTER_CLAUDE_LOCAL: MODEL_REF_CLAUDE_INHERIT,
     ADAPTER_CODEX_LOCAL: MODEL_REF_CODEX_DEFAULT,
@@ -325,9 +328,315 @@ def _load_graph_packet(path: str) -> dict[str, Any]:
     return graph_packet
 
 
+def _large_dev_lane_count(args: argparse.Namespace) -> int:
+    raw = getattr(args, "dev_lanes", P3_EASY_LARGE_DEFAULT_DEV_LANES)
+    try:
+        count = int(raw)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("--dev-lanes must be an integer from 2 through 8") from exc
+    if count < P3_EASY_LARGE_MIN_DEV_LANES or count > P3_EASY_LARGE_MAX_DEV_LANES:
+        raise ValueError("--dev-lanes must be an integer from 2 through 8")
+    return count
+
+
+def _p3_easy_large_node(
+    node_id: str,
+    step_template_ref: str,
+    work_statement: str,
+    *,
+    adapter_ref: str | None = None,
+    model_ref: str | None = None,
+    write_scope: Mapping[str, Any] | None = None,
+    requires_brick_write_scope: bool = False,
+    required_return_shape: str = "",
+    node_reroute_budget: int | None = None,
+    completion_edge_ref: str = "",
+    closure_transition_target_policy: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    node: dict[str, Any] = {
+        "node_id": node_id,
+        "step_ref": node_id,
+        "step_template_ref": step_template_ref,
+        "work_statement": work_statement,
+    }
+    if adapter_ref:
+        node["selected_adapter_ref"] = adapter_ref
+    if model_ref:
+        node["selected_model_ref"] = model_ref
+    if write_scope is not None:
+        node["write_scope"] = dict(write_scope)
+    if requires_brick_write_scope:
+        node["requires_brick_write_scope"] = True
+    if required_return_shape:
+        node["required_return_shape"] = required_return_shape
+    if node_reroute_budget is not None:
+        node["node_reroute_budget"] = node_reroute_budget
+    if completion_edge_ref:
+        node["completion_edge_ref"] = completion_edge_ref
+    if closure_transition_target_policy is not None:
+        node["closure_transition_target_policy"] = dict(closure_transition_target_policy)
+    return node
+
+
+def _p3_easy_large_edge(edge_ref: str, source: str, target: str) -> dict[str, Any]:
+    return {
+        "edge_ref": edge_ref,
+        "source": source,
+        "target": target,
+        "movement": "forward",
+    }
+
+
+def _p3_easy_large_graph_packet(args: argparse.Namespace) -> dict[str, Any]:
+    task = (getattr(args, "task", "") or "").strip()
+    if not task:
+        raise ValueError("--large requires --task")
+    if getattr(args, "graph_packet", ""):
+        raise ValueError("declare either --large or graph packet mode, not both")
+    if (getattr(args, "task_source_ref", "") or "") != DEFAULT_EXAMPLE_TASK_SOURCE_REF:
+        raise ValueError("--large accepts inline --task only, not --task-source-ref")
+    if (getattr(args, "preset", "") or "").strip():
+        raise ValueError("--large declares the P3 graph directly and does not accept --preset")
+    adapter = (getattr(args, "adapter", "") or ADAPTER_CODEX_LOCAL).strip()
+    if adapter not in ALLOWED_ADAPTER_REFS:
+        raise ValueError(f"adapter_ref is not admitted for customer CLI: {adapter}")
+    if not adapter_is_write_capable(adapter):
+        raise ValueError("--large requires a write-capable adapter")
+
+    building_id = args.building_id or _task_building_id()
+    dev_lanes = _large_dev_lane_count(args)
+    write_scope = derived_worktree_write_scope()
+    lane_return = "observed_evidence, not_proven"
+
+    prefix = building_id
+    intake = f"{prefix}-task-intake"
+    design = f"{prefix}-design"
+    design_axis = f"{prefix}-design-axis-inspect"
+    plan_confirm = f"{prefix}-closure-plan-confirmation"
+    integration = f"{prefix}-integration-summary"
+    final_code_qa = f"{prefix}-final-codex-code-qa"
+    final_axis_qa = f"{prefix}-final-gemini-axis-evidence-qa"
+    closure = f"{prefix}-codex-closure"
+
+    nodes: list[dict[str, Any]] = [
+        _p3_easy_large_node(
+            intake,
+            "building-step-template:inspect",
+            f"Task intake for large P3 work: {task}",
+        ),
+        _p3_easy_large_node(
+            design,
+            "building-step-template:design",
+            f"Design the large P3 work before implementation: {task}",
+        ),
+        _p3_easy_large_node(
+            design_axis,
+            "building-step-template:axis-attack-qa",
+            "Inspect the design for Brick/Agent/Link boundaries before lane work.",
+            adapter_ref=ADAPTER_GEMINI_LOCAL,
+            model_ref=MODEL_REF_GEMINI_DEFAULT,
+            write_scope=write_scope,
+            requires_brick_write_scope=True,
+            required_return_shape=lane_return,
+        ),
+        _p3_easy_large_node(
+            plan_confirm,
+            "building-step-template:closure",
+            "Confirm the lane plan and carry open proof limits before parallel dev lanes.",
+            completion_edge_ref=f"edge:{prefix}-plan-confirmation-to-dev-lane-1",
+            node_reroute_budget=1,
+        ),
+    ]
+
+    edges: list[dict[str, Any]] = [
+        _p3_easy_large_edge(f"edge:{prefix}-task-intake-to-design", intake, design),
+        _p3_easy_large_edge(f"edge:{prefix}-design-to-design-axis-inspect", design, design_axis),
+        _p3_easy_large_edge(
+            f"edge:{prefix}-design-axis-inspect-to-plan-confirmation",
+            design_axis,
+            plan_confirm,
+        ),
+    ]
+    fan_out_edges: list[str] = []
+    fan_in_edges: list[str] = []
+
+    for lane in range(1, dev_lanes + 1):
+        dev = f"{prefix}-dev-lane-{lane}"
+        qa = f"{prefix}-dev-lane-{lane}-qa"
+        dev_edge = f"edge:{prefix}-plan-confirmation-to-dev-lane-{lane}"
+        qa_edge = f"edge:{prefix}-dev-lane-{lane}-to-qa"
+        fan_in_edge = f"edge:{prefix}-dev-lane-{lane}-qa-to-integration-summary"
+        nodes.extend(
+            [
+                _p3_easy_large_node(
+                    dev,
+                    "building-step-template:work",
+                    f"Implement large P3 lane {lane} of {dev_lanes}: {task}",
+                    adapter_ref=adapter,
+                    model_ref=REAL_PROVIDER_MODEL_REFS.get(adapter, MODEL_REF_CODEX_DEFAULT),
+                    write_scope=write_scope,
+                    requires_brick_write_scope=True,
+                    required_return_shape=lane_return,
+                ),
+                _p3_easy_large_node(
+                    qa,
+                    "building-step-template:code-attack-qa",
+                    f"Run code/regression QA for large P3 lane {lane}.",
+                    adapter_ref=ADAPTER_CODEX_LOCAL,
+                    model_ref=MODEL_REF_CODEX_DEFAULT,
+                    write_scope=write_scope,
+                    requires_brick_write_scope=True,
+                    required_return_shape=lane_return,
+                ),
+            ]
+        )
+        edges.extend(
+            [
+                _p3_easy_large_edge(dev_edge, plan_confirm, dev),
+                _p3_easy_large_edge(qa_edge, dev, qa),
+                _p3_easy_large_edge(fan_in_edge, qa, integration),
+            ]
+        )
+        fan_out_edges.append(dev_edge)
+        fan_in_edges.append(fan_in_edge)
+
+    nodes.extend(
+        [
+            _p3_easy_large_node(
+                integration,
+                "building-step-template:closure",
+                "Integrate parallel lane evidence and summarize remaining deltas.",
+                closure_transition_target_policy={
+                    "implementation_gap": {"action": "target", "target_ref": plan_confirm},
+                    "verification_gap": {"action": "hold"},
+                },
+            ),
+            _p3_easy_large_node(
+                final_code_qa,
+                "building-step-template:code-attack-qa",
+                "Final Codex code/regression QA over the integrated large P3 work.",
+                adapter_ref=ADAPTER_CODEX_LOCAL,
+                model_ref=MODEL_REF_CODEX_DEFAULT,
+                write_scope=write_scope,
+                requires_brick_write_scope=True,
+                required_return_shape=lane_return,
+            ),
+            _p3_easy_large_node(
+                final_axis_qa,
+                "building-step-template:axis-attack-qa",
+                "Final Gemini-local axis/evidence QA over the integrated large P3 work.",
+                adapter_ref=ADAPTER_GEMINI_LOCAL,
+                model_ref=MODEL_REF_GEMINI_DEFAULT,
+                write_scope=write_scope,
+                requires_brick_write_scope=True,
+                required_return_shape=lane_return,
+            ),
+            _p3_easy_large_node(
+                closure,
+                "building-step-template:closure",
+                "Codex closure synthesis for the large P3 Building.",
+            ),
+        ]
+    )
+    edges.extend(
+        [
+            _p3_easy_large_edge(f"edge:{prefix}-integration-summary-to-final-codex-code-qa", integration, final_code_qa),
+            _p3_easy_large_edge(f"edge:{prefix}-final-codex-code-qa-to-final-gemini-axis-evidence-qa", final_code_qa, final_axis_qa),
+            _p3_easy_large_edge(f"edge:{prefix}-final-gemini-axis-evidence-qa-to-codex-closure", final_axis_qa, closure),
+            _p3_easy_large_edge(f"edge:{prefix}-codex-closure-to-boundary", closure, f"building-boundary:{prefix}-closed"),
+        ]
+    )
+
+    return {
+        "task_statement": task,
+        "declared_by": args.declared_by,
+        "building_id": building_id,
+        "nodes": nodes,
+        "edges": edges,
+        "groups": [
+            {
+                "group_id": f"group:{prefix}-dev-fan-out",
+                "group_role": "fan_out",
+                "member_ref_kind": "link_edge",
+                "member_refs": fan_out_edges,
+            },
+            {
+                "group_id": f"group:{prefix}-dev-fan-in",
+                "group_role": "fan_in",
+                "member_ref_kind": "link_edge",
+                "member_refs": fan_in_edges,
+            },
+        ],
+        "selected_adapter_ref": adapter,
+        "selected_model_ref": REAL_PROVIDER_MODEL_REFS.get(adapter, MODEL_REF_CODEX_DEFAULT),
+        "selected_shape_ref": "building-shape:design-needed",
+        "transition_concern_adoption": "binding",
+        "chain_preset_ref": "",
+        "dev_lanes": dev_lanes,
+    }
+
+
 def _run_build(args: argparse.Namespace) -> dict[str, Any]:
     repo = _repo_from_args(args)
     graph_arg = (getattr(args, "graph_packet", "") or "").strip()
+    large_mode = bool(getattr(args, "large", False))
+    if large_mode:
+        graph_packet = _p3_easy_large_graph_packet(args)
+        output_root = (
+            Path(args.output_root).expanduser().resolve()
+            if args.output_root
+            else _active_slack_buildings_root()
+        )
+        result = run_customer_graph_building_in_sandbox(
+            graph_packet,
+            customer_repo_root=repo,
+            output_root=output_root,
+            overwrite_existing=bool(args.overwrite_existing),
+            adapter_timeout_seconds=args.timeout,
+            proof_limits=PROOF_LIMITS,
+        )
+        intake = result.intake_result
+        frontier_kind = result.frontier_kind
+        packet: dict[str, Any] = {
+            "command": "build",
+            "build_input_mode": "p3_easy_large_graph",
+            "repo_root": str(repo),
+            "output_root": str(output_root),
+            "building_id": result.building_id,
+            "declared_by": graph_packet["declared_by"],
+            "task_source_basis": "task_statement",
+            "chain_preset_ref": "",
+            "adapter_ref": str(graph_packet.get("selected_adapter_ref") or ""),
+            "adapter_choice_basis": "large-graph-declared",
+            "dev_lanes": graph_packet["dev_lanes"],
+            "provider_readiness_observations": [],
+            "isolation_mode": result.isolation_mode,
+            "isolation_reason": result.isolation_reason,
+            "base_sha": result.base_sha,
+            "worktree_path": result.worktree_path,
+            "evidence_root": result.evidence_root,
+            "frontier_kind": frontier_kind,
+            "customer_visible_frontier_state": _customer_visible_frontier_state(frontier_kind),
+            "customer_visible_not_ready": frontier_kind != "complete",
+            "customer_visible_frontier_message": _customer_visible_frontier_message(frontier_kind),
+            "commit_sha": result.commit_sha,
+            "worktree_disposed": result.worktree_disposed,
+            "proof_limits": list(PROOF_LIMITS),
+            "not_proven": list(NOT_PROVEN),
+        }
+        if intake is not None:
+            packet.update(
+                {
+                    "plan_path": str(intake.plan_path),
+                    "plan_shape": intake.plan_shape,
+                    "walker_mode": intake.walker_mode,
+                    "walker_mode_basis": intake.walker_mode_basis,
+                    "materialized_step_adapters": _materialized_step_adapter_evidence(
+                        intake.plan_path
+                    ),
+                }
+            )
+        return packet
     if graph_arg and ((getattr(args, "task", "") or "").strip() or getattr(args, "task_source_ref", "")):
         default_source = getattr(args, "task_source_ref", "") == DEFAULT_EXAMPLE_TASK_SOURCE_REF
         if (getattr(args, "task", "") or "").strip() or not default_source:
@@ -858,6 +1167,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     build.add_argument("--building-id", default="", help="Optional explicit Building id.")
     build.add_argument("--declared-by", default=DEFAULT_DECLARED_BY, help="Caller/COO declaration ref.")
+    build.add_argument(
+        "--large",
+        action="store_true",
+        help="Declare the P3 easy-large graph through the existing graph wrapper.",
+    )
+    build.add_argument(
+        "--dev-lanes",
+        type=int,
+        default=P3_EASY_LARGE_DEFAULT_DEV_LANES,
+        help="Parallel dev lane count for --large. Valid range: 2..8.",
+    )
     build.add_argument(
         "--graph",
         "--graph-packet",

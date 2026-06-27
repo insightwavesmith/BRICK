@@ -49,8 +49,14 @@ text_contains:
       - 'build.add_argument('
       - '"--graph-packet"'
       - '"--graph"'
+      - '"--large"'
+      - '"--dev-lanes"'
+      - 'P3_EASY_LARGE_MIN_DEV_LANES = 2'
+      - 'P3_EASY_LARGE_MAX_DEV_LANES = 8'
+      - 'def _p3_easy_large_graph_packet'
       - 'declare either graph packet mode or task/task-source mode, not both'
       - 'graph-packet-declared'
+      - 'large-graph-declared'
   - path: support/operator/first_use.py
     texts:
       - 'FIRST_USE_FILENAME = "FIRST_USE.md"'
