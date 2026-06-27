@@ -223,6 +223,97 @@ def _fan_plan(prefix: str, *, held_source: bool = False) -> Mapping[str, Any]:
     }
 
 
+def _two_stage_fan_plan(prefix: str) -> Mapping[str, Any]:
+    root = f"brick-{prefix}-root"
+    lane_a = f"brick-{prefix}-lane-a"
+    lane_b = f"brick-{prefix}-lane-b"
+    join1 = f"brick-{prefix}-join1"
+    lane_c = f"brick-{prefix}-lane-c"
+    lane_d = f"brick-{prefix}-lane-d"
+    join2 = f"brick-{prefix}-join2"
+    close = f"brick-{prefix}-close"
+    return {
+        "plan_ref": f"building-plan:{prefix}",
+        "owner_axis": "Brick",
+        "building_id": f"{prefix}-0627",
+        "plan_shape": "graph",
+        "selected_adapter_ref": "adapter:local",
+        "proof_limits": _proof_limits(),
+        "not_proven": ["parallel runtime execution"],
+        "execution_order": [
+            f"{prefix}-root",
+            f"{prefix}-lane-a",
+            f"{prefix}-lane-b",
+            f"{prefix}-join1",
+            f"{prefix}-lane-c",
+            f"{prefix}-lane-d",
+            f"{prefix}-join2",
+            f"{prefix}-close",
+        ],
+        "brick_steps": [
+            _brick_step(f"{prefix}-root", root, "agent-object:coo", f"edge:{prefix}-root-to-a"),
+            _brick_step(f"{prefix}-lane-a", lane_a, "agent-object:qa", f"edge:{prefix}-a-to-join1"),
+            _brick_step(f"{prefix}-lane-b", lane_b, "agent-object:qa", f"edge:{prefix}-b-to-join1"),
+            _brick_step(f"{prefix}-join1", join1, "agent-object:coo", f"edge:{prefix}-join1-to-c"),
+            _brick_step(f"{prefix}-lane-c", lane_c, "agent-object:qa", f"edge:{prefix}-c-to-join2"),
+            _brick_step(f"{prefix}-lane-d", lane_d, "agent-object:qa", f"edge:{prefix}-d-to-join2"),
+            _brick_step(f"{prefix}-join2", join2, "agent-object:coo", f"edge:{prefix}-join2-to-close"),
+            _brick_step(f"{prefix}-close", close, "agent-object:coo", f"edge:{prefix}-close-to-boundary"),
+        ],
+        "link_edges": [
+            _fwd_edge(f"edge:{prefix}-root-to-a", f"{prefix}-root", f"{prefix}-lane-a", lane_a),
+            _fwd_edge(f"edge:{prefix}-root-to-b", f"{prefix}-root", f"{prefix}-lane-b", lane_b),
+            _fwd_edge(f"edge:{prefix}-a-to-join1", f"{prefix}-lane-a", f"{prefix}-join1", join1),
+            _fwd_edge(f"edge:{prefix}-b-to-join1", f"{prefix}-lane-b", f"{prefix}-join1", join1),
+            _fwd_edge(f"edge:{prefix}-join1-to-c", f"{prefix}-join1", f"{prefix}-lane-c", lane_c),
+            _fwd_edge(f"edge:{prefix}-join1-to-d", f"{prefix}-join1", f"{prefix}-lane-d", lane_d),
+            _fwd_edge(f"edge:{prefix}-c-to-join2", f"{prefix}-lane-c", f"{prefix}-join2", join2),
+            _fwd_edge(f"edge:{prefix}-d-to-join2", f"{prefix}-lane-d", f"{prefix}-join2", join2),
+            _fwd_edge(f"edge:{prefix}-join2-to-close", f"{prefix}-join2", f"{prefix}-close", close),
+            _close_edge(
+                f"edge:{prefix}-close-to-boundary",
+                f"{prefix}-close",
+                f"{prefix} closed",
+                f"building-boundary:{prefix}-closed",
+            ),
+        ],
+        "groups": [
+            {
+                "group_id": f"group:{prefix}-fan-out-1",
+                "group_role": "fan_out",
+                "member_ref_kind": "link_edge",
+                "member_refs": [f"edge:{prefix}-root-to-a", f"edge:{prefix}-root-to-b"],
+                "proof_limits": ["support topology label only"],
+                "not_proven": ["parallel runtime execution"],
+            },
+            {
+                "group_id": f"group:{prefix}-fan-in-1",
+                "group_role": "fan_in",
+                "member_ref_kind": "link_edge",
+                "member_refs": [f"edge:{prefix}-a-to-join1", f"edge:{prefix}-b-to-join1"],
+                "proof_limits": ["support topology label only"],
+                "not_proven": ["synthesis quality"],
+            },
+            {
+                "group_id": f"group:{prefix}-fan-out-2",
+                "group_role": "fan_out",
+                "member_ref_kind": "link_edge",
+                "member_refs": [f"edge:{prefix}-join1-to-c", f"edge:{prefix}-join1-to-d"],
+                "proof_limits": ["support topology label only"],
+                "not_proven": ["parallel runtime execution"],
+            },
+            {
+                "group_id": f"group:{prefix}-fan-in-2",
+                "group_role": "fan_in",
+                "member_ref_kind": "link_edge",
+                "member_refs": [f"edge:{prefix}-c-to-join2", f"edge:{prefix}-d-to-join2"],
+                "proof_limits": ["support topology label only"],
+                "not_proven": ["synthesis quality"],
+            },
+        ],
+    }
+
+
 def _fan3_plan(
     prefix: str,
     *,
@@ -1100,6 +1191,32 @@ def _run_frontier_root_with_fanout_pool(
             os.environ["BRICK_FANOUT_DISPATCH_POOL_SIZE"] = original
 
 
+def _resume_with_fanout_pool(
+    building_root: Path,
+    callable_,
+    repo: Path,
+    *,
+    pool_size: int,
+):
+    from brick_protocol.support.operator.run import resume_building_plan
+
+    original = os.environ.get("BRICK_FANOUT_DISPATCH_POOL_SIZE")
+    os.environ["BRICK_FANOUT_DISPATCH_POOL_SIZE"] = str(pool_size)
+    try:
+        return resume_building_plan(
+            building_root,
+            overwrite_existing=True,
+            local_callables={"callable:local:agent-invoke0-smoke": callable_},
+            adapter_cwd=repo,
+            adapter_timeout_seconds=30,
+        )
+    finally:
+        if original is None:
+            os.environ.pop("BRICK_FANOUT_DISPATCH_POOL_SIZE", None)
+        else:
+            os.environ["BRICK_FANOUT_DISPATCH_POOL_SIZE"] = original
+
+
 def _step_output_recorded(root: Path, step_ref: str) -> bool:
     return (root / "work" / "step-outputs" / f"{step_ref}-attempt-1" / "step-output.json").is_file()
 
@@ -1218,6 +1335,47 @@ def _p6c_timed_fan_callable(*, prefix: str):
             if request.brick_instance_ref == lane_a:
                 time.sleep(0.08)
             elif request.brick_instance_ref == lane_b:
+                time.sleep(0.01)
+            else:
+                time.sleep(0.005)
+            return {
+                "observed_evidence": [f"obs {request.brick_instance_ref}"],
+                "not_proven": ["semantic correctness", "provider behavior"],
+            }
+        finally:
+            with lock:
+                state["completion_order"].append(request.brick_instance_ref)
+                state["active"] -= 1
+
+    def _stats() -> Mapping[str, Any]:
+        with lock:
+            return {
+                "max_active": int(state["max_active"]),
+                "completion_order": list(state["completion_order"]),
+            }
+
+    setattr(_callable, "stats", _stats)
+    return _callable
+
+
+def _p4_two_stage_timed_callable(*, prefix: str):
+    lock = threading.Lock()
+    state = {
+        "active": 0,
+        "max_active": 0,
+        "completion_order": [],
+    }
+    lane_c = f"brick-{prefix}-lane-c"
+    lane_d = f"brick-{prefix}-lane-d"
+
+    def _callable(request: Any) -> Mapping[str, Any]:
+        with lock:
+            state["active"] += 1
+            state["max_active"] = max(state["max_active"], state["active"])
+        try:
+            if request.brick_instance_ref == lane_c:
+                time.sleep(0.08)
+            elif request.brick_instance_ref == lane_d:
                 time.sleep(0.01)
             else:
                 time.sleep(0.005)
@@ -1861,6 +2019,121 @@ def check(repo: Path) -> list[str]:
                 "p6c-byte-fanout-red: arrival-order drain would not be detected by "
                 "this fixture"
             )
+
+    # P4: resume must replay completed pre-HOLD evidence serially, then recover
+    # declared fan-out parallelism for the live continuation. The first run
+    # completes the first fan-out/fan-in and pauses at join1's COO gate before
+    # the second fan-out is scheduled; after the human/COO forward disposition,
+    # lane-c and lane-d are genuinely continued work and should overlap under
+    # pool=4.
+    p4_prefix = "bapr-loop0-p4-resume-fanout"
+    p4_plan = _with_link_edge_gate_sequence_policy(
+        _two_stage_fan_plan(p4_prefix),
+        f"edge:{p4_prefix}-join1-to-c",
+        declared_gate_refs=["link-gate:default-transition", "link-gate:coo"],
+        gate_sequence_policy=[
+            {
+                "gate_ref": "link-gate:default-transition",
+                "on_sufficient": {"action": "next", "next_gate_ref": "link-gate:coo"},
+                "on_missing_required_facts": {
+                    "action": "hold",
+                    "pending_target_basis": "target_brick",
+                    "reason_refs": [f"observation:{p4_prefix}-default-transition-missing"],
+                    "required_disposition_owner": "caller-or-coo",
+                },
+            },
+            {
+                "gate_ref": "link-gate:coo",
+                "on_missing_required_facts": {
+                    "action": "hold",
+                    "pending_target_basis": "target_brick",
+                    "reason_refs": [f"observation:{p4_prefix}-coo-review-required"],
+                    "required_disposition_owner": "caller-or-coo",
+                },
+                "on_sufficient": {"action": "forward"},
+            },
+        ],
+    )
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-p4-resume-fanout-") as tmp_p4:
+        tmp_root = Path(tmp_p4)
+        setup_callable_p4 = _p4_two_stage_timed_callable(prefix=p4_prefix)
+        resume_callable_p4 = _p4_two_stage_timed_callable(prefix=p4_prefix)
+        res_p4, fr_p4, _ = _run_with_fanout_pool(
+            p4_plan,
+            setup_callable_p4,
+            repo,
+            tmp_root,
+            pool_size=4,
+        )
+        if fr_p4["frontier_kind"] != "link_paused":
+            violations.append(
+                "p4-resume-fanout: setup did not pause at the mid-fan join1 gate "
+                f"(frontier={fr_p4['frontier_kind']})"
+            )
+        root_p4 = res_p4.lifecycle_write.root
+        hold_p4 = (
+            res_p4._dynamic_walker_evidence.get("hold", {})
+            if isinstance(getattr(res_p4, "_dynamic_walker_evidence", {}), Mapping)
+            else {}
+        )
+        _append_disposition_row(
+            root_p4,
+            building_id=res_p4.building_id,
+            pending_target_ref=hold_p4.get("pending_target_ref") or f"brick-{p4_prefix}-lane-c",
+            action="forward",
+            author_ref="human:smith",
+        )
+        try:
+            resumed_p4 = _resume_with_fanout_pool(
+                root_p4,
+                resume_callable_p4,
+                repo,
+                pool_size=4,
+            )
+            fr_resumed_p4 = observe_building_frontier(
+                resumed_p4.lifecycle_write.root,
+                repo_root=repo,
+            )
+        except Exception as exc:  # noqa: BLE001 - surface resume crash as a violation
+            violations.append(f"p4-resume-fanout: resume crashed: {exc}")
+        else:
+            if fr_resumed_p4["frontier_kind"] != "complete":
+                violations.append(
+                    "p4-resume-fanout: resumed continuation did not complete "
+                    f"(frontier={fr_resumed_p4['frontier_kind']})"
+                )
+            stats_p4 = resume_callable_p4.stats()
+            if int(stats_p4.get("max_active", 0)) < 2:
+                violations.append(
+                    "p4-resume-fanout: resumed live fan-out continuation did not "
+                    f"overlap under pool=4 ({stats_p4})"
+                )
+            lane_c_p4 = f"brick-{p4_prefix}-lane-c"
+            lane_d_p4 = f"brick-{p4_prefix}-lane-d"
+            bricks_p4 = _step_bricks(resumed_p4)
+            completion_order_p4 = list(stats_p4.get("completion_order", []))
+            if lane_c_p4 in bricks_p4 and lane_d_p4 in bricks_p4:
+                if bricks_p4.index(lane_c_p4) > bricks_p4.index(lane_d_p4):
+                    violations.append(
+                        "p4-resume-fanout: deterministic drain applied resumed "
+                        f"fan-out in non-frontier order ({bricks_p4})"
+                    )
+            else:
+                violations.append(
+                    "p4-resume-fanout: resumed step list did not include both fan "
+                    f"lanes ({bricks_p4})"
+                )
+            if lane_c_p4 in completion_order_p4 and lane_d_p4 in completion_order_p4:
+                if completion_order_p4.index(lane_d_p4) > completion_order_p4.index(lane_c_p4):
+                    violations.append(
+                        "p4-resume-fanout-red: timed fixture failed to invert "
+                        f"resume arrival order ({completion_order_p4})"
+                    )
+            else:
+                violations.append(
+                    "p4-resume-fanout: resume callable did not observe both fan "
+                    f"lanes ({completion_order_p4})"
+                )
 
     # P6-C shared fan-in reroute fixture: pool>N must not reorder the
     # multi-attempt reroute into a fan-in source or stale the shared join evidence.
@@ -6483,7 +6756,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         "frontier over adapter:local "
         "deterministic fixtures, proved P6-C pool=1 vs pool=4 normalized "
         "evidence parity for independent fan-out and shared fan-in reroute "
-        "fixtures with an arrival-order RED probe, proved onboard approve C-2 adapter_cwd/timeout "
+        "fixtures with an arrival-order RED probe, proved P4 resume replay stays "
+        "serial until the held disposition and then recovers live fan-out "
+        "parallelism, proved onboard approve C-2 adapter_cwd/timeout "
         "forwarding + coo forward disposition handoff + fail-closed RED cases, persisted "
         "human/COO reroute disposition target selection from an ambiguous HOLD "
         "(declared non-source target replays; self/boundary/undeclared targets reject), "

@@ -908,14 +908,23 @@ def _run_dynamic_graph_walker(
     held_occurrence_index: int | None = None
     resume_body_carry_observations: list[Mapping[str, Any]] = []
     dispatch_pool_size = _fanout_dispatch_pool_size(linear_plan)
-    if resume_seed is not None or not has_fan_groups:
+    if not has_fan_groups:
         dispatch_pool_size = 1
     elif not _has_explicit_fanout_pool_override(linear_plan):
         # A drawn fan IS the parallel declaration -> run concurrent by default.
         # HOLD-safe (joins batch-terminal) + record stays canonical (FIFO drain).
-        # Explicit override above still wins; resume stays serial.
+        # Explicit override above still wins. Resume replays to the current HOLD
+        # serially, then recovers this declared pool for the live continuation.
         dispatch_pool_size = _FANOUT_AUTO_POOL
     pending_outcomes: list[tuple[dict[str, Any], NodeProcessingOutcome]] = []
+
+    def _active_dispatch_pool_size() -> int:
+        # Resume rehydrates completed evidence deterministically up to the current
+        # held occurrence. Once the disposition has been applied, remaining work
+        # is live continuation and should preserve the declared fan-out behavior.
+        if resume_seed is not None and not disposition_applied:
+            return 1
+        return dispatch_pool_size
 
     def _process_item(
         item: dict[str, Any],
@@ -982,6 +991,8 @@ def _run_dynamic_graph_walker(
 
     def _dispatch_ready_batch(
         items: Sequence[dict[str, Any]],
+        *,
+        pool_size: int,
     ) -> list[tuple[dict[str, Any], NodeProcessingOutcome]]:
         try:
             if len(items) == 1:
@@ -995,7 +1006,7 @@ def _run_dynamic_graph_walker(
                         ),
                     )
                 ]
-            worker_count = min(dispatch_pool_size, len(items))
+            worker_count = min(pool_size, len(items))
             with ThreadPoolExecutor(max_workers=worker_count) as executor:
                 futures = [
                     (
@@ -1188,9 +1199,10 @@ def _run_dynamic_graph_walker(
             item, outcome = pending_outcomes.pop(0)
             outcome = _record_deferred_step_output(item, outcome)
         else:
-            if dispatch_pool_size > 1:
+            active_dispatch_pool_size = _active_dispatch_pool_size()
+            if active_dispatch_pool_size > 1:
                 ready_result = frontier_driver.ready_items(
-                    max_items=dispatch_pool_size,
+                    max_items=active_dispatch_pool_size,
                     has_fan_groups=has_fan_groups,
                     fan_in_sources_by_target=fan_in_sources_by_target,
                     completed_fan_steps=completed_fan_steps,
@@ -1220,7 +1232,12 @@ def _run_dynamic_graph_walker(
                     break
                 if not ready_result.items:
                     break
-                pending_outcomes.extend(_dispatch_ready_batch(ready_result.items))
+                pending_outcomes.extend(
+                    _dispatch_ready_batch(
+                        ready_result.items,
+                        pool_size=active_dispatch_pool_size,
+                    )
+                )
                 continue
 
             item = frontier_driver.next_item()

@@ -173,7 +173,9 @@ def _fanout_dispatch_pool_size(plan: Mapping[str, Any]) -> int:
 # (joins) to dispatch alone (batch-terminal), so a sibling's data-dependent reroute/HOLD is
 # applied before any join body runs. Record order stays canonical (the drain pops
 # pending_outcomes FIFO = submission/frontier order, independent of completion timing).
-# Resume/replay stays serial via the resume guard. An explicit env/plan override still wins.
+# Resume/replay stays serial until the current HOLD disposition is applied; live
+# continuation then recovers this declared fan-out pool. An explicit env/plan
+# override still wins.
 _FANOUT_AUTO_POOL = 8
 
 
@@ -182,5 +184,4 @@ def _has_explicit_fanout_pool_override(plan: Mapping[str, Any]) -> bool:
     if env not in (None, ""):
         return True
     return "fanout_dispatch_pool_size" in plan
-
 
