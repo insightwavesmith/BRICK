@@ -4562,6 +4562,38 @@ def _assert_reporter_label_parity(repo: Path) -> int:
     return inspected
 
 
+def _assert_reporter_agent_incomplete_event_mapping(reporter: Any) -> int:
+    original_observer = reporter.observe_building_frontier
+
+    def _fake_agent_incomplete_frontier(*_args: Any, **_kwargs: Any) -> Mapping[str, Any]:
+        return {
+            "frontier_kind": "agent_incomplete",
+            "not_proven": ["probe frontier only"],
+            "proof_limits": ["support projection probe only"],
+        }
+
+    reporter.observe_building_frontier = _fake_agent_incomplete_frontier
+    try:
+        event_kind = reporter.building_event_kind_from_frontier(
+            Path("agent-incomplete-frontier-probe"),
+            repo_root=Path.cwd(),
+        )
+    finally:
+        reporter.observe_building_frontier = original_observer
+    if event_kind != "intervention_required":
+        raise ProfileError(
+            "reporter agent_incomplete frontier must emit intervention_required, "
+            f"got {event_kind!r}"
+        )
+    owner = reporter._required_disposition_owner({"frontier_kind": "agent_incomplete"})
+    if owner != "caller-or-coo":
+        raise ProfileError(
+            "reporter agent_incomplete frontier must project caller-or-coo owner, "
+            f"got {owner!r}"
+        )
+    return 2
+
+
 def _extract_js_const_object(source: str, const_name: str) -> Mapping[str, Any]:
     marker = f"export const {const_name} ="
     marker_index = source.find(marker)
@@ -5716,6 +5748,7 @@ def run_reporter_notification_projection(repo: Path) -> KernelResult:
     reporter = importlib.import_module("brick_protocol.support.operator.reporter")
     report_sinks = importlib.import_module("brick_protocol.support.operator.report_sinks")
     label_parity_count = _assert_reporter_label_parity(repo)
+    agent_incomplete_event_count = _assert_reporter_agent_incomplete_event_mapping(reporter)
     message_text, message_shape_count = _assert_reporter_message_shape(report_sinks)
     (
         auto_wire_message,
@@ -5922,6 +5955,7 @@ def run_reporter_notification_projection(repo: Path) -> KernelResult:
             + len(delivery_wake_observations)
             + len(event_hook_observations)
             + label_parity_count
+            + agent_incomplete_event_count
             + message_shape_count
             + auto_wire_count
             + brick_grain_count
@@ -5935,6 +5969,7 @@ def run_reporter_notification_projection(repo: Path) -> KernelResult:
             f"{len(delivery_wake_observations)} delivery wake probe(s), "
             f"{len(event_hook_observations)} event hook probe(s), "
             f"{label_parity_count} label parity map(s), "
+            f"{agent_incomplete_event_count} agent-incomplete event assertion(s), "
             f"{message_shape_count} Slack message shape assertion(s), "
             f"{auto_wire_count} auto-wire assertion(s), "
             f"{brick_grain_count} brick-grain thread assertion(s), "

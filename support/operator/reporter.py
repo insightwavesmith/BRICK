@@ -182,6 +182,7 @@ BUILDING_EVENT_OBSERVED_STATES = {
 }
 BUILDING_EVENT_FRONTIER_KINDS = {
     "complete": "building_finished",
+    "agent_incomplete": "intervention_required",
     "link_paused": "intervention_required",
     "human_review_waiting": "intervention_required",
     "chat_session_parked": "intervention_required",
@@ -2143,6 +2144,8 @@ def _required_disposition_owner(frontier: Mapping[str, Any]) -> str:
     if frontier.get("frontier_kind") == "human_review_waiting":
         return "caller-or-coo"
     if frontier.get("frontier_kind") == "chat_session_parked":
+        return "caller-or-coo"
+    if frontier.get("frontier_kind") == "agent_incomplete":
         return "caller-or-coo"
     if frontier.get("frontier_kind") == "link_paused":
         return "coo"
