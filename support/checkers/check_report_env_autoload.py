@@ -24,13 +24,15 @@ the live os.environ) and asserts the behavioral contract:
   2. a NON-allowlisted key in the same file is NOT injected (no blanket load);
   3. a 0644 (group/world-readable) file is REFUSED -- no keys loaded, a typed
      support observation recorded;
-  4. ENV PRECEDENCE: a key already present in the env dict is preserved (the
-     loaded value never overrides it);
+  4. ENV PRECEDENCE: the generic loader preserves a key already present in the
+     env dict (the loaded value never overrides it);
   5. NO VALUE ECHO: no credential value appears in the result observations, the
      loaded/skipped key lists, or the masked summary;
   6. NARROWED INJECTION (codex review 0619, MAJOR-5): load_report_env_into_process
      RETURNS the report keys for threading and does NOT inject them into the target
-     env; it injects ONLY the provider key (GEMINI/GOOGLE) into the target env;
+     env; it injects ONLY the provider key (GEMINI/GOOGLE) into the target env,
+     and Brick-file provider keys replace stale inherited provider values at the
+     engine seam;
   7. TOCTOU-SAFE PERM GATE (MINOR-2): the loader opens the file ONCE by fd
      (``os.open`` + ``os.fstat`` perm check on that fd + read from that fd), so a
      symlink at the path (``O_NOFOLLOW``) is refused and the 0644 refusal is tied
@@ -103,6 +105,7 @@ _FAKE_GEMINI_KEY = "AIzaFAKEFIXTUREkey000"
 _NON_ALLOWLISTED_KEY = "BRICK_NOT_A_CREDENTIAL_KEY"
 _NON_ALLOWLISTED_VALUE = "fixture-non-allowlisted-value"
 _PRESET_TOKEN_VALUE = "operator-explicit-env-wins-fixture"
+_PRESET_PROVIDER_VALUE = "AIzaSTALEINHERITEDproviderkey000"
 
 # Every fake value above; used to prove no value leaks into the result evidence.
 _ALL_FIXTURE_VALUES = (
@@ -113,6 +116,7 @@ _ALL_FIXTURE_VALUES = (
     _FAKE_GEMINI_KEY,
     _NON_ALLOWLISTED_VALUE,
     _PRESET_TOKEN_VALUE,
+    _PRESET_PROVIDER_VALUE,
 )
 
 PROOF_LIMIT = (
@@ -120,7 +124,8 @@ PROOF_LIMIT = (
     "not prove source truth, success judgment, quality judgment, Movement "
     "authority, provider behavior, or that a credential is valid -- it proves the "
     "loader injects only the allowlisted KEYS, refuses a loose-perm file, honors "
-    "env precedence, and never echoes a value."
+    "generic env precedence, applies Brick-file provider-key precedence at the "
+    "engine seam, and never echoes a value."
 )
 
 
@@ -280,7 +285,7 @@ def _check_allowlist_injection_and_precedence(runtime_env, tmp: Path) -> list[st
         "allowlist+precedence green: allowlisted keys "
         "{BRICK_REPORT_SLACK_CHANNEL_ID, BRICK_DASHBOARD_INGEST_URL, GEMINI_API_KEY} "
         "injected; non-allowlisted key NOT injected; pre-set "
-        "BRICK_REPORT_SLACK_BOT_TOKEN preserved (operator env wins); no value echoed.",
+        "BRICK_REPORT_SLACK_BOT_TOKEN preserved by the generic loader; no value echoed.",
     ]
 
 
@@ -356,6 +361,8 @@ def _check_narrowed_injection_scope(runtime_env, tmp: Path) -> list[str]:
       - return the BRICK_REPORT_* / BRICK_DASHBOARD_* keys as the threaded mapping;
       - NOT inject any report key into the target env (no child-subprocess leak);
       - inject ONLY the provider key (GEMINI/GOOGLE) into the target env;
+      - let the Brick env file's provider key replace a stale inherited provider
+        value at the engine seam;
       - NOT return the provider key in the threaded mapping (sinks don't need it).
 
     It also asserts the threaded mapping makes the report-sink gating READY while
@@ -370,7 +377,10 @@ def _check_narrowed_injection_scope(runtime_env, tmp: Path) -> list[str]:
     orig_creds = runtime_env.DEFAULT_CREDENTIALS_ENV_PATH
     runtime_env.DEFAULT_REPORT_ENV_PATH = report_path
     runtime_env.DEFAULT_CREDENTIALS_ENV_PATH = tmp / "absent-credentials.env"
-    target_env: dict[str, str] = {}
+    target_env: dict[str, str] = {
+        "BRICK_REPORT_SLACK_BOT_TOKEN": _PRESET_TOKEN_VALUE,
+        "GEMINI_API_KEY": _PRESET_PROVIDER_VALUE,
+    }
     try:
         report_env = runtime_env.load_report_env_into_process(environ=target_env)
     finally:
@@ -383,6 +393,7 @@ def _check_narrowed_injection_scope(runtime_env, tmp: Path) -> list[str]:
         "BRICK_DASHBOARD_INGEST_URL",
         "BRICK_DASHBOARD_INGEST_SECRET",
     }
+    preexisting_report_keys = {"BRICK_REPORT_SLACK_BOT_TOKEN"}
     # Report keys are returned for threading.
     for key in report_keys:
         if key not in report_env:
@@ -391,16 +402,22 @@ def _check_narrowed_injection_scope(runtime_env, tmp: Path) -> list[str]:
                 "report_env mapping"
             )
         # ...and must NOT have leaked into the target (os.environ-proxy) env.
-        if key in target_env:
+        if key in target_env and key not in preexisting_report_keys:
             raise ReportEnvAutoloadError(
                 f"narrowed-injection: report key {key} LEAKED into the target env "
                 "(child-subprocess leak); it must be threaded only"
             )
+    if report_env.get("BRICK_REPORT_SLACK_BOT_TOKEN") != _PRESET_TOKEN_VALUE:
+        raise ReportEnvAutoloadError(
+            "narrowed-injection: pre-set report key was not preserved in the "
+            "threaded report_env mapping"
+        )
     # Provider key is injected into the target env, NOT returned for threading.
     if target_env.get("GEMINI_API_KEY") != _FAKE_GEMINI_KEY:
         raise ReportEnvAutoloadError(
             "narrowed-injection: provider key GEMINI_API_KEY was not injected into "
-            "the target env (the gemini adapter reads it from os.environ)"
+            "the target env from the Brick env file, replacing the stale inherited "
+            "provider value (the gemini adapter reads it from os.environ)"
         )
     if "GEMINI_API_KEY" in report_env:
         raise ReportEnvAutoloadError(
@@ -430,7 +447,8 @@ def _check_narrowed_injection_scope(runtime_env, tmp: Path) -> list[str]:
     return [
         "narrowed-injection green: report keys {BRICK_REPORT_*, BRICK_DASHBOARD_*} "
         "are RETURNED for threading and NOT injected into the target env; only the "
-        "provider key GEMINI_API_KEY is injected into the target env; the threaded "
+        "provider key GEMINI_API_KEY is injected into the target env, with the "
+        "Brick env file replacing stale inherited provider values; the threaded "
         "report_env makes slack+dashboard gating READY while the target env alone "
         "is NOT ready (delivery rides the threaded mapping, not a global fallback).",
     ]
@@ -1116,7 +1134,8 @@ def parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
         description=(
             "Support-evidence checker: the report.env engine auto-loader injects "
             "only the allowlisted credential keys, refuses a loose-perm file, "
-            "honors env precedence, and never echoes a value (#56)."
+            "pins generic env precedence plus Brick-file provider precedence, and "
+            "never echoes a value (#56)."
         )
     )
     parser.add_argument("--repo", default=None)

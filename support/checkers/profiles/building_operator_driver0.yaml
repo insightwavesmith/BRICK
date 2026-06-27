@@ -54,8 +54,15 @@ text_contains:
       - result_obj = run_building_intake(
       - def _choose_example_adapter
       - def _preflight_readiness
+      - ADAPTER_GEMINI_LOCAL
+      - '"gemini": ADAPTER_GEMINI_LOCAL'
+      - 'local_cli_missing (gemini CLI/API key가 없음)'
+      - api_key_env_present
+      - credential_validity
+      - materialized_step_adapters
+      - _materialized_step_adapter_evidence
       # c2 (0610): the adapter-write gate reads the CANONICAL observed-write set
-      # (adapter_is_write_capable -- codex-local AND claude-local), not a codex
+      # (adapter_is_write_capable -- codex/claude/gemini local), not a codex
       # literal. Pins updated to the corrected fact.
       - adapter_is_write_capable(real_ref)
       - 'adapter_ref": real_ref'
@@ -63,6 +70,14 @@ text_contains:
       - '"routed_through": SEAM_VERB'
       - '"preflight_readiness": readiness'
       - allow_real_provider
+  - path: support/connection/adapter_subprocess.py
+    texts:
+      - ADAPTER_GEMINI_LOCAL
+      - api_key_env_present
+      - credential_validity
+      - not_proven
+      - '키 유효성'
+      - API_KEY_INVALID
 text_absent:
   - path: support/operator/driver.py
     texts:

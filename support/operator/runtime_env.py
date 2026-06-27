@@ -27,8 +27,11 @@ INJECTION SCOPE (codex review 0619, MAJOR-5 -- narrowed):
   - PROVIDER keys (``GEMINI_API_KEY`` / ``GOOGLE_API_KEY``) ARE injected into the
     global ``os.environ`` because the gemini adapter reads them DIRECTLY from
     ``os.environ`` (``support/connection/agent_adapter.py``) with no threaded-env
-    seam. That child-inheritance is the unavoidable, accepted minimum: only the
-    provider key the adapter must see is global.
+    seam. At this engine seam, a provider key from the Brick operator env file is
+    allowed to replace a stale inherited shell value; otherwise a long-lived app
+    process can keep using an invalid old provider key even after the operator
+    repaired ``~/.brick/report.env``. That child-inheritance is the unavoidable,
+    accepted minimum: only the provider key the adapter must see is global.
 
 This module is support operator mechanics only. It reads two well-known operator
 files, parses ``export KEY=VALUE`` lines, and loads ONLY a NARROW allowlist of
@@ -47,8 +50,11 @@ DISCIPLINE (task #56 / P2 design line 109):
     fd, the permission check runs on ``os.fstat`` of that fd, and the read uses
     the SAME fd -- the check and the read are tied to one inode (a symlink swap /
     file replace between check and read cannot load an unverified file).
-  - ENV PRECEDENCE: never override a key already present in the target env (the
-    operator's explicit env wins). The loaded file only fills gaps.
+  - ENV PRECEDENCE: ``load_runtime_env_files`` never overrides a key already
+    present in the target env (the operator's explicit env wins). The
+    engine-entry helper keeps that rule for report keys, but lets provider keys
+    from the Brick env file replace stale inherited provider values so the
+    adapter sees the operator's current Brick credential.
   - NO VALUE ECHO: observations and the returned summary carry key NAMES and a
     masked placeholder only -- never a credential value.
   - GRACEFUL: an absent file is a silent no-op; a malformed line is skipped (with
@@ -366,13 +372,14 @@ def load_report_env_into_process(
     helper every report-emitting building entry in ``run.py`` calls. It:
 
       1. loads ``~/.brick/report.env`` (+ optional ``credentials.env``) into a
-         FRESH working dict seeded with the allowlisted keys already in the target
-         env (env precedence: an operator-exported key always wins);
+         FRESH working dict seeded with the report keys already in the target env
+         (report-key env precedence is preserved);
       2. injects ONLY the PROVIDER keys (``GEMINI_API_KEY`` / ``GOOGLE_API_KEY``)
-         into the live ``os.environ`` (filling gaps; never overriding), because
-         the gemini adapter reads those DIRECTLY from ``os.environ`` and has no
-         threaded-env seam. This is the unavoidable, accepted child-inheritance --
-         and ONLY the provider key lands global;
+         into the live ``os.environ`` (overriding stale inherited provider values
+         when the Brick env file declares a provider key), because the gemini
+         adapter reads those DIRECTLY from ``os.environ`` and has no threaded-env
+         seam. This is the unavoidable, accepted child-inheritance -- and ONLY the
+         provider key lands global;
       3. returns the REPORT keys (``BRICK_REPORT_*`` / ``BRICK_DASHBOARD_*``) as a
          ``report_env`` mapping for the caller to THREAD into the slack/dashboard
          sink gating + delivery. These report keys are NOT injected into
@@ -385,18 +392,23 @@ def load_report_env_into_process(
 
     target_environ = os.environ if environ is None else environ
 
-    # (1) Seed a fresh working dict with the allowlisted keys already present in
-    # the target env so file values can never override an operator-exported key.
+    # (1) Seed a fresh working dict with REPORT keys already present in the target
+    # env. Report keys keep env precedence because they are threaded to sinks. Do
+    # NOT seed provider keys: at the engine seam the Brick env file is the current
+    # operator credential source for provider adapters, so it may replace a stale
+    # inherited shell/app value.
     combined: dict[str, str] = {
         key: value
         for key, value in target_environ.items()
-        if _is_allowlisted_key(key)
+        if _is_report_key(key)
     }
     load_runtime_env_files(environ=combined)
 
-    # (2) PROVIDER keys: inject into the live os.environ (fill gaps, no override).
+    # (2) PROVIDER keys: inject into the live os.environ. A Brick-file provider key
+    # intentionally replaces a stale inherited provider value; report keys still
+    # never land in the global env.
     for key, value in combined.items():
-        if _is_provider_key(key) and key not in target_environ:
+        if _is_provider_key(key):
             target_environ[key] = value
 
     # (3) REPORT keys: returned for threading; NEVER injected into os.environ.

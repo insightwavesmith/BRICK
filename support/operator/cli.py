@@ -26,7 +26,9 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
+from brick_protocol.brick.spec import derived_worktree_write_scope
 from support.checkers import check_profile
+from support.connection.agent_adapter import adapter_is_write_capable
 from support.operator.first_use import FIRST_USE_FILENAME, write_first_use
 from support.operator import onboard
 from support.operator.driver import run_customer_building_in_sandbox
@@ -37,6 +39,7 @@ REAL_PROVIDER_ADAPTER = "adapter:codex-local"
 DEFAULT_EXAMPLE_BUILDING_ID = "brick-cli-example"
 DEFAULT_EXAMPLE_TASK_SOURCE_REF = "brick/templates/tasks/source-template.md"
 DEFAULT_LOCAL_PRESET_REF = "building-chain-preset:onboarding-example-graph"
+DEFAULT_REAL_TASK_PRESET_REF = "building-chain-preset:fast-fix"
 DEFAULT_DECLARED_BY = "coo"
 
 PROOF_LIMITS = (
@@ -79,6 +82,42 @@ def _task_building_id() -> str:
     return f"brick-cli-task-{_utc_stamp()}-{uuid4().hex[:8]}"
 
 
+def _selected_build_preset(args: argparse.Namespace, *, adapter: str, task: str) -> str:
+    declared = (getattr(args, "preset", "") or "").strip()
+    if declared:
+        return declared
+    if task and adapter_is_write_capable(adapter):
+        return DEFAULT_REAL_TASK_PRESET_REF
+    return DEFAULT_LOCAL_PRESET_REF
+
+
+def _task_write_scope(*, adapter: str, task: str) -> dict[str, Any] | None:
+    if task and adapter_is_write_capable(adapter):
+        return derived_worktree_write_scope()
+    return None
+
+
+def _customer_visible_frontier_state(frontier_kind: str) -> str:
+    return "frontier_complete" if frontier_kind == "complete" else "not_ready"
+
+
+def _customer_visible_frontier_message(frontier_kind: str) -> str:
+    if frontier_kind == "complete":
+        return (
+            "frontier complete: evidence closed for this Building. "
+            "This remains support evidence, not source truth or quality judgment."
+        )
+    if frontier_kind:
+        return (
+            f"not ready: Building frontier is {frontier_kind}; inspect evidence_root "
+            "before treating output as customer-ready."
+        )
+    return (
+        "not ready: no Building frontier was observed; inspect evidence_root before "
+        "treating output as customer-ready."
+    )
+
+
 def _build_intent(args: argparse.Namespace) -> dict[str, Any]:
     # --real-provider is friendly sugar: when the customer opts into a real
     # provider but left --adapter at the local-stub default, upgrade to the
@@ -87,19 +126,24 @@ def _build_intent(args: argparse.Namespace) -> dict[str, Any]:
     if getattr(args, "real_provider", False) and adapter == ADAPTER_LOCAL:
         adapter = REAL_PROVIDER_ADAPTER
     task = (args.task or "").strip()
+    preset = _selected_build_preset(args, adapter=adapter, task=task)
     if task:
         building_id = args.building_id or _task_building_id()
-        return {
+        intent: dict[str, Any] = {
             "declared_by": args.declared_by,
             "task_statement": task,
-            "chain_preset_ref": args.preset,
+            "chain_preset_ref": preset,
             "selected_adapter_ref": adapter,
             "building_id": building_id,
         }
+        write_scope = _task_write_scope(adapter=adapter, task=task)
+        if write_scope is not None:
+            intent["write_scope"] = write_scope
+        return intent
     return {
         "declared_by": args.declared_by,
         "task_source_ref": args.task_source_ref,
-        "chain_preset_ref": args.preset,
+        "chain_preset_ref": preset,
         "selected_adapter_ref": adapter,
         "building_id": args.building_id or DEFAULT_EXAMPLE_BUILDING_ID,
     }
@@ -120,6 +164,7 @@ def _run_build(args: argparse.Namespace) -> dict[str, Any]:
         proof_limits=PROOF_LIMITS,
     )
     intake = result.intake_result
+    frontier_kind = result.frontier_kind
     packet: dict[str, Any] = {
         "command": "build",
         "repo_root": str(repo),
@@ -134,7 +179,10 @@ def _run_build(args: argparse.Namespace) -> dict[str, Any]:
         "base_sha": result.base_sha,
         "worktree_path": result.worktree_path,
         "evidence_root": result.evidence_root,
-        "frontier_kind": result.frontier_kind,
+        "frontier_kind": frontier_kind,
+        "customer_visible_frontier_state": _customer_visible_frontier_state(frontier_kind),
+        "customer_visible_not_ready": frontier_kind != "complete",
+        "customer_visible_frontier_message": _customer_visible_frontier_message(frontier_kind),
         "commit_sha": result.commit_sha,
         "worktree_disposed": result.worktree_disposed,
         "proof_limits": list(PROOF_LIMITS),
@@ -162,6 +210,10 @@ def _render_build(packet: dict[str, Any]) -> str:
         f"isolation_mode: {packet['isolation_mode']}",
         f"evidence_root: {packet['evidence_root']}",
         f"frontier_kind: {packet['frontier_kind']}",
+        f"customer_visible_frontier_state: {packet['customer_visible_frontier_state']}",
+        "customer_visible_not_ready: "
+        + ("yes" if packet.get("customer_visible_not_ready") else "no"),
+        f"frontier_message: {packet['customer_visible_frontier_message']}",
     ]
     if packet.get("plan_path"):
         lines.append(f"plan_path: {packet['plan_path']}")
@@ -178,7 +230,17 @@ def _render_doctor(packet: dict[str, Any]) -> str:
     lines = ["Brick doctor support evidence", "rows:"]
     for row in packet.get("rows", []):
         observed = "yes" if row.get("ok") else "no"
-        lines.append(f"- {row.get('target', '')}: observed_ok={observed}; {row.get('message_ko', '')}")
+        details: list[str] = []
+        if "api_key_env_present" in row:
+            key_observed = "yes" if row.get("api_key_env_present") else "no"
+            details.append(f"api_key_env_present={key_observed}")
+        if row.get("credential_validity"):
+            details.append(f"credential_validity={row.get('credential_validity')}")
+        detail_text = f"; {'; '.join(details)}" if details else ""
+        lines.append(
+            f"- {row.get('target', '')}: observed_ok={observed}; "
+            f"{row.get('message_ko', '')}{detail_text}"
+        )
     lines.append("symptom_table:")
     for symptom, prescription in packet.get("symptom_table", []):
         lines.append(f"- {symptom} -> {prescription}")
@@ -299,7 +361,7 @@ def _cmd_init(args: argparse.Namespace) -> int:
     repo = _repo_from_args(args)
     wizard = onboard.run_install_wizard(
         repo_root=repo,
-        host=getattr(args, "host", "claude") or "claude",
+        host=getattr(args, "host", "codex") or "codex",
         output_root=args.output_root,
         allow_real_provider=False,
         run_example=not args.skip_build,
@@ -322,6 +384,7 @@ def _cmd_init(args: argparse.Namespace) -> int:
     first_use_packet = None
     if not args.skip_build:
         if example_result.get("ok") and example_result.get("ran"):
+            frontier_kind = str(example_result.get("frontier_kind") or "")
             build_packet = {
                 "repo_root": str(repo),
                 "output_root": str(args.output_root) if args.output_root else str(_default_builds_root()),
@@ -330,7 +393,11 @@ def _cmd_init(args: argparse.Namespace) -> int:
                 "chain_preset_ref": example_result.get("chain_preset_ref", DEFAULT_LOCAL_PRESET_REF),
                 "isolation_mode": "wizard-onboard-example",
                 "evidence_root": example_result.get("evidence_root", ""),
-                "frontier_kind": example_result.get("frontier_kind", ""),
+                "frontier_kind": frontier_kind,
+                "customer_visible_frontier_state": _customer_visible_frontier_state(frontier_kind),
+                "customer_visible_not_ready": frontier_kind != "complete",
+                "customer_visible_frontier_message": _customer_visible_frontier_message(frontier_kind),
+                "materialized_step_adapters": example_result.get("materialized_step_adapters", []),
                 "proof_limits": list(PROOF_LIMITS),
                 "not_proven": list(NOT_PROVEN),
             }
@@ -488,7 +555,7 @@ def build_parser() -> argparse.ArgumentParser:
     init_parser.add_argument("--skip-plugin", action="store_true", help="Skip MCP register + skills placement.")
     init_parser.add_argument("--skip-recording", action="store_true", help="Skip the auto-recording hook wiring.")
     init_parser.add_argument("--skip-verify", action="store_true", help="Skip the final check_profile --all verify.")
-    init_parser.add_argument("--host", default="claude", help="Onboarding host (codex/claude/gemini/local).")
+    init_parser.add_argument("--host", default="codex", help="Onboarding host (codex/claude/gemini/local).")
     init_parser.add_argument(
         "--slack-bot-token",
         dest="slack_bot_token",
@@ -513,7 +580,14 @@ def build_parser() -> argparse.ArgumentParser:
         default=DEFAULT_EXAMPLE_TASK_SOURCE_REF,
         help="Repo-relative task source for the bundled/file-flow build.",
     )
-    build.add_argument("--preset", default=DEFAULT_LOCAL_PRESET_REF, help="Declared chain preset ref.")
+    build.add_argument(
+        "--preset",
+        default="",
+        help=(
+            "Declared chain preset ref. Defaults to the local onboarding graph for "
+            "stub/example runs, or fast-fix for write-capable task runs."
+        ),
+    )
     build.add_argument("--adapter", default=ADAPTER_LOCAL, help="Declared adapter ref.")
     build.add_argument(
         "--real-provider",

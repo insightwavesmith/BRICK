@@ -10,7 +10,7 @@ plain-Korean, beginner-safe experience:
                    Driven on adapter:local (read-only, in-process) by default;
                    when preflight reports the real provider READY and the caller
                    opts in, the SAME seam runs the example on that provider's
-                   observed-write adapter (adapter:codex-local / adapter:claude-local).
+                   observed-write adapter (codex/claude/gemini local).
   4. handoff    -> a plain-Korean closing line that NAMES the Phase-1 seam verb
                    (driver.run_building_intake) the beginner uses next.
 
@@ -48,6 +48,7 @@ from brick_protocol.support.connection import connect
 from brick_protocol.support.connection.adapter_constants import (
     ADAPTER_CLAUDE_LOCAL,
     ADAPTER_CODEX_LOCAL,
+    ADAPTER_GEMINI_LOCAL,
     ADAPTER_LOCAL,
 )
 from brick_protocol.support.connection.adapter_subprocess import (
@@ -101,7 +102,7 @@ EXAMPLE_LOCAL_PRESET_REF = "building-chain-preset:onboarding-example-graph"
 # Preset for the REAL-PROVIDER example: a LINEAR chain that DOES include a
 # write_need Brick (work). A write_need Brick requires an observed-write-capable
 # adapter (the canonical set agent_adapter._OBSERVED_WRITE_ADAPTER_REFS, read via
-# adapter_is_write_capable -- currently adapter:codex-local / adapter:claude-local),
+# adapter_is_write_capable),
 # so this preset is only routed when preflight reports an observed-write provider
 # READY and the caller opts in.
 EXAMPLE_REAL_PRESET_REF = "building-chain-preset:fast-fix"
@@ -129,10 +130,11 @@ _EXAMPLE_WRITE_SCOPE: dict[str, Any] = {
 }
 
 # Friendly host -> adapter ref map. ``local`` is the in-process smoke host (no
-# CLI); ``codex``/``claude`` are the admitted local CLI providers.
+# CLI); codex/claude/gemini are the admitted local CLI providers.
 _HOST_ADAPTER_REF = {
     "codex": ADAPTER_CODEX_LOCAL,
     "claude": ADAPTER_CLAUDE_LOCAL,
+    "gemini": ADAPTER_GEMINI_LOCAL,
     "local": ADAPTER_LOCAL,
 }
 # ``connect`` only renders codex/claude config; other hosts get a friendly note.
@@ -261,8 +263,7 @@ def _choose_example_adapter(
     - REAL branch (observed-write adapter): only when the caller opted in AND
       preflight observed the real provider READY (readiness == "ready") AND that
       ready provider is in the canonical observed-write adapter set (read via
-      ``adapter_is_write_capable``, currently adapter:codex-local /
-      adapter:claude-local -- never a hardcoded provider literal). Uses a preset
+      ``adapter_is_write_capable`` -- never a hardcoded provider literal). Uses a preset
       with a write_need Brick (write_scope confined to the example area).
     - LOCAL fallback (adapter:local): every other case -- a missing / unauthed /
       unknown provider, or no opt-in. Uses an all-read-only preset (no
@@ -302,6 +303,36 @@ def _choose_example_adapter(
     }
 
 
+def _materialized_step_adapter_evidence(plan_path: Path) -> list[dict[str, str]]:
+    """Return declared per-step Agent adapter evidence from a materialized plan."""
+
+    try:
+        packet = json.loads(plan_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    plan = packet.get("declared_plan_copy") if isinstance(packet, Mapping) else None
+    if not isinstance(plan, Mapping):
+        plan = packet if isinstance(packet, Mapping) else {}
+    steps = plan.get("brick_steps")
+    if not isinstance(steps, list):
+        steps = plan.get("steps")
+    if not isinstance(steps, list):
+        return []
+    evidence: list[dict[str, str]] = []
+    for step in steps:
+        if not isinstance(step, Mapping):
+            continue
+        row = {
+            "step_ref": str(step.get("step_ref") or ""),
+            "step_template_ref": str(step.get("step_template_ref") or ""),
+            "selected_adapter_ref": str(step.get("selected_adapter_ref") or ""),
+            "selected_model_ref": str(step.get("selected_model_ref") or ""),
+        }
+        if any(row.values()):
+            evidence.append(row)
+    return evidence
+
+
 def _example_step(
     *,
     repo_root: Path,
@@ -322,7 +353,7 @@ def _example_step(
     The adapter is the LOCAL in-process read-only ``adapter:local`` unless
     preflight observed the real provider READY and the caller opted in, in which
     case the SAME seam runs the example on that provider's observed-write adapter
-    (adapter:codex-local / adapter:claude-local). Which adapter ran, and WHY, is
+    (codex/claude/gemini local). Which adapter ran, and WHY, is
     recorded as evidence.
     """
 
@@ -367,6 +398,7 @@ def _example_step(
             overwrite_existing=True,
             adapter_cwd=effective_root if choice["real"] else None,
         )
+        materialized_step_adapters = _materialized_step_adapter_evidence(result_obj.plan_path)
         run_result = result_obj.run_result
         frontier = observe_building_frontier(
             run_result.lifecycle_write.root, repo_root=repo_root
@@ -378,7 +410,7 @@ def _example_step(
             if isinstance(returned_value, dict):
                 returned_summary = str(returned_value.get("returned_summary") or "")
         if choice["real"]:
-            # Name the ACTUAL ready provider (codex OR claude -- observed-write
+            # Name the ACTUAL ready provider (codex / claude / gemini -- observed-write
             # parity), never a hardcoded codex literal: reverse the friendly
             # host map for the adapter ref preflight reported READY.
             real_host = next(
@@ -395,11 +427,24 @@ def _example_step(
                 "건드리지 않았어요. 직접 열어 보세요.)"
             )
         else:
-            message_ko = (
-                "첫 예제 빌딩이 한 번 돌았어요 ✅ "
-                "(provider 없이 내부에서 실행됐고, 결과는 아래 저장 위치에 "
-                "그대로 남겨 뒀어요. 작업 트리는 건드리지 않았어요. 직접 열어 보세요.)"
-            )
+            step_adapter_refs = {
+                row.get("selected_adapter_ref", "")
+                for row in materialized_step_adapters
+                if row.get("selected_adapter_ref")
+            }
+            if step_adapter_refs - {ADAPTER_LOCAL}:
+                message_ko = (
+                    "첫 예제 빌딩이 adapter:local 진입점으로 한 번 돌았어요 ✅ "
+                    "(role step은 선언된 Agent adapter로 실행됐고, step별 adapter는 "
+                    "example_result.materialized_step_adapters에 기록됐어요. 결과는 아래 "
+                    "저장 위치에 남겼고, 작업 트리는 건드리지 않았어요.)"
+                )
+            else:
+                message_ko = (
+                    "첫 예제 빌딩이 한 번 돌았어요 ✅ "
+                    "(provider 없이 내부에서 실행됐고, 결과는 아래 저장 위치에 "
+                    "그대로 남겨 뒀어요. 작업 트리는 건드리지 않았어요. 직접 열어 보세요.)"
+                )
         return {
             "ok": True,
             "ran": True,
@@ -413,6 +458,7 @@ def _example_step(
             "frontier_kind": frontier_kind,
             "returned_summary": returned_summary,
             "message_ko": message_ko,
+            "materialized_step_adapters": materialized_step_adapters,
             **base_evidence,
         }
     except Exception as exc:  # noqa: BLE001 -- friendly field, never raise
@@ -1122,7 +1168,7 @@ def run_slack_provision_step(
 def run_install_wizard(
     repo_root: Path | str | None = None,
     *,
-    host: str = "claude",
+    host: str = "codex",
     output_root: Path | str | None = None,
     allow_real_provider: bool = False,
     run_example: bool = True,
@@ -1253,6 +1299,10 @@ DOCTOR_SYMPTOM_PRESCRIPTIONS_KO: tuple[tuple[str, str], ...] = (
         "npm install -g @anthropic-ai/claude-code",
     ),
     (
+        "local_cli_missing (gemini CLI/API key가 없음)",
+        "gemini CLI 설치 후 GEMINI_API_KEY 또는 GOOGLE_API_KEY 를 설정하세요",
+    ),
+    (
         "gh 인증 에러 (clone/pull 실패)",
         "gh auth login (gh가 없으면 https://cli.github.com 에서 설치)",
     ),
@@ -1308,13 +1358,20 @@ def run_doctor() -> dict[str, Any]:
         rows.append(_doctor_gh_row())
         for host in SUPPORTED_HOSTS:
             status = _preflight_step(host)
-            rows.append(
-                {
-                    "target": host,
-                    "ok": bool(status.get("ok")),
-                    "message_ko": str(status.get("message_ko") or ""),
-                }
-            )
+            row = {
+                "target": host,
+                "ok": bool(status.get("ok")),
+                "message_ko": str(status.get("message_ko") or ""),
+            }
+            for evidence_key in (
+                "adapter_ref",
+                "authed",
+                "api_key_env_present",
+                "credential_validity",
+            ):
+                if evidence_key in status:
+                    row[evidence_key] = status[evidence_key]
+            rows.append(row)
     except Exception as exc:  # noqa: BLE001 -- friendly row, never raise
         rows.append(
             {
@@ -1398,7 +1455,7 @@ def run_onboard(
       friendly even when the provider is missing / unauthed, never touching the
       repo.
     - With ``allow_real_provider=True`` AND a recorded ``ready`` observed-write
-      provider (adapter:codex-local / adapter:claude-local), the SAME seam runs
+      provider (codex/claude/gemini local), the SAME seam runs
       the example on that adapter (a real-provider Building). When the provider
       is NOT ready it FALLS BACK to ``adapter:local``
       (still friendly, never raises). The adapter used + WHY are recorded on the
@@ -2654,7 +2711,7 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help=(
             "Allow the example to run on the REAL provider's observed-write "
-            "adapter (adapter:codex-local / adapter:claude-local) when preflight "
+            "adapter (codex/claude/gemini local) when preflight "
             "reports it READY; otherwise falls back to adapter:local. "
             "Default: adapter:local only."
         ),

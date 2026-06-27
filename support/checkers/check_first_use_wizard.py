@@ -32,6 +32,11 @@ REQUIRED_TEXTS = (
     "brick auth login",
     "--real-provider",
     "adapter:local",
+    "customer_visible_frontier_state",
+    "frontier_complete",
+    "customer_visible_not_ready",
+    "Agent adapter evidence",
+    "materialized-step",
     "not source truth",
     "not Movement authority",
 )
@@ -79,6 +84,19 @@ def _fake_wizard_packet(*, example_ok: bool) -> dict[str, Any]:
             "chain_preset_ref": "building-chain-preset:onboarding-example-graph",
             "evidence_root": "",
             "frontier_kind": "complete",
+            "customer_visible_frontier_state": "frontier_complete",
+            "customer_visible_not_ready": False,
+            "customer_visible_frontier_message": (
+                "frontier complete: evidence closed for this Building. "
+                "This remains support evidence, not source truth or quality judgment."
+            ),
+            "materialized_step_adapters": [
+                {
+                    "step_ref": "materialized-step",
+                    "selected_adapter_ref": "adapter:codex-local",
+                    "selected_model_ref": "model:codex:default",
+                }
+            ],
         }
         if example_ok
         else {

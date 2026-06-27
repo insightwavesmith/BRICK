@@ -2910,6 +2910,27 @@ def run_provider_preflight(repo: Path) -> KernelResult:
             "provider_preflight: adapter:local must report installed/authed/ok ready"
         )
 
+    # Gemini API-key paths are never live-called by preflight; they must expose
+    # key-presence evidence separately from credential validity so doctor/onboard
+    # cannot turn a present-but-invalid key into an auth proof.
+    for gemini_ref in (
+        adapter_constants.ADAPTER_GEMINI_LOCAL,
+        adapter_constants.ADAPTER_GEMINI_API,
+    ):
+        status = adapter_subprocess.preflight_provider(gemini_ref)
+        _provider_preflight_assert_shape(gemini_ref, status)
+        if "api_key_env_present" not in status or not isinstance(
+            status.get("api_key_env_present"), bool
+        ):
+            raise ProfileError(
+                f"provider_preflight: {gemini_ref} must expose boolean api_key_env_present"
+            )
+        if status.get("credential_validity") != "not_proven":
+            raise ProfileError(
+                f"provider_preflight: {gemini_ref} must mark credential_validity=not_proven"
+            )
+        inspected += 1
+
     # (b) Deliberately bogus + retired refs must return ok False WITHOUT raising.
     for bogus_ref in (
         "adapter:bogus-not-a-real-provider",
@@ -2936,7 +2957,8 @@ def run_provider_preflight(repo: Path) -> KernelResult:
         output=(
             "provider preflight passed: preflight_provider returns a well-shaped "
             "status dict for active + in-process adapters, reports adapter:local "
-            "ready, and returns ok False (never raises) for bogus/retired refs "
+            "ready, keeps Gemini API-key presence separate from credential validity, "
+            "and returns ok False (never raises) for bogus/retired refs "
             f"({inspected} ref(s) inspected)."
         ),
     )
@@ -3907,14 +3929,45 @@ def run_onboard_smoke(repo: Path) -> KernelResult:
     _ensure_import_identity(repo)
     onboard = importlib.import_module("brick_protocol.support.operator.onboard")
 
+    if "gemini" not in tuple(getattr(onboard, "SUPPORTED_HOSTS", ())):
+        raise ProfileError("onboard_smoke: SUPPORTED_HOSTS must include gemini")
+    doctor_packet = onboard.run_doctor()
+    doctor_targets = {
+        str(row.get("target") or "")
+        for row in doctor_packet.get("rows", [])
+        if isinstance(row, Mapping)
+    }
+    if "gemini" not in doctor_targets:
+        raise ProfileError(
+            "onboard_smoke: doctor readiness rows must include gemini-local host evidence"
+        )
+    gemini_doctor_rows = [
+        row
+        for row in doctor_packet.get("rows", [])
+        if isinstance(row, Mapping) and str(row.get("target") or "") == "gemini"
+    ]
+    gemini_doctor_row = gemini_doctor_rows[0] if gemini_doctor_rows else {}
+    if "api_key_env_present" not in gemini_doctor_row:
+        raise ProfileError(
+            "onboard_smoke: gemini doctor row must expose API-key environment presence"
+        )
+    if gemini_doctor_row.get("credential_validity") != "not_proven":
+        raise ProfileError(
+            "onboard_smoke: gemini doctor row must mark credential_validity=not_proven"
+        )
+    gemini_message = str(gemini_doctor_row.get("message_ko") or "")
+    if "키 유효성" not in gemini_message and "API key" not in gemini_message:
+        raise ProfileError(
+            "onboard_smoke: gemini doctor row must explain API-key readiness limits"
+        )
+    inspected = 1
+
     # The bundled example plan must exist (boundary sweep validates its shape).
     plan_path = repo / onboard.EXAMPLE_PLAN_REL
     if not plan_path.is_file():
         raise ProfileError(
             f"onboard_smoke: bundled example plan missing: {onboard.EXAMPLE_PLAN_REL}"
         )
-
-    inspected = 0
 
     # (a)+(b)+(d) Happy path on adapter:local with a TEMP output_root (NOT repo).
     with tempfile.TemporaryDirectory(prefix="bp-onboard-smoke-") as tmp:
@@ -3966,6 +4019,28 @@ def run_onboard_smoke(repo: Path) -> KernelResult:
             ) from exc
         if int(example.get("written_file_count") or 0) <= 0:
             raise ProfileError("onboard_smoke: example produced no written evidence files")
+        step_adapters = example.get("materialized_step_adapters")
+        if not isinstance(step_adapters, list) or not step_adapters:
+            raise ProfileError(
+                "onboard_smoke: example_result must expose materialized_step_adapters"
+            )
+        observed_adapter_refs = {
+            str(row.get("selected_adapter_ref") or "")
+            for row in step_adapters
+            if isinstance(row, Mapping)
+        }
+        if "adapter:codex-local" not in observed_adapter_refs:
+            raise ProfileError(
+                "onboard_smoke: materialized_step_adapters must expose Agent "
+                f"step casting, got {step_adapters!r}"
+            )
+        if observed_adapter_refs - {"adapter:local"} and "provider 없이" in str(
+            example.get("message_ko") or ""
+        ):
+            raise ProfileError(
+                "onboard_smoke: example message claimed provider-free execution "
+                f"while step adapters were {sorted(observed_adapter_refs)}"
+            )
         inspected += 1
 
     # (c) A bogus host must return ok False WITHOUT raising. Skip the example so
@@ -3990,7 +4065,9 @@ def run_onboard_smoke(repo: Path) -> KernelResult:
         check_id="onboard_smoke",
         inspected=inspected,
         output=(
-            "onboard smoke passed: run_onboard drives the bundled adapter:local "
+            "onboard smoke passed: gemini host appears in doctor/readiness evidence "
+            "with API-key presence and credential_validity=not_proven; "
+            "run_onboard drives the bundled adapter:local "
             "example end-to-end to a TEMP output_root, returns the structured "
             "{preflight, connect_hint, example_result, handoff_message_ko, ok} "
             "dict with ok True + a building_id + landed evidence, and never raises "
@@ -9484,6 +9561,136 @@ def _assert_brick_cli_probe(label: str, completed: subprocess.CompletedProcess[s
         )
 
 
+def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
+    from brick_protocol.support.operator.composition_intent import materialize_building_intent
+
+    parser = cli.build_parser()
+    local_args = parser.parse_args(["build", "--task", "make x"])
+    local_intent = cli._build_intent(local_args)
+    if local_intent.get("selected_adapter_ref") != "adapter:local":
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: local task default changed adapter "
+            f"unexpectedly: {local_intent!r}"
+        )
+    if local_intent.get("chain_preset_ref") != cli.DEFAULT_LOCAL_PRESET_REF:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: local task default must keep onboarding "
+            f"graph preset, got {local_intent!r}"
+        )
+    if "write_scope" in local_intent:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: local task default must not declare write_scope"
+        )
+
+    real_args = parser.parse_args(["build", "--task", "make x", "--real-provider"])
+    real_intent = cli._build_intent(real_args)
+    if real_intent.get("selected_adapter_ref") != "adapter:codex-local":
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: --real-provider task must default to "
+            f"adapter:codex-local, got {real_intent!r}"
+        )
+    if real_intent.get("chain_preset_ref") != cli.DEFAULT_REAL_TASK_PRESET_REF:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: --real-provider task must default to "
+            f"fast-fix, got {real_intent!r}"
+        )
+    write_scope = real_intent.get("write_scope")
+    if not isinstance(write_scope, Mapping):
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: --real-provider task must carry Brick write_scope"
+        )
+    if write_scope.get("allowed_paths") != ["."] or write_scope.get("forbidden_paths") != [".git/**"]:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: --real-provider task write_scope must stay "
+            f"worktree-bounded, got {write_scope!r}"
+        )
+
+    plan = materialize_building_intent(real_intent, repo_root=repo)
+    work_rows = _brick_cli_work_brick_rows(plan)
+    if not work_rows:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: --real-provider task fast-fix plan emitted no work Brick"
+        )
+    scoped_rows = [
+        row
+        for row in work_rows
+        if row.get("write_scope") == write_scope
+        and row.get("requires_brick_write_scope") is True
+    ]
+    if not scoped_rows:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: --real-provider task write_scope did not land "
+            f"on a requires_brick_write_scope work Brick row: {work_rows!r}"
+        )
+
+    api_args = parser.parse_args(["build", "--task", "make x", "--adapter", "adapter:gemini-api"])
+    api_intent = cli._build_intent(api_args)
+    if "write_scope" in api_intent:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: adapter:gemini-api task must remain non-write"
+        )
+
+    incomplete_packet = {
+        "repo_root": str(repo),
+        "building_id": "cli-frontier-not-ready-probe",
+        "adapter_ref": "adapter:gemini-local",
+        "chain_preset_ref": cli.DEFAULT_REAL_TASK_PRESET_REF,
+        "isolation_mode": "worktree",
+        "evidence_root": str(repo / "project" / "brick-protocol" / "buildings" / "probe"),
+        "frontier_kind": "agent_incomplete",
+        "customer_visible_frontier_state": cli._customer_visible_frontier_state("agent_incomplete"),
+        "customer_visible_not_ready": True,
+        "customer_visible_frontier_message": cli._customer_visible_frontier_message(
+            "agent_incomplete"
+        ),
+        "proof_limits": list(cli.PROOF_LIMITS),
+        "not_proven": list(cli.NOT_PROVEN),
+    }
+    rendered = cli._render_build(incomplete_packet)
+    for required in (
+        "frontier_kind: agent_incomplete",
+        "customer_visible_frontier_state: not_ready",
+        "customer_visible_not_ready: yes",
+        "frontier_message: not ready:",
+        "evidence_root",
+    ):
+        if required not in rendered:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: build render did not surface "
+                f"non-ready frontier evidence fragment {required!r}; rendered={rendered!r}"
+            )
+    if cli._customer_visible_frontier_state("complete") != "frontier_complete":
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: complete frontier must render frontier_complete"
+        )
+    if cli._customer_visible_frontier_state("agent_incomplete") != "not_ready":
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: non-complete frontier must render not_ready"
+        )
+    return 5
+
+
+def _brick_cli_work_brick_rows(plan: Mapping[str, Any]) -> list[Mapping[str, Any]]:
+    rows: list[Mapping[str, Any]] = []
+    containers: list[Any] = []
+    if isinstance(plan.get("steps"), list):
+        containers.extend(plan.get("steps", []))
+    if isinstance(plan.get("brick_steps"), list):
+        containers.extend(plan.get("brick_steps", []))
+    for container in containers:
+        if not isinstance(container, Mapping):
+            continue
+        step_template_ref = container.get("step_template_ref")
+        for row in container.get("rows", []):
+            if (
+                isinstance(row, Mapping)
+                and row.get("axis") == "Brick"
+                and step_template_ref == "building-step-template:work"
+            ):
+                rows.append(row)
+    return rows
+
+
 def run_brick_cli_entrypoint_smoke(repo: Path) -> KernelResult:
     """Bare-entrypoint smoke for the customer-facing ``brick`` CLI.
 
@@ -9541,13 +9748,19 @@ raise SystemExit(cli.main(["status", "--json", "--repo", str(repo)]))
         )
         _assert_brick_cli_probe("import-identity console-script simulation", imported)
 
+    _ensure_import_identity(repo)
+    cli = importlib.import_module("brick_protocol.support.operator.cli")
+    inspected = 2 + _assert_brick_cli_customer_task_intent(cli, repo)
+
     return KernelResult(
         check_id="brick_cli_entrypoint_smoke",
-        inspected=2,
+        inspected=inspected,
         output=(
             "brick CLI entrypoint smoke passed: direct script and import-identity "
             "console-script simulation ran from outside the repo with PYTHONPATH "
-            "unset and emitted status JSON without ModuleNotFoundError"
+            "unset and emitted status JSON without ModuleNotFoundError; customer "
+            "task intent defaults keep local runs read-only while --real-provider "
+            "tasks materialize fast-fix with worktree-bounded Brick write_scope"
         ),
     )
 

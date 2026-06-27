@@ -25,6 +25,15 @@ def _packet_text(packet: Mapping[str, Any], key: str, default: str = "not record
     return str(value)
 
 
+def _packet_bool_text(packet: Mapping[str, Any], key: str, default: str = "not recorded") -> str:
+    value = packet.get(key)
+    if isinstance(value, bool):
+        return "yes" if value else "no"
+    if value is None or value == "":
+        return default
+    return str(value)
+
+
 def _doctor_lines(doctor_packet: Mapping[str, Any]) -> list[str]:
     rows = doctor_packet.get("rows", [])
     if not isinstance(rows, list) or not rows:
@@ -39,6 +48,21 @@ def _doctor_lines(doctor_packet: Mapping[str, Any]) -> list[str]:
         suffix = f" - {message}" if message else ""
         rendered.append(f"- {target}: {observed}{suffix}")
     return rendered or ["- Doctor packet recorded no usable rows."]
+
+
+def _step_adapter_lines(build_packet: Mapping[str, Any]) -> list[str]:
+    rows = build_packet.get("materialized_step_adapters")
+    if not isinstance(rows, list) or not rows:
+        return ["- not recorded"]
+    rendered: list[str] = []
+    for row in rows:
+        if not isinstance(row, Mapping):
+            continue
+        step_ref = _packet_text(row, "step_ref")
+        adapter_ref = _packet_text(row, "selected_adapter_ref")
+        model_ref = _packet_text(row, "selected_model_ref")
+        rendered.append(f"- `{step_ref}` -> `{adapter_ref}` (`{model_ref}`)")
+    return rendered or ["- not recorded"]
 
 
 def render_first_use(
@@ -68,7 +92,17 @@ def render_first_use(
         f"- adapter_ref: `{_packet_text(build_packet, 'adapter_ref')}`",
         f"- chain_preset_ref: `{_packet_text(build_packet, 'chain_preset_ref')}`",
         f"- frontier_kind: `{_packet_text(build_packet, 'frontier_kind')}`",
+        "- customer_visible_frontier_state: "
+        f"`{_packet_text(build_packet, 'customer_visible_frontier_state')}`",
+        "- customer_visible_not_ready: "
+        f"`{_packet_bool_text(build_packet, 'customer_visible_not_ready')}`",
+        "- frontier_message: "
+        f"`{_packet_text(build_packet, 'customer_visible_frontier_message')}`",
         f"- evidence_root: `{_packet_text(build_packet, 'evidence_root')}`",
+        "",
+        "## Agent adapter evidence",
+        "",
+        *_step_adapter_lines(build_packet),
         "",
         "## doctor 관찰 / Doctor observations",
         "",

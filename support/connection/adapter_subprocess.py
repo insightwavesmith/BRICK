@@ -30,6 +30,7 @@ from typing import Any
 from .adapter_constants import (
     ADAPTER_CHAT_SESSION,
     ADAPTER_GEMINI_API,
+    ADAPTER_GEMINI_LOCAL,
     ADAPTER_LOCAL,
 )
 from .adapter_validation import _reject_secret_text
@@ -95,6 +96,9 @@ def preflight_provider(adapter_ref: str) -> dict[str, Any]:
     Status shape:
       adapter_ref, cli, installed (bool), authed ("yes"|"no"|"unknown"),
       ok (bool), message_ko (non-empty plain Korean).
+      Gemini API-key paths also carry api_key_env_present and
+      credential_validity. A preflight never proves key validity because it never
+      makes a live provider call.
     """
 
     from support.connection.agent_adapter import (
@@ -136,10 +140,13 @@ def preflight_provider(adapter_ref: str) -> dict[str, Any]:
             "adapter_ref": ADAPTER_GEMINI_API,
             "cli": "",
             "installed": True,
-            "authed": "yes" if has_key else "no",
+            "authed": "unknown" if has_key else "no",
             "ok": has_key,
+            "api_key_env_present": has_key,
+            "credential_validity": "not_proven",
             "message_ko": (
-                "준비 완료 ✅ (Gemini API 키가 환경변수에 있어요)"
+                "준비 일부 확인 ✅ (Gemini API 키 환경변수 존재). "
+                "단, 키 유효성은 doctor가 실호출 없이 증명하지 않아요."
                 if has_key
                 else "Gemini API 키가 필요해요 → 환경변수 GEMINI_API_KEY (또는 GOOGLE_API_KEY)를 설정하세요."
             ),
@@ -163,8 +170,13 @@ def preflight_provider(adapter_ref: str) -> dict[str, Any]:
 
     cli = spec.executable_name
     installed = shutil.which(cli) is not None
+    gemini_local_key_present = False
+    if ref == ADAPTER_GEMINI_LOCAL:
+        gemini_local_key_present = any(
+            (os.environ.get(env_var) or "").strip() for env_var in _GEMINI_API_KEY_ENV_VARS
+        )
     if not installed:
-        return {
+        status = {
             "adapter_ref": ref,
             "cli": cli,
             "installed": False,
@@ -174,6 +186,14 @@ def preflight_provider(adapter_ref: str) -> dict[str, Any]:
                 ref, f"{cli}가 설치돼 있지 않아요. {cli}를 먼저 설치하세요."
             ),
         }
+        if ref == ADAPTER_GEMINI_LOCAL:
+            status.update(
+                {
+                    "api_key_env_present": gemini_local_key_present,
+                    "credential_validity": "not_proven",
+                }
+            )
+        return status
 
     # Installed: run only the cheap --version probe (short timeout). This proves
     # the CLI runs but NOT that it is logged in, so authed stays best-effort.
@@ -189,6 +209,35 @@ def preflight_provider(adapter_ref: str) -> dict[str, Any]:
         version_ok = False
 
     if version_ok:
+        if ref == ADAPTER_GEMINI_LOCAL:
+            if gemini_local_key_present:
+                return {
+                    "adapter_ref": ref,
+                    "cli": cli,
+                    "installed": True,
+                    "authed": "unknown",
+                    "ok": True,
+                    "api_key_env_present": True,
+                    "credential_validity": "not_proven",
+                    "message_ko": (
+                        "준비 일부 확인 ✅ (gemini CLI 설치 + API key 환경변수 존재). "
+                        "단, 키 유효성은 doctor가 실호출 없이 증명하지 않아요; "
+                        "실행 중 API_KEY_INVALID가 나오면 새 Gemini API 키를 설정하세요."
+                    ),
+                }
+            return {
+                "adapter_ref": ref,
+                "cli": cli,
+                "installed": True,
+                "authed": "no",
+                "ok": False,
+                "api_key_env_present": False,
+                "credential_validity": "not_proven",
+                "message_ko": (
+                    "gemini CLI는 설치됐지만 API key 환경변수가 없어요 → "
+                    "GEMINI_API_KEY 또는 GOOGLE_API_KEY 를 설정하세요."
+                ),
+            }
         return {
             "adapter_ref": ref,
             "cli": cli,
@@ -203,7 +252,7 @@ def preflight_provider(adapter_ref: str) -> dict[str, Any]:
 
     # Installed but the cheap probe did not succeed: most often a login is
     # needed. Give the friendly login line, never a stack-trace.
-    return {
+    status = {
         "adapter_ref": ref,
         "cli": cli,
         "installed": True,
@@ -214,6 +263,19 @@ def preflight_provider(adapter_ref: str) -> dict[str, Any]:
             f"{_PROVIDER_LOGIN_HINT_KO.get(ref, cli + ' login')}"
         ),
     }
+    if ref == ADAPTER_GEMINI_LOCAL:
+        status.update(
+            {
+                "api_key_env_present": gemini_local_key_present,
+                "credential_validity": "not_proven",
+                "message_ko": (
+                    "gemini CLI/API key 상태를 확인해야 해요 → "
+                    "GEMINI_API_KEY 또는 GOOGLE_API_KEY 를 설정하고 gemini --version 을 확인하세요. "
+                    "키 유효성은 doctor가 실호출 없이 증명하지 않아요."
+                ),
+            }
+        )
+    return status
 
 
 # TrackA-A1 METER (codex token usage): `codex exec --json` emits one JSONL event
