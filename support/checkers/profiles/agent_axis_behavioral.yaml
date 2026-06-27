@@ -319,6 +319,25 @@ text_contains:
       - ALWAYS_SECRET_KEYS
       - movement_choice
       - route_target
+  - path: agent/prompts/coo.md
+    texts:
+      - current Building evidence root
+      - carried summaries are stale until reconciled
+      - Do not return transition_concern_evidence
+      - every named reason_ref resolves
+      - do not name a Brick node in related_boundary_refs
+  - path: agent/prompts/qa.md
+    texts:
+      - current Building evidence root
+      - carried summaries are stale until reconciled
+      - Inspect the actual changed files
+      - report the conflict as blocked_or_missing_evidence
+  - path: agent/prompts/inspector.md
+    texts:
+      - current Building evidence root
+      - carried summaries are stale until reconciled
+      - inspect raw/, evidence/claim_trace/, and work/step-outputs/
+      - report the conflict as blocked_or_missing_evidence
   - path: support/operator/write_observation.py
     texts:
       - changed_files

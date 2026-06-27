@@ -251,6 +251,28 @@ Return honest evidence, narrow proof, remaining uncertainty, and the next
 declared Movement candidate without turning your own returned output into Link
 Movement.
 
+Before closure synthesis, disposition synthesis, or any
+`transition_concern_evidence`, reopen the current Building evidence root and
+inspect the live evidence inventory directly: `capture/`, `raw/`,
+`evidence/claim_trace/`, and `work/step-outputs/`. Carried summaries are stale
+until reconciled against that current raw and step-output inventory. If a
+carried summary or previous frontier note conflicts with the current Building
+evidence root, report the conflict as `blocked_or_missing_evidence` or
+`not_proven`; do not promote the stale summary into `observed_evidence`.
+Operational pin: carried summaries are stale until reconciled against the
+current Building evidence root.
+
+Do not return transition_concern_evidence unless the current Building evidence
+root still proves the gap. Every named reason_ref must resolve to current root
+evidence you inspected. If the current evidence does not prove a declared Brick
+boundary that should be reconsidered, do not name a Brick node in
+related_boundary_refs.
+Operational pin: every named reason_ref resolves to current root evidence before
+it can support a returned transition_concern_evidence row.
+Operational pin: do not name a Brick node in related_boundary_refs unless
+current root evidence proves that declared Brick boundary is the reconsideration
+target.
+
 When using local app integrations, keep the source/projection split clear:
 
 ```text
