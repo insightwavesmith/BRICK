@@ -1590,6 +1590,87 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
                 f"read-tier read-write-scoped codex prompt leaked write-tier permission phrase {phrase!r}"
             )
 
+    reviewer_no_mutation_write_scope = {
+        "allowed_paths": ["."],
+        "forbidden_paths": [".git/**"],
+    }
+    reviewer_no_mutation_request = adapter.AgentAdapterRequest(
+        building_id="agent-reviewer-no-mutation-write-scope-probe",
+        agent_object_ref="agent-object:qa",
+        adapter_ref=adapter_constants.ADAPTER_CODEX_LOCAL,
+        brick_instance_ref="brick-code-attack-qa",
+        next_brick_instance_ref="brick-closure",
+        hook_refs=("hook:reviewer-no-mutation",),
+        tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
+        required_return_shape="observed_evidence, evidence_used, not_proven",
+        agent_instruction_packet=qa_packet,
+        write_scope=reviewer_no_mutation_write_scope,
+    )
+    if not adapter.agent_request_effective_write(reviewer_no_mutation_request):
+        raise ProfileError("reviewer-no-mutation probe stopped recording effective_write input")
+    reviewer_no_mutation_prompt = json.loads(
+        adapter_grant_policy._build_prompt(
+            reviewer_no_mutation_request,
+            adapter._LOCAL_CLI_SPECS[adapter_constants.ADAPTER_CODEX_LOCAL],
+        )
+    )
+    reviewer_no_mutation_rules = list(reviewer_no_mutation_prompt.get("rules", []))
+    if not any("hook:reviewer-no-mutation blocks source-file mutation" in rule for rule in reviewer_no_mutation_rules):
+        raise ProfileError("reviewer-no-mutation prompt did not carry Agent hook source-mutation block")
+    for phrase in ("You may edit files only inside", "workspace write is limited"):
+        if any(phrase in rule for rule in reviewer_no_mutation_rules):
+            raise ProfileError(
+                f"reviewer-no-mutation prompt leaked source-write permission phrase {phrase!r}"
+            )
+    if adapter_local_cli._codex_sandbox_for_request(reviewer_no_mutation_request) != "read-only":
+        raise ProfileError("reviewer-no-mutation codex projection did not force read-only sandbox")
+    claude_reviewer_no_mutation_request = adapter.AgentAdapterRequest(
+        building_id="agent-reviewer-no-mutation-claude-probe",
+        agent_object_ref="agent-object:qa",
+        adapter_ref=adapter_constants.ADAPTER_CLAUDE_LOCAL,
+        brick_instance_ref="brick-code-attack-qa",
+        next_brick_instance_ref="brick-closure",
+        hook_refs=("hook:reviewer-no-mutation",),
+        tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
+        agent_instruction_packet=qa_packet,
+        write_scope=reviewer_no_mutation_write_scope,
+    )
+    claude_reviewer_knobs = adapter_local_cli._claude_cli_invocation(claude_reviewer_no_mutation_request)
+    claude_reviewer_tools = [
+        tool.strip()
+        for tool in claude_reviewer_knobs["tools"].split(",")
+        if tool.strip()
+    ]
+    if claude_reviewer_tools != ["Read", "Grep", "Glob"]:
+        raise ProfileError(
+            "reviewer-no-mutation claude projection did not force read-only tools: "
+            f"{claude_reviewer_tools!r}"
+        )
+    if claude_reviewer_knobs["system_prompt"] != adapter._CLAUDE_READ_ONLY_SYSTEM_PROMPT:
+        raise ProfileError("reviewer-no-mutation claude projection did not use read-only system prompt")
+    gemini_reviewer_no_mutation_request = adapter.AgentAdapterRequest(
+        building_id="agent-reviewer-no-mutation-gemini-probe",
+        agent_object_ref="agent-object:inspector",
+        adapter_ref=adapter_constants.ADAPTER_GEMINI_LOCAL,
+        brick_instance_ref="brick-axis-attack-qa",
+        next_brick_instance_ref="brick-closure",
+        hook_refs=("hook:reviewer-no-mutation",),
+        tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
+        agent_instruction_packet=inspector_packet,
+        write_scope=reviewer_no_mutation_write_scope,
+    )
+    gemini_reviewer_allow, gemini_reviewer_deny = adapter_grant_policy._gemini_admin_policy_partition_for_request(
+        gemini_reviewer_no_mutation_request
+    )
+    for tool_name in ("write_file", "replace", "run_shell_command"):
+        if tool_name in gemini_reviewer_allow or tool_name not in gemini_reviewer_deny:
+            raise ProfileError(
+                "reviewer-no-mutation gemini projection did not deny source-write tool "
+                f"{tool_name!r}"
+            )
+    if "read_file" not in gemini_reviewer_allow:
+        raise ProfileError("reviewer-no-mutation gemini projection did not preserve read tools")
+
     fugu_nonwrite_request = adapter.AgentAdapterRequest(
         building_id="agent-read-tier-fugu-readonly-probe",
         agent_object_ref="agent-object:dev",

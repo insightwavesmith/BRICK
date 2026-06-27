@@ -25,17 +25,14 @@ Inspect Brick / Agent / Link boundaries and report drift as evidence.
 2. Report missing evidence rather than guessing intent.
 3. Treat checkers, MCP, graph, and model reviews as support evidence only.
 4. Return concrete file/path observations when available.
-5. Follow the selected Brick kind. For read-only `inspect`, observe boundaries
-   and evidence without mutating anything. For attack Bricks such as
-   `axis-attack-qa` or `evidence-integrity`, your read-write-scoped policy may
-   write only the building WORK-AREA for real checkers / FIRE / mutation probes,
-   and effective write is granted only when the step's Brick declares a
-   write_scope NEED. The building runs in a disposable W1 worktree sandbox, so
-   this never touches the customer live tree; you still hold
-   hook:reviewer-no-mutation (never mutate customer source-truth) and claim NO
-   Movement authority and no source-truth verdict. If you spawn a native
-   subagent while a brick context is active, that spawn is auto-recorded
-   (skill:native-dispatch-recording).
+5. Follow the selected Brick kind. For `inspect`, `axis-attack-qa`, and
+   `evidence-integrity`, observe boundaries and evidence without mutating source
+   files. Run read-only checker commands when the adapter tier allows them. If a
+   repair is obvious, return the proposed patch or repair delta as evidence; the
+   actual mutation belongs to a separately declared `work` / repair Brick. You
+   still hold hook:reviewer-no-mutation, claim NO Movement authority, and claim
+   no source-truth verdict. If you spawn a native subagent while a brick context
+   is active, that spawn is auto-recorded (skill:native-dispatch-recording).
 
 ## Output
 

@@ -55,6 +55,18 @@ from .adapter_constants import (
 if TYPE_CHECKING:
     from .agent_adapter import AgentAdapterRequest, LocalCliSpec
 
+_HOOK_REVIEWER_NO_MUTATION = "hook:reviewer-no-mutation"
+
+
+def _request_blocks_source_mutation(request: AgentAdapterRequest) -> bool:
+    return _HOOK_REVIEWER_NO_MUTATION in set(request.hook_refs)
+
+
+def _request_allows_source_mutation(request: AgentAdapterRequest) -> bool:
+    from .agent_adapter import agent_request_effective_write
+
+    return agent_request_effective_write(request) and not _request_blocks_source_mutation(request)
+
 
 def _native_grant_resolution_for_request(
     request: AgentAdapterRequest,
@@ -83,11 +95,14 @@ def _native_grant_resolution_for_request(
     if resources is None:
         resources = []
     from .agent_resources import resolve_native_grant
+    resolved_write_need = bool(request.write_scope) if write_need is None else bool(write_need)
+    if _request_blocks_source_mutation(request):
+        resolved_write_need = False
 
     return resolve_native_grant(
         resources,
         tool_policy_refs=list(request.tool_policy_refs),
-        write_need=bool(request.write_scope) if write_need is None else bool(write_need),
+        write_need=resolved_write_need,
     )
 
 
@@ -201,14 +216,25 @@ def _build_prompt(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
     if "transition_concern_evidence" in required_labels:
         rules.extend(_transition_concern_schema_rules())
     if agent_request_effective_write(request):
-        rules.extend(
-            (
-                "You may edit files only inside the Brick-declared write_scope.allowed_paths.",
-                "Do not edit files matching write_scope.forbidden_paths.",
-                "Do not execute hooks or provider SDKs.",
-                "Return non-judgmental support evidence only.",
+        if _request_blocks_source_mutation(request):
+            rules.extend(
+                (
+                    "Agent hook:reviewer-no-mutation blocks source-file mutation for this performer.",
+                    "Do not edit, create, delete, or rewrite source files; return proposed patch or repair delta as evidence for a separate work / repair Brick.",
+                    "You may inspect files, diffs, and evidence, and run read-only checker/probe commands only when the adapter tier allows them.",
+                    "Do not execute hooks or provider SDKs.",
+                    "Return non-judgmental support evidence only.",
+                )
             )
-        )
+        else:
+            rules.extend(
+                (
+                    "You may edit files only inside the Brick-declared write_scope.allowed_paths.",
+                    "Do not edit files matching write_scope.forbidden_paths.",
+                    "Do not execute hooks or provider SDKs.",
+                    "Return non-judgmental support evidence only.",
+                )
+            )
     elif agent_request_read_tier(request) or web_projected or (
         web_requested and spec.adapter_ref == ADAPTER_CODEX_LOCAL
     ):
@@ -247,11 +273,11 @@ def _build_prompt(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
     else:
         rules.append("Do not use tools or hooks.")
     if spec.adapter_ref == ADAPTER_GEMINI_LOCAL:
-        if agent_request_effective_write(request):
+        if _request_allows_source_mutation(request):
             rules.append(
                 "Gemini local effective_write may use write_file, replace, and run_shell_command only inside the Brick-declared write_scope; read and web tools remain governed by native_grant."
             )
-        elif agent_request_read_tier(request) or web_projected:
+        elif agent_request_read_tier(request) or web_projected or _request_blocks_source_mutation(request):
             rules.append(
                 "Gemini local native grant may use only read_file, glob, grep_search, search_file_content, list_directory, read_many_files, and when web-capable is present google_web_search/web_fetch; write and shell tools remain blocked."
             )
