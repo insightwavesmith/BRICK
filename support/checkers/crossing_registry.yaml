@@ -58,6 +58,7 @@ crossings:
       - RETURNED_FORBIDDEN_KEYS
       - TRANSITION_CONCERN_ALLOWED_KEYS
       - TRANSITION_CONCERN_KINDS
+      - is_non_reroute_transition_concern_kind
       - validate_transition_concern_evidence
     defined_at: agent/return_fact.py
     projection_yaml: agent/return_fact.yaml

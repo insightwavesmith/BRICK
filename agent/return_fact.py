@@ -86,6 +86,12 @@ ALWAYS_SECRET_KEYS: frozenset[str] = frozenset(
 RETURNED_FORBIDDEN_KEYS: frozenset[str] = ALWAYS_SECRET_KEYS
 
 
+def is_non_reroute_transition_concern_kind(concern_kind: Any) -> bool:
+    """Return whether an admitted transition concern kind proposes no reroute."""
+
+    return isinstance(concern_kind, str) and concern_kind in NON_REROUTE_CONCERN_KINDS
+
+
 def _required_text(field_name: str, value: Any) -> str:
     if not isinstance(value, str):
         raise TypeError(f"{field_name} must be text")
@@ -193,5 +199,6 @@ __all__ = (
     "TOP_LEVEL_VERDICT_KEYS",
     "ALWAYS_SECRET_KEYS",
     "RETURNED_FORBIDDEN_KEYS",
+    "is_non_reroute_transition_concern_kind",
     "validate_transition_concern_evidence",
 )

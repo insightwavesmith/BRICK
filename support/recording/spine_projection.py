@@ -1021,7 +1021,8 @@ def _executed_step_outputs(building_root: Path) -> list[dict[str, Any]]:
     with the same ``brick_instance_ref`` (for example, a later attempt), the first
     sorted record is kept because the current req-a projection is per step_ref, not
     per attempt. A duplicate step_ref with a different Brick instance is corrupt
-    source evidence and raises.
+    source evidence and raises. Adapter-error-only attempt dirs have no AgentFact
+    return and are frontier evidence, not executed-step projection sources.
     """
 
     step_outputs_dir = building_root / "work" / "step-outputs"
@@ -1034,6 +1035,12 @@ def _executed_step_outputs(building_root: Path) -> list[dict[str, Any]]:
     ordered: list[dict[str, Any]] = []
     for step_dir in sorted(path for path in step_outputs_dir.iterdir() if path.is_dir()):
         output_path = step_dir / _STEP_OUTPUT_PACKET
+        if not output_path.is_file():
+            if (step_dir / "adapter-error.json").is_file():
+                continue
+            raise SpineProjectionError(
+                f"{output_path}: step output packet unreadable: missing step-output.json"
+            )
         body = _load_json_object(output_path, source_label="step output packet")
         step_ref = _require_string(body, "step_ref", output_path)
         brick_instance_ref = _require_string(body, "brick_instance_ref", output_path)

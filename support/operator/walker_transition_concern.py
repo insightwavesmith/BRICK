@@ -22,7 +22,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from brick_protocol.agent.return_fact import (
-    NON_REROUTE_CONCERN_KINDS,
+    is_non_reroute_transition_concern_kind,
     validate_transition_concern_evidence,
 )
 from brick_protocol.support.operator.contracts import BuildingRunSupportResult
@@ -147,7 +147,7 @@ def _classify_reroute_target(
                 seen.add(brick_ref)
                 resolved.append(brick_ref)
     concern_kind = _optional_text_value(concern.get("concern_kind"))
-    if concern_kind in NON_REROUTE_CONCERN_KINDS and not text_refs:
+    if is_non_reroute_transition_concern_kind(concern_kind) and not text_refs:
         return _RerouteTargetClassification(kind="non_reroute", resolved=())
     # STRICT (Smith ruling): a named, non-resolving, non-building-boundary: ref is
     # a garbage brick-targeting address. When such garbage CO-OCCURS with an
