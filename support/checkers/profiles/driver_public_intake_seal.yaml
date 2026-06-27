@@ -12,6 +12,9 @@ text_contains:
     texts:
       - def run_building_intake
       - def run_composed_graph_intake
+      - def run_customer_graph_building_in_sandbox
+      - run_customer_graph_building_in_sandbox
+      - run_composed_graph_intake(
       - "Internal/checker-only seam, not a public ordering surface; main AI uses run_building_intake or assemble."
   - path: support/checkers/check_driver_public_intake_seal.py
     texts:

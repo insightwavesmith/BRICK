@@ -24,6 +24,12 @@ text_contains:
       - 'from support.checkers import check_profile'
       - 'from support.operator.first_use import FIRST_USE_FILENAME, write_first_use'
       - 'run_customer_building_in_sandbox'
+      - 'run_customer_graph_building_in_sandbox'
+      - 'def _active_slack_buildings_root'
+      - 'Path("/Users/smith/.brick/project/brick-protocol/buildings")'
+      - 'def _load_graph_packet'
+      - 'build_input_mode'
+      - 'graph_packet'
       - 'DEFAULT_REAL_TASK_PRESET_REF = "building-chain-preset:fast-fix"'
       - 'REAL_PROVIDER_SELECTION_ORDER = ('
       - '_first_ready_real_provider_choice'
@@ -40,6 +46,11 @@ text_contains:
       - 'check_profile.main(verify_argv)'
       - 'write_first_use('
       - 'next: read {FIRST_USE_FILENAME}'
+      - 'build.add_argument('
+      - '"--graph-packet"'
+      - '"--graph"'
+      - 'declare either graph packet mode or task/task-source mode, not both'
+      - 'graph-packet-declared'
   - path: support/operator/first_use.py
     texts:
       - 'FIRST_USE_FILENAME = "FIRST_USE.md"'
@@ -66,6 +77,7 @@ text_absent:
       - choose_movement
       - success_judgment
       - quality_judgment
+      - adapter:gemini-api
 proof_limits:
   - support evidence only
   - not source truth

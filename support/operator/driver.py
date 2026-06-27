@@ -548,6 +548,65 @@ def run_customer_building_in_sandbox(
     )
 
 
+def run_customer_graph_building_in_sandbox(
+    packet: Mapping[str, Any],
+    *,
+    customer_repo_root: Path | str,
+    output_root: Path | str,
+    overwrite_existing: bool = False,
+    local_callables: Mapping[str, AgentBrainCallable] | None = None,
+    command_runner: CommandRunner | None = None,
+    adapter_timeout_seconds: int = 120,
+    proof_limits: Iterable[str] | str | None = None,
+) -> CustomerSandboxRunResult:
+    """Run a caller/COO-declared graph packet through the customer sandbox.
+
+    This is the customer-facing graph wrapper. It owns only the W1 sandbox
+    bracket and delegates the declared graph body to the internal
+    ``run_composed_graph_intake`` seam. It does not invent nodes, edges, gates,
+    Movement, route targets, success, or quality.
+    """
+
+    repo = Path(customer_repo_root).resolve()
+    durable_output = Path(output_root).resolve()
+    building_id = _required_text(packet.get("building_id"), "graph packet building_id")
+
+    def _run_graph(repo_root: Path, adapter_cwd: Path) -> BuildingIntakeRunResult:
+        return run_composed_graph_intake(
+            packet.get("nodes", ()),
+            packet.get("edges", ()),
+            task_statement=packet.get("task_statement"),
+            declared_by=_required_text(packet.get("declared_by"), "graph packet declared_by"),
+            groups=packet.get("groups", ()),
+            selected_shape_ref=str(packet.get("selected_shape_ref") or ""),
+            chain_preset_ref=str(packet.get("chain_preset_ref") or ""),
+            plan_ref=str(packet.get("plan_ref") or ""),
+            building_id=building_id,
+            selected_adapter_ref=str(packet.get("selected_adapter_ref") or "adapter:local"),
+            selected_model_ref=str(packet.get("selected_model_ref") or "model:default"),
+            transition_concern_adoption=str(
+                packet.get("transition_concern_adoption")
+                or packet.get("adoption")
+                or ""
+            ),
+            repo_root=repo_root,
+            output_root=durable_output,
+            overwrite_existing=overwrite_existing,
+            local_callables=local_callables,
+            command_runner=command_runner,
+            adapter_cwd=adapter_cwd,
+            adapter_timeout_seconds=adapter_timeout_seconds,
+            proof_limits=proof_limits,
+        )
+
+    return _run_in_worktree_sandbox(
+        repo,
+        building_id=building_id,
+        durable_output=durable_output,
+        run_dispatch=_run_graph,
+    )
+
+
 def _run_in_worktree_sandbox(
     repo: Path,
     *,
@@ -1528,5 +1587,6 @@ __all__ = [
     "PortfolioDriveResult",
     "run_building_intake",
     "run_customer_building_in_sandbox",
+    "run_customer_graph_building_in_sandbox",
     "run_declared_portfolio",
 ]

@@ -9584,6 +9584,13 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
     from brick_protocol.support.operator.composition_intent import materialize_building_intent
 
     parser = cli.build_parser()
+    graph_args = parser.parse_args(["build", "--graph-packet", "graph.json"])
+    if getattr(graph_args, "graph_packet", "") != "graph.json":
+        raise ProfileError("brick_cli_entrypoint_smoke: --graph-packet did not bind graph_packet")
+    graph_alias_args = parser.parse_args(["build", "--graph", "graph.json"])
+    if getattr(graph_alias_args, "graph_packet", "") != "graph.json":
+        raise ProfileError("brick_cli_entrypoint_smoke: --graph alias did not bind graph_packet")
+
     local_args = parser.parse_args(["build", "--task", "make x"])
     local_intent = cli._build_intent(local_args)
     if local_intent.get("selected_adapter_ref") != "adapter:local":
@@ -9804,7 +9811,135 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
         raise ProfileError(
             "brick_cli_entrypoint_smoke: non-complete frontier must render not_ready"
         )
-    return 5
+
+    with tempfile.TemporaryDirectory(prefix="bp-cli-graph-invalid-") as tmp:
+        tmp_root = Path(tmp)
+        invalid_graph = tmp_root / "invalid-graph.json"
+        invalid_graph.write_text('{"task_statement": "x"}\n', encoding="utf-8")
+        invalid_output = tmp_root / "must-not-exist"
+        invalid_args = parser.parse_args(
+            [
+                "build",
+                "--graph-packet",
+                str(invalid_graph),
+                "--output-root",
+                str(invalid_output),
+            ]
+        )
+        try:
+            cli._run_build(invalid_args)
+        except ValueError as exc:
+            if "graph packet requires" not in str(exc):
+                raise ProfileError(
+                    "brick_cli_entrypoint_smoke: invalid graph packet rejected "
+                    f"with wrong reason: {exc}"
+                ) from exc
+        else:
+            raise ProfileError("brick_cli_entrypoint_smoke: invalid graph packet was accepted")
+        if invalid_output.exists():
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: invalid graph invocation created output_root "
+                "before semantic validation"
+            )
+
+    graph_packet = {
+        "task_statement": "graph fixture task",
+        "declared_by": "coo:cli-graph-checker",
+        "building_id": "cli-graph-fixture",
+        "nodes": [
+            {
+                "node_ref": "node:work",
+                "step_ref": "cli-graph-work",
+                "step_template_ref": "building-step-template:work",
+            }
+        ],
+        "edges": [],
+        "selected_adapter_ref": "adapter:local",
+        "selected_model_ref": "model:default",
+        "groups": [],
+    }
+    with tempfile.TemporaryDirectory(prefix="bp-cli-graph-home-") as home_tmp, tempfile.TemporaryDirectory(
+        prefix="bp-cli-graph-packet-"
+    ) as packet_tmp:
+        graph_path = Path(packet_tmp) / "graph.json"
+        graph_path.write_text(json.dumps(graph_packet, sort_keys=True) + "\n", encoding="utf-8")
+        graph_call: dict[str, Any] = {}
+
+        class FakeGraphResult:
+            building_id = "cli-graph-fixture"
+            isolation_mode = "worktree"
+            isolation_reason = "checker synthetic"
+            base_sha = "abc123"
+            worktree_path = "/tmp/checker-worktree"
+            evidence_root = "/Users/smith/.brick/project/brick-protocol/buildings/cli-graph-fixture"
+            frontier_kind = "agent_incomplete"
+            commit_sha = ""
+            worktree_disposed = True
+            intake_result = None
+
+        original_graph_runner = cli.run_customer_graph_building_in_sandbox
+        old_home = os.environ.get("HOME")
+        try:
+            os.environ["HOME"] = home_tmp
+
+            def fake_graph_runner(packet: Mapping[str, Any], **kwargs: Any) -> FakeGraphResult:
+                graph_call["packet"] = dict(packet)
+                graph_call["kwargs"] = dict(kwargs)
+                return FakeGraphResult()
+
+            cli.run_customer_graph_building_in_sandbox = fake_graph_runner
+            graph_build_args = parser.parse_args(["build", "--graph", str(graph_path), "--json"])
+            graph_result = cli._run_build(graph_build_args)
+        finally:
+            cli.run_customer_graph_building_in_sandbox = original_graph_runner
+            if old_home is None:
+                os.environ.pop("HOME", None)
+            else:
+                os.environ["HOME"] = old_home
+
+        expected_root = "/Users/smith/.brick/project/brick-protocol/buildings"
+        if graph_result.get("build_input_mode") != "graph_packet":
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: graph build did not expose build_input_mode=graph_packet"
+            )
+        if graph_result.get("output_root") != expected_root:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: graph default output_root must be "
+                f"{expected_root} independent of HOME, got {graph_result.get('output_root')!r}"
+            )
+        if str(graph_call.get("kwargs", {}).get("output_root")) != expected_root:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: graph wrapper dispatch did not receive "
+                "the active Slack-facing vessel root"
+            )
+        if graph_call.get("kwargs", {}).get("customer_repo_root") != repo:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: graph wrapper dispatch did not receive repo root"
+            )
+        if graph_call.get("packet", {}).get("nodes") != graph_packet["nodes"]:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: graph wrapper dispatch did not receive declared nodes"
+            )
+        rendered_graph = cli._render_build(graph_result)
+        if "build_input_mode: graph_packet" not in rendered_graph:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: graph render did not expose build_input_mode"
+            )
+
+    conflict_args = parser.parse_args(
+        ["build", "--graph", str(graph_path), "--task", "also task"]
+    )
+    try:
+        cli._run_build(conflict_args)
+    except ValueError as exc:
+        if "either graph packet mode or task/task-source mode" not in str(exc):
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: graph/task conflict rejected with wrong reason"
+            ) from exc
+    else:
+        raise ProfileError("brick_cli_entrypoint_smoke: graph/task conflict was accepted")
+
+    return 6
 
 
 def _brick_cli_work_brick_rows(plan: Mapping[str, Any]) -> list[Mapping[str, Any]]:
