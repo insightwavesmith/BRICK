@@ -42,6 +42,7 @@ from brick_protocol.support.connection.adapter_constants import (
     ADAPTER_CHAT_SESSION,
 )
 from brick_protocol.support.connection.adapter_subprocess import (
+    _timeout_expired_partial_output,
     _timeout_expired_reap_reason,
 )
 from brick_protocol.support.connection.adapter_validation import (
@@ -1297,7 +1298,7 @@ def _adapter_result_or_interrupt(
 
 
 def _adapter_error_mapping(exc: Exception) -> Mapping[str, Any]:
-    return {
+    mapping: dict[str, Any] = {
         "error_kind": _adapter_error_kind(exc),
         "exception_type": type(exc).__name__,
         "message_excerpt": _safe_exception_excerpt(exc),
@@ -1316,6 +1317,24 @@ def _adapter_error_mapping(exc: Exception) -> Mapping[str, Any]:
             "caller/COO disposition after frontier observation",
         ],
     }
+    mapping.update(_adapter_error_timeout_diagnostic_excerpts(exc))
+    return mapping
+
+
+def _adapter_error_timeout_diagnostic_excerpts(exc: Exception) -> Mapping[str, Any]:
+    if not isinstance(exc, subprocess.TimeoutExpired):
+        return {}
+    partial = _timeout_expired_partial_output(exc)
+    diagnostics: dict[str, Any] = {
+        "timeout_reap_reason": _timeout_expired_reap_reason(exc),
+    }
+    stdout = partial.get("stdout", "")
+    stderr = partial.get("stderr", "")
+    if stdout:
+        diagnostics["timeout_stdout_excerpt"] = _safe_diagnostic_excerpt(stdout, limit=420)
+    if stderr:
+        diagnostics["timeout_stderr_excerpt"] = _safe_diagnostic_excerpt(stderr, limit=420)
+    return diagnostics
 
 
 def _adapter_error_kind(exc: Exception) -> str:
@@ -1355,7 +1374,11 @@ def _per_step_recorded_at() -> str:
 
 
 def _safe_exception_excerpt(exc: Exception) -> str:
-    text = " ".join(str(exc).split())
+    return _safe_diagnostic_excerpt(str(exc), limit=240)
+
+
+def _safe_diagnostic_excerpt(value: str, *, limit: int) -> str:
+    text = " ".join(value.split())
     secret_patterns = (
         (r"(?i)authorization\s*:\s*bearer\s+\S+", "authorization credential redacted"),
         (r"(?i)\bbearer\s+\S+", "credential redacted"),
@@ -1392,7 +1415,7 @@ def _safe_exception_excerpt(exc: Exception) -> str:
     )
     for pattern, replacement in secret_patterns:
         text = re.sub(pattern, replacement, text)
-    return text[:240]
+    return text[:limit]
 
 
 def build_minimal_crossing(

@@ -5943,8 +5943,17 @@ def run_adapter_error_path_hardening(repo: Path) -> KernelResult:
             raise ProfileError("adapter_error_path_hardening did not reach codex adapter probe")
         if not (root / "work" / "declared-building-plan.json").is_file():
             raise ProfileError("adapter_error_path_hardening root lacks birth certificate")
+        diagnostic_root = output_root / "adapter-error-hardening-diagnostics"
+        _write_adapter_error_frontier_direct(
+            run_module,
+            repo=repo,
+            output_root=output_root,
+            building_id=diagnostic_root.name,
+            overwrite_existing=True,
+        )
+        _assert_adapter_error_diagnostics_preserved(diagnostic_root)
         _assert_adapter_error_frontier_report_root_admission(run_module, repo, output_root)
-        inspected += 8
+        inspected += 10
         try:
             run_module.resume_building_plan(root, command_runner=failing_codex_runner)
         except ValueError as exc:
@@ -6516,6 +6525,9 @@ def _write_adapter_error_frontier_direct(
             "error_kind": "local_cli_timeout",
             "exception_type": "TimeoutExpired",
             "message_excerpt": "timeout",
+            "timeout_reap_reason": "timeout",
+            "timeout_stdout_excerpt": "partial stdout before timeout",
+            "timeout_stderr_excerpt": "partial stderr before timeout",
             "proof_limits": ("checker fixture support evidence only",),
             "not_proven": ("complete adapter-error lifecycle frontier",),
         },
@@ -6523,6 +6535,35 @@ def _write_adapter_error_frontier_direct(
         overwrite_existing=overwrite_existing,
         proof_limits=("checker fixture support evidence only",),
     )
+
+
+def _assert_adapter_error_diagnostics_preserved(root: Path) -> None:
+    expected = {
+        "timeout_reap_reason": "timeout",
+        "timeout_stdout_excerpt": "partial stdout before timeout",
+        "timeout_stderr_excerpt": "partial stderr before timeout",
+    }
+    raw_path = root / "raw" / "adapter-error.jsonl"
+    if not raw_path.is_file():
+        raise ProfileError("adapter_error_path_hardening diagnostics root lacks raw adapter-error")
+    raw_records = [
+        json.loads(line)
+        for line in raw_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    if len(raw_records) != 1:
+        raise ProfileError("adapter_error_path_hardening diagnostics expected one raw row")
+    step_paths = sorted((root / "work" / "step-outputs").glob("*/adapter-error.json"))
+    if len(step_paths) != 1:
+        raise ProfileError("adapter_error_path_hardening diagnostics expected one step-output")
+    step_record = json.loads(step_paths[0].read_text(encoding="utf-8"))
+    for label, record in (("raw", raw_records[0]), ("step-output", step_record)):
+        for key, value in expected.items():
+            if record.get(key) != value:
+                raise ProfileError(
+                    "adapter_error_path_hardening diagnostics dropped "
+                    f"{key} from {label}"
+                )
 
 
 def _adapter_error_hardening_graph_plan(

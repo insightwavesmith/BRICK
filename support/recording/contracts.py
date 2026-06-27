@@ -53,6 +53,7 @@ class AdapterErrorObservation:
     adapter_error_ref: str
     raw_ref: str
     task_source_ref: str = ""
+    diagnostic_excerpts: Mapping[str, str] = field(default_factory=dict)
     proof_limits: tuple[str, ...] = field(default_factory=tuple)
     not_proven: tuple[str, ...] = field(default_factory=tuple)
 

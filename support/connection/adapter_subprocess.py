@@ -57,6 +57,8 @@ _TIMEOUT_REAP_REASON_ATTR = "_brick_protocol_reap_reason"
 # how long the dead signature persisted. Never an Agent-fault label or a Link
 # decision -- just the numbers the watchdog saw at reap time.
 _STALL_DEAD_SIGNATURE_ATTR = "_brick_protocol_stall_dead_signature"
+_TIMEOUT_PARTIAL_STDOUT_ATTR = "_brick_protocol_timeout_partial_stdout"
+_TIMEOUT_PARTIAL_STDERR_ATTR = "_brick_protocol_timeout_partial_stderr"
 
 
 @dataclass(frozen=True)
@@ -732,6 +734,64 @@ def _timeout_expired_stall_dead_signature(
     return None
 
 
+def _timeout_stream_text(value: Any) -> str:
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    if isinstance(value, str):
+        return value
+    return ""
+
+
+def _merge_timeout_streams(*values: Any) -> str:
+    parts: list[str] = []
+    for value in values:
+        text = _timeout_stream_text(value)
+        if text and text not in parts:
+            parts.append(text)
+    return "\n".join(parts)
+
+
+def _drain_timeout_process_output(
+    proc: "subprocess.Popen[str]",
+) -> tuple[str, str]:
+    try:
+        stdout, stderr = proc.communicate(timeout=1)
+    except Exception:
+        return "", ""
+    return stdout or "", stderr or ""
+
+
+def _attach_timeout_partial_output(
+    exc: subprocess.TimeoutExpired,
+    *,
+    proc: "subprocess.Popen[str]",
+) -> None:
+    drained_stdout, drained_stderr = _drain_timeout_process_output(proc)
+    stdout = _merge_timeout_streams(getattr(exc, "output", None), drained_stdout)
+    stderr = _merge_timeout_streams(getattr(exc, "stderr", None), drained_stderr)
+    if stdout:
+        setattr(exc, _TIMEOUT_PARTIAL_STDOUT_ATTR, stdout)
+    if stderr:
+        setattr(exc, _TIMEOUT_PARTIAL_STDERR_ATTR, stderr)
+
+
+def _timeout_expired_partial_output(exc: subprocess.TimeoutExpired) -> Mapping[str, str]:
+    """Return support-only partial stdout/stderr captured from a timed-out CLI.
+
+    The values are raw process streams. Callers that persist them must redact and
+    excerpt first; this helper only preserves otherwise-lost timeout diagnostics.
+    """
+
+    partial: dict[str, str] = {}
+    stdout = getattr(exc, _TIMEOUT_PARTIAL_STDOUT_ATTR, "")
+    stderr = getattr(exc, _TIMEOUT_PARTIAL_STDERR_ATTR, "")
+    if isinstance(stdout, str) and stdout:
+        partial["stdout"] = stdout
+    if isinstance(stderr, str) and stderr:
+        partial["stderr"] = stderr
+    return partial
+
+
 def _reap_timeout_process_group(proc: "subprocess.Popen[str]", *, reason: str) -> None:
     if reason == "stall":
         _signal_process_group(proc, signal.SIGTERM)
@@ -785,6 +845,7 @@ def _run_text_cli_command(
     except subprocess.TimeoutExpired as exc:
         reason = _timeout_expired_reap_reason(exc)
         _reap_timeout_process_group(proc, reason=reason)
+        _attach_timeout_partial_output(exc, proc=proc)
         _journal_reap(
             proc,
             reason=reason,
@@ -908,6 +969,7 @@ def _run_command(
     except subprocess.TimeoutExpired as exc:
         reason = _timeout_expired_reap_reason(exc)
         _reap_timeout_process_group(proc, reason=reason)
+        _attach_timeout_partial_output(exc, proc=proc)
         _journal_reap(
             proc,
             reason=reason,

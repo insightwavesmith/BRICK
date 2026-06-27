@@ -39,6 +39,7 @@ from brick_protocol.support.operator.primitives import (
     _step_fact_ref,
     _text_tuple,
 )
+from brick_protocol.support.connection.secret_text import contains_raw_secret_text
 from brick_protocol.support.recording.building_map import (
     BuildingMapWriteResult,
     write_building_map,
@@ -862,11 +863,34 @@ def _adapter_error_observation(
         adapter_error_ref=f"adapter-error:{_resource_slug('step_ref', step_ref.replace(':', '-'))}:attempt-{attempt_index}",
         raw_ref=_raw_ref("adapter-error", step_index),
         task_source_ref=task_source_ref or "",
+        diagnostic_excerpts=_adapter_error_diagnostic_excerpts(adapter_error),
         proof_limits=_merge_texts(proof_limits, adapter_error.get("proof_limits")),
         not_proven=_manifest_not_proven(
             _merge_texts(prepared.not_proven, adapter_error.get("not_proven"))
         ),
     )
+
+
+_ADAPTER_ERROR_DIAGNOSTIC_KEYS = frozenset(
+    {
+        "timeout_reap_reason",
+        "timeout_stdout_excerpt",
+        "timeout_stderr_excerpt",
+    }
+)
+
+
+def _adapter_error_diagnostic_excerpts(adapter_error: Mapping[str, Any]) -> Mapping[str, str]:
+    diagnostics: dict[str, str] = {}
+    for key in sorted(_ADAPTER_ERROR_DIAGNOSTIC_KEYS):
+        value = adapter_error.get(key)
+        if value in (None, ""):
+            continue
+        text = str(value)
+        if contains_raw_secret_text(text):
+            raise ValueError(f"adapter-error diagnostic {key} contains raw credential-looking text")
+        diagnostics[key] = text
+    return diagnostics
 
 
 def _agent_adapter_request_work_envelope(
@@ -1730,6 +1754,7 @@ def _adapter_error_raw_record(
         "error_kind": observation.error_kind,
         "exception_type": observation.exception_type,
         "message_excerpt": observation.message_excerpt,
+        **dict(observation.diagnostic_excerpts),
         "agent_fact_created": False,
     }
 

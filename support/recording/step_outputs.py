@@ -255,6 +255,7 @@ def write_adapter_error_outputs(
                 not_proven=observation.not_proven,
             ),
         }
+        packet.update(dict(observation.diagnostic_excerpts))
         if observation.task_source_ref:
             packet["task_source_ref"] = observation.task_source_ref
             packet["evidence_refs"]["task_source_ref"] = observation.task_source_ref
