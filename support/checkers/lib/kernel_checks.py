@@ -2609,6 +2609,29 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
         raise ProfileError("adapter prompt did not expose no_changes_reason waiver")
     if prompt.get("agent_instruction_packet", {}).get("kind") != "agent-instruction-packet":
         raise ProfileError("adapter prompt did not carry Agent instruction packet")
+    transition_required_shape = (
+        "observed_evidence, transition_concern_evidence, not_proven"
+    )
+    transition_request = _agent_adapter_request_instruction_packet_probe(
+        adapter,
+        instruction_packet,
+        transition_required_shape,
+    )
+    transition_prompt = json.loads(
+        adapter_grant_policy._build_prompt(
+            transition_request,
+            adapter._LOCAL_CLI_SPECS[adapter_constants.ADAPTER_CODEX_LOCAL],
+        )
+    )
+    transition_prompt_text = json.dumps(transition_prompt, sort_keys=True)
+    if (
+        "If transition_concern_evidence.concern_kind is verification_gap"
+        not in transition_prompt_text
+        or "never name a reroute-capable Brick node" not in transition_prompt_text
+    ):
+        raise ProfileError(
+            "adapter prompt did not carry the verification_gap related_boundary_refs rule"
+        )
     effective_write_inspected = _agent_effective_write_probe(repo, adapter, instruction_packet)
     read_tier_inspected = _agent_read_tier_probe(repo, adapter)
     artifact_grounding_inspected = _artifact_grounding_probe(repo)

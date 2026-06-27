@@ -46,6 +46,8 @@ WORK node responsible (e.g. `brick:<the-work-node-id>`) — NOT yourself, NOT a 
 sentinel. The engine silently walks-on a self-ref or sentinel, so no reroute ever fires. Environment
 or runtime constraints (no temp dir, write-scope limits, provider limits, read-only status, "live not
 run") are NOT defects — record them in `not_proven`, never as a `transition_concern`.
+If `concern_kind` is `verification_gap`, it is non-reroute evidence: leave
+`related_boundary_refs` empty or use a `building-boundary:` sentinel, never an upstream Brick node.
 
 Do NOT return `success` / `failure` / `approved` / `good_enough` / `movement_choice` / `route_target` —
 sufficiency + movement are the Link gate's; quality/success are the human's. This Brick writes no

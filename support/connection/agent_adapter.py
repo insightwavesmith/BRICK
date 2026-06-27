@@ -1038,6 +1038,7 @@ def _transition_concern_schema_rules() -> tuple[str, ...]:
         "transition_concern_evidence.binding must be the JSON literal false.",
         "transition_concern_evidence.reason_refs must be a non-empty list of strings.",
         "transition_concern_evidence.related_boundary_refs may name only Brick boundaries such as brick-..., brick:..., brick-boundary:..., brick-instance:..., or building-boundary:....",
+        "If transition_concern_evidence.concern_kind is verification_gap, related_boundary_refs must be empty or name a building-boundary: sentinel; never name a reroute-capable Brick node such as brick-..., brick:..., brick-boundary:..., or brick-instance:....",
         "For a reproduced defect, set related_boundary_refs to the upstream work node (not yourself/sentinel); put env/runtime constraints in not_proven, not a concern; reason_refs must not be /tmp filesystem paths.",
         "Do not put observation, disposition_note, candidate_pending_target_ref, secondary_concern_kind, route_target, target_ref, or movement inside transition_concern_evidence.",
     )
