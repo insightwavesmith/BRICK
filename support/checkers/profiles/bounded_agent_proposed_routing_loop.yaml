@@ -82,6 +82,8 @@ text_contains:
       - AgentFact stays closed
       # malformed Agent concern pauses instead of writer-crashing or adopting Movement
       - invalid_transition_concern_evidence
+      # null/false/empty-string/absent are no-concern; {} is a malformed present mapping
+      - 'concern in (None, False, "")'
   # adapter interruption before AgentFact writes an agent_incomplete frontier (P3c rehome)
   - path: support/operator/walker_frontier.py
     texts:
@@ -165,9 +167,14 @@ text_contains:
   - path: support/connection/agent_adapter.py
     texts:
       - def _transition_concern_schema_rules
+      - 'never return an empty object {}'
       - transition_concern_evidence.binding must be the JSON literal false
       - candidate_pending_target_ref
       - secondary_concern_kind
+  - path: brick/templates/bricks/closure/brick.md
+    texts:
+      - 'transition_concern_evidence: null'
+      - 'never return `{}`'
 text_absent:
   # zeta7 source guard: the walker must not author a support: route author_ref or
   # invent a movement choice; AgentFact must not expand. P3c: the guard now also

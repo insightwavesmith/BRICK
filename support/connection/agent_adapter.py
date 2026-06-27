@@ -992,6 +992,7 @@ def _transition_concern_schema_rules() -> tuple[str, ...]:
     allowed_keys = ", ".join(sorted(_TRANSITION_CONCERN_ALLOWED_KEYS))
     allowed_kinds = ", ".join(sorted(_TRANSITION_CONCERN_KINDS))
     return (
+        "If there is no real transition concern, return transition_concern_evidence as null or omit it; never return an empty object {}.",
         "If you return transition_concern_evidence, it must be one JSON object using only these keys: "
         + allowed_keys
         + ".",

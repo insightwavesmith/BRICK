@@ -3172,6 +3172,39 @@ def check(repo: Path) -> list[str]:
                 f"({variant_label}: {empty_variant_step_refs})"
             )
 
+    # CR.P2c: {} is not a no-concern encoding. It is a present but malformed
+    # transition_concern_evidence mapping and must fail closed into the existing
+    # invalid-concern HOLD path instead of creating a target or silently walking.
+    plan_empty_mapping, _ = _checker_plan("bapr-loop0-empty-mapping-concern", budget=1)
+    source_empty_mapping = "brick-bapr-loop0-empty-mapping-concern-review"
+    res_empty_mapping, fr_empty_mapping, rec_empty_mapping = _run(
+        plan_empty_mapping,
+        _raw_transition_concern_callable(source_empty_mapping, {}),
+        repo,
+    )
+    held_empty_mapping = _held_records(rec_empty_mapping)
+    if fr_empty_mapping["frontier_kind"] != "link_paused":
+        violations.append(
+            "selfreroute-empty: empty mapping transition_concern_evidence did not pause "
+            f"(frontier={fr_empty_mapping['frontier_kind']})"
+        )
+    if len(held_empty_mapping) != 1:
+        violations.append(
+            "selfreroute-empty: expected 1 HOLD record for empty mapping concern, "
+            f"got {len(held_empty_mapping)}"
+        )
+    elif held_empty_mapping[0].get("hold_reason") != "invalid_transition_concern_evidence":
+        violations.append(
+            "selfreroute-empty: empty mapping wrong hold_reason="
+            f"{held_empty_mapping[0].get('hold_reason')}"
+        )
+    empty_mapping_bricks = _step_bricks(res_empty_mapping)
+    if empty_mapping_bricks.count("brick-bapr-loop0-empty-mapping-concern-build") != 1:
+        violations.append(
+            "selfreroute-empty: empty mapping concern caused an adopted target re-execution "
+            f"(count={empty_mapping_bricks.count('brick-bapr-loop0-empty-mapping-concern-build')})"
+        )
+
     # CLOSURE-SELFREROUTE-GUARD-0616 FIRE (b/d): if an Agent concern resolves
     # ONLY to the same Brick node that raised it, the walker must treat it as
     # non_reroute and walk on.

@@ -32,6 +32,7 @@ rules:
   - not_proven is next-target material, not a failure verdict.
   - remaining_delta must name concrete future work candidates.
   - proof scope may narrow, but objective scope must be carried.
+  - transition_concern_evidence is null or absent when there is no real concern; never use an empty mapping.
 forbidden_return_keys:
   - success
   - failure

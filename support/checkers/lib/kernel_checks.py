@@ -2727,12 +2727,31 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
     )
     transition_prompt_text = json.dumps(transition_prompt, sort_keys=True)
     if (
+        "never return an empty object {}" not in transition_prompt_text
+        or
         "If transition_concern_evidence.concern_kind is verification_gap"
         not in transition_prompt_text
         or "never name a reroute-capable Brick node" not in transition_prompt_text
     ):
         raise ProfileError(
-            "adapter prompt did not carry the verification_gap related_boundary_refs rule"
+            "adapter prompt did not carry the no-concern/verification_gap transition concern rules"
+        )
+    no_concern_comparison = comparison.BrickComparisonFact.from_returned_value(
+        work_reference="work:agent-adapter-no-concern-probe",
+        required_fields=("observed_evidence", "transition_concern_evidence", "not_proven"),
+        returned_value={
+            "observed_evidence": ["probe observed no concern absence"],
+            "not_proven": ["semantic correctness"],
+        },
+        comparison_rule="Probe absent transition_concern_evidence no-concern waiver only.",
+        required_return_shape_evidence=transition_required_shape,
+    )
+    if (
+        "transition_concern_evidence absent means no concern"
+        not in no_concern_comparison.waived_return_fields()
+    ):
+        raise ProfileError(
+            "Brick comparison did not waive absent transition_concern_evidence as no concern"
         )
     effective_write_inspected = _agent_effective_write_probe(repo, adapter, instruction_packet)
     read_tier_inspected = _agent_read_tier_probe(repo, adapter)

@@ -3,6 +3,9 @@ owner_axis: Brick
 template_kind: review_return_shape
 returned_shape:
   transition_concern_evidence:
+    # Use null or omit transition_concern_evidence when there is no concern.
+    # Never use {} as a no-concern placeholder; a present mapping must be a
+    # complete concern object and malformed mappings fail closed.
     concern_ref: transition-concern:<id>
     concern_kind: implementation_gap | design_gap | upstream_gap | boundary_mismatch | insufficient_input | replay_needed | verification_gap | unknown
     reason_refs:

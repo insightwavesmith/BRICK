@@ -41,6 +41,9 @@ Return: fill the `required_return_shape` from the return_template
 is **non-binding** Agent evidence — it carries `concern_ref`, `concern_kind`, `reason_refs`,
 `related_boundary_refs`, `binding: false`; it MUST NOT carry `movement` / `target` / `target_ref` /
 `route_target`. The forward Link carries this evidence onward; the concern never reroutes by itself.
+If there is no real transition concern, return `transition_concern_evidence: null` or omit the field;
+never return `{}` as a no-concern placeholder. An empty object is malformed concern evidence and may
+pause at the Link frontier instead of closing.
 When you raise a concern for a REAL reproduced defect, aim `related_boundary_refs` at the upstream
 WORK node responsible (e.g. `brick:<the-work-node-id>`) — NOT yourself, NOT a `building-boundary:`
 sentinel. The engine silently walks-on a self-ref or sentinel, so no reroute ever fires. Environment

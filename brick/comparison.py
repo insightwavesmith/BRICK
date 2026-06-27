@@ -200,6 +200,9 @@ class BrickComparisonFact:
                 if field_name == "made_changes" and "no_changes_reason" in returned_value:
                     waived.append("made_changes via no_changes_reason")
                     continue
+                if field_name == "transition_concern_evidence":
+                    waived.append("transition_concern_evidence absent means no concern")
+                    continue
                 missing.append(field_name)
         missing_fields = tuple(dict.fromkeys(missing))
         waived_fields = tuple(dict.fromkeys(waived))
