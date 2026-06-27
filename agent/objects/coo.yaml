@@ -37,7 +37,8 @@
     "adapter:local",
     "adapter:codex-local",
     "adapter:codex-fugu-local",
-    "adapter:claude-local"
+    "adapter:claude-local",
+    "adapter:gemini-local"
   ],
   "preferred_adapter_ref": "adapter:codex-local",
   "preferred_model_ref": "model:codex:default"

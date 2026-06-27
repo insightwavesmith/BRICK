@@ -112,7 +112,9 @@ def render_first_use(
         "",
         "1. `cat FIRST_USE.md`",
         "2. `brick auth login`",
-        "3. Run your real build with `--real-provider` after credentials are ready.",
+        "3. Run your real build with `--real-provider` after readiness is observed. "
+        "With no explicit `--adapter`, Brick uses the first ready provider-backed "
+        "observed-write adapter and falls back to `adapter:local` when none is ready.",
         "",
         "Proof limits: this file is support evidence only; it is not source truth, "
         "not success judgment, not quality judgment, and not Movement authority.",

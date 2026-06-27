@@ -217,19 +217,24 @@ PYTHONPATH=support/import_identity python3 -c 'from brick_protocol.support.opera
 
 The bundled plan uses `adapter:local`, so the COO Agent Object uses its registered local callable reference: no provider CLI, no login, runs in-process. That is useful for a smoke run of the support path, but it does not prove provider behavior or work quality. (Rerunning lands in the same Building root; pass `overwrite_existing=True` to reuse it, or give a fresh `building_id`.)
 
-### 업그레이드: 실제 provider로 (adapter:codex-local)
+### 업그레이드: 실제 provider로
 
-To run the same shape on the real local Codex CLI instead, copy the bundled
-plan OUTSIDE the repository (the repo tree admits no scratch files) and change
-its top-level adapter field (the bundled plan declares the adapter only at the
-top level), then point `run_building_plan` at your copy:
+For the customer CLI, `brick build --task "..." --real-provider` observes
+Claude, Codex, and Gemini local readiness in declared support order, selects
+the first ready observed-write adapter, and falls back to `adapter:local` when
+none is ready. An explicit `--adapter` still wins.
+
+For a direct plan run, copy the bundled plan OUTSIDE the repository (the repo
+tree admits no scratch files) and change its top-level adapter field (the
+bundled plan declares the adapter only at the top level), then point
+`run_building_plan` at your copy. Codex is one explicit adapter example:
 
 ```yaml
 selected_adapter_ref: adapter:codex-local
 selected_model_ref: model:codex:default
 ```
 
-`adapter:codex-local` invokes the local Codex CLI in read-only mode for this plan because the Brick row has no `write_scope`. It requires the local `codex` command and local provider state to be available — if the CLI is missing you get a `local_cli_missing` adapter error (처방은 위의 증상→처방 표). `adapter:claude-local` works the same way for the Claude CLI.
+`adapter:codex-local` invokes the local Codex CLI in read-only mode for this plan because the Brick row has no `write_scope`. It requires the local `codex` command and local provider state to be available — if the CLI is missing you get a `local_cli_missing` adapter error (처방은 위의 증상→처방 표). `adapter:claude-local` works the same way for the Claude CLI. `adapter:gemini-local` invokes the local Gemini CLI and observes only `GEMINI_API_KEY` / `GOOGLE_API_KEY` presence, never credential bodies.
 
 ## Evidence location
 

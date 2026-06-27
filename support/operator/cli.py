@@ -28,20 +28,43 @@ from uuid import uuid4
 
 from brick_protocol.brick.spec import derived_worktree_write_scope
 from support.checkers import check_profile
-from support.connection.adapter_constants import ALLOWED_ADAPTER_REFS
+from support.connection.adapter_constants import (
+    ADAPTER_CLAUDE_LOCAL,
+    ADAPTER_CODEX_LOCAL,
+    ADAPTER_GEMINI_LOCAL,
+    ALLOWED_ADAPTER_REFS,
+    MODEL_REF_CLAUDE_INHERIT,
+    MODEL_REF_CODEX_DEFAULT,
+    MODEL_REF_GEMINI_DEFAULT,
+)
 from support.connection.agent_adapter import adapter_is_write_capable
+from support.connection.adapter_subprocess import preflight_provider
 from support.operator.first_use import FIRST_USE_FILENAME, write_first_use
 from support.operator import onboard
 from support.operator.driver import run_customer_building_in_sandbox
 
 
 ADAPTER_LOCAL = "adapter:local"
-REAL_PROVIDER_ADAPTER = "adapter:codex-local"
+REAL_PROVIDER_SELECTION_ORDER = (
+    ADAPTER_CLAUDE_LOCAL,
+    ADAPTER_CODEX_LOCAL,
+    ADAPTER_GEMINI_LOCAL,
+)
 DEFAULT_EXAMPLE_BUILDING_ID = "brick-cli-example"
 DEFAULT_EXAMPLE_TASK_SOURCE_REF = "brick/templates/tasks/source-template.md"
 DEFAULT_LOCAL_PRESET_REF = "building-chain-preset:onboarding-example-graph"
 DEFAULT_REAL_TASK_PRESET_REF = "building-chain-preset:fast-fix"
 DEFAULT_DECLARED_BY = "coo"
+REAL_PROVIDER_MODEL_REFS = {
+    ADAPTER_CLAUDE_LOCAL: MODEL_REF_CLAUDE_INHERIT,
+    ADAPTER_CODEX_LOCAL: MODEL_REF_CODEX_DEFAULT,
+    ADAPTER_GEMINI_LOCAL: MODEL_REF_GEMINI_DEFAULT,
+}
+REAL_TASK_STEP_TEMPLATE_REFS = (
+    "building-step-template:work",
+    "building-step-template:code-attack-qa",
+    "building-step-template:closure",
+)
 
 PROOF_LIMITS = (
     "support CLI wrapper only",
@@ -98,6 +121,66 @@ def _task_write_scope(*, adapter: str, task: str) -> dict[str, Any] | None:
     return None
 
 
+def _real_task_step_selection_overrides(adapter: str, preset: str) -> dict[str, dict[str, str]]:
+    if preset != DEFAULT_REAL_TASK_PRESET_REF or adapter not in REAL_PROVIDER_MODEL_REFS:
+        return {}
+    return {
+        step_template_ref: {
+            "selected_adapter_ref": adapter,
+            "selected_model_ref": REAL_PROVIDER_MODEL_REFS[adapter],
+        }
+        for step_template_ref in REAL_TASK_STEP_TEMPLATE_REFS
+    }
+
+
+def _readiness_evidence(row: dict[str, Any]) -> dict[str, Any]:
+    """Return redacted provider-readiness evidence safe for CLI packets."""
+
+    evidence: dict[str, Any] = {
+        "adapter_ref": str(row.get("adapter_ref") or ""),
+        "ok": bool(row.get("ok")),
+        "installed": bool(row.get("installed")),
+        "authed": str(row.get("authed") or "unknown"),
+    }
+    if "api_key_env_present" in row:
+        evidence["api_key_env_present"] = bool(row.get("api_key_env_present"))
+    if "credential_validity" in row:
+        evidence["credential_validity"] = str(row.get("credential_validity") or "not_proven")
+    return evidence
+
+
+def _first_ready_real_provider_choice() -> dict[str, Any]:
+    """Choose the first ready observed-write provider from declared support order.
+
+    This is support readiness observation only. It stores no credential/session
+    bodies and falls back to adapter:local when no observed-write provider is
+    ready.
+    """
+
+    observed_rows: list[dict[str, Any]] = []
+    for adapter_ref in REAL_PROVIDER_SELECTION_ORDER:
+        status = preflight_provider(adapter_ref)
+        row = _readiness_evidence(dict(status))
+        observed_rows.append(row)
+        if row["ok"] and adapter_is_write_capable(adapter_ref):
+            return {
+                "adapter_ref": adapter_ref,
+                "adapter_choice_basis": (
+                    "real-provider omitted --adapter; first ready observed-write "
+                    f"adapter in declared order selected: {adapter_ref}"
+                ),
+                "provider_readiness_observations": observed_rows,
+            }
+    return {
+        "adapter_ref": ADAPTER_LOCAL,
+        "adapter_choice_basis": (
+            "real-provider omitted --adapter; no ready observed-write provider "
+            "observed in declared order -> adapter:local fallback"
+        ),
+        "provider_readiness_observations": observed_rows,
+    }
+
+
 def _customer_visible_frontier_state(frontier_kind: str) -> str:
     return "frontier_complete" if frontier_kind == "complete" else "not_ready"
 
@@ -121,11 +204,14 @@ def _customer_visible_frontier_message(frontier_kind: str) -> str:
 
 def _build_intent(args: argparse.Namespace) -> dict[str, Any]:
     # --real-provider is friendly sugar: when the customer opts into a real
-    # provider but left --adapter at the local-stub default, upgrade to the
-    # primary real adapter. An explicit --adapter always wins.
-    adapter = args.adapter
-    if getattr(args, "real_provider", False) and adapter == ADAPTER_LOCAL:
-        adapter = REAL_PROVIDER_ADAPTER
+    # provider and omits --adapter, observe provider readiness and select the
+    # first ready observed-write adapter. An explicit --adapter always wins.
+    explicit_adapter = bool(getattr(args, "adapter", ""))
+    readiness_choice: dict[str, Any] = {}
+    adapter = args.adapter if explicit_adapter else ADAPTER_LOCAL
+    if getattr(args, "real_provider", False) and not explicit_adapter:
+        readiness_choice = _first_ready_real_provider_choice()
+        adapter = str(readiness_choice["adapter_ref"])
     if adapter not in ALLOWED_ADAPTER_REFS:
         raise ValueError(f"adapter_ref is not admitted for customer CLI: {adapter}")
     task = (args.task or "").strip()
@@ -139,17 +225,59 @@ def _build_intent(args: argparse.Namespace) -> dict[str, Any]:
             "selected_adapter_ref": adapter,
             "building_id": building_id,
         }
+        if readiness_choice:
+            intent["adapter_choice_basis"] = readiness_choice["adapter_choice_basis"]
+            intent["provider_readiness_observations"] = readiness_choice[
+                "provider_readiness_observations"
+            ]
         write_scope = _task_write_scope(adapter=adapter, task=task)
         if write_scope is not None:
             intent["write_scope"] = write_scope
+        step_overrides = _real_task_step_selection_overrides(adapter, preset)
+        if step_overrides:
+            intent["step_selection_overrides"] = step_overrides
         return intent
-    return {
+    intent = {
         "declared_by": args.declared_by,
         "task_source_ref": args.task_source_ref,
         "chain_preset_ref": preset,
         "selected_adapter_ref": adapter,
         "building_id": args.building_id or DEFAULT_EXAMPLE_BUILDING_ID,
     }
+    if readiness_choice:
+        intent["adapter_choice_basis"] = readiness_choice["adapter_choice_basis"]
+        intent["provider_readiness_observations"] = readiness_choice[
+            "provider_readiness_observations"
+        ]
+    return intent
+
+
+def _materialized_step_adapter_evidence(plan_path: Path) -> list[dict[str, str]]:
+    try:
+        packet = json.loads(plan_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    plan = packet.get("declared_plan_copy") if isinstance(packet, dict) else None
+    if not isinstance(plan, dict):
+        plan = packet if isinstance(packet, dict) else {}
+    steps = plan.get("brick_steps")
+    if not isinstance(steps, list):
+        steps = plan.get("steps")
+    if not isinstance(steps, list):
+        return []
+    rows: list[dict[str, str]] = []
+    for step in steps:
+        if not isinstance(step, dict):
+            continue
+        row = {
+            "step_ref": str(step.get("step_ref") or ""),
+            "step_template_ref": str(step.get("step_template_ref") or ""),
+            "selected_adapter_ref": str(step.get("selected_adapter_ref") or ""),
+            "selected_model_ref": str(step.get("selected_model_ref") or ""),
+        }
+        if any(row.values()):
+            rows.append(row)
+    return rows
 
 
 def _run_build(args: argparse.Namespace) -> dict[str, Any]:
@@ -177,6 +305,8 @@ def _run_build(args: argparse.Namespace) -> dict[str, Any]:
         "task_source_basis": "task_statement" if args.task else "task_source_ref",
         "chain_preset_ref": intent["chain_preset_ref"],
         "adapter_ref": intent["selected_adapter_ref"],
+        "adapter_choice_basis": intent.get("adapter_choice_basis", "explicit-or-local-adapter"),
+        "provider_readiness_observations": intent.get("provider_readiness_observations", []),
         "isolation_mode": result.isolation_mode,
         "isolation_reason": result.isolation_reason,
         "base_sha": result.base_sha,
@@ -198,6 +328,9 @@ def _run_build(args: argparse.Namespace) -> dict[str, Any]:
                 "plan_shape": intake.plan_shape,
                 "walker_mode": intake.walker_mode,
                 "walker_mode_basis": intake.walker_mode_basis,
+                "materialized_step_adapters": _materialized_step_adapter_evidence(
+                    intake.plan_path
+                ),
             }
         )
     return packet
@@ -209,6 +342,7 @@ def _render_build(packet: dict[str, Any]) -> str:
         f"repo_root: {packet['repo_root']}",
         f"building_id: {packet['building_id']}",
         f"adapter_ref: {packet['adapter_ref']}",
+        f"adapter_choice_basis: {packet.get('adapter_choice_basis', 'not recorded')}",
         f"chain_preset_ref: {packet['chain_preset_ref']}",
         f"isolation_mode: {packet['isolation_mode']}",
         f"evidence_root: {packet['evidence_root']}",
@@ -220,6 +354,18 @@ def _render_build(packet: dict[str, Any]) -> str:
     ]
     if packet.get("plan_path"):
         lines.append(f"plan_path: {packet['plan_path']}")
+    if packet.get("materialized_step_adapters"):
+        lines.append("materialized_step_adapters:")
+        for row in packet["materialized_step_adapters"]:
+            lines.append(
+                "- "
+                + str(row.get("step_ref", ""))
+                + ": "
+                + str(row.get("selected_adapter_ref", ""))
+                + " ("
+                + str(row.get("selected_model_ref", ""))
+                + ")"
+            )
     if packet.get("worktree_path"):
         lines.append(f"worktree_path: {packet['worktree_path']}")
     if packet.get("commit_sha"):
@@ -591,13 +737,14 @@ def build_parser() -> argparse.ArgumentParser:
             "stub/example runs, or fast-fix for write-capable task runs."
         ),
     )
-    build.add_argument("--adapter", default=ADAPTER_LOCAL, help="Declared adapter ref.")
+    build.add_argument("--adapter", default="", help="Declared adapter ref.")
     build.add_argument(
         "--real-provider",
         action="store_true",
         help=(
-            "Use a real provider-backed adapter (default adapter:codex-local) instead of "
-            "the local example stub. Run `brick auth login` first to confirm readiness."
+            "Use the first ready provider-backed observed-write adapter instead of "
+            "the local example stub. Explicit --adapter still wins; no ready provider "
+            "falls back to adapter:local. Run `brick auth login` to inspect readiness."
         ),
     )
     build.add_argument("--building-id", default="", help="Optional explicit Building id.")

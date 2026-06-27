@@ -25,6 +25,9 @@ text_contains:
       - 'from support.operator.first_use import FIRST_USE_FILENAME, write_first_use'
       - 'run_customer_building_in_sandbox'
       - 'DEFAULT_REAL_TASK_PRESET_REF = "building-chain-preset:fast-fix"'
+      - 'REAL_PROVIDER_SELECTION_ORDER = ('
+      - '_first_ready_real_provider_choice'
+      - 'provider_readiness_observations'
       - 'derived_worktree_write_scope()'
       - 'adapter_is_write_capable(adapter)'
       - 'def _customer_visible_frontier_state'
@@ -45,6 +48,9 @@ text_contains:
       - 'This was a local example stub.'
       - '`brick auth login`'
       - '`--real-provider`'
+      - 'first ready provider-backed '
+      - 'observed-write adapter'
+      - 'falls back to `adapter:local`'
       - 'not source truth'
   - path: support/checkers/check_first_use_wizard.py
     texts:

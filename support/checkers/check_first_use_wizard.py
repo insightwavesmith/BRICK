@@ -31,6 +31,8 @@ REQUIRED_TEXTS = (
     EXPECTED_DISCLAIMER,
     "brick auth login",
     "--real-provider",
+    "first ready provider-backed observed-write adapter",
+    "falls back to `adapter:local`",
     "adapter:local",
     "customer_visible_frontier_state",
     "frontier_complete",

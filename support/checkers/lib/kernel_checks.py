@@ -9601,16 +9601,127 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
             "brick_cli_entrypoint_smoke: local task default must not declare write_scope"
         )
 
-    real_args = parser.parse_args(["build", "--task", "make x", "--real-provider"])
-    real_intent = cli._build_intent(real_args)
-    if real_intent.get("selected_adapter_ref") != "adapter:codex-local":
-        raise ProfileError(
-            "brick_cli_entrypoint_smoke: --real-provider task must default to "
-            f"adapter:codex-local, got {real_intent!r}"
+    original_preflight_provider = cli.preflight_provider
+
+    def set_preflight(rows_by_adapter: Mapping[str, Mapping[str, Any]]) -> None:
+        def fake_preflight(adapter_ref: str) -> dict[str, Any]:
+            row = dict(rows_by_adapter.get(adapter_ref, {}))
+            row.setdefault("adapter_ref", adapter_ref)
+            row.setdefault("installed", bool(row.get("ok")))
+            row.setdefault("authed", "unknown")
+            row.setdefault("message_ko", "checker synthetic readiness")
+            return row
+
+        cli.preflight_provider = fake_preflight
+
+    try:
+        set_preflight(
+            {
+                "adapter:claude-local": {"ok": True},
+                "adapter:codex-local": {"ok": True},
+                "adapter:gemini-local": {"ok": True},
+            }
         )
+        real_args = parser.parse_args(["build", "--task", "make x", "--real-provider"])
+        real_intent = cli._build_intent(real_args)
+        if real_intent.get("selected_adapter_ref") != "adapter:claude-local":
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --real-provider omitted --adapter must "
+                f"select first ready provider in declared order, got {real_intent!r}"
+            )
+
+        set_preflight(
+            {
+                "adapter:claude-local": {"ok": False, "installed": False},
+                "adapter:codex-local": {"ok": False, "installed": False},
+                "adapter:gemini-local": {
+                    "ok": True,
+                    "api_key_env_present": True,
+                    "credential_validity": "not_proven",
+                    "raw_secret": "SHOULD_NOT_APPEAR",
+                },
+            }
+        )
+        gemini_args = parser.parse_args(["build", "--task", "make x", "--real-provider"])
+        gemini_intent = cli._build_intent(gemini_args)
+        if gemini_intent.get("selected_adapter_ref") != "adapter:gemini-local":
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --real-provider must select ready "
+                f"adapter:gemini-local when it is the first ready provider, got {gemini_intent!r}"
+            )
+        if "adapter:gemini-api" in json.dumps(gemini_intent, sort_keys=True):
+            raise ProfileError("brick_cli_entrypoint_smoke: gemini-api appeared in first-ready evidence")
+        readiness_text = json.dumps(
+            gemini_intent.get("provider_readiness_observations", []), sort_keys=True
+        )
+        if "SHOULD_NOT_APPEAR" in readiness_text or "raw_secret" in readiness_text:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: provider readiness evidence leaked raw credential data"
+            )
+        gemini_plan = materialize_building_intent(gemini_intent, repo_root=repo)
+        gemini_step_adapters = {
+            str(step.get("selected_adapter_ref") or "")
+            for step in gemini_plan.get("brick_steps", [])
+            if isinstance(step, Mapping)
+        }
+        if "adapter:gemini-local" not in gemini_step_adapters:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: selected adapter:gemini-local did not "
+                f"flow into materialized work Brick rows: {gemini_step_adapters!r}"
+            )
+
+        set_preflight(
+            {
+                "adapter:claude-local": {"ok": True},
+                "adapter:codex-local": {"ok": True},
+                "adapter:gemini-local": {"ok": True},
+            }
+        )
+        explicit_real_args = parser.parse_args(
+            ["build", "--task", "make x", "--real-provider", "--adapter", "adapter:codex-local"]
+        )
+        explicit_real_intent = cli._build_intent(explicit_real_args)
+        if explicit_real_intent.get("selected_adapter_ref") != "adapter:codex-local":
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: explicit --adapter must win over "
+                f"first-ready selection, got {explicit_real_intent!r}"
+            )
+        if explicit_real_intent.get("provider_readiness_observations"):
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: explicit --adapter must not record "
+                "first-ready readiness observations"
+            )
+
+        set_preflight(
+            {
+                "adapter:claude-local": {"ok": False, "installed": False},
+                "adapter:codex-local": {"ok": False, "installed": False},
+                "adapter:gemini-local": {
+                    "ok": False,
+                    "installed": True,
+                    "api_key_env_present": False,
+                    "credential_validity": "not_proven",
+                },
+            }
+        )
+        no_ready_args = parser.parse_args(["build", "--task", "make x", "--real-provider"])
+        no_ready_intent = cli._build_intent(no_ready_args)
+        if no_ready_intent.get("selected_adapter_ref") != "adapter:local":
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: no ready real provider must fall back "
+                f"to adapter:local, got {no_ready_intent!r}"
+            )
+        if "write_scope" in no_ready_intent:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: no-ready adapter:local fallback must not declare write_scope"
+            )
+    finally:
+        cli.preflight_provider = original_preflight_provider
+
+    real_intent = explicit_real_intent
     if real_intent.get("chain_preset_ref") != cli.DEFAULT_REAL_TASK_PRESET_REF:
         raise ProfileError(
-            "brick_cli_entrypoint_smoke: --real-provider task must default to "
+            "brick_cli_entrypoint_smoke: explicit real-provider task must default to "
             f"fast-fix, got {real_intent!r}"
         )
     write_scope = real_intent.get("write_scope")
