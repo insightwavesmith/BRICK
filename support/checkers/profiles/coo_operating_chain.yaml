@@ -161,6 +161,73 @@ text_contains:
       - COO must not jump from `task.md` directly to `run_building_plan`
       - closure-synthesis
       - reroute_to_work_full_replay
+  - path: agent/skills/brick-task-author/SKILL.md
+    texts:
+      - 공식 경로는 하나
+      - brick build / support.operator.cli build
+      - Builder/materializer
+      - declared Building Plan
+      - support/operator/run.py walker
+      - active vessel evidence root
+      - reporter / Slack / frontier
+      - 같은 공식 launch surface로 들어가는 두 입력 모드
+      - Builder/front-door 재료
+      - 별도 공식 route처럼 말하지 마라
+      - 큰 일 P3 규칙
+      - this is big; design first, split it, and run the lanes in parallel.
+      - design QA / axis inspection
+      - parallel dev lanes
+      - Codex code/regression QA + Gemini-local axis/evidence QA
+      - Movement authority를 소유
+      - support/model/checker/Slack은 source truth나
+      - QA source mutation이 관찰되면 HOLD로 보고한다.
+  - path: agent/skills/building-sizing-method/SKILL.md
+    texts:
+      - 공식 빌딩 발사 surface
+      - 큰 일 P3 기본형
+      - this is big; design first, split it, and run the lanes in parallel.
+      - design QA / axis inspection
+      - parallel dev lanes
+      - Codex code/regression QA + Gemini-local axis/evidence QA
+      - Movement authority를 소유
+      - 공식 경로와 front-door 재료
+      - brick build / support.operator.cli build
+      - Builder/materializer
+      - declared Building Plan
+      - support/operator/run.py walker
+      - active vessel evidence root
+      - reporter / Slack / frontier
+      - 같은 공식 launch surface로 들어가는 두 입력 모드
+      - Builder/front-door 재료
+      - 별도 공식 route처럼 말하지 마라
+  - path: brick/templates/skills/brick-task-author/SKILL.md
+    texts:
+      - 공식 경로는 하나
+      - brick build / support.operator.cli build
+      - Builder/materializer
+      - declared Building Plan
+      - support/operator/run.py walker
+      - active vessel evidence root
+      - reporter / Slack / frontier
+      - 같은 공식 launch surface로 들어가는 두 입력 모드
+      - Builder/front-door 재료
+      - 별도 공식 route처럼 말하지 마라
+      - 큰 일 P3 규칙
+      - this is big; design first, split it, and run the lanes in parallel.
+      - QA source mutation이 관찰되면 HOLD로 보고한다.
+  - path: brick/templates/skills/building-sizing-method/SKILL.md
+    texts:
+      - 공식 빌딩 발사 surface
+      - 큰 일 P3 기본형
+      - this is big; design first, split it, and run the lanes in parallel.
+      - 공식 경로와 front-door 재료
+      - brick build / support.operator.cli build
+      - Builder/materializer
+      - declared Building Plan
+      - support/operator/run.py walker
+      - active vessel evidence root
+      - reporter / Slack / frontier
+      - Builder/front-door 재료
   # ELEGANT-REFACTOR P3d: the COO operating-chain projection (coo_operating_chain_packet
   # + COO_OPERATING_CHAIN_* + forbidden-verdict notes) lifted to
   # operator/coo_operating_chain.py behind the building_operation facade
@@ -281,6 +348,34 @@ text_absent:
     texts:
       - Open or point to a real Brick-owned Building Plan before changing protocol
       - Choose the Building shape by work type
+  - path: agent/skills/brick-task-author/SKILL.md
+    texts:
+      - /Users/smith/projects/BRICK`(제품)에서
+      - PRESET 경로
+      - ASSEMBLE 경로
+      - 발주 공개 동사 =
+      - 세션 워크트리(brick-protocol)는 **동결 박물관**
+      - run_building_intake`) 아니면 어셈블
+  - path: agent/skills/building-sizing-method/SKILL.md
+    texts:
+      - 발사가 무거워 보이는 이유
+      - 이제 1동사로 소멸됨
+      - launch_assembled_building` 한 동사가 다 흡수한다
+      - ASSEMBLE 모양
+  - path: brick/templates/skills/brick-task-author/SKILL.md
+    texts:
+      - /Users/smith/projects/BRICK`(제품)에서
+      - PRESET 경로
+      - ASSEMBLE 경로
+      - 발주 공개 동사 =
+      - 세션 워크트리(brick-protocol)는 **동결 박물관**
+      - run_building_intake`) 아니면 어셈블
+  - path: brick/templates/skills/building-sizing-method/SKILL.md
+    texts:
+      - 발사가 무거워 보이는 이유
+      - 이제 1동사로 소멸됨
+      - launch_assembled_building` 한 동사가 다 흡수한다
+      - ASSEMBLE 모양
   - path: support/connection/mcp_projection.py
     texts:
       - Declare selected_shape_ref and active_plan_ref first.

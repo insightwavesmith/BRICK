@@ -6,7 +6,7 @@ description: BRICK 빌딩 사이징 — 일의 크기/모양을 그래프 모양
 # 빌딩 사이징 방법 (워크플로 사이징의 거울)
 
 > 이 스킬은 **모양만** 만든다(노드 KIND·팬·QA깊이·감독 다이얼). 만든 `GraphSpec`을
-> **brick-task-author**에 넘겨 발사한다. 이 스킬은 발사하지 않는다.
+> **brick-task-author**에 넘겨 공식 빌딩 발사 surface로 보낸다. 이 스킬은 발사하지 않는다.
 
 ## 한 줄 핵심 — 워크플로는 에이전트를 사이징, 빌딩은 KIND를 사이징
 
@@ -33,7 +33,32 @@ description: BRICK 빌딩 사이징 — 일의 크기/모양을 그래프 모양
 | **2. 독립 ⇒ 팬** | `fan([a, b, …])` | 상호의존 없는 가지 = `fan()` 블록. 앞 노드=소스, 뒤 노드=수렴. 워크플로 `parallel()`과 정확히 같다. |
 | **3. 의존 ⇒ 세로** | `build()` 척추 순서 | 인접 N→N+1 이 **곧 forward edge이자 데이터 운반**(`_auto_declare_chained_carry`). 운영자는 edge·id·carry를 안 쓴다. |
 | **4. 저신뢰 ⇒ 검증 렌즈** | 리뷰어 KIND 노드 (`review`/`inspect`/`code-attack-qa`/`axis-attack-qa`/`evidence-integrity`), 보통 fan → `closure` | `QA`를 한 덩어리로 고르지 말고 렌즈를 고른다: 코드 정확성/회귀=`code-attack-qa`; Brick/Agent/Link 권위 경계=`axis-attack-qa`; 증거 루트/증명 한계=`evidence-integrity`; 읽기전용 반환/근거 대조=`review`; 읽기전용 구조/정책 점검=`inspect`. 고신뢰=**0**렌즈(`design→work→closure`); 중신뢰=**1**렌즈; 저신뢰/계약·정책·보안·권위를 건드리면=**2~3**렌즈 fan→closure. |
-| **5. 스케일 ⇒ 깊이/폭** | 두 레버 | (a) **모양 사다리**: 한-브릭 → `design+work+closure` → +검증 fan → 포트폴리오/부모-골. (b) **감독 다이얼**(`assemble()`서): `gates=()` 완전 무인 vs `gates=("human-review",)` 머지 경계서 HOLD — 강한 요청을 사람 체크포인트로 올리는 빌딩 버전. |
+| **5. 스케일 ⇒ 깊이/폭** | 두 레버 | (a) **모양 사다리**: 한-브릭 → `design+work+closure` → +검증 fan → 포트폴리오/부모-골. (b) **감독 다이얼**(`assemble()` 입력서): `gates=()` 완전 무인 vs `gates=("human-review",)` 머지 경계서 HOLD — 강한 요청을 사람 체크포인트로 올리는 빌딩 버전. |
+
+## 큰 일 P3 기본형
+
+크거나 번질 가능성이 큰 task는 한 `work` Brick으로 바로 사이징하지 않는다.
+사용자-facing 축약은:
+
+> this is big; design first, split it, and run the lanes in parallel.
+
+기본 모양은 다음 순서다:
+
+```
+task intake
+→ design
+→ design QA / axis inspection
+→ closure confirms execution plan
+→ parallel dev lanes
+→ each lane dev then QA
+→ fan-in integration/summary
+→ Codex code/regression QA + Gemini-local axis/evidence QA
+→ Codex closure
+```
+
+이 모양은 design-first fan-out 또는 manual graph mode로 표현한다. 그래도 Link가
+Movement authority를 소유하고, support/model/checker/Slack은 source truth나
+quality/success judge가 아니다.
 
 ## KIND 카탈로그 = 사이징 메뉴 (실측 set)
 
@@ -57,19 +82,23 @@ Claude adapter refs는 퇴역이 아니라 월요일 token 복귀 후 launch-tim
 표준 구조의 한 축이고, 운영자가 명시 채택(Smith 0624). Fugu는 가두지 않는다: 깊은 설계를 직접
 *생산*한다. (fugu-on-design 스모크 통과; 간헐 이슈가 실재하면 도그푸딩이 잡는다.)
 
-## 발사가 무거워 보이는 이유 (4지뢰) — 이제 1동사로 소멸됨
+## 공식 경로와 front-door 재료
 
-예전엔 발사 직전 4지뢰가 운영자를 헤매게 했다:
+공식 실행 경로는 하나다:
 
-1. **객체 vs 딕트** — `run_building_plan`에 `composed`(객체) 넘기면 opaque TypeError.
-2. **output_root=베슬이어야 슬랙** — 베슬 아닌 루트 → project_ref=None → 슬랙 침묵.
-3. **워크트리 소유권** — `run_building_plan`은 워크트리를 안 만든다 → 라이브 트리에 작업.
-4. **이름 충돌** — `assembly.build`(그래프) ≠ goal-path `build`(마법사).
+```
+brick build / support.operator.cli build
+→ Builder/materializer
+→ declared Building Plan
+→ support/operator/run.py walker
+→ active vessel evidence root
+→ reporter / Slack / frontier
+```
 
-**이 4지뢰는 이제 `launch_assembled_building` 한 동사가 다 흡수한다**(support.operator.onboard):
-composed를 받아 plan을 디스크에 기록(①), 베슬 `project_ref`에서 `buildings_root_for`로
-루트 유도(②), 워크트리 샌드박스 안에서 실행(③), 강제 사람게이트 없음, goal-path `build`와
-이름이 다름(④). brick-task-author §AUTO가 이 동사를 쓴다. 운영자는 **모양 판단만** 하면 된다.
+프리셋 모드와 그래프 모드는 같은 공식 launch surface로 들어가는 두 입력 모드다.
+`build()`, `fan()`, `compose_building()`, `assemble()`, `launch_assembled_building`은
+Builder/front-door 재료다. 실행 안내에 이 이름을 쓰더라도 반드시 공식 vessel
+evidence/reporter/frontier 경로로 보내라. 별도 공식 route처럼 말하지 마라.
 
 ## 과대-사이징 금지 규칙 (단순+완전 신조)
 
@@ -112,10 +141,11 @@ graph = build([
 
 `brick/templates/presets/*.md`(26개 프리셋)은 **미리-사이징된 참조 모양**이고, 그 안의
 `selection_hint` 줄이 **"언제 이렇게 사이징하나" 코퍼스**다. 이 사이징 방법은 프리셋 고르기의
-생성형 보완이다 — 맞는 프리셋이 있으면 brick-task-author의 PRESET 경로로, 없으면 이 스킬로
-ASSEMBLE 모양을 사이징한 뒤 brick-task-author §AUTO로 발사한다.
+생성형 보완이다 — 맞는 프리셋이 있으면 brick-task-author의 PRESET 입력 모드로, 없으면 이 스킬로
+GRAPH 모양을 사이징한 뒤 brick-task-author가 공식 발사 surface로 넘긴다.
 
 ## 산출물
 
 이 스킬의 산출물 = **`GraphSpec`**(또는 그것을 만드는 `build([...])`/`fan([...])` 호출).
-brick-task-author가 그 모양을 받아 `assemble()` → `launch_assembled_building()`로 발사한다.
+brick-task-author가 그 모양을 받아 Builder/materializer → declared Building Plan →
+`support/operator/run.py` walker → active vessel evidence root → reporter/Slack/frontier로 보낸다.
