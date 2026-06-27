@@ -3709,6 +3709,36 @@ def run_gemini_local_only_adapter(repo: Path) -> KernelResult:
         raise ProfileError("gemini_local_only_adapter: adapter:gemini-api leaked into CLI refs")
     inspected += 1
 
+    # CR.P2 parity pin: gemini-local is in the same Building QA/work Agent
+    # capability class as codex-local for repo read + observed workspace write.
+    # Extra provider-native projections (review/web) are not authority here; the
+    # class proof is the shared read/write capability plus observed-write
+    # admission, with gemini-api still retired.
+    codex_local = adapter_constants.ADAPTER_CODEX_LOCAL
+    required_capability_class = {
+        adapter_constants.ADAPTER_CAPABILITY_READ,
+        adapter_constants.ADAPTER_CAPABILITY_WRITE,
+    }
+    codex_capabilities = set(adapter.adapter_capabilities(codex_local))
+    gemini_capabilities = set(adapter.adapter_capabilities(gemini_local))
+    if not required_capability_class.issubset(codex_capabilities):
+        raise ProfileError(
+            "gemini_local_only_adapter: codex-local lost the read/write capability class"
+        )
+    if not required_capability_class.issubset(gemini_capabilities):
+        raise ProfileError(
+            "gemini_local_only_adapter: gemini-local lost codex-local read/write parity"
+        )
+    observed_write_refs = set(adapter_constants._OBSERVED_WRITE_ADAPTER_REFS)
+    if codex_local not in observed_write_refs or gemini_local not in observed_write_refs:
+        raise ProfileError(
+            "gemini_local_only_adapter: codex-local and gemini-local must both be "
+            "observed-write adapter refs"
+        )
+    if gemini_api in observed_write_refs:
+        raise ProfileError("gemini_local_only_adapter: retired gemini-api is observed-write")
+    inspected += 1
+
     spec = adapter._LOCAL_CLI_SPECS.get(gemini_local)
     if spec is None:
         raise ProfileError("gemini_local_only_adapter: gemini-local missing local CLI spec")
@@ -3820,6 +3850,7 @@ def run_gemini_local_only_adapter(repo: Path) -> KernelResult:
         output=(
             "gemini-local-only adapter evidence: adapter:gemini-local is admitted "
             "as Gemini CLI with GEMINI_API_KEY/GOOGLE_API_KEY auth observation; "
+            "it shares the codex-local read/write observed-write capability class; "
             "adapter:gemini-api is retired from active admission/capability/model "
             "tables and Agent resource refs; retired requests fail closed "
             f"({inspected} group(s) inspected)."
