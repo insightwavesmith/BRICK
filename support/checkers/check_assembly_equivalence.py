@@ -444,6 +444,42 @@ def _with_temp_home(root: Path):
     return _TempHome()
 
 
+def _with_fixture_gemini_api_key():
+    class _FixtureGeminiKey:
+        def __enter__(self) -> None:
+            from brick_protocol.support.connection.agent_adapter import _GEMINI_API_KEY_ENV_VARS
+
+            self._names = tuple(_GEMINI_API_KEY_ENV_VARS)
+            self._saved = {name: os.environ.get(name) for name in self._names}
+            for name in self._names:
+                os.environ.pop(name, None)
+            os.environ["GEMINI_API_KEY"] = "checker-fixture-key"
+
+        def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
+            for name in self._names:
+                os.environ.pop(name, None)
+                if self._saved[name] is not None:
+                    os.environ[name] = self._saved[name]
+
+    return _FixtureGeminiKey()
+
+
+def _output_last_message_path(args: Sequence[str]) -> str | None:
+    args = list(args)
+    for index, value in enumerate(args):
+        if value == "--output-last-message" and index + 1 < len(args):
+            return args[index + 1]
+    return None
+
+
+def _is_gemini_json_invocation(args: Sequence[str]) -> bool:
+    args = tuple(str(arg) for arg in args)
+    for index, value in enumerate(args):
+        if value == "--output-format" and index + 1 < len(args):
+            return args[index + 1] == "json" and "-p" in args
+    return False
+
+
 def _boundary_label(target_ref: str) -> str:
     text = str(target_ref).strip()
     suffix = text.split(":", 1)[-1] if ":" in text else text.rsplit("-", 1)[-1]
@@ -1279,7 +1315,36 @@ def _approval_runner():
             "transition_concern_evidence": "",
             "not_proven": ["semantic correctness of real provider work"],
         }
-        return LocalCliCompleted(call, 0, json.dumps(payload), "")
+        assistant_text = json.dumps(payload, sort_keys=True)
+        output_path = _output_last_message_path(call)
+        if output_path is not None:
+            Path(output_path).write_text(assistant_text, encoding="utf-8")
+            stdout = (
+                json.dumps(
+                    {
+                        "type": "turn.completed",
+                        "usage": {
+                            "input_tokens": 12,
+                            "cached_input_tokens": 3,
+                            "output_tokens": 4,
+                            "reasoning_output_tokens": 5,
+                        },
+                    },
+                    sort_keys=True,
+                )
+                + "\n"
+            )
+        elif _is_gemini_json_invocation(call):
+            stdout = json.dumps(
+                {
+                    "response": assistant_text,
+                    "stats": {"tools": {"byName": {}}},
+                },
+                sort_keys=True,
+            )
+        else:
+            stdout = assistant_text
+        return LocalCliCompleted(call, 0, stdout, "")
 
     return _runner
 
@@ -1303,7 +1368,7 @@ def _proposal_approval_fire(repo: Path) -> tuple[str, ...]:
     )
 
     outputs: list[str] = []
-    with tempfile.TemporaryDirectory(prefix="bp-heart-p5-") as tmp_raw:
+    with tempfile.TemporaryDirectory(prefix="bp-heart-p5-") as tmp_raw, _with_fixture_gemini_api_key():
         tmp = Path(tmp_raw)
         probe_repo = tmp / "not-a-git-repo"
         probe_repo.mkdir()
@@ -1586,13 +1651,13 @@ def _build_fan_graphs(fixture_name: str):
 
 def _mandated_example_graphs(repo: Path):
     """The plan's mandated example, BOTH ways:
-    기획(inspect) -> 개발(development, write) -> QA[code-attack-qa: gemini ∥ claude] -> 종합(closure).
+    기획(inspect) -> 개발(development, write) -> QA[code-attack-qa: codex ∥ gemini] -> 종합(closure).
     """
 
     insp_work = "기획: inspect the change boundary"
     dev_work = "개발: implement the bounded change"
+    codex_work = "QA code lens (codex)"
     gemini_work = "QA code lens (gemini)"
-    claude_work = "QA code lens (claude)"
     close_work = "종합: synthesize closure"
 
     via_build = build(
@@ -1603,13 +1668,13 @@ def _mandated_example_graphs(repo: Path):
                 [
                     [
                         "code-attack-qa",
-                        gemini_work,
-                        {"adapter": "gemini-local", "returns": SOURCE_RETURN_SHAPE, "label": "code-gemini"},
+                        codex_work,
+                        {"adapter": "codex-local", "returns": SOURCE_RETURN_SHAPE, "label": "code-codex"},
                     ],
                     [
                         "code-attack-qa",
-                        claude_work,
-                        {"adapter": "claude-local", "returns": SOURCE_RETURN_SHAPE, "label": "code-claude"},
+                        gemini_work,
+                        {"adapter": "gemini-local", "returns": SOURCE_RETURN_SHAPE, "label": "code-gemini"},
                     ],
                 ]
             ),
@@ -1619,17 +1684,17 @@ def _mandated_example_graphs(repo: Path):
 
     inspect = brick("inspect", insp_work)
     dev = brick("development", dev_work, write=True)
+    code_codex = brick(
+        "code-attack-qa", codex_work, adapter="codex-local", returns=SOURCE_RETURN_SHAPE, alias="code-codex"
+    )
     code_gemini = brick(
         "code-attack-qa", gemini_work, adapter="gemini-local", returns=SOURCE_RETURN_SHAPE, alias="code-gemini"
-    )
-    code_claude = brick(
-        "code-attack-qa", claude_work, adapter="claude-local", returns=SOURCE_RETURN_SHAPE, alias="code-claude"
     )
     close = brick("closure", close_work)
     via_hand = converge(
         assembly_edge(inspect, dev),
-        fan_out(dev, [code_gemini, code_claude]),
-        fan_in([code_gemini, code_claude], close),
+        fan_out(dev, [code_codex, code_gemini]),
+        fan_in([code_codex, code_gemini], close),
         terminal=close,
     )
     return via_build, via_hand
@@ -1721,7 +1786,7 @@ def _build_fan_equivalence_fire(repo: Path) -> tuple[str, ...]:
         gates=(Gate.STRICT_EVIDENCE,),
     )
     outputs.append(
-        "build/fan green: mandated inspect->development(write)->QA[gemini||claude]->closure "
+        "build/fan green: mandated inspect->development(write)->QA[codex||gemini]->closure "
         "lowered byte-identical via build/fan and via hand-built chain/fan_out/fan_in/converge."
     )
 

@@ -1064,7 +1064,7 @@ def is_project_status_path(path: str, *, is_dir: bool) -> bool:
     if len(parts) == 3 and parts[1] == "source-records":
         return is_dir and parts[2] in {"full-spec", "physical-blueprint"}
     if is_dir:
-        return False
+        return len(parts) >= 2 and all(slug_part(part) for part in parts[1:])
     return len(parts) >= 2 and parts[-1].endswith(".md")
 
 

@@ -88,10 +88,10 @@ adapter_gate_shape_union_case:
     expected_request_labels: "design_summary, relevant_current_structure, proposed_changes, unchanged_surfaces, axis_responsibility, invariants, edge_cases, checker_or_verifier_plan, candidate_file_changes, evidence_refs, not_proven, reading_scope_map, observed_evidence"
     passthrough_step_index: 1
 building_intake_seam_case:
-  - label: building-intake-seam-graph-preferred-claude
+  - label: building-intake-seam-graph-preferred-gemini
     task_source_ref: brick/templates/tasks/source-template.md
     chain_preset_ref: building-chain-preset:onboarding-example-graph
-    selected_adapter_ref: adapter:claude-local
+    selected_adapter_ref: adapter:gemini-local
     expected_plan_shape: graph
     expected_walker_mode: dynamic
     expected_frontier_kind: complete

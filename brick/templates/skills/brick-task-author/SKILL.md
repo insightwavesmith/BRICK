@@ -86,7 +86,7 @@ intent → `run_building_intake(intent, repo_root=BRICK, adapter_cwd=<전용 워
 ```python
 intent = { "task_statement": TASK, "building_id": "<슬러그>-MMDD",
   "chain_preset_ref": "building-chain-preset:<프리셋>",
-  "declared_by": "caller-claude-operator",
+  "declared_by": "caller-codex-operator",
   "selected_adapter_ref": "adapter:codex-local", "selected_model_ref": "model:default",
   "write_scope": {"allowed_paths": ["support/operator/**"], "forbidden_paths": []} }  # 읽기조사면 생략
 ```
@@ -133,10 +133,10 @@ print("building_id:", result["building_id"], "| ok:", result["ok"],
 
 ## 알아둘 것
 
-- **assemble의 top-level `adapter=`는 roled 노드에 무효.** design/closure는 항상 claude-local, work(write=True)는 항상 codex-local(role 템플릿 디폴트가 이김). 노드를 role 디폴트에서 옮기려면 **per-node** `brick("design","...", adapter="codex-local")` override만이 레버.
-- **★codex를 design/closure/review(추론 노드)로 override하지 마라★.** codex는 work(구현)엔 강하지만 추론 출력서 **가끔 `TypeError: text value must be text or text sequence`로 빌딩을 죽인다**(0622 실측, 간헐). 분업 고정: **claude=추론(design/closure/review/inspect) · codex=구현(work) · QA fan=둘 다.**
-- **verdict 노드는 `adapter:local` 금지.** design/closure/review/inspect는 verdict-bearing → `adapter:local` 거부. local 스텁 무인발사는 **work 노드로만** 가능. verdict 노드는 진짜 CLI(codex/claude) 필요.
-- **부하 주의.** `launch_assembled_building`은 발사당 워크트리 1개(fan-out 없음). 동시 진짜 빌딩 여러 개 굴리지 마라(포트 고갈). 검증은 가능하면 `assemble()`/레지스트리 체크로, 진짜 실행이 필요하면 `adapter:local` 또는 단일 `claude-local` 노드 1개로.
+- **assemble의 top-level `adapter=`는 roled 노드에 무효.** design/closure/review/QA는 Agent Object와 per-node override가 이긴다. 주말 default는 work+closure+code QA=codex-local, axis/evidence/review QA=gemini-local이다. 노드를 role 디폴트에서 옮기려면 **per-node** `brick("design","...", adapter="codex-local")` override만이 레버.
+- **Claude는 퇴역이 아니라 주말 active pool 제외다.** Claude token이 복귀하면 `step_selection_overrides`나 per-node adapter override로 다시 쓸 수 있다. 지금 고객-ready dogfood 기본은 **codex=구현/closure/code QA · gemini=axis/evidence/review QA · QA fan=codex+gemini**다.
+- **verdict 노드는 `adapter:local` 금지.** design/closure/review/inspect는 verdict-bearing → `adapter:local` 거부. local 스텁 무인발사는 **work 노드로만** 가능. verdict 노드는 진짜 CLI(codex/gemini/claude) 필요.
+- **부하 주의.** `launch_assembled_building`은 발사당 워크트리 1개(fan-out 없음). 동시 진짜 빌딩 여러 개 굴리지 마라(포트 고갈). 검증은 가능하면 `assemble()`/레지스트리 체크로, 진짜 실행이 필요하면 `adapter:local` 또는 단일 `codex-local`/`gemini-local` 노드 1개로.
 
 ## 게이트 진실 (실측)
 - `gates=()` ⇒ **완전 무인**(최종 closure→boundary 포함 전 edge가 `link-gate:default-transition`만 달고 자동전진).

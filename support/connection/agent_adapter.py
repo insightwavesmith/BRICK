@@ -270,7 +270,8 @@ _GEMINI_WEB_TOOL_NAMES = frozenset({"google_web_search", "web_fetch"})
 #                       positive; stays a violation if reported.
 #   * google_web_search / web_fetch -- read EXTERNAL state; stay governed by the
 #                       granted set (web exempt ONLY when WEB capability is granted).
-#   * write_file / run_shell_command / replace -- real writes; stay denied.
+#   * write_file / run_shell_command / replace -- real writes; grant only through
+#     effective_write, never through read/web/native control-plane exemptions.
 _GEMINI_BENIGN_CONTROL_TOOL_NAMES = frozenset({"complete_task", "invoke_agent"})
 _CANONICAL_TOOL_UNIVERSE_GEMINI = (
     "exit_plan_mode",
@@ -290,7 +291,13 @@ _CANONICAL_TOOL_UNIVERSE_GEMINI = (
 _GEMINI_TOOLS_BY_NATIVE_CAPABILITY = {
     ADAPTER_CAPABILITY_READ: _GEMINI_READ_TOOL_NAMES,
     ADAPTER_CAPABILITY_WEB: _GEMINI_WEB_TOOL_NAMES,
-    ADAPTER_CAPABILITY_WRITE: frozenset(),
+    ADAPTER_CAPABILITY_WRITE: frozenset(
+        {
+            "replace",
+            "run_shell_command",
+            "write_file",
+        }
+    ),
 }
 
 

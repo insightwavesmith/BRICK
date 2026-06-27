@@ -24,7 +24,7 @@ description: BRICK 새 에이전트 OBJECT(레인) 만들기. 새 lane(역할 �
   "hook_refs": [ ... ],                    # 아래 권위 규칙 + bindings.yaml과 정확히 일치
   "tool_policy_refs": [ ... ],
   "discipline_refs": ["discipline:closed-agentfact", "discipline:proof-limits"],
-  "adapter_refs": ["adapter:local","adapter:codex-local","adapter:claude-local"],  # 능력 선언
+  "adapter_refs": ["adapter:local","adapter:codex-local","adapter:gemini-local","adapter:claude-local"],  # 능력 선언
   "preferred_adapter_ref": "adapter:<…>", # ★ 반드시 위 adapter_refs의 멤버(fail-closed)
   "preferred_model_ref": "model:<provider>:<…>"  # 선택. adapter의 provider와 일치해야
 }
@@ -80,5 +80,6 @@ HOME=$(mktemp -d) PYTHONPATH=support/import_identity uv run python3 \
   `check_agent_object_schema_single_source`는 스키마 key-set을 `agent/spec.py` 밖에서 **재-열거**할
   때만 RED(by-name read `obj.get("adapter_refs")`는 clean).
 - `preferred_model_ref`는 `preferred_adapter_ref`의 provider와 일치해야(model 다이얼이 adapter
-  source에 coupling). codex 어댑터엔 `model:codex:*`, claude엔 `model:claude:*`.
+  source에 coupling). codex 어댑터엔 `model:codex:*`, gemini엔 `model:gemini:*`, claude엔
+  `model:claude:*`.
 - 추가형 유지. 기존 레인 수정은 그 레인을 쓰는 KIND·프리셋 영향 먼저 grep.

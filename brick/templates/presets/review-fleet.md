@@ -12,15 +12,18 @@ steps:
   - step_template_ref: building-step-template:code-attack-qa
     brick_spec_ref: brick/templates/bricks/code-attack-qa/brick.md
     target_word: fan_in_final_gate
-    selected_model_ref: model:claude:sonnet
+    selected_adapter_ref: adapter:codex-local
+    selected_model_ref: model:codex:default
   - step_template_ref: building-step-template:axis-attack-qa
     brick_spec_ref: brick/templates/bricks/axis-attack-qa/brick.md
     target_word: fan_in_final_gate
-    selected_adapter_ref: adapter:codex-local
+    selected_adapter_ref: adapter:gemini-local
+    selected_model_ref: model:gemini:default
   - step_template_ref: building-step-template:evidence-integrity
     brick_spec_ref: brick/templates/bricks/evidence-integrity/brick.md
     target_word: fan_in_final_gate
-    selected_adapter_ref: adapter:codex-local
+    selected_adapter_ref: adapter:gemini-local
+    selected_model_ref: model:gemini:default
   - step_template_ref: building-step-template:closure
     brick_spec_ref: brick/templates/bricks/closure/brick.md
     target_word: closure
@@ -39,7 +42,7 @@ closure_transition_target_policy:
 proof_limits:
   - adversarial review fleet only
   - review synthesis is support evidence, not success or quality judgment
-  - one declared review lens may use adapter:claude-local under provider policy
+  - declared review lenses use Codex and Gemini defaults; Claude may be restored by launch-time override when available
   - preset is not runtime parallel execution
 ---
 
@@ -47,4 +50,4 @@ proof_limits:
 
 ## Route
 
-Mixed-provider review route: design the review boundary, fan out code, axis, and evidence-integrity adversarial lenses, then fan in to closure synthesis. The Claude lens is a declared per-step provider/model selection example, not a provider availability proof.
+Mixed-provider review route: design the review boundary, fan out Codex code, Gemini axis, and Gemini evidence-integrity adversarial lenses, then fan in to Codex closure synthesis. The provider selections are declared per-step defaults, not provider availability proof.

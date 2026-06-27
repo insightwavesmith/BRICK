@@ -547,6 +547,7 @@ def _invoke_local_cli(
     from .agent_adapter import (
         LocalCliCompleted,
         _GEMINI_API_KEY_ENV_VARS,
+        agent_request_effective_write,
         agent_request_read_tier,
     )
 
@@ -744,6 +745,7 @@ def _invoke_local_cli(
         with tempfile.TemporaryDirectory(prefix="bp-gemini-cli-") as tmpdir:
             temp_root = Path(tmpdir)
             read_tier = agent_request_read_tier(request)
+            write_tier = agent_request_effective_write(request)
             allowed_gemini_tools = _gemini_allowed_tool_names_for_request(request)
             native_tool_tier = bool(allowed_gemini_tools)
             policy_path = temp_root / (
@@ -753,7 +755,7 @@ def _invoke_local_cli(
                 _gemini_admin_policy_for_request(request),
                 encoding="utf-8",
             )
-            run_cwd = cwd if read_tier else temp_root
+            run_cwd = cwd if read_tier or write_tier else temp_root
             gemini_home = temp_root / "home"
             gemini_settings_dir = gemini_home / ".gemini"
             gemini_settings_dir.mkdir(parents=True)

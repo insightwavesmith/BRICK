@@ -33,6 +33,6 @@
     "adapter:codex-fugu-local",
     "adapter:claude-local"
   ],
-  "preferred_adapter_ref": "adapter:claude-local",
-  "preferred_model_ref": "model:claude:inherit"
+  "preferred_adapter_ref": "adapter:codex-local",
+  "preferred_model_ref": "model:codex:default"
 }

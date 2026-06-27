@@ -12,11 +12,12 @@ steps:
   - step_template_ref: building-step-template:code-attack-qa
     brick_spec_ref: brick/templates/bricks/code-attack-qa/brick.md
     target_word: fan_in_final_gate
-    selected_adapter_ref: adapter:claude-local
+    selected_adapter_ref: adapter:codex-local
   - step_template_ref: building-step-template:axis-attack-qa
     brick_spec_ref: brick/templates/bricks/axis-attack-qa/brick.md
     target_word: fan_in_final_gate
-    selected_adapter_ref: adapter:claude-local
+    selected_adapter_ref: adapter:gemini-local
+    selected_model_ref: model:gemini:default
   - step_template_ref: building-step-template:closure
     brick_spec_ref: brick/templates/bricks/closure/brick.md
     target_word: closure
@@ -43,4 +44,4 @@ proof_limits:
 
 ## Route
 
-Lightweight read-only reconnaissance route: inspect the survey boundary, fan out a code-attack lens and an axis-attack lens, then fan in to closure synthesis. This is the two-lens (correctness + conformance) recon for narrow surfaces where the evidence-integrity lens is overkill; fan-in width is the cost knob, so dropping that third lens is the genuinely smaller config. The fleet declares graph shape only; the engine may still walk the declared graph sequentially. The Claude lenses are declared per-step provider selections, swappable at launch via step_selection_overrides, not a provider availability proof.
+Lightweight read-only reconnaissance route: inspect the survey boundary, fan out a Codex code-attack lens and a Gemini axis-attack lens, then fan in to Codex closure synthesis. This is the two-lens (correctness + conformance) recon for narrow surfaces where the evidence-integrity lens is overkill; fan-in width is the cost knob, so dropping that third lens is the genuinely smaller config. The fleet declares graph shape only; the engine may still walk the declared graph sequentially. The provider selections are declared per-step defaults, swappable at launch via step_selection_overrides, not a provider availability proof.

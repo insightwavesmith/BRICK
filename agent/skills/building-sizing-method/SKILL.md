@@ -17,10 +17,10 @@ description: BRICK 빌딩 사이징 — 일의 크기/모양을 그래프 모양
 
 ```
   work            → agent-object:dev    (codex,  write=yes)   ← 유일한 구현자
-  design          → design-lead         (claude, write=no)    ← 범위 바운딩
-  closure         → coo                 (claude, verdict)     ← 종합+판정
-  review          → qa-lead             (claude)
-  code-attack-qa  → qa                  (codex/claude, write=yes 재현용)
+  design          → design-lead         (codex, write=no)     ← 범위 바운딩
+  closure         → coo                 (codex, verdict)      ← 종합+판정
+  review          → qa-lead             (gemini)
+  code-attack-qa  → qa                  (codex/gemini, write=yes 재현용)
 ```
 
 ## 결정표 — 5차원을 빌딩 원시로 번역 (척추)
@@ -36,10 +36,10 @@ description: BRICK 빌딩 사이징 — 일의 크기/모양을 그래프 모양
 ## KIND 카탈로그 = 사이징 메뉴 (실측 set)
 
 ```
-design          claude 리더, 범위 바운딩, write 없음
+design          codex 리더, 범위 바운딩, write 없음
 work            codex 워커, 유일한 구현자, write=yes
-closure         claude/coo, 판정+종합
-review          qa-lead
+closure         codex/coo, 판정+종합
+review          qa-lead(gemini)
 code-attack-qa  qa, write=yes(재현)
 axis-attack-qa  축 위반 공격
 evidence-integrity  증거 무결성 공격
@@ -48,11 +48,12 @@ plan/development    리더 변형
 ```
 
 **제약(brick-task-author §알아둘 것에서):** verdict/추론 KIND(design/closure/review/inspect)에
-`adapter:local` 사용 금지(스텁이라 verdict 못 냄). codex-**LOCAL** override는 추론 출력서 간헐적으로
-빌딩을 죽일 수 있어 design/closure엔 피한다. **단, codex-FUGU(Sakana fugu-ultra·high)는 design 노드에
-허용한다** — Fugu의 깊은 설계가 표준 구조의 한 축(`design = Fugu ∥ Claude → Codex 정리`)이고, 운영자가
-명시 채택(Smith 0624). Fugu는 가두지 않는다: 깊은 설계를 직접 *생산*한다. (fugu-on-design 스모크 통과;
-간헐 이슈가 실재하면 도그푸딩이 잡는다.) 기본 분업: **claude=추론 · codex=구현 · Fugu=깊은설계+QA · QA fan=둘 다.**
+`adapter:local` 사용 금지(스텁이라 verdict 못 냄). 주말 active default는
+**codex=구현+closure+code QA · gemini=axis/evidence/review QA · QA fan=codex+gemini**다.
+Claude adapter refs는 퇴역이 아니라 월요일 token 복귀 후 launch-time override로 다시 쓸 수 있는
+능력 연결이다. **codex-FUGU(Sakana fugu-ultra·high)는 design 노드에 허용한다** — Fugu의 깊은 설계가
+표준 구조의 한 축이고, 운영자가 명시 채택(Smith 0624). Fugu는 가두지 않는다: 깊은 설계를 직접
+*생산*한다. (fugu-on-design 스모크 통과; 간헐 이슈가 실재하면 도그푸딩이 잡는다.)
 
 ## 발사가 무거워 보이는 이유 (4지뢰) — 이제 1동사로 소멸됨
 

@@ -73,7 +73,12 @@ _RETIRED_WRITE_ADAPTER_REFS = frozenset(
     }
 )
 _OBSERVED_WRITE_ADAPTER_REFS = frozenset(
-    {ADAPTER_CODEX_LOCAL, ADAPTER_CODEX_FUGU_LOCAL, ADAPTER_CLAUDE_LOCAL}
+    {
+        ADAPTER_CODEX_LOCAL,
+        ADAPTER_CODEX_FUGU_LOCAL,
+        ADAPTER_CLAUDE_LOCAL,
+        ADAPTER_GEMINI_LOCAL,
+    }
 )
 
 ALLOWED_ADAPTER_REFS = frozenset(
@@ -96,8 +101,16 @@ _ADAPTER_CAPABILITIES = {
     ADAPTER_CLAUDE_LOCAL: frozenset(
         {ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_WRITE, ADAPTER_CAPABILITY_WEB}
     ),
+    # gemini-local is a local CLI adapter with technical write projection, but
+    # that capability is not authority: effective write still requires Brick
+    # write_scope NEED + read-write-scoped policy + observed-write admission.
     ADAPTER_GEMINI_LOCAL: frozenset(
-        {ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_REVIEW, ADAPTER_CAPABILITY_WEB}
+        {
+            ADAPTER_CAPABILITY_READ,
+            ADAPTER_CAPABILITY_WRITE,
+            ADAPTER_CAPABILITY_REVIEW,
+            ADAPTER_CAPABILITY_WEB,
+        }
     ),
     # gemini-api is the direct-HTTP sibling of gemini-local: same READ+REVIEW
     # brain capability (review/read, not write). It calls the Gemini HTTP API

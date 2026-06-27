@@ -61,6 +61,24 @@ def _native_grant_resolution_for_request(
     *,
     write_need: bool | None = None,
 ) -> Mapping[str, Any]:
+    if not request.tool_policy_refs:
+        return {
+            "schema": "native-grant-resolution/v1",
+            "tool_policy_refs": [],
+            "declared_capabilities": [],
+            "capabilities": [],
+            "write_effective": False,
+            "web_requested": False,
+            "missing_tool_policy_refs": [],
+            "proof_limits": [
+                "native_grant resolution uses already-loaded tool-policy data only",
+                "request without selected tool_policy_refs fails closed",
+                "not source truth",
+                "not success judgment",
+                "not quality judgment",
+                "not Movement authority",
+            ],
+        }
     resources = request.agent_instruction_packet.get("tool_policy_resources")
     if resources is None:
         resources = []
@@ -229,7 +247,11 @@ def _build_prompt(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
     else:
         rules.append("Do not use tools or hooks.")
     if spec.adapter_ref == ADAPTER_GEMINI_LOCAL:
-        if agent_request_read_tier(request) or web_projected:
+        if agent_request_effective_write(request):
+            rules.append(
+                "Gemini local effective_write may use write_file, replace, and run_shell_command only inside the Brick-declared write_scope; read and web tools remain governed by native_grant."
+            )
+        elif agent_request_read_tier(request) or web_projected:
             rules.append(
                 "Gemini local native grant may use only read_file, glob, grep_search, search_file_content, list_directory, read_many_files, and when web-capable is present google_web_search/web_fetch; write and shell tools remain blocked."
             )

@@ -75,8 +75,8 @@ json_required_paths:
 agent_resource_boundary:
   - role: coo
     lane: leader
-    preferred_adapter_ref: adapter:claude-local
-    preferred_model_ref: model:claude:inherit
+    preferred_adapter_ref: adapter:codex-local
+    preferred_model_ref: model:codex:default
     required_hook_refs:
       - hook:leader-write-need-gate
       - hook:unsafe-mutation-guard
@@ -107,8 +107,8 @@ agent_resource_boundary:
     hooks_execution_opened: false
   - role: qa
     lane: reviewer
-    preferred_adapter_ref: adapter:claude-local
-    preferred_model_ref: model:claude:inherit
+    preferred_adapter_ref: adapter:codex-local
+    preferred_model_ref: model:codex:default
     required_hook_refs:
       - hook:reviewer-no-mutation
       - hook:unsafe-mutation-guard

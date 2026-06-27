@@ -1045,21 +1045,25 @@ def _agent_effective_write_probe(
         )
 
     # A selected adapter whose mapping does not support observed workspace write
-    # (gemini-local: read + review, NOT observed-write) no longer STOPS construction
+    # (gemini-api: direct HTTP read/review, NOT observed-write, NOT CLI) no longer STOPS construction
     # -- the disposition is RECORDED (by support/recording) as
-    # missing_adapter_write_capability and the building continues. (claude-local is
-    # write-capable after the claude-write rehome.) The probe asserts the request
-    # CONSTRUCTS (no raise) AND the recorded fact carries the token.
+    # missing_adapter_write_capability and the building continues. The probe asserts
+    # the request CONSTRUCTS (no raise), never becomes effective_write, remains outside
+    # local_cli_adapter_refs(), AND the recorded fact carries the token.
     unsupported_adapter_request = adapter.AgentAdapterRequest(
         building_id="agent-effective-write-negative-unsupported-adapter",
         agent_object_ref="agent-object:dev",
-        adapter_ref=adapter_constants.ADAPTER_GEMINI_LOCAL,
+        adapter_ref=adapter_constants.ADAPTER_GEMINI_API,
         brick_instance_ref="brick-work",
         next_brick_instance_ref="brick-closure",
         tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
         write_scope=write_scope,
         agent_instruction_packet=instruction_packet,
     )
+    if adapter.agent_request_effective_write(unsupported_adapter_request):
+        raise ProfileError("gemini-api write_scope request became effective_write")
+    if adapter_constants.ADAPTER_GEMINI_API in adapter.local_cli_adapter_refs():
+        raise ProfileError("gemini-api leaked into local CLI adapter refs")
     unsupported_adapter_facts = _recorded_write_policy_facts(unsupported_adapter_request)
     if not any(
         "missing_adapter_write_capability" in fact for fact in unsupported_adapter_facts
@@ -1069,6 +1073,154 @@ def _agent_effective_write_probe(
             f"missing_adapter_write_capability (move+record only), observed "
             f"{unsupported_adapter_facts!r}"
         )
+
+    # P1 Adapter Authority Repair: gemini-local is a CLI adapter that may project
+    # write_file / replace / run_shell_command ONLY through the same effective_write
+    # intersection as codex/claude: Brick write_scope NEED + read-write-scoped Agent
+    # policy + observed-write adapter mapping. These probes assert the positive and
+    # the no-policy negative at the grant/projection layer before any live CLI call.
+    gemini_write_request = adapter.AgentAdapterRequest(
+        building_id="agent-effective-write-gemini-local-positive",
+        agent_object_ref="agent-object:dev",
+        adapter_ref=adapter_constants.ADAPTER_GEMINI_LOCAL,
+        brick_instance_ref="brick-work",
+        next_brick_instance_ref="brick-closure",
+        tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
+        write_scope=write_scope,
+        agent_instruction_packet=instruction_packet,
+    )
+    if not adapter.agent_request_effective_write(gemini_write_request):
+        raise ProfileError("gemini-local write_scope request did not become effective_write")
+    gemini_allow, gemini_deny = adapter_grant_policy._gemini_admin_policy_partition_for_request(
+        gemini_write_request
+    )
+    for required_tool in ("write_file", "replace", "run_shell_command"):
+        if required_tool not in gemini_allow:
+            raise ProfileError(
+                "gemini-local effective_write did not allow write/shell tool "
+                f"{required_tool!r}; allow={gemini_allow!r}"
+            )
+        if required_tool in gemini_deny:
+            raise ProfileError(
+                "gemini-local effective_write still denied write/shell tool "
+                f"{required_tool!r}; deny={gemini_deny!r}"
+            )
+    gemini_write_prompt = json.loads(
+        adapter_grant_policy._build_prompt(
+            gemini_write_request,
+            adapter._LOCAL_CLI_SPECS[adapter_constants.ADAPTER_GEMINI_LOCAL],
+        )
+    )
+    gemini_write_rules = list(gemini_write_prompt.get("rules", []))
+    if any("write and shell tools remain blocked" in rule for rule in gemini_write_rules):
+        raise ProfileError("gemini-local effective_write prompt still says write/shell are blocked")
+    if not any("write_file, replace, and run_shell_command" in rule for rule in gemini_write_rules):
+        raise ProfileError("gemini-local effective_write prompt did not name scoped write/shell tools")
+
+    captured_gemini_write: dict[str, Any] = {}
+
+    def _capture_gemini_write_runner(
+        args: Sequence[str],
+        cwd: Path,
+        timeout: int,
+        *,
+        env: Mapping[str, str] | None = None,
+    ) -> Any:
+        del timeout
+        call = tuple(str(arg) for arg in args)
+        if "--version" in call:
+            return adapter.LocalCliCompleted(call, 0, "0.46.0", "")
+        captured_gemini_write["args"] = call
+        captured_gemini_write["cwd"] = cwd
+        captured_gemini_write["env_has_api_key"] = bool(
+            (env or {}).get("GEMINI_API_KEY") or (env or {}).get("GOOGLE_API_KEY")
+        )
+        if "--admin-policy" in call:
+            policy_path = Path(call[call.index("--admin-policy") + 1])
+            captured_gemini_write["policy_text"] = policy_path.read_text(encoding="utf-8")
+        return adapter.LocalCliCompleted(
+            call,
+            0,
+            json.dumps(
+                {
+                    "response": "{}",
+                    "stats": {
+                        "tools": {
+                            "totalCalls": 3,
+                            "byName": {
+                                "write_file": 1,
+                                "replace": 1,
+                                "run_shell_command": 1,
+                            },
+                        }
+                    },
+                }
+            ),
+            "",
+        )
+
+    saved_env = {name: os.environ.get(name) for name in adapter._GEMINI_API_KEY_ENV_VARS}
+    for name in adapter._GEMINI_API_KEY_ENV_VARS:
+        os.environ.pop(name, None)
+    os.environ["GEMINI_API_KEY"] = "probe-key"
+    adapter._mark_effective_write_observation_path(gemini_write_request, repo)
+    try:
+        gemini_write_result = adapter.connect_agent_brain(
+            gemini_write_request,
+            command_runner=_capture_gemini_write_runner,
+            cwd=repo,
+            timeout_seconds=5,
+        )
+    finally:
+        for name in adapter._GEMINI_API_KEY_ENV_VARS:
+            os.environ.pop(name, None)
+            if saved_env[name] is not None:
+                os.environ[name] = saved_env[name]
+    if captured_gemini_write.get("cwd") != repo:
+        raise ProfileError("gemini-local effective_write did not run from adapter cwd")
+    if not captured_gemini_write.get("env_has_api_key"):
+        raise ProfileError("gemini-local effective_write did not carry API-key env")
+    policy_text = str(captured_gemini_write.get("policy_text", ""))
+    for required_tool in ("write_file", "replace", "run_shell_command"):
+        if required_tool not in policy_text:
+            raise ProfileError(
+                "gemini-local effective_write admin policy omitted write/shell tool "
+                f"{required_tool!r}"
+            )
+    observed = tuple(
+        gemini_write_result.adapter_raw_observations.get(
+            "non_granted_gemini_tool_names",
+            (),
+        )
+    )
+    for required_tool in ("write_file", "replace", "run_shell_command"):
+        if required_tool in observed:
+            raise ProfileError(
+                "gemini-local effective_write recorded a granted write/shell tool as "
+                f"non-granted: {observed!r}"
+            )
+
+    gemini_no_policy_request = adapter.AgentAdapterRequest(
+        building_id="agent-effective-write-gemini-local-no-policy",
+        agent_object_ref="agent-object:dev",
+        adapter_ref=adapter_constants.ADAPTER_GEMINI_LOCAL,
+        brick_instance_ref="brick-work",
+        next_brick_instance_ref="brick-closure",
+        tool_policy_refs=(),
+        write_scope=write_scope,
+        agent_instruction_packet=instruction_packet,
+    )
+    if adapter.agent_request_effective_write(gemini_no_policy_request):
+        raise ProfileError("gemini-local write_scope without read-write policy became effective_write")
+    no_policy_allow, no_policy_deny = adapter_grant_policy._gemini_admin_policy_partition_for_request(
+        gemini_no_policy_request
+    )
+    for forbidden_tool in ("write_file", "replace", "run_shell_command"):
+        if forbidden_tool in no_policy_allow or forbidden_tool not in no_policy_deny:
+            raise ProfileError(
+                "gemini-local no-policy request did not deny write/shell tool "
+                f"{forbidden_tool!r}; allow={no_policy_allow!r} deny={no_policy_deny!r}"
+            )
 
     for retired_adapter_ref in _AXIS_VOCAB_RETIRED_WRITE_ADAPTER_REFS:
         try:
@@ -1208,7 +1360,7 @@ def _agent_effective_write_probe(
     if knobs_read["system_prompt"] != adapter._CLAUDE_NONINTERACTIVE_SYSTEM_PROMPT:
         raise ProfileError("claude read request did not use the read-only system prompt")
 
-    return 11
+    return 14
 
 
 def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:

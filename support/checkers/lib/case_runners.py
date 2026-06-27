@@ -16,6 +16,7 @@ import contextlib
 import importlib
 import io
 import json
+import os
 import sys
 import tempfile
 from collections.abc import Callable, Mapping, Sequence
@@ -1221,6 +1222,25 @@ def run_preset_building_completion_case(repo: Path, profile: Mapping[str, Any]) 
 
 
 @contextlib.contextmanager
+def _fixture_gemini_api_key():
+    """Open gemini-local fixture dispatch without depending on real credentials."""
+
+    from brick_protocol.support.connection.agent_adapter import _GEMINI_API_KEY_ENV_VARS
+
+    saved_env = {name: os.environ.get(name) for name in _GEMINI_API_KEY_ENV_VARS}
+    for name in _GEMINI_API_KEY_ENV_VARS:
+        os.environ.pop(name, None)
+    os.environ["GEMINI_API_KEY"] = "checker-fixture-key"
+    try:
+        yield
+    finally:
+        for name in _GEMINI_API_KEY_ENV_VARS:
+            os.environ.pop(name, None)
+            if saved_env[name] is not None:
+                os.environ[name] = saved_env[name]
+
+
+@contextlib.contextmanager
 def _patched_gemini_api_preset_completion():
     """Deterministic preset fixture for adapter:gemini-api, without credentials.
 
@@ -1453,13 +1473,13 @@ def run_adapter_gate_shape_union_case(repo: Path, profile: Mapping[str, Any]) ->
             checked_args = tuple(str(arg) for arg in args)
             if "--version" not in checked_args:
                 labels = _return_labels_from_cli_prompt(
-                    checked_args[-1] if checked_args else ""
+                    _preset_completion_prompt_from_cli_args(checked_args)
                 )
                 if labels:
                     captured_labels.append(labels)
             return base_runner(args, cwd, timeout_seconds)
 
-        with tempfile.TemporaryDirectory(prefix="bp-adapter-gate-shape-union-") as tmpdir:
+        with tempfile.TemporaryDirectory(prefix="bp-adapter-gate-shape-union-") as tmpdir, _fixture_gemini_api_key():
             result = run_building_plan(
                 plan,
                 output_root=Path(tmpdir) / "buildings",
@@ -1708,7 +1728,7 @@ def run_building_intake_seam_case(repo: Path, profile: Mapping[str, Any]) -> int
 
             command_runner = _seam_command_runner
 
-        with tempfile.TemporaryDirectory(prefix="bp-building-intake-seam-") as tmpdir:
+        with tempfile.TemporaryDirectory(prefix="bp-building-intake-seam-") as tmpdir, _fixture_gemini_api_key():
             output_root = Path(tmpdir) / "buildings"
             result = run_building_intake(
                 intent,
