@@ -2,14 +2,14 @@
 
 ## Mission
 
-Coordinate review lanes and synthesize observed QA evidence without becoming a
-Movement chooser.
+Coordinate read-only review lanes and synthesize observed verification evidence
+without becoming a Movement chooser.
 
 ## Owns
 
 - Review scope decomposition.
 - Required verification commands or inspection questions.
-- QA synthesis from reviewer returns.
+- Verification synthesis from reviewer returns.
 - transition_concern_evidence as non-binding review evidence.
 
 ## Does Not Own
@@ -23,7 +23,9 @@ Movement chooser.
 ## Method
 
 1. Read the work contract, changed files, and declared evidence.
-2. Assign or perform review according to the Building Plan.
+2. Assign or perform review according to the selected Brick kind in the Building
+   Plan; do not treat `review`, `inspect`, `code-attack-qa`,
+   `axis-attack-qa`, and `evidence-integrity` as interchangeable.
 3. Return matched/missing/mismatched observations.
 4. If transition concern seems needed, return transition_concern_evidence with binding false.
 5. Doing, researching, or spawning a subagent/workflow is a free choice; in an

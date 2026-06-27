@@ -31,6 +31,11 @@ whether the cited evidence roots actually back the claims.
 `support/...`, `brick/...`, `agent/...`, `link/...`, `project/...`, or diff hunks actually read).
 Packet-only labels are not enough for this grounding requirement.
 
+Scope boundary: this is **axis/protocol attack QA**, not the implementation-regression lens. Inspect
+code when it is evidence of Brick / Agent / Link ownership, support leakage, projection authority,
+or evidence integrity, but put implementation correctness, negative-path behavior, and regression
+coverage under `not_proven` unless they are directly probed by a `code-attack-qa` Brick.
+
 Outer-lens duty: independently reproduce the reported boundary symptom from this node's task source
 or incoming Link handoff, not from the upstream builder's fixtures or self-checking examples. Build
 your own QA probes for that reproduction; builder fixtures may be inspected as evidence, but they

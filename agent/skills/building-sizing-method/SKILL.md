@@ -19,8 +19,10 @@ description: BRICK 빌딩 사이징 — 일의 크기/모양을 그래프 모양
   work            → agent-object:dev    (codex,  write=yes)   ← 유일한 구현자
   design          → design-lead         (codex, write=no)     ← 범위 바운딩
   closure         → coo                 (codex, verdict)      ← 종합+판정
-  review          → qa-lead             (gemini)
-  code-attack-qa  → qa                  (codex/gemini, write=yes 재현용)
+  review          → qa-lead             (read-only return-shape/evidence review)
+  inspect         → inspector           (read-only axis/evidence/policy inspection)
+  code-attack-qa  → qa                  (codex/gemini, write=yes 코드 재현/회귀 공격)
+  axis-attack-qa  → inspector           (write=yes 축/권위 누수 공격)
 ```
 
 ## 결정표 — 5차원을 빌딩 원시로 번역 (척추)
@@ -30,8 +32,8 @@ description: BRICK 빌딩 사이징 — 일의 크기/모양을 그래프 모양
 | **1. 일 분해 ⇒ 에이전트 수** | **노드 수 + KIND** | 일관된 일 한 단위 = 노드 1개. **KIND가 그 단위의 정체를 명명**한다: 바운디드 읽기목록=`design`; 구현=`work`(codex, write); 읽기전용 평가=`inspect`/`review`; 종합+판정=`closure`. 작은 요청은 한-브릭(`one-brick-do`/`quick-check`)으로 접고, 큰 요청은 척추를 늘린다. |
 | **2. 독립 ⇒ 팬** | `fan([a, b, …])` | 상호의존 없는 가지 = `fan()` 블록. 앞 노드=소스, 뒤 노드=수렴. 워크플로 `parallel()`과 정확히 같다. |
 | **3. 의존 ⇒ 세로** | `build()` 척추 순서 | 인접 N→N+1 이 **곧 forward edge이자 데이터 운반**(`_auto_declare_chained_carry`). 운영자는 edge·id·carry를 안 쓴다. |
-| **4. 저신뢰 ⇒ QA 노드** | 리뷰어 KIND 노드 (`review`/`code-attack-qa`/`axis-attack-qa`/`evidence-integrity`/`inspect`), 보통 fan → `closure` | **신뢰→QA깊이 그라데이션**: 고신뢰=**0**렌즈(`design→work→closure`); 중신뢰=**1**렌즈(`review`); 저신뢰/계약·정책·보안·권위를 건드리면=**2~3**렌즈 fan→closure. 그라데이션은 프리셋 `selection_hint`에서 들어올림(`recon-fleet-light`=2 "evidence-integrity는 과함" vs `recon-fleet`/`review-fleet`=3). |
-| **5. 스케일 ⇒ 깊이/폭** | 두 레버 | (a) **모양 사다리**: 한-브릭 → `design+work+closure` → +QA fan → 포트폴리오/부모-골. (b) **감독 다이얼**(`assemble()`서): `gates=()` 완전 무인 vs `gates=("human-review",)` 머지 경계서 HOLD — 강한 요청을 사람 체크포인트로 올리는 빌딩 버전. |
+| **4. 저신뢰 ⇒ 검증 렌즈** | 리뷰어 KIND 노드 (`review`/`inspect`/`code-attack-qa`/`axis-attack-qa`/`evidence-integrity`), 보통 fan → `closure` | `QA`를 한 덩어리로 고르지 말고 렌즈를 고른다: 코드 정확성/회귀=`code-attack-qa`; Brick/Agent/Link 권위 경계=`axis-attack-qa`; 증거 루트/증명 한계=`evidence-integrity`; 읽기전용 반환/근거 대조=`review`; 읽기전용 구조/정책 점검=`inspect`. 고신뢰=**0**렌즈(`design→work→closure`); 중신뢰=**1**렌즈; 저신뢰/계약·정책·보안·권위를 건드리면=**2~3**렌즈 fan→closure. |
+| **5. 스케일 ⇒ 깊이/폭** | 두 레버 | (a) **모양 사다리**: 한-브릭 → `design+work+closure` → +검증 fan → 포트폴리오/부모-골. (b) **감독 다이얼**(`assemble()`서): `gates=()` 완전 무인 vs `gates=("human-review",)` 머지 경계서 HOLD — 강한 요청을 사람 체크포인트로 올리는 빌딩 버전. |
 
 ## KIND 카탈로그 = 사이징 메뉴 (실측 set)
 
@@ -39,17 +41,17 @@ description: BRICK 빌딩 사이징 — 일의 크기/모양을 그래프 모양
 design          codex 리더, 범위 바운딩, write 없음
 work            codex 워커, 유일한 구현자, write=yes
 closure         codex/coo, 판정+종합
-review          qa-lead(gemini)
-code-attack-qa  qa, write=yes(재현)
-axis-attack-qa  축 위반 공격
-evidence-integrity  증거 무결성 공격
-inspect         읽기전용 점검
+review          qa-lead, 읽기전용 반환/근거 대조
+inspect         inspector, 읽기전용 축/구조/정책 점검
+code-attack-qa  qa, write=yes 코드 재현/회귀 공격
+axis-attack-qa  inspector, write=yes 축/권위 누수 공격
+evidence-integrity  inspector, write=yes 증거 무결성 공격
 plan/development    리더 변형
 ```
 
 **제약(brick-task-author §알아둘 것에서):** verdict/추론 KIND(design/closure/review/inspect)에
 `adapter:local` 사용 금지(스텁이라 verdict 못 냄). 주말 active default는
-**codex=구현+closure+code QA · gemini=axis/evidence/review QA · QA fan=codex+gemini**다.
+**codex=구현+closure+code-attack-qa · gemini=axis-attack-qa/evidence-integrity/inspect · 검증 fan=codex+gemini**다.
 Claude adapter refs는 퇴역이 아니라 월요일 token 복귀 후 launch-time override로 다시 쓸 수 있는
 능력 연결이다. **codex-FUGU(Sakana fugu-ultra·high)는 design 노드에 허용한다** — Fugu의 깊은 설계가
 표준 구조의 한 축이고, 운영자가 명시 채택(Smith 0624). Fugu는 가두지 않는다: 깊은 설계를 직접
@@ -72,7 +74,7 @@ composed를 받아 plan을 디스크에 기록(①), 베슬 `project_ref`에서 
 ## 과대-사이징 금지 규칙 (단순+완전 신조)
 
 - 읽기목록이 이미 바운디드면 **`design` 노드를 더하지 마라.**
-- 신뢰필요가 낮으면 **QA fan을 더하지 마라.**
+- 신뢰필요가 낮으면 **검증 fan을 더하지 마라.**
 - 한 스텝이면 충분하면 **한-브릭으로 접어라**(`one-brick-do`/`quick-check`/`fast-fix`).
 
 ## 한 일을 두 가지로 사이징한 예 (다이얼을 느껴라)

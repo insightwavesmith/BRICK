@@ -21,6 +21,13 @@ Input: the prior Brick's report (carried via the Link edge) plus this node's dec
 structural completeness, evidence presence, and policy/contract drift. Read only; make no
 file or content changes.
 
+Scope boundary: this Brick is **inspection**, not code QA. It may inspect repository artifacts when
+the declared `inspected_scope` names them, but it must not substitute carried summaries for source
+inspection. If code correctness, regression behavior, or negative-path reproduction is required,
+the Building should use `code-attack-qa`; if three-axis ownership or support-authority leakage is
+the target, use `axis-attack-qa`. For this `inspect` Brick, any uninspected source, diff, evidence
+root, or policy surface stays in `not_proven`.
+
 Return: fill the `required_return_shape` from the return_template
 (`brick/templates/bricks/inspect/return.yaml`):
 `inspected_scope`, `matched_facts`, `missing_facts`, `mismatched_facts`,

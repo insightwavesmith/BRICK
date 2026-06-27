@@ -21,6 +21,14 @@ Input: the prior Brick's report (carried via the Link edge), the prior node's de
 returned against what the work and the return shape required. Read sources to confirm — never
 edit, write, or fix.
 
+Scope boundary: this Brick is a **read-only review**, not adversarial code QA. If the upstream work
+is implementation, you still must inspect the actual changed files, diffs, checker output, or other
+repository artifacts before recording `checked_sources`, `observed_matches`,
+`missing_or_mismatched_facts`, or `boundary_violations`. If you only inspected a carried packet,
+step-output summary, or report label, record the code/artifact claim under `not_proven` instead of
+presenting it as checked. Use `code-attack-qa` when the Building needs sandboxed probe-writing,
+negative-path reproduction, or regression attack.
+
 Do: identify what matches, what is missing or mismatched, and any axis/boundary violations,
 each tied to the evidence you actually inspected. Optional `transition_concern_evidence` is
 **non-binding** — it is evidence a Link disposition *may* adopt, never a Movement decision you make.

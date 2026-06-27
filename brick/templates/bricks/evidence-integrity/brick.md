@@ -28,6 +28,12 @@ customer source-truth and do NOT decide what the source truth *is*.
 `support/...`, `brick/...`, `agent/...`, `link/...`, `project/...`, or diff hunks actually read).
 Packet-only labels are not enough for this grounding requirement.
 
+Scope boundary: this is **evidence-integrity attack**, not code QA and not axis-ownership QA. Inspect
+code or diffs only when they are evidence for persisted-proof claims, checker-overclaim risk, stale
+source risk, or missing evidence. Put implementation correctness, regression coverage, and
+three-axis ownership claims under `not_proven` unless the Building also declares the matching
+`code-attack-qa` or `axis-attack-qa` Brick.
+
 Return: fill the `required_return_shape` from the return_template
 (`brick/templates/bricks/evidence-integrity/return.yaml`):
 `observed_evidence`, `evidence_scope`, `persisted_evidence_roots`, `proof_limit_findings`, `stale_source_risks`,

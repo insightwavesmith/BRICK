@@ -34,34 +34,34 @@ shapes:
       - validation refs
       - closure parent delta
   - shape_ref: building-shape:reviewable-work
-    intent: Work should be reviewed before closure.
+    intent: Work should pass through an explicit verification lens before closure.
     step_roles:
       - work
-      - qa
+      - verification_lens
       - closure
     link_rule: forward default connection; transition concerns are evidence only until Link disposition adopts, does not adopt, or overrides.
     evidence_expectations:
       - work return
-      - QA return
+      - verification lens return
       - step output refs
   - shape_ref: building-shape:design-needed
     intent: The work needs a design Brick before implementation.
     step_roles:
       - design
       - work
-      - qa
+      - verification_lens
       - closure
     link_rule: forward default connection.
     evidence_expectations:
       - design contract
       - work return
-      - QA return
+      - verification lens return
       - closure parent delta
   - shape_ref: building-shape:repairable-work
-    intent: The plan includes declared repair or replay targets if QA returns transition concern evidence.
+    intent: The plan includes declared repair or replay targets if a verification lens returns transition concern evidence.
     step_roles:
       - design_or_work
-      - qa
+      - verification_lens
       - repair_candidate
       - replay_candidate
       - closure
