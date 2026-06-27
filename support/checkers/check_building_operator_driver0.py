@@ -358,7 +358,7 @@ def _w1_intent(building_id: str) -> dict[str, Any]:
     }
 
 
-def _w1_completing_codex_runner(*, write: bool):
+def _w1_completing_codex_runner(*, write: bool, delete_engine_marker: bool = False):
     """A deterministic stand-in for codex. Optionally writes the in-scope file
     into the dispatch cwd, then returns a completing AgentFact JSON."""
 
@@ -373,6 +373,11 @@ def _w1_completing_codex_runner(*, write: bool):
             target = Path(cwd) / _W1_WRITE_REL
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text("fixed by the W1 FIRE runner\n", encoding="utf-8")
+        if delete_engine_marker:
+            try:
+                (Path(cwd) / ".brick-engine-worktree").unlink()
+            except FileNotFoundError:
+                pass
         payload = {
             "observed_evidence": [f"wrote {_W1_WRITE_REL}"],
             "changed_files": [_W1_WRITE_REL],
@@ -1042,6 +1047,43 @@ def _w1_worktree_sandbox_fire(
             or dirty_status_before != dirty_status_after
         ):
             violations.append("w1-dirty: the dirty customer tree was further mutated")
+
+        # CASE 2c (active marker erased): a provider may delete the in-worktree
+        # marker while still running inside the active engine-created worktree.
+        # Disposal must still be safe because the active sandbox object plus
+        # `git worktree list` prove the path; stale reaping remains marker-gated.
+        marker_loss = Path(cust_raw) / "customer-marker-loss"
+        marker_loss.mkdir(parents=True, exist_ok=True)
+        marker_head_before = _seed_customer_repo(repo, marker_loss)
+        marker_result = run_customer_building_in_sandbox(
+            _w1_intent("w1-active-marker-loss-0"),
+            customer_repo_root=marker_loss,
+            output_root=evidence_root / "marker-loss",
+            overwrite_existing=True,
+            command_runner=_w1_completing_codex_runner(write=True, delete_engine_marker=True),
+            adapter_timeout_seconds=30,
+        )
+        marker_head_after = _git_text(marker_loss, "rev-parse", "HEAD")
+        marker_status_after = _git_text(marker_loss, "status", "--porcelain", "--untracked-files=all")
+        summary["w1_marker_loss_mode"] = marker_result.isolation_mode
+        summary["w1_marker_loss_disposed"] = marker_result.worktree_disposed
+        summary["w1_marker_loss_worktree_exists"] = (
+            bool(marker_result.worktree_path) and Path(marker_result.worktree_path).exists()
+        )
+        if marker_result.isolation_mode != "worktree":
+            violations.append(
+                f"w1-marker-loss: expected worktree isolation, got {marker_result.isolation_mode!r}"
+            )
+        if not marker_result.worktree_disposed or summary["w1_marker_loss_worktree_exists"]:
+            violations.append("w1-marker-loss: active worktree was not disposed after marker loss")
+        if not marker_result.commit_sha:
+            violations.append("w1-marker-loss: completion after marker loss produced no commit")
+        if (
+            (marker_loss / _W1_WRITE_REL).exists()
+            or marker_head_before != marker_head_after
+            or marker_status_after != ""
+        ):
+            violations.append("w1-marker-loss: the live customer tree was mutated")
 
         # CASE 3 (incomplete = no commit): a building that does NOT complete ->
         # no commit produced; reported not-complete; live tree still untouched.

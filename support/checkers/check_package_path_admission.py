@@ -1416,6 +1416,11 @@ def ignored_repo_path(path: str) -> bool:
     # files (gitignored, engine never parses them). Excluded the same way.
     if path == ".codex" or path.startswith(".codex/"):
         return True
+    # W1 worktree sandbox marker: support/operator/worktree_sandbox.py stamps
+    # engine-created disposable worktrees with this untracked file so cleanup can
+    # prove the path is engine-owned. It is support residue, not a source surface.
+    if path == ".brick-engine-worktree":
+        return True
     # ONBOARDING (0610): machine/build-artifact class produced by the
     # documented installer (support/onboarding/install.sh -> uv sync): the
     # local virtualenv and the uv lockfile are per-machine artifacts

@@ -203,7 +203,7 @@ def dispose_worktree_sandbox(sandbox: WorktreeSandbox) -> bool:
     Returns True when the worktree directory is gone afterward.
     """
 
-    return _force_remove_worktree(sandbox.repo_root, sandbox.path)
+    return _force_remove_active_worktree(sandbox)
 
 
 def reap_stale_worktrees(repo_root: Path | str) -> tuple[str, ...]:
@@ -282,14 +282,57 @@ def _write_engine_marker(wt_path: Path, *, repo: Path, building_id: str, base: s
 
 
 def _is_engine_worktree(path: Path) -> bool:
+    if not _is_under_engine_worktrees_root(path):
+        return False
+    return (path / _ENGINE_WORKTREE_MARKER).is_file()
+
+
+def _is_under_engine_worktrees_root(path: Path) -> bool:
     try:
         resolved = path.resolve()
         root = _engine_worktrees_root().resolve()
     except OSError:
         return False
-    if root not in resolved.parents and resolved != root:
+    return root in resolved.parents or resolved == root
+
+
+def _git_lists_worktree(repo: Path, wt_path: Path) -> bool:
+    listing = _git(repo, "worktree", "list", "--porcelain")
+    if listing is None:
         return False
-    return (path / _ENGINE_WORKTREE_MARKER).is_file()
+    try:
+        wanted = wt_path.resolve()
+    except OSError:
+        wanted = wt_path
+    for line in listing.splitlines():
+        if not line.startswith("worktree "):
+            continue
+        raw_path = line.removeprefix("worktree ").strip()
+        if not raw_path:
+            continue
+        try:
+            observed = Path(raw_path).resolve()
+        except OSError:
+            observed = Path(raw_path)
+        if observed == wanted:
+            return True
+    return False
+
+
+def _force_remove_active_worktree(sandbox: WorktreeSandbox) -> bool:
+    # Active disposal has one extra safe proof path: the worktree was just
+    # created by this helper, and git still lists it as a worktree for the same
+    # repo. This preserves cleanup if an Agent deletes the in-worktree marker
+    # while keeping stale reaping marker-gated.
+    wt_path = sandbox.path
+    if wt_path.exists() and not (
+        _is_engine_worktree(wt_path)
+        or (_is_under_engine_worktrees_root(wt_path) and _git_lists_worktree(sandbox.repo_root, wt_path))
+    ):
+        raise WorktreeSandboxError(
+            f"refusing to force-remove a non-engine worktree path: {wt_path}"
+        )
+    return _force_remove_worktree_unchecked(sandbox.repo_root, wt_path)
 
 
 def _force_remove_worktree(repo: Path, wt_path: Path) -> bool:
@@ -299,6 +342,10 @@ def _force_remove_worktree(repo: Path, wt_path: Path) -> bool:
         raise WorktreeSandboxError(
             f"refusing to force-remove a non-engine worktree path: {wt_path}"
         )
+    return _force_remove_worktree_unchecked(repo, wt_path)
+
+
+def _force_remove_worktree_unchecked(repo: Path, wt_path: Path) -> bool:
     _git(repo, "worktree", "remove", "--force", str(wt_path))
     if wt_path.exists():
         # git refused (e.g. already detached/unknown) -- prune + best-effort tree
