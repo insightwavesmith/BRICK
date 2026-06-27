@@ -12,14 +12,12 @@ kernel_checks:
   # non-zero stderr/stdout-error preservation. Mutation-RED: disable the
   # gemini-local read-write-scoped branch in agent_request_read_tier -> RED.
   - agent_adapter_return_shape
-  # B6 (ADDITIVE): direct Gemini HTTP API adapter (adapter:gemini-api). Executes
-  # IN-PROCESS: admission (READ+REVIEW, not write-capable, not a CLI spec); no-key
-  # -> clean local_cli_missing typed adapter-error with NO subprocess; mocked
-  # request hits the v1beta generateContent endpoint with the x-goog-api-key
-  # header (key not in URL) + the contents/parts/text body, parsed into the
-  # CLI-mirror returned shape; HTTP-error/timeout/malformed -> clean ValueErrors.
-  # Mutation-RED: break the no-key clean-error (let it raise raw / return) -> RED.
-  - gemini_api_adapter
+  # CR.P1.GEMINI_LOCAL_ONLY: adapter:gemini-local is the only active Gemini
+  # customer adapter. It remains a local Gemini CLI subprocess using
+  # GEMINI_API_KEY / GOOGLE_API_KEY auth; adapter:gemini-api is explicitly not
+  # admitted, not capability-bearing, not model-selectable, and not effective
+  # write-capable.
+  - gemini_local_only_adapter
   # DESIGN-AI-TEXT-SEAM-0616: Claude/Codex prompt -> raw text seams. Executes
   # IN-PROCESS with mock command_runners only: normal raw text, missing
   # executable, timeout propagation, blank-output rejection, and secret-output
@@ -308,6 +306,8 @@ text_contains:
       - stdout_error_excerpt
       - def _local_cli_nonzero_error_message
       - stderr_error_path
+      - gemini_client_error_excerpt
+      - def _gemini_client_error_excerpt
   - path: support/checkers/lib/kernel_checks.py
     texts:
       - gemini-local read-write-scoped request did not enter read tier

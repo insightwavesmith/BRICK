@@ -131,7 +131,7 @@ from support.checkers.lib.kernel_checks import (
     run_provider_preflight,
     run_codex_connect_stall_classification,
     run_design_ai_text_seams,
-    run_gemini_api_adapter,
+    run_gemini_local_only_adapter,
     run_onboard_smoke,
     run_install_script_lint,
     run_release_export_exclusion,
@@ -662,18 +662,12 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
     # re-flatten _adapter_error_kind (stall -> local_cli_timeout) or restore the
     # ~20-min default threshold -> RED.
     "codex_connect_stall_classification": run_codex_connect_stall_classification,
-    # B6 GEMINI-API-ADAPTER. Executes the direct Gemini HTTP API adapter
-    # IN-PROCESS: asserts adapter:gemini-api is admitted (READ+REVIEW, not
-    # write-capable, not a CLI spec); that a no-key call raises a CLEAN typed
-    # adapter-error (local_cli_missing, the B2 hold shape) with NO child
-    # process spawned; that a mocked request hits the documented v1beta
-    # generateContent endpoint with the x-goog-api-key header (key NOT in the
-    # URL) and the {"contents":[{"parts":[{"text":...}]}]} body, parsed into
-    # the CLI-mirror returned shape; and that HTTP-error/timeout/malformed all
-    # become clean ValueErrors. If the no-key path stops raising the clean
-    # typed error, this kernel check goes RED (mutation-RED guard) and --all
-    # EXITs non-zero. NO live API call (no real key) is made.
-    "gemini_api_adapter": run_gemini_api_adapter,
+    # CR.P1.GEMINI_LOCAL_ONLY. Executes in-process adapter admission probes:
+    # adapter:gemini-local remains the only active Gemini customer adapter and
+    # stays a local Gemini CLI + API-key env path; adapter:gemini-api is retired
+    # from active admission, capability tables, model provider tables, Agent
+    # Objects, and dispatch.
+    "gemini_local_only_adapter": run_gemini_local_only_adapter,
     # ONBOARDING-WIZARD-0. Executes the friendly never-raising onboarding flow
     # IN-PROCESS: imports run_onboard and drives the bundled adapter:local
     # example Building END-TO-END to a TEMP output_root (never the repo),

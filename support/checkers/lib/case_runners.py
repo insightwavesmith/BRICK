@@ -1146,75 +1146,76 @@ def run_preset_building_completion_case(repo: Path, profile: Mapping[str, Any]) 
         command_runner = _preset_completion_command_runner(LocalCliCompleted)
         materialized_refs: list[str] = []
         portfolio_refs: list[str] = []
-        with tempfile.TemporaryDirectory(prefix="bp-preset-building-completion-") as tmpdir:
+        with tempfile.TemporaryDirectory(
+            prefix="bp-preset-building-completion-"
+        ) as tmpdir, _fixture_gemini_api_key():
             tmp = Path(tmpdir)
             output_root = tmp / "buildings"
-            with _patched_gemini_api_preset_completion():
-                for preset_ref in preset_refs:
-                    building_id = f"{_case_slug(label)}-{_preset_slug(preset_ref)}"
-                    intent = _preset_completion_intent(
-                        label=label,
-                        building_id=building_id,
-                        task_source_ref=task_source_ref,
-                        chain_preset_ref=preset_ref,
-                        selected_adapter_ref=selected_adapter_ref,
-                        selected_model_ref=selected_model_ref,
-                        write_scope=write_scope,
-                        route_decision_basis=route_decision_basis,
-                    )
-                    try:
-                        plan = materialize_building_intent(intent, repo_root=repo)
-                    except (TypeError, ValueError) as exc:
-                        if "target_word requires explicit portfolio/manual materialization" in str(exc):
-                            portfolio_refs.append(preset_ref)
-                            continue
-                        raise ProfileError(
-                            f"preset_building_completion_case rejected {label}/{preset_ref}: {exc}"
-                        ) from exc
-                    result = run_building_plan(
-                        plan,
-                        output_root=output_root,
-                        overwrite_existing=True,
-                        command_runner=command_runner,
-                        adapter_cwd=repo,
-                        adapter_timeout_seconds=10,
-                    )
-                    frontier = observe_building_frontier(result.lifecycle_write.root, repo_root=repo)
-                    if frontier.get("frontier_kind") != expected_frontier:
-                        raise ProfileError(
-                            f"preset_building_completion_case rejected {label}/{preset_ref}: "
-                            f"frontier_kind expected {expected_frontier!r}, "
-                            f"observed {frontier.get('frontier_kind')!r}"
-                        )
-                    _assert_no_missing_gate_facts(
-                        result.lifecycle_write.root,
-                        label=f"{label}/{preset_ref}",
-                    )
-                    materialized_refs.append(preset_ref)
-
-                if tuple(expected_portfolio_refs) != tuple(portfolio_refs):
+            for preset_ref in preset_refs:
+                building_id = f"{_case_slug(label)}-{_preset_slug(preset_ref)}"
+                intent = _preset_completion_intent(
+                    label=label,
+                    building_id=building_id,
+                    task_source_ref=task_source_ref,
+                    chain_preset_ref=preset_ref,
+                    selected_adapter_ref=selected_adapter_ref,
+                    selected_model_ref=selected_model_ref,
+                    write_scope=write_scope,
+                    route_decision_basis=route_decision_basis,
+                )
+                try:
+                    plan = materialize_building_intent(intent, repo_root=repo)
+                except (TypeError, ValueError) as exc:
+                    if "target_word requires explicit portfolio/manual materialization" in str(exc):
+                        portfolio_refs.append(preset_ref)
+                        continue
                     raise ProfileError(
-                        f"preset_building_completion_case rejected {label}: "
-                        f"portfolio refs expected {expected_portfolio_refs!r}, observed {portfolio_refs!r}"
+                        f"preset_building_completion_case rejected {label}/{preset_ref}: {exc}"
+                    ) from exc
+                result = run_building_plan(
+                    plan,
+                    output_root=output_root,
+                    overwrite_existing=True,
+                    command_runner=command_runner,
+                    adapter_cwd=repo,
+                    adapter_timeout_seconds=10,
+                )
+                frontier = observe_building_frontier(result.lifecycle_write.root, repo_root=repo)
+                if frontier.get("frontier_kind") != expected_frontier:
+                    raise ProfileError(
+                        f"preset_building_completion_case rejected {label}/{preset_ref}: "
+                        f"frontier_kind expected {expected_frontier!r}, "
+                        f"observed {frontier.get('frontier_kind')!r}"
                     )
-                for portfolio_ref in portfolio_refs:
-                    _run_preset_completion_portfolio(
-                        label=label,
-                        portfolio_ref=portfolio_ref,
-                        task_source_ref=task_source_ref,
-                        selected_adapter_ref=selected_adapter_ref,
-                        selected_model_ref=selected_model_ref,
-                        write_scope=write_scope,
-                        route_decision_basis=route_decision_basis,
-                        repo=repo,
-                        tmp=tmp,
-                        output_root=output_root,
-                        command_runner=command_runner,
-                        run_declared_portfolio=run_declared_portfolio,
-                        materialize_building_intent=materialize_building_intent,
-                        observe_building_frontier=observe_building_frontier,
-                        expected_frontier=expected_portfolio_frontier,
-                    )
+                _assert_no_missing_gate_facts(
+                    result.lifecycle_write.root,
+                    label=f"{label}/{preset_ref}",
+                )
+                materialized_refs.append(preset_ref)
+
+            if tuple(expected_portfolio_refs) != tuple(portfolio_refs):
+                raise ProfileError(
+                    f"preset_building_completion_case rejected {label}: "
+                    f"portfolio refs expected {expected_portfolio_refs!r}, observed {portfolio_refs!r}"
+                )
+            for portfolio_ref in portfolio_refs:
+                _run_preset_completion_portfolio(
+                    label=label,
+                    portfolio_ref=portfolio_ref,
+                    task_source_ref=task_source_ref,
+                    selected_adapter_ref=selected_adapter_ref,
+                    selected_model_ref=selected_model_ref,
+                    write_scope=write_scope,
+                    route_decision_basis=route_decision_basis,
+                    repo=repo,
+                    tmp=tmp,
+                    output_root=output_root,
+                    command_runner=command_runner,
+                    run_declared_portfolio=run_declared_portfolio,
+                    materialize_building_intent=materialize_building_intent,
+                    observe_building_frontier=observe_building_frontier,
+                    expected_frontier=expected_portfolio_frontier,
+                )
         if len(materialized_refs) + len(portfolio_refs) != len(preset_refs):
             raise ProfileError(f"preset_building_completion_case rejected {label}: coverage mismatch")
         count += 1
@@ -1238,109 +1239,6 @@ def _fixture_gemini_api_key():
             os.environ.pop(name, None)
             if saved_env[name] is not None:
                 os.environ[name] = saved_env[name]
-
-
-@contextlib.contextmanager
-def _patched_gemini_api_preset_completion():
-    """Deterministic preset fixture for adapter:gemini-api, without credentials.
-
-    ``command_runner`` intentionally reaches only local CLI adapters. The Gemini
-    API adapter is HTTP-only, so this checker case patches the adapter dispatch
-    seam in-process and returns the same CLI-mirror structured shape the live
-    HTTP path returns, without spawning a subprocess or requiring provider keys.
-    """
-
-    from brick_protocol.support.connection import agent_adapter
-    from brick_protocol.brick.work import parse_required_return_shape
-    from brick_protocol.support.connection.adapter_grant_policy import (
-        _extract_required_return_fields,
-        _merge_structured_return_fields,
-    )
-    from brick_protocol.support.connection.adapter_gemini_http import _gemini_api_model_name
-    from brick_protocol.support.connection.adapter_local_cli import (
-        _not_proven_for_request,
-        _proof_limits_for_request,
-    )
-
-    support_agent_adapter = importlib.import_module("support.connection.agent_adapter")
-    original = agent_adapter._invoke_gemini_api
-    support_original = support_agent_adapter._invoke_gemini_api
-
-    def _fixture_invoke_gemini_api(
-        request: Any,
-        *,
-        timeout_seconds: int,
-        urlopen: Callable[..., bytes] | None = None,
-    ) -> tuple[Mapping[str, Any], tuple[str, ...], tuple[str, ...]]:
-        if urlopen is not None:
-            raise AssertionError("preset-completion gemini-api fixture must not call urlopen")
-        spec = agent_adapter._GEMINI_API_SPEC
-        proof_limits = _proof_limits_for_request(request, spec)
-        not_proven = _not_proven_for_request(request, spec)
-        labels = parse_required_return_shape(request.required_return_shape)
-        returned_fields: dict[str, Any] = {}
-        for label in labels:
-            if label == "transition_concern_evidence":
-                returned_fields[label] = {
-                    "concern_ref": "transition-concern:preset-completion-gemini-api-no-reroute",
-                    "concern_kind": "unknown",
-                    "binding": False,
-                    "reason_refs": ["observation:preset-completion-gemini-api-no-reroute"],
-                    "related_boundary_refs": [
-                        "building-boundary:preset-completion-gemini-api-no-reroute"
-                    ],
-                    "proof_limits": ["support evidence only"],
-                    "not_proven": ["semantic correctness"],
-                }
-            elif label in _PRESET_COMPLETION_LIST_RETURN_FIELDS:
-                returned_fields[label] = _deterministic_completion_list(
-                    label,
-                    "preset-completion-gemini-api",
-                )
-            else:
-                returned_fields[label] = (
-                    f"{label}: deterministic Gemini API preset completion evidence"
-                )
-        returned_fields.setdefault(
-            "observed_evidence",
-            ["deterministic Gemini API preset completion evidence"],
-        )
-        returned_fields.setdefault(
-            "not_proven",
-            ["semantic correctness", "real provider behavior", "live Gemini credentials"],
-        )
-        assistant_text = json.dumps(returned_fields, sort_keys=True)
-        returned: dict[str, Any] = {
-            "returned_summary": "Gemini HTTP API Agent Adapter returned support evidence",
-            "adapter_ref": spec.adapter_ref,
-            "selected_model_ref": request.selected_model_ref,
-            "agent_object_ref": request.agent_object_ref,
-            "brain_surface_ref": spec.brain_surface_ref,
-            "api_model_name": _gemini_api_model_name(request),
-            "api_call_ref": f"support-api-call:{spec.adapter_ref}:{request.building_id}:fixture",
-            "output_excerpt": "deterministic Gemini API preset completion evidence",
-            "evidence_refs": [
-                request.output_packet_ref or f"support-ref:{spec.adapter_ref}:http-api-output"
-            ],
-            "proof_limits": list(proof_limits),
-            "not_proven": list(not_proven),
-        }
-        _merge_structured_return_fields(
-            returned,
-            _extract_required_return_fields(
-                assistant_text,
-                request.required_return_shape,
-            ),
-        )
-        return returned, proof_limits, not_proven
-
-    agent_adapter._invoke_gemini_api = _fixture_invoke_gemini_api
-    support_agent_adapter._invoke_gemini_api = _fixture_invoke_gemini_api
-    try:
-        yield
-    finally:
-        agent_adapter._invoke_gemini_api = original
-        support_agent_adapter._invoke_gemini_api = support_original
 
 
 def _building_intake_seam_callable(request: Any) -> Mapping[str, Any]:
@@ -2234,14 +2132,15 @@ def run_intake_project_vessel_case(repo: Path, profile: Mapping[str, Any]) -> in
                 managers=["checker-fixture-human"],
                 declared_by="coo:intake-project-vessel-case",
             )
-            result = run_building_intake(
-                intent,
-                repo_root=repo,
-                overwrite_existing=False,
-                command_runner=vessel_command_runner,
-                adapter_cwd=repo,
-                adapter_timeout_seconds=10,
-            )
+            with _fixture_gemini_api_key():
+                result = run_building_intake(
+                    intent,
+                    repo_root=repo,
+                    overwrite_existing=False,
+                    command_runner=vessel_command_runner,
+                    adapter_cwd=repo,
+                    adapter_timeout_seconds=10,
+                )
             expected_root = buildings_root_for(project_ref)
             if result.plan_path.parent.parent != expected_root:
                 raise ProfileError(
@@ -4071,7 +3970,9 @@ def run_compose_building_case(repo: Path, profile: Mapping[str, Any]) -> int:
                 )
         expected_frontier = expected.get("frontier_kind")
         if expected_frontier:
-            with tempfile.TemporaryDirectory(prefix="bp-compose-building-case-") as tmpdir:
+            with tempfile.TemporaryDirectory(
+                prefix="bp-compose-building-case-"
+            ) as tmpdir, _fixture_gemini_api_key():
                 result = run_building_plan(
                     plan,
                     output_root=Path(tmpdir),

@@ -29,7 +29,6 @@ from typing import Any
 
 from .adapter_constants import (
     ADAPTER_CHAT_SESSION,
-    ADAPTER_GEMINI_API,
     ADAPTER_GEMINI_LOCAL,
     ADAPTER_LOCAL,
 )
@@ -130,28 +129,6 @@ def preflight_provider(adapter_ref: str) -> dict[str, Any]:
             "ok": True,
             "message_ko": "chat-session은 CLI를 실행하지 않고 작업 봉투를 parked로 기록해요.",
         }
-    # gemini-api is HTTP-direct: no CLI to install, readiness == API key in env.
-    # We only check key PRESENCE (never the key value, never a live API call).
-    if ref == ADAPTER_GEMINI_API:
-        has_key = any(
-            (os.environ.get(env_var) or "").strip() for env_var in _GEMINI_API_KEY_ENV_VARS
-        )
-        return {
-            "adapter_ref": ADAPTER_GEMINI_API,
-            "cli": "",
-            "installed": True,
-            "authed": "unknown" if has_key else "no",
-            "ok": has_key,
-            "api_key_env_present": has_key,
-            "credential_validity": "not_proven",
-            "message_ko": (
-                "준비 일부 확인 ✅ (Gemini API 키 환경변수 존재). "
-                "단, 키 유효성은 doctor가 실호출 없이 증명하지 않아요."
-                if has_key
-                else "Gemini API 키가 필요해요 → 환경변수 GEMINI_API_KEY (또는 GOOGLE_API_KEY)를 설정하세요."
-            ),
-        }
-
     # Retired or unknown adapter refs: clear message, no raise.
     spec = _LOCAL_CLI_SPECS.get(ref)
     if spec is None:
@@ -164,7 +141,7 @@ def preflight_provider(adapter_ref: str) -> dict[str, Any]:
             "message_ko": (
                 "알 수 없는 provider예요. 지원하는 것: adapter:local, "
                 "adapter:codex-local, adapter:claude-local, adapter:gemini-local, "
-                "adapter:gemini-api, adapter:chat-session"
+                "adapter:codex-fugu-local, adapter:chat-session"
             ),
         }
 

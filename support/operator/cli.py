@@ -28,6 +28,7 @@ from uuid import uuid4
 
 from brick_protocol.brick.spec import derived_worktree_write_scope
 from support.checkers import check_profile
+from support.connection.adapter_constants import ALLOWED_ADAPTER_REFS
 from support.connection.agent_adapter import adapter_is_write_capable
 from support.operator.first_use import FIRST_USE_FILENAME, write_first_use
 from support.operator import onboard
@@ -125,6 +126,8 @@ def _build_intent(args: argparse.Namespace) -> dict[str, Any]:
     adapter = args.adapter
     if getattr(args, "real_provider", False) and adapter == ADAPTER_LOCAL:
         adapter = REAL_PROVIDER_ADAPTER
+    if adapter not in ALLOWED_ADAPTER_REFS:
+        raise ValueError(f"adapter_ref is not admitted for customer CLI: {adapter}")
     task = (args.task or "").strip()
     preset = _selected_build_preset(args, adapter=adapter, task=task)
     if task:

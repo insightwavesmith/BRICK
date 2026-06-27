@@ -21,6 +21,8 @@ ADAPTER_CODEX_LOCAL = "adapter:codex-local"
 ADAPTER_CODEX_FUGU_LOCAL = "adapter:codex-fugu-local"
 ADAPTER_CLAUDE_LOCAL = "adapter:claude-local"
 ADAPTER_GEMINI_LOCAL = "adapter:gemini-local"
+# Retired from active adapter admission. The literal is kept only so legacy
+# support checks and historical evidence can reject it explicitly.
 ADAPTER_GEMINI_API = "adapter:gemini-api"
 ADAPTER_CHAT_SESSION = "adapter:chat-session"
 READ_WRITE_TOOL_POLICY_REF = "tool-policy:read-write-scoped"
@@ -64,7 +66,6 @@ MODEL_PROVIDER_BY_ADAPTER = {
     ADAPTER_CODEX_FUGU_LOCAL: "sakana",
     ADAPTER_CLAUDE_LOCAL: "claude",
     ADAPTER_GEMINI_LOCAL: "gemini",
-    ADAPTER_GEMINI_API: "gemini",
 }
 _RETIRED_WRITE_ADAPTER_REFS = frozenset(
     {
@@ -88,7 +89,6 @@ ALLOWED_ADAPTER_REFS = frozenset(
         ADAPTER_CODEX_FUGU_LOCAL,
         ADAPTER_CLAUDE_LOCAL,
         ADAPTER_GEMINI_LOCAL,
-        ADAPTER_GEMINI_API,
         ADAPTER_CHAT_SESSION,
     }
 )
@@ -112,10 +112,6 @@ _ADAPTER_CAPABILITIES = {
             ADAPTER_CAPABILITY_WEB,
         }
     ),
-    # gemini-api is the direct-HTTP sibling of gemini-local: same READ+REVIEW
-    # brain capability (review/read, not write). It calls the Gemini HTTP API
-    # directly (stdlib urllib, API key from env) and spawns NO subprocess.
-    ADAPTER_GEMINI_API: frozenset({ADAPTER_CAPABILITY_READ, ADAPTER_CAPABILITY_REVIEW}),
     ADAPTER_CHAT_SESSION: frozenset({ADAPTER_CAPABILITY_READ}),
 }
 

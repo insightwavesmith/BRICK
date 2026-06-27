@@ -13,7 +13,7 @@ owns the local-CLI invocation surface:
 * the local-CLI dispatch + output/nonzero-error extraction:
   ``_invoke_local_cli_adapter``, ``_local_cli_nonzero_error_message``,
   ``_stdout_error_excerpt``, ``_stderr_gemini_client_error_path``,
-  ``_GEMINI_CLIENT_ERROR_PATH_RE``, ``_extract_output_text``,
+  ``_gemini_client_error_excerpt``, ``_GEMINI_CLIENT_ERROR_PATH_RE``, ``_extract_output_text``,
   ``_extract_gemini_response``, ``_gemini_nonread_tool_names``.
 
 The ``agent_adapter`` facade re-exports every symbol here (public AND
@@ -939,6 +939,7 @@ def _claude_cli_invocation(request: AgentAdapterRequest) -> dict[str, str]:
 _GEMINI_CLIENT_ERROR_PATH_RE = re.compile(
     r"""[^\s'"`<>]*gemini-client-error-[^\s'"`<>]*\.json"""
 )
+_GEMINI_CLIENT_ERROR_MAX_BYTES = 64 * 1024
 
 
 def _local_cli_nonzero_error_message(spec: LocalCliSpec, completed: LocalCliCompleted) -> str:
@@ -958,6 +959,9 @@ def _local_cli_nonzero_error_message(spec: LocalCliSpec, completed: LocalCliComp
     stderr_error_path = _stderr_gemini_client_error_path(completed.stderr)
     if stderr_error_path:
         parts.append(f"stderr_error_path={stderr_error_path}")
+    gemini_error_excerpt = _gemini_client_error_excerpt(completed.stderr)
+    if gemini_error_excerpt:
+        parts.append(f"gemini_client_error_excerpt={gemini_error_excerpt}")
     return "; ".join(parts)
 
 
@@ -978,10 +982,65 @@ def _stdout_error_excerpt(stdout: str) -> str:
 def _stderr_gemini_client_error_path(stderr: str) -> str:
     from .agent_adapter import _redacted_diagnostic_excerpt
 
-    match = _GEMINI_CLIENT_ERROR_PATH_RE.search(stderr)
-    if not match:
+    raw_path = _stderr_gemini_client_error_path_raw(stderr)
+    if not raw_path:
         return ""
-    return _redacted_diagnostic_excerpt(match.group(0), limit=240)
+    return _redacted_diagnostic_excerpt(raw_path, limit=240)
+
+
+def _stderr_gemini_client_error_path_raw(stderr: str) -> str:
+    match = _GEMINI_CLIENT_ERROR_PATH_RE.search(stderr)
+    return match.group(0) if match else ""
+
+
+def _gemini_client_error_excerpt(stderr: str) -> str:
+    raw_path = _stderr_gemini_client_error_path_raw(stderr)
+    if not raw_path:
+        return ""
+    # The Gemini CLI may print a diagnostic file path to stderr. Treat that path
+    # as a redacted address only; do not read provider-selected files into
+    # adapter error evidence.
+    return ""
+
+
+def _gemini_client_error_summary(payload: Mapping[str, Any]) -> str:
+    from .agent_adapter import _try_json_value
+
+    observed: list[str] = []
+
+    def _add(label: str, value: Any) -> None:
+        if value in (None, ""):
+            return
+        rendered = f"{label}={value}"
+        if rendered not in observed:
+            observed.append(rendered)
+
+    def _visit(value: Any, *, depth: int = 0) -> None:
+        if depth > 6:
+            return
+        if isinstance(value, Mapping):
+            for key in ("code", "status", "reason", "domain", "message", "service"):
+                if key in value:
+                    _add(key, value.get(key))
+            metadata = value.get("metadata")
+            if isinstance(metadata, Mapping):
+                for key in ("service", "reason", "domain"):
+                    if key in metadata:
+                        _add(key, metadata.get(key))
+            for child in value.values():
+                _visit(child, depth=depth + 1)
+            return
+        if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+            for child in value:
+                _visit(child, depth=depth + 1)
+            return
+        if isinstance(value, str):
+            nested = _try_json_value(value)
+            if isinstance(nested, (Mapping, list, tuple)):
+                _visit(nested, depth=depth + 1)
+
+    _visit(payload)
+    return "; ".join(observed)
 
 
 def _extract_output_text(

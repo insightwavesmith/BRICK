@@ -1,13 +1,9 @@
-"""Gemini HTTP API adapter + bare-text design-AI invocation seams.
+"""Gemini HTTP bare-text design-AI invocation seams.
 
 ★S11 SEAM★ Extracted VERBATIM from ``support/connection/agent_adapter.py`` (E2
 split, extraction 6/7). PURE relocation -- no logic/name/signature change. This
 module owns:
 
-* The direct Gemini HTTP API adapter path (stdlib ``urllib``, env key, NO
-  subprocess): ``_gemini_api_key_from_env``, ``_gemini_api_model_name``,
-  ``_build_gemini_api_request``, ``_parse_gemini_api_response``,
-  ``_gemini_api_urlopen``, ``_invoke_gemini_api``, ``_gemini_api_key_env_present``.
 * The bare prompt -> text design-AI seams: ``invoke_gemini_text`` (HTTP) plus
   ``invoke_claude_text`` / ``invoke_codex_text`` (local CLI) and their
   ``_text_cli_executable`` / ``_clean_text_cli_option`` helpers.
@@ -22,11 +18,10 @@ and calls ``agent_adapter._gemini_api_urlopen``; the facade keeps
 This module imports siblings DIRECTLY (adapter_validation, adapter_model_casting,
 adapter_grant_policy, adapter_constants) and NEVER
 ``from support.connection.agent_adapter import ...`` at top level (cycle). The
-stay-behind carriers, constants, and helper functions that still live in
-``agent_adapter`` (``_GEMINI_API_SPEC``, ``_GEMINI_API_BASE_URL``,
-``_GEMINI_API_MODEL_FALLBACK``, ``_GEMINI_API_KEY_ENV_VARS``,
-``_proof_limits_for_request``, ``_not_proven_for_request``, ``_merge_texts``,
-``_run_text_cli``, ``_raw_text_from_completed``) are reached LAZILY in-function
+stay-behind constants and helper functions that still live in
+``agent_adapter`` (``_GEMINI_API_BASE_URL``, ``_GEMINI_API_MODEL_FALLBACK``,
+``_GEMINI_API_KEY_ENV_VARS``, ``_run_text_cli``, ``_raw_text_from_completed``)
+are reached LAZILY in-function
 (the ``from .agent_adapter import ...`` back-edge runs only at call time, after
 both modules are fully loaded) so there is no import cycle and the moved bodies
 keep their exact statements. ``AgentAdapterRequest`` / ``LocalCliCompleted`` /
@@ -47,15 +42,6 @@ from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import Any, TYPE_CHECKING
 
-from .adapter_grant_policy import (
-    _build_prompt,
-    _extract_required_return_fields,
-    _merge_structured_return_fields,
-)
-from .adapter_model_casting import (
-    _model_cli_arg_from_ref,
-    _node_casting_fields_ordered,
-)
 from .adapter_validation import _reject_secret_text, _safe_excerpt
 
 if TYPE_CHECKING:
@@ -82,19 +68,6 @@ def _gemini_api_key_from_env() -> str:
         + " or ".join(_GEMINI_API_KEY_ENV_VARS)
         + " (none set)"
     )
-
-
-def _gemini_api_model_name(request: AgentAdapterRequest) -> str:
-    """Resolve the bare Gemini model name for the HTTP path (no provider state)."""
-    from .agent_adapter import _GEMINI_API_MODEL_FALLBACK, _GEMINI_API_SPEC
-
-    model_id = _model_cli_arg_from_ref(
-        request.selected_model_ref or _GEMINI_API_SPEC.default_model_ref,
-        _GEMINI_API_SPEC,
-    )
-    # _model_cli_arg_from_ref returns "" for the gemini default sentinel; the HTTP
-    # endpoint always needs a concrete model, so fall back to flash.
-    return model_id or _GEMINI_API_MODEL_FALLBACK
 
 
 def _build_gemini_api_request(
@@ -184,81 +157,6 @@ def _gemini_api_urlopen(
         if isinstance(reason, (socket.timeout, TimeoutError)):
             raise ValueError("gemini-api request timed out") from exc
         raise ValueError("gemini-api request failed (transport error)") from exc
-
-
-def _invoke_gemini_api(
-    request: AgentAdapterRequest,
-    *,
-    timeout_seconds: int,
-    urlopen: Callable[["urllib.request.Request", int], bytes] | None = None,
-) -> tuple[Mapping[str, Any], tuple[str, ...], tuple[str, ...]]:
-    """Direct Gemini HTTP API adapter (stdlib urllib, env key, NO subprocess).
-
-    Mirrors _invoke_local_cli_adapter's return triple exactly so the engine stays
-    adapter-agnostic. The optional urlopen seam exists ONLY so a checker FIRE can
-    capture/mocks the request without a network/credential; live calls leave it
-    None (the default stdlib path). Absent key / HTTP error / timeout / malformed
-    response all become CLEAN typed adapter-errors (never a crash, never a spawn).
-    """
-    from .agent_adapter import (
-        _GEMINI_API_SPEC,
-        _merge_texts,
-    )
-    from .adapter_local_cli import (
-        _not_proven_for_request,
-        _proof_limits_for_request,
-    )
-
-    spec = _GEMINI_API_SPEC
-    proof_limits = _proof_limits_for_request(request, spec)
-    not_proven = _not_proven_for_request(request, spec)
-    prompt = _build_prompt(request, spec)
-    api_key = _gemini_api_key_from_env()  # no-key -> FileNotFoundError (hold path)
-    model_name = _gemini_api_model_name(request)
-    http_request = _build_gemini_api_request(api_key, model_name, prompt)
-    if urlopen is not None:
-        raw_body = urlopen(http_request, timeout_seconds)
-    else:
-        raw_body = _gemini_api_urlopen(http_request, timeout_seconds=timeout_seconds)
-    output_text = _parse_gemini_api_response(raw_body)
-    _reject_secret_text("gemini_api_output", output_text)
-    returned = {
-        "returned_summary": "Gemini HTTP API Agent Adapter returned support evidence",
-        "adapter_ref": spec.adapter_ref,
-        # E2/S6★: serialize the casting dials by LOOPING the single-source
-        # NODE_CASTING_FIELDS instead of naming the model dial. Each declared
-        # (truthy) ``selected_<base>`` value joins the bag; an undeclared dial is
-        # absent, so today this emits exactly ``selected_model_ref`` (byte-identical
-        # to the prior single key) and a NEW dial (effort) rides along when declared.
-        **{
-            _ck: getattr(request, _ck)
-            for _ck in _node_casting_fields_ordered()
-            if getattr(request, _ck)
-        },
-        "agent_object_ref": request.agent_object_ref,
-        "brain_surface_ref": spec.brain_surface_ref,
-        # No CLI version on the HTTP path; record the resolved endpoint model name
-        # (NOT the key, NOT the URL with any secret) as the provider identity.
-        "api_model_name": model_name,
-        "api_call_ref": f"support-api-call:{spec.adapter_ref}:{request.building_id}",
-        "output_excerpt": _safe_excerpt(output_text),
-        "evidence_refs": [
-            request.output_packet_ref or f"support-ref:{spec.adapter_ref}:http-api-output"
-        ],
-        "proof_limits": list(proof_limits),
-        "not_proven": list(not_proven),
-    }
-    _merge_structured_return_fields(
-        returned,
-        _extract_required_return_fields(
-            output_text,
-            request.required_return_shape,
-        ),
-    )
-    return returned, _merge_texts(proof_limits, request.proof_limits), _merge_texts(
-        not_proven,
-        request.not_proven,
-    )
 
 
 def invoke_gemini_text(

@@ -31,8 +31,7 @@
     "adapter:codex-local",
     "adapter:codex-fugu-local",
     "adapter:claude-local",
-    "adapter:gemini-local",
-    "adapter:gemini-api"
+    "adapter:gemini-local"
   ],
   "preferred_adapter_ref": "adapter:gemini-local",
   "preferred_model_ref": "model:gemini:default"

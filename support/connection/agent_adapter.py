@@ -42,7 +42,6 @@ from .adapter_constants import (
     ADAPTER_CODEX_FUGU_LOCAL,
     ADAPTER_CLAUDE_LOCAL,
     ADAPTER_GEMINI_LOCAL,
-    ADAPTER_GEMINI_API,
     ADAPTER_CHAT_SESSION,
     READ_WRITE_TOOL_POLICY_REF,
     READ_TIER_TOOL_POLICY_REFS,
@@ -188,17 +187,8 @@ from .adapter_model_casting import (
 # adapter_grant_policy / adapter_local_cli now), so there is NO import of it here.
 # Callers that need a grant-policy symbol import adapter_grant_policy directly.
 
-# The Gemini HTTP API adapter (★S11 SEAM★) + the bare prompt ->
-# text design-AI seams (invoke_gemini_text / invoke_claude_text / invoke_codex_text
-# and their _text_cli_* helpers) live in adapter_gemini_http (E2 split, extraction
-# 6/7). The S11 FIRE (urlopen patch + _gemini_api_urlopen) now targets
-# adapter_gemini_http directly (which top-imports urllib.request), so agent_adapter
-# no longer re-exports those seams. The only gemini-http symbol agent_adapter's own
-# body still calls is _invoke_gemini_api (the gemini-api adapter dispatch inside
-# connect_agent_brain). Callers import adapter_gemini_http directly.
-from .adapter_gemini_http import (
-    _invoke_gemini_api,
-)
+# Bare prompt -> text design-AI seams live in adapter_gemini_http. They are not
+# active Agent adapter dispatch paths.
 
 # The Local-CLI invocation cluster (argv assembly + local-callable stub +
 # output/nonzero-error extraction) lives in adapter_local_cli (E2 split,
@@ -691,23 +681,6 @@ _LOCAL_CLI_SPECS: Mapping[str, LocalCliSpec] = {
     ),
 }
 
-# Gemini HTTP API adapter (gemini-api) — ADDITIVE sibling of the gemini-local
-# CLI. It is DELIBERATELY NOT a member of _LOCAL_CLI_SPECS: there is no CLI, no
-# subprocess, no executable. We reuse the LocalCliSpec dataclass purely as an
-# inert carrier of the same descriptive fields (adapter_ref, brain_surface_ref,
-# default_model_ref, proof_limits, not_proven) so the prompt builder and the
-# returned-evidence shape mirror the CLI path exactly — keeping the engine
-# adapter-agnostic. executable_name/version_args/invocation_args_kind are unused
-# on this path (the HTTP call is made directly via stdlib urllib).
-_GEMINI_API_SPEC = LocalCliSpec(
-    adapter_ref=ADAPTER_GEMINI_API,
-    brain_surface_ref="brain-surface:gemini-http-api",
-    executable_name="",
-    version_args=(),
-    invocation_args_kind="gemini-http-generate-content",
-    default_model_ref=MODEL_REF_GEMINI_FLASH,
-)
-
 # Gemini Generative Language HTTP API (grounded, not guessed):
 #   POST https://generativelanguage.googleapis.com/v1beta/models/<model>:generateContent
 #   header  x-goog-api-key: <API_KEY>   (key from env, never committed)
@@ -738,18 +711,13 @@ def connect_agent_brain(
     dispatch_cwd = Path(cwd) if cwd is not None else _REPO_ROOT
     _consume_effective_write_observation_path(request, cwd=dispatch_cwd)
     # TrackA-A1 METER: only the local-CLI codex path emits token usage today. The
-    # local-callable and gemini-api paths carry no per-turn usage, so it stays None.
+    # local-callable path carries no per-turn usage, so it stays None.
     adapter_usage: Mapping[str, Any] | None = None
     observed_non_granted_gemini_tools: tuple[str, ...] = ()
     if request.adapter_ref == ADAPTER_LOCAL:
         returned_value = _invoke_local_callable(request, local_callables)
         proof_limits = _merge_texts(_DEFAULT_PROOF_LIMITS, request.proof_limits)
         not_proven = _merge_texts(_DEFAULT_NOT_PROVEN, request.not_proven)
-    elif request.adapter_ref == ADAPTER_GEMINI_API:
-        returned_value, proof_limits, not_proven = _invoke_gemini_api(
-            request,
-            timeout_seconds=timeout_seconds,
-        )
     else:
         # Local-CLI dispatch: codex-local, codex-fugu-local, claude-local, and
         # gemini-local all route through the SAME _invoke_local_cli_adapter ->
@@ -837,12 +805,6 @@ def supported_model_ref_examples(adapter_ref: str) -> tuple[str, ...]:
         return (
             MODEL_REF_GEMINI_DEFAULT,
             MODEL_REF_GEMINI_LOCAL_FLASH,
-            "model:gemini:<gemini-model-id>",
-        )
-    if adapter_ref == ADAPTER_GEMINI_API:
-        return (
-            MODEL_REF_GEMINI_DEFAULT,
-            MODEL_REF_GEMINI_FLASH,
             "model:gemini:<gemini-model-id>",
         )
     if adapter_ref == ADAPTER_CHAT_SESSION:
@@ -1209,7 +1171,6 @@ __all__ = [
     "ADAPTER_CHAT_SESSION",
     "ADAPTER_CODEX_FUGU_LOCAL",
     "ADAPTER_CODEX_LOCAL",
-    "ADAPTER_GEMINI_API",
     "ADAPTER_GEMINI_LOCAL",
     "ADAPTER_LOCAL",
     "ALLOWED_ADAPTER_REFS",

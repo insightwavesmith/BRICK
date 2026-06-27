@@ -1497,8 +1497,6 @@ def _slack_adapter_label(packet: Mapping[str, Any]) -> str:
     lowered = raw.lower()
     if "codex-fugu" in lowered or "sakana" in lowered or "fugu" in lowered:
         return "Fugu"
-    if adapter == "adapter:gemini-api":
-        return "Gemini API"
     if adapter == "adapter:claude-local":
         return "Claude Local"
     if adapter == "adapter:codex-local":

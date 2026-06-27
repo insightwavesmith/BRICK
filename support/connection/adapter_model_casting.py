@@ -8,7 +8,7 @@ underscore-private) so late-bound ``agent_adapter.<sym>`` access never breaks.
 This module imports siblings DIRECTLY (adapter_constants, adapter_validation)
 and NEVER ``from support.connection.agent_adapter import ...`` at top level
 (cycle). The spec carriers that still live in ``agent_adapter`` (``LocalCliSpec``,
-``AgentAdapterRequest``, ``_GEMINI_API_SPEC``, ``_local_cli_spec``) are reached
+``AgentAdapterRequest``, ``_local_cli_spec``) are reached
 LAZILY in-function so the back-edge resolves only at call time. The external
 ``brick_protocol.*`` imports stay byte-identical (they are kept lazy/in-function
 exactly as the prior agent_adapter-local code had them).
@@ -22,7 +22,6 @@ from typing import Any, TYPE_CHECKING
 from .adapter_constants import (
     ADAPTER_LOCAL,
     ADAPTER_CHAT_SESSION,
-    ADAPTER_GEMINI_API,
     ADAPTER_GEMINI_LOCAL,
     MODEL_REF_DEFAULT,
     MODEL_REF_CODEX_DEFAULT,
@@ -104,14 +103,10 @@ def project_model_ref_to_cli_arg(adapter_ref: str, selected_model_ref: str = "")
 def _adapter_model_spec(adapter_ref: str) -> "LocalCliSpec":
     """Return the model-selection spec carrier for an adapter ref.
 
-    gemini-api is NOT a CLI (not in _LOCAL_CLI_SPECS), but it shares the gemini
-    model grammar; route it to its inert _GEMINI_API_SPEC carrier so model-ref
-    normalization mirrors the CLI adapters without polluting _LOCAL_CLI_SPECS.
+    Active model selection is tied to admitted local CLI adapters.
     """
-    from .agent_adapter import _GEMINI_API_SPEC, _local_cli_spec
+    from .agent_adapter import _local_cli_spec
 
-    if adapter_ref == ADAPTER_GEMINI_API:
-        return _GEMINI_API_SPEC
     return _local_cli_spec(adapter_ref)
 
 

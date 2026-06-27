@@ -339,21 +339,20 @@ adapter:codex-local
 adapter:codex-fugu-local
 adapter:claude-local
 adapter:gemini-local
-adapter:gemini-api
 adapter:chat-session
 ```
 
-`adapter:gemini-api` is a read/review HTTP API adapter sibling of
-`adapter:gemini-local`, not a write adapter. `adapter:chat-session` is the
-parked / human-as-agent adapter for chat-session handoff, not provider identity
-or Movement authority. `adapter:codex-fugu-local` is a 1:1 Sakana variant of
-`adapter:codex-local`: the SAME codex executable and codex-exec invocation, with
-provider-routing config overrides (`model_provider="sakana"` plus the Sakana
-model catalog) carried on the adapter spec as DATA. It is its own
-provider-neutral adapter row (provider `sakana`), not a re-skin of
-`adapter:codex-local`, and it inherits the same READ+WRITE capability. Auth stays
-out of BRICK: codex's own `auth.command` resolves the Sakana key; no setup token,
-key, or session ever enters BRICK.
+`adapter:gemini-local` is the active Gemini customer adapter and remains a
+Gemini CLI subprocess adapter using `GEMINI_API_KEY` / `GOOGLE_API_KEY` auth.
+`adapter:chat-session` is the parked / human-as-agent adapter for chat-session
+handoff, not provider identity or Movement authority. `adapter:codex-fugu-local`
+is a 1:1 Sakana variant of `adapter:codex-local`: the SAME codex executable and
+codex-exec invocation, with provider-routing config overrides
+(`model_provider="sakana"` plus the Sakana model catalog) carried on the adapter
+spec as DATA. It is its own provider-neutral adapter row (provider `sakana`),
+not a re-skin of `adapter:codex-local`, and it inherits the same READ+WRITE
+capability. Auth stays out of BRICK: codex's own `auth.command` resolves the
+Sakana key; no setup token, key, or session ever enters BRICK.
 
 Write capability is not owned by the adapter name or by `dev` alone. Effective
 write requires Brick-declared write scope, Agent tool policy, adapter support,
