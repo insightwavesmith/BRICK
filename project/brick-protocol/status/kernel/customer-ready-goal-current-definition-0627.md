@@ -175,11 +175,60 @@ review / inspect are not QA substitutes
 
 Exit requires generated active plans to show the dual QA lanes and Codex closure.
 
-### P3 - C6 One-Call Launch Close
+### P3 - Easy Building / C6 Launch Surface
 
 Current core phase.
 
-Run the customer one-call launch path through official Building evidence:
+P3 is not "run C6 with Codex/Gemini" as the product meaning. P3 is the
+customer-facing Easy Building surface:
+
+```text
+user says "make X"
+or "this is big; design first, split it, and run lanes"
+-> COO/task intake records the work
+-> sizing/design judges whether the work is simple, large, risky, or split-worthy
+-> official Building route declares the selected road
+-> Building runs with evidence
+```
+
+The current `--large` surface is only an early fallback/default graph generator.
+It is preset-like, but it is not the final P3 goal:
+
+```text
+preset:
+  stored map selected by name
+
+graph:
+  explicit caller/COO-declared map for this run
+
+large:
+  convenience generator for a default "big work" graph
+  task intake -> design -> design-axis QA -> plan closure
+  -> parallel dev lanes -> lane QA -> fan-in
+  -> final Codex code QA + Gemini axis/evidence QA -> Codex closure
+
+target P3:
+  task-aware Easy Building
+  COO/Builder chooses simple preset, large fallback, or custom graph from the
+  observed task/design evidence
+```
+
+Do not treat `large` as source truth, quality judgment, Movement authority, or
+the completed product surface. `large` is admissible only as a scaffold while
+P3 learns how to draw the Building road from the task.
+
+Context-compression guard:
+
+```text
+If a future operator reads only a compressed summary, preserve this direction:
+P3 is "make Building easy to declare and run" like the Claude workflow surface.
+The operator must not collapse P3 into "hardcode one large graph" or "recast
+C6 to Codex/Gemini." The work is to make the official route accept an easy
+task/sizing/design declaration and then materialize the right preset or graph.
+```
+
+Run the customer launch path through official Building evidence with the current
+weekend QA lanes:
 
 ```text
 Codex work
@@ -188,8 +237,9 @@ Gemini axis-attack-qa
 Codex closure
 ```
 
-P3 may close only with raw/evidence proof or remain HOLD with an exact non-Claude
-blocker.
+P3 may close only with raw/evidence proof or remain HOLD with an exact
+non-Claude blocker. Root-unification, Slack-visible evidence roots, and
+`--large` graph behavior are support slices inside P3, not the whole phase.
 
 ### P4 - Resume Surface Repair
 
