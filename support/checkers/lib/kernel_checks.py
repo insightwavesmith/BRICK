@@ -2924,6 +2924,9 @@ def run_provider_preflight(repo: Path) -> KernelResult:
     adapter = importlib.import_module("brick_protocol.support.connection.agent_adapter")
     adapter_constants = importlib.import_module("brick_protocol.support.connection.adapter_constants")
     adapter_subprocess = importlib.import_module("brick_protocol.support.connection.adapter_subprocess")
+    from support.checkers.lib.case_runners import _preset_completion_command_runner
+
+    command_runner = _preset_completion_command_runner(adapter.LocalCliCompleted)
 
     inspected = 0
 
@@ -2931,7 +2934,7 @@ def run_provider_preflight(repo: Path) -> KernelResult:
     #     well-shaped status. preflight_provider must NOT raise for either.
     for label in (adapter_constants.ADAPTER_CODEX_LOCAL, adapter_constants.ADAPTER_LOCAL):
         try:
-            status = adapter_subprocess.preflight_provider(label)
+            status = adapter_subprocess.preflight_provider(label, command_runner=command_runner)
         except Exception as exc:  # noqa: BLE001 -- no-raise is the invariant under test
             raise ProfileError(
                 f"provider_preflight: preflight_provider({label!r}) raised {type(exc).__name__}: {exc}"
@@ -2944,7 +2947,9 @@ def run_provider_preflight(repo: Path) -> KernelResult:
         inspected += 1
 
     # adapter:local has no CLI: it must report ready.
-    local_status = adapter_subprocess.preflight_provider(adapter_constants.ADAPTER_LOCAL)
+    local_status = adapter_subprocess.preflight_provider(
+        adapter_constants.ADAPTER_LOCAL, command_runner=command_runner
+    )
     if not (local_status["installed"] and local_status["ok"] and local_status["authed"] == "yes"):
         raise ProfileError(
             "provider_preflight: adapter:local must report installed/authed/ok ready"
@@ -2953,7 +2958,9 @@ def run_provider_preflight(repo: Path) -> KernelResult:
     # Gemini local API-key paths are never live-called by preflight; they must expose
     # key-presence evidence separately from credential validity so doctor/onboard
     # cannot turn a present-but-invalid key into an auth proof.
-    gemini_status = adapter_subprocess.preflight_provider(adapter_constants.ADAPTER_GEMINI_LOCAL)
+    gemini_status = adapter_subprocess.preflight_provider(
+        adapter_constants.ADAPTER_GEMINI_LOCAL, command_runner=command_runner
+    )
     _provider_preflight_assert_shape(adapter_constants.ADAPTER_GEMINI_LOCAL, gemini_status)
     if "api_key_env_present" not in gemini_status or not isinstance(
         gemini_status.get("api_key_env_present"), bool
@@ -2974,7 +2981,9 @@ def run_provider_preflight(repo: Path) -> KernelResult:
         "",
     ):
         try:
-            status = adapter_subprocess.preflight_provider(bogus_ref)
+            status = adapter_subprocess.preflight_provider(
+                bogus_ref, command_runner=command_runner
+            )
         except Exception as exc:  # noqa: BLE001 -- no-raise is the invariant under test
             raise ProfileError(
                 "provider_preflight: preflight_provider must not raise for a bogus/retired "
@@ -3769,7 +3778,10 @@ def run_gemini_local_only_adapter(repo: Path) -> KernelResult:
         raise ProfileError("gemini_local_only_adapter: gemini-local default model ref drifted")
     if tuple(adapter._GEMINI_API_KEY_ENV_VARS) != ("GEMINI_API_KEY", "GOOGLE_API_KEY"):
         raise ProfileError("gemini_local_only_adapter: Gemini API-key env order drifted")
-    status = adapter_subprocess.preflight_provider(gemini_local)
+    from support.checkers.lib.case_runners import _preset_completion_command_runner
+
+    command_runner = _preset_completion_command_runner(adapter.LocalCliCompleted)
+    status = adapter_subprocess.preflight_provider(gemini_local, command_runner=command_runner)
     if "api_key_env_present" not in status or status.get("credential_validity") != "not_proven":
         raise ProfileError(
             "gemini_local_only_adapter: gemini-local preflight stopped exposing key presence "
@@ -3907,10 +3919,14 @@ def run_onboard_smoke(repo: Path) -> KernelResult:
 
     _ensure_import_identity(repo)
     onboard = importlib.import_module("brick_protocol.support.operator.onboard")
+    agent_adapter = importlib.import_module("brick_protocol.support.connection.agent_adapter")
+    from support.checkers.lib.case_runners import _preset_completion_command_runner
+
+    command_runner = _preset_completion_command_runner(agent_adapter.LocalCliCompleted)
 
     if "gemini" not in tuple(getattr(onboard, "SUPPORTED_HOSTS", ())):
         raise ProfileError("onboard_smoke: SUPPORTED_HOSTS must include gemini")
-    doctor_packet = onboard.run_doctor()
+    doctor_packet = onboard.run_doctor(command_runner=command_runner)
     doctor_targets = {
         str(row.get("target") or "")
         for row in doctor_packet.get("rows", [])
@@ -3957,6 +3973,7 @@ def run_onboard_smoke(repo: Path) -> KernelResult:
                 repo_root=repo,
                 run_example=True,
                 output_root=tmp_root,
+                command_runner=command_runner,
             )
         except Exception as exc:  # noqa: BLE001 -- no-raise is the invariant under test
             raise ProfileError(
@@ -4029,6 +4046,7 @@ def run_onboard_smoke(repo: Path) -> KernelResult:
             "definitely-not-a-host",
             repo_root=repo,
             run_example=False,
+            command_runner=command_runner,
         )
     except Exception as exc:  # noqa: BLE001 -- no-raise is the invariant under test
         raise ProfileError(

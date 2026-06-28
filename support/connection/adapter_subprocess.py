@@ -82,7 +82,11 @@ class _ProcessSnapshotRow:
     cpu_seconds: float
 
 
-def preflight_provider(adapter_ref: str) -> dict[str, Any]:
+def preflight_provider(
+    adapter_ref: str,
+    *,
+    command_runner: Any | None = None,
+) -> dict[str, Any]:
     """Friendly, never-raising provider readiness preflight (onboarding "login").
 
     Returns a structured status dict and NEVER raises. A missing or unauthed
@@ -146,7 +150,7 @@ def preflight_provider(adapter_ref: str) -> dict[str, Any]:
         }
 
     cli = spec.executable_name
-    installed = shutil.which(cli) is not None
+    installed = True if command_runner is not None else shutil.which(cli) is not None
     gemini_local_key_present = False
     if ref == ADAPTER_GEMINI_LOCAL:
         gemini_local_key_present = any(
@@ -178,7 +182,7 @@ def preflight_provider(adapter_ref: str) -> dict[str, Any]:
     authed = "unknown"
     version_ok = False
     try:
-        probe_local_cli_adapter(ref, timeout_seconds=8)
+        probe_local_cli_adapter(ref, timeout_seconds=8, command_runner=command_runner)
         version_ok = True
     except Exception:
         # Any failure (CLI errored, timed out, redaction tripped) -> stay

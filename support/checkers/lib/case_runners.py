@@ -2356,7 +2356,9 @@ def run_onboard_seam_case(repo: Path, profile: Mapping[str, Any]) -> int:
         return 0
 
     onboard = importlib.import_module("brick_protocol.support.operator.onboard")
+    agent_adapter = importlib.import_module("brick_protocol.support.connection.agent_adapter")
     seam_verb = onboard.SEAM_VERB
+    command_runner = _preset_completion_command_runner(agent_adapter.LocalCliCompleted)
     expected_local_adapter = "adapter:local"
     allowed_readiness = {"ready", "unauthed", "missing", "unknown"}
 
@@ -2403,6 +2405,7 @@ def run_onboard_seam_case(repo: Path, profile: Mapping[str, Any]) -> int:
                     run_example=True,
                     output_root=tmp_root,
                     allow_real_provider=False,
+                    command_runner=command_runner,
                 )
             except Exception as exc:  # noqa: BLE001 -- no-raise is under test
                 raise ProfileError(
@@ -2494,6 +2497,7 @@ def run_onboard_seam_case(repo: Path, profile: Mapping[str, Any]) -> int:
                     run_example=True,
                     output_root=tmp_root,
                     allow_real_provider=True,
+                    command_runner=command_runner,
                 )
             except Exception as exc:  # noqa: BLE001 -- no-raise is the invariant under test
                 raise ProfileError(

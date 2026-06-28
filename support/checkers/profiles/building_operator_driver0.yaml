@@ -54,6 +54,11 @@ text_contains:
       - result_obj = run_building_intake(
       - def _choose_example_adapter
       - def _preflight_readiness
+      - 'command_runner: Any | None = None'
+      - 'preflight_provider(adapter_ref, command_runner=command_runner)'
+      - 'run_doctor(command_runner=command_runner)'
+      - 'run_onboard('
+      - 'command_runner=command_runner'
       - ADAPTER_GEMINI_LOCAL
       - '"gemini": ADAPTER_GEMINI_LOCAL'
       - 'local_cli_missing (gemini CLI/API key가 없음)'

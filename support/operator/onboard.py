@@ -156,7 +156,7 @@ def _normalize_host(host: Any) -> str:
     return host.strip().lower() if isinstance(host, str) else ""
 
 
-def _preflight_step(host: str) -> dict[str, Any]:
+def _preflight_step(host: str, *, command_runner: Any | None = None) -> dict[str, Any]:
     """Step 1: friendly provider readiness. Never raises."""
 
     adapter_ref = _HOST_ADAPTER_REF.get(host, "")
@@ -170,7 +170,7 @@ def _preflight_step(host: str) -> dict[str, Any]:
             ),
         }
     try:
-        status = preflight_provider(adapter_ref)
+        status = preflight_provider(adapter_ref, command_runner=command_runner)
     except Exception as exc:  # noqa: BLE001 -- no-raise is the whole point
         # preflight_provider is designed to never raise; if it ever does, we
         # still surface a friendly field instead of a stack-trace.
@@ -340,6 +340,7 @@ def _example_step(
     preflight: dict[str, Any],
     readiness: str,
     allow_real_provider: bool,
+    command_runner: Any | None = None,
 ) -> dict[str, Any]:
     """Step 3: route the first example through the PART-1 seam. Never raises.
 
@@ -397,6 +398,7 @@ def _example_step(
             output_root=effective_root,
             overwrite_existing=True,
             adapter_cwd=effective_root if choice["real"] else None,
+            command_runner=command_runner,
         )
         materialized_step_adapters = _materialized_step_adapter_evidence(result_obj.plan_path)
         run_result = result_obj.run_result
@@ -1177,6 +1179,7 @@ def run_install_wizard(
     place_skills: bool = True,
     slack_bot_token: str | None = None,
     slack_channel_id: str | None = None,
+    command_runner: Any | None = None,
 ) -> dict[str, Any]:
     """The ONE ordered, idempotent, friendly-fallback install flow (`brick init`).
 
@@ -1199,7 +1202,7 @@ def run_install_wizard(
     steps: dict[str, Any] = {}
 
     # 1 PRESENT
-    steps["present"] = run_doctor()
+    steps["present"] = run_doctor(command_runner=command_runner)
 
     # 2 PLUGIN: MCP register + skills place + recording hooks
     if register_mcp:
@@ -1222,6 +1225,7 @@ def run_install_wizard(
         run_example=run_example,
         output_root=output_root,
         allow_real_provider=allow_real_provider,
+        command_runner=command_runner,
     )
 
     # Honest aggregate: the example build is the only hard gate (mirrors the prior
@@ -1344,7 +1348,7 @@ def _doctor_gh_row() -> dict[str, Any]:
     }
 
 
-def run_doctor() -> dict[str, Any]:
+def run_doctor(*, command_runner: Any | None = None) -> dict[str, Any]:
     """Run every provider preflight + the gh probe. NEVER raises.
 
     Returns {rows, symptom_table, all_ok}. ``all_ok`` summarizes the rows, but
@@ -1357,7 +1361,7 @@ def run_doctor() -> dict[str, Any]:
     try:
         rows.append(_doctor_gh_row())
         for host in SUPPORTED_HOSTS:
-            status = _preflight_step(host)
+            status = _preflight_step(host, command_runner=command_runner)
             row = {
                 "target": host,
                 "ok": bool(status.get("ok")),
@@ -1434,6 +1438,7 @@ def run_onboard(
     run_example: bool = True,
     output_root: Path | str | None = None,
     allow_real_provider: bool = False,
+    command_runner: Any | None = None,
 ) -> dict[str, Any]:
     """Run the friendly, NEVER-raising onboarding flow.
 
@@ -1470,7 +1475,7 @@ def run_onboard(
     normalized_host = _normalize_host(host)
     root = _safe_repo_root(repo_root)
 
-    preflight = _preflight_step(normalized_host)
+    preflight = _preflight_step(normalized_host, command_runner=command_runner)
     readiness = _preflight_readiness(preflight)
     connect_hint = _connect_step(normalized_host, root)
 
@@ -1481,6 +1486,7 @@ def run_onboard(
             preflight=preflight,
             readiness=readiness,
             allow_real_provider=allow_real_provider,
+            command_runner=command_runner,
         )
     else:
         example_result = {
