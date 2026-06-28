@@ -10114,17 +10114,89 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
                 f"for {lane_count}: {lane_packet.get('dev_lanes')!r}"
             )
         groups = lane_packet.get("groups")
-        if not isinstance(groups, list) or len(groups) != 2:
+        if not isinstance(groups, list) or len(groups) != 4:
             raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large packet must declare fan_out and fan_in groups"
+                "brick_cli_entrypoint_smoke: --large packet must declare dev and final "
+                "QA fan_out/fan_in groups"
             )
-        for group in groups:
-            member_refs = group.get("member_refs") if isinstance(group, Mapping) else None
-            if not isinstance(member_refs, list) or len(member_refs) != lane_count:
-                raise ProfileError(
-                    "brick_cli_entrypoint_smoke: --large group member count did not "
-                    f"match dev lanes {lane_count}: {groups!r}"
-                )
+        group_members = {
+            str(group.get("group_id") or ""): group.get("member_refs")
+            for group in groups
+            if isinstance(group, Mapping)
+        }
+        expected_dev_fan_out = [
+            f"edge:{building_id}-plan-confirmation-to-dev-lane-{lane}"
+            for lane in range(1, lane_count + 1)
+        ]
+        expected_dev_fan_in = [
+            f"edge:{building_id}-dev-lane-{lane}-qa-to-integration-summary"
+            for lane in range(1, lane_count + 1)
+        ]
+        expected_final_fan_out = [
+            f"edge:{building_id}-integration-summary-to-final-codex-code-qa",
+            f"edge:{building_id}-integration-summary-to-final-gemini-axis-evidence-qa",
+        ]
+        expected_final_fan_in = [
+            f"edge:{building_id}-final-codex-code-qa-to-codex-closure",
+            f"edge:{building_id}-final-gemini-axis-evidence-qa-to-codex-closure",
+        ]
+        expected_group_members = {
+            f"group:{building_id}-dev-fan-out": expected_dev_fan_out,
+            f"group:{building_id}-dev-fan-in": expected_dev_fan_in,
+            f"group:{building_id}-final-qa-fan-out": expected_final_fan_out,
+            f"group:{building_id}-final-qa-fan-in": expected_final_fan_in,
+        }
+        if group_members != expected_group_members:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large fan group membership drifted "
+                f"for {lane_count} lanes: {group_members!r}"
+            )
+        packet_edges = {
+            (
+                str(edge.get("edge_ref") or ""),
+                str(edge.get("source") or ""),
+                str(edge.get("target") or ""),
+            )
+            for edge in lane_packet.get("edges", [])
+            if isinstance(edge, Mapping)
+        }
+        expected_final_edge_tuples = {
+            (
+                expected_final_fan_out[0],
+                f"{building_id}-integration-summary",
+                f"{building_id}-final-codex-code-qa",
+            ),
+            (
+                expected_final_fan_out[1],
+                f"{building_id}-integration-summary",
+                f"{building_id}-final-gemini-axis-evidence-qa",
+            ),
+            (
+                expected_final_fan_in[0],
+                f"{building_id}-final-codex-code-qa",
+                f"{building_id}-codex-closure",
+            ),
+            (
+                expected_final_fan_in[1],
+                f"{building_id}-final-gemini-axis-evidence-qa",
+                f"{building_id}-codex-closure",
+            ),
+        }
+        if not expected_final_edge_tuples.issubset(packet_edges):
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large packet did not declare "
+                f"parallel final QA fan-out/fan-in edges: {packet_edges!r}"
+            )
+        serial_final_edge = (
+            f"edge:{building_id}-final-codex-code-qa-to-final-gemini-axis-evidence-qa",
+            f"{building_id}-final-codex-code-qa",
+            f"{building_id}-final-gemini-axis-evidence-qa",
+        )
+        if serial_final_edge in packet_edges:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large packet kept serial "
+                "Codex-QA-to-Gemini-QA final edge"
+            )
         if "adapter:gemini-local" not in packet_text:
             raise ProfileError(
                 "brick_cli_entrypoint_smoke: --large packet did not include final "
@@ -10190,6 +10262,40 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
                 f"brick_cli_entrypoint_smoke: --large --dev-lanes {lane_count} "
                 f"did not compose through the graph seam: {exc}"
             ) from exc
+        composed_groups = composed_large_plan.get("groups")
+        if not isinstance(composed_groups, list):
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large composed plan did not carry groups"
+            )
+        composed_group_members = {
+            str(group.get("group_id") or ""): group.get("member_refs")
+            for group in composed_groups
+            if isinstance(group, Mapping)
+        }
+        if composed_group_members != expected_group_members:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large composed plan fan group "
+                f"membership drifted for {lane_count} lanes: {composed_group_members!r}"
+            )
+        composed_edges = {
+            (
+                str(edge.get("edge_ref") or ""),
+                str(edge.get("source_step_ref") or edge.get("source") or ""),
+                str(edge.get("target_step_ref") or edge.get("target") or ""),
+            )
+            for edge in composed_large_plan.get("link_edges", [])
+            if isinstance(edge, Mapping)
+        }
+        if not expected_final_edge_tuples.issubset(composed_edges):
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large composed plan did not carry "
+                f"parallel final QA fan-out/fan-in edges: {composed_edges!r}"
+            )
+        if serial_final_edge in composed_edges:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large composed plan kept serial "
+                "Codex-QA-to-Gemini-QA final edge"
+            )
         composed_step_adapters = {
             str(step.get("step_ref") or ""): str(step.get("selected_adapter_ref") or "")
             for step in composed_large_plan.get("brick_steps", [])

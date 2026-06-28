@@ -417,6 +417,14 @@ def _p3_easy_large_graph_packet(args: argparse.Namespace) -> dict[str, Any]:
     final_code_qa = f"{prefix}-final-codex-code-qa"
     final_axis_qa = f"{prefix}-final-gemini-axis-evidence-qa"
     closure = f"{prefix}-codex-closure"
+    final_fan_out_edges = [
+        f"edge:{prefix}-integration-summary-to-final-codex-code-qa",
+        f"edge:{prefix}-integration-summary-to-final-gemini-axis-evidence-qa",
+    ]
+    final_fan_in_edges = [
+        f"edge:{prefix}-final-codex-code-qa-to-codex-closure",
+        f"edge:{prefix}-final-gemini-axis-evidence-qa-to-codex-closure",
+    ]
 
     nodes: list[dict[str, Any]] = [
         _p3_easy_large_node(
@@ -514,6 +522,7 @@ def _p3_easy_large_graph_packet(args: argparse.Namespace) -> dict[str, Any]:
                 "Integrate parallel lane evidence and summarize remaining deltas.",
                 adapter_ref=ADAPTER_CODEX_LOCAL,
                 model_ref=MODEL_REF_CODEX_DEFAULT,
+                completion_edge_ref=final_fan_out_edges[0],
                 closure_transition_target_policy={
                     "implementation_gap": {"action": "target", "target_ref": plan_confirm},
                     "verification_gap": {"action": "hold"},
@@ -550,9 +559,10 @@ def _p3_easy_large_graph_packet(args: argparse.Namespace) -> dict[str, Any]:
     )
     edges.extend(
         [
-            _p3_easy_large_edge(f"edge:{prefix}-integration-summary-to-final-codex-code-qa", integration, final_code_qa),
-            _p3_easy_large_edge(f"edge:{prefix}-final-codex-code-qa-to-final-gemini-axis-evidence-qa", final_code_qa, final_axis_qa),
-            _p3_easy_large_edge(f"edge:{prefix}-final-gemini-axis-evidence-qa-to-codex-closure", final_axis_qa, closure),
+            _p3_easy_large_edge(final_fan_out_edges[0], integration, final_code_qa),
+            _p3_easy_large_edge(final_fan_out_edges[1], integration, final_axis_qa),
+            _p3_easy_large_edge(final_fan_in_edges[0], final_code_qa, closure),
+            _p3_easy_large_edge(final_fan_in_edges[1], final_axis_qa, closure),
             _p3_easy_large_edge(f"edge:{prefix}-codex-closure-to-boundary", closure, f"building-boundary:{prefix}-closed"),
         ]
     )
@@ -575,6 +585,18 @@ def _p3_easy_large_graph_packet(args: argparse.Namespace) -> dict[str, Any]:
                 "group_role": "fan_in",
                 "member_ref_kind": "link_edge",
                 "member_refs": fan_in_edges,
+            },
+            {
+                "group_id": f"group:{prefix}-final-qa-fan-out",
+                "group_role": "fan_out",
+                "member_ref_kind": "link_edge",
+                "member_refs": final_fan_out_edges,
+            },
+            {
+                "group_id": f"group:{prefix}-final-qa-fan-in",
+                "group_role": "fan_in",
+                "member_ref_kind": "link_edge",
+                "member_refs": final_fan_in_edges,
             },
         ],
         "selected_adapter_ref": adapter,
