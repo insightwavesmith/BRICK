@@ -146,7 +146,9 @@ def write_adapter_error_frontier_evidence(
     proof_limits: tuple[str, ...],
     graph_context: Mapping[str, Any] | None = None,
     frontier_transition_lifecycle: Mapping[str, Any] | None = None,
+    declaration_plan: Mapping[str, Any] | None = None,
 ) -> AdapterErrorFrontierEvidenceWriteResult:
+    declared_plan = declaration_plan or plan
     task_source_ref = _task_source_ref_from_plan(plan)
     frontier_graph_context = _realized_frontier_graph_context(
         graph_context,
@@ -183,9 +185,11 @@ def write_adapter_error_frontier_evidence(
         completed_step_results,
         failed_preparation,
         observation,
+        plan_ref=plan_ref,
         proof_limits=proof_limits,
         graph_context=frontier_graph_context,
         task_source_ref=task_source_ref,
+        declaration_plan=declared_plan,
     )
     existing_root_state = _adapter_error_existing_root_state(
         Path(output_root) / building_id,
@@ -256,6 +260,17 @@ def write_adapter_error_frontier_evidence(
         output_root=output_root,
         overwrite_existing=effective_overwrite_existing,
     )
+    declaration_written = _write_declaration_work_evidence(
+        lifecycle_write.root,
+        building_id=building_id,
+        plan_ref=plan_ref,
+        plan=plan,
+        declaration_plan=declared_plan,
+        graph_context=graph_context,
+        task_source_ref=task_source_ref,
+        proof_limits=proof_limits,
+        not_proven=_manifest_not_proven(()),
+    )
     complete_step_written = ()
     complete_raw_written = ()
     if completed_step_results:
@@ -307,6 +322,7 @@ def write_adapter_error_frontier_evidence(
     )
     written_files = (
         lifecycle_write.written_files
+        + declaration_written
         + complete_step_written
         + adapter_step_written
         + complete_raw_written
@@ -376,9 +392,11 @@ def write_chat_session_park_frontier_evidence(
         completed_step_results,
         failed_preparation,
         observation,
+        plan_ref=plan_ref,
         proof_limits=proof_limits,
         graph_context=frontier_graph_context,
         task_source_ref=task_source_ref,
+        declaration_plan=declared_plan,
     )
     effective_overwrite_existing = (
         overwrite_existing

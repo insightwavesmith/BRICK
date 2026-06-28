@@ -553,6 +553,16 @@ def _invoke_local_cli(
         agent_request_read_tier,
     )
 
+    if (
+        spec.invocation_args_kind == "gemini-p-json-flash"
+        and command_runner is None
+        and os.environ.get("BRICK_CHECKER_PROFILE_SWEEP") == "1"
+    ):
+        raise ValueError(
+            "checker profile sweep must not invoke live gemini-local CLI; "
+            "use an injected command_runner fixture"
+        )
+
     executable_path = spec.executable_name if command_runner is not None else shutil.which(spec.executable_name)
     if not executable_path:
         raise FileNotFoundError(f"local CLI executable not found for {spec.adapter_ref}")

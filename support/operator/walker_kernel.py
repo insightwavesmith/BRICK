@@ -592,6 +592,7 @@ def process_one_node(
             has_fan_groups=has_fan_groups,
             write_adapter_error_frontier=write_adapter_error_frontier,
             adapter_frontier_exception=adapter_frontier_exception,
+            declaration_plan=declaration_plan,
             resume_observations=_resume_observations_for_frontier(
                 resume_seed,
                 disposition_applied=disposition_applied,
@@ -1185,6 +1186,7 @@ def _run_dynamic_graph_walker(
             has_fan_groups=has_fan_groups,
             write_adapter_error_frontier=write_adapter_error_frontier,
             adapter_frontier_exception=adapter_frontier_exception,
+            declaration_plan=plan,
             resume_observations=_resume_observations_for_frontier(
                 resume_seed,
                 disposition_applied=disposition_applied,

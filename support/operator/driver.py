@@ -171,6 +171,53 @@ class _NextResolution:
 _DECLARED_PLAN_FILENAME = "declared-building-plan.json"
 
 
+def _write_and_run_declared_graph_plan(
+    plan: Mapping[str, Any],
+    *,
+    output: Path,
+    overwrite_existing: bool,
+    local_callables: Mapping[str, AgentBrainCallable] | None,
+    command_runner: CommandRunner | None,
+    adapter_cwd: Path | str | None,
+    adapter_timeout_seconds: int,
+    proof_limits: Iterable[str] | str | None,
+    building_id_label: str,
+    shape_error: str,
+) -> tuple[str, Path, BuildingPlanSupportResult]:
+    """Persist one declared graph plan and run it through the public run seam.
+
+    This is support-only intake plumbing. It centralizes the on-disk plan
+    handoff shared by the preset and direct-graph intakes; it does not author a
+    plan, choose Movement, or classify the returned Building evidence.
+    """
+
+    plan_shape = str(plan.get("plan_shape") or "")
+    if plan_shape != "graph":
+        raise ValueError(shape_error)
+
+    building_id = _required_text(plan.get("building_id"), building_id_label)
+    plan_path = output / _slug(building_id) / _DECLARED_PLAN_FILENAME
+    if plan_path.exists() and not overwrite_existing:
+        raise ValueError(f"declared Building plan already exists: {plan_path}")
+    plan_path.parent.mkdir(parents=True, exist_ok=True)
+    plan_path.write_text(
+        json.dumps(plan, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+    run_result = run_building_plan(
+        plan_path,
+        output_root=output,
+        overwrite_existing=overwrite_existing,
+        local_callables=local_callables,
+        command_runner=command_runner,
+        adapter_cwd=adapter_cwd,
+        adapter_timeout_seconds=adapter_timeout_seconds,
+        proof_limits=proof_limits,
+    )
+    return building_id, plan_path, run_result
+
+
 def run_building_intake(
     intent: Mapping[str, Any],
     *,
@@ -279,16 +326,12 @@ def run_building_intake(
         policy = intent.get("report_event_policy")
         plan["report_event_policy"] = dict(policy) if isinstance(policy, Mapping) else policy
 
-    plan_shape = str(plan.get("plan_shape") or "")
-    if plan_shape != "graph":
-        raise ValueError("driver run_building_intake admits only plan_shape: graph")
     walker_mode = "dynamic"
     walker_mode_basis = (
         "driver requires graph plan and lets run_building_plan derive dynamic dispatch; "
         "not a Link Movement decision"
     )
 
-    building_id = _required_text(plan.get("building_id"), "materialized plan building_id")
     # PROJECT-0 S3-A: derive the output root. The stamped plan fact (validated
     # by the materializer above) drives the vessel flow; the ref-less default
     # is DEFAULT_BUILDINGS_ROOT, which is itself buildings_root_for(
@@ -300,30 +343,23 @@ def run_building_intake(
         output = Path(output_root).resolve()
     else:
         output = DEFAULT_BUILDINGS_ROOT
-    plan_path = output / _slug(building_id) / _DECLARED_PLAN_FILENAME
-    if plan_path.exists() and not overwrite_existing:
-        raise ValueError(f"declared Building plan already exists: {plan_path}")
-    plan_path.parent.mkdir(parents=True, exist_ok=True)
-    plan_path.write_text(
-        json.dumps(plan, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
-
-    run_result = run_building_plan(
-        plan_path,
-        output_root=output,
+    building_id, plan_path, run_result = _write_and_run_declared_graph_plan(
+        plan,
+        output=output,
         overwrite_existing=overwrite_existing,
         local_callables=local_callables,
         command_runner=command_runner,
         adapter_cwd=adapter_cwd,
         adapter_timeout_seconds=adapter_timeout_seconds,
         proof_limits=proof_limits,
+        building_id_label="materialized plan building_id",
+        shape_error="driver run_building_intake admits only plan_shape: graph",
     )
 
     return BuildingIntakeRunResult(
         building_id=building_id,
         plan_path=plan_path,
-        plan_shape=plan_shape,
+        plan_shape="graph",
         walker_mode=walker_mode,
         walker_mode_basis=walker_mode_basis,
         run_result=run_result,
@@ -432,41 +468,30 @@ def run_composed_graph_intake(
         raw_building_id = str(carry["default_building_id"])
     plan["building_id"] = raw_building_id
 
-    plan_shape = str(plan.get("plan_shape") or "")
-    if plan_shape != "graph":
-        raise ValueError("driver run_composed_graph_intake admits only plan_shape: graph")
     walker_mode = "dynamic"
     walker_mode_basis = (
         "driver requires graph plan and lets run_building_plan derive dynamic dispatch; "
         "not a Link Movement decision"
     )
 
-    resolved_building_id = _required_text(plan.get("building_id"), "composed plan building_id")
     output = Path(output_root).resolve() if output_root is not None else DEFAULT_BUILDINGS_ROOT
-    plan_path = output / _slug(resolved_building_id) / _DECLARED_PLAN_FILENAME
-    if plan_path.exists() and not overwrite_existing:
-        raise ValueError(f"declared Building plan already exists: {plan_path}")
-    plan_path.parent.mkdir(parents=True, exist_ok=True)
-    plan_path.write_text(
-        json.dumps(plan, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
-
-    run_result = run_building_plan(
-        plan_path,
-        output_root=output,
+    resolved_building_id, plan_path, run_result = _write_and_run_declared_graph_plan(
+        plan,
+        output=output,
         overwrite_existing=overwrite_existing,
         local_callables=local_callables,
         command_runner=command_runner,
         adapter_cwd=adapter_cwd,
         adapter_timeout_seconds=adapter_timeout_seconds,
         proof_limits=proof_limits,
+        building_id_label="composed plan building_id",
+        shape_error="driver run_composed_graph_intake admits only plan_shape: graph",
     )
 
     return BuildingIntakeRunResult(
         building_id=resolved_building_id,
         plan_path=plan_path,
-        plan_shape=plan_shape,
+        plan_shape="graph",
         walker_mode=walker_mode,
         walker_mode_basis=walker_mode_basis,
         run_result=run_result,

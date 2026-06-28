@@ -329,9 +329,11 @@ def _adapter_error_frontier_building_map_packet(
     failed_preparation: AgentRunPreparationRecord,
     observation: Any,
     *,
+    plan_ref: str = "building-plan:anonymous",
     proof_limits: tuple[str, ...],
     graph_context: Mapping[str, Any] | None,
     task_source_ref: str | None,
+    declaration_plan: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     frontier_graph_context = _frontier_realized_graph_context(
         graph_context,
@@ -453,6 +455,16 @@ def _adapter_error_frontier_building_map_packet(
     }
     if task_source_ref:
         packet["task_source_ref"] = task_source_ref
+    if declaration_plan is not None:
+        packet["declaration_provenance"] = _declaration_provenance_observation(
+            building_id=building_id,
+            plan_ref=plan_ref,
+            plan=declaration_plan,
+            graph_context=graph_context,
+            task_source_ref=task_source_ref,
+            proof_limits=proof_limits,
+            not_proven=tuple(observation.not_proven),
+        )
     return packet
 
 
@@ -462,9 +474,11 @@ def _chat_session_park_frontier_building_map_packet(
     failed_preparation: AgentRunPreparationRecord,
     observation: Any,
     *,
+    plan_ref: str = "building-plan:anonymous",
     proof_limits: tuple[str, ...],
     graph_context: Mapping[str, Any] | None,
     task_source_ref: str | None,
+    declaration_plan: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     frontier_graph_context = _frontier_realized_graph_context(
         graph_context,
@@ -584,6 +598,16 @@ def _chat_session_park_frontier_building_map_packet(
     }
     if task_source_ref:
         packet["task_source_ref"] = task_source_ref
+    if declaration_plan is not None:
+        packet["declaration_provenance"] = _declaration_provenance_observation(
+            building_id=building_id,
+            plan_ref=plan_ref,
+            plan=declaration_plan,
+            graph_context=graph_context,
+            task_source_ref=task_source_ref,
+            proof_limits=proof_limits,
+            not_proven=tuple(observation.not_proven),
+        )
     return packet
 
 

@@ -157,6 +157,7 @@ PROOF_LIMIT = (
     "authority, provider behavior, or complete checker consolidation."
 )
 LIVE_INBOX_FIXTURE_PACKET_GLOB = "checker-projection-fixture-vessel-*.json"
+CHECKER_PROFILE_SWEEP_ENV = "BRICK_CHECKER_PROFILE_SWEEP"
 
 
 def live_inbox_fixture_packet_count(repo: Path) -> int:
@@ -177,6 +178,19 @@ def assert_all_profiles_did_not_write_live_fixture_inbox(
         f"count changed from {before} to {after}; checker profiles must not write "
         "project/brick-protocol/status/inbox"
     )
+
+
+@contextlib.contextmanager
+def _checker_profile_sweep_env() -> Any:
+    previous = os.environ.get(CHECKER_PROFILE_SWEEP_ENV)
+    os.environ[CHECKER_PROFILE_SWEEP_ENV] = "1"
+    try:
+        yield
+    finally:
+        if previous is None:
+            os.environ.pop(CHECKER_PROFILE_SWEEP_ENV, None)
+        else:
+            os.environ[CHECKER_PROFILE_SWEEP_ENV] = previous
 
 
 def _ensure_repo_import_path(repo: Path) -> None:
@@ -1353,8 +1367,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             live_inbox_fixture_packet_count(repo) if args.all else None
         )
         try:
-            for path in paths:
-                run_profile(repo, path)
+            with _checker_profile_sweep_env():
+                for path in paths:
+                    run_profile(repo, path)
         finally:
             if live_inbox_count_before is not None:
                 assert_all_profiles_did_not_write_live_fixture_inbox(

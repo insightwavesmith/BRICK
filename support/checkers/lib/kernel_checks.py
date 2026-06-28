@@ -3875,6 +3875,41 @@ def run_gemini_local_only_adapter(repo: Path) -> KernelResult:
         raise ProfileError("gemini_local_only_adapter: gemini-local did not run from adapter cwd")
     inspected += 1
 
+    previous_checker_sweep = os.environ.get("BRICK_CHECKER_PROFILE_SWEEP")
+    os.environ["BRICK_CHECKER_PROFILE_SWEEP"] = "1"
+    saved_env = {name: os.environ.get(name) for name in adapter._GEMINI_API_KEY_ENV_VARS}
+    for name in adapter._GEMINI_API_KEY_ENV_VARS:
+        os.environ.pop(name, None)
+    os.environ["GEMINI_API_KEY"] = "probe-key"
+    try:
+        try:
+            adapter.connect_agent_brain(
+                request,
+                command_runner=None,
+                cwd=repo,
+                timeout_seconds=5,
+            )
+        except ValueError as exc:
+            if "checker profile sweep must not invoke live gemini-local CLI" not in str(exc):
+                raise ProfileError(
+                    "gemini_local_only_adapter: checker-sweep live Gemini guard "
+                    "rejected with wrong reason"
+                ) from exc
+        else:
+            raise ProfileError(
+                "gemini_local_only_adapter: checker-sweep live Gemini dispatch was not rejected"
+            )
+    finally:
+        if previous_checker_sweep is None:
+            os.environ.pop("BRICK_CHECKER_PROFILE_SWEEP", None)
+        else:
+            os.environ["BRICK_CHECKER_PROFILE_SWEEP"] = previous_checker_sweep
+        for name in adapter._GEMINI_API_KEY_ENV_VARS:
+            os.environ.pop(name, None)
+            if saved_env[name] is not None:
+                os.environ[name] = saved_env[name]
+    inspected += 1
+
     return KernelResult(
         check_id="gemini_local_only_adapter",
         inspected=inspected,
@@ -3883,7 +3918,8 @@ def run_gemini_local_only_adapter(repo: Path) -> KernelResult:
             "as Gemini CLI with GEMINI_API_KEY/GOOGLE_API_KEY auth observation; "
             "it shares the codex-local read/write observed-write capability class; "
             "adapter:gemini-api is retired from active admission/capability/model "
-            "tables and Agent resource refs; retired requests fail closed "
+            "tables and Agent resource refs; retired requests and checker-sweep "
+            "live Gemini dispatch fail closed "
             f"({inspected} group(s) inspected)."
         ),
     )
@@ -9350,6 +9386,7 @@ def _chat_session_assert_park_evidence(
     label: str,
 ) -> int:
     from brick_protocol.support.connection.agent_adapter import AgentAdapterRequest
+    from support.checkers import check_building_declaration_integrity as declaration_integrity
     from support.operator.frontier_observation import observe_building_frontier
     from support.operator.reporter import (
         OPERATOR_WAKE_LOCAL_SINK_REF,
@@ -9371,6 +9408,13 @@ def _chat_session_assert_park_evidence(
     for required in (envelope_path, parked_path, raw_park_path):
         if not required.is_file():
             raise ProfileError(f"chat_session_park_seam {label} path missing required file: {required}")
+    for rel in declaration_integrity.DECLARATION_CHAIN_ARTIFACTS:
+        artifact = building_root / Path(*rel)
+        if not artifact.is_file():
+            raise ProfileError(
+                f"chat_session_park_seam {label} path declaration evidence "
+                f"lacks required chain artifact {artifact.relative_to(building_root)}"
+            )
     if raw_agent_return_path.exists():
         raise ProfileError(f"chat_session_park_seam {label} path fabricated raw/agent-return.jsonl")
     if raw_adapter_error_path.exists():
@@ -9405,6 +9449,21 @@ def _chat_session_assert_park_evidence(
     if parked.get("work_envelope_ref") == parked.get("parked_ref"):
         raise ProfileError(
             f"chat_session_park_seam {label} path parked ref and envelope ref are not distinct"
+        )
+    building_map = _chat_session_json_object(building_root / "work" / "building-map.json")
+    provenance = building_map.get("declaration_provenance")
+    if not isinstance(provenance, Mapping):
+        raise ProfileError(
+            f"chat_session_park_seam {label} path building-map lacks declaration_provenance"
+        )
+    if provenance.get("building_id") != building_root.name:
+        raise ProfileError(
+            f"chat_session_park_seam {label} path declaration_provenance names wrong Building"
+        )
+    proof_limits = provenance.get("proof_limits")
+    if not isinstance(proof_limits, list) or "not Movement authority" not in proof_limits:
+        raise ProfileError(
+            f"chat_session_park_seam {label} path declaration_provenance lacks support proof limits"
         )
 
     link_records = [
@@ -9470,7 +9529,7 @@ def _chat_session_assert_park_evidence(
         or wake_targets[0].get("sink_ref") != OPERATOR_WAKE_LOCAL_SINK_REF
     ):
         raise ProfileError(f"chat_session_park_seam {label} path wake packet used the wrong sink ref")
-    return 13
+    return 17
 
 
 def _chat_session_lifecycle_violations(target: Path) -> list[str]:

@@ -96,6 +96,7 @@ def _write_dynamic_adapter_error_frontier(
     has_fan_groups: bool,
     write_adapter_error_frontier,
     adapter_frontier_exception,
+    declaration_plan: Mapping[str, Any] | None = None,
     resume_observations: list[Mapping[str, Any]] | None = None,
 ) -> None:
     """Write adapter-error frontier evidence for dynamic walks, then halt.
@@ -165,6 +166,7 @@ def _write_dynamic_adapter_error_frontier(
         frontier_transition_lifecycle=_adapter_error_paused_lifecycle(
             frontier_hold_record
         ),
+        declaration_plan=declaration_plan,
     )
     raise adapter_frontier_exception(
         "dynamic adapter exception frontier evidence written before AgentFact returned",
