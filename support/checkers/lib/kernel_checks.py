@@ -1113,6 +1113,62 @@ def _agent_effective_write_probe(
     if not any("write_file, replace, and run_shell_command" in rule for rule in gemini_write_rules):
         raise ProfileError("gemini-local effective_write prompt did not name scoped write/shell tools")
 
+    inspector_packet = _agent_instruction_packet_for_role(repo, "inspector")
+    gemini_probe_write_scope = {
+        "allowed_paths": ["support/checkers/generated-probes/**"],
+        "forbidden_paths": [".git/**", "agent/**", "brick/**", "link/**"],
+        "commit_allowed": False,
+        "push_allowed": False,
+    }
+    gemini_inspector_probe_request = adapter.AgentAdapterRequest(
+        building_id="agent-effective-write-gemini-local-inspector-probe",
+        agent_object_ref="agent-object:inspector",
+        adapter_ref=adapter_constants.ADAPTER_GEMINI_LOCAL,
+        brick_instance_ref="brick-review",
+        next_brick_instance_ref="brick-closure",
+        tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
+        hook_refs=("hook:reviewer-no-mutation",),
+        write_scope=gemini_probe_write_scope,
+        agent_instruction_packet=inspector_packet,
+    )
+    if not adapter.agent_request_effective_write(gemini_inspector_probe_request):
+        raise ProfileError(
+            "gemini-local inspector probe write_scope request did not become effective_write"
+        )
+    gemini_probe_allow, gemini_probe_deny = (
+        adapter_grant_policy._gemini_admin_policy_partition_for_request(
+            gemini_inspector_probe_request
+        )
+    )
+    for required_tool in ("write_file", "replace", "run_shell_command"):
+        if required_tool not in gemini_probe_allow:
+            raise ProfileError(
+                "gemini-local inspector effective probe_write did not allow write/shell tool "
+                f"{required_tool!r}; allow={gemini_probe_allow!r}"
+            )
+        if required_tool in gemini_probe_deny:
+            raise ProfileError(
+                "gemini-local inspector effective probe_write still denied write/shell tool "
+                f"{required_tool!r}; deny={gemini_probe_deny!r}"
+            )
+    gemini_probe_prompt = json.loads(
+        adapter_grant_policy._build_prompt(
+            gemini_inspector_probe_request,
+            adapter._LOCAL_CLI_SPECS[adapter_constants.ADAPTER_GEMINI_LOCAL],
+        )
+    )
+    gemini_probe_rules = list(gemini_probe_prompt.get("rules", []))
+    if not gemini_probe_prompt.get("native_grant", {}).get("write_effective"):
+        raise ProfileError("gemini-local inspector probe prompt did not carry write_effective")
+    if any("write and shell tools remain blocked" in rule for rule in gemini_probe_rules):
+        raise ProfileError(
+            "gemini-local inspector effective probe_write prompt still says write/shell are blocked"
+        )
+    if not any("effective probe_write / verification_write" in rule for rule in gemini_probe_rules):
+        raise ProfileError(
+            "gemini-local inspector effective probe_write prompt did not name probe/verification write"
+        )
+
     captured_gemini_write: dict[str, Any] = {}
 
     def _capture_gemini_write_runner(
@@ -1356,7 +1412,7 @@ def _agent_effective_write_probe(
     if knobs_read["system_prompt"] != adapter._CLAUDE_NONINTERACTIVE_SYSTEM_PROMPT:
         raise ProfileError("claude read request did not use the read-only system prompt")
 
-    return 14
+    return 15
 
 
 def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:

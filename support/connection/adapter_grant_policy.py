@@ -277,7 +277,11 @@ def _build_prompt(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
             rules.append(
                 "Gemini local effective_write may use write_file, replace, and run_shell_command only inside the Brick-declared write_scope; read and web tools remain governed by native_grant."
             )
-        elif agent_request_read_tier(request) or web_projected or _request_blocks_source_mutation(request):
+        elif agent_request_effective_write(request) and _request_blocks_source_mutation(request):
+            rules.append(
+                "Gemini local effective probe_write / verification_write may use write_file, replace, and run_shell_command only inside the Brick-declared write_scope; source_write remains blocked by hook:reviewer-no-mutation."
+            )
+        elif agent_request_read_tier(request) or web_projected:
             rules.append(
                 "Gemini local native grant may use only read_file, glob, grep_search, search_file_content, list_directory, read_many_files, and when web-capable is present google_web_search/web_fetch; write and shell tools remain blocked."
             )
