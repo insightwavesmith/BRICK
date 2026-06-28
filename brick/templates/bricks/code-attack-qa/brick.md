@@ -57,10 +57,13 @@ Return: fill the `required_return_shape` from the return_template
 `failing_or_missing_probes`, `boundary_violations`, `transition_concern_evidence`, `evidence_used`,
 `not_proven`.
 `transition_concern_evidence` (shape: `brick/templates/bricks/transition-concern-return.yaml`)
-is **non-binding** Agent evidence — it carries `concern_ref`, `concern_kind`, `reason_refs`,
-`related_boundary_refs`, `binding: false`; it MUST NOT carry `movement` / `target` / `target_ref` /
-`route_target`. Forward Link carries this evidence to the declared fan-in or closure boundary; the
-concern never reroutes by itself.
+is **local, non-binding** Agent evidence for this fan-in source QA lane — it remains in the
+Brick-required return shape, but it is **not Link-facing before closure-synthesis**. Support filters
+Link carry through this return.yaml's `carries_forward_fields`, which excludes
+`transition_concern_evidence`; closure / closure-synthesis may return Link-facing
+`transition_concern_evidence` only under declared policy. This field carries `concern_ref`,
+`concern_kind`, `reason_refs`, `related_boundary_refs`, `binding: false`; it MUST NOT carry
+`movement` / `target` / `target_ref` / `route_target`, and it never reroutes by itself.
 When a probe reproduces a REAL defect, aim `related_boundary_refs` at the upstream WORK node
 responsible (e.g. `brick:<the-work-node-id>`) — NOT yourself, NOT a `building-boundary:` sentinel.
 The engine silently walks-on a self-ref or sentinel, so no reroute ever fires. Environment, runtime,

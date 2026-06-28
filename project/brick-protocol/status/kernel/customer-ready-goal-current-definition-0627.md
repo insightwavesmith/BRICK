@@ -65,6 +65,51 @@ Codex does not:
 - treat support, adapters, runners, or reports as a fourth axis
 ```
 
+## Current Goal Prompt Amendment - 0629
+
+This compact prompt must survive context compression:
+
+```text
+Live checkout: /Users/smith/.brick/worktrees/struct-surgery-0623.
+/Users/smith/projects/brick-protocol is frozen/museum evidence.
+
+Goal: customer installs BRICK, connects LLMs, says "make X", and BRICK declares
+Brick / Agent / Link work through the official Building route, returning artifact
+plus evidence. Final proof is dogfood from that same customer entrypoint.
+
+Codex is COO/operator. Codex separates raw, step-output, diff, checker, evidence
+root, and model review. Codex does not judge success/quality/source truth or own
+Movement.
+
+Planning / inventory / attack review may be direct or subagent. From P3 onward,
+implementation / QA / closure Building work must use only:
+brick build -> support.operator.cli / driver -> Builder/materializer ->
+declared Building Plan -> support.operator.run / graph walker -> evidence /
+frontier / reporter / Slack.
+
+The operator must not manually inject required_return_shape, brick.md,
+return.yaml, brick_template_refs, or carry fields. Brick templates and Builder
+materialize those fields.
+```
+
+Mandatory incident behavior:
+
+```text
+When behavior is unexpected, ask Brick / Agent / Link first. Then measure raw,
+work/step-output, link traces, frontier, and declared plan. For unclear or
+high-risk failures, spawn focused subagents for Brick, Agent, and Link
+hypotheses before patching. Do not patch the nearest visible support noun.
+
+Do not blame refs, support, checker, or the engine before checking the declared
+graph and its projection into the walker. Execution can be official while the
+graph declaration is wrong or while a declared marker is dropped in projection.
+
+In fan-out/fan-in work, source QA / Inspector concerns are Agent evidence until
+the declared closure/fan-in synthesis step. Closure is the Link-facing concern
+source unless the graph/policy explicitly declares otherwise. Link Movement is
+only forward/reroute; HOLD is lifecycle/frontier evidence, not Movement.
+```
+
 ## Active Weekend Casting
 
 Weekend active casting:
@@ -309,21 +354,42 @@ Required P2 implementation direction:
 - do not create new Movement, route authority, scheduler, queue, or source truth
 ```
 
-Current partial implementation evidence:
+0629 operator closure evidence:
 
 ```text
-agent/tool_policies/read-write-scoped.yaml already names probe_write and
-reviewer source_write prohibition.
-code-attack-qa / axis-attack-qa / evidence-integrity Brick bodies already tell
-reviewers to use disposable W1 probe writes and forbid source mutation.
-The remaining P2 work is to make this a first-class capability class across
-Brick declarations, Agent policy resolution, Adapter grant projection, and
-focused negative checkers.
+P2 taxonomy is closed-with-proof-limits for the v4 customer-ready goal.
+
+Focused and full support evidence is green:
+- agent_axis_behavioral profile
+- building_skill_preset_agent_tool_hardening profile
+- compileall for support/connection, support/operator, support/checkers
+- check_profile.py --all
+
+Current live evidence shows:
+- Brick rows/templates expose capability_class for source_write and probe_write
+- Agent tool policy names read, probe_write, verification_write, source_write,
+  artifact_write
+- QA/Inspector reviewer lanes forbid source_write while allowing disposable
+  probe_write / verification_write
+- Codex-local and Gemini-local share the semantic capability vocabulary where
+  the CLI can technically support it
+- ordinary checker/profile sweeps fail closed instead of live-calling Gemini
 ```
 
 Exit requires generated active plans to show the dual QA lanes, Codex closure,
 and the capability class of each lane without collapsing QA probe writes into
 source_write.
+
+P2 proof limits:
+
+```text
+Do not claim OS/filesystem-enforced source/probe separation.
+Do not claim live Gemini credential validity.
+Do not claim provider quality, provider availability, or future authority-leak
+absence.
+```
+
+Next movement recommendation: FORWARD to P3 official Easy Building proof.
 
 ### P3 - Easy Building / Official Route Surface
 
@@ -364,6 +430,85 @@ The operator must not collapse P3 into "hardcode one large graph", "call a model
 directly", or "recast C6 to Codex/Gemini." The work is to make the official
 route accept an easy task/sizing/design declaration and then materialize the
 right preset or graph.
+```
+
+P3 0629 blocker / recheck:
+
+```text
+Live measurement showed hard fan-in source QA transition_concern_evidence was
+consumed before closure. Without declared budget the Building paused; with
+budget the walker adopted the QA source concern and rerouted to work before
+closure-synthesis.
+
+0629 operator recheck:
+  The original hard fan-in blocker is now repaired/proven as support evidence
+  by focused profiles. P3 is no longer blocked on that specific defect.
+
+Evidence:
+  building_skill_preset_agent_tool_hardening profile green
+  brick_cli_entrypoint profile green
+  driver_public_intake_seal profile green
+  bounded_agent_proposed_routing_loop profile green
+  bounded_agent_proposed_routing_loop mail-5 proves path-shaped adopted
+  transition_concern reason_refs HOLD loudly instead of reaching Agent input
+  official `brick build` preset_task smoke green:
+    evidence_root =
+      /Users/smith/.brick/project/brick-protocol/buildings/
+      cr-v4-p3-official-route-smoke-0629a
+    frontier_kind = complete
+
+  official `brick build --graph` full design-first graph green:
+    evidence_root =
+      /Users/smith/.brick/project/brick-protocol/buildings/
+      cr-v4-p3-full-design-first-graph-0629b
+    frontier_kind = complete
+    materialized shape =
+      design -> Gemini design-axis QA -> Codex plan closure ->
+      parallel Codex work lanes -> Codex/Gemini lane QA ->
+      integration -> Codex/Gemini final QA -> Codex closure
+    hard fan-in observation =
+      final code QA returned transition_concern_evidence, but the QA row was
+      advisory and raw/link.jsonl stayed forward through final closure.
+
+  easy declaration skill chain green:
+    coo_operating_chain profile green
+    building_skill_preset_builder_composition profile green
+    meaning =
+      building-sizing-method sizes the graph shape;
+      brick-task-author submits only preset_task or graph_packet through
+      official brick build. This proves operator/COO-declared easy Building
+      guidance, not autonomous support route selection.
+
+Movement recommendation:
+  FORWARD from the old hard fan-in blocker to the next P3 proof slice.
+  Do not call the whole P3 customer-ready phase complete yet.
+```
+
+P3 hard fan-in invariant:
+
+```text
+QA / Inspector / evidence lanes inside a hard fan-in cohort may return local
+transition_concern_evidence as Agent evidence. Link must not adopt, reroute, or
+lifecycle-HOLD from those source-lane concerns before closure-synthesis.
+
+Fan-in internal edges remain forward. Closure-synthesis is the only Link-facing
+transition concern source for the cohort. Closure-origin concerns remain
+adoptable under declared Link policy and declared budget.
+```
+
+P3 reason refs contract:
+
+```text
+evidence_used may carry repo/file paths.
+transition_concern_evidence.reason_refs must carry observation ids or
+ledger-safe refs, not repo paths.
+
+Current proof slice:
+  adopted transition_concern reason_refs that are absolute paths, escaping
+  work/step-outputs paths, or spelling-bypass path forms HOLD with
+  runtime_handoff_address_unresolved_in_ledger and are not delivered to Agent
+  input. This is proven by bounded_agent_proposed_routing_loop mail-5 support
+  evidence, not by source truth.
 ```
 
 P3 reasoning ledger:
@@ -429,8 +574,19 @@ Codex closure
 ```
 
 P3 may close only with raw/evidence proof or remain HOLD with an exact
-non-Claude blocker. Root-unification and Slack-visible evidence roots are
-support slices inside P3, not the whole phase.
+non-Claude blocker. Root-unification, Slack-visible evidence roots, and the
+0629 hard fan-in / route-seal recheck are support slices inside P3, not the
+whole phase.
+
+Remaining P3 proof:
+
+```text
+customer-facing first-run wording for the proven sizing -> task-author chain
+fresh customer comprehension
+live provider reliability limits
+semantic quality limits for generated graph choices
+P7/P8 fresh-machine and dogfood proof
+```
 
 ### P4 - Resume Surface Repair
 
@@ -439,6 +595,31 @@ design. Completed replay may be serial; not-yet-run continuation must recover
 declared fan-out behavior.
 
 No new scheduler, queue, retry runtime, route authority, or Movement literal.
+
+0629 operator recheck:
+
+```text
+P4 focused resume fan-out invariant is closed-with-proof-limits.
+
+Evidence:
+  check_bounded_agent_proposed_routing_loop0.py --repo . green
+  bounded_agent_proposed_routing_loop profile green
+
+Narrowly proven:
+  resume_building_plan resumes the same held Building root;
+  walker_resume rehydrates from the declared graph birth certificate;
+  ResumeSeed replays completed pre-HOLD Agent returns;
+  after human/COO forward disposition, live fan-out continuation recovers the
+  declared pool and overlaps under the timed p4-resume-fanout fixture;
+  deterministic frontier/drain order is preserved.
+
+Proof limits:
+  real provider parallel execution, fresh-machine resume behavior, and full
+  process integrity remain not proven.
+
+Movement recommendation:
+  FORWARD to P5 customer first-run / onboarding alignment.
+```
 
 ### P5 - Onboarding And Customer First Run
 

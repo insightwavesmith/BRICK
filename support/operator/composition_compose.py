@@ -561,12 +561,14 @@ def compose_building(
     # shape_omitted_steps, so reuse that suppression set for source-position rows
     # whose Brick shape is intentionally template-owned rather than author-restated.
     fan_in_source_template_shape_steps: set[str] = set()
+    fan_in_source_policy_steps: list[str] = []
     if isinstance(groups, Sequence) and not isinstance(groups, (str, bytes)) and groups:
         records_by_step = {str(record.get("step_ref")): record for record in node_records}
         fan_in_targets = _composition_fan_in_target_steps(edge_records, groups)
         fan_in_source_steps: list[str] = []
         for _target_step_ref, source_step_refs in fan_in_targets.items():
             fan_in_source_steps.extend(source_step_refs)
+        fan_in_source_policy_steps = list(dict.fromkeys(fan_in_source_steps))
         for step_ref in dict.fromkeys(fan_in_source_steps):
             record = records_by_step.get(step_ref)
             if record is None:
@@ -710,6 +712,23 @@ def compose_building(
             )
     if groups:
         plan["groups"] = [dict(group) for group in groups]
+    if fan_in_source_policy_steps:
+        plan["fan_in_source_transition_concern_adoption"] = {
+            "policy": "advisory",
+            "scope": "fan_in_sources",
+            "source_step_refs": list(fan_in_source_policy_steps),
+            "proof_limits": [
+                "declared Link non-adoption policy for fan-in source Agent evidence",
+                "fan-in closure remains the Link-facing transition concern source",
+                "not source truth",
+                "not success judgment",
+                "not quality judgment",
+                "not Movement authority",
+            ],
+            "not_proven": [
+                "semantic correctness of future source-lane concern evidence",
+            ],
+        }
     node_reroute_budgets = _composition_node_reroute_budgets(node_records)
     if node_reroute_budgets:
         plan["node_reroute_budgets"] = node_reroute_budgets

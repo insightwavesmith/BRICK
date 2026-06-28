@@ -79,6 +79,9 @@ def _linear_plan_from_graph_plan(plan: Mapping[str, Any]) -> tuple[Mapping[str, 
             linear_step,
             merge_casting_bags(casting_bag(brick_step), casting_bag(plan)),
         )
+        step_template_ref = _optional_text_value(brick_step.get("step_template_ref"))
+        if step_template_ref:
+            linear_step["step_template_ref"] = step_template_ref
         linear_step.update(
             {
                 "rows": rows,

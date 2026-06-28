@@ -60,8 +60,11 @@ Return: fill the `required_return_shape` from the return_template
 `evidence_used`, `not_proven`.
 Record every finding as an **observed fact / observation** with its evidence ref; where you could
 not establish a fact, name it under `not_proven` rather than guessing. `transition_concern_evidence`
-(shape: `brick/templates/bricks/transition-concern-return.yaml`) is **non-binding** — it is
-evidence the Link gate may or may not adopt, never your own reroute decision.
+(shape: `brick/templates/bricks/transition-concern-return.yaml`) is **local, non-binding** Agent
+evidence for this fan-in source QA lane. It remains in the Brick-required return shape, but it is
+**not Link-facing before closure-synthesis**: support filters Link carry through this return.yaml's
+`carries_forward_fields`, which excludes `transition_concern_evidence`. Closure /
+closure-synthesis may return Link-facing `transition_concern_evidence` only under declared policy.
 When you raise a concern for a REAL reproduced boundary defect, aim `related_boundary_refs` at the
 upstream WORK node responsible (e.g. `brick:<the-work-node-id>`) — NOT yourself, NOT a
 `building-boundary:` sentinel. The engine silently walks-on a self-ref or sentinel, so no reroute

@@ -837,6 +837,29 @@ def _check_materialized_node_return_shapes(
 
     # (2) Each fan-in SOURCE shape == full brick-declared shape. Link carry is
     # filtered by carries_forward_fields, not by shrinking the Brick return contract.
+    source_policy = plan.get("fan_in_source_transition_concern_adoption")
+    if not isinstance(source_policy, Mapping):
+        raise ProfileError(
+            f"materialize_building_intent_case rejected {label}: graph fan-in sources "
+            "must carry declared advisory transition_concern_adoption policy"
+        )
+    if (
+        source_policy.get("policy") != "advisory"
+        or source_policy.get("scope") != "fan_in_sources"
+    ):
+        raise ProfileError(
+            f"materialize_building_intent_case rejected {label}: fan-in source "
+            "transition_concern_adoption policy must be advisory for fan_in_sources"
+        )
+    declared_policy_sources = require_string_list(
+        source_policy.get("source_step_refs", []),
+        f"{label}: fan_in_source_transition_concern_adoption.source_step_refs",
+    )
+    if sorted(declared_policy_sources) != sorted(source_step_refs):
+        raise ProfileError(
+            f"materialize_building_intent_case rejected {label}: fan-in source "
+            "transition_concern_adoption source_step_refs do not match fan-in topology"
+        )
     for source_ref in source_step_refs:
         step = steps[source_ref]
         kind = _kind_for(step)
@@ -8531,6 +8554,11 @@ def run_step_output_drain_case(repo: Path, profile: Mapping[str, Any]) -> int:
                     if case_kind == "live_qa_reroute_to_work_n2"
                     else ""
                 ),
+                source_lane_concerns_by_brick=(
+                    _source_lane_transition_concern_fixture()
+                    if case_kind == "live_dynamic_fan_in_source_concerns_n4"
+                    else None
+                ),
             )
             result, batch_step_output_write_calls = _run_step_output_drain_plan(
                 plan,
@@ -8553,6 +8581,12 @@ def run_step_output_drain_case(repo: Path, profile: Mapping[str, Any]) -> int:
                 )
             elif case_kind == "live_qa_reroute_to_work_n2":
                 _check_qa_reroute_expected(
+                    result,
+                    expected,
+                    label=label,
+                )
+            elif case_kind == "live_dynamic_fan_in_source_concerns_n4":
+                _check_source_lane_transition_concerns_expected(
                     result,
                     expected,
                     label=label,
@@ -8685,6 +8719,7 @@ class _StepOutputDrainObserved:
     output_root: Path
     reroute_once_from_brick: str = ""
     reroute_target_brick: str = ""
+    source_lane_concerns_by_brick: Mapping[str, Any] | None = None
     events: list[Mapping[str, Any]] | None = None
     body_text_at_call: dict[str, str] | None = None
     _reroute_emitted: bool = False
@@ -8754,6 +8789,13 @@ class _StepOutputDrainObserved:
                 "reason_refs": [f"brick-comparison:{request.brick_instance_ref}"],
                 "related_boundary_refs": [self.reroute_target_brick],
             }
+        if (
+            self.source_lane_concerns_by_brick
+            and request.brick_instance_ref in self.source_lane_concerns_by_brick
+        ):
+            returned["transition_concern_evidence"] = self.source_lane_concerns_by_brick[
+                request.brick_instance_ref
+            ]
         return returned
 
 
@@ -9152,6 +9194,110 @@ def _check_qa_reroute_expected(
         raise ProfileError(f"step_output_drain_case rejected {label}: QA reroute proof held")
 
 
+def _source_lane_transition_concern_fixture() -> Mapping[str, Any]:
+    concerns: dict[str, Any] = {}
+    for brick_ref in (
+        "brick-source-concern-code-attack-qa",
+        "brick-source-concern-axis-attack-qa",
+        "brick-source-concern-evidence-integrity",
+    ):
+        concerns[brick_ref] = {
+            "concern_ref": f"transition-concern:{brick_ref}",
+            "concern_kind": "implementation_gap",
+            "binding": False,
+            "reason_refs": [f"observation:{brick_ref}:source-lane"],
+            "related_boundary_refs": ["brick-source-concern-work"],
+        }
+    concerns["brick-source-concern-inspect"] = {
+        "concern_ref": "transition-concern:brick-source-concern-inspect",
+        "concern_kind": "implementation_gap",
+        "binding": False,
+        "reason_refs": [],
+        "related_boundary_refs": ["brick-source-concern-work"],
+    }
+    return concerns
+
+
+def _check_source_lane_transition_concerns_expected(
+    result: Any,
+    expected: Mapping[str, Any],
+    *,
+    label: str,
+) -> None:
+    dynamic_evidence = require_mapping(
+        getattr(result, "_dynamic_walker_evidence", {}),
+        f"{label}: _dynamic_walker_evidence",
+    )
+    if dynamic_evidence.get("held") is True:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: source-lane concern proof held"
+        )
+    records = getattr(result, "_dynamic_walker_reroute_records", ())
+    adopted = [
+        record
+        for record in records
+        if isinstance(record, Mapping) and not record.get("disposition_required")
+    ]
+    if adopted:
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: source-lane concern adopted reroute"
+        )
+    observations = dynamic_evidence.get("source_lane_transition_concern_observations")
+    if not isinstance(observations, list):
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: source-lane observations missing"
+        )
+    expected_bricks = require_string_list(
+        expected.get("observed_source_brick_refs", []),
+        f"{label}: expected.observed_source_brick_refs",
+    )
+    by_brick = {
+        str(item.get("source_brick_ref")): item
+        for item in observations
+        if isinstance(item, Mapping)
+    }
+    if sorted(by_brick) != sorted(expected_bricks):
+        raise ProfileError(
+            f"step_output_drain_case rejected {label}: source-lane observation refs mismatch "
+            f"(got={sorted(by_brick)}, expected={sorted(expected_bricks)})"
+        )
+    malformed = require_string_list(
+        expected.get("malformed_source_brick_refs", []),
+        f"{label}: expected.malformed_source_brick_refs",
+    )
+    for brick_ref in expected_bricks:
+        observation = require_mapping(
+            by_brick.get(brick_ref),
+            f"{label}: source observation {brick_ref}",
+        )
+        if observation.get("transition_concern_adoption") != "advisory":
+            raise ProfileError(
+                f"step_output_drain_case rejected {label}: {brick_ref} did not record advisory policy"
+            )
+        if observation.get("adopted_as_movement") is not False:
+            raise ProfileError(
+                f"step_output_drain_case rejected {label}: {brick_ref} was recorded as Movement"
+            )
+        if brick_ref in malformed:
+            if observation.get("concern_state") != "malformed":
+                raise ProfileError(
+                    f"step_output_drain_case rejected {label}: {brick_ref} was not malformed evidence"
+                )
+            if not observation.get("invalid_reason"):
+                raise ProfileError(
+                    f"step_output_drain_case rejected {label}: malformed source lacked invalid_reason"
+                )
+            continue
+        if observation.get("concern_state") != "valid":
+            raise ProfileError(
+                f"step_output_drain_case rejected {label}: {brick_ref} was not valid evidence"
+            )
+        if not observation.get("reason_refs") or not observation.get("related_boundary_refs"):
+            raise ProfileError(
+                f"step_output_drain_case rejected {label}: {brick_ref} lacked reason/related refs"
+            )
+
+
 def _check_replay_closure_carry(
     events: Sequence[Mapping[str, Any]],
     expected: Mapping[str, Any],
@@ -9197,6 +9343,8 @@ def _step_output_drain_plan(case_kind: str, *, missing: bool) -> tuple[Mapping[s
         return _dynamic_full_replay_drain_plan(partial=False), "dynamic"
     if case_kind == "live_qa_reroute_to_work_n2":
         return _qa_reroute_to_work_drain_plan(), "dynamic"
+    if case_kind == "live_dynamic_fan_in_source_concerns_n4":
+        return _dynamic_source_lane_transition_concern_plan(), "dynamic"
     if case_kind == "live_dynamic_partial_replay_rejected":
         return _dynamic_full_replay_drain_plan(partial=True), "dynamic"
     if case_kind == "live_linear_missing_step_output_body":
@@ -9415,6 +9563,141 @@ def _qa_reroute_to_work_drain_plan() -> Mapping[str, Any]:
     }
 
 
+def _dynamic_source_lane_transition_concern_plan() -> Mapping[str, Any]:
+    return {
+        "plan_ref": "building-plan:checker-live-fan-in-source-concerns",
+        "building_id": "checker-live-fan-in-source-concerns",
+        "plan_shape": "graph",
+        "selected_adapter_ref": "adapter:local",
+        "proof_limits": _step_output_drain_proof_limits(),
+        "not_proven": ["checker live runner proof only"],
+        "execution_order": [
+            "source-concern-work",
+            "source-concern-code-attack-qa",
+            "source-concern-axis-attack-qa",
+            "source-concern-evidence-integrity",
+            "source-concern-inspect",
+            "source-concern-closure",
+        ],
+        "brick_steps": [
+            _graph_brick_step(
+                "source-concern-work",
+                "brick-source-concern-work",
+                "edge:source-concern-work-to-code",
+            ),
+            _graph_brick_step(
+                "source-concern-code-attack-qa",
+                "brick-source-concern-code-attack-qa",
+                "edge:source-concern-code-to-closure",
+                step_template_ref="building-step-template:code-attack-qa",
+            ),
+            _graph_brick_step(
+                "source-concern-axis-attack-qa",
+                "brick-source-concern-axis-attack-qa",
+                "edge:source-concern-axis-to-closure",
+                step_template_ref="building-step-template:axis-attack-qa",
+            ),
+            _graph_brick_step(
+                "source-concern-evidence-integrity",
+                "brick-source-concern-evidence-integrity",
+                "edge:source-concern-evidence-to-closure",
+                step_template_ref="building-step-template:evidence-integrity",
+            ),
+            _graph_brick_step(
+                "source-concern-inspect",
+                "brick-source-concern-inspect",
+                "edge:source-concern-inspect-to-closure",
+                step_template_ref="building-step-template:inspect",
+            ),
+            _graph_brick_step(
+                "source-concern-closure",
+                "brick-source-concern-closure",
+                "edge:source-concern-closure-to-boundary",
+            ),
+        ],
+        "link_edges": [
+            _graph_link_edge(
+                "edge:source-concern-work-to-code",
+                "source-concern-work",
+                "source-concern-code-attack-qa",
+                "brick-source-concern-code-attack-qa",
+            ),
+            _graph_link_edge(
+                "edge:source-concern-work-to-axis",
+                "source-concern-work",
+                "source-concern-axis-attack-qa",
+                "brick-source-concern-axis-attack-qa",
+            ),
+            _graph_link_edge(
+                "edge:source-concern-work-to-evidence",
+                "source-concern-work",
+                "source-concern-evidence-integrity",
+                "brick-source-concern-evidence-integrity",
+            ),
+            _graph_link_edge(
+                "edge:source-concern-work-to-inspect",
+                "source-concern-work",
+                "source-concern-inspect",
+                "brick-source-concern-inspect",
+            ),
+            _graph_link_edge(
+                "edge:source-concern-code-to-closure",
+                "source-concern-code-attack-qa",
+                "source-concern-closure",
+                "brick-source-concern-closure",
+            ),
+            _graph_link_edge(
+                "edge:source-concern-axis-to-closure",
+                "source-concern-axis-attack-qa",
+                "source-concern-closure",
+                "brick-source-concern-closure",
+            ),
+            _graph_link_edge(
+                "edge:source-concern-evidence-to-closure",
+                "source-concern-evidence-integrity",
+                "source-concern-closure",
+                "brick-source-concern-closure",
+            ),
+            _graph_link_edge(
+                "edge:source-concern-inspect-to-closure",
+                "source-concern-inspect",
+                "source-concern-closure",
+                "brick-source-concern-closure",
+            ),
+            _graph_link_edge(
+                "edge:source-concern-closure-to-boundary",
+                "source-concern-closure",
+                "",
+                "building-boundary:checker-live-fan-in-source-concerns-closed",
+            ),
+        ],
+        "groups": [
+            {
+                "group_id": "group:checker-source-concern-fan-out",
+                "group_role": "fan_out",
+                "member_ref_kind": "link_edge",
+                "member_refs": [
+                    "edge:source-concern-work-to-code",
+                    "edge:source-concern-work-to-axis",
+                    "edge:source-concern-work-to-evidence",
+                    "edge:source-concern-work-to-inspect",
+                ],
+            },
+            {
+                "group_id": "group:checker-source-concern-fan-in",
+                "group_role": "fan_in",
+                "member_ref_kind": "link_edge",
+                "member_refs": [
+                    "edge:source-concern-code-to-closure",
+                    "edge:source-concern-axis-to-closure",
+                    "edge:source-concern-evidence-to-closure",
+                    "edge:source-concern-inspect-to-closure",
+                ],
+            },
+        ],
+    }
+
+
 def _dynamic_full_replay_drain_plan(*, partial: bool) -> Mapping[str, Any]:
     route_plan = {
         "route_replay_ref": "route-replay:checker-p6-full-replay",
@@ -9554,8 +9837,9 @@ def _graph_brick_step(
     completion_edge_ref: str,
     *,
     source_facts: Sequence[str] | None = None,
+    step_template_ref: str = "",
 ) -> Mapping[str, Any]:
-    return {
+    step: dict[str, Any] = {
         "step_ref": step_ref,
         "completion_edge_ref": completion_edge_ref,
         "selected_adapter_ref": "adapter:local",
@@ -9564,6 +9848,9 @@ def _graph_brick_step(
             _agent_row(step_ref),
         ],
     }
+    if step_template_ref:
+        step["step_template_ref"] = step_template_ref
+    return step
 
 
 def _graph_link_edge(

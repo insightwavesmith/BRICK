@@ -229,6 +229,16 @@ _STEP_OUTPUT_HANDOFF_PROOF_LIMITS = (
 )
 
 
+_FAN_IN_SOURCE_ADVISORY_STEP_TEMPLATE_REFS = frozenset(
+    {
+        "building-step-template:code-attack-qa",
+        "building-step-template:axis-attack-qa",
+        "building-step-template:evidence-integrity",
+        "building-step-template:inspect",
+    }
+)
+
+
 def _completed_step_output_refs_by_step(
     building_root: Path,
     step_results_snapshot: Sequence[BuildingRunSupportResult],
@@ -288,6 +298,87 @@ def _incoming_handoffs_with_completed_step_output_refs(
     enriched_handoffs = dict(handoff_refs)
     enriched_handoffs["incoming"] = enriched_incoming
     return enriched_handoffs
+
+
+def _fan_in_source_step_refs(
+    fan_in_sources_by_target: Mapping[str, tuple[str, ...]],
+) -> frozenset[str]:
+    """Return fan-in source step refs from declared topology."""
+
+    return frozenset(
+        source
+        for sources in fan_in_sources_by_target.values()
+        for source in sources
+        if source
+    )
+
+
+def _step_declares_fan_in_source_advisory_concern(step: Mapping[str, Any]) -> bool:
+    return (
+        _optional_text_value(step.get("step_template_ref"))
+        in _FAN_IN_SOURCE_ADVISORY_STEP_TEMPLATE_REFS
+    )
+
+
+def _source_lane_transition_concern_observation(
+    *,
+    step_ref: str,
+    source_brick_ref: str,
+    concern_observation: Any,
+) -> Mapping[str, Any]:
+    """Record fan-in source concern evidence without making it Movement input."""
+
+    concern = getattr(concern_observation, "concern", None)
+    invalid_reason = str(getattr(concern_observation, "invalid_reason", "") or "")
+    raw_concern = getattr(concern_observation, "raw_concern", None)
+    record: dict[str, Any] = {
+        "kind": "fan_in_source_transition_concern_observation",
+        "source_step_ref": step_ref,
+        "source_brick_ref": source_brick_ref,
+        "transition_concern_adoption": "advisory",
+        "policy_scope": "fan_in_source",
+        "adopted_as_movement": False,
+        "proof_limits": [
+            "source-lane Agent evidence observation only",
+            "fan-in closure remains the Link-facing transition concern source",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ],
+        "not_proven": [
+            "semantic correctness of source-lane transition_concern_evidence",
+        ],
+    }
+    if invalid_reason:
+        record["concern_state"] = "malformed"
+        record["invalid_reason"] = invalid_reason
+        if isinstance(raw_concern, Mapping):
+            record["observed_concern_keys"] = sorted(
+                str(key) for key in raw_concern if isinstance(key, str)
+            )
+        return record
+    if isinstance(concern, Mapping):
+        record["concern_state"] = "valid"
+        concern_ref = _optional_text_value(concern.get("concern_ref"))
+        concern_kind = _optional_text_value(concern.get("concern_kind"))
+        if concern_ref:
+            record["concern_ref"] = concern_ref
+        if concern_kind:
+            record["concern_kind"] = concern_kind
+        reason_refs = concern.get("reason_refs")
+        if isinstance(reason_refs, list):
+            record["reason_refs"] = [
+                text for ref in reason_refs if (text := _optional_text_value(ref))
+            ]
+        related_refs = concern.get("related_boundary_refs")
+        if isinstance(related_refs, list):
+            record["related_boundary_refs"] = [
+                text for ref in related_refs if (text := _optional_text_value(ref))
+            ]
+        return record
+    record["concern_state"] = "absent"
+    return record
 
 
 def process_one_node(
@@ -834,6 +925,7 @@ def _run_dynamic_graph_walker(
         if has_fan_groups
         else {}
     )
+    fan_in_source_steps = _fan_in_source_step_refs(fan_in_sources_by_target)
 
     # Per-TARGET-node budget (Link-assigned, keyed by target Brick node ref,
     # SHARED across all reroute-landings on that node). Source = the Link-owned
@@ -884,6 +976,7 @@ def _run_dynamic_graph_walker(
     reroute_records: list[Mapping[str, Any]] = []
     fan_in_wait_all_observations: list[Mapping[str, Any]] = []
     fan_in_cohort_records: list[Mapping[str, Any]] = []
+    source_lane_transition_concern_observations: list[Mapping[str, Any]] = []
     source_fact_body_carry_observations: list[Mapping[str, Any]] = []
     adoption_sequence_number = 0
     hold_record: Mapping[str, Any] | None = None
@@ -1576,6 +1669,37 @@ def _run_dynamic_graph_walker(
 
         # ζ7: inspect the Agent return for a NON-BINDING reroute proposal.
         concern_observation = _transition_concern_observation_from_step_result(step_result)
+        concern_is_from_fan_in_source = (
+            step_ref in fan_in_source_steps
+            and _step_declares_fan_in_source_advisory_concern(step)
+            and not human_disposition_reroute_target
+        )
+        if concern_is_from_fan_in_source and (
+            concern_observation.invalid_reason or concern_observation.concern is not None
+        ):
+            source_lane_transition_concern_observations.append(
+                _source_lane_transition_concern_observation(
+                    step_ref=step_ref,
+                    source_brick_ref=brick_ref_by_step[step_ref],
+                    concern_observation=concern_observation,
+                )
+            )
+            concern = None
+            adopted_reroute = False
+            target_classification = None
+            human_disposition_adopted_by = ""
+            if not has_fan_groups:
+                continue
+            reroute_insert_width = 0
+            if has_fan_groups and not adopted_reroute:
+                frontier_driver.splice_declared_successors_after_current(
+                    source_step_ref=step_ref,
+                    cascade_depth=cascade_depth,
+                    parent_reroute_ref=item["parent_reroute_ref"],
+                    successors_by_source=fan_successors_by_source,
+                    offset=reroute_insert_width,
+                )
+            continue
         if concern_observation.invalid_reason:
             adoption_sequence_number += 1
             hold_record = _build_invalid_transition_concern_hold(
@@ -2073,6 +2197,10 @@ def _run_dynamic_graph_walker(
         write_plan["dynamic_walker_evidence"]["source_fact_body_carry_observations"] = list(
             source_fact_body_carry_observations
         )
+    if source_lane_transition_concern_observations:
+        write_plan["dynamic_walker_evidence"][
+            "source_lane_transition_concern_observations"
+        ] = list(source_lane_transition_concern_observations)
     if resume_seed is not None:
         # RESUME evidence: carry the resume_observations so the rewritten
         # dynamic_walker_evidence matches the prior resume verb's shape. The
