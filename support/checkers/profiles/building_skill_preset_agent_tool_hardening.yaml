@@ -961,12 +961,13 @@ materialize_building_intent_case:
         materialize-review-fleet-provider-ladder-closure:
           closure_transition_target_policy: preset-default
   - label: materialize-building-intent:postmortem-fleet-alias-smoke
-    # C4 (0615): postmortem-fleet's QA bricks now declare a write NEED, so the
-    # intent carries a broad work-area write_scope (flowed onto the write-needed
-    # lens nodes, un-stamped past the read-only inspect/closure steps). Building
-    # default adapter -> adapter:codex-local; the preset's per-step codex/gemini
-    # provider aliases still resolve each step exactly as before. adapter:local
-    # NEVER drives a write-needed step.
+    # C4 (0615): postmortem-fleet's QA bricks declare a write NEED, so the intent
+    # carries a broad work-area write_scope (flowed onto the write-needed lens
+    # nodes, un-stamped past the read-only inspect/closure steps). P2c (0628):
+    # Codex owns code-attack QA; Gemini owns axis/evidence attack lenses. This
+    # case pins the recast so a Gemini code-attack lens cannot drift back in.
+    # Building default adapter -> adapter:codex-local; adapter:local NEVER drives
+    # a write-needed step.
     document:
       plan_ref: building-plan:materialize-postmortem-fleet-alias-smoke
       building_id: materialize-postmortem-fleet-alias-smoke
@@ -991,40 +992,25 @@ materialize_building_intent_case:
       step_refs:
         - materialize-postmortem-fleet-alias-smoke-inspect
         - materialize-postmortem-fleet-alias-smoke-code-lens-codex
-        - materialize-postmortem-fleet-alias-smoke-code-lens-gemini
-        - materialize-postmortem-fleet-alias-smoke-axis-lens-codex
         - materialize-postmortem-fleet-alias-smoke-axis-lens-gemini
-        - materialize-postmortem-fleet-alias-smoke-evidence-lens-codex
         - materialize-postmortem-fleet-alias-smoke-evidence-lens-gemini
         - materialize-postmortem-fleet-alias-smoke-closure
       selected_adapter_refs_by_step:
         - adapter:codex-local
         - adapter:codex-local
         - adapter:gemini-local
-        - adapter:codex-local
-        - adapter:gemini-local
-        - adapter:codex-local
         - adapter:gemini-local
         - adapter:codex-local
       selected_model_refs_by_step:
         - model:default
         - model:default
         - model:gemini:default
-        - model:default
-        - model:gemini:default
-        - model:default
         - model:gemini:default
         - model:default
       target_refs:
         - brick-materialize-postmortem-fleet-alias-smoke-code-lens-codex
-        - brick-materialize-postmortem-fleet-alias-smoke-code-lens-gemini
-        - brick-materialize-postmortem-fleet-alias-smoke-axis-lens-codex
         - brick-materialize-postmortem-fleet-alias-smoke-axis-lens-gemini
-        - brick-materialize-postmortem-fleet-alias-smoke-evidence-lens-codex
         - brick-materialize-postmortem-fleet-alias-smoke-evidence-lens-gemini
-        - brick-materialize-postmortem-fleet-alias-smoke-closure
-        - brick-materialize-postmortem-fleet-alias-smoke-closure
-        - brick-materialize-postmortem-fleet-alias-smoke-closure
         - brick-materialize-postmortem-fleet-alias-smoke-closure
         - brick-materialize-postmortem-fleet-alias-smoke-closure
         - brick-materialize-postmortem-fleet-alias-smoke-closure
