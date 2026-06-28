@@ -731,7 +731,11 @@ def _run_build(args: argparse.Namespace) -> dict[str, Any]:
             )
         return packet
 
-    output_root = Path(args.output_root).expanduser() if args.output_root else _default_builds_root()
+    output_root = (
+        Path(args.output_root).expanduser().resolve()
+        if args.output_root
+        else _active_slack_buildings_root()
+    )
     intent = _build_intent(args)
     overwrite_existing = bool(args.overwrite_existing or not args.task)
     result = run_customer_building_in_sandbox(

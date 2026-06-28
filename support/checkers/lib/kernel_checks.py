@@ -9892,6 +9892,138 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
             f"on a requires_brick_write_scope work Brick row: {work_rows!r}"
         )
 
+    expected_root = "/Users/smith/.brick/project/brick-protocol/buildings"
+    with tempfile.TemporaryDirectory(prefix="bp-cli-task-home-") as home_tmp:
+        task_call: dict[str, Any] = {}
+
+        class FakeTaskResult:
+            building_id = "cli-task-wrapper"
+            isolation_mode = "worktree"
+            isolation_reason = "checker synthetic"
+            base_sha = "abc123"
+            worktree_path = "/tmp/checker-task-worktree"
+            evidence_root = "/Users/smith/.brick/project/brick-protocol/buildings/cli-task-wrapper"
+            frontier_kind = "agent_incomplete"
+            commit_sha = ""
+            worktree_disposed = True
+            intake_result = None
+
+        original_task_runner = cli.run_customer_building_in_sandbox
+        old_home = os.environ.get("HOME")
+        try:
+            os.environ["HOME"] = home_tmp
+
+            def fake_task_runner(intent: Mapping[str, Any], **kwargs: Any) -> FakeTaskResult:
+                task_call["intent"] = dict(intent)
+                task_call["kwargs"] = dict(kwargs)
+                return FakeTaskResult()
+
+            cli.run_customer_building_in_sandbox = fake_task_runner
+            task_build_args = parser.parse_args(
+                [
+                    "build",
+                    "--task",
+                    "task wrapper fixture",
+                    "--preset",
+                    cli.DEFAULT_LOCAL_PRESET_REF,
+                    "--building-id",
+                    "cli-task-wrapper",
+                    "--json",
+                ]
+            )
+            task_result = cli._run_build(task_build_args)
+        finally:
+            cli.run_customer_building_in_sandbox = original_task_runner
+            if old_home is None:
+                os.environ.pop("HOME", None)
+            else:
+                os.environ["HOME"] = old_home
+
+        legacy_home_root = str(Path(home_tmp) / ".brick" / "builds")
+        if task_result.get("build_input_mode") != "preset_task":
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: preset/task build did not expose "
+                "build_input_mode=preset_task"
+            )
+        if task_result.get("output_root") != expected_root:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: preset/task default output_root must be "
+                f"{expected_root} independent of HOME, got {task_result.get('output_root')!r}"
+            )
+        if task_result.get("output_root") == legacy_home_root:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: preset/task default revived legacy ~/.brick/builds"
+            )
+        if str(task_call.get("kwargs", {}).get("output_root")) != expected_root:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: preset/task wrapper dispatch did not "
+                "receive the active Slack-facing vessel root"
+            )
+        if task_call.get("kwargs", {}).get("customer_repo_root") != repo:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: preset/task wrapper dispatch did not receive repo root"
+            )
+        if task_call.get("intent", {}).get("chain_preset_ref") != cli.DEFAULT_LOCAL_PRESET_REF:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: preset/task wrapper dispatch changed "
+                f"the local preset intent: {task_call.get('intent')!r}"
+            )
+
+    with tempfile.TemporaryDirectory(prefix="bp-cli-task-explicit-") as tmp:
+        explicit_root = Path(tmp) / "declared-output-root"
+        explicit_call: dict[str, Any] = {}
+
+        class FakeExplicitTaskResult:
+            building_id = "cli-task-explicit"
+            isolation_mode = "worktree"
+            isolation_reason = "checker synthetic"
+            base_sha = "abc123"
+            worktree_path = "/tmp/checker-task-explicit-worktree"
+            evidence_root = str(explicit_root / "cli-task-explicit")
+            frontier_kind = "agent_incomplete"
+            commit_sha = ""
+            worktree_disposed = True
+            intake_result = None
+
+        original_task_runner = cli.run_customer_building_in_sandbox
+        try:
+
+            def fake_explicit_task_runner(
+                intent: Mapping[str, Any],
+                **kwargs: Any,
+            ) -> FakeExplicitTaskResult:
+                explicit_call["intent"] = dict(intent)
+                explicit_call["kwargs"] = dict(kwargs)
+                return FakeExplicitTaskResult()
+
+            cli.run_customer_building_in_sandbox = fake_explicit_task_runner
+            explicit_args = parser.parse_args(
+                [
+                    "build",
+                    "--task",
+                    "task explicit fixture",
+                    "--building-id",
+                    "cli-task-explicit",
+                    "--output-root",
+                    str(explicit_root),
+                    "--json",
+                ]
+            )
+            explicit_result = cli._run_build(explicit_args)
+        finally:
+            cli.run_customer_building_in_sandbox = original_task_runner
+
+        if explicit_result.get("output_root") != str(explicit_root.resolve()):
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: explicit preset/task --output-root "
+                f"did not win, got {explicit_result.get('output_root')!r}"
+            )
+        if str(explicit_call.get("kwargs", {}).get("output_root")) != str(explicit_root.resolve()):
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: explicit preset/task wrapper dispatch "
+                "did not receive declared --output-root"
+            )
+
     api_args = parser.parse_args(["build", "--task", "make x", "--adapter", "adapter:gemini-api"])
     try:
         cli._build_intent(api_args)
@@ -10029,7 +10161,6 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
             else:
                 os.environ["HOME"] = old_home
 
-        expected_root = "/Users/smith/.brick/project/brick-protocol/buildings"
         if graph_result.get("build_input_mode") != "graph_packet":
             raise ProfileError(
                 "brick_cli_entrypoint_smoke: graph build did not expose build_input_mode=graph_packet"
@@ -10381,7 +10512,6 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
             else:
                 os.environ["HOME"] = old_home
 
-        expected_root = "/Users/smith/.brick/project/brick-protocol/buildings"
         if large_result.get("build_input_mode") != "p3_easy_large_graph":
             raise ProfileError(
                 "brick_cli_entrypoint_smoke: --large build did not expose "
