@@ -2,6 +2,9 @@
   "tool_policy_ref": "tool-policy:leader-coordination",
   "owner_axis": "Agent",
   "allowed_use": "read declared task, design, evidence, and resource refs; prepare coordination or assignment returns",
+  "semantic_capability_classes": [
+    "read"
+  ],
   "mutation_scope": "write only within a Brick-declared write_scope; no Movement/quality/route authority",
   "execution_opened": false,
   "native_grant": {

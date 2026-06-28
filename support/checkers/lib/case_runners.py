@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import ast
 import contextlib
+import hashlib
 import importlib
 import io
 import json
@@ -202,6 +203,12 @@ def run_materialize_building_intent_case(repo: Path, profile: Mapping[str, Any])
     for item in items:
         mapping = require_mapping(item, "materialize_building_intent_case item")
         case, relative = _profile_case_document(repo, mapping, "materialize_building_intent_case")
+        expected = require_mapping(mapping.get("expected", {}), "materialize_building_intent_case.expected")
+        agent_object_digests_before = (
+            _agent_object_file_digests(repo)
+            if expected.get("agent_object_hashes_unchanged")
+            else {}
+        )
         strip_keys = _materialize_reject_strip_preset_keys(mapping)
         if strip_keys:
             strip_preset_ref = require_string(
@@ -227,7 +234,23 @@ def run_materialize_building_intent_case(repo: Path, profile: Mapping[str, Any])
             validate_declared_building_plan(validation_plan, repo_root=repo)
         except (TypeError, ValueError) as exc:
             raise ProfileError(f"materialize_building_intent_case rejected {relative}: {exc}") from exc
-        expected = require_mapping(mapping.get("expected", {}), "materialize_building_intent_case.expected")
+        if expected.get("agent_object_hashes_unchanged"):
+            agent_object_digests_after = _agent_object_file_digests(repo)
+            if agent_object_digests_after != agent_object_digests_before:
+                before_keys = set(agent_object_digests_before)
+                after_keys = set(agent_object_digests_after)
+                changed = sorted(
+                    path
+                    for path in before_keys & after_keys
+                    if agent_object_digests_before[path] != agent_object_digests_after[path]
+                )
+                added = sorted(after_keys - before_keys)
+                removed = sorted(before_keys - after_keys)
+                raise ProfileError(
+                    f"materialize_building_intent_case rejected {relative}: "
+                    "agent object files mutated during materialization "
+                    f"(changed={changed}, added={added}, removed={removed})"
+                )
         if "plan_shape" in expected and plan.get("plan_shape") != expected.get("plan_shape"):
             raise ProfileError(
                 f"materialize_building_intent_case rejected {relative}: "
@@ -506,6 +529,17 @@ def run_materialize_building_intent_case(repo: Path, profile: Mapping[str, Any])
     return count
 
 
+def _agent_object_file_digests(repo: Path) -> dict[str, str]:
+    objects_dir = repo / "agent" / "objects"
+    digests: dict[str, str] = {}
+    for path in sorted(objects_dir.glob("*.yaml")):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(repo).as_posix()
+        digests[relative] = hashlib.sha256(path.read_bytes()).hexdigest()
+    return digests
+
+
 _ROUTE_POLICY_PROVENANCE_VALUES = (
     "constitutional-default",
     "preset-default",
@@ -706,12 +740,17 @@ def _brick_return_shape_fields(repo: Path, kind: str, label: str) -> list[str]:
     return fields
 
 
-def _materialized_brick_row_shape(step: Mapping[str, Any]) -> str | None:
-    """Return the Brick-axis row's required_return_shape text for a materialized step."""
+def _materialized_brick_row_field(step: Mapping[str, Any], field: str) -> Any:
+    """Return a field from the materialized Brick-axis row."""
     for row in step.get("rows") or []:
         if isinstance(row, Mapping) and row.get("axis") == "Brick":
-            return row.get("required_return_shape")
+            return row.get(field)
     return None
+
+
+def _materialized_brick_row_shape(step: Mapping[str, Any]) -> str | None:
+    """Return the Brick-axis row's required_return_shape text for a materialized step."""
+    return _materialized_brick_row_field(step, "required_return_shape")
 
 
 def _check_materialized_node_return_shapes(
@@ -727,10 +766,12 @@ def _check_materialized_node_return_shapes(
          support-invented ``concern_observations`` (hard reject — the invention
          must never reappear).
       2. Each fan-in SOURCE node's required_return_shape MUST equal the source
-         brick's declared required_return_shape MINUS transition_concern_evidence
-         (proves it is brick-derived, not hardcoded).
+         brick's declared required_return_shape exactly (proves it is
+         brick-derived, not hardcoded or support-shrunk).
       3. The fan-in TARGET (closure) node's required_return_shape MUST contain
          transition_concern_evidence.
+      4. Fan-in SOURCE Link carry stays narrowed by carries_forward_fields, so
+         transition_concern_evidence is not carried by source-position QA rows.
     """
     if plan.get("plan_shape") != "graph":
         raise ProfileError(
@@ -794,23 +835,28 @@ def _check_materialized_node_return_shapes(
                 source_step_refs.append(source_ref)
             target_step_refs.add(target_ref)
 
-    # (2) Each fan-in SOURCE shape == brick-declared shape MINUS transition_concern_evidence.
+    # (2) Each fan-in SOURCE shape == full brick-declared shape. Link carry is
+    # filtered by carries_forward_fields, not by shrinking the Brick return contract.
     for source_ref in source_step_refs:
         step = steps[source_ref]
         kind = _kind_for(step)
         observed = _materialized_return_shape_fields(_materialized_brick_row_shape(step))
         brick_fields = _brick_return_shape_fields(repo, kind, label)
-        expected_fields = [
-            field
-            for field in brick_fields
-            if field.lower() != "transition_concern_evidence"
-        ]
-        if observed != expected_fields:
+        if observed != brick_fields:
             raise ProfileError(
                 f"materialize_building_intent_case rejected {label}: fan-in SOURCE node "
                 f"{source_ref} ({kind}) required_return_shape is not brick-derived; "
-                f"expected brick-minus-transition_concern_evidence {expected_fields!r}, "
+                f"expected full brick return.yaml shape {brick_fields!r}, "
                 f"observed {observed!r}"
+            )
+        carry_fields = _materialized_return_shape_fields(
+            _materialized_brick_row_field(step, "carries_forward_fields")
+        )
+        if any(field.lower() == "transition_concern_evidence" for field in carry_fields):
+            raise ProfileError(
+                f"materialize_building_intent_case rejected {label}: fan-in SOURCE node "
+                f"{source_ref} ({kind}) carries_forward_fields must not carry "
+                f"transition_concern_evidence; observed {carry_fields!r}"
             )
 
     # (3) The fan-in TARGET (closure) shape MUST carry transition_concern_evidence.
@@ -3851,6 +3897,19 @@ def run_declared_step_template_plan_case(repo: Path, profile: Mapping[str, Any])
             raise ProfileError(
                 f"declared_step_template_plan_case rejected {relative}: declared_gate_refs mismatch"
             )
+        if "brick_capability_class" in expected:
+            brick_rows = [row for row in rows if isinstance(row, Mapping) and row.get("axis") == "Brick"]
+            if len(brick_rows) != 1:
+                raise ProfileError(
+                    f"declared_step_template_plan_case rejected {relative}: Brick row missing"
+                )
+            observed_capability = brick_rows[0].get("capability_class")
+            if observed_capability != expected["brick_capability_class"]:
+                raise ProfileError(
+                    f"declared_step_template_plan_case rejected {relative}: "
+                    f"brick_capability_class expected {expected['brick_capability_class']!r}, "
+                    f"observed {observed_capability!r}"
+                )
         step = require_mapping(steps[0], f"{relative}: steps[0]")
         for key in ("selected_adapter_ref", "selected_model_ref"):
             if key in expected and step.get(key) != expected[key]:
@@ -4053,6 +4112,27 @@ def run_compose_building_case(repo: Path, profile: Mapping[str, Any]) -> int:
             if expected_gate_sequence_policy_gate_refs not in observed_sequences:
                 raise ProfileError(
                     f"compose_building_case rejected {relative}: expected gate_sequence_policy gate refs not observed"
+                )
+        expected_capability_classes = require_string_list(
+            expected.get("brick_capability_classes", []),
+            "compose_building_case.expected.brick_capability_classes",
+        )
+        if expected_capability_classes:
+            observed_capability_classes: list[str] = []
+            for step in plan.get("brick_steps", []):
+                if not isinstance(step, Mapping):
+                    continue
+                rows = step.get("rows", [])
+                if not isinstance(rows, list):
+                    continue
+                for row in rows:
+                    if isinstance(row, Mapping) and row.get("axis") == "Brick":
+                        observed_capability_classes.append(str(row.get("capability_class", "")))
+                        break
+            if observed_capability_classes != expected_capability_classes:
+                raise ProfileError(
+                    f"compose_building_case rejected {relative}: brick_capability_classes "
+                    f"expected {expected_capability_classes!r}, observed {observed_capability_classes!r}"
                 )
         expected_frontier = expected.get("frontier_kind")
         if expected_frontier:
@@ -6074,6 +6154,12 @@ def run_adapter_capability_rehome_case(repo: Path, profile: Mapping[str, Any]) -
             )
         elif case_kind == "native_grant_roundtrip":
             _check_adapter_capability_native_grant_roundtrip(label)
+        elif case_kind == "native_grant_semantic_codex_gemini_parity":
+            _check_adapter_capability_native_grant_semantic_codex_gemini_parity(label)
+        elif case_kind == "retired_gemini_api_no_write_or_probe":
+            _check_adapter_capability_retired_gemini_api_no_write_or_probe(label)
+        elif case_kind == "checker_sweep_blocks_live_provider_cli":
+            _check_adapter_capability_checker_sweep_blocks_live_provider_cli(label)
         elif case_kind == "native_grant_policy_only_fails_closed":
             _check_adapter_capability_native_grant_policy_only_fails_closed(label)
         elif case_kind == "native_grant_write_home_pin":
@@ -6503,14 +6589,23 @@ _WRITE_CAPABLE_LEADER_POLICIES = (
 def _native_grant_policy_resource(policy_ref: str) -> Mapping[str, Any]:
     if policy_ref == "tool-policy:leader-coordination":
         grant = {"schema": "native-grant/v1", "capabilities": ["read"]}
+        semantic_classes = ["read"]
     elif policy_ref == "tool-policy:reviewer-readonly":
         grant = {"schema": "native-grant/v1", "capabilities": ["read"]}
+        semantic_classes = ["read"]
     elif policy_ref == "tool-policy:read-write-scoped":
         grant = {
             "schema": "native-grant/v1",
             "capabilities": ["read", "write"],
             "write_mode": "runtime_intersection",
         }
+        semantic_classes = [
+            "read",
+            "probe_write",
+            "verification_write",
+            "source_write",
+            "artifact_write",
+        ]
     elif policy_ref == "tool-policy:web-capable":
         grant = {
             "schema": "native-grant/v1",
@@ -6518,8 +6613,10 @@ def _native_grant_policy_resource(policy_ref: str) -> Mapping[str, Any]:
             "web_scope": "exfiltration_not_enforced",
             "exfiltration_enforced": False,
         }
+        semantic_classes = ["read"]
     else:
         grant = {"schema": "native-grant/v1", "capabilities": ["unknown"]}
+        semantic_classes = ["unknown"]
     return {
         "ref": policy_ref,
         "kind": "tool_policy",
@@ -6527,6 +6624,7 @@ def _native_grant_policy_resource(policy_ref: str) -> Mapping[str, Any]:
         "data": {
             "tool_policy_ref": policy_ref,
             "owner_axis": "Agent",
+            "semantic_capability_classes": semantic_classes,
             "native_grant": grant,
         },
     }
@@ -6555,6 +6653,24 @@ def _check_adapter_capability_native_grant_roundtrip(label: str) -> None:
             f"adapter_capability_rehome_case rejected {label}: read-only Brick "
             f"must resolve read+web but no write, got {read_resolution['capabilities']!r}"
         )
+    if read_resolution["semantic_capability_classes"] != ["read"]:
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: read-only Brick "
+            "must resolve only semantic read, got "
+            f"{read_resolution['semantic_capability_classes']!r}"
+        )
+    if read_resolution["declared_semantic_capability_classes"] != [
+        "read",
+        "probe_write",
+        "verification_write",
+        "source_write",
+        "artifact_write",
+    ]:
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: declared semantic "
+            "classes drifted: "
+            f"{read_resolution['declared_semantic_capability_classes']!r}"
+        )
     write_resolution = agent_resources.resolve_native_grant(
         native_grant_resources,
         tool_policy_refs=list(refs),
@@ -6564,6 +6680,18 @@ def _check_adapter_capability_native_grant_roundtrip(label: str) -> None:
         raise ProfileError(
             f"adapter_capability_rehome_case rejected {label}: write-needed Brick "
             f"must resolve read+write+web, got {write_resolution['capabilities']!r}"
+        )
+    if write_resolution["semantic_capability_classes"] != [
+        "read",
+        "probe_write",
+        "verification_write",
+        "source_write",
+        "artifact_write",
+    ]:
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: write-needed Brick "
+            "semantic classes drifted: "
+            f"{write_resolution['semantic_capability_classes']!r}"
         )
     if agent_resources.codex_sandbox_mode_for_tool_policies(
         list(refs),
@@ -6603,6 +6731,261 @@ def _check_adapter_capability_native_grant_roundtrip(label: str) -> None:
             f"adapter_capability_rehome_case rejected {label}: claude write/web "
             f"projection drifted: {claude_write['tools']!r}"
         )
+
+
+def _check_adapter_capability_native_grant_semantic_codex_gemini_parity(
+    label: str,
+) -> None:
+    from brick_protocol.support.connection import adapter_grant_policy, adapter_local_cli
+    from brick_protocol.support.connection import agent_adapter as adapter
+    from brick_protocol.support.connection import adapter_constants
+
+    expected_write_classes = [
+        "read",
+        "probe_write",
+        "verification_write",
+        "source_write",
+        "artifact_write",
+    ]
+    adapter_refs = (
+        adapter_constants.ADAPTER_CODEX_LOCAL,
+        adapter_constants.ADAPTER_GEMINI_LOCAL,
+    )
+
+    read_resolutions: dict[str, Mapping[str, Any]] = {}
+    write_resolutions: dict[str, Mapping[str, Any]] = {}
+    write_prompts: dict[str, Mapping[str, Any]] = {}
+    for adapter_ref in adapter_refs:
+        read_request = _adapter_capability_request(
+            adapter_ref=adapter_ref,
+            write_scope=None,
+        )
+        write_request = _adapter_capability_request(
+            adapter_ref=adapter_ref,
+            write_scope=_adapter_capability_write_scope(),
+        )
+        read_resolutions[adapter_ref] = (
+            adapter_grant_policy._native_grant_resolution_for_request(read_request)
+        )
+        write_resolutions[adapter_ref] = (
+            adapter_grant_policy._native_grant_resolution_for_request(write_request)
+        )
+        write_prompts[adapter_ref] = json.loads(
+            adapter_grant_policy._build_prompt(
+                write_request,
+                adapter._LOCAL_CLI_SPECS[adapter_ref],
+            )
+        )
+
+    for adapter_ref, resolution in read_resolutions.items():
+        if resolution.get("declared_semantic_capability_classes") != expected_write_classes:
+            raise ProfileError(
+                f"adapter_capability_rehome_case rejected {label}: {adapter_ref} "
+                "read-only Brick lost declared semantic capability vocabulary; "
+                f"observed {resolution.get('declared_semantic_capability_classes')!r}"
+            )
+        if resolution.get("semantic_capability_classes") != ["read"]:
+            raise ProfileError(
+                f"adapter_capability_rehome_case rejected {label}: {adapter_ref} "
+                "read-only Brick must resolve only semantic read; observed "
+                f"{resolution.get('semantic_capability_classes')!r}"
+            )
+        if resolution.get("write_effective") is not False:
+            raise ProfileError(
+                f"adapter_capability_rehome_case rejected {label}: {adapter_ref} "
+                "read-only Brick resolved write_effective"
+            )
+
+    codex_write = write_resolutions[adapter_constants.ADAPTER_CODEX_LOCAL]
+    gemini_write = write_resolutions[adapter_constants.ADAPTER_GEMINI_LOCAL]
+    if codex_write.get("semantic_capability_classes") != expected_write_classes:
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: codex-local write "
+            "semantic classes drifted: "
+            f"{codex_write.get('semantic_capability_classes')!r}"
+        )
+    if gemini_write.get("semantic_capability_classes") != expected_write_classes:
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: gemini-local write "
+            "semantic classes drifted: "
+            f"{gemini_write.get('semantic_capability_classes')!r}"
+        )
+    if codex_write.get("semantic_capability_classes") != gemini_write.get(
+        "semantic_capability_classes"
+    ):
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: codex-local and "
+            "gemini-local semantic class vocabulary diverged"
+        )
+
+    codex_prompt_grant = write_prompts[adapter_constants.ADAPTER_CODEX_LOCAL].get(
+        "native_grant",
+        {},
+    )
+    gemini_prompt_grant = write_prompts[adapter_constants.ADAPTER_GEMINI_LOCAL].get(
+        "native_grant",
+        {},
+    )
+    for adapter_ref, prompt_grant in (
+        (adapter_constants.ADAPTER_CODEX_LOCAL, codex_prompt_grant),
+        (adapter_constants.ADAPTER_GEMINI_LOCAL, gemini_prompt_grant),
+    ):
+        if prompt_grant.get("semantic_capability_classes") != expected_write_classes:
+            raise ProfileError(
+                f"adapter_capability_rehome_case rejected {label}: {adapter_ref} "
+                "prompt native_grant lost semantic class vocabulary: "
+                f"{prompt_grant.get('semantic_capability_classes')!r}"
+            )
+        if prompt_grant.get("write_effective") is not True:
+            raise ProfileError(
+                f"adapter_capability_rehome_case rejected {label}: {adapter_ref} "
+                "prompt native_grant did not carry write_effective"
+            )
+
+    codex_write_request = _adapter_capability_request(
+        adapter_ref=adapter_constants.ADAPTER_CODEX_LOCAL,
+        write_scope=_adapter_capability_write_scope(),
+    )
+    if adapter_local_cli._codex_sandbox_for_request(codex_write_request) != "workspace-write":
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: codex-local "
+            "semantic write classes did not project workspace-write where supported"
+        )
+    gemini_write_request = _adapter_capability_request(
+        adapter_ref=adapter_constants.ADAPTER_GEMINI_LOCAL,
+        write_scope=_adapter_capability_write_scope(),
+    )
+    gemini_allow, gemini_deny = adapter_grant_policy._gemini_admin_policy_partition_for_request(
+        gemini_write_request
+    )
+    for tool_name in ("write_file", "replace", "run_shell_command"):
+        if tool_name not in gemini_allow or tool_name in gemini_deny:
+            raise ProfileError(
+                f"adapter_capability_rehome_case rejected {label}: gemini-local "
+                "semantic write classes did not project provider-native write/probe "
+                f"tool {tool_name!r}"
+            )
+
+
+def _check_adapter_capability_retired_gemini_api_no_write_or_probe(label: str) -> None:
+    from brick_protocol.support.connection import agent_adapter as adapter
+    from brick_protocol.support.connection import adapter_constants
+
+    gemini_api = adapter_constants.ADAPTER_GEMINI_API
+    if gemini_api in adapter_constants.ALLOWED_ADAPTER_REFS:
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: retired gemini-api "
+            "is admitted as an active adapter"
+        )
+    if gemini_api in adapter_constants._ADAPTER_CAPABILITIES:
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: retired gemini-api "
+            "still has capability table entries"
+        )
+    if gemini_api in adapter_constants._OBSERVED_WRITE_ADAPTER_REFS:
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: retired gemini-api "
+            "is still an observed-write adapter"
+        )
+    if gemini_api in adapter_constants.MODEL_PROVIDER_BY_ADAPTER:
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: retired gemini-api "
+            "still owns model/provider routing"
+        )
+    for probe_name, callback in (
+        ("adapter_capabilities", lambda: adapter.adapter_capabilities(gemini_api)),
+        (
+            "adapter_is_write_capable",
+            lambda: adapter.adapter_is_write_capable(gemini_api),
+        ),
+        (
+            "adapter_has_write",
+            lambda: adapter.adapter_has_capability(
+                gemini_api,
+                adapter_constants.ADAPTER_CAPABILITY_WRITE,
+            ),
+        ),
+    ):
+        try:
+            callback()
+        except ValueError as exc:
+            if "adapter_ref is not admitted" not in str(exc):
+                raise ProfileError(
+                    f"adapter_capability_rehome_case rejected {label}: {probe_name} "
+                    f"rejected retired gemini-api with wrong reason: {exc}"
+                ) from exc
+        else:
+            raise ProfileError(
+                f"adapter_capability_rehome_case rejected {label}: {probe_name} "
+                "accepted retired gemini-api"
+            )
+    try:
+        _adapter_capability_request(
+            adapter_ref=gemini_api,
+            write_scope=_adapter_capability_write_scope(),
+        )
+    except ValueError as exc:
+        if "adapter_ref is not admitted" not in str(exc):
+            raise ProfileError(
+                f"adapter_capability_rehome_case rejected {label}: retired gemini-api "
+                f"write/probe request rejected with wrong reason: {exc}"
+            ) from exc
+    else:
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: retired gemini-api "
+            "accepted a write/probe request"
+        )
+
+
+def _check_adapter_capability_checker_sweep_blocks_live_provider_cli(label: str) -> None:
+    from brick_protocol.support.connection import adapter_local_cli
+    from brick_protocol.support.connection import agent_adapter as adapter
+
+    previous = os.environ.get("BRICK_CHECKER_PROFILE_SWEEP")
+    os.environ["BRICK_CHECKER_PROFILE_SWEEP"] = "1"
+    try:
+        for adapter_ref, spec in adapter._LOCAL_CLI_SPECS.items():
+            request = _adapter_capability_request(
+                adapter_ref=adapter_ref,
+                write_scope=None,
+            )
+            try:
+                adapter_local_cli._invoke_local_cli(
+                    spec,
+                    request,
+                    "checker fixture prompt",
+                    cwd=Path.cwd(),
+                    timeout_seconds=1,
+                    command_runner=None,
+                )
+            except ValueError as exc:
+                expected_label = adapter_ref.removeprefix("adapter:")
+                message = str(exc)
+                if (
+                    "checker profile sweep must not invoke live" not in message
+                    or expected_label not in message
+                    or "command_runner" not in message
+                ):
+                    raise ProfileError(
+                        f"adapter_capability_rehome_case rejected {label}: "
+                        f"{adapter_ref} checker-sweep guard raised wrong reason: {exc}"
+                    ) from exc
+            except Exception as exc:
+                raise ProfileError(
+                    f"adapter_capability_rehome_case rejected {label}: {adapter_ref} "
+                    "proceeded past the checker-sweep live-provider guard before "
+                    f"failing with {type(exc).__name__}: {exc}"
+                ) from exc
+            else:
+                raise ProfileError(
+                    f"adapter_capability_rehome_case rejected {label}: {adapter_ref} "
+                    "live provider CLI was not blocked during checker profile sweep"
+                )
+    finally:
+        if previous is None:
+            os.environ.pop("BRICK_CHECKER_PROFILE_SWEEP", None)
+        else:
+            os.environ["BRICK_CHECKER_PROFILE_SWEEP"] = previous
 
 
 def _check_adapter_capability_native_grant_policy_only_fails_closed(label: str) -> None:

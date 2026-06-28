@@ -3,6 +3,7 @@ brick_kind: closure
 brick_word: closure
 performer_word: coo
 requires_brick_write_scope: no
+capability_class: read
 performer_lane_need: leader
 agent_object_hint_ref: agent-object:coo
 required_return_template_refs:

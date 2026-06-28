@@ -1803,7 +1803,13 @@ def launch_assembled_building(
     report_env: Mapping[str, str] | None = None,
     report_slack_sender: Any | None = None,
 ) -> dict[str, Any]:
-    """Launch an already-``assemble()``-d ``ComposedGraph`` with NO forced human gate.
+    """Internal/non-customer helper for an already-``assemble()``-d graph.
+
+    This helper is not the P3 customer Easy Building route. Customer-facing graph
+    work enters through ``brick build --graph`` / ``support.operator.cli build
+    --graph`` and then ``driver.run_customer_graph_building_in_sandbox``. This
+    internal helper remains historical/support plumbing for already-composed
+    objects and must not be presented as a separate official route.
 
     This is the assemble-path twin of ``run_goal_approve_entry``'s ``forward``
     branch. ``build`` (the goal path) and that approval entry always interpose a
@@ -2771,7 +2777,6 @@ def main(argv: list[str] | None = None) -> int:
 
 __all__ = [
     "build",
-    "launch_assembled_building",
     "LAUNCH_ASSEMBLED_SEAM_VERB",
     "DOCTOR_SYMPTOM_PRESCRIPTIONS_KO",
     "GOAL_APPROVE_ACTIONS",

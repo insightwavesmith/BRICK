@@ -5,6 +5,8 @@ kernel_checks:
   - driver_public_intake_seal
 path_exists:
   - support/operator/driver.py
+  - support/operator/__init__.py
+  - support/operator/onboard.py
   - support/checkers/check_driver_public_intake_seal.py
   - support/checkers/profiles/driver_public_intake_seal.yaml
 text_contains:
@@ -15,17 +17,34 @@ text_contains:
       - def run_customer_graph_building_in_sandbox
       - run_customer_graph_building_in_sandbox
       - run_composed_graph_intake(
+      - _reject_customer_graph_template_authority_overrides
+      - _CUSTOMER_GRAPH_TEMPLATE_AUTHORITY_FIELDS
       - "Internal/checker-only seam, not a public ordering surface; main AI uses run_building_intake or assemble."
   - path: support/checkers/check_driver_public_intake_seal.py
     texts:
       - PUBLIC_BUILDING_MAKING_INTAKES
       - SEALED_INTERNAL_INTAKES
-      - ASSEMBLE_PUBLIC_SURFACE_OUT_OF_SCOPE
+      - SEALED_HELPER_EXPORTS
+      - launch_assembled_building public export remains sealed
       - mutation RED observed
+  - path: support/operator/__init__.py
+    texts:
+      - '__all__ = ["build"]'
+  - path: support/operator/onboard.py
+    texts:
+      - 'Internal/non-customer helper for an already-``assemble()``-d graph.'
+      - 'This helper is not the P3 customer Easy Building route.'
 text_absent:
   - path: support/operator/driver.py
     texts:
       - '    "run_composed_graph_intake",'
+  - path: support/operator/__init__.py
+    texts:
+      - 'def launch_assembled_building'
+      - '"launch_assembled_building"'
+  - path: support/operator/onboard.py
+    texts:
+      - '    "launch_assembled_building",'
 proof_limits:
   - support evidence only
   - not source truth

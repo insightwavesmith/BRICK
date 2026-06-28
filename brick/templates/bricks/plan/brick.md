@@ -3,6 +3,7 @@ brick_kind: plan
 brick_word: plan
 performer_word: pm
 requires_brick_write_scope: no
+capability_class: read
 performer_lane_need: leader
 agent_object_hint_ref: agent-object:pm-lead
 required_return_template_refs:

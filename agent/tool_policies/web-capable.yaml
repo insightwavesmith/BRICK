@@ -2,6 +2,9 @@
   "tool_policy_ref": "tool-policy:web-capable",
   "owner_axis": "Agent",
   "allowed_use": "use adapter-native web tools for caller-declared live public context only",
+  "semantic_capability_classes": [
+    "read"
+  ],
   "mutation_scope": "none; web access is data gathering only and is not a write grant",
   "execution_opened": true,
   "execution_opening_condition": "Only adapters with an admitted web native projection may use web tools; codex-local documents web as unavailable",

@@ -267,6 +267,13 @@ def _declared_step_from_step_template(
     declared_brick: Mapping[str, Any] = brick
     if template_instruction_body and not author_has_body:
         declared_brick = {**brick, "brick_instruction_body": str(template_instruction_body)}
+    template_capability_class = step_template.get("capability_class")
+    author_capability_class = brick.get("capability_class")
+    author_has_capability_class = (
+        isinstance(author_capability_class, str) and author_capability_class.strip()
+    )
+    if template_capability_class and not author_has_capability_class:
+        declared_brick = {**declared_brick, "capability_class": str(template_capability_class)}
     return {
         "step_ref": step_ref,
         "step_template_ref": step_template["step_template_ref"],
@@ -722,6 +729,11 @@ def _store_step_template(
         stored["role_need"] = str(step_template["role_need"])
     if "write_need" in step_template:
         stored["write_need"] = bool(step_template["write_need"])
+    # Non-authoritative Brick capability taxonomy. This is carried beside the
+    # hard write NEED so generated rows can show read / probe_write /
+    # source_write / artifact_write without using that label as authority.
+    if "capability_class" in step_template:
+        stored["capability_class"] = str(step_template["capability_class"])
     # The kind's real declared return shape (comma-joined field list from the
     # primary return_template) is carried so composition_compose.py can default a node's
     # required_return_shape to it when the node omits one. Like role_need/
@@ -973,6 +985,30 @@ def _frontmatter_write_need(value: Any, label: str) -> bool:
     raise ValueError(f"{label} must be yes/no (got {value!r})")
 
 
+_BRICK_CAPABILITY_CLASSES = frozenset(
+    {
+        "read",
+        "probe_write",
+        "verification_write",
+        "source_write",
+        "artifact_write",
+    }
+)
+
+
+def _frontmatter_capability_class(value: Any, label: str) -> str:
+    """Normalize the non-authoritative Brick capability taxonomy label."""
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{label} must be one admitted capability class")
+    text = value.strip()
+    if text not in _BRICK_CAPABILITY_CLASSES:
+        raise ValueError(
+            f"{label} must be one of {sorted(_BRICK_CAPABILITY_CLASSES)!r} "
+            f"(got {value!r})"
+        )
+    return text
+
+
 def _brick_spec_paths(repo: Path) -> tuple[Path, ...]:
     """Return active Brick spec paths from canonical bricks/<kind>/brick.md."""
 
@@ -1044,6 +1080,10 @@ def _step_templates_from_bricks(repo: Path) -> dict[str, dict[str, Any]]:
             "agent_object_ref": agent_object_ref,
             "link_word": _required_yaml_text(fm, "link_movement_literal", label),
             "brick_contract": _required_yaml_text(fm, "brick_contract", label),
+            "capability_class": _frontmatter_capability_class(
+                fm.get("capability_class"),
+                f"{label}.capability_class",
+            ),
             "brick_template_refs": return_template_refs,
             # The kind's REAL declared return shape (comma-joined field list),
             # read from the PRIMARY return_template (refs[0]) only. The Builder
@@ -1443,6 +1483,12 @@ def _render_declared_step(index: int, raw_step: Mapping[str, Any]) -> Mapping[st
     write_scope = brick.get("write_scope")
     if write_scope is not None:
         rendered["rows"][0]["write_scope"] = _mapping_value("write_scope", write_scope)
+    capability_class = brick.get("capability_class")
+    if capability_class is not None:
+        rendered["rows"][0]["capability_class"] = _clean_text(
+            f"steps[{index}].brick.capability_class",
+            capability_class,
+        )
     # Carry the EXPLICIT write NEED marker (requires_brick_write_scope; legacy
     # write_need) from the declared brick onto the rendered plan row VERBATIM.
     # Without this carry the linear materializer's stamp would be silently

@@ -3,6 +3,7 @@ brick_kind: axis-attack-qa
 brick_word: axis_attack_qa
 performer_word: inspector
 requires_brick_write_scope: yes
+capability_class: probe_write
 performer_lane_need: reviewer
 agent_object_hint_ref: agent-object:inspector
 required_return_template_refs:

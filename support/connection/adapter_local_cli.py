@@ -552,13 +552,11 @@ def _invoke_local_cli(
         agent_request_read_tier,
     )
 
-    if (
-        spec.invocation_args_kind == "gemini-p-json-flash"
-        and command_runner is None
-        and os.environ.get("BRICK_CHECKER_PROFILE_SWEEP") == "1"
-    ):
+    if command_runner is None and os.environ.get("BRICK_CHECKER_PROFILE_SWEEP") == "1":
+        adapter_label = spec.adapter_ref.removeprefix("adapter:")
         raise ValueError(
-            "checker profile sweep must not invoke live gemini-local CLI; "
+            f"checker profile sweep must not invoke live {adapter_label} CLI "
+            "or other provider CLIs; "
             "use an injected command_runner fixture"
         )
 

@@ -1,0 +1,92 @@
+{
+  "task_statement": "CR.v3 P2 support repair: Gemini-local axis/evidence QA returned fenced JSON with observed_evidence as a mapping of nested evidence objects, but AgentFact.returned.observed_evidence recorded [] because support/connection/adapter_grant_policy.py::_mapping_to_text_list drops non-string mapping values. Repair the return-field normalization so required list fields preserve non-secret nested mapping/list/scalar evidence as deterministic text, without creating new AgentFact fields, Movement, success/quality authority, provider runtime, scheduler, or credential storage. Add focused checker/profile coverage proving observed_evidence mapping values with nested objects are not dropped, existing evidence_refs/not_proven/proof_limits merge behavior remains text-safe, forbidden/secret handling still holds, and Gemini fenced JSON can land non-empty observed_evidence.",
+  "declared_by": "coo codex operator",
+  "building_id": "cr-v3-p2-gemini-return-normalization-0628c",
+  "selected_shape_ref": "building-shape:reviewable-work",
+  "selection_rule": "caller_or_coo_declared_only",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "nodes": [
+    {
+      "node_ref": "node:cr-v3-p2-normalization-work",
+      "step_ref": "cr-v3-p2-normalization-work",
+      "step_template_ref": "building-step-template:work",
+      "work_statement": "Implement the narrow support repair for adapter return-field normalization. Evidence: Building cr-v3-p2-first-use-adapters-official-replay-0628b Gemini step output had output_excerpt containing fenced JSON with observed_evidence object values, but returned.observed_evidence was []. Change only support normalization/checker surfaces needed to preserve nested mapping/list values as deterministic text for list return fields. Do not change Agent/Brick/Link meaning, do not add Movement or authority, do not store secrets/session ids.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/connection/adapter_grant_policy.py",
+          "support/checkers/lib/case_runners.py",
+          "support/checkers/lib/kernel_checks.py",
+          "support/checkers/profiles/return_field_merge_set_parity.yaml",
+          "support/checkers/profiles/agent_axis_behavioral.yaml",
+          "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "agent/objects/**",
+          "agent/**/*.yaml",
+          "brick/**",
+          "link/**"
+        ]
+      },
+      "required_return_shape": "observed_evidence, changed_files, not_proven, proof_limits"
+    },
+    {
+      "node_ref": "node:cr-v3-p2-normalization-codex-qa",
+      "step_ref": "cr-v3-p2-normalization-codex-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "work_statement": "Run read/probe-only Codex QA on the normalization repair. Inspect changed files and run direct probes: fenced JSON containing observed_evidence as nested mapping must produce non-empty observed_evidence list through _extract_required_return_fields/_merge_structured_return_fields; evidence_refs/not_proven/proof_limits mapping merge remains text-safe; secret/session rejection remains intact; git diff --check. Do not source-mutate.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "required_return_shape": "observed_evidence, changed_files, not_proven, proof_limits"
+    },
+    {
+      "node_ref": "node:cr-v3-p2-normalization-gemini-qa",
+      "step_ref": "cr-v3-p2-normalization-gemini-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "work_statement": "Run Gemini-local axis/evidence QA on the normalization repair. Inspect carried work and Codex QA evidence. Check Brick/Agent/Link separation: support may normalize returned evidence shape but must not invent facts, choose Movement, judge success/quality, store credentials, or mutate Agent/Brick/Link resources. Return non-empty observed_evidence. If inspection is impossible, put the exact reason in not_proven; do not return an empty observed_evidence field.",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default",
+      "required_return_shape": "observed_evidence, changed_files, not_proven, proof_limits"
+    },
+    {
+      "node_ref": "node:cr-v3-p2-normalization-closure",
+      "step_ref": "cr-v3-p2-normalization-closure",
+      "step_template_ref": "building-step-template:closure",
+      "work_statement": "Close the normalization repair only after inspecting work, Codex QA, Gemini QA, raw/report delivery, and changed files. If Gemini QA returned.observed_evidence is still empty, report HOLD/NOT_PROVEN. Do not claim source truth, success, quality, or Movement authority.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "required_return_shape": "observed_evidence, remaining_delta, not_proven, proof_limits"
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:cr-v3-p2-normalization-work-to-codex-qa",
+      "source": "cr-v3-p2-normalization-work",
+      "target": "cr-v3-p2-normalization-codex-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:cr-v3-p2-normalization-codex-qa-to-gemini-qa",
+      "source": "cr-v3-p2-normalization-codex-qa",
+      "target": "cr-v3-p2-normalization-gemini-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:cr-v3-p2-normalization-gemini-qa-to-closure",
+      "source": "cr-v3-p2-normalization-gemini-qa",
+      "target": "cr-v3-p2-normalization-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:cr-v3-p2-normalization-closure-to-boundary",
+      "source": "cr-v3-p2-normalization-closure",
+      "target": "building-boundary:cr-v3-p2-gemini-return-normalization-0628c-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": []
+}

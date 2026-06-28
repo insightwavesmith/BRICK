@@ -8,7 +8,7 @@ providers, execute hooks/tools, choose Movement, or own Agent meaning.
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -95,6 +95,40 @@ _NATIVE_GRANT_CAPABILITY_ORDER = (
     _NATIVE_GRANT_CAPABILITY_READ,
     _NATIVE_GRANT_CAPABILITY_WRITE,
     _NATIVE_GRANT_CAPABILITY_WEB,
+)
+_SEMANTIC_CAPABILITY_READ = "read"
+_SEMANTIC_CAPABILITY_PROBE_WRITE = "probe_write"
+_SEMANTIC_CAPABILITY_VERIFICATION_WRITE = "verification_write"
+_SEMANTIC_CAPABILITY_SOURCE_WRITE = "source_write"
+_SEMANTIC_CAPABILITY_ARTIFACT_WRITE = "artifact_write"
+_SEMANTIC_CAPABILITY_WRITE_CLASSES = frozenset(
+    {
+        _SEMANTIC_CAPABILITY_PROBE_WRITE,
+        _SEMANTIC_CAPABILITY_VERIFICATION_WRITE,
+        _SEMANTIC_CAPABILITY_SOURCE_WRITE,
+        _SEMANTIC_CAPABILITY_ARTIFACT_WRITE,
+    }
+)
+_SEMANTIC_CAPABILITY_ORDER = (
+    _SEMANTIC_CAPABILITY_READ,
+    _SEMANTIC_CAPABILITY_PROBE_WRITE,
+    _SEMANTIC_CAPABILITY_VERIFICATION_WRITE,
+    _SEMANTIC_CAPABILITY_SOURCE_WRITE,
+    _SEMANTIC_CAPABILITY_ARTIFACT_WRITE,
+)
+_SEMANTIC_CAPABILITY_CEILING_SCHEMA = "agent-semantic-capability-ceiling/v1"
+_REVIEWER_MAX_SEMANTIC_CAPABILITY_CLASSES = frozenset(
+    {
+        _SEMANTIC_CAPABILITY_READ,
+        _SEMANTIC_CAPABILITY_PROBE_WRITE,
+        _SEMANTIC_CAPABILITY_VERIFICATION_WRITE,
+    }
+)
+_REVIEWER_BLOCKED_SEMANTIC_CAPABILITY_CLASSES = frozenset(
+    {
+        _SEMANTIC_CAPABILITY_SOURCE_WRITE,
+        _SEMANTIC_CAPABILITY_ARTIFACT_WRITE,
+    }
 )
 _NATIVE_GRANT_ALLOWED_KEYS = frozenset(
     {
@@ -366,6 +400,44 @@ def _validate_native_grant(
     }
 
 
+def _validate_semantic_capability_classes(
+    label: str,
+    policy: Mapping[str, Any],
+    *,
+    native_capabilities: Sequence[str],
+) -> list[str]:
+    semantic_classes = _string_list(
+        f"{label}:semantic_capability_classes",
+        policy.get("semantic_capability_classes"),
+    )
+    if not semantic_classes:
+        raise AgentResourceError(f"{label}: semantic_capability_classes must not be empty")
+    seen: set[str] = set()
+    for semantic_class in semantic_classes:
+        if semantic_class not in _SEMANTIC_CAPABILITY_ORDER:
+            raise AgentResourceError(
+                f"{label}: semantic_capability_class {semantic_class!r} is not admitted"
+            )
+        if semantic_class in seen:
+            raise AgentResourceError(
+                f"{label}: semantic_capability_class {semantic_class!r} is duplicated"
+            )
+        seen.add(semantic_class)
+    ordered = [cap for cap in _SEMANTIC_CAPABILITY_ORDER if cap in seen]
+    if semantic_classes != ordered:
+        raise AgentResourceError(
+            f"{label}: semantic_capability_classes must use admitted order {ordered!r}"
+        )
+    native_write = _NATIVE_GRANT_CAPABILITY_WRITE in set(native_capabilities)
+    semantic_writes = sorted(set(semantic_classes) & _SEMANTIC_CAPABILITY_WRITE_CLASSES)
+    if semantic_writes and not native_write:
+        raise AgentResourceError(
+            f"{label}: semantic write classes require native_grant write capability: "
+            + ", ".join(semantic_writes)
+        )
+    return semantic_classes
+
+
 def _validate_tool_policy_resource(
     label: str,
     value: Any,
@@ -374,8 +446,14 @@ def _validate_tool_policy_resource(
 ) -> dict[str, Any]:
     policy = _require_mapping(label, value)
     grant = _validate_native_grant(label, policy, expected_ref=expected_ref)
+    semantic_classes = _validate_semantic_capability_classes(
+        label,
+        policy,
+        native_capabilities=grant["capabilities"],
+    )
     return {
         **policy,
+        "semantic_capability_classes": semantic_classes,
         "native_grant": grant,
     }
 
@@ -696,6 +774,8 @@ def _empty_native_grant_resolution(
         "tool_policy_refs": list(tool_policy_refs),
         "declared_capabilities": [],
         "capabilities": [],
+        "declared_semantic_capability_classes": [],
+        "semantic_capability_classes": [],
         "write_effective": False,
         "web_requested": False,
         "missing_tool_policy_refs": list(missing_refs or []),
@@ -759,6 +839,7 @@ def resolve_native_grant(
         return _empty_native_grant_resolution(refs, missing_refs=missing_refs)
 
     declared: set[str] = set()
+    declared_semantic: set[str] = set()
     for ref in refs:
         policy = loaded_by_ref.get(ref)
         if policy is None:
@@ -771,7 +852,12 @@ def resolve_native_grant(
                     f"{_TOOL_POLICY_READ_WRITE_SCOPED}"
                 )
             declared.add(capability)
+        for semantic_class in policy["semantic_capability_classes"]:
+            declared_semantic.add(semantic_class)
     declared_ordered = [cap for cap in _NATIVE_GRANT_CAPABILITY_ORDER if cap in declared]
+    declared_semantic_ordered = [
+        cap for cap in _SEMANTIC_CAPABILITY_ORDER if cap in declared_semantic
+    ]
     effective: list[str] = []
     for capability in declared_ordered:
         if capability == _NATIVE_GRANT_CAPABILITY_WRITE:
@@ -779,17 +865,91 @@ def resolve_native_grant(
                 effective.append(capability)
             continue
         effective.append(capability)
+    effective_semantic: list[str] = []
+    for semantic_class in declared_semantic_ordered:
+        if semantic_class in _SEMANTIC_CAPABILITY_WRITE_CLASSES:
+            if bool(write_need) and _TOOL_POLICY_READ_WRITE_SCOPED in selected_refs:
+                effective_semantic.append(semantic_class)
+            continue
+        effective_semantic.append(semantic_class)
     return {
         "schema": _NATIVE_GRANT_RESOLUTION_SCHEMA,
         "tool_policy_refs": refs,
         "declared_capabilities": declared_ordered,
         "capabilities": effective,
+        "declared_semantic_capability_classes": declared_semantic_ordered,
+        "semantic_capability_classes": effective_semantic,
         "write_effective": _NATIVE_GRANT_CAPABILITY_WRITE in effective,
         "web_requested": _NATIVE_GRANT_CAPABILITY_WEB in declared,
         "missing_tool_policy_refs": [],
         "proof_limits": [
             "native_grant resolution uses already-loaded tool-policy data only",
+            "semantic_capability_classes are Agent policy class evidence, not provider-native tools",
             "write requires Brick write_scope NEED plus tool-policy:read-write-scoped",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ],
+    }
+
+
+def resolve_agent_semantic_capability(
+    agent_object: Mapping[str, Any],
+    tool_policy_resources: Any,
+) -> dict[str, Any]:
+    """Resolve the Agent-owned semantic capability ceiling from loaded resources.
+
+    Tool policies declare the broad class vocabulary. The Agent Object's lane and
+    hook refs can only narrow that maximum; they never create Brick write NEED or
+    Link Movement authority.
+    """
+
+    agent = _require_mapping("agent_object", agent_object)
+    tool_policy_refs = _string_sequence(
+        "agent_object.tool_policy_refs",
+        agent.get("tool_policy_refs"),
+    )
+    hook_refs = _string_sequence("agent_object.hook_refs", agent.get("hook_refs"))
+    lane = str(agent.get("lane") or "")
+    policy_resolution = resolve_native_grant(
+        tool_policy_resources,
+        tool_policy_refs=tool_policy_refs,
+        write_need=True,
+    )
+    max_classes = list(policy_resolution["semantic_capability_classes"])
+    blocked_classes: list[str] = []
+    ceiling_reason = "policy_max"
+    if lane == "reviewer" and _HOOK_REVIEWER_NO_MUTATION in set(hook_refs):
+        blocked_classes = [
+            semantic_class
+            for semantic_class in max_classes
+            if semantic_class in _REVIEWER_BLOCKED_SEMANTIC_CAPABILITY_CLASSES
+        ]
+        max_classes = [
+            semantic_class
+            for semantic_class in max_classes
+            if semantic_class in _REVIEWER_MAX_SEMANTIC_CAPABILITY_CLASSES
+        ]
+        ceiling_reason = "reviewer_no_mutation"
+    return {
+        "schema": _SEMANTIC_CAPABILITY_CEILING_SCHEMA,
+        "agent_object_ref": str(agent.get("object_ref") or ""),
+        "role": str(agent.get("name") or ""),
+        "lane": lane,
+        "tool_policy_refs": tool_policy_refs,
+        "hook_refs": hook_refs,
+        "declared_policy_semantic_capability_classes": list(
+            policy_resolution["declared_semantic_capability_classes"]
+        ),
+        "max_semantic_capability_classes": max_classes,
+        "blocked_semantic_capability_classes": blocked_classes,
+        "ceiling_reason": ceiling_reason,
+        "proof_limits": [
+            "Agent policy/resource capability ceiling only",
+            "Brick write_scope NEED still controls effective write",
+            "Link Movement remains forward/reroute and is not derived here",
+            "hook:reviewer-no-mutation blocks source_write for reviewer lane",
             "not source truth",
             "not success judgment",
             "not quality judgment",
@@ -850,6 +1010,11 @@ def resolve_agent_object(
     tool_policy_refs = list(agent_object["tool_policy_refs"])
     discipline_refs = list(agent_object["discipline_refs"])
     hook_refs = list(agent_object["hook_refs"])
+    tool_policy_resources = _data_resources(repo, tool_policy_refs, kind="tool_policy")
+    semantic_capability = resolve_agent_semantic_capability(
+        agent_object,
+        tool_policy_resources,
+    )
     return {
         "kind": "agent-resource-resolution",
         "role": role,
@@ -858,7 +1023,8 @@ def resolve_agent_object(
         "prompt_resources": _text_resources(repo, prompt_refs, kind="prompt"),
         "skill_resources": _text_resources(repo, skill_refs, kind="skill"),
         "hook_resources": _hook_resources(repo, hook_refs, object_ref),
-        "tool_policy_resources": _data_resources(repo, tool_policy_refs, kind="tool_policy"),
+        "tool_policy_resources": tool_policy_resources,
+        "semantic_capability": semantic_capability,
         "discipline_resources": _text_resources(repo, discipline_refs, kind="discipline"),
         "charter_resources": _charter_resources(repo, project_ref),
         "adapter_refs": list(agent_object["adapter_refs"]),
@@ -955,6 +1121,7 @@ def render_agent_packet(
         "skill_resources": resolution["skill_resources"],
         "hook_resources": resolution["hook_resources"],
         "tool_policy_resources": resolution["tool_policy_resources"],
+        "semantic_capability": resolution["semantic_capability"],
         "discipline_resources": resolution["discipline_resources"],
         "charter_resources": resolution["charter_resources"],
         "adapter_refs": resolution["adapter_refs"],
@@ -1003,6 +1170,7 @@ def render_agent_instruction_packet(
         "skill_resources": skill_manifest,
         "hook_resources": packet["hook_resources"],
         "tool_policy_resources": list(packet["tool_policy_resources"]),
+        "semantic_capability": dict(packet["semantic_capability"]),
         "discipline_resources": list(packet["discipline_resources"]),
         "charter_resources": charter_resources,
         "adapter_refs": list(packet["adapter_refs"]),
@@ -1077,6 +1245,16 @@ def _render_instruction_text(packet: Mapping[str, Any], *, target: str) -> str:
     lines.extend(["", "## Tool Policy Refs"])
     for resource in packet["tool_policy_resources"]:
         lines.append(f"- {resource['ref']}")
+    semantic_capability = packet.get("semantic_capability")
+    if isinstance(semantic_capability, Mapping):
+        lines.extend(["", "## Max Semantic Capability Classes"])
+        for semantic_class in semantic_capability.get("max_semantic_capability_classes", []):
+            lines.append(f"- {semantic_class}")
+        blocked = semantic_capability.get("blocked_semantic_capability_classes", [])
+        if blocked:
+            lines.extend(["", "## Blocked Semantic Capability Classes"])
+            for semantic_class in blocked:
+                lines.append(f"- {semantic_class}")
     lines.extend(["", "## Disciplines"])
     for resource in packet["discipline_resources"]:
         lines.extend([f"### {resource['ref']}", "", str(resource["body"]).strip(), ""])
@@ -1822,6 +2000,7 @@ __all__ = [
     "render_claude_subagent_md",
     "render_skill_md",
     "resolve_native_grant",
+    "resolve_agent_semantic_capability",
     "codex_sandbox_mode_for_native_grant",
     "codex_sandbox_mode_for_tool_policies",
     "claude_tools_for_native_grant",

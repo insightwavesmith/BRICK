@@ -1,0 +1,192 @@
+{
+  "task_statement": "CR.v3 P3 Easy Building official-route repair. Implement and verify the customer-facing Easy Building surface so public execution is only brick build / support.operator.cli build with preset_task or graph_packet input. Do not create --large or any third route. Repair route-seal gaps found by read-only subagents: support.operator.build / onboard launch helpers must not function as customer execution routes outside brick build, launch_assembled_building must not allow adapter_cwd live-tree bypass for customer-like use, and driver_public_intake_seal wording/checkers must match both official modes. Also repair/prove the hard fan-in QA boundary: in work -> {code-attack-qa, axis-attack-qa, evidence-integrity} -> closure graphs, QA lane transition_concern_evidence must remain observation/local evidence and must not create pre-closure Link reroute/HOLD; closure-synthesis alone may emit/adopt Link-facing transition concerns under declared route policy. Preserve Brick/Agent/Link: Brick owns templates/return shape, Agent owns returned facts, Link owns Movement/carry/fan-in/reroute. Support/checkers are evidence only.",
+  "declared_by": "coo",
+  "building_id": "cr-v3-p3-easy-building-route-seal-0629a",
+  "selected_shape_ref": "building-shape:design-needed",
+  "selection_rule": "caller_or_coo_declared_only",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "building-chain-preset:brick-protocol-engine-feature-hard",
+  "nodes": [
+    {
+      "node_id": "cr-v3-p3-route-seal-design",
+      "step_ref": "cr-v3-p3-route-seal-design",
+      "step_template_ref": "building-step-template:design",
+      "completion_edge_ref": "edge:cr-v3-p3-design-to-work",
+      "node_reroute_budget": 1,
+      "work_statement": "Design the narrow P3 repair plan from current live evidence and the subagent findings. Separate Brick/Agent/Link: Brick route grammar/template authority, Agent performer/return facts, Link fan-in/Movement/reroute ownership. Produce a bounded file plan for route-seal helper classification and hard fan-in closure-owned transition concerns. Do not edit code in this design step.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "cr-v3-p3-route-seal-work",
+      "step_ref": "cr-v3-p3-route-seal-work",
+      "step_template_ref": "building-step-template:work",
+      "completion_edge_ref": "edge:cr-v3-p3-work-to-code-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Implement the P3 Easy Building repair from the design output. Required route-seal behavior: public customer execution remains brick build / support.operator.cli build only, with input modes preset_task and graph_packet. Do not add --large. Do not let support.operator.build, run_goal_approve_entry, launch_assembled_building, assemble, or internal helper calls become a third customer route. launch_assembled_building must reject or otherwise fail closed for caller-supplied adapter_cwd that points at the live repo/customer tree. driver_public_intake_seal profile wording/checker must reflect both official modes. Required hard fan-in behavior: in hard fan-in QA cohorts, QA lane transition_concern_evidence is observation/local evidence only and must not be adopted before closure-synthesis; closure-origin concerns may adopt reroute/HOLD according to declared Link policy. Add focused negative probes, including a dynamic walker fixture that REDs if QA concern creates pre-closure reroute/HOLD, and proves closure-origin adoption/HOLD. Keep return shape/template refs materialized from Brick templates; do not manually inject required_return_shape or carries_forward_fields.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/__init__.py",
+          "support/operator/onboard.py",
+          "support/operator/driver.py",
+          "support/operator/cli.py",
+          "support/operator/walker_kernel.py",
+          "support/operator/walker_transition_concern.py",
+          "support/operator/walker_*.py",
+          "support/checkers/check_driver_public_intake_seal.py",
+          "support/checkers/lib/case_runners.py",
+          "support/checkers/lib/kernel_checks.py",
+          "support/checkers/profiles/driver_public_intake_seal.yaml",
+          "support/checkers/profiles/brick_cli_entrypoint.yaml",
+          "support/checkers/profiles/building_operator_driver0.yaml",
+          "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml",
+          "brick/templates/skills/brick-task-author/SKILL.md",
+          "brick/templates/skills/building-sizing-method/SKILL.md",
+          "project/brick-protocol/status/kernel/customer-ready-p3-easy-building-official-route-plan-0628.md"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "agent/objects/**",
+          "agent/**/*.yaml",
+          "link/**",
+          "project/brick-protocol/buildings/**",
+          "project/brick-protocol/status/inbox/**"
+        ]
+      }
+    },
+    {
+      "node_id": "cr-v3-p3-route-seal-code-qa",
+      "step_ref": "cr-v3-p3-route-seal-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "completion_edge_ref": "edge:cr-v3-p3-code-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Codex code/regression QA. Inspect the work diff and run focused checks for route seal and hard fan-in behavior. Verify: no --large path returns; graph_packet cannot author template-owned fields; support.operator.build/launch helpers cannot be used as customer third route; launch_assembled_building adapter_cwd live-tree bypass is rejected/fail-closed; dynamic walker does not adopt QA concern before closure; closure-origin concern behavior is proven. Run git diff --check and focused profiles where possible. Do not source-mutate.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "cr-v3-p3-route-seal-axis-qa",
+      "step_ref": "cr-v3-p3-route-seal-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "completion_edge_ref": "edge:cr-v3-p3-axis-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Gemini-local axis/evidence QA. Inspect the work and Codex QA evidence. Attack Brick/Agent/Link boundaries: Brick owns graph/preset grammar and template/return materialization; Agent owns QA returned observations only; Link owns Movement, fan-in, concern adoption, reroute, and HOLD lifecycle. Check that support/helper/checker surfaces do not become route authority, Movement authority, success/quality judgment, or source truth. Do not source-mutate. If provider inspection is impossible, return exact not_proven evidence rather than an empty observation.",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default"
+    },
+    {
+      "node_id": "cr-v3-p3-route-seal-evidence-qa",
+      "step_ref": "cr-v3-p3-route-seal-evidence-qa",
+      "step_template_ref": "building-step-template:evidence-integrity",
+      "completion_edge_ref": "edge:cr-v3-p3-evidence-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Evidence-integrity QA. Inspect raw/step-output/diff/checker evidence. Verify that the Building evidence records the official graph route, that helper/internal route claims are not overstated, that checker green is reported only as support evidence, and that proof limits/not_proven include live provider and customer-ready limits. Do not source-mutate.",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default"
+    },
+    {
+      "node_id": "cr-v3-p3-route-seal-closure",
+      "step_ref": "cr-v3-p3-route-seal-closure",
+      "step_template_ref": "building-step-template:closure",
+      "completion_edge_ref": "edge:cr-v3-p3-closure-to-boundary",
+      "node_reroute_budget": 1,
+      "closure_transition_target_policy": {
+        "design_gap": {
+          "action": "target",
+          "target_ref": "cr-v3-p3-route-seal-design"
+        },
+        "implementation_gap": {
+          "action": "target",
+          "target_ref": "cr-v3-p3-route-seal-work"
+        },
+        "boundary_mismatch": {
+          "action": "target",
+          "target_ref": "cr-v3-p3-route-seal-work"
+        },
+        "verification_gap": {
+          "action": "hold"
+        }
+      },
+      "work_statement": "Codex closure. Fan in design, work, Codex QA, Gemini axis QA, and evidence-integrity QA. Report FORWARD/HOLD/REROUTE/NOT_PROVEN as support evidence only. If any QA lane source-mutated, if helper route is still effectively a third customer route, if hard fan-in QA concerns can still adopt before closure, or if required focused profiles are missing, report HOLD with remaining_delta and exact evidence refs.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:cr-v3-p3-design-to-work",
+      "source": "cr-v3-p3-route-seal-design",
+      "target": "cr-v3-p3-route-seal-work",
+      "movement": "forward",
+      "gate": "coo"
+    },
+    {
+      "edge_ref": "edge:cr-v3-p3-work-to-code-qa",
+      "source": "cr-v3-p3-route-seal-work",
+      "target": "cr-v3-p3-route-seal-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:cr-v3-p3-work-to-axis-qa",
+      "source": "cr-v3-p3-route-seal-work",
+      "target": "cr-v3-p3-route-seal-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:cr-v3-p3-work-to-evidence-qa",
+      "source": "cr-v3-p3-route-seal-work",
+      "target": "cr-v3-p3-route-seal-evidence-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:cr-v3-p3-code-qa-to-closure",
+      "source": "cr-v3-p3-route-seal-code-qa",
+      "target": "cr-v3-p3-route-seal-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:cr-v3-p3-axis-qa-to-closure",
+      "source": "cr-v3-p3-route-seal-axis-qa",
+      "target": "cr-v3-p3-route-seal-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:cr-v3-p3-evidence-qa-to-closure",
+      "source": "cr-v3-p3-route-seal-evidence-qa",
+      "target": "cr-v3-p3-route-seal-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:cr-v3-p3-closure-to-boundary",
+      "source": "cr-v3-p3-route-seal-closure",
+      "target": "building-boundary:cr-v3-p3-easy-building-route-seal-0629a-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:cr-v3-p3-route-seal-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:cr-v3-p3-work-to-code-qa",
+        "edge:cr-v3-p3-work-to-axis-qa",
+        "edge:cr-v3-p3-work-to-evidence-qa"
+      ]
+    },
+    {
+      "group_id": "group:cr-v3-p3-route-seal-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:cr-v3-p3-code-qa-to-closure",
+        "edge:cr-v3-p3-axis-qa-to-closure",
+        "edge:cr-v3-p3-evidence-qa-to-closure"
+      ]
+    }
+  ]
+}

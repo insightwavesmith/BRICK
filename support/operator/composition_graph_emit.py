@@ -39,7 +39,6 @@ from brick_protocol.support.operator.composition_common import (
     _composition_optional_text,
     _composition_slug,
     _materializer_step_template_slug,
-    _materializer_strip_field,
 )
 from brick_protocol.support.operator.composition_kinds import (
     _materializer_step_alias,
@@ -1196,6 +1195,9 @@ def _materializer_graph_node(
     )
     if required_shape:
         node["required_return_shape"] = required_shape
+    capability_class = _composition_optional_text(step_template.get("capability_class"))
+    if capability_class:
+        node["capability_class"] = capability_class
     if bool(step_template.get("write_need")):
         if write_scope is None:
             raise ValueError(f"write_scope is required for write-needed Brick {step_template_ref}")
@@ -1260,33 +1262,12 @@ def _materializer_graph_required_return_shape(
     *,
     fan_in_source: bool,
 ) -> str:
-    # Phase 1 RESOLVED the fan-in TARGET fork: the closure (fan_in_target) shape is
-    # no longer synthesized here. The closure Brick return.yaml now DECLARES
-    # transition_concern_evidence in its primary required_return_shape, so the
-    # closure node derives its shape from the brick return.yaml via the registry
-    # default (exactly like the linear path) -- support no longer hardcodes it.
-    #
-    # Phase 2 RESOLVED the fan-in SOURCE shape (position-driven transform of the
-    # Brick's OWN declared shape -- support invents nothing):
-    #   The fan-in SOURCE (code-attack-qa / axis-attack-qa / evidence-integrity)
-    #   Brick return.yaml DECLARES its real fields (attacked_work / attacked_scope /
-    #   ...) INCLUDING transition_concern_evidence, which it legitimately carries in
-    #   its LINEAR positions. A fan-in SOURCE position forbids the Link-facing
-    #   transition_concern_evidence (qa_transition_concern_shape: closure-synthesis
-    #   is the single Link-facing concern source). So the source shape here is the
-    #   Brick's OWN registry-derived required_return_shape (the same comma-joined
-    #   field list the linear path defaults from) MINUS transition_concern_evidence.
-    #   We no longer emit the support-invented `concern_observations` literal (it was
-    #   not a Brick-declared field anywhere) and we no longer DISCARD the source
-    #   Brick's real declared fields. The fan-in TARGET (closure) is the one that
-    #   synthesizes the Link-facing transition_concern_evidence.
-    if fan_in_source:
-        return _materializer_strip_field(
-            _composition_optional_text(step_template.get("required_return_shape")) or "",
-            "transition_concern_evidence",
-        )
-    if step_template_ref == "building-step-template:work":
-        return "made_changes, observed_evidence, not_proven"
+    # Graph emit must not author or shrink a templated Brick return contract.
+    # Leaving this blank makes compose_building materialize required_return_shape
+    # from the step_template registry row, which plan_rendering derives from
+    # brick/templates/bricks/<kind>/return.yaml, and stamp carries_forward_fields
+    # from the same Brick template surface. Fan-in position changes Link carry, not
+    # the Brick return shape.
     return ""
 
 

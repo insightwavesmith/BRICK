@@ -9780,7 +9780,6 @@ def _assert_brick_cli_probe(label: str, completed: subprocess.CompletedProcess[s
 
 
 def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
-    from brick_protocol.support.operator.composition_compose import compose_building
     from brick_protocol.support.operator.composition_intent import materialize_building_intent
 
     parser = cli.build_parser()
@@ -10257,436 +10256,68 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
                 "brick_cli_entrypoint_smoke: graph render did not expose build_input_mode"
             )
 
-    with tempfile.TemporaryDirectory(prefix="bp-cli-large-invalid-") as tmp:
-        invalid_large_output = Path(tmp) / "must-not-exist"
-        invalid_large_args = parser.parse_args(
-            [
-                "build",
-                "--large",
-                "--task",
-                "large fixture task",
-                "--dev-lanes",
-                "1",
-                "--output-root",
-                str(invalid_large_output),
-            ]
+        forbidden_graph_packet = dict(graph_packet)
+        forbidden_graph_packet["nodes"] = [
+            {
+                "node_ref": "node:work",
+                "step_ref": "cli-graph-work",
+                "step_template_ref": "building-step-template:work",
+                "required_return_shape": "observed_evidence, not_proven",
+                "brick": {
+                    "work_statement": "forbidden graph fixture",
+                    "carries_forward_fields": "observed_evidence",
+                },
+            }
+        ]
+        forbidden_graph_path = Path(packet_tmp) / "forbidden-graph.json"
+        forbidden_graph_path.write_text(
+            json.dumps(forbidden_graph_packet, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        forbidden_graph_args = parser.parse_args(
+            ["build", "--graph", str(forbidden_graph_path), "--json"]
         )
         try:
-            cli._run_build(invalid_large_args)
+            cli._run_build(forbidden_graph_args)
         except ValueError as exc:
-            if "--dev-lanes must be an integer from 2 through 8" not in str(exc):
+            message = str(exc)
+            if "customer graph_packet may not author Brick template-owned field" not in message:
                 raise ProfileError(
-                    "brick_cli_entrypoint_smoke: --dev-lanes 1 rejected "
-                    f"with wrong reason: {exc}"
+                    "brick_cli_entrypoint_smoke: forbidden graph return-shape "
+                    f"override rejected with wrong reason: {exc}"
                 ) from exc
+            for required_offender in (
+                "cli-graph-work.required_return_shape",
+                "cli-graph-work.carries_forward_fields",
+            ):
+                if required_offender not in message:
+                    raise ProfileError(
+                        "brick_cli_entrypoint_smoke: forbidden graph override "
+                        f"did not report {required_offender!r}: {message}"
+                    )
         else:
-            raise ProfileError("brick_cli_entrypoint_smoke: --dev-lanes 1 was accepted")
-        if invalid_large_output.exists():
             raise ProfileError(
-                "brick_cli_entrypoint_smoke: invalid --large invocation created "
-                "output_root before lower-bound validation"
+                "brick_cli_entrypoint_smoke: graph packet author-required_return_shape "
+                "override was accepted"
             )
 
-    for lane_count in (2, 3, 8):
-        building_id = f"cli-large-{lane_count}"
-        lane_args = parser.parse_args(
-            [
-                "build",
-                "--large",
-                "--task",
-                "large fixture task",
-                "--building-id",
-                building_id,
-                "--adapter",
-                "adapter:codex-local",
-                "--dev-lanes",
-                str(lane_count),
-            ]
-        )
-        lane_packet = cli._p3_easy_large_graph_packet(lane_args)
-        packet_text = json.dumps(lane_packet, sort_keys=True)
-        expected_large_metadata = {
-            "large_mode_kind": "fallback_convenience_graph_generator",
-            "large_task_aware_sizing_selection": "not_automatic",
-            "large_not_source_truth": True,
-            "large_not_final_p3": True,
-            "official_input_modes": ["preset_task", "graph_packet"],
-        }
-        observed_large_metadata = {
-            key: lane_packet.get(key) for key in expected_large_metadata
-        }
-        if observed_large_metadata != expected_large_metadata:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large packet lost fallback/convenience "
-                f"metadata: {observed_large_metadata!r}"
-            )
-        caveat = str(lane_packet.get("large_mode_caveat") or "")
-        for required_caveat in (
-            "fallback/convenience graph generator only",
-            "task-aware sizing/selection is not automatic",
-            "large is not source truth or final P3",
-            "large is not the completed task-aware Easy Building product",
-            "preset/task plus graph packet remain the official input modes",
-        ):
-            if required_caveat not in caveat:
-                raise ProfileError(
-                    "brick_cli_entrypoint_smoke: --large packet caveat lost "
-                    f"{required_caveat!r}: {caveat!r}"
-                )
-        if "adapter:gemini-api" in packet_text:
-            raise ProfileError("brick_cli_entrypoint_smoke: --large packet revived adapter:gemini-api")
-        if lane_packet.get("dev_lanes") != lane_count:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large packet recorded wrong dev_lanes "
-                f"for {lane_count}: {lane_packet.get('dev_lanes')!r}"
-            )
-        groups = lane_packet.get("groups")
-        if not isinstance(groups, list) or len(groups) != 4:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large packet must declare dev and final "
-                "QA fan_out/fan_in groups"
-            )
-        group_members = {
-            str(group.get("group_id") or ""): group.get("member_refs")
-            for group in groups
-            if isinstance(group, Mapping)
-        }
-        expected_dev_fan_out = [
-            f"edge:{building_id}-plan-confirmation-to-dev-lane-{lane}"
-            for lane in range(1, lane_count + 1)
-        ]
-        expected_dev_fan_in = [
-            f"edge:{building_id}-dev-lane-{lane}-qa-to-integration-summary"
-            for lane in range(1, lane_count + 1)
-        ]
-        expected_final_fan_out = [
-            f"edge:{building_id}-integration-summary-to-final-codex-code-qa",
-            f"edge:{building_id}-integration-summary-to-final-gemini-axis-evidence-qa",
-        ]
-        expected_final_fan_in = [
-            f"edge:{building_id}-final-codex-code-qa-to-codex-closure",
-            f"edge:{building_id}-final-gemini-axis-evidence-qa-to-codex-closure",
-        ]
-        expected_group_members = {
-            f"group:{building_id}-dev-fan-out": expected_dev_fan_out,
-            f"group:{building_id}-dev-fan-in": expected_dev_fan_in,
-            f"group:{building_id}-final-qa-fan-out": expected_final_fan_out,
-            f"group:{building_id}-final-qa-fan-in": expected_final_fan_in,
-        }
-        if group_members != expected_group_members:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large fan group membership drifted "
-                f"for {lane_count} lanes: {group_members!r}"
-            )
-        packet_edges = {
-            (
-                str(edge.get("edge_ref") or ""),
-                str(edge.get("source") or ""),
-                str(edge.get("target") or ""),
-            )
-            for edge in lane_packet.get("edges", [])
-            if isinstance(edge, Mapping)
-        }
-        expected_final_edge_tuples = {
-            (
-                expected_final_fan_out[0],
-                f"{building_id}-integration-summary",
-                f"{building_id}-final-codex-code-qa",
-            ),
-            (
-                expected_final_fan_out[1],
-                f"{building_id}-integration-summary",
-                f"{building_id}-final-gemini-axis-evidence-qa",
-            ),
-            (
-                expected_final_fan_in[0],
-                f"{building_id}-final-codex-code-qa",
-                f"{building_id}-codex-closure",
-            ),
-            (
-                expected_final_fan_in[1],
-                f"{building_id}-final-gemini-axis-evidence-qa",
-                f"{building_id}-codex-closure",
-            ),
-        }
-        if not expected_final_edge_tuples.issubset(packet_edges):
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large packet did not declare "
-                f"parallel final QA fan-out/fan-in edges: {packet_edges!r}"
-            )
-        serial_final_edge = (
-            f"edge:{building_id}-final-codex-code-qa-to-final-gemini-axis-evidence-qa",
-            f"{building_id}-final-codex-code-qa",
-            f"{building_id}-final-gemini-axis-evidence-qa",
-        )
-        if serial_final_edge in packet_edges:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large packet kept serial "
-                "Codex-QA-to-Gemini-QA final edge"
-            )
-        if "adapter:gemini-local" not in packet_text:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large packet did not include final "
-                "adapter:gemini-local axis/evidence QA"
-            )
-        expected_gemini_nodes = {
-            f"{building_id}-design-axis-inspect",
-            f"{building_id}-final-gemini-axis-evidence-qa",
-        }
-        packet_node_adapters = {
-            str(node.get("step_ref") or node.get("node_id") or ""): str(
-                node.get("selected_adapter_ref") or ""
-            )
-            for node in lane_packet.get("nodes", [])
-            if isinstance(node, Mapping)
-        }
-        blank_packet_adapters = [
-            step_ref for step_ref, adapter_ref in packet_node_adapters.items() if not adapter_ref
-        ]
-        if blank_packet_adapters:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large packet left selected_adapter_ref "
-                f"implicit for nodes: {blank_packet_adapters!r}"
-            )
-        observed_gemini_nodes = {
-            step_ref
-            for step_ref, adapter_ref in packet_node_adapters.items()
-            if adapter_ref == "adapter:gemini-local"
-        }
-        if observed_gemini_nodes != expected_gemini_nodes:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large packet must keep "
-                "adapter:gemini-local only on design/final axis-evidence QA, "
-                f"got {observed_gemini_nodes!r}"
-            )
-        non_gemini_packet_adapters = {
-            step_ref: adapter_ref
-            for step_ref, adapter_ref in packet_node_adapters.items()
-            if step_ref not in expected_gemini_nodes
-            and adapter_ref != "adapter:codex-local"
-        }
-        if non_gemini_packet_adapters:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large packet placed non-Codex "
-                f"adapters on non-axis-QA nodes: {non_gemini_packet_adapters!r}"
-            )
-        try:
-            composed_large_plan = compose_building(
-                lane_packet["nodes"],
-                lane_packet["edges"],
-                groups=lane_packet["groups"],
-                selected_shape_ref=str(lane_packet.get("selected_shape_ref") or ""),
-                declared_by=str(lane_packet["declared_by"]),
-                chain_preset_ref="",
-                building_id=str(lane_packet["building_id"]),
-                selected_adapter_ref=str(lane_packet["selected_adapter_ref"]),
-                selected_model_ref=str(lane_packet["selected_model_ref"]),
-                transition_concern_adoption=str(lane_packet["transition_concern_adoption"]),
-                repo_root=repo,
-            )
-        except Exception as exc:  # noqa: BLE001 - checker reports exact composition symptom
-            raise ProfileError(
-                f"brick_cli_entrypoint_smoke: --large --dev-lanes {lane_count} "
-                f"did not compose through the graph seam: {exc}"
-            ) from exc
-        composed_groups = composed_large_plan.get("groups")
-        if not isinstance(composed_groups, list):
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large composed plan did not carry groups"
-            )
-        composed_group_members = {
-            str(group.get("group_id") or ""): group.get("member_refs")
-            for group in composed_groups
-            if isinstance(group, Mapping)
-        }
-        if composed_group_members != expected_group_members:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large composed plan fan group "
-                f"membership drifted for {lane_count} lanes: {composed_group_members!r}"
-            )
-        composed_edges = {
-            (
-                str(edge.get("edge_ref") or ""),
-                str(edge.get("source_step_ref") or edge.get("source") or ""),
-                str(edge.get("target_step_ref") or edge.get("target") or ""),
-            )
-            for edge in composed_large_plan.get("link_edges", [])
-            if isinstance(edge, Mapping)
-        }
-        if not expected_final_edge_tuples.issubset(composed_edges):
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large composed plan did not carry "
-                f"parallel final QA fan-out/fan-in edges: {composed_edges!r}"
-            )
-        if serial_final_edge in composed_edges:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large composed plan kept serial "
-                "Codex-QA-to-Gemini-QA final edge"
-            )
-        composed_step_adapters = {
-            str(step.get("step_ref") or ""): str(step.get("selected_adapter_ref") or "")
-            for step in composed_large_plan.get("brick_steps", [])
-            if isinstance(step, Mapping)
-        }
-        blank_composed_adapters = [
-            step_ref for step_ref, adapter_ref in composed_step_adapters.items() if not adapter_ref
-        ]
-        if blank_composed_adapters:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large composed plan left "
-                "selected_adapter_ref implicit for steps: "
-                f"{blank_composed_adapters!r}"
-            )
-        composed_gemini_steps = {
-            step_ref
-            for step_ref, adapter_ref in composed_step_adapters.items()
-            if adapter_ref == "adapter:gemini-local"
-        }
-        if composed_gemini_steps != expected_gemini_nodes:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large composed plan must keep "
-                "adapter:gemini-local only on design/final axis-evidence QA, "
-                f"got {composed_gemini_steps!r}"
-            )
-        non_gemini_composed_adapters = {
-            step_ref: adapter_ref
-            for step_ref, adapter_ref in composed_step_adapters.items()
-            if step_ref not in expected_gemini_nodes
-            and adapter_ref != "adapter:codex-local"
-        }
-        if non_gemini_composed_adapters:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large composed plan placed "
-                "non-Codex adapters on non-axis-QA steps: "
-                f"{non_gemini_composed_adapters!r}"
-            )
-
-    with tempfile.TemporaryDirectory(prefix="bp-cli-large-home-") as home_tmp:
-        large_call: dict[str, Any] = {}
-
-        class FakeLargeResult:
-            building_id = "cli-large-wrapper"
-            isolation_mode = "worktree"
-            isolation_reason = "checker synthetic"
-            base_sha = "abc123"
-            worktree_path = "/tmp/checker-large-worktree"
-            evidence_root = "/Users/smith/.brick/project/brick-protocol/buildings/cli-large-wrapper"
-            frontier_kind = "agent_incomplete"
-            commit_sha = ""
-            worktree_disposed = True
-            intake_result = None
-
-        original_graph_runner = cli.run_customer_graph_building_in_sandbox
-        old_home = os.environ.get("HOME")
-        try:
-            os.environ["HOME"] = home_tmp
-
-            def fake_large_runner(packet: Mapping[str, Any], **kwargs: Any) -> FakeLargeResult:
-                large_call["packet"] = dict(packet)
-                large_call["kwargs"] = dict(kwargs)
-                return FakeLargeResult()
-
-            cli.run_customer_graph_building_in_sandbox = fake_large_runner
-            large_build_args = parser.parse_args(
-                [
-                    "build",
-                    "--large",
-                    "--task",
-                    "large wrapper task",
-                    "--building-id",
-                    "cli-large-wrapper",
-                    "--dev-lanes",
-                    "3",
-                    "--json",
-                ]
-            )
-            large_result = cli._run_build(large_build_args)
-        finally:
-            cli.run_customer_graph_building_in_sandbox = original_graph_runner
-            if old_home is None:
-                os.environ.pop("HOME", None)
-            else:
-                os.environ["HOME"] = old_home
-
-        if large_result.get("build_input_mode") != "p3_easy_large_graph":
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large build did not expose "
-                "build_input_mode=p3_easy_large_graph"
-            )
-        if large_result.get("large_mode_kind") != "fallback_convenience_graph_generator":
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large result lost fallback/convenience marker"
-            )
-        if large_result.get("official_input_modes") != ["preset_task", "graph_packet"]:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large result lost official input modes"
-            )
-        result_caveat = str(large_result.get("large_mode_caveat") or "")
-        if (
-            "task-aware sizing/selection is not automatic" not in result_caveat
-            or "large is not source truth or final P3" not in result_caveat
-            or "large is not the completed task-aware Easy Building product" not in result_caveat
-        ):
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large result lost task-aware/source-truth caveat"
-            )
-        if large_result.get("dev_lanes") != 3:
-            raise ProfileError("brick_cli_entrypoint_smoke: --large result lost dev_lanes")
-        if str(large_call.get("kwargs", {}).get("output_root")) != expected_root:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large graph wrapper dispatch did not "
-                "receive the active Slack-facing vessel root"
-            )
-        if large_call.get("kwargs", {}).get("customer_repo_root") != repo:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large graph wrapper dispatch did not receive repo root"
-            )
-        if large_call.get("packet", {}).get("dev_lanes") != 3:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large graph wrapper dispatch did not "
-                "receive declared dev_lanes"
-            )
-        rendered_large = cli._render_build(large_result)
-        if "build_input_mode: p3_easy_large_graph" not in rendered_large:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large render did not expose build_input_mode"
-            )
-        for required_render in (
-            "large_mode_kind: fallback_convenience_graph_generator",
-            "task-aware sizing/selection is not automatic",
-            "large is not source truth or final P3",
-            "large is not the completed task-aware Easy Building product",
-            "official_input_modes: preset_task, graph_packet",
-        ):
-            if required_render not in rendered_large:
-                raise ProfileError(
-                    "brick_cli_entrypoint_smoke: --large render lost caveat "
-                    f"{required_render!r}; rendered={rendered_large!r}"
-                )
-
-    help_stdout = io.StringIO()
+    large_stderr = io.StringIO()
     try:
-        with contextlib.redirect_stdout(help_stdout):
-            parser.parse_args(["build", "--help"])
-    except SystemExit as exc:
-        if exc.code not in (0, None):
-            raise ProfileError(
-                f"brick_cli_entrypoint_smoke: build --help exited {exc.code}"
-            ) from exc
+        with contextlib.redirect_stderr(large_stderr):
+            parser.parse_args(["build", "--large", "--task", "large fixture task"])
+    except SystemExit:
+        pass
     else:
-        raise ProfileError("brick_cli_entrypoint_smoke: build --help did not exit")
-    build_help = " ".join(help_stdout.getvalue().split())
-    for required_help in (
-        "Fallback convenience graph generator only",
-        "task-aware sizing/selection is not automatic",
-        "--large is not source truth, final P3, or the completed task-aware Easy Building product",
-        "Preset/task and graph packet remain official modes",
-    ):
-        if required_help not in build_help:
-            raise ProfileError(
-                "brick_cli_entrypoint_smoke: --large help lost caveat "
-                f"{required_help!r}; help={build_help!r}"
-            )
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: --large became a public official build mode"
+        )
+
+    large_packet_builder = getattr(cli, "_p3_easy_large_graph_packet", None)
+    if large_packet_builder is not None:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: hidden _p3_easy_large_graph_packet helper "
+            "must stay absent/fail-closed; official input modes are preset_task and graph_packet"
+        )
 
     conflict_args = parser.parse_args(
         ["build", "--graph", str(graph_path), "--task", "also task"]

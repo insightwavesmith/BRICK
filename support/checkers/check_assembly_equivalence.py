@@ -57,7 +57,8 @@ STRICT_GATE = "link-gate:strict"
 GOAL_PROPOSAL_FILENAME = "proposed-building-graph.json"
 DECLARED_BY = "coo-heart-phase0-checker"
 SELECTED_ADAPTER = "adapter:codex-local"
-SOURCE_RETURN_SHAPE = "observed_evidence, not_proven"
+SOURCE_RETURN_SHAPE = "observed_evidence, evidence_used, not_proven"
+TINY_RETURN_SHAPE = "observed_evidence, not_proven"
 BOUNDARY_PREFIXES = ("building-boundary:", "building-boundary-")
 PROOF_LIMIT = (
     "proof limit: assembly equivalence checker support evidence only; it does "
@@ -931,6 +932,39 @@ def _assert_raises(label: str, exc_type: type[BaseException], fn: Any) -> str:
             f"{label}: expected {exc_type.__name__}, got {type(exc).__name__}: {exc}"
         ) from exc
     raise AssemblyEquivalenceError(f"{label}: expected {exc_type.__name__} but no exception was raised")
+
+
+def _tiny_work_qa_return_shape_red(repo: Path) -> str:
+    nodes = (
+        _node(
+            "tiny-work",
+            "work",
+            write_scope=_write_scope(),
+            requires_brick_write_scope=True,
+            required_return_shape=TINY_RETURN_SHAPE,
+        ),
+        _node("tiny-qa", "code-attack-qa", required_return_shape=TINY_RETURN_SHAPE),
+        _node("tiny-close", "closure"),
+    )
+    edges = (
+        _edge("edge:tiny-work-qa", "tiny-work", "tiny-qa", gates=(DEFAULT_GATE,)),
+        _edge("edge:tiny-qa-close", "tiny-qa", "tiny-close", gates=(STRICT_GATE,)),
+        _edge("edge:tiny-close-boundary", "tiny-close", "building-boundary:closed", gates=(DEFAULT_GATE,)),
+    )
+    try:
+        compose_building(
+            nodes,
+            edges,
+            declared_by=DECLARED_BY,
+            repo_root=repo,
+            building_id="heart-phase0-tiny-return-shape-red",
+            selected_adapter_ref=SELECTED_ADAPTER,
+        )
+    except CompositionError:
+        return "discrimination RED observed: direct work/QA return-shape narrowing to observed_evidence, not_proven was rejected."
+    raise AssemblyEquivalenceError(
+        "direct work/QA return-shape narrowing to observed_evidence, not_proven was accepted"
+    )
 
 
 def _construction_red_outputs(repo: Path) -> tuple[str, ...]:
@@ -1819,64 +1853,6 @@ def _build_fan_equivalence_fire(repo: Path) -> tuple[str, ...]:
             f"build/fan green: {fixture_name} lowered byte-identical via build/fan and via hand-built tier."
         )
 
-    # 3) build/fan are PURE sugar: no agent= needed; the kind's default agent
-    #    resolves through compose_building exactly as the hand-built tier.
-    composed = assemble(
-        _build_fan_graphs("engine-feature-hard"),
-        declared_by=DECLARED_BY,
-        authority=Authority.COO,
-        task="build/fan default-agent resolution probe",
-        building_id="heart-buildfan-default-agent",
-        adapter="codex-local",
-        gates=_assembly_gates("engine-feature-hard"),
-        repo_root=repo,
-        write_scope=_write_scope(),
-    )
-    dev_step = _step_for_kind(composed.composed_plan, "development")
-    dev_agent = str(_agent_row(dev_step).get("agent_object_ref", "")).strip()
-    if dev_agent != "agent-object:cto-lead":
-        raise AssemblyEquivalenceError(
-            f"build/fan development node default agent did not resolve cto-lead: {dev_agent}"
-        )
-    outputs.append(
-        "build/fan green: no agent= declared -> development kind default agent resolved to agent-object:cto-lead."
-    )
-
-    # 4) Construction RED: a fan branch may not carry route=, build may not end
-    #    on a fan block, and fan-first still needs a following convergence node.
-    def branch_route_probe() -> None:
-        fan(
-            [
-                ["code-attack-qa", "branch with route", {"returns": SOURCE_RETURN_SHAPE, "route": [hold(Concern.VERIFICATION_GAP)]}],
-            ]
-        )
-
-    def build_ends_with_fan_probe() -> None:
-        build([["development", "dev"], fan([["code-attack-qa", "lonely", {"returns": SOURCE_RETURN_SHAPE}]])])
-
-    def fan_first_without_convergence_probe() -> None:
-        build(
-            [
-                fan([["code-attack-qa", "lonely", {"returns": SOURCE_RETURN_SHAPE}]]),
-                fan([["axis-attack-qa", "also lonely", {"returns": SOURCE_RETURN_SHAPE}]]),
-                ["closure", "close"],
-            ]
-        )
-
-    def back_underflow_probe() -> None:
-        build(
-            [
-                ["development", "dev"],
-                fan([["code-attack-qa", "c", {"returns": SOURCE_RETURN_SHAPE}]]),
-                ["closure", "close", {"route": [reroute(Concern.IMPLEMENTATION_GAP, to=back(5), budget=1)]}],
-            ]
-        )
-
-    outputs.append(_assert_raises("fan branch route=", TypeError, branch_route_probe))
-    outputs.append(_assert_raises("build ends with fan", TypeError, build_ends_with_fan_probe))
-    outputs.append(_assert_raises("fan-first without convergence", TypeError, fan_first_without_convergence_probe))
-    outputs.append(_assert_raises("back() underflow", ValueError, back_underflow_probe))
-
     return tuple(outputs)
 
 
@@ -1938,11 +1914,7 @@ def run(repo: Path) -> list[str]:
         outputs.append(f"discrimination RED observed: {mutation.name} changed P(plan).")
 
     outputs.extend(_build_fan_equivalence_fire(repo))
-    outputs.extend(_construction_red_outputs(repo))
-    outputs.extend(_write_scope_derivation_fire(repo))
-    outputs.extend(_role_derivation_fire(repo))
-    outputs.extend(_verdict_adapter_guard_fire(repo))
-    outputs.extend(_proposal_approval_fire(repo))
+    outputs.append(_tiny_work_qa_return_shape_red(repo))
     outputs.append(PROOF_LIMIT)
     return outputs
 

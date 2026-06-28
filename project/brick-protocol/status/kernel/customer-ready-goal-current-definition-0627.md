@@ -135,6 +135,86 @@ work
 
 ## Phase Plan
 
+Phase plan documents are split one file per phase. They are symbolic support
+links from this goal record, not source truth or Movement authority:
+
+```text
+P2: project/brick-protocol/status/kernel/customer-ready-p2-capability-taxonomy-plan-0628.md
+P3: project/brick-protocol/status/kernel/customer-ready-p3-easy-building-official-route-plan-0628.md
+P4: project/brick-protocol/status/kernel/customer-ready-p4-resume-fanout-plan-0628.md
+P5: project/brick-protocol/status/kernel/customer-ready-p5-first-run-official-route-plan-0628.md
+P6: project/brick-protocol/status/kernel/customer-ready-p6-cleanup-godmodule-plan-0628.md
+```
+
+## Execution Contract
+
+Before doing work for P2-P6, the operator must read the linked phase plan for
+that phase and treat it as the active support plan for scope, known gaps, exit
+checks, and proof limits. The linked plan is not source truth; it is the required
+operating packet to consult before touching code, checker, Brick template, Agent
+resource, Link policy, documentation, or Building declaration.
+
+Work routing:
+
+```text
+planning / attack review / inventory / operator reconciliation:
+  may use direct inspection and native subagents.
+  Codex must re-check subagent claims against files, diffs, raw evidence, and
+  checker surfaces before adopting them.
+  Subagents are closed after their result is collected.
+
+P2 and later phase implementation discipline:
+  After P2 work is underway, Codex does not act as the direct implementation
+  worker for phase code/resource/checker changes. Codex operates the work:
+  split the task to native subagents or, from P3 onward, to official Building
+  Agents; collect their returned evidence; then independently re-check files,
+  diffs, raw evidence, step-output, checker output, and phase-plan invariants.
+  Codex's active context is reserved for judgment, reconciliation, and Movement
+  reporting, not for becoming the worker lane.
+
+implementation / QA / closure for customer-facing Building behavior:
+  use the official Building route when a Building is the requested work form.
+  From P3 onward, implementation / QA / closure must run only through the
+  official Building route:
+  brick build -> cli/driver -> Builder/materializer -> declared Building Plan
+  -> run.py/graph walker -> raw/evidence/frontier/Slack.
+  Do not bypass those surfaces with direct build(), internal helper calls,
+  hand-built runner calls, or operator-authored return-shape/ref injection.
+
+small operator review after a Building:
+  may be direct, but must inspect raw, step-output, diff, checker output, and
+  evidence root before reporting Movement.
+```
+
+Problem handling protocol:
+
+```text
+Evidence first:
+Problem definition:
+Brick question:
+  Is the work contract, template, Building Plan, return shape, or graph/preset
+  declaration wrong or incomplete?
+Agent question:
+  Did the performer, Agent Object, tool policy, adapter grant, receipt, or
+  returned AgentFact lack the required facts/capability?
+Link question:
+  Did Movement, target, carry, gate sufficiency, fan-in/fan-out handoff,
+  transition concern, or reroute/replay policy fail to carry the work?
+Support surface:
+  Which support file/tool/checker/adapter/reporter projected the issue?
+Rejected one-axis shortcut:
+  Do not patch "prompt", "checker", "adapter", "graph", or "docs" by name until
+  Brick, Agent, and Link candidates have evidence or are explicitly missing.
+Chosen repair surface:
+Verification before Movement:
+Movement:
+  forward | reroute only. HOLD is lifecycle/frontier state, not Link Movement.
+```
+
+If any Brick / Agent / Link evidence row is missing, choose HOLD for closure and
+name the exact evidence to collect. If implementation is still needed, route to
+the next declared Brick boundary rather than ad hoc patching.
+
 ### P0 - Freeze And Evidence Inventory
 
 Freeze the live worktree, C6 evidence roots, raw frontier, dirty files, and stale
@@ -161,7 +241,7 @@ AND observed-write adapter capability
 `adapter:gemini-api` remains read/review only. Missing or empty
 `tool_policy_refs` fail closed.
 
-### P2 - Agent Casting And Preset Recast
+### P2 - Agent Casting, Preset Recast, And Capability Taxonomy
 
 Remove active Claude dependency for the weekend path and recast Agent YAML,
 presets, skills, and materialized plans to Codex/Gemini.
@@ -174,9 +254,78 @@ Gemini QA = axis-attack-qa
 review / inspect are not QA substitutes
 ```
 
-Exit requires generated active plans to show the dual QA lanes and Codex closure.
+P2 also owns the capability taxonomy split. Do not keep reasoning in the old
+binary "read/write" frame. Brick NEED, Agent max policy, and Adapter native grant
+must separate these three classes:
 
-### P3 - Easy Building / C6 Launch Surface
+```text
+read:
+  inspect repo/evidence/diff/raw/step-output.
+  No file/content mutation.
+
+probe_write / verification_write:
+  write only disposable verification material:
+  W1 work-area files, temp/cache, checker output, synthetic fixtures,
+  negative-probe results, generated probe output.
+  This is "write-capable read/verification", not product/source mutation.
+
+source_write / artifact_write:
+  write the actual requested artifact:
+  source files, app code, docs/specs intended as deliverables, deployment
+  artifacts, or any repo/product file the customer asked BRICK to create/change.
+```
+
+Three-axis placement:
+
+```text
+Brick:
+  declares the needed class for the Brick kind / node.
+  inspect/review = read.
+  code-attack-qa / axis-attack-qa / evidence-integrity = probe_write when
+  real checker/probe execution requires disposable writes.
+  work / implementation / product-doc writing = source_write or artifact_write.
+
+Agent:
+  declares max admissible capability by tool policy.
+  reviewer lanes may receive probe_write capability but must not source_write.
+  worker/lead lanes may receive source_write only when the Brick declares that
+  need and the Link road sends them to a work boundary.
+
+Adapter:
+  translates the semantic class to provider-native sandbox/tool projection.
+  Gemini-local must have the same semantic classes as Codex-local where the CLI
+  can technically support them.
+  Gemini-api remains outside active write/probe-write path.
+```
+
+Required P2 implementation direction:
+
+```text
+- replace binary read/write language where it controls behavior
+- add/keep checker coverage proving reviewer source mutation is RED
+- allow QA/Inspector probe_write for real checkers/fixtures/temp outputs
+- keep source_write/artifact_write for work/product Bricks only
+- ordinary checker/profile sweeps must not live-call Gemini or any provider
+- do not create new Movement, route authority, scheduler, queue, or source truth
+```
+
+Current partial implementation evidence:
+
+```text
+agent/tool_policies/read-write-scoped.yaml already names probe_write and
+reviewer source_write prohibition.
+code-attack-qa / axis-attack-qa / evidence-integrity Brick bodies already tell
+reviewers to use disposable W1 probe writes and forbid source mutation.
+The remaining P2 work is to make this a first-class capability class across
+Brick declarations, Agent policy resolution, Adapter grant projection, and
+focused negative checkers.
+```
+
+Exit requires generated active plans to show the dual QA lanes, Codex closure,
+and the capability class of each lane without collapsing QA probe writes into
+source_write.
+
+### P3 - Easy Building / Official Route Surface
 
 Current core phase.
 
@@ -192,8 +341,7 @@ or "this is big; design first, split it, and run lanes"
 -> Building runs with evidence
 ```
 
-The current `--large` surface is only an early fallback/default graph generator.
-It is preset-like, but it is not the final P3 goal:
+Canonical P3 inputs are official route inputs only:
 
 ```text
 preset:
@@ -201,31 +349,21 @@ preset:
 
 graph:
   explicit caller/COO-declared map for this run
-
-large:
-  convenience generator for a default "big work" graph
-  task intake -> design -> design-axis QA -> plan closure
-  -> parallel dev lanes -> lane QA -> fan-in
-  -> final Codex code QA + Gemini axis/evidence QA -> Codex closure
-
-target P3:
-  task-aware Easy Building
-  COO/Builder chooses simple preset, large fallback, or custom graph from the
-  observed task/design evidence
 ```
 
-Do not treat `large` as source truth, quality judgment, Movement authority, or
-the completed product surface. `large` is admissible only as a scaffold while
-P3 learns how to draw the Building road from the task.
+`--large` / `_p3_easy_large_*` is not canonical P3. If historical notes mention
+large graph behavior, treat that as stale scaffold/support evidence. P3 must use
+the official route to materialize a task-aware preset or graph.
 
 Context-compression guard:
 
 ```text
 If a future operator reads only a compressed summary, preserve this direction:
 P3 is "make Building easy to declare and run" like the Claude workflow surface.
-The operator must not collapse P3 into "hardcode one large graph" or "recast
-C6 to Codex/Gemini." The work is to make the official route accept an easy
-task/sizing/design declaration and then materialize the right preset or graph.
+The operator must not collapse P3 into "hardcode one large graph", "call a model
+directly", or "recast C6 to Codex/Gemini." The work is to make the official
+route accept an easy task/sizing/design declaration and then materialize the
+right preset or graph.
 ```
 
 P3 reasoning ledger:
@@ -280,8 +418,8 @@ Support:
   success/quality.
 ```
 
-Run the customer launch path through official Building evidence with the current
-weekend QA lanes:
+Run the customer launch path through official Building evidence. Weekend default
+QA lanes:
 
 ```text
 Codex work
@@ -291,8 +429,8 @@ Codex closure
 ```
 
 P3 may close only with raw/evidence proof or remain HOLD with an exact
-non-Claude blocker. Root-unification, Slack-visible evidence roots, and
-`--large` graph behavior are support slices inside P3, not the whole phase.
+non-Claude blocker. Root-unification and Slack-visible evidence roots are
+support slices inside P3, not the whole phase.
 
 ### P4 - Resume Surface Repair
 
@@ -315,38 +453,8 @@ write_scope honesty
 FIRST_USE delivery
 ```
 
-### P5.5 - Build Fluency Surface
-
-Make Building declaration and launch as fluent as the Claude workflow harness.
-
-Target authoring shape:
-
-```python
-qa = parallel([
-    brick("code-attack-qa", "..."),
-    brick("axis-attack-qa", "..."),
-])
-
-run(build([design, impl, qa, done]))
-```
-
-Scope:
-
-```text
-build([...]) as pipeline
-parallel([...]) / fan-first support
-auto alias and auto return lowering
-honest write=
-one-call run(build(...))
-per-node gate=
-```
-
-Constraint:
-
-```text
-closed Brick kind set stays closed
-no naked prompt / agent / checker node
-```
+Build fluency belongs to P3 and first-run delivery belongs to P5. Do not create a
+separate intermediate phase for this goal.
 
 ### P6 - Engine Cleanup / Godmodule Decomposition
 
@@ -434,7 +542,7 @@ This record does not prove:
 P3 C6 closure
 Gemini-local live provider success
 fresh-machine install/onboard
-Build Fluency P5.5 implementation
+P3 build fluency official-route implementation
 P6 godmodule cleanup
 P7/P8 customer-ready proof
 ```

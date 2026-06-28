@@ -552,24 +552,15 @@ def compose_building(
                 )
             )
 
-    # P1-1 fan-in required_return_shape is AUTHOR-REQUIRED for fan-in SOURCES only.
-    # Phase 1 split the two halves that used to be lumped together here:
-    #   * fan-in SOURCE (QA lanes): the U2-3 omit-default (kind PRIMARY return_template
-    #     shape) is still WRONG for a source, because a fan-in QA source must NOT carry
-    #     transition_concern_evidence yet its LINEAR-position return.yaml legitimately
-    #     declares it. So a SOURCE that omits required_return_shape still yields a clear
-    #     missing_brick_fields problem here (authoring time) -- behavior UNCHANGED.
-    #   * fan-in TARGET (closure): RESOLVED. The closure Brick return.yaml now DECLARES
-    #     transition_concern_evidence in its primary required_return_shape, so the
-    #     closure target derives its shape from the registry default (the brick
-    #     return.yaml) exactly like the linear path -- support no longer requires the
-    #     author to re-state it and no longer hardcodes it. The downstream
-    #     closure_transition_concern_shape_missing check (in
-    #     _composition_hard_graph_contract_problems) then validates that the
-    #     registry-derived target shape actually carries transition_concern_evidence,
-    #     reading the brick (not a deleted support literal).
-    # Non-fan-in nodes keep the U2-3 omit-default.
-    fan_in_shape_omitted_steps: set[str] = set()
+    # Fan-in SOURCES now keep the same templated Brick return shape as every other
+    # templated node: required_return_shape materializes from
+    # brick/templates/bricks/<kind>/return.yaml. Support must not shrink that Brick
+    # contract to control what Link carries; the carry seam uses the separate
+    # carries_forward_fields subset stamped on the Brick row. The legacy validator
+    # path still knows how to skip its old fan-in-source transition-concern guard via
+    # shape_omitted_steps, so reuse that suppression set for source-position rows
+    # whose Brick shape is intentionally template-owned rather than author-restated.
+    fan_in_source_template_shape_steps: set[str] = set()
     if isinstance(groups, Sequence) and not isinstance(groups, (str, bytes)) and groups:
         records_by_step = {str(record.get("step_ref")): record for record in node_records}
         fan_in_targets = _composition_fan_in_target_steps(edge_records, groups)
@@ -581,14 +572,7 @@ def compose_building(
             if record is None:
                 continue
             if not _composition_author_required_return_shape(record):
-                fan_in_shape_omitted_steps.add(step_ref)
-                problems.append(
-                    CompositionProblem(
-                        "missing_brick_fields",
-                        record.get("node_id") or step_ref,
-                        "missing Brick field(s): required_return_shape (fan-in lane)",
-                    )
-                )
+                fan_in_source_template_shape_steps.add(step_ref)
 
     if chain_preset is not None and _chain_preset_requires_fan_in_groups(chain_preset):
         problems.extend(
@@ -596,11 +580,11 @@ def compose_building(
                 node_records=node_records,
                 edge_records=edge_records,
                 groups=groups,
-                # A fan-in member that OMITTED required_return_shape already has a
-                # clear missing_brick_fields(fan-in lane) problem; suppress the
-                # confusing template-default-driven transition-concern codes for it
-                # so the author sees the clear message INSTEAD (design CHANGE 3).
-                shape_omitted_steps=fan_in_shape_omitted_steps,
+                # Fan-in sources whose shape came from the Brick template keep that
+                # full Brick-owned required_return_shape. Suppress only the old
+                # support-position rule that treated transition_concern_evidence as
+                # Link carry control; carries_forward_fields remains the carry filter.
+                shape_omitted_steps=fan_in_source_template_shape_steps,
             )
         )
 
@@ -909,9 +893,10 @@ def _composition_brick_row(
         "work_statement": _composition_optional_text(brick.get("work_statement")) or f"missing work statement for {node_id}",
         "comparison_rule": _composition_optional_text(brick.get("comparison_rule")) or template_comparison_rule or f"missing comparison rule for {node_id}",
         # Author value wins; else the kind's real return shape (when a
-        # step_template resolves); else, only with NO step_template, the
-        # last-resort literal (no-template branch preserved unchanged).
-        "required_return_shape": _composition_optional_text(brick.get("required_return_shape")) or template_required_return_shape or "observed_evidence, not_proven",
+        # step_template resolves). A no-template node without an authored shape is
+        # already rejected above; keep a loud marker only so the diagnostic row can
+        # be assembled before CompositionError is raised.
+        "required_return_shape": _composition_optional_text(brick.get("required_return_shape")) or template_required_return_shape or f"missing required return shape for {node_id}",
     }
     # Did the AUTHOR override required_return_shape? If so, the template's
     # carries_forward_fields (a subset of the TEMPLATE's shape) is NOT a valid
@@ -962,6 +947,15 @@ def _composition_brick_row(
     )
     if carries_forward:
         row["carries_forward_fields"] = carries_forward
+    template_capability_class = (
+        _composition_optional_text(step_template.get("capability_class"))
+        if isinstance(step_template, Mapping)
+        else None
+    )
+    author_capability_class = _composition_optional_text(brick.get("capability_class"))
+    capability_class = author_capability_class or (template_capability_class or "")
+    if capability_class:
+        row["capability_class"] = capability_class
     source_facts = brick.get("source_facts")
     if source_facts is not None:
         row["source_facts"] = list(_text_sequence(f"nodes[{index}].source_facts", source_facts))

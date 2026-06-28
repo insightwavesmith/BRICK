@@ -2,6 +2,9 @@
   "tool_policy_ref": "tool-policy:reviewer-readonly",
   "owner_axis": "Agent",
   "allowed_use": "read scoped files and run verification commands",
+  "semantic_capability_classes": [
+    "read"
+  ],
   "mutation_scope": "none unless an in-scope repair is separately assigned",
   "execution_opened": false,
   "native_grant": {

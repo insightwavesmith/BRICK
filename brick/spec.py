@@ -116,6 +116,11 @@ BRICK_ROW_ALLOWED_KEYS: frozenset[str] = frozenset(
         "source_facts",
         "raw_refs",
         "write_scope",
+        # Non-authoritative capability taxonomy label. This is Brick-owned
+        # declaration/support data for the work need (read / probe_write /
+        # source_write / artifact_write). It must not choose Movement, target,
+        # success, quality, or provider identity.
+        "capability_class",
         # EXPLICIT Brick write NEED marker: composition stamps
         # requires_brick_write_scope: true next to write_scope so strict run
         # admission (require_write_need_marker) can demand a DECLARED need instead

@@ -3,6 +3,7 @@ brick_kind: work
 brick_word: work
 performer_word: dev
 requires_brick_write_scope: yes
+capability_class: source_write
 performer_lane_need: worker
 agent_object_hint_ref: agent-object:dev
 required_return_template_refs:

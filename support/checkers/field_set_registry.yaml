@@ -400,6 +400,7 @@ field_sets:
       - source_facts
       - raw_refs
       - write_scope
+      - capability_class
       - requires_brick_write_scope
 
   # AGENT-OBJECT key/ref/forbidden SCHEMA — sealed by a DEDICATED guard, not this

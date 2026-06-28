@@ -79,6 +79,14 @@ _ALLOWED_MODES = {_MODE_STATIC, _MODE_POLICY, "mode1", "mode2"}
 _CANDIDATE_REF_PREFIXES = ("building-boundary:", "brick:", "brick-", "brick-boundary:", "brick-instance:")
 _DECLARED_ADOPTER_PREFIXES = ("coo:", "human:", "caller:", "link-policy:", "portfolio-policy:")
 _FORBIDDEN_ADOPTER_PREFIXES = ("support:", "agent:")
+_CUSTOMER_GRAPH_TEMPLATE_AUTHORITY_FIELDS = frozenset(
+    (
+        "required_return_shape",
+        "carries_forward_fields",
+        "brick_instruction_body",
+        "brick_template_refs",
+    )
+)
 
 
 @dataclass(frozen=True)
@@ -141,6 +149,49 @@ class CustomerSandboxRunResult:
     commit_sha: str  # "" unless frontier_kind == "complete" with a real change
     worktree_disposed: bool
     intake_result: BuildingIntakeRunResult | None = None
+
+
+def _customer_graph_node_items(value: Any) -> tuple[Mapping[str, Any], ...]:
+    if isinstance(value, Mapping):
+        items: list[Mapping[str, Any]] = []
+        for node_id, raw_node in value.items():
+            if isinstance(raw_node, Mapping):
+                merged = dict(raw_node)
+                merged.setdefault("node_id", str(node_id))
+                items.append(merged)
+        return tuple(items)
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+        return tuple(item for item in value if isinstance(item, Mapping))
+    return ()
+
+
+def _reject_customer_graph_template_authority_overrides(packet: Mapping[str, Any]) -> None:
+    """Fail closed when customer graph input re-authors Brick template-owned fields.
+
+    The customer graph route lets caller/COO choose the road: node kind, node order,
+    and Link edges. Brick templates still own instruction bodies, template refs,
+    required return shape, and carry subsets. Expert/internal composition helpers
+    can use ``compose_building`` directly; the customer sandbox graph wrapper cannot
+    accept those overrides.
+    """
+
+    offenders: list[str] = []
+    for index, node in enumerate(_customer_graph_node_items(packet.get("nodes"))):
+        node_id = str(node.get("node_id") or node.get("step_ref") or f"nodes[{index}]")
+        locations = (node,)
+        raw_brick = node.get("brick")
+        if isinstance(raw_brick, Mapping):
+            locations = (node, raw_brick)
+        for location in locations:
+            for field in sorted(_CUSTOMER_GRAPH_TEMPLATE_AUTHORITY_FIELDS):
+                if field in location:
+                    offenders.append(f"{node_id}.{field}")
+    if offenders:
+        raise ValueError(
+            "customer graph_packet may not author Brick template-owned field(s): "
+            + ", ".join(offenders)
+            + "; choose step_template_ref/kind and let brick.md/return.yaml materialize"
+        )
 
 
 @dataclass(frozen=True)
@@ -591,6 +642,8 @@ def run_customer_graph_building_in_sandbox(
     ``run_composed_graph_intake`` seam. It does not invent nodes, edges, gates,
     Movement, route targets, success, or quality.
     """
+
+    _reject_customer_graph_template_authority_overrides(packet)
 
     repo = Path(customer_repo_root).resolve()
     durable_output = Path(output_root).resolve()

@@ -1,0 +1,88 @@
+{
+  "task_statement": "CR.v3 P2 official replay. Re-materialize the prior official P2 candidate commit 5a191ef0e14b470ac58df22ab5fae575e7fe92e8 onto live HEAD cf08c6915f4e6f7671c60fd61f726df16c5e4437, limited to support/checkers/lib/case_runners.py, support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml, support/connection/building_design_toolkit.py, and support/operator/plan_rendering.py. Preserve P2 meaning: first-use provider readiness is support-observed, materialization/rendering exposes compatible Agent adapter candidates and preferred_adapter_ref/preferred_model_ref, adapter:gemini-local is the only active Gemini path, adapter:gemini-api stays retired, no credential body or provider session id is stored, and static Agent YAML is not blindly rewritten. QA must include Codex code/regression QA and Gemini-local axis/evidence QA. QA must not source-mutate.",
+  "declared_by": "coo codex operator",
+  "building_id": "cr-v3-p2-first-use-adapters-official-replay-0628b",
+  "selected_shape_ref": "building-shape:reviewable-work",
+  "selection_rule": "caller_or_coo_declared_only",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "nodes": [
+    {
+      "node_ref": "node:cr-v3-p2-replay-work",
+      "step_ref": "cr-v3-p2-replay-work",
+      "step_template_ref": "building-step-template:work",
+      "work_statement": "Apply the P2 candidate diff from commit 5a191ef0e14b470ac58df22ab5fae575e7fe92e8 or an equivalent narrow patch onto this Building worktree. Scope is only: support/checkers/lib/case_runners.py; support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml; support/connection/building_design_toolkit.py; support/operator/plan_rendering.py. Do not edit agent/objects or credential/session surfaces. Required behavior: render_agent_candidate_packet accepts optional selected_adapter_ref, rejects retired adapter:gemini-api and invalid refs, exposes selected_adapter_compatible and preferred_adapter_matches_selected without picking/ranking, and board/candidate rows expose adapter_refs, preferred_adapter_ref, preferred_model_ref. Add/keep focused checker coverage proving this.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/checkers/lib/case_runners.py",
+          "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml",
+          "support/connection/building_design_toolkit.py",
+          "support/operator/plan_rendering.py"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "agent/objects/**",
+          "agent/**/*.yaml"
+        ]
+      },
+      "required_return_shape": "observed_evidence, changed_files, not_proven, proof_limits"
+    },
+    {
+      "node_ref": "node:cr-v3-p2-codex-code-qa",
+      "step_ref": "cr-v3-p2-codex-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "work_statement": "Run read/probe-only Codex code/regression QA on the P2 replay diff. Inspect the four changed files, run or directly exercise render_agent_candidate_packet/candidate checker behavior, verify adapter:gemini-api rejection/absence, verify no static Agent YAML mutation, run git diff --check, and run focused profile coverage when possible. Return concrete observed_evidence. Do not edit/create/delete source files; source mutation by QA is HOLD.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "required_return_shape": "observed_evidence, changed_files, not_proven, proof_limits"
+    },
+    {
+      "node_ref": "node:cr-v3-p2-gemini-axis-qa",
+      "step_ref": "cr-v3-p2-gemini-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "work_statement": "Run Gemini-local axis/evidence QA for P2. Inspect the carried work and Codex QA evidence plus the changed-file list. Check Brick/Agent/Link separation: Brick work is first-use adapter observation/materialization, Agent owns adapter_refs and preferred_adapter_ref evidence only, Link/COO owns disposition and no support surface picks Movement or target. Check that adapter:gemini-local is the only active Gemini path, adapter:gemini-api remains retired, no credential body/session id storage is introduced, and QA did not source-mutate. Return non-empty observed_evidence with exact evidence refs or state why inspection was impossible under not_proven. Empty observed_evidence is not an acceptable QA return.",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default",
+      "required_return_shape": "observed_evidence, changed_files, not_proven, proof_limits"
+    },
+    {
+      "node_ref": "node:cr-v3-p2-codex-closure",
+      "step_ref": "cr-v3-p2-codex-closure",
+      "step_template_ref": "building-step-template:closure",
+      "work_statement": "Close P2 replay only after inspecting work, Codex QA, Gemini QA, raw/report delivery, and changed files. If Gemini QA observed_evidence is empty, report HOLD/NOT_PROVEN rather than closing. Summarize FORWARD/HOLD/REROUTE/NOT_PROVEN as support evidence only, not source truth, success judgment, quality judgment, or Movement authority.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "required_return_shape": "observed_evidence, remaining_delta, not_proven, proof_limits"
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:cr-v3-p2-replay-work-to-codex-code-qa",
+      "source": "cr-v3-p2-replay-work",
+      "target": "cr-v3-p2-codex-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:cr-v3-p2-codex-code-qa-to-gemini-axis-qa",
+      "source": "cr-v3-p2-codex-code-qa",
+      "target": "cr-v3-p2-gemini-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:cr-v3-p2-gemini-axis-qa-to-codex-closure",
+      "source": "cr-v3-p2-gemini-axis-qa",
+      "target": "cr-v3-p2-codex-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:cr-v3-p2-codex-closure-to-boundary",
+      "source": "cr-v3-p2-codex-closure",
+      "target": "building-boundary:cr-v3-p2-first-use-adapters-official-replay-0628b-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": []
+}

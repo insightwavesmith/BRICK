@@ -3,6 +3,7 @@ brick_kind: code-attack-qa
 brick_word: code_attack_qa
 performer_word: qa
 requires_brick_write_scope: yes
+capability_class: probe_write
 performer_lane_need: reviewer
 agent_object_hint_ref: agent-object:qa
 required_return_template_refs:

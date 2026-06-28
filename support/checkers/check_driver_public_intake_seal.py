@@ -18,8 +18,11 @@ from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _DRIVER_REL = Path("support/operator/driver.py")
+_OPERATOR_INIT_REL = Path("support/operator/__init__.py")
+_ONBOARD_REL = Path("support/operator/onboard.py")
 PUBLIC_BUILDING_MAKING_INTAKES = frozenset({"run_building_intake"})
 SEALED_INTERNAL_INTAKES = frozenset({"run_composed_graph_intake"})
+SEALED_HELPER_EXPORTS = frozenset({"launch_assembled_building"})
 ASSEMBLE_PUBLIC_SURFACE_OUT_OF_SCOPE = "support/operator/assembly.py::assemble"
 PROOF_LIMIT = (
     "proof limit: driver public-intake seal checker support evidence only; it "
@@ -34,14 +37,18 @@ class DriverPublicIntakeSealError(ValueError):
 
 
 def _parse_driver(repo: Path) -> tuple[ast.Module, str]:
-    path = repo / _DRIVER_REL
+    return _parse_python(repo, _DRIVER_REL)
+
+
+def _parse_python(repo: Path, relative: Path) -> tuple[ast.Module, str]:
+    path = repo / relative
     try:
         text = path.read_text(encoding="utf-8")
-        return ast.parse(text, filename=str(_DRIVER_REL)), text
+        return ast.parse(text, filename=str(relative)), text
     except OSError as exc:
-        raise DriverPublicIntakeSealError(f"could not read {_DRIVER_REL}: {exc}") from exc
+        raise DriverPublicIntakeSealError(f"could not read {relative}: {exc}") from exc
     except SyntaxError as exc:
-        raise DriverPublicIntakeSealError(f"{_DRIVER_REL} is not valid Python: {exc}") from exc
+        raise DriverPublicIntakeSealError(f"{relative} is not valid Python: {exc}") from exc
 
 
 def _literal_string_sequence(node: ast.AST, label: str) -> tuple[str, ...]:
@@ -55,27 +62,31 @@ def _literal_string_sequence(node: ast.AST, label: str) -> tuple[str, ...]:
     return tuple(values)
 
 
-def _driver_all_exports(module: ast.Module) -> tuple[str, ...]:
+def _all_exports(module: ast.Module, label: str) -> tuple[str, ...]:
     exports: tuple[str, ...] | None = None
     for node in module.body:
         if isinstance(node, ast.Assign) and any(
             isinstance(target, ast.Name) and target.id == "__all__" for target in node.targets
         ):
             if exports is not None:
-                raise DriverPublicIntakeSealError("driver.py has multiple __all__ assignments")
-            exports = _literal_string_sequence(node.value, "__all__")
+                raise DriverPublicIntakeSealError(f"{label} has multiple __all__ assignments")
+            exports = _literal_string_sequence(node.value, f"{label}.__all__")
         elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == "__all__":
             if exports is not None:
-                raise DriverPublicIntakeSealError("driver.py has multiple __all__ assignments")
+                raise DriverPublicIntakeSealError(f"{label} has multiple __all__ assignments")
             if node.value is None:
-                raise DriverPublicIntakeSealError("__all__ annotation has no value")
-            exports = _literal_string_sequence(node.value, "__all__")
+                raise DriverPublicIntakeSealError(f"{label}.__all__ annotation has no value")
+            exports = _literal_string_sequence(node.value, f"{label}.__all__")
     if exports is None:
-        raise DriverPublicIntakeSealError("driver.py has no __all__ assignment")
+        raise DriverPublicIntakeSealError(f"{label} has no __all__ assignment")
     duplicates = sorted({name for name in exports if exports.count(name) > 1})
     if duplicates:
-        raise DriverPublicIntakeSealError(f"driver.py __all__ has duplicate export(s): {duplicates}")
+        raise DriverPublicIntakeSealError(f"{label}.__all__ has duplicate export(s): {duplicates}")
     return exports
+
+
+def _driver_all_exports(module: ast.Module) -> tuple[str, ...]:
+    return _all_exports(module, "driver.py")
 
 
 def _defined_functions(module: ast.Module) -> frozenset[str]:
@@ -143,6 +154,29 @@ def _assert_mutation_red(exports: tuple[str, ...], defined_functions: frozenset[
     )
 
 
+def _assert_no_helper_public_export(repo: Path) -> str:
+    init_module, init_text = _parse_python(repo, _OPERATOR_INIT_REL)
+    onboard_module, onboard_text = _parse_python(repo, _ONBOARD_REL)
+    leaked_operator_exports = sorted(SEALED_HELPER_EXPORTS & set(_all_exports(init_module, "support/operator/__init__.py")))
+    leaked_onboard_exports = sorted(SEALED_HELPER_EXPORTS & set(_all_exports(onboard_module, "support/operator/onboard.py")))
+    leaked_reexport_defs = sorted(
+        helper for helper in SEALED_HELPER_EXPORTS if f"def {helper}" in init_text
+    )
+    if leaked_operator_exports or leaked_onboard_exports or leaked_reexport_defs:
+        raise DriverPublicIntakeSealError(
+            "customer route helper leaked as public export: "
+            f"operator_exports={leaked_operator_exports}, "
+            f"onboard_exports={leaked_onboard_exports}, "
+            f"operator_reexport_defs={leaked_reexport_defs}"
+        )
+    required_onboard_marker = "Internal/non-customer helper for an already-``assemble()``-d graph."
+    if required_onboard_marker not in onboard_text:
+        raise DriverPublicIntakeSealError(
+            "onboard.launch_assembled_building must be classified as an internal/non-customer helper"
+        )
+    return "mutation RED observed: launch_assembled_building public export remains sealed"
+
+
 def check(repo: Path) -> list[str]:
     module, _text = _parse_driver(repo)
     exports = _driver_all_exports(module)
@@ -150,12 +184,15 @@ def check(repo: Path) -> list[str]:
     _assert_docstring_seal(module)
     _assert_export_seal(exports, functions)
     mutation_line = _assert_mutation_red(exports, functions)
+    helper_export_line = _assert_no_helper_public_export(repo)
     return [
         "driver public-intake seal green: "
         f"making_intake_exports={sorted(_building_making_intake_exports(exports))}; "
         "run_composed_graph_intake not in __all__; "
+        "launch_assembled_building not public-exported as a customer route; "
         f"assembly_scope={ASSEMBLE_PUBLIC_SURFACE_OUT_OF_SCOPE}.",
         mutation_line,
+        helper_export_line,
         PROOF_LIMIT,
     ]
 

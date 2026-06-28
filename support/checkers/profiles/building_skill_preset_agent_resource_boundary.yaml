@@ -37,6 +37,10 @@ text_contains:
       - leader lane must carry tool-policy:leader-coordination
       - A reviewer MAY carry tool-policy:read-write-scoped
       - work-area write CAPABILITY
+      - semantic_capability_classes are Agent policy class evidence
+      - def resolve_agent_semantic_capability
+      - max_semantic_capability_classes
+      - hook:reviewer-no-mutation blocks source_write for reviewer lane
       - render_agent_team_context
       - provider-specific Agent identity is not admitted
       - write-capable adapter_refs remain technical capability refs, not authority
@@ -69,6 +73,13 @@ text_contains:
       - belongs to a separately declared
       - `work` / repair Brick
       - hook:reviewer-no-mutation
+  - path: agent/tool_policies/read-write-scoped.yaml
+    texts:
+      - semantic_capability_classes
+      - probe_write
+      - verification_write
+      - source_write
+      - artifact_write
   - path: agent/prompts/inspector.md
     texts:
       - observe boundaries and evidence
@@ -146,6 +157,27 @@ agent_resource_boundary:
       - adapter:codex-write-local
       - adapter:claude-write-local
     hooks_execution_opened: false
+  - role: inspector
+    lane: reviewer
+    preferred_adapter_ref: adapter:gemini-local
+    preferred_model_ref: model:gemini:default
+    required_hook_refs:
+      - hook:reviewer-no-mutation
+      - hook:unsafe-mutation-guard
+      - hook:resource-ref-redaction
+    required_tool_policy_refs:
+      - tool-policy:read-write-scoped
+    required_adapter_refs:
+      - adapter:local
+      - adapter:codex-local
+      - adapter:claude-local
+      - adapter:gemini-local
+    forbidden_tool_policy_refs:
+      - tool-policy:review-readonly
+    forbidden_adapter_refs:
+      - adapter:codex-write-local
+      - adapter:claude-write-local
+    hooks_execution_opened: false
 agent_resource_retired_ref_rejects:
   - ref_field: tool_policy_refs
     retired_ref: tool-policy:leader-readonly
@@ -183,6 +215,27 @@ agent_preferred_adapter_rejects:
       adapter_refs:
         - adapter:claude-local
       preferred_model_ref: model:claude:inherit
+materialize_building_intent_case:
+  - label: agent-resource-digest-sentinel-materialized-fast-fix
+    document:
+      plan_ref: building-plan:agent-resource-digest-sentinel-materialized-fast-fix
+      building_id: agent-resource-digest-sentinel-materialized-fast-fix
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:fast-fix
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
+          - .claude/**
+      not_proven:
+        - checker fixture task source only
+    expected:
+      plan_shape: graph
+      agent_object_hashes_unchanged: true
 proof_limits:
   - support evidence only
   - staging copies only; original profile remains intact

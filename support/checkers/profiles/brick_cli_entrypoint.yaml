@@ -49,23 +49,8 @@ text_contains:
       - 'build.add_argument('
       - '"--graph-packet"'
       - '"--graph"'
-      - '"--large"'
-      - '"--dev-lanes"'
-      - 'P3_EASY_LARGE_MIN_DEV_LANES = 2'
-      - 'P3_EASY_LARGE_MAX_DEV_LANES = 8'
-      - 'P3_EASY_LARGE_MODE_CAVEAT = ('
-      - 'fallback/convenience graph generator only'
-      - 'task-aware '
-      - 'sizing/selection is not automatic'
-      - 'large is not source truth or final P3'
-      - 'completed task-aware Easy Building product'
-      - 'plus graph packet remain the official input modes'
-      - 'P3_EASY_LARGE_OFFICIAL_INPUT_MODES = ("preset_task", "graph_packet")'
-      - 'def _p3_easy_large_mode_metadata'
-      - 'def _p3_easy_large_graph_packet'
       - 'declare either graph packet mode or task/task-source mode, not both'
       - 'graph-packet-declared'
-      - 'large-graph-declared'
   - path: support/operator/first_use.py
     texts:
       - 'FIRST_USE_FILENAME = "FIRST_USE.md"'
@@ -83,6 +68,10 @@ text_contains:
       - 'EXPECTED_DISCLAIMER = "이건 예제입니다 -- 실제 빌딩은 `brick auth login` 후 `--real-provider`."'
       - 'first_use_wizard'
       - 'removing the example-stub disclaimer did not drive RED'
+  - path: support/checkers/lib/kernel_checks.py
+    texts:
+      - 'customer graph_packet may not author Brick template-owned field'
+      - 'hidden _p3_easy_large_graph_packet helper'
 text_absent:
   - path: support/operator/cli.py
     texts:
@@ -93,6 +82,13 @@ text_absent:
       - success_judgment
       - quality_judgment
       - adapter:gemini-api
+      - '"--large"'
+      - '"--dev-lanes"'
+      - 'P3_EASY_LARGE'
+      - '_p3_easy_large'
+      - 'lane_return'
+      - 'large-graph-declared'
+      - 'p3_easy_large_graph'
 proof_limits:
   - support evidence only
   - not source truth

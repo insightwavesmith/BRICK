@@ -3,6 +3,7 @@ brick_kind: review
 brick_word: review
 performer_word: qa_lead
 requires_brick_write_scope: no
+capability_class: read
 performer_lane_need: leader
 agent_object_hint_ref: agent-object:qa-lead
 required_return_template_refs:

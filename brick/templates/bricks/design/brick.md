@@ -3,6 +3,7 @@ brick_kind: design
 brick_word: design
 performer_word: design
 requires_brick_write_scope: no
+capability_class: read
 performer_lane_need: leader
 agent_object_hint_ref: agent-object:design-lead
 required_return_template_refs:

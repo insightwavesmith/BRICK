@@ -130,9 +130,22 @@ text_contains:
       - leader lane must carry tool-policy:leader-coordination
       - A reviewer MAY carry tool-policy:read-write-scoped
       - work-area write CAPABILITY
+      - semantic_capability_classes are Agent policy class evidence
   - path: brick/spec.py
     texts:
+      - capability_class
+      - Non-authoritative capability taxonomy label
       - lowered.startswith("/")
+  - path: support/operator/plan_rendering.py
+    texts:
+      - _frontmatter_capability_class
+      - capability_class
+  - path: support/operator/composition_compose.py
+    texts:
+      - capability_class
+  - path: support/operator/composition_graph_emit.py
+    texts:
+      - capability_class
   - path: support/connection/agent_adapter.py
     texts:
       - _RETURN_WAIVER_FIELDS_BY_REQUIRED
@@ -152,6 +165,17 @@ text_contains:
     texts:
       - read-only repository inspection tools only
       - Gemini local native grant may use only read_file, glob, grep_search, search_file_content, list_directory, read_many_files, and when web-capable is present google_web_search/web_fetch; write and shell tools remain blocked.
+  - path: agent/tool_policies/read-write-scoped.yaml
+    texts:
+      - semantic_capability_classes
+      - probe_write
+      - verification_write
+      - source_write
+      - artifact_write
+  - path: support/checkers/lib/case_runners.py
+    texts:
+      - agent_object_hashes_unchanged
+      - _agent_object_file_digests
   - path: support/operator/plan_validation.py
     texts:
       - evidence_used.repository_artifact_ref
@@ -293,6 +317,7 @@ materialize_building_intent_case:
         materialize-fast-fix-sequential-graph-work:
           node_reroute_budget: preset-default
       task_source_hash_present: true
+      agent_object_hashes_unchanged: true
       declaration_evidence:
         work_files:
           - work/task.md
@@ -579,10 +604,11 @@ materialize_building_intent_case:
       # Phase 2.5 false-green guard: assert the materialized node return shapes
       # themselves (not just step/target/movement refs). Verifies (1) no node
       # carries the support-invented concern_observations, (2) each fan-in SOURCE
-      # shape == its brick return.yaml shape MINUS transition_concern_evidence
-      # (brick-derived, not hardcoded), (3) the fan-in TARGET closure shape
-      # contains transition_concern_evidence. Expectation is read from the LIVE
-      # brick return.yaml so it tracks the source of truth.
+      # shape == its full brick return.yaml shape
+      # (brick-derived, not hardcoded or support-shrunk), (3) Link carry is
+      # filtered by carries_forward_fields, and (4) the fan-in TARGET closure
+      # shape contains transition_concern_evidence. Expectation is read from
+      # the LIVE brick return.yaml so it tracks the source of truth.
       assert_materialized_return_shapes: true
       # Mechanism-vs-policy provenance guard (Smith-ruled): the reroute BUDGET and
       # closure routing POLICY are HUMAN Movement decisions; support records but
@@ -757,6 +783,13 @@ materialize_building_intent_case:
       gate_sequence_policy_gate_refs:
         - link-gate:default-transition
         - link-gate:coo
+      brick_capability_classes:
+        - read
+        - source_write
+        - probe_write
+        - probe_write
+        - probe_write
+        - read
       group_roles:
         - fan_out
         - fan_in
@@ -1040,8 +1073,9 @@ materialize_building_intent_case:
   #     (mid-closure AND final-closure) -- every fan-in TARGET carries its own
   #     HUMAN-declared closure_transition_target_policy (preset-default),
   #   * assert_materialized_return_shapes pins each fan-in SOURCE shape ==
-  #     brick shape MINUS transition_concern_evidence and each fan-in TARGET
-  #     closure shape carries it (the same compose_building validators).
+  #     full brick shape, with Link carry filtered by carries_forward_fields,
+  #     and each fan-in TARGET closure shape carries transition_concern_evidence
+  #     (the same compose_building validators).
   # MUTATION-RED anchor: removing the declared terminal, or breaking a declared
   # fan_in group edge, drops a fan_in group / collapses to one target and this
   # case REDs.
@@ -3717,6 +3751,7 @@ declared_step_template_plan_case:
     expected:
       movement: forward
       target_ref: brick-work
+      brick_capability_class: read
       declared_gate_refs:
         - link-gate:default-transition
   - label: declared-step-template-plan-case:work-dev
@@ -3741,6 +3776,7 @@ declared_step_template_plan_case:
     expected:
       movement: forward
       target_ref: brick-review
+      brick_capability_class: source_write
       declared_gate_refs:
         - link-gate:default-transition
   - label: declared-step-template-plan-case:review-qa-strict-human
@@ -3765,6 +3801,7 @@ declared_step_template_plan_case:
     expected:
       movement: forward
       target_ref: brick-inspect
+      brick_capability_class: read
       declared_gate_refs:
         - link-gate:default-transition
         - link-gate:strict
@@ -3821,6 +3858,7 @@ declared_step_template_plan_case:
       movement: forward
       target_ref: brick-inspect
       agent_object_ref: agent-object:inspector
+      brick_capability_class: probe_write
       declared_gate_refs:
         - link-gate:default-transition
   - label: declared-step-template-plan-case:plan-preferred-adapter

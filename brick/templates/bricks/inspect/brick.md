@@ -3,6 +3,7 @@ brick_kind: inspect
 brick_word: inspect
 performer_word: inspector
 requires_brick_write_scope: no
+capability_class: read
 performer_lane_need: reviewer
 agent_object_hint_ref: agent-object:inspector
 required_return_template_refs:
