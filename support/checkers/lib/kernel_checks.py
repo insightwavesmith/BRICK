@@ -10089,6 +10089,7 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
             )
 
     for lane_count in (2, 3, 8):
+        building_id = f"cli-large-{lane_count}"
         lane_args = parser.parse_args(
             [
                 "build",
@@ -10096,7 +10097,7 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
                 "--task",
                 "large fixture task",
                 "--building-id",
-                f"cli-large-{lane_count}",
+                building_id,
                 "--adapter",
                 "adapter:codex-local",
                 "--dev-lanes",
@@ -10129,8 +10130,49 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
                 "brick_cli_entrypoint_smoke: --large packet did not include final "
                 "adapter:gemini-local axis/evidence QA"
             )
+        expected_gemini_nodes = {
+            f"{building_id}-design-axis-inspect",
+            f"{building_id}-final-gemini-axis-evidence-qa",
+        }
+        packet_node_adapters = {
+            str(node.get("step_ref") or node.get("node_id") or ""): str(
+                node.get("selected_adapter_ref") or ""
+            )
+            for node in lane_packet.get("nodes", [])
+            if isinstance(node, Mapping)
+        }
+        blank_packet_adapters = [
+            step_ref for step_ref, adapter_ref in packet_node_adapters.items() if not adapter_ref
+        ]
+        if blank_packet_adapters:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large packet left selected_adapter_ref "
+                f"implicit for nodes: {blank_packet_adapters!r}"
+            )
+        observed_gemini_nodes = {
+            step_ref
+            for step_ref, adapter_ref in packet_node_adapters.items()
+            if adapter_ref == "adapter:gemini-local"
+        }
+        if observed_gemini_nodes != expected_gemini_nodes:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large packet must keep "
+                "adapter:gemini-local only on design/final axis-evidence QA, "
+                f"got {observed_gemini_nodes!r}"
+            )
+        non_gemini_packet_adapters = {
+            step_ref: adapter_ref
+            for step_ref, adapter_ref in packet_node_adapters.items()
+            if step_ref not in expected_gemini_nodes
+            and adapter_ref != "adapter:codex-local"
+        }
+        if non_gemini_packet_adapters:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large packet placed non-Codex "
+                f"adapters on non-axis-QA nodes: {non_gemini_packet_adapters!r}"
+            )
         try:
-            compose_building(
+            composed_large_plan = compose_building(
                 lane_packet["nodes"],
                 lane_packet["edges"],
                 groups=lane_packet["groups"],
@@ -10148,6 +10190,43 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
                 f"brick_cli_entrypoint_smoke: --large --dev-lanes {lane_count} "
                 f"did not compose through the graph seam: {exc}"
             ) from exc
+        composed_step_adapters = {
+            str(step.get("step_ref") or ""): str(step.get("selected_adapter_ref") or "")
+            for step in composed_large_plan.get("brick_steps", [])
+            if isinstance(step, Mapping)
+        }
+        blank_composed_adapters = [
+            step_ref for step_ref, adapter_ref in composed_step_adapters.items() if not adapter_ref
+        ]
+        if blank_composed_adapters:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large composed plan left "
+                "selected_adapter_ref implicit for steps: "
+                f"{blank_composed_adapters!r}"
+            )
+        composed_gemini_steps = {
+            step_ref
+            for step_ref, adapter_ref in composed_step_adapters.items()
+            if adapter_ref == "adapter:gemini-local"
+        }
+        if composed_gemini_steps != expected_gemini_nodes:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large composed plan must keep "
+                "adapter:gemini-local only on design/final axis-evidence QA, "
+                f"got {composed_gemini_steps!r}"
+            )
+        non_gemini_composed_adapters = {
+            step_ref: adapter_ref
+            for step_ref, adapter_ref in composed_step_adapters.items()
+            if step_ref not in expected_gemini_nodes
+            and adapter_ref != "adapter:codex-local"
+        }
+        if non_gemini_composed_adapters:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large composed plan placed "
+                "non-Codex adapters on non-axis-QA steps: "
+                f"{non_gemini_composed_adapters!r}"
+            )
 
     with tempfile.TemporaryDirectory(prefix="bp-cli-large-home-") as home_tmp:
         large_call: dict[str, Any] = {}

@@ -423,11 +423,15 @@ def _p3_easy_large_graph_packet(args: argparse.Namespace) -> dict[str, Any]:
             intake,
             "building-step-template:inspect",
             f"Task intake for large P3 work: {task}",
+            adapter_ref=ADAPTER_CODEX_LOCAL,
+            model_ref=MODEL_REF_CODEX_DEFAULT,
         ),
         _p3_easy_large_node(
             design,
             "building-step-template:design",
             f"Design the large P3 work before implementation: {task}",
+            adapter_ref=ADAPTER_CODEX_LOCAL,
+            model_ref=MODEL_REF_CODEX_DEFAULT,
         ),
         _p3_easy_large_node(
             design_axis,
@@ -443,6 +447,8 @@ def _p3_easy_large_graph_packet(args: argparse.Namespace) -> dict[str, Any]:
             plan_confirm,
             "building-step-template:closure",
             "Confirm the lane plan and carry open proof limits before parallel dev lanes.",
+            adapter_ref=ADAPTER_CODEX_LOCAL,
+            model_ref=MODEL_REF_CODEX_DEFAULT,
             completion_edge_ref=f"edge:{prefix}-plan-confirmation-to-dev-lane-1",
             node_reroute_budget=1,
         ),
@@ -506,6 +512,8 @@ def _p3_easy_large_graph_packet(args: argparse.Namespace) -> dict[str, Any]:
                 integration,
                 "building-step-template:closure",
                 "Integrate parallel lane evidence and summarize remaining deltas.",
+                adapter_ref=ADAPTER_CODEX_LOCAL,
+                model_ref=MODEL_REF_CODEX_DEFAULT,
                 closure_transition_target_policy={
                     "implementation_gap": {"action": "target", "target_ref": plan_confirm},
                     "verification_gap": {"action": "hold"},
@@ -535,6 +543,8 @@ def _p3_easy_large_graph_packet(args: argparse.Namespace) -> dict[str, Any]:
                 closure,
                 "building-step-template:closure",
                 "Codex closure synthesis for the large P3 Building.",
+                adapter_ref=ADAPTER_CODEX_LOCAL,
+                model_ref=MODEL_REF_CODEX_DEFAULT,
             ),
         ]
     )
