@@ -429,7 +429,7 @@ def _clean_return_field_value(field: str, value: Any) -> Any:
         return value
     if field in _RETURN_LIST_FIELDS:
         if isinstance(value, list):
-            return value
+            return _list_items_to_text(value)
         if isinstance(value, Mapping):
             return _mapping_to_text_list(value)
         if isinstance(value, str) and value.strip():
@@ -439,19 +439,28 @@ def _clean_return_field_value(field: str, value: Any) -> Any:
 
 
 def _mapping_to_text_list(value: Mapping[str, Any]) -> list[str]:
-    """Flatten a dict-of-refs ``{label: path}`` to a flat list of its VALUE
-    strings (the paths), so a list-normalized return field stays text-safe for
-    ``_text_tuple``.
+    """Flatten a mapping-shaped list field to deterministic text values."""
 
-    Codex/gemini sometimes return a text-ref-list field (e.g. ``evidence_refs``)
-    as a Mapping of ``{label: path}`` whose CONTENT (the paths) is correct and
-    only the CONTAINER differs. ``[dict(value)]`` would keep a non-text item and
-    crash ``_text_tuple``; flattening to ``list(value.values())`` lands the
-    correct paths in the flat-string shape the merge path already requires.
-    Non-text values are dropped (the strict ``_text_tuple`` rejects them anyway).
-    """
+    return _list_items_to_text(value.values())
 
-    return [str(item) for item in value.values() if isinstance(item, str)]
+
+def _list_items_to_text(values: Any) -> list[str]:
+    normalized: list[str] = []
+    for item in values:
+        text = _return_list_item_to_text(item)
+        if text:
+            normalized.append(text)
+    return normalized
+
+
+def _return_list_item_to_text(value: Any) -> str:
+    if isinstance(value, str):
+        return value.strip()
+    if isinstance(value, (Mapping, list, tuple)):
+        return json.dumps(value, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
+    if value is None:
+        return ""
+    return str(value).strip()
 
 
 def _strip_code_fence(value: str) -> str:

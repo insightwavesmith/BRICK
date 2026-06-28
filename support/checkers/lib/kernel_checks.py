@@ -2829,6 +2829,40 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
         raise ProfileError(
             "agent adapter rejected nested natural evidence keys pass/fail"
         ) from exc
+    nested_output_text = (
+        "provider preface\n"
+        "```json\n"
+        + json.dumps(
+            {
+                "observed_evidence": {
+                    "profile": {"checker_profile_run_results": {"pass": 5, "fail": 0}},
+                    "nested_list": ["alpha", {"nested": ["beta", {"gamma": "delta"}]}],
+                },
+                "not_proven": {
+                    "runtime": {"provider": "not exercised"},
+                },
+            },
+            sort_keys=True,
+        )
+        + "\n```"
+    )
+    nested_extracted = adapter_grant_policy._extract_required_return_fields(
+        nested_output_text,
+        "observed_evidence, not_proven",
+    )
+    if nested_extracted.get("observed_evidence") != [
+        '["alpha",{"nested":["beta",{"gamma":"delta"}]}]',
+        '{"checker_profile_run_results":{"fail":0,"pass":5}}',
+    ]:
+        raise ProfileError(
+            "agent adapter did not preserve nested mapping/list observed_evidence "
+            f"as deterministic text, observed {nested_extracted.get('observed_evidence')!r}"
+        )
+    if nested_extracted.get("not_proven") != ['{"provider":"not exercised"}']:
+        raise ProfileError(
+            "agent adapter did not preserve nested mapping/list not_proven "
+            f"as deterministic text, observed {nested_extracted.get('not_proven')!r}"
+        )
     # REDO (Smith 0623 struct-surgery): a top-level verdict key is NO LONGER a HOLD.
     # The payload walker quarantines it -- it must NOT raise and must REPORT the raw
     # key name. connect_agent_brain STRIPS the key (return-shaping) and exposes the
@@ -2860,7 +2894,7 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
 
     return KernelResult(
         check_id="agent_adapter_return_shape",
-        inspected=9
+        inspected=10
         + effective_write_inspected
         + read_tier_inspected
         + artifact_grounding_inspected,
@@ -2869,7 +2903,8 @@ def run_agent_adapter_return_shape(repo: Path) -> KernelResult:
             "extraction, Brick comparison waiver, prompt projection, runtime "
             "Agent instruction packet rendering, and AgentAdapterRequest "
             "injection plus effective_write, read-tier rendering, tier-safety, "
-            "and artifact-grounding probes inspected."
+            "artifact-grounding, and deterministic nested list-field "
+            "normalization probes inspected."
         ),
     )
 
