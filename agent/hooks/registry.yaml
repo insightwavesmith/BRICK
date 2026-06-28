@@ -22,7 +22,7 @@
       "owner_axis": "Agent",
       "kind": "guardrail-intent",
       "event_ref": "before-review-work",
-      "description": "Reviewer lane returns observations and transition_concern_evidence only; it does not mutate by default.",
+      "description": "Reviewer lane may read and perform declared disposable probe_write / verification_write, but must not perform source_write or claim source truth.",
       "execution_opened": false
     },
     "hook:unsafe-mutation-guard": {

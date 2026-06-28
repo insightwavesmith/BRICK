@@ -111,6 +111,8 @@ text_contains:
       - not adapter identity alone
       - native_grant
       - runtime_intersection
+      - probe_write / verification_write
+      - reviewer source_write
   - path: agent/tool_policies/web-capable.yaml
     texts:
       - tool-policy:web-capable
@@ -148,6 +150,9 @@ text_contains:
     texts:
       - _gemini_admin_policy_partition_for_request
       - Web NOT available on this adapter
+      - Agent hook:reviewer-no-mutation blocks source_write for this performer.
+      - probe_write / verification_write
+      - full filesystem-enforced source/probe split is not proven here
   - path: support/connection/adapter_subprocess.py
     texts:
       - def preflight_provider

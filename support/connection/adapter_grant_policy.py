@@ -96,8 +96,6 @@ def _native_grant_resolution_for_request(
         resources = []
     from .agent_resources import resolve_native_grant
     resolved_write_need = bool(request.write_scope) if write_need is None else bool(write_need)
-    if _request_blocks_source_mutation(request):
-        resolved_write_need = False
 
     return resolve_native_grant(
         resources,
@@ -219,9 +217,11 @@ def _build_prompt(request: AgentAdapterRequest, spec: LocalCliSpec) -> str:
         if _request_blocks_source_mutation(request):
             rules.extend(
                 (
-                    "Agent hook:reviewer-no-mutation blocks source-file mutation for this performer.",
-                    "Do not edit, create, delete, or rewrite source files; return proposed patch or repair delta as evidence for a separate work / repair Brick.",
-                    "You may inspect files, diffs, and evidence, and run read-only checker/probe commands only when the adapter tier allows them.",
+                    "Agent hook:reviewer-no-mutation blocks source_write for this performer.",
+                    "Capability taxonomy: read = repo/evidence/diff/raw/step-output inspection; probe_write / verification_write = disposable W1, temp, cache, test fixture, checker output, negative probe, or generated probe output writes; source_write = real repo source mutation.",
+                    "You may use the Brick-declared write_scope only for probe_write / verification_write in the disposable work-area.",
+                    "Do not create, edit, delete, or rewrite source files as source truth; return proposed source patches or repair deltas as evidence for a separately declared work / repair Brick.",
+                    "Prompt/provider controls distinguish source_write from probe_write by instruction and post-hoc evidence only; a full filesystem-enforced source/probe split is not proven here.",
                     "Do not execute hooks or provider SDKs.",
                     "Return non-judgmental support evidence only.",
                 )

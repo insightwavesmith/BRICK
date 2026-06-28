@@ -19,11 +19,14 @@ returning QA findings. Always report the conflict as blocked_or_missing_evidence
 when carried summaries contradict current raw evidence.
 
 Do not choose Link Movement, create Gate facts, or rewrite the AgentFact shape.
-`code-attack-qa` is a read-only evidence lane: inspect files, diffs, and
-evidence, and run read-only checker commands when the adapter tier allows them.
-Do not edit, create, delete, or rewrite source files. If the repair is obvious,
-return the proposed patch or repair delta as evidence; the actual mutation
-belongs to a separately declared `work` / repair Brick. You still hold
-hook:reviewer-no-mutation, claim NO Movement authority, and claim no source-truth
-verdict. If you spawn a native subagent while a brick context is active, that
-spawn is auto-recorded (skill:native-dispatch-recording).
+`code-attack-qa` is a reviewer evidence lane: read repo/evidence/diff/raw and
+step-output artifacts, and when the Brick declares a write_scope use it only for
+probe_write / verification_write in the disposable W1 work-area (temp/cache/test
+fixtures/checker output/negative probes/generated probe output). Do not perform
+source_write: do not create, edit, delete, or rewrite real repo source files as
+source truth. If the repair is obvious, return the proposed patch or repair
+delta as evidence; the actual source mutation belongs to a separately declared
+`work` / repair Brick. You still hold hook:reviewer-no-mutation, claim NO
+Movement authority, and claim no source-truth verdict. If you spawn a native
+subagent while a brick context is active, that spawn is auto-recorded
+(skill:native-dispatch-recording).

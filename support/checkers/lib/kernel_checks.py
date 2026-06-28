@@ -1611,15 +1611,24 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
         )
     )
     reviewer_no_mutation_rules = list(reviewer_no_mutation_prompt.get("rules", []))
-    if not any("hook:reviewer-no-mutation blocks source-file mutation" in rule for rule in reviewer_no_mutation_rules):
-        raise ProfileError("reviewer-no-mutation prompt did not carry Agent hook source-mutation block")
-    for phrase in ("You may edit files only inside", "workspace write is limited"):
-        if any(phrase in rule for rule in reviewer_no_mutation_rules):
+    required_taxonomy_rules = (
+        "hook:reviewer-no-mutation blocks source_write",
+        "probe_write / verification_write",
+        "disposable work-area",
+        "full filesystem-enforced source/probe split is not proven",
+    )
+    for required in required_taxonomy_rules:
+        if not any(required in rule for rule in reviewer_no_mutation_rules):
             raise ProfileError(
-                f"reviewer-no-mutation prompt leaked source-write permission phrase {phrase!r}"
+                "reviewer-no-mutation prompt did not carry capability-taxonomy rule "
+                f"{required!r}"
             )
-    if adapter_local_cli._codex_sandbox_for_request(reviewer_no_mutation_request) != "read-only":
-        raise ProfileError("reviewer-no-mutation codex projection did not force read-only sandbox")
+    if not any("Do not create, edit, delete, or rewrite source files as source truth" in rule for rule in reviewer_no_mutation_rules):
+        raise ProfileError("reviewer-no-mutation prompt did not carry the source_write ban")
+    if adapter_local_cli._codex_sandbox_for_request(reviewer_no_mutation_request) != "workspace-write":
+        raise ProfileError(
+            "reviewer-no-mutation codex projection did not preserve declared work-area write sandbox"
+        )
     claude_reviewer_no_mutation_request = adapter.AgentAdapterRequest(
         building_id="agent-reviewer-no-mutation-claude-probe",
         agent_object_ref="agent-object:qa",
@@ -1637,13 +1646,16 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
         for tool in claude_reviewer_knobs["tools"].split(",")
         if tool.strip()
     ]
-    if claude_reviewer_tools != ["Read", "Grep", "Glob"]:
+    for tool_name in ("Read", "Grep", "Glob", "Edit", "Write", "Bash"):
+        if tool_name not in claude_reviewer_tools:
+            raise ProfileError(
+                "reviewer-no-mutation claude projection did not preserve work-area "
+                f"tool {tool_name!r}: {claude_reviewer_tools!r}"
+            )
+    if claude_reviewer_knobs["system_prompt"] != adapter._CLAUDE_SCOPED_WRITE_SYSTEM_PROMPT:
         raise ProfileError(
-            "reviewer-no-mutation claude projection did not force read-only tools: "
-            f"{claude_reviewer_tools!r}"
+            "reviewer-no-mutation claude projection did not use scoped-write system prompt"
         )
-    if claude_reviewer_knobs["system_prompt"] != adapter._CLAUDE_READ_ONLY_SYSTEM_PROMPT:
-        raise ProfileError("reviewer-no-mutation claude projection did not use read-only system prompt")
     gemini_reviewer_no_mutation_request = adapter.AgentAdapterRequest(
         building_id="agent-reviewer-no-mutation-gemini-probe",
         agent_object_ref="agent-object:inspector",
@@ -1659,9 +1671,9 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
         gemini_reviewer_no_mutation_request
     )
     for tool_name in ("write_file", "replace", "run_shell_command"):
-        if tool_name in gemini_reviewer_allow or tool_name not in gemini_reviewer_deny:
+        if tool_name not in gemini_reviewer_allow or tool_name in gemini_reviewer_deny:
             raise ProfileError(
-                "reviewer-no-mutation gemini projection did not deny source-write tool "
+                "reviewer-no-mutation gemini projection did not preserve work-area probe tool "
                 f"{tool_name!r}"
             )
     if "read_file" not in gemini_reviewer_allow:

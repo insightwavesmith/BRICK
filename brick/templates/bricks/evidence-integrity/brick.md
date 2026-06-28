@@ -18,6 +18,11 @@ Check persisted evidence roots, proof limits, and checker-overclaim risk. QA-att
 evidence); the building runs in a **disposable W1 worktree sandbox**, so this work-area write
 **never touches the customer live tree**. Still declare **no source truth** and claim **no Movement
 authority**.
+Capability taxonomy: `read` means repo/evidence/diff/raw/step-output inspection;
+`probe_write` / `verification_write` means disposable W1/temp/cache/test fixture/checker
+output/negative probe/generated probe output writes; `source_write` means real repo source
+mutation. This Brick may perform probe_write / verification_write only. It must not create, edit,
+delete, or rewrite real repo source files as source truth.
 
 Input: the prior Brick's report (carried via the Link edge) plus this node's declared
 `work_statement`. Inspect the persisted evidence — its roots, what it actually proves, where a

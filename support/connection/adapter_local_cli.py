@@ -61,7 +61,6 @@ from .adapter_grant_policy import (
     _gemini_admin_policy_for_request,
     _gemini_allowed_tool_names_for_request,
     _merge_structured_return_fields,
-    _request_allows_source_mutation,
     _request_blocks_source_mutation,
 )
 from .adapter_model_casting import (
@@ -822,7 +821,8 @@ def _proof_limits_for_request(
     if _request_blocks_source_mutation(request):
         return _merge_texts(
             spec.proof_limits,
-            "Agent hook:reviewer-no-mutation blocks provider-projected source mutation",
+            "Agent hook:reviewer-no-mutation blocks source_write while allowing declared work-area probe_write",
+            "source_write vs probe_write is prompt/evidence disciplined here, not a filesystem-enforced provider distinction",
         )
     return _merge_texts(
         spec.proof_limits,
@@ -836,18 +836,19 @@ def _not_proven_for_request(
 ) -> tuple[str, ...]:
     from .agent_adapter import _merge_texts, agent_request_effective_write
 
-    if not agent_request_effective_write(request) or _request_blocks_source_mutation(request):
+    if not agent_request_effective_write(request):
         return spec.not_proven
     return _merge_texts(
         spec.not_proven,
         "semantic correctness of file edits",
+        "filesystem-enforced source_write/probe_write separation",
     )
 
 
 def _codex_sandbox_for_request(request: AgentAdapterRequest) -> str:
     from .agent_adapter import agent_request_effective_write
 
-    if not agent_request_effective_write(request) or not _request_allows_source_mutation(request):
+    if not agent_request_effective_write(request):
         return "read-only"
     from .agent_resources import codex_sandbox_mode_for_tool_policies
 
@@ -886,7 +887,7 @@ def _claude_cli_invocation(request: AgentAdapterRequest) -> dict[str, str]:
         agent_request_read_tier,
     )
 
-    if agent_request_effective_write(request) and _request_allows_source_mutation(request):
+    if agent_request_effective_write(request):
         # Lazy import: agent_resources imports FROM this module, so a top-level
         # import would be circular.
         from .agent_resources import claude_tools_for_tool_policies
@@ -910,20 +911,6 @@ def _claude_cli_invocation(request: AgentAdapterRequest) -> dict[str, str]:
                 "allowed_tools": tools,
                 "system_prompt": _CLAUDE_SCOPED_WRITE_SYSTEM_PROMPT,
             }
-    if agent_request_effective_write(request) and _request_blocks_source_mutation(request):
-        from .agent_resources import claude_tools_for_tool_policies
-
-        mapping = claude_tools_for_tool_policies(
-            list(request.tool_policy_refs),
-            write_need=False,
-            native_grant_resources=request.agent_instruction_packet.get("tool_policy_resources", []),
-        )
-        return {
-            "permission_mode": "acceptEdits",
-            "tools": ",".join(mapping["tools"]),
-            "allowed_tools": ",".join(mapping["tools"]),
-            "system_prompt": _CLAUDE_READ_ONLY_SYSTEM_PROMPT,
-        }
     if agent_request_read_tier(request):
         from .agent_resources import claude_tools_for_tool_policies
 

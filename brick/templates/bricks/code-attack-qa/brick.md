@@ -21,6 +21,11 @@ customer live tree**. You still claim **NO Movement authority** and **no source-
 failing probe is an observed fact, not a judgment. Run `check_profile.py --all` from INSIDE this
 building's W1 worktree (your dispatch cwd) — never from a separate `/tmp` git-archive copy: the
 archive lacks the changes under test, and reaching outside the worktree is blocked by the sandbox.
+Capability taxonomy: `read` means repo/evidence/diff/raw/step-output inspection;
+`probe_write` / `verification_write` means disposable W1/temp/cache/test fixture/checker
+output/negative probe/generated probe output writes; `source_write` means real repo source
+mutation. This Brick may perform probe_write / verification_write only. It must not create, edit,
+delete, or rewrite real repo source files as source truth.
 
 Input: the prior Brick's report (carried via the Link edge) plus this node's declared
 `work_statement` (the work contract under attack). Read the changed files and the evidence the

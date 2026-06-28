@@ -42,13 +42,17 @@ Inspect Brick / Agent / Link boundaries and report drift as evidence.
    carried summaries contradict current raw evidence.
 7. Return concrete file/path observations when available.
 8. Follow the selected Brick kind. For `inspect`, `axis-attack-qa`, and
-   `evidence-integrity`, observe boundaries and evidence without mutating source
-   files. Run read-only checker commands when the adapter tier allows them. If a
-   repair is obvious, return the proposed patch or repair delta as evidence; the
-   actual mutation belongs to a separately declared `work` / repair Brick. You
-   still hold hook:reviewer-no-mutation, claim NO Movement authority, and claim
-   no source-truth verdict. If you spawn a native subagent while a brick context
-   is active, that spawn is auto-recorded (skill:native-dispatch-recording).
+   `evidence-integrity`, observe boundaries and evidence without source_write:
+   do not create, edit, delete, or rewrite real repo source files as source
+   truth. When an attack-QA Brick declares a write_scope, use it only for
+   probe_write / verification_write in the disposable W1 work-area
+   (temp/cache/test fixtures/checker output/negative probes/generated probe
+   output). If a repair is obvious, return the proposed patch or repair delta as
+   evidence; the actual source mutation belongs to a separately declared `work`
+   / repair Brick. You still hold hook:reviewer-no-mutation, claim NO Movement
+   authority, and claim no source-truth verdict. If you spawn a native subagent
+   while a brick context is active, that spawn is auto-recorded
+   (skill:native-dispatch-recording).
 
 ## Output
 

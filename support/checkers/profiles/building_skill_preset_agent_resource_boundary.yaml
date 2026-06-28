@@ -56,21 +56,27 @@ text_contains:
       - READ_ONLY_TOOL_POLICY_REFS
   - path: support/connection/adapter_grant_policy.py
     texts:
-      - Agent hook:reviewer-no-mutation blocks source-file mutation for this performer.
+      - Agent hook:reviewer-no-mutation blocks source_write for this performer.
+      - probe_write / verification_write
+      - full filesystem-enforced source/probe split is not proven here
       - read-only repository inspection tools only
       - Gemini local native grant may use only read_file, glob, grep_search, search_file_content, list_directory, read_many_files, and when web-capable is present google_web_search/web_fetch; write and shell tools remain blocked.
   - path: agent/prompts/qa.md
     texts:
-      - Do not edit, create, delete, or rewrite source files.
+      - probe_write / verification_write
+      - source_write
+      - create, edit, delete, or rewrite real repo source files as
       - belongs to a separately declared
       - `work` / repair Brick
       - hook:reviewer-no-mutation
   - path: agent/prompts/inspector.md
     texts:
       - observe boundaries and evidence
-      - without mutating source
+      - without source_write
+      - probe_write / verification_write
+      - create, edit, delete, or rewrite real repo source files as source
       - belongs to a separately declared
-      - `work` / repair Brick
+      - repair Brick
       - hook:reviewer-no-mutation
 json_required_paths:
   - path: agent/objects/cto-lead.yaml
