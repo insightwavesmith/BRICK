@@ -4106,6 +4106,7 @@ agent_candidate_packet_case:
   - label: multi-leader-coordination-five-candidates
     role_need: leader
     write_need: false
+    selected_adapter_ref: adapter:codex-local
     expect_min_candidates: 2
     expect_ambiguous: true
     expected_candidate_refs:
@@ -4114,6 +4115,9 @@ agent_candidate_packet_case:
       - agent-object:design-lead
       - agent-object:pm-lead
       - agent-object:qa-lead
+    rejected_selected_adapter_refs:
+      - adapter:gemini-api
+      - adapter:not-admitted
   # MULTI + WRITE NEED: leader / write_need=true -> the four write-capable team
   # leads ONLY. The COO is PURE READ-ONLY (Smith ruling 0610: the Movement/
   # judgment authority carries no write tools), so a write-need brick's

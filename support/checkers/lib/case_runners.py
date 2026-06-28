@@ -2595,6 +2595,12 @@ def run_agent_candidate_packet_case(repo: Path, profile: Mapping[str, Any]) -> i
         mapping = require_mapping(item, "agent_candidate_packet_case item")
         label = require_string(mapping.get("label"), "agent_candidate_packet_case.label")
         role_need = require_string(mapping.get("role_need"), f"{label}: role_need")
+        selected_adapter_raw = mapping.get("selected_adapter_ref")
+        selected_adapter_ref = (
+            require_string(selected_adapter_raw, f"{label}: selected_adapter_ref")
+            if selected_adapter_raw is not None
+            else None
+        )
         write_need_raw = mapping.get("write_need", False)
         if not isinstance(write_need_raw, bool):
             raise ProfileError(
@@ -2618,7 +2624,12 @@ def run_agent_candidate_packet_case(repo: Path, profile: Mapping[str, Any]) -> i
             f"{label}: expected_candidate_refs",
         )
 
-        packet = render_agent_candidate_packet(role_need, write_need, repo_root=repo)
+        packet = render_agent_candidate_packet(
+            role_need,
+            write_need,
+            selected_adapter_ref=selected_adapter_ref,
+            repo_root=repo,
+        )
 
         if packet.get("kind") != "agent-candidate-packet":
             raise ProfileError(
@@ -2629,6 +2640,17 @@ def run_agent_candidate_packet_case(repo: Path, profile: Mapping[str, Any]) -> i
             raise ProfileError(
                 f"agent_candidate_packet_case rejected {label}: packet did not echo the need "
                 f"(role_need={packet.get('role_need')!r}, write_need={packet.get('write_need')!r})"
+            )
+        if selected_adapter_ref is None:
+            if "selected_adapter_ref" in packet:
+                raise ProfileError(
+                    f"agent_candidate_packet_case rejected {label}: omitted selected_adapter_ref "
+                    "must not be invented by support"
+                )
+        elif packet.get("selected_adapter_ref") != selected_adapter_ref:
+            raise ProfileError(
+                f"agent_candidate_packet_case rejected {label}: selected_adapter_ref expected "
+                f"{selected_adapter_ref!r}, observed {packet.get('selected_adapter_ref')!r}"
             )
 
         rows = packet.get("candidate_rows")
@@ -2698,6 +2720,47 @@ def run_agent_candidate_packet_case(repo: Path, profile: Mapping[str, Any]) -> i
                     f"agent_candidate_packet_case rejected {label}: row "
                     f"{row.get('agent_object_ref')!r} lane {row.get('lane')!r} != role_need {role_need!r}"
                 )
+            adapter_refs = row.get("adapter_refs")
+            if not isinstance(adapter_refs, list) or not all(
+                isinstance(ref, str) and ref for ref in adapter_refs
+            ):
+                raise ProfileError(
+                    f"agent_candidate_packet_case rejected {label}: row "
+                    f"{row.get('agent_object_ref')!r} adapter_refs must be a non-empty string list"
+                )
+            for preferred_key in ("preferred_adapter_ref", "preferred_model_ref"):
+                if not isinstance(row.get(preferred_key), str):
+                    raise ProfileError(
+                        f"agent_candidate_packet_case rejected {label}: row "
+                        f"{row.get('agent_object_ref')!r} {preferred_key} must be rendered as text"
+                    )
+            if selected_adapter_ref is None:
+                for compatibility_key in (
+                    "selected_adapter_compatible",
+                    "preferred_adapter_matches_selected",
+                ):
+                    if compatibility_key in row:
+                        raise ProfileError(
+                            f"agent_candidate_packet_case rejected {label}: row "
+                            f"{row.get('agent_object_ref')!r} must not invent {compatibility_key} "
+                            "when selected_adapter_ref is omitted"
+                        )
+            else:
+                expected_compatible = selected_adapter_ref in set(adapter_refs)
+                if row.get("selected_adapter_compatible") != expected_compatible:
+                    raise ProfileError(
+                        f"agent_candidate_packet_case rejected {label}: row "
+                        f"{row.get('agent_object_ref')!r} selected_adapter_compatible expected "
+                        f"{expected_compatible}, observed {row.get('selected_adapter_compatible')!r}"
+                    )
+                expected_preferred_match = row.get("preferred_adapter_ref") == selected_adapter_ref
+                if row.get("preferred_adapter_matches_selected") != expected_preferred_match:
+                    raise ProfileError(
+                        f"agent_candidate_packet_case rejected {label}: row "
+                        f"{row.get('agent_object_ref')!r} preferred_adapter_matches_selected expected "
+                        f"{expected_preferred_match}, observed "
+                        f"{row.get('preferred_adapter_matches_selected')!r}"
+                    )
             # capability >= need: when the brick NEEDS write, EVERY candidate row
             # must be writer_capable; when the need is read-only, writer-capability
             # is UNCONSTRAINED (a write-capable agent may serve a read-only need;
@@ -2750,6 +2813,25 @@ def run_agent_candidate_packet_case(repo: Path, profile: Mapping[str, Any]) -> i
                 raise ProfileError(
                     f"agent_candidate_packet_case rejected {label}: single-candidate need must "
                     f"auto-resolve to {observed_refs[0]!r}, matcher returned {resolved!r}"
+                )
+
+        for rejected_ref in require_string_list(
+            mapping.get("rejected_selected_adapter_refs", []),
+            f"{label}: rejected_selected_adapter_refs",
+        ):
+            try:
+                render_agent_candidate_packet(
+                    role_need,
+                    write_need,
+                    selected_adapter_ref=rejected_ref,
+                    repo_root=repo,
+                )
+            except ValueError:
+                pass
+            else:
+                raise ProfileError(
+                    f"agent_candidate_packet_case rejected {label}: selected_adapter_ref "
+                    f"{rejected_ref!r} was not rejected"
                 )
 
         count += 1

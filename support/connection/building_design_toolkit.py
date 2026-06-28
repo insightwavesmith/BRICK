@@ -82,6 +82,13 @@ _AGENT_CANDIDATE_NOT_PROVEN = (
     "quality judgment",
     "Movement authority",
 )
+_RETIRED_AGENT_CANDIDATE_ADAPTER_REFS = frozenset(
+    {
+        "adapter:codex-write-local",
+        "adapter:claude-write-local",
+        "adapter:gemini-api",
+    }
+)
 # The preset-ranking packet is the MOST axis-borderline read-only surface: it
 # ORDERS chain presets by a MECHANICAL count of HUMAN-declared selection_hint
 # tokens matched against each preset's own declared text (preset_ref + intent +
@@ -215,6 +222,7 @@ def render_agent_candidate_packet(
     role_need: str,
     write_need: bool,
     *,
+    selected_adapter_ref: str | None = None,
     repo_root: str | Path | None = None,
 ) -> dict[str, Any]:
     """Render the READ-ONLY agent NEED<->CAPABILITY candidate packet for a COO.
@@ -233,14 +241,29 @@ def render_agent_candidate_packet(
     """
 
     repo = Path(repo_root).resolve() if repo_root is not None else _DEFAULT_REPO_ROOT
+    cleaned_selected_adapter_ref = _clean_agent_candidate_selected_adapter_ref(
+        repo,
+        selected_adapter_ref,
+    )
     try:
         candidate_rows = _render_candidate_agents_for_need(repo, role_need, write_need)
     except ValueError as exc:
         raise BuildingDesignToolkitError(str(exc)) from exc
+    if cleaned_selected_adapter_ref is not None:
+        candidate_rows = [
+            {
+                **row,
+                "selected_adapter_compatible": cleaned_selected_adapter_ref
+                in set(row.get("adapter_refs", ())),
+                "preferred_adapter_matches_selected": row.get("preferred_adapter_ref")
+                == cleaned_selected_adapter_ref,
+            }
+            for row in candidate_rows
+        ]
     write_need = bool(write_need)
     total_candidates = len(candidate_rows)
     ambiguous = total_candidates >= 2
-    return {
+    packet = {
         "kind": "agent-candidate-packet",
         "source": "agent/",
         "role_need": role_need,
@@ -254,21 +277,58 @@ def render_agent_candidate_packet(
         "proof_limits": list(_AGENT_CANDIDATE_PROOF_LIMITS),
         "not_proven": list(_AGENT_CANDIDATE_NOT_PROVEN),
     }
+    if cleaned_selected_adapter_ref is not None:
+        packet["selected_adapter_ref"] = cleaned_selected_adapter_ref
+    return packet
 
 
 def render_agent_candidate_packet_json(
     role_need: str,
     write_need: bool,
     *,
+    selected_adapter_ref: str | None = None,
     repo_root: str | Path | None = None,
 ) -> str:
     """Render the agent-candidate packet as deterministic JSON text."""
 
     return json.dumps(
-        render_agent_candidate_packet(role_need, write_need, repo_root=repo_root),
+        render_agent_candidate_packet(
+            role_need,
+            write_need,
+            selected_adapter_ref=selected_adapter_ref,
+            repo_root=repo_root,
+        ),
         ensure_ascii=False,
         sort_keys=True,
     )
+
+
+def _clean_agent_candidate_selected_adapter_ref(
+    repo: Path,
+    selected_adapter_ref: str | None,
+) -> str | None:
+    """Validate an optional adapter lens for the read-only candidate packet."""
+
+    if selected_adapter_ref is None:
+        return None
+    if not isinstance(selected_adapter_ref, str) or not selected_adapter_ref.strip():
+        raise BuildingDesignToolkitError("selected_adapter_ref must be non-empty text")
+    selected = selected_adapter_ref.strip()
+    if selected in _RETIRED_AGENT_CANDIDATE_ADAPTER_REFS:
+        raise BuildingDesignToolkitError(
+            f"{selected} is retired and not admitted as an active adapter"
+        )
+    admitted_adapter_refs: set[str] = set()
+    for ref in list_agent_object_refs(repo):
+        agent_object = resolve_agent_object(ref, repo_root=repo)["agent_object"]
+        adapter_refs = agent_object.get("adapter_refs", ())
+        if isinstance(adapter_refs, (list, tuple)):
+            admitted_adapter_refs.update(str(item).strip() for item in adapter_refs)
+    if selected not in admitted_adapter_refs:
+        raise BuildingDesignToolkitError(
+            f"selected_adapter_ref {selected} is not referenced by any admitted Agent Object"
+        )
+    return selected
 
 
 def render_preset_ranking_packet(
@@ -532,6 +592,8 @@ def _board_agents(repo: Path) -> list[dict[str, Any]]:
                 "writer_capable": _agent_is_writer(agent_object),
                 "tool_policy_refs": list(agent_object.get("tool_policy_refs", ())),
                 "adapter_refs": list(agent_object.get("adapter_refs", ())),
+                "preferred_adapter_ref": str(agent_object.get("preferred_adapter_ref") or ""),
+                "preferred_model_ref": str(agent_object.get("preferred_model_ref") or ""),
             }
         )
     return rows

@@ -913,6 +913,7 @@ def _render_candidate_agents_for_need(
     for ref in refs:
         agent_object = resolve_agent_object(ref, repo_root=repo)["agent_object"]
         tool_policy_refs = list(agent_object.get("tool_policy_refs", ()))
+        adapter_refs = list(agent_object.get("adapter_refs", ()))
         rows.append(
             {
                 "agent_object_ref": ref,
@@ -920,6 +921,9 @@ def _render_candidate_agents_for_need(
                 "lane": str(agent_object.get("lane", "")),
                 "writer_capable": _agent_is_writer(agent_object),
                 "tool_policy_refs": tool_policy_refs,
+                "adapter_refs": adapter_refs,
+                "preferred_adapter_ref": str(agent_object.get("preferred_adapter_ref") or ""),
+                "preferred_model_ref": str(agent_object.get("preferred_model_ref") or ""),
                 # MECHANICAL match reason ONLY: the two NEED<->CAPABILITY axes that
                 # admitted this ref. No quality, no ranking, no recommendation.
                 "match_reason": f"lane={role_need}, write_scope={write_scope_word}",
