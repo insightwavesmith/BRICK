@@ -727,6 +727,7 @@ PROJECT_STATUS_INBOX_RECORDS = {
 }
 PROJECT_PORTFOLIO_PROJECTION_SEGMENT = "_portfolio-projections"
 PROJECT_STATUS_SEGMENT = "status"
+PROJECT_STATUS_GRAPH_PACKET_DIR = "GOAL"
 # PROJECT-0: the closed per-vessel root declaration file set (charter +
 # machine declaration + the S4 machine-generated progress projection).
 PROJECT_ROOT_DECLARATION_FILES = {
@@ -1065,7 +1066,39 @@ def is_project_status_path(path: str, *, is_dir: bool) -> bool:
         return is_dir and parts[2] in {"full-spec", "physical-blueprint"}
     if is_dir:
         return len(parts) >= 2 and all(slug_part(part) for part in parts[1:])
+    if (
+        len(parts) == 3
+        and parts[1] == PROJECT_STATUS_GRAPH_PACKET_DIR
+        and parts[2].endswith(".json")
+        and slug_part(parts[2].removesuffix(".json"))
+    ):
+        # Graph packets under project/<vessel>/status/kernel/GOAL are support
+        # input packets, not admitted source/status truth. Keep the JSON opening
+        # narrow so arbitrary status JSON remains closed.
+        return True
     return len(parts) >= 2 and parts[-1].endswith(".md")
+
+
+def package_path_admission_self_probe_violations() -> list[str]:
+    cases = {
+        "project/brick-protocol/status/kernel/GOAL/cr-v3-p2-official-replay-graph-0628b.json": True,
+        "project/brick-protocol/status/kernel/GOAL/cr_v3_p2_official_replay_graph_0628b.json": True,
+        "project/brick-protocol/status/kernel/GOAL/not-a-graph.jsonl": False,
+        "project/brick-protocol/status/kernel/OTHER/cr-v3-p2-official-replay-graph-0628b.json": False,
+        "project/brick-protocol/status/kernel/GOAL/nested/graph.json": False,
+        "project/brick-protocol/status/kernel/GOAL/.hidden.json": False,
+        "project/brick-protocol/status/kernel/arbitrary.json": False,
+        "project/brick-protocol/status/arbitrary.json": False,
+    }
+    violations: list[str] = []
+    for path, expected in cases.items():
+        observed = allowed_path(path)
+        if observed != expected:
+            violations.append(
+                "package_path_admission self-probe expected "
+                f"{path} allowed={expected}, observed allowed={observed}"
+            )
+    return violations
 
 
 def is_project_portfolio_projection_path(path: str, *, is_dir: bool) -> bool:
@@ -1958,7 +1991,8 @@ def main() -> int:
         print(f"package path admission rejected: {exc}", file=sys.stderr)
         return 1
 
-    violations = check_paths(paths)
+    violations = package_path_admission_self_probe_violations()
+    violations.extend(check_paths(paths))
     if violations:
         print("package path admission rejected:", file=sys.stderr)
         for violation in violations:
