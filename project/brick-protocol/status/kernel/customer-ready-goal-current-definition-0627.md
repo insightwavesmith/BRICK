@@ -121,7 +121,8 @@ inspect:
 ```
 
 Any active C6 plan materialized before this amendment is stale for QA semantics.
-P3 must rematerialize from the updated `four-llm-standard-graph` before launch.
+C6 evidence may remain support evidence, but it is not the P3 product target.
+P3 must not be reduced to "rematerialize C6 with weekend casting."
 
 Target P3 shape:
 
@@ -225,6 +226,58 @@ P3 is "make Building easy to declare and run" like the Claude workflow surface.
 The operator must not collapse P3 into "hardcode one large graph" or "recast
 C6 to Codex/Gemini." The work is to make the official route accept an easy
 task/sizing/design declaration and then materialize the right preset or graph.
+```
+
+P3 reasoning ledger:
+
+```text
+User intent:
+  "X 만들어줘" or "이거 커. 설계 먼저 하고 쪼개서 병렬로 굴려."
+
+Correct operator reasoning:
+  1. Treat the utterance as Building intake, not as a request to hand-write a
+     plan or call a model directly.
+  2. Decide the declared road from task evidence:
+     simple work -> preset/task mode
+     explicitly shaped work -> graph mode
+     large / risky / split-worthy work -> design-first graph materialization
+  3. For large work, first run design and design QA / axis inspection, then use
+     the accepted decomposition to materialize parallel dev and QA lanes.
+  4. Execute only through the official route:
+     brick build / support.operator.cli build
+     -> Builder/materializer
+     -> declared Building Plan
+     -> support/operator/run.py walker
+     -> evidence root / reporter / Slack / frontier
+
+Wrong compression recovery:
+  If the summary says "large graph", read it as "fallback generator while P3 is
+  being built", not as the completed P3 design.
+  If the summary says "C6", read it as historical support evidence, not as the
+  current P3 target.
+  If the summary says "Codex/Gemini casting", read it as weekend performer
+  availability, not as the customer-facing Easy Building goal.
+```
+
+P3 three-axis attribution:
+
+```text
+Brick:
+  owns the declared work road, preset/graph grammar, Building Plan, and
+  required return shapes.
+
+Agent:
+  owns who performs each Brick: design, dev, code-attack QA, axis/evidence QA,
+  and closure. Adapter choice is capability connection only.
+
+Link:
+  owns Movement, handoff, fan-out/fan-in carrying, gate sufficiency, reroute
+  concerns, and closure transition evidence.
+
+Support:
+  CLI, Builder/materializer, run.py, reporter, Slack, checkers, and model output
+  only record/walk/project evidence. They do not choose the route or judge
+  success/quality.
 ```
 
 Run the customer launch path through official Building evidence with the current
@@ -351,23 +404,25 @@ raw/spine consistency checked
 Current global Movement:
 
 ```text
-HOLD at P3 until new Codex/Gemini QA Building evidence exists.
+HOLD inside P3 until Easy Building behavior is proven through official route
+evidence.
 ```
 
 Next admissible move:
 
 ```text
-REROUTE / rematerialize P3 C6 with the updated QA semantics,
-then run official Building evidence and inspect raw/evidence.
+REROUTE to the next declared P3 Easy Building slice when raw/evidence shows a
+missing customer-facing declaration behavior.
 ```
 
 Immediate operator sequence:
 
 ```text
 1. Record this goal amendment.
-2. Commit the QA/preset amendment as a narrow P2/P3 recast-support change.
-3. Rematerialize P3 C6 from updated four-llm-standard-graph.
-4. Run the official Building route.
+2. Keep implementation/QA/closure on the official Building route only.
+3. Use preset/task mode or graph mode as inputs to the same official route.
+4. For large work, preserve design -> design QA -> closure plan confirmation
+   before parallel dev lanes.
 5. Judge FORWARD/HOLD from raw/evidence, not from model prose.
 ```
 
