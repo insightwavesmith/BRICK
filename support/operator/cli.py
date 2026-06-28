@@ -61,6 +61,13 @@ DEFAULT_DECLARED_BY = "coo"
 P3_EASY_LARGE_DEFAULT_DEV_LANES = 2
 P3_EASY_LARGE_MIN_DEV_LANES = 2
 P3_EASY_LARGE_MAX_DEV_LANES = 8
+P3_EASY_LARGE_MODE_CAVEAT = (
+    "--large is a fallback/convenience graph generator only; task-aware "
+    "sizing/selection is not automatic, large is not source truth or final P3, "
+    "large is not the completed task-aware Easy Building product, and preset/task "
+    "plus graph packet remain the official input modes."
+)
+P3_EASY_LARGE_OFFICIAL_INPUT_MODES = ("preset_task", "graph_packet")
 REAL_PROVIDER_MODEL_REFS = {
     ADAPTER_CLAUDE_LOCAL: MODEL_REF_CLAUDE_INHERIT,
     ADAPTER_CODEX_LOCAL: MODEL_REF_CODEX_DEFAULT,
@@ -387,6 +394,17 @@ def _p3_easy_large_edge(edge_ref: str, source: str, target: str) -> dict[str, An
     }
 
 
+def _p3_easy_large_mode_metadata() -> dict[str, Any]:
+    return {
+        "large_mode_kind": "fallback_convenience_graph_generator",
+        "large_mode_caveat": P3_EASY_LARGE_MODE_CAVEAT,
+        "large_task_aware_sizing_selection": "not_automatic",
+        "large_not_source_truth": True,
+        "large_not_final_p3": True,
+        "official_input_modes": list(P3_EASY_LARGE_OFFICIAL_INPUT_MODES),
+    }
+
+
 def _p3_easy_large_graph_packet(args: argparse.Namespace) -> dict[str, Any]:
     task = (getattr(args, "task", "") or "").strip()
     if not task:
@@ -567,7 +585,7 @@ def _p3_easy_large_graph_packet(args: argparse.Namespace) -> dict[str, Any]:
         ]
     )
 
-    return {
+    packet = {
         "task_statement": task,
         "declared_by": args.declared_by,
         "building_id": building_id,
@@ -606,6 +624,8 @@ def _p3_easy_large_graph_packet(args: argparse.Namespace) -> dict[str, Any]:
         "chain_preset_ref": "",
         "dev_lanes": dev_lanes,
     }
+    packet.update(_p3_easy_large_mode_metadata())
+    return packet
 
 
 def _run_build(args: argparse.Namespace) -> dict[str, Any]:
@@ -641,6 +661,14 @@ def _run_build(args: argparse.Namespace) -> dict[str, Any]:
             "adapter_ref": str(graph_packet.get("selected_adapter_ref") or ""),
             "adapter_choice_basis": "large-graph-declared",
             "dev_lanes": graph_packet["dev_lanes"],
+            "large_mode_kind": graph_packet["large_mode_kind"],
+            "large_mode_caveat": graph_packet["large_mode_caveat"],
+            "large_task_aware_sizing_selection": graph_packet[
+                "large_task_aware_sizing_selection"
+            ],
+            "large_not_source_truth": graph_packet["large_not_source_truth"],
+            "large_not_final_p3": graph_packet["large_not_final_p3"],
+            "official_input_modes": list(graph_packet["official_input_modes"]),
             "provider_readiness_observations": [],
             "isolation_mode": result.isolation_mode,
             "isolation_reason": result.isolation_reason,
@@ -806,6 +834,14 @@ def _render_build(packet: dict[str, Any]) -> str:
         + ("yes" if packet.get("customer_visible_not_ready") else "no"),
         f"frontier_message: {packet['customer_visible_frontier_message']}",
     ]
+    if packet.get("large_mode_caveat"):
+        lines.extend(
+            [
+                f"large_mode_kind: {packet.get('large_mode_kind', '')}",
+                f"large_mode_caveat: {packet['large_mode_caveat']}",
+                "official_input_modes: " + ", ".join(packet.get("official_input_modes", [])),
+            ]
+        )
     if packet.get("plan_path"):
         lines.append(f"plan_path: {packet['plan_path']}")
     if packet.get("materialized_step_adapters"):
@@ -1206,7 +1242,12 @@ def build_parser() -> argparse.ArgumentParser:
     build.add_argument(
         "--large",
         action="store_true",
-        help="Declare the P3 easy-large graph through the existing graph wrapper.",
+        help=(
+            "Fallback convenience graph generator only; task-aware sizing/selection "
+            "is not automatic. --large is not source truth, final P3, or the "
+            "completed task-aware Easy Building product. Preset/task and graph "
+            "packet remain official modes."
+        ),
     )
     build.add_argument(
         "--dev-lanes",

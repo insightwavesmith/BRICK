@@ -10237,6 +10237,34 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
         )
         lane_packet = cli._p3_easy_large_graph_packet(lane_args)
         packet_text = json.dumps(lane_packet, sort_keys=True)
+        expected_large_metadata = {
+            "large_mode_kind": "fallback_convenience_graph_generator",
+            "large_task_aware_sizing_selection": "not_automatic",
+            "large_not_source_truth": True,
+            "large_not_final_p3": True,
+            "official_input_modes": ["preset_task", "graph_packet"],
+        }
+        observed_large_metadata = {
+            key: lane_packet.get(key) for key in expected_large_metadata
+        }
+        if observed_large_metadata != expected_large_metadata:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large packet lost fallback/convenience "
+                f"metadata: {observed_large_metadata!r}"
+            )
+        caveat = str(lane_packet.get("large_mode_caveat") or "")
+        for required_caveat in (
+            "fallback/convenience graph generator only",
+            "task-aware sizing/selection is not automatic",
+            "large is not source truth or final P3",
+            "large is not the completed task-aware Easy Building product",
+            "preset/task plus graph packet remain the official input modes",
+        ):
+            if required_caveat not in caveat:
+                raise ProfileError(
+                    "brick_cli_entrypoint_smoke: --large packet caveat lost "
+                    f"{required_caveat!r}: {caveat!r}"
+                )
         if "adapter:gemini-api" in packet_text:
             raise ProfileError("brick_cli_entrypoint_smoke: --large packet revived adapter:gemini-api")
         if lane_packet.get("dev_lanes") != lane_count:
@@ -10517,6 +10545,23 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
                 "brick_cli_entrypoint_smoke: --large build did not expose "
                 "build_input_mode=p3_easy_large_graph"
             )
+        if large_result.get("large_mode_kind") != "fallback_convenience_graph_generator":
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large result lost fallback/convenience marker"
+            )
+        if large_result.get("official_input_modes") != ["preset_task", "graph_packet"]:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large result lost official input modes"
+            )
+        result_caveat = str(large_result.get("large_mode_caveat") or "")
+        if (
+            "task-aware sizing/selection is not automatic" not in result_caveat
+            or "large is not source truth or final P3" not in result_caveat
+            or "large is not the completed task-aware Easy Building product" not in result_caveat
+        ):
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large result lost task-aware/source-truth caveat"
+            )
         if large_result.get("dev_lanes") != 3:
             raise ProfileError("brick_cli_entrypoint_smoke: --large result lost dev_lanes")
         if str(large_call.get("kwargs", {}).get("output_root")) != expected_root:
@@ -10537,6 +10582,42 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
         if "build_input_mode: p3_easy_large_graph" not in rendered_large:
             raise ProfileError(
                 "brick_cli_entrypoint_smoke: --large render did not expose build_input_mode"
+            )
+        for required_render in (
+            "large_mode_kind: fallback_convenience_graph_generator",
+            "task-aware sizing/selection is not automatic",
+            "large is not source truth or final P3",
+            "large is not the completed task-aware Easy Building product",
+            "official_input_modes: preset_task, graph_packet",
+        ):
+            if required_render not in rendered_large:
+                raise ProfileError(
+                    "brick_cli_entrypoint_smoke: --large render lost caveat "
+                    f"{required_render!r}; rendered={rendered_large!r}"
+                )
+
+    help_stdout = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(help_stdout):
+            parser.parse_args(["build", "--help"])
+    except SystemExit as exc:
+        if exc.code not in (0, None):
+            raise ProfileError(
+                f"brick_cli_entrypoint_smoke: build --help exited {exc.code}"
+            ) from exc
+    else:
+        raise ProfileError("brick_cli_entrypoint_smoke: build --help did not exit")
+    build_help = " ".join(help_stdout.getvalue().split())
+    for required_help in (
+        "Fallback convenience graph generator only",
+        "task-aware sizing/selection is not automatic",
+        "--large is not source truth, final P3, or the completed task-aware Easy Building product",
+        "Preset/task and graph packet remain official modes",
+    ):
+        if required_help not in build_help:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: --large help lost caveat "
+                f"{required_help!r}; help={build_help!r}"
             )
 
     conflict_args = parser.parse_args(
