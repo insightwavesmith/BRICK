@@ -44,6 +44,52 @@ text_contains:
       - materialize_building_intent_rejects
       - compose_building_case
       - compose_building_rejects
+  - path: brick/templates/skills/brick-task-author/SKILL.md
+    texts:
+      - 'brick build --graph <packet>'
+      - 'support.operator.cli build --graph <packet>'
+      - 'build_input_mode'
+      - 'graph packet 파일이고 공식 실행'
+      - 'direct launch runner, phase runner'
+  - path: agent/skills/brick-task-author/SKILL.md
+    texts:
+      - 'brick build --graph <packet>'
+      - 'support.operator.cli build --graph <packet>'
+      - 'build_input_mode'
+      - 'graph packet 파일이고 공식 실행'
+      - 'direct launch runner, phase runner'
+  - path: brick/templates/skills/building-sizing-method/SKILL.md
+    texts:
+      - 'brick build --graph <packet>'
+      - 'support.operator.cli build --graph <packet>'
+      - 'graph packet / materialization helper'
+      - '공식 route'
+  - path: agent/skills/building-sizing-method/SKILL.md
+    texts:
+      - 'brick build --graph <packet>'
+      - 'support.operator.cli build --graph <packet>'
+      - 'graph packet / materialization helper'
+      - '공식 route'
+text_absent:
+  - path: brick/templates/skills/brick-task-author/SKILL.md
+    texts:
+      - 'PHASE 2-B — GRAPH 입력 모드 — launch_assembled_building front-door 재료'
+      - 'from brick_protocol.support.operator.onboard import launch_assembled_building'
+      - 'result = launch_assembled_building('
+      - 'uv run python3 -c "exec(open('
+      - 'frontier=complete면 워크트리 변경을 **자동 커밋**'
+  - path: agent/skills/brick-task-author/SKILL.md
+    texts:
+      - 'PHASE 2-B — GRAPH 입력 모드 — launch_assembled_building front-door 재료'
+      - 'from brick_protocol.support.operator.onboard import launch_assembled_building'
+      - 'result = launch_assembled_building('
+      - 'uv run python3 -c "exec(open('
+      - 'frontier=complete면 워크트리 변경을 **자동 커밋**'
+  - path: brick/templates/skills/APPLY-LIST.md
+    texts:
+      - 'now via `launch_assembled_building`'
+      - 'uses launch_assembled_building'
+      - 'support.operator.onboard.launch_assembled_building'
 materialize_building_intent_case:
   - label: materialize-building-intent:fast-fix-sequential-graph
     document:

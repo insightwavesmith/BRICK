@@ -1,6 +1,6 @@
 ---
 name: brick-task-author
-description: BRICK 빌딩 발주 한 스킬 — PHASE 1 task 본문 쓰기 → 입력 모드 결정(프리셋/그래프) → PHASE 2 공식 빌딩 발사 → PHASE 3 홀드 분류(걸리면). 새 빌딩 발주, 수리·기능·부검 task를 쓸 때 이 절차로. 모양 사이징은 building-sizing-method 스킬.
+description: BRICK 빌딩 발주 한 스킬 — PHASE 1 task 본문 쓰기 → 입력 모드 결정(프리셋/그래프) → PHASE 2 공식 빌딩 build 입력 → PHASE 3 홀드 분류(걸리면). 새 빌딩 발주, 수리·기능·부검 task를 쓸 때 이 절차로. 모양 사이징은 building-sizing-method 스킬.
 ---
 
 # BRICK 발주 (운영자 표준, 3-PHASE)
@@ -22,10 +22,12 @@ brick build / support.operator.cli build
 → reporter / Slack / frontier
 ```
 
-프리셋 모드와 그래프 모드는 **같은 공식 launch surface로 들어가는 두 입력 모드**다.
+프리셋 모드와 그래프 모드는 **같은 공식 build surface로 들어가는 두 입력 모드**다.
+그래프 모드는 graph packet JSON을 `brick build --graph <packet>` 또는
+`support.operator.cli build --graph <packet>`에 넘긴다.
 `build()`, `fan()`, `compose_building()`, `assemble()`, `launch_assembled_building`은
-Builder/front-door 재료다. 실행 안내에 이 이름을 쓰더라도 반드시 위 공식 vessel
-evidence/reporter/frontier 경로로 보내라. 별도 공식 route처럼 말하지 마라.
+graph packet / materialization helper다. 실행 안내는 반드시 helper가 아니라 공식 build route로
+보내라. 별도 공식 route처럼 말하지 마라.
 
 ## 한눈 결정나무
 
@@ -37,16 +39,17 @@ evidence/reporter/frontier 경로로 보내라. 별도 공식 route처럼 말하
 │
 └─ 새 모양(팬아웃·팬인·병렬·다단), 맞는 프리셋 없음
       → 먼저 building-sizing-method 스킬로 모양 산출 → GRAPH 입력 모드. 누가 보나로 가른다:
-        ├─ 사람이 머지 전 승인(감독)  → assemble(gates=("human-review",))
-        └─ 골까지 무인(Smith 기본)    → §AUTO 직행 (PHASE 2-B)
+        ├─ 사람이 머지 전 승인(감독)  → graph packet에 human gate를 선언
+        └─ 골까지 무인(Smith 기본)    → graph packet을 PHASE 2-B 공식 route로 제출
 ```
 
-발주 공개 surface = **공식 빌딩 발사 surface 하나**다. 프리셋은 `run_building_intake`로
-materialize되고, 그래프는 `assemble()`/`launch_assembled_building` 재료로 materialize되지만,
+발주 공개 surface = **공식 빌딩 build surface 하나**다. 프리셋은 task/preset 입력으로
+materialize되고, 그래프는 graph packet 입력으로 materialize되지만,
 둘 다 Builder/materializer → declared Building Plan → `support/operator/run.py` walker →
 active vessel evidence root → reporter/Slack/frontier로 간다.
 `driver_public_intake_seal` 체커는 raw 뒷문(`run_composed_graph_intake`)을 driver.py 공개표면에서
-막는다. `assemble`은 shape/front-door 재료이지 별도 실행 route가 아니다. 3번째로 사고하지 마라.
+막는다. `assemble`과 launch helper들은 graph packet/materialization helper이지 별도 실행 route가 아니다.
+3번째로 사고하지 마라.
 
 ## 큰 일 P3 규칙
 
@@ -122,7 +125,7 @@ quality/success judge가 아니다.
 
 ---
 
-# PHASE 2-A — PRESET 입력 모드 (run_building_intake)
+# PHASE 2-A — PRESET 입력 모드 (brick build --task/--preset)
 
 ```python
 # cd <active checkout> && uv run python3 -c "..."
@@ -130,62 +133,61 @@ from brick_protocol.support.connection.building_design_toolkit import render_pre
 pkt = render_preset_ranking_packet("<task 요지 한 줄>", repo_root="<active checkout>")
 # 토큰겹침 점수 desc. ADVISORY(자동선택 아님) — 내가 골라 chain_preset_ref로 박는다. 카탈로그=brick/templates/presets/
 ```
-intent → `run_building_intake(intent, repo_root=<active checkout>, adapter_cwd=<전용 워크트리>, adapter_timeout_seconds=3600)`. **adapter_cwd 절대 누락 금지**(누락 시 활성 체크아웃에 작업).
-```python
-intent = { "task_statement": TASK, "building_id": "<슬러그>-MMDD",
-  "chain_preset_ref": "building-chain-preset:<프리셋>",
-  "declared_by": "caller-codex-operator",
-  "selected_adapter_ref": "adapter:codex-local", "selected_model_ref": "model:default",
-  "write_scope": {"allowed_paths": ["support/operator/**"], "forbidden_paths": []} }  # 읽기조사면 생략
+공식 입력은 CLI build다. 예:
+
+```bash
+brick build --task "$TASK" --preset building-chain-preset:<프리셋> --real-provider --adapter adapter:codex-local
 ```
 
 ---
 
-# PHASE 2-B — GRAPH 입력 모드 — launch_assembled_building front-door 재료
+# PHASE 2-B — GRAPH 입력 모드 — graph packet to brick build --graph
 
-`assemble`로 모양을 조립하고 **`launch_assembled_building`** front door로 공식 경로에 넣는다.
-이 동사는 Builder/materializer 재료를 declared Building Plan으로 내려서 `support/operator/run.py`
-walker와 active vessel evidence/reporter/frontier 경로로 연결한다. 별도 runtime이나 별도
+`build()`/`fan()`/`compose_building()`/`assemble()`로 모양을 설명할 수는 있지만, 공식 입력은
+graph packet 파일이고 공식 실행은 `brick build --graph <packet>` 또는
+`support.operator.cli build --graph <packet>`이다. helper는 packet/materialization 재료일 뿐,
+별도 runtime, direct launch runner, phase runner, work-return proof, QA-return proof, closeout proof, 또는
 Movement route가 아니다.
+JSON packet 예시는 `brick build --graph <packet.json>` 또는
+`support.operator.cli build --graph <packet.json>` 입력으로 들어간다.
 
-```python
-# cd <active checkout> && uv run python3 -c "exec(open('/tmp/launch.py').read())"
-from brick_protocol.support.operator.assembly import assemble, build, fan, Authority  # ★build = assembly.build(그래프). NEVER `from onboard import build`★
-from brick_protocol.brick.spec import brick
-from brick_protocol.support.operator.onboard import launch_assembled_building
-
-graph = build([
-    brick("design",  "범위를 좁혀라(바운디드 읽기목록 산출)"),
-    brick("work",    "변경하라", write=True),
-    brick("closure", "검증·보고하라"),
-])
-composed = assemble(graph, declared_by="coo-operator", authority=Authority.COO,
-    task="<한 줄 task 본문 — work/task.md 됨>",
-    adapter="codex-local",
-    gates=())   # ()=완전 무인 / ("human-review",)=머지 edge에만 HOLD
-
-result = launch_assembled_building(
-    composed,                          # ★ ComposedGraph 그대로 — 객체/딕트 헷갈릴 필요 없음(동사가 처리)
-    project_ref="project:brick-protocol",  # ★ 베슬(그릇). 생략 시 기본 project #1 베슬 = 둘 다 슬랙 발화
-    declared_by="coo:smith",
-    adapter_timeout_seconds=3600,
-    # report_env 생략 ⇒ admitted env loader가 있으면 reporter/Slack/frontier evidence 관찰
-)
-print("building_id:", result["building_id"], "| ok:", result["ok"],
-      "| frontier:", result.get("frontier_kind"), "| evidence:", result.get("evidence_root"),
-      "| worktree:", result.get("worktree_path"))
+```json
+{
+  "task_statement": "<한 줄 task 본문 - work/task.md 됨>",
+  "declared_by": "coo:smith",
+  "building_id": "<슬러그>-MMDD",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:default",
+  "nodes": [
+    {"node_id": "<id>-design", "step_ref": "<id>-design", "step_template_ref": "building-step-template:design", "work_statement": "범위를 좁혀라"},
+    {"node_id": "<id>-work", "step_ref": "<id>-work", "step_template_ref": "building-step-template:work", "work_statement": "변경하라", "requires_brick_write_scope": true, "write_scope": {"allowed_paths": ["."], "forbidden_paths": [".git/**"]}},
+    {"node_id": "<id>-closure", "step_ref": "<id>-closure", "step_template_ref": "building-step-template:closure", "work_statement": "검증·보고하라"}
+  ],
+  "edges": [
+    {"edge_ref": "edge:<id>-design-to-work", "source": "<id>-design", "target": "<id>-work", "movement": "forward"},
+    {"edge_ref": "edge:<id>-work-to-closure", "source": "<id>-work", "target": "<id>-closure", "movement": "forward"},
+    {"edge_ref": "edge:<id>-closure-to-boundary", "source": "<id>-closure", "target": "building-boundary:<id>-closed", "movement": "forward", "building_lifecycle": {"state": "closed", "reason": "declared graph closed"}}
+  ],
+  "groups": []
+}
 ```
 
-`result`는 딕트: `ok`(frontier=complete냐), `ran`, `building_id`, `evidence_root`,
-`frontier_kind`, `worktree_path`(샌드박스), `commit_sha`(complete면 자동커밋). 실패는
-`error_kind`/`error_message`/`message_ko`로 친절히 떨어진다(예외 안 던짐).
+```bash
+brick build --graph <packet.json>
+# 또는
+PYTHONPATH=support/import_identity uv run python3 support/operator/cli.py build --graph <packet.json>
+```
+
+build 결과 packet은 `build_input_mode`, `building_id`, `evidence_root`, `frontier_kind`,
+`worktree_path` 같은 support evidence를 보여준다. 이것은 source truth, success/quality
+judgment, 또는 Link Movement 선택이 아니다.
 
 ## 알아둘 것
 
 - **assemble의 top-level `adapter=`는 roled 노드에 무효.** design/closure/review/QA는 Agent Object와 per-node override가 이긴다. 주말 default는 work+closure+code QA=codex-local, axis/evidence/review QA=gemini-local이다. 노드를 role 디폴트에서 옮기려면 **per-node** `brick("design","...", adapter="codex-local")` override만이 레버.
 - **Claude는 퇴역이 아니라 주말 active pool 제외다.** Claude token이 복귀하면 `step_selection_overrides`나 per-node adapter override로 다시 쓸 수 있다. 지금 고객-ready dogfood 기본은 **codex=구현/closure/code QA · gemini=axis/evidence/review QA · QA fan=codex+gemini**다.
 - **verdict 노드는 `adapter:local` 금지.** design/closure/review/inspect는 verdict-bearing → `adapter:local` 거부. local 스텁 무인발사는 **work 노드로만** 가능. verdict 노드는 진짜 CLI(codex/gemini/claude) 필요.
-- **부하 주의.** `launch_assembled_building`은 공식 경로에 그래프 입력을 넘기는 front door다. 검증은 가능하면 `assemble()`/레지스트리 체크로, 진짜 실행이 필요하면 `adapter:local` 또는 단일 `codex-local`/`gemini-local` 노드 1개로.
+- **부하 주의.** graph packet은 공식 `brick build --graph` 입력이다. 검증은 가능하면 packet/레지스트리 체크로, 진짜 실행이 필요하면 `adapter:local` 또는 단일 `codex-local`/`gemini-local` 노드 1개로.
 - **QA 주의.** QA는 inspect/probe evidence를 만들 수 있지만 source-truth mutation 권한이 아니다. QA source mutation이 관찰되면 HOLD로 보고한다.
 
 ## 게이트 진실 (실측)
@@ -200,7 +202,7 @@ print("building_id:", result["building_id"], "| ok:", result["ok"],
 # 발사 후 — 게이트는 내가 한다 (codex green 안 믿음)
 
 - 워크트리에서 `HOME=$(mktemp -d) PYTHONPATH=support/import_identity uv run python3 support/checkers/check_profile.py --all` exit 0 + 포커스 체커 green + **변이 RED 직접 확인**.
-- `launch_assembled_building`은 frontier=complete면 워크트리 변경을 **자동 커밋**(commit_sha 반환). closure가 엉키면(temp-HOME concern 연쇄→resume divergence) **추격 금지** — 코드만 독립검증되면 워크트리 diff를 `git commit`+`git -C BRICK merge --ff-only <branch>`로 직접 main에.
+- build 결과는 support evidence다. closure가 엉키면(temp-HOME concern 연쇄→resume divergence) **추격 금지** — 코드만 독립검증되면 declared follow-up Building으로 처리한다.
 - 미완/홀드 빌딩은 untracked로 `--all`을 RED로 만듦 → merge·게이트 전 `mv project/.../buildings/<미완id> /tmp/`로 치움(비파괴).
 
 ---
@@ -213,8 +215,7 @@ print("building_id:", result["building_id"], "| ok:", result["ok"],
 
 ## 3.1 증거 수집 (전부 읽기 전용)
 
-빌딩 루트 = `<BRICK>/project/brick-protocol/buildings/<id>/` (또는 `launch_assembled_building`이
-반환한 `evidence_root`).
+빌딩 루트 = build 결과 packet이 반환한 `evidence_root`.
 
 ```bash
 # (a) 마지막 홀드 행: raw/link.jsonl에서 transition_lifecycle_state=paused 마지막 행

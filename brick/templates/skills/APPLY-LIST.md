@@ -11,8 +11,8 @@ NEW in-repo ship dir: `brick/templates/skills/` (sibling of `tasks/` and `preset
 
 | In-repo skill | Role | Live action |
 |---|---|---|
-| `building-sizing-method/` | NEW — dimensions → graph shape (sizes the ASSEMBLE input) | COPY in (new) |
-| `brick-task-author/` | CONSOLIDATED — PHASE 1 task body → PHASE 2 launch (now via `launch_assembled_building`) → PHASE 3 hold-triage (folded in); graph-syntax block MOVED OUT to building-sizing-method | COPY over (replaces live) |
+| `building-sizing-method/` | NEW — dimensions → graph packet shape (sizes the official graph input) | COPY in (new) |
+| `brick-task-author/` | CONSOLIDATED — PHASE 1 task body → PHASE 2 official build route (`brick build --graph <packet>` for graph mode) → PHASE 3 hold-triage (folded in); graph-syntax block MOVED OUT to building-sizing-method | COPY over (replaces live) |
 | `make-a-brick/` | NEW — replaces `brick-declaration-author` mode 1 (scaffold-then-register a KIND) | COPY in (new) |
 | `make-an-agent/` | NEW — replaces `brick-declaration-author` mode 2 (a lane) | COPY in (new) |
 | `make-a-gate/` | NEW — replaces `brick-declaration-author` mode 3 (a gate) | COPY in (new) |
@@ -28,7 +28,7 @@ BRICK=/Users/smith/projects/BRICK
 cp -R "$BRICK/brick/templates/skills/building-sizing-method"  ~/.claude/skills/building-sizing-method
 
 # 2. REPLACE: consolidated launch skill (absorbs hold-triage as PHASE 3,
-#    syntax block moved out, uses launch_assembled_building)
+#    syntax block moved out, graph mode uses brick build --graph <packet>)
 cp -R "$BRICK/brick/templates/skills/brick-task-author/SKILL.md"  ~/.claude/skills/brick-task-author/SKILL.md
 
 # 3. NEW: three creation skills (replace brick-declaration-author's 3 modes)
@@ -57,8 +57,8 @@ rm -rf ~/.claude/skills/brick-declaration-author
 
 ## NOTE — verify after apply
 
-The live skills only carry the procedure text; the engine helper they call
-(`support.operator.onboard.launch_assembled_building`) and the scaffold helper
-(`support.operator.brick_kind_scaffold.scaffold_brick_kind`) ship in the BRICK
-repo. After `git merge` of this branch into the product tree, the skills resolve
-their helpers from the installed BRICK package. No live-env Python changes.
+The live skills only carry the procedure text; graph mode enters the official
+`brick build --graph <packet>` route, while scaffold helpers such as
+`support.operator.brick_kind_scaffold.scaffold_brick_kind` ship in the BRICK repo.
+After `git merge` of this branch into the product tree, the skills resolve their
+helpers from the installed BRICK package. No live-env Python changes.
