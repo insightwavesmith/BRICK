@@ -1,0 +1,63 @@
+{
+  "task_statement": "CR.v4 P3 plan-ref visibility audit. Verify through the official graph route that the current HEAD exposes the customer-ready P2-P6 phase plan refs and GOAL support refs to Building worktrees. This is route/materialization/evidence support only, not source truth, success judgment, quality judgment, or Movement authority.",
+  "declared_by": "coo",
+  "building_id": "cr-v4-p3-plan-ref-visibility-0629b",
+  "selected_shape_ref": "building-shape:recon-light",
+  "selection_rule": "caller_or_coo_declared_only",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "report_event_policy": {"enabled": false},
+  "nodes": [
+    {
+      "node_id": "p3-plan-ref-inspect",
+      "step_ref": "p3-plan-ref-inspect",
+      "step_template_ref": "building-step-template:inspect",
+      "completion_edge_ref": "edge:p3-plan-ref-inspect-to-closure",
+      "work_statement": "Inspect only whether these refs are visible inside this official Building worktree: the five customer-ready-p2..p6 phase plan md files, GOAL/00..06 symlink refs, and GOAL/cr-v4-p3-plan-ref-visibility-graph-0629b.json. Use file existence and git ls-files style observations only. Do not run broad profiles and do not mutate files.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p3-plan-ref-closure",
+      "step_ref": "p3-plan-ref-closure",
+      "step_template_ref": "building-step-template:closure",
+      "completion_edge_ref": "edge:p3-plan-ref-closure-to-boundary",
+      "work_statement": "Close the visibility audit as support evidence only. Record that official route/materialization/evidence root generation was exercised. Do not claim P3 completion, customer-ready state, source truth, success, quality, or Movement authority.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:p3-plan-ref-inspect-to-closure",
+      "source": "p3-plan-ref-inspect",
+      "target": "p3-plan-ref-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p3-plan-ref-closure-to-boundary",
+      "source": "p3-plan-ref-closure",
+      "target": "building-boundary:cr-v4-p3-plan-ref-visibility-0629b-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [],
+  "proof_limits": [
+    "support evidence only",
+    "plan-ref visibility audit only",
+    "Codex-local read-only audit only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "not_proven": [
+    "model/provider behavior",
+    "semantic quality of plan contents",
+    "fresh customer comprehension",
+    "fresh-machine behavior",
+    "P7/P8 dogfood proof",
+    "customer-ready completion"
+  ]
+}

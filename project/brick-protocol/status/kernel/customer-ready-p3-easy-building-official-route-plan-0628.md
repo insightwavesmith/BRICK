@@ -430,6 +430,63 @@ operator/COO-declared sizing plus official `brick build --task/--preset` or
 `brick build --graph`, not autonomous natural-language route selection by
 support.
 
+0629d three-axis operator recheck: three focused read-only subagents rechecked
+Brick / Agent / Link separately, and Codex reran the focused profiles. All three
+axis reviews converged on the same boundary:
+
+```text
+Brick:
+  old hard fan-in / return-shape / official-route blocker is stale for the
+  current v4 path. Current templates preserve full return.yaml shape and
+  carries_forward_fields filters handoff without shrinking the Brick contract.
+
+Agent:
+  QA / Inspector transition_concern_evidence is local returned Agent evidence
+  in hard fan-in source position. The active Agent-side issue observed in the
+  latest visibility audit was a Codex-local COO closure timeout, not QA concern
+  adoption.
+
+Link:
+  old pre-closure source-lane concern adoption is stale. Current full-design
+  evidence shows forward Link rows through closure. Remaining Link proof gap is
+  closure-origin concern adoption and reason-ref safety when that adoption is
+  exercised, not source-lane concern adoption.
+
+Support:
+  `cr-v4-p3-plan-ref-visibility-0629b` is run-local not-ready evidence:
+  inspect returned, closure timed out with adapter error, and frontier became
+  agent_incomplete. This is not a hard fan-in regression.
+```
+
+Current 0629d focused commands:
+
+```text
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity:. \
+  python3 support/checkers/check_profile.py \
+  --profile support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml
+  => passed
+
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity:. \
+  python3 support/checkers/check_profile.py \
+  --profile support/checkers/profiles/coo_operating_chain.yaml
+  => passed
+
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity:. \
+  python3 support/checkers/check_profile.py \
+  --profile support/checkers/profiles/brick_cli_entrypoint.yaml
+  => passed
+
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity:. \
+  python3 support/checkers/check_profile.py \
+  --profile support/checkers/profiles/driver_public_intake_seal.yaml
+  => passed
+
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity:. \
+  python3 support/checkers/check_profile.py \
+  --profile support/checkers/profiles/bounded_agent_proposed_routing_loop.yaml
+  => passed
+```
+
 ## 0629 Hard Fan-In Runtime Repair Evidence
 
 Measured bug:
@@ -620,6 +677,7 @@ P3 closure still needs focused proof for:
 ```text
 closure-origin transition_concern_evidence remains adoptable under declared
 policy and budget inside that full graph
+plan-ref visibility audit closes without Codex-local closure timeout
 fresh customer comprehension beyond wording evidence
 live provider reliability limits
 semantic quality limits for generated graph choices
