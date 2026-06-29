@@ -1,0 +1,62 @@
+{
+  "task_statement": "FINAL architecture next god-module shrink. Implement the conservation-ledger move recorded in project/brick-protocol/status/kernel/customer-ready-final-architecture-plan-fixture-helpers-ledger-0630.md. Move exactly the checker-only plan fixture/helper cluster from support/checkers/lib/case_runners.py into one new flat sibling support/checkers/lib/plan_fixture_helpers.py, preserving the eight moved function bodies byte-identically and re-exporting the moved private helper names from case_runners.py so all existing call sites and profile cases behave identically. Add exactly one module_registry.yaml row for the new sibling with support/checkers/lib checker-lib ownership only. Define a local tiny _case_slug helper in the new module if needed to avoid importing from case_runners.py. Do not split kernel_checks, walker/run, profiles, or create folders/module families. Verification: import smoke for moved names; git diff --check; compileall for touched checker-lib modules; PYTHONPATH=support/import_identity:. python3 support/checkers/check_profile.py --all. Mutation-RED probes may be recorded as not_proven in sandbox if temp/probe limitations arise, but do not fake them.",
+  "declared_by": "coo-smith",
+  "building_id": "final-plan-fixture-helpers-extraction-0630a",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "nodes": [
+    {
+      "node_id": "final-plan-fixture-work",
+      "step_ref": "final-plan-fixture-work",
+      "step_template_ref": "building-step-template:work",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/checkers/lib/case_runners.py",
+          "support/checkers/lib/plan_fixture_helpers.py",
+          "support/checkers/module_registry.yaml"
+        ],
+        "forbidden_paths": [".git/**", "project/**", "agent/**", "brick/**", "support/operator/**", "support/connection/**"]
+      },
+      "work_statement": "Implement only the conservation-ledger leaf extraction: create support/checkers/lib/plan_fixture_helpers.py; move exactly _gate_sequence_policy_link_row, _gate_sequence_policy_context, _compose_building_profile_plan, _graph_test_plan_from_linear, _validation_plan_for_declared_plan, _compose_building_expected_codes, _optional_positive_int, and _compose_building_ok_callable from case_runners.py; import/re-export them in case_runners.py; add one module_registry row for the new sibling. Define local _case_slug in the new helper module if needed to avoid a circular import. Do not change profiles or runtime code. Run listed verification and report exact commands.",
+      "completion_edge_ref": "edge:final-plan-fixture-work-to-code-qa"
+    },
+    {
+      "node_id": "final-plan-fixture-code-qa",
+      "step_ref": "final-plan-fixture-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "work_statement": "Code-attack QA. Inspect sandbox diff and verify: only the three allowed support/checkers files changed; moved helper bodies are byte-identical except allowable local _case_slug support helper outside the moved bodies; all moved names remain importable from support.checkers.lib.case_runners; module_registry row is support-only with no axis ownership; no profiles/checker semantics changed; git diff --check, compileall, and check_profile.py --all are green or blockers are honest. Do not source-mutate.",
+      "completion_edge_ref": "edge:final-plan-fixture-code-qa-to-closure"
+    },
+    {
+      "node_id": "final-plan-fixture-axis-qa",
+      "step_ref": "final-plan-fixture-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default",
+      "work_statement": "Axis-attack QA. Verify Brick/Agent/Link boundaries: this is support checker-lib fixture/helper relocation only, no Movement authority, no target selector, no source truth, no success/quality judgment, no new module family/folder hierarchy, no credential/session data. Check diff against the ledger and report any boundary gap. Do not source-mutate.",
+      "completion_edge_ref": "edge:final-plan-fixture-axis-qa-to-closure"
+    },
+    {
+      "node_id": "final-plan-fixture-closure",
+      "step_ref": "final-plan-fixture-closure",
+      "step_template_ref": "building-step-template:closure",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "work_statement": "Closure synthesis. Read work + both QA returns. If implementation and QA support the conservation ledger, return forward evidence with exact changed files, sandbox commit, frontier limits, commands run, and not_proven. If any implementation_gap or boundary_mismatch remains, raise transition_concern_evidence instead of claiming closure.",
+      "completion_edge_ref": "edge:final-plan-fixture-closure-to-boundary"
+    }
+  ],
+  "edges": [
+    {"edge_ref": "edge:final-plan-fixture-work-to-code-qa", "source": "final-plan-fixture-work", "target": "final-plan-fixture-code-qa", "movement": "forward"},
+    {"edge_ref": "edge:final-plan-fixture-work-to-axis-qa", "source": "final-plan-fixture-work", "target": "final-plan-fixture-axis-qa", "movement": "forward"},
+    {"edge_ref": "edge:final-plan-fixture-code-qa-to-closure", "source": "final-plan-fixture-code-qa", "target": "final-plan-fixture-closure", "movement": "forward"},
+    {"edge_ref": "edge:final-plan-fixture-axis-qa-to-closure", "source": "final-plan-fixture-axis-qa", "target": "final-plan-fixture-closure", "movement": "forward"},
+    {"edge_ref": "edge:final-plan-fixture-closure-to-boundary", "source": "final-plan-fixture-closure", "target": "building-boundary:final-plan-fixture-helpers-extraction-0630a-closed", "movement": "forward", "building_lifecycle": {"state": "closed", "reason": "declared graph closed"}}
+  ],
+  "groups": []
+}
