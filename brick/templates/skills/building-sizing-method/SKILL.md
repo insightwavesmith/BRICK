@@ -13,6 +13,9 @@ description: BRICK 빌딩 사이징 — 일의 크기/모양을 그래프 모양
 
 빌딩 사이징은 고정 `work -> QA -> closure` 찍기가 아니다. task마다 사용 가능한 LLM을
 두뇌로, Brick KIND를 손발로, Graph를 신경망으로 배치한다. 이 배치 판단 자체가 BRICK dogfood다.
+쓰기 손발이 필요한 모양이면 `work` KIND를 고르는 것에서 끝나지 않는다. 산출 GraphSpec에
+`write=True` 필요를 표시하고, 발사 단계(brick-task-author)에서 bounded `write_scope`를 함께
+넘기게 해야 한다. `write_scope`만 넘기는 모양은 read-only smoke가 되어 변경을 만들지 않는다.
 
 워크플로에선 **에이전트를 직접 사이징**한다(몇 명·어느 모델·병렬·적대·스케일이 독립 다이얼).
 빌딩에선 **KIND를 사이징**하고, **KIND가 에이전트를 데려온다**. 너는 에이전트를 절대 지목하지 않는다.
@@ -119,7 +122,7 @@ from brick_protocol.support.operator.assembly import assemble, build, Authority
 from brick_protocol.brick.spec import brick
 graph = build([
     brick("design",  "범위를 좁혀라(바운디드 읽기목록)"),
-    brick("work",    "변경하라", write=True),
+    brick("work",    "변경하라", write=True),  # 발사 시 write_scope도 함께 넘길 것
     brick("closure", "검증·보고하라"),
 ])
 # gates=() — 완전 무인

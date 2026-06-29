@@ -94,7 +94,7 @@ quality/success judge가 아니다.
 |---|---|
 | 노드 `work=` | **유일한 구조적 필수.** `brick("work","<한 줄>")`. 빠지면 CompositionError. returns/alias/comparison_rule은 build()가 자동채움 — 쓰지 마라. |
 | 빌딩 `task=` | 비어있지 않은 텍스트 ≤64KB면 됨. **안의 heading 하나도 엔진 검증 안 함** — sha256 후 `work/task.md`로 그대로 쓰여 에이전트 프롬프트가 됨. |
-| 그 외 | 모든 섹션은 에이전트 행동용(admission용 아님). write_scope는 write=True 노드에만. adapter/model/gates는 assemble() 인자(task.md 안 아님). |
+| 그 외 | 모든 섹션은 에이전트 행동용(admission용 아님). write hand는 두 잠금: 노드 `write=True` + launch `write_scope`. `write_scope`만 넘기면 scope가 찍히지 않아 read-only가 정상이다. adapter/model/gates는 assemble()/fire 인자(task.md 안 아님). |
 
 **스톨의 진짜 레버(실측 0615):** 엔진은 task.md로 인한 스톨 0(불투명 텍스트). 60분 vs 2분은 **에이전트의 읽기범위 바운디드냐**다 — "fix the adapter"(무바운드)=트리 전체 훑어 60분 / "이 영역만, 딴 데 훑지 마"=2분. **레버 = 바운디드 스코프 한 줄(모듈·영역 단위면 충분).** file:line 좌표 박기는 목표 아니라 **fallback**(설계 노드 못 믿을 때만). §AUTO엔 그 읽기목록 산출이 **design 노드의 일**이다.
 
@@ -156,6 +156,32 @@ P3의 기본 목표는 “쉽게 그린다”다. task interview가 끝났으면
 ```
 task_intake → task.md 후보 확인 → build([... fan([...]) ...]) → fire(graph, task=..., building_id=...)
 ```
+
+쓰기 작업이면 compact graph와 발사 인자가 둘 다 필요하다(0630 smoke 실측):
+
+```python
+from brick_protocol.support.operator.assembly import build, fire
+from brick_protocol.brick.spec import brick
+
+graph = build([
+    brick("work", "정해진 파일만 변경하라", write=True, adapter="codex-local"),
+    brick("closure", "산출물과 evidence를 확인하라", adapter="codex-local"),
+])
+fire(
+    graph,
+    declared_by="coo:smith",
+    task="<task.md 한 줄 요약>",
+    building_id="<id>",
+    write_scope={
+        "allowed_paths": ["project/brick-protocol/status/kernel/<file>.md"],
+        "forbidden_paths": [".git/**"],
+    },
+)
+```
+
+`write_scope`만 넘기고 work 노드에 `write=True`가 없으면 assembly가 scope를 찍지 않으므로
+Agent는 read-only grant를 받는다. 그 경우 `frontier=complete`라도 `made_changes=false`가
+나올 수 있으며, 이것은 발사자 그래프 선언 문제다.
 
 `fire(graph)`는 수동 worktree/dict/path/adapter_cwd/json ritual을 삼키는 얇은 sugar일 뿐,
 별도 runtime, direct launch runner, phase runner, work-return proof, QA-return proof, closeout proof,

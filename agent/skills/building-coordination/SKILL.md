@@ -67,6 +67,13 @@ the preferred graph execution is compact drawing (`build` / `fan`) followed by
 needed, `brick build --graph <packet>` remains the file-handoff form of the same
 route. Do not invent a second runner or a new skill chain.
 
+Compact write-hand policy (measured 0630): a graph node that must modify files
+needs two declarations, not one. The work Brick must declare write need
+(`write=True` on compact helpers, or `requires_brick_write_scope: true` in a
+packet) AND the launch must pass a bounded `write_scope`. Passing `write_scope`
+without a write node is intentionally read-only and should be reported as
+`made_changes=false`, not treated as an Agent failure.
+
 Open COO intake questions before implementation. Ask core questions, inspect
 which task fields they extract, and ask follow-up questions until the missing
 task fields are named.

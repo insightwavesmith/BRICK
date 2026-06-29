@@ -57,7 +57,7 @@ Execution order = critical path: **P3 (close residual) → P5 → P7 → P8 = GO
 ## 현재 상태 (0630 새벽 — f3744e9 반영)
 - **P3 code baseline = `f3744e9`; goal/skill chain sync = this anchor commit (check `git status` for push state).** P0/1/2/4 DONE. Compact reload anchor = `customer-ready-goal-anchor-v01.md`.
 - **P3 ENGINEERING CLOSED:** `brick build --graph <packet>` fan-in dogfood는 이미 `frontier=complete` + 실산출물 + spine + Slack로 증명됨. `f3744e9`에서 남은 두 지뢰도 닫힘: ① thin `fire(graph)` sugar(손 JSON/packet ritual 제거) ② caller-local output/slack root(`BRICK_HOME`/`~/.brick`, Smith 경로 제거). 검증: `brick_cli_entrypoint`, `building_operator_driver0`, `--all`, `compileall`, `diff --check` GREEN.
-- **P3 formal seal 잔여:** goal 문서/스킬 sync는 이 anchor commit에서 반영됨. 필요시 `fire(graph)` live smoke 1회만 남음. 스킬은 신설이 아니라 기존 `brick-task-author` / `task_intake` / `building-coordination` 체인에 반영됨.
+- **P3 formal seal 잔여/0630 smoke:** goal 문서/스킬 sync는 anchor commit에서 반영됨. `fire(graph)` live smoke는 3회 측정: r0/r1은 route는 `complete`였으나 write hand 미선언으로 `made_changes=false`; r2는 work 노드 `write=True` + fire `write_scope`로 실제 파일 변경을 만들었고 official route/write hand가 증명됐으나 closure artifact-text mismatch로 `frontier=link_paused`. 따라서 P3 code/route/write-hand는 증거가 생겼고, formal clean PASS는 필요시 mismatch 없는 smoke 1회가 남음. 스킬은 신설이 아니라 기존 `brick-task-author` / `task_intake` / `building-coordination` 체인에 계속 반영됨.
 - **P5 평가 완료:** 정직성 골격 OK. #1 output_root는 P3에서 닫힘. 남은 갭은 #2 README quickstart preset/adapter 정합 · #3 frontier story 일치 · #4 FIRST_USE adapter population · #5 launch-guide Python snippet 제거 · #6 fresh-machine prep.
 - **남은 임계경로:** P3 formal seal/skill sync → P5(#2-#6) → P7(fresh-machine) → P8(dogfood 골) → customer release pruning → FINAL architecture cleanup.
 - **cruft(비차단·위생):** stash/worktree/evidence 누적은 골을 막지 않으면 P7/P8 뒤 release pruning에서 고객 surface만 남기며 정리.
@@ -73,7 +73,7 @@ PASS: read/probe_write/source_write declared (Brick) + admitted (Agent) + ENFORC
 OPEN: the qa-lead leak (leader-lane review role escapes the reviewer ceiling) → closed only by the policy-split (reviewers → probe-write-scoped) = the FIRST dogfood.
 
 ### P3 Easy Building official route — ENGINEERING CLOSED · formal seal/skill sync (0630) → `GOAL/P3-easy-building.md`
-PASS: a customer `make X` runs **end-to-end** via the ONE official route (sealed: `brick build`; fluent: COO draws with `build`/`fan` and fires once with `fire(graph)`) → `frontier=complete` + evidence. `f3744e9` closes the zero-footgun plumbing: caller-local output root + thin `fire(graph)` sugar. Formal seal now means syncing the goal/skill chain and optionally running one live `fire(graph)` smoke.
+PASS: a customer `make X` runs **end-to-end** via the ONE official route (sealed: `brick build`; fluent: COO draws with `build`/`fan` and fires once with `fire(graph)`) → `frontier=complete` + evidence. `f3744e9` closes the zero-footgun plumbing: caller-local output root + thin `fire(graph)` sugar. Formal seal now means skill chain synced plus one clean `fire(graph)` smoke if Smith requires it. Compact write-hand invariant: a write-capable graph needs BOTH node `write=True` (e.g. `brick("work", ..., write=True)` or `["work", ..., {"write": True}]`) AND launch `write_scope=...`; `write_scope` alone is not enough because assembly stamps scope only for declared write nodes.
 
 ### P4 resume fan-out — DONE → `GOAL/P4-resume-fanout.md`
 PASS: resume recovers declared fan-out parallelism after forward disposition; replay deterministic. Measured: bounded_agent_proposed_routing_loop green + timed fixture. (Met.)

@@ -9,7 +9,7 @@
 DONE(다시 건드리지 마라): P0 freeze · P1 adapter authority · P2 capability(잔여=qa-lead leak=정책split=첫 dogfood후보) · P4 resume fan-out. 측정=--all GREEN+해당 fixture.
 
 phase chain (순서=임계경로):
-P3 easy-building: 고객/COO가 build/fan/fire로 shape+cast만 그린다(수동 ritual 0). 핵심=두뇌(LLM)와 손발(Brick)을 Graph로 잘 구성. 빌딩굴리기 스킬은 골 완료까지 계속 갱신한다. 코드 닫힘(f3744e9); goal/skill chain sync=this anchor commit. 남은 일=필요시 fire(graph) live smoke 1회 봉인.
+P3 easy-building: 고객/COO가 build/fan/fire로 shape+cast만 그린다(수동 ritual 0). 핵심=두뇌(LLM)와 손발(Brick)을 Graph로 잘 구성. 빌딩굴리기 스킬은 골 완료까지 계속 갱신한다. 코드 닫힘(f3744e9); goal/skill chain sync=this anchor commit. 남은 일=필요시 fire(graph) live smoke 1회 봉인. write hand 규칙(0630 smoke): compact graph에서 실제 파일 변경이 필요하면 work 노드에 `write=True`를 박고 fire/assemble에 `write_scope`를 함께 넘긴다. `write_scope`만 넘기면 read-only hand가 되어 made_changes=false가 정상이다.
 P5 first-run: README/quickstart/preset/adapter/frontier/FIRST_USE/launch-guide가 실제 CLI와 일치. 거짓 --real-provider·숨은 HOME·Smith경로·python hand-runner 0. 기획=customer-ready-goal-phases-0629.md(P5 갭#2-6; #1은 P3에서 닫힘).
 P7 fresh-machine: origin/main clone→install→init/doctor/auth→build/fire→verify가 문서 스텝만으로 frontier=complete+evidence. 과거 evidence/project/Smith 로컬 의존 0. hazard=intake_evidence_projection_case 비-hermetic. 기획=customer-ready-p7-p8-pass-criteria-0629.md.
 P8 dogfood=GOAL: 실제 작은 task 1개를 고객 entrypoint로→frontier=complete+real artifact+raw/spine consistency+operator-readable. 실패=hold reason을 P3/P5/P7/Link-track로 라우팅 후 재시도. 단발=first proof(신뢰성 아님).
