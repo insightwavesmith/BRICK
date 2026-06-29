@@ -66,6 +66,30 @@ window; this document recommends explicit re-admission now (ratified by Smith 06
 
 **Movement:** FORWARD to the bounded dogfood probe; broad customer-ready stays **HOLD / NOT PROVEN**.
 
+## P3 design direction — sealed + fluent launch (sharpened 0629)
+The user of build-launch is the AGENT (a customer's main AI acting as COO), NOT a hand-coding human. The friction metric is the AGENT's own struggle: this session EVERY building launch (gemini-revival, walker, C1, C6) needed a /tmp launcher — `assemble(graph,task)` → `composed_plan` dict → manual `git worktree add` → `output_root=vessel` → `run_building_plan(adapter_cwd=…)` → manual `git merge` — dodging the 4 footguns + copying the skill recipe. That lived friction IS the P3 gap.
+
+Change = two-pronged:
+1. **SEAL** — keep ONE official launch route; block all others (run_building_intake / assemble+run_building_plan / launch_assembled_building / direct build()). A non-official launch call errors "use the official route." (Extends the existing `driver_public_intake_seal`.)
+2. **FLUENT** — that one route is as easy as firing a workflow: the agent DRAWS (`build`/`fan`, the existing pipeline/parallel mirror) and fires ONCE; the route SWALLOWS worktree creation, output_root=vessel, evidence collection, report, and the merge-candidate. No footguns, no recipe copy.
+
+```
+today:  /tmp launcher → assemble(graph,task) → composed_plan dict → git worktree add →
+        output_root=vessel → run_building_plan(adapter_cwd=…) → verify → git merge
+target: fire(build([design, work, fan([code-qa, axis-qa]), closure]), "make X")  → done.
+        (the official route's fluent FRONT — NOT a side verb; C6-as-side-verb was correctly retired
+         BECAUSE the ease belongs in the official route, not a parallel verb)
+```
+
+Metric (no guessing): the AGENT can launch a building in ONE fluent call with ZERO footgun ritual. The disappearance of this session's launch ritual IS the PASS. This is exactly the bounded dogfood forcing probe: "make X → draw → fire → evidence" run by the agent in one shot; any ritual that still intrudes = the next repair surface.
+
+Same problem as the narrowing below: many footgun-laden launch surfaces = the same complexity disease as the 8 agent lanes — collapse to one.
+
+## Open findings to continue (recorded 0629, not yet acted)
+- **qa-lead source_write LEAK** (verified live, source_write=True): qa-lead is a `leader` lane, so the reviewer-no-mutation ceiling (keyed on `lane=='reviewer'`) does NOT apply → qa-lead CAN source_write. The Brick NEED (review=read) saves the *effective*, but the Agent-axis guard is missing (defense-in-depth gap). The enforcement DOES have teeth for true reviewer lanes (mutation fires RED, verified). Secondary: the brick `capability_class` label is advisory/unenforced (real guard is the lane ceiling); enforcement is prompt-projection-level, not filesystem-level (known; OS sandbox deferred to hosting). Candidate first dogfood: tie review-named leader lanes to no-source-write + pin it — OR close by DELETION (below).
+- **Agent/Brick NARROWING in progress** (delete unused → fewer holes; Smith's "complexity makes problems"): `development` kind = 0 preset uses (delete candidate). cto-lead/pm-lead likely unused (objects are cast by kind→lane→object, NOT named in presets — confirm via casting map, workflow `wwlpznpmz`). Collapse lanes/kinds/policies to the minimal set that still covers every preset shape; the qa-lead hole may close by DELETION rather than a new checker. The tool-policy design ("everyone shares read-write-scoped; reviewers demoted by a hook") is itself the leak source — a dedicated probe_write-only policy may be simpler + safer.
+- **Measurement hygiene (P7)**: `intake_evidence_projection_case` is non-hermetic (needs real HOME) → false-REDs in fresh/CI env. Fix during P7.
+
 ## Critical path to dogfood
 `P3 (close) → [Claude re-admit] → P5 first-run → P7 fresh-machine (write doc first) → P8 dogfood = GOAL.`
 P4 = done. P6 (engine cleanup) is OFF the critical path (later).
