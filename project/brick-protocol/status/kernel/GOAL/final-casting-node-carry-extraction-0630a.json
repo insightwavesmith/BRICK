@@ -1,0 +1,98 @@
+{
+  "task_statement": "FINAL architecture next god-module shrink. Implement the conservation-ledger move recorded in project/brick-protocol/status/kernel/customer-ready-final-architecture-casting-node-carry-ledger-0630.md. Move exactly the casting_node_carry kernel-check cluster from support/checkers/lib/case_runners.py into one new flat sibling support/checkers/lib/casting_node_carry_check.py, preserving the two moved function bodies byte-identically and re-exporting the moved names from case_runners.py so support/checkers/check_profile.py and existing profile cases behave identically. Add exactly one module_registry.yaml row for the new sibling with support/checkers/lib checker-lib ownership only. Do not split kernel_checks, walker/run, profiles, or create folders/module families. Verification: import smoke for moved names; git diff --check; compileall for touched checker-lib modules; PYTHONPATH=support/import_identity:. python3 support/checkers/check_profile.py --profile support/checkers/profiles/agent_axis_behavioral.yaml; PYTHONPATH=support/import_identity:. python3 support/checkers/check_profile.py --all. Mutation-RED probes may be recorded as not_proven in sandbox if temp/probe limitations arise, but do not fake them.",
+  "declared_by": "coo-smith",
+  "building_id": "final-casting-node-carry-extraction-0630a",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "nodes": [
+    {
+      "node_id": "final-casting-carry-work",
+      "step_ref": "final-casting-carry-work",
+      "step_template_ref": "building-step-template:work",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/checkers/lib/case_runners.py",
+          "support/checkers/lib/casting_node_carry_check.py",
+          "support/checkers/module_registry.yaml"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "project/**",
+          "agent/**",
+          "brick/**",
+          "support/operator/**",
+          "support/connection/**"
+        ]
+      },
+      "work_statement": "Implement only the conservation-ledger leaf extraction: create support/checkers/lib/casting_node_carry_check.py; move exactly _casting_node_carry_base_graph_plan and run_casting_node_carry from case_runners.py with byte-identical bodies; import/re-export both in case_runners.py; add one module_registry row for the new sibling; do not touch check_profile.py callers, profiles, kernel_checks.py, walker/run, or other module families. Run compileall, import smoke, agent_axis_behavioral profile, --all, and git diff --check; record mutation-RED honestly if feasible.",
+      "completion_edge_ref": "edge:final-casting-carry-work-to-code-qa"
+    },
+    {
+      "node_id": "final-casting-carry-code-qa",
+      "step_ref": "final-casting-carry-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "work_statement": "Code-attack QA. Inspect sandbox diff and verify: only the three allowed support/checkers files changed; the two moved helper bodies are byte-identical; both moved names remain importable from support.checkers.lib.case_runners; module_registry row is support-only with no axis ownership; agent_axis_behavioral, git diff --check, compileall, and check_profile.py --all are green or blockers are honest. Do not source-mutate.",
+      "completion_edge_ref": "edge:final-casting-carry-code-qa-to-closure"
+    },
+    {
+      "node_id": "final-casting-carry-axis-qa",
+      "step_ref": "final-casting-carry-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default",
+      "work_statement": "Axis-attack QA. Verify Brick/Agent/Link boundaries: this is support checker-lib kernel-check relocation only, no Movement authority, no target selector, no source truth, no success/quality judgment, no new module family/folder hierarchy, no credential/session data, no module-level axis imports in the new sibling. Check diff against the ledger and report any boundary gap. Do not source-mutate.",
+      "completion_edge_ref": "edge:final-casting-carry-axis-qa-to-closure"
+    },
+    {
+      "node_id": "final-casting-carry-closure",
+      "step_ref": "final-casting-carry-closure",
+      "step_template_ref": "building-step-template:closure",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "work_statement": "Closure synthesis. Read work + both QA returns. If implementation and QA support the conservation ledger, return forward evidence with exact changed files, sandbox commit, frontier limits, commands run, and not_proven. If any implementation_gap or boundary_mismatch remains, raise transition_concern_evidence instead of claiming closure.",
+      "completion_edge_ref": "edge:final-casting-carry-closure-to-boundary"
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:final-casting-carry-work-to-code-qa",
+      "source": "final-casting-carry-work",
+      "target": "final-casting-carry-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:final-casting-carry-work-to-axis-qa",
+      "source": "final-casting-carry-work",
+      "target": "final-casting-carry-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:final-casting-carry-code-qa-to-closure",
+      "source": "final-casting-carry-code-qa",
+      "target": "final-casting-carry-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:final-casting-carry-axis-qa-to-closure",
+      "source": "final-casting-carry-axis-qa",
+      "target": "final-casting-carry-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:final-casting-carry-closure-to-boundary",
+      "source": "final-casting-carry-closure",
+      "target": "building-boundary:final-materialized-return-shape-guards-extraction-0630a-closed",
+      "movement": "forward",
+      "building_lifecycle": {
+        "state": "closed",
+        "reason": "declared graph closed"
+      }
+    }
+  ],
+  "groups": []
+}
