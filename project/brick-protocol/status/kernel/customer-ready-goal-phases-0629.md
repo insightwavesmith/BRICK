@@ -42,20 +42,44 @@ MEASURE, DON'T INFER. Execution results only, in the real environment. Verify yo
 adversarially before committing.
 ```
 
-## Phases — each → detail doc
-| Phase | What | Status (measured) | Detail doc |
-|---|---|---|---|
-| P0 | freeze + evidence inventory | DONE | goal-def §P0 (inline) |
-| P1 | adapter authority (gemini-local intersection) | DONE | goal-def §P1 (inline) |
-| P2 | capability taxonomy (read / probe_write / source_write) | DONE | `customer-ready-p2-capability-taxonomy-plan-0628.md` |
-| **P3** | **Easy Building official route (CORE)** | **READY-NOW** (spine verified, NOT end-to-end) | `customer-ready-p3-easy-building-official-route-plan-0628.md` |
-| P4 | resume fan-out | DONE | `customer-ready-p4-resume-fanout-plan-0628.md` |
-| P5 | first-run / onboarding | BLOCKED (needs P3) | `customer-ready-p5-first-run-official-route-plan-0628.md` |
-| P6 | cleanup / godmodule | BLOCKED (off critical path) | `customer-ready-p6-cleanup-godmodule-plan-0628.md` |
-| P7 | fresh-machine proof | BLOCKED | `customer-ready-p7-p8-pass-criteria-0629.md` |
-| P8 | dogfood capstone = GOAL | BLOCKED | `customer-ready-p7-p8-pass-criteria-0629.md` |
+## Success judgment (how EVERY phase is judged)
+Success is **MEASURED, never claimed.** A phase PASSES only when ALL of:
+1. `check_profile.py --all` GREEN with the **REAL HOME** (never `HOME=$(mktemp -d)`), AND
+2. the phase's PASS criteria below are met **end-to-end** (not slice-claims, not "the record says done"), AND
+3. for a Building: `frontier_kind=="complete"` (read from `--json`) or `brick verify` exit 0 — **NOT** `brick build`'s exit 0 (that is intentional 3-axis and judges nothing), AND
+4. the **COO (Claude) dispositions it forward** after adversarial self-verify.
+Support records FACTS; the COO/human JUDGES. "CR record/audit" commits are not proof.
 
-Critical path: P3 (close) → P5 → P7 → P8. P4 done; P6 off-path. (Details + decisions: audit-roadmap-0629.)
+## Phases — progress in this ORDER (each → `GOAL/` symlink)
+Execution order = critical path: **P3 (close) → P5 → P7 → P8 = GOAL.** P0/P1/P2/P4 DONE; P6 off-path (later). Each gated by its PASS.
+
+### P0 freeze — DONE → `GOAL/P0-freeze.md`
+PASS: evidence inventory frozen; old C6 evidence = HOLD; no stale-spine override. (Met.)
+
+### P1 adapter authority — DONE → `GOAL/P1-adapter-authority.md`
+PASS: gemini-local write only at NEED ∧ Agent-policy ∧ adapter-capability; empty tool_policy_refs fail closed. Measured: agent_axis_behavioral + resource_boundary green. (Met.)
+
+### P2 capability taxonomy — DONE, one open gap → `GOAL/P2-capability-taxonomy.md`
+PASS: read/probe_write/source_write declared (Brick) + admitted (Agent) + ENFORCED with teeth (reviewer-source-write mutation fires RED — verified). Measured: --all green + mutation-RED.
+OPEN: the qa-lead leak (leader-lane review role escapes the reviewer ceiling) → closed only by the policy-split (reviewers → probe-write-scoped) = the FIRST dogfood.
+
+### P3 Easy Building official route — CORE, READY-NOW → `GOAL/P3-easy-building.md`
+PASS: a customer `make X` runs **end-to-end** via the ONE official route (sealed: only `brick build`; fluent: the COO draws + fires once, plumbing swallowed) → `frontier=complete` + evidence. **Metric = the COO launches a real building in ONE fluent call with ZERO footgun ritual** (the launch-ritual disappearance IS the pass). Not slice-claims.
+
+### P4 resume fan-out — DONE → `GOAL/P4-resume-fanout.md`
+PASS: resume recovers declared fan-out parallelism after forward disposition; replay deterministic. Measured: bounded_agent_proposed_routing_loop green + timed fixture. (Met.)
+
+### P5 first-run / onboarding — BLOCKED (needs P3) → `GOAL/P5-first-run.md`
+PASS: install/init/doctor/onboard truthful for the available-LLM customer; gemini readiness honest; FIRST_USE delivered; a real-provider first task runs → evidence; no hidden machine-local dep.
+
+### P6 cleanup / godmodule — BLOCKED, off critical path → `GOAL/P6-cleanup.md`
+PASS: each god-module split **byte-identical** (behavior unchanged) — `--all` green oracle + mutation-RED + net-negative LOC. Includes the dead-pair sweep (development + cto-lead) landing --all green.
+
+### P7 fresh-machine — BLOCKED → `GOAL/P7-fresh-machine.md`
+PASS: clone → install → onboard → build → verify on a clean machine, **documented steps ONLY**, `frontier=complete`, ZERO undocumented manual steps, NO hidden machine-local dep (incl. fixing the non-hermetic `intake_evidence_projection_case`).
+
+### P8 dogfood capstone = GOAL — BLOCKED → `GOAL/P8-dogfood.md`
+PASS: BRICK runs ONE real task through the customer entrypoint → `frontier=complete` + raw/spine consistent + artifact real + operator-readable. (Single run = first proof, NOT reliability.) **This is the GOAL.**
 
 ## Building patterns (how each item runs)
 **개발 큰것 (BIG) — TWO buildings, the COO (Claude) judges between:**
