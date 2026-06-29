@@ -50,6 +50,36 @@ def _doctor_lines(doctor_packet: Mapping[str, Any]) -> list[str]:
     return rendered or ["- Doctor packet recorded no usable rows."]
 
 
+_READINESS_FIELD_KEYS = (
+    "target",
+    "adapter_ref",
+    "ok",
+    "installed",
+    "authed",
+    "api_key_env_present",
+    "credential_validity",
+    "live_provider_not_run",
+)
+
+
+def _structured_readiness_lines(doctor_packet: Mapping[str, Any]) -> list[str]:
+    rows = doctor_packet.get("rows", [])
+    if not isinstance(rows, list) or not rows:
+        return ["- not recorded"]
+    rendered: list[str] = []
+    for row in rows:
+        if not isinstance(row, Mapping):
+            continue
+        fields = [
+            f"{key}={_packet_bool_text(row, key) if isinstance(row.get(key), bool) else _packet_text(row, key)}"
+            for key in _READINESS_FIELD_KEYS
+            if key in row
+        ]
+        if fields:
+            rendered.append(f"- {'; '.join(fields)}")
+    return rendered or ["- not recorded"]
+
+
 def _step_adapter_lines(build_packet: Mapping[str, Any]) -> list[str]:
     rows = build_packet.get("materialized_step_adapters")
     if not isinstance(rows, list) or not rows:
@@ -103,6 +133,10 @@ def render_first_use(
         "## Agent adapter evidence",
         "",
         *_step_adapter_lines(build_packet),
+        "",
+        "## Provider readiness evidence",
+        "",
+        *_structured_readiness_lines(doctor_packet),
         "",
         "## doctor 관찰 / Doctor observations",
         "",

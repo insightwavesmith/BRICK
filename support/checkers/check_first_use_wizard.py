@@ -39,6 +39,10 @@ REQUIRED_TEXTS = (
     "customer_visible_not_ready",
     "Agent adapter evidence",
     "materialized-step",
+    "Provider readiness evidence",
+    "target=gemini",
+    "api_key_env_present=yes",
+    "credential_validity=not_proven",
     "not source truth",
     "not Movement authority",
 )
@@ -60,6 +64,19 @@ def _fake_doctor_packet() -> dict[str, Any]:
                 "target": "repo",
                 "ok": True,
                 "message_ko": "repo observed for first-use checker fixture",
+            },
+            {
+                "target": "gemini",
+                "adapter_ref": "adapter:gemini-local",
+                "ok": True,
+                "installed": True,
+                "authed": "unknown",
+                "api_key_env_present": True,
+                "credential_validity": "not_proven",
+                "message_ko": (
+                    "gemini fixture observed API-key presence; credential validity "
+                    "is not proven without a live provider call"
+                ),
             },
         ],
         "symptom_table": [],

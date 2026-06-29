@@ -51,7 +51,9 @@ direct run_building_intake in some places; customer docs are stale.
 first-use adapter population needs proof across Claude/Codex/Gemini candidates.
 Gemini credential validity remains not_proven without live call.
 doctor rows do not yet expose the full requested readiness schema.
-FIRST_USE does not yet preserve structured Gemini credential_validity evidence.
+FIRST_USE now preserves structured doctor readiness fields for Gemini key
+presence and credential_validity=not_proven; Agent YAML auto-population remains
+explicitly deferred/not_proven unless a later Agent-owned admission chooses it.
 Slack/customer notification reliability is not proven.
 ```
 
@@ -120,8 +122,9 @@ user override exists.
 Do not auto-decide that Gemini should plan or that Codex should close because
 of registration alone.
 Keep user override simple through Agent config/conversation.
-This slice needs an explicit owning surface and checker. Until then, first-use
-adapter population is NOT_PROVEN and must not blindly mutate Agent YAML.
+This slice needs an explicit owning surface and checker. FIRST_USE readiness
+evidence preservation is narrowed and covered separately; Agent YAML
+auto-population is NOT_PROVEN and must not blindly mutate Agent YAML.
 ```
 
 2. Customer default route.
@@ -159,9 +162,9 @@ Do not document direct Python run_building_intake as the customer path.
 
 ```text
 FIRST_USE file, generated local example, onboarding instructions, and doctor
-output must all use the same provider and route story.
-FIRST_USE must preserve structured Gemini key-presence and
-credential_validity=not_proven evidence when Gemini appears in readiness rows.
+output must all use the same provider and route story. FIRST_USE preserves
+structured Gemini key-presence and credential_validity=not_proven evidence when
+Gemini appears in readiness rows.
 ```
 
 ## Exit Checks
@@ -217,7 +220,8 @@ fresh-machine install/onboard
 README / quickstart / launch-guide route consistency
 doctor full readiness schema
 FIRST_USE structured Gemini credential evidence
-first-use adapter population across Claude/Codex/Gemini
+first-use adapter population across Claude/Codex/Gemini, except for the
+explicitly narrowed FIRST_USE readiness evidence preservation
 Slack delivery reliability
 live provider first-run completion
 customer comprehension of setup output
