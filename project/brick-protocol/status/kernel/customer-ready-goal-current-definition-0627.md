@@ -432,7 +432,7 @@ route accept an easy task/sizing/design declaration and then materialize the
 right preset or graph.
 ```
 
-P3 0629 blocker / recheck:
+P3 0629 old blocker / recheck:
 
 ```text
 Live measurement showed hard fan-in source QA transition_concern_evidence was
@@ -482,6 +482,28 @@ Evidence:
 Movement recommendation:
   FORWARD from the old hard fan-in blocker to the next P3 proof slice.
   Do not call the whole P3 customer-ready phase complete yet.
+```
+
+P3 0629f operator recheck:
+
+```text
+Three read-only subagents rechecked Brick / Agent / Link separately, and Codex
+reran building_skill_preset_agent_tool_hardening.
+
+Result:
+  The old source-lane pre-closure adoption blocker is stale.
+  Current code consumes source-lane transition_concern_evidence before closure
+  only as advisory/local Agent evidence, not Link Movement adoption.
+
+Do not reopen this as a Brick template shrink, Agent prompt, support ref,
+runtime mail, gate, adapter, or engine bug unless new raw/link or checker
+evidence contradicts the current recheck.
+
+Current remaining P3 proof gap:
+  closure-origin transition_concern_evidence has checker-level adoption proof
+  through live_dynamic_full_replay_n3, but still needs a current official graph
+  root if P3 wants live Building evidence for closure-origin adoption under
+  declared Link policy / budget.
 ```
 
 P3 hard fan-in invariant:
@@ -763,6 +785,8 @@ P3 C6 closure
 Gemini-local live provider success
 fresh-machine install/onboard
 P3 build fluency official-route implementation
+current official graph root exercising closure-origin adoption under declared
+  policy / budget
 P6 godmodule cleanup
 P7/P8 customer-ready proof
 ```

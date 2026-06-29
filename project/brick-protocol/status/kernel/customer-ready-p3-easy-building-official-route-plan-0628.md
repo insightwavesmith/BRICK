@@ -527,25 +527,22 @@ Measured bug:
 
 ```text
 composition/materialization stamped the source-lane hard fan-in policy, but
-plan_graph projection dropped transition_concern_adoption before the dynamic
-walker saw the step. Runtime then treated QA source-lane concern evidence as
-ordinary Link adoption input and paused/rerouted before closure.
+the dynamic walker did not preserve the hard fan-in source-lane locality at
+runtime. Runtime then treated QA source-lane concern evidence as ordinary Link
+adoption input and paused/rerouted before closure.
 ```
 
 Repair:
 
 ```text
 composition_compose.py:
-  stamps transition_concern_adoption=advisory on fan-in source nodes whose
-  return shape is template-owned.
-
-plan_graph.py:
-  preserves step-local transition_concern_adoption when projecting graph plans
-  into walker linear steps.
+  stamps fan_in_source_transition_concern_adoption=advisory for the declared
+  fan-in source cohort while preserving template-owned return shapes.
 
 walker_kernel.py:
-  treats advisory transition_concern_evidence as local Agent evidence and walks
-  declared fan edges forward.
+  derives fan-in source locality from graph topology + step_template_ref,
+  records advisory transition_concern_evidence as local Agent evidence, and
+  walks declared fan edges forward.
 
 case_runners/profile:
   negative probe proves a source QA concern does not produce pre-closure HOLD or
@@ -621,6 +618,44 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity:. \
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity:. \
   python3 support/checkers/check_profile.py \
   --profile support/checkers/profiles/bounded_agent_proposed_routing_loop.yaml
+  => passed
+```
+
+## 0629f Three-Axis Recheck
+
+Codex operator rechecked the old blocker with three read-only subagents split
+by Brick / Agent / Link, then reran the focused profile. All three reviews
+matched the live code/evidence:
+
+```text
+Brick:
+  Current templates preserve transition_concern_evidence in the full
+  return.yaml shape and exclude it from carries_forward_fields. Materialized
+  P3 graph evidence keeps source-lane edges forward through closure.
+
+Agent:
+  QA / Inspector source-lane transition_concern_evidence remains local
+  non-binding Agent returned evidence. The Agent-owned hypothesis is not
+  confirmed by current raw evidence.
+
+Link:
+  Source-lane concerns are consumed before closure only as advisory observation,
+  not Movement adoption. The current Link gap is closure-origin concern adoption
+  under declared policy/budget and reason-ref safety in a current official root.
+
+Support:
+  The live enforcement is primarily walker_kernel.py over declared graph topology
+  and step_template_ref, with composition_compose.py stamping the fan-in source
+  advisory policy. Do not explain the repair as plan_graph.py owning Movement or
+  step-local adoption.
+```
+
+Focused command rerun:
+
+```text
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity:. \
+  python3 support/checkers/check_profile.py \
+  --profile support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml
   => passed
 ```
 
@@ -709,8 +744,10 @@ git diff --check
 P3 closure still needs focused proof for:
 
 ```text
-closure-origin transition_concern_evidence remains adoptable under declared
-policy and budget inside that full graph
+closure-origin transition_concern_evidence has checker-level adoption proof
+(`live_dynamic_full_replay_n3`), but still needs a current official graph root
+that exercises closure-origin adoption under declared policy/budget if P3 wants
+live Building evidence rather than checker fixture evidence
 plain GOAL/ wording clarified when it means project/brick-protocol/status/kernel/GOAL/
 fresh customer comprehension beyond wording evidence
 live provider reliability limits
