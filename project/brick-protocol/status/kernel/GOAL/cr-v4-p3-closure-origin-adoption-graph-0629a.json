@@ -1,0 +1,124 @@
+{
+  "task_statement": "CR.v4 P3 closure-origin adoption proof. Use the official graph_packet route to exercise a closure-synthesis transition_concern_evidence under declared Link policy and budget. This is not a source repair and must not mutate source. Source-lane QA concerns remain local/advisory; only closure-synthesis may emit the Link-facing concern. The first closure attempt should return one valid non-binding implementation_gap transition_concern_evidence pointing at the upstream development Brick. After the declared reroute/replay, the next closure attempt should return null transition_concern_evidence and close with the observed evidence. Brick templates must materialize brick.md / return.yaml / return shape / carry; operator must not inject required_return_shape or carries_forward_fields.",
+  "declared_by": "coo",
+  "building_id": "cr-v4-p3-closure-origin-adoption-0629a",
+  "selected_shape_ref": "building-shape:fast-fix",
+  "selection_rule": "caller_or_coo_declared_only",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "p3-closure-adoption-development",
+      "step_ref": "p3-closure-adoption-development",
+      "step_template_ref": "building-step-template:development",
+      "completion_edge_ref": "edge:p3-closure-adoption-development-to-code-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Read-only development planning node for the P3 closure-origin adoption proof. Do not edit files. Observe the current P3 hard fan-in evidence and return a concise assignment/risk-boundary summary. This node is the declared reroute target for a synthetic closure-origin implementation_gap concern so Link can prove declared policy/budget adoption without source mutation.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p3-closure-adoption-code-qa",
+      "step_ref": "p3-closure-adoption-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "completion_edge_ref": "edge:p3-closure-adoption-code-qa-to-closure",
+      "work_statement": "Codex code/regression QA for the closure-origin adoption proof. Do not source-mutate. Inspect whether the graph uses template-owned return shapes, source-lane concerns stay local/advisory, and closure-origin adoption is the only Link-facing concern source in this proof.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p3-closure-adoption-axis-qa",
+      "step_ref": "p3-closure-adoption-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "completion_edge_ref": "edge:p3-closure-adoption-axis-qa-to-closure",
+      "work_statement": "Gemini-local Brick/Agent/Link axis QA for the closure-origin adoption proof. Do not source-mutate. Brick: graph declares work contract and templates own return shape. Agent: returned transition_concern_evidence is non-binding evidence. Link: only closure-synthesis concern may be adopted under declared policy/budget.",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default"
+    },
+    {
+      "node_id": "p3-closure-adoption-closure",
+      "step_ref": "p3-closure-adoption-closure",
+      "step_template_ref": "building-step-template:closure",
+      "completion_edge_ref": "edge:p3-closure-adoption-closure-to-boundary",
+      "node_reroute_budget": 1,
+      "closure_transition_target_policy": {
+        "implementation_gap": {
+          "action": "target",
+          "target_ref": "p3-closure-adoption-development"
+        },
+        "boundary_mismatch": {
+          "action": "target",
+          "target_ref": "p3-closure-adoption-development"
+        },
+        "verification_gap": {
+          "action": "hold"
+        }
+      },
+      "work_statement": "Codex closure-synthesis for the P3 closure-origin adoption proof. Do not claim success, quality, source truth, or Movement authority. If this is the first closure attempt for this Building, intentionally return exactly one valid non-binding transition_concern_evidence object: concern_ref='transition-concern:p3-closure-origin-adoption-proof', concern_kind='implementation_gap', binding=false, reason_refs=['observation:p3-closure-origin-adoption-proof'], related_boundary_refs=['brick-p3-closure-adoption-development']. This is a proof stimulus, not a quality verdict. If this closure is reached after the declared reroute/replay of p3-closure-adoption-development, return transition_concern_evidence as null and summarize the observed reroute/replay evidence in observed_evidence / narrowly_proven / not_proven / remaining_delta.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:p3-closure-adoption-development-to-code-qa",
+      "source": "p3-closure-adoption-development",
+      "target": "p3-closure-adoption-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p3-closure-adoption-development-to-axis-qa",
+      "source": "p3-closure-adoption-development",
+      "target": "p3-closure-adoption-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p3-closure-adoption-code-qa-to-closure",
+      "source": "p3-closure-adoption-code-qa",
+      "target": "p3-closure-adoption-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p3-closure-adoption-axis-qa-to-closure",
+      "source": "p3-closure-adoption-axis-qa",
+      "target": "p3-closure-adoption-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p3-closure-adoption-closure-to-boundary",
+      "source": "p3-closure-adoption-closure",
+      "target": "building-boundary:cr-v4-p3-closure-origin-adoption-0629a-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:p3-closure-adoption-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:p3-closure-adoption-development-to-code-qa",
+        "edge:p3-closure-adoption-development-to-axis-qa"
+      ]
+    },
+    {
+      "group_id": "group:p3-closure-adoption-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:p3-closure-adoption-code-qa-to-closure",
+        "edge:p3-closure-adoption-axis-qa-to-closure"
+      ]
+    }
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "official graph_packet route proof slice only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "does not prove full customer-ready goal"
+  ]
+}
