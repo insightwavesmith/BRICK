@@ -92,6 +92,8 @@ PASS: clone → install → onboard → build → verify on a clean machine, **d
 PASS: BRICK runs ONE real task through the customer entrypoint → `frontier=complete` + raw/spine consistent + artifact real + operator-readable. (Single run = first proof, NOT reliability.) **This is the GOAL.**
 
 ## Building patterns (how each item runs)
+**운영 원칙 (0630 Smith ruling):** 빌딩을 “발사 → Agent work → QA → closure → 판정” 고정 파이프라인으로 생각하지 않는다. COO는 사용 가능한 LLM, Brick 종류, Graph shape를 보고 매번 두뇌/손발 구성을 설계한다. 이 구성 사고 자체가 dogfood다. 만약 운영자가 이 사고를 못 하면 `brick-task-author` / `building-sizing-method` / `building-coordination` 스킬 구성이 부족한 것이므로, 빌딩굴리기 스킬은 P8까지 계속 업데이트한다.
+
 **개발 큰것 (BIG) — TWO buildings, the COO (Claude) judges between:**
 ```
 빌딩1: design (Fugu Ultra ∥ Claude → 종합)    → [COO reads design, DEFINES N parallel devs + what each]

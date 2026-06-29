@@ -55,6 +55,12 @@ task intake 하자 = ask COO intake questions and draft task source evidence.
 빌딩 굴려 / 빌딩 실행하자 = verify declared task and plan first; if missing, return to intake.
 ```
 
+Composition-first dogfood policy: do not reduce every Building to a fixed
+"launch -> Agent work -> QA -> closure -> disposition" line. The COO must compose
+the available LLMs, Brick kinds, and graph shape as the task's brain/hands. If
+that composition cannot be expressed clearly, update this Building-running skill
+chain instead of forcing the task into a stale pipeline.
+
 P3 zero-ritual launch policy: once the task source and graph shape are declared,
 the preferred graph execution is compact drawing (`build` / `fan`) followed by
 `fire(graph)` through the official customer graph route. If a packet artifact is
