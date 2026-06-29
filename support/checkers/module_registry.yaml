@@ -544,6 +544,16 @@ modules:
     decomposition_target: ""
     pinned_by: route_materialization / compose_building profile cases
 
+  - module: support/checkers/lib/materialize_reject_scaffold.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: materialize_building_intent_rejects profile cases
+
   - module: support/checkers/lib/gate_evidence_readers.py
     layer: checkers/lib
     role: checker-lib
