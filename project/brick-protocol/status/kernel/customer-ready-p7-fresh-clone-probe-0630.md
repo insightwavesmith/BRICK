@@ -63,8 +63,9 @@ P7-G3 [P3/compose] — A pure `adapter:local` work-node graph cannot reach `fron
 P7 is NOT passed. The fresh-clone plumbing (clone content + `uv sync` + onboard + in-repo official
 CLI + readable evidence + honest frontier wording) works; the gap to `frontier=complete` is
 provider-readiness + the `brick`-entrypoint/first-example documentation (G1/G2) and the explicit
-provider requirement in the P7 target (G3). Next movement: a documented real-provider fresh-clone
-run, or doc repair (G1/G2) + P7-criteria clarification (G3), then re-probe.
+provider requirement in the P7 target (G3). Support-recorded next target candidates are a
+documented real-provider fresh-clone run, or doc repair (G1/G2) + P7-criteria clarification (G3),
+then re-probe; this record does not choose Link Movement or phase disposition.
 
 ## Proof limits
 

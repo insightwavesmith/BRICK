@@ -3,21 +3,23 @@
 Status: support evidence only. Not source truth / success / quality / Movement authority.
 Defines the PASS TARGET for P7 (fresh-machine) and P8 (dogfood) so the bounded dogfood
 probe has a concrete target and its gaps are measured. The probe RESULT is a gap
-extractor, NOT a success verdict. Movement: FORWARD to the probe; broad customer-ready
-stays HOLD / NOT PROVEN.
+extractor, NOT a success verdict. This support record may name next target candidates;
+it does not choose Link Movement or phase disposition. Broad customer-ready remains
+NOT PROVEN until the required evidence exists and human/COO disposition is recorded.
 
 ## P7 — Fresh-machine proof — PASS target
 A clean machine shape (no pre-existing project state beyond what a documented install
 creates) can, using documented steps only:
 1. clone `origin/main`
 2. install
-3. init / doctor / auth / onboard or connect available providers (Codex / Gemini / Claude) per FIRST_USE
-4. run ONE `brick build` or `brick fire` via the official route (`--task/--preset/--graph`)
+3. init / doctor / auth / onboard and connect at least one real provider (Codex / Gemini / Claude) per FIRST_USE
+4. run ONE official build route (`brick build`, `brick fire`, or install-free `uv run python3 -m brick_protocol.support.operator.cli build` when bare `brick` is not guaranteed) via `--task` / `--preset` / `--graph`
 5. inspect evidence + frontier
 
-PASS = steps 1–5 complete from clone; the build reaches `frontier=complete`; evidence is
-operator-readable; ZERO undocumented manual steps; NO hidden machine-local dependency
-(no `~/.brick` pre-state assumed).
+PASS = steps 1–5 complete from clone with a real-provider fresh-clone run; the build
+reaches `frontier=complete`; evidence is operator-readable; ZERO undocumented manual
+steps; NO hidden machine-local dependency (no `~/.brick` pre-state assumed).
+Providerless `adapter:local` examples are support evidence only and do not satisfy P7 PASS.
 
 P5-B4 fresh-machine prep evidence (operator transcript note: `customer-ready-p5-b4-fresh-home-measurement-0630.md`):
 the former empty-HOME `intake_evidence_projection_case` hazard has a fresh-HOME

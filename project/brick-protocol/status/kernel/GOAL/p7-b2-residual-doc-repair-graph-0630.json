@@ -1,0 +1,69 @@
+{
+  "task_statement": "P7-B2 residual doc repair. Close ONLY the residual wording found by P7-B1-r2 closure/axis-inspect. Inputs: customer-ready-p7-fresh-clone-probe-0630.md P7-G1/G2/G3, and P7-B1-r2 closure concern. Edits required: (1) support/docs/references/launch-guide.md must not describe the install-free `uv run python3 -m brick_protocol.support.operator.cli build ...` form as only an internal/helper check; it is the same official build surface for fresh clones when the bare `brick` entrypoint is not yet guaranteed. (2) customer-ready-p7-p8-pass-criteria-0629.md must phrase follow-up as candidate/probe direction, not Link Movement or phase disposition supplied by a support record. (3) customer-ready-p7-fresh-clone-probe-0630.md must replace `Next movement:` wording with non-authoritative next target candidates / COO disposition notes. Keep proof limits explicit. Do not claim P7/P8 complete. Do not edit code/checkers/install/runtime/Movement literals.",
+  "declared_by": "coo-smith",
+  "building_id": "p7-b2-residual-doc-repair-0630",
+  "selected_shape_ref": "building-shape:single-work-doc-residual-repair",
+  "selection_rule": "caller_or_coo_declared_only",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "p7-b2-residual-doc-repair-0630-work",
+      "step_ref": "p7-b2-residual-doc-repair-0630-work",
+      "step_template_ref": "building-step-template:work",
+      "completion_edge_ref": "edge:p7-b2-residual-doc-repair-0630-work-to-boundary",
+      "node_reroute_budget": 1,
+      "work_statement": "Implement the three residual wording repairs only. Read P7-B1-r2 closure/axis-inspect notes in /Users/smith/.brick/project/brick-protocol/buildings/p7-b1-fresh-clone-doc-repair-0630-r2 and the current files. Change only: support/docs/references/launch-guide.md, project/brick-protocol/status/kernel/customer-ready-p7-p8-pass-criteria-0629.md, project/brick-protocol/status/kernel/customer-ready-p7-fresh-clone-probe-0630.md, and if necessary customer-ready-goal-phases/anchor to carry the same non-authority wording. Required wording: install-free `uv run python3 -m brick_protocol.support.operator.cli build` is the same official build surface for fresh clones when bare `brick` is not guaranteed; support records may name next target candidates, but do not choose Link Movement or phase disposition; P7 PASS still requires real-provider fresh-clone frontier=complete. Do not edit code, checkers, install script, runtime, route policy, Movement literals, or provider config. Do not claim P7/P8 complete. Return changed_files and observed_evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/docs/references/launch-guide.md",
+          "project/brick-protocol/status/kernel/customer-ready-p7-p8-pass-criteria-0629.md",
+          "project/brick-protocol/status/kernel/customer-ready-p7-fresh-clone-probe-0630.md",
+          "project/brick-protocol/status/kernel/customer-ready-goal-phases-0629.md",
+          "project/brick-protocol/status/kernel/customer-ready-goal-anchor-v01.md"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "README.md",
+          "support/operator/**",
+          "support/checkers/**",
+          "support/onboarding/**",
+          "agent/**",
+          "brick/**",
+          "link/**",
+          "project/brick-protocol/buildings/**",
+          "project/brick-protocol/status/inbox/**"
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:p7-b2-residual-doc-repair-0630-work-to-boundary",
+      "source": "p7-b2-residual-doc-repair-0630-work",
+      "target": "building-boundary:p7-b2-residual-doc-repair-0630-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [],
+  "proof_limits": [
+    "support evidence only",
+    "residual doc wording repair only",
+    "not P7 PASS",
+    "not P8 proof",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "not_proven": [
+    "real-provider fresh-clone frontier=complete",
+    "customer comprehension",
+    "P7 PASS",
+    "P8 dogfood proof"
+  ]
+}

@@ -11,12 +11,16 @@
 
 ## 정문 (단 하나의 고객 실행 표면)
 
-고객이 빌딩을 시작하는 공식 표면은 **`brick build` 하나**입니다. 입력 모드는
-둘입니다:
+고객이 빌딩을 시작하는 공식 표면은 **`brick build` 하나**입니다. fresh clone에서
+bare `brick` entrypoint가 아직 보장되지 않거나 PATH 충돌이 의심되면, 저장소 루트에서
+`uv run python3 -m brick_protocol.support.operator.cli build ...` 로 같은 공식 build
+표면을 호출합니다. 입력 모드는 둘입니다:
 
 ```bash
 brick build --task "..." --preset building-chain-preset:fast-fix
 brick build --graph /path/to/declared-graph-packet.json
+# fresh clone / entrypoint not guaranteed:
+uv run python3 -m brick_protocol.support.operator.cli build --task "..." --preset building-chain-preset:fast-fix
 ```
 
 첫 번째는 `preset_task` 경로입니다. 할 일을 말로 주고(`--task`), 필요하면
@@ -198,18 +202,23 @@ graph packet을 `brick build --graph`로 넘기세요.
 
 ## 실행 방법 (어떻게 호출하나)
 
-**저장소 루트에서 호출하세요. 고객 표면은 `brick build`입니다. 내부 helper를
-직접 점검할 때만 `uv run python3 -c` 또는 `-m`을 쓰세요.**
+**저장소 루트에서 호출하세요. 고객 표면은 `brick build`입니다. fresh clone에서
+bare `brick` entrypoint가 보장되지 않으면 `uv run python3 -m
+brick_protocol.support.operator.cli build ...` 가 같은 공식 build 표면입니다.
+내부 helper를 직접 점검할 때만 `uv run python3 -c`를 쓰세요.**
 
 ```bash
 cd ~/BRICK   # 또는 네 클론 위치
 brick build --task "..." --preset building-chain-preset:fast-fix
+# 또는 fresh clone / entrypoint not guaranteed:
+uv run python3 -m brick_protocol.support.operator.cli build --task "..." --preset building-chain-preset:fast-fix
 ```
 
 - ❌ **`/tmp` 에 스크립트 파일을 만들어 직접 PYTHONPATH 를 박지 마세요.**
   파일 스크립트는 저장소 루트를 `sys.path` 에 올리지 않기 때문에, 패키지의
-  벌거벗은 `support.` import 가 `ModuleNotFoundError` 로 깨집니다. 루트에서
-  `uv run python3 -c/-m` 으로 호출하면 import identity 가 올바르게 잡힙니다.
+  벌거벗은 `support.` import 가 `ModuleNotFoundError` 로 깨집니다. 공식 build는
+  루트에서 `uv run python3 -m brick_protocol.support.operator.cli build ...` 로
+  호출하면 import identity 가 올바르게 잡힙니다.
   (uv 가 없으면 `PYTHONPATH=support/import_identity python3 ...` 를 루트에서
   쓰되, 전역 `python3` 에 PyYAML 이 설치돼 있어야 합니다.)
 
@@ -303,7 +312,9 @@ uv run python3 -m brick_protocol.support.operator.onboard codex
 
 1. **`/tmp` PYTHONPATH** — 파일 스크립트에 손으로 PYTHONPATH 를 박으면 저장소
    루트가 `sys.path` 에 안 올라가 `ModuleNotFoundError: No module named
-   'support'`(또는 `brick_protocol`). 루트에서 `uv run python3 -c/-m` 로 호출.
+   'support'`(또는 `brick_protocol`). 공식 build는 루트에서 `uv run python3 -m
+   brick_protocol.support.operator.cli build ...` 로 호출하고, 내부 import probe만
+   `uv run python3 -c` 로 확인.
 2. **프리셋 잘못 고름** — `engine-feature-hard` 는 COO 게이트에서 HOLD 하는데
    "멈췄다"고 오해. 자율로 끝까지 굴러야 하는 좌표-바운디드 작업이면
    `fast-fix`(게이트 없음). 설계가 필요한 변경이면 `engine-feature-hard` 의
