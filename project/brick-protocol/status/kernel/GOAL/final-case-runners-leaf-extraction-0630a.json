@@ -1,0 +1,98 @@
+{
+  "task_statement": "FINAL architecture first safe god-module shrink. Implement the conservation-ledger move recorded in project/brick-protocol/status/kernel/customer-ready-final-architecture-conservation-ledger-0630.md. Move exactly the fake-CLI completion fixture helper cluster from support/checkers/lib/case_runners.py into one new flat sibling support/checkers/lib/preset_completion_fixture.py, preserving function bodies byte-identically and re-exporting the six private helper names from case_runners.py so all existing call sites and profile cases behave identically. Add exactly one module_registry.yaml row for the new sibling directly after case_runners.py with support/checkers/lib checker-lib ownership only. Do not split kernel_checks, walker/run, profiles, or create folders/module families. Verification: import smoke for all six re-exported names; git diff --check; compileall for support/checkers/lib; PYTHONPATH=support/import_identity:. python3 support/checkers/check_profile.py --all. Mutation-RED probes: on temporary copies or reversible edits only, prove that breaking _is_gemini_json_invocation or removing the re-export makes relevant checks fail, then restore before final return. If mutation probes are too expensive, explicitly return not_proven for that part; do not fake them.",
+  "declared_by": "coo-smith",
+  "building_id": "final-case-runners-leaf-extraction-0630a",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "nodes": [
+    {
+      "node_id": "final-case-runners-leaf-work",
+      "step_ref": "final-case-runners-leaf-work",
+      "step_template_ref": "building-step-template:work",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/checkers/lib/case_runners.py",
+          "support/checkers/lib/preset_completion_fixture.py",
+          "support/checkers/module_registry.yaml"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "project/**",
+          "agent/**",
+          "brick/**",
+          "support/operator/**",
+          "support/connection/**"
+        ]
+      },
+      "work_statement": "Implement only the conservation-ledger leaf extraction: create support/checkers/lib/preset_completion_fixture.py; move exactly _preset_completion_command_runner, _preset_completion_prompt_from_cli_args, _is_gemini_json_invocation, _output_last_message_path, _deterministic_completion_list, _return_labels_from_cli_prompt from case_runners.py with byte-identical bodies; import/re-export them in case_runners.py; add one module_registry row for the new sibling. Do not change tests/profiles except module_registry. Run the listed verification and report exact commands.",
+      "completion_edge_ref": "edge:final-case-runners-leaf-work-to-code-qa"
+    },
+    {
+      "node_id": "final-case-runners-leaf-code-qa",
+      "step_ref": "final-case-runners-leaf-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "work_statement": "Code-attack QA for the leaf extraction. Inspect the sandbox diff and verify: only the three allowed support/checkers files changed; moved helper bodies are byte-identical; all six names remain importable from support.checkers.lib.case_runners; module_registry row is support-only with no axis ownership; no profiles/checker semantics changed; git diff --check, compileall, and check_profile.py --all are green or any blocker is reported honestly. Do not source-mutate.",
+      "completion_edge_ref": "edge:final-case-runners-leaf-code-qa-to-closure"
+    },
+    {
+      "node_id": "final-case-runners-leaf-axis-qa",
+      "step_ref": "final-case-runners-leaf-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default",
+      "work_statement": "Axis-attack QA for the leaf extraction. Verify Brick/Agent/Link boundaries: this is support checker-lib relocation only, no Movement authority, no target selector, no source truth, no success/quality judgment, no new module family/folder hierarchy, no credential/session data. Check the diff against the conservation ledger and report any boundary gap. Do not source-mutate.",
+      "completion_edge_ref": "edge:final-case-runners-leaf-axis-qa-to-closure"
+    },
+    {
+      "node_id": "final-case-runners-leaf-closure",
+      "step_ref": "final-case-runners-leaf-closure",
+      "step_template_ref": "building-step-template:closure",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "work_statement": "Closure synthesis. Read work + both QA returns. If implementation and QA support the conservation ledger, return forward evidence with exact changed files, sandbox commit, frontier limits, commands run, and not_proven. If any implementation_gap or boundary_mismatch remains, raise transition_concern_evidence instead of claiming closure.",
+      "completion_edge_ref": "edge:final-case-runners-leaf-closure-to-boundary"
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:final-case-runners-leaf-work-to-code-qa",
+      "source": "final-case-runners-leaf-work",
+      "target": "final-case-runners-leaf-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:final-case-runners-leaf-work-to-axis-qa",
+      "source": "final-case-runners-leaf-work",
+      "target": "final-case-runners-leaf-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:final-case-runners-leaf-code-qa-to-closure",
+      "source": "final-case-runners-leaf-code-qa",
+      "target": "final-case-runners-leaf-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:final-case-runners-leaf-axis-qa-to-closure",
+      "source": "final-case-runners-leaf-axis-qa",
+      "target": "final-case-runners-leaf-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:final-case-runners-leaf-closure-to-boundary",
+      "source": "final-case-runners-leaf-closure",
+      "target": "building-boundary:final-case-runners-leaf-extraction-0630a-closed",
+      "movement": "forward",
+      "building_lifecycle": {
+        "state": "closed",
+        "reason": "declared graph closed"
+      }
+    }
+  ],
+  "groups": []
+}
