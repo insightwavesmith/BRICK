@@ -760,6 +760,79 @@ def assemble(
     )
 
 
+def fire(
+    graph: GraphSpec | ComposedGraph,
+    *,
+    declared_by: str,
+    authority: Authority = Authority.CALLER,
+    task: str | None = None,
+    task_source_ref: str | None = None,
+    building_id: str | None = None,
+    adapter: str = "local",
+    model: str = "default",
+    gates: Sequence[Gate | str] = (),
+    adoption: Adoption | str = Adoption.BINDING,
+    shape: str | None = None,
+    repo_root: Path | str = REPO_ROOT,
+    write_scope: Mapping[str, Any] | None = None,
+    output_root: Path | str | None = None,
+    overwrite_existing: bool = False,
+    local_callables: Mapping[str, Any] | None = None,
+    command_runner: Any | None = None,
+    adapter_timeout_seconds: int = 120,
+    proof_limits: Any | None = None,
+) -> Any:
+    """Fire a drawn graph through the official customer graph route.
+
+    ``fire()`` is the P3 thin sugar over the already-admitted graph route:
+    caller/COO draws a ``GraphSpec`` (or passes an already ``assemble()``-d
+    ``ComposedGraph``), and this helper delegates to
+    ``driver.run_customer_graph_building_in_sandbox``. It does not persist a
+    caller-authored JSON packet, create a runner, choose Movement, invent route
+    targets, or judge success/quality.
+    """
+
+    repo = Path(repo_root).resolve()
+    if isinstance(graph, GraphSpec):
+        composed = assemble(
+            graph,
+            declared_by=declared_by,
+            authority=authority,
+            task=task,
+            task_source_ref=task_source_ref,
+            building_id=building_id,
+            adapter=adapter,
+            model=model,
+            gates=gates,
+            adoption=adoption,
+            shape=shape,
+            repo_root=repo,
+            write_scope=write_scope,
+        )
+    elif isinstance(graph, ComposedGraph):
+        composed = graph
+    else:
+        raise TypeError("fire() graph must be a GraphSpec or ComposedGraph")
+
+    if not str(composed.task_statement or "").strip():
+        raise ValueError("fire() requires an inline task or task_source_ref carried by assemble()")
+
+    from brick_protocol.support.operator.driver import (  # noqa: PLC0415
+        run_customer_graph_building_in_sandbox,
+    )
+
+    return run_customer_graph_building_in_sandbox(
+        composed,
+        customer_repo_root=repo,
+        output_root=output_root,
+        overwrite_existing=overwrite_existing,
+        local_callables=local_callables,
+        command_runner=command_runner,
+        adapter_timeout_seconds=adapter_timeout_seconds,
+        proof_limits=proof_limits,
+    )
+
+
 def persist_proposed_building_graph(
     composed: ComposedGraph,
     output_root: Path | str,
@@ -1394,6 +1467,7 @@ __all__ = [
     "converge",
     "edge",
     "fan",
+    "fire",
     "fan_in",
     "fan_out",
     "hold",

@@ -49,6 +49,12 @@ text_contains:
       - launch-adapter-cwd-RED
       - adapter_cwd=repo_root
       - adapter_cwd_refused_live_repo
+      # P3 thin fire(graph) sugar: drawn GraphSpec -> official customer graph
+      # sandbox route, with no caller-authored JSON packet seam.
+      - def _fire_graph_sugar_fire
+      - fire(graph) sugar FIRE passed
+      - fire-graph-sugar
+      - from brick_protocol.support.operator.assembly import Authority, build, fan, fire
   # ONBOARDING-WIZARD-0 PART-2: the example routes through the PART-1 seam, the
   # real-vs-local adapter is driven by preflight readiness evidence, and the
   # handoff names the seam verb. (onboard_seam_case executes these; the source

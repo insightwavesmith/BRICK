@@ -661,6 +661,10 @@ def check(repo: Path) -> tuple[list[str], Mapping[str, Any]]:
     # use the default buildings vessel without touching the live customer tree.
     _customer_graph_fluent_sandbox_fire(repo, violations, summary)
 
+    # Thin fire(graph) sugar FIRE: operator-drawn GraphSpec launches through the
+    # SAME customer graph sandbox route without caller-authored JSON packet files.
+    _fire_graph_sugar_fire(repo, violations, summary)
+
     # H2a direct-graph intake FIRE (heart H2 deterministic plumbing): a
     # pre-composed graph + inline task_statement runs through the NEW
     # run_composed_graph_intake seam (NO preset) and produces an evidence spine
@@ -898,6 +902,75 @@ def _customer_graph_fluent_sandbox_fire(
             violations.append(
                 "customer-graph-fluent-RED: non-fan-in required_return_shape override was accepted"
             )
+
+
+# ---------------------------------------------------------------------------
+# Thin fire(graph) sugar FIRE: the P3 zero-ritual authoring surface accepts a
+# drawn GraphSpec and fires it through the official customer graph sandbox route
+# without requiring the caller to persist a graph JSON packet by hand.
+# ---------------------------------------------------------------------------
+
+
+def _fire_graph_sugar_fire(
+    repo: Path,
+    violations: list[str],
+    summary: dict[str, Any],
+) -> None:
+    import brick_protocol.support.operator.driver as driver
+    from brick_protocol.support.operator.assembly import Authority, build, fan, fire
+
+    with tempfile.TemporaryDirectory(prefix="bp-fire-graph-") as cust_raw, \
+            tempfile.TemporaryDirectory(prefix="bp-fire-graph-default-") as out_raw, \
+            _TemporaryHome(Path(cust_raw) / "engine-home"):
+        customer = Path(cust_raw) / "customer-live"
+        customer.mkdir(parents=True, exist_ok=True)
+        head_before = _seed_customer_repo(repo, customer)
+        default_root = Path(out_raw) / "default-buildings"
+        old_default = driver.DEFAULT_BUILDINGS_ROOT
+        driver.DEFAULT_BUILDINGS_ROOT = default_root
+        try:
+            result = fire(
+                build(
+                    [
+                        ["work", "Prepare fire(graph) fixture."],
+                        fan(
+                            [
+                                ["axis-attack-qa", "Inspect fire branch A.", {"adapter": "codex-local"}],
+                                ["evidence-integrity", "Inspect fire branch B.", {"adapter": "codex-local"}],
+                            ]
+                        ),
+                        ["closure", "Close fire(graph) fixture.", {"adapter": "codex-local"}],
+                    ]
+                ),
+                declared_by="coo",
+                authority=Authority.COO,
+                task="Run a drawn graph through fire() without a caller JSON packet.",
+                building_id="fire-graph-sugar-default",
+                adapter="codex-local",
+                repo_root=customer,
+                overwrite_existing=True,
+                command_runner=_customer_graph_fluent_runner(),
+                adapter_timeout_seconds=30,
+            )
+        finally:
+            driver.DEFAULT_BUILDINGS_ROOT = old_default
+
+        summary["fire_graph_sugar_frontier"] = result.frontier_kind
+        summary["fire_graph_sugar_evidence_root"] = result.evidence_root
+        summary["fire_graph_sugar_default_root"] = str(default_root)
+        summary["fire_graph_sugar_intake_plan"] = (
+            str(result.intake_result.plan_path) if result.intake_result is not None else ""
+        )
+        if result.frontier_kind != "complete":
+            violations.append(
+                f"fire-graph-sugar: expected complete frontier, got {result.frontier_kind!r}"
+            )
+        if not _is_under(Path(result.evidence_root), default_root):
+            violations.append("fire-graph-sugar: omitted output_root did not use DEFAULT_BUILDINGS_ROOT")
+        if _git_text(customer, "rev-parse", "HEAD") != head_before:
+            violations.append("fire-graph-sugar: live customer HEAD moved")
+        if _git_text(customer, "status", "--porcelain", "--untracked-files=all") != "":
+            violations.append("fire-graph-sugar: live customer tree was left dirty")
 
 
 # ---------------------------------------------------------------------------
@@ -1444,6 +1517,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"idempotent_id={summary.get('h2a_idempotent_id')} "
         f"dup_root_collides={summary.get('h2a_dup_root_collides')} "
         f"mutation_red_raised={summary.get('h2a_mutation_red_raised')}."
+    )
+    print(
+        "fire(graph) sugar FIRE passed: "
+        f"frontier={summary.get('fire_graph_sugar_frontier')} "
+        f"evidence_root={summary.get('fire_graph_sugar_evidence_root')} "
+        f"default_root={summary.get('fire_graph_sugar_default_root')} "
+        f"plan={summary.get('fire_graph_sugar_intake_plan')}."
     )
     print(
         "Lane1 launch adapter_cwd FIRE passed: "

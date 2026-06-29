@@ -45,6 +45,7 @@ from support.operator.driver import (
     run_customer_building_in_sandbox,
     run_customer_graph_building_in_sandbox,
 )
+from support.recording.capture import default_buildings_root
 
 
 ADAPTER_LOCAL = "adapter:local"
@@ -104,11 +105,12 @@ def _default_builds_root() -> Path:
 def _active_slack_buildings_root() -> Path:
     """Return this goal's active Slack-facing vessel root.
 
-    This official CLI graph default is intentionally independent of provider
-    subprocess HOME. It is support evidence routing only, not source truth.
+    This official CLI graph default follows the caller-local evidence home
+    (``BRICK_HOME`` or ``~/.brick``) through the single capture seam. It is
+    support evidence routing only, not source truth.
     """
 
-    return Path("/Users/smith/.brick/project/brick-protocol/buildings")
+    return default_buildings_root()
 
 
 def _utc_stamp() -> str:

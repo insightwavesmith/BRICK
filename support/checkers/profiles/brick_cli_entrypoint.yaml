@@ -26,7 +26,7 @@ text_contains:
       - 'run_customer_building_in_sandbox'
       - 'run_customer_graph_building_in_sandbox'
       - 'def _active_slack_buildings_root'
-      - 'Path("/Users/smith/.brick/project/brick-protocol/buildings")'
+      - 'default_buildings_root'
       - 'def _load_graph_packet'
       - 'build_input_mode'
       - 'graph_packet'

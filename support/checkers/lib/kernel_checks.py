@@ -9979,8 +9979,8 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
             f"on a requires_brick_write_scope work Brick row: {work_rows!r}"
         )
 
-    expected_root = "/Users/smith/.brick/project/brick-protocol/buildings"
     with tempfile.TemporaryDirectory(prefix="bp-cli-task-home-") as home_tmp:
+        expected_root = str(Path(home_tmp) / ".brick" / "project" / "brick-protocol" / "buildings")
         task_call: dict[str, Any] = {}
 
         class FakeTaskResult:
@@ -9989,7 +9989,7 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
             isolation_reason = "checker synthetic"
             base_sha = "abc123"
             worktree_path = "/tmp/checker-task-worktree"
-            evidence_root = "/Users/smith/.brick/project/brick-protocol/buildings/cli-task-wrapper"
+            evidence_root = expected_root + "/cli-task-wrapper"
             frontier_kind = "agent_incomplete"
             commit_sha = ""
             worktree_disposed = True
@@ -10035,7 +10035,7 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
         if task_result.get("output_root") != expected_root:
             raise ProfileError(
                 "brick_cli_entrypoint_smoke: preset/task default output_root must be "
-                f"{expected_root} independent of HOME, got {task_result.get('output_root')!r}"
+                f"caller-local {expected_root}, got {task_result.get('output_root')!r}"
             )
         if task_result.get("output_root") == legacy_home_root:
             raise ProfileError(
@@ -10212,6 +10212,7 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
     with tempfile.TemporaryDirectory(prefix="bp-cli-graph-home-") as home_tmp, tempfile.TemporaryDirectory(
         prefix="bp-cli-graph-packet-"
     ) as packet_tmp:
+        expected_graph_root = str(Path(home_tmp) / ".brick" / "project" / "brick-protocol" / "buildings")
         graph_path = Path(packet_tmp) / "graph.json"
         graph_path.write_text(json.dumps(graph_packet, sort_keys=True) + "\n", encoding="utf-8")
         graph_call: dict[str, Any] = {}
@@ -10222,7 +10223,7 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
             isolation_reason = "checker synthetic"
             base_sha = "abc123"
             worktree_path = "/tmp/checker-worktree"
-            evidence_root = "/Users/smith/.brick/project/brick-protocol/buildings/cli-graph-fixture"
+            evidence_root = expected_graph_root + "/cli-graph-fixture"
             frontier_kind = "agent_incomplete"
             commit_sha = ""
             worktree_disposed = True
@@ -10252,15 +10253,15 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
             raise ProfileError(
                 "brick_cli_entrypoint_smoke: graph build did not expose build_input_mode=graph_packet"
             )
-        if graph_result.get("output_root") != expected_root:
+        if graph_result.get("output_root") != expected_graph_root:
             raise ProfileError(
                 "brick_cli_entrypoint_smoke: graph default output_root must be "
-                f"{expected_root} independent of HOME, got {graph_result.get('output_root')!r}"
+                f"caller-local {expected_graph_root}, got {graph_result.get('output_root')!r}"
             )
-        if str(graph_call.get("kwargs", {}).get("output_root")) != expected_root:
+        if str(graph_call.get("kwargs", {}).get("output_root")) != expected_graph_root:
             raise ProfileError(
                 "brick_cli_entrypoint_smoke: graph wrapper dispatch did not receive "
-                "the active Slack-facing vessel root"
+                "the caller-local active Slack-facing vessel root"
             )
         if graph_call.get("kwargs", {}).get("customer_repo_root") != repo:
             raise ProfileError(
