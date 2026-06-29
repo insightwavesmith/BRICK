@@ -398,12 +398,13 @@ def _matching_step_output_index(
     normalized = str(source_fact).strip()
     if not normalized:
         return None
+    exact_match_at_any_depth: int | None = None
     for index, ref in result_refs.items():
-        if int(step_result_events[index].get("cascade_depth", 0)) != cascade_depth:
-            continue
         if normalized == ref or normalized.endswith("/" + ref):
-            return index
-    return None
+            if int(step_result_events[index].get("cascade_depth", 0)) == cascade_depth:
+                return index
+            exact_match_at_any_depth = index
+    return exact_match_at_any_depth
 
 
 def _latest_completed_step_index(
@@ -666,4 +667,3 @@ def wiki_carry_path_text(view: str) -> str | None:
 # ζ7 unchanged: support delivers recorded addresses and records; it authors no
 # route, Movement, success, or quality.
 # ---------------------------------------------------------------------------
-

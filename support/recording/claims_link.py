@@ -171,7 +171,56 @@ def _link_raw_records(
         record.update(_building_lifecycle_evidence_fields(prepared.step_rows.link_row))
         record.update(_session_scope_close_fields(result))
         records.append(record)
+    records.extend(_dynamic_reroute_raw_records(building_id, plan=plan))
     records.extend(_graph_link_raw_records(building_id, graph_context))
+    return tuple(records)
+
+
+def _dynamic_reroute_raw_records(
+    building_id: str,
+    *,
+    plan: Mapping[str, Any],
+) -> tuple[Mapping[str, Any], ...]:
+    evidence = plan.get("dynamic_walker_evidence")
+    if not isinstance(evidence, Mapping):
+        return ()
+    records: list[Mapping[str, Any]] = []
+    for ordinal, record in enumerate(_dynamic_reroute_records(evidence), start=1):
+        source_step_ref = _optional_text_or_none(record.get("source_step_ref")) or ""
+        source_brick_ref = _optional_text_or_none(record.get("source_brick_ref")) or ""
+        target_brick = _optional_text_or_none(record.get("target_brick")) or ""
+        target_step_ref = _optional_text_or_none(record.get("target_step_ref")) or ""
+        reroute_ref = _optional_text_or_none(record.get("reroute_ref")) or ""
+        raw_ref = _raw_ref("link-reroute", ordinal)
+        records.append(
+            {
+                "raw_ref": raw_ref,
+                "raw_refs": [raw_ref],
+                "building_id": building_id,
+                "step_ref": source_step_ref,
+                "source_brick_instance_ref": source_brick_ref,
+                "target_step_ref": target_step_ref,
+                "target_brick_instance_ref": target_brick,
+                "movement": "reroute",
+                "movement_source": "recorded dynamic_walker_evidence reroute adoption record",
+                "target": target_brick,
+                "reroute_ref": reroute_ref,
+                "source_transition_concern_ref": _optional_text_or_none(
+                    record.get("source_transition_concern_ref")
+                )
+                or "",
+                "adopted_by": _optional_text_or_none(record.get("adopted_by"))
+                or "",
+                "cascade_depth": record.get("cascade_depth", 0),
+                "parent_reroute_ref": _optional_text_or_none(
+                    record.get("parent_reroute_ref")
+                )
+                or "",
+                "attempt_number": record.get("attempt_number", 0),
+                "node_budget": record.get("node_budget", 0),
+                "budget_exhausted": bool(record.get("budget_exhausted")),
+            }
+        )
     return tuple(records)
 
 
@@ -656,7 +705,51 @@ def _link_movement_claim_facts(
                 fact=fact_body,
             )
         )
+    facts.extend(_dynamic_reroute_movement_claim_facts(plan, proof_limits=proof_limits))
     facts.extend(_graph_link_movement_claim_facts(graph_context, proof_limits=proof_limits))
+    return facts
+
+
+def _dynamic_reroute_movement_claim_facts(
+    plan: Mapping[str, Any],
+    *,
+    proof_limits: tuple[str, ...],
+) -> list[Mapping[str, Any]]:
+    evidence = plan.get("dynamic_walker_evidence")
+    if not isinstance(evidence, Mapping):
+        return []
+    facts: list[Mapping[str, Any]] = []
+    for ordinal, record in enumerate(_dynamic_reroute_records(evidence), start=1):
+        step_ref = _optional_text_or_none(record.get("source_step_ref")) or ""
+        reroute_ref = _optional_text_or_none(record.get("reroute_ref")) or ""
+        source_concern_ref = _optional_text_or_none(
+            record.get("source_transition_concern_ref")
+        )
+        public_refs = [ref for ref in (source_concern_ref,) if ref]
+        facts.append(
+            _claim_fact(
+                axis="Link",
+                fact_ref=_step_fact_ref("movement-fact-reroute", ordinal, step_ref),
+                raw_refs=[_raw_ref("link-reroute", ordinal)],
+                proof_limits=proof_limits,
+                not_proven=record.get("not_proven") or _DEFAULT_NOT_PROVEN,
+                fact={
+                    "movement": "reroute",
+                    "movement_source": "recorded dynamic_walker_evidence reroute adoption record",
+                    "public_fact_refs": list(dict.fromkeys(public_refs)),
+                    "target_boundary_ref": f"brick:{record.get('target_brick', '')}",
+                    "source_brick_instance_ref": record.get("source_brick_ref", ""),
+                    "target_step_ref": record.get("target_step_ref", ""),
+                    "reroute_ref": reroute_ref,
+                    "adopted_by": record.get("adopted_by", ""),
+                    "cascade_depth": record.get("cascade_depth", 0),
+                    "parent_reroute_ref": record.get("parent_reroute_ref", ""),
+                    "attempt_number": record.get("attempt_number", 0),
+                    "node_budget": record.get("node_budget", 0),
+                    "budget_exhausted": bool(record.get("budget_exhausted")),
+                },
+            )
+        )
     return facts
 
 

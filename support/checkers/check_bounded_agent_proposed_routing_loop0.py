@@ -154,6 +154,23 @@ def _checker_plan(prefix: str, budget: int) -> tuple[Mapping[str, Any], str]:
     return plan, b2
 
 
+def _plan_with_build_source_fact(
+    plan: Mapping[str, Any],
+    *,
+    build_step_ref: str,
+    source_fact_ref: str,
+) -> Mapping[str, Any]:
+    changed = copy.deepcopy(plan)
+    for step in changed.get("brick_steps", []):
+        if not isinstance(step, dict) or step.get("step_ref") != build_step_ref:
+            continue
+        for row in step.get("rows", []):
+            if isinstance(row, dict) and row.get("axis") == "Brick":
+                row["source_facts"] = [source_fact_ref]
+                return changed
+    raise ValueError(f"build step not found for source_fact mutation: {build_step_ref}")
+
+
 def _fan_plan(prefix: str, *, held_source: bool = False) -> Mapping[str, Any]:
     root = f"brick-{prefix}-root"
     lane_a = f"brick-{prefix}-lane-a"
@@ -2421,6 +2438,79 @@ def check(repo: Path) -> list[str]:
         violations.append("b5-c3-full-chain-replay: route_replay_plan.max_attempts was not recorded as Carry budget evidence")
     if any("observed_attempt_count_by_boundary" in body for body in carry_c3):
         violations.append("b5-c3-full-chain-replay: ambiguous observed_attempt_count_by_boundary is still emitted")
+
+    # BUG3 / Lane3 regression: a per-lane reroute from closure back to a work
+    # node must re-supply that work node's declared step-output source_fact even
+    # when the source fact was written at the original cascade depth. The RED
+    # failure was a crash before the reroute Movement and redo completion refs
+    # were recorded.
+    prefix_bug3 = "bapr-loop0-bug3-cascade-carry"
+    plan_bug3, build_bug3 = _checker_plan(prefix_bug3, budget=1)
+    design_step_bug3 = f"{prefix_bug3}-design"
+    build_step_bug3 = f"{prefix_bug3}-build"
+    close_bug3 = f"brick-{prefix_bug3}-close"
+    source_ref_bug3 = (
+        f"work/step-outputs/{design_step_bug3}-attempt-1/step-output.json"
+    )
+    redo_ref_bug3 = (
+        f"work/step-outputs/{build_step_bug3}-attempt-2/step-output.json"
+    )
+    plan_bug3 = _plan_with_build_source_fact(
+        plan_bug3,
+        build_step_ref=build_step_bug3,
+        source_fact_ref=source_ref_bug3,
+    )
+    with tempfile.TemporaryDirectory(prefix="bp-bapr-bug3-") as tmp:
+        res_bug3, fr_bug3, rec_bug3 = _run_to_output_root(
+            plan_bug3,
+            _reroute_callable(build_bug3, {close_bug3}),
+            repo,
+            Path(tmp),
+        )
+        root_bug3 = res_bug3.lifecycle_write.root
+        if fr_bug3["frontier_kind"] not in {"complete", "closure_pending"}:
+            violations.append(
+                "bug3-cascade-carry: reroute redo did not cleanly complete "
+                f"(frontier={fr_bug3['frontier_kind']})"
+            )
+        adopted_bug3 = _adopted_records(rec_bug3)
+        if len(adopted_bug3) != 1:
+            violations.append(
+                "bug3-cascade-carry: expected exactly one adopted reroute "
+                f"(got={len(adopted_bug3)})"
+            )
+        if not any(row.get("movement") == "reroute" for row in _raw_link_rows(root_bug3)):
+            violations.append(
+                "bug3-cascade-carry: raw/link.jsonl did not record a reroute Movement"
+            )
+        manifest_bug3 = json.loads(
+            (root_bug3 / "evidence" / "evidence-manifest.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        if redo_ref_bug3 not in manifest_bug3.get("step_output_refs", []):
+            violations.append(
+                "bug3-cascade-carry: evidence manifest is missing the work redo "
+                f"step-output ref {redo_ref_bug3}"
+            )
+        evidence_bug3 = getattr(res_bug3, "_dynamic_walker_evidence", {})
+        observations_bug3 = (
+            evidence_bug3.get("source_fact_body_carry_observations", [])
+            if isinstance(evidence_bug3, Mapping)
+            else []
+        )
+        if not any(
+            obs.get("target_step_ref") == build_step_bug3
+            and obs.get("cascade_depth") == 1
+            and source_ref_bug3 in obs.get("carried_step_output_refs", [])
+            and not obs.get("body_absent")
+            for obs in observations_bug3
+            if isinstance(obs, Mapping)
+        ):
+            violations.append(
+                "bug3-cascade-carry: redo work node did not record cross-cascade "
+                "source_fact carry observation"
+            )
 
     # B5 Invariant C5: HUMAN-GATE-ON-REROUTE PAUSE. Same serial shape as the
     # default-gate adoption probe, but the source completion edge declares a
