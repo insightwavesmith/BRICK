@@ -1,0 +1,191 @@
+{
+  "task_statement": "P5-B3 first-run frontier story consistency. Align the customer-visible first-run story across README, quickstart, launch-guide, setup, FIRST_USE/frontier wording, and checker/readiness docs so customers understand: brick build exit 0 is support execution evidence only; frontier_kind=complete is the relevant Building-closed evidence field; non-complete frontier means not_ready / inspect evidence_root; checker green alone is not PASS; docs do not prove provider reliability, customer comprehension, success, quality, source truth, or Movement authority. Close only this P5 #3 story slice and prep P7 wording where obvious; do not claim P5/P7/P8 complete.",
+  "declared_by": "coo-smith",
+  "building_id": "p5-b3-frontier-story-consistency-0630",
+  "selected_shape_ref": "building-shape:p5-frontier-story-inspect-work-fanin",
+  "selection_rule": "caller_or_coo_declared_only",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "p5-b3-frontier-story-consistency-0630-story-inspect",
+      "step_ref": "p5-b3-frontier-story-consistency-0630-story-inspect",
+      "step_template_ref": "building-step-template:inspect",
+      "completion_edge_ref": "edge:p5-b3-frontier-story-consistency-0630-story-inspect-to-work",
+      "node_reroute_budget": 1,
+      "work_statement": "Read-only story-map inspection. Inspect README.md, support/docs/references/quickstart.md, support/docs/references/launch-guide.md, support/docs/references/setup.md, support/operator/first_use.py, support/operator/cli.py, support/checkers/check_first_use_wizard.py, and the P5 goal/status docs. Map every customer-visible frontier/readiness claim. Specifically find contradictions around: brick build process exit vs PASS, frontier_kind=complete, non-complete/not_ready behavior, evidence_root inspection, FIRST_USE provider readiness, and checker green proof limits. Return a bounded edit map and not_proven limits. Do not mutate files.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p5-b3-frontier-story-consistency-0630-work",
+      "step_ref": "p5-b3-frontier-story-consistency-0630-work",
+      "step_template_ref": "building-step-template:work",
+      "completion_edge_ref": "edge:p5-b3-frontier-story-consistency-0630-work-to-doc-review",
+      "node_reroute_budget": 1,
+      "work_statement": "Thin alignment edit for P5 #3 only. Using the incoming story map, update only the bounded customer/docs/status/checker wording needed so the first-run frontier story is consistent. Required meaning: `brick build` exit 0 is not PASS; customer-visible Building closure is `frontier_kind=complete`; non-complete frontier means not_ready or inspect the returned `evidence_root`; checker green alone is support evidence, not phase PASS; FIRST_USE readiness rows preserve provider readiness evidence without proving credential validity; P7 fresh-machine remains not_proven. Prefer documentation/checker wording over runtime code changes unless FIRST_USE/CLI text itself is inconsistent. Do not mutate Agent YAML, provider auth, scheduler/queue/retry runtime, Movement literals, or route policy. Do not claim P5/P7/P8 complete.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "README.md",
+          "support/docs/references/quickstart.md",
+          "support/docs/references/launch-guide.md",
+          "support/docs/references/setup.md",
+          "support/operator/first_use.py",
+          "support/operator/cli.py",
+          "support/checkers/check_first_use_wizard.py",
+          "support/checkers/lib/kernel_checks.py",
+          "project/brick-protocol/status/kernel/customer-ready-goal-anchor-v01.md",
+          "project/brick-protocol/status/kernel/customer-ready-goal-phases-0629.md",
+          "project/brick-protocol/status/kernel/customer-ready-p5-first-run-official-route-plan-0628.md"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "agent/**",
+          "brick/**",
+          "link/**",
+          "project/brick-protocol/buildings/**",
+          "project/brick-protocol/status/inbox/**",
+          "support/connection/**",
+          "support/operator/run.py",
+          "support/operator/dynamic_walker.py",
+          "support/operator/driver.py"
+        ]
+      }
+    },
+    {
+      "node_id": "p5-b3-frontier-story-consistency-0630-doc-review",
+      "step_ref": "p5-b3-frontier-story-consistency-0630-doc-review",
+      "step_template_ref": "building-step-template:review",
+      "completion_edge_ref": "edge:p5-b3-frontier-story-consistency-0630-doc-review-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Read-only customer-doc review. Inspect the returned diff and source files. Verify README, quickstart, launch-guide, setup, and goal/status docs use one frontier story: exit 0 is not PASS; frontier_kind=complete closes the Building evidence; non-complete means not_ready/evidence_root inspection; checker green alone is not phase PASS; P7/P8 remain not_proven. Record missing or mismatched facts with file refs. Do not mutate files.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p5-b3-frontier-story-consistency-0630-frontier-code-qa",
+      "step_ref": "p5-b3-frontier-story-consistency-0630-frontier-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "completion_edge_ref": "edge:p5-b3-frontier-story-consistency-0630-frontier-code-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Frontier/checker QA. Inspect any changes to support/operator/first_use.py, support/operator/cli.py, support/checkers/check_first_use_wizard.py, and support/checkers/lib/kernel_checks.py. Run focused checks such as check_first_use_wizard, brick_cli_entrypoint, building_operator_driver0, git diff --check, and compileall if relevant. Independently verify the customer-visible fields and messages do not imply build exit 0 is PASS. Probe only inside the disposable Building worktree; do not source-mutate.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p5-b3-frontier-story-consistency-0630-axis-inspect",
+      "step_ref": "p5-b3-frontier-story-consistency-0630-axis-inspect",
+      "step_template_ref": "building-step-template:inspect",
+      "completion_edge_ref": "edge:p5-b3-frontier-story-consistency-0630-axis-inspect-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Read-only Brick/Agent/Link boundary inspection. Verify the wording does not make support/checkers/docs/models/Slack into source truth, success judgment, quality judgment, Movement authority, target selector, or route inventor. Verify Link Movement remains forward/reroute language and frontier/not_ready are lifecycle/support evidence. Do not mutate files.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p5-b3-frontier-story-consistency-0630-closure",
+      "step_ref": "p5-b3-frontier-story-consistency-0630-closure",
+      "step_template_ref": "building-step-template:closure",
+      "completion_edge_ref": "edge:p5-b3-frontier-story-consistency-0630-closure-to-boundary",
+      "node_reroute_budget": 1,
+      "work_statement": "Closure synthesis for P5-B3. Fan in the work return, customer-doc review, frontier/checker QA, and axis inspection. Return observed_evidence, narrowly_proven, not_proven, remaining_delta, and next_target_candidates. Do not claim P5 complete unless the evidence proves all P5 gaps; likely next target remains P5 #6 fresh-machine prep/P7. If no real transition concern exists, return transition_concern_evidence null, not an empty object.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:p5-b3-frontier-story-consistency-0630-story-inspect-to-work",
+      "source": "p5-b3-frontier-story-consistency-0630-story-inspect",
+      "target": "p5-b3-frontier-story-consistency-0630-work",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p5-b3-frontier-story-consistency-0630-work-to-doc-review",
+      "source": "p5-b3-frontier-story-consistency-0630-work",
+      "target": "p5-b3-frontier-story-consistency-0630-doc-review",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p5-b3-frontier-story-consistency-0630-work-to-frontier-code-qa",
+      "source": "p5-b3-frontier-story-consistency-0630-work",
+      "target": "p5-b3-frontier-story-consistency-0630-frontier-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p5-b3-frontier-story-consistency-0630-work-to-axis-inspect",
+      "source": "p5-b3-frontier-story-consistency-0630-work",
+      "target": "p5-b3-frontier-story-consistency-0630-axis-inspect",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p5-b3-frontier-story-consistency-0630-doc-review-to-closure",
+      "source": "p5-b3-frontier-story-consistency-0630-doc-review",
+      "target": "p5-b3-frontier-story-consistency-0630-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p5-b3-frontier-story-consistency-0630-frontier-code-qa-to-closure",
+      "source": "p5-b3-frontier-story-consistency-0630-frontier-code-qa",
+      "target": "p5-b3-frontier-story-consistency-0630-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p5-b3-frontier-story-consistency-0630-axis-inspect-to-closure",
+      "source": "p5-b3-frontier-story-consistency-0630-axis-inspect",
+      "target": "p5-b3-frontier-story-consistency-0630-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p5-b3-frontier-story-consistency-0630-closure-to-boundary",
+      "source": "p5-b3-frontier-story-consistency-0630-closure",
+      "target": "building-boundary:p5-b3-frontier-story-consistency-0630-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:p5-b3-frontier-story-consistency-0630-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:p5-b3-frontier-story-consistency-0630-work-to-doc-review",
+        "edge:p5-b3-frontier-story-consistency-0630-work-to-frontier-code-qa",
+        "edge:p5-b3-frontier-story-consistency-0630-work-to-axis-inspect"
+      ]
+    },
+    {
+      "group_id": "group:p5-b3-frontier-story-consistency-0630-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:p5-b3-frontier-story-consistency-0630-doc-review-to-closure",
+        "edge:p5-b3-frontier-story-consistency-0630-frontier-code-qa-to-closure",
+        "edge:p5-b3-frontier-story-consistency-0630-axis-inspect-to-closure"
+      ]
+    }
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "P5 #3 frontier story consistency slice only",
+    "not P5 complete proof",
+    "not P7 fresh-machine proof",
+    "not P8 dogfood proof",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "not_proven": [
+    "fresh-machine clone/install/onboard/build",
+    "provider credential validity",
+    "customer comprehension",
+    "Slack delivery reliability",
+    "P5 complete",
+    "P7/P8 customer-ready proof"
+  ]
+}

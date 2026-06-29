@@ -25,7 +25,7 @@ The checker gate is the support-evidence baseline. Run every admitted profile:
 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all
 ```
 
-A green gate is **exit code 0**. On success the runner prints one `profile passed:` line per profile (24 profiles live under `support/checkers/profiles/`), then the closing proof-limit line. On any rejection it prints `profile runner rejected evidence: ...` to stderr and returns exit code 1.
+A green gate is **exit code 0**. On success the runner prints one `profile passed:` line per profile (24 profiles live under `support/checkers/profiles/`), then the closing proof-limit line. This is support evidence only, not phase PASS, Building closure, source truth, success, quality, Movement authority, or provider proof. On any rejection it prints `profile runner rejected evidence: ...` to stderr and returns exit code 1.
 
 Run a single profile by name (the `.yaml` suffix is optional, and `-`/`_` are interchangeable in the name):
 
@@ -56,6 +56,10 @@ The human flow needs NO file at all: pass your task as text through
 records `build_input_mode: preset_task` and writes the Building evidence root.
 When caller/COO already has a declared graph packet, use `brick build --graph
 <packet.json>`; that records `build_input_mode: graph_packet`.
+
+`brick build` exit 0 means the CLI returned support evidence. Customer-visible
+Building closure is `frontier_kind=complete`. Any other `frontier_kind` renders
+as `not_ready`; inspect the printed `evidence_root` before rerun or escalation.
 
 The lower-level support/operator helpers (`run_building_intake`, `assemble`,
 `launch_assembled_building`, and `goal-approve`) are helper or

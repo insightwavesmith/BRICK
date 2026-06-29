@@ -130,6 +130,12 @@ def render_first_use(
         f"`{_packet_text(build_packet, 'customer_visible_frontier_message')}`",
         f"- evidence_root: `{_packet_text(build_packet, 'evidence_root')}`",
         "",
+        "Customer closure rule: `brick build` returning exit 0 means the CLI "
+        "returned support evidence. It is not a phase PASS. A customer-visible "
+        "Building is closed only when `frontier_kind` is `complete`; any other "
+        "frontier renders as `not_ready`, and the next action is to inspect "
+        "`evidence_root`.",
+        "",
         "## Agent adapter evidence",
         "",
         *_step_adapter_lines(build_packet),

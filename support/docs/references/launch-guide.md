@@ -45,6 +45,12 @@ declared graph packet
   -> evidence_root, frontier_kind, proof_limits를 출력
 ```
 
+`brick build`의 exit 0은 CLI가 support evidence를 반환했다는 뜻입니다. 고객에게
+보이는 Building closure는 `frontier_kind=complete`뿐입니다. 다른
+`frontier_kind`는 `customer_visible_frontier_state=not_ready`로 읽고, 출력된
+`evidence_root`를 inspect한 뒤 rerun/escalate 여부를 정합니다. checker green도
+support evidence일 뿐 phase PASS가 아닙니다.
+
 축의 분업이 핵심입니다:
 
 - **STRUCTURE = declared input**: preset_task는 선언된 프리셋이 구조를 주고,
@@ -248,7 +254,7 @@ brick build --task "..." --preset building-chain-preset:fast-fix
 ```bash
 cd /path/to/this/worktree
 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all
-# 초록불 = exit 0
+# 초록불 = exit 0 support evidence; phase PASS는 별도 end-to-end criteria와 disposition 필요
 ```
 
 ❌ 별도 `/tmp` git-archive 사본에서 돌리지 마세요. 점검은 지금 작업 중인

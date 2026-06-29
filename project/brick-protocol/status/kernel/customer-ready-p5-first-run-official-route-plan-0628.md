@@ -54,6 +54,10 @@ doctor rows do not yet expose the full requested readiness schema.
 FIRST_USE now preserves structured doctor readiness fields for Gemini key
 presence and credential_validity=not_proven; Agent YAML auto-population remains
 explicitly deferred/not_proven unless a later Agent-owned admission chooses it.
+P5-B3 aligns the first-run frontier story: `brick build` exit 0 only means the
+CLI returned support evidence; customer-visible Building closure is
+`frontier_kind=complete`; every other frontier is `not_ready` and points the
+operator/customer to inspect `evidence_root`.
 Slack/customer notification reliability is not proven.
 ```
 
@@ -186,6 +190,7 @@ P5 closure also needs focused checks for:
 ```text
 README / quickstart / launch-guide customer route seal
 FIRST_USE structured Gemini readiness evidence
+FIRST_USE / docs / checker wording for frontier_kind=complete versus not_ready
 doctor full readiness schema
 first-use adapter population or explicit deferral
 Claude/Codex/Gemini default ordering matching the active policy
@@ -217,9 +222,11 @@ FIRST_USE Gemini evidence, and first-use adapter population scope are resolved.
 valid Gemini credential
 P3 official-route closure
 fresh-machine install/onboard
-README / quickstart / launch-guide route consistency
+README / quickstart / launch-guide route consistency beyond the narrowed P5-B3
+frontier-story wording alignment
 doctor full readiness schema
-FIRST_USE structured Gemini credential evidence
+FIRST_USE structured Gemini credential evidence beyond readiness presence and
+credential_validity=not_proven
 first-use adapter population across Claude/Codex/Gemini, except for the
 explicitly narrowed FIRST_USE readiness evidence preservation
 Slack delivery reliability

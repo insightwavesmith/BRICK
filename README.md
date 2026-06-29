@@ -35,7 +35,7 @@ expected: provider 준비 상태 표와 adapter:local 첫 예제 Building 결과
 failure signal: local_cli_missing, provider login 진단, FileExistsError, 또는 adapter-error frontier 안내.
 
 command: cd ~/BRICK && brick build --task "첫 실행을 support evidence only로 기록해 주세요." --preset building-chain-preset:design-contract-only --adapter adapter:local
-expected: build_input_mode=preset_task, building_id, evidence_root, frontier_kind가 출력된다. 이 첫 예제는 provider 없이 local/read-only support evidence 경로를 확인한다. graph_packet은 `brick build --graph <packet.json>`로 같은 표면을 통과한다.
+expected: build_input_mode=preset_task, building_id, evidence_root, frontier_kind가 출력된다. customer-visible closure는 frontier_kind=complete일 때뿐이다. brick build exit 0은 CLI가 support evidence를 반환했다는 뜻이지 phase PASS가 아니다. complete가 아닌 frontier는 not_ready로 보고 evidence_root를 inspect한다. graph_packet은 `brick build --graph <packet.json>`로 같은 표면을 통과한다.
 failure signal: FileExistsError이면 building_id를 새로 정한다; ModuleNotFoundError이면 루트에서 uv run python3 -c 로 호출했는지 확인한다; frontier가 complete가 아니라는 안내.
 
 command: cd ~/BRICK && PYTHONPATH=support/import_identity uv run python3 support/checkers/check_profile.py --all
@@ -48,6 +48,8 @@ failure signal: "profile runner rejected evidence:" 뒤의 첫 거절 문장.
 `uv run python3 -m brick_protocol.support.operator.onboard doctor` 가 증상→처방
 진단표를 보여줘요. 받은 게 멀쩡한지 확인(초록불 = exit 0):
 `PYTHONPATH=support/import_identity uv run python3 support/checkers/check_profile.py --all`
+이 checker 초록불도 support evidence일 뿐이고, phase PASS나 Building closure를
+혼자 증명하지 않습니다.
 
 운영자 세션 표준은 status inbox 감시를 같이 켜는 것입니다. export 직후에는
 `project/`가 없고, 첫 onboard/run 이 로컬 vessel을 만들 수 있어요.
@@ -290,12 +292,12 @@ source truth, not success judgment, not Movement authority. The live,
 checker-pinned records stay under `support/docs/` and
 `project/brick-protocol/status/kernel/`.
 
-## Next Movement
+## Historical Support Note
 
 ```text
-Movement: pass
-Target: Smith Movement on whether to mark the active governed TSK / dogfood
-roadmap goal complete.
+Historical disposition wording: pass
+Target: Smith disposition on whether to mark the historical governed TSK /
+dogfood roadmap goal complete.
 
 TSK-0 recorded the starter-kit / dogfood phase sequence after MIA-0. TSK-1
 defined the future external project boundary only. TSK-2 created only the
