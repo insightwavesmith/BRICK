@@ -85,6 +85,20 @@ Metric (no guessing): the AGENT can launch a building in ONE fluent call with ZE
 
 Same problem as the narrowing below: many footgun-laden launch surfaces = the same complexity disease as the 8 agent lanes — collapse to one.
 
+## Standard building shape (ratified 0629)
+Canonical shape (closure stays as-is — read-only synthesis seam, no verify):
+```
+design (Fugu ∥ Claude, fan-out/in) → design 종합 (converge, read)
+  → fan-out by NEEDED items → N parallel BLOCKS, each block = dev (source_write) → qa (probe_write)
+  → N-block fan-in → closure (전체 종합, read)
+  → Link gate + human (sufficiency / Movement / quality)
+```
+Rules:
+- The fan is **N BLOCKS, not 1 block** — each branch is a dev→qa mini-chain converging to closure (multi-converge, not single node).
+- Capability layers are clean: **read** (design/closure) / **probe_write** (qa) / **source_write** (dev) — this IS the narrowing's policy-split (reviewers → probe-write-scoped). The shape and the capability fix are one thing.
+- **closure does NOT verify** (read-only, carried-evidence-only). If two parallel designs (Fugu+Claude) need reconcile-verify, a design-QA/inspect node goes BEFORE 종합 — NOT inside closure (optional; base shape omits it).
+- This shape IS the P3 fluent-launch target: the agent draws it and fires ONCE — `fire(build([design_fan, fan([dev→qa]×N), closure]), "make X")` — and the official route swallows worktree/output/evidence/merge.
+
 ## Open findings to continue (recorded 0629, not yet acted)
 - **Agent/Brick NARROWING — RESOLVED** (workflow `wwlpznpmz`, baseline --all green real HOME). Casting map resolved (work→dev, development→cto-lead, design→design-lead, plan→pm-lead, inspect→inspector, review→qa-lead, code-attack-qa→qa, axis-attack-qa→inspector, evidence-integrity→inspector, closure→coo — ALL 8 objects ARE cast; the earlier preset-name grep was misleading). Findings:
   - **DEAD PAIR (delete, recommended FIRST cut):** brick kind `development` (0 preset uses) + agent object `cto-lead` (ONLY `development` casts to it). Coupled — delete together; also kills their special-case guard code. Breakage = FIXTURE pins only (checker scaffolding), behavior-identical (case_runners uses cto-lead as the canonical write-capable-leader specimen → swap to design-lead/pm-lead).
