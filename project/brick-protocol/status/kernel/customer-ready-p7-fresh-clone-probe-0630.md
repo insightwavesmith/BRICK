@@ -71,3 +71,23 @@ run, or doc repair (G1/G2) + P7-criteria clarification (G3), then re-probe.
 Operator transcript evidence only. Local-mirror clone substitutes for the gh network clone; real
 network clone, real provider auth, release-export parity, and customer comprehension remain
 not_proven.
+
+## P7-B1 doc-repair Building disposition (0630)
+
+A composition-first Building (`p7-b1-fresh-clone-doc-repair-0630`, graph packet
+`GOAL/p7-b1-fresh-clone-doc-repair-graph-0630.json`) was launched via the official
+`brick build --graph` route to land the G1/G2/G3 doc/criteria repairs.
+
+- Attempt 1 HELD early at the inspect node with `local_cli_nonzero` (codex CLI tool-router
+  parse error) → `frontier_kind=agent_incomplete`, no step outputs. Classified as provider/runtime
+  flakiness (codex-local ran fine for P5-B3/P5-B4 the same session), not a packet defect.
+- Attempt 2 (`-r2`) ran all five nodes (inspect → work → evidence-integrity QA ∥ axis-inspect →
+  closure) but landed `frontier_kind=link_paused`: closure returned a NON-BINDING
+  `implementation_gap` transition concern (`related_boundary_refs: work`) about residual
+  launch-guide wording, so the Link frontier paused for COO disposition. The disposable W1 worktree
+  was disposed and no sandbox commit was produced, so there is no mergeable doc-repair commit yet.
+
+COO disposition: HOLD (not forward). The doc/criteria repairs are NOT yet on main; they must be
+re-run (the residual-wording concern is the next repair input) or applied through a fresh Building
+that reaches `frontier=complete`. The committed deliverable from this turn is THIS probe note + gap
+list; the G1/G2/G3 repairs remain open remaining_delta.

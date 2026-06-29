@@ -1,0 +1,161 @@
+{
+  "task_statement": "P7-B1 fresh-clone documentation + P7-criteria repair from the recorded P7 fresh-clone probe (project/brick-protocol/status/kernel/customer-ready-p7-fresh-clone-probe-0630.md). Close the three named gaps: G1 the documented first-run line uses bare `brick build`, but `brick` is only installed by install.sh pipx and can collide with an unrelated `brick` already on PATH on a fresh machine; present the install-free in-repo route `uv run python3 -m brick_protocol.support.operator.cli build ...` as a reliable first-run equivalent (or guarantee the pipx entrypoint before showing bare `brick`). G2 the documented design-contract-only first example does not reach frontier=complete on a fresh machine without a real provider (design/closure verdict nodes need a real codex/gemini CLI; top-level --adapter adapter:local does not override role nodes), so it is honest support evidence but not a frontier=complete proof; say so plainly. G3 there is no zero-real-provider path to a written frontier=complete (a work node with write_scope is rejected with missing_adapter_write_capability because adapter:local is a non-observed-write stub), so P7 PASS as written requires a real provider step; state that explicitly in the P7 criteria. Docs/criteria/status wording only. Do not claim P7/P8 complete. Do not change code, checkers, install script, onboarding, runtime, providers, route policy, or Movement literals.",
+  "declared_by": "coo-smith",
+  "building_id": "p7-b1-fresh-clone-doc-repair-0630-r2",
+  "selected_shape_ref": "building-shape:p7-doc-repair-inspect-work-fanin",
+  "selection_rule": "caller_or_coo_declared_only",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "p7-b1-fresh-clone-doc-repair-0630-r2-inspect",
+      "step_ref": "p7-b1-fresh-clone-doc-repair-0630-r2-inspect",
+      "step_template_ref": "building-step-template:inspect",
+      "completion_edge_ref": "edge:p7-b1-fresh-clone-doc-repair-0630-r2-inspect-to-work",
+      "node_reroute_budget": 1,
+      "work_statement": "Read-only inspection. Read project/brick-protocol/status/kernel/customer-ready-p7-fresh-clone-probe-0630.md (the probe gap list G1/G2/G3), README.md first-run block, support/docs/references/{quickstart.md,setup.md,launch-guide.md} launch sections, and customer-ready-p7-p8-pass-criteria-0629.md P7 target. Produce a bounded edit map: exactly which lines to adjust for G1 (install-free uv run cli build route + brick-on-PATH caveat), G2 (first example is not frontier=complete without a real provider), G3 (P7 PASS requires a real provider step; adapter:local cannot write). Do not mutate files.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p7-b1-fresh-clone-doc-repair-0630-r2-work",
+      "step_ref": "p7-b1-fresh-clone-doc-repair-0630-r2-work",
+      "step_template_ref": "building-step-template:work",
+      "completion_edge_ref": "edge:p7-b1-fresh-clone-doc-repair-0630-r2-work-to-evidence-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Thin docs/criteria edit only, using the incoming edit map. G1: in README + quickstart + setup + launch-guide, present `uv run python3 -m brick_protocol.support.operator.cli build --task ... --preset ... --adapter adapter:local` as the reliable install-free fresh-clone route alongside the bare `brick build` form, and add a one-line caveat that bare `brick` requires the install.sh pipx entrypoint and can collide with another `brick` on PATH. G2: mark the design-contract-only first example as honest support evidence that is NOT a frontier=complete proof without a real provider. G3: in customer-ready-p7-p8-pass-criteria-0629.md, state explicitly that a documented-steps-only P7 frontier=complete requires a real logged-in provider step, because adapter:local is a non-observed-write stub (a write-scoped work node is rejected with missing_adapter_write_capability) and verdict nodes reject adapter:local. Keep proof limits and Brick/Agent/Link language. Do not claim P7/P8 complete; do not touch code/checkers/install/onboarding.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "README.md",
+          "support/docs/references/quickstart.md",
+          "support/docs/references/setup.md",
+          "support/docs/references/launch-guide.md",
+          "project/brick-protocol/status/kernel/customer-ready-p7-p8-pass-criteria-0629.md",
+          "project/brick-protocol/status/kernel/customer-ready-goal-phases-0629.md",
+          "project/brick-protocol/status/kernel/customer-ready-goal-anchor-v01.md"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "agent/**",
+          "brick/**",
+          "link/**",
+          "support/operator/**",
+          "support/checkers/**",
+          "support/onboarding/**",
+          "project/brick-protocol/buildings/**",
+          "project/brick-protocol/status/inbox/**"
+        ]
+      }
+    },
+    {
+      "node_id": "p7-b1-fresh-clone-doc-repair-0630-r2-evidence-qa",
+      "step_ref": "p7-b1-fresh-clone-doc-repair-0630-r2-evidence-qa",
+      "step_template_ref": "building-step-template:evidence-integrity",
+      "completion_edge_ref": "edge:p7-b1-fresh-clone-doc-repair-0630-r2-evidence-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Evidence-integrity QA. Inspect the doc/criteria diff against the probe note. Verify G1/G2/G3 wording matches the actual probe evidence (uv run cli build route works; design-contract-only example is agent_incomplete/not_ready without a real provider; write-scoped adapter:local work node is rejected). Verify no wording turns checker green or a not_ready example into P7 PASS, source truth, success, quality, or Movement authority. Run git diff --check and focused text searches. Do not source-mutate.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p7-b1-fresh-clone-doc-repair-0630-r2-axis-inspect",
+      "step_ref": "p7-b1-fresh-clone-doc-repair-0630-r2-axis-inspect",
+      "step_template_ref": "building-step-template:inspect",
+      "completion_edge_ref": "edge:p7-b1-fresh-clone-doc-repair-0630-r2-axis-inspect-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Read-only axis inspection. Verify Brick/Agent/Link boundaries in the repaired wording: support docs/CLI/install remain support evidence only; Link Movement stays forward/reroute; P7 PASS remains human/COO disposition after real evidence; the in-repo uv run cli route is described as the same official build surface, not a new route. Do not mutate files.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p7-b1-fresh-clone-doc-repair-0630-r2-closure",
+      "step_ref": "p7-b1-fresh-clone-doc-repair-0630-r2-closure",
+      "step_template_ref": "building-step-template:closure",
+      "completion_edge_ref": "edge:p7-b1-fresh-clone-doc-repair-0630-r2-closure-to-boundary",
+      "node_reroute_budget": 1,
+      "work_statement": "Closure synthesis for P7-B1. Fan in work, evidence-integrity QA, axis inspection. Return observed_evidence, narrowly_proven, not_proven, remaining_delta, next_target_candidates. Likely next target: a documented real-provider fresh-clone P7 run to reach frontier=complete, then P8 dogfood. If no real transition concern exists, return transition_concern_evidence null.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:p7-b1-fresh-clone-doc-repair-0630-r2-inspect-to-work",
+      "source": "p7-b1-fresh-clone-doc-repair-0630-r2-inspect",
+      "target": "p7-b1-fresh-clone-doc-repair-0630-r2-work",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p7-b1-fresh-clone-doc-repair-0630-r2-work-to-evidence-qa",
+      "source": "p7-b1-fresh-clone-doc-repair-0630-r2-work",
+      "target": "p7-b1-fresh-clone-doc-repair-0630-r2-evidence-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p7-b1-fresh-clone-doc-repair-0630-r2-work-to-axis-inspect",
+      "source": "p7-b1-fresh-clone-doc-repair-0630-r2-work",
+      "target": "p7-b1-fresh-clone-doc-repair-0630-r2-axis-inspect",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p7-b1-fresh-clone-doc-repair-0630-r2-evidence-qa-to-closure",
+      "source": "p7-b1-fresh-clone-doc-repair-0630-r2-evidence-qa",
+      "target": "p7-b1-fresh-clone-doc-repair-0630-r2-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p7-b1-fresh-clone-doc-repair-0630-r2-axis-inspect-to-closure",
+      "source": "p7-b1-fresh-clone-doc-repair-0630-r2-axis-inspect",
+      "target": "p7-b1-fresh-clone-doc-repair-0630-r2-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p7-b1-fresh-clone-doc-repair-0630-r2-closure-to-boundary",
+      "source": "p7-b1-fresh-clone-doc-repair-0630-r2-closure",
+      "target": "building-boundary:p7-b1-fresh-clone-doc-repair-0630-r2-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:p7-b1-fresh-clone-doc-repair-0630-r2-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:p7-b1-fresh-clone-doc-repair-0630-r2-work-to-evidence-qa",
+        "edge:p7-b1-fresh-clone-doc-repair-0630-r2-work-to-axis-inspect"
+      ]
+    },
+    {
+      "group_id": "group:p7-b1-fresh-clone-doc-repair-0630-r2-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:p7-b1-fresh-clone-doc-repair-0630-r2-evidence-qa-to-closure",
+        "edge:p7-b1-fresh-clone-doc-repair-0630-r2-axis-inspect-to-closure"
+      ]
+    }
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "P7 doc/criteria repair only",
+    "not P7 PASS",
+    "not P8 dogfood proof",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "not_proven": [
+    "actual real-provider fresh-clone frontier=complete",
+    "release export parity",
+    "provider credential validity",
+    "customer comprehension",
+    "P7 PASS",
+    "P8 dogfood proof"
+  ]
+}
