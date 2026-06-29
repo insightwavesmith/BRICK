@@ -1,0 +1,1 @@
+../customer-ready-p6-cleanup-godmodule-plan-0628.md

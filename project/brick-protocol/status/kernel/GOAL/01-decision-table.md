@@ -1,1 +1,0 @@
-../research-0626/godmodule-decomposition-decision-table-0626.md

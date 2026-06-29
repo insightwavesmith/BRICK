@@ -1,0 +1,1 @@
+../customer-ready-goal-current-definition-0627.md

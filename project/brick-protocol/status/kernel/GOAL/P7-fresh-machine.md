@@ -1,0 +1,1 @@
+../customer-ready-p7-p8-pass-criteria-0629.md

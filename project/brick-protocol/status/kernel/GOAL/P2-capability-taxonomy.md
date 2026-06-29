@@ -1,0 +1,1 @@
+../customer-ready-p2-capability-taxonomy-plan-0628.md

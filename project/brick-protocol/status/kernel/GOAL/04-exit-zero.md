@@ -1,1 +1,0 @@
-../research-0626/build-exit-zero-3axis-finding-0626.md

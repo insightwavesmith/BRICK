@@ -1,0 +1,1 @@
+../customer-ready-goal-phases-0629.md

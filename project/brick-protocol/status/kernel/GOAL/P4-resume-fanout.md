@@ -1,0 +1,1 @@
+../customer-ready-p4-resume-fanout-plan-0628.md
