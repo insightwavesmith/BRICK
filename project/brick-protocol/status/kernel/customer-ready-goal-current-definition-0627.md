@@ -578,10 +578,49 @@ non-Claude blocker. Root-unification, Slack-visible evidence roots, and the
 0629 hard fan-in / route-seal recheck are support slices inside P3, not the
 whole phase.
 
+0629 customer wording recheck:
+
+```text
+The customer-facing first-run wording slice is now closed as support evidence.
+
+Evidence:
+  official `brick build --graph` Building:
+    building_id =
+      cr-v4-p3-customer-wording-route-0629a
+    evidence_root =
+      /Users/smith/.brick/project/brick-protocol/buildings/
+      cr-v4-p3-customer-wording-route-0629a
+    frontier_kind = complete
+    output commit = b3063605499f143d6bb32d8f776b26c0de8969b9
+
+  changed customer docs:
+    README.md
+    support/docs/references/quickstart.md
+    support/docs/references/launch-guide.md
+    support/docs/references/setup.md
+
+  meaning =
+    official customer execution surface is `brick build`;
+    preset_task enters through `brick build --task/--preset`;
+    graph_packet enters through `brick build --graph`;
+    run_building_intake / assemble / launch_assembled_building /
+    goal-approve are helper or advanced/internal paths, not separate customer
+    execution routes.
+
+  operator verification after live fast-forward:
+    git diff --check HEAD^ HEAD green
+    brick_cli_entrypoint profile green
+    coo_operating_chain profile green
+
+Proof limits:
+  wording evidence is not customer comprehension, provider reliability,
+  semantic graph quality, source truth, success judgment, quality judgment, or
+  Movement authority.
+```
+
 Remaining P3 proof:
 
 ```text
-customer-facing first-run wording for the proven sizing -> task-author chain
 fresh customer comprehension
 live provider reliability limits
 semantic quality limits for generated graph choices
