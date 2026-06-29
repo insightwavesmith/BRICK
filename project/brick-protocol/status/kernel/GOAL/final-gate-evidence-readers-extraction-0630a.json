@@ -1,0 +1,62 @@
+{
+  "task_statement": "FINAL architecture next god-module shrink. Implement the conservation-ledger move recorded in project/brick-protocol/status/kernel/customer-ready-final-architecture-gate-evidence-readers-ledger-0630.md. Move exactly the gate-evidence reader helper cluster from support/checkers/lib/case_runners.py into one new flat sibling support/checkers/lib/gate_evidence_readers.py, preserving the five moved function bodies byte-identically and re-exporting the moved private helper names from case_runners.py so all existing call sites and profile cases behave identically. Add exactly one module_registry.yaml row for the new sibling with support/checkers/lib checker-lib ownership only. Do NOT move _preset_slug, _case_slug, or _split_ref_row (they stay in case_runners.py). Do not split kernel_checks, walker/run, profiles, or create folders/module families. Verification: import smoke for moved names; git diff --check; compileall for touched checker-lib modules; PYTHONPATH=support/import_identity:. python3 support/checkers/check_profile.py --all. Mutation-RED probes may be recorded as not_proven in sandbox if temp/probe limitations arise, but do not fake them.",
+  "declared_by": "coo-smith",
+  "building_id": "final-gate-evidence-readers-extraction-0630a",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "nodes": [
+    {
+      "node_id": "final-gate-evidence-work",
+      "step_ref": "final-gate-evidence-work",
+      "step_template_ref": "building-step-template:work",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/checkers/lib/case_runners.py",
+          "support/checkers/lib/gate_evidence_readers.py",
+          "support/checkers/module_registry.yaml"
+        ],
+        "forbidden_paths": [".git/**", "project/**", "agent/**", "brick/**", "support/operator/**", "support/connection/**"]
+      },
+      "work_statement": "Implement only the conservation-ledger leaf extraction: create support/checkers/lib/gate_evidence_readers.py; move exactly _assert_no_missing_gate_facts, _assert_missing_gate_fact_present, _gate_evidence_paths, _json_records, and _nested_values_for_key from case_runners.py with byte-identical bodies; import/re-export them in case_runners.py; add one module_registry row for the new sibling. Do NOT move _preset_slug, _case_slug, or _split_ref_row. Do not change profiles or runtime code. Run listed verification and report exact commands.",
+      "completion_edge_ref": "edge:final-gate-evidence-work-to-code-qa"
+    },
+    {
+      "node_id": "final-gate-evidence-code-qa",
+      "step_ref": "final-gate-evidence-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "work_statement": "Code-attack QA. Inspect sandbox diff and verify: only the three allowed support/checkers files changed; the five moved helper bodies are byte-identical; _preset_slug/_case_slug/_split_ref_row remain in case_runners.py; all five moved names remain importable from support.checkers.lib.case_runners; module_registry row is support-only with no axis ownership; no profiles/checker semantics changed; git diff --check, compileall, and check_profile.py --all are green or blockers are honest. Do not source-mutate.",
+      "completion_edge_ref": "edge:final-gate-evidence-code-qa-to-closure"
+    },
+    {
+      "node_id": "final-gate-evidence-axis-qa",
+      "step_ref": "final-gate-evidence-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default",
+      "work_statement": "Axis-attack QA. Verify Brick/Agent/Link boundaries: this is support checker-lib gate-evidence reader relocation only, no Movement authority, no target selector, no source truth, no success/quality judgment, no new module family/folder hierarchy, no credential/session data. Check diff against the ledger and report any boundary gap. Do not source-mutate.",
+      "completion_edge_ref": "edge:final-gate-evidence-axis-qa-to-closure"
+    },
+    {
+      "node_id": "final-gate-evidence-closure",
+      "step_ref": "final-gate-evidence-closure",
+      "step_template_ref": "building-step-template:closure",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "work_statement": "Closure synthesis. Read work + both QA returns. If implementation and QA support the conservation ledger, return forward evidence with exact changed files, sandbox commit, frontier limits, commands run, and not_proven. If any implementation_gap or boundary_mismatch remains, raise transition_concern_evidence instead of claiming closure.",
+      "completion_edge_ref": "edge:final-gate-evidence-closure-to-boundary"
+    }
+  ],
+  "edges": [
+    {"edge_ref": "edge:final-gate-evidence-work-to-code-qa", "source": "final-gate-evidence-work", "target": "final-gate-evidence-code-qa", "movement": "forward"},
+    {"edge_ref": "edge:final-gate-evidence-work-to-axis-qa", "source": "final-gate-evidence-work", "target": "final-gate-evidence-axis-qa", "movement": "forward"},
+    {"edge_ref": "edge:final-gate-evidence-code-qa-to-closure", "source": "final-gate-evidence-code-qa", "target": "final-gate-evidence-closure", "movement": "forward"},
+    {"edge_ref": "edge:final-gate-evidence-axis-qa-to-closure", "source": "final-gate-evidence-axis-qa", "target": "final-gate-evidence-closure", "movement": "forward"},
+    {"edge_ref": "edge:final-gate-evidence-closure-to-boundary", "source": "final-gate-evidence-closure", "target": "building-boundary:final-gate-evidence-readers-extraction-0630a-closed", "movement": "forward", "building_lifecycle": {"state": "closed", "reason": "declared graph closed"}}
+  ],
+  "groups": []
+}
