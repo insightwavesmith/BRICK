@@ -152,6 +152,44 @@ def _safe_repo_root(repo_root: Path | str | None) -> Path:
         return _REPO_ROOT
 
 
+def _path_is_self_or_child(path: Path, root: Path) -> bool:
+    try:
+        path.resolve().relative_to(root.resolve())
+    except ValueError:
+        return False
+    return True
+
+
+def _unsafe_live_repo_adapter_cwd(
+    adapter_cwd: Path | str | None,
+    *,
+    repo_root: Path,
+) -> dict[str, str] | None:
+    if adapter_cwd is None:
+        return None
+    try:
+        candidate = Path(adapter_cwd).resolve()
+    except Exception as exc:  # noqa: BLE001 -- friendly support entry
+        return {
+            "error_kind": "invalid_adapter_cwd",
+            "error_message": f"adapter_cwd could not be resolved: {type(exc).__name__}: {exc}",
+            "message_ko": "adapter_cwd 경로를 확인할 수 없어요.",
+        }
+    if _path_is_self_or_child(candidate, repo_root):
+        return {
+            "error_kind": "adapter_cwd_refused_live_repo",
+            "error_message": (
+                "launch_assembled_building() refuses caller adapter_cwd inside "
+                f"the live repo/customer tree: {candidate}"
+            ),
+            "message_ko": (
+                "adapter_cwd가 라이브 repo/customer tree 안을 가리켜 거부했어요. "
+                "엔진이 만든 sandbox_cwd를 사용해야 해요."
+            ),
+        }
+    return None
+
+
 def _normalize_host(host: Any) -> str:
     return host.strip().lower() if isinstance(host, str) else ""
 
@@ -1900,6 +1938,12 @@ def launch_assembled_building(
         return result
     result["durable_output"] = str(durable_output)
 
+    repo = _safe_repo_root(repo_root)
+    adapter_cwd_refusal = _unsafe_live_repo_adapter_cwd(adapter_cwd, repo_root=repo)
+    if adapter_cwd_refusal is not None:
+        result.update(adapter_cwd_refusal)
+        return result
+
     # MINE #1 cut: persist the composed plan to a path FIRST, so the object never
     # reaches run_building_plan's _fixture_mapping (which would Path() it and raise).
     try:
@@ -1919,8 +1963,6 @@ def launch_assembled_building(
         )
         return result
     result["plan_path"] = str(run_plan_path)
-
-    repo = _safe_repo_root(repo_root)
 
     def _run_composed_plan(
         repo_root_inner: Path, sandbox_cwd: Path

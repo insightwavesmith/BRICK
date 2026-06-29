@@ -165,6 +165,20 @@ def _customer_graph_node_items(value: Any) -> tuple[Mapping[str, Any], ...]:
     return ()
 
 
+def _customer_graph_intake_packet(packet: Any) -> Mapping[str, Any]:
+    """Coerce operator-drawn graph objects to the ordinary graph intake packet."""
+
+    if isinstance(packet, Mapping):
+        return packet
+    as_intake_args = getattr(packet, "as_intake_args", None)
+    if not callable(as_intake_args):
+        raise TypeError("customer graph input must be a mapping or expose as_intake_args()")
+    intake_packet = as_intake_args()
+    if not isinstance(intake_packet, Mapping):
+        raise TypeError("customer graph as_intake_args() must return a mapping")
+    return intake_packet
+
+
 def _reject_customer_graph_template_authority_overrides(packet: Mapping[str, Any]) -> None:
     """Fail closed when customer graph input re-authors Brick template-owned fields.
 
@@ -625,7 +639,7 @@ def run_customer_building_in_sandbox(
 
 
 def run_customer_graph_building_in_sandbox(
-    packet: Mapping[str, Any],
+    packet: Any,
     *,
     customer_repo_root: Path | str,
     output_root: Path | str,
@@ -643,6 +657,7 @@ def run_customer_graph_building_in_sandbox(
     Movement, route targets, success, or quality.
     """
 
+    packet = _customer_graph_intake_packet(packet)
     _reject_customer_graph_template_authority_overrides(packet)
 
     repo = Path(customer_repo_root).resolve()

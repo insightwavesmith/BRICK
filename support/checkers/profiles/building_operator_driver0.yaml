@@ -43,6 +43,12 @@ text_contains:
       - def _h2a_direct_graph_intake_fire
       - h2a-mutation-RED
       - h2a-idempotency
+      # Lane1 launch safety: launch_assembled_building must refuse caller
+      # adapter_cwd values that point back into the live repo/customer tree.
+      - def _launch_assembled_adapter_cwd_fire
+      - launch-adapter-cwd-RED
+      - adapter_cwd=repo_root
+      - adapter_cwd_refused_live_repo
   # ONBOARDING-WIZARD-0 PART-2: the example routes through the PART-1 seam, the
   # real-vs-local adapter is driven by preflight readiness evidence, and the
   # handoff names the seam verb. (onboard_seam_case executes these; the source
@@ -75,6 +81,9 @@ text_contains:
       - '"routed_through": SEAM_VERB'
       - '"preflight_readiness": readiness'
       - allow_real_provider
+      - def _unsafe_live_repo_adapter_cwd
+      - adapter_cwd_refused_live_repo
+      - adapter_cwd if adapter_cwd is not None else sandbox_cwd
   - path: support/connection/adapter_subprocess.py
     texts:
       - ADAPTER_GEMINI_LOCAL

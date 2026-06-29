@@ -662,7 +662,67 @@ def check(repo: Path) -> tuple[list[str], Mapping[str, Any]]:
     # INDISTINGUISHABLE in validity from a preset run.
     _h2a_direct_graph_intake_fire(repo, violations, summary)
 
+    # Lane1 launch safety: the already-composed launch helper must not let a
+    # caller point adapter_cwd back at the live repo/customer tree.
+    _launch_assembled_adapter_cwd_fire(repo, violations, summary)
+
     return violations, summary
+
+
+# ---------------------------------------------------------------------------
+# Lane1 launch safety FIRE: launch_assembled_building runs inside the engine
+# sandbox. A caller-supplied adapter_cwd that points at the live repo (self or
+# child) must be refused before the composed plan is persisted or dispatched.
+# ---------------------------------------------------------------------------
+
+
+def _launch_assembled_adapter_cwd_fire(
+    repo: Path,
+    violations: list[str],
+    summary: dict[str, Any],
+) -> None:
+    from brick_protocol.support.operator.assembly import Authority, assemble, brick, chain
+    from brick_protocol.support.operator.onboard import launch_assembled_building
+
+    called = {"value": False}
+
+    def _runner(_args: Sequence[str], _cwd: Path, _timeout_seconds: int):
+        called["value"] = True
+        raise AssertionError("launch_assembled_building dispatched after adapter_cwd refusal")
+
+    graph = assemble(
+        chain([brick("closure", "Lane1 adapter_cwd refusal probe.")]),
+        declared_by="coo",
+        authority=Authority.COO,
+        task="Refuse live repo adapter_cwd before launch dispatch.",
+        building_id="lane1-adapter-cwd-refusal",
+        adapter="codex-local",
+        repo_root=repo,
+    )
+    result = launch_assembled_building(
+        graph,
+        repo_root=repo,
+        adapter_cwd=repo,
+        command_runner=_runner,
+        adapter_timeout_seconds=30,
+    )
+
+    summary["launch_adapter_cwd_refusal_error"] = result.get("error_kind")
+    summary["launch_adapter_cwd_refusal_ran"] = result.get("ran")
+    summary["launch_adapter_cwd_refusal_dispatched"] = called["value"]
+    summary["launch_adapter_cwd_refusal_plan_written"] = "plan_path" in result
+
+    if result.get("error_kind") != "adapter_cwd_refused_live_repo":
+        violations.append(
+            "launch-adapter-cwd-RED: adapter_cwd=repo_root was not refused with "
+            f"adapter_cwd_refused_live_repo; got {result.get('error_kind')!r}"
+        )
+    if result.get("ran") is not False:
+        violations.append("launch-adapter-cwd-RED: refused launch reported ran != False")
+    if called["value"]:
+        violations.append("launch-adapter-cwd-RED: refusal still dispatched the adapter runner")
+    if "plan_path" in result:
+        violations.append("launch-adapter-cwd-RED: refusal wrote a composed plan before preflight")
 
 
 # ---------------------------------------------------------------------------
@@ -1209,6 +1269,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"idempotent_id={summary.get('h2a_idempotent_id')} "
         f"dup_root_collides={summary.get('h2a_dup_root_collides')} "
         f"mutation_red_raised={summary.get('h2a_mutation_red_raised')}."
+    )
+    print(
+        "Lane1 launch adapter_cwd FIRE passed: "
+        f"error={summary.get('launch_adapter_cwd_refusal_error')} "
+        f"ran={summary.get('launch_adapter_cwd_refusal_ran')} "
+        f"dispatched={summary.get('launch_adapter_cwd_refusal_dispatched')} "
+        f"plan_written={summary.get('launch_adapter_cwd_refusal_plan_written')}."
     )
     print(
         "proof limit: support evidence only; checker pass does not prove source truth, "
