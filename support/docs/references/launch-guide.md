@@ -5,41 +5,87 @@
 있고, 여기서는 **정문 하나**·**실행 방법**·**프리셋**·**점검**·**함정**만
 다룹니다.
 
-관련: [quickstart](quickstart.md) · onboard CLI 도움말
-(`uv run python3 -m brick_protocol.support.operator.onboard --help`,
-`... onboard goal-approve --help`)
+관련: [quickstart](quickstart.md) · `brick --help` · `brick build --help`
 
 ---
 
-## 정문 (단 하나의 입구)
+## 정문 (단 하나의 고객 실행 표면)
 
-빌딩을 설계하는 AI는 **메인 에이전트 자신**입니다. 고객이 쓰는 그 메인 AI
-(claude code 그 자체)가 곧 설계 지능이에요. **별도의 "디자인 AI"는 없습니다.**
+고객이 빌딩을 시작하는 공식 표면은 **`brick build` 하나**입니다. 입력 모드는
+둘입니다:
+
+```bash
+brick build --task "..." --preset building-chain-preset:fast-fix
+brick build --graph /path/to/declared-graph-packet.json
+```
+
+첫 번째는 `preset_task` 경로입니다. 할 일을 말로 주고(`--task`), 필요하면
+선언된 프리셋을 고릅니다(`--preset`). 두 번째는 `graph_packet` 경로입니다.
+caller/COO가 이미 선언한 그래프 packet을 같은 `brick build` 표면에 넘깁니다.
+
+`run_building_intake`, `assemble`, `launch_assembled_building`, and
+`goal-approve` are support/operator helpers or advanced/internal paths. They
+are not separate customer execution routes.
+
+빌딩을 설계하는 AI는 **메인 에이전트 자신**입니다. 고객이 쓰는 그 메인 AI가
+곧 설계 지능이에요. **별도의 "디자인 AI"는 없습니다.**
 
 흐름은 한 줄로:
 
 ```
 task(말로 전한 일)
-  -> 메인 에이전트가 구조를 정함 (몇 단계 · 누가 · 어떻게 이어지나)
-  -> assemble(brick/agent/chain) 로 그래프를 조립        [메인이 STRUCTURE 결정]
-  -> 빌더가 FORMAT 채움 (refs · ids · 문법)               [엔진이 채움]
-  -> 사람/COO 승인 (render_proposal_for_human + onboard goal-approve) [사람 게이트]
-  -> 엔진이 굴림 (run_building_plan, 격리 워크트리)
+  -> brick build --task / --preset                         [고객 표면]
+  -> support가 선언된 preset_task를 Building Plan으로 물질화
+  -> support runner가 선언된 Brick / Agent / Link row를 격리 워크트리에서 걸음
+  -> evidence_root, frontier_kind, proof_limits를 출력
+
+declared graph packet
+  -> brick build --graph <packet.json>                     [같은 고객 표면]
+  -> support가 graph_packet을 검증하고 선언된 그래프를 걸음
+  -> evidence_root, frontier_kind, proof_limits를 출력
 ```
 
 축의 분업이 핵심입니다:
 
-- **STRUCTURE = 메인 에이전트**: 몇 단계인지, 각 단계가 누구(agent)인지,
-  단계들이 어떻게 이어지는지(chain/fan-out/fan-in)를 **판단**합니다.
-- **FORMAT = 빌더(`assemble`)**: node_id, step_template_ref, edge_ref,
-  gate_refs, 문법·검증을 **자동으로 채웁니다**. 메인은 ref/id를 손으로 쓰지
-  않습니다.
-- **승인 = 사람/COO**: 굴리기 전 frozen proposal을 보고 forward/stop을 정합니다.
+- **STRUCTURE = declared input**: preset_task는 선언된 프리셋이 구조를 주고,
+  graph_packet은 caller/COO가 이미 선언한 그래프가 구조를 줍니다.
+- **FORMAT = support builder/materializer**: refs, ids, 문법·검증을 채워
+  Building Plan으로 물질화합니다.
+- **RUN = support runner**: 선언된 Brick / Agent / Link row를 걷고 증거를
+  기록합니다. Movement를 고르거나 품질/성공을 판단하지 않습니다.
 
-### 1) 조립 (메인 에이전트가 하는 일)
+이 문서는 지원 증거용 안내입니다. provider reliability, customer
+comprehension, success, quality, source truth, Movement authority는 이 문서나
+CLI 출력으로 증명되지 않습니다.
+
+### 1) 표준 작업: `brick build --task`
+
+```bash
+brick build \
+  --task "버튼 라벨 오타를 고쳐 주세요" \
+  --preset building-chain-preset:fast-fix \
+  --real-provider
+```
+
+`--real-provider`는 Claude, Codex, Gemini local readiness를 선언된 support
+순서로 관찰하고, 준비된 첫 observed-write adapter를 고릅니다. 명시적인
+`--adapter`가 있으면 그 값이 우선합니다. 준비된 provider가 없으면
+`adapter:local`로 fallback하며, 그 사실도 support evidence로 출력됩니다.
+
+### 2) 선언된 그래프: `brick build --graph`
+
+```bash
+brick build --graph /path/to/declared-graph-packet.json
+```
+
+이 경로는 이미 선언된 graph packet용입니다. support는 packet을 검증하고
+걷습니다. support가 route target, Movement, 성공, 품질을 발명하지 않습니다.
+
+### Advanced/internal: assembly helper
 
 `support/operator/assembly.py` 의 핸들 기반 API로 그래프를 선언합니다.
-브릭 종류·일·누구만 말하면 됩니다 (ref/id는 빌더가 채움):
+브릭 종류·일·누구만 말하면 됩니다 (ref/id는 빌더가 채움). 이 API는
+support/operator helper이며, 고객 실행 표면은 여전히 `brick build --graph`입니다:
 
 ```python
 from brick_protocol.support.operator.assembly import (
@@ -75,7 +121,7 @@ composed = assemble(
 - `reroute(on, to, budget=...)` / `hold(on)` — 합류점의 concern별 처분.
   (self-reroute, 즉 합류점이 자기 자신으로 되돌리는 건 막혀 있습니다.)
 
-### 2) 승인 게이트 (사람/COO)
+### Advanced/internal: approval helper
 
 조립한 proposal을 디스크에 얼린 뒤 사람이 봅니다:
 
@@ -87,7 +133,9 @@ path = persist_proposed_building_graph(composed, "~/.brick/goal-runs")
 print(render_proposal_for_human(path))   # 단계·누구·링크·게이트·쓰기영역을 한글로 미리보기
 ```
 
-미리보기를 확인하고 굴립니다 (frozen `proposed-building-graph.json` 위에서만 동작):
+미리보기를 확인하고 내부 승인 helper로 굴릴 수 있습니다 (frozen
+`proposed-building-graph.json` 위에서만 동작). 고객-facing 실행 route로
+문서화할 때는 선언된 graph packet을 `brick build --graph`로 넘깁니다:
 
 ```bash
 uv run python3 -m brick_protocol.support.operator.onboard goal-approve \
@@ -99,11 +147,11 @@ uv run python3 -m brick_protocol.support.operator.onboard goal-approve \
 `render_proposal_for_human` 과 `run_goal_approve_entry` 는
 `support/operator/onboard.py` 에 있습니다.
 
-### 빠른 길: 좌표 박힌 표준 작업이면 바로 intake
+### Internal helper: intake seam
 
-설계가 필요 없는 **좌표-바운디드** 작업(자율 수리 등)은 조립·승인 단계를
-건너뛰고, 프리셋을 골라 `run_building_intake` 로 바로 굴릴 수 있습니다.
-빌더(materializer)가 그래프를 자동으로 채웁니다:
+`run_building_intake`는 `brick build --task/--preset` 아래의 support/operator
+helper입니다. 고객 문서에서는 이 helper를 별도 실행 route로 세우지 않습니다.
+운영자나 테스트가 직접 호출할 때는 프리셋을 골라 intent를 넘깁니다:
 
 ```python
 from brick_protocol.support.operator.driver import run_building_intake
@@ -117,11 +165,11 @@ result = run_building_intake({
 print(result.building_id, result.run_result.lifecycle_write.root)
 ```
 
-발주를 **만드는 공개 길은 둘 뿐**입니다: 프리셋이면 `run_building_intake`,
-새 구조면 `assemble`. (`run_composed_graph_intake` 는 RAW dict 직결 뒷문이라
-공개 표면에서 **봉인**됐습니다 — `driver.__all__` 에 없고 체커/내부 전용.
-손-dict 그래프 발주 대신 `assemble` 빌더DSL을 쓰세요.) 두 공개 길 모두
-`plan_shape: graph` 로 같은 `run_building_plan` 입구에 넘어갑니다.
+공식 고객 실행 표면은 하나입니다: `brick build`. 그 아래 입력 모드가
+`preset_task`(`--task`/`--preset`)와 `graph_packet`(`--graph`)입니다.
+`run_composed_graph_intake` 는 RAW dict 직결 뒷문이라 공개 표면에서 **봉인**됐습니다
+— `driver.__all__` 에 없고 체커/내부 전용. 손-dict 그래프 발주 대신 선언된
+graph packet을 `brick build --graph`로 넘기세요.
 
 ---
 
@@ -131,7 +179,7 @@ print(result.building_id, result.run_result.lifecycle_write.root)
 
 ```bash
 cd ~/BRICK   # 또는 네 클론 위치
-uv run python3 -c 'from brick_protocol.support.operator.driver import run_building_intake; ...'
+brick build --task "..." --preset building-chain-preset:fast-fix
 ```
 
 - ❌ **`/tmp` 에 스크립트 파일을 만들어 직접 PYTHONPATH 를 박지 마세요.**
@@ -145,8 +193,8 @@ uv run python3 -c 'from brick_protocol.support.operator.driver import run_buildi
   provider)는 `adapter_cwd` 안에서만 파일을 씁니다. 격리 워크트리를 주면 그
   diff 가 워크트리에 남아 게이트+머지로 흘러갑니다. `adapter_cwd` 를 빠뜨리면
   실제 provider 가 **진짜 저장소를 수정**합니다.
-  (고객용 경로는 `run_customer_building_in_sandbox`/goal-approve 가 워크트리
-  샌드박스를 자동으로 만들고, 완주했을 때만 커밋합니다.)
+  (`brick build`가 customer sandbox helper를 통해 워크트리 샌드박스를 만들고,
+  완주했을 때만 커밋합니다.)
 
 - **`report.env` 를 먼저 source 하세요** (벨/대시보드 알림):
 
@@ -171,7 +219,7 @@ uv run python3 -c 'from brick_protocol.support.operator.driver import run_buildi
   합류 최종 게이트 → closure. `gate_concept_profile` 에 `coo-review`·`human-review`
   가 있어 **design 다음에서 사람 disposition 이 생길 때까지 HOLD** 합니다.
   사람 승인이 필요하니 "왜 안 끝나지?" 하지 말고 게이트를 처분하세요
-  (`onboard approve <building> --action forward`).
+  (내부 disposition/approval helper로 처분).
 
 ---
 
@@ -212,15 +260,18 @@ uv run python3 -m brick_protocol.support.operator.onboard codex
 마세요:
 
 - `onboard goal "<text>"` CLI — 제거됨. (혼동 주의: `onboard goal-approve` 는
-  **남아 있는 새 흐름**입니다. `goal`(제거)과 `goal-approve`(유지)는 다릅니다.)
+  남아 있는 support/operator helper입니다. `goal`(제거)과
+  `goal-approve`(helper)는 다릅니다.)
 - `support/operator/auto_compose.py` / `auto_compose` — 제거됨.
 - `--design-brain` / `--brain` (별도 디자인 AI 선택) — 제거됨.
 - `driver.run_goal_in_sandbox` / `run_goal_entry` / `compose_building_from_task`
   / `GOAL_SEAM_VERB` — 제거됨.
 
 옛 모델은 "별도의 디자인 AI 가 보드를 보고 자동으로 빌딩을 합성한다" 였습니다.
-지금은 **메인 에이전트가 그 설계 지능**입니다. 메인이 `assemble()` 로 구조를
-짜고, 빌더가 형식을 채우고, 사람이 `onboard goal-approve` 로 승인합니다.
+지금은 **메인 에이전트가 그 설계 지능**입니다. helper 수준에서는 메인이
+`assemble()` 로 구조를 짜고, 빌더가 형식을 채우고, 사람이 `goal-approve`
+계열 helper로 승인할 수 있습니다. 고객-facing 실행 표면은 여전히
+`brick build` 하나입니다.
 
 ---
 
@@ -234,8 +285,8 @@ uv run python3 -m brick_protocol.support.operator.onboard codex
    `fast-fix`(게이트 없음). 설계가 필요한 변경이면 `engine-feature-hard` 의
    HOLD 는 정상이니 게이트를 처분.
 3. **`adapter_cwd` 빠뜨림** — 실제 provider 어댑터가 격리 워크트리가 아니라
-   **진짜 저장소**를 수정. 고객용은 샌드박스 경로(goal-approve /
-   `run_customer_building_in_sandbox`)를 쓰거나 `adapter_cwd` 를 명시.
+   **진짜 저장소**를 수정. 고객용은 `brick build` 샌드박스 경로를 쓰거나
+   내부 helper를 직접 호출할 때 `adapter_cwd` 를 명시.
 4. **`report.env` 안 source** — 벨/대시보드 알림이 안 옴. 세션 시작에
    `source ~/.brick/report.env`.
 5. **점검을 워크트리 밖에서 돌림** — 별도 `/tmp` git-archive 사본에서 체커를

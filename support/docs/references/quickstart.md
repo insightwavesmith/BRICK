@@ -2,9 +2,18 @@
 
 Brick Protocol is a three-axis work protocol for human-agent work: Brick is the work, Agent is the performer, and Link is the transfer/carry/movement between work boundaries. A Building is a declared packet of one or more steps; when you run it, the support runner walks the declared Brick / Agent / Link rows and records support evidence about what was received, what was returned, and what Link facts were declared. That evidence is not source truth, not a success judgment, not a quality judgment, and not Movement authority.
 
-You do not author task files: SPEAK your task as text. The intake seam accepts
-your task as a plain `task_statement` string and the machine records it as the
-Building's task evidence (`work/task.md`). Files dropped at the repository
+You do not author task files for the common path: SPEAK your task as text
+through `brick build --task`. The official customer-facing route is one
+surface:
+
+```text
+brick build --task "..." --preset <preset-ref>   # preset_task input
+brick build --graph <packet.json>                # graph_packet input
+```
+
+`run_building_intake`, `assemble`, `launch_assembled_building`, and
+`goal-approve` are support/operator helpers or advanced/internal paths. They
+are not separate customer execution routes. Files dropped at the repository
 root (or anywhere unadmitted) are rejected by the admission checker — keep any
 scratch files of your own outside the repository.
 
@@ -18,7 +27,7 @@ success judgment, not a quality judgment, and not Movement authority.
 | --- | --- | --- |
 | What reads first? | Start at repo-root `README.md`, then this `support/docs/references/quickstart.md`, then `support/docs/references/setup.md` when you need prerequisite and checker details. After `brick init`, read the generated `FIRST_USE.md` under the chosen output root. | `README.md` links this quickstart and setup guide. `support/operator/first_use.py` renders `FIRST_USE.md` after the local example. Whether a customer understands the sequence without help is not proven. |
 | Active checkout or frozen/history repo? | Use this product checkout or its release export for active work. The frozen HISTORY repository is for archived evidence only; do not start new customer work there. In this checkout, `brick status` reports the resolved `repo_root`, current `cwd`, entrypoint file, and default builds root. Release exports omit `project/`; the first onboard/run creates local project evidence as needed. | `README.md` documents release export and HISTORY separation. `support/operator/cli.py` implements `brick status`. Byte-for-byte release parity and fresh-machine behavior remain not proven until measured. |
-| Official Building launch route? | Common customer path: install, run the onboarding wizard, then speak the task through `run_building_intake` / `task_statement`. For new structure, the main agent uses `assemble`, the human/COO approves the frozen proposal with `onboard goal-approve`, and the support runner walks the declared graph. | This page and `launch-guide.md` document the two public order paths: `run_building_intake` for presets, `assemble` for new structure. Support walks declared rows; it does not choose Movement. |
+| Official Building launch route? | Common customer path: install, run the onboarding wizard, then speak the task through `brick build --task`. Use `--preset` for the declared chain preset. When caller/COO already has a declared graph packet, use `brick build --graph <packet.json>`. | This page and `launch-guide.md` document one public execution surface: `brick build`. Its input modes are `preset_task` (`--task`/`--preset`) and `graph_packet` (`--graph`). Support walks declared rows; it does not choose Movement. Provider reliability, customer comprehension, success, quality, source truth, and Movement authority are not proven by these docs. |
 | Slack expectation? | Slack is optional. The first local path does not require Slack and should not expect a direct Slack check. Operator notification uses `~/.brick/report.env` only after provisioning/source, and real Slack delivery remains gated by declared delivery flags and environment credentials. | `launch-guide.md` notes `source ~/.brick/report.env` for bell/dashboard notifications. Reporter/Slack delivery is support projection only and must not expose credentials or become a scheduler/queue/retry runtime. |
 | Where does evidence land? | Ref-less defaults land under `$BRICK_HOME/project/brick-protocol/buildings/<building_id>/`, or `~/.brick/project/brick-protocol/buildings/<building_id>/` when `BRICK_HOME` is unset. Runs that declare `project_ref: "project:brick-protocol"` land in the repo-local vessel `project/brick-protocol/buildings/<building_id>/`. Customer CLI builds use the declared output root and report `evidence_root`; `FIRST_USE.md` repeats that root for the local example. | The root contains `capture/`, `raw/`, `evidence/`, and `work/`. These are support evidence and projections, not source truth or judgments. |
 | Not proven / proof limits | A green checker or written Building root is evidence only. Provider behavior, credential readiness, customer comprehension, release/export parity, and fresh-machine install/run behavior are not proven by this page. | Close those with separate run evidence, not by wording in docs. |
@@ -34,8 +43,8 @@ uv run python3 -m brick_protocol.support.operator.onboard codex
 (host 자리는 `codex | claude | gemini | local` — provider CLI가 하나도 없으면
 `local`. provider 없이도 돌아갑니다.) 위자드는 provider 준비 상태 점검 → 연결
 설정 안내 → 첫 예제 빌딩(기본은 provider 없이 `adapter:local`, 결과는 임시
-폴더에만 기록) → 다음 단계 안내까지 알아서 진행해요. 아래의 손으로 조립하는
-경로 없이도 같은 입구(seam, `run_building_intake`)를 통과합니다.
+폴더에만 기록) → 다음 단계 안내까지 알아서 진행해요. 이후 고객이 직접 쓰는
+공식 실행 표면은 `brick build` 하나입니다.
 
 ## AI-runnable onboarding checklist
 
@@ -54,8 +63,8 @@ expected: provider별 준비 상태 표와 증상 -> 처방 표가 출력되고 
 failure signal: doctor 자체 stack trace, 또는 repo 루트가 아닌 곳에서 실행한 import 실패.
 
 step: first Building from text
-command: cd ~/BRICK && uv run python3 -c 'from brick_protocol.support.operator.driver import run_building_intake; result = run_building_intake({"declared_by":"caller-quickstart","task_statement":"첫 온보딩 빌딩을 support evidence only로 기록해 주세요.","chain_preset_ref":"building-chain-preset:design-contract-only","selected_adapter_ref":"adapter:local","building_id":"quickstart-ai-runnable-001","project_ref":"project:brick-protocol"}); print(result.building_id); print(result.run_result.lifecycle_write.root)'
-expected: quickstart-ai-runnable-001 과 project/brick-protocol/buildings/quickstart-ai-runnable-001 경로가 출력된다.
+command: cd ~/BRICK && brick build --task "첫 온보딩 빌딩을 support evidence only로 기록해 주세요." --preset building-chain-preset:design-contract-only --building-id quickstart-ai-runnable-001 --adapter adapter:local --output-root project/brick-protocol/buildings
+expected: build_input_mode=preset_task, quickstart-ai-runnable-001, evidence_root=.../project/brick-protocol/buildings/quickstart-ai-runnable-001, frontier_kind가 출력된다.
 failure signal: FileExistsError이면 building_id를 새로 정한다; ModuleNotFoundError이면 uv run 또는 PYTHONPATH를 확인한다.
 
 step: dashboard snapshot
@@ -103,45 +112,53 @@ exit 0).
 | `local_cli_missing` (claude 어댑터) | `npm install -g @anthropic-ai/claude-code` |
 | gh 인증 에러 (clone/pull 실패) | `gh auth login` (gh가 없으면 https://cli.github.com 에서 설치) |
 
-## Speak your task: `run_building_intake` with `task_statement`
+## Speak your task: `brick build --task`
 
-The human flow is one call — pass your task as text, pick a preset, name the
-adapter:
+The human flow is one command — pass your task as text and, when needed, name
+the declared preset:
 
 ```bash
-uv run python3 -c '
-from brick_protocol.support.operator.driver import run_building_intake
-result = run_building_intake({
-    "declared_by": "caller-me",
-    "task_statement": "온보딩 화면의 환영 문구를 한 줄로 다듬어 주세요.",
-    "chain_preset_ref": "building-chain-preset:design-contract-only",
-    "selected_adapter_ref": "adapter:local",
-    "project_ref": "project:brick-protocol",  # 일이 쌓일 그릇(project/<id>); 생략하면 1호 기계 기본값(compat)
-})
-print(result.building_id)
-print(result.run_result.lifecycle_write.root)'
+brick build \
+  --task "온보딩 화면의 환영 문구를 한 줄로 다듬어 주세요." \
+  --preset building-chain-preset:design-contract-only \
+  --adapter adapter:local
 ```
 
-(No `uv`? Replace `uv run python3` with `PYTHONPATH=support/import_identity
-python3` — that needs PyYAML installed for your global `python3`.)
+`brick build` records support evidence that includes `build_input_mode:
+preset_task`, the Building id, the selected adapter, the declared preset, the
+evidence root, frontier observation, proof limits, and not-proven facts. The
+underlying support/operator helper materializes the selected chain preset into
+a declared plan and records your exact words as the Building's `work/task.md`
+evidence. That helper is not a separate customer execution route.
 
-The seam materializes the selected chain preset into a declared plan, runs it,
-and lands your exact words verbatim as the Building's `work/task.md` evidence.
-`task_statement` and the file-based `task_source_ref` are mutually exclusive
-(declaring both rejects, fail-closed); the file form stays available as the
-automation path (see the intake section below).
+Use `--real-provider` after `brick auth login` if you want the CLI to observe
+Claude, Codex, and Gemini readiness in declared support order and select the
+first ready observed-write adapter. An explicit `--adapter` still wins.
 
-## 직접 plan을 돌리고 싶다면: the bundled runnable plan (advanced)
+## Declared graph packets: `brick build --graph`
 
-You can also run a full plan file directly through `run_building_plan` — this
-is the advanced path; the wizard and the `task_statement` one-liner above cover
-the common cases without it. The repository already ships a verified, runnable
-first plan at `brick/building_plans/onboarding-example-0.yaml`; point the runner
-at it rather than hand-writing one (a hand-written copy would drift from the
-real, tested shape).
+When a caller/COO-declared graph packet already exists, keep the same customer
+surface and pass the packet:
+
+```bash
+brick build --graph /path/to/declared-graph-packet.json
+```
+
+The graph packet path is the `graph_packet` input mode. It is for already
+declared graph packets; it is not permission for support to invent route
+targets or Movement.
+
+## Direct plan runner (advanced/internal)
+
+You can also run a full plan file directly through `run_building_plan`. This is
+an advanced support/operator path, not a separate customer execution route; the
+customer route remains `brick build`. The repository already ships a verified,
+runnable first plan at `brick/building_plans/onboarding-example-0.yaml`; point
+the runner at it rather than hand-writing one (a hand-written copy would drift
+from the real, tested shape).
 
 A Building plan is GRAPH-shaped: `plan_shape: graph` at the top, then
-`execution_order`, `brick_steps`, and `link_edges`. The public runner always
+`execution_order`, `brick_steps`, and `link_edges`. The support runner always
 dispatches to the dynamic graph walker, which rejects any plan that is not
 `plan_shape: graph`. Here is the bundled plan, faithfully (the file is the
 source of truth — read it for the full, current text):
@@ -222,7 +239,9 @@ The bundled plan uses `adapter:local`, so the COO Agent Object uses its register
 For the customer CLI, `brick build --task "..." --real-provider` observes
 Claude, Codex, and Gemini local readiness in declared support order, selects
 the first ready observed-write adapter, and falls back to `adapter:local` when
-none is ready. An explicit `--adapter` still wins.
+none is ready. An explicit `--adapter` still wins. The CLI output remains
+support evidence only; it does not prove provider reliability, customer
+comprehension, success, quality, source truth, or Movement authority.
 
 For a direct plan run, copy the bundled plan OUTSIDE the repository (the repo
 tree admits no scratch files) and change its top-level adapter field (the
@@ -288,13 +307,17 @@ raw/
   Raw support streams such as Brick work, Agent return, and Link records.
 ```
 
-If the Building root already exists, choose a new `building_id` or pass `overwrite_existing=True` deliberately. (One exception: a root holding ONLY the intake seam's own `declared-building-plan.json` is admitted, so `run_building_intake` does not collide with itself.) If the local CLI adapter fails before returning an AgentFact, the runner records adapter-error frontier evidence and raises an exception; that still remains support evidence only.
+If the Building root already exists, choose a new `building_id` or pass
+`--overwrite-existing` deliberately. If the local CLI adapter fails before
+returning an AgentFact, the runner records adapter-error frontier evidence and
+raises an exception; that still remains support evidence only.
 
-## From a task FILE (the automation path): `run_building_intake` with `task_source_ref`
+## File-backed preset task (automation helper)
 
 Machine flows (scripts, checkers, pipelines) that already manage a task file
-hand the intake seam a repo-relative `task_source_ref` instead of inline text
-(the two are mutually exclusive — declaring both rejects, fail-closed):
+can still use the support/operator helper with a repo-relative
+`task_source_ref` instead of inline text. This is an automation helper path,
+not the official customer first-run route:
 
 ```bash
 uv run python3 -c '

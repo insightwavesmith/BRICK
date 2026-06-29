@@ -13,12 +13,12 @@ Brick Protocol is a three-axis work protocol for human-agent work: Brick = the w
 gh repo clone {OWNER}/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh
 # 2) 온보딩 위자드 (codex | claude | gemini | local)
 cd ~/BRICK && uv run python3 -m brick_protocol.support.operator.onboard codex
-# 3) 할 일을 그냥 메인 에이전트한테 말로 전하세요 — 메인 AI 자신이 구조를
-#    짜고(assemble), 빌더가 형식을 채우고, 사람이 승인하면 격리 워크트리에서
-#    굴러갑니다. 실제 작업 트리는 절대 안 건드려요.
-#    좌표가 명확한 표준 작업이면 프리셋을 골라 intake로 바로 굴려도 됩니다:
-cd ~/BRICK && uv run python3 -c 'from brick_protocol.support.operator.driver import run_building_intake; r = run_building_intake({"declared_by":"caller-me","task_statement":"내 할 일을 한 줄로 적기","chain_preset_ref":"building-chain-preset:fast-fix","selected_adapter_ref":"adapter:local"}); print(r.building_id); print(r.run_result.lifecycle_write.root)'
-#    설계가 필요한 일이면: 메인이 assemble()로 짠 proposal을 onboard goal-approve로 승인 → 굴림.
+# 3) 공식 고객 실행 표면은 하나입니다: brick build.
+#    표준 작업은 preset_task 경로(`--task`/`--preset`)로 말하고,
+#    caller/COO가 이미 선언한 그래프는 graph_packet 경로(`--graph`)로 넘깁니다.
+cd ~/BRICK && brick build --task "내 할 일을 한 줄로 적기" --preset building-chain-preset:fast-fix
+#    run_building_intake, assemble, launch_assembled_building, goal-approve 는
+#    support/operator helper 또는 고급/내부 경로이지 별도 고객 실행 루트가 아닙니다.
 ```
 
 AI/운영자가 그대로 확인할 줄:
@@ -32,8 +32,8 @@ command: cd ~/BRICK && uv run python3 -m brick_protocol.support.operator.onboard
 expected: provider 준비 상태 표와 adapter:local 첫 예제 Building 결과가 출력된다.
 failure signal: local_cli_missing, provider login 진단, FileExistsError, 또는 adapter-error frontier 안내.
 
-command: cd ~/BRICK && uv run python3 -c 'from brick_protocol.support.operator.driver import run_building_intake; r = run_building_intake({"declared_by":"caller-me","task_statement":"내 할 일을 한 줄로 적기","chain_preset_ref":"building-chain-preset:fast-fix","selected_adapter_ref":"adapter:local"}); print(r.building_id); print(r.run_result.lifecycle_write.root)'
-expected: building_id와 증거 저장 위치(lifecycle_write.root) 경로가 출력된다. 작업 트리는 안 건드린다. (설계가 필요한 일은 메인이 assemble()로 proposal을 짠 뒤 onboard goal-approve로 승인해 굴린다.)
+command: cd ~/BRICK && brick build --task "내 할 일을 한 줄로 적기" --preset building-chain-preset:fast-fix
+expected: build_input_mode=preset_task, building_id, evidence_root, frontier_kind가 출력된다. 작업은 격리 워크트리/증거 루트로 흐른다. graph_packet은 `brick build --graph <packet.json>`로 같은 표면을 통과한다.
 failure signal: FileExistsError이면 building_id를 새로 정한다; ModuleNotFoundError이면 루트에서 uv run python3 -c 로 호출했는지 확인한다; frontier가 complete가 아니라는 안내.
 
 command: cd ~/BRICK && PYTHONPATH=support/import_identity uv run python3 support/checkers/check_profile.py --all
@@ -69,10 +69,13 @@ done
 
 Start here: [quickstart](support/docs/references/quickstart.md) · [setup](support/docs/references/setup.md) · [three-axis overview](support/docs/references/three-axis-overview.md)
 
-You do not author task files: SPEAK your task as text. Pass `task_statement`
-to the intake seam (see the quickstart's one-liner) and the machine records it
-as the Building's task evidence (`work/task.md`). File-based `task_source_ref`
-remains the automation path.
+You do not author task files for the common path: SPEAK your task as text
+through `brick build --task`. That is the official public first-run surface.
+Preset task runs use `brick build --task ... --preset ...`; caller/COO-declared
+graph packets use `brick build --graph <packet.json>`. The support helpers
+`run_building_intake`, `assemble`, `launch_assembled_building`, and
+`goal-approve` remain helper or advanced/internal paths, not separate customer
+execution routes.
 
 - Brick = work
 - Agent = performer
@@ -81,6 +84,10 @@ remains the automation path.
 Brick Protocol is not a runtime engine.
 Brick Engine remains legacy/reference runtime evidence, not the source of
 truth.
+
+Docs and CLI output are support evidence only. They do not prove provider
+reliability, customer comprehension, success, quality, source truth, or
+Movement authority.
 
 Axes: Brick / Agent / Link only.
 

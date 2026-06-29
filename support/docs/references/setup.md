@@ -2,7 +2,12 @@
 
 This guide gets a newcomer from a fresh checkout to a green checker gate and a first Building run. Brick Protocol is a three-axis work protocol for human-agent work: Brick is the work, Agent is the performer, and Link is the transfer/carry/movement between work boundaries. The repository is a clean-room protocol repository, not a runtime engine. The support runner walks a declared Building plan and records support evidence; that evidence is not source truth, not a success judgment, not a quality judgment, and not Movement authority.
 
-For a guided first plan walkthrough, see `quickstart.md` in this same directory. This guide covers prerequisites, the checker gate, and the `run_building_plan` signature in detail.
+For the guided first-run route, see `quickstart.md` in this same directory.
+The official customer-facing Building route is one surface: `brick build`.
+Use `brick build --task ... --preset ...` for the `preset_task` path and
+`brick build --graph <packet.json>` for a declared `graph_packet`. This guide
+covers prerequisites, the checker gate, and the advanced `run_building_plan`
+signature in detail.
 
 ## Prerequisites
 
@@ -46,19 +51,27 @@ PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --a
 
 A Building plan declares the whole road up front: each step carries exactly three rows (Brick, Agent, Link). The runner walks the declared rows, calls the selected adapter for each step, and writes one accumulated Building root. It never invents Movement, GateFacts, or judgments.
 
-The human flow needs NO file at all: pass your task as text (`task_statement`)
-to `run_building_intake` — the one-liner and field guide are in
-`quickstart.md`. To run a full plan file directly instead, use the bundled,
-verified-runnable first plan that ships in the repository at
+The human flow needs NO file at all: pass your task as text through
+`brick build --task`. Choose the declared preset with `--preset`; the CLI
+records `build_input_mode: preset_task` and writes the Building evidence root.
+When caller/COO already has a declared graph packet, use `brick build --graph
+<packet.json>`; that records `build_input_mode: graph_packet`.
+
+The lower-level support/operator helpers (`run_building_intake`, `assemble`,
+`launch_assembled_building`, and `goal-approve`) are helper or
+advanced/internal paths, not separate customer execution routes.
+
+To run a full plan file directly instead, use the bundled, verified-runnable
+first plan that ships in the repository at
 `brick/building_plans/onboarding-example-0.yaml` (it is GRAPH-shaped, which the
-public runner requires) and run it through the public `run_building_plan`
-surface:
+runner requires) and run it through the advanced `run_building_plan` surface:
 
 ```bash
 PYTHONPATH=support/import_identity python3 -c 'from brick_protocol.support.operator.run import run_building_plan; result = run_building_plan("brick/building_plans/onboarding-example-0.yaml"); print(result.building_id); print(result.lifecycle_write.root); print("\n".join(str(path) for path in result.written_files))'
 ```
 
-`run_building_plan` accepts a plan as a mapping, or a path to a `.json` / `.yaml` / `.yml` file. Its real signature (from `support/operator/run.py`) is:
+`run_building_plan` accepts a plan as a mapping, or a path to a `.json` /
+`.yaml` / `.yml` file. Its real signature (from `support/operator/run.py`) is:
 
 ```python
 def run_building_plan(
@@ -83,7 +96,12 @@ The fields most newcomers touch:
 - **`adapter_cwd`** — the working directory handed to the local CLI adapter (e.g. where `codex` runs). Leave it `None` to use the process default.
 - **`adapter_timeout_seconds`** — per-adapter-call timeout, default `120`. A slower-than-this Codex call raises a `local_cli_timeout` adapter error and the runner records frontier evidence.
 
-The public `run_building_plan` always dispatches to the dynamic graph walker, so the plan **must** be GRAPH-shaped (`plan_shape: graph` plus non-empty `brick_steps`, `link_edges`, and `execution_order`). A non-graph packet is rejected at the walker admission guard (`support/operator/walker_kernel.py`) with a `ValueError`. The bundled `brick/building_plans/onboarding-example-0.yaml` is already graph-shaped, which is why the run command above works as written.
+`run_building_plan` dispatches to the dynamic graph walker, so the plan **must**
+be GRAPH-shaped (`plan_shape: graph` plus non-empty `brick_steps`,
+`link_edges`, and `execution_order`). A non-graph packet is rejected at the
+walker admission guard (`support/operator/walker_kernel.py`) with a
+`ValueError`. The bundled `brick/building_plans/onboarding-example-0.yaml` is
+already graph-shaped, which is why the run command above works as written.
 
 ### Choosing the adapter
 
@@ -151,5 +169,9 @@ The `result` object returned by `run_building_plan` exposes `result.building_id`
 - **Support records, it does not judge.** Every artifact carries proof-limit lines stating it is not source truth, not success, not quality, and not Movement authority. Reviews and checkers are likewise not source truth and not Movement authority.
 - **Read-only adapter.** A Brick row with no `write_scope` runs read-only; this is the default.
 - **Adapter failures are recorded, not hidden.** If the local CLI adapter fails before returning an AgentFact (missing CLI, timeout, non-zero exit, rejected return shape), the runner writes adapter-error frontier evidence and then raises an exception. That frontier evidence is still support evidence only.
-- **Provider behavior is not proven.** Running a plan does not prove the provider behaved correctly, that the work is correct, or that the work is high quality. Those are not-proven facts; the example plan lists them explicitly.
+- **Provider behavior and customer comprehension are not proven.** Running a
+  plan or reading these docs does not prove the provider behaved correctly,
+  that a customer understood the route, that the work is correct, or that the
+  work is high quality. Those are not-proven facts; the example plan and CLI
+  packets list them explicitly.
 - **Smith remains closure authority and commit/push authority.** A green gate or a written Building root is evidence, not a decision.
