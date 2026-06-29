@@ -20,6 +20,7 @@ window; this document recommends explicit re-admission now (ratified by Smith 06
 - C6 "one-call launch verb" was DELIBERATELY retired (not a failure). Customer entry = `brick build --task/--preset/--graph`.
 
 ## Verified live state (run with REAL HOME — see Discipline)
+- **0630 P3 seal update:** later evidence supersedes the 0629 P3 status row: `p3-fire-clean-smoke-0630-c1` completed via official `fire(graph)` customer route with work `write=True` + bounded `write_scope`, `frontier=complete`, sandbox commit `ababf2a2628efd2062f472bd61d4d52455531ddf`, evidence root `/Users/smith/.brick/project/brick-protocol/buildings/p3-fire-clean-smoke-0630-c1`, closure `transition_concern_evidence=null`, and REAL HOME `check_profile.py --all` GREEN.
 - `check_profile.py --all` = GREEN, exit 0, **28 profiles, 0 RED** (real HOME).
 - ⚠️ CORRECTION of an earlier operator alarm: a "--all RED" report was a FALSE measurement caused by `HOME=$(mktemp -d)`. The failing check `read-side-projection-boundary / intake_evidence_projection_case` GENERATES a building that needs real `~/.brick` HOME state; an empty temp HOME breaks it → false `agent_incomplete`. The code is GREEN.
 - Landed (verified): P2 capability taxonomy; P4 resume fan-out (`4c18c94`, ancestor of HEAD); gemini-local revival (api-key, valid — OAuth-death does not apply); gemini-HTTP-API retired.
@@ -32,9 +33,9 @@ window; this document recommends explicit re-admission now (ratified by Smith 06
 | P0 freeze | evidence inventory gate | DONE |
 | P1 adapter authority | gemini-local = NEED ∧ Agent-policy ∧ adapter-capability | DONE |
 | P2 capability taxonomy | read / probe_write / source_write | DONE (landed) |
-| **P3 Easy Building official route** | `make X` → `brick build` → evidence | **READY-NOW** — core; mechanical spine VERIFIED; NOT end-to-end proven |
+| **P3 Easy Building official route** | `make X` → `brick build`/`fire(graph)` → evidence | **SEALED 0630** — clean official-route smoke `frontier=complete` + evidence |
 | P4 resume fan-out | resume recovers declared parallelism | DONE |
-| P5 first-run / onboarding | install/init/doctor/onboard truthful + FIRST_USE | BLOCKED (needs P3) |
+| P5 first-run / onboarding | install/init/doctor/onboard truthful + FIRST_USE | NEXT — P3 dependency cleared; gaps #2-#6 remain |
 | P6 godmodule cleanup | case_runners / kernel_checks / checker-diet | BLOCKED — off critical path |
 | P7 fresh-machine proof | clone→install→onboard→build→verify | BLOCKED — **NO DOC** |
 | P8 dogfood capstone | BRICK runs its own task via the customer path | BLOCKED — **NO DOC** = the goal |
