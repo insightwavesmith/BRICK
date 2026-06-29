@@ -169,7 +169,7 @@ graph = build([
 ])
 fire(
     graph,
-    declared_by="coo:smith",
+    declared_by="coo-smith",
     task="<task.md 한 줄 요약>",
     building_id="<id>",
     write_scope={
@@ -194,7 +194,7 @@ JSON packet 예시는 `brick build --graph <packet.json>` 또는
 ```json
 {
   "task_statement": "<한 줄 task 본문 - work/task.md 됨>",
-  "declared_by": "coo:smith",
+  "declared_by": "coo-smith",
   "building_id": "<슬러그>-MMDD",
   "selected_adapter_ref": "adapter:codex-local",
   "selected_model_ref": "model:default",
