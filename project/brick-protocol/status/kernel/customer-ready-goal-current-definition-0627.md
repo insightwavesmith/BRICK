@@ -500,10 +500,33 @@ runtime mail, gate, adapter, or engine bug unless new raw/link or checker
 evidence contradicts the current recheck.
 
 Current remaining P3 proof gap:
-  closure-origin transition_concern_evidence has checker-level adoption proof
-  through live_dynamic_full_replay_n3, but still needs a current official graph
-  root if P3 wants live Building evidence for closure-origin adoption under
-  declared Link policy / budget.
+  closure-origin transition_concern_evidence has checker-level proof through
+  live_dynamic_full_replay_n3 and current official graph-root evidence at
+  cr-v4-p3-closure-origin-adoption-0629a. This remains support evidence, not
+  source truth, quality judgment, or full customer-ready P3 proof.
+```
+
+P3 0629g official closure-origin proof:
+
+```text
+Official route:
+  brick build --graph
+  project/brick-protocol/status/kernel/GOAL/cr-v4-p3-closure-origin-adoption-graph-0629a.json
+
+Evidence root:
+  /Users/smith/.brick/project/brick-protocol/buildings/cr-v4-p3-closure-origin-adoption-0629a
+
+Observed:
+  closure attempt 1 returned implementation_gap concern pointing at
+  brick-p3-closure-adoption-development.
+  development / code QA / axis QA / closure all reran as attempt 2.
+  closure attempt 2 returned transition_concern_evidence: null.
+  CLI reported frontier_kind=complete and customer_visible_not_ready=false.
+
+Movement reading:
+  FORWARD for this narrow closure-origin P3 proof slice.
+  HOLD remains for the wider customer-ready goal until Easy Building,
+  first-run/fresh-machine, and dogfood proof limits close.
 ```
 
 P3 hard fan-in invariant:
@@ -785,8 +808,7 @@ P3 C6 closure
 Gemini-local live provider success
 fresh-machine install/onboard
 P3 build fluency official-route implementation
-current official graph root exercising closure-origin adoption under declared
-  policy / budget
+full customer-ready P3 behavior beyond the focused closure-origin proof root
 P6 godmodule cleanup
 P7/P8 customer-ready proof
 ```

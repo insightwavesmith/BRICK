@@ -659,6 +659,69 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity:. \
   => passed
 ```
 
+## 0629g Closure-Origin Official Route Proof
+
+Codex operator ran the current official route:
+
+```text
+.venv/bin/brick build --non-interactive --json \
+  --graph project/brick-protocol/status/kernel/GOAL/cr-v4-p3-closure-origin-adoption-graph-0629a.json \
+  --output-root /Users/smith/.brick/project/brick-protocol/buildings \
+  --timeout 600
+```
+
+Evidence root:
+
+```text
+/Users/smith/.brick/project/brick-protocol/buildings/cr-v4-p3-closure-origin-adoption-0629a
+```
+
+Observed step evidence:
+
+```text
+p3-closure-adoption-development-attempt-1
+p3-closure-adoption-code-qa-attempt-1
+p3-closure-adoption-axis-qa-attempt-1
+p3-closure-adoption-closure-attempt-1
+  returned transition_concern_evidence:
+    concern_kind: implementation_gap
+    concern_ref: transition-concern:p3-closure-origin-adoption-proof
+    related_boundary_refs: [brick-p3-closure-adoption-development]
+
+p3-closure-adoption-development-attempt-2
+p3-closure-adoption-code-qa-attempt-2
+p3-closure-adoption-axis-qa-attempt-2
+p3-closure-adoption-closure-attempt-2
+  returned transition_concern_evidence: null
+```
+
+CLI result:
+
+```text
+frontier_kind: complete
+customer_visible_frontier_state: frontier_complete
+customer_visible_not_ready: false
+walker_mode: dynamic
+```
+
+Interpretation:
+
+```text
+The old source-lane hard fan-in blocker remains stale.
+Closure-origin transition_concern_evidence now has current official graph root
+evidence that the declared policy/budget can reroute to the development
+boundary, replay the fan-out/fan-in cohort, and close with null concern on the
+second closure pass.
+```
+
+Proof limits:
+
+```text
+This is support/evidence proof only. It is not source truth, success judgment,
+quality judgment, Movement authority, provider reliability, semantic quality of
+Agent returns, fresh-machine proof, or full customer-ready P3 proof.
+```
+
 ## Implementation Plan
 
 1. Route seal - focused evidence closed.
@@ -744,10 +807,9 @@ git diff --check
 P3 closure still needs focused proof for:
 
 ```text
-closure-origin transition_concern_evidence has checker-level adoption proof
-(`live_dynamic_full_replay_n3`), but still needs a current official graph root
-that exercises closure-origin adoption under declared policy/budget if P3 wants
-live Building evidence rather than checker fixture evidence
+closure-origin transition_concern_evidence now has current official graph root
+evidence at cr-v4-p3-closure-origin-adoption-0629a; continue to treat that as
+support evidence, not source truth or quality judgment
 plain GOAL/ wording clarified when it means project/brick-protocol/status/kernel/GOAL/
 fresh customer comprehension beyond wording evidence
 live provider reliability limits
