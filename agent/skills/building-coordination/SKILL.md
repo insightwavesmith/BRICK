@@ -61,6 +61,22 @@ the available LLMs, Brick kinds, and graph shape as the task's brain/hands. If
 that composition cannot be expressed clearly, update this Building-running skill
 chain instead of forcing the task into a stale pipeline.
 
+Composition-first is the operating default, not an optimization. For every task
+the COO picks the LLM(s) = brain, the Brick KIND(s) = hands, and the graph
+shape = nervous system that fit THAT task; the act of composing them is itself
+the dogfood. Proven shapes were all different: P7 = minimal work -> closure,
+P8 = Codex work -> Codex code-attack QA -> Gemini axis-attack QA -> Codex
+closure (fan-in), release pruning = work + Codex QA + Gemini QA + closure (and
+that shape caught a real defect). None of them was the stale line.
+
+Skill-as-diagnostic rule (load-bearing): if you look at a task and CANNOT draw
+it as an LLM + Brick KIND + graph composition, that is NOT the task's fault — it
+means this Building-rolling skill chain (building-coordination, brick-task-author,
+building-sizing-method, task_intake) is under-built. Fix the skill first, then
+roll the Building. Do not paper over the gap by hand-patching or by forcing the
+task into the fixed pipeline. Do not create a new skill; extend these. This skill
+chain keeps being updated until the customer-ready goal is complete.
+
 P3 zero-ritual launch policy: once the task source and graph shape are declared,
 the preferred graph execution is compact drawing (`build` / `fan`) followed by
 `fire(graph)` through the official customer graph route. If a packet artifact is

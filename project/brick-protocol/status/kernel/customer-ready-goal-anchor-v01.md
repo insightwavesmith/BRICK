@@ -4,7 +4,9 @@
 
 컨텍스트 보존: 압축·새 세션마다 ① 이 파일 ② AGENTS.md ③ customer-ready-goal-phases-0629.md ④ 해당 phase 기획문서 ⑤ git log/frontier/evidence 순으로 복원. 문서가 stale면 live repo+evidence 우선. 기준: P3 code baseline=f3744e9(fire(graph)+caller-local root 닫힘), goal-chain anchor/sync=this anchor commit (check `git log -1`). push 여부는 `git status`로 확인. 기획문서는 차용하되 source truth 아님.
 
-업무방식: 기본=인터뷰로 task.md 후보 정의→Smith 확인→LLM·Brick·Graph로 두뇌/손발 구성→brick build/fire official route→폴링→frontier/evidence→forward/reroute/HOLD 보고. 고정 “work→QA→closure” 파이프라인으로 생각하지 않는다. 일마다 쓸 수 있는 LLM·브릭·그라파를 조합하는 사고 자체가 dogfood다. 간단한 건 대화로 task 확정 가능하나 인터뷰/task.md가 상징적 기본 UX. 직접 코드 패치가 기본 아님; 예외는 기록 후 빌딩 복귀.
+업무방식: 기본=인터뷰로 task.md 후보 정의→Smith 확인→LLM·Brick·Graph로 두뇌/손발 구성→brick build/fire official route→폴링→frontier/evidence→forward/reroute/HOLD 보고. 간단한 건 대화로 task 확정 가능하나 인터뷰/task.md가 상징적 기본 UX. 직접 코드 패치가 기본 아님; 예외는 기록 후 빌딩 복귀.
+
+핵심 운영원리(COMPOSITION-FIRST, 골 전체 불변): 어떤 일이든 “빌딩 발사→Agent work→QA→closure→판정” 고정 라인으로 생각하지 마라. 매 task마다 쓸 수 있는 LLM(두뇌)·Brick KIND(손발)·Graph(신경망)를 그 일에 맞게 조합하는 것이 기본이고, 그 조합 사고 자체가 dogfood다(P7=최소 work→closure, P8=Codex/Gemini fan-in, release pruning=work+이중QA로 실결함 검출 — 모두 다른 모양이었다). 진단 규칙: 내가 어떤 task를 보고 “LLM·브릭·그라파 조합”으로 모양을 그리지 못하면 그건 task 탓이 아니라 빌딩굴리기 스킬(brick-task-author / building-coordination / building-sizing-method / task_intake)이 덜 된 것이다 → 그 스킬을 먼저 고친다(새 스킬 신설 금지). 빌딩굴리기 스킬 체인은 골 완료까지 계속 갱신한다. 이것도 골의 일부다.
 
 DONE(다시 건드리지 마라): P0 freeze · P1 adapter authority · P2 capability(잔여=qa-lead leak=정책split=첫 dogfood후보) · P4 resume fan-out. 측정=--all GREEN+해당 fixture.
 
