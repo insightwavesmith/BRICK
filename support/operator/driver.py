@@ -179,6 +179,37 @@ def _customer_graph_intake_packet(packet: Any) -> Mapping[str, Any]:
     return intake_packet
 
 
+def _customer_graph_fan_in_source_node_ids(packet: Mapping[str, Any]) -> frozenset[str]:
+    edge_source_by_ref: dict[str, str] = {}
+    raw_edges = packet.get("edges", ())
+    if isinstance(raw_edges, Sequence) and not isinstance(raw_edges, (str, bytes)):
+        for edge in raw_edges:
+            if not isinstance(edge, Mapping):
+                continue
+            edge_ref = str(edge.get("edge_ref") or "").strip()
+            source = str(edge.get("source") or "").strip()
+            if edge_ref and source:
+                edge_source_by_ref[edge_ref] = source
+
+    source_ids: set[str] = set()
+    raw_groups = packet.get("groups", ())
+    if not isinstance(raw_groups, Sequence) or isinstance(raw_groups, (str, bytes)):
+        return frozenset()
+    for group in raw_groups:
+        if not isinstance(group, Mapping):
+            continue
+        if str(group.get("group_role") or "").strip() != "fan_in":
+            continue
+        member_refs = group.get("member_refs", ())
+        if not isinstance(member_refs, Sequence) or isinstance(member_refs, (str, bytes)):
+            continue
+        for member_ref in member_refs:
+            source = edge_source_by_ref.get(str(member_ref).strip())
+            if source:
+                source_ids.add(source)
+    return frozenset(source_ids)
+
+
 def _reject_customer_graph_template_authority_overrides(packet: Mapping[str, Any]) -> None:
     """Fail closed when customer graph input re-authors Brick template-owned fields.
 
@@ -186,10 +217,14 @@ def _reject_customer_graph_template_authority_overrides(packet: Mapping[str, Any
     and Link edges. Brick templates still own instruction bodies, template refs,
     required return shape, and carry subsets. Expert/internal composition helpers
     can use ``compose_building`` directly; the customer sandbox graph wrapper cannot
-    accept those overrides.
+    accept those overrides. The one narrow exception is ``required_return_shape`` on
+    a declared fan-in source: the fluent ``assemble()`` surface derives that field
+    from the source Brick template before handing the packet to this wrapper so the
+    fan-in source can prove it no longer carries Link-facing concern evidence.
     """
 
     offenders: list[str] = []
+    fan_in_source_node_ids = _customer_graph_fan_in_source_node_ids(packet)
     for index, node in enumerate(_customer_graph_node_items(packet.get("nodes"))):
         node_id = str(node.get("node_id") or node.get("step_ref") or f"nodes[{index}]")
         locations = (node,)
@@ -198,6 +233,8 @@ def _reject_customer_graph_template_authority_overrides(packet: Mapping[str, Any
             locations = (node, raw_brick)
         for location in locations:
             for field in sorted(_CUSTOMER_GRAPH_TEMPLATE_AUTHORITY_FIELDS):
+                if field == "required_return_shape" and node_id in fan_in_source_node_ids:
+                    continue
                 if field in location:
                     offenders.append(f"{node_id}.{field}")
     if offenders:
@@ -642,7 +679,7 @@ def run_customer_graph_building_in_sandbox(
     packet: Any,
     *,
     customer_repo_root: Path | str,
-    output_root: Path | str,
+    output_root: Path | str | None = None,
     overwrite_existing: bool = False,
     local_callables: Mapping[str, AgentBrainCallable] | None = None,
     command_runner: CommandRunner | None = None,
@@ -661,7 +698,7 @@ def run_customer_graph_building_in_sandbox(
     _reject_customer_graph_template_authority_overrides(packet)
 
     repo = Path(customer_repo_root).resolve()
-    durable_output = Path(output_root).resolve()
+    durable_output = Path(output_root).resolve() if output_root is not None else DEFAULT_BUILDINGS_ROOT
     building_id = _required_text(packet.get("building_id"), "graph packet building_id")
 
     def _run_graph(repo_root: Path, adapter_cwd: Path) -> BuildingIntakeRunResult:

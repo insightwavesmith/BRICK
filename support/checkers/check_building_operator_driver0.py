@@ -656,6 +656,11 @@ def check(repo: Path) -> tuple[list[str], Mapping[str, Any]]:
     # root), never nested in the checker's tmp above and never the live tree.
     _w1_worktree_sandbox_fire(repo, violations, summary)
 
+    # Customer graph wrapper FIRE: fluent fan-in packets carry an engine-derived
+    # required_return_shape on fan-in source nodes, and omitted output_root must
+    # use the default buildings vessel without touching the live customer tree.
+    _customer_graph_fluent_sandbox_fire(repo, violations, summary)
+
     # H2a direct-graph intake FIRE (heart H2 deterministic plumbing): a
     # pre-composed graph + inline task_statement runs through the NEW
     # run_composed_graph_intake seam (NO preset) and produces an evidence spine
@@ -723,6 +728,176 @@ def _launch_assembled_adapter_cwd_fire(
         violations.append("launch-adapter-cwd-RED: refusal still dispatched the adapter runner")
     if "plan_path" in result:
         violations.append("launch-adapter-cwd-RED: refusal wrote a composed plan before preflight")
+
+
+# ---------------------------------------------------------------------------
+# Customer graph fluent sandbox FIRE: run_customer_graph_building_in_sandbox
+# accepts the fluent assemble() fan-in packet's engine-derived
+# required_return_shape, keeps non-fan-in customer overrides rejected, and uses
+# DEFAULT_BUILDINGS_ROOT when output_root is omitted.
+# ---------------------------------------------------------------------------
+
+
+def _customer_graph_fluent_runner():
+    def _runner(args: Sequence[str], cwd: Path, timeout_seconds: int):
+        from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
+
+        del cwd, timeout_seconds
+        call = tuple(str(arg) for arg in args)
+        if "--version" in call:
+            return LocalCliCompleted(call, 0, "codex test-version", "")
+        payload = {
+            "received_work_ref": "work:customer-graph-fluent",
+            "made_changes": False,
+            "changed_files": [],
+            "commands_run": [],
+            "blocked_or_missing_evidence": [],
+            "handoff_refs": {},
+            "observed_evidence": ["customer graph fluent sandbox checker ran"],
+            "attacked_scope": "fluent fan-in guard",
+            "brick_axis_findings": [],
+            "agent_axis_findings": [],
+            "link_axis_findings": [],
+            "support_leak_findings": [],
+            "projection_authority_findings": [],
+            "evidence_scope": "fluent fan-in guard",
+            "persisted_evidence_roots": [],
+            "proof_limit_findings": [],
+            "stale_source_risks": [],
+            "checker_overclaim_risks": [],
+            "missing_evidence": [],
+            "evidence_used": [],
+            "narrowly_proven": ["driver accepted fluent fan-in packet"],
+            "remaining_delta": [],
+            "parent_goal_delta_status": {"matched_delta_refs": [], "evidence_refs": []},
+            "next_target_candidates": [],
+            "deferred_smith_review_queue": [],
+            "not_proven": ["semantic correctness of customer graph work"],
+        }
+        return LocalCliCompleted(call, 0, json.dumps(payload), "")
+
+    return _runner
+
+
+def _customer_graph_fluent_sandbox_fire(
+    repo: Path,
+    violations: list[str],
+    summary: dict[str, Any],
+) -> None:
+    import brick_protocol.support.operator.driver as driver
+    from brick_protocol.support.operator.assembly import (
+        Authority,
+        assemble,
+        build,
+        fan,
+    )
+
+    with tempfile.TemporaryDirectory(prefix="bp-customer-graph-") as cust_raw, \
+            tempfile.TemporaryDirectory(prefix="bp-customer-graph-default-") as out_raw, \
+            _TemporaryHome(Path(cust_raw) / "engine-home"):
+        customer = Path(cust_raw) / "customer-live"
+        customer.mkdir(parents=True, exist_ok=True)
+        head_before = _seed_customer_repo(repo, customer)
+        default_root = Path(out_raw) / "default-buildings"
+        old_default = driver.DEFAULT_BUILDINGS_ROOT
+        driver.DEFAULT_BUILDINGS_ROOT = default_root
+        try:
+            graph = assemble(
+                build(
+                    [
+                        ["work", "Prepare customer graph fluent fixture."],
+                        fan(
+                            [
+                                [
+                                    "axis-attack-qa",
+                                    "Inspect fan-in branch A.",
+                                    {"adapter": "codex-local"},
+                                ],
+                                [
+                                    "evidence-integrity",
+                                    "Inspect fan-in branch B.",
+                                    {"adapter": "codex-local"},
+                                ],
+                            ]
+                        ),
+                        ["closure", "Close customer graph fluent fixture.", {"adapter": "codex-local"}],
+                    ]
+                ),
+                declared_by="coo",
+                authority=Authority.COO,
+                task="Run fluent fan-in customer graph through the sandbox wrapper.",
+                building_id="customer-graph-fluent-default",
+                adapter="codex-local",
+                repo_root=customer,
+            )
+            fan_in_sources = {
+                str(edge.get("source"))
+                for group in graph.groups
+                if str(group.get("group_role")) == "fan_in"
+                for ref in group.get("member_refs", ())
+                for edge in graph.edges
+                if str(edge.get("edge_ref")) == str(ref)
+            }
+            fan_in_shapes = {
+                str(node.get("node_id")): str(node.get("required_return_shape"))
+                for node in graph.nodes
+                if str(node.get("node_id")) in fan_in_sources
+            }
+            summary["customer_graph_fluent_fan_in_shapes"] = fan_in_shapes
+            if not fan_in_shapes or any("transition_concern_evidence" in shape for shape in fan_in_shapes.values()):
+                violations.append(
+                    "customer-graph-fluent: assemble() did not derive fan-in source "
+                    "required_return_shape without transition_concern_evidence"
+                )
+
+            result = driver.run_customer_graph_building_in_sandbox(
+                graph,
+                customer_repo_root=customer,
+                overwrite_existing=True,
+                command_runner=_customer_graph_fluent_runner(),
+                adapter_timeout_seconds=30,
+            )
+        finally:
+            driver.DEFAULT_BUILDINGS_ROOT = old_default
+
+        summary["customer_graph_fluent_frontier"] = result.frontier_kind
+        summary["customer_graph_fluent_evidence_root"] = result.evidence_root
+        summary["customer_graph_fluent_default_root"] = str(default_root)
+        if result.frontier_kind != "complete":
+            violations.append(
+                f"customer-graph-fluent: expected complete frontier, got {result.frontier_kind!r}"
+            )
+        if not _is_under(Path(result.evidence_root), default_root):
+            violations.append(
+                "customer-graph-fluent: omitted output_root did not use DEFAULT_BUILDINGS_ROOT"
+            )
+        if _git_text(customer, "rev-parse", "HEAD") != head_before:
+            violations.append("customer-graph-fluent: live customer HEAD moved")
+        if _git_text(customer, "status", "--porcelain", "--untracked-files=all") != "":
+            violations.append("customer-graph-fluent: live customer tree was left dirty")
+
+        forbidden_packet = graph.as_intake_args()
+        forbidden_nodes = [dict(node) for node in forbidden_packet["nodes"]]
+        forbidden_nodes[0]["required_return_shape"] = "observed_evidence, not_proven"
+        forbidden_packet = dict(forbidden_packet)
+        forbidden_packet["building_id"] = "customer-graph-forbidden-required-return"
+        forbidden_packet["nodes"] = forbidden_nodes
+        try:
+            driver.run_customer_graph_building_in_sandbox(
+                forbidden_packet,
+                customer_repo_root=customer,
+                output_root=default_root / "forbidden",
+                overwrite_existing=True,
+                command_runner=_customer_graph_fluent_runner(),
+                adapter_timeout_seconds=30,
+            )
+        except ValueError as exc:
+            summary["customer_graph_forbidden_override_rejected"] = "required_return_shape" in str(exc)
+        else:
+            summary["customer_graph_forbidden_override_rejected"] = False
+            violations.append(
+                "customer-graph-fluent-RED: non-fan-in required_return_shape override was accepted"
+            )
 
 
 # ---------------------------------------------------------------------------
