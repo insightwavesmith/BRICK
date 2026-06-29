@@ -4452,6 +4452,8 @@ _NO_SMITH_RESIDUE_SURFACES = (
     "README.md",
     "support/docs/spec",
     "agent/prompts",
+    "agent/skills",
+    "brick/templates/skills",
     "support/onboarding/install.sh",
 )
 
@@ -4517,6 +4519,18 @@ def _no_smith_residue_fire_probe(repo: Path) -> int:
             "hardcoded Smith user-home path",
         ),
         (
+            "agent-skill-user-home",
+            Path("agent/skills/scoped-implementation/SKILL.md"),
+            "synthetic probe path: /Users/smith/projects/BRICK\n",
+            "hardcoded Smith user-home path",
+        ),
+        (
+            "brick-template-skill-user-home",
+            Path("brick/templates/skills/make-a-brick/SKILL.md"),
+            "synthetic probe path: /Users/smith/projects/BRICK\n",
+            "hardcoded Smith user-home path",
+        ),
+        (
             "org",
             Path("agent/prompts/coo.md"),
             "synthetic probe clone: gh repo clone insightwavesmith/BRICK ~/BRICK\n",
@@ -4550,7 +4564,8 @@ def run_product_no_smith_residue(repo: Path) -> KernelResult:
     """Product-surface lint for Smith local residue.
 
     Scans the shipped newcomer-facing surfaces named by ONBOARDING-LEGACY-SCRUB:
-    root README, support/docs/spec, and agent/prompts. The only admitted
+    root README, support/docs/spec, agent/prompts, agent/skills,
+    brick/templates/skills, and the onboarding install verb. The only admitted
     ``insightwavesmith/BRICK`` occurrence there is the root README's explicit
     working-example note next to the parameterized ``{OWNER}/BRICK`` command.
     """
@@ -4567,9 +4582,11 @@ def run_product_no_smith_residue(repo: Path) -> KernelResult:
         inspected=inspected,
         output=(
             "product no-Smith-residue scan passed: README.md, support/docs/spec, "
-            "and agent/prompts carry no /Users/smith literal and no hardcoded "
-            "insightwavesmith org outside the README working-example allowance; "
-            "temp-copy FIRE probes for both forbidden families fired RED."
+            "agent/prompts, agent/skills, brick/templates/skills, and "
+            "support/onboarding/install.sh carry no /Users/smith literal and no "
+            "hardcoded insightwavesmith org outside the README working-example "
+            "allowance; temp-copy FIRE probes for both forbidden families and "
+            "both skill surfaces fired RED."
         ),
     )
 
