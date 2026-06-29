@@ -1,0 +1,62 @@
+{
+  "task_statement": "Customer release durable guard hardening. Widen the existing product_no_smith_residue checker so the surfaces that actually leaked in release pruning are covered: agent/skills and brick/templates/skills, in addition to the current README.md, support/docs/spec, agent/prompts, and support/onboarding/install.sh. Keep this as support checker evidence only: no source truth, no success/quality judgment, no Movement authority. Implement narrowly in support/checkers/lib/kernel_checks.py unless a profile text pin requires a minimal update. Required behavior: current clean tree still passes; a temporary FIRE probe with /Users/smith in agent/skills/brick-task-author/SKILL.md fires RED; a temporary FIRE probe with /Users/smith in brick/templates/skills/make-a-brick/SKILL.md fires RED; existing org and user-home probes still fire. Update the human-readable output/docstring so it names the widened skill surfaces. Run git diff --check, compileall for kernel_checks.py, the read-side-projection-boundary profile, and full check_profile.py --all if feasible. If a probe is blocked, report not_proven; do not fake it.",
+  "declared_by": "coo-smith",
+  "building_id": "release-guard-product-no-smith-scope-0630a",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "nodes": [
+    {
+      "node_id": "release-guard-no-smith-work",
+      "step_ref": "release-guard-no-smith-work",
+      "step_template_ref": "building-step-template:work",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/checkers/lib/kernel_checks.py",
+          "support/checkers/profiles/read_side_projection_boundary.yaml",
+          "support/docs/references/checker-profile-map.md"
+        ],
+        "forbidden_paths": [".git/**", "agent/**", "brick/**", "project/**", "support/operator/**", "support/connection/**"]
+      },
+      "work_statement": "Implement the narrow durable guard widening for product_no_smith_residue. Add agent/skills and brick/templates/skills to the scanned product surfaces. Add or update FIRE probes so /Users/smith inserted into those two skill surfaces is detected. Preserve existing README working-example allowance and existing org/user-home probes. Prefer changing only support/checkers/lib/kernel_checks.py. Run git diff --check, compileall, read_side_projection_boundary profile, and --all if feasible. Report exact commands and any not_proven. Do not edit actual skill docs or source product files.",
+      "completion_edge_ref": "edge:release-guard-no-smith-work-to-code-qa"
+    },
+    {
+      "node_id": "release-guard-no-smith-code-qa",
+      "step_ref": "release-guard-no-smith-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "work_statement": "Code-attack QA for product_no_smith_residue guard widening. Inspect the sandbox diff. Verify only allowed checker/profile/reference files changed; scan scope includes agent/skills and brick/templates/skills; FIRE probes cover both new surfaces; existing README org allowance is not broadened; git diff --check and relevant checker/profile commands are green or blockers are honest. Do not source-mutate.",
+      "completion_edge_ref": "edge:release-guard-no-smith-code-qa-to-closure"
+    },
+    {
+      "node_id": "release-guard-no-smith-axis-qa",
+      "step_ref": "release-guard-no-smith-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default",
+      "work_statement": "Axis-attack QA for the release guard. Verify this is support checker evidence only; it does not make checker output source truth, success/quality judgment, Movement authority, route target selection, or customer comprehension proof. Confirm no customer skill/docs source files were edited. Do not source-mutate.",
+      "completion_edge_ref": "edge:release-guard-no-smith-axis-qa-to-closure"
+    },
+    {
+      "node_id": "release-guard-no-smith-closure",
+      "step_ref": "release-guard-no-smith-closure",
+      "step_template_ref": "building-step-template:closure",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "work_statement": "Closure synthesis. Read work + both QA returns. If the guard widening is implemented and checked, return forward evidence with changed files, commands, sandbox commit, proof limits, and not_proven. If any implementation_gap or boundary_mismatch remains, return transition_concern_evidence instead of closure.",
+      "completion_edge_ref": "edge:release-guard-no-smith-closure-to-boundary"
+    }
+  ],
+  "edges": [
+    {"edge_ref": "edge:release-guard-no-smith-work-to-code-qa", "source": "release-guard-no-smith-work", "target": "release-guard-no-smith-code-qa", "movement": "forward"},
+    {"edge_ref": "edge:release-guard-no-smith-work-to-axis-qa", "source": "release-guard-no-smith-work", "target": "release-guard-no-smith-axis-qa", "movement": "forward"},
+    {"edge_ref": "edge:release-guard-no-smith-code-qa-to-closure", "source": "release-guard-no-smith-code-qa", "target": "release-guard-no-smith-closure", "movement": "forward"},
+    {"edge_ref": "edge:release-guard-no-smith-axis-qa-to-closure", "source": "release-guard-no-smith-axis-qa", "target": "release-guard-no-smith-closure", "movement": "forward"},
+    {"edge_ref": "edge:release-guard-no-smith-closure-to-boundary", "source": "release-guard-no-smith-closure", "target": "building-boundary:release-guard-product-no-smith-scope-0630a-closed", "movement": "forward", "building_lifecycle": {"state": "closed", "reason": "declared graph closed"}}
+  ],
+  "groups": []
+}
