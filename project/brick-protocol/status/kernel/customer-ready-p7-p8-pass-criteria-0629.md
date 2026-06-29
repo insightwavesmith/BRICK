@@ -9,19 +9,23 @@ stays HOLD / NOT PROVEN.
 ## P7 — Fresh-machine proof — PASS target
 A clean machine shape (no pre-existing project state beyond what a documented install
 creates) can, using documented steps only:
-1. clone the repo
+1. clone `origin/main`
 2. install
-3. onboard / connect available providers (Codex / Gemini / Claude) per FIRST_USE
-4. run ONE `brick build` via the official route (`--task/--preset/--graph`)
+3. init / doctor / auth / onboard or connect available providers (Codex / Gemini / Claude) per FIRST_USE
+4. run ONE `brick build` or `brick fire` via the official route (`--task/--preset/--graph`)
 5. inspect evidence + frontier
 
 PASS = steps 1–5 complete from clone; the build reaches `frontier=complete`; evidence is
 operator-readable; ZERO undocumented manual steps; NO hidden machine-local dependency
 (no `~/.brick` pre-state assumed).
 
-Known P7 hazard (must be fixed or explicitly documented before P7 can pass):
-`intake_evidence_projection_case` is non-hermetic — it generates a building needing real
-`~/.brick` HOME state, so on a fresh/empty HOME it false-REDs. A true fresh machine hits this.
+P5-B4 fresh-machine prep evidence (operator transcript note: `customer-ready-p5-b4-fresh-home-measurement-0630.md`):
+the former empty-HOME `intake_evidence_projection_case` hazard has a fresh-HOME
+`read-side-projection-boundary` profile measurement and should not be carried as an
+unmeasured active blocker. This remains support evidence only. It does not prove a true
+fresh machine, release export parity, provider credential validity, customer comprehension,
+or the required origin/main clone -> install -> init/doctor/auth/onboard -> build/fire ->
+evidence/frontier inspection route.
 
 ## P8 — Dogfood capstone — PASS target
 BRICK runs ONE real meaningful task through the customer entrypoint:
@@ -40,7 +44,7 @@ the produced artifact is real + operator-readable.
 - The task should be real enough to exercise work + QA lanes, but not so hard that task-difficulty masks path-gaps.
 
 Candidate first tasks (Smith picks one):
-- **(recommended, meta)** Make `intake_evidence_projection_case` hermetic — provide its own HOME/config so it no longer needs real `~/.brick` state. Real, in-scope, closes the known P7 hazard, and is a clean "BRICK improves itself through its own customer path." Scope tightly (don't refactor the case_runners god-module).
+- **(recommended, meta)** Run the real P7 fresh-machine proof from `origin/main`: clone -> install -> init/doctor/auth/onboard -> `brick build`/`brick fire` -> evidence/frontier inspection using documented steps only. Scope tightly; checker/profile evidence is support evidence and does not replace this route.
 - (alt) A small documented skill/doc change pushed through the official route.
 - (alt) A focused repair drawn from the existing backlog.
 

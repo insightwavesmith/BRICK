@@ -42,10 +42,14 @@ Gemini-local is CLI plus GEMINI_API_KEY or GOOGLE_API_KEY.
 Gemini-api remains outside active write/probe-write path.
 ```
 
-Remaining gaps:
+Remaining gaps / current prep evidence:
 
 ```text
-fresh-machine install/onboard not yet proven.
+P5 #6 fresh-machine prep has a fresh-HOME read-side-projection-boundary
+profile measurement for the former empty-HOME intake_evidence_projection_case
+hazard (operator transcript note: customer-ready-p5-b4-fresh-home-measurement-0630.md); do not carry that hazard as an active unmeasured blocker.
+actual origin/main fresh clone -> install -> init/doctor/auth/onboard ->
+brick build/fire -> evidence/frontier inspection is still not proven.
 README/quickstart/launch-guide currently still point to Python internals or
 direct run_building_intake in some places; customer docs are stale.
 first-use adapter population needs proof across Claude/Codex/Gemini candidates.
@@ -196,13 +200,14 @@ first-use adapter population or explicit deferral
 Claude/Codex/Gemini default ordering matching the active policy
 ```
 
-Fresh-machine proof is a later P7 gate, but P5 should prepare:
+Fresh-machine proof is a later P7 gate. P5-B4 has only prepared it by measuring
+the former empty-HOME profile hazard; P7 still requires:
 
 ```text
-fresh root install dry run
-brick init
-brick doctor
-brick build --task ... --real-provider or declared local proof path
+origin/main fresh clone
+install
+brick init / doctor / auth / onboard
+brick build/fire through documented public route
 evidence/frontier inspection
 ```
 
@@ -221,7 +226,8 @@ FIRST_USE Gemini evidence, and first-use adapter population scope are resolved.
 ```text
 valid Gemini credential
 P3 official-route closure
-fresh-machine install/onboard
+P5-B4 fresh-HOME profile measurement is support evidence only, not P7 PASS
+actual origin/main fresh clone/install/init/doctor/auth/onboard/build/fire/verify
 README / quickstart / launch-guide route consistency beyond the narrowed P5-B3
 frontier-story wording alignment
 doctor full readiness schema

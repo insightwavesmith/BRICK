@@ -1,0 +1,162 @@
+{
+  "task_statement": "P5-B4 fresh-machine prep for P7. Update status/planning docs to reflect current measured P7 readiness honestly: P5 #6 remains prep, P7 full fresh-machine clone/install/onboard/build/verify is not proven; however the previously listed `intake_evidence_projection_case` empty-HOME hazard was re-measured on 0630 with HOME and BRICK_HOME pointed at a fresh temp directory and the `read-side-projection-boundary` profile passed, so it should no longer be carried as an unmeasured active blocker. Preserve proof limits: checker/profile pass is support evidence only, not P7 PASS; actual origin/main fresh clone still required.",
+  "declared_by": "coo-smith",
+  "building_id": "p5-b4-fresh-machine-prep-0630",
+  "selected_shape_ref": "building-shape:p5-fresh-machine-prep-inspect-work-fanin",
+  "selection_rule": "caller_or_coo_declared_only",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "p5-b4-fresh-machine-prep-0630-fresh-inspect",
+      "step_ref": "p5-b4-fresh-machine-prep-0630-fresh-inspect",
+      "step_template_ref": "building-step-template:inspect",
+      "completion_edge_ref": "edge:p5-b4-fresh-machine-prep-0630-fresh-inspect-to-work",
+      "node_reroute_budget": 1,
+      "work_statement": "Read-only P7/fresh-machine prep inspection. Inspect objective file, AGENTS.md, customer-ready-goal-anchor-v01.md, customer-ready-goal-phases-0629.md, customer-ready-p7-p8-pass-criteria-0629.md, customer-ready-p5-first-run-official-route-plan-0628.md, README/quickstart/setup/launch-guide, support/onboarding/install.sh, release_export.sh, and the checker surfaces for intake_evidence_projection_case. Reconcile the live measurement: command `HOME=$(mktemp -d) BRICK_HOME=$HOME/.brick PYTHONPATH=support/import_identity:. python3 support/checkers/check_profile.py --profile read-side-projection-boundary` passed on 0630. Return a bounded edit map distinguishing: stale hazard wording, still-not-proven actual fresh clone/install/onboard/build, and next P7 measurement steps. Do not mutate files.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p5-b4-fresh-machine-prep-0630-work",
+      "step_ref": "p5-b4-fresh-machine-prep-0630-work",
+      "step_template_ref": "building-step-template:work",
+      "completion_edge_ref": "edge:p5-b4-fresh-machine-prep-0630-work-to-evidence-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Thin status/docs update only. Using the incoming inspection, update P7/P5 status/planning docs so they no longer carry the empty-HOME intake_evidence_projection_case hazard as an active unmeasured blocker if current evidence says it passed. Required meaning: P5 #6 fresh-machine prep has a fresh-HOME profile measurement, but P7 PASS still requires a real origin/main fresh clone -> install -> init/doctor/auth/onboard -> brick build -> evidence/frontier inspection using documented steps only. Do not claim P5/P7/P8 complete. Do not change code, checkers, install script, runtime, provider auth, route policy, Movement literals, or release export behavior.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "project/brick-protocol/status/kernel/customer-ready-goal-anchor-v01.md",
+          "project/brick-protocol/status/kernel/customer-ready-goal-phases-0629.md",
+          "project/brick-protocol/status/kernel/customer-ready-p7-p8-pass-criteria-0629.md",
+          "project/brick-protocol/status/kernel/customer-ready-p5-first-run-official-route-plan-0628.md",
+          "README.md",
+          "support/docs/references/quickstart.md",
+          "support/docs/references/setup.md",
+          "support/docs/references/launch-guide.md"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "agent/**",
+          "brick/**",
+          "link/**",
+          "support/operator/**",
+          "support/checkers/**",
+          "support/onboarding/**",
+          "project/brick-protocol/buildings/**",
+          "project/brick-protocol/status/inbox/**"
+        ]
+      }
+    },
+    {
+      "node_id": "p5-b4-fresh-machine-prep-0630-evidence-qa",
+      "step_ref": "p5-b4-fresh-machine-prep-0630-evidence-qa",
+      "step_template_ref": "building-step-template:evidence-integrity",
+      "completion_edge_ref": "edge:p5-b4-fresh-machine-prep-0630-evidence-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Evidence-integrity QA. Inspect the changed docs/status diff and the measurement claim. Verify the update distinguishes empty-HOME profile evidence from actual P7 fresh-clone proof. Check that no wording turns checker green into P7 PASS, source truth, success/quality judgment, or Movement authority. Run git diff --check and focused text searches if possible. Do not source-mutate.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p5-b4-fresh-machine-prep-0630-axis-inspect",
+      "step_ref": "p5-b4-fresh-machine-prep-0630-axis-inspect",
+      "step_template_ref": "building-step-template:inspect",
+      "completion_edge_ref": "edge:p5-b4-fresh-machine-prep-0630-axis-inspect-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Read-only axis inspection. Verify Brick/Agent/Link boundaries in the fresh-machine prep wording: support/checkers/install docs remain support evidence only; Link Movement remains forward/reroute; P7 PASS remains human/COO disposition after actual evidence; release pruning/final architecture remain open. Do not mutate files.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p5-b4-fresh-machine-prep-0630-closure",
+      "step_ref": "p5-b4-fresh-machine-prep-0630-closure",
+      "step_template_ref": "building-step-template:closure",
+      "completion_edge_ref": "edge:p5-b4-fresh-machine-prep-0630-closure-to-boundary",
+      "node_reroute_budget": 1,
+      "work_statement": "Closure synthesis for P5-B4. Fan in work, evidence-integrity QA, and axis inspection. Return observed_evidence, narrowly_proven, not_proven, remaining_delta, next_target_candidates. Likely next target: actual P7 fresh-clone measurement Building. If no real transition concern exists, return transition_concern_evidence null.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:p5-b4-fresh-machine-prep-0630-fresh-inspect-to-work",
+      "source": "p5-b4-fresh-machine-prep-0630-fresh-inspect",
+      "target": "p5-b4-fresh-machine-prep-0630-work",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p5-b4-fresh-machine-prep-0630-work-to-evidence-qa",
+      "source": "p5-b4-fresh-machine-prep-0630-work",
+      "target": "p5-b4-fresh-machine-prep-0630-evidence-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p5-b4-fresh-machine-prep-0630-work-to-axis-inspect",
+      "source": "p5-b4-fresh-machine-prep-0630-work",
+      "target": "p5-b4-fresh-machine-prep-0630-axis-inspect",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p5-b4-fresh-machine-prep-0630-evidence-qa-to-closure",
+      "source": "p5-b4-fresh-machine-prep-0630-evidence-qa",
+      "target": "p5-b4-fresh-machine-prep-0630-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p5-b4-fresh-machine-prep-0630-axis-inspect-to-closure",
+      "source": "p5-b4-fresh-machine-prep-0630-axis-inspect",
+      "target": "p5-b4-fresh-machine-prep-0630-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p5-b4-fresh-machine-prep-0630-closure-to-boundary",
+      "source": "p5-b4-fresh-machine-prep-0630-closure",
+      "target": "building-boundary:p5-b4-fresh-machine-prep-0630-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:p5-b4-fresh-machine-prep-0630-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:p5-b4-fresh-machine-prep-0630-work-to-evidence-qa",
+        "edge:p5-b4-fresh-machine-prep-0630-work-to-axis-inspect"
+      ]
+    },
+    {
+      "group_id": "group:p5-b4-fresh-machine-prep-0630-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:p5-b4-fresh-machine-prep-0630-evidence-qa-to-closure",
+        "edge:p5-b4-fresh-machine-prep-0630-axis-inspect-to-closure"
+      ]
+    }
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "P5 #6 fresh-machine prep only",
+    "not P7 PASS",
+    "not P8 dogfood proof",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "not_proven": [
+    "actual origin/main fresh clone",
+    "install on a separate clean machine",
+    "provider credential validity",
+    "customer comprehension",
+    "P7 PASS",
+    "P8 dogfood proof"
+  ]
+}
