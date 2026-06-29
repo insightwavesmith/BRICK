@@ -37,6 +37,33 @@ work conversation the skill still asks the project question and records the
 human's answer (or the explicit decision to stay in project #1) instead of
 defaulting silently.
 
+## Composition-First Intake Rule
+
+Task intake must not pre-bake every request into a fixed
+`work -> QA -> closure` or "launch -> Agent work -> QA -> closure ->
+disposition" pipeline. That line is one possible graph shape, not the intake
+default.
+
+During intake, extract enough task evidence to let the COO compose:
+
+```text
+LLM(s) = brain
+Brick KIND(s) = hands
+Graph = nervous system
+```
+
+The returned candidates should make the task-specific composition visible:
+which Brick KINDs are needed, which parts can fan out, which verification
+lenses are necessary, where fan-in synthesis belongs, and which LLM / adapter
+casting evidence is relevant. These are candidate observations only; they do
+not choose Link Movement, route targets, success, or quality.
+
+If the task cannot be expressed as an LLM + Brick KIND + Graph composition,
+record that as a missing intake field or skill-chain gap, then hand the shape
+question to `skill:building-sizing-method` / `skill:building-coordination`
+before declaring a Building. Do not hide the gap by falling back to the stale
+fixed pipeline.
+
 ## Inputs
 
 Read only declared refs:
@@ -251,6 +278,10 @@ name missing or ambiguous fields
 ask exactly one core intake question at a time
 state the inferred task fields back to the user before asking the next question
 ask answer-derived follow-up questions for gaps
+extract candidate LLM / Brick KIND / Graph composition evidence before route
+  family or startup candidates
+mark the shape as a missing field or skill-chain gap when the task cannot yet
+  be expressed as LLM(s) + Brick KIND(s) + Graph
 draft a non-binding first_line_contract_candidate
 draft a non-binding deep_intake_question_tree
 name extraction_targets for Trigger Event, User Context, Desired Information,
@@ -354,6 +385,9 @@ declare the active Building Plan
 choose Link Movement
 choose route targets
 choose graph Movement cases as final disposition
+default every task to a fixed work -> QA -> closure pipeline
+hide a missing LLM / Brick KIND / Graph composition by using the stale fixed
+  pipeline
 jump from `task.md` directly to `run_building_plan`
 skip graph movement case analysis when fan-out/fan-in/replay is implied
 turn `slack_payload_candidate` into route, success, quality, or Movement proof
