@@ -1,0 +1,113 @@
+{
+  "task_statement": "CR.v4 P3/P5 customer wording route alignment. Update customer-facing docs so the first-run and launch story names the official Building route as `brick build` with preset_task (`--task`/`--preset`) or graph_packet (`--graph`) input. Do not present run_building_intake, assemble, launch_assembled_building, or goal-approve as separate customer execution routes. Keep helpers described as support/operator or advanced materialization surfaces. Preserve Brick/Agent/Link language and proof-limit honesty. This is documentation/product-surface alignment only; do not create a new route, scheduler, queue, retry runtime, Movement literal, provider-specific law, or source-truth claim.",
+  "declared_by": "coo",
+  "building_id": "cr-v4-p3-customer-wording-route-0629a",
+  "selected_shape_ref": "building-shape:work-with-dual-qa-closure",
+  "selection_rule": "caller_or_coo_declared_only",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "p3-customer-wording-work",
+      "step_ref": "p3-customer-wording-work",
+      "step_template_ref": "building-step-template:work",
+      "completion_edge_ref": "edge:p3-customer-wording-work-to-code-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Update the customer-facing wording in README.md and support/docs/references/{quickstart.md,launch-guide.md,setup.md} so the public first-run route is brick build. Required meaning: official route is one surface, with preset_task via `brick build --task/--preset` and graph_packet via `brick build --graph`; run_building_intake, assemble, launch_assembled_building, and goal-approve are support/operator helpers or advanced/internal paths, not separate customer execution routes. Keep proof limits explicit: docs do not prove provider reliability, customer comprehension, success, quality, source truth, or Movement authority. Preserve Brick/Agent/Link language. Do not edit code or checker files.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "README.md",
+          "support/docs/references/quickstart.md",
+          "support/docs/references/launch-guide.md",
+          "support/docs/references/setup.md"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "support/operator/**",
+          "support/checkers/**",
+          "brick/**",
+          "agent/**",
+          "link/**",
+          "project/brick-protocol/buildings/**",
+          "project/brick-protocol/status/inbox/**"
+        ]
+      }
+    },
+    {
+      "node_id": "p3-customer-wording-code-qa",
+      "step_ref": "p3-customer-wording-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "completion_edge_ref": "edge:p3-customer-wording-code-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Codex documentation/regression QA. Inspect the doc diff and verify the public route wording names `brick build --task/--preset` and `brick build --graph` as official inputs to one route. Verify helper surfaces are not described as separate customer execution routes. Run read/probe checks only, such as `git diff --check` and focused text searches. Do not source-mutate.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p3-customer-wording-axis-qa",
+      "step_ref": "p3-customer-wording-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "completion_edge_ref": "edge:p3-customer-wording-axis-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Gemini-local axis/evidence QA. Inspect the docs and returned work for Brick/Agent/Link separation. Verify docs do not make support, checker, Slack, helper APIs, or model output into source truth, quality/success judgment, Movement authority, or a third route. Do not source-mutate.",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default"
+    },
+    {
+      "node_id": "p3-customer-wording-closure",
+      "step_ref": "p3-customer-wording-closure",
+      "step_template_ref": "building-step-template:closure",
+      "completion_edge_ref": "edge:p3-customer-wording-closure-to-boundary",
+      "node_reroute_budget": 1,
+      "work_statement": "Codex closure. Fan in work, Codex doc QA, and Gemini axis QA. Report narrowly proven doc-route alignment, not_proven limits, and remaining P3/P5 deltas. Do not claim customer-ready, success, quality, source truth, or Movement authority.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    }
+  ],
+  "edges": [
+    {"edge_ref": "edge:p3-customer-wording-work-to-code-qa", "source": "p3-customer-wording-work", "target": "p3-customer-wording-code-qa", "movement": "forward"},
+    {"edge_ref": "edge:p3-customer-wording-work-to-axis-qa", "source": "p3-customer-wording-work", "target": "p3-customer-wording-axis-qa", "movement": "forward"},
+    {"edge_ref": "edge:p3-customer-wording-code-qa-to-closure", "source": "p3-customer-wording-code-qa", "target": "p3-customer-wording-closure", "movement": "forward"},
+    {"edge_ref": "edge:p3-customer-wording-axis-qa-to-closure", "source": "p3-customer-wording-axis-qa", "target": "p3-customer-wording-closure", "movement": "forward"},
+    {"edge_ref": "edge:p3-customer-wording-closure-to-boundary", "source": "p3-customer-wording-closure", "target": "building-boundary:cr-v4-p3-customer-wording-route-0629a-closed", "movement": "forward"}
+  ],
+  "groups": [
+    {
+      "group_id": "group:p3-customer-wording-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:p3-customer-wording-work-to-code-qa",
+        "edge:p3-customer-wording-work-to-axis-qa"
+      ]
+    },
+    {
+      "group_id": "group:p3-customer-wording-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:p3-customer-wording-code-qa-to-closure",
+        "edge:p3-customer-wording-axis-qa-to-closure"
+      ]
+    }
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "documentation/product-surface wording slice only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "not_proven": [
+    "fresh customer comprehension",
+    "provider reliability",
+    "fresh-machine install behavior",
+    "semantic quality of future graph choices",
+    "P7/P8 dogfood proof"
+  ]
+}

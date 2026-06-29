@@ -1,0 +1,1 @@
+../customer-ready-brick-live-empirical-investigation-2026-06-26.md

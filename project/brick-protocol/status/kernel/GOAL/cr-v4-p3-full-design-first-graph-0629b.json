@@ -1,0 +1,247 @@
+{
+  "task_statement": "CR.v4 P3 full design-first official graph proof, timeout-expanded rerun after 0629a reached Gemini-local design-axis QA but hit local_cli_timeout while running checker probes. Prove the Easy Building product shape through the official brick build --graph route: design, design-axis QA, plan-confirm closure, two parallel work lanes, lane QA, integration fan-in, final Codex QA plus Gemini axis QA, and final closure. This is a proof fixture for route shape and evidence recording only: do not claim customer-ready, do not judge quality/success/source truth, and do not manually author Brick template return fields. Work lanes should prefer no source mutation and return no_changes_reason if no mutation is needed.",
+  "declared_by": "coo",
+  "building_id": "cr-v4-p3-full-design-first-graph-0629b",
+  "selected_shape_ref": "building-shape:design-needed",
+  "selection_rule": "caller_or_coo_declared_only",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "transition_concern_adoption": "advisory",
+  "nodes": [
+    {
+      "node_id": "p3-full-design",
+      "step_ref": "p3-full-design",
+      "step_template_ref": "building-step-template:design",
+      "completion_edge_ref": "edge:p3-full-design-to-design-axis",
+      "node_reroute_budget": 1,
+      "work_statement": "Design the bounded P3 full-graph proof. Produce a decomposition for two work lanes and name the invariants that later QA must inspect. Design only; do not edit files.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p3-full-design-axis",
+      "step_ref": "p3-full-design-axis",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "completion_edge_ref": "edge:p3-full-design-axis-to-plan-confirm",
+      "node_reroute_budget": 1,
+      "work_statement": "Design-axis QA. Inspect whether the design preserves Brick/Agent/Link: Brick owns graph/work contract, Agent owns returned facts, Link owns Movement/carry/fan-in/reroute. Return observations only; do not source-mutate.",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "project/brick-protocol/status/kernel/GOAL/**"
+        ],
+        "forbidden_paths": [
+          ".git/**"
+        ]
+      }
+    },
+    {
+      "node_id": "p3-full-plan-confirm",
+      "step_ref": "p3-full-plan-confirm",
+      "step_template_ref": "building-step-template:closure",
+      "completion_edge_ref": "edge:p3-full-plan-confirm-to-work-a",
+      "node_reroute_budget": 1,
+      "work_statement": "Plan-confirm closure. Synthesize design plus design-axis QA into a bounded execution plan. This is a closure-synthesis Brick, not quality approval and not Movement authority.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p3-full-work-a",
+      "step_ref": "p3-full-work-a",
+      "step_template_ref": "building-step-template:work",
+      "completion_edge_ref": "edge:p3-full-work-a-to-qa-a",
+      "node_reroute_budget": 1,
+      "work_statement": "Work lane A. Inspect the current P3 plan/evidence and record whether route-seal focused evidence is present. Prefer no source mutation; if no mutation is needed, return no_changes_reason.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "project/brick-protocol/status/kernel/customer-ready-p3-easy-building-official-route-plan-0628.md"
+        ],
+        "forbidden_paths": [
+          ".git/**"
+        ]
+      }
+    },
+    {
+      "node_id": "p3-full-work-b",
+      "step_ref": "p3-full-work-b",
+      "step_template_ref": "building-step-template:work",
+      "completion_edge_ref": "edge:p3-full-work-b-to-qa-b",
+      "node_reroute_budget": 1,
+      "work_statement": "Work lane B. Inspect the current P3 plan/evidence and record whether full large/risky proof limits remain explicit. Prefer no source mutation; if no mutation is needed, return no_changes_reason.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "project/brick-protocol/status/kernel/customer-ready-p3-easy-building-official-route-plan-0628.md"
+        ],
+        "forbidden_paths": [
+          ".git/**"
+        ]
+      }
+    },
+    {
+      "node_id": "p3-full-qa-a",
+      "step_ref": "p3-full-qa-a",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "completion_edge_ref": "edge:p3-full-qa-a-to-integration",
+      "node_reroute_budget": 1,
+      "work_statement": "Lane A code/regression QA. Inspect lane A returned evidence and run only safe read/probe verification. Do not source-mutate.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "project/brick-protocol/status/kernel/GOAL/**"
+        ],
+        "forbidden_paths": [
+          ".git/**"
+        ]
+      }
+    },
+    {
+      "node_id": "p3-full-qa-b",
+      "step_ref": "p3-full-qa-b",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "completion_edge_ref": "edge:p3-full-qa-b-to-integration",
+      "node_reroute_budget": 1,
+      "work_statement": "Lane B axis QA. Inspect lane B returned evidence against Brick/Agent/Link ownership. Do not source-mutate.",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "project/brick-protocol/status/kernel/GOAL/**"
+        ],
+        "forbidden_paths": [
+          ".git/**"
+        ]
+      }
+    },
+    {
+      "node_id": "p3-full-integration",
+      "step_ref": "p3-full-integration",
+      "step_template_ref": "building-step-template:closure",
+      "completion_edge_ref": "edge:p3-full-integration-to-final-code-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Fan-in integration closure. Synthesize both work lanes and their QA into a single observed evidence packet. Do not claim success or quality.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p3-full-final-code-qa",
+      "step_ref": "p3-full-final-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "completion_edge_ref": "edge:p3-full-final-code-qa-to-final-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Final Codex code/regression QA. Inspect the full graph evidence and verify no manual return shape injection or source mutation by QA. Do not source-mutate.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "project/brick-protocol/status/kernel/GOAL/**"
+        ],
+        "forbidden_paths": [
+          ".git/**"
+        ]
+      }
+    },
+    {
+      "node_id": "p3-full-final-axis-qa",
+      "step_ref": "p3-full-final-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "completion_edge_ref": "edge:p3-full-final-axis-qa-to-final-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Final Gemini-local axis/evidence QA. Inspect the full graph evidence for Brick/Agent/Link boundary separation and proof-limit honesty. Do not source-mutate.",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "project/brick-protocol/status/kernel/GOAL/**"
+        ],
+        "forbidden_paths": [
+          ".git/**"
+        ]
+      }
+    },
+    {
+      "node_id": "p3-full-final-closure",
+      "step_ref": "p3-full-final-closure",
+      "step_template_ref": "building-step-template:closure",
+      "completion_edge_ref": "edge:p3-full-final-closure-to-boundary",
+      "node_reroute_budget": 1,
+      "work_statement": "Final closure. Report narrowly proven route-shape evidence, not_proven limits, and remaining delta. Do not claim customer-ready, success, quality, source truth, or Movement authority.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    }
+  ],
+  "edges": [
+    {"edge_ref": "edge:p3-full-design-to-design-axis", "source": "p3-full-design", "target": "p3-full-design-axis", "movement": "forward"},
+    {"edge_ref": "edge:p3-full-design-axis-to-plan-confirm", "source": "p3-full-design-axis", "target": "p3-full-plan-confirm", "movement": "forward"},
+    {"edge_ref": "edge:p3-full-plan-confirm-to-work-a", "source": "p3-full-plan-confirm", "target": "p3-full-work-a", "movement": "forward"},
+    {"edge_ref": "edge:p3-full-plan-confirm-to-work-b", "source": "p3-full-plan-confirm", "target": "p3-full-work-b", "movement": "forward"},
+    {"edge_ref": "edge:p3-full-work-a-to-qa-a", "source": "p3-full-work-a", "target": "p3-full-qa-a", "movement": "forward"},
+    {"edge_ref": "edge:p3-full-work-b-to-qa-b", "source": "p3-full-work-b", "target": "p3-full-qa-b", "movement": "forward"},
+    {"edge_ref": "edge:p3-full-qa-a-to-integration", "source": "p3-full-qa-a", "target": "p3-full-integration", "movement": "forward"},
+    {"edge_ref": "edge:p3-full-qa-b-to-integration", "source": "p3-full-qa-b", "target": "p3-full-integration", "movement": "forward"},
+    {"edge_ref": "edge:p3-full-integration-to-final-code-qa", "source": "p3-full-integration", "target": "p3-full-final-code-qa", "movement": "forward"},
+    {"edge_ref": "edge:p3-full-integration-to-final-axis-qa", "source": "p3-full-integration", "target": "p3-full-final-axis-qa", "movement": "forward"},
+    {"edge_ref": "edge:p3-full-final-code-qa-to-final-closure", "source": "p3-full-final-code-qa", "target": "p3-full-final-closure", "movement": "forward"},
+    {"edge_ref": "edge:p3-full-final-axis-qa-to-final-closure", "source": "p3-full-final-axis-qa", "target": "p3-full-final-closure", "movement": "forward"},
+    {"edge_ref": "edge:p3-full-final-closure-to-boundary", "source": "p3-full-final-closure", "target": "building-boundary:cr-v4-p3-full-design-first-graph-0629b-closed", "movement": "forward"}
+  ],
+  "groups": [
+    {
+      "group_id": "group:p3-full-dev-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:p3-full-plan-confirm-to-work-a",
+        "edge:p3-full-plan-confirm-to-work-b"
+      ]
+    },
+    {
+      "group_id": "group:p3-full-lane-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:p3-full-qa-a-to-integration",
+        "edge:p3-full-qa-b-to-integration"
+      ]
+    },
+    {
+      "group_id": "group:p3-full-final-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:p3-full-integration-to-final-code-qa",
+        "edge:p3-full-integration-to-final-axis-qa"
+      ]
+    },
+    {
+      "group_id": "group:p3-full-final-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:p3-full-final-code-qa-to-final-closure",
+        "edge:p3-full-final-axis-qa-to-final-closure"
+      ]
+    }
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "live provider reliability not proven by one run"
+  ]
+}

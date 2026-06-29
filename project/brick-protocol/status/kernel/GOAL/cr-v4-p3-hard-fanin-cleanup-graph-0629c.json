@@ -1,0 +1,159 @@
+{
+  "task_statement": "CR.v4 P3 hard fan-in cleanup after 3-axis subagent review. Preserve the existing correct direction: hard fan-in source QA/Inspector/evidence concerns are local Agent evidence before closure-synthesis, Link Movement remains forward, closure-synthesis is the Link-facing concern source. Close the remaining HOLDS-WITH-FIXES gaps: fail-close invalid transition_concern_adoption literals on graph/compose/driver ingress; validate advisory/local transition_concern_evidence structurally without adopting/rerouting it; align stale Link-facing wording in graph validator and return templates; broaden checker proof beyond only fan-code-qa where appropriate; preserve closure-origin concern adoption. Do not add a new engine, scheduler, queue, retry runtime, Movement literal, target selector, --large route, or manual required_return_shape/carry injection. QA may inspect/probe only and must not source-mutate.",
+  "declared_by": "coo",
+  "building_id": "cr-v4-p3-hard-fanin-cleanup-0629c",
+  "selected_shape_ref": "building-shape:fast-fix",
+  "selection_rule": "caller_or_coo_declared_only",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "p3-hard-fanin-cleanup-work",
+      "step_ref": "p3-hard-fanin-cleanup-work",
+      "step_template_ref": "building-step-template:work",
+      "completion_edge_ref": "edge:p3-hard-fanin-cleanup-work-to-code-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Implement only the P3 hard fan-in cleanup. Inspect current live dirty state and preserve existing changes. Required repairs: (1) invalid transition_concern_adoption values must fail closed on compose/graph/driver ingress instead of silently becoming binding; use Link-owned ADOPTION_LITERALS. (2) advisory/local transition_concern_evidence must still be structurally validated as Agent evidence, but must not be adopted/rerouted/HOLDed before closure solely because it is a valid source-lane concern. Malformed local concern should be visible as invalid Agent returned evidence. (3) stale wording in composition_graph_validate.py and return.yaml next_link_input_sections must not call source-lane concern Link-facing before closure. (4) broaden focused checker/profile proof so source-local concern behavior is not proven only for fan-code-qa if the invariant names QA/Inspector/evidence lanes; if evidence-integrity/inspect should not carry transition_concern_evidence, narrow the invariant wording and checker honestly instead of pretending. (5) preserve closure-origin concern adoption/full-replay behavior. Keep Brick templates owning required_return_shape and carries_forward_fields; do not shrink return shapes to observed_evidence/not_proven. Run focused checks if possible.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/composition_compose.py",
+          "support/operator/composition_graph_validate.py",
+          "support/operator/driver.py",
+          "support/operator/cli.py",
+          "support/operator/plan_graph.py",
+          "support/operator/walker_kernel.py",
+          "support/operator/walker_transition_concern.py",
+          "support/checkers/lib/case_runners.py",
+          "support/checkers/lib/kernel_checks.py",
+          "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml",
+          "support/checkers/profiles/bounded_agent_proposed_routing_loop.yaml",
+          "brick/templates/bricks/code-attack-qa/brick.md",
+          "brick/templates/bricks/code-attack-qa/return.yaml",
+          "brick/templates/bricks/axis-attack-qa/brick.md",
+          "brick/templates/bricks/axis-attack-qa/return.yaml",
+          "brick/templates/bricks/evidence-integrity/brick.md",
+          "brick/templates/bricks/evidence-integrity/return.yaml",
+          "brick/templates/bricks/inspect/brick.md",
+          "brick/templates/bricks/inspect/return.yaml",
+          "project/brick-protocol/status/kernel/customer-ready-p3-easy-building-official-route-plan-0628.md"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "link/**",
+          "agent/objects/**",
+          "support/operator/run.py",
+          "support/operator/dynamic_walker.py",
+          "project/brick-protocol/buildings/**",
+          "project/brick-protocol/status/inbox/**"
+        ]
+      }
+    },
+    {
+      "node_id": "p3-hard-fanin-cleanup-code-qa",
+      "step_ref": "p3-hard-fanin-cleanup-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "completion_edge_ref": "edge:p3-hard-fanin-cleanup-code-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Codex code/regression QA. Inspect the diff and run focused checks. Attack: invalid transition_concern_adoption literals fail closed; advisory valid local concerns are validated but not pre-closure adopted; malformed local concern is not silently ignored; closure-origin concern adoption/full replay still works; no --large/helper route or manual return-shape/carry injection was introduced; QA did not source-mutate. Do not source-mutate.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p3-hard-fanin-cleanup-axis-qa",
+      "step_ref": "p3-hard-fanin-cleanup-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "completion_edge_ref": "edge:p3-hard-fanin-cleanup-axis-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Gemini-local axis/evidence QA. Attack Brick/Agent/Link boundaries. Brick: templates own work contract/return shape/carry. Agent: returned facts remain closed and local concern evidence is not suppressed. Link: advisory/binding are Link-owned policy literals and Movement remains forward/reroute only; support does not choose target or Movement. Do not source-mutate; if provider/tool limits block inspection, return exact not_proven.",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default"
+    },
+    {
+      "node_id": "p3-hard-fanin-cleanup-closure",
+      "step_ref": "p3-hard-fanin-cleanup-closure",
+      "step_template_ref": "building-step-template:closure",
+      "completion_edge_ref": "edge:p3-hard-fanin-cleanup-closure-to-boundary",
+      "node_reroute_budget": 1,
+      "closure_transition_target_policy": {
+        "implementation_gap": {
+          "action": "target",
+          "target_ref": "p3-hard-fanin-cleanup-work"
+        },
+        "boundary_mismatch": {
+          "action": "target",
+          "target_ref": "p3-hard-fanin-cleanup-work"
+        },
+        "verification_gap": {
+          "action": "hold"
+        }
+      },
+      "work_statement": "Codex closure. Fan in work, Codex QA, and Gemini axis QA. Report FORWARD/HOLD/REROUTE/NOT_PROVEN as support evidence only. HOLD if invalid adoption literals still silently bind, advisory local concerns bypass validation entirely, source-lane concerns still become Link-facing before closure, closure-origin adoption is broken, QA source-mutated, or checker evidence is missing. Do not claim success, quality, source truth, or Movement authority.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:p3-hard-fanin-cleanup-work-to-code-qa",
+      "source": "p3-hard-fanin-cleanup-work",
+      "target": "p3-hard-fanin-cleanup-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p3-hard-fanin-cleanup-work-to-axis-qa",
+      "source": "p3-hard-fanin-cleanup-work",
+      "target": "p3-hard-fanin-cleanup-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p3-hard-fanin-cleanup-code-qa-to-closure",
+      "source": "p3-hard-fanin-cleanup-code-qa",
+      "target": "p3-hard-fanin-cleanup-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p3-hard-fanin-cleanup-axis-qa-to-closure",
+      "source": "p3-hard-fanin-cleanup-axis-qa",
+      "target": "p3-hard-fanin-cleanup-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p3-hard-fanin-cleanup-closure-to-boundary",
+      "source": "p3-hard-fanin-cleanup-closure",
+      "target": "building-boundary:cr-v4-p3-hard-fanin-cleanup-0629c-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:p3-hard-fanin-cleanup-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:p3-hard-fanin-cleanup-work-to-code-qa",
+        "edge:p3-hard-fanin-cleanup-work-to-axis-qa"
+      ]
+    },
+    {
+      "group_id": "group:p3-hard-fanin-cleanup-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:p3-hard-fanin-cleanup-code-qa-to-closure",
+        "edge:p3-hard-fanin-cleanup-axis-qa-to-closure"
+      ]
+    }
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority",
+    "does not prove full customer-ready goal"
+  ]
+}

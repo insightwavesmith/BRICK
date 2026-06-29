@@ -1,0 +1,1 @@
+../customer-ready-goal-plan-2track-0626.md

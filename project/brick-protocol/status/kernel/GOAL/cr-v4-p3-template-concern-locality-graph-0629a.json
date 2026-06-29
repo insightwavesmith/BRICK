@@ -1,0 +1,158 @@
+{
+  "task_statement": "CR.v4 P3 hard fan-in template locality repair. Current 0629 evidence shows the old runtime blocker is repaired: fan-in source QA transition_concern_evidence stays advisory/local and raw Link movement remains forward through closure. Remaining Brick-axis delta: QA Brick prose and checker/profile wording must align with return.yaml and runtime meaning. Do not change engine semantics unless a focused checker proves a contradiction. Keep full Brick template required_return_shape; do not remove transition_concern_evidence from code-attack-qa or axis-attack-qa return.yaml. Clarify that QA/Inspector source-lane transition_concern_evidence is non-binding local Agent evidence and is not Link-facing before closure-synthesis; carries_forward_fields stays the carry filter; closure-synthesis remains the Link-facing concern source. Add or adjust focused checker/profile coverage only if needed to prove manual graph_packet and brick-protocol-engine-feature-hard materialization preserve this meaning. Preserve official route: no --large, no helper route, no manual required_return_shape/carry injection. QA may inspect/probe only and must not source-mutate. Closure reports FORWARD/HOLD/REROUTE/NOT_PROVEN as support evidence only.",
+  "declared_by": "coo",
+  "building_id": "cr-v4-p3-template-concern-locality-0629a",
+  "selected_shape_ref": "building-shape:design-needed",
+  "selection_rule": "caller_or_coo_declared_only",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "p3-template-locality-design",
+      "step_ref": "p3-template-locality-design",
+      "step_template_ref": "building-step-template:design",
+      "completion_edge_ref": "edge:p3-template-locality-design-to-work",
+      "node_reroute_budget": 1,
+      "work_statement": "Design the narrow repair from the 3-axis evidence. Brick: QA Brick prose/return.yaml/checker wording; Agent: QA returned concern facts are local/non-binding; Link: fan-in source concerns are not adopted before closure-synthesis. Produce exact file plan. Do not edit code in this design step.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p3-template-locality-work",
+      "step_ref": "p3-template-locality-work",
+      "step_template_ref": "building-step-template:work",
+      "completion_edge_ref": "edge:p3-template-locality-work-to-code-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Implement the narrow P3 hard fan-in template locality repair. Primary targets: brick/templates/bricks/code-attack-qa/brick.md and brick/templates/bricks/axis-attack-qa/brick.md. Align prose with return.yaml: transition_concern_evidence remains in required_return_shape but is local/non-binding Agent evidence for fan-in source QA lanes; it is not Link-facing before closure-synthesis; carries_forward_fields filters it out; closure/closure-synthesis may be Link-facing under declared policy. If checker/profile wording is contradictory, update the minimal checker/profile text or assertion under support/checkers/lib/case_runners.py and support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml. Do not remove return.yaml fields, do not change Link Movement vocabulary, do not add --large, do not create new route/runtime/gate/scheduler. Run focused checks where possible.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "brick/templates/bricks/code-attack-qa/brick.md",
+          "brick/templates/bricks/axis-attack-qa/brick.md",
+          "support/checkers/lib/case_runners.py",
+          "support/checkers/profiles/building_skill_preset_agent_tool_hardening.yaml",
+          "project/brick-protocol/status/kernel/customer-ready-p3-easy-building-official-route-plan-0628.md"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "agent/objects/**",
+          "agent/**/*.yaml",
+          "link/**",
+          "support/operator/run.py",
+          "support/operator/dynamic_walker.py",
+          "support/operator/walker_kernel.py",
+          "project/brick-protocol/buildings/**",
+          "project/brick-protocol/status/inbox/**"
+        ]
+      }
+    },
+    {
+      "node_id": "p3-template-locality-code-qa",
+      "step_ref": "p3-template-locality-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "completion_edge_ref": "edge:p3-template-locality-code-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Codex code/regression QA. Inspect the diff and focused checker evidence. Verify return.yaml fields were not removed; QA Brick prose says source-lane transition_concern_evidence is local/non-binding before closure; checker/profile wording matches full template return shape plus carry filtering/advisory adoption; run git diff --check and focused profile/checker where possible. Do not source-mutate.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p3-template-locality-axis-qa",
+      "step_ref": "p3-template-locality-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "completion_edge_ref": "edge:p3-template-locality-axis-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Gemini-local axis/evidence QA. Attack Brick/Agent/Link boundaries. Check that Brick templates own return shape, Agent returns local/non-binding facts, and Link alone owns Movement/adoption. Verify support/checker wording does not make support or QA a Movement authority. Do not source-mutate; return exact not_proven if provider inspection is limited.",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default"
+    },
+    {
+      "node_id": "p3-template-locality-closure",
+      "step_ref": "p3-template-locality-closure",
+      "step_template_ref": "building-step-template:closure",
+      "completion_edge_ref": "edge:p3-template-locality-closure-to-boundary",
+      "node_reroute_budget": 1,
+      "closure_transition_target_policy": {
+        "design_gap": {
+          "action": "target",
+          "target_ref": "p3-template-locality-design"
+        },
+        "implementation_gap": {
+          "action": "target",
+          "target_ref": "p3-template-locality-work"
+        },
+        "boundary_mismatch": {
+          "action": "target",
+          "target_ref": "p3-template-locality-work"
+        },
+        "verification_gap": {
+          "action": "hold"
+        }
+      },
+      "work_statement": "Codex closure. Fan in design, work, Codex QA, and Gemini axis QA. Report FORWARD/HOLD/REROUTE/NOT_PROVEN as support evidence only. HOLD if QA source-mutated, if return.yaml fields were removed, if checker/profile evidence is missing, or if the wording still implies QA source-lane concerns are Link-facing before closure-synthesis. Do not claim success, quality, source truth, or Movement authority.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:p3-template-locality-design-to-work",
+      "source": "p3-template-locality-design",
+      "target": "p3-template-locality-work",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p3-template-locality-work-to-code-qa",
+      "source": "p3-template-locality-work",
+      "target": "p3-template-locality-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p3-template-locality-work-to-axis-qa",
+      "source": "p3-template-locality-work",
+      "target": "p3-template-locality-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p3-template-locality-code-qa-to-closure",
+      "source": "p3-template-locality-code-qa",
+      "target": "p3-template-locality-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p3-template-locality-axis-qa-to-closure",
+      "source": "p3-template-locality-axis-qa",
+      "target": "p3-template-locality-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p3-template-locality-closure-to-boundary",
+      "source": "p3-template-locality-closure",
+      "target": "building-boundary:cr-v4-p3-template-concern-locality-0629a-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:p3-template-locality-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:p3-template-locality-work-to-code-qa",
+        "edge:p3-template-locality-work-to-axis-qa"
+      ]
+    },
+    {
+      "group_id": "group:p3-template-locality-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:p3-template-locality-code-qa-to-closure",
+        "edge:p3-template-locality-axis-qa-to-closure"
+      ]
+    }
+  ]
+}
