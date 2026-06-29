@@ -1126,7 +1126,7 @@ def _agent_effective_write_probe(
         adapter_ref=adapter_constants.ADAPTER_GEMINI_LOCAL,
         brick_instance_ref="brick-review",
         next_brick_instance_ref="brick-closure",
-        tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
+        tool_policy_refs=(adapter_constants.PROBE_WRITE_TOOL_POLICY_REF,),
         hook_refs=("hook:reviewer-no-mutation",),
         write_scope=gemini_probe_write_scope,
         agent_instruction_packet=inspector_packet,
@@ -1427,6 +1427,7 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
     inspector_packet = _agent_instruction_packet_for_role(repo, "inspector")
     expected_known_policies = {
         adapter_constants.LEADER_COORDINATION_TOOL_POLICY_REF,
+        adapter_constants.PROBE_WRITE_TOOL_POLICY_REF,
         adapter_constants.READ_WRITE_TOOL_POLICY_REF,
         adapter_constants.REVIEWER_READONLY_TOOL_POLICY_REF,
         adapter_constants.WEB_CAPABLE_TOOL_POLICY_REF,
@@ -1456,7 +1457,7 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
                 }
             ],
             tool_policy_refs=[ref],
-            write_need=(ref == adapter_constants.READ_WRITE_TOOL_POLICY_REF),
+            write_need=(ref in adapter_constants.WRITE_TIER_TOOL_POLICY_REFS),
         )
     if not expected_known_policies.issubset(discovered_policy_refs):
         raise ProfileError(
@@ -1486,6 +1487,25 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
             "tool-policy:web-capable must be attached only to pm-lead/design-lead, "
             f"observed {sorted(web_roles)!r}"
         )
+    for role in ("qa", "inspector", "qa-lead"):
+        packet = _agent_instruction_packet_for_role(repo, role)
+        semantic_capability = packet.get("semantic_capability")
+        if not isinstance(semantic_capability, Mapping):
+            raise ProfileError(f"{role} instruction packet missing semantic_capability")
+        declared_classes = semantic_capability.get("declared_policy_semantic_capability_classes")
+        max_classes = semantic_capability.get("max_semantic_capability_classes")
+        if "source_write" in (declared_classes or ()) or "artifact_write" in (
+            declared_classes or ()
+        ):
+            raise ProfileError(
+                f"{role} reviewer-intent policy structurally admits source/artifact write: "
+                f"{declared_classes!r}"
+            )
+        if "source_write" in (max_classes or ()) or "artifact_write" in (max_classes or ()):
+            raise ProfileError(
+                f"{role} reviewer-intent effective semantic capability leaked source/artifact write: "
+                f"{max_classes!r}"
+            )
     dev_resolution = resources.resolve_native_grant(
         dev_packet["tool_policy_resources"],
         tool_policy_refs=[
@@ -1614,7 +1634,7 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
         adapter_ref=adapter_constants.ADAPTER_CODEX_LOCAL,
         brick_instance_ref="brick-readonly-worker",
         next_brick_instance_ref="brick-closure",
-        tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
+        tool_policy_refs=(adapter_constants.PROBE_WRITE_TOOL_POLICY_REF,),
         agent_instruction_packet=dev_packet,
     )
     if adapter.agent_request_effective_write(dev_nonwrite_request):
@@ -1653,7 +1673,7 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
         brick_instance_ref="brick-code-attack-qa",
         next_brick_instance_ref="brick-closure",
         hook_refs=("hook:reviewer-no-mutation",),
-        tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
+        tool_policy_refs=(adapter_constants.PROBE_WRITE_TOOL_POLICY_REF,),
         required_return_shape="observed_evidence, evidence_used, not_proven",
         agent_instruction_packet=qa_packet,
         write_scope=reviewer_no_mutation_write_scope,
@@ -1692,7 +1712,7 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
         brick_instance_ref="brick-code-attack-qa",
         next_brick_instance_ref="brick-closure",
         hook_refs=("hook:reviewer-no-mutation",),
-        tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
+        tool_policy_refs=(adapter_constants.PROBE_WRITE_TOOL_POLICY_REF,),
         agent_instruction_packet=qa_packet,
         write_scope=reviewer_no_mutation_write_scope,
     )
@@ -1719,7 +1739,7 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
         brick_instance_ref="brick-axis-attack-qa",
         next_brick_instance_ref="brick-closure",
         hook_refs=("hook:reviewer-no-mutation",),
-        tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
+        tool_policy_refs=(adapter_constants.PROBE_WRITE_TOOL_POLICY_REF,),
         agent_instruction_packet=inspector_packet,
         write_scope=reviewer_no_mutation_write_scope,
     )
@@ -1774,7 +1794,7 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
         adapter_ref=adapter_constants.ADAPTER_GEMINI_LOCAL,
         brick_instance_ref="brick-inspect",
         next_brick_instance_ref="brick-closure",
-        tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
+        tool_policy_refs=(adapter_constants.PROBE_WRITE_TOOL_POLICY_REF,),
         agent_instruction_packet=inspector_packet,
     )
     if not adapter.agent_request_read_tier(gemini_inspect_request):
@@ -1790,8 +1810,8 @@ def _agent_read_tier_probe(repo: Path, adapter: Any) -> int:
         raise ProfileError("gemini-local read-write-scoped prompt still rendered no-tools rule")
     if expected_read_rule not in gemini_inspect_rules:
         raise ProfileError("gemini-local read-write-scoped prompt did not expose repository inspection rule")
-    if not any(adapter_constants.READ_WRITE_TOOL_POLICY_REF in rule for rule in gemini_inspect_rules):
-        raise ProfileError("gemini-local read-write-scoped prompt omitted its admitted policy ref")
+    if not any(adapter_constants.PROBE_WRITE_TOOL_POLICY_REF in rule for rule in gemini_inspect_rules):
+        raise ProfileError("gemini-local probe-write-scoped prompt omitted its admitted policy ref")
     if not any("Gemini local native grant may use only read_file" in rule for rule in gemini_inspect_rules):
         raise ProfileError("gemini-local read-write-scoped prompt did not pin read-only tool allow-list")
 
@@ -3951,7 +3971,7 @@ def run_gemini_local_only_adapter(repo: Path) -> KernelResult:
         adapter_ref=gemini_local,
         brick_instance_ref="brick-review",
         next_brick_instance_ref="brick-closure",
-        tool_policy_refs=(adapter_constants.READ_WRITE_TOOL_POLICY_REF,),
+        tool_policy_refs=(adapter_constants.PROBE_WRITE_TOOL_POLICY_REF,),
         work_statement="Return support evidence only.",
     )
     saved_env = {name: os.environ.get(name) for name in adapter._GEMINI_API_KEY_ENV_VARS}

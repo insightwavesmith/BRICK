@@ -35,18 +35,20 @@ from brick_protocol.support.connection.agent_resources import (
     list_agent_object_refs,
     resolve_agent_object,
     _TOOL_POLICY_READ_WRITE_SCOPED,
+    _TOOL_POLICY_PROBE_WRITE_SCOPED,
 )
 
 
-# The single writer capability: an Agent Object whose tool_policy_refs carry
-# tool-policy:read-write-scoped is the only one admitted to perform write work.
-# This is now a CAPABILITY any lane may carry (leaders carry it too); it is NOT
-# worker-only. Carrying it never grants EFFECTIVE write by itself -- effective
-# write additionally requires the step's Brick to declare a write_scope NEED
-# (effective_write = write_scope AND read-write-scoped AND observed-write
-# adapter). This rule is OWNED by agent_resources.py; we import the literal from
-# there (single source) instead of restating it.
-WRITER_TOOL_POLICY_REF = _TOOL_POLICY_READ_WRITE_SCOPED
+# The writer capability: an Agent Object whose tool_policy_refs carry a
+# write-capable tool policy is admitted to perform write/probe work.
+# This is now a CAPABILITY any lane may carry (leaders and reviewers carry it too).
+# Carrying it never grants EFFECTIVE write by itself -- effective
+# write additionally requires the step's Brick to declare a write_scope NEED.
+# This rule is OWNED by agent_resources.py.
+WRITER_TOOL_POLICY_REFS = {
+    _TOOL_POLICY_READ_WRITE_SCOPED,
+    _TOOL_POLICY_PROBE_WRITE_SCOPED,
+}
 
 
 SPLIT_SHAPE_CATALOG_PATH = Path("brick/templates/shapes/catalog.yaml")
@@ -804,14 +806,14 @@ def _brick_spec_instruction_body(text: str) -> str:
 
 
 def _agent_is_writer(agent_object: Mapping[str, Any]) -> bool:
-    """True if the Agent Object carries the single writer tool policy.
+    """True if the Agent Object carries any write-capable tool policy.
 
     The capability rule lives in agent_resources.py; here we only read the
-    already-validated tool_policy_refs. write capability is carried by exactly
-    tool-policy:read-write-scoped (admissible for worker or leader lane, enforced
-    by that module; actual effective write still requires a Brick write_scope NEED).
+    already-validated tool_policy_refs. write capability is carried by one of
+    the WRITER_TOOL_POLICY_REFS (admissible for worker, leader, or reviewer lane,
+    enforced by that module; actual effective write still requires a Brick write_scope NEED).
     """
-    return WRITER_TOOL_POLICY_REF in set(agent_object.get("tool_policy_refs", ()))
+    return bool(WRITER_TOOL_POLICY_REFS.intersection(agent_object.get("tool_policy_refs", ())))
 
 
 def _candidate_agents_for_need(repo: Path, role_need: str, write_need: bool) -> list[str]:

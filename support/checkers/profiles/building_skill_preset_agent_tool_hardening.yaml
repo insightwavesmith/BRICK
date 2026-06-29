@@ -16,6 +16,7 @@ path_exists:
   - agent/hooks/registry.yaml
   - agent/hooks/bindings.yaml
   - agent/tool_policies/leader-coordination.yaml
+  - agent/tool_policies/probe-write-scoped.yaml
   - agent/tool_policies/read-write-scoped.yaml
   - agent/tool_policies/reviewer-readonly.yaml
   - brick/templates/shapes/catalog.yaml
@@ -128,7 +129,7 @@ text_contains:
       - retired tool policy ref
       - retired hook ref
       - leader lane must carry tool-policy:leader-coordination
-      - A reviewer MAY carry tool-policy:read-write-scoped
+      - A reviewer MAY carry tool-policy:probe-write-scoped
       - work-area write CAPABILITY
       - semantic_capability_classes are Agent policy class evidence
   - path: brick/spec.py
@@ -166,6 +167,13 @@ text_contains:
       - read-only repository inspection tools only
       - Gemini local native grant may use only read_file, glob, grep_search, search_file_content, list_directory, read_many_files, and when web-capable is present google_web_search/web_fetch; write and shell tools remain blocked.
   - path: agent/tool_policies/read-write-scoped.yaml
+    texts:
+      - semantic_capability_classes
+      - probe_write
+      - verification_write
+      - source_write
+      - artifact_write
+  - path: agent/tool_policies/probe-write-scoped.yaml
     texts:
       - semantic_capability_classes
       - probe_write
@@ -3542,8 +3550,10 @@ agent_resource_boundary:
       - hook:resource-ref-redaction
     required_tool_policy_refs:
       - tool-policy:leader-coordination
+      - tool-policy:probe-write-scoped
     forbidden_tool_policy_refs:
       - tool-policy:leader-readonly
+      - tool-policy:read-write-scoped
     # leader lane MAY carry tool-policy:read-write-scoped; effective write stays
     # gated by a Brick-declared write_scope NEED (see coo entry).
     forbidden_adapter_refs:
@@ -3568,7 +3578,7 @@ agent_resource_boundary:
   # C4 (0615): QA-attack's true nature is to verify by WRITING (run real
   # checkers / FIRE / mutation probes in the building WORK-AREA inside the W1
   # disposable worktree sandbox). The reviewer lane MAY carry
-  # tool-policy:read-write-scoped (write CAPABILITY); effective write stays
+  # tool-policy:probe-write-scoped (probe CAPABILITY); effective write stays
   # gated by a Brick-declared write_scope NEED plus an observed-write adapter,
   # exactly like the leader MAY-carry. hook:reviewer-no-mutation STILL holds
   # (never mutates customer source-truth, never claims Movement). The retired
@@ -3584,7 +3594,7 @@ agent_resource_boundary:
       - hook:unsafe-mutation-guard
       - hook:resource-ref-redaction
     required_tool_policy_refs:
-      - tool-policy:read-write-scoped
+      - tool-policy:probe-write-scoped
     required_adapter_refs:
       - adapter:local
       - adapter:codex-local
@@ -3592,6 +3602,7 @@ agent_resource_boundary:
       - adapter:gemini-local
     forbidden_tool_policy_refs:
       - tool-policy:review-readonly
+      - tool-policy:read-write-scoped
     forbidden_adapter_refs:
       - adapter:codex-write-local
       - adapter:claude-write-local
@@ -3605,9 +3616,10 @@ agent_resource_boundary:
       - hook:unsafe-mutation-guard
       - hook:resource-ref-redaction
     required_tool_policy_refs:
-      - tool-policy:read-write-scoped
+      - tool-policy:probe-write-scoped
     forbidden_tool_policy_refs:
       - tool-policy:review-readonly
+      - tool-policy:read-write-scoped
     forbidden_adapter_refs:
       - adapter:codex-write-local
       - adapter:claude-write-local

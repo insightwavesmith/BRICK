@@ -56,6 +56,7 @@ kernel_checks:
 path_exists:
   - support/checkers/profiles/agent_axis_behavioral.yaml
   - AGENTS.md
+  - agent/tool_policies/probe-write-scoped.yaml
   - agent/tool_policies/read-write-scoped.yaml
   - agent/tool_policies/web-capable.yaml
   - support/connection/agent_adapter.py
@@ -114,6 +115,14 @@ text_contains:
       - runtime_intersection
       - probe_write / verification_write
       - reviewer source_write
+  - path: agent/tool_policies/probe-write-scoped.yaml
+    texts:
+      - tool-policy:probe-write-scoped
+      - semantic_capability_classes
+      - probe_write
+      - verification_write
+      - source_write
+      - artifact_write
   - path: agent/tool_policies/web-capable.yaml
     texts:
       - tool-policy:web-capable

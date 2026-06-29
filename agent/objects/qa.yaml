@@ -19,7 +19,7 @@
     "hook:resource-ref-redaction"
   ],
   "tool_policy_refs": [
-    "tool-policy:read-write-scoped"
+    "tool-policy:probe-write-scoped"
   ],
   "discipline_refs": [
     "discipline:closed-agentfact",

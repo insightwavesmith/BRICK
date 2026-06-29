@@ -1,0 +1,48 @@
+{
+  "tool_policy_ref": "tool-policy:probe-write-scoped",
+  "owner_axis": "Agent",
+  "allowed_use": "read plus probe_write / verification_write through an admitted Brick write_scope and compatible write-capable adapter support; no source_write or artifact_write",
+  "semantic_capability_classes": [
+    "read",
+    "probe_write",
+    "verification_write"
+  ],
+  "mutation_scope": "Brick-declared probe / verification work areas only; never source-truth or artifact mutation",
+  "execution_opened": true,
+  "execution_opening_condition": "Effective write opens only when Brick write_scope, this probe-write scoped Agent policy, compatible adapter mapping/technical capability, and support write observation are all present; not adapter identity alone",
+  "native_grant": {
+    "schema": "native-grant/v1",
+    "capabilities": [
+      "read",
+      "write"
+    ],
+    "write_mode": "runtime_intersection",
+    "proof_limits": [
+      "native grant data only",
+      "write projects only through runtime intersection with Brick write_scope NEED",
+      "not provider runtime",
+      "not source truth",
+      "not success judgment",
+      "not quality judgment",
+      "not Movement authority"
+    ]
+  },
+  "forbidden_use": [
+    "source_write",
+    "artifact_write",
+    "write outside Brick-declared write_scope",
+    "write secret, token, credential, auth, or .git paths",
+    "git commit or git push",
+    "choose Link Movement",
+    "create GateFact",
+    "classify success, failure, quality, or approval"
+  ],
+  "proof_limits": [
+    "Agent-axis tool policy only",
+    "not a provider runtime",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ]
+}

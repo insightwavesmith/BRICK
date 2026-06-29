@@ -44,6 +44,7 @@ from .adapter_constants import (
     ADAPTER_GEMINI_LOCAL,
     ADAPTER_CHAT_SESSION,
     READ_WRITE_TOOL_POLICY_REF,
+    WRITE_TIER_TOOL_POLICY_REFS,
     READ_TIER_TOOL_POLICY_REFS,
     KNOWN_TOOL_POLICY_REFS,
     ADAPTER_CAPABILITY_READ,
@@ -841,7 +842,7 @@ def agent_request_effective_write(request: AgentAdapterRequest) -> bool:
         raise TypeError("request must be AgentAdapterRequest")
     return (
         bool(request.write_scope)
-        and READ_WRITE_TOOL_POLICY_REF in request.tool_policy_refs
+        and bool(set(request.tool_policy_refs).intersection(WRITE_TIER_TOOL_POLICY_REFS))
         and _adapter_ref_supports_observed_write(request.adapter_ref)
     )
 
@@ -1090,8 +1091,9 @@ def _observe_effective_write_request_raw_inputs(
     WriteScope.validate("write_scope", write_scope, _WRITE_SCOPE_CONTEXT)
     return {
         "write_scope_present": bool(write_scope),
-        "tool_policy_has_read_write": READ_WRITE_TOOL_POLICY_REF
-        in request.tool_policy_refs,
+        "tool_policy_has_read_write": bool(
+            set(request.tool_policy_refs).intersection(WRITE_TIER_TOOL_POLICY_REFS)
+        ),
         "agent_object_ref": request.agent_object_ref,
         "adapter_supports_observed_write": _adapter_ref_supports_observed_write(
             request.adapter_ref

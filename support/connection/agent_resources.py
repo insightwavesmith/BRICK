@@ -18,6 +18,7 @@ from .adapter_constants import (
     ADAPTER_CLAUDE_LOCAL as _ADAPTER_CLAUDE_LOCAL,
     ALLOWED_ADAPTER_REFS as _ALLOWED_ADAPTER_REFS,
     MODEL_PROVIDER_BY_ADAPTER as _MODEL_PROVIDER_BY_ADAPTER,
+    WRITE_TIER_TOOL_POLICY_REFS as _WRITE_TIER_TOOL_POLICY_REFS,
     _OBSERVED_WRITE_ADAPTER_REFS,
 )
 from .agent_adapter import (
@@ -58,6 +59,7 @@ _HOOK_LEADER_WRITE_NEED_GATE = "hook:leader-write-need-gate"
 _HOOK_REVIEWER_NO_MUTATION = "hook:reviewer-no-mutation"
 _HOOK_RESOURCE_REF_REDACTION = "hook:resource-ref-redaction"
 _TOOL_POLICY_LEADER_COORDINATION = "tool-policy:leader-coordination"
+_TOOL_POLICY_PROBE_WRITE_SCOPED = "tool-policy:probe-write-scoped"
 _TOOL_POLICY_READ_WRITE_SCOPED = "tool-policy:read-write-scoped"
 _TOOL_POLICY_REVIEWER_READONLY = "tool-policy:reviewer-readonly"
 _TOOL_POLICY_WEB_CAPABLE = "tool-policy:web-capable"
@@ -368,10 +370,10 @@ def _validate_native_grant(
             f"{label}: native_grant.capabilities must use admitted order {ordered!r}"
         )
     if _NATIVE_GRANT_CAPABILITY_WRITE in seen:
-        if policy_ref != _TOOL_POLICY_READ_WRITE_SCOPED:
+        if policy_ref not in _WRITE_TIER_TOOL_POLICY_REFS:
             raise AgentResourceError(
                 f"{label}: native_grant write capability is pinned to "
-                f"{_TOOL_POLICY_READ_WRITE_SCOPED}"
+                + " or ".join(sorted(_WRITE_TIER_TOOL_POLICY_REFS))
             )
         if grant.get("write_mode") != "runtime_intersection":
             raise AgentResourceError(
@@ -571,20 +573,18 @@ def _validate_agent_authority(role: str, agent_object: Mapping[str, Any], path: 
         raise AgentResourceError(f"{path}: Agent Object must carry hook:instruction-chain-read")
     if _HOOK_RESOURCE_REF_REDACTION not in hook_refs:
         raise AgentResourceError(f"{path}: Agent Object must carry hook:resource-ref-redaction")
-    if _TOOL_POLICY_READ_WRITE_SCOPED in tool_policy_refs and lane not in (
+    write_tier_refs = tool_policy_refs.intersection(_WRITE_TIER_TOOL_POLICY_REFS)
+    if write_tier_refs and lane not in (
         "worker",
         "leader",
         "reviewer",
     ):
         raise AgentResourceError(
-            f"{path}: read-write scoped tool policy is admitted only for worker, leader, or reviewer lane"
+            f"{path}: write-tier tool policy is admitted only for worker, leader, or reviewer lane"
         )
-    if (
-        _TOOL_POLICY_READ_WRITE_SCOPED in tool_policy_refs
-        and not adapter_refs.intersection(_OBSERVED_WRITE_ADAPTER_REFS)
-    ):
+    if write_tier_refs and not adapter_refs.intersection(_OBSERVED_WRITE_ADAPTER_REFS):
         raise AgentResourceError(
-            f"{path}: missing_adapter_write_capability: read-write scoped policy "
+            f"{path}: missing_adapter_write_capability: write-tier policy "
             "requires an observed-write adapter ref"
         )
     if lane == "leader":
@@ -597,16 +597,15 @@ def _validate_agent_authority(role: str, agent_object: Mapping[str, Any], path: 
         # WORK-AREA (run real checkers / FIRE / mutation probes -- its true
         # nature) inside the disposable W1 worktree sandbox, but it never mutates
         # customer source-truth and never claims Movement. The hook is the
-        # discipline; read-write-scoped is the work-area write CAPABILITY.
+        # discipline; probe-write-scoped is the work-area write CAPABILITY.
         if _HOOK_REVIEWER_NO_MUTATION not in hook_refs:
             raise AgentResourceError(f"{path}: reviewer lane must carry hook:reviewer-no-mutation")
-        # A reviewer MAY carry tool-policy:read-write-scoped (write-capable
+        # A reviewer MAY carry tool-policy:probe-write-scoped (probe-capable
         # QA-attack); effective write stays gated by a Brick-declared write_scope
-        # NEED plus an observed-write adapter, exactly like the leader MAY-carry.
-        # A reviewer WITHOUT read-write-scoped must still carry the read-only
+        # NEED plus an observed-write adapter. A reviewer WITHOUT probe-write must still carry the read-only
         # reviewer policy (byte-identical to today's reviewer surface).
         if (
-            _TOOL_POLICY_READ_WRITE_SCOPED not in tool_policy_refs
+            _TOOL_POLICY_PROBE_WRITE_SCOPED not in tool_policy_refs
             and _TOOL_POLICY_REVIEWER_READONLY not in tool_policy_refs
         ):
             raise AgentResourceError(f"{path}: reviewer lane must carry tool-policy:reviewer-readonly")
@@ -846,10 +845,10 @@ def resolve_native_grant(
             continue
         grant = policy["native_grant"]
         for capability in grant["capabilities"]:
-            if capability == _NATIVE_GRANT_CAPABILITY_WRITE and ref != _TOOL_POLICY_READ_WRITE_SCOPED:
+            if capability == _NATIVE_GRANT_CAPABILITY_WRITE and ref not in _WRITE_TIER_TOOL_POLICY_REFS:
                 raise AgentResourceError(
                     "native_grant write capability may resolve only from "
-                    f"{_TOOL_POLICY_READ_WRITE_SCOPED}"
+                    + " or ".join(sorted(_WRITE_TIER_TOOL_POLICY_REFS))
                 )
             declared.add(capability)
         for semantic_class in policy["semantic_capability_classes"]:
@@ -861,14 +860,14 @@ def resolve_native_grant(
     effective: list[str] = []
     for capability in declared_ordered:
         if capability == _NATIVE_GRANT_CAPABILITY_WRITE:
-            if bool(write_need) and _TOOL_POLICY_READ_WRITE_SCOPED in selected_refs:
+            if bool(write_need) and selected_refs.intersection(_WRITE_TIER_TOOL_POLICY_REFS):
                 effective.append(capability)
             continue
         effective.append(capability)
     effective_semantic: list[str] = []
     for semantic_class in declared_semantic_ordered:
         if semantic_class in _SEMANTIC_CAPABILITY_WRITE_CLASSES:
-            if bool(write_need) and _TOOL_POLICY_READ_WRITE_SCOPED in selected_refs:
+            if bool(write_need) and selected_refs.intersection(_WRITE_TIER_TOOL_POLICY_REFS):
                 effective_semantic.append(semantic_class)
             continue
         effective_semantic.append(semantic_class)
@@ -885,7 +884,7 @@ def resolve_native_grant(
         "proof_limits": [
             "native_grant resolution uses already-loaded tool-policy data only",
             "semantic_capability_classes are Agent policy class evidence, not provider-native tools",
-            "write requires Brick write_scope NEED plus tool-policy:read-write-scoped",
+            "write requires Brick write_scope NEED plus an admitted write-tier tool policy",
             "not source truth",
             "not success judgment",
             "not quality judgment",

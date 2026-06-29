@@ -6629,6 +6629,17 @@ def _native_grant_policy_resource(policy_ref: str) -> Mapping[str, Any]:
             "source_write",
             "artifact_write",
         ]
+    elif policy_ref == "tool-policy:probe-write-scoped":
+        grant = {
+            "schema": "native-grant/v1",
+            "capabilities": ["read", "write"],
+            "write_mode": "runtime_intersection",
+        }
+        semantic_classes = [
+            "read",
+            "probe_write",
+            "verification_write",
+        ]
     elif policy_ref == "tool-policy:web-capable":
         grant = {
             "schema": "native-grant/v1",

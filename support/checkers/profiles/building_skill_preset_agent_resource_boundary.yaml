@@ -16,6 +16,7 @@ path_exists:
   - agent/hooks/registry.yaml
   - agent/hooks/bindings.yaml
   - agent/tool_policies/leader-coordination.yaml
+  - agent/tool_policies/probe-write-scoped.yaml
   - agent/tool_policies/read-write-scoped.yaml
   - agent/tool_policies/reviewer-readonly.yaml
   - support/connection/agent_resources.py
@@ -35,7 +36,7 @@ text_contains:
       - retired tool policy ref
       - retired hook ref
       - leader lane must carry tool-policy:leader-coordination
-      - A reviewer MAY carry tool-policy:read-write-scoped
+      - A reviewer MAY carry tool-policy:probe-write-scoped
       - work-area write CAPABILITY
       - semantic_capability_classes are Agent policy class evidence
       - def resolve_agent_semantic_capability
@@ -74,6 +75,13 @@ text_contains:
       - `work` / repair Brick
       - hook:reviewer-no-mutation
   - path: agent/tool_policies/read-write-scoped.yaml
+    texts:
+      - semantic_capability_classes
+      - probe_write
+      - verification_write
+      - source_write
+      - artifact_write
+  - path: agent/tool_policies/probe-write-scoped.yaml
     texts:
       - semantic_capability_classes
       - probe_write
@@ -145,7 +153,7 @@ agent_resource_boundary:
       - hook:unsafe-mutation-guard
       - hook:resource-ref-redaction
     required_tool_policy_refs:
-      - tool-policy:read-write-scoped
+      - tool-policy:probe-write-scoped
     required_adapter_refs:
       - adapter:local
       - adapter:codex-local
@@ -153,6 +161,7 @@ agent_resource_boundary:
       - adapter:gemini-local
     forbidden_tool_policy_refs:
       - tool-policy:review-readonly
+      - tool-policy:read-write-scoped
     forbidden_adapter_refs:
       - adapter:codex-write-local
       - adapter:claude-write-local
@@ -166,7 +175,7 @@ agent_resource_boundary:
       - hook:unsafe-mutation-guard
       - hook:resource-ref-redaction
     required_tool_policy_refs:
-      - tool-policy:read-write-scoped
+      - tool-policy:probe-write-scoped
     required_adapter_refs:
       - adapter:local
       - adapter:codex-local
@@ -174,6 +183,7 @@ agent_resource_boundary:
       - adapter:gemini-local
     forbidden_tool_policy_refs:
       - tool-policy:review-readonly
+      - tool-policy:read-write-scoped
     forbidden_adapter_refs:
       - adapter:codex-write-local
       - adapter:claude-write-local
