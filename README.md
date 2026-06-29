@@ -16,7 +16,9 @@ cd ~/BRICK && uv run python3 -m brick_protocol.support.operator.onboard codex
 # 3) 공식 고객 실행 표면은 하나입니다: brick build.
 #    표준 작업은 preset_task 경로(`--task`/`--preset`)로 말하고,
 #    caller/COO가 이미 선언한 그래프는 graph_packet 경로(`--graph`)로 넘깁니다.
-cd ~/BRICK && brick build --task "내 할 일을 한 줄로 적기" --preset building-chain-preset:fast-fix
+cd ~/BRICK && brick build --task "첫 실행을 support evidence only로 기록해 주세요." --preset building-chain-preset:design-contract-only --adapter adapter:local
+#    실제 저장소를 바꾸는 작업은 auth 뒤에 --real-provider 를 붙이거나,
+#    명시적인 observed-write adapter를 고른 다음 실행하세요.
 #    run_building_intake, assemble, launch_assembled_building, goal-approve 는
 #    support/operator helper 또는 고급/내부 경로이지 별도 고객 실행 루트가 아닙니다.
 ```
@@ -32,8 +34,8 @@ command: cd ~/BRICK && uv run python3 -m brick_protocol.support.operator.onboard
 expected: provider 준비 상태 표와 adapter:local 첫 예제 Building 결과가 출력된다.
 failure signal: local_cli_missing, provider login 진단, FileExistsError, 또는 adapter-error frontier 안내.
 
-command: cd ~/BRICK && brick build --task "내 할 일을 한 줄로 적기" --preset building-chain-preset:fast-fix
-expected: build_input_mode=preset_task, building_id, evidence_root, frontier_kind가 출력된다. 작업은 격리 워크트리/증거 루트로 흐른다. graph_packet은 `brick build --graph <packet.json>`로 같은 표면을 통과한다.
+command: cd ~/BRICK && brick build --task "첫 실행을 support evidence only로 기록해 주세요." --preset building-chain-preset:design-contract-only --adapter adapter:local
+expected: build_input_mode=preset_task, building_id, evidence_root, frontier_kind가 출력된다. 이 첫 예제는 provider 없이 local/read-only support evidence 경로를 확인한다. graph_packet은 `brick build --graph <packet.json>`로 같은 표면을 통과한다.
 failure signal: FileExistsError이면 building_id를 새로 정한다; ModuleNotFoundError이면 루트에서 uv run python3 -c 로 호출했는지 확인한다; frontier가 complete가 아니라는 안내.
 
 command: cd ~/BRICK && PYTHONPATH=support/import_identity uv run python3 support/checkers/check_profile.py --all
@@ -76,6 +78,11 @@ graph packets use `brick build --graph <packet.json>`. The support helpers
 `run_building_intake`, `assemble`, `launch_assembled_building`, and
 `goal-approve` remain helper or advanced/internal paths, not separate customer
 execution routes.
+
+Use the first-run example with `building-chain-preset:design-contract-only` and
+`--adapter adapter:local` to verify the local support-evidence path without a
+real provider or repository write. For real repository-changing work, authenticate
+first and use `--real-provider`, or choose an explicit observed-write adapter.
 
 - Brick = work
 - Agent = performer

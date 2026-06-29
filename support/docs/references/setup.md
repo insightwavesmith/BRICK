@@ -59,12 +59,15 @@ When caller/COO already has a declared graph packet, use `brick build --graph
 
 The lower-level support/operator helpers (`run_building_intake`, `assemble`,
 `launch_assembled_building`, and `goal-approve`) are helper or
-advanced/internal paths, not separate customer execution routes.
+advanced/internal paths for operators, automation, and debugging, not first-run
+instructions and not separate customer execution routes.
 
-To run a full plan file directly instead, use the bundled, verified-runnable
-first plan that ships in the repository at
+To inspect the lower-level runner directly as an advanced/internal operator
+path, use the bundled, verified-runnable first plan that ships in the repository at
 `brick/building_plans/onboarding-example-0.yaml` (it is GRAPH-shaped, which the
-runner requires) and run it through the advanced `run_building_plan` surface:
+runner requires) and run it through the advanced `run_building_plan` surface.
+This is not the customer first-run route; use `brick build --task` or `brick
+build --graph` for customer execution:
 
 ```bash
 PYTHONPATH=support/import_identity python3 -c 'from brick_protocol.support.operator.run import run_building_plan; result = run_building_plan("brick/building_plans/onboarding-example-0.yaml"); print(result.building_id); print(result.lifecycle_write.root); print("\n".join(str(path) for path in result.written_files))'
@@ -105,16 +108,28 @@ already graph-shaped, which is why the run command above works as written.
 
 ### Choosing the adapter
 
-The adapter is declared in the plan, not passed as an argument. The example uses `adapter:codex-local`, which invokes the local `codex` CLI. The selected adapter must be one of the Agent Object's `adapter_refs`. The admitted provider-neutral adapter refs are `adapter:local`, `adapter:codex-local`, `adapter:codex-fugu-local`, `adapter:claude-local`, `adapter:gemini-local`, and `adapter:chat-session`. `adapter:gemini-local` invokes the local Gemini CLI and uses `GEMINI_API_KEY` or `GOOGLE_API_KEY` for Gemini auth; `adapter:chat-session` is the parked / human-as-agent adapter.
+The adapter is declared in the plan, not passed as an argument. The bundled
+first plan uses `adapter:local`, so it does not require a provider CLI and
+does not prove provider behavior. The selected adapter must be one of the Agent
+Object's `adapter_refs`. The admitted provider-neutral adapter refs are
+`adapter:local`, `adapter:codex-local`, `adapter:codex-fugu-local`,
+`adapter:claude-local`, `adapter:gemini-local`, and `adapter:chat-session`.
+`adapter:codex-local` invokes the local `codex` CLI; `adapter:gemini-local`
+invokes the local Gemini CLI and uses `GEMINI_API_KEY` or `GOOGLE_API_KEY` for
+Gemini auth; `adapter:chat-session` is the parked / human-as-agent adapter.
 
-To smoke-test the support path without any provider, switch the plan to the built-in local callable:
+To smoke-test the support path without any provider, use the built-in local callable:
 
 ```yaml
 selected_adapter_ref: adapter:local
 selected_model_ref: model:default
 ```
 
-For `adapter:local` the Agent Object uses its registered local callable reference. This exercises the support runner end to end but does **not** prove provider behavior or work quality.
+For `adapter:local` the Agent Object uses its registered local callable
+reference. This exercises the support runner end to end but does **not** prove
+provider behavior or work quality. For real repository-changing work through
+the customer CLI, authenticate first and use `brick build --task "..."
+--real-provider`, or choose an explicit observed-write adapter.
 
 ### Read-only by default
 

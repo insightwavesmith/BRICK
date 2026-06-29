@@ -124,16 +124,20 @@ brick build \
   --adapter adapter:local
 ```
 
-`brick build` records support evidence that includes `build_input_mode:
+This example intentionally uses `building-chain-preset:design-contract-only`
+with `--adapter adapter:local`: it is a harmless local/read-only support
+evidence run for first contact, not a repository-changing task and not provider
+proof. `brick build` records support evidence that includes `build_input_mode:
 preset_task`, the Building id, the selected adapter, the declared preset, the
 evidence root, frontier observation, proof limits, and not-proven facts. The
 underlying support/operator helper materializes the selected chain preset into
 a declared plan and records your exact words as the Building's `work/task.md`
 evidence. That helper is not a separate customer execution route.
 
-Use `--real-provider` after `brick auth login` if you want the CLI to observe
-Claude, Codex, and Gemini readiness in declared support order and select the
-first ready observed-write adapter. An explicit `--adapter` still wins.
+Use `--real-provider` after `brick auth login` for real repository-changing
+work if you want the CLI to observe Claude, Codex, and Gemini readiness in
+declared support order and select the first ready observed-write adapter. An
+explicit observed-write `--adapter` still wins.
 
 ## Declared graph packets: `brick build --graph`
 
@@ -148,14 +152,16 @@ The graph packet path is the `graph_packet` input mode. It is for already
 declared graph packets; it is not permission for support to invent route
 targets or Movement.
 
-## Direct plan runner (advanced/internal)
+## Direct plan runner (advanced/internal only)
 
 You can also run a full plan file directly through `run_building_plan`. This is
-an advanced support/operator path, not a separate customer execution route; the
-customer route remains `brick build`. The repository already ships a verified,
-runnable first plan at `brick/building_plans/onboarding-example-0.yaml`; point
-the runner at it rather than hand-writing one (a hand-written copy would drift
-from the real, tested shape).
+an internal/operator support path for automation and debugging, not a first-run
+instruction and not a separate customer execution route; the customer route
+remains `brick build --task` or `brick build --graph`. The repository already
+ships a verified, runnable first plan at
+`brick/building_plans/onboarding-example-0.yaml`; point the runner at it rather
+than hand-writing one (a hand-written copy would drift from the real, tested
+shape).
 
 A Building plan is GRAPH-shaped: `plan_shape: graph` at the top, then
 `execution_order`, `brick_steps`, and `link_edges`. The support runner always
@@ -243,10 +249,12 @@ none is ready. An explicit `--adapter` still wins. The CLI output remains
 support evidence only; it does not prove provider reliability, customer
 comprehension, success, quality, source truth, or Movement authority.
 
-For a direct plan run, copy the bundled plan OUTSIDE the repository (the repo
-tree admits no scratch files) and change its top-level adapter field (the
-bundled plan declares the adapter only at the top level), then point
-`run_building_plan` at your copy. Codex is one explicit adapter example:
+For an internal/operator direct plan run, copy the bundled plan OUTSIDE the
+repository (the repo tree admits no scratch files) and change its top-level
+adapter field (the bundled plan declares the adapter only at the top level),
+then point `run_building_plan` at your copy. Customer execution should still
+use `brick build --task ... --real-provider` or `brick build --graph
+<packet.json>`. Codex is one explicit adapter example:
 
 ```yaml
 selected_adapter_ref: adapter:codex-local
@@ -312,12 +320,14 @@ If the Building root already exists, choose a new `building_id` or pass
 returning an AgentFact, the runner records adapter-error frontier evidence and
 raises an exception; that still remains support evidence only.
 
-## File-backed preset task (automation helper)
+## File-backed preset task (advanced/internal automation helper)
 
 Machine flows (scripts, checkers, pipelines) that already manage a task file
 can still use the support/operator helper with a repo-relative
 `task_source_ref` instead of inline text. This is an automation helper path,
-not the official customer first-run route:
+not the official customer first-run route; customer runs should speak the task
+with `brick build --task` or pass a declared graph packet with `brick build
+--graph`:
 
 ```bash
 uv run python3 -c '
