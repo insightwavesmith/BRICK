@@ -709,9 +709,16 @@ Interpretation:
 ```text
 The old source-lane hard fan-in blocker remains stale.
 Closure-origin transition_concern_evidence now has current official graph root
-evidence that the declared policy/budget can reroute to the development
-boundary, replay the fan-out/fan-in cohort, and close with null concern on the
-second closure pass.
+evidence that closure attempt 1 returned a reroute-eligible implementation_gap
+concern, the development / QA / closure cohort ran again as attempt 2, and the
+second closure pass returned null transition_concern_evidence.
+
+Do not overclaim this as explicit Link policy-adoption proof: direct inspection
+of cr-v4-p3-closure-origin-adoption-0629a shows replayed attempts, but
+raw/link.jsonl and evidence/claim_trace/link/movement_trace.json record forward
+Movement rows and evidence/claim_trace/link/policy_action_trace.json has no
+policy_action facts. The current official root proves replay activity as support
+evidence, not explicit Link adoption fact projection.
 ```
 
 Proof limits:
@@ -720,6 +727,94 @@ Proof limits:
 This is support/evidence proof only. It is not source truth, success judgment,
 quality judgment, Movement authority, provider reliability, semantic quality of
 Agent returns, fresh-machine proof, or full customer-ready P3 proof.
+```
+
+## 0629h P3 Exit Audit Rerun
+
+Codex operator added and ran the current official route:
+
+```text
+.venv/bin/brick build --non-interactive --json \
+  --graph project/brick-protocol/status/kernel/GOAL/cr-v4-p3-exit-audit-graph-0629b.json \
+  --output-root /Users/smith/.brick/project/brick-protocol/buildings \
+  --timeout 600
+```
+
+Evidence root:
+
+```text
+/Users/smith/.brick/project/brick-protocol/buildings/cr-v4-p3-exit-audit-0629b
+```
+
+CLI result:
+
+```text
+frontier_kind: complete
+customer_visible_frontier_state: frontier_complete
+customer_visible_not_ready: false
+walker_mode: dynamic
+```
+
+Audit fan-in:
+
+```text
+p3-exit-0629b-inspect      adapter:codex-local
+p3-exit-0629b-code-qa      adapter:codex-local
+p3-exit-0629b-axis-qa      adapter:gemini-local
+p3-exit-0629b-closure      adapter:codex-local
+```
+
+Operator reconciliation:
+
+```text
+The Building-internal code QA reported three focused profiles as blocked by
+no usable temporary directory. Codex operator reran those profiles from the live
+checkout, outside the read-only Agent sandbox:
+
+brick_cli_entrypoint                         => passed
+building_skill_preset_agent_tool_hardening  => passed
+bounded_agent_proposed_routing_loop         => passed
+```
+
+Current P3 reading:
+
+```text
+FORWARD:
+  official public route seal
+  graph_packet template-authority seal
+  non-canonical --large absence
+  hard fan-in source-lane concern locality
+  reason_refs safety checker evidence
+  customer wording support slice
+  large/design-first graph support slice
+
+HOLD / NOT PROVEN for broad P3 closure:
+  explicit Link policy_action/adopted-concern trace for closure-origin replay
+  fresh customer comprehension
+  live provider reliability
+  semantic quality of future graph choices
+  fresh-machine and dogfood proof
+```
+
+Three-axis attribution:
+
+```text
+Brick:
+  Current route/template/graph surfaces are not the immediate blocker.
+
+Agent:
+  QA and closure returns correctly preserved proof limits, but some Agent
+  observations were stale relative to post-run evidence materialization.
+
+Link:
+  The remaining narrow P3 proof gap is Link evidence projection for
+  closure-origin adoption. Replay attempts are visible, but adopted-concern /
+  policy_action facts are not.
+
+Support:
+  The no-temp-dir profile failures were Agent sandbox artifacts; direct operator
+  profile runs passed. Support evidence projection may be narrower than the
+  replay behavior it walked.
 ```
 
 ## Implementation Plan
@@ -807,9 +902,9 @@ git diff --check
 P3 closure still needs focused proof for:
 
 ```text
-closure-origin transition_concern_evidence now has current official graph root
-evidence at cr-v4-p3-closure-origin-adoption-0629a; continue to treat that as
-support evidence, not source truth or quality judgment
+closure-origin transition_concern_evidence has replay-attempt evidence at
+cr-v4-p3-closure-origin-adoption-0629a, but explicit Link policy_action /
+adopted-concern trace remains not proven
 plain GOAL/ wording clarified when it means project/brick-protocol/status/kernel/GOAL/
 fresh customer comprehension beyond wording evidence
 live provider reliability limits

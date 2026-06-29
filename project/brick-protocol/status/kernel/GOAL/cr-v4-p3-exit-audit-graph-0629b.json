@@ -1,0 +1,118 @@
+{
+  "task_statement": "CR.v4 P3 exit audit rerun after current HEAD d41a5bc. Inspect current live evidence for P2 closure, P3 official Easy Building route, hard fan-in locality, closure-origin reroute/replay, customer wording, and remaining P3 deltas. This is an audit Building only: do not edit source, do not claim customer-ready, do not judge success/quality/source truth, and do not choose Link Movement.",
+  "declared_by": "coo",
+  "building_id": "cr-v4-p3-exit-audit-0629b",
+  "selected_shape_ref": "building-shape:recon-fleet-light",
+  "selection_rule": "caller_or_coo_declared_only",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "p3-exit-0629b-inspect",
+      "step_ref": "p3-exit-0629b-inspect",
+      "step_template_ref": "building-step-template:inspect",
+      "completion_edge_ref": "edge:p3-exit-0629b-inspect-to-code-qa",
+      "work_statement": "Inspect current P3 live evidence and status surfaces at HEAD d41a5bc. Scope: project/brick-protocol/status/kernel/customer-ready-goal-current-definition-0627.md, project/brick-protocol/status/kernel/customer-ready-p3-easy-building-official-route-plan-0628.md, evidence roots cr-v4-p3-full-design-first-graph-0629b, cr-v4-p3-customer-wording-route-0629a, cr-v4-p3-plan-ref-visibility-0629c, and cr-v4-p3-closure-origin-adoption-0629a. Record matched facts, missing facts, mismatches, and not_proven. Do not mutate files.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p3-exit-0629b-code-qa",
+      "step_ref": "p3-exit-0629b-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "completion_edge_ref": "edge:p3-exit-0629b-code-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Codex code/regression QA. Verify current P3 claims against files and focused profiles: official route seal, graph_packet template authority, absence of canonical --large route, hard fan-in source concern advisory behavior, closure-origin reroute/replay evidence, reason_refs safety, and customer wording evidence. Run read/probe checks only; do not source-mutate. If proof is missing, return local transition_concern_evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "p3-exit-0629b-axis-qa",
+      "step_ref": "p3-exit-0629b-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "completion_edge_ref": "edge:p3-exit-0629b-axis-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Gemini-local axis/evidence QA. Attack the Brick/Agent/Link attribution of the current P3 exit claim. Brick: preset/graph/template authority and customer route grammar. Agent: returned facts, adapter/tool policy, QA source mutation boundary. Link: fan-in locality, carry, Movement, closure-origin reroute/adoption, and reason_refs safety. Support: CLI/checker/Slack/model output must remain evidence only. Do not source-mutate.",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default"
+    },
+    {
+      "node_id": "p3-exit-0629b-closure",
+      "step_ref": "p3-exit-0629b-closure",
+      "step_template_ref": "building-step-template:closure",
+      "completion_edge_ref": "edge:p3-exit-0629b-closure-to-boundary",
+      "node_reroute_budget": 1,
+      "work_statement": "Codex closure. Fan in inspect, Codex QA, and Gemini axis QA. Report which P3 slices are narrowly proven as support evidence, which deltas remain, and whether the next operator move is P4/P5 or another P3 proof slice. Do not claim customer-ready, success, quality, source truth, or Movement authority.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:p3-exit-0629b-inspect-to-code-qa",
+      "source": "p3-exit-0629b-inspect",
+      "target": "p3-exit-0629b-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p3-exit-0629b-inspect-to-axis-qa",
+      "source": "p3-exit-0629b-inspect",
+      "target": "p3-exit-0629b-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p3-exit-0629b-code-qa-to-closure",
+      "source": "p3-exit-0629b-code-qa",
+      "target": "p3-exit-0629b-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p3-exit-0629b-axis-qa-to-closure",
+      "source": "p3-exit-0629b-axis-qa",
+      "target": "p3-exit-0629b-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:p3-exit-0629b-closure-to-boundary",
+      "source": "p3-exit-0629b-closure",
+      "target": "building-boundary:cr-v4-p3-exit-audit-0629b-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:p3-exit-0629b-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:p3-exit-0629b-inspect-to-code-qa",
+        "edge:p3-exit-0629b-inspect-to-axis-qa"
+      ]
+    },
+    {
+      "group_id": "group:p3-exit-0629b-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:p3-exit-0629b-code-qa-to-closure",
+        "edge:p3-exit-0629b-axis-qa-to-closure"
+      ]
+    }
+  ],
+  "proof_limits": [
+    "support evidence only",
+    "P3 exit audit only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "not_proven": [
+    "fresh customer comprehension",
+    "provider reliability",
+    "fresh-machine behavior",
+    "P7/P8 dogfood proof",
+    "customer-ready completion"
+  ]
+}

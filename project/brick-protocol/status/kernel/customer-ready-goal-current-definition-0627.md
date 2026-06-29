@@ -524,9 +524,40 @@ Observed:
   CLI reported frontier_kind=complete and customer_visible_not_ready=false.
 
 Movement reading:
-  FORWARD for this narrow closure-origin P3 proof slice.
+  FORWARD for replay-attempt evidence in this narrow closure-origin P3 proof
+  slice.
+  NOT PROVEN for explicit Link adoption projection: direct inspection found
+  forward raw/link rows, no policy_action facts, and no adopted-concern refs in
+  movement_trace.
   HOLD remains for the wider customer-ready goal until Easy Building,
   first-run/fresh-machine, and dogfood proof limits close.
+```
+
+P3 0629h exit audit rerun:
+
+```text
+Official route:
+  brick build --graph
+  project/brick-protocol/status/kernel/GOAL/cr-v4-p3-exit-audit-graph-0629b.json
+
+Evidence root:
+  /Users/smith/.brick/project/brick-protocol/buildings/cr-v4-p3-exit-audit-0629b
+
+Observed:
+  inspect, Codex code QA, Gemini axis QA, and Codex closure all returned.
+  CLI reported frontier_kind=complete and customer_visible_not_ready=false.
+  Operator reran the three Building-internal temp-dir-blocked focused profiles
+  from the live checkout; brick_cli_entrypoint,
+  building_skill_preset_agent_tool_hardening, and
+  bounded_agent_proposed_routing_loop all passed.
+
+Current P3 status:
+  FORWARD for public route seal, template authority, --large absence, hard
+  fan-in source-lane locality, reason_refs checker safety, customer wording,
+  and design-first graph support slices.
+  HOLD / NOT PROVEN for explicit closure-origin Link adoption trace, fresh
+  customer comprehension, provider reliability, semantic graph quality,
+  fresh-machine proof, and dogfood proof.
 ```
 
 P3 hard fan-in invariant:
@@ -666,6 +697,7 @@ Proof limits:
 Remaining P3 proof:
 
 ```text
+explicit closure-origin Link policy_action / adopted-concern trace
 fresh customer comprehension
 live provider reliability limits
 semantic quality limits for generated graph choices
@@ -808,7 +840,8 @@ P3 C6 closure
 Gemini-local live provider success
 fresh-machine install/onboard
 P3 build fluency official-route implementation
-full customer-ready P3 behavior beyond the focused closure-origin proof root
+explicit closure-origin Link adoption trace
+full customer-ready P3 behavior beyond focused P3 support slices
 P6 godmodule cleanup
 P7/P8 customer-ready proof
 ```
