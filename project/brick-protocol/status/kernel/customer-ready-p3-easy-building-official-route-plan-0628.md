@@ -487,6 +487,40 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity:. \
   => passed
 ```
 
+0629e clean plan-ref visibility audit:
+
+```text
+Command:
+  .venv/bin/brick build --non-interactive --json
+    --graph project/brick-protocol/status/kernel/GOAL/
+    cr-v4-p3-plan-ref-visibility-graph-0629c.json
+    --output-root /Users/smith/.brick/project/brick-protocol/buildings
+    --timeout 420
+
+Evidence root:
+  /Users/smith/.brick/project/brick-protocol/buildings/
+  cr-v4-p3-plan-ref-visibility-0629c
+
+Observed:
+  base_sha = c783c3e
+  build_input_mode = graph_packet
+  frontier_kind = complete
+  raw/adapter-error.jsonl absent
+  raw/agent-return.jsonl has inspect and closure returns
+  raw/link.jsonl has forward rows only
+  tracked P2-P6 phase plan refs visible
+  tracked GOAL/00..06 symlink refs visible under
+    project/brick-protocol/status/kernel/GOAL/
+  tracked graph file visible under
+    project/brick-protocol/status/kernel/GOAL/
+    cr-v4-p3-plan-ref-visibility-graph-0629c.json
+
+Remaining observation:
+  literal repository-root GOAL/ refs are not visible. Current active refs are
+  under project/brick-protocol/status/kernel/GOAL/. Treat plain GOAL/ as
+  shorthand only when explicitly stated; do not infer a root-level GOAL contract.
+```
+
 ## 0629 Hard Fan-In Runtime Repair Evidence
 
 Measured bug:
@@ -677,7 +711,7 @@ P3 closure still needs focused proof for:
 ```text
 closure-origin transition_concern_evidence remains adoptable under declared
 policy and budget inside that full graph
-plan-ref visibility audit closes without Codex-local closure timeout
+plain GOAL/ wording clarified when it means project/brick-protocol/status/kernel/GOAL/
 fresh customer comprehension beyond wording evidence
 live provider reliability limits
 semantic quality limits for generated graph choices
