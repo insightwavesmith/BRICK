@@ -19,10 +19,10 @@ NEW in-repo ship dir: `brick/templates/skills/` (sibling of `tasks/` and `preset
 
 ## APPLY (run in a terminal; absolute in-repo source = the BRICK product tree)
 
-Set `BRICK` to the product repo root (e.g. `/Users/smith/projects/BRICK`):
+Set `BRICK` to the product repo root (e.g. `/path/to/BRICK`):
 
 ```bash
-BRICK=/Users/smith/projects/BRICK
+BRICK=/path/to/BRICK
 
 # 1. NEW: sizing skill (sizes the input the launch skill consumes)
 cp -R "$BRICK/brick/templates/skills/building-sizing-method"  ~/.claude/skills/building-sizing-method

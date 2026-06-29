@@ -15,7 +15,7 @@ KIND는 **데이터**다 — `brick/spec.BrickSpec` 코드를 안 고친다. 새
 `brick/templates/bricks/<kind>/brick.md` + `return.yaml` 작성 + 카탈로그 `active` 등록.
 
 ```python
-# cd /Users/smith/projects/BRICK && uv run python3 -c "exec(open('/tmp/mk.py').read())"
+# cd /path/to/BRICK && uv run python3 -c "exec(open('/tmp/mk.py').read())"
 from brick_protocol.support.operator.brick_kind_scaffold import scaffold_brick_kind
 rec = scaffold_brick_kind(
     "<kind-slug>",                         # 디렉터리 슬러그 = brick_kind. [-a-z0-9], 첫 글자 [a-z0-9]
