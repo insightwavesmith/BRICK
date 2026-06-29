@@ -55,6 +55,12 @@ task intake 하자 = ask COO intake questions and draft task source evidence.
 빌딩 굴려 / 빌딩 실행하자 = verify declared task and plan first; if missing, return to intake.
 ```
 
+P3 zero-ritual launch policy: once the task source and graph shape are declared,
+the preferred graph execution is compact drawing (`build` / `fan`) followed by
+`fire(graph)` through the official customer graph route. If a packet artifact is
+needed, `brick build --graph <packet>` remains the file-handoff form of the same
+route. Do not invent a second runner or a new skill chain.
+
 Open COO intake questions before implementation. Ask core questions, inspect
 which task fields they extract, and ask follow-up questions until the missing
 task fields are named.

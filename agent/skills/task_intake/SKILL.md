@@ -184,6 +184,12 @@ Return the operating-chain fields in this order:
 -> startup path 후보
 ```
 
+For P3 customer-ready work, this return feeds the existing `brick-task-author`
+chain directly: confirmed task source -> compact graph candidate (`build` /
+`fan`) -> `fire(graph)` official-route sugar, or graph packet handoff when a
+file artifact is required. Do not create a new skill for this chain; connect to
+`brick-task-author` and `building-coordination`.
+
 `task.md 확정` means the task source is confirmed as Brick-owned input evidence
 only. It is not a Building run, source truth, success judgment, quality
 judgment, Movement authority, target choice, or permission to jump directly to

@@ -25,9 +25,13 @@ brick build / support.operator.cli build
 프리셋 모드와 그래프 모드는 **같은 공식 build surface로 들어가는 두 입력 모드**다.
 그래프 모드는 graph packet JSON을 `brick build --graph <packet>` 또는
 `support.operator.cli build --graph <packet>`에 넘긴다.
-`build()`, `fan()`, `compose_building()`, `assemble()`, `launch_assembled_building`은
-graph packet / materialization helper다. 실행 안내는 반드시 helper가 아니라 공식 build route로
-보내라. 별도 공식 route처럼 말하지 마라.
+P3 이후 zero-ritual 운영자 경로는 `task_intake` 확인 뒤 `build()`/`fan()`으로 compact graph를
+그리고 `fire(graph, ...)` 한 번으로 발사하는 것이다. `fire(graph)`는 새 runner가 아니라
+`assemble()` 후 공식 customer graph route(`run_customer_graph_building_in_sandbox`)로 위임하는
+얇은 sugar다. 파일 handoff/감사 목적이면 `brick build --graph <packet>`가 같은 공식 경로다.
+`build()`, `fan()`, `compose_building()`, `assemble()`, `fire()`, `launch_assembled_building`은
+graph packet / materialization / official-route sugar다. 실행 안내는 반드시 공식 build/fire
+route로 보내라. helper를 별도 공식 route처럼 말하지 마라.
 
 ## 한눈 결정나무
 
@@ -141,13 +145,19 @@ brick build --task "$TASK" --preset building-chain-preset:<프리셋> --real-pro
 
 ---
 
-# PHASE 2-B — GRAPH 입력 모드 — graph packet to brick build --graph
+# PHASE 2-B — GRAPH 입력 모드 — compact graph → fire(graph), or graph packet → brick build --graph
 
-`build()`/`fan()`/`compose_building()`/`assemble()`로 모양을 설명할 수는 있지만, 공식 입력은
-graph packet 파일이고 공식 실행은 `brick build --graph <packet>` 또는
-`support.operator.cli build --graph <packet>`이다. helper는 packet/materialization 재료일 뿐,
-별도 runtime, direct launch runner, phase runner, work-return proof, QA-return proof, closeout proof, 또는
-Movement route가 아니다.
+P3의 기본 목표는 “쉽게 그린다”다. task interview가 끝났으면 먼저 compact graph를 그린다:
+
+```
+task_intake → task.md 후보 확인 → build([... fan([...]) ...]) → fire(graph, task=..., building_id=...)
+```
+
+`fire(graph)`는 수동 worktree/dict/path/adapter_cwd/json ritual을 삼키는 얇은 sugar일 뿐,
+별도 runtime, direct launch runner, phase runner, work-return proof, QA-return proof, closeout proof,
+또는 Movement route가 아니다. 사람이 승인해야 하는 파일 handoff나 디버그가 필요할 때만
+graph packet JSON을 남겨 `brick build --graph <packet>` 또는
+`support.operator.cli build --graph <packet>`로 같은 공식 경로에 넣는다.
 JSON packet 예시는 `brick build --graph <packet.json>` 또는
 `support.operator.cli build --graph <packet.json>` 입력으로 들어간다.
 

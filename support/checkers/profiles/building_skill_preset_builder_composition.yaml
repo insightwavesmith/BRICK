@@ -49,26 +49,26 @@ text_contains:
       - 'brick build --graph <packet>'
       - 'support.operator.cli build --graph <packet>'
       - 'build_input_mode'
-      - 'graph packet 파일이고 공식 실행'
+      - 'P3의 기본 목표는 “쉽게 그린다”'
       - 'direct launch runner, phase runner'
   - path: agent/skills/brick-task-author/SKILL.md
     texts:
       - 'brick build --graph <packet>'
       - 'support.operator.cli build --graph <packet>'
       - 'build_input_mode'
-      - 'graph packet 파일이고 공식 실행'
+      - 'P3의 기본 목표는 “쉽게 그린다”'
       - 'direct launch runner, phase runner'
   - path: brick/templates/skills/building-sizing-method/SKILL.md
     texts:
       - 'brick build --graph <packet>'
       - 'support.operator.cli build --graph <packet>'
-      - 'graph packet / materialization helper'
+      - 'graph packet / materialization / official-route sugar'
       - '공식 route'
   - path: agent/skills/building-sizing-method/SKILL.md
     texts:
       - 'brick build --graph <packet>'
       - 'support.operator.cli build --graph <packet>'
-      - 'graph packet / materialization helper'
+      - 'graph packet / materialization / official-route sugar'
       - '공식 route'
 text_absent:
   - path: brick/templates/skills/brick-task-author/SKILL.md

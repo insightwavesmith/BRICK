@@ -166,10 +166,10 @@ text_contains:
       - 공식 경로는 하나
       - brick build / support.operator.cli build
       - PHASE 2-A — PRESET 입력 모드 (brick build --task/--preset)
-      - PHASE 2-B — GRAPH 입력 모드 — graph packet to brick build --graph
+      - PHASE 2-B — GRAPH 입력 모드 — compact graph → fire(graph), or graph packet → brick build --graph
       - brick build --graph <packet.json>
       - support.operator.cli build --graph <packet.json>
-      - graph packet / materialization helper
+      - graph packet / materialization / official-route sugar
       - Builder/materializer
       - declared Building Plan
       - support/operator/run.py walker
@@ -187,7 +187,7 @@ text_contains:
       - QA source mutation이 관찰되면 HOLD로 보고한다.
   - path: agent/skills/building-sizing-method/SKILL.md
     texts:
-      - 공식 `brick build --graph <packet>` 입력
+      - P3 기본은 `fire(graph)` official-route sugar
       - 큰 일 P3 기본형
       - this is big; design first, split it, and run the lanes in parallel.
       - design QA / axis inspection
@@ -198,7 +198,7 @@ text_contains:
       - brick build / support.operator.cli build
       - brick build --graph <packet>
       - support.operator.cli build --graph <packet>
-      - graph packet / materialization helper
+      - graph packet / materialization / official-route sugar
       - Builder/materializer
       - declared Building Plan
       - support/operator/run.py walker
@@ -211,10 +211,10 @@ text_contains:
       - 공식 경로는 하나
       - brick build / support.operator.cli build
       - PHASE 2-A — PRESET 입력 모드 (brick build --task/--preset)
-      - PHASE 2-B — GRAPH 입력 모드 — graph packet to brick build --graph
+      - PHASE 2-B — GRAPH 입력 모드 — compact graph → fire(graph), or graph packet → brick build --graph
       - brick build --graph <packet.json>
       - support.operator.cli build --graph <packet.json>
-      - graph packet / materialization helper
+      - graph packet / materialization / official-route sugar
       - Builder/materializer
       - declared Building Plan
       - support/operator/run.py walker
@@ -227,14 +227,14 @@ text_contains:
       - QA source mutation이 관찰되면 HOLD로 보고한다.
   - path: brick/templates/skills/building-sizing-method/SKILL.md
     texts:
-      - 공식 `brick build --graph <packet>` 입력
+      - P3 기본은 `fire(graph)` official-route sugar
       - 큰 일 P3 기본형
       - this is big; design first, split it, and run the lanes in parallel.
       - 공식 경로와 graph packet 재료
       - brick build / support.operator.cli build
       - brick build --graph <packet>
       - support.operator.cli build --graph <packet>
-      - graph packet / materialization helper
+      - graph packet / materialization / official-route sugar
       - Builder/materializer
       - declared Building Plan
       - support/operator/run.py walker

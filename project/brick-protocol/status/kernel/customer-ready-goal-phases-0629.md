@@ -1,6 +1,7 @@
 # Customer-Ready BRICK — Goal Phases Index — 0629
 
 Status: support evidence only (operator index). Not source truth / success / Movement authority.
+Context anchor: `customer-ready-goal-anchor-v01.md` is the compact reload target for compression/session handoff.
 THE phase index: each phase → its detail doc. Goal-of-record (full spec) =
 `customer-ready-goal-current-definition-0627.md`. Consolidation / audit / decisions / standard shapes
 = `customer-ready-plan-audit-roadmap-0629.md`. Browse: the `GOAL/` folder carries P0–P8 symlinks to the detail docs below.
@@ -53,12 +54,13 @@ Support records FACTS; the COO/human JUDGES. "CR record/audit" commits are not p
 ## Phases — progress in this ORDER (each → `GOAL/` symlink)
 Execution order = critical path: **P3 (close residual) → P5 → P7 → P8 = GOAL.** P0/P1/P2/P4 DONE; P6 off-path (later). Each gated by its PASS.
 
-## 현재 상태 (0629 저녁 — 지금까지 작업 반영)
-- **main = `3600cae`, origin/main 동기(pushed).** P0/1/2/4 DONE.
-- **P3 ROUTE 증명됨:** `brick build --graph <packet>`로 fan-in `make X` end-to-end → `frontier=complete` + 실산출물(2 disjoint docs) + 완전 spine + Slack 14건. BUG1(fan-in `required_return_shape` guard 면제) + output_root 기본 = 라이브 검증. **단 P3 정확히는 미완** — 의식0(thin `fire(graph)` 미구현, 발사가 아직 build→assemble→as_intake_args→json→CLI) + `cli.py:111 _active_slack_buildings_root()`가 `/Users/smith` 하드코딩(dogfood는 Smith 머신 우연·고객 머신선 깨짐).
-- **P5 평가 완료:** 정직성 골격 OK(doctor/auth/onboard 정직, gemini 정직 잠금, FIRST_USE 생성, 게이트2 green). 갭 6개 매핑(아래 P5).
-- **남은 임계경로:** P3 잔여 2개[① thin `fire(graph)` sugar ② output_root de-hardcode→`Path.home()`] → P5(갭 #2-6) → P7(fresh-machine) → P8(골).
-- **cruft(비차단·위생):** 0625 stash 4 · detached 워크트리 32 · ~/.brick evidence 121 dir · struct-surgery 미커밋 docs(design-lead 실측-REQUIRED 등).
+## 현재 상태 (0630 새벽 — f3744e9 반영)
+- **P3 code baseline = `f3744e9`; goal/skill chain sync = this anchor commit (check `git status` for push state).** P0/1/2/4 DONE. Compact reload anchor = `customer-ready-goal-anchor-v01.md`.
+- **P3 ENGINEERING CLOSED:** `brick build --graph <packet>` fan-in dogfood는 이미 `frontier=complete` + 실산출물 + spine + Slack로 증명됨. `f3744e9`에서 남은 두 지뢰도 닫힘: ① thin `fire(graph)` sugar(손 JSON/packet ritual 제거) ② caller-local output/slack root(`BRICK_HOME`/`~/.brick`, Smith 경로 제거). 검증: `brick_cli_entrypoint`, `building_operator_driver0`, `--all`, `compileall`, `diff --check` GREEN.
+- **P3 formal seal 잔여:** goal 문서/스킬 sync는 이 anchor commit에서 반영됨. 필요시 `fire(graph)` live smoke 1회만 남음. 스킬은 신설이 아니라 기존 `brick-task-author` / `task_intake` / `building-coordination` 체인에 반영됨.
+- **P5 평가 완료:** 정직성 골격 OK. #1 output_root는 P3에서 닫힘. 남은 갭은 #2 README quickstart preset/adapter 정합 · #3 frontier story 일치 · #4 FIRST_USE adapter population · #5 launch-guide Python snippet 제거 · #6 fresh-machine prep.
+- **남은 임계경로:** P3 formal seal/skill sync → P5(#2-#6) → P7(fresh-machine) → P8(dogfood 골) → customer release pruning → FINAL architecture cleanup.
+- **cruft(비차단·위생):** stash/worktree/evidence 누적은 골을 막지 않으면 P7/P8 뒤 release pruning에서 고객 surface만 남기며 정리.
 
 ### P0 freeze — DONE → `GOAL/P0-freeze.md`
 PASS: evidence inventory frozen; old C6 evidence = HOLD; no stale-spine override. (Met.)
@@ -70,15 +72,15 @@ PASS: gemini-local write only at NEED ∧ Agent-policy ∧ adapter-capability; e
 PASS: read/probe_write/source_write declared (Brick) + admitted (Agent) + ENFORCED with teeth (reviewer-source-write mutation fires RED — verified). Measured: --all green + mutation-RED.
 OPEN: the qa-lead leak (leader-lane review role escapes the reviewer ceiling) → closed only by the policy-split (reviewers → probe-write-scoped) = the FIRST dogfood.
 
-### P3 Easy Building official route — ROUTE PROVEN · 의식0+output_root RESIDUAL (0629) → `GOAL/P3-easy-building.md`
-PASS: a customer `make X` runs **end-to-end** via the ONE official route (sealed: only `brick build`; fluent: the COO draws + fires once, plumbing swallowed) → `frontier=complete` + evidence. **Metric = the COO launches a real building in ONE fluent call with ZERO footgun ritual** (the launch-ritual disappearance IS the pass). Not slice-claims.
+### P3 Easy Building official route — ENGINEERING CLOSED · formal seal/skill sync (0630) → `GOAL/P3-easy-building.md`
+PASS: a customer `make X` runs **end-to-end** via the ONE official route (sealed: `brick build`; fluent: COO draws with `build`/`fan` and fires once with `fire(graph)`) → `frontier=complete` + evidence. `f3744e9` closes the zero-footgun plumbing: caller-local output root + thin `fire(graph)` sugar. Formal seal now means syncing the goal/skill chain and optionally running one live `fire(graph)` smoke.
 
 ### P4 resume fan-out — DONE → `GOAL/P4-resume-fanout.md`
 PASS: resume recovers declared fan-out parallelism after forward disposition; replay deterministic. Measured: bounded_agent_proposed_routing_loop green + timed fixture. (Met.)
 
-### P5 first-run / onboarding — ASSESSED (갭 #1-6 매핑) · needs P3 residual (0629) → `GOAL/P5-first-run.md`
+### P5 first-run / onboarding — ASSESSED · next after P3 seal (갭 #2-#6) → `GOAL/P5-first-run.md`
 PASS: install/init/doctor/onboard truthful for the available-LLM customer; gemini readiness honest; FIRST_USE delivered; a real-provider first task runs → evidence; no hidden machine-local dep.
-**STATUS (0629 평가):** 정직성 골격 OK · 게이트2(brick_cli_entrypoint·building_operator_driver0) green. GAPS: **#1 [HIGH·검증됨]** `brick build` 기본 output_root = `cli.py:111` 하드코딩 `/Users/smith` (= P3 residual ②, P7 차단) · **#2 [HIGH]** README quickstart write-preset을 `--real-provider` 없이 시킴(preset/adapter 부정합) · **#3 [MED]** first-run frontier 스토리 경로별 불일치(build=complete/onboard=incomplete) · **#4 [MED·Agent]** first-use adapter population NOT_PROVEN(소유표면 미정) · **#5 [MED]** launch-guide 잔존 python 스니펫 · **#6 [LOW→P7]** fresh-machine 미증명. 첫 P5 빌딩 후보 = #1+#2(둘 다 fresh-machine 첫 실행 차단).
+**STATUS (0630 sync):** 정직성 골격 OK · 게이트2(brick_cli_entrypoint·building_operator_driver0) green. **#1 output_root hardcode는 `f3744e9`에서 CLOSED.** 남은 GAPS: **#2 [HIGH]** README quickstart write-preset을 `--real-provider` 없이 시킴(preset/adapter 부정합) · **#3 [MED]** first-run frontier 스토리 경로별 불일치(build=complete/onboard=incomplete) · **#4 [MED·Agent]** first-use adapter population NOT_PROVEN(소유표면 미정) · **#5 [MED]** launch-guide 잔존 python 스니펫 · **#6 [LOW→P7]** fresh-machine 미증명. 첫 P5 빌딩 후보 = #2+#5 문서/quickstart 정합, 이어 #3/#4.
 
 ### P6 cleanup / godmodule — BLOCKED, off critical path → `GOAL/P6-cleanup.md`
 PASS: each god-module split **byte-identical** (behavior unchanged) — `--all` green oracle + mutation-RED + net-negative LOC. Includes the dead-pair sweep (development + cto-lead) landing --all green.
