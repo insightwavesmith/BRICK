@@ -84,8 +84,8 @@ PASS: BRICK runs ONE real task through the customer entrypoint → `frontier=com
 ## Building patterns (how each item runs)
 **개발 큰것 (BIG) — TWO buildings, the COO (Claude) judges between:**
 ```
-빌딩1: design (Fugu ∥ Claude → 종합)          → [COO reads design, DEFINES N parallel devs + what each]
-빌딩2: fan([dev → qa] × N) → closure          → [COO disposition: forward / reroute]
+빌딩1: design (Fugu Ultra ∥ Claude → 종합)    → [COO reads design, DEFINES N parallel devs + what each]
+빌딩2: fan([dev(Codex) → qa(Codex+Claude+Gemini)] × N) → closure → [COO disposition: forward / reroute]
 ```
 The design→dev decomposition (how many, what) is a COO JUDGMENT (not automatic) — so design is cut as its own building.
 
@@ -100,7 +100,17 @@ read (design/closure) · probe_write (qa) · source_write (dev).
 ## P3 casting-pick (workflow-style performer selection)
 When the COO launches workflow-style, it can PICK the performer per node — Fugu / Gemini / Claude / Codex —
 not only the default cast.
-- **Default**: list the standard cast (design = Fugu ∥ Claude, dev = Codex, qa = Codex + Gemini, closure = Codex/COO).
+- **Default cast (ratified 0629)**:
+  - design = **Fugu Ultra** (`adapter:codex-fugu-local` + `model:sakana:fugu-ultra`) — small work uses Fugu Ultra alone; **개발 큰것 adds Claude** (design = Fugu Ultra ∥ Claude).
+  - work/dev = **Codex** (codex-local).
+  - **QA default = Claude** (base single reviewer); the 3-axis review (Codex + Claude + Gemini) is attached via **per-node adapter refs when declaring the graph** — not a fixed default.
+  - closure = COO (Claude) / Codex.
+
+**Per-node casting recipe (ALREADY in the official route — measured 0629, NO build needed):**
+- Graph packet (`brick build --graph`): each node declares `selected_adapter_ref` + `selected_model_ref`. e.g. design → `adapter:codex-fugu-local` + `model:sakana:fugu-ultra`; a QA node → `adapter:codex-local` / `claude-local` / `gemini-local`. (Proven: four-llm-standard-graph already casts work=codex, axis-qa=gemini, closure=codex per node.)
+- Assemble: `brick(kind, work, adapter="codex-fugu-local")` per node → flows to `selected_adapter_ref`.
+- So multi-LLM (3-axis QA, Fugu Ultra design, +Claude for 개발 큰것) is attached per-node at graph-author time — no new code.
+- PENDING (small re-wire, after the current dogfood, touches agent/objects): role-yaml DEFAULTS → design default = Fugu Ultra, QA default = Claude. (The weekend cast Codex/Gemini is still wired; that is why the current dogfood ran Codex+Gemini.)
 - **Override (경우의 수)**: the COO picks per node — especially 개발 큰것, where the design's needs drive the casting.
 - This belongs to P3's "sealed + fluent" launch = draw the shape + pick the cast + fire once; the official route swallows the plumbing.
 
