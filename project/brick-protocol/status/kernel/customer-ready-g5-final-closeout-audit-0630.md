@@ -26,7 +26,7 @@ operator-facing fire wording in touched files = none
 
 ```text
 worktree = /Users/smith/.brick/worktrees/g3-stop-condition-leaves-0630a
-commit = 0daa37c G3: split kernel checker leaves below 10k
+commit = 0d18b79 G3: split kernel checker leaves below 10k (main cherry-pick of sandbox 0daa37c)
 kernel_checks.py = 9931 LOC (<10000)
 remaining >=200 LOC candidates = 13, all deferred with reason/owner
 conservation = import + dispatch + module_registry rows present
@@ -103,14 +103,14 @@ result = 28 profiles, all "profile passed", 0 profile failed / 0 Traceback / 0 E
 
 ```text
 branch = main
-origin/main...HEAD = 0 / 22 (ahead 22 unpushed, behind 0)
+origin/main...HEAD = 0 / 24 (ahead 24 unpushed, behind 0)
 ```
 
 ## Narrowly proven
 
 ```text
 - Steps 0-4 named requirements are closed as current support evidence with commits
-  70160fb, 0daa37c, 9a1b77c, 1444997, 0798159.
+  70160fb, 0d18b79 (sandbox source 0daa37c), 9a1b77c, 1444997, 0798159.
 - The main customer checkout is tracked-clean with zero untracked files.
 - REAL HOME check_profile.py --all is GREEN across 28 profiles.
 - The operator-facing build()-only language is reconciled and committed (f5ddaf5).
@@ -119,7 +119,7 @@ origin/main...HEAD = 0 / 22 (ahead 22 unpushed, behind 0)
 ## Not proven / human-gate remaining
 
 ```text
-- main is ahead of origin/main by 22 commits; push is NOT performed (human-gate).
+- main is ahead of origin/main by 24 commits; push is NOT performed (human-gate).
 - merge target / public release tag are NOT chosen (human-gate).
 - main = origin/main is NOT achieved and requires explicit Smith disposition.
 - Full independent customer reading-comprehension (G1/G2) remains not_proven.
@@ -134,6 +134,13 @@ origin/main...HEAD = 0 / 22 (ahead 22 unpushed, behind 0)
 Movement candidate = HOLD for human gate
 next = Smith disposition on push / merge target / main=origin/main
 ```
+
+
+## Main-line reconciliation note
+
+The G3 sandbox commit `0daa37c` was later cherry-picked onto main as `0d18b79`
+so the main customer checkout itself carries the kernel checker split and the
+`kernel_checks.py <10000` evidence.
 
 The closeout work surface (steps 0-4 plus repo cleanliness and REAL HOME --all)
 is closed as current support evidence. The only remaining closeout items are
