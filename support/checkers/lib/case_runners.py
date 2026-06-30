@@ -5230,6 +5230,7 @@ def _once_task_source_packet(task_source_ref: str | None) -> dict[str, Any]:
                     "movement": "forward",
                     "target_ref": "brick-once-task-source-closure",
                     "next_brick_instance_ref": "brick-once-task-source-closure",
+                    "declared_gate_refs": ["link-gate:default-transition"],
                 },
             ],
         },
@@ -7006,6 +7007,7 @@ def _linear_step(
         "movement": "forward",
         "target_ref": target_ref,
         "next_brick_instance_ref": target_ref,
+        "declared_gate_refs": ["link-gate:default-transition"],
     }
     if closed:
         link_row["building_lifecycle"] = {
@@ -7478,6 +7480,8 @@ def _graph_link_edge(
     }
     if declared_gate_refs is not None:
         link_row["declared_gate_refs"] = list(declared_gate_refs)
+    else:
+        link_row["declared_gate_refs"] = ["link-gate:default-transition"]
     if route_replay_plan is not None:
         link_row["route_replay_plan"] = dict(route_replay_plan)
     edge: dict[str, Any] = {

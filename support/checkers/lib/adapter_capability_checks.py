@@ -117,6 +117,7 @@ def _adapter_capability_plan(
                         "row_ref": "link-row:adapter-capability-work",
                         "movement": "forward",
                         "target_ref": "brick-adapter-capability-closure",
+                        "declared_gate_refs": ["link-gate:default-transition"],
                     },
                 ],
             }
@@ -1255,6 +1256,7 @@ def _adapter_capability_single_step_packet(
                     "movement": "forward",
                     "target_ref": "brick-adapter-capability-closure",
                     "next_brick_instance_ref": "brick-adapter-capability-closure",
+                    "declared_gate_refs": ["link-gate:default-transition"],
                 },
             ],
         },

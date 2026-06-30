@@ -4335,6 +4335,7 @@ def _reporter_auto_wire_plan(
                 "row_ref": f"link-row:{step_ref}",
                 "movement": "forward",
                 "target_ref": next_target,
+                "declared_gate_refs": ["link-gate:default-transition"],
                 "building_lifecycle": {
                     "state": "closed",
                     "reason": "reporter auto-wire probe closed boundary",
@@ -5604,6 +5605,7 @@ def _adapter_error_hardening_graph_plan(
                     "row_ref": f"link-row:{building_id}-work",
                     "movement": "forward",
                     "target_ref": f"brick-{building_id}-followup",
+                    "declared_gate_refs": ["link-gate:default-transition"],
                 }
             ],
         },
@@ -5616,6 +5618,7 @@ def _adapter_error_hardening_graph_plan(
                     "row_ref": f"link-row:{building_id}-followup",
                     "movement": "forward",
                     "target_ref": f"building-boundary:{building_id}-closed",
+                    "declared_gate_refs": ["link-gate:default-transition"],
                 }
             ],
         },
@@ -7670,6 +7673,7 @@ def _chat_session_park_plan() -> Mapping[str, Any]:
                         "row_ref": "link-row:chat-session-park-work",
                         "movement": "forward",
                         "target_ref": "brick-chat-session-park-closure",
+                        "declared_gate_refs": ["link-gate:default-transition"],
                     },
                 ],
             }
@@ -7748,6 +7752,7 @@ def _chat_session_park_graph_plan(
                         "row_ref": "link-row:chat-session-park-dynamic-work",
                         "movement": "forward",
                         "target_ref": "brick-chat-session-followup-work",
+                        "declared_gate_refs": ["link-gate:default-transition"],
                     }
                 ],
             },
@@ -7760,6 +7765,7 @@ def _chat_session_park_graph_plan(
                         "row_ref": "link-row:chat-session-followup-work",
                         "movement": "forward",
                         "target_ref": "building-boundary:chat-session-park-dynamic-closed",
+                        "declared_gate_refs": ["link-gate:default-transition"],
                     }
                 ],
             }

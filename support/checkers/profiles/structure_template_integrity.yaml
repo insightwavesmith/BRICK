@@ -447,6 +447,8 @@ child_building_candidate_case:
                 movement: forward
                 target_ref: brick-cascade-sweep-0-candidate-repair
                 next_brick_instance_ref: brick-cascade-sweep-0-candidate-repair
+                declared_gate_refs:
+                  - link-gate:default-transition
           - step_ref: cascade-sweep-0-candidate-02-repair
             rows:
               - axis: Brick
@@ -466,6 +468,8 @@ child_building_candidate_case:
                 movement: forward
                 target_ref: brick-cascade-sweep-0-candidate-closure
                 next_brick_instance_ref: brick-cascade-sweep-0-candidate-closure
+                declared_gate_refs:
+                  - link-gate:default-transition
           - step_ref: cascade-sweep-0-candidate-03-closure
             rows:
               - axis: Brick
@@ -488,6 +492,8 @@ child_building_candidate_case:
                   reason: Cascade sweep candidate closes and points to dogfood candidate.
                 target_ref: brick-bar-v2-end-to-end-dogfood-0-open
                 next_brick_instance_ref: brick-bar-v2-end-to-end-dogfood-0-open
+                declared_gate_refs:
+                  - link-gate:default-transition
     expected:
       selected_delta_ref: CASCADE-SWEEP-0
       candidate_building_id: cascade-sweep-0-candidate-0526
