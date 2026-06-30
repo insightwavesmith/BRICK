@@ -299,3 +299,17 @@ COMPLETION AUDIT (finalize): GOAL IS NOT COMPLETE. Remaining not_proven:
   C1 main != origin/main (unpushed); final closeout record + Smith forward pending
 Therefore update_goal(complete) is NOT called. Repo is in a clean, building, all-green state safe to pause.
 ```
+
+## Update — diagnostic process status (0630)
+
+```text
+Codex gpt-5.5 diagnosis pid 39918 is no longer running, and ai-cli no longer has
+that process result (`Process with PID 39918 not found`). Treat its result as not
+captured. If the onboard_smoke work-invisible / agent_incomplete question remains
+important, re-run a bounded diagnosis Building/subagent rather than relying on
+that lost process.
+
+Latest live frontier for `g3-onboard-smoke-leaf-0630`: agent_incomplete, no
+sandbox commit. Do not integrate. Next action = either re-fire with provider health
+confirmed or route a focused diagnostic Building on adapter/worktree visibility.
+```
