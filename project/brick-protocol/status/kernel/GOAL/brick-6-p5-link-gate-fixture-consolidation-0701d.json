@@ -1,0 +1,134 @@
+{
+  "task_statement": "P5d follow-up: consolidate checker fixture declarations after P5c mandatory declared_gate_refs so check_profile.py --all can reach the intended adapter capability assertions.",
+  "declared_by": "coo",
+  "building_id": "brick-6-p5-link-gate-fixture-consolidation-0701d",
+  "selected_shape_ref": "shape:manual-narrow-fixture-consolidation-p5",
+  "selection_rule": "manual narrow graph because P5c closed production seams but exposed an adjacent checker fixture admission-order gap outside P5c write scope.",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "brick-6-p5-link-gate-fixture-consolidation-0701d-work",
+      "step_ref": "brick-6-p5-link-gate-fixture-consolidation-0701d-work",
+      "step_template_ref": "building-step-template:work",
+      "node_reroute_budget": 1,
+      "work_statement": "Fix the P5c check_profile.py --all fallout only. Current failure: agent_axis_behavioral adapter_capability_rehome_case fixture expects silent write-scope rejection but its helper _adapter_capability_plan builds a Link row without declared_gate_refs, so mandatory P5 validation rejects earlier with 'Building plan Link row must declare declared_gate_refs'. Update support/checkers/lib/adapter_capability_checks.py fixtures so the adapter capability tests explicitly declare link-gate:default-transition on their Link rows before exercising adapter/write-scope behavior. Do not weaken P5 plan_validation. Do not edit support/operator or support/connection. Run py_compile changed file, agent_axis_behavioral profile, bounded_agent_proposed_routing_loop profile if useful, git diff --check, and check_profile.py --all. Return exact changed files/commands/not_proven.\n\nSTRICT SCOPE: phase:P5 follow-up fixture consolidation only. Do not broaden beyond the check_profile.py --all gap caused by mandatory declared_gate_refs. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Keep Movement vocabulary forward/reroute; HOLD/pause is lifecycle. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p5-link-gate-fixture-consolidation-0701d-work-to-code-qa",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/checkers/lib/adapter_capability_checks.py",
+          "support/checkers/profiles/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/operator/**",
+          "support/connection/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p5-link-gate-fixture-consolidation-0701d-code-qa",
+      "step_ref": "brick-6-p5-link-gate-fixture-consolidation-0701d-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "QA the P5d fixture consolidation. Verify the diff only updates checker fixture declarations, not production Link/operator behavior. Confirm adapter_capability_rehome_case no longer fails first on missing declared_gate_refs and check_profile.py --all is green. If any implementation/evidence gap remains, return non-binding concern targeting work.\n\nSTRICT SCOPE: phase:P5 follow-up fixture consolidation only. Do not broaden beyond the check_profile.py --all gap caused by mandatory declared_gate_refs. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Keep Movement vocabulary forward/reroute; HOLD/pause is lifecycle. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p5-link-gate-fixture-consolidation-0701d-code-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/checkers/lib/adapter_capability_checks.py",
+          "support/checkers/profiles/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/operator/**",
+          "support/connection/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p5-link-gate-fixture-consolidation-0701d-closure",
+      "step_ref": "brick-6-p5-link-gate-fixture-consolidation-0701d-closure",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Close P5d. Report observed_evidence / narrowly_proven / not_proven / remaining_delta / parent_goal_delta_status. Done condition: check_profile.py --all green after P5c+P5d, changed files match declared fixture scope, and P5c production behavior remains in place. If gap remains, return Link-facing concern targeting work.\n\nSTRICT SCOPE: phase:P5 follow-up fixture consolidation only. Do not broaden beyond the check_profile.py --all gap caused by mandatory declared_gate_refs. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Keep Movement vocabulary forward/reroute; HOLD/pause is lifecycle. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "closure_transition_target_policy": {
+        "implementation_gap": {
+          "action": "target",
+          "target_ref": "brick-6-p5-link-gate-fixture-consolidation-0701d-work"
+        },
+        "verification_gap": {
+          "action": "hold"
+        },
+        "boundary_mismatch": {
+          "action": "target",
+          "target_ref": "brick-6-p5-link-gate-fixture-consolidation-0701d-work"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:brick-6-p5-link-gate-fixture-consolidation-0701d-work-to-code-qa",
+      "source": "brick-6-p5-link-gate-fixture-consolidation-0701d-work",
+      "target": "brick-6-p5-link-gate-fixture-consolidation-0701d-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p5-link-gate-fixture-consolidation-0701d-code-qa-to-closure",
+      "source": "brick-6-p5-link-gate-fixture-consolidation-0701d-code-qa",
+      "target": "brick-6-p5-link-gate-fixture-consolidation-0701d-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p5-link-gate-fixture-consolidation-0701d-closure-to-boundary",
+      "source": "brick-6-p5-link-gate-fixture-consolidation-0701d-closure",
+      "target": "building-boundary:brick-6-p5-link-gate-fixture-consolidation-0701d-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [],
+  "source_evidence_refs": [
+    "/Users/smith/.brick/project/brick-protocol/buildings/brick-6-p5-link-declaration-concern-safety-0701c/work/step-outputs/brick-6-p5-link-declaration-concern-safety-0701c-closure-attempt-1/step-output.json",
+    "/tmp/p5c_all.log",
+    "support/checkers/lib/adapter_capability_checks.py"
+  ],
+  "proof_limits": [
+    "official build evidence is support evidence only",
+    "P5d fixture consolidation does not prove P6-P9 or customer-ready whole goal",
+    "checker green is support evidence only"
+  ],
+  "not_proven": [
+    "fresh-machine customer proof",
+    "real provider repeated reliability",
+    "whole customer-ready closeout"
+  ]
+}
