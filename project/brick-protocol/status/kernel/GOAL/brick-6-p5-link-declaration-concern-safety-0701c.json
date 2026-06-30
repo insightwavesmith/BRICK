@@ -1,0 +1,145 @@
+{
+  "task_statement": "P5c narrow implementation Building: close declared_gate_refs absence and invalid transition_concern pending-target leakage using prior P5a/P5b design evidence, through the official brick build graph route.",
+  "declared_by": "coo",
+  "building_id": "brick-6-p5-link-declaration-concern-safety-0701c",
+  "selected_shape_ref": "shape:manual-narrow-work-qa-closure-p5-link-declaration-concern-safety",
+  "selection_rule": "manual narrow graph after P5a/P5b multi-adapter design attempts collected design evidence but stalled before implementation. This reroute limits the next Building to implementation + code attack QA + closure to avoid repeating broad design fan-out while preserving official brick build route.",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "brick-6-p5-link-declaration-concern-safety-0701c-work",
+      "step_ref": "brick-6-p5-link-declaration-concern-safety-0701c-work",
+      "step_template_ref": "building-step-template:work",
+      "node_reroute_budget": 1,
+      "work_statement": "Implement the P5 narrow fix from prior design evidence.\n\nObserved current seams to close:\n1. support/operator/plan_validation.py::_validate_declared_gate_refs_for_link_row currently accepts missing declared_gate_refs on active Link rows. Change active validation so a Link row missing declared_gate_refs is RED. Preserve existing rules for explicit refs: non-empty, no duplicates, first ref link-gate:default-transition, all refs admitted. Do not add a new gate or Movement literal. If a materializer wants default-transition, it must stamp explicit declared_gate_refs before runtime.\n2. support/operator/walker_transition_concern.py::_build_invalid_transition_concern_hold currently derives target_brick from raw invalid concern refs before falling back to source. Change invalid concern HOLD construction so invalid transition_concern_evidence always HOLDs at source_brick_ref and does not copy raw proposed refs into immediate_target_ref / target_brick / pending_target_ref.\n3. Add focused negative regression coverage in support/checkers/check_bounded_agent_proposed_routing_loop0.py: malformed transition_concern_evidence containing a resolvable related_boundary_refs target must pause with HOLD target fields equal to the source brick, not the proposed target. Also add/adjust a validation probe for active post-expansion Link row missing declared_gate_refs RED, with explicit link-gate:default-transition GREEN.\n4. Preserve positive behavior: valid concern/adopted declared route behavior still passes; HOLD is lifecycle not Link Movement.\n\nRun and return exact results for: py_compile changed Python, focused bounded_agent_proposed_routing_loop profile, link_routing_behavioral profile if touched/needed, git diff --check, and check_profile.py --all. Return changed_files and not_proven. If --all fails out of scope, classify honestly.\n\nSTRICT SCOPE: phase:P5 narrow implementation only. Use prior P5a/P5b design outputs as support evidence, not source truth. Do not broaden into P6-P9, release/dashboard/provider/pytest honesty, raw scrub, post-HOLD resume isolation, P3 return-shape, or P4 AgentFact intake except as cited support evidence. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Public/operator language is build()/brick build only. Movement vocabulary is forward/reroute; HOLD/pause is lifecycle. QA may inspect and run probe_write fixtures only; do not source-mutate in QA. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701c-work-to-code-qa",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/plan_validation.py",
+          "support/operator/walker_transition_concern.py",
+          "support/checkers/check_bounded_agent_proposed_routing_loop0.py",
+          "support/checkers/profiles/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/connection/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p5-link-declaration-concern-safety-0701c-code-qa",
+      "step_ref": "brick-6-p5-link-declaration-concern-safety-0701c-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Code attack QA for P5c. Inspect the diff and run focused checks. Required attacks: missing declared_gate_refs on active Link row is rejected; explicit default-transition row remains accepted; invalid malformed transition_concern_evidence with one resolvable proposed target cannot set immediate_target_ref/target_brick/pending_target_ref to that proposed target; valid/adopted concern path remains intact. Confirm changed files are inside declared scope and no support surface gained Movement, success, quality, source truth, or hidden target-selector authority. Return local non-binding transition_concern_evidence targeting work if implementation_gap or boundary_mismatch remains.\n\nSTRICT SCOPE: phase:P5 narrow implementation only. Use prior P5a/P5b design outputs as support evidence, not source truth. Do not broaden into P6-P9, release/dashboard/provider/pytest honesty, raw scrub, post-HOLD resume isolation, P3 return-shape, or P4 AgentFact intake except as cited support evidence. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Public/operator language is build()/brick build only. Movement vocabulary is forward/reroute; HOLD/pause is lifecycle. QA may inspect and run probe_write fixtures only; do not source-mutate in QA. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701c-code-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/plan_validation.py",
+          "support/operator/walker_transition_concern.py",
+          "support/checkers/check_bounded_agent_proposed_routing_loop0.py",
+          "support/checkers/profiles/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/connection/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p5-link-declaration-concern-safety-0701c-closure",
+      "step_ref": "brick-6-p5-link-declaration-concern-safety-0701c-closure",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Final P5c closure. Fan in work and code-QA bodies. Report observed_evidence / narrowly_proven / not_proven / remaining_delta / parent_goal_delta_status / next_target_candidates. P5 done condition for this narrow slice: missing declared_gate_refs RED or explicit default materialization only; invalid concern target leakage closed; focused profile(s), py_compile, git diff --check, and check_profile.py --all are green or gaps are clearly not_proven; changed files match scope. If any implementation/boundary/evidence gap remains, return Link-facing transition_concern_evidence targeting work. Do not claim whole goal/customer-ready complete.\n\nSTRICT SCOPE: phase:P5 narrow implementation only. Use prior P5a/P5b design outputs as support evidence, not source truth. Do not broaden into P6-P9, release/dashboard/provider/pytest honesty, raw scrub, post-HOLD resume isolation, P3 return-shape, or P4 AgentFact intake except as cited support evidence. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Public/operator language is build()/brick build only. Movement vocabulary is forward/reroute; HOLD/pause is lifecycle. QA may inspect and run probe_write fixtures only; do not source-mutate in QA. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "closure_transition_target_policy": {
+        "implementation_gap": {
+          "action": "target",
+          "target_ref": "brick-6-p5-link-declaration-concern-safety-0701c-work"
+        },
+        "boundary_mismatch": {
+          "action": "target",
+          "target_ref": "brick-6-p5-link-declaration-concern-safety-0701c-work"
+        },
+        "insufficient_input": {
+          "action": "target",
+          "target_ref": "brick-6-p5-link-declaration-concern-safety-0701c-work"
+        },
+        "verification_gap": {
+          "action": "hold"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701c-work-to-code-qa",
+      "source": "brick-6-p5-link-declaration-concern-safety-0701c-work",
+      "target": "brick-6-p5-link-declaration-concern-safety-0701c-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701c-code-qa-to-closure",
+      "source": "brick-6-p5-link-declaration-concern-safety-0701c-code-qa",
+      "target": "brick-6-p5-link-declaration-concern-safety-0701c-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701c-closure-to-boundary",
+      "source": "brick-6-p5-link-declaration-concern-safety-0701c-closure",
+      "target": "building-boundary:brick-6-p5-link-declaration-concern-safety-0701c-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [],
+  "source_evidence_refs": [
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-repair-p5-link-declaration-concern-safety-0630.md",
+    "/Users/smith/.brick/project/brick-protocol/buildings/brick-6-p5-link-declaration-concern-safety-0701a/work/step-outputs",
+    "/Users/smith/.brick/project/brick-protocol/buildings/brick-6-p5-link-declaration-concern-safety-0701b/work/step-outputs",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-s3-link-axis-0630.md#S3-F1-S3-F2",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-s5-checker-system-0630.md#S5-F3"
+  ],
+  "proof_limits": [
+    "official build evidence is support evidence only",
+    "P5c closure does not prove P6-P9 or customer-ready whole goal",
+    "single-adapter narrow reroute reuses prior multi-adapter design evidence but does not prove Gemini/Claude QA for implementation",
+    "checker green is support evidence only"
+  ],
+  "not_proven": [
+    "fresh-machine customer proof",
+    "real provider repeated reliability",
+    "whole customer-ready closeout",
+    "Gemini/Claude implementation QA for P5c",
+    "semantic completeness of all future transition concern or portfolio adoption patterns"
+  ]
+}
