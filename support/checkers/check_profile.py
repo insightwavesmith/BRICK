@@ -140,6 +140,7 @@ from support.checkers.lib.kernel_checks import (
     run_chat_session_park_seam,
     run_adapter_error_frontier_manifest_consistency,
     run_adapter_error_path_hardening,
+    run_raw_evidence_stream_scrub,
     run_mcp_stdio_smoke,
     run_connect_config_launch,
     run_codex_projection_native,
@@ -729,6 +730,7 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
     "chat_session_park_seam": run_chat_session_park_seam,
     "adapter_error_frontier_manifest_consistency": run_adapter_error_frontier_manifest_consistency,
     "adapter_error_path_hardening": run_adapter_error_path_hardening,
+    "raw_evidence_stream_scrub": run_raw_evidence_stream_scrub,
     # P1 brick CLI entrypoint. Externally observes support/operator/cli.py from
     # outside the repo with PYTHONPATH unset, both as a direct script and through
     # the import-identity package route that mirrors console_script startup. It

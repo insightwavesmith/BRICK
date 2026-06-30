@@ -5123,6 +5123,106 @@ def run_adapter_error_path_hardening(repo: Path) -> KernelResult:
     )
 
 
+def run_raw_evidence_stream_scrub(repo: Path) -> KernelResult:
+    from support.recording import raw_claim_trace
+
+    opaque_credential = "sk-" + ("A" * 16)
+    opaque_email = "person" + "@" + "example.test"
+    opaque_session = {"body": "provider-session-" + ("B" * 16)}
+    opaque_session_id = "provider-session-id-" + ("C" * 16)
+    cases: tuple[tuple[str, Mapping[str, object], tuple[str, ...]], ...] = (
+        (
+            "brick-work.jsonl",
+            {
+                "raw_ref": "raw:brick:01",
+                "raw_refs": ["raw:brick:01"],
+                "step_ref": "scrub-work",
+                "work_statement": opaque_credential,
+                "proof_limits": ["preexisting proof limit"],
+                "not_proven": ["preexisting not proven"],
+            },
+            (opaque_credential,),
+        ),
+        (
+            "agent-received.jsonl",
+            {
+                "raw_ref": "raw:agent-received:01",
+                "raw_refs": ["raw:agent-received:01"],
+                "step_ref": "scrub-work",
+                "provider_session": opaque_session,
+            },
+            (str(opaque_session["body"]),),
+        ),
+        (
+            "agent-return.jsonl",
+            {
+                "raw_ref": "raw:agent:01",
+                "raw_refs": ["raw:agent:01"],
+                "step_ref": "scrub-work",
+                "returned": {
+                    "observed": {
+                        "status": "ordinary nested status evidence",
+                        "result": "ordinary nested result evidence",
+                        "contact": opaque_email,
+                    }
+                },
+            },
+            (opaque_email,),
+        ),
+        (
+            "adapter-error.jsonl",
+            {
+                "raw_ref": "raw:adapter-error:01",
+                "raw_refs": ["raw:adapter-error:01"],
+                "step_ref": "scrub-work",
+                "message_excerpt": "ordinary status/result text remains evidence",
+                "session_id": opaque_session_id,
+            },
+            (opaque_session_id,),
+        ),
+    )
+    with tempfile.TemporaryDirectory(prefix="bp-raw-scrub-") as tmp_raw:
+        raw_dir = Path(tmp_raw) / "root" / "raw"
+        for stream_name, record, blocked_values in cases:
+            path = raw_dir / stream_name
+            raw_claim_trace._write_jsonl(path, (record,), [])
+            text = path.read_text(encoding="utf-8")
+            for blocked_value in blocked_values:
+                if blocked_value in text:
+                    raise ProfileError(f"raw_evidence_stream_scrub leaked blocked value in {stream_name}")
+            rows = [json.loads(line) for line in text.splitlines() if line.strip()]
+            if len(rows) != 1:
+                raise ProfileError(f"raw_evidence_stream_scrub expected one row in {stream_name}")
+            row = rows[0]
+            if row.get("raw_ref") != record["raw_ref"] or row.get("raw_refs") != record["raw_refs"]:
+                raise ProfileError(f"raw_evidence_stream_scrub lost refs in {stream_name}")
+            scrub = row.get("raw_evidence_scrub")
+            if not isinstance(scrub, Mapping) or scrub.get("blocked") is not True:
+                raise ProfileError(f"raw_evidence_stream_scrub lacked scrub evidence in {stream_name}")
+            if not isinstance(row.get("proof_limits"), list) or not isinstance(row.get("not_proven"), list):
+                raise ProfileError(f"raw_evidence_stream_scrub lacked proof evidence in {stream_name}")
+            if stream_name == "agent-return.jsonl":
+                returned = row.get("returned")
+                if not isinstance(returned, Mapping):
+                    raise ProfileError("raw_evidence_stream_scrub altered agent return shape")
+                observed = returned.get("observed")
+                if not isinstance(observed, Mapping):
+                    raise ProfileError("raw_evidence_stream_scrub altered nested return evidence")
+                if observed.get("status") != "ordinary nested status evidence":
+                    raise ProfileError("raw_evidence_stream_scrub overblocked ordinary status evidence")
+                if observed.get("result") != "ordinary nested result evidence":
+                    raise ProfileError("raw_evidence_stream_scrub overblocked ordinary result evidence")
+    return KernelResult(
+        check_id="raw_evidence_stream_scrub",
+        inspected=len(cases),
+        output=(
+            "raw_evidence_stream_scrub passed: brick-work, agent-received, "
+            "agent-return, and adapter-error raw JSONL streams scrub blocked "
+            "body detail while preserving refs and ordinary nested evidence"
+        ),
+    )
+
+
 def _assert_adapter_error_frontier_report_root_admission(
     run_module: Any,
     repo: Path,

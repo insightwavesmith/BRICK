@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import json
+import hashlib
+import re
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from brick_protocol.support.connection.secret_text import contains_raw_secret_text
 from brick_protocol.support.recording.capture import graph_ready_json_object, graph_ready_timestamp
 from brick_protocol.support.recording.contracts import (
     AdapterErrorFrontierTracePacket,
@@ -365,12 +368,183 @@ def _write_json(path: Path, value: Mapping[str, object], written: list[Path]) ->
 
 def _write_jsonl(path: Path, values: tuple[Mapping[str, object], ...], written: list[Path]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    scrubbed_values = tuple(_scrub_raw_stream_record(path, value) for value in values)
     text = "".join(
         json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
-        for value in values
+        for value in scrubbed_values
     )
     path.write_text(text, encoding="utf-8")
     written.append(path)
+
+
+_RAW_SCRUB_REF_KEYS = frozenset(
+    {
+        "raw_ref",
+        "raw_refs",
+        "evidence_ref",
+        "evidence_refs",
+        "public_fact_ref",
+        "public_fact_refs",
+        "proof_limits",
+        "not_proven",
+    }
+)
+_RAW_SCRUB_SENSITIVE_KEYS = frozenset(
+    {
+        "api_key",
+        "authorization",
+        "auth",
+        "credential",
+        "credentials",
+        "password",
+        "pii",
+        "provider_session",
+        "provider_session_id",
+        "raw_provider_session",
+        "secret",
+        "secrets",
+        "session_id",
+        "token",
+    }
+)
+_RAW_SCRUB_PROVIDER_SESSION_KEYS = frozenset(
+    {
+        "provider_call_state",
+        "provider_request_body",
+        "provider_response_body",
+        "provider_runtime_state",
+        "provider_session_body",
+        "raw_provider_request",
+        "raw_provider_response",
+    }
+)
+_RAW_SCRUB_EMAIL_RE = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
+_RAW_SCRUB_SSN_RE = re.compile(r"\b\d{3}-\d{2}-\d{4}\b")
+_RAW_SCRUB_PROOF_LIMIT = (
+    "raw evidence body detail was blocked before JSONL persistence; refs and "
+    "proof limits are retained"
+)
+_RAW_SCRUB_NOT_PROVEN = (
+    "blocked raw evidence body detail is not recorded; only scrub category and "
+    "opaque hash are retained"
+)
+
+
+def _scrub_raw_stream_record(path: Path, value: Mapping[str, object]) -> Mapping[str, object]:
+    blocked: list[Mapping[str, object]] = []
+    scrubbed = _scrub_raw_value("record", value, blocked, parent_key="")
+    if not blocked:
+        return value
+    if not isinstance(scrubbed, Mapping):
+        raise ValueError(f"raw stream record is not a mapping after scrub: {path}")
+    record = dict(scrubbed)
+    record["raw_evidence_scrub"] = {
+        "blocked": True,
+        "stream_ref": _raw_stream_ref(path),
+        "blocked_count": len(blocked),
+        "blocked_refs": blocked,
+        "proof_limits": [
+            "support raw JSONL scrub evidence only",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ],
+    }
+    record["proof_limits"] = _append_unique_text(record.get("proof_limits"), _RAW_SCRUB_PROOF_LIMIT)
+    record["not_proven"] = _append_unique_text(record.get("not_proven"), _RAW_SCRUB_NOT_PROVEN)
+    return record
+
+
+def _scrub_raw_value(
+    path: str,
+    value: object,
+    blocked: list[Mapping[str, object]],
+    *,
+    parent_key: str,
+) -> object:
+    if isinstance(value, Mapping):
+        scrubbed: dict[str, object] = {}
+        for raw_key, child in value.items():
+            if not isinstance(raw_key, str):
+                scrubbed[raw_key] = child
+                continue
+            key = _raw_scrub_key(raw_key)
+            child_path = f"{path}.{raw_key}"
+            if key in _RAW_SCRUB_REF_KEYS:
+                scrubbed[raw_key] = _scrub_raw_value(child_path, child, blocked, parent_key=key)
+            elif key in _RAW_SCRUB_PROVIDER_SESSION_KEYS:
+                scrubbed[raw_key] = _blocked_raw_value(child_path, child, blocked, "provider_session_payload")
+            elif key in _RAW_SCRUB_SENSITIVE_KEYS:
+                scrubbed[raw_key] = _blocked_raw_value(child_path, child, blocked, "sensitive_key_payload")
+            else:
+                scrubbed[raw_key] = _scrub_raw_value(child_path, child, blocked, parent_key=key)
+        return scrubbed
+    if isinstance(value, list):
+        return [
+            _scrub_raw_value(f"{path}[{index}]", child, blocked, parent_key=parent_key)
+            for index, child in enumerate(value)
+        ]
+    if isinstance(value, str):
+        category = _raw_text_category(value)
+        if category:
+            return _blocked_raw_value(path, value, blocked, category)
+    return value
+
+
+def _blocked_raw_value(
+    path: str,
+    value: object,
+    blocked: list[Mapping[str, object]],
+    category: str,
+) -> Mapping[str, object]:
+    digest = hashlib.sha256(
+        json.dumps(value, ensure_ascii=False, sort_keys=True, default=str).encode("utf-8")
+    ).hexdigest()[:16]
+    blocked_ref = f"raw-scrub:{len(blocked) + 1}:{digest}"
+    blocked.append(
+        {
+            "blocked_ref": blocked_ref,
+            "category": category,
+            "field_path_hash": hashlib.sha256(path.encode("utf-8")).hexdigest()[:16],
+        }
+    )
+    return {
+        "blocked": True,
+        "blocked_ref": blocked_ref,
+        "category": category,
+        "value_sha256_16": digest,
+    }
+
+
+def _raw_text_category(value: str) -> str:
+    if contains_raw_secret_text(value):
+        return "credential_text"
+    if _RAW_SCRUB_EMAIL_RE.search(value) or _RAW_SCRUB_SSN_RE.search(value):
+        return "pii_text"
+    return ""
+
+
+def _append_unique_text(value: object, item: str) -> list[object]:
+    if isinstance(value, list):
+        items = list(value)
+    elif value in (None, ""):
+        items = []
+    else:
+        items = [value]
+    if item not in items:
+        items.append(item)
+    return items
+
+
+def _raw_scrub_key(value: str) -> str:
+    return value.strip().replace("-", "_").replace(" ", "_").lower()
+
+
+def _raw_stream_ref(path: Path) -> str:
+    if path.parent.name == "raw":
+        return f"raw/{path.name}"
+    return path.name
 
 
 def reconcile_claim_trace_raw_manifest_from_raw(building_root: Path | str) -> tuple[Path, ...]:
