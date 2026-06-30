@@ -1,0 +1,236 @@
+{
+  "task_statement": "Durable P1 route/adoption hardening after route-proof 0701a/b/c. Repair the mismatch between Agent-admitted Brick related_boundary_refs and Link classifier resolution; prevent P1c-style hard fan-in closure concern suppression by overbroad top-level advisory; clarify current-ledger-local reason_refs guidance. Use checker-first implementation and official build evidence only.",
+  "declared_by": "coo",
+  "building_id": "brick-6-route-concern-address-guard-0701a",
+  "selected_shape_ref": "shape:manual-hard-fan-in-route-hardening",
+  "selection_rule": "manual graph because repair spans Link classifier behavior, Brick graph authoring guard, and Agent-facing template guidance; no preset is assumed adequate",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "brick-6-route-concern-address-guard-0701a-work",
+      "step_ref": "brick-6-route-concern-address-guard-0701a-work",
+      "step_template_ref": "building-step-template:work",
+      "node_reroute_budget": 1,
+      "work_statement": "Implement a narrow durable repair from project/brick-protocol/status/kernel/brick-6-route-proof-findings-0701.md. Required outcomes: (1) checker-first coverage for transition_concern_evidence.related_boundary_refs resolving admitted Brick-node prefixes such as brick:<declared-node>, brick-instance:<declared-node>, and brick-boundary:<declared-node> to declared Brick nodes, while building-boundary: remains non-reroute sentinel and garbage refs still HOLD; (2) preserve explicit top-level transition_concern_adoption=advisory behavior for admitted opt-in cases, but add guard/checker coverage so hard fan-in closure graphs do not accidentally use top-level advisory when scoped fan-in source advisory is intended; (3) update Agent-facing Brick template/guidance so reroute-capable related_boundary_refs and adopted transition concern reason_refs are current-ledger-resolvable, with external evidence cited under observed_evidence not reason_refs. Run focused relevant checker(s), py_compile for changed Python, git diff --check, and if feasible a focused route/adoption proof. Return changed_files, commands, observed_evidence, blocked/missing evidence, not_proven. Do not mark P1 complete.\n\nSTRICT SCOPE: This is a bounded P1 route/adoption hardening repair. Do not change product/runtime semantics outside transition concern address resolution, graph authoring guard/checker coverage, and Agent-facing guidance for current-ledger-local reason_refs. Do not push. Do not use ai-cli/subagents. Do not store or print secrets/session bodies.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-route-concern-address-guard-0701a-work-to-code-qa",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/**",
+          "support/checkers/**",
+          "brick/templates/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "agent/**",
+          "link/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-route-concern-address-guard-0701a-code-qa",
+      "step_ref": "brick-6-route-concern-address-guard-0701a-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Attack the implementation from the work Brick. Independently reproduce the 0701a prefix mismatch and the 0701b external reason_refs HOLD class if covered. Verify checker-first coverage exists and fails would catch the old behavior. Run focused checker(s), compile/diff checks, and inspect changed files. If any implementation gap remains, return local non-binding transition_concern_evidence with concern_kind implementation_gap targeting the work node.\n\nSTRICT SCOPE: This is a bounded P1 route/adoption hardening repair. Do not change product/runtime semantics outside transition concern address resolution, graph authoring guard/checker coverage, and Agent-facing guidance for current-ledger-local reason_refs. Do not push. Do not use ai-cli/subagents. Do not store or print secrets/session bodies.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-route-concern-address-guard-0701a-code-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/**",
+          "support/checkers/**",
+          "brick/templates/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "agent/**",
+          "link/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-route-concern-address-guard-0701a-axis-qa",
+      "step_ref": "brick-6-route-concern-address-guard-0701a-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Attack Brick/Agent/Link boundaries. Verify the repair does not let Agent choose Movement, does not make support a route inventor, does not create new Movement literals, and preserves Link ownership of adoption. Check that graph authoring guard belongs to Brick/support validation, address resolution belongs to Link support classifier, and Agent-facing guidance remains non-binding evidence. If a real boundary gap remains, return local non-binding transition_concern_evidence targeting the work node.\n\nSTRICT SCOPE: This is a bounded P1 route/adoption hardening repair. Do not change product/runtime semantics outside transition concern address resolution, graph authoring guard/checker coverage, and Agent-facing guidance for current-ledger-local reason_refs. Do not push. Do not use ai-cli/subagents. Do not store or print secrets/session bodies.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-route-concern-address-guard-0701a-axis-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/**",
+          "support/checkers/**",
+          "brick/templates/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "agent/**",
+          "link/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-route-concern-address-guard-0701a-evidence-qa",
+      "step_ref": "brick-6-route-concern-address-guard-0701a-evidence-qa",
+      "step_template_ref": "building-step-template:evidence-integrity",
+      "node_reroute_budget": 1,
+      "work_statement": "Check evidence integrity. Verify route-proof findings are cited as support evidence only, checker output does not overclaim P1 completion, and changed docs/templates do not turn checker green/model output into source truth. Confirm all adopted concern reason_refs guidance stays current-ledger-local. If evidence is missing, name it under missing_evidence/not_proven.\n\nSTRICT SCOPE: This is a bounded P1 route/adoption hardening repair. Do not change product/runtime semantics outside transition concern address resolution, graph authoring guard/checker coverage, and Agent-facing guidance for current-ledger-local reason_refs. Do not push. Do not use ai-cli/subagents. Do not store or print secrets/session bodies.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-route-concern-address-guard-0701a-evidence-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/**",
+          "support/checkers/**",
+          "brick/templates/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "agent/**",
+          "link/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-route-concern-address-guard-0701a-closure",
+      "step_ref": "brick-6-route-concern-address-guard-0701a-closure",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Synthesize work + all QA bodies. Report observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, next_target_candidates. If the repair is not sufficient, return Link-facing non-binding transition_concern_evidence with concern_kind implementation_gap targeting the work node using current-ledger-local reason_refs only. If sufficient for this bounded hardening, set transition_concern_evidence null. Do not mark P1 or the whole goal complete.\n\nSTRICT SCOPE: This is a bounded P1 route/adoption hardening repair. Do not change product/runtime semantics outside transition concern address resolution, graph authoring guard/checker coverage, and Agent-facing guidance for current-ledger-local reason_refs. Do not push. Do not use ai-cli/subagents. Do not store or print secrets/session bodies.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-route-concern-address-guard-0701a-closure-to-boundary"
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:brick-6-route-concern-address-guard-0701a-work-to-code-qa",
+      "source": "brick-6-route-concern-address-guard-0701a-work",
+      "target": "brick-6-route-concern-address-guard-0701a-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-route-concern-address-guard-0701a-work-to-axis-qa",
+      "source": "brick-6-route-concern-address-guard-0701a-work",
+      "target": "brick-6-route-concern-address-guard-0701a-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-route-concern-address-guard-0701a-work-to-evidence-qa",
+      "source": "brick-6-route-concern-address-guard-0701a-work",
+      "target": "brick-6-route-concern-address-guard-0701a-evidence-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-route-concern-address-guard-0701a-code-qa-to-closure",
+      "source": "brick-6-route-concern-address-guard-0701a-code-qa",
+      "target": "brick-6-route-concern-address-guard-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-route-concern-address-guard-0701a-axis-qa-to-closure",
+      "source": "brick-6-route-concern-address-guard-0701a-axis-qa",
+      "target": "brick-6-route-concern-address-guard-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-route-concern-address-guard-0701a-evidence-qa-to-closure",
+      "source": "brick-6-route-concern-address-guard-0701a-evidence-qa",
+      "target": "brick-6-route-concern-address-guard-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-route-concern-address-guard-0701a-closure-to-boundary",
+      "source": "brick-6-route-concern-address-guard-0701a-closure",
+      "target": "building-boundary:brick-6-route-concern-address-guard-0701a-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:brick-6-route-concern-address-guard-0701a-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-route-concern-address-guard-0701a-work-to-code-qa",
+        "edge:brick-6-route-concern-address-guard-0701a-work-to-axis-qa",
+        "edge:brick-6-route-concern-address-guard-0701a-work-to-evidence-qa"
+      ]
+    },
+    {
+      "group_id": "group:brick-6-route-concern-address-guard-0701a-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-route-concern-address-guard-0701a-code-qa-to-closure",
+        "edge:brick-6-route-concern-address-guard-0701a-axis-qa-to-closure",
+        "edge:brick-6-route-concern-address-guard-0701a-evidence-qa-to-closure"
+      ],
+      "fan_in_target_ref": "brick-6-route-concern-address-guard-0701a-closure",
+      "fan_in_policy": "wait_all_before_closure"
+    }
+  ],
+  "source_evidence_refs": [
+    "/Users/smith/.codex/attachments/79c4c01d-3db0-4a59-b13c-cf85beeba608/pasted-text-1.txt",
+    "project/brick-protocol/status/kernel/brick-6-route-proof-findings-0701.md",
+    "project/brick-protocol/status/kernel/GOAL/brick-6-route-proof-closure-implementation-gap-0701a.json",
+    "project/brick-protocol/status/kernel/GOAL/brick-6-route-proof-closure-implementation-gap-0701b.json",
+    "project/brick-protocol/status/kernel/GOAL/brick-6-route-proof-closure-implementation-gap-0701c.json",
+    "/Users/smith/.brick/project/brick-protocol/buildings/brick-6-route-proof-closure-implementation-gap-0701c/raw/link.jsonl",
+    "agent/return_fact.py:25-30",
+    "support/operator/walker_transition_concern.py:97-202",
+    "support/operator/walker_kernel.py:1753-1767",
+    "brick/templates/bricks/closure/brick.md",
+    "brick/templates/bricks/code-attack-qa/brick.md",
+    "brick/templates/bricks/axis-attack-qa/brick.md"
+  ],
+  "proof_limits": [
+    "bounded route/adoption hardening only",
+    "not P1 raw scrub completion",
+    "not product/customer-ready proof",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "not_proven": [
+    "P1 completion",
+    "check_profile.py --all green",
+    "customer/product readiness",
+    "future Building correctness",
+    "provider quality or reliability"
+  ]
+}
