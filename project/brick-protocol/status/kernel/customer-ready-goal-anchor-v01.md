@@ -18,6 +18,6 @@ P8 dogfood=GOAL: PROVEN(0630). `p8-dogfood-required-shape-20260629T182113Z` ran 
 
 고객 release: dogfood 후 GitHub/main엔 고객용만(install/onboard/build/verify/docs/examples/필수 templates·skills). 과거 docs·내부 evidence·project status·stale goal/cruft는 release_export에서 제외/아카이브.
 
-FINAL architecture (골 이후): Brick/Agent/Link 경계 재측정 + godmodule(kernel_checks·case_runners·walker/run·거대 profile) 분해. 규칙=conservation ledger+mutation-RED+byte-identical+net-negative LOC. 새 축/런타임/판단자 금지, 모듈 최소화, support는 기록/투영/실행보조만. 기획=customer-ready-p6-cleanup-godmodule-plan-0628.md(stale LOC 주의=live 재측정). Link-track(fan-in reroute #1·#3)=P8 전 합류.
+FINAL architecture (골 이후): Brick/Agent/Link 경계 재측정 + godmodule(kernel_checks·case_runners·walker/run·거대 profile) 분해. Latest leaf: `final-casting-node-carry-extraction-0630a` -> sandbox `0cfde8d`, integrated `4ac4b9d`, proof=`customer-ready-final-architecture-casting-node-carry-proof-0630.md`; it also exposed the route-authoring lesson that all-forward graph rows forward because declared Link rows said forward, not because the official route defaults to forward. 규칙=conservation ledger+mutation-RED+byte-identical+net-negative LOC. 새 축/런타임/판단자 금지, 모듈 최소화, support는 기록/투영/실행보조만. 기획=customer-ready-p6-cleanup-godmodule-plan-0628.md(stale LOC 주의=live 재측정). Link-track(fan-in reroute #1·#3)=P8 전 합류.
 
 PASS 공통: REAL HOME --all GREEN + phase end-to-end + Building frontier=complete + spine/raw 확인 + COO/Smith disposition. checker green 단독=PASS 아님.
