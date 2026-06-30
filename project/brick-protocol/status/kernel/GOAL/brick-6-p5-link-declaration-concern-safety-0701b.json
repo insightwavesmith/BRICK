@@ -1,0 +1,406 @@
+{
+  "task_statement": "P5 of BRICK 6-surface audit repair: close Link declaration law and invalid transition_concern pending-target safety through the official brick build declared graph route. Missing declared_gate_refs must either RED on active rows or be explicitly materialized before runtime; invalid Agent transition concern evidence must HOLD at source and must not shape pending target. Carry/portfolio coverage gaps must be closed or explicitly not_proven.",
+  "declared_by": "coo",
+  "building_id": "brick-6-p5-link-declaration-concern-safety-0701b",
+  "selected_shape_ref": "shape:manual-multi-adapter-design-hard-fanin-p5-link-declaration-concern-safety",
+  "selection_rule": "manual graph because P5 is a high-risk Link gate/concern boundary repair requiring dual-design fan-out, design QA, implementation, multi-adapter hard fan-in QA, and closure. Chain preset is blank; the graph is declared by COO over the official brick build route. This 0701b rerun avoids adapter:gemini-local because 0701a reached design-synthesis then stalled on the Gemini design-QA adapter with no design-qa output; the graph preserves multi-adapter evidence via Codex+Claude lanes.",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "brick-6-p5-link-declaration-concern-safety-0701b-intake-split",
+      "step_ref": "brick-6-p5-link-declaration-concern-safety-0701b-intake-split",
+      "step_template_ref": "building-step-template:design",
+      "node_reroute_budget": 1,
+      "work_statement": "Prepare the P5 design split. Read the P5 phase doc plus cited audit refs only enough to derive P5 requirements: final C3/C4, S3-F1/F2/F3, S5-F3, coverage ADD-5/ADD-14/ADD-20. Return invariant map and dispatch notes for independent Codex and Claude design lanes. No source edits.\n\nSTRICT SCOPE: phase:P5 only. Do not broaden into P6-P9, release/dashboard/provider/pytest honesty, raw scrub, post-HOLD resume isolation, P3 return-shape, or P4 AgentFact intake except as cited support evidence. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD/pause is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-intake-split-to-design-codex"
+    },
+    {
+      "node_id": "brick-6-p5-link-declaration-concern-safety-0701b-design-codex",
+      "step_ref": "brick-6-p5-link-declaration-concern-safety-0701b-design-codex",
+      "step_template_ref": "building-step-template:design",
+      "node_reroute_budget": 1,
+      "work_statement": "Codex design lane for P5. Independently derive the repair design from live code and audit docs. Must cover: missing declared_gate_refs absence/default materialization law; invalid transition_concern_evidence must not shape pending target; pending target must need declared plan + valid concern + adopted disposition basis; HOLD/pause is lifecycle not reroute; checker-first negative probes; focused profile and check_profile.py --all plan; carry/portfolio gaps either closed or explicitly not_proven.\n\nSTRICT SCOPE: phase:P5 only. Do not broaden into P6-P9, release/dashboard/provider/pytest honesty, raw scrub, post-HOLD resume isolation, P3 return-shape, or P4 AgentFact intake except as cited support evidence. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD/pause is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-design-codex-to-design-synthesis"
+    },
+    {
+      "node_id": "brick-6-p5-link-declaration-concern-safety-0701b-design-claude",
+      "step_ref": "brick-6-p5-link-declaration-concern-safety-0701b-design-claude",
+      "step_template_ref": "building-step-template:design",
+      "node_reroute_budget": 1,
+      "work_statement": "Claude design lane for P5. Independently attack/derive the P5 design from the same phase and audit refs. Focus Brick/Agent/Link attribution: Brick plan rows declare work/road; Agent transition concerns are non-binding returned evidence; Link owns gate refs, Movement, pending target and disposition. Decide whether raw missing declared_gate_refs should RED or be explicitly materialized before runtime; verify invalid concern cannot set pending target. Return design only.\n\nSTRICT SCOPE: phase:P5 only. Do not broaden into P6-P9, release/dashboard/provider/pytest honesty, raw scrub, post-HOLD resume isolation, P3 return-shape, or P4 AgentFact intake except as cited support evidence. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD/pause is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:claude-local",
+      "selected_model_ref": "model:claude:inherit",
+      "completion_edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-design-claude-to-design-synthesis"
+    },
+    {
+      "node_id": "brick-6-p5-link-declaration-concern-safety-0701b-design-synthesis",
+      "step_ref": "brick-6-p5-link-declaration-concern-safety-0701b-design-synthesis",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Synthesize Codex and Claude design lanes into one implementation plan. This is design closure-synthesis, not success or quality judgment. If design evidence conflicts or is insufficient, return Link-facing transition_concern_evidence targeting intake-split/design; otherwise return null concern and carry an implementation plan bounded to P5.\n\nSTRICT SCOPE: phase:P5 only. Do not broaden into P6-P9, release/dashboard/provider/pytest honesty, raw scrub, post-HOLD resume isolation, P3 return-shape, or P4 AgentFact intake except as cited support evidence. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD/pause is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-design-synthesis-to-design-qa",
+      "closure_transition_target_policy": {
+        "design_gap": {
+          "action": "target",
+          "target_ref": "brick-6-p5-link-declaration-concern-safety-0701b-intake-split"
+        },
+        "implementation_gap": {
+          "action": "target",
+          "target_ref": "brick-6-p5-link-declaration-concern-safety-0701b-intake-split"
+        },
+        "verification_gap": {
+          "action": "hold"
+        }
+      }
+    },
+    {
+      "node_id": "brick-6-p5-link-declaration-concern-safety-0701b-design-qa",
+      "step_ref": "brick-6-p5-link-declaration-concern-safety-0701b-design-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Claude-local design QA before implementation. Attack whether the synthesized P5 design preserves Brick/Agent/Link boundaries: support validates/materializes/walks only; Link owns declared_gate_refs, pending target, disposition basis, forward/reroute; Agent invalid concern evidence cannot select target. Do not source-mutate. If a real design/boundary gap remains, return local observation and non-binding concern evidence only if template permits.\n\nSTRICT SCOPE: phase:P5 only. Do not broaden into P6-P9, release/dashboard/provider/pytest honesty, raw scrub, post-HOLD resume isolation, P3 return-shape, or P4 AgentFact intake except as cited support evidence. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD/pause is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:claude-local",
+      "selected_model_ref": "model:claude:inherit",
+      "completion_edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-design-qa-to-work",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/plan_validation.py",
+          "support/operator/walker_transition_concern.py",
+          "support/operator/walker_hold.py",
+          "support/operator/driver.py",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p5-link-declaration-concern-safety-0701b-work",
+      "step_ref": "brick-6-p5-link-declaration-concern-safety-0701b-work",
+      "step_template_ref": "building-step-template:work",
+      "node_reroute_budget": 1,
+      "work_statement": "Implement P5 from the synthesized/QA-reviewed design. Checker-first. Requirements: (1) raw/active Building Plan Link rows missing declared_gate_refs must RED, unless an admitted authoring/materialization boundary has already explicitly materialized link-gate:default-transition; (2) invalid transition_concern_evidence must HOLD at the source boundary and must not copy any raw proposed target into immediate_target_ref/target_brick/pending_target_ref; (3) pending target may point to a non-source target only with declared plan target plus valid concern/adopted disposition basis; (4) HOLD/pause wording must not be treated as Link Movement; (5) add focused negative probes for missing declared_gate_refs and invalid concern target shaping; (6) inspect/cover portfolio adoption declared_gate_refs and walker_carry coverage as either closed by focused probes or explicit not_proven. Likely surfaces: support/operator/plan_validation.py, support/operator/walker_transition_concern.py, support/operator/driver.py, and support/checkers profiles/lib. Run focused profile(s), py_compile changed Python, git diff --check, and check_profile.py --all if feasible. Return changed files, exact command rc outcomes, and not_proven.\n\nSTRICT SCOPE: phase:P5 only. Do not broaden into P6-P9, release/dashboard/provider/pytest honesty, raw scrub, post-HOLD resume isolation, P3 return-shape, or P4 AgentFact intake except as cited support evidence. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD/pause is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-work-to-code-qa",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/plan_validation.py",
+          "support/operator/walker_transition_concern.py",
+          "support/operator/walker_hold.py",
+          "support/operator/driver.py",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p5-link-declaration-concern-safety-0701b-code-qa",
+      "step_ref": "brick-6-p5-link-declaration-concern-safety-0701b-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Codex code attack QA. Inspect the P5 diff and run focused checks. Negative attacks: a raw active plan Link row without declared_gate_refs must fail validation; an invalid transition_concern_evidence carrying a resolvable proposed target must not create HOLD pending_target_ref for that target; valid/adopted concern routing still works where already declared; portfolio adoption missing gate basis is rejected or explicitly recorded not_proven. QA source mutation is forbidden except probe_write fixtures. If implementation_gap remains, return local non-binding concern targeting work.\n\nSTRICT SCOPE: phase:P5 only. Do not broaden into P6-P9, release/dashboard/provider/pytest honesty, raw scrub, post-HOLD resume isolation, P3 return-shape, or P4 AgentFact intake except as cited support evidence. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD/pause is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-code-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/plan_validation.py",
+          "support/operator/walker_transition_concern.py",
+          "support/operator/walker_hold.py",
+          "support/operator/driver.py",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p5-link-declaration-concern-safety-0701b-axis-qa",
+      "step_ref": "brick-6-p5-link-declaration-concern-safety-0701b-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Claude-local axis QA. Verify attribution: Brick owns the Building Plan rows and source work contract; Agent owns non-binding transition_concern_evidence only; Link owns gate declaration, Movement, pending target, and disposition basis; support does not invent undeclared GateFacts, target selectors, success/quality, or Movement. Confirm invalid concerns HOLD at source and missing gate refs do not silently become runtime adoption. QA source mutation is forbidden except probe_write fixtures.\n\nSTRICT SCOPE: phase:P5 only. Do not broaden into P6-P9, release/dashboard/provider/pytest honesty, raw scrub, post-HOLD resume isolation, P3 return-shape, or P4 AgentFact intake except as cited support evidence. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD/pause is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:claude-local",
+      "selected_model_ref": "model:claude:inherit",
+      "completion_edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-axis-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/plan_validation.py",
+          "support/operator/walker_transition_concern.py",
+          "support/operator/walker_hold.py",
+          "support/operator/driver.py",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p5-link-declaration-concern-safety-0701b-evidence-qa",
+      "step_ref": "brick-6-p5-link-declaration-concern-safety-0701b-evidence-qa",
+      "step_template_ref": "building-step-template:evidence-integrity",
+      "node_reroute_budget": 1,
+      "work_statement": "Codex evidence-integrity QA. Verify the evidence chain: P5 phase/audit refs were used; changed files match declared P5 scope; focused checker/profile, check_profile.py --all, diff, and py_compile outcomes are present or explicitly not_proven; QA concerns are carried into closure and not swallowed; carry/portfolio ADD-5/ADD-14/ADD-20 are closed or explicitly not_proven. Do not source-mutate.\n\nSTRICT SCOPE: phase:P5 only. Do not broaden into P6-P9, release/dashboard/provider/pytest honesty, raw scrub, post-HOLD resume isolation, P3 return-shape, or P4 AgentFact intake except as cited support evidence. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD/pause is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-evidence-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/plan_validation.py",
+          "support/operator/walker_transition_concern.py",
+          "support/operator/walker_hold.py",
+          "support/operator/driver.py",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p5-link-declaration-concern-safety-0701b-closure",
+      "step_ref": "brick-6-p5-link-declaration-concern-safety-0701b-closure",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Final P5 closure. Fan in work plus all QA bodies. Report observed_evidence / narrowly_proven / not_proven / remaining_delta / parent_goal_delta_status / next_target_candidates. Specifically classify P5 done condition: declared_gate_refs absence/default and invalid concern pending target negative probes green; pending target requires declared plan + valid concern + adopted disposition basis; HOLD/pause is not Movement; carry/portfolio coverage gap is closed or explicitly not_proven. If any implementation/boundary/evidence gap remains, return Link-facing transition_concern_evidence targeting the work node. Do not claim whole goal/customer-ready complete.\n\nSTRICT SCOPE: phase:P5 only. Do not broaden into P6-P9, release/dashboard/provider/pytest honesty, raw scrub, post-HOLD resume isolation, P3 return-shape, or P4 AgentFact intake except as cited support evidence. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD/pause is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "closure_transition_target_policy": {
+        "implementation_gap": {
+          "action": "target",
+          "target_ref": "brick-6-p5-link-declaration-concern-safety-0701b-work"
+        },
+        "boundary_mismatch": {
+          "action": "target",
+          "target_ref": "brick-6-p5-link-declaration-concern-safety-0701b-work"
+        },
+        "design_gap": {
+          "action": "target",
+          "target_ref": "brick-6-p5-link-declaration-concern-safety-0701b-design-synthesis"
+        },
+        "insufficient_input": {
+          "action": "target",
+          "target_ref": "brick-6-p5-link-declaration-concern-safety-0701b-work"
+        },
+        "verification_gap": {
+          "action": "hold"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-intake-split-to-design-codex",
+      "source": "brick-6-p5-link-declaration-concern-safety-0701b-intake-split",
+      "target": "brick-6-p5-link-declaration-concern-safety-0701b-design-codex",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-intake-split-to-design-claude",
+      "source": "brick-6-p5-link-declaration-concern-safety-0701b-intake-split",
+      "target": "brick-6-p5-link-declaration-concern-safety-0701b-design-claude",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-design-codex-to-design-synthesis",
+      "source": "brick-6-p5-link-declaration-concern-safety-0701b-design-codex",
+      "target": "brick-6-p5-link-declaration-concern-safety-0701b-design-synthesis",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-design-claude-to-design-synthesis",
+      "source": "brick-6-p5-link-declaration-concern-safety-0701b-design-claude",
+      "target": "brick-6-p5-link-declaration-concern-safety-0701b-design-synthesis",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-design-synthesis-to-design-qa",
+      "source": "brick-6-p5-link-declaration-concern-safety-0701b-design-synthesis",
+      "target": "brick-6-p5-link-declaration-concern-safety-0701b-design-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-design-qa-to-work",
+      "source": "brick-6-p5-link-declaration-concern-safety-0701b-design-qa",
+      "target": "brick-6-p5-link-declaration-concern-safety-0701b-work",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-work-to-code-qa",
+      "source": "brick-6-p5-link-declaration-concern-safety-0701b-work",
+      "target": "brick-6-p5-link-declaration-concern-safety-0701b-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-work-to-axis-qa",
+      "source": "brick-6-p5-link-declaration-concern-safety-0701b-work",
+      "target": "brick-6-p5-link-declaration-concern-safety-0701b-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-work-to-evidence-qa",
+      "source": "brick-6-p5-link-declaration-concern-safety-0701b-work",
+      "target": "brick-6-p5-link-declaration-concern-safety-0701b-evidence-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-code-qa-to-closure",
+      "source": "brick-6-p5-link-declaration-concern-safety-0701b-code-qa",
+      "target": "brick-6-p5-link-declaration-concern-safety-0701b-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-axis-qa-to-closure",
+      "source": "brick-6-p5-link-declaration-concern-safety-0701b-axis-qa",
+      "target": "brick-6-p5-link-declaration-concern-safety-0701b-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-evidence-qa-to-closure",
+      "source": "brick-6-p5-link-declaration-concern-safety-0701b-evidence-qa",
+      "target": "brick-6-p5-link-declaration-concern-safety-0701b-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p5-link-declaration-concern-safety-0701b-closure-to-boundary",
+      "source": "brick-6-p5-link-declaration-concern-safety-0701b-closure",
+      "target": "building-boundary:brick-6-p5-link-declaration-concern-safety-0701b-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:brick-6-p5-link-declaration-concern-safety-0701b-design-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p5-link-declaration-concern-safety-0701b-intake-split-to-design-codex",
+        "edge:brick-6-p5-link-declaration-concern-safety-0701b-intake-split-to-design-claude"
+      ]
+    },
+    {
+      "group_id": "group:brick-6-p5-link-declaration-concern-safety-0701b-design-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p5-link-declaration-concern-safety-0701b-design-codex-to-design-synthesis",
+        "edge:brick-6-p5-link-declaration-concern-safety-0701b-design-claude-to-design-synthesis"
+      ],
+      "fan_in_target_ref": "brick-6-p5-link-declaration-concern-safety-0701b-design-synthesis",
+      "fan_in_policy": "wait_all_before_closure"
+    },
+    {
+      "group_id": "group:brick-6-p5-link-declaration-concern-safety-0701b-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p5-link-declaration-concern-safety-0701b-work-to-code-qa",
+        "edge:brick-6-p5-link-declaration-concern-safety-0701b-work-to-axis-qa",
+        "edge:brick-6-p5-link-declaration-concern-safety-0701b-work-to-evidence-qa"
+      ]
+    },
+    {
+      "group_id": "group:brick-6-p5-link-declaration-concern-safety-0701b-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p5-link-declaration-concern-safety-0701b-code-qa-to-closure",
+        "edge:brick-6-p5-link-declaration-concern-safety-0701b-axis-qa-to-closure",
+        "edge:brick-6-p5-link-declaration-concern-safety-0701b-evidence-qa-to-closure"
+      ],
+      "fan_in_target_ref": "brick-6-p5-link-declaration-concern-safety-0701b-closure",
+      "fan_in_policy": "wait_all_before_closure"
+    }
+  ],
+  "source_evidence_refs": [
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-repair-p5-link-declaration-concern-safety-0630.md",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-final-synthesis-0630.md#C3-C4",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-s3-link-axis-0630.md#S3-F1-S3-F3",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-s5-checker-system-0630.md#S5-F3",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-final-coverage-matrix-0630.md#ADD-5-ADD-14-ADD-20",
+    "/Users/smith/.brick/project/brick-protocol/buildings/brick-6-p5-link-declaration-concern-safety-0701a (interrupted partial run after design-synthesis; Gemini design-QA adapter stall)"
+  ],
+  "proof_limits": [
+    "official build evidence is support evidence only",
+    "P5 closure does not prove P6-P9 or customer-ready whole goal",
+    "multi-adapter execution does not prove provider semantic quality or repeated reliability",
+    "checker green is support evidence only",
+    "0701b uses Codex+Claude multi-adapter only; Gemini semantic review remains not_proven for this rerun"
+  ],
+  "not_proven": [
+    "fresh-machine customer proof",
+    "real provider repeated reliability",
+    "whole customer-ready closeout",
+    "semantic completeness of all future transition concern or portfolio adoption patterns",
+    "Gemini design/axis review for P5 after 0701a adapter stall"
+  ]
+}
