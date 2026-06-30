@@ -1,0 +1,244 @@
+{
+  "task_statement": "P6 of BRICK 6-surface audit repair: verification surface honesty. Remove/correct misleading pytest surface, fix stale profile-count docs, add checker/pin against false-green verification declarations, and prove focused profile and check_profile.py --all agree through official brick build graph route.",
+  "declared_by": "coo",
+  "building_id": "brick-6-p6-verification-surface-honesty-0701a",
+  "selected_shape_ref": "shape:manual-verification-surface-honesty-p6",
+  "selection_rule": "manual graph because P6 is a verification/product-doc/checker boundary repair that must preserve support evidence limits and cannot be reduced to a preset.",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "brick-6-p6-verification-surface-honesty-0701a-design",
+      "step_ref": "brick-6-p6-verification-surface-honesty-0701a-design",
+      "step_template_ref": "building-step-template:design",
+      "node_reroute_budget": 1,
+      "work_statement": "Design P6 verification-surface honesty repair from the P6 phase doc and audit refs. Derive exact implementation scope for misleading pytest/test surface, stale profile-count docs, false-green negative probe, focused-vs---all agreement, and not_proven/proof-limit reporting. Return design only.\n\nSTRICT SCOPE: phase:P6 verification-surface honesty only. Do not broaden into P7 product-route/Easy Building, P8 ship safety, P9 dynamic proof, provider reliability, release/dashboard hardening, or fresh-machine proof. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute; HOLD/pause is lifecycle. QA lanes may inspect and run probe_write fixtures only; no QA source mutation. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p6-verification-surface-honesty-0701a-design-to-work"
+    },
+    {
+      "node_id": "brick-6-p6-verification-surface-honesty-0701a-work",
+      "step_ref": "brick-6-p6-verification-surface-honesty-0701a-work",
+      "step_template_ref": "building-step-template:work",
+      "node_reroute_budget": 1,
+      "work_statement": "Implement P6 verification-surface honesty. Required outcomes: (1) pyproject no longer declares pytest as if support/checkers were a pytest suite unless a real pytest wrapper exists; preferred repair is to remove the misleading tool.pytest.ini_options/testpaths support/checkers declaration and document that BRICK verification is brick verify / check_profile.py. (2) Add a checker-first negative probe/pin so the misleading pytest declaration cannot silently return: likely brick_cli_entrypoint profile text_absent and/or kernel check observation. (3) Fix stale profile-count docs: setup.md and checker-profile-map.md must not hard-pin 24/28; use measurement command and current measured observation if useful. (4) Run focused profile(s), py_compile changed Python, git diff --check, and check_profile.py --all. Return changed_files, command rc outcomes, and not_proven.\n\nSTRICT SCOPE: phase:P6 verification-surface honesty only. Do not broaden into P7 product-route/Easy Building, P8 ship safety, P9 dynamic proof, provider reliability, release/dashboard hardening, or fresh-machine proof. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute; HOLD/pause is lifecycle. QA lanes may inspect and run probe_write fixtures only; no QA source mutation. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p6-verification-surface-honesty-0701a-work-to-code-qa",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "pyproject.toml",
+          "support/docs/references/setup.md",
+          "support/docs/references/checker-profile-map.md",
+          "support/checkers/lib/kernel_checks.py",
+          "support/checkers/profiles/brick_cli_entrypoint.yaml",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/operator/**",
+          "support/connection/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p6-verification-surface-honesty-0701a-code-qa",
+      "step_ref": "brick-6-p6-verification-surface-honesty-0701a-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Code attack QA for P6. Verify pyproject no longer advertises support/checkers as a pytest suite, the negative probe catches reintroduction of tool.pytest.ini_options/testpaths support/checkers, docs do not contain stale fixed 24/28 profile claims as active truth, focused profile and --all agree, and changed files are inside P6 scope. Probe_write only. Return local concern targeting work if implementation_gap remains.\n\nSTRICT SCOPE: phase:P6 verification-surface honesty only. Do not broaden into P7 product-route/Easy Building, P8 ship safety, P9 dynamic proof, provider reliability, release/dashboard hardening, or fresh-machine proof. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute; HOLD/pause is lifecycle. QA lanes may inspect and run probe_write fixtures only; no QA source mutation. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p6-verification-surface-honesty-0701a-code-qa-to-axis-qa",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "pyproject.toml",
+          "support/docs/references/setup.md",
+          "support/docs/references/checker-profile-map.md",
+          "support/checkers/lib/kernel_checks.py",
+          "support/checkers/profiles/brick_cli_entrypoint.yaml",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/operator/**",
+          "support/connection/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p6-verification-surface-honesty-0701a-axis-qa",
+      "step_ref": "brick-6-p6-verification-surface-honesty-0701a-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Axis QA for P6. Verify Brick owns checker/profile work contracts, Agent only returns support evidence, Link Movement is not inferred from checker green, and support checker/docs do not become source truth/success/quality/Movement authority. Check that pytest/test surface honesty is framed as support verification, not product success. Probe_write only.\n\nSTRICT SCOPE: phase:P6 verification-surface honesty only. Do not broaden into P7 product-route/Easy Building, P8 ship safety, P9 dynamic proof, provider reliability, release/dashboard hardening, or fresh-machine proof. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute; HOLD/pause is lifecycle. QA lanes may inspect and run probe_write fixtures only; no QA source mutation. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p6-verification-surface-honesty-0701a-axis-qa-to-evidence-qa",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "pyproject.toml",
+          "support/docs/references/setup.md",
+          "support/docs/references/checker-profile-map.md",
+          "support/checkers/lib/kernel_checks.py",
+          "support/checkers/profiles/brick_cli_entrypoint.yaml",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/operator/**",
+          "support/connection/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p6-verification-surface-honesty-0701a-evidence-qa",
+      "step_ref": "brick-6-p6-verification-surface-honesty-0701a-evidence-qa",
+      "step_template_ref": "building-step-template:evidence-integrity",
+      "node_reroute_budget": 1,
+      "work_statement": "Evidence integrity QA for P6. Verify source audit docs were used; changed files/diff match P6 scope; focused profile, check_profile.py --all, py_compile, and diff-check evidence are recorded or explicit not_proven; stale profile-count docs are fixed or recorded; no unsupported claim that checker green equals customer-ready. Probe_write only.\n\nSTRICT SCOPE: phase:P6 verification-surface honesty only. Do not broaden into P7 product-route/Easy Building, P8 ship safety, P9 dynamic proof, provider reliability, release/dashboard hardening, or fresh-machine proof. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute; HOLD/pause is lifecycle. QA lanes may inspect and run probe_write fixtures only; no QA source mutation. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p6-verification-surface-honesty-0701a-evidence-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "pyproject.toml",
+          "support/docs/references/setup.md",
+          "support/docs/references/checker-profile-map.md",
+          "support/checkers/lib/kernel_checks.py",
+          "support/checkers/profiles/brick_cli_entrypoint.yaml",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/operator/**",
+          "support/connection/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p6-verification-surface-honesty-0701a-closure",
+      "step_ref": "brick-6-p6-verification-surface-honesty-0701a-closure",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Final P6 closure. Fan in work and QA bodies. Report observed_evidence / narrowly_proven / not_proven / remaining_delta / parent_goal_delta_status / next_target_candidates. P6 done condition: false pytest/checker surface removed or honestly wired; negative probe/pin prevents reintroduction; focused profile and check_profile.py --all agree; stale profile-count docs fixed or explicitly not_proven. If implementation/boundary/evidence gap remains, return Link-facing transition_concern_evidence targeting work. Do not claim whole goal/customer-ready complete.\n\nSTRICT SCOPE: phase:P6 verification-surface honesty only. Do not broaden into P7 product-route/Easy Building, P8 ship safety, P9 dynamic proof, provider reliability, release/dashboard hardening, or fresh-machine proof. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute; HOLD/pause is lifecycle. QA lanes may inspect and run probe_write fixtures only; no QA source mutation. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "closure_transition_target_policy": {
+        "implementation_gap": {
+          "action": "target",
+          "target_ref": "brick-6-p6-verification-surface-honesty-0701a-work"
+        },
+        "boundary_mismatch": {
+          "action": "target",
+          "target_ref": "brick-6-p6-verification-surface-honesty-0701a-work"
+        },
+        "verification_gap": {
+          "action": "hold"
+        },
+        "insufficient_input": {
+          "action": "target",
+          "target_ref": "brick-6-p6-verification-surface-honesty-0701a-work"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:brick-6-p6-verification-surface-honesty-0701a-design-to-work",
+      "source": "brick-6-p6-verification-surface-honesty-0701a-design",
+      "target": "brick-6-p6-verification-surface-honesty-0701a-work",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p6-verification-surface-honesty-0701a-work-to-code-qa",
+      "source": "brick-6-p6-verification-surface-honesty-0701a-work",
+      "target": "brick-6-p6-verification-surface-honesty-0701a-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p6-verification-surface-honesty-0701a-code-qa-to-axis-qa",
+      "source": "brick-6-p6-verification-surface-honesty-0701a-code-qa",
+      "target": "brick-6-p6-verification-surface-honesty-0701a-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p6-verification-surface-honesty-0701a-axis-qa-to-evidence-qa",
+      "source": "brick-6-p6-verification-surface-honesty-0701a-axis-qa",
+      "target": "brick-6-p6-verification-surface-honesty-0701a-evidence-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p6-verification-surface-honesty-0701a-evidence-qa-to-closure",
+      "source": "brick-6-p6-verification-surface-honesty-0701a-evidence-qa",
+      "target": "brick-6-p6-verification-surface-honesty-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p6-verification-surface-honesty-0701a-closure-to-boundary",
+      "source": "brick-6-p6-verification-surface-honesty-0701a-closure",
+      "target": "building-boundary:brick-6-p6-verification-surface-honesty-0701a-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [],
+  "source_evidence_refs": [
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-repair-p6-verification-surface-honesty-0701.md",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-final-synthesis-0630.md#C17",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-s5-checker-system-0630.md#S5-F4-S5-F6",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-final-coverage-matrix-0630.md#ADD-3-ADD-10-ADD-13"
+  ],
+  "proof_limits": [
+    "official build evidence is support evidence only",
+    "P6 closure does not prove P7-P9 or customer-ready whole goal",
+    "checker green is support evidence only"
+  ],
+  "not_proven": [
+    "fresh-machine customer proof",
+    "real provider repeated reliability",
+    "whole customer-ready closeout",
+    "CI/branch protection release gate"
+  ]
+}
