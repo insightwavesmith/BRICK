@@ -313,3 +313,13 @@ Latest live frontier for `g3-onboard-smoke-leaf-0630`: agent_incomplete, no
 sandbox commit. Do not integrate. Next action = either re-fire with provider health
 confirmed or route a focused diagnostic Building on adapter/worktree visibility.
 ```
+
+
+## Update — onboard_smoke leaf completed (0630)
+
+```text
+g3-onboard-smoke-leaf-0630b reached frontier=complete and produced sandbox commit aa8dbccc204e5a1b8705ce36913193f9f219df0b.
+Integrated onboard_smoke leaf into main: support/checkers/lib/onboard_smoke_check.py new sibling, kernel_checks.py 11017 -> 10814.
+COO verification: byte-identical, dispatch identity, mutation-RED, focused building_operator_driver0 PASS, REAL HOME --all 28/0.
+Earlier g3-onboard-smoke-leaf-0630 paused/incomplete attempts remain evidence only and were not integrated.
+```

@@ -30,9 +30,9 @@ must be matched to the requirement it covers.
 | G2.4 | Provider-free first-run docs honestly describe possible `agent_incomplete`/`not_ready`. | `customer-ready-g2-fresh-export-cli-smoke-0630.md` corrected README/quickstart/launch-guide. | narrowly_proven as docs |
 | G2.5 | Real provider-backed fresh export build reaches `frontier_kind=complete`. | Not re-run after closeout docs/G3 commits. | not_proven |
 | G2.6 | Full customer comprehension / first-run UX validated by a fresh reader. | No customer comprehension run. | not_proven |
-| G3.1 | Godmodules shrink without new axes/runtimes/judges. | Three kernel_checks leaves moved to flat checker-lib siblings: no_smith_residue, install_release_export_lint, provider_preflight. Registry rows have no crossings/axis imports. Latest leaf was produced by main-agent-fired Building `g3-provider-preflight-leaf-0630`. | narrowly_proven for three leaves |
-| G3.2 | Every G3 leaf uses conservation ledger, byte-identical where possible, mutation-RED, compile/checker/REAL HOME gates. | no_smith_residue proof + install/release proof + provider_preflight proof satisfy this. Latest proof: `customer-ready-final-architecture-provider-preflight-proof-0630.md`, REAL HOME --all rc=0 / 28 profiles. | narrowly_proven for three leaves |
-| G3.3 | `kernel_checks.py` no longer remains largest godmodule or remaining debt is accepted by declared stop condition. | Live LOC after three leaves: `kernel_checks.py` 11017; no stop condition declared. | not_proven |
+| G3.1 | Godmodules shrink without new axes/runtimes/judges. | Four kernel_checks leaves moved to flat checker-lib siblings: no_smith_residue, install_release_export_lint, provider_preflight, onboard_smoke. Registry rows have no crossings/axis imports. Latest leaf was produced by main-agent-fired Building `g3-provider-preflight-leaf-0630`. | narrowly_proven for three leaves |
+| G3.2 | Every G3 leaf uses conservation ledger, byte-identical where possible, mutation-RED, compile/checker/REAL HOME gates. | no_smith_residue proof + install/release proof + provider_preflight proof + onboard_smoke proof satisfy this. Latest proof: `customer-ready-final-architecture-provider-preflight-proof-0630.md`, REAL HOME --all rc=0 / 28 profiles. | narrowly_proven for three leaves |
+| G3.3 | `kernel_checks.py` no longer remains largest godmodule or remaining debt is accepted by declared stop condition. | Live LOC after four leaves: `kernel_checks.py` 10814; no stop condition declared. | not_proven |
 | G3.4 | FINAL architecture cleanup stop condition declared with Smith/COO. | Not declared. | not_proven |
 | C1 | `main = origin/main`, worktree clean, final closeout record written before goal complete. | Current main is ahead of origin; goal still active. | not_proven / incomplete |
 | C2 | REAL HOME `check_profile.py --all` GREEN before closeout. | Latest G3 leaf proof measured rc=0 / 28 profiles; must be re-run at final close. | currently_green, not final proof |
@@ -59,7 +59,7 @@ must be matched to the requirement it covers.
 ```text
 G1 = partial/narrow: route/reroute n2 proven, deep cascade + customer comprehension not_proven.
 G2 = stronger after parity proof: export exclusion/literal/deterministic payload proven, provider-backed complete build + comprehension not_proven.
-G3 = partial/narrow: three leaves proven (latest provider_preflight via main-agent fire(graph), parallel fan-out confirmed), kernel_checks still largest + stop condition not_proven.
+G3 = partial/narrow: four leaves proven (latest onboard_smoke via main-agent fire(graph)), kernel_checks still large/largest + stop condition not_proven.
 Goal = ACTIVE, not complete.
 ```
 

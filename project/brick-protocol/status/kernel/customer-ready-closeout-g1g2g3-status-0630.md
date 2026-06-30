@@ -170,11 +170,11 @@ G1 = engine route/reroute behavior PROVEN green on main; remaining = no-link
      bug flags are STALE.
 G2 = export literal/structure + deterministic payload parity CLEAN; remaining =
      provider-backed fresh build to complete + customer comprehension.
-G3 = three kernel_checks.py leaves LANDED (no_smith_residue, install/release-export
-     lint, provider_preflight). Latest leaf was produced by real main-agent
-     fire(graph) Building `g3-provider-preflight-leaf-0630`, frontier=complete,
-     commit 3ec6502 integrated at 1486bb8; fan-out parallelism confirmed by
-     controlled same-shape timing probe. Remaining = more leaves + STOP CONDITION.
+G3 = four kernel_checks.py leaves LANDED (no_smith_residue, install/release-export
+     lint, provider_preflight, onboard_smoke). Latest complete leaf was produced
+     by real main-agent fire(graph) Building `g3-onboard-smoke-leaf-0630b`,
+     frontier=complete, commit aa8dbcc integrated. Remaining = STOP CONDITION +
+     any accepted/remaining godmodule debt.
 ```
 
 This is forward measurement, not closeout. The goal stays ACTIVE.
