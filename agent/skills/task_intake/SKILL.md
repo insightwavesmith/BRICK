@@ -321,6 +321,11 @@ name graph_movement_case_analysis and graph_movement_case_candidates when the
   conflicting_reroute_targets
   insufficient_evidence_hold
   reroute_to_work_full_replay
+name no-link / materialized-forward distinction for G1 route-default policy:
+  user does not author Link rows at the compact surface; support materializes
+  forward Link rows by default; reroute/HOLD requires concern evidence plus a
+  declared or adopted route policy. Do not call an all-forward graph a
+  route-default proof.
 name fan_out_candidate when one Brick boundary declares multiple outgoing lanes
 name fan_in_first_candidate and fan_in_policy_candidate as fan-in-first when
   all declared QA bodies and verification lanes must be collected before

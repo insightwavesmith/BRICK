@@ -298,6 +298,12 @@ conflicting_reroute_targets
 insufficient_evidence_hold
 reroute_to_work_full_replay
 ```
+G1 no-link/default-forward distinction: compact authoring can hide Link rows from the
+user, but it does not make reroute the default Movement. Support materializes
+forward edges unless a convergence `route=` mark, declared route policy, or
+adopted closure concern gives Link/COO a reroute/HOLD basis. For hard fan-in QA,
+QA lanes return observations; closure-synthesis is the sole Link-facing concern
+source.
 
 Ordinary non-hard graph branches may return non-binding transition concerns only
 when their Brick return shape declares `transition_concern_evidence`. In hard fan-in QA cohorts,

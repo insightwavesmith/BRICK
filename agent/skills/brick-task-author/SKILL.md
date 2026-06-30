@@ -157,6 +157,33 @@ P3의 기본 목표는 “쉽게 그린다”다. task interview가 끝났으면
 task_intake → task.md 후보 확인 → build([... fan([...]) ...]) → fire(graph, task=..., building_id=...)
 ```
 
+## G1 no-link / route-default 정책 (0630 closeout)
+
+사용자·COO 표면에서는 **Link row를 직접 쓰지 않는 것**이 맞다. 그러나 이것은
+"모든 edge가 자동 route"라는 뜻이 아니다. 현재 compact `build()`/`fan()`은 인접 edge를
+materialize할 때 기본 `movement="forward"`를 만든다. 즉:
+
+```text
+사용자 표면: Link row 안 씀
+support materializer: Link row를 만든다
+기본 Movement: forward = 선언된 길을 계속 감
+reroute/HOLD: concern evidence + 선언/채택된 route policy가 있을 때만
+```
+
+따라서 QA/closure가 blocker를 낼 수 있는 fan-in 그래프를 짤 때는 decorative all-forward
+그래프로 끝냈다고 route-default를 증명했다고 말하지 마라. 필요한 모양은:
+
+```text
+work/design → fan(QA lanes) → closure-synthesis
+closure-synthesis만 Link-facing transition_concern_evidence를 반환
+Link/COO가 declared policy(route-policy:qa-basic-repair 등)나 convergence route= mark를 보고
+forward / reroute / HOLD 중 하나를 채택
+```
+
+hard fan-in QA에서는 QA lane이 직접 Movement를 고르지 않는다. QA는 자기 관찰을 반환하고,
+closure가 concern evidence를 종합한다. ambiguous / conflicting / unresolvable / budget-exhausted는
+forward가 아니라 HOLD 후보로 보고한다.
+
 쓰기 작업이면 compact graph와 발사 인자가 둘 다 필요하다(0630 smoke 실측):
 
 ```python

@@ -155,9 +155,11 @@ model review alone
 ### G1 live status (0630, main ca79c12)
 Engine route/reroute behavior MEASURED GREEN: `building-operator-driver0`
 `live_qa_reroute_to_work_n2` passes (fan-in QA concern -> Link reroute -> work
-replay -> closure). The 0629 "#1/#3 수리 중" bug flags are STALE. Remaining G1 =
-no-link DEFAULT policy + customer docs/skills, NOT engine repair. Evidence:
-`customer-ready-closeout-g1g2g3-status-0630.md`.
+replay -> closure). The 0629 "#1/#3 수리 중" bug flags are STALE.
+No-link DEFAULT policy was then synced into the building-running skill chain;
+remaining G1 = deep L2 cascade replay + customer comprehension, NOT engine repair.
+Evidence: `customer-ready-closeout-g1g2g3-status-0630.md` and
+`customer-ready-g1-no-link-policy-docs-skill-sync-0630.md`.
 
 ## 4. Track G2 — customer release pruning finalization
 

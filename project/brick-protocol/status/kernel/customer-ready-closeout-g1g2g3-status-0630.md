@@ -52,19 +52,17 @@ graph, a QA concern is emitted, Link adopts it as a reroute, the walker replays
 work" is live and green on main. The two bugs that blocked it are no longer
 reproducing.
 
-NOT proven / remaining G1 work (this is now POLICY + DOCS, not engine repair):
+G1 policy-doc follow-up landed as operator-maintenance candidate:
+`customer-ready-g1-no-link-policy-docs-skill-sync-0630.md` updates the customer/operator skill chain so it teaches the no-link/materialized-forward distinction.
+
+NOT proven / remaining G1 work after that docs/skill sync:
 
 ```text
-- No-link DEFAULT story: forward is still the materialized default
-  (assembly.py EdgeSpec.movement="forward"); route/HOLD requires either a
-  declared route policy (yaml) or surface reroute()/hold() marks. The decision
-  "should an undeclared QA fan-in auto-treat concerns as route/HOLD candidates"
-  must be stated as declared policy + docs/skills, not inferred.
-- Docs/skills must teach: user does not write Link rows; support materializes
-  forward by default; reroute/HOLD needs concern evidence + declared/adopted
-  policy. This is the remaining customer-facing G1 deliverable.
-- L2 (replay_steps actually walking in deeper fan-in cascade) beyond the n2
-  single-reroute case remains the conservative not_proven item from the 0629 doc.
+- Deep L2 cascade replay beyond the measured n2 single-reroute case remains
+  not_proven.
+- Fresh customer reading-comprehension of the updated docs/skills is not proven.
+- The docs/skill sync was direct operator maintenance, not a Building-produced
+  patch; next implementation slice should return to Building-first operation.
 ```
 
 ## G2 customer release pruning — export MEASURED CLEAN

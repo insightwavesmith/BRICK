@@ -41,6 +41,7 @@ description: BRICK 빌딩 사이징 — 일의 크기/모양을 그래프 모양
 | **3. 의존 ⇒ 세로** | `build()` 척추 순서 | 인접 N→N+1 이 **곧 forward edge이자 데이터 운반**(`_auto_declare_chained_carry`). 운영자는 edge·id·carry를 안 쓴다. |
 | **4. 저신뢰 ⇒ 검증 렌즈** | 리뷰어 KIND 노드 (`review`/`inspect`/`code-attack-qa`/`axis-attack-qa`/`evidence-integrity`), 보통 fan → `closure` | `QA`를 한 덩어리로 고르지 말고 렌즈를 고른다: 코드 정확성/회귀=`code-attack-qa`; Brick/Agent/Link 권위 경계=`axis-attack-qa`; 증거 루트/증명 한계=`evidence-integrity`; 읽기전용 반환/근거 대조=`review`; 읽기전용 구조/정책 점검=`inspect`. 고신뢰=**0**렌즈(`design→work→closure`); 중신뢰=**1**렌즈; 저신뢰/계약·정책·보안·권위를 건드리면=**2~3**렌즈 fan→closure. |
 | **5. 스케일 ⇒ 깊이/폭** | 두 레버 | (a) **모양 사다리**: 한-브릭 → `design+work+closure` → +검증 fan → 포트폴리오/부모-골. (b) **감독 다이얼**(`assemble()` 입력서): `gates=()` 완전 무인 vs `gates=("human-review",)` 머지 경계서 HOLD — 강한 요청을 사람 체크포인트로 올리는 빌딩 버전. |
+| **6. 재작업 가능성 ⇒ Link 정책** | `route=` / declared route policy / closure concern | `build()`/`fan()`의 기본 edge는 **forward**다. 사용자는 Link row를 직접 쓰지 않지만 support가 forward Link row를 materialize한다. blocker가 나올 수 있으면 QA fan 뒤에 closure-synthesis를 두고, closure만 Link-facing `transition_concern_evidence`를 반환하게 하며, Link/COO가 declared policy로 reroute/HOLD를 채택하게 만든다. |
 
 ## 큰 일 P3 기본형
 
