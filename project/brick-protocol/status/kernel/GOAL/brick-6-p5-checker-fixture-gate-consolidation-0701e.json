@@ -1,0 +1,133 @@
+{
+  "task_statement": "P5e broad checker fixture consolidation for mandatory declared_gate_refs after P5c production changes.",
+  "declared_by": "coo",
+  "building_id": "brick-6-p5-checker-fixture-gate-consolidation-0701e",
+  "selected_shape_ref": "shape:manual-checker-fixture-consolidation-p5",
+  "selection_rule": "manual narrow checker-fixture graph because P5d exposed a second out-of-scope fixture failure; this Building searches support/checkers fixtures for all ordinary Link rows that must explicitly declare default-transition.",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "brick-6-p5-checker-fixture-gate-consolidation-0701e-work",
+      "step_ref": "brick-6-p5-checker-fixture-gate-consolidation-0701e-work",
+      "step_template_ref": "building-step-template:work",
+      "node_reroute_budget": 1,
+      "work_statement": "Fix all checker fixture fallout from P5c mandatory declared_gate_refs. Current main includes P5c production changes. check_profile.py --all first failed in support/checkers/lib/adapter_capability_checks.py fixtures, then in support/checkers/lib/kernel_checks.py chat_session_park_seam fixtures, because synthetic Link rows omitted declared_gate_refs and now fail before their intended negative assertion. Update checker fixture plans only so ordinary synthetic Link rows explicitly declare [\"link-gate:default-transition\"] before testing unrelated adapter/chat/session/write-scope behavior. Preserve the deliberate missing-declared_gate_refs RED probes added by P5c; do not add gate refs to those negative controls. Search support/checkers for Link rows in generated plans that omit declared_gate_refs and would mask intended assertions. Run py_compile changed checker files, focused profiles agent_axis_behavioral/building_automation/bounded_agent_proposed_routing_loop/link_routing_behavioral as relevant, git diff --check, and check_profile.py --all. Return exact changed_files, command rc outcomes, and not_proven.\n\nSTRICT SCOPE: P5 checker fixture consolidation after mandatory declared_gate_refs. Do not change production Link/operator semantics. Do not weaken P5c plan_validation or invalid-concern source-HOLD behavior. Do not push. No ai-cli MCP/helpers/subagents. Movement vocabulary remains forward/reroute; HOLD is lifecycle. Checker green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p5-checker-fixture-gate-consolidation-0701e-work-to-code-qa",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/operator/**",
+          "support/connection/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p5-checker-fixture-gate-consolidation-0701e-code-qa",
+      "step_ref": "brick-6-p5-checker-fixture-gate-consolidation-0701e-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "QA P5e fixture consolidation. Verify changes are checker-fixture-only under support/checkers, not production operator/Link behavior. Confirm deliberate P5c missing declared_gate_refs RED probes remain intact, ordinary fixture plans now explicitly declare default-transition, and check_profile.py --all is green. Return concern targeting work if any failure remains.\n\nSTRICT SCOPE: P5 checker fixture consolidation after mandatory declared_gate_refs. Do not change production Link/operator semantics. Do not weaken P5c plan_validation or invalid-concern source-HOLD behavior. Do not push. No ai-cli MCP/helpers/subagents. Movement vocabulary remains forward/reroute; HOLD is lifecycle. Checker green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p5-checker-fixture-gate-consolidation-0701e-code-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/operator/**",
+          "support/connection/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p5-checker-fixture-gate-consolidation-0701e-closure",
+      "step_ref": "brick-6-p5-checker-fixture-gate-consolidation-0701e-closure",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Close P5e. Done condition: check_profile.py --all green on main+P5c+P5e diff; changed files in support/checkers/** only; no weakening of P5c production invariants. Report observed_evidence/narrowly_proven/not_proven/next_target_candidates. If gap remains, emit Link-facing concern targeting work.\n\nSTRICT SCOPE: P5 checker fixture consolidation after mandatory declared_gate_refs. Do not change production Link/operator semantics. Do not weaken P5c plan_validation or invalid-concern source-HOLD behavior. Do not push. No ai-cli MCP/helpers/subagents. Movement vocabulary remains forward/reroute; HOLD is lifecycle. Checker green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "closure_transition_target_policy": {
+        "implementation_gap": {
+          "action": "target",
+          "target_ref": "brick-6-p5-checker-fixture-gate-consolidation-0701e-work"
+        },
+        "verification_gap": {
+          "action": "hold"
+        },
+        "boundary_mismatch": {
+          "action": "target",
+          "target_ref": "brick-6-p5-checker-fixture-gate-consolidation-0701e-work"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:brick-6-p5-checker-fixture-gate-consolidation-0701e-work-to-code-qa",
+      "source": "brick-6-p5-checker-fixture-gate-consolidation-0701e-work",
+      "target": "brick-6-p5-checker-fixture-gate-consolidation-0701e-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p5-checker-fixture-gate-consolidation-0701e-code-qa-to-closure",
+      "source": "brick-6-p5-checker-fixture-gate-consolidation-0701e-code-qa",
+      "target": "brick-6-p5-checker-fixture-gate-consolidation-0701e-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p5-checker-fixture-gate-consolidation-0701e-closure-to-boundary",
+      "source": "brick-6-p5-checker-fixture-gate-consolidation-0701e-closure",
+      "target": "building-boundary:brick-6-p5-checker-fixture-gate-consolidation-0701e-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [],
+  "source_evidence_refs": [
+    "/tmp/p5c_all.log",
+    "/Users/smith/.brick/project/brick-protocol/buildings/brick-6-p5-link-gate-fixture-consolidation-0701d/work/step-outputs",
+    "support/checkers/lib/adapter_capability_checks.py",
+    "support/checkers/lib/kernel_checks.py"
+  ],
+  "proof_limits": [
+    "official build evidence is support evidence only",
+    "P5e fixture consolidation does not prove P6-P9 or customer-ready whole goal",
+    "checker green is support evidence only"
+  ],
+  "not_proven": [
+    "fresh-machine customer proof",
+    "real provider repeated reliability",
+    "whole customer-ready closeout"
+  ]
+}
