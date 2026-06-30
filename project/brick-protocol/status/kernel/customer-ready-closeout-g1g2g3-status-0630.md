@@ -91,16 +91,27 @@ zero `/Users/smith` / `insightwavesmith` literals outside the README allowance.
 Initial export commit IDs differed as expected and are outside the payload parity
 claim.
 
-NOT proven / remaining G2 work after that docs/measurement sync:
+G2 provider-backed frontier follow-up landed as operator measurement:
+`customer-ready-g2-provider-backed-frontier-proof-0630.md` runs a fresh release
+export from the current working tree, installs it, then runs the public CLI with
+`build --real-provider`. Result: `frontier_kind=complete`,
+`customer_visible_frontier_state=frontier_complete`, evidence root written, and
+Slack delivery observations recorded with `http_2xx` / `slack_ok_true` for the
+run's final `building_finished` event. This closes the named provider-backed
+frontier gap as support evidence only.
+
+NOT proven / remaining G2 caveats after provider-backed frontier proof:
 
 ```text
-- A real provider-backed fresh export build reaching frontier_kind=complete was
-  not re-run here.
-- Full customer comprehension remains not_proven.
+- Full independent customer reading-comprehension remains not_proven; only the
+  customer-visible CLI output fields were observed.
+- Future provider reliability remains not_proven.
 - `.git/` metadata byte parity is not asserted; only customer payload parity is
   narrowly_proven.
-- The docs/measurement sync and parity proof were direct operator measurements,
-  not Building-produced patches.
+- The source checkout was dirty when exported; this is current working-tree
+  evidence, not a clean-main release candidate.
+- The docs/measurement sync, parity proof, and provider-backed frontier proof
+  were direct operator measurements, not Building-produced patches.
 ```
 
 ## G3 FINAL architecture cleanup — current target re-measured
