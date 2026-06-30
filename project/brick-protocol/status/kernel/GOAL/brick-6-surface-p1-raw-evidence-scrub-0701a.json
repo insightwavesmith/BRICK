@@ -1,0 +1,174 @@
+{
+  "task_statement": "P1 raw evidence stream secret/PII scrub repair for the BRICK 6-surface audit repair goal. Use official build route only; preserve Brick/Agent/Link boundaries and support-evidence proof limits.",
+  "declared_by": "coo",
+  "building_id": "brick-6-p1-raw-evidence-scrub-0701a",
+  "selected_shape_ref": "building-shape:design-needed",
+  "selection_rule": "coo_declared_manual_graph_not_preset_only",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "brick-6-p1-raw-evidence-scrub-0701a-design",
+      "step_ref": "brick-6-p1-raw-evidence-scrub-0701a-design",
+      "step_template_ref": "building-step-template:design",
+      "completion_edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701a-design-to-work",
+      "node_reroute_budget": 1,
+      "work_statement": "Design the P1 raw evidence stream secret/PII scrub repair from current evidence. Open the P1 phase doc and source audit docs. Inspect the active raw writer chain for raw/brick-work.jsonl, raw/agent-received.jsonl, raw/agent-return.jsonl, and raw/adapter-error.jsonl or the active equivalent. Decide block vs redact vs mark as a design proposal only. Return reading_scope_map, invariants, checker/verifier plan, and policy questions. Do not edit files.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "brick-6-p1-raw-evidence-scrub-0701a-work",
+      "step_ref": "brick-6-p1-raw-evidence-scrub-0701a-work",
+      "step_template_ref": "building-step-template:work",
+      "completion_edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701a-work-to-code-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Implement P1 only, using the design handoff. Repair raw evidence stream persistence so credential/secret/PII-looking payloads cannot silently enter raw BRICK JSONL streams. Add checker-first negative probes covering the active raw stream writer seams for at least raw/brick-work.jsonl, raw/agent-received.jsonl, raw/agent-return.jsonl, and raw/adapter-error.jsonl or active equivalent. Preserve Brick/Agent/Link boundaries: Support/evidence integrity only; no source truth, success judgment, quality judgment, Movement authority, scheduler/queue/retry, new axis, or broad product release/dashboard hardening. Preserve evidence refs, proof_limits, and not_proven when body detail is removed. Do not recursively ban ordinary nested words such as status/result in non-secret evidence. Run focused checks and git diff --check.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/recording/**",
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p1-raw-evidence-scrub-0701a-code-qa",
+      "step_ref": "brick-6-p1-raw-evidence-scrub-0701a-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "completion_edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701a-code-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Attack the P1 implementation. Build independent synthetic raw payload probes for API key/token-looking strings, private-key-like blocks, provider/session-body-like strings, and credential-looking env assignments. Drive real writer/checker surfaces, not only source search. Verify allowed non-secret evidence still persists with proof_limits and refs. Return observed failures/gaps without judging success or Movement.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "brick-6-p1-raw-evidence-scrub-0701a-axis-qa",
+      "step_ref": "brick-6-p1-raw-evidence-scrub-0701a-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "completion_edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701a-axis-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Attack the P1 implementation for Brick/Agent/Link boundary leakage. Verify the repair remains Support/evidence integrity and does not make Support own Brick work truth, Agent return truth, Link Movement, success, or quality. Confirm phase:P1 does not accidentally implement phase:P4 AgentFact authority-key closure or phase:P7 release/dashboard hardening.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "brick-6-p1-raw-evidence-scrub-0701a-evidence-qa",
+      "step_ref": "brick-6-p1-raw-evidence-scrub-0701a-evidence-qa",
+      "step_template_ref": "building-step-template:evidence-integrity",
+      "completion_edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701a-evidence-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Inspect the P1 evidence outputs and checker proofs. Verify persisted raw/claim/evidence outputs still carry useful refs, proof_limits, and not_proven after any block/redaction/mark behavior. Confirm negative probes cannot pass by simply dropping required raw evidence. Record stale-source or checker-overclaim risks.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "brick-6-p1-raw-evidence-scrub-0701a-closure",
+      "step_ref": "brick-6-p1-raw-evidence-scrub-0701a-closure",
+      "step_template_ref": "building-step-template:closure",
+      "completion_edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701a-closure-to-boundary",
+      "node_reroute_budget": 1,
+      "work_statement": "Close P1 from accumulated evidence only. Separate observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, next_target_candidates, deferred Smith/COO review queue, and transition_concern_evidence. Do not approve quality, choose Movement, or call the overall BRICK repair goal complete. State whether P1 is narrowly proven or HOLD with policy questions.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701a-design-to-work",
+      "source": "brick-6-p1-raw-evidence-scrub-0701a-design",
+      "target": "brick-6-p1-raw-evidence-scrub-0701a-work",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701a-work-to-code-qa",
+      "source": "brick-6-p1-raw-evidence-scrub-0701a-work",
+      "target": "brick-6-p1-raw-evidence-scrub-0701a-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701a-work-to-axis-qa",
+      "source": "brick-6-p1-raw-evidence-scrub-0701a-work",
+      "target": "brick-6-p1-raw-evidence-scrub-0701a-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701a-work-to-evidence-qa",
+      "source": "brick-6-p1-raw-evidence-scrub-0701a-work",
+      "target": "brick-6-p1-raw-evidence-scrub-0701a-evidence-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701a-code-qa-to-closure",
+      "source": "brick-6-p1-raw-evidence-scrub-0701a-code-qa",
+      "target": "brick-6-p1-raw-evidence-scrub-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701a-axis-qa-to-closure",
+      "source": "brick-6-p1-raw-evidence-scrub-0701a-axis-qa",
+      "target": "brick-6-p1-raw-evidence-scrub-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701a-evidence-qa-to-closure",
+      "source": "brick-6-p1-raw-evidence-scrub-0701a-evidence-qa",
+      "target": "brick-6-p1-raw-evidence-scrub-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701a-closure-to-boundary",
+      "source": "brick-6-p1-raw-evidence-scrub-0701a-closure",
+      "target": "building-boundary:brick-6-p1-raw-evidence-scrub-0701a-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:brick-6-p1-raw-evidence-scrub-0701a-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p1-raw-evidence-scrub-0701a-work-to-code-qa",
+        "edge:brick-6-p1-raw-evidence-scrub-0701a-work-to-axis-qa",
+        "edge:brick-6-p1-raw-evidence-scrub-0701a-work-to-evidence-qa"
+      ]
+    },
+    {
+      "group_id": "group:brick-6-p1-raw-evidence-scrub-0701a-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p1-raw-evidence-scrub-0701a-code-qa-to-closure",
+        "edge:brick-6-p1-raw-evidence-scrub-0701a-axis-qa-to-closure",
+        "edge:brick-6-p1-raw-evidence-scrub-0701a-evidence-qa-to-closure"
+      ]
+    }
+  ],
+  "proof_limits": [
+    "support graph packet declaration only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "not_proven": [
+    "P1 implementation",
+    "future Building outcome",
+    "provider quality",
+    "overall repair goal completion"
+  ]
+}
