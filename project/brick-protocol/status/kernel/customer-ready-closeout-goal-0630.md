@@ -98,6 +98,36 @@ Binding rules for this goal:
   until the goal is complete.
 ```
 
+## 0d. TOKEN-COST DISCIPLINE (binding goal element)
+
+Smith ruling (0630): the main agent must treat token budget as an operating
+resource. The largest avoidable token waste in this goal is broad reading of
+raw/evidence JSONL, full check logs, unbounded grep/find output, and long
+re-explanations after the same fact is already established.
+
+Binding rules for this goal:
+
+```text
+- Default evidence inspection = field extraction + short verdict.
+- Do NOT broadly cat raw/agent-return.jsonl, capture/events.jsonl, whole evidence
+  folders, or full check_profile logs unless debugging a concrete failure.
+- Use bounded commands by default: wc -c, tail -20/-40, jq/python field extraction,
+  grep for exact keys, and summarized rc/pass/failure counts.
+- check_profile --all output goes to /tmp/*.txt; report only rc, profile pass count,
+  failure marker count, and at most tail -2 unless failure requires more.
+- Polling Buildings should be fire-and-forget + thin frontier/result checks; do not
+  repeatedly print logs.
+- If a broad investigation or expensive evidence scan is useful, delegate it to a
+  Codex subagent / ai-cli (e.g. gpt-5.5 xhigh) and ask for a bounded summary.
+- Final reports default to compact: observed / narrowly_proven / not_proven / next.
+  Longer explanations only when Smith asks or when ambiguity would mislead.
+```
+
+Why this is in the goal: wasting the main thread on huge support logs makes the
+operator worse at the actual closeout work. Token-heavy support reading is not
+source truth, success judgment, quality judgment, or Movement authority; it is a
+last-resort debugging surface.
+
 ## 1. My role
 
 I am fugu-ultra, COO/operator in the Fugu orchestration system.
