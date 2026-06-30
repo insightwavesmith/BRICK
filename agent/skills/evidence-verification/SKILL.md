@@ -24,6 +24,18 @@ Graph projection = Brick execution instances, Agent bindings, Link edges, proof_
 Raw / claim_trace = the evidence plane used to resolve references and support later analysis
 ```
 
+## Token-Cost Discipline
+
+Use bounded evidence extraction by default:
+
+```text
+- Prefer plan/frontier/result fields, manifests, specific step-output refs, and exact raw row keys.
+- Avoid broad `cat raw/*.jsonl`, `grep -R raw capture`, or full evidence-folder dumps.
+- For check_profile.py --all, redirect output to /tmp and report only rc, passed count, failure-marker count, and tail -2 unless debugging a concrete failure.
+- Use wc/tail/jq/python field extraction before reading raw bodies.
+- Delegate broad scans to Codex subagents / ai-cli when useful and ask for a bounded summary.
+```
+
 Run the relevant checker set and report concrete command outcomes. A checker
 result, model review, graph import, or local CLI smoke is support evidence only;
 it is not source truth, not success judgment, not quality judgment, and not

@@ -24,10 +24,12 @@ Inspect Brick / Agent / Link boundaries and report drift as evidence.
 1. Check Brick, Agent, and Link rows before naming support surfaces.
 2. Report missing evidence rather than guessing intent.
 3. Treat checkers, MCP, graph, and model reviews as support evidence only.
-4. Inspect the current Building evidence root directly: `raw/`,
-   `evidence/claim_trace/`, and `work/step-outputs/`.
-5. Treat carried summaries as stale until reconciled against the current raw and
-   step-output inventory.
+4. Inspect the current Building evidence root with bounded extraction first:
+   specific step-output refs, manifest/frontier fields, claim refs, and exact
+   raw rows needed for a named conflict. Do not broadly cat/grep whole
+   raw/evidence folders or full check logs unless debugging a concrete failure.
+5. Treat carried summaries as stale until reconciled against the current bounded
+   raw and step-output inventory.
 6. If carried summaries conflict with the current Building evidence root, report
    the conflict as blocked_or_missing_evidence or not_proven, not as an observed
    fact.

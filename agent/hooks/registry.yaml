@@ -38,6 +38,13 @@
       "event_ref": "before-agent-return",
       "description": "Ensure Agent returns contain refs only for setup tokens and connector state.",
       "execution_opened": false
+    },
+    "hook:token-cost-discipline": {
+      "owner_axis": "Agent",
+      "kind": "guardrail-intent",
+      "event_ref": "before-tool-use",
+      "description": "Prefer bounded evidence/log inspection (field extraction, wc, tail, exact grep) and flag broad raw/evidence/check-log reads; delegate broad scans to Codex subagents when useful. Advisory only; execution_opened false.",
+      "execution_opened": false
     }
   }
 }

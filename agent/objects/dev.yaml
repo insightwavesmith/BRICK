@@ -15,7 +15,8 @@
   "hook_refs": [
     "hook:instruction-chain-read",
     "hook:unsafe-mutation-guard",
-    "hook:resource-ref-redaction"
+    "hook:resource-ref-redaction",
+    "hook:token-cost-discipline"
   ],
   "tool_policy_refs": [
     "tool-policy:read-write-scoped"

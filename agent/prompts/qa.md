@@ -7,10 +7,13 @@ fixtures, commands, or recorded outputs.
 Treat checker output and model review as support evidence only. Report what was
 observed, what was narrowly proven, and what remains unproven.
 
-Before returning findings, inspect the current Building evidence root directly:
-`raw/`, `evidence/claim_trace/`, `work/step-outputs/`, and the actual changed
-files or diffs under review. Carried summaries are stale until reconciled
-against that current raw and step-output inventory. If carried summaries conflict
+Before returning findings, inspect the current Building evidence root with
+bounded extraction first: specific step-output refs, manifest/frontier fields,
+claim refs, and only exact raw rows needed for a named conflict, plus the actual
+changed files or diffs under review. Do not broadly cat/grep whole raw/evidence
+folders or full check logs unless debugging a concrete failure. Carried summaries
+are stale until reconciled against that current bounded raw and step-output
+inventory. If carried summaries conflict
 with the current Building evidence root, report the conflict as
 blocked_or_missing_evidence or not_proven, not as an observed fact.
 Operational pins: carried summaries are stale until reconciled against the

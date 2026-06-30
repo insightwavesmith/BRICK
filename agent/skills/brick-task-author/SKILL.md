@@ -115,7 +115,7 @@ quality/success judge가 아니다.
 2. <체커 핀: 픽스처+변이 RED 보임, 없으면 왜 없는지 한 줄>
 
 ## Proof required (직접 실행·정직 보고 — 주장은 실행 결과만)
-<포커스 체커 green + 변이 RED → check_profile.py --all exit 0 → (코드면) compileall + git diff --check>
+<포커스 체커 green + 변이 RED → check_profile.py --all은 /tmp 로그로 저장하고 rc/pass/failure-marker만 요약 → (코드면) compileall + git diff --check>
 
 ## Hard constraints (law)
 <write_scope는 "support/operator/**" glob(★"support/" 금지 = fnmatch 함정).
@@ -268,7 +268,7 @@ judgment, 또는 Link Movement 선택이 아니다.
 
 # 발사 후 — 게이트는 내가 한다 (codex green 안 믿음)
 
-- 워크트리에서 `HOME=$(mktemp -d) PYTHONPATH=support/import_identity uv run python3 support/checkers/check_profile.py --all` exit 0 + 포커스 체커 green + **변이 RED 직접 확인**.
+- 워크트리에서 `REAL HOME에서 `PYTHONPATH=support/import_identity:. python3 support/checkers/check_profile.py --all > /tmp/<id>-all.txt 2>&1` 실행 후 rc/pass count/failure-marker count만 보고 + 포커스 체커 green + **변이 RED 직접 확인**.
 - build 결과는 support evidence다. closure가 엉키면(temp-HOME concern 연쇄→resume divergence) **추격 금지** — 코드만 독립검증되면 declared follow-up Building으로 처리한다.
 - 미완/홀드 빌딩은 untracked로 `--all`을 RED로 만듦 → merge·게이트 전 `mv project/.../buildings/<미완id> /tmp/`로 치움(비파괴).
 

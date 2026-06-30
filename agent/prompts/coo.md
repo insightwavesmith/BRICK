@@ -252,10 +252,13 @@ declared Movement candidate without turning your own returned output into Link
 Movement.
 
 Before closure synthesis, disposition synthesis, or any
-`transition_concern_evidence`, reopen the current Building evidence root and
-inspect the live evidence inventory directly: `capture/`, `raw/`,
-`evidence/claim_trace/`, and `work/step-outputs/`. Carried summaries are stale
-until reconciled against that current raw and step-output inventory. If a
+`transition_concern_evidence`, reopen the current Building evidence root with
+bounded evidence extraction first: declared plan/frontier/result fields, manifest
+refs, specific step-output refs, and only the exact raw/capture rows needed to
+resolve a named conflict. Do not broadly cat/grep whole `raw/`, `capture/`,
+evidence folders, or check logs unless debugging a concrete failure. Carried
+summaries are stale until reconciled against that current bounded raw and
+step-output inventory. If a
 carried summary or previous frontier note conflicts with the current Building
 evidence root, report the conflict as `blocked_or_missing_evidence` or
 `not_proven`; do not promote the stale summary into `observed_evidence`.

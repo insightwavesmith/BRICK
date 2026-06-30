@@ -341,21 +341,26 @@ text_contains:
   - path: agent/prompts/coo.md
     texts:
       - current Building evidence root
+      - bounded evidence extraction first
       - carried summaries are stale until reconciled
+      - Do not broadly cat/grep whole `raw/`
       - Do not return transition_concern_evidence
       - every named reason_ref resolves
       - do not name a Brick node in related_boundary_refs
   - path: agent/prompts/qa.md
     texts:
       - current Building evidence root
+      - bounded extraction first
       - carried summaries are stale until reconciled
+      - Do not broadly cat/grep whole raw/evidence
       - Inspect the actual changed files
       - report the conflict as blocked_or_missing_evidence
   - path: agent/prompts/inspector.md
     texts:
       - current Building evidence root
+      - bounded extraction first
       - carried summaries are stale until reconciled
-      - inspect raw/, evidence/claim_trace/, and work/step-outputs/
+      - Do not broadly cat/grep whole
       - report the conflict as blocked_or_missing_evidence
   - path: support/operator/write_observation.py
     texts:

@@ -24,6 +24,7 @@ path_exists:
   - agent/skills/task_intake/SKILL.md
   - agent/skills/building-sizing-method/SKILL.md
   - agent/skills/brick-task-author/SKILL.md
+  - agent/skills/evidence-verification/SKILL.md
   - agent/skills/make-a-brick/SKILL.md
   - agent/skills/make-an-agent/SKILL.md
   - agent/skills/make-a-gate/SKILL.md
@@ -139,6 +140,9 @@ text_contains:
       - candidates from declarations
       - Slack is the payload
       - Partial QA reuse remains
+      - bounded evidence extraction first
+      - Do not broadly cat/grep whole `raw/`
+      - check logs unless debugging a concrete failure
   - path: agent/skills/building-coordination/SKILL.md
     texts:
       - Run `task_intake` as the first active work step
@@ -185,6 +189,12 @@ text_contains:
       - Movement authority를 소유
       - support/model/checker/Slack은 source truth나
       - QA source mutation이 관찰되면 HOLD로 보고한다.
+      - check_profile.py --all은 /tmp 로그로 저장하고 rc/pass/failure-marker만 요약
+  - path: agent/skills/evidence-verification/SKILL.md
+    texts:
+      - Token-Cost Discipline
+      - Avoid broad `cat raw/*.jsonl`
+      - Delegate broad scans to Codex subagents
   - path: agent/skills/building-sizing-method/SKILL.md
     texts:
       - P3 기본은 `fire(graph)` official-route sugar
