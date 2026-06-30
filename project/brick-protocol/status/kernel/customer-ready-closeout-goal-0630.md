@@ -21,6 +21,35 @@ not source truth. It does not replace the anchor; it is the next link after it.
 
 ## 0. Goal definition
 
+Canonical Korean goal statement (Smith wording, 0630):
+
+```text
+BRICK 고객 제공 준비 마감 작업:
+
+남아 있는 3개 트랙을 완료한다.
+
+1. route-default 정책
+2. customer release pruning 최종화
+3. FINAL 아키텍처 정리
+
+단, 다음 기준은 반드시 유지한다.
+
+COO/operator 역할을 보존하고, Building-first 워크플로우를 유지하며,
+evidence-first 보고 방식을 지킨다. 또한 이전의 실수와 오판에서 얻은
+교훈을 문서화하고 계속 반영한다.
+
+메인 에이전트는 G1/G2/G3 구현 슬라이스를 위해 실제 Building을 직접
+그리고 실행해야 한다는 구속력 있는 규칙을 지킨다. 이를 통해 메인
+에이전트의 Building 실행 스킬 체인이 처음부터 끝까지 실제로 훈련되고
+검증되도록 한다.
+
+메인 에이전트의 토큰은 판단, 사고, route/Movement 판정, Building graph
+구성, 최종 synthesis에 우선 사용한다. broad code reading, raw/evidence
+JSONL 덤프, 긴 check log 읽기, 대규모 실측 진단은 기본적으로 Codex 5.5
+xhigh / 서브에이전트 또는 Building에 위임하고, 메인 스레드는 bounded
+field extraction + short verdict로 보고한다.
+```
+
 Finish the remaining three tracks required before I can honestly call the BRICK
 customer-ready closeout done:
 
