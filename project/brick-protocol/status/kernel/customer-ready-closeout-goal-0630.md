@@ -251,10 +251,45 @@ optional Claude/Gemini/Codex review as support evidence only
 COO/Smith disposition
 ```
 
+Per-leaf requirements / edge cases (binding for G3):
+
+```text
+1. live-measure exact spans + AST/import/call-site dependencies first.
+2. if the cluster is not a true leaf, HOLD or use a heavier Building shape; do
+   not force a mechanical extraction.
+3. conservation ledger before or with the patch; name direct operator
+   maintenance when the patch is not Building-produced.
+4. move bodies byte-identical when possible; behavior changes need separate
+   checker/admission before implementation.
+5. prefer one flat checker-lib sibling; no new folder/module family/axis/runtime.
+6. preserve public import path, re-export compatibility, profile IDs, and
+   check_profile dispatch identity.
+7. update module_registry.yaml for every new sibling.
+8. mutation-RED or equivalent failing observation must prove the checker still
+   detects the pinned bad case.
+9. run compileall, git diff --check, focused profile/check, and REAL HOME --all.
+10. write proof doc with narrowly_proven / not_proven / next Movement candidate.
+11. stop condition must be declared before closing G3; remaining debt must be
+    named instead of silently treated as done.
+```
+
 ### G3 live target correction (0630)
-On current main `kernel_checks.py` (11452 LOC) is the LARGEST godmodule,
-exceeding `case_runners.py` (8503). The 0628 plan LOC coordinates are stale;
-next leaf target is re-pointed to `kernel_checks.py` by live measurement.
+On current main `kernel_checks.py` is the LARGEST godmodule, exceeding
+`case_runners.py` (8503). The 0628 plan LOC coordinates are stale; the leaf
+series was re-pointed to `kernel_checks.py` by live measurement.
+
+First kernel_checks.py leaf LANDED (commit `a779a2c`): the product
+no-Smith-residue scan cluster moved byte-identical to
+`support/checkers/lib/no_smith_residue_check.py` (165 LOC), kernel_checks.py
+11452 -> 11325 (net -127). Re-export + dispatch identity preserved, mutation-RED
+proved, REAL HOME `check_profile.py --all` GREEN, `module_registry.yaml` row
+added. Ledger=`customer-ready-final-architecture-no-smith-residue-ledger-0630.md`,
+proof=`customer-ready-final-architecture-no-smith-residue-proof-0630.md`.
+
+G3 remaining (live): `kernel_checks.py` (11325) is still the largest godmodule;
+more pure leaves remain (install_script_lint / provider_preflight /
+mcp_stdio_smoke / connect_config_launch clusters are candidate next leaves), and
+the agreed STOP CONDITION for FINAL architecture cleanup is not yet declared.
 Evidence: `customer-ready-closeout-g1g2g3-status-0630.md`.
 
 ## 6. Operating order

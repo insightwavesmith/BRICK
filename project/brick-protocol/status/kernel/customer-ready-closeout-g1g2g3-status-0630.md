@@ -138,7 +138,9 @@ G1 = engine route/reroute behavior PROVEN green on main; remaining = no-link
      default POLICY + customer docs/skills (not engine repair). 0629 "수리 중"
      bug flags are STALE.
 G2 = export literal/structure CLEAN; remaining = comprehension + fresh-machine.
-G3 = next target re-pointed to kernel_checks.py; no leaf landed this turn.
+G3 = first kernel_checks.py leaf LANDED after this measurement base;
+     no_smith_residue extraction is narrowly proven, but more leaves and a stop
+     condition remain.
 ```
 
 This is forward measurement, not closeout. The goal stays ACTIVE.
