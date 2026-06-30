@@ -707,7 +707,7 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
     "release_export_exclusion": run_release_export_exclusion,
     # ONBOARDING-LEGACY-SCRUB-0612. Scans shipped newcomer-facing surfaces
     # (README.md, support/docs/spec, agent/prompts) for Smith local residue:
-    # no /Users/smith literal and no hardcoded insightwavesmith org outside
+    # no Smith user-home literal and no hardcoded Smith GitHub org outside
     # the README working-example allowance. Runs temp-copy FIRE probes for
     # both forbidden families; a non-firing probe makes --all exit non-zero.
     "product_no_smith_residue": run_product_no_smith_residue,

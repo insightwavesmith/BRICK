@@ -4448,6 +4448,10 @@ def run_release_export_exclusion(repo: Path) -> KernelResult:
     )
 
 
+_SMITH_USER_HOME_LITERAL = "/Users/" + "smith"
+_SMITH_GITHUB_ORG_LITERAL = "insightwave" + "smith"
+_SMITH_GITHUB_REPO_LITERAL = _SMITH_GITHUB_ORG_LITERAL + "/BRICK"
+
 _NO_SMITH_RESIDUE_SURFACES = (
     "README.md",
     "support/docs/spec",
@@ -4478,7 +4482,7 @@ def _no_smith_residue_text_paths(repo: Path) -> tuple[Path, ...]:
 def _no_smith_residue_allowed_org_line(rel: str, line: str) -> bool:
     return (
         rel == "README.md"
-        and "insightwavesmith/BRICK" in line
+        and _SMITH_GITHUB_REPO_LITERAL in line
         and ("현재 동작 예" in line or "working example" in line.lower())
     )
 
@@ -4490,9 +4494,9 @@ def _collect_no_smith_residue_violations(repo: Path) -> tuple[list[str], int]:
         rel = to_posix(path.relative_to(repo))
         inspected += 1
         for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
-            if "/Users/smith" in line:
+            if _SMITH_USER_HOME_LITERAL in line:
                 violations.append(f"{rel}:{lineno}: hardcoded Smith user-home path")
-            if "insightwavesmith" in line.lower() and not _no_smith_residue_allowed_org_line(rel, line):
+            if _SMITH_GITHUB_ORG_LITERAL in line.lower() and not _no_smith_residue_allowed_org_line(rel, line):
                 violations.append(f"{rel}:{lineno}: hardcoded Smith GitHub org")
     return violations, inspected
 
@@ -4515,25 +4519,25 @@ def _no_smith_residue_fire_probe(repo: Path) -> int:
         (
             "user-home",
             Path("support/docs/spec/README.md"),
-            "synthetic probe path: /Users/smith/projects/BRICK\n",
+            f"synthetic probe path: {_SMITH_USER_HOME_LITERAL}/projects/BRICK\n",
             "hardcoded Smith user-home path",
         ),
         (
             "agent-skill-user-home",
             Path("agent/skills/scoped-implementation/SKILL.md"),
-            "synthetic probe path: /Users/smith/projects/BRICK\n",
+            f"synthetic probe path: {_SMITH_USER_HOME_LITERAL}/projects/BRICK\n",
             "hardcoded Smith user-home path",
         ),
         (
             "brick-template-skill-user-home",
             Path("brick/templates/skills/make-a-brick/SKILL.md"),
-            "synthetic probe path: /Users/smith/projects/BRICK\n",
+            f"synthetic probe path: {_SMITH_USER_HOME_LITERAL}/projects/BRICK\n",
             "hardcoded Smith user-home path",
         ),
         (
             "org",
             Path("agent/prompts/coo.md"),
-            "synthetic probe clone: gh repo clone insightwavesmith/BRICK ~/BRICK\n",
+            f"synthetic probe clone: gh repo clone {_SMITH_GITHUB_REPO_LITERAL} ~/BRICK\n",
             "hardcoded Smith GitHub org",
         ),
     )
@@ -4565,9 +4569,8 @@ def run_product_no_smith_residue(repo: Path) -> KernelResult:
 
     Scans the shipped newcomer-facing surfaces named by ONBOARDING-LEGACY-SCRUB:
     root README, support/docs/spec, agent/prompts, agent/skills,
-    brick/templates/skills, and the onboarding install verb. The only admitted
-    ``insightwavesmith/BRICK`` occurrence there is the root README's explicit
-    working-example note next to the parameterized ``{OWNER}/BRICK`` command.
+    brick/templates/skills, and the onboarding install verb. The only admitted concrete Smith-org BRICK occurrence there is the
+    root README's explicit working-example note next to the parameterized ``{OWNER}/BRICK`` command.
     """
 
     violations, inspected = _collect_no_smith_residue_violations(repo)
@@ -4583,8 +4586,8 @@ def run_product_no_smith_residue(repo: Path) -> KernelResult:
         output=(
             "product no-Smith-residue scan passed: README.md, support/docs/spec, "
             "agent/prompts, agent/skills, brick/templates/skills, and "
-            "support/onboarding/install.sh carry no /Users/smith literal and no "
-            "hardcoded insightwavesmith org outside the README working-example "
+            "support/onboarding/install.sh carry no Smith user-home literal and no "
+            "hardcoded Smith GitHub org outside the README working-example "
             "allowance; temp-copy FIRE probes for both forbidden families and "
             "both skill surfaces fired RED."
         ),
@@ -8052,7 +8055,7 @@ def _dashboard_productization_assert_literal_fire_probe() -> int:
         "artifact-project": "IMAGE=us-docker.pkg.dev/hardcoded-project/repo/service:tag",
         "resource-project": "projects/hardcoded-project/locations/region/services/service",
         "organization": "organizations/1234567890",
-        "user-home": "/Users/smith/project",
+        "user-home": _SMITH_USER_HOME_LITERAL + "/project",
     }
     inspected = 0
     for label, line in probe_lines.items():

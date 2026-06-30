@@ -646,7 +646,7 @@ BUILDING_LIFECYCLE_FORBIDDEN_SEGMENTS = {
 }
 
 # ARCHIVE MUSEUM class PRUNED (CLEAN-YARD v3, Smith 0611): the entire archive/
-# museum left for the frozen history repo (/Users/smith/projects/brick-protocol
+# museum left for the frozen history repo (the prior private workspace
 # preserves every original). The product repo admits NO archive/ root; a
 # resurrected archive/ path REJECTS loudly via the default-deny below.
 
