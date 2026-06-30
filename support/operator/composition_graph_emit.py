@@ -110,6 +110,9 @@ def _materializer_graph_plan(
             # model:default stays a sentinel default (adapter picks its own default model).
             selected_adapter_ref=str(intent["selected_adapter_ref"]),
             selected_model_ref=str(intent.get("selected_model_ref", "model:default") or "model:default"),
+            transition_concern_adoption=str(
+                intent.get("transition_concern_adoption", "") or ""
+            ),
         )
     )
     plan = _materializer_apply_route_decision_basis(plan, intent)

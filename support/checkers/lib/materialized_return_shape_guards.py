@@ -169,6 +169,13 @@ def _check_materialized_node_return_shapes(
             f"materialize_building_intent_case rejected {label}: fan-in source "
             "transition_concern_adoption source_step_refs do not match fan-in topology"
         )
+    if plan.get("transition_concern_adoption") == "advisory":
+        raise ProfileError(
+            f"materialize_building_intent_case rejected {label}: hard fan-in graph "
+            "must not use top-level transition_concern_adoption=advisory; use "
+            "fan_in_source_transition_concern_adoption for source-lane advisory "
+            "so closure-origin transition concerns remain Link-facing"
+        )
     for source_ref in source_step_refs:
         step = steps[source_ref]
         kind = _kind_for(step)

@@ -10,10 +10,16 @@ returned_shape:
     concern_kind: implementation_gap | design_gap | upstream_gap | boundary_mismatch | insufficient_input | replay_needed | verification_gap | unknown
     reason_refs:
       - observation:<id>
+    # For concerns that may be adopted for reroute/replay, reason_refs must be
+    # current Building ledger addresses resolvable from this run's recorded rows.
+    # Put external files, prior Building evidence paths, URLs, or packet labels
+    # under observed_evidence / evidence_used / checked_sources instead.
     # Reroute-eligible defect kinds (implementation_gap, design_gap, upstream_gap,
     # boundary_mismatch, insufficient_input, replay_needed, unknown) may name the
-    # upstream WORK node responsible for the defect (brick:<the-work-node-id>) —
-    # NOT the reporting node itself, NOT a building-boundary: sentinel.
+    # upstream WORK node responsible for the defect. Admitted forms are the plain
+    # declared node id or brick:<declared-node>, brick-instance:<declared-node>,
+    # and brick-boundary:<declared-node> — NOT the reporting node itself, NOT a
+    # building-boundary: sentinel.
     # verification_gap is non-reroute evidence: record it with empty refs or a
     # building-boundary: sentinel, never with a Brick-node reroute address.
     # The engine silently walks-on a self-ref or sentinel, so no reroute fires.

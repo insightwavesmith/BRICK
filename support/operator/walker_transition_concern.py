@@ -44,6 +44,11 @@ class _TransitionConcernObservation:
 # "no reroute intended" sentinel an Agent uses to RAISE a non-binding concern
 # WITHOUT proposing a reroute address.
 _NON_REROUTE_BOUNDARY_PREFIX = "building-boundary:"
+_BRICK_NODE_REF_PREFIXES = (
+    "brick:",
+    "brick-instance:",
+    "brick-boundary:",
+)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -92,6 +97,30 @@ class _RerouteTargetClassification:
     target: str = ""
     resolved: tuple[str, ...] = ()
     hold_reason: str = ""
+
+
+def _declared_brick_ref_for_related_boundary_ref(
+    ref: str,
+    *,
+    declared_bricks: set[str],
+) -> str:
+    """Resolve admitted Brick-node address prefixes to declared Brick nodes."""
+    if ref in declared_bricks:
+        return ref
+    for prefix in _BRICK_NODE_REF_PREFIXES:
+        if not ref.startswith(prefix):
+            continue
+        unprefixed = ref.removeprefix(prefix)
+        if unprefixed in declared_bricks:
+            return unprefixed
+        # Existing fixtures and generated node ids commonly already begin with
+        # ``brick-``. Accept ``brick:<declared-node>`` and
+        # ``brick:<declared-node-without-leading-brick->`` without inventing a
+        # target outside the declared node set.
+        brick_dash = f"brick-{unprefixed}"
+        if brick_dash in declared_bricks:
+            return brick_dash
+    return ""
 
 
 def _classify_reroute_target(
@@ -143,9 +172,13 @@ def _classify_reroute_target(
             if not brick_ref:
                 continue
             text_refs.append(brick_ref)
-            if brick_ref in declared_bricks and brick_ref not in seen:
-                seen.add(brick_ref)
-                resolved.append(brick_ref)
+            resolved_ref = _declared_brick_ref_for_related_boundary_ref(
+                brick_ref,
+                declared_bricks=declared_bricks,
+            )
+            if resolved_ref and resolved_ref not in seen:
+                seen.add(resolved_ref)
+                resolved.append(resolved_ref)
     concern_kind = _optional_text_value(concern.get("concern_kind"))
     if is_non_reroute_transition_concern_kind(concern_kind) and not text_refs:
         return _RerouteTargetClassification(kind="non_reroute", resolved=())
@@ -160,7 +193,10 @@ def _classify_reroute_target(
     unresolvable = [
         ref
         for ref in text_refs
-        if ref not in resolved
+        if not _declared_brick_ref_for_related_boundary_ref(
+            ref,
+            declared_bricks=declared_bricks,
+        )
         and not ref.startswith(_NON_REROUTE_BOUNDARY_PREFIX)
     ]
     if unresolvable and resolved:

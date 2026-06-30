@@ -65,12 +65,15 @@ Link carry through this return.yaml's `carries_forward_fields`, which excludes
 `concern_kind`, `reason_refs`, `related_boundary_refs`, `binding: false`; it MUST NOT carry
 `movement` / `target` / `target_ref` / `route_target`, and it never reroutes by itself.
 When a probe reproduces a REAL defect, aim `related_boundary_refs` at the upstream WORK node
-responsible (e.g. `brick:<the-work-node-id>`) — NOT yourself, NOT a `building-boundary:` sentinel.
-The engine silently walks-on a self-ref or sentinel, so no reroute ever fires. Environment, runtime,
-provider, read-only, no-temp-dir, missing-probe, or "live not run" constraints are NOT upstream
-implementation defects — record them in `not_proven`, or as non-reroute `verification_gap` evidence
-with empty `related_boundary_refs` or a `building-boundary:` sentinel. Never attach a Brick-node
-reroute address to `verification_gap`.
+responsible (plain declared node id, `brick:<declared-node>`, `brick-instance:<declared-node>`, or
+`brick-boundary:<declared-node>`) — NOT yourself, NOT a `building-boundary:` sentinel. The engine
+silently walks-on a self-ref or sentinel, so no reroute ever fires. If closure may adopt the concern,
+keep `reason_refs` current-ledger-local and resolvable from this Building's recorded rows; cite
+external files, prior Building evidence paths, URLs, or packet labels under `observed_evidence` /
+`evidence_used`, not `reason_refs`. Environment, runtime, provider, read-only, no-temp-dir,
+missing-probe, or "live not run" constraints are NOT upstream implementation defects — record them
+in `not_proven`, or as non-reroute `verification_gap` evidence with empty `related_boundary_refs` or
+a `building-boundary:` sentinel. Never attach a Brick-node reroute address to `verification_gap`.
 
 Do NOT return `success` / `failure` / `approved` / `quality` / `movement_choice` / `route_target` —
 a failing probe is an observed **fact**, not a verdict. Whether the failures are sufficient to

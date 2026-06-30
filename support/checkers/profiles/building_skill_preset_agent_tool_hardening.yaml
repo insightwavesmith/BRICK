@@ -1386,6 +1386,22 @@ materialize_building_intent_rejects:
           - support/operator/**
         forbidden_paths:
           - .git/**
+  - label: materialize-building-intent:hard-fan-in-top-level-advisory-fails-closed
+    expected_message: hard fan-in graphs must not use top-level transition_concern_adoption=advisory
+    document:
+      plan_ref: building-plan:materialize-hard-fan-in-top-level-advisory
+      building_id: materialize-hard-fan-in-top-level-advisory
+      declared_by: coo
+      task_source_ref: brick/templates/tasks/source-template.md
+      chain_preset_ref: building-chain-preset:design-build-parallel
+      selected_adapter_ref: adapter:codex-local
+      selected_model_ref: model:default
+      transition_concern_adoption: advisory
+      write_scope:
+        allowed_paths:
+          - support/operator/**
+        forbidden_paths:
+          - .git/**
 preset_building_completion_case:
   - label: all-current-presets-slack-alert
     task_source_ref: brick/templates/tasks/slack-alert-all-presets-task.md

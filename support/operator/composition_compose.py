@@ -587,6 +587,7 @@ def compose_building(
                 # support-position rule that treated transition_concern_evidence as
                 # Link carry control; carries_forward_fields remains the carry filter.
                 shape_omitted_steps=fan_in_source_template_shape_steps,
+                transition_concern_adoption=transition_concern_adoption,
             )
         )
 

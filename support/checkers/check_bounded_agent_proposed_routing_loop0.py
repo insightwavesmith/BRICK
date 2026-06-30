@@ -3435,6 +3435,98 @@ def check(repo: Path) -> list[str]:
                 f"({kind_classification})"
             )
 
+    prefix_target = "brick-bapr-loop0-knot4-prefixed-target-build"
+    prefix_source = "brick-bapr-loop0-knot4-prefixed-target-review"
+    prefixed_ref_cases = {
+        "brick-colon-full": f"brick:{prefix_target}",
+        "brick-colon-short": "brick:bapr-loop0-knot4-prefixed-target-build",
+        "brick-instance": f"brick-instance:{prefix_target}",
+        "brick-boundary": f"brick-boundary:{prefix_target}",
+    }
+    for case_label, prefixed_ref in prefixed_ref_cases.items():
+        prefix_classification = _classify_reroute_target(
+            {"related_boundary_refs": [prefixed_ref]},
+            declared_bricks={prefix_source, prefix_target},
+            source_brick_ref=prefix_source,
+        )
+        if (
+            prefix_classification.kind != "single"
+            or prefix_classification.target != prefix_target
+        ):
+            violations.append(
+                "knot4-prefixed-target: admitted Brick-node prefix "
+                f"{case_label} did not resolve to the declared node "
+                f"({prefix_classification})"
+            )
+    prefixed_self_classification = _classify_reroute_target(
+        {"related_boundary_refs": [f"brick:{prefix_source}"]},
+        declared_bricks={prefix_source, prefix_target},
+        source_brick_ref=prefix_source,
+    )
+    if prefixed_self_classification.kind != "non_reroute":
+        violations.append(
+            "knot4-prefixed-target: prefixed self-ref did not stay non_reroute "
+            f"({prefixed_self_classification})"
+        )
+    prefixed_garbage_classification = _classify_reroute_target(
+        {
+            "related_boundary_refs": [
+                f"brick:{prefix_target}",
+                "brick:brick-bapr-loop0-knot4-prefixed-target-garbage",
+            ],
+        },
+        declared_bricks={prefix_source, prefix_target},
+        source_brick_ref=prefix_source,
+    )
+    if (
+        prefixed_garbage_classification.kind != "none"
+        or prefixed_garbage_classification.hold_reason
+        != "unresolvable_reroute_address"
+    ):
+        violations.append(
+            "knot4-prefixed-target: prefixed resolving+garbage refs did not HOLD "
+            f"on the unresolved address ({prefixed_garbage_classification})"
+        )
+
+    plan_prefixed, b2_prefixed = _checker_plan(
+        "bapr-loop0-knot4-prefixed-target",
+        budget=1,
+    )
+    source_prefixed = "brick-bapr-loop0-knot4-prefixed-target-review"
+    res_prefixed, fr_prefixed, rec_prefixed = _run(
+        plan_prefixed,
+        _multi_ref_concern_callable(source_prefixed, [f"brick:{b2_prefixed}"]),
+        repo,
+    )
+    adopted_prefixed = _adopted_records(rec_prefixed)
+    held_prefixed = _held_records(rec_prefixed)
+    if len(adopted_prefixed) != 1:
+        violations.append(
+            "knot4-prefixed-target: brick:<declared-node> did not adopt exactly "
+            f"one reroute in the live walker ({rec_prefixed})"
+        )
+    elif adopted_prefixed[0].get("target_brick") != b2_prefixed:
+        violations.append(
+            "knot4-prefixed-target: live walker adopted the wrong target "
+            f"({adopted_prefixed[0].get('target_brick')})"
+        )
+    if held_prefixed:
+        violations.append(
+            "knot4-prefixed-target: brick:<declared-node> paused instead of "
+            f"rerouting ({held_prefixed})"
+        )
+    if fr_prefixed["frontier_kind"] not in {"complete", "closure_pending"}:
+        violations.append(
+            "knot4-prefixed-target: prefixed reroute did not proceed "
+            f"(frontier={fr_prefixed['frontier_kind']})"
+        )
+    prefixed_bricks = _step_bricks(res_prefixed)
+    if prefixed_bricks.count(b2_prefixed) < 2:
+        violations.append(
+            "knot4-prefixed-target: prefixed target was not re-executed "
+            f"(count={prefixed_bricks.count(b2_prefixed)})"
+        )
+
     plan_strip_single, b2_strip_single = _checker_plan(
         "bapr-loop0-knot4-strip-self-single",
         budget=1,

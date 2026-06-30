@@ -66,6 +66,7 @@ def _composition_hard_graph_contract_problems(
     edge_records: Sequence[Mapping[str, Any]],
     groups: Sequence[Mapping[str, Any]],
     shape_omitted_steps: frozenset[str] | set[str] = frozenset(),
+    transition_concern_adoption: str = "",
 ) -> tuple[CompositionProblem, ...]:
     problems: list[CompositionProblem] = []
     records_by_step = {str(record.get("step_ref")): record for record in node_records}
@@ -95,6 +96,18 @@ def _composition_hard_graph_contract_problems(
     for _target_step_ref, _source_step_refs in fan_in_targets.items():
         fan_in_source_steps.update(_source_step_refs)
     fan_in_target_steps = set(fan_in_targets)
+    if fan_in_targets and transition_concern_adoption == "advisory":
+        problems.append(
+            CompositionProblem(
+                "top_level_transition_concern_advisory_on_hard_fan_in",
+                "__composition__",
+                "hard fan-in graphs must not use top-level "
+                "transition_concern_adoption=advisory; use "
+                "fan_in_source_transition_concern_adoption for source-lane "
+                "advisory so closure-origin transition concerns remain "
+                "Link-facing",
+            )
+        )
     for target_step_ref, source_step_refs in fan_in_targets.items():
         target_record = records_by_step.get(target_step_ref)
         if target_record is None:

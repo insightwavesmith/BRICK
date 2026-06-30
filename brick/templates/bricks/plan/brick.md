@@ -33,10 +33,14 @@ is **non-binding** Agent evidence — it carries `concern_ref`, `concern_kind`, 
 `related_boundary_refs`, `binding: false`; it MUST NOT carry `movement` / `target` / `target_ref` /
 `route_target`. The forward Link carries this evidence onward; the concern never reroutes by itself.
 When you raise a concern for a REAL reproduced defect, point `related_boundary_refs` at the upstream
-WORK node responsible (e.g. `brick:<the-work-node-id>`) — NOT yourself, NOT a `building-boundary:`
-sentinel. The engine silently walks-on a self-ref or sentinel, so no reroute ever fires. Environment
-or runtime constraints (no temp dir, write-scope limits, provider limits, read-only status, "live not
-run") are NOT defects — record them in `not_proven`, never as a `transition_concern`.
+WORK node responsible (plain declared node id, `brick:<declared-node>`,
+`brick-instance:<declared-node>`, or `brick-boundary:<declared-node>`) — NOT yourself, NOT a
+`building-boundary:` sentinel. The engine silently walks-on a self-ref or sentinel, so no reroute
+ever fires. If the concern may be adopted, keep `reason_refs` current-ledger-local and resolvable
+from this Building's recorded rows; cite external files, prior Building evidence paths, URLs, or
+packet labels under `observed_evidence`, not `reason_refs`. Environment or runtime constraints (no
+temp dir, write-scope limits, provider limits, read-only status, "live not run") are NOT defects —
+record them in `not_proven`, never as a `transition_concern`.
 
 Do NOT return `success` / `failure` / `approved` / `quality` / `movement_choice` / `route_target` —
 sufficiency + movement are the Link gate's; quality/success are the human's.

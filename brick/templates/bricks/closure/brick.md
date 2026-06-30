@@ -46,10 +46,14 @@ If there is no real transition concern, return `transition_concern_evidence: nul
 never return `{}` as a no-concern placeholder. An empty object is malformed concern evidence and may
 pause at the Link frontier instead of closing.
 When you raise a concern for a REAL reproduced defect, aim `related_boundary_refs` at the upstream
-WORK node responsible (e.g. `brick:<the-work-node-id>`) — NOT yourself, NOT a `building-boundary:`
-sentinel. The engine silently walks-on a self-ref or sentinel, so no reroute ever fires. Environment
-or runtime constraints (no temp dir, write-scope limits, provider limits, read-only status, "live not
-run") are NOT defects — record them in `not_proven`, never as a `transition_concern`.
+WORK node responsible (plain declared node id, `brick:<declared-node>`,
+`brick-instance:<declared-node>`, or `brick-boundary:<declared-node>`) — NOT yourself, NOT a
+`building-boundary:` sentinel. The engine silently walks-on a self-ref or sentinel, so no reroute
+ever fires. If the concern may be adopted, keep `reason_refs` current-ledger-local and resolvable
+from this Building's recorded rows; cite external files, prior Building evidence paths, URLs, or
+packet labels under `observed_evidence`, not `reason_refs`. Environment or runtime constraints (no
+temp dir, write-scope limits, provider limits, read-only status, "live not run") are NOT defects —
+record them in `not_proven`, never as a `transition_concern`.
 If `concern_kind` is `verification_gap`, it is non-reroute evidence: leave
 `related_boundary_refs` empty or use a `building-boundary:` sentinel, never an upstream Brick node.
 
