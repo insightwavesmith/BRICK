@@ -73,6 +73,11 @@ text_contains:
       - 'customer graph_packet may not author Brick template-owned field'
       - 'hidden _p3_easy_large_graph_packet helper'
 text_absent:
+  - path: pyproject.toml
+    texts:
+      - '[tool.pytest.ini_options]'
+      - 'testpaths = ["support/checkers"]'
+      - 'support/checkers'
   - path: support/operator/cli.py
     texts:
       - os.system

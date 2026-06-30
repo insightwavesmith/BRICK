@@ -2,9 +2,10 @@
 
 Status: support evidence / reference doc only. This file is NOT source truth,
 success judgment, quality judgment, or Movement authority. It records the
-verified six-family taxonomy for the 24 on-disk checker profiles plus the
+verified six-family taxonomy for the on-disk checker profiles plus the
 support module-family map, so future authors do not re-fold profiles or
-re-bloat modules. It admits no taxonomy and changes no checker, profile, or
+re-bloat modules. The profile count is a measured checkout fact, not a
+constitutional constant. It admits no taxonomy and changes no checker, profile, or
 module code.
 
 Lane: struct-surgery-0623 worktree @ HEAD 4c1958a.
@@ -15,9 +16,9 @@ evidence carried but could not reproduce (see "Corrections" below).
 ## 0. Reproducible measurement (this checkout)
 
 ```text
-profiles on disk (support/checkers/profiles/*.yaml) = 24
-presets (brick/templates/presets/*.md)              = 28
-distinct kernel_checks referenced by profiles       = 54
+profiles on disk (support/checkers/profiles/*.yaml) = measure with `find support/checkers/profiles -maxdepth 1 -name '*.yaml' | wc -l` (29 observed on 2026-07-01)
+presets (brick/templates/presets/*.md)              = measure with `find brick/templates/presets -maxdepth 1 -name '*.md' | wc -l` (28 observed on 2026-07-01)
+distinct kernel_checks referenced by profiles       = measure from the profile YAMLs (64 observed on 2026-07-01)
 module rows in support/checkers/module_registry.yaml = 140
 rows carrying a live decomposition_target ceiling    = 2
 legacy plans in brick/building_plans/                = 4 (NOT ~16)
@@ -265,9 +266,9 @@ or sufficiency. Caller/COO declares any of them as actual Buildings.
 - reporter_notification_projection   -> NOT a standalone profile; it is a kernel
                                         check HOSTED in read_side_projection_boundary.yaml.
 - "~16 legacy building_plans"        -> 4 fixture/example files only.
-- profile count                      -> 24 (confirmed).
-- preset count                       -> 28 (confirmed).
-- distinct kernel_checks in profiles -> 54 (this checkout).
+- profile count                      -> measured checkout fact, not a fixed doc constant; 29 observed on 2026-07-01.
+- preset count                       -> measured checkout fact, not a fixed doc constant; 28 observed on 2026-07-01.
+- distinct kernel_checks in profiles -> measured checkout fact; 64 observed on 2026-07-01.
 ```
 
 ## 8. not_proven
@@ -280,6 +281,7 @@ or sufficiency. Caller/COO declares any of them as actual Buildings.
 - That delete-NOW items are still present on the canonical tree at delete time.
 - Whether the 4-way duplicated baseline should be factored or left explicit
   (a deliberate-redundancy vs DRY judgment for a future admission Building).
-- Coverage completeness: this maps the 24 profiles' declared kernel_checks
-  blocks; it does not prove the checks themselves are correct or exhaustive.
+- Coverage completeness: this maps the measured profiles' declared kernel_checks
+  blocks for the referenced checkout; it does not prove the checks themselves
+  are correct, exhaustive, or unchanged in future checkouts.
 ```
