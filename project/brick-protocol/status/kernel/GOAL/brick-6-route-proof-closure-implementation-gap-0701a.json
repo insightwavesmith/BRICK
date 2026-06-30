@@ -200,7 +200,7 @@
     }
   ],
   "source_evidence_refs": [
-    "/Users/smith/.codex/attachments/79c4c01d-3db0-4a59-b13c-cf85beeba608/pasted-text-1.txt",
+    "attachment:pasted-text-1-redacted-objective-ref",
     "project/brick-protocol/status/kernel/GOAL/brick-6-surface-p1-raw-evidence-scrub-0701c.json",
     "/Users/smith/.brick/project/brick-protocol/buildings/brick-6-p1-raw-evidence-scrub-0701c/work/step-outputs/brick-6-p1-raw-evidence-scrub-0701c-closure-attempt-1/step-output.json",
     "project/brick-protocol/status/kernel/GOAL/brick-6-surface-p1-raw-evidence-scrub-0701d.json",

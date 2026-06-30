@@ -204,7 +204,7 @@
     }
   ],
   "source_evidence_refs": [
-    "/Users/smith/.codex/attachments/79c4c01d-3db0-4a59-b13c-cf85beeba608/pasted-text-1.txt",
+    "attachment:pasted-text-1-redacted-objective-ref",
     "project/brick-protocol/status/kernel/brick-6-route-proof-findings-0701.md",
     "project/brick-protocol/status/kernel/GOAL/brick-6-route-proof-closure-implementation-gap-0701a.json",
     "project/brick-protocol/status/kernel/GOAL/brick-6-route-proof-closure-implementation-gap-0701b.json",
