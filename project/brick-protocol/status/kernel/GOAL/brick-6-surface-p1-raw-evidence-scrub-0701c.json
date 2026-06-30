@@ -1,0 +1,306 @@
+{
+  "task_statement": "P1c raw evidence stream secret/PII/provider-session scrub repair using the Smith-confirmed B standard phase graph: Codex+Claude design fan-out, design fan-in synthesis, design QA, COO planning gate, development, hard QA fan-out, and closure. This retries P1 after 0701b reached work/axis/evidence QA but stopped at code-QA adapter guard because local CLI output contained provider-session-like text. Use official build()/brick build route only; no new engine, --large, support-owned authority, or preset-only habit. All lanes must keep literal synthetic sensitive fixture values out of outputs and commands.",
+  "declared_by": "coo",
+  "building_id": "brick-6-p1-raw-evidence-scrub-0701c",
+  "selected_shape_ref": "building-shape:design-needed",
+  "selection_rule": "coo_declared_manual_graph_B_dual_design_fanout_not_preset_only",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "transition_concern_adoption": "advisory",
+  "nodes": [
+    {
+      "node_id": "brick-6-p1-raw-evidence-scrub-0701c-codex-design",
+      "step_ref": "brick-6-p1-raw-evidence-scrub-0701c-codex-design",
+      "step_template_ref": "building-step-template:design",
+      "completion_edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-codex-design-to-design-synthesis",
+      "node_reroute_budget": 1,
+      "work_statement": "Codex design lane for P1c. Read the P1 phase doc, adopted audit refs, P1b graph/evidence summary, and active raw writer/checker surfaces. Focus on code surface, checker-first feasibility, write_scope, exact file/test boundaries, and how to prevent raw evidence secret/PII/provider-session-like payload persistence. Design only; do not edit files. Return reading_scope_map, invariants, checker/verifier plan, risk list, and not_proven.\n\nSTRICT OUTPUT HYGIENE: Do not echo, print, cat, return, or include literal synthetic secret/credential/PII/provider-session fixture values in any Agent return, command output summary, transition concern, or diagnostic excerpt. Commands must be written so their stdout/stderr contains only category labels, opaque probe ids, hashes, counts, file/evidence refs, and PASS/FAIL-style observations. If a probe would display a literal, suppress/redirect it and report only category/ref/hash.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "brick-6-p1-raw-evidence-scrub-0701c-claude-design",
+      "step_ref": "brick-6-p1-raw-evidence-scrub-0701c-claude-design",
+      "step_template_ref": "building-step-template:design",
+      "completion_edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-claude-design-to-design-synthesis",
+      "node_reroute_budget": 1,
+      "work_statement": "Claude design lane for P1c. Independently read the P1 phase doc, adopted audit refs, P1b failure summary, and boundary docs. Focus on architecture, Brick/Agent/Link ownership, product/customer comprehension, failure scenarios, anti-bandaid risk, and policy questions around block vs redact vs mark. Design only; do not edit files. Return independent design evidence and not_proven; do not rely on Codex design.\n\nSTRICT OUTPUT HYGIENE: Do not echo, print, cat, return, or include literal synthetic secret/credential/PII/provider-session fixture values in any Agent return, command output summary, transition concern, or diagnostic excerpt. Commands must be written so their stdout/stderr contains only category labels, opaque probe ids, hashes, counts, file/evidence refs, and PASS/FAIL-style observations. If a probe would display a literal, suppress/redirect it and report only category/ref/hash.",
+      "selected_adapter_ref": "adapter:claude-local",
+      "selected_model_ref": "model:claude:inherit"
+    },
+    {
+      "node_id": "brick-6-p1-raw-evidence-scrub-0701c-design-synthesis",
+      "step_ref": "brick-6-p1-raw-evidence-scrub-0701c-design-synthesis",
+      "step_template_ref": "building-step-template:closure",
+      "completion_edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-design-synthesis-to-design-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Design fan-in synthesis. Read both independent design returns and synthesize conflicts, common ground, missing evidence, policy questions, not_proven, and a bounded execution contract for P1. This is synthesis only, not approval, quality judgment, source truth, or Movement authority. The output should make the downstream design-QA and work nodes cheaper and less exploratory.\n\nSTRICT OUTPUT HYGIENE: Do not echo, print, cat, return, or include literal synthetic secret/credential/PII/provider-session fixture values in any Agent return, command output summary, transition concern, or diagnostic excerpt. Commands must be written so their stdout/stderr contains only category labels, opaque probe ids, hashes, counts, file/evidence refs, and PASS/FAIL-style observations. If a probe would display a literal, suppress/redirect it and report only category/ref/hash.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "brick-6-p1-raw-evidence-scrub-0701c-design-qa",
+      "step_ref": "brick-6-p1-raw-evidence-scrub-0701c-design-qa",
+      "step_template_ref": "building-step-template:review",
+      "completion_edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-design-qa-to-coo-gate",
+      "node_reroute_budget": 1,
+      "work_statement": "Planning/design QA. Review the design-synthesis against P1 requirements and the standard phase graph rules. Ask only whether the design is safe to send to build(): Brick evidence sufficient? Agent lane/write_scope correct? Link Movement/target not stolen by support? Checkers actually cover the requirement? No new raw/secret/provider/dashboard/release risk? Return observations, missing/mismatched facts, boundary violations, and not_proven only.\n\nSTRICT OUTPUT HYGIENE: Do not echo, print, cat, return, or include literal synthetic secret/credential/PII/provider-session fixture values in any Agent return, command output summary, transition concern, or diagnostic excerpt. Commands must be written so their stdout/stderr contains only category labels, opaque probe ids, hashes, counts, file/evidence refs, and PASS/FAIL-style observations. If a probe would display a literal, suppress/redirect it and report only category/ref/hash.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "brick-6-p1-raw-evidence-scrub-0701c-coo-gate",
+      "step_ref": "brick-6-p1-raw-evidence-scrub-0701c-coo-gate",
+      "step_template_ref": "building-step-template:closure",
+      "completion_edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-coo-gate-to-work",
+      "node_reroute_budget": 1,
+      "work_statement": "COO planning gate as a closure-synthesis Brick. Read design-synthesis and design-QA. Produce the bounded work contract and HOLD questions. If evidence is missing, record not_proven/remaining_delta instead of approving. Do not edit files; do not judge quality or choose Movement. This node carries the planning contract into development.\n\nSTRICT OUTPUT HYGIENE: Do not echo, print, cat, return, or include literal synthetic secret/credential/PII/provider-session fixture values in any Agent return, command output summary, transition concern, or diagnostic excerpt. Commands must be written so their stdout/stderr contains only category labels, opaque probe ids, hashes, counts, file/evidence refs, and PASS/FAIL-style observations. If a probe would display a literal, suppress/redirect it and report only category/ref/hash.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "brick-6-p1-raw-evidence-scrub-0701c-work",
+      "step_ref": "brick-6-p1-raw-evidence-scrub-0701c-work",
+      "step_template_ref": "building-step-template:work",
+      "completion_edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-work-to-code-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Implement P1 only using the COO gate/design handoff. Repair raw evidence stream persistence so credential/secret/PII/provider-session-like payloads cannot silently enter raw BRICK JSONL streams. Add checker-first negative probes covering active raw stream writer seams for at least raw/brick-work.jsonl, raw/agent-received.jsonl, raw/agent-return.jsonl, and raw/adapter-error.jsonl or active equivalents. Preserve Brick/Agent/Link boundaries: Support/evidence integrity only; no source truth, success judgment, quality judgment, Movement authority, scheduler/queue/retry, new axis, or broad product release/dashboard hardening. Preserve evidence refs, proof_limits, and not_proven when body detail is blocked/removed. Do not recursively ban ordinary nested words such as status/result in non-secret evidence. Run focused raw scrub profile, related focused profile(s), py_compile, and git diff --check. Include P1b work changed-file candidates as prior support evidence only, not source truth.\n\nSTRICT OUTPUT HYGIENE: Do not echo, print, cat, return, or include literal synthetic secret/credential/PII/provider-session fixture values in any Agent return, command output summary, transition concern, or diagnostic excerpt. Commands must be written so their stdout/stderr contains only category labels, opaque probe ids, hashes, counts, file/evidence refs, and PASS/FAIL-style observations. If a probe would display a literal, suppress/redirect it and report only category/ref/hash.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/recording/**",
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p1-raw-evidence-scrub-0701c-code-qa",
+      "step_ref": "brick-6-p1-raw-evidence-scrub-0701c-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "completion_edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-code-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Code attack QA. Attack the P1 implementation with independent QA-built probes, not the builder fixtures. Drive real writer/checker surfaces and at least one caller-facing entry surface/profile. Probe category classes for credential-like, private-key-like, PII-like, and provider-session-like payloads without printing literals. Verify allowed non-secret evidence still persists with proof_limits and refs. Return observed facts and not_proven only.\n\nSTRICT OUTPUT HYGIENE: Do not echo, print, cat, return, or include literal synthetic secret/credential/PII/provider-session fixture values in any Agent return, command output summary, transition concern, or diagnostic excerpt. Commands must be written so their stdout/stderr contains only category labels, opaque probe ids, hashes, counts, file/evidence refs, and PASS/FAIL-style observations. If a probe would display a literal, suppress/redirect it and report only category/ref/hash.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/recording/**",
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p1-raw-evidence-scrub-0701c-axis-qa",
+      "step_ref": "brick-6-p1-raw-evidence-scrub-0701c-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "completion_edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-axis-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Axis attack QA. Inspect whether P1 remains Support/evidence integrity only and does not make Support own Brick work truth, Agent return truth, Link Movement, success, or quality. Confirm P1 does not accidentally implement P4 AgentFact authority-key closure or P7 release/dashboard hardening. Return local non-binding observations only; no Link-facing Movement.\n\nSTRICT OUTPUT HYGIENE: Do not echo, print, cat, return, or include literal synthetic secret/credential/PII/provider-session fixture values in any Agent return, command output summary, transition concern, or diagnostic excerpt. Commands must be written so their stdout/stderr contains only category labels, opaque probe ids, hashes, counts, file/evidence refs, and PASS/FAIL-style observations. If a probe would display a literal, suppress/redirect it and report only category/ref/hash.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/recording/**",
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p1-raw-evidence-scrub-0701c-evidence-qa",
+      "step_ref": "brick-6-p1-raw-evidence-scrub-0701c-evidence-qa",
+      "step_template_ref": "building-step-template:evidence-integrity",
+      "completion_edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-evidence-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Evidence integrity QA. Inspect persisted raw/claim/evidence outputs and checker proof. Verify negative probes cannot pass by simply dropping required raw evidence. Verify refs, proof_limits, and not_proven remain useful after any block/remove behavior. Record stale-source/checker-overclaim risks. Return evidence observations only.\n\nSTRICT OUTPUT HYGIENE: Do not echo, print, cat, return, or include literal synthetic secret/credential/PII/provider-session fixture values in any Agent return, command output summary, transition concern, or diagnostic excerpt. Commands must be written so their stdout/stderr contains only category labels, opaque probe ids, hashes, counts, file/evidence refs, and PASS/FAIL-style observations. If a probe would display a literal, suppress/redirect it and report only category/ref/hash.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/recording/**",
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p1-raw-evidence-scrub-0701c-closure",
+      "step_ref": "brick-6-p1-raw-evidence-scrub-0701c-closure",
+      "step_template_ref": "building-step-template:closure",
+      "completion_edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-closure-to-boundary",
+      "node_reroute_budget": 1,
+      "work_statement": "Final P1c closure synthesis. Fan in work plus all QA bodies. Separate observed_evidence, narrowly_proven, not_proven, remaining_delta, parent_goal_delta_status, next_target_candidates, deferred Smith/COO review queue, and transition_concern_evidence. Do not call overall goal complete. If P1 remains unproven, return HOLD/remaining_delta as support evidence only. Only this closure may emit Link-facing transition_concern_evidence, and it must be non-binding and literal-free.\n\nSTRICT OUTPUT HYGIENE: Do not echo, print, cat, return, or include literal synthetic secret/credential/PII/provider-session fixture values in any Agent return, command output summary, transition concern, or diagnostic excerpt. Commands must be written so their stdout/stderr contains only category labels, opaque probe ids, hashes, counts, file/evidence refs, and PASS/FAIL-style observations. If a probe would display a literal, suppress/redirect it and report only category/ref/hash.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-codex-design-to-design-synthesis",
+      "source": "brick-6-p1-raw-evidence-scrub-0701c-codex-design",
+      "target": "brick-6-p1-raw-evidence-scrub-0701c-design-synthesis",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-claude-design-to-design-synthesis",
+      "source": "brick-6-p1-raw-evidence-scrub-0701c-claude-design",
+      "target": "brick-6-p1-raw-evidence-scrub-0701c-design-synthesis",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-design-synthesis-to-design-qa",
+      "source": "brick-6-p1-raw-evidence-scrub-0701c-design-synthesis",
+      "target": "brick-6-p1-raw-evidence-scrub-0701c-design-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-design-qa-to-coo-gate",
+      "source": "brick-6-p1-raw-evidence-scrub-0701c-design-qa",
+      "target": "brick-6-p1-raw-evidence-scrub-0701c-coo-gate",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-coo-gate-to-work",
+      "source": "brick-6-p1-raw-evidence-scrub-0701c-coo-gate",
+      "target": "brick-6-p1-raw-evidence-scrub-0701c-work",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-work-to-code-qa",
+      "source": "brick-6-p1-raw-evidence-scrub-0701c-work",
+      "target": "brick-6-p1-raw-evidence-scrub-0701c-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-work-to-axis-qa",
+      "source": "brick-6-p1-raw-evidence-scrub-0701c-work",
+      "target": "brick-6-p1-raw-evidence-scrub-0701c-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-work-to-evidence-qa",
+      "source": "brick-6-p1-raw-evidence-scrub-0701c-work",
+      "target": "brick-6-p1-raw-evidence-scrub-0701c-evidence-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-code-qa-to-closure",
+      "source": "brick-6-p1-raw-evidence-scrub-0701c-code-qa",
+      "target": "brick-6-p1-raw-evidence-scrub-0701c-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-axis-qa-to-closure",
+      "source": "brick-6-p1-raw-evidence-scrub-0701c-axis-qa",
+      "target": "brick-6-p1-raw-evidence-scrub-0701c-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-evidence-qa-to-closure",
+      "source": "brick-6-p1-raw-evidence-scrub-0701c-evidence-qa",
+      "target": "brick-6-p1-raw-evidence-scrub-0701c-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701c-closure-to-boundary",
+      "source": "brick-6-p1-raw-evidence-scrub-0701c-closure",
+      "target": "building-boundary:brick-6-p1-raw-evidence-scrub-0701c-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:brick-6-p1-raw-evidence-scrub-0701c-design-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p1-raw-evidence-scrub-0701c-codex-design-to-design-synthesis",
+        "edge:brick-6-p1-raw-evidence-scrub-0701c-claude-design-to-design-synthesis"
+      ]
+    },
+    {
+      "group_id": "group:brick-6-p1-raw-evidence-scrub-0701c-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p1-raw-evidence-scrub-0701c-work-to-code-qa",
+        "edge:brick-6-p1-raw-evidence-scrub-0701c-work-to-axis-qa",
+        "edge:brick-6-p1-raw-evidence-scrub-0701c-work-to-evidence-qa"
+      ]
+    },
+    {
+      "group_id": "group:brick-6-p1-raw-evidence-scrub-0701c-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p1-raw-evidence-scrub-0701c-code-qa-to-closure",
+        "edge:brick-6-p1-raw-evidence-scrub-0701c-axis-qa-to-closure",
+        "edge:brick-6-p1-raw-evidence-scrub-0701c-evidence-qa-to-closure"
+      ]
+    }
+  ],
+  "source_evidence_refs": [
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-repair-goal-0630.md#Standard Phase Building Graph",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-repair-p1-raw-evidence-stream-scrub-0630.md",
+    "project/brick-protocol/status/kernel/GOAL/brick-6-surface-p1-raw-evidence-scrub-0701b.json",
+    "/Users/smith/.brick/project/brick-protocol/buildings/brick-6-p1-raw-evidence-scrub-0701b/work/step-outputs/brick-6-p1-raw-evidence-scrub-0701b-code-qa-attempt-1/adapter-error.json"
+  ],
+  "proof_limits": [
+    "support graph packet declaration only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "not_proven": [
+    "P1 implementation",
+    "future Building outcome",
+    "Claude adapter availability",
+    "provider quality",
+    "overall repair goal completion"
+  ]
+}
