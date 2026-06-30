@@ -195,6 +195,10 @@ Already observed:
 - Smith-local literal cleanup and guard expansion have landed.
 - Additional literal scrub landed at `b9d193d` with proof
   `customer-ready-release-pruning-export-literal-scrub-proof-0630.md`.
+- Fresh export CLI smoke (`customer-ready-g2-fresh-export-cli-smoke-0630.md`)
+  proves `uv sync`, import, CLI help, and `brick verify` on the exported tree;
+  it also narrows first-build docs so provider-free `adapter:local` verdict
+  lanes are honestly described as possible `agent_incomplete`/`not_ready`.
 
 Pass evidence:
 

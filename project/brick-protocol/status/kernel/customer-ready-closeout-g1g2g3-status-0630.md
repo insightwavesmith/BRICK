@@ -77,14 +77,17 @@ top-level: AGENTS.md README.md agent/ brick/ link/ pyproject.toml support/
 operator-literal grep outside README: clean (no /Users/smith, no insightwavesmith)
 ```
 
-NOT proven / remaining G2 work:
+G2 fresh-export CLI smoke follow-up landed as operator-maintenance candidate:
+`customer-ready-g2-fresh-export-cli-smoke-0630.md` measures a fresh export, `uv sync`, import, CLI help, and `brick verify` GREEN. It also found and corrected an over-green docs claim: provider-free `brick build --adapter adapter:local` with verdict-bearing design/review/closure currently returns `agent_incomplete`/`not_ready`, not complete.
+
+NOT proven / remaining G2 work after that docs/measurement sync:
 
 ```text
-- customer COMPREHENSION review of the exported tree (docs coherence end-to-end)
-  is not proven; only literal/structure cleanliness is proven.
-- fresh-export install/build/verify on a clean machine is P7-adjacent and not
-  re-run here.
+- A real provider-backed fresh export build reaching frontier_kind=complete was
+  not re-run here.
+- Full customer comprehension remains not_proven.
 - release export parity (byte-for-byte across runs) not asserted.
+- The docs/measurement sync was direct operator maintenance, not a Building-produced patch.
 ```
 
 ## G3 FINAL architecture cleanup — current target re-measured

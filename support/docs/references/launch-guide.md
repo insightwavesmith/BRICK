@@ -70,14 +70,16 @@ CLI 출력으로 증명되지 않습니다.
 
 ### 1) 표준 작업: `brick build --task`
 
-처음 실행은 provider와 repository write를 증명하려 하지 말고 local/read-only
-support evidence 경로부터 확인하세요:
+처음 실행은 provider와 repository write를 증명하려 하지 말고 support evidence
+경로부터 확인하세요. provider 준비 전에는 `frontier_kind=agent_incomplete` /
+`not_ready`가 정상 관측일 수 있습니다:
 
 ```bash
 brick build \
   --task "첫 실행을 support evidence only로 기록해 주세요." \
   --preset building-chain-preset:design-contract-only \
-  --adapter adapter:local
+  --adapter adapter:local \
+  --timeout 20
 ```
 
 실제 저장소를 바꾸는 작업은 auth 뒤에 `--real-provider`를 붙이거나 명시적인
@@ -93,7 +95,9 @@ brick build \
 `--real-provider`는 Claude, Codex, Gemini local readiness를 선언된 support
 순서로 관찰하고, 준비된 첫 observed-write adapter를 고릅니다. 명시적인
 `--adapter`가 있으면 그 값이 우선합니다. 준비된 provider가 없으면
-`adapter:local`로 fallback하며, 그 사실도 support evidence로 출력됩니다.
+`adapter:local`로 fallback하며, 그 사실도 support evidence로 출력됩니다. 단
+verdict-bearing design/review/closure 노드는 local adapter만으로 complete가 아니라
+`agent_incomplete`/`not_ready`를 반환할 수 있습니다.
 
 ### 2) 선언된 그래프: `brick build --graph`
 

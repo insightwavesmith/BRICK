@@ -43,8 +43,8 @@ uv run python3 -m brick_protocol.support.operator.onboard codex
 
 (host 자리는 `codex | claude | gemini | local` — provider CLI가 하나도 없으면
 `local`. provider 없이도 돌아갑니다.) 위자드는 provider 준비 상태 점검 → 연결
-설정 안내 → 첫 예제 빌딩(기본은 provider 없이 `adapter:local`, 결과는 임시
-폴더에만 기록) → 다음 단계 안내까지 알아서 진행해요. 이후 고객이 직접 쓰는
+설정 안내 → 첫 예제 빌딩 support evidence(결과는 임시 폴더에만 기록;
+provider 준비 전에는 `agent_incomplete`/`not_ready` 가능) → 다음 단계 안내까지 알아서 진행해요. 이후 고객이 직접 쓰는
 공식 실행 표면은 `brick build` 하나입니다.
 
 ## AI-runnable onboarding checklist
@@ -64,8 +64,8 @@ expected: provider별 준비 상태 표와 증상 -> 처방 표가 출력되고 
 failure signal: doctor 자체 stack trace, 또는 repo 루트가 아닌 곳에서 실행한 import 실패.
 
 step: first Building from text
-command: cd ~/BRICK && brick build --task "첫 온보딩 빌딩을 support evidence only로 기록해 주세요." --preset building-chain-preset:design-contract-only --building-id quickstart-ai-runnable-001 --adapter adapter:local --output-root project/brick-protocol/buildings
-expected: build_input_mode=preset_task, quickstart-ai-runnable-001, evidence_root=.../project/brick-protocol/buildings/quickstart-ai-runnable-001, frontier_kind가 출력된다. closure로 읽는 값은 frontier_kind=complete뿐이다.
+command: cd ~/BRICK && brick build --task "첫 온보딩 빌딩을 support evidence only로 기록해 주세요." --preset building-chain-preset:design-contract-only --building-id quickstart-ai-runnable-001 --adapter adapter:local --timeout 20 --output-root project/brick-protocol/buildings
+expected: build_input_mode=preset_task, quickstart-ai-runnable-001, evidence_root=.../project/brick-protocol/buildings/quickstart-ai-runnable-001, frontier_kind가 출력된다. provider 준비 전에는 agent_incomplete/not_ready가 정상 support evidence일 수 있고, closure로 읽는 값은 frontier_kind=complete뿐이다.
 failure signal: FileExistsError이면 building_id를 새로 정한다; ModuleNotFoundError이면 uv run 또는 PYTHONPATH를 확인한다; complete가 아닌 frontier_kind는 not_ready로 보고 evidence_root를 inspect한다.
 
 step: dashboard snapshot
@@ -126,9 +126,11 @@ brick build \
 ```
 
 This example intentionally uses `building-chain-preset:design-contract-only`
-with `--adapter adapter:local`: it is a harmless local/read-only support
-evidence run for first contact, not a repository-changing task and not provider
-proof. `brick build` records support evidence that includes `build_input_mode:
+with `--adapter adapter:local --timeout 20`: it is a harmless support-evidence
+check for first contact, not a repository-changing task and not provider proof.
+Because design/review/closure are verdict-bearing lanes, provider readiness may
+still be required for `frontier_kind=complete`; without it the expected customer
+state is `not_ready` with an evidence root to inspect. `brick build` records support evidence that includes `build_input_mode:
 preset_task`, the Building id, the selected adapter, the declared preset, the
 evidence root, frontier observation, proof limits, and not-proven facts. The
 underlying support/operator helper materializes the selected chain preset into

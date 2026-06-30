@@ -16,7 +16,7 @@ cd ~/BRICK && uv run python3 -m brick_protocol.support.operator.onboard codex
 # 3) 공식 고객 실행 표면은 하나입니다: brick build.
 #    표준 작업은 preset_task 경로(`--task`/`--preset`)로 말하고,
 #    caller/COO가 이미 선언한 그래프는 graph_packet 경로(`--graph`)로 넘깁니다.
-cd ~/BRICK && brick build --task "첫 실행을 support evidence only로 기록해 주세요." --preset building-chain-preset:design-contract-only --adapter adapter:local
+cd ~/BRICK && brick build --task "첫 실행을 support evidence only로 기록해 주세요." --preset building-chain-preset:design-contract-only --adapter adapter:local --timeout 20
 #    실제 저장소를 바꾸는 작업은 auth 뒤에 --real-provider 를 붙이거나,
 #    명시적인 observed-write adapter를 고른 다음 실행하세요.
 #    run_building_intake, assemble, launch_assembled_building, goal-approve 는
@@ -31,11 +31,11 @@ expected: "5) 설치 점검 완료" 와 다음 온보딩 한 줄이 출력된다
 failure signal: "BRICK_REPO={OWNER}/BRICK" 요청, "gh auth login" 요청, python3/uv 진단, 또는 git clone/pull 실패.
 
 command: cd ~/BRICK && uv run python3 -m brick_protocol.support.operator.onboard codex
-expected: provider 준비 상태 표와 adapter:local 첫 예제 Building 결과가 출력된다.
+expected: provider 준비 상태 표와 첫 예제 Building support evidence가 출력된다. provider가 아직 준비되지 않았으면 frontier_kind=agent_incomplete/not_ready일 수 있다.
 failure signal: local_cli_missing, provider login 진단, FileExistsError, 또는 adapter-error frontier 안내.
 
-command: cd ~/BRICK && brick build --task "첫 실행을 support evidence only로 기록해 주세요." --preset building-chain-preset:design-contract-only --adapter adapter:local
-expected: build_input_mode=preset_task, building_id, evidence_root, frontier_kind가 출력된다. customer-visible closure는 frontier_kind=complete일 때뿐이다. brick build exit 0은 CLI가 support evidence를 반환했다는 뜻이지 phase PASS가 아니다. complete가 아닌 frontier는 not_ready로 보고 evidence_root를 inspect한다. graph_packet은 `brick build --graph <packet.json>`로 같은 표면을 통과한다.
+command: cd ~/BRICK && brick build --task "첫 실행을 support evidence only로 기록해 주세요." --preset building-chain-preset:design-contract-only --adapter adapter:local --timeout 20
+expected: build_input_mode=preset_task, building_id, evidence_root, frontier_kind가 출력된다. provider 준비 전 local/support-only 확인은 frontier_kind=agent_incomplete/not_ready일 수 있으며, customer-visible closure는 frontier_kind=complete일 때뿐이다. brick build exit 0은 CLI가 support evidence를 반환했다는 뜻이지 phase PASS가 아니다. complete가 아닌 frontier는 not_ready로 보고 evidence_root를 inspect한다. graph_packet은 `brick build --graph <packet.json>`로 같은 표면을 통과한다.
 failure signal: FileExistsError이면 building_id를 새로 정한다; ModuleNotFoundError이면 루트에서 uv run python3 -c 로 호출했는지 확인한다; frontier가 complete가 아니라는 안내.
 
 command: cd ~/BRICK && PYTHONPATH=support/import_identity uv run python3 support/checkers/check_profile.py --all
@@ -43,8 +43,10 @@ expected: "profile passed:" 줄들이 나오고 마지막 proof-limit 줄 뒤 ex
 failure signal: "profile runner rejected evidence:" 뒤의 첫 거절 문장.
 ```
 
-설치가 끝나면 위자드가 다음 단계를 알아서 안내해요. provider 없이도 첫 예제
-빌딩이 30초 안에 돕니다 (이 저장소 실측 약 1.6초, `adapter:local`). 막히면
+설치가 끝나면 위자드가 다음 단계를 알아서 안내해요. provider 없이도 `brick verify`와
+doctor/readiness 확인은 가능합니다. 다만 `brick build`는 design/review/closure 같은
+verdict-bearing 노드에서 provider-backed adapter가 필요할 수 있어, provider 준비 전에는
+`agent_incomplete`/`not_ready` support evidence를 반환할 수 있습니다. 막히면
 `uv run python3 -m brick_protocol.support.operator.onboard doctor` 가 증상→처방
 진단표를 보여줘요. 받은 게 멀쩡한지 확인(초록불 = exit 0):
 `PYTHONPATH=support/import_identity uv run python3 support/checkers/check_profile.py --all`
@@ -82,9 +84,11 @@ graph packets use `brick build --graph <packet.json>`. The support helpers
 execution routes.
 
 Use the first-run example with `building-chain-preset:design-contract-only` and
-`--adapter adapter:local` to verify the local support-evidence path without a
-real provider or repository write. For real repository-changing work, authenticate
-first and use `--real-provider`, or choose an explicit observed-write adapter.
+`--adapter adapter:local --timeout 20` only as a support-evidence check: it may
+return `agent_incomplete`/`not_ready` until provider-backed verdict lanes are
+ready. For a provider-free green check, run `brick verify`. For real
+repository-changing work, authenticate first and use `--real-provider`, or choose
+an explicit observed-write adapter.
 
 - Brick = work
 - Agent = performer
