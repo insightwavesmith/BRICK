@@ -22,7 +22,7 @@ must be matched to the requirement it covers.
 | R3 | Carry documented lessons from prior mistakes/misjudgments. | `customer-ready-closeout-goal-0630.md` lists over-reads: explicit forward edges vs no-link policy, P8 repeat not route-default proof, fixed graph ritual, stale main pointers, support evidence vs judgment. | narrowly_proven as written policy |
 | G1.1 | User/COO can draw graph without authoring Link rows at compact surface; support materializes rows. | G1 skill/doc sync (`customer-ready-g1-no-link-policy-docs-skill-sync-0630.md`). | narrowly_proven as docs/skill sync |
 | G1.2 | Concern evidence can become reroute/HOLD candidate under declared/adopted Link policy. | `building_operator_driver0` `live_qa_reroute_to_work_n2` measured: fan-in QA concern -> Link reroute -> work replay -> closure. | narrowly_proven for n2 single-reroute |
-| G1.3 | Deep L2 cascade replay beyond measured n2 works. | No live proof recorded. | not_proven |
+| G1.3 | Deep L2 cascade replay beyond measured n2 works. | `customer-ready-g1-deep-l2-cascade-proof-0630.md` records `bounded-agent-proposed-routing-loop` PASS with nested different-node cascade requiring two adopted landings and `cascade_depths=[1, 2]`. | narrowly_proven as support evidence |
 | G1.4 | Fresh customer understands no-link/materialized-forward/reroute distinction. | No customer comprehension test. | not_proven |
 | G2.1 | Release export excludes internal evidence/status and build metadata. | Fresh export smoke + parity proof: no `project/`, no `brick_protocol.egg-info/`. | narrowly_proven |
 | G2.2 | Export has no Smith-local/operator-local literals outside allowed README working example. | Fresh export smoke + parity proof: zero `/Users/smith` / `insightwavesmith` outside README allowance. | narrowly_proven |
@@ -57,7 +57,7 @@ must be matched to the requirement it covers.
 ## Current closeout disposition
 
 ```text
-G1 = partial/narrow: route/reroute n2 proven, deep cascade + customer comprehension not_proven.
+G1 = partial/narrow: route/reroute n2 proven and deep cascade support-proven; customer comprehension remains not_proven.
 G2 = stronger after parity proof: export exclusion/literal/deterministic payload proven, provider-backed complete build + comprehension not_proven.
 G3 = partial/narrow: four leaves proven (latest onboard_smoke via main-agent fire(graph)), kernel_checks still large/largest + stop condition not_proven.
 Goal = ACTIVE, not complete.

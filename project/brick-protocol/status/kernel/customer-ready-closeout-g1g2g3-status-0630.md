@@ -55,14 +55,22 @@ reproducing.
 G1 policy-doc follow-up landed as operator-maintenance candidate:
 `customer-ready-g1-no-link-policy-docs-skill-sync-0630.md` updates the customer/operator skill chain so it teaches the no-link/materialized-forward distinction.
 
-NOT proven / remaining G1 work after that docs/skill sync:
+G1 deep L2 cascade follow-up landed as operator measurement:
+`customer-ready-g1-deep-l2-cascade-proof-0630.md` runs the
+`bounded-agent-proposed-routing-loop` profile and confirms that the measured
+checker includes a nested different-node cascade replay case requiring two
+adopted landings and `cascade_depths=[1, 2]`. The profile passed, so the measured
+case did not prematurely HOLD or drift cascade depth. This closes the named
+"beyond n2" cascade gap as support evidence only.
+
+NOT proven / remaining G1 work after docs/skill sync + deep L2 proof:
 
 ```text
-- Deep L2 cascade replay beyond the measured n2 single-reroute case remains
-  not_proven.
 - Fresh customer reading-comprehension of the updated docs/skills is not proven.
-- The docs/skill sync was direct operator maintenance, not a Building-produced
-  patch; next implementation slice should return to Building-first operation.
+- The docs/skill sync and deep L2 proof were direct operator measurements, not a
+  fresh customer study or Building-produced patch.
+- Checker/profile green remains support evidence only and does not prove every
+  possible future route graph.
 ```
 
 ## G2 customer release pruning — export MEASURED CLEAN
