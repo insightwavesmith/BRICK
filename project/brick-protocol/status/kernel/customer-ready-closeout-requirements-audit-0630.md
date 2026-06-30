@@ -28,14 +28,14 @@ must be matched to the requirement it covers.
 | G2.2 | Export has no Smith-local/operator-local literals outside allowed README working example. | Fresh export smoke + parity proof: zero `/Users/smith` / `insightwavesmith` outside README allowance. | narrowly_proven |
 | G2.3 | Export payload is deterministic/byte-identical across repeated runs. | `customer-ready-g2-release-export-parity-proof-0630.md`: identical file list and SHA-256 manifest across two exports. | narrowly_proven for payload excluding `.git/` metadata |
 | G2.4 | Provider-free first-run docs honestly describe possible `agent_incomplete`/`not_ready`. | `customer-ready-g2-fresh-export-cli-smoke-0630.md` corrected README/quickstart/launch-guide. | narrowly_proven as docs |
-| G2.5 | Real provider-backed fresh export build reaches `frontier_kind=complete`. | Not re-run after closeout docs/G3 commits. | not_proven |
+| G2.5 | Real provider-backed fresh export build reaches `frontier_kind=complete`. | `customer-ready-g2-provider-backed-frontier-proof-0630.md`: fresh export installed + CLI + `build --real-provider` => `frontier_kind=complete`, `customer_visible_frontier_state=frontier_complete`, evidence root present. | narrowly_proven as support evidence |
 | G2.6 | Full customer comprehension / first-run UX validated by a fresh reader. | No customer comprehension run. | not_proven |
 | G3.1 | Godmodules shrink without new axes/runtimes/judges. | Four kernel_checks leaves moved to flat checker-lib siblings: no_smith_residue, install_release_export_lint, provider_preflight, onboard_smoke. Registry rows have no crossings/axis imports. Latest leaf was produced by main-agent-fired Building `g3-provider-preflight-leaf-0630`. | narrowly_proven for three leaves |
 | G3.2 | Every G3 leaf uses conservation ledger, byte-identical where possible, mutation-RED, compile/checker/REAL HOME gates. | no_smith_residue proof + install/release proof + provider_preflight proof + onboard_smoke proof satisfy this. Latest proof: `customer-ready-final-architecture-provider-preflight-proof-0630.md`, REAL HOME --all rc=0 / 28 profiles. | narrowly_proven for three leaves |
-| G3.3 | `kernel_checks.py` no longer remains largest godmodule or remaining debt is accepted by declared stop condition. | Stop condition declared in `customer-ready-g3-stop-condition-0630.md`: reach `kernel_checks.py < 10000 LOC` or explicitly defer every remaining >=200 LOC candidate with reason/owner. Current LOC 10814, so condition not met yet. | not_proven |
+| G3.3 | `kernel_checks.py` no longer remains largest godmodule or remaining debt is accepted by declared stop condition. | Main now carries the G3 split (commit `0d18b79`): `kernel_checks.py` = 9931 LOC (< 10000), and `customer-ready-g3-stop-condition-0630.md` additionally defers all 13 remaining >=200 LOC candidates with reason/owner. Stop condition met. | narrowly_proven as support evidence |
 | G3.4 | FINAL architecture cleanup stop condition declared with Smith/COO. | Declared by COO in `customer-ready-g3-stop-condition-0630.md`; still needs Smith disposition if stricter/lighter threshold desired. | narrowly_proven as COO declaration; Smith disposition pending |
 | C1 | `main = origin/main`, worktree clean, final closeout record written before goal complete. | Current main is ahead of origin; goal still active. | not_proven / incomplete |
-| C2 | REAL HOME `check_profile.py --all` GREEN before closeout. | Latest G3 leaf proof measured rc=0 / 28 profiles; must be re-run at final close. | currently_green, not final proof |
+| C2 | REAL HOME `check_profile.py --all` GREEN before closeout. | Re-run on main after the G3 split cherry-pick (`0d18b79`): 28 profiles all passed, 0 failed / 0 Traceback. Must be re-run once more immediately before any push disposition. | currently_green; re-verify at push time |
 
 ## Requirement-derived edge cases
 
@@ -57,17 +57,22 @@ must be matched to the requirement it covers.
 ## Current closeout disposition
 
 ```text
-G1 = partial/narrow: route/reroute n2 proven and deep cascade support-proven; customer comprehension remains not_proven.
-G2 = stronger after parity proof: export exclusion/literal/deterministic payload proven, provider-backed complete build + comprehension not_proven.
-G3 = partial/narrow: four leaves proven (latest onboard_smoke via main-agent fire(graph)), kernel_checks still large/largest + stop condition not_proven.
-Goal = ACTIVE, not complete.
+G1 = route/reroute n2 proven + deep L2 cascade support-proven; only fresh customer comprehension remains not_proven.
+G2 = export exclusion/literal/deterministic payload proven + provider-backed build reached frontier_kind=complete; only fresh customer comprehension remains not_proven.
+G3 = kernel split landed on main (kernel_checks.py 9931 < 10000) + 13 remaining candidates deferred with reason/owner; stop condition met as support evidence.
+G4 = ai-cli MCP classified as later diagnostic (enabled=false, no runtime dependency), not a closeout blocker.
+G5 = main worktree clean, REAL HOME --all green, final audit recorded.
+Remaining genuinely-open items: fresh customer comprehension (G1.4, G2.6) and the human-gate external close (C1: push / merge / main=origin/main).
+Goal = ACTIVE, not complete: blocked on human-gate external action + a fresh-customer comprehension study.
 ```
 
 ## Next Movement candidates
 
 ```text
-1. G2 provider-backed fresh export build -> frontier_kind=complete.
-2. G3 declare stop condition, then continue next leaf by the main agent drawing and firing a real Building (not direct patch).
-3. G1 deep L2 cascade replay proof if route-default closeout is prioritized.
-4. Push local commits only after Smith OK.
+1. (DONE) G2 provider-backed fresh export build reached frontier_kind=complete.
+2. (DONE) G3 stop condition met on main: kernel_checks.py 9931 < 10000 + 13 deferred candidates.
+3. (DONE) G1 deep L2 cascade replay support proof recorded.
+4. Remaining operator-doable: none on the closeout mainline without external/human input.
+5. Human-gate (Smith disposition required): push local commits, choose merge/release target, reach main=origin/main.
+6. External-dependency: a fresh-customer comprehension study for G1.4 / G2.6 (cannot be self-certified by the operator).
 ```
