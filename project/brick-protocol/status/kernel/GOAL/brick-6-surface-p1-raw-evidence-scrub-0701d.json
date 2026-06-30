@@ -1,0 +1,216 @@
+{
+  "task_statement": "P1d repair/replay for P1 raw evidence scrub. P1c reached frontier complete but QA/closure returned implementation_gap: raw_evidence_stream_scrub.yaml was added without core.yaml path_allowlist admission, so check_profile.py --all was red. Repair the implementation gap via official build()/brick build route only, then prove focused and --all checker evidence. Also test closure-origin concern adoption by omitting top-level transition_concern_adoption=advisory; source QA concerns remain local under hard fan-in, closure is Link-facing.",
+  "declared_by": "coo",
+  "building_id": "brick-6-p1-raw-evidence-scrub-0701d",
+  "selected_shape_ref": "building-shape:repair-replay",
+  "selection_rule": "coo_declared_manual_graph_repair_replay_not_preset_only",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "brick-6-p1-raw-evidence-scrub-0701d-work",
+      "step_ref": "brick-6-p1-raw-evidence-scrub-0701d-work",
+      "step_template_ref": "building-step-template:work",
+      "completion_edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701d-work-to-code-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "P1d repair/replay work. Start from P1c evidence, especially closure remaining_delta and sandbox commit a743192cffa81becd977c0d778a3b5d1ae53ca58, as support evidence only. Recreate/adapt the P1 raw evidence scrub implementation in the current sandbox and close the real implementation_gap: support/checkers/profiles/raw_evidence_stream_scrub.yaml must be admitted in support/checkers/profiles/core.yaml path_allowlist or equivalent active core admission path. Preserve P1 scope only: raw evidence stream secret/PII/provider-session scrub in support recording/checker surfaces; no source truth, success judgment, quality judgment, Movement authority, scheduler/queue/retry, new axis, or release/dashboard hardening. Run py_compile for changed Python files, focused raw_evidence_stream_scrub profile, PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all, and git diff --check. Return changed_files, commands, observed evidence, and not_proven. Do not commit or push.\n\nSTRICT OUTPUT HYGIENE: Do not echo, print, cat, return, or include literal synthetic secret/credential/PII/provider-session fixture values in any Agent return, command output summary, transition concern, or diagnostic excerpt. Commands must be written so stdout/stderr contains only category labels, opaque probe ids, hashes, counts, file/evidence refs, and PASS/FAIL-style observations. If a probe would display a literal, suppress/redirect it and report only category/ref/hash.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/recording/**",
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p1-raw-evidence-scrub-0701d-code-qa",
+      "step_ref": "brick-6-p1-raw-evidence-scrub-0701d-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "completion_edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701d-code-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "P1d code attack QA. Independently verify the P1d work fixes the P1c checker admission gap: focused raw_evidence_stream_scrub profile and check_profile.py --all both run against this W1 worktree and are not red because of core path_allowlist. Probe raw scrub behavior through real writer/checker surfaces with QA-built probes and no literal sensitive output. If the gap remains, return transition_concern_evidence with concern_kind implementation_gap related to brick:brick-6-p1-raw-evidence-scrub-0701d-work. Return observations only; no Movement/quality/success judgment.\n\nSTRICT OUTPUT HYGIENE: Do not echo, print, cat, return, or include literal synthetic secret/credential/PII/provider-session fixture values in any Agent return, command output summary, transition concern, or diagnostic excerpt. Commands must be written so stdout/stderr contains only category labels, opaque probe ids, hashes, counts, file/evidence refs, and PASS/FAIL-style observations. If a probe would display a literal, suppress/redirect it and report only category/ref/hash.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/recording/**",
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p1-raw-evidence-scrub-0701d-axis-qa",
+      "step_ref": "brick-6-p1-raw-evidence-scrub-0701d-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "completion_edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701d-axis-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "P1d axis QA. Verify the repair remains Support/evidence integrity only: no Brick work truth, Agent return truth, Link Movement, success/quality authority, route target selector, release/dashboard hardening, or scheduler/queue/retry was introduced. Verify QA lane concerns remain local/non-binding before closure. If a real boundary defect remains, return local transition_concern_evidence only; closure is the Link-facing concern source.\n\nSTRICT OUTPUT HYGIENE: Do not echo, print, cat, return, or include literal synthetic secret/credential/PII/provider-session fixture values in any Agent return, command output summary, transition concern, or diagnostic excerpt. Commands must be written so stdout/stderr contains only category labels, opaque probe ids, hashes, counts, file/evidence refs, and PASS/FAIL-style observations. If a probe would display a literal, suppress/redirect it and report only category/ref/hash.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/recording/**",
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p1-raw-evidence-scrub-0701d-evidence-qa",
+      "step_ref": "brick-6-p1-raw-evidence-scrub-0701d-evidence-qa",
+      "step_template_ref": "building-step-template:evidence-integrity",
+      "completion_edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701d-evidence-qa-to-closure",
+      "node_reroute_budget": 1,
+      "work_statement": "P1d evidence integrity QA. Verify P1d evidence does not overclaim: focused profile and --all evidence are current, refs/proof_limits/not_proven are preserved, no required raw evidence is silently dropped, and P1 done condition is not claimed unless checker/profile admission and broad proof are current. Return missing evidence and checker_overclaim_risks if present.\n\nSTRICT OUTPUT HYGIENE: Do not echo, print, cat, return, or include literal synthetic secret/credential/PII/provider-session fixture values in any Agent return, command output summary, transition concern, or diagnostic excerpt. Commands must be written so stdout/stderr contains only category labels, opaque probe ids, hashes, counts, file/evidence refs, and PASS/FAIL-style observations. If a probe would display a literal, suppress/redirect it and report only category/ref/hash.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/recording/**",
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p1-raw-evidence-scrub-0701d-closure",
+      "step_ref": "brick-6-p1-raw-evidence-scrub-0701d-closure",
+      "step_template_ref": "building-step-template:closure",
+      "completion_edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701d-closure-to-boundary",
+      "node_reroute_budget": 1,
+      "work_statement": "P1d closure synthesis. Fan in work plus all QA bodies. Decide only what is observed/narrowly proven/not_proven. If focused raw_evidence_stream_scrub and check_profile.py --all are green in current evidence, and QA found no implementation/boundary/evidence gap, state P1 candidate closure evidence but do not mark the whole goal complete. If any implementation_gap remains (especially core profile admission), return Link-facing transition_concern_evidence with concern_kind implementation_gap related to brick:brick-6-p1-raw-evidence-scrub-0701d-work. Because this graph intentionally omits top-level transition_concern_adoption=advisory, a closure-origin concern should not be silently forward-completed; record whether Link adopts/reroutes/HOLDs in evidence. Do not judge quality or success.\n\nSTRICT OUTPUT HYGIENE: Do not echo, print, cat, return, or include literal synthetic secret/credential/PII/provider-session fixture values in any Agent return, command output summary, transition concern, or diagnostic excerpt. Commands must be written so stdout/stderr contains only category labels, opaque probe ids, hashes, counts, file/evidence refs, and PASS/FAIL-style observations. If a probe would display a literal, suppress/redirect it and report only category/ref/hash.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701d-work-to-code-qa",
+      "source": "brick-6-p1-raw-evidence-scrub-0701d-work",
+      "target": "brick-6-p1-raw-evidence-scrub-0701d-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701d-work-to-axis-qa",
+      "source": "brick-6-p1-raw-evidence-scrub-0701d-work",
+      "target": "brick-6-p1-raw-evidence-scrub-0701d-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701d-work-to-evidence-qa",
+      "source": "brick-6-p1-raw-evidence-scrub-0701d-work",
+      "target": "brick-6-p1-raw-evidence-scrub-0701d-evidence-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701d-code-qa-to-closure",
+      "source": "brick-6-p1-raw-evidence-scrub-0701d-code-qa",
+      "target": "brick-6-p1-raw-evidence-scrub-0701d-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701d-axis-qa-to-closure",
+      "source": "brick-6-p1-raw-evidence-scrub-0701d-axis-qa",
+      "target": "brick-6-p1-raw-evidence-scrub-0701d-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701d-evidence-qa-to-closure",
+      "source": "brick-6-p1-raw-evidence-scrub-0701d-evidence-qa",
+      "target": "brick-6-p1-raw-evidence-scrub-0701d-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p1-raw-evidence-scrub-0701d-closure-to-boundary",
+      "source": "brick-6-p1-raw-evidence-scrub-0701d-closure",
+      "target": "building-boundary:brick-6-p1-raw-evidence-scrub-0701d-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:brick-6-p1-raw-evidence-scrub-0701d-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p1-raw-evidence-scrub-0701d-work-to-code-qa",
+        "edge:brick-6-p1-raw-evidence-scrub-0701d-work-to-axis-qa",
+        "edge:brick-6-p1-raw-evidence-scrub-0701d-work-to-evidence-qa"
+      ]
+    },
+    {
+      "group_id": "group:brick-6-p1-raw-evidence-scrub-0701d-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p1-raw-evidence-scrub-0701d-code-qa-to-closure",
+        "edge:brick-6-p1-raw-evidence-scrub-0701d-axis-qa-to-closure",
+        "edge:brick-6-p1-raw-evidence-scrub-0701d-evidence-qa-to-closure"
+      ]
+    }
+  ],
+  "source_evidence_refs": [
+    "/Users/smith/.brick/project/brick-protocol/buildings/brick-6-p1-raw-evidence-scrub-0701c/work/step-outputs/brick-6-p1-raw-evidence-scrub-0701c-closure-attempt-1/step-output.json",
+    "/Users/smith/.brick/project/brick-protocol/buildings/brick-6-p1-raw-evidence-scrub-0701c/work/step-outputs/brick-6-p1-raw-evidence-scrub-0701c-code-qa-attempt-1/step-output.json",
+    "sandbox-commit:a743192cffa81becd977c0d778a3b5d1ae53ca58",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-repair-p1-raw-evidence-stream-scrub-0630.md"
+  ],
+  "proof_limits": [
+    "support graph packet declaration only",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "not_proven": [
+    "P1 implementation before P1d run",
+    "future Building outcome",
+    "provider quality",
+    "overall repair goal completion",
+    "whether closure-origin implementation_gap will be adopted/rerouted/HOLDed until observed"
+  ]
+}
