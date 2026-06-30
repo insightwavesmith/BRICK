@@ -1,0 +1,237 @@
+{
+  "task_statement": "Route-proof diagnostic for BRICK 6-surface audit repair: prove that a closure-origin implementation_gap with a classifier-resolving declared work node id and ledger-local reason_refs is adopted by Link into a reroute landing/replay rather than silent forward or HOLD. This 0701c graph incorporates 0701a/0701b evidence: brick: prefixed refs caused no_resolving_reroute_address; plain node id resolved but external reason_refs caused runtime_handoff_address_unresolved_in_ledger.",
+  "declared_by": "coo",
+  "building_id": "brick-6-route-proof-closure-implementation-gap-0701c",
+  "selected_shape_ref": "shape:manual-hard-fan-in-route-proof-resolving-ref-ledger-local",
+  "selection_rule": "manual graph because the task is specifically Link route/adoption proof, not a reusable preset implementation phase",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "brick-6-route-proof-closure-implementation-gap-0701c-work",
+      "step_ref": "brick-6-route-proof-closure-implementation-gap-0701c-work",
+      "step_template_ref": "building-step-template:work",
+      "work_statement": "Route-proof setup/replay Brick. Do not implement product code and do not edit source. Read this graph declaration and route-proof evidence refs. Return that the declared diagnostic condition is prepared: closure will return implementation_gap with related_boundary_refs [\"brick-6-route-proof-closure-implementation-gap-0701c-work\"] and ledger-local reason_refs only. If this work Brick is running as a reroute landing/replay attempt, record the received handoff refs and return no source changes. Do not commit or push.\n\nSTRICT ROUTE-PROOF SCOPE: Do not modify source files. This Building is a route/adoption diagnostic over declared Brick/Agent/Link behavior. Return observed evidence only; do not judge success, quality, or Movement. Do not use ai-cli/subagents. Do not emit credentials or secret-like literals.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "node_reroute_budget": 1,
+      "completion_edge_ref": "edge:brick-6-route-proof-closure-implementation-gap-0701c-work-to-code-qa",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "project/brick-protocol/status/kernel/GOAL/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "support/**",
+          "brick/**",
+          "agent/**",
+          "link/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-route-proof-closure-implementation-gap-0701c-code-qa",
+      "step_ref": "brick-6-route-proof-closure-implementation-gap-0701c-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "work_statement": "Local QA source lane for route-proof graph. Verify only that this diagnostic graph has no top-level transition_concern_adoption=advisory and that fan-in QA concerns are local before closure. Do not raise Link-facing concern. If you mention transition_concern_evidence, return null or a local non-reroute verification_gap only; do not target any Brick node from this QA lane.\n\nSTRICT ROUTE-PROOF SCOPE: Do not modify source files. This Building is a route/adoption diagnostic over declared Brick/Agent/Link behavior. Return observed evidence only; do not judge success, quality, or Movement. Do not use ai-cli/subagents. Do not emit credentials or secret-like literals.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "node_reroute_budget": 1,
+      "completion_edge_ref": "edge:brick-6-route-proof-closure-implementation-gap-0701c-code-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "project/brick-protocol/status/kernel/GOAL/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "support/**",
+          "brick/**",
+          "agent/**",
+          "link/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-route-proof-closure-implementation-gap-0701c-axis-qa",
+      "step_ref": "brick-6-route-proof-closure-implementation-gap-0701c-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "work_statement": "Axis QA source lane. Check Brick/Agent/Link attribution of this route-proof: Brick declares graph/work; Agent returns non-binding evidence; Link alone adopts Movement. Verify top-level advisory is absent and that only closure is intended to be Link-facing. QA lane concern, if any, remains local/non-binding before closure.\n\nSTRICT ROUTE-PROOF SCOPE: Do not modify source files. This Building is a route/adoption diagnostic over declared Brick/Agent/Link behavior. Return observed evidence only; do not judge success, quality, or Movement. Do not use ai-cli/subagents. Do not emit credentials or secret-like literals.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "node_reroute_budget": 1,
+      "completion_edge_ref": "edge:brick-6-route-proof-closure-implementation-gap-0701c-axis-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "project/brick-protocol/status/kernel/GOAL/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "support/**",
+          "brick/**",
+          "agent/**",
+          "link/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-route-proof-closure-implementation-gap-0701c-evidence-qa",
+      "step_ref": "brick-6-route-proof-closure-implementation-gap-0701c-evidence-qa",
+      "step_template_ref": "building-step-template:evidence-integrity",
+      "work_statement": "Evidence QA source lane. Inspect declared evidence refs and proof limits. Confirm this Building can prove only route/adoption behavior, not P1 completion or product readiness. Do not raise a Link-facing concern; closure will synthesize.\n\nSTRICT ROUTE-PROOF SCOPE: Do not modify source files. This Building is a route/adoption diagnostic over declared Brick/Agent/Link behavior. Return observed evidence only; do not judge success, quality, or Movement. Do not use ai-cli/subagents. Do not emit credentials or secret-like literals.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "node_reroute_budget": 1,
+      "completion_edge_ref": "edge:brick-6-route-proof-closure-implementation-gap-0701c-evidence-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "project/brick-protocol/status/kernel/GOAL/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "support/**",
+          "brick/**",
+          "agent/**",
+          "link/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-route-proof-closure-implementation-gap-0701c-closure",
+      "step_ref": "brick-6-route-proof-closure-implementation-gap-0701c-closure",
+      "step_template_ref": "building-step-template:closure",
+      "work_statement": "Closure route-proof synthesis. Fan in all QA bodies. IMPORTANT first-pass behavior: return Link-facing non-binding transition_concern_evidence with concern_kind implementation_gap, binding false, related_boundary_refs exactly [\"brick-6-route-proof-closure-implementation-gap-0701c-work\"], and reason_refs ONLY to current Building ledger-local refs that will exist before adoption: [\"work/step-outputs/brick-6-route-proof-closure-implementation-gap-0701c-closure-attempt-1/step-output.json\"]. Do NOT include external absolute paths, P1c/P1d evidence paths, raw/link.jsonl from another Building, or any non-ledger address inside transition_concern_evidence.reason_refs; cite those only in observed_evidence if needed. This controlled concern should let Link adopt reroute to the declared work Brick and deliver runtime handoff refs from the current ledger. If this closure is running after a reroute/replay handoff has already landed, do not emit another implementation_gap; instead report observed reroute landing/replay evidence and set transition_concern_evidence null. Do not judge quality or success.\n\nSTRICT ROUTE-PROOF SCOPE: Do not modify source files. This Building is a route/adoption diagnostic over declared Brick/Agent/Link behavior. Return observed evidence only; do not judge success, quality, or Movement. Do not use ai-cli/subagents. Do not emit credentials or secret-like literals.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "node_reroute_budget": 1,
+      "completion_edge_ref": "edge:brick-6-route-proof-closure-implementation-gap-0701c-closure-to-boundary"
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:brick-6-route-proof-closure-implementation-gap-0701c-work-to-code-qa",
+      "source": "brick-6-route-proof-closure-implementation-gap-0701c-work",
+      "target": "brick-6-route-proof-closure-implementation-gap-0701c-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-route-proof-closure-implementation-gap-0701c-work-to-axis-qa",
+      "source": "brick-6-route-proof-closure-implementation-gap-0701c-work",
+      "target": "brick-6-route-proof-closure-implementation-gap-0701c-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-route-proof-closure-implementation-gap-0701c-work-to-evidence-qa",
+      "source": "brick-6-route-proof-closure-implementation-gap-0701c-work",
+      "target": "brick-6-route-proof-closure-implementation-gap-0701c-evidence-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-route-proof-closure-implementation-gap-0701c-code-qa-to-closure",
+      "source": "brick-6-route-proof-closure-implementation-gap-0701c-code-qa",
+      "target": "brick-6-route-proof-closure-implementation-gap-0701c-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-route-proof-closure-implementation-gap-0701c-axis-qa-to-closure",
+      "source": "brick-6-route-proof-closure-implementation-gap-0701c-axis-qa",
+      "target": "brick-6-route-proof-closure-implementation-gap-0701c-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-route-proof-closure-implementation-gap-0701c-evidence-qa-to-closure",
+      "source": "brick-6-route-proof-closure-implementation-gap-0701c-evidence-qa",
+      "target": "brick-6-route-proof-closure-implementation-gap-0701c-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-route-proof-closure-implementation-gap-0701c-closure-to-boundary",
+      "source": "brick-6-route-proof-closure-implementation-gap-0701c-closure",
+      "target": "building-boundary:brick-6-route-proof-closure-implementation-gap-0701c-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:brick-6-route-proof-closure-implementation-gap-0701c-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-route-proof-closure-implementation-gap-0701c-work-to-code-qa",
+        "edge:brick-6-route-proof-closure-implementation-gap-0701c-work-to-axis-qa",
+        "edge:brick-6-route-proof-closure-implementation-gap-0701c-work-to-evidence-qa"
+      ]
+    },
+    {
+      "group_id": "group:brick-6-route-proof-closure-implementation-gap-0701c-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-route-proof-closure-implementation-gap-0701c-code-qa-to-closure",
+        "edge:brick-6-route-proof-closure-implementation-gap-0701c-axis-qa-to-closure",
+        "edge:brick-6-route-proof-closure-implementation-gap-0701c-evidence-qa-to-closure"
+      ],
+      "fan_in_target_ref": "brick-6-route-proof-closure-implementation-gap-0701c-closure",
+      "fan_in_policy": "wait_all_before_closure"
+    }
+  ],
+  "source_evidence_refs": [
+    "/Users/smith/.codex/attachments/79c4c01d-3db0-4a59-b13c-cf85beeba608/pasted-text-1.txt",
+    "project/brick-protocol/status/kernel/GOAL/brick-6-surface-p1-raw-evidence-scrub-0701c.json",
+    "/Users/smith/.brick/project/brick-protocol/buildings/brick-6-p1-raw-evidence-scrub-0701c/work/step-outputs/brick-6-p1-raw-evidence-scrub-0701c-closure-attempt-1/step-output.json",
+    "project/brick-protocol/status/kernel/GOAL/brick-6-surface-p1-raw-evidence-scrub-0701d.json",
+    "/Users/smith/.brick/project/brick-protocol/buildings/brick-6-p1-raw-evidence-scrub-0701d/work/step-outputs/brick-6-p1-raw-evidence-scrub-0701d-closure-attempt-1/step-output.json",
+    "support/operator/walker_kernel.py:1753-1767",
+    "support/operator/walker_transition_concern.py:97-202",
+    "project/brick-protocol/status/kernel/GOAL/brick-6-route-proof-closure-implementation-gap-0701a.json",
+    "/Users/smith/.brick/project/brick-protocol/buildings/brick-6-route-proof-closure-implementation-gap-0701a/evidence/evidence-manifest.json",
+    "/Users/smith/.brick/project/brick-protocol/buildings/brick-6-route-proof-closure-implementation-gap-0701a/raw/link.jsonl",
+    "agent/return_fact.py:25-30",
+    "support/operator/walker_transition_concern.py:136-202",
+    "project/brick-protocol/status/kernel/GOAL/brick-6-route-proof-closure-implementation-gap-0701b.json",
+    "/Users/smith/.brick/project/brick-protocol/buildings/brick-6-route-proof-closure-implementation-gap-0701b/raw/link.jsonl",
+    "/Users/smith/.brick/project/brick-protocol/buildings/brick-6-route-proof-closure-implementation-gap-0701b/work/step-outputs/brick-6-route-proof-closure-implementation-gap-0701b-closure-attempt-1/transition-concern.json"
+  ],
+  "proof_limits": [
+    "route-proof diagnostic only",
+    "not P1 completion proof",
+    "not product/customer-ready proof",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "not_proven": [
+    "future Building correctness",
+    "provider quality or reliability",
+    "P1 raw evidence scrub completion",
+    "full check_profile.py --all green",
+    "customer/product readiness",
+    "whether plain declared node id produces actual reroute landing instead of HOLD",
+    "whether ledger-local reason_refs allow actual reroute landing/replay"
+  ]
+}
