@@ -19,6 +19,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from brick_protocol.agent.return_fact import make_agent_fact
 from brick_protocol.brick.work import parse_required_return_shape
 from brick_protocol.support.operator.contracts import (
     AgentRunPreparationRecord,
@@ -484,6 +485,14 @@ def _validate_chat_session_submission_return(
             "chat-session submission missing required return field(s): "
             + ", ".join(missing)
         )
+    make_agent_fact(
+        received_work={
+            "building_root": str(building_root),
+            "step_output_dir": str(step_dir),
+            "work_envelope_ref": _optional_text_value(parked.get("work_envelope_ref")) or "",
+        },
+        returned=payload,
+    )
     return payload
 
 

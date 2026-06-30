@@ -33,7 +33,7 @@ if _IMPORT_IDENTITY not in sys.path:
 from dataclasses import fields as _dataclass_fields
 
 from brick_protocol.support.recording.spine import SPINE_EVENT_TYPES
-from brick_protocol.agent.return_fact import ALWAYS_SECRET_KEYS
+from brick_protocol.agent.return_fact import ALWAYS_SECRET_KEYS, TOP_LEVEL_VERDICT_KEYS
 from brick_protocol.support.operator.primitives import (
     evidence_list_has_repository_artifact_ref,
 )
@@ -816,6 +816,10 @@ def has_forbidden_authority_claim(value: Any) -> bool:
     return False
 
 
+def normalized_key(value: Any) -> str:
+    return str(value).strip().lower().replace("-", "_").replace(" ", "_")
+
+
 def manifest_entries(raw_manifest: Any) -> list[dict[str, Any]]:
     if not isinstance(raw_manifest, dict):
         return []
@@ -874,14 +878,29 @@ def fact_reference(fact: dict[str, Any]) -> str | None:
 
 
 def classify_self_classifies(fact: dict[str, Any]) -> bool:
-    for item in dict_values(fact):
-        for key, value in item.items():
-            key_norm = str(key).strip().lower()
-            if key_norm in AGENT_SELF_CLASSIFICATION_WORDS:
-                return True
-            if key_norm in {"status", "verdict", "classification", "result"}:
-                if isinstance(value, str) and value.strip().lower() in AGENT_SELF_CLASSIFICATION_WORDS:
+    def walk(value: Any, path: tuple[str, ...]) -> bool:
+        if isinstance(value, dict):
+            for key, child in value.items():
+                key_text = str(key)
+                key_norm = key_text.strip().lower()
+                if key_norm in AGENT_SELF_CLASSIFICATION_WORDS:
                     return True
+                if key_norm in {"status", "verdict", "classification", "result"}:
+                    if isinstance(child, str) and child.strip().lower() in AGENT_SELF_CLASSIFICATION_WORDS:
+                        return True
+                child_path = (*path, key_text)
+                if path == ("fact", "returned") and key_norm in {"observed_evidence", "evidence"}:
+                    continue
+                if walk(child, child_path):
+                    return True
+        elif isinstance(value, list):
+            for child in value:
+                if walk(child, path):
+                    return True
+        return False
+
+    if walk(fact, ()):
+        return True
     return False
 
 
@@ -1554,6 +1573,7 @@ def validate_chat_session_claim_submission_files(building_root: Path, violations
             violations.append(f"{claim_path}: claim record must not contain credential/session text")
 
     forbidden_return_keys = set(ALWAYS_SECRET_KEYS)
+    forbidden_top_level_return_keys = set(TOP_LEVEL_VERDICT_KEYS)
     for submission_path in sorted(step_outputs.glob("*/submission.json")):
         submission = parse_json_file(submission_path, violations)
         if not isinstance(submission, dict):
@@ -1569,11 +1589,22 @@ def validate_chat_session_claim_submission_files(building_root: Path, violations
         returned = submission.get("returned")
         if not isinstance(returned, dict):
             violations.append(f"{submission_path}: submission returned payload must be a JSON object")
-        elif has_any_key(returned, forbidden_return_keys):
-            violations.append(
-                f"{submission_path}: submission returned payload must not contain "
-                "credential/session key names"
+        else:
+            top_level_forbidden = sorted(
+                key
+                for key in returned
+                if normalized_key(key) in forbidden_top_level_return_keys
             )
+            if top_level_forbidden:
+                violations.append(
+                    f"{submission_path}: submission returned payload must not contain "
+                    "top-level AgentFact verdict/Movement/target key names"
+                )
+            if has_any_key(returned, forbidden_return_keys):
+                violations.append(
+                    f"{submission_path}: submission returned payload must not contain "
+                    "credential/session key names"
+                )
         if has_sensitive_text(submission) or has_session_identifier_text(submission):
             violations.append(f"{submission_path}: submission record must not contain credential/session text")
         claim_path = submission_path.parent / "claim.json"

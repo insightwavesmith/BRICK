@@ -6302,6 +6302,20 @@ def run_chat_session_park_seam(repo: Path) -> KernelResult:
             expected="session-id-shaped text",
             label="nested submitted value",
         )
+        for key in ("status", "result", "success", "movement", "target", "verdict"):
+            _chat_session_assert_submit_rejects(
+                run_module,
+                dynamic_root,
+                token=token,
+                returned={
+                    "made_changes": [f"top-level {key} negative"],
+                    "observed_evidence": ["ordinary evidence"],
+                    "not_proven": ["not resumed"],
+                    key: "blocked top-level AgentFact return key",
+                },
+                expected=f"forbidden key '{key}'",
+                label=f"top-level returned {key}",
+            )
         _chat_session_assert_envelope_session_key_rejects(uuid_probe)
         fire_buildings_root = temp_repo / "project" / "brick-protocol" / "chat-session-fire-buildings"
         fire_buildings_root.mkdir(parents=True)
@@ -6316,15 +6330,28 @@ def run_chat_session_park_seam(repo: Path) -> KernelResult:
             claim_token=token,
             returned={
                 "made_changes": ["checker wrote passive submission"],
-                "observed_evidence": ["claim token matched and payload stayed passive"],
+                "observed_evidence": [
+                    {
+                        "status": "nested evidence field accepted",
+                        "detail": "claim token matched and payload stayed passive",
+                    }
+                ],
+                "evidence": {"result": "nested evidence object accepted"},
                 "task-source": "ordinary hyphenated key accepted",
                 "not_proven": ["provider quality", "semantic correctness"],
             },
         )
         if submitted.get("returned", {}).get("observed_evidence") != [
-            "claim token matched and payload stayed passive"
+            {
+                "status": "nested evidence field accepted",
+                "detail": "claim token matched and payload stayed passive",
+            }
         ]:
             raise ProfileError("chat_session_park_seam submission returned payload drifted")
+        if submitted.get("returned", {}).get("evidence") != {
+            "result": "nested evidence object accepted"
+        }:
+            raise ProfileError("chat_session_park_seam nested evidence result payload drifted")
         before_resume = frontier_observation.observe_building_frontier(
             dynamic_root,
             repo_root=temp_repo,
@@ -6360,7 +6387,7 @@ def run_chat_session_park_seam(repo: Path) -> KernelResult:
                 "chat_session_park_seam resumed Building did not observe complete frontier: "
                 f"{after_resume.get('frontier_kind')!r}"
             )
-        inspected += 17
+        inspected += 23
 
         paths = lifecycle_shape.collect_directory_paths(buildings_root)
         lifecycle_violations = _chat_session_lifecycle_violations(buildings_root)
@@ -6447,9 +6474,10 @@ def run_chat_session_park_seam(repo: Path) -> KernelResult:
             "dynamic graph walker guard, "
             "dynamic graph park wrote work-envelope.json + parked.json + raw park evidence, "
             "atomic claim minted a word-form token and second claim rejected, no-claim/"
-            "no-submission/token-mismatch/forbidden-key/session-id value/key/nested "
-            "submissions and session-shaped envelope keys rejected "
-            "before resume, passive submission did not compute gates, resume consumed "
+            "no-submission/token-mismatch/forbidden-key/top-level AgentFact verdict "
+            "key/session-id value/key/nested submissions and session-shaped envelope "
+            "keys rejected before resume, passive submission preserved nested evidence "
+            "status/result fields without computing gates, resume consumed "
             "the submitted return, replayed through the graph walker, ran the next "
             "adapter:local step, lifecycle/path checks accepted claim.json and "
             "submission.json, dashboard/PROGRESS kept only the unsubmitted parked "
