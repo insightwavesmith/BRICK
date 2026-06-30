@@ -35,6 +35,12 @@ class KernelResult:
     output: str
 
 
+def _ensure_import_identity(repo: Path) -> None:
+    support_import_identity = str((repo / "support" / "import_identity").resolve())
+    if support_import_identity not in sys.path:
+        sys.path.insert(0, support_import_identity)
+
+
 def strip_comment(line: str) -> str:
     in_single = False
     in_double = False

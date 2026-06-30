@@ -141,7 +141,14 @@ decomposition: 11452 -> 11151 (net -301 across two leaves).
 NOT proven / remaining G3 work:
 
 ```text
-- more kernel_checks.py leaves remain (11151 still the largest godmodule).
+- G3 third leaf LANDED via REAL main-agent-fired Building (rule 0c/R1a):
+  provider_preflight cluster -> support/checkers/lib/provider_preflight_check.py
+  (kernel_checks.py 11151 -> 11017, net -134; cumulative 11452 -> 11017 = -435 over 3 leaves).
+  building g3-provider-preflight-leaf-0630, official fire(graph) route, real
+  Codex/Claude/Gemini lanes, frontier=complete, sandbox commit 3ec6502 cherry-picked
+  to main; COO byte-identical + dispatch-identity + mutation-RED + REAL HOME --all GREEN.
+  Proof: customer-ready-final-architecture-provider-preflight-proof-0630.md.
+- more kernel_checks.py leaves remain (11017 still the largest godmodule).
 - agreed stop condition for "final architecture cleanup" is not yet declared;
   remaining debt must be named at stop.
 ```

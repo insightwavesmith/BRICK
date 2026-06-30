@@ -644,6 +644,16 @@ modules:
     decomposition_target: ""
     pinned_by: pure-relocation sibling of kernel_checks (product_no_smith_residue scan; homes no crossing mechanics, imports no axis at module level)
 
+  - module: support/checkers/lib/provider_preflight_check.py
+    layer: checkers/lib
+    role: checker-lib
+    owns_crossings: []
+    consumes_crossings: []
+    imports_axis: []
+    forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
+    decomposition_target: ""
+    pinned_by: pure-relocation sibling of kernel_checks (provider_preflight execution checker; homes no crossing mechanics, imports no axis at module level)
+
   - module: support/checkers/lib/install_release_export_lint_check.py
     layer: checkers/lib
     role: checker-lib
