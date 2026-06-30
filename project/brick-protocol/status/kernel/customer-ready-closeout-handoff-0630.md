@@ -1,0 +1,239 @@
+# Customer-Ready Closeout — handoff checkpoint — 0630
+
+Status: HANDOFF / support evidence only. Not source truth, not success judgment,
+not quality judgment, and not Link Movement authority.
+
+## Reload order for next session
+
+```text
+1. AGENTS.md
+2. project/brick-protocol/status/kernel/customer-ready-goal-anchor-v01.md
+3. project/brick-protocol/status/kernel/customer-ready-closeout-goal-0630.md
+4. project/brick-protocol/status/kernel/customer-ready-closeout-requirements-audit-0630.md
+5. this handoff: customer-ready-closeout-handoff-0630.md
+6. git status / git log / latest evidence roots (live)
+```
+
+Live repo evidence overrides this handoff if drift is found.
+
+## Current git state at handoff
+
+```text
+repo = /Users/smith/projects/BRICK
+branch = main
+current HEAD before this handoff commit = 1486bb8
+origin/main relation before this handoff commit = ahead 6, behind 0
+worktree before this handoff doc = clean, then this handoff/status doc update
+push status = NOT pushed; external publish requires Smith OK
+```
+
+Recent local commits:
+
+```text
+1486bb8 Goal: G3 provider_preflight leaf via main-agent-fired Building (parallel fan-out confirmed)
+f13d6e7 Goal: track main-agent draw-fire rule in closeout audit
+ec380ca Goal: add binding rule — main agent must draw+fire Buildings for impl slices
+9a970e1 Goal: prove G2 release export payload parity
+c3d8e03 Goal: G3 extract install/release-export lint leaf from kernel_checks
+fb130da Goal: sync G3 closeout doc to landed no_smith_residue leaf + per-leaf reqs
+a779a2c Goal: extract no_smith_residue leaf from kernel_checks
+```
+
+## Goal status
+
+Goal remains ACTIVE. Do not mark complete.
+
+Three closeout tracks:
+
+```text
+G1 route-default policy
+G2 customer release pruning finalization
+G3 FINAL architecture cleanup
+```
+
+Binding operating rule added this session:
+
+```text
+0c / R1a: the main agent must draw and fire real Buildings for G1/G2/G3
+implementation slices so the main-agent building-running skill chain is exercised
+end to end. Direct implementation patching is no longer the default.
+```
+
+## Completed / narrowly proven this checkpoint
+
+### R1a — main-agent draw+fire Building proof
+
+First real main-agent-fired implementation Building landed:
+
+```text
+building_id   = g3-provider-preflight-leaf-0630
+evidence_root = ~/.brick/project/brick-protocol/buildings/g3-provider-preflight-leaf-0630
+proof doc     = project/brick-protocol/status/kernel/customer-ready-final-architecture-provider-preflight-proof-0630.md
+frontier_kind = complete
+sandbox commit = 3ec650238090758c1329e5586c312c835e745738
+integrated commit = 1486bb8
+```
+
+Graph drawn by main agent:
+
+```text
+build([
+  work(Codex, write),
+  fan([code-attack-qa(Claude), axis-attack-qa(Gemini)]),
+  closure(Codex, route=[implementation_gap -> work, verification_gap -> HOLD])
+])
+```
+
+Honest proof scope:
+
+```text
+PROVEN:
+- main agent drew and fired `fire(graph)` via official customer route
+- declared graph had fan_out + fan_in groups
+- closure received both QA handoffs
+- frontier complete + sandbox commit produced and integrated
+- engine fan-out parallelism confirmed by controlled same-shape timing probe
+
+NOT SOURCE TRUTH / NOT QUALITY / NOT MOVEMENT AUTHORITY:
+- all model/checker/proof outputs are support evidence only
+```
+
+Parallel correction / lesson:
+
+```text
+execution_order is canonical/topological record order, not serial-execution proof.
+Current engine semantics: drawn fan() is the parallel declaration; fan groups with
+no explicit fanout_dispatch_pool_size use _FANOUT_AUTO_POOL=8 and ThreadPoolExecutor.
+Controlled timing probe showed code QA and axis QA on distinct threads with ~1.2s
+overlap. Parallel fan-out confirmed.
+```
+
+### G3 provider_preflight leaf
+
+Moved via Building output:
+
+```text
+new: support/checkers/lib/provider_preflight_check.py
+modified: support/checkers/lib/kernel_checks.py
+modified: support/checkers/lib/yaml_subset.py
+modified: support/checkers/module_registry.yaml
+```
+
+Conservation:
+
+```text
+provider_preflight bodies byte-identical vs pre-move HEAD f13d6e7 span 3000-3132
+_ensure_import_identity helper byte-identical into yaml_subset.py + re-exported
+kernel_checks.py: 11151 -> 11017 LOC (net -134)
+cumulative kernel_checks.py: 11452 -> 11017 LOC (net -435 across 3 leaves)
+```
+
+Verification done before 1486bb8:
+
+```text
+compileall changed modules = PASS
+re-export identity = True
+dispatch identity KERNEL_DISPATCH['provider_preflight'] = True
+mutation-RED missing keys = fired
+mutation-RED bad authed literal = fired
+focused profile agent_axis_behavioral = PASS
+REAL HOME check_profile.py --all = rc=0, 28 profiles, 0 failure markers
+```
+
+## Current closeout track state
+
+### G1 — route-default policy
+
+Narrowly proven:
+
+```text
+- no-link/default policy documented in skills/docs
+- engine route/reroute behavior green for n2 single-reroute case
+- fan-in QA concern -> Link reroute -> work replay -> closure measured in building_operator_driver0
+```
+
+Remaining / not_proven:
+
+```text
+- deep L2 cascade replay beyond n2
+- customer comprehension of no-link/materialized-forward/reroute distinction
+```
+
+### G2 — customer release pruning finalization
+
+Narrowly proven:
+
+```text
+- release export excludes project/ and brick_protocol.egg-info/
+- Smith-local literal scrub outside README allowance
+- fresh export CLI smoke: uv sync/import/CLI help/brick verify
+- provider-free first-run docs honestly caveat agent_incomplete/not_ready
+- release export payload parity across two runs (excluding generated .git metadata)
+```
+
+Remaining / not_proven:
+
+```text
+- real provider-backed fresh export build reaching frontier_kind=complete
+- customer reading-comprehension / first-run UX validation
+```
+
+### G3 — FINAL architecture cleanup
+
+Narrowly proven:
+
+```text
+- no_smith_residue leaf extracted
+- install/release-export lint leaf extracted
+- provider_preflight leaf extracted by real main-agent-fired Building
+- current kernel_checks.py = 11017 LOC
+```
+
+Remaining / not_proven:
+
+```text
+- kernel_checks.py still largest godmodule
+- more leaves remain (candidate: onboard_smoke, design_ai_text_seams, codex_connect_stall, gemini_local_only)
+- G3 STOP CONDITION not declared
+```
+
+## Next best move after break
+
+Recommended next action:
+
+```text
+1. Do NOT start with another direct patch.
+2. Declare a G3 STOP CONDITION with Smith, OR pick the next G3 leaf if Smith wants momentum.
+3. Main agent draws and fires the next Building (0c/R1a), likely:
+   design/ledger -> work(write) -> fan([code QA, axis QA]) -> closure.
+4. If continuing leaf extraction: candidate onboard_smoke or design_ai_text_seams.
+5. Use same proof discipline: conservation ledger, byte-identical move, module_registry row,
+   mutation-RED, focused profile, REAL HOME --all, honest proof limits.
+```
+
+Do not claim goal complete until:
+
+```text
+G1 deep cascade/customer comprehension disposition is settled
+G2 provider-backed fresh export complete/customer comprehension settled
+G3 stop condition declared and reached or remaining debt explicitly accepted
+main = origin/main (after Smith OK to push)
+worktree clean
+final closeout record written
+REAL HOME --all green at final close
+Smith/COO forward disposition
+```
+
+## Commands to resume quickly
+
+```bash
+cd /Users/smith/projects/BRICK
+git status --short --branch
+git rev-list --left-right --count origin/main...main
+git log --oneline -10
+PYTHONPATH=support/import_identity:. python3 support/checkers/check_profile.py --all
+```
+
+## Push note
+
+At handoff, main is ahead of origin. Do not push unless Smith explicitly says OK.
