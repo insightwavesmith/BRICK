@@ -58,7 +58,7 @@ must be matched to the requirement it covers.
 ```text
 G1 = partial/narrow: route/reroute n2 proven, deep cascade + customer comprehension not_proven.
 G2 = stronger after parity proof: export exclusion/literal/deterministic payload proven, provider-backed complete build + comprehension not_proven.
-G3 = partial/narrow: two leaves proven, kernel_checks still largest + stop condition not_proven.
+G3 = partial/narrow: three leaves proven (latest provider_preflight via main-agent fire(graph), parallel fan-out confirmed), kernel_checks still largest + stop condition not_proven.
 Goal = ACTIVE, not complete.
 ```
 
