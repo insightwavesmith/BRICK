@@ -3,6 +3,22 @@
 Status: ACTIVE GOAL / operator anchor. Support evidence only. Not source truth,
 not success judgment, not quality judgment, and not Link Movement authority.
 
+## Reload chain (compression / new session)
+
+This file is the active closeout goal. On compression or a new session, restore
+in this order, then verify live:
+
+```text
+1. customer-ready-goal-anchor-v01.md   (compact identity/role anchor)
+2. AGENTS.md
+3. customer-ready-goal-phases-0629.md  (P0-P8 phase history)
+4. THIS file (customer-ready-closeout-goal-0630.md = the active G1/G2/G3 goal)
+5. git log / frontier / evidence (live)
+```
+
+If any doc is stale, live repo + evidence wins. This file is borrowed context,
+not source truth. It does not replace the anchor; it is the next link after it.
+
 ## 0. Goal definition
 
 Finish the remaining three tracks required before I can honestly call the BRICK
@@ -22,6 +38,31 @@ closure.
 The goal is complete only when all three tracks have recorded evidence,
 checker/profile verification, and explicit COO/Smith disposition. Checker green
 alone is not enough.
+
+## 0b. COMPOSITION-FIRST (binding goal element, not just a lesson)
+
+Smith ruled this is part of the goal itself, invariant across G1/G2/G3:
+
+```text
+Do NOT think in a fixed "fire building -> Agent work -> QA -> closure -> judge"
+line. For EVERY task, compose the brain (LLM[s]), the hands (Brick kind[s]), and
+the nervous system (Graph shape) to fit that task. That composition act is
+itself the dogfood.
+```
+
+Self-diagnosis rule: if I cannot draw a task as an LLM + Brick + Graph
+composition, the fault is NOT the task -- it is that the building-running skills
+are underbuilt. Then I fix the skill FIRST (no new skill invented):
+
+```text
+brick-task-author
+building-coordination
+building-sizing-method
+task_intake
+```
+
+The building-running skill chain keeps being updated until this goal is complete.
+Skill maintenance is part of the goal, not a side task.
 
 ## 1. My role
 
@@ -219,6 +260,7 @@ This closeout goal is complete only when:
 G1 = route-default/no-link policy proven or explicitly narrowed with docs/checkers
 G2 = customer export/release surface proven clean enough for handoff
 G3 = final architecture cleanup reaches agreed stop condition with remaining debt named
+composition-first + building-running skill chain updated and still coherent
 main = origin/main
 worktree clean
 REAL HOME check_profile.py --all GREEN
