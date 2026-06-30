@@ -80,14 +80,27 @@ operator-literal grep outside README: clean (no /Users/smith, no insightwavesmit
 G2 fresh-export CLI smoke follow-up landed as operator-maintenance candidate:
 `customer-ready-g2-fresh-export-cli-smoke-0630.md` measures a fresh export, `uv sync`, import, CLI help, and `brick verify` GREEN. It also found and corrected an over-green docs claim: provider-free `brick build --adapter adapter:local` with verdict-bearing design/review/closure currently returns `agent_incomplete`/`not_ready`, not complete.
 
+G2 parity follow-up landed as operator measurement:
+`customer-ready-g2-release-export-parity-proof-0630.md` runs the release export
+twice from the current checkout and compares normalized git-tracked payload
+manifests (excluding generated `.git/` metadata). Result: both exports copied
+382 files, excluded 4308 paths, omitted `project/` and `brick_protocol.egg-info/`,
+had identical file lists and identical SHA-256 payload manifest
+`2d152bc663ce9b040722ee62bb2041abcc3dacb836d2c078c76c313390c231f8`, and had
+zero `/Users/smith` / `insightwavesmith` literals outside the README allowance.
+Initial export commit IDs differed as expected and are outside the payload parity
+claim.
+
 NOT proven / remaining G2 work after that docs/measurement sync:
 
 ```text
 - A real provider-backed fresh export build reaching frontier_kind=complete was
   not re-run here.
 - Full customer comprehension remains not_proven.
-- release export parity (byte-for-byte across runs) not asserted.
-- The docs/measurement sync was direct operator maintenance, not a Building-produced patch.
+- `.git/` metadata byte parity is not asserted; only customer payload parity is
+  narrowly_proven.
+- The docs/measurement sync and parity proof were direct operator measurements,
+  not Building-produced patches.
 ```
 
 ## G3 FINAL architecture cleanup — current target re-measured
@@ -148,7 +161,8 @@ REAL HOME check_profile.py --all: (run at commit time)
 G1 = engine route/reroute behavior PROVEN green on main; remaining = no-link
      default POLICY + customer docs/skills (not engine repair). 0629 "수리 중"
      bug flags are STALE.
-G2 = export literal/structure CLEAN; remaining = comprehension + fresh-machine.
+G2 = export literal/structure + deterministic payload parity CLEAN; remaining =
+     provider-backed fresh build to complete + customer comprehension.
 G3 = first kernel_checks.py leaf LANDED after this measurement base;
      no_smith_residue extraction is narrowly proven, but more leaves and a stop
      condition remain.

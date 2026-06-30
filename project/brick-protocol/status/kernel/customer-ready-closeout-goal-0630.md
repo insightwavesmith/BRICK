@@ -199,14 +199,19 @@ Already observed:
   proves `uv sync`, import, CLI help, and `brick verify` on the exported tree;
   it also narrows first-build docs so provider-free `adapter:local` verdict
   lanes are honestly described as possible `agent_incomplete`/`not_ready`.
+- Release export payload parity proof (`customer-ready-g2-release-export-parity-proof-0630.md`)
+  now proves two fresh exports from the same checkout produce identical
+  git-tracked payload file lists and SHA-256 manifests, while excluding `.git/`
+  metadata parity from the claim.
 
 Pass evidence:
 
 ```text
-release export generated from current origin/main
+release export generated from current origin/main or declared current checkout
 export grep/lint clean
 customer-facing docs coherent
 fresh export install/build/verify story measured or explicitly caveated
+payload parity measured across repeated exports (excluding generated .git metadata)
 REAL HOME check_profile.py --all GREEN
 COO/Smith disposition
 ```
