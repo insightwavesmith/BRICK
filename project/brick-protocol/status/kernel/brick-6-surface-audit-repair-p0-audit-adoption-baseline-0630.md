@@ -36,6 +36,16 @@ operator_role: COO/operator handles routing, judgment, evidence synthesis, and B
 3. P1~P8 구현 전 active priority order(protocol-live vs ship-imminent)를 명시한다.
 4. audit docs/Claude packets가 untracked이면 채택 commit 또는 explicit park 중 하나로 처분한다.
 
+## Common Phase Template Requirement (0701)
+
+This phase MUST apply the goal document's mandatory per-phase common template:
+`invariant`, `Brick / Agent / Link attribution`, `write_scope`, checker-first
+negative probe, focused checker/profile, `check_profile.py --all`, evidence root,
+changed files/diff, `observed_evidence` / `narrowly_proven` / `not_proven` /
+`next Movement candidate`, and QA source-mutation ban (`probe_write` only). If a
+phase Building or phase status cannot populate one of these fields, record the
+gap explicitly under `not_proven` rather than treating the phase as closed.
+
 ## Building Graph Shape Candidate
 
 ```text

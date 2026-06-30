@@ -41,6 +41,16 @@ The finding shorthand above resolves inside these adopted audit files; open them
 - `project/brick-protocol/status/kernel/brick-6-surface-audit-s6-product-surface-0630.md`
 - `project/brick-protocol/status/kernel/brick-6-surface-audit-final-coverage-matrix-0630.md`
 
+## Common Phase Template Requirement (0701)
+
+This phase MUST apply the goal document's mandatory per-phase common template:
+`invariant`, `Brick / Agent / Link attribution`, `write_scope`, checker-first
+negative probe, focused checker/profile, `check_profile.py --all`, evidence root,
+changed files/diff, `observed_evidence` / `narrowly_proven` / `not_proven` /
+`next Movement candidate`, and QA source-mutation ban (`probe_write` only). If a
+phase Building or phase status cannot populate one of these fields, record the
+gap explicitly under `not_proven` rather than treating the phase as closed.
+
 ## Building Graph Shape Candidate
 
 ```text
