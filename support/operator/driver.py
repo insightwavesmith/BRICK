@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from brick_protocol.agent.return_fact import validate_transition_concern_evidence
+from brick_protocol.brick.work import parse_required_return_shape
 from brick_protocol.link.transition import DISPOSITION_ACTIONS
 from brick_protocol.support.connection.agent_adapter import (
     AgentBrainCallable,
@@ -34,6 +35,7 @@ from brick_protocol.support.operator.composition_intent import (
     materialize_building_intent,
 )
 from brick_protocol.support.operator.contracts import BuildingPlanSupportResult
+from brick_protocol.support.operator.plan_rendering import _load_shape_registry
 from brick_protocol.support.operator.run import (
     ChatSessionParkFrontierEvidenceWritten,
     run_building_plan,
@@ -210,7 +212,34 @@ def _customer_graph_fan_in_source_node_ids(packet: Mapping[str, Any]) -> frozens
     return frozenset(source_ids)
 
 
-def _reject_customer_graph_template_authority_overrides(packet: Mapping[str, Any]) -> None:
+def _fan_in_source_required_return_shape_matches_template(
+    repo_root: Path,
+    node: Mapping[str, Any],
+    required_return_shape: Any,
+) -> bool:
+    step_template_ref = str(node.get("step_template_ref") or "").strip()
+    if not step_template_ref:
+        return False
+    registry = _load_shape_registry(repo_root)
+    step_templates = registry.get("step_templates")
+    if not isinstance(step_templates, Mapping):
+        return False
+    step_template = step_templates.get(step_template_ref)
+    if not isinstance(step_template, Mapping):
+        return False
+    try:
+        return parse_required_return_shape(required_return_shape) == parse_required_return_shape(
+            step_template.get("required_return_shape")
+        )
+    except (TypeError, ValueError):
+        return False
+
+
+def _reject_customer_graph_template_authority_overrides(
+    packet: Mapping[str, Any],
+    *,
+    repo_root: Path,
+) -> None:
     """Fail closed when customer graph input re-authors Brick template-owned fields.
 
     The customer graph route lets caller/COO choose the road: node kind, node order,
@@ -218,9 +247,11 @@ def _reject_customer_graph_template_authority_overrides(packet: Mapping[str, Any
     required return shape, and carry subsets. Expert/internal composition helpers
     can use ``compose_building`` directly; the customer sandbox graph wrapper cannot
     accept those overrides. The one narrow exception is ``required_return_shape`` on
-    a declared fan-in source: the fluent ``assemble()`` surface derives that field
-    from the source Brick template before handing the packet to this wrapper so the
-    fan-in source can prove it no longer carries Link-facing concern evidence.
+    a declared fan-in source when the supplied field list is byte-for-field
+    equivalent to that node's Brick template return shape. This lets the fluent
+    ``assemble()`` packet carry its materialized row data without reopening the old
+    fan-in-source shape-shrink path; Link carry filtering stays owned by
+    ``carries_forward_fields``.
     """
 
     offenders: list[str] = []
@@ -234,7 +265,12 @@ def _reject_customer_graph_template_authority_overrides(packet: Mapping[str, Any
         for location in locations:
             for field in sorted(_CUSTOMER_GRAPH_TEMPLATE_AUTHORITY_FIELDS):
                 if field == "required_return_shape" and node_id in fan_in_source_node_ids:
-                    continue
+                    if _fan_in_source_required_return_shape_matches_template(
+                        repo_root,
+                        node,
+                        location.get(field),
+                    ):
+                        continue
                 if field in location:
                     offenders.append(f"{node_id}.{field}")
     if offenders:
@@ -694,10 +730,10 @@ def run_customer_graph_building_in_sandbox(
     Movement, route targets, success, or quality.
     """
 
-    packet = _customer_graph_intake_packet(packet)
-    _reject_customer_graph_template_authority_overrides(packet)
-
     repo = Path(customer_repo_root).resolve()
+    packet = _customer_graph_intake_packet(packet)
+    _reject_customer_graph_template_authority_overrides(packet, repo_root=repo)
+
     durable_output = Path(output_root).resolve() if output_root is not None else DEFAULT_BUILDINGS_ROOT
     building_id = _required_text(packet.get("building_id"), "graph packet building_id")
 

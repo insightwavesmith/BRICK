@@ -1022,10 +1022,12 @@ def _customer_graph_fluent_sandbox_fire(
                 if str(node.get("node_id")) in fan_in_sources
             }
             summary["customer_graph_fluent_fan_in_shapes"] = fan_in_shapes
-            if not fan_in_shapes or any("transition_concern_evidence" in shape for shape in fan_in_shapes.values()):
+            if not fan_in_shapes or not any(
+                "transition_concern_evidence" in shape for shape in fan_in_shapes.values()
+            ):
                 violations.append(
-                    "customer-graph-fluent: assemble() did not derive fan-in source "
-                    "required_return_shape without transition_concern_evidence"
+                    "customer-graph-fluent: assemble() did not preserve template-full "
+                    "fan-in source required_return_shape"
                 )
 
             result = driver.run_customer_graph_building_in_sandbox(
@@ -1054,27 +1056,86 @@ def _customer_graph_fluent_sandbox_fire(
         if _git_text(customer, "status", "--porcelain", "--untracked-files=all") != "":
             violations.append("customer-graph-fluent: live customer tree was left dirty")
 
-        forbidden_packet = graph.as_intake_args()
-        forbidden_nodes = [dict(node) for node in forbidden_packet["nodes"]]
-        forbidden_nodes[0]["required_return_shape"] = "observed_evidence, not_proven"
-        forbidden_packet = dict(forbidden_packet)
-        forbidden_packet["building_id"] = "customer-graph-forbidden-required-return"
-        forbidden_packet["nodes"] = forbidden_nodes
-        try:
-            driver.run_customer_graph_building_in_sandbox(
-                forbidden_packet,
-                customer_repo_root=customer,
-                output_root=default_root / "forbidden",
-                overwrite_existing=True,
-                command_runner=_customer_graph_fluent_runner(),
-                adapter_timeout_seconds=30,
-            )
-        except ValueError as exc:
-            summary["customer_graph_forbidden_override_rejected"] = "required_return_shape" in str(exc)
-        else:
-            summary["customer_graph_forbidden_override_rejected"] = False
+        def _required_return_shape_override_rejected(
+            *,
+            node_id: str,
+            shape: str,
+            building_id: str,
+            summary_key: str,
+            violation: str,
+        ) -> None:
+            forbidden_packet = graph.as_intake_args()
+            forbidden_nodes = [dict(node) for node in forbidden_packet["nodes"]]
+            for node in forbidden_nodes:
+                if str(node.get("node_id")) == node_id:
+                    node["required_return_shape"] = shape
+                    break
+            else:
+                violations.append(f"{violation}: checker could not find node {node_id!r}")
+                return
+            forbidden_packet = dict(forbidden_packet)
+            forbidden_packet["building_id"] = building_id
+            forbidden_packet["nodes"] = forbidden_nodes
+            try:
+                driver.run_customer_graph_building_in_sandbox(
+                    forbidden_packet,
+                    customer_repo_root=customer,
+                    output_root=default_root / building_id,
+                    overwrite_existing=True,
+                    command_runner=_customer_graph_fluent_runner(),
+                    adapter_timeout_seconds=30,
+                )
+            except ValueError as exc:
+                summary[summary_key] = "required_return_shape" in str(exc)
+                if not summary[summary_key]:
+                    violations.append(f"{violation}: rejection did not name required_return_shape")
+            else:
+                summary[summary_key] = False
+                violations.append(violation)
+
+        graph_nodes = [dict(node) for node in graph.as_intake_args()["nodes"]]
+        _required_return_shape_override_rejected(
+            node_id=str(graph_nodes[0].get("node_id")) if graph_nodes else "",
+            shape="observed_evidence, not_proven",
+            building_id="customer-graph-forbidden-required-return",
+            summary_key="customer_graph_forbidden_override_rejected",
+            violation="customer-graph-fluent-RED: non-fan-in required_return_shape override was accepted",
+        )
+
+        fan_in_tiny_node = next(iter(fan_in_shapes))
+        _required_return_shape_override_rejected(
+            node_id=fan_in_tiny_node,
+            shape="observed_evidence, not_proven",
+            building_id="customer-graph-forbidden-fanin-tiny-return",
+            summary_key="customer_graph_forbidden_fanin_tiny_rejected",
+            violation=(
+                "customer-graph-fluent-RED: fan-in source required_return_shape shrink "
+                "to observed_evidence, not_proven was accepted"
+            ),
+        )
+
+        fan_in_without_concern = next(
+            (
+                (node_id, ", ".join(field.strip() for field in shape.split(",") if field.strip() != "transition_concern_evidence"))
+                for node_id, shape in fan_in_shapes.items()
+                if "transition_concern_evidence" in shape
+            ),
+            None,
+        )
+        if fan_in_without_concern is None:
             violations.append(
-                "customer-graph-fluent-RED: non-fan-in required_return_shape override was accepted"
+                "customer-graph-fluent-RED setup: no fan-in source carried template transition_concern_evidence"
+            )
+        else:
+            _required_return_shape_override_rejected(
+                node_id=fan_in_without_concern[0],
+                shape=fan_in_without_concern[1],
+                building_id="customer-graph-forbidden-fanin-no-concern-return",
+                summary_key="customer_graph_forbidden_fanin_no_concern_rejected",
+                violation=(
+                    "customer-graph-fluent-RED: fan-in source manual "
+                    "transition_concern_evidence removal was accepted"
+                ),
             )
 
 

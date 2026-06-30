@@ -94,15 +94,7 @@ def _preset_completion_command_runner(completed_cls: type[Any]) -> Callable[[Seq
         returned: dict[str, Any] = {}
         for label in labels:
             if label == "transition_concern_evidence":
-                returned[label] = {
-                    "concern_ref": "transition-concern:preset-completion-no-reroute",
-                    "concern_kind": "unknown",
-                    "binding": False,
-                    "reason_refs": ["observation:preset-completion-no-reroute"],
-                    "related_boundary_refs": ["building-boundary:preset-completion-no-reroute"],
-                    "proof_limits": ["support evidence only"],
-                    "not_proven": ["semantic correctness"],
-                }
+                returned[label] = None
             elif label in _PRESET_COMPLETION_LIST_RETURN_FIELDS:
                 returned[label] = _deterministic_completion_list(label, "preset-completion")
             else:

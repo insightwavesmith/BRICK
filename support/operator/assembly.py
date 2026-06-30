@@ -49,7 +49,6 @@ from brick_protocol.link.spec import (
 )
 from brick_protocol.support.operator.composition_common import (
     _composition_slug,
-    _materializer_strip_field,
 )
 from brick_protocol.support.operator.composition_compose import compose_building
 from brick_protocol.support.operator.composition_gate_translation import (
@@ -74,8 +73,6 @@ from brick_protocol.support.recording.step_outputs import _step_output_manifest_
 # coercers they used (``_prefixed_ref``/``_bare_token``/``_non_empty_text``/
 # ``_optional_text``/``_optional_bare_token``) STAY below for the graph wiring and
 # are duplicated into the axis files so an axis module never imports this builder.
-_TRANSITION_CONCERN_FIELD = "transition_concern_evidence"
-
 _DEFAULT_BOUNDARY_REF = "building-boundary:closed"
 _PROPOSED_BUILDING_GRAPH_FILENAME = "proposed-building-graph.json"
 # DERIVED_WORKTREE_WRITE_SCOPE default moved to the BRICK axis (brick/spec.py) at
@@ -448,12 +445,10 @@ def _auto_fan_branch_returns(spec: BrickSpec, registry: Mapping[str, Any]) -> Br
     """AUTO-RETURNS: a fan branch carrying a kind whose Brick template supplies
     ``required_return_shape`` does not force the operator to restate ``returns=``.
 
-    ``fan_in()`` (the LOWER tier) requires every source to declare ``returns=``;
-    the kind's shape is derived from the registry at lowering anyway (``_lower_node``
-    prefers the template's ``required_return_shape``). Here the EASY tier fills the
-    branch's ``returns`` from the SAME template shape so the strict ``fan_in()``
-    contract is satisfied and the lowered node is byte-identical to the hand-built
-    tier. An explicit ``returns=`` is left untouched (back-compat).
+    ``fan_in()`` (the LOWER tier) requires every source to declare ``returns=``.
+    The EASY tier fills the branch's ``returns`` from the SAME template-full shape
+    that composition materializes, so Link carry filtering stays separate from the
+    Brick return contract. An explicit ``returns=`` is left untouched (back-compat).
     """
 
     if _optional_text(spec.returns):
@@ -464,8 +459,7 @@ def _auto_fan_branch_returns(spec: BrickSpec, registry: Mapping[str, Any]) -> Br
         shape = str(step_template.get("required_return_shape", "")).strip()
     if not shape:
         return spec
-    derived = _materializer_strip_field(shape, _TRANSITION_CONCERN_FIELD)
-    return _with_fields(spec, returns=derived)
+    return _with_fields(spec, returns=shape)
 
 
 def _auto_id_repeated_kinds(coerced_nodes: Sequence[BrickSpec | Fan]) -> list[BrickSpec | Fan]:
@@ -1106,10 +1100,7 @@ def _lower_node(
             source_shape = str(step_template.get("required_return_shape", "")).strip()
         if not source_shape:
             source_shape = str(spec.returns or "").strip()
-        node["required_return_shape"] = _materializer_strip_field(
-            source_shape,
-            _TRANSITION_CONCERN_FIELD,
-        )
+        node["required_return_shape"] = source_shape
     if spec.agent is not None:
         node["agent_object_ref"] = _prefixed_ref("agent-object", spec.agent.role)
     # Stamp EVERY declared casting dial generically (E2/§6 M15): loop the
@@ -1228,8 +1219,8 @@ def _validate_interim_fan_in_contract(
 
     for source_id in fan_in_source_ids:
         shape = str(node_by_id.get(source_id, {}).get("required_return_shape", "")).lower()
-        if _TRANSITION_CONCERN_FIELD in shape:
-            raise ValueError(f"fan-in source still carries {_TRANSITION_CONCERN_FIELD}: {source_id}")
+        if not shape:
+            raise ValueError(f"fan-in source missing required_return_shape: {source_id}")
 
     for node_id, node in node_by_id.items():
         policy = node.get("closure_transition_target_policy")

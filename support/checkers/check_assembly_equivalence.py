@@ -57,8 +57,21 @@ STRICT_GATE = "link-gate:strict"
 GOAL_PROPOSAL_FILENAME = "proposed-building-graph.json"
 DECLARED_BY = "coo-heart-phase0-checker"
 SELECTED_ADAPTER = "adapter:codex-local"
-SOURCE_RETURN_SHAPE = "observed_evidence, evidence_used, not_proven"
 TINY_RETURN_SHAPE = "observed_evidence, not_proven"
+CODE_ATTACK_RETURN_SHAPE = (
+    "observed_evidence, attacked_work, checked_sources, regression_risks, "
+    "negative_probe_observations, failing_or_missing_probes, boundary_violations, "
+    "transition_concern_evidence, evidence_used, not_proven"
+)
+AXIS_ATTACK_RETURN_SHAPE = (
+    "observed_evidence, attacked_scope, brick_axis_findings, agent_axis_findings, "
+    "link_axis_findings, support_leak_findings, projection_authority_findings, "
+    "transition_concern_evidence, evidence_used, not_proven"
+)
+EVIDENCE_INTEGRITY_RETURN_SHAPE = (
+    "observed_evidence, evidence_scope, persisted_evidence_roots, proof_limit_findings, "
+    "stale_source_risks, checker_overclaim_risks, missing_evidence, evidence_used, not_proven"
+)
 BOUNDARY_PREFIXES = ("building-boundary:", "building-boundary-")
 PROOF_LIMIT = (
     "proof limit: assembly equivalence checker support evidence only; it does "
@@ -190,9 +203,9 @@ def _fixtures() -> tuple[Fixture, ...]:
                 completion_edge_ref="edge:hard-dev-code",
                 node_reroute_budget=5,
             ),
-            _node("hard-code", "code-attack-qa", required_return_shape=SOURCE_RETURN_SHAPE),
-            _node("hard-axis", "axis-attack-qa", required_return_shape=SOURCE_RETURN_SHAPE),
-            _node("hard-evidence", "evidence-integrity", required_return_shape=SOURCE_RETURN_SHAPE),
+            _node("hard-code", "code-attack-qa"),
+            _node("hard-axis", "axis-attack-qa"),
+            _node("hard-evidence", "evidence-integrity"),
             _node(
                 "hard-closure",
                 "closure",
@@ -236,10 +249,10 @@ def _fixtures() -> tuple[Fixture, ...]:
                 completion_edge_ref="edge:two-inspect-code-a",
                 node_reroute_budget=1,
             ),
-            _node("two-code-a", "code-attack-qa", required_return_shape=SOURCE_RETURN_SHAPE),
-            _node("two-code-b", "code-attack-qa", required_return_shape=SOURCE_RETURN_SHAPE),
-            _node("two-axis-a", "axis-attack-qa", required_return_shape=SOURCE_RETURN_SHAPE),
-            _node("two-axis-b", "axis-attack-qa", required_return_shape=SOURCE_RETURN_SHAPE),
+            _node("two-code-a", "code-attack-qa"),
+            _node("two-code-b", "code-attack-qa"),
+            _node("two-axis-a", "axis-attack-qa"),
+            _node("two-axis-b", "axis-attack-qa"),
             _node(
                 "two-mid",
                 "closure",
@@ -754,12 +767,12 @@ def _assembly_graph(fixture_name: str):
 
     if fixture_name == "engine-feature-hard":
         dev = brick("development", "checker fixture work for hard-development")
-        code = brick("code-attack-qa", "checker fixture work for hard-code", returns=SOURCE_RETURN_SHAPE)
-        axis = brick("axis-attack-qa", "checker fixture work for hard-axis", returns=SOURCE_RETURN_SHAPE)
+        code = brick("code-attack-qa", "checker fixture work for hard-code", returns=CODE_ATTACK_RETURN_SHAPE)
+        axis = brick("axis-attack-qa", "checker fixture work for hard-axis", returns=AXIS_ATTACK_RETURN_SHAPE)
         evidence = brick(
             "evidence-integrity",
             "checker fixture work for hard-evidence",
-            returns=SOURCE_RETURN_SHAPE,
+            returns=EVIDENCE_INTEGRITY_RETURN_SHAPE,
         )
         close = brick("closure", "checker fixture work for hard-closure")
         sources = [code, axis, evidence]
@@ -782,25 +795,25 @@ def _assembly_graph(fixture_name: str):
             "code-attack-qa",
             "checker fixture work for two-code-a",
             alias="code-lens-a",
-            returns=SOURCE_RETURN_SHAPE,
+            returns=CODE_ATTACK_RETURN_SHAPE,
         )
         code_b = brick(
             "code-attack-qa",
             "checker fixture work for two-code-b",
             alias="code-lens-b",
-            returns=SOURCE_RETURN_SHAPE,
+            returns=CODE_ATTACK_RETURN_SHAPE,
         )
         axis_a = brick(
             "axis-attack-qa",
             "checker fixture work for two-axis-a",
             alias="axis-lens-a",
-            returns=SOURCE_RETURN_SHAPE,
+            returns=AXIS_ATTACK_RETURN_SHAPE,
         )
         axis_b = brick(
             "axis-attack-qa",
             "checker fixture work for two-axis-b",
             alias="axis-lens-b",
-            returns=SOURCE_RETURN_SHAPE,
+            returns=AXIS_ATTACK_RETURN_SHAPE,
         )
         mid = brick("closure", "checker fixture work for two-mid", alias="mid")
         final = brick("closure", "checker fixture work for two-final", alias="final")
@@ -969,7 +982,7 @@ def _tiny_work_qa_return_shape_red(repo: Path) -> str:
 
 def _construction_red_outputs(repo: Path) -> tuple[str, ...]:
     def self_reroute_probe() -> None:
-        source = brick("code-attack-qa", "source", returns=SOURCE_RETURN_SHAPE)
+        source = brick("code-attack-qa", "source", returns=CODE_ATTACK_RETURN_SHAPE)
         close = brick("closure", "close")
         fan_in(
             [source],
@@ -1656,12 +1669,11 @@ def _build_fan_graphs(fixture_name: str):
                 ["development", "checker fixture work for hard-development"],
                 fan(
                     [
-                        ["code-attack-qa", "checker fixture work for hard-code", {"returns": SOURCE_RETURN_SHAPE}],
-                        ["axis-attack-qa", "checker fixture work for hard-axis", {"returns": SOURCE_RETURN_SHAPE}],
+                        ["code-attack-qa", "checker fixture work for hard-code"],
+                        ["axis-attack-qa", "checker fixture work for hard-axis"],
                         [
                             "evidence-integrity",
                             "checker fixture work for hard-evidence",
-                            {"returns": SOURCE_RETURN_SHAPE},
                         ],
                     ]
                 ),
@@ -1703,12 +1715,12 @@ def _mandated_example_graphs(repo: Path):
                     [
                         "code-attack-qa",
                         codex_work,
-                        {"adapter": "codex-local", "returns": SOURCE_RETURN_SHAPE, "label": "code-codex"},
+                        {"adapter": "codex-local", "label": "code-codex"},
                     ],
                     [
                         "code-attack-qa",
                         gemini_work,
-                        {"adapter": "gemini-local", "returns": SOURCE_RETURN_SHAPE, "label": "code-gemini"},
+                        {"adapter": "gemini-local", "label": "code-gemini"},
                     ],
                 ]
             ),
@@ -1719,10 +1731,18 @@ def _mandated_example_graphs(repo: Path):
     inspect = brick("inspect", insp_work)
     dev = brick("development", dev_work, write=True)
     code_codex = brick(
-        "code-attack-qa", codex_work, adapter="codex-local", returns=SOURCE_RETURN_SHAPE, alias="code-codex"
+        "code-attack-qa",
+        codex_work,
+        adapter="codex-local",
+        returns=CODE_ATTACK_RETURN_SHAPE,
+        alias="code-codex",
     )
     code_gemini = brick(
-        "code-attack-qa", gemini_work, adapter="gemini-local", returns=SOURCE_RETURN_SHAPE, alias="code-gemini"
+        "code-attack-qa",
+        gemini_work,
+        adapter="gemini-local",
+        returns=CODE_ATTACK_RETURN_SHAPE,
+        alias="code-gemini",
     )
     close = brick("closure", close_work)
     via_hand = converge(
@@ -1755,9 +1775,9 @@ def _fan_first_example_graphs(repo: Path):
         ]
     )
 
-    code = brick("code-attack-qa", code_work, returns=SOURCE_RETURN_SHAPE)
-    axis = brick("axis-attack-qa", axis_work, returns=SOURCE_RETURN_SHAPE)
-    evidence = brick("evidence-integrity", evidence_work, returns=SOURCE_RETURN_SHAPE)
+    code = brick("code-attack-qa", code_work, returns=CODE_ATTACK_RETURN_SHAPE)
+    axis = brick("axis-attack-qa", axis_work, returns=AXIS_ATTACK_RETURN_SHAPE)
+    evidence = brick("evidence-integrity", evidence_work, returns=EVIDENCE_INTEGRITY_RETURN_SHAPE)
     close = brick("closure", close_work)
     via_hand = converge(
         fan_in([code, axis, evidence], close),
@@ -1863,9 +1883,11 @@ def run(repo: Path) -> list[str]:
     for fixture in fixtures.values():
         plan = _compose_fixture(repo, fixture)
         projection = _projection(plan, fixture)
-        if any(has_concern for _label, has_concern in projection.fan_in_source_return_has_concern):
+        if projection.fan_in_source_return_has_concern and not any(
+            has_concern for _label, has_concern in projection.fan_in_source_return_has_concern
+        ):
             raise AssemblyEquivalenceError(
-                f"{fixture.name}: fan-in source required_return_shape still carries transition_concern_evidence"
+                f"{fixture.name}: fan-in source required_return_shape did not preserve template transition_concern_evidence"
             )
         projections[fixture.name] = projection
         outputs.append(
@@ -1875,9 +1897,11 @@ def run(repo: Path) -> list[str]:
         )
         lhs_plan, lhs_fixture = _assembly_lhs(repo, fixture.name)
         lhs_projection = _projection(lhs_plan, lhs_fixture)
-        if any(has_concern for _label, has_concern in lhs_projection.fan_in_source_return_has_concern):
+        if lhs_projection.fan_in_source_return_has_concern and not any(
+            has_concern for _label, has_concern in lhs_projection.fan_in_source_return_has_concern
+        ):
             raise AssemblyEquivalenceError(
-                f"{fixture.name}: assembly LHS fan-in source required_return_shape still carries transition_concern_evidence"
+                f"{fixture.name}: assembly LHS fan-in source required_return_shape did not preserve template transition_concern_evidence"
             )
         _assert_projection_equal(
             lhs_projection,
