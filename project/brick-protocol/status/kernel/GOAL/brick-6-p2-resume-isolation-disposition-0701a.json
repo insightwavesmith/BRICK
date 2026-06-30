@@ -1,0 +1,249 @@
+{
+  "task_statement": "P2 of BRICK 6-surface audit repair: close resume/post-HOLD isolation, explicit disposition, and sensitive-path write commit block/mark through an official build declared graph. Mission: post-HOLD approve/resume must preserve fresh customer run live-tree isolation or fail closed, support must not silently default Link disposition author/action, and sensitive path writes must not reach durable sandbox output commit unblocked/unmarked.",
+  "declared_by": "coo",
+  "building_id": "brick-6-p2-resume-isolation-disposition-0701a",
+  "selected_shape_ref": "shape:manual-design-work-hard-fanin-p2-resume-isolation",
+  "selection_rule": "manual graph because P2 combines Link lifecycle disposition, support resume isolation, and sensitive-write commit policy; no preset is assumed adequate",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "brick-6-p2-resume-isolation-disposition-0701a-design",
+      "step_ref": "brick-6-p2-resume-isolation-disposition-0701a-design",
+      "step_template_ref": "building-step-template:design",
+      "node_reroute_budget": 1,
+      "work_statement": "Design P2 repair boundaries from the P2 phase doc and audit refs. Read current support/operator/onboard.py, run.py, driver.py, walker_resume.py, worktree_sandbox.py, write_observation.py, and relevant checkers. Return design only: Brick/Agent/Link attribution, invariants, checker-first negative probes, candidate files, and reading_scope_map. Required invariants: (1) no silent disposition author/action default on post-HOLD approve/resume; (2) resume path cannot mutate live checkout without equivalent worktree/temp isolation or explicit fail-closed adapter_cwd contract; (3) sensitive-path writes cannot be committed durably unblocked/unmarked; (4) HOLD remains lifecycle, Movement remains forward/reroute. Do not edit files.\n\nSTRICT SCOPE: This is phase:P2 only. Do not broaden into P3-P8, provider release, dashboard, pytest honesty, or raw scrub. Do not push. Do not use ai-cli/subagents. Do not store or print secrets/session bodies. Keep Movement vocabulary forward/reroute only; HOLD is lifecycle. If evidence conflicts, return transition_concern_evidence using current Building ledger-local reason_refs only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p2-resume-isolation-disposition-0701a-design-to-work"
+    },
+    {
+      "node_id": "brick-6-p2-resume-isolation-disposition-0701a-work",
+      "step_ref": "brick-6-p2-resume-isolation-disposition-0701a-work",
+      "step_template_ref": "building-step-template:work",
+      "node_reroute_budget": 1,
+      "work_statement": "Implement the P2 repair from the design report and phase doc. Start with checker-first negative probes. Scope: support/operator/onboard.py, run.py, driver.py, walker_resume.py, worktree_sandbox.py, write_observation.py and support/checkers/profiles as needed. Required outcomes: approve/resume requires explicit disposition action/author rather than silent defaults; resume/post-HOLD execution is isolated like fresh customer runs or refuses/HOLDs when adapter_cwd/output root isolation contract is unsafe/missing; sandbox output commit blocks or loudly marks observed_sensitive_path_writes for secret/credential/PII/provider-session-like paths; focused checker/profile proves negative probe RED then GREEN; check_profile.py --all, py_compile changed Python, git diff --check. If any implementation gap remains, return transition_concern_evidence targeting brick-6-p2-resume-isolation-disposition-0701a-work. Do not mark whole goal complete.\n\nSTRICT SCOPE: This is phase:P2 only. Do not broaden into P3-P8, provider release, dashboard, pytest honesty, or raw scrub. Do not push. Do not use ai-cli/subagents. Do not store or print secrets/session bodies. Keep Movement vocabulary forward/reroute only; HOLD is lifecycle. If evidence conflicts, return transition_concern_evidence using current Building ledger-local reason_refs only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p2-resume-isolation-disposition-0701a-work-to-code-qa",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "agent/**",
+          "brick/**",
+          "link/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p2-resume-isolation-disposition-0701a-code-qa",
+      "step_ref": "brick-6-p2-resume-isolation-disposition-0701a-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Attack P2 implementation. Independently reproduce the pre-fix risk where post-HOLD resume could use unsafe/missing adapter_cwd or where sensitive writes could be committed unblocked/unmarked. Run real checker/profile entry surfaces, py_compile changed Python, git diff --check, and inspect changed files. Verify no source truth, success, quality, or Movement authority moved into support. If implementation gap remains, return local transition_concern_evidence with concern_kind implementation_gap targeting brick-6-p2-resume-isolation-disposition-0701a-work.\n\nSTRICT SCOPE: This is phase:P2 only. Do not broaden into P3-P8, provider release, dashboard, pytest honesty, or raw scrub. Do not push. Do not use ai-cli/subagents. Do not store or print secrets/session bodies. Keep Movement vocabulary forward/reroute only; HOLD is lifecycle. If evidence conflicts, return transition_concern_evidence using current Building ledger-local reason_refs only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p2-resume-isolation-disposition-0701a-code-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "agent/**",
+          "brick/**",
+          "link/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p2-resume-isolation-disposition-0701a-axis-qa",
+      "step_ref": "brick-6-p2-resume-isolation-disposition-0701a-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Attack Brick/Agent/Link attribution for P2. Verify disposition remains Link/caller/COO lifecycle evidence, support does not choose Movement or invent targets, HOLD is not a Movement literal, adapter_cwd isolation is support mechanics only, and sensitive-write block/mark is publication/integrity guard not source-truth judgment. If boundary gap remains, return local transition_concern_evidence targeting brick-6-p2-resume-isolation-disposition-0701a-work.\n\nSTRICT SCOPE: This is phase:P2 only. Do not broaden into P3-P8, provider release, dashboard, pytest honesty, or raw scrub. Do not push. Do not use ai-cli/subagents. Do not store or print secrets/session bodies. Keep Movement vocabulary forward/reroute only; HOLD is lifecycle. If evidence conflicts, return transition_concern_evidence using current Building ledger-local reason_refs only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p2-resume-isolation-disposition-0701a-axis-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "agent/**",
+          "brick/**",
+          "link/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p2-resume-isolation-disposition-0701a-evidence-qa",
+      "step_ref": "brick-6-p2-resume-isolation-disposition-0701a-evidence-qa",
+      "step_template_ref": "building-step-template:evidence-integrity",
+      "node_reroute_budget": 1,
+      "work_statement": "Check P2 evidence integrity. Verify source audit docs were opened, checker outputs are proof-limited support evidence, negative probes cover explicit disposition, resume isolation, and sensitive-write commit block/mark, and no secret/session bodies appear in evidence. Name any missing evidence under missing_evidence/not_proven; do not claim P2 done if only narrow checks ran.\n\nSTRICT SCOPE: This is phase:P2 only. Do not broaden into P3-P8, provider release, dashboard, pytest honesty, or raw scrub. Do not push. Do not use ai-cli/subagents. Do not store or print secrets/session bodies. Keep Movement vocabulary forward/reroute only; HOLD is lifecycle. If evidence conflicts, return transition_concern_evidence using current Building ledger-local reason_refs only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p2-resume-isolation-disposition-0701a-evidence-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "agent/**",
+          "brick/**",
+          "link/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p2-resume-isolation-disposition-0701a-closure",
+      "step_ref": "brick-6-p2-resume-isolation-disposition-0701a-closure",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Synthesize P2 closure. Fan in design, work, code-qa, axis-qa, evidence-qa. Report observed_evidence / narrowly_proven / not_proven / remaining_delta / parent_goal_delta_status / next_target_candidates. If P2 named outcomes are not closed, return Link-facing transition_concern_evidence with current-ledger-local reason_refs and related_boundary_refs [\"brick-6-p2-resume-isolation-disposition-0701a-work\"]. If closed, transition_concern_evidence null. Do not mark P3-P8 or whole goal complete.\n\nSTRICT SCOPE: This is phase:P2 only. Do not broaden into P3-P8, provider release, dashboard, pytest honesty, or raw scrub. Do not push. Do not use ai-cli/subagents. Do not store or print secrets/session bodies. Keep Movement vocabulary forward/reroute only; HOLD is lifecycle. If evidence conflicts, return transition_concern_evidence using current Building ledger-local reason_refs only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p2-resume-isolation-disposition-0701a-closure-to-boundary"
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:brick-6-p2-resume-isolation-disposition-0701a-design-to-work",
+      "source": "brick-6-p2-resume-isolation-disposition-0701a-design",
+      "target": "brick-6-p2-resume-isolation-disposition-0701a-work",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p2-resume-isolation-disposition-0701a-work-to-code-qa",
+      "source": "brick-6-p2-resume-isolation-disposition-0701a-work",
+      "target": "brick-6-p2-resume-isolation-disposition-0701a-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p2-resume-isolation-disposition-0701a-work-to-axis-qa",
+      "source": "brick-6-p2-resume-isolation-disposition-0701a-work",
+      "target": "brick-6-p2-resume-isolation-disposition-0701a-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p2-resume-isolation-disposition-0701a-work-to-evidence-qa",
+      "source": "brick-6-p2-resume-isolation-disposition-0701a-work",
+      "target": "brick-6-p2-resume-isolation-disposition-0701a-evidence-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p2-resume-isolation-disposition-0701a-code-qa-to-closure",
+      "source": "brick-6-p2-resume-isolation-disposition-0701a-code-qa",
+      "target": "brick-6-p2-resume-isolation-disposition-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p2-resume-isolation-disposition-0701a-axis-qa-to-closure",
+      "source": "brick-6-p2-resume-isolation-disposition-0701a-axis-qa",
+      "target": "brick-6-p2-resume-isolation-disposition-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p2-resume-isolation-disposition-0701a-evidence-qa-to-closure",
+      "source": "brick-6-p2-resume-isolation-disposition-0701a-evidence-qa",
+      "target": "brick-6-p2-resume-isolation-disposition-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p2-resume-isolation-disposition-0701a-closure-to-boundary",
+      "source": "brick-6-p2-resume-isolation-disposition-0701a-closure",
+      "target": "building-boundary:brick-6-p2-resume-isolation-disposition-0701a-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:brick-6-p2-resume-isolation-disposition-0701a-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p2-resume-isolation-disposition-0701a-work-to-code-qa",
+        "edge:brick-6-p2-resume-isolation-disposition-0701a-work-to-axis-qa",
+        "edge:brick-6-p2-resume-isolation-disposition-0701a-work-to-evidence-qa"
+      ]
+    },
+    {
+      "group_id": "group:brick-6-p2-resume-isolation-disposition-0701a-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p2-resume-isolation-disposition-0701a-code-qa-to-closure",
+        "edge:brick-6-p2-resume-isolation-disposition-0701a-axis-qa-to-closure",
+        "edge:brick-6-p2-resume-isolation-disposition-0701a-evidence-qa-to-closure"
+      ],
+      "fan_in_target_ref": "brick-6-p2-resume-isolation-disposition-0701a-closure",
+      "fan_in_policy": "wait_all_before_closure"
+    }
+  ],
+  "source_evidence_refs": [
+    "attachment:pasted-text-1-redacted-objective-ref",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-repair-p2-resume-post-hold-isolation-0630.md",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-final-synthesis-0630.md#C16",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-s4-support-machine-0630.md#S4-F1-S4-F11",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-s3-link-axis-0630.md#lifecycle-controls",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-s6-product-surface-0630.md",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-final-coverage-matrix-0630.md#ADD-1-ADD-9",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-readiness-tuples-0630.md#protocol-live-priority-order",
+    "project/brick-protocol/status/kernel/brick-6-p1-raw-evidence-scrub-closure-0701.md"
+  ],
+  "proof_limits": [
+    "phase:P2 bounded repair only",
+    "not P3-P8 completion",
+    "not product/customer-ready proof",
+    "not source truth",
+    "not success judgment",
+    "not quality judgment",
+    "not Movement authority"
+  ],
+  "not_proven": [
+    "P2 implementation correctness before Building returns",
+    "P3-P8",
+    "customer/product readiness",
+    "provider reliability",
+    "Smith approval and push"
+  ]
+}
