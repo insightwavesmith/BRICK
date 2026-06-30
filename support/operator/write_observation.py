@@ -327,7 +327,7 @@ def _path_has_provider_session_like_segment(path: str) -> bool:
         for segment in path.replace("\\", "/").replace(".", "/").replace("-", "/").replace("_", "/").split("/")
         if segment
     ]
-    if "session" in segments:
+    if "session" in segments and any(segment in {"provider", "runtime"} for segment in segments):
         return True
     return any(
         segment in {"provider", "runtime", "conversation", "transcript"}

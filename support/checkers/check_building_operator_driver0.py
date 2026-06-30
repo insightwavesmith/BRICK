@@ -826,6 +826,7 @@ def _sensitive_write_observation_fire(
 
     observed = _raw_sensitive_path_writes(
         [
+            "support/operator/run_chat_session.py",
             "logs/provider-session-state.json",
             "runs/conversation_id.txt",
             "nested/runtime-session/body.json",
@@ -842,6 +843,10 @@ def _sensitive_write_observation_fire(
         violations.append(
             "sensitive-write-RED: provider-session-like paths were not marked "
             f"observed_sensitive_path_writes (observed={observed!r})"
+        )
+    if "support/operator/run_chat_session.py" in observed:
+        violations.append(
+            "sensitive-write-RED: ordinary source path run_chat_session.py was over-marked sensitive"
         )
     if "ordinary/output.txt" in observed:
         violations.append("sensitive-write-RED: ordinary output path was over-marked sensitive")
