@@ -876,13 +876,13 @@ def validate_declared_building_plan(
     )
     for step_index, step_value in enumerate(steps):
         step = _require_mapping_value(f"steps[{step_index}]", step_value)
-        _validate_declared_step_link(step, declared_brick_refs=declared_brick_refs)
         _validate_declared_step_write_scope(
             step,
             selected_adapter_ref=_declared_selected_adapter_ref(plan, step),
             allow_retired_write_adapter_refs=allow_retired_write_adapter_refs,
             require_write_need_marker=require_write_need_marker,
         )
+        _validate_declared_step_link(step, declared_brick_refs=declared_brick_refs)
 
 def _validate_declared_plan_gate_sequence_policies(
     plan: Mapping[str, Any],
@@ -1193,10 +1193,10 @@ def _movement_and_target_from_link_row(link_row: Mapping[str, Any]) -> tuple[str
 
 def _validate_declared_gate_refs_for_link_row(link_row: Mapping[str, Any]) -> None:
     if _DECLARED_GATE_REFS_KEY not in link_row:
-        return
+        raise ValueError("Building plan Link row must declare declared_gate_refs")
     refs = _text_list_tuple("declared_gate_refs", link_row.get(_DECLARED_GATE_REFS_KEY))
     if not refs:
-        raise ValueError("declared_gate_refs must be a non-empty list when supplied")
+        raise ValueError("declared_gate_refs must be a non-empty list")
     if len(refs) != len(set(refs)):
         raise ValueError("declared_gate_refs must not contain duplicate refs")
     if refs[0] != "link-gate:default-transition":

@@ -291,7 +291,6 @@ def _build_invalid_transition_concern_hold(
     step_result: BuildingRunSupportResult,
 ) -> Mapping[str, Any]:
     raw_concern = concern_observation.raw_concern or {}
-    target_brick = _proposed_target_brick(raw_concern, declared_bricks=declared_bricks) or source_brick_ref
     raw_concern_ref = raw_concern.get("concern_ref") if isinstance(raw_concern, Mapping) else None
     concern_ref = raw_concern_ref if isinstance(raw_concern_ref, str) and raw_concern_ref.strip() else ""
     if not concern_ref:
@@ -302,13 +301,13 @@ def _build_invalid_transition_concern_hold(
         plan_ref=plan_ref,
         source_step_ref=source_step_ref,
         source_brick_ref=source_brick_ref,
-        target_brick=target_brick,
+        target_brick=source_brick_ref,
         concern=concern_for_hold,
         cascade_depth=cascade_depth,
         parent_reroute_ref=parent_reroute_ref,
         adoption_sequence_number=adoption_sequence_number,
-        node_budget=node_budget.get(target_brick, 0),
-        attempt_number=node_landings.get(target_brick, 0),
+        node_budget=node_budget.get(source_brick_ref, 0),
+        attempt_number=node_landings.get(source_brick_ref, 0),
         budget_exhausted=False,
         hold_reason="invalid_transition_concern_evidence",
         step=step,

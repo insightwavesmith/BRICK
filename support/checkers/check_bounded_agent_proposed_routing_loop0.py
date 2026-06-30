@@ -90,9 +90,8 @@ def _fwd_edge(edge_ref: str, src: str, tgt_step: str, tgt_brick: str, gate: list
         "row_ref": f"link-row:{edge_ref}",
         "movement": "forward",
         "target_ref": tgt_brick,
+        "declared_gate_refs": list(gate or ["link-gate:default-transition"]),
     }
-    if gate is not None:
-        link_row["declared_gate_refs"] = gate
     return {"edge_ref": edge_ref, "source_step_ref": src, "target_step_ref": tgt_step, "rows": [link_row]}
 
 
@@ -105,6 +104,7 @@ def _close_edge(edge_ref: str, src: str, reason: str, boundary: str) -> Mapping[
                 "axis": "Link",
                 "row_ref": f"link-row:{edge_ref}",
                 "movement": "forward",
+                "declared_gate_refs": ["link-gate:default-transition"],
                 "building_lifecycle": {"state": "closed", "reason": reason},
                 "target_ref": boundary,
             }
@@ -834,9 +834,8 @@ def _reroute_edge(
         "movement": "reroute",
         "target_ref": tgt_brick,
         "route_replay_plan": dict(route_replay_plan),
+        "declared_gate_refs": list(gate or ["link-gate:default-transition"]),
     }
-    if gate is not None:
-        link_row["declared_gate_refs"] = gate
     return {"edge_ref": edge_ref, "source_step_ref": src, "target_step_ref": tgt_step, "rows": [link_row]}
 
 
@@ -885,7 +884,6 @@ def _onboard_approve_fire_plan(prefix: str) -> tuple[Mapping[str, Any], str]:
             continue
         rows = edge.get("rows")
         if isinstance(rows, list) and rows and isinstance(rows[0], dict):
-            rows[0].pop("declared_gate_refs", None)
             rows[0].pop("gate_sequence_policy", None)
     changed = _with_link_edge_gate_sequence_policy(
         changed,
@@ -1545,6 +1543,7 @@ def check(repo: Path) -> list[str]:
     from brick_protocol.link.transition import DISPOSITION_ACTIONS
     from brick_protocol.support.operator.run import run_building_plan
     from brick_protocol.support.operator.building_operation import observe_building_frontier
+    from brick_protocol.support.operator.plan_validation import validate_declared_building_plan
 
     if (
         len(DISPOSITION_ACTIONS) != 4
@@ -1554,6 +1553,60 @@ def check(repo: Path) -> list[str]:
         violations.append(
             "human-reroute-disposition: DISPOSITION_ACTIONS must pin "
             "raise/forward/stop/reroute exactly"
+        )
+
+    gate_plan_green = {
+        "plan_ref": "building-plan:bapr-loop0-declared-gate-green",
+        "owner_axis": "Brick",
+        "selected_adapter_ref": "adapter:local",
+        "steps": [
+            {
+                "step_ref": "bapr-loop0-declared-gate-green-step",
+                "rows": [
+                    {
+                        "axis": "Brick",
+                        "row_ref": "brick-row:bapr-loop0-declared-gate-green",
+                        "brick_instance_ref": "brick-bapr-loop0-declared-gate-green-source",
+                    },
+                    {
+                        "axis": "Agent",
+                        "row_ref": "agent-row:bapr-loop0-declared-gate-green",
+                        "agent_object_ref": "agent-object:dev",
+                    },
+                    {
+                        "axis": "Link",
+                        "row_ref": "link-row:bapr-loop0-declared-gate-green",
+                        "movement": "forward",
+                        "target_ref": "brick-bapr-loop0-declared-gate-green-target",
+                        "declared_gate_refs": ["link-gate:default-transition"],
+                    },
+                ],
+            }
+        ],
+    }
+    try:
+        validate_declared_building_plan(gate_plan_green, repo_root=repo)
+    except ValueError as exc:
+        violations.append(
+            "declared-gate-refs: explicit link-gate:default-transition was rejected "
+            f"({exc})"
+        )
+    gate_plan_red = copy.deepcopy(gate_plan_green)
+    first_link_row = gate_plan_red["steps"][0]["rows"][2]
+    if isinstance(first_link_row, dict):
+        first_link_row.pop("declared_gate_refs", None)
+    try:
+        validate_declared_building_plan(gate_plan_red, repo_root=repo)
+    except ValueError as exc:
+        if "declared_gate_refs" not in str(exc):
+            violations.append(
+                "declared-gate-refs: missing declared_gate_refs produced wrong error "
+                f"({exc})"
+            )
+    else:
+        violations.append(
+            "declared-gate-refs: active post-expansion Link row missing "
+            "declared_gate_refs was not rejected"
         )
 
     auto_prefix = "bapr-loop0-g5-1-auto-graph"
@@ -4332,9 +4385,10 @@ def check(repo: Path) -> list[str]:
     # transition_concern_evidence with an extra key must not be adopted by the
     # dynamic walker and must not crash step-output recording.
     plan_invalid, b2_invalid = _checker_plan("bapr-loop0-invalid-concern", budget=1)
+    source_invalid = "brick-bapr-loop0-invalid-concern-review"
     res_invalid, fr_invalid, rec_invalid = _run(
         plan_invalid,
-        _invalid_concern_callable("brick-bapr-loop0-invalid-concern-review", b2_invalid),
+        _invalid_concern_callable(source_invalid, b2_invalid),
         repo,
     )
     held_invalid = _held_records(rec_invalid)
@@ -4349,6 +4403,14 @@ def check(repo: Path) -> list[str]:
         violations.append(
             "invalid-concern: wrong hold_reason="
             f"{held_invalid[0].get('hold_reason')}"
+        )
+    elif any(
+        held_invalid[0].get(field) != source_invalid
+        for field in ("immediate_target_ref", "target_brick", "pending_target_ref")
+    ):
+        violations.append(
+            "invalid-concern: malformed concern copied proposed target into HOLD target fields "
+            f"({held_invalid[0]})"
         )
     invalid_bricks = _step_bricks(res_invalid)
     if invalid_bricks.count(b2_invalid) != 1:
