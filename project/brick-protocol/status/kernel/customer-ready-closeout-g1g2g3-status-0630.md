@@ -114,10 +114,21 @@ cluster moved VERBATIM to `support/checkers/lib/no_smith_residue_check.py`
 `customer-ready-final-architecture-no-smith-residue-proof-0630.md`. Verified:
 re-export + dispatch identity, live inspected=39, mutation-RED, REAL HOME --all GREEN.
 
+G3 second kernel_checks.py leaf LANDED (0630): the onboarding install-script lint
++ release-export exclusion lint cluster moved VERBATIM to
+`support/checkers/lib/install_release_export_lint_check.py` (kernel_checks.py
+11325 -> 11151, net -174; sibling 213 lines). Ledger=
+`customer-ready-final-architecture-install-release-export-lint-ledger-0630.md`,
+proof=`customer-ready-final-architecture-install-release-export-lint-proof-0630.md`.
+Verified: byte-identical diff EMPTY, re-export + dispatch identity (both checks),
+mutation-RED (install /Users/ literal + release missing project/ exclusion both
+fired RED), REAL HOME --all GREEN (28 profiles). Cumulative kernel_checks.py
+decomposition: 11452 -> 11151 (net -301 across two leaves).
+
 NOT proven / remaining G3 work:
 
 ```text
-- more kernel_checks.py leaves remain (11325 still the largest godmodule).
+- more kernel_checks.py leaves remain (11151 still the largest godmodule).
 - agreed stop condition for "final architecture cleanup" is not yet declared;
   remaining debt must be named at stop.
 ```

@@ -278,18 +278,22 @@ On current main `kernel_checks.py` is the LARGEST godmodule, exceeding
 `case_runners.py` (8503). The 0628 plan LOC coordinates are stale; the leaf
 series was re-pointed to `kernel_checks.py` by live measurement.
 
-First kernel_checks.py leaf LANDED (commit `a779a2c`): the product
-no-Smith-residue scan cluster moved byte-identical to
-`support/checkers/lib/no_smith_residue_check.py` (165 LOC), kernel_checks.py
-11452 -> 11325 (net -127). Re-export + dispatch identity preserved, mutation-RED
-proved, REAL HOME `check_profile.py --all` GREEN, `module_registry.yaml` row
-added. Ledger=`customer-ready-final-architecture-no-smith-residue-ledger-0630.md`,
-proof=`customer-ready-final-architecture-no-smith-residue-proof-0630.md`.
+Two kernel_checks.py leaves LANDED (0630):
+- leaf 1 (commit `a779a2c`): product no-Smith-residue scan cluster ->
+  `support/checkers/lib/no_smith_residue_check.py` (165 LOC), 11452 -> 11325.
+- leaf 2: onboarding install-script + release-export exclusion lints ->
+  `support/checkers/lib/install_release_export_lint_check.py` (213 LOC),
+  11325 -> 11151. Ledger/proof=
+  `customer-ready-final-architecture-install-release-export-lint-{ledger,proof}-0630.md`.
+Both: byte-identical bodies, re-export + dispatch identity preserved,
+mutation-RED, REAL HOME `check_profile.py --all` GREEN, `module_registry.yaml`
+rows added. Cumulative kernel_checks.py: 11452 -> 11151 (net -301).
 
-G3 remaining (live): `kernel_checks.py` (11325) is still the largest godmodule;
-more pure leaves remain (install_script_lint / provider_preflight /
-mcp_stdio_smoke / connect_config_launch clusters are candidate next leaves), and
-the agreed STOP CONDITION for FINAL architecture cleanup is not yet declared.
+G3 remaining (live): `kernel_checks.py` (11151) is still the largest godmodule;
+more pure leaves remain (provider_preflight / onboard_smoke are audited
+near-leaves with one shared `_ensure_import_identity` ref; mcp_stdio_smoke /
+connect_config_launch are further candidates), and the agreed STOP CONDITION for
+FINAL architecture cleanup is not yet declared.
 Evidence: `customer-ready-closeout-g1g2g3-status-0630.md`.
 
 ## 6. Operating order
