@@ -79,7 +79,7 @@ chain keeps being updated until the customer-ready goal is complete.
 
 P3 zero-ritual launch policy: once the task source and graph shape are declared,
 the preferred graph execution is compact drawing (`build` / `fan`) followed by
-`fire(graph)` through the official customer graph route. If a packet artifact is
+operator-facing `build()` submission. Do not tell the operator to call `fire(graph)`; `fire()` is internal/debug wording. If a packet artifact is
 needed, `brick build --graph <packet>` remains the file-handoff form of the same
 route. Do not invent a second runner or a new skill chain.
 

@@ -103,7 +103,7 @@ skill chain get exercised end to end and stay connected:
 ```text
 main agent draws graph (LLM + Brick + Graph)
 -> brick-task-author / building-coordination / building-sizing-method / task_intake
--> assembly.build/fan/fire OR brick build --graph (official route)
+-> operator-facing build() only (fan is inside build; fire is internal/debug) OR brick build --graph only for packet handoff
 -> frontier/evidence
 -> COO judge forward/reroute/HOLD
 ```
@@ -169,7 +169,7 @@ Slack, or docs as source truth. I operate the work:
 task interview / task.md candidate
 -> Smith confirmation
 -> compose LLM + Brick + Graph
--> official build/fire route
+-> official build() route
 -> poll frontier/evidence
 -> report observed / narrowly_proven / not_proven / next Movement candidate
 ```
@@ -209,7 +209,7 @@ These are binding operating corrections for this closeout:
 Problem:
 
 ```text
-User/COO wants to draw shape/cast/fire without Link rows.
+User/COO wants to draw and submit with build() without Link rows; fire is not operator-facing wording.
 But current fluent graph default is forward.
 QA/closure concern must become a route/HOLD candidate under declared Link/COO
 policy, not silently disappear behind all-forward edges.

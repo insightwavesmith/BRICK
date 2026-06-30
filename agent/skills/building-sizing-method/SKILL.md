@@ -6,8 +6,9 @@ description: BRICK 빌딩 사이징 — 일의 크기/모양을 그래프 모양
 # 빌딩 사이징 방법 (워크플로 사이징의 거울)
 
 > 이 스킬은 **모양만** 만든다(노드 KIND·팬·QA깊이·감독 다이얼). 만든 compact graph / graph packet shape나
-> `GraphSpec` 재료를 **brick-task-author**에 넘긴다. P3 기본은 `fire(graph)` official-route sugar이고,
-> 파일 handoff가 필요하면 `brick build --graph <packet>` 입력으로 보낸다. 이 스킬은 발사하지 않는다.
+> `GraphSpec` 재료를 **brick-task-author**에 넘긴다. P3 운영자-facing 기본은 **`build()`만**이다.
+> `fan()`은 `build()` 안의 병렬 재료이고, `fire()`는 내부 구현/debug 용어다. 파일 handoff가
+> 필요할 때만 `brick build --graph <packet>` 입력으로 보낸다. 이 스킬은 발사하지 않는다.
 
 ## 한 줄 핵심 — 워크플로는 에이전트를 사이징, 빌딩은 KIND를 사이징
 
@@ -105,8 +106,9 @@ brick build / support.operator.cli build
 
 프리셋 모드와 그래프 모드는 같은 공식 build surface로 들어가는 두 입력 모드다.
 `build()`, `fan()`, `compose_building()`, `assemble()`, `launch_assembled_building`은
-graph packet / materialization / official-route sugar다. 실행 안내는 반드시 helper가 아니라
-`fire(graph)` 또는 `brick build --graph <packet>` / `support.operator.cli build --graph <packet>`로 보내라.
+graph packet / materialization / official-route 내부 sugar다. 실행 안내는 helper나 `fire()`가 아니라
+운영자-facing `build()`로 보내라. 파일 handoff/debug일 때만 `brick build --graph <packet>` /
+`support.operator.cli build --graph <packet>`를 말한다.
 별도 공식 route처럼 말하지 마라.
 
 ## 과대-사이징 금지 규칙 (단순+완전 신조)

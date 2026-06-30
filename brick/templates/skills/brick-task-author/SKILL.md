@@ -25,13 +25,12 @@ brick build / support.operator.cli build
 프리셋 모드와 그래프 모드는 **같은 공식 build surface로 들어가는 두 입력 모드**다.
 그래프 모드는 graph packet JSON을 `brick build --graph <packet>` 또는
 `support.operator.cli build --graph <packet>`에 넘긴다.
-P3 이후 zero-ritual 운영자 경로는 `task_intake` 확인 뒤 `build()`/`fan()`으로 compact graph를
-그리고 `fire(graph, ...)` 한 번으로 발사하는 것이다. `fire(graph)`는 새 runner가 아니라
-`assemble()` 후 공식 customer graph route(`run_customer_graph_building_in_sandbox`)로 위임하는
-얇은 sugar다. 파일 handoff/감사 목적이면 `brick build --graph <packet>`가 같은 공식 경로다.
-`build()`, `fan()`, `compose_building()`, `assemble()`, `fire()`, `launch_assembled_building`은
-graph packet / materialization / official-route sugar다. 실행 안내는 반드시 공식 build/fire
-route로 보내라. helper를 별도 공식 route처럼 말하지 마라.
+P3 이후 zero-ritual 운영자 경로는 `task_intake` 확인 뒤 **`build()` 하나로** compact graph를
+넣는 것이다. 운영자-facing 언어는 `build()`다. `fan()`은 `build()` 안의 병렬 블록 재료일
+뿐이고, `fire()`/`assemble()`/`launch_assembled_building`은 내부 구현·debug 용어다.
+프롬프트/발주문에서 운영자에게 `fire(graph)`를 하라고 쓰지 마라. 파일 handoff/감사
+목적이면 `brick build --graph <packet>`가 같은 공식 route의 저수준 입력이지만, 기본
+운영 프롬프트는 `build()`만 말한다. helper를 별도 공식 route처럼 말하지 마라.
 
 ## 한눈 결정나무
 
@@ -115,7 +114,7 @@ quality/success judge가 아니다.
 2. <체커 핀: 픽스처+변이 RED 보임, 없으면 왜 없는지 한 줄>
 
 ## Proof required (직접 실행·정직 보고 — 주장은 실행 결과만)
-<포커스 체커 green + 변이 RED → check_profile.py --all exit 0 → (코드면) compileall + git diff --check>
+<포커스 체커 green + 변이 RED → check_profile.py --all은 /tmp 로그로 저장하고 rc/pass/failure-marker만 요약 → (코드면) compileall + git diff --check>
 
 ## Hard constraints (law)
 <write_scope는 "support/operator/**" glob(★"support/" 금지 = fnmatch 함정).
@@ -149,12 +148,12 @@ brick build --task "$TASK" --preset building-chain-preset:<프리셋> --real-pro
 
 ---
 
-# PHASE 2-B — GRAPH 입력 모드 — compact graph → fire(graph), or graph packet → brick build --graph
+# PHASE 2-B — GRAPH 입력 모드 — compact graph는 build() 하나로 넣는다
 
 P3의 기본 목표는 “쉽게 그린다”다. task interview가 끝났으면 먼저 compact graph를 그린다:
 
 ```
-task_intake → task.md 후보 확인 → build([... fan([...]) ...]) → fire(graph, task=..., building_id=...)
+task_intake → task.md 후보 확인 → graph = assembly.build([... fan([...]) ...]) → operator build(graph, goal=...)
 ```
 
 ## G1 no-link / route-default 정책 (0630 closeout)
@@ -187,34 +186,35 @@ forward가 아니라 HOLD 후보로 보고한다.
 쓰기 작업이면 compact graph와 발사 인자가 둘 다 필요하다(0630 smoke 실측):
 
 ```python
-from brick_protocol.support.operator.assembly import build, fire
 from brick_protocol.brick.spec import brick
+from brick_protocol.support.operator.assembly import build as graph
+from brick_protocol.support.operator import build
 
-graph = build([
-    brick("work", "정해진 파일만 변경하라", write=True, adapter="codex-local"),
-    brick("closure", "산출물과 evidence를 확인하라", adapter="codex-local"),
-])
-fire(
-    graph,
+build(
+    graph([
+        brick("work", "정해진 파일만 변경하라", write=True, adapter="codex-local"),
+        brick("closure", "산출물과 evidence를 확인하라", adapter="codex-local"),
+    ]),
+    goal="<task.md 한 줄 요약>",
     declared_by="coo-smith",
-    task="<task.md 한 줄 요약>",
-    building_id="<id>",
-    write_scope={
-        "allowed_paths": ["project/brick-protocol/status/kernel/<file>.md"],
-        "forbidden_paths": [".git/**"],
-    },
+    author_ref="coo:smith",
 )
 ```
+
+write_scope가 필요한 구현 Building이면 현재 one-call `support.operator.build()`가 숨기는
+발사 인자와 실제 write hand가 맞는지 먼저 확인한다. write hand를 직접 맞춰야 하는 디버그/감사
+상황이면 graph packet handoff로 낮춰도 되지만, 운영 프롬프트의 기본 언어는 여전히 `build()`다.
 
 `write_scope`만 넘기고 work 노드에 `write=True`가 없으면 assembly가 scope를 찍지 않으므로
 Agent는 read-only grant를 받는다. 그 경우 `frontier=complete`라도 `made_changes=false`가
 나올 수 있으며, 이것은 발사자 그래프 선언 문제다.
 
-`fire(graph)`는 수동 worktree/dict/path/adapter_cwd/json ritual을 삼키는 얇은 sugar일 뿐,
-별도 runtime, direct launch runner, phase runner, work-return proof, QA-return proof, closeout proof,
-또는 Movement route가 아니다. 사람이 승인해야 하는 파일 handoff나 디버그가 필요할 때만
-graph packet JSON을 남겨 `brick build --graph <packet>` 또는
-`support.operator.cli build --graph <packet>`로 같은 공식 경로에 넣는다.
+`fire()`는 수동 worktree/dict/path/adapter_cwd/json ritual을 삼키는 내부 sugar일 뿐,
+운영자-facing 발주 언어가 아니다. 별도 runtime, direct launch runner, phase runner,
+work-return proof, QA-return proof, closeout proof, 또는 Movement route도 아니다. 사람이
+승인해야 하는 파일 handoff나 디버그가 필요할 때만 graph packet JSON을 남겨
+`brick build --graph <packet>` 또는 `support.operator.cli build --graph <packet>`로 같은
+공식 경로에 넣는다. 기본 프롬프트와 골 운영 문구는 `build()`만 말한다.
 JSON packet 예시는 `brick build --graph <packet.json>` 또는
 `support.operator.cli build --graph <packet.json>` 입력으로 들어간다.
 
@@ -268,7 +268,7 @@ judgment, 또는 Link Movement 선택이 아니다.
 
 # 발사 후 — 게이트는 내가 한다 (codex green 안 믿음)
 
-- 워크트리에서 `HOME=$(mktemp -d) PYTHONPATH=support/import_identity uv run python3 support/checkers/check_profile.py --all` exit 0 + 포커스 체커 green + **변이 RED 직접 확인**.
+- 워크트리에서 `REAL HOME에서 `PYTHONPATH=support/import_identity:. python3 support/checkers/check_profile.py --all > /tmp/<id>-all.txt 2>&1` 실행 후 rc/pass count/failure-marker count만 보고 + 포커스 체커 green + **변이 RED 직접 확인**.
 - build 결과는 support evidence다. closure가 엉키면(temp-HOME concern 연쇄→resume divergence) **추격 금지** — 코드만 독립검증되면 declared follow-up Building으로 처리한다.
 - 미완/홀드 빌딩은 untracked로 `--all`을 RED로 만듦 → merge·게이트 전 `mv project/.../buildings/<미완id> /tmp/`로 치움(비파괴).
 

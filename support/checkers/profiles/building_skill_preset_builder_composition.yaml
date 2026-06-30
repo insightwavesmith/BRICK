@@ -62,13 +62,13 @@ text_contains:
     texts:
       - 'brick build --graph <packet>'
       - 'support.operator.cli build --graph <packet>'
-      - 'graph packet / materialization / official-route sugar'
+      - 'graph packet / materialization / official-route 내부 sugar'
       - '공식 route'
   - path: agent/skills/building-sizing-method/SKILL.md
     texts:
       - 'brick build --graph <packet>'
       - 'support.operator.cli build --graph <packet>'
-      - 'graph packet / materialization / official-route sugar'
+      - 'graph packet / materialization / official-route 내부 sugar'
       - '공식 route'
 text_absent:
   - path: brick/templates/skills/brick-task-author/SKILL.md
