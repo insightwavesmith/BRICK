@@ -323,3 +323,14 @@ Integrated onboard_smoke leaf into main: support/checkers/lib/onboard_smoke_chec
 COO verification: byte-identical, dispatch identity, mutation-RED, focused building_operator_driver0 PASS, REAL HOME --all 28/0.
 Earlier g3-onboard-smoke-leaf-0630 paused/incomplete attempts remain evidence only and were not integrated.
 ```
+
+
+## Update — G3 stop condition declared (0630)
+
+```text
+Stop doc: customer-ready-g3-stop-condition-0630.md
+Closeout G3 target: kernel_checks.py < 10000 LOC OR all remaining >=200 LOC candidates explicitly deferred.
+Current kernel_checks.py: 10814 LOC.
+Next recommended leaves: codex_connect_stall_classification, design_ai_text_seams, gemini_local_only_adapter.
+G3 stop condition is declared but not yet met.
+```
