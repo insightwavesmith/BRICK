@@ -107,11 +107,17 @@ Correction to the 0628 plan: the FINAL-architecture leaf series so far targeted
 is the bigger godmodule and is the higher-value next decomposition target. The
 0628 plan's LOC coordinates are stale; live measurement governs.
 
+G3 first kernel_checks.py leaf LANDED (0630): the product no-Smith-residue scan
+cluster moved VERBATIM to `support/checkers/lib/no_smith_residue_check.py`
+(kernel_checks.py 11452 -> 11325, net -127). Ledger=
+`customer-ready-final-architecture-no-smith-residue-ledger-0630.md`, proof=
+`customer-ready-final-architecture-no-smith-residue-proof-0630.md`. Verified:
+re-export + dispatch identity, live inspected=39, mutation-RED, REAL HOME --all GREEN.
+
 NOT proven / remaining G3 work:
 
 ```text
-- next leaf extraction (kernel_checks.py or case_runners.py) under
-  conservation-ledger + byte-identical + mutation-RED + net-negative LOC.
+- more kernel_checks.py leaves remain (11325 still the largest godmodule).
 - agreed stop condition for "final architecture cleanup" is not yet declared;
   remaining debt must be named at stop.
 ```
