@@ -103,7 +103,7 @@ result = 28 profiles, all "profile passed", 0 profile failed / 0 Traceback / 0 E
 
 ```text
 branch = main
-origin/main...HEAD = 0 / 24 (ahead 24 unpushed, behind 0)
+origin/main...HEAD = 0 / <unpushed-ahead-count> (behind 0; ahead count changes whenever final audit commits are added)
 ```
 
 ## Narrowly proven
@@ -119,7 +119,7 @@ origin/main...HEAD = 0 / 24 (ahead 24 unpushed, behind 0)
 ## Not proven / human-gate remaining
 
 ```text
-- main is ahead of origin/main by 24 commits; push is NOT performed (human-gate).
+- main is ahead of origin/main by local unpushed commits; exact ahead count must be re-read with `git rev-list --left-right --count origin/main...HEAD` immediately before any push disposition. Push is NOT performed (human-gate).
 - merge target / public release tag are NOT chosen (human-gate).
 - main = origin/main is NOT achieved and requires explicit Smith disposition.
 - Full independent customer reading-comprehension (G1/G2) remains not_proven.
