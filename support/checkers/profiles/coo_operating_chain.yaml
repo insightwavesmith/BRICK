@@ -194,7 +194,7 @@ text_contains:
     texts:
       - Token-Cost Discipline
       - Avoid broad `cat raw/*.jsonl`
-      - Delegate broad scans to Codex subagents
+      - Delegate broad scans to a single diagnostic Building
   - path: agent/skills/building-sizing-method/SKILL.md
     texts:
       - P3 기본은 `fire(graph)` official-route sugar

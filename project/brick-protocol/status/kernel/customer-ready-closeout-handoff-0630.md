@@ -251,7 +251,7 @@ Attempt 2: closure implementation_gap = QA lane reports onboard_smoke_check.py
   "missing in current checkout" + "git status no changed paths", yet WORK node
   returned made_changes=True with the 3 expected files.
   => suspected work-write-invisible-to-QA in the graph worktree sandbox.
-  Delegated read-only root-cause to Codex gpt-5.5 xhigh (diagnosis pid run).
+  Earlier delegated read-only root-cause to a Codex ai-cli process (later corrected: future 실측 진단 should be a single diagnostic Building, not a named Codex Ultra/gpt tier).
 
 Token-cost note: investigation delegated to Codex per 0d; main thread did only
 bounded field-extraction checks.
@@ -275,7 +275,7 @@ Interpretation:
 - This latest failure is not a successful route/HOLD closure; it is provider/work execution incomplete.
 - Do not re-fire blindly. First determine whether this is provider process health, work prompt/tool failure,
   or a real sandbox/adapter issue.
-- Codex gpt-5.5 xhigh diagnosis process for the earlier work-invisible-to-QA symptom is still running
+- A Codex ai-cli diagnosis process for the earlier work-invisible-to-QA symptom was observed running
   (pid observed live at this checkpoint). Main thread should recover its bounded result before deciding
   whether to retry onboard_smoke or route an engine/support bug.
 ```
@@ -303,7 +303,7 @@ Therefore update_goal(complete) is NOT called. Repo is in a clean, building, all
 ## Update — diagnostic process status (0630)
 
 ```text
-Codex gpt-5.5 diagnosis pid 39918 is no longer running, and ai-cli no longer has
+Earlier Codex ai-cli diagnosis pid 39918 is no longer running, and ai-cli no longer has
 that process result (`Process with PID 39918 not found`). Treat its result as not
 captured. If the onboard_smoke work-invisible / agent_incomplete question remains
 important, re-run a bounded diagnosis Building/subagent rather than relying on
@@ -333,4 +333,32 @@ Closeout G3 target: kernel_checks.py < 10000 LOC OR all remaining >=200 LOC cand
 Current kernel_checks.py: 10814 LOC.
 Next recommended leaves: codex_connect_stall_classification, design_ai_text_seams, gemini_local_only_adapter.
 G3 stop condition is declared but not yet met.
+```
+
+
+## Update — operating correction: no Codex Ultra / diagnostics as single Building (0630)
+
+```text
+Smith correction: there is no “Codex Ultra” model/tier in this operating vocabulary.
+Do not write or plan around Codex Ultra / gpt-5.5 xhigh as the default diagnostic route.
+
+For 실측 진단 / code-heavy inspection / broad evidence scan:
+  - main agent remains COO/operator and does not spend broad-token context reading raw/code;
+  - declare and fire ONE diagnostic Building;
+  - assign Codex as the performer lane/adapter when useful;
+  - closure returns bounded observed_evidence / narrowly_proven / not_proven / next.
+
+Subagents are not the default planning primitive for this closeout. Use Buildings.
+```
+
+## Resume todo list (current, 0630)
+
+```text
+0. Current repo: main clean, origin/main behind by local commits; do not push without Smith OK.
+1. G3 remaining: stop condition declared but not met. kernel_checks.py = 10814 LOC; closeout target <10000 LOC OR defer all remaining >=200 LOC candidates with owner/reason.
+   Next candidate Building: codex_connect_stall_classification OR design_ai_text_seams.
+   Diagnostic/AST audit should be a single diagnostic Building, not a subagent assumption.
+2. G2 remaining: provider-backed fresh export build reaching frontier_kind=complete; customer comprehension/first-run UX still not_proven.
+3. G1 remaining: deep L2 cascade replay beyond n2; customer comprehension of route-default/no-link policy.
+4. Final closeout: REAL HOME --all, final closeout record, main clean, push after Smith OK, requirement-by-requirement completion audit.
 ```

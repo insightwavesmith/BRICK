@@ -33,7 +33,7 @@ Use bounded evidence extraction by default:
 - Avoid broad `cat raw/*.jsonl`, `grep -R raw capture`, or full evidence-folder dumps.
 - For check_profile.py --all, redirect output to /tmp and report only rc, passed count, failure-marker count, and tail -2 unless debugging a concrete failure.
 - Use wc/tail/jq/python field extraction before reading raw bodies.
-- Delegate broad scans to Codex subagents / ai-cli when useful and ask for a bounded summary.
+- Delegate broad scans to a single diagnostic Building when useful; assign a Codex lane if appropriate, but do not name non-existent model tiers such as Codex Ultra.
 ```
 
 Run the relevant checker set and report concrete command outcomes. A checker
