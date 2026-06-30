@@ -61,6 +61,26 @@ This is an orchestration graph candidate, not a preset-only instruction. A later
 
 release/dashboard/provider/sensitive-write negative probes green; release governance evidence exists or not_proven explicit.
 
+## Phase Number Note
+
+Per the goal-doc P0..P9 revision (Smith/Codex 0701), ship-safety is now `phase:P8`,
+and verification-surface honesty is split out to the new `phase:P6`. The filename
+keeps `p7`; the goal doc mapping wins. Sensitive-write commit block/mark moves to
+`phase:P2` (protocol-live) — this phase keeps the broader deployment-surface scope.
+
+## Scope Addition (Smith/Codex review 0701) — full deployment surface
+
+Beyond dashboard ingest, this phase must cover the whole ship surface:
+
+- dashboard container/viewer access wall.
+- dependency lock / release reproducibility.
+- installer supply-chain / pinned `uv` policy.
+- GitHub Actions: not only "add CI" but branch protection / required-gate verified.
+- Slack/reporting reliability: if delivery is not proven, docs must NOT claim it as
+  delivery proof (leave it `not_proven`).
+- Verification-surface honesty (pytest honesty, checker reentrancy, CI gate) is NOT
+  closed here — it is `phase:P6` and must already be closed on the internal path.
+
 ## Proof Limits
 
 - This phase document is planning/support evidence only.

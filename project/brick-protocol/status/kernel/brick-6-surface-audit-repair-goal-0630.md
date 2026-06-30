@@ -89,36 +89,151 @@ Graph rules that must hold:
 - Do not interrupt an in-flight official build to swap in this shape; apply it to the NEXT
   phase / reroute / retry graph.
 
-## Symbolic Phase Documents
+## Phase Structure Revision (Smith/Codex review 0701)
 
-- `phase:P0` -> `project/brick-protocol/status/kernel/brick-6-surface-audit-repair-p0-audit-adoption-baseline-0630.md` (Audit adoption and baseline)
-- `phase:P1` -> `project/brick-protocol/status/kernel/brick-6-surface-audit-repair-p1-raw-evidence-stream-scrub-0630.md` (Raw evidence stream secret/PII scrub)
-- `phase:P2` -> `project/brick-protocol/status/kernel/brick-6-surface-audit-repair-p2-resume-post-hold-isolation-0630.md` (Resume/post-HOLD isolation and explicit disposition)
-- `phase:P3` -> `project/brick-protocol/status/kernel/brick-6-surface-audit-repair-p3-brick-return-shape-link-carry-0630.md` (Brick return-shape truth and Link carry filtering)
-- `phase:P4` -> `project/brick-protocol/status/kernel/brick-6-surface-audit-repair-p4-agentfact-pre-persistence-closure-0630.md` (AgentFact pre-persistence closure)
-- `phase:P5` -> `project/brick-protocol/status/kernel/brick-6-surface-audit-repair-p5-link-declaration-concern-safety-0630.md` (Link declaration law and invalid concern target safety)
-- `phase:P6` -> `project/brick-protocol/status/kernel/brick-6-surface-audit-repair-p6-product-route-p3-easy-surface-0630.md` (Product route and P3 Easy Building surface)
-- `phase:P7` -> `project/brick-protocol/status/kernel/brick-6-surface-audit-repair-p7-ship-safety-release-dashboard-provider-0630.md` (Ship-safety release/dashboard/provider hardening)
-- `phase:P8` -> `project/brick-protocol/status/kernel/brick-6-surface-audit-repair-p8-final-dynamic-proof-customer-replay-0630.md` (Final dynamic proof and customer-ready replay)
+The original draft bundled too much into P7, which risked skipping verification-
+surface honesty on the internal dogfood path (P0..P6,P8). This revision splits the
+tail into P0..P9 so verification honesty is closed BEFORE the product/ship phases,
+and folds the review feedback into the named phases below. Phase doc files keep
+their current filenames; the phase NUMBER and scope below are authoritative when a
+filename's embedded number lags this mapping.
+
+## Per-Phase Common Template (mandatory)
+
+Every phase Building and every phase status doc MUST carry these, so scope never
+blurs:
+
+```text
+invariant                         the single property this phase must make true
+Brick / Agent / Link attribution  which axis owns the change; support stays support
+write_scope                       allowed_paths / forbidden_paths for the work Brick
+checker-first negative probe      a probe that REDs before the fix, GREENs after
+focused checker / profile         the targeted profile run for this phase
+check_profile.py --all            full-profile result recorded as support evidence
+evidence_root                     the Building evidence root path
+changed_files / diff              exact files and diff stat from the work step
+observed_evidence / narrowly_proven / not_proven / next Movement candidate
+QA discipline                     QA/Inspector lanes: probe_write only, NO source mutation
+```
+
+Support/checker green, Slack/reporter, and model output remain support evidence
+only; none of them is source truth, success, quality, or Movement authority.
+
+## Failure Attribution Taxonomy (shared)
+
+When a phase Building does not close, attribute the failure with this closed
+vocabulary instead of a generic "failed":
+
+```text
+task_definition_gap
+missing_source_evidence
+brick_contract_gap
+agent_return_shape_gap
+provider_runtime_failure
+link_gate_insufficient
+human_disposition_required
+write_scope_mismatch
+checker_limit
+dashboard_projection_stale
+```
+
+## Symbolic Phase Documents (P0..P9)
+
+- `phase:P0` -> `...-p0-audit-adoption-baseline-0630.md` — Audit adoption and baseline.
+- `phase:P1` -> `...-p1-raw-evidence-stream-scrub-0630.md` — Raw evidence stream secret/PII/provider-session scrub.
+- `phase:P2` -> `...-p2-resume-post-hold-isolation-0630.md` — Resume/post-HOLD isolation, explicit disposition, AND sensitive-path write commit block/mark (moved up from ship-safety because the readiness tuples put it on the protocol-live path, not only on public ship).
+- `phase:P3` -> `...-p3-brick-return-shape-link-carry-0630.md` — Brick return-shape truth and Link carry filtering.
+- `phase:P4` -> `...-p4-agentfact-pre-persistence-closure-0630.md` — AgentFact pre-persistence closure.
+- `phase:P5` -> `...-p5-link-declaration-concern-safety-0630.md` — Link declaration law and invalid concern target safety.
+- `phase:P6` -> `...-p6-verification-surface-honesty-0701.md` — NEW. Verification surface honesty: pytest/test surface honesty, checker reentrancy, no false-green, focused-vs-`--all` parity, profile-count drift. Closed BEFORE product/ship because honest verification is needed for the internal dogfood path, not only at release.
+- `phase:P7` -> `...-p6-product-route-p3-easy-surface-0630.md` — Product route and Easy Building surface (was P6).
+- `phase:P8` -> `...-p7-ship-safety-release-dashboard-provider-0630.md` — Ship-safety: release/dashboard/provider/CI/supply-chain (was P7).
+- `phase:P9` -> `...-p8-final-dynamic-proof-customer-replay-0630.md` — Final dynamic proof and customer-ready replay (was P8).
+
+(Filenames are historical; the P0..P9 numbers and scopes in this list win. A later
+doc-rename Building may align filenames; do not block phase work on the rename.)
+
+## Phase Scope Additions (from 0701 review)
+
+### P2 add
+- sensitive-path write commit block/mark: a write Brick must not silently commit
+  secret/credential/PII/provider-session-bearing paths; block or mark them.
+- invariant: resume/post-HOLD isolation holds AND no sensitive-path write reaches a
+  durable commit unblocked/unmarked.
+
+### P6 (new — Verification surface honesty)
+- pytest/test surface honesty: tests/checkers must not pass by skipping, stubbing
+  away the asserted behavior, or reading a stale archive instead of the worktree.
+- checker reentrancy: a focused profile and `--all` must agree; no false-green from
+  tempdir/archive divergence.
+- profile-count / setup.md style stale-doc drift recorded and fixed.
+
+### P7 (Product route / Easy Building) add
+- Named product observations: `readiness_blocker_observation`,
+  `protocol_compliance_observation`, plus the shared failure attribution taxonomy.
+- CLI raw `str(exc)` exposure cleanup (no raw traceback/exception leakage to the
+  operator surface).
+- bare `brick` default behavior product decision: status vs help.
+- stale profile-count / setup docs cleanup at the product surface.
+- Easy Building big-work shape MUST be declared as the route (so work never escapes
+  into a `--large`/hardcoded path):
+
+```text
+make X
+-> task intake
+-> design (Codex + Claude fan-out)
+-> design QA / axis QA
+-> closure plan-confirm
+-> parallel dev lanes
+-> lane QA
+-> fan-in
+-> Codex QA + axis QA
+-> closure
+```
+
+### P8 (Ship safety) add — full deployment surface, not just dashboard ingest
+- dashboard container/viewer access wall.
+- dependency lock / release reproducibility.
+- installer supply-chain / pinned `uv` policy.
+- GitHub Actions: not just "add CI" but branch protection / required-gate verified.
+- Slack/reporting reliability: if delivery is not proven, docs must NOT claim it as
+  delivery proof.
+
+### P9 (Final dynamic proof) add — stub vs real provider split
+- stubbed proof closes the protocol path ONLY.
+- real-provider / fresh-machine customer-ready claim remains `not_proven` unless a
+  separate real-provider run is performed and recorded.
 
 ## Preferred Priority
 
 For current BRICK dogfood/internal correctness, use protocol-live order:
 
 ```text
-P0 -> P1 -> P2 -> P3 -> P4 -> P5 -> P6 -> P7 -> P8
+P0 -> P1 -> P2 -> P3 -> P4 -> P5 -> P6 -> P7 -> P8 -> P9
 ```
 
-If public release/customer install is imminent, move `phase:P7` before P1 and then return to protocol-live order.
+The internal dogfood path MUST include P6 (verification honesty) before P7/P8/P9;
+it may NOT skip verification honesty on the way to the dynamic proof. If public
+release/customer install is imminent, P8 (ship-safety) may be pulled earlier, then
+return to protocol-live order.
 
 ## Completion Definition
 
 - P0 audit adoption is committed or explicitly parked.
-- P1-P7 named repair requirements are closed by current evidence or explicitly deferred with Smith/COO disposition.
-- P8 current-main dynamic proof closes through official `build()` route with frontier/evidence/artifact proof.
-- `check_profile.py --all` is green at final close.
-- `main = origin/main` after Smith-approved push.
-- Customer comprehension is externally validated or explicitly left `not_proven/waived`.
+- P1-P8 named repair requirements are closed by current evidence or explicitly
+  deferred with Smith/COO disposition (each using the per-phase common template).
+- P6 verification-surface honesty is closed on the internal path, not deferred to
+  ship-time.
+- P9 current-main dynamic proof closes through the official `build()` / `brick build`
+  route with frontier/evidence/artifact proof; the stub/real-provider split above is
+  recorded.
+- `check_profile.py --all` is green at final close (support evidence).
+- Repo state at final close: repair branch / main is clean, pushed or explicitly
+  parked, and `git status` / `HEAD` / upstream delta are recorded. (This replaces the
+  ambiguous `main = origin/main`, since P0 audit commits can legitimately put local
+  main ahead of origin.)
+- Customer comprehension and real-provider/fresh-machine readiness are externally
+  validated or explicitly left `not_proven` / `waived`.
 
 ## Not Proven At Goal Start
 
@@ -127,3 +242,4 @@ If public release/customer install is imminent, move `phase:P7` before P1 and th
 - Fresh-machine install/provider reliability.
 - Dashboard/network exploit behavior.
 - Complete dynamic resume/fan-out/fan-in behavior beyond current evidence.
+- Real-provider dynamic proof (stub proof does not establish it).

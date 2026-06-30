@@ -58,6 +58,22 @@ This is an orchestration graph candidate, not a preset-only instruction. A later
 
 current-main dynamic proof completes, --all green, main=origin/main, remaining customer comprehension status explicit.
 
+## Phase Number Note
+
+Per the goal-doc P0..P9 revision (Smith/Codex 0701), final dynamic proof is now
+`phase:P9`. The filename keeps `p8`; the goal doc mapping wins.
+
+## Scope Addition (Smith/Codex review 0701)
+
+- stub vs real-provider split is mandatory in the done condition:
+  - stubbed proof closes the protocol path ONLY.
+  - real-provider / fresh-machine customer-ready claim remains `not_proven` unless a
+    separate real-provider run is performed and recorded.
+- Replace the ambiguous `main = origin/main` close criterion with: repair branch /
+  main is clean, pushed or explicitly parked, and `git status` / `HEAD` / upstream
+  delta are recorded (P0 audit commits can legitimately put local main ahead of
+  origin, so equality is not the right test).
+
 ## Proof Limits
 
 - This phase document is planning/support evidence only.

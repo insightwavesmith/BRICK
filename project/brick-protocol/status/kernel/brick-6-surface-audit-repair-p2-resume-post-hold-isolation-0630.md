@@ -59,6 +59,19 @@ This is an orchestration graph candidate, not a preset-only instruction. A later
 
 approve/resume without explicit disposition or isolation cannot mutate live tree; negative probes green.
 
+## Scope Addition (Smith/Codex review 0701)
+
+- ADD sensitive-path write commit block/mark to this phase. A write Brick must not
+  silently commit secret/credential/PII/provider-session-bearing paths; it blocks or
+  marks them. This was originally bundled in ship-safety, but the readiness tuples
+  place it on the protocol-live path (internal dogfood P0..P6,P8/P9), so it must close
+  here, not only at public ship.
+- Extended invariant: resume/post-HOLD isolation holds AND no sensitive-path write
+  reaches a durable commit unblocked/unmarked.
+- Extended done condition: a checker-first negative probe REDs when a sensitive-path
+  write would commit unblocked/unmarked, and GREENs after the block/mark guard; this
+  is recorded alongside the resume/isolation probes.
+
 ## Proof Limits
 
 - This phase document is planning/support evidence only.

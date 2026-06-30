@@ -59,6 +59,42 @@ This is an orchestration graph candidate, not a preset-only instruction. A later
 
 docs/CLI classify public vs internal routes; P3 Easy declaration graph reaches official build(); product-focused checks green.
 
+## Phase Number Note
+
+Per the goal-doc P0..P9 revision (Smith/Codex 0701), this product-route phase is
+now `phase:P7`. The filename keeps `p6` for stability; the goal doc mapping wins.
+
+## Scope Addition (Smith/Codex review 0701)
+
+Named product observations and surface cleanups to include:
+
+- Emit `readiness_blocker_observation` and `protocol_compliance_observation` as named
+  product observations (support evidence, not Movement/quality authority).
+- Use the shared failure attribution taxonomy (task_definition_gap,
+  missing_source_evidence, brick_contract_gap, agent_return_shape_gap,
+  provider_runtime_failure, link_gate_insufficient, human_disposition_required,
+  write_scope_mismatch, checker_limit, dashboard_projection_stale).
+- CLI raw `str(exc)` exposure cleanup: no raw traceback/exception text leaking to the
+  operator surface.
+- bare `brick` default behavior product decision: status vs help (decide and record).
+- stale profile-count / `setup.md`-style docs cleanup at the product surface.
+
+Easy Building big-work shape MUST be declared as the route (so large work never
+escapes into a `--large` / hardcoded path):
+
+```text
+make X
+-> task intake
+-> design (Codex + Claude fan-out)
+-> design QA / axis QA
+-> closure plan-confirm
+-> parallel dev lanes
+-> lane QA
+-> fan-in
+-> Codex QA + axis QA
+-> closure
+```
+
 ## Proof Limits
 
 - This phase document is planning/support evidence only.
