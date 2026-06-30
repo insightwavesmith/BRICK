@@ -279,3 +279,23 @@ Interpretation:
   (pid observed live at this checkpoint). Main thread should recover its bounded result before deciding
   whether to retry onboard_smoke or route an engine/support bug.
 ```
+
+## Finalize verification checkpoint (0630)
+
+```text
+BUILD: PYTHONPATH=support/import_identity:. python3 -c "import brick_protocol, support.checkers.check_profile" = OK
+TESTS: REAL HOME check_profile.py --all = rc=0, 28 profiles passed, 0 failure markers
+WORKTREE: clean (0 uncommitted)
+MAIN: ahead origin/main by 12, not pushed (Smith OK required)
+
+onboard_smoke leaf: correctly NOT integrated — its Building never reached frontier=complete
+  (attempt1 link_paused: missing typing.Any; attempt2 agent_incomplete: work process stopped).
+  main carries NO partial/broken onboard_smoke code; kernel_checks.py still owns run_onboard_smoke.
+
+COMPLETION AUDIT (finalize): GOAL IS NOT COMPLETE. Remaining not_proven:
+  G1.3 deep L2 cascade replay; G1.4 customer comprehension
+  G2.5 provider-backed fresh export build -> complete; G2.6 customer comprehension
+  G3.3 kernel_checks still largest godmodule; G3.4 STOP CONDITION undeclared
+  C1 main != origin/main (unpushed); final closeout record + Smith forward pending
+Therefore update_goal(complete) is NOT called. Repo is in a clean, building, all-green state safe to pause.
+```
