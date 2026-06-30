@@ -1,0 +1,133 @@
+{
+  "task_statement": "Repair sensitive-path classifier false positive blocking P4 official Building commits. Current commit_sandbox_output blocks changed source file support/operator/run_chat_session.py because _path_has_provider_session_like_segment splits underscores and treats any segment named session as provider-session-like payload. Required behavior: source code filenames like support/operator/run_chat_session.py are not sensitive path writes; real provider-session payload paths like logs/provider-session-state.json, runs/conversation_id.txt, nested/runtime-session/body.json remain sensitive; .env/*.pem/*.key and auth/credential/secret/token segments remain blocked. This is support integrity repair only, not P4 AgentFact implementation.",
+  "declared_by": "coo",
+  "building_id": "brick-6-p4-sensitive-source-path-unblock-0701a",
+  "selected_shape_ref": "shape:manual-small-unblocker",
+  "selection_rule": "manual small graph because this is a narrow support classifier unblocker for official P4 build route",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "brick-6-p4-sensitive-source-path-unblock-0701a-work",
+      "step_ref": "brick-6-p4-sensitive-source-path-unblock-0701a-work",
+      "step_template_ref": "building-step-template:work",
+      "node_reroute_budget": 1,
+      "work_statement": "Implement narrow classifier repair. Modify support/operator/write_observation.py and focused checker(s) only as needed. Add negative/positive probes: _raw_sensitive_path_writes(['support/operator/run_chat_session.py']) must NOT mark sensitive; provider-session-like payload paths logs/provider-session-state.json, runs/conversation_id.txt, nested/runtime-session/body.json must remain marked; .env commit block still fires before staging. Run py_compile changed files, focused building_operator_driver0 profile/checker, git diff --check, and check_profile.py --all if feasible. Do not touch P4 AgentFact validator files.\n\nSTRICT SCOPE: unblocker for P4 only. Do not implement P4 AgentFact changes here. Do not broaden into release/export/dashboard/provider/pytest. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. No secrets/session bodies in output. Movement is forward/reroute only; HOLD is lifecycle. Checker green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p4-sensitive-source-path-unblock-0701a-work-to-code-qa",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/write_observation.py",
+          "support/operator/worktree_sandbox.py",
+          "support/checkers/check_building_operator_driver0.py",
+          "support/checkers/profiles/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p4-sensitive-source-path-unblock-0701a-code-qa",
+      "step_ref": "brick-6-p4-sensitive-source-path-unblock-0701a-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Attack the classifier repair. Verify run_chat_session.py source path is not sensitive, provider-session payload paths remain sensitive, .env commit block still blocks before staging, changed files are scoped to classifier/checker, and no source truth/success/quality/Movement authority moved into support. If implementation gap remains, return transition_concern_evidence targeting work.\n\nSTRICT SCOPE: unblocker for P4 only. Do not implement P4 AgentFact changes here. Do not broaden into release/export/dashboard/provider/pytest. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. No secrets/session bodies in output. Movement is forward/reroute only; HOLD is lifecycle. Checker green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p4-sensitive-source-path-unblock-0701a-code-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/write_observation.py",
+          "support/operator/worktree_sandbox.py",
+          "support/checkers/check_building_operator_driver0.py",
+          "support/checkers/profiles/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p4-sensitive-source-path-unblock-0701a-closure",
+      "step_ref": "brick-6-p4-sensitive-source-path-unblock-0701a-closure",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Closure for classifier unblocker. If source-file false positive is fixed and sensitive payload/.env protections still pass, return transition_concern_evidence=null. If any implementation/boundary/evidence gap remains, return Link-facing concern targeting brick:brick-6-p4-sensitive-source-path-unblock-0701a-work. Do not claim P4 done; this only unblocks P4 official build commits.\n\nSTRICT SCOPE: unblocker for P4 only. Do not implement P4 AgentFact changes here. Do not broaden into release/export/dashboard/provider/pytest. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. No secrets/session bodies in output. Movement is forward/reroute only; HOLD is lifecycle. Checker green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p4-sensitive-source-path-unblock-0701a-closure-to-boundary",
+      "closure_transition_target_policy": {
+        "implementation_gap": {
+          "action": "target",
+          "target_ref": "brick-6-p4-sensitive-source-path-unblock-0701a-work"
+        },
+        "boundary_mismatch": {
+          "action": "target",
+          "target_ref": "brick-6-p4-sensitive-source-path-unblock-0701a-work"
+        },
+        "verification_gap": {
+          "action": "hold"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:brick-6-p4-sensitive-source-path-unblock-0701a-work-to-code-qa",
+      "source": "brick-6-p4-sensitive-source-path-unblock-0701a-work",
+      "target": "brick-6-p4-sensitive-source-path-unblock-0701a-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p4-sensitive-source-path-unblock-0701a-code-qa-to-closure",
+      "source": "brick-6-p4-sensitive-source-path-unblock-0701a-code-qa",
+      "target": "brick-6-p4-sensitive-source-path-unblock-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p4-sensitive-source-path-unblock-0701a-closure-to-boundary",
+      "source": "brick-6-p4-sensitive-source-path-unblock-0701a-closure",
+      "target": "building-boundary:brick-6-p4-sensitive-source-path-unblock-0701a-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [],
+  "source_evidence_refs": [
+    "/tmp/brick_p4_agentfact_0701b.err",
+    "support/operator/write_observation.py",
+    "support/operator/worktree_sandbox.py",
+    "project/brick-protocol/status/kernel/brick-6-p2-resume-isolation-disposition-closure-0701.md"
+  ],
+  "proof_limits": [
+    "support classifier unblocker only",
+    "not P4 completion",
+    "checker green support evidence only"
+  ],
+  "not_proven": [
+    "P4 AgentFact closure",
+    "whole customer-ready goal"
+  ]
+}
