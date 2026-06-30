@@ -64,6 +64,40 @@ task_intake
 The building-running skill chain keeps being updated until this goal is complete.
 Skill maintenance is part of the goal, not a side task.
 
+## 0c. MAIN-AGENT MUST DRAW & FIRE BUILDINGS (binding goal element)
+
+Smith ruling (0630): the main agent (me, fugu-ultra/COO) must ACTUALLY draw the
+graph and FIRE the Building through the official route for G1/G2/G3 IMPLEMENTATION
+slices. Only by drawing/firing real Buildings does the MAIN AGENT's building-running
+skill chain get exercised end to end and stay connected:
+
+```text
+main agent draws graph (LLM + Brick + Graph)
+-> brick-task-author / building-coordination / building-sizing-method / task_intake
+-> assembly.build/fan/fire OR brick build --graph (official route)
+-> frontier/evidence
+-> COO judge forward/reroute/HOLD
+```
+
+Why this is in the goal (not just a style note): if I keep doing implementation
+by direct operator patch, the main-agent skill chain is NEVER walked, so it is
+never proven or improved. A direct patch that is "byte-identical / mechanically
+checkable" is STILL a skipped-chain shortcut; that judgment ("byte-identical => I
+may patch directly") was a documented misjudgment (0630) and is rejected here.
+
+Binding rules for this goal:
+
+```text
+- Default for every G1/G2/G3 implementation slice = draw + fire a Building.
+- Direct operator patches are reserved for non-implementation maintenance
+  (status docs, anchor/reload wiring, reverting a wrong slice) and must be
+  recorded as exceptions.
+- If I "cannot" express an implementation slice as a Building graph, that is a
+  building-running-skill gap to FIX FIRST (0b), not a license to patch directly.
+- The building-running skill chain is updated from what each real firing teaches,
+  until the goal is complete.
+```
+
 ## 1. My role
 
 I am fugu-ultra, COO/operator in the Fugu orchestration system.
