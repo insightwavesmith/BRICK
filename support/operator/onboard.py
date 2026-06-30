@@ -2281,8 +2281,8 @@ def _path_slug(value: str) -> str:
 def run_approve_entry(
     building_ref: str | Path,
     *,
-    action: str = "forward",
-    author_ref: str = "coo:smith",
+    action: str | None = None,
+    author_ref: str | None = None,
     budget_increment: int | None = None,
     reroute_target_ref: str | None = None,
     re_instruction: str | None = None,
@@ -2305,8 +2305,8 @@ def run_approve_entry(
 
     repo = _safe_repo_root(repo_root)
     building_text = str(building_ref).strip()
-    action_text = str(action).strip().lower()
-    author_text = str(author_ref).strip()
+    action_text = str(action or "").strip().lower()
+    author_text = str(author_ref or "").strip()
     reroute_target_text = str(reroute_target_ref or "").strip()
     result: dict[str, Any] = {
         "ok": False,
@@ -2321,6 +2321,24 @@ def run_approve_entry(
                 "error_kind": "invalid_building_ref",
                 "error_message": "building ref가 비어 있어요.",
                 "message_ko": "승인할 building을 지정해야 해요.",
+            }
+        )
+        return result
+    if not action_text:
+        result.update(
+            {
+                "error_kind": "missing_disposition_action",
+                "error_message": "approval/resume requires an explicit disposition action.",
+                "message_ko": "resume하려면 사람이 고른 disposition action이 필요해요.",
+            }
+        )
+        return result
+    if not author_text:
+        result.update(
+            {
+                "error_kind": "missing_disposition_author",
+                "error_message": "approval/resume requires an explicit human/COO author_ref.",
+                "message_ko": "resume하려면 human:/coo: 작성자 ref가 필요해요.",
             }
         )
         return result
@@ -2452,6 +2470,23 @@ def run_approve_entry(
                 "message_ko": "승인 대상 hold가 아니어서 disposition을 쓰지 않았어요.",
             }
         )
+        return result
+    if adapter_cwd is None:
+        result.update(
+            {
+                "error_kind": "resume_requires_isolated_adapter_cwd",
+                "error_message": (
+                    "onboard approve refuses to resume without an explicit isolated "
+                    "adapter_cwd; missing adapter_cwd would default resumed live work "
+                    "to the repo/customer tree."
+                ),
+                "message_ko": "resume adapter_cwd가 없어 라이브 작업 트리를 쓸 위험이 있어요.",
+            }
+        )
+        return result
+    adapter_cwd_refusal = _unsafe_live_repo_adapter_cwd(adapter_cwd, repo_root=repo)
+    if adapter_cwd_refusal is not None:
+        result.update(adapter_cwd_refusal)
         return result
 
     latest_lifecycle = frontier_before.get("latest_transition_lifecycle") or {}
@@ -2681,12 +2716,12 @@ def main(argv: list[str] | None = None) -> int:
         approve_parser.add_argument(
             "--action",
             choices=DISPOSITION_ACTIONS,
-            default="forward",
+            required=True,
             help="Disposition action. raise requires --budget-increment.",
         )
         approve_parser.add_argument(
             "--author",
-            default="coo:smith",
+            required=True,
             help="Disposition author ref; must start with coo: or human:.",
         )
         approve_parser.add_argument(

@@ -2687,7 +2687,13 @@ def check(repo: Path) -> list[str]:
         onboard_module.observe_building_frontier = lambda *_args, **_kwargs: dict(frontier)
         try:
             with tempfile.TemporaryDirectory(prefix="bp-onboard-approve-red-") as tmp_red:
-                return run_approve_entry(Path(tmp_red) / "building", repo_root=repo)
+                return run_approve_entry(
+                    Path(tmp_red) / "building",
+                    action="forward",
+                    author_ref="coo:smith",
+                    adapter_cwd=Path(tmp_red) / "adapter-cwd",
+                    repo_root=repo,
+                )
         finally:
             onboard_module.observe_building_frontier = original_observe
 
@@ -2708,6 +2714,8 @@ def check(repo: Path) -> list[str]:
         budget_red_oa = run_approve_entry(
             Path(tmp_budget_red) / "building",
             action="forward",
+            author_ref="coo:smith",
+            adapter_cwd=Path(tmp_budget_red) / "adapter-cwd",
             budget_increment=1,
             repo_root=repo,
         )
@@ -2846,6 +2854,8 @@ def check(repo: Path) -> list[str]:
     missing_target_oa = run_approve_entry(
         Path(tempfile.gettempdir()) / "bp-onboard-reroute-missing",
         action="reroute",
+        author_ref="coo:smith",
+        adapter_cwd=Path(tempfile.gettempdir()) / "bp-onboard-reroute-adapter-cwd",
         repo_root=repo,
     )
     if missing_target_oa.get("error_kind") != "missing_reroute_target_ref":

@@ -36,6 +36,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
+from brick_protocol.support.operator.write_observation import _raw_sensitive_path_writes
+
 
 # WHERE: a sibling under ~/.brick/worktrees/<building-id>/ -- OUTSIDE any repo
 # (mirrors the ~/.brick precedent; never in-repo). The marker file below stamps
@@ -172,6 +174,12 @@ def commit_sandbox_output(
         raise WorktreeSandboxError(f"git status failed in worktree {wt}")
     if not status.strip():
         return ""
+    sensitive_paths = _raw_sensitive_path_writes(_git_status_paths(status))
+    if sensitive_paths:
+        raise WorktreeSandboxError(
+            "observed_sensitive_path_writes block sandbox commit: "
+            + ", ".join(sensitive_paths)
+        )
     if _git(wt, "add", "--all") is None:
         raise WorktreeSandboxError(f"git add failed in worktree {wt}")
     committed = _git(
@@ -395,6 +403,26 @@ def _git(cwd: Path, *args: str) -> str | None:
     if completed.returncode != 0:
         return None
     return completed.stdout
+
+
+def _git_status_paths(status: str) -> tuple[str, ...]:
+    paths: list[str] = []
+    for line in status.splitlines():
+        path = _git_status_path(line)
+        if path:
+            paths.append(path)
+    return tuple(sorted(dict.fromkeys(paths)))
+
+
+def _git_status_path(line: str) -> str:
+    if len(line) < 4:
+        return ""
+    path = line[3:].strip()
+    if " -> " in path:
+        path = path.split(" -> ", 1)[1].strip()
+    if path.startswith('"') and path.endswith('"'):
+        path = path[1:-1]
+    return path.replace("\\", "/")
 
 
 def _recorded_at() -> str:

@@ -49,6 +49,18 @@ text_contains:
       - launch-adapter-cwd-RED
       - adapter_cwd=repo_root
       - adapter_cwd_refused_live_repo
+      # P2 resume isolation/disposition: no silent approve defaults, no live-repo
+      # adapter_cwd on post-HOLD resume, and provider-session-like writes marked.
+      - def _resume_isolation_disposition_fire
+      - resume-disposition-RED
+      - resume-isolation-RED
+      - missing_disposition_action
+      - resume_requires_isolated_adapter_cwd
+      - def _sensitive_write_observation_fire
+      - sensitive-write-RED
+      - sensitive-commit-RED
+      - observed_sensitive_path_writes evidence
+      - provider-session-like paths
       # P3 thin fire(graph) sugar: drawn GraphSpec -> official customer graph
       # sandbox route, with no caller-authored JSON packet seam.
       - def _fire_graph_sugar_fire
@@ -89,7 +101,24 @@ text_contains:
       - allow_real_provider
       - def _unsafe_live_repo_adapter_cwd
       - adapter_cwd_refused_live_repo
+      - missing_disposition_action
+      - resume_requires_isolated_adapter_cwd
       - adapter_cwd if adapter_cwd is not None else sandbox_cwd
+  - path: support/operator/run.py
+    texts:
+      - def _unsafe_resume_adapter_cwd
+      - adapter_cwd_refused_live_repo
+      - resume_building_plan refuses
+  - path: support/operator/write_observation.py
+    texts:
+      - def _path_has_provider_session_like_segment
+      - provider-session-like path segment
+      - observed_sensitive_path_writes
+  - path: support/operator/worktree_sandbox.py
+    texts:
+      - observed_sensitive_path_writes block sandbox commit
+      - _git_status_paths
+      - commit_sandbox_output
   - path: support/connection/adapter_subprocess.py
     texts:
       - ADAPTER_GEMINI_LOCAL

@@ -654,6 +654,9 @@ def resume_building_plan(
     else:
         load_report_env_into_process()
     checked_proof_limits = _proof_limits_tuple(proof_limits)
+    adapter_cwd_refusal = _unsafe_resume_adapter_cwd(adapter_cwd, repo_root=_REPO_ROOT)
+    if adapter_cwd_refusal and local_callables is None and command_runner is None:
+        raise ValueError(adapter_cwd_refusal)
     frontier = observe_building_frontier(root, repo_root=_REPO_ROOT)
     if frontier.get("frontier_kind") == "chat_session_parked":
         return _resume_chat_session_parked_building_plan(
@@ -698,6 +701,42 @@ def resume_building_plan(
         result = _held_result_from_adapter_frontier_signal(adapter_frontier)
     _preserve_adapter_error_frontier_history_after_resume(root, frontier_history)
     return result
+
+
+def _unsafe_resume_adapter_cwd(
+    adapter_cwd: Path | str | None,
+    *,
+    repo_root: Path | str,
+) -> str:
+    """Return a refusal reason when resumed live work would target the live repo.
+
+    The generic resume API remains usable for deterministic replay tests; public
+    provider-style resume refuses this reason before any post-HOLD adapter
+    dispatch can write there.
+    """
+
+    if adapter_cwd is None:
+        return ""
+    try:
+        candidate = Path(adapter_cwd).expanduser().resolve()
+        repo = Path(repo_root).expanduser().resolve()
+    except OSError as exc:
+        return f"invalid_adapter_cwd: adapter_cwd could not be resolved: {type(exc).__name__}: {exc}"
+    if candidate == repo or _path_is_relative_to(candidate, repo):
+        return (
+            "adapter_cwd_refused_live_repo: resume_building_plan refuses "
+            "adapter_cwd inside the live repo/customer tree; resume through a "
+            "sandboxed customer wrapper or pass an isolated adapter_cwd"
+        )
+    return ""
+
+
+def _path_is_relative_to(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+        return True
+    except ValueError:
+        return False
 
 
 def _resume_chat_session_parked_building_plan(

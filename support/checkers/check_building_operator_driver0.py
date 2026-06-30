@@ -675,6 +675,15 @@ def check(repo: Path) -> tuple[list[str], Mapping[str, Any]]:
     # caller point adapter_cwd back at the live repo/customer tree.
     _launch_assembled_adapter_cwd_fire(repo, violations, summary)
 
+    # P2 resume/approve isolation + explicit disposition FIRE: approve must not
+    # silently supply disposition defaults, and post-HOLD resume must not run a
+    # live adapter in the customer repo by accident.
+    _resume_isolation_disposition_fire(repo, violations, summary)
+
+    # P2 raw sensitive write observation FIRE: provider-session-like path writes
+    # must be marked for downstream disposition/merge review evidence.
+    _sensitive_write_observation_fire(violations, summary)
+
     return violations, summary
 
 
@@ -732,6 +741,171 @@ def _launch_assembled_adapter_cwd_fire(
         violations.append("launch-adapter-cwd-RED: refusal still dispatched the adapter runner")
     if "plan_path" in result:
         violations.append("launch-adapter-cwd-RED: refusal wrote a composed plan before preflight")
+
+
+def _resume_isolation_disposition_fire(
+    repo: Path,
+    violations: list[str],
+    summary: dict[str, Any],
+) -> None:
+    from brick_protocol.support.operator import onboard as onboard_module
+    from brick_protocol.support.operator.onboard import run_approve_entry
+    from brick_protocol.support.operator.run import _unsafe_resume_adapter_cwd
+
+    missing_action = run_approve_entry(
+        "p2-missing-action",
+        author_ref="coo:smith",
+        repo_root=repo,
+    )
+    missing_author = run_approve_entry(
+        "p2-missing-author",
+        action="forward",
+        repo_root=repo,
+    )
+    summary["resume_missing_action_error"] = missing_action.get("error_kind")
+    summary["resume_missing_author_error"] = missing_author.get("error_kind")
+    if missing_action.get("error_kind") != "missing_disposition_action":
+        violations.append("resume-disposition-RED: missing action did not fail closed")
+    if missing_author.get("error_kind") != "missing_disposition_author":
+        violations.append("resume-disposition-RED: missing author did not fail closed")
+
+    held_frontier = {
+        "frontier_kind": "link_paused",
+        "latest_transition_lifecycle": {
+            "transition_lifecycle_pending_target_ref": "brick-p2-held-work",
+            "transition_lifecycle_paused_at_ref": "link-transition:p2-held",
+        },
+    }
+    original_observe = onboard_module.observe_building_frontier
+    onboard_module.observe_building_frontier = lambda *_args, **_kwargs: dict(held_frontier)
+    try:
+        with tempfile.TemporaryDirectory(prefix="bp-p2-resume-isolation-") as tmp:
+            root = Path(tmp) / "building"
+            missing_cwd = run_approve_entry(
+                root,
+                action="forward",
+                author_ref="coo:smith",
+                repo_root=repo,
+            )
+            live_cwd = run_approve_entry(
+                root,
+                action="forward",
+                author_ref="coo:smith",
+                adapter_cwd=repo,
+                repo_root=repo,
+            )
+    finally:
+        onboard_module.observe_building_frontier = original_observe
+    summary["resume_missing_adapter_cwd_error"] = missing_cwd.get("error_kind")
+    summary["resume_live_adapter_cwd_error"] = live_cwd.get("error_kind")
+    if missing_cwd.get("error_kind") != "resume_requires_isolated_adapter_cwd":
+        violations.append("resume-isolation-RED: missing adapter_cwd was not refused")
+    if live_cwd.get("error_kind") != "adapter_cwd_refused_live_repo":
+        violations.append("resume-isolation-RED: live repo adapter_cwd was not refused")
+
+    direct_error = _unsafe_resume_adapter_cwd(repo, repo_root=repo)
+    summary["resume_direct_live_adapter_cwd_refused"] = (
+        "adapter_cwd_refused_live_repo" in direct_error
+    )
+    if "adapter_cwd_refused_live_repo" not in direct_error:
+        violations.append("resume-isolation-RED: live repo adapter_cwd helper did not refuse")
+
+
+def _sensitive_write_observation_fire(
+    violations: list[str],
+    summary: dict[str, Any],
+) -> None:
+    from brick_protocol.support.operator.worktree_sandbox import (
+        WorktreeSandboxError,
+        commit_sandbox_output,
+        create_worktree_sandbox,
+        dispose_worktree_sandbox,
+        probe_worktree_capable,
+    )
+    from brick_protocol.support.operator.write_observation import _raw_sensitive_path_writes
+
+    observed = _raw_sensitive_path_writes(
+        [
+            "logs/provider-session-state.json",
+            "runs/conversation_id.txt",
+            "nested/runtime-session/body.json",
+            "ordinary/output.txt",
+        ]
+    )
+    summary["sensitive_provider_session_paths"] = list(observed)
+    expected = {
+        "logs/provider-session-state.json",
+        "runs/conversation_id.txt",
+        "nested/runtime-session/body.json",
+    }
+    if not expected.issubset(set(observed)):
+        violations.append(
+            "sensitive-write-RED: provider-session-like paths were not marked "
+            f"observed_sensitive_path_writes (observed={observed!r})"
+        )
+    if "ordinary/output.txt" in observed:
+        violations.append("sensitive-write-RED: ordinary output path was over-marked sensitive")
+
+    with tempfile.TemporaryDirectory(prefix="bp-sensitive-commit-") as tmp_raw:
+        tmp = Path(tmp_raw)
+        home = tmp / "home"
+        repo = tmp / "repo"
+        repo.mkdir()
+        (repo / "README.md").write_text("seed\n", encoding="utf-8")
+        subprocess.run(["git", "-C", str(repo), "init", "-q"], check=True, timeout=60)
+        subprocess.run(["git", "-C", str(repo), "add", "README.md"], check=True, timeout=60)
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(repo),
+                "-c",
+                "user.name=customer",
+                "-c",
+                "user.email=customer@brick.local",
+                "commit",
+                "-q",
+                "-m",
+                "seed",
+            ],
+            check=True,
+            timeout=60,
+        )
+        with _TemporaryHome(home):
+            probe = probe_worktree_capable(repo)
+            if not probe.ok:
+                violations.append(
+                    f"sensitive-commit-RED: temp repo was not worktree-capable ({probe.reason})"
+                )
+                return
+            sandbox = create_worktree_sandbox(
+                repo,
+                building_id="sensitive-commit-red",
+                base_sha=probe.base_sha,
+            )
+            try:
+                (sandbox.path / ".env").write_text("redacted\n", encoding="utf-8")
+                try:
+                    commit_sandbox_output(sandbox, message="should not commit sensitive path")
+                except WorktreeSandboxError as exc:
+                    error_text = str(exc)
+                else:
+                    error_text = ""
+                summary["sensitive_commit_blocked"] = bool(error_text)
+                summary["sensitive_commit_error"] = error_text
+                if "observed_sensitive_path_writes" not in error_text or ".env" not in error_text:
+                    violations.append(
+                        "sensitive-commit-RED: sandbox commit did not block .env with "
+                        f"observed_sensitive_path_writes evidence (error={error_text!r})"
+                    )
+                staged = _git_text(sandbox.path, "diff", "--cached", "--name-only")
+                summary["sensitive_commit_staged_paths"] = staged
+                if staged:
+                    violations.append(
+                        "sensitive-commit-RED: sensitive path was staged before the commit block"
+                    )
+            finally:
+                dispose_worktree_sandbox(sandbox)
 
 
 # ---------------------------------------------------------------------------
@@ -1531,6 +1705,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"ran={summary.get('launch_adapter_cwd_refusal_ran')} "
         f"dispatched={summary.get('launch_adapter_cwd_refusal_dispatched')} "
         f"plan_written={summary.get('launch_adapter_cwd_refusal_plan_written')}."
+    )
+    print(
+        "P2 resume isolation/disposition FIRE passed: "
+        f"missing_action={summary.get('resume_missing_action_error')} "
+        f"missing_author={summary.get('resume_missing_author_error')} "
+        f"missing_cwd={summary.get('resume_missing_adapter_cwd_error')} "
+        f"live_cwd={summary.get('resume_live_adapter_cwd_error')} "
+        f"direct_refused={summary.get('resume_direct_live_adapter_cwd_refused')} "
+        f"sensitive_paths={summary.get('sensitive_provider_session_paths')}."
     )
     print(
         "proof limit: support evidence only; checker pass does not prove source truth, "

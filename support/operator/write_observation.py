@@ -283,7 +283,7 @@ def _raw_sensitive_path_writes(changed_files: Iterable[str]) -> tuple[str, ...]:
 
     This is a RAW structural observation that needs NO scope knowledge: which
     changed paths are .env / *.pem / *.key or carry an auth/credential/secret/token
-    path segment. It is support's own RAW observation; the written-vs-scope
+    / provider-session-like path segment. It is support's own RAW observation; the written-vs-scope
     classification (against the recommended write_scope) is the Brick axis's
     (``brick.comparison.compare_changed_paths_to_write_scope``).
 
@@ -303,6 +303,7 @@ def _raw_sensitive_path_writes(changed_files: Iterable[str]) -> tuple[str, ...]:
         if (
             lowered.endswith((".pem", ".key"))
             or _path_has_forbidden_write_segment(lowered)
+            or _path_has_provider_session_like_segment(lowered)
             or lowered == ".env"
             or lowered.startswith(".env/")
         ):
@@ -319,3 +320,16 @@ def _path_has_forbidden_write_segment(path: str) -> bool:
         if segment in {"auth", "credential", "credentials", "secret", "secrets", "token", "tokens"}:
             return True
     return False
+
+def _path_has_provider_session_like_segment(path: str) -> bool:
+    segments = [
+        segment
+        for segment in path.replace("\\", "/").replace(".", "/").replace("-", "/").replace("_", "/").split("/")
+        if segment
+    ]
+    if "session" in segments:
+        return True
+    return any(
+        segment in {"provider", "runtime", "conversation", "transcript"}
+        for segment in segments
+    ) and any(segment in {"id", "ids", "state", "states", "log", "logs"} for segment in segments)
