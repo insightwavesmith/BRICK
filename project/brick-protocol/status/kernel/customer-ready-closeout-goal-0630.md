@@ -152,6 +152,13 @@ checker green alone
 model review alone
 ```
 
+### G1 live status (0630, main ca79c12)
+Engine route/reroute behavior MEASURED GREEN: `building-operator-driver0`
+`live_qa_reroute_to_work_n2` passes (fan-in QA concern -> Link reroute -> work
+replay -> closure). The 0629 "#1/#3 수리 중" bug flags are STALE. Remaining G1 =
+no-link DEFAULT policy + customer docs/skills, NOT engine repair. Evidence:
+`customer-ready-closeout-g1g2g3-status-0630.md`.
+
 ## 4. Track G2 — customer release pruning finalization
 
 Problem:
@@ -237,6 +244,12 @@ REAL HOME check_profile.py --all GREEN
 optional Claude/Gemini/Codex review as support evidence only
 COO/Smith disposition
 ```
+
+### G3 live target correction (0630)
+On current main `kernel_checks.py` (11452 LOC) is the LARGEST godmodule,
+exceeding `case_runners.py` (8503). The 0628 plan LOC coordinates are stale;
+next leaf target is re-pointed to `kernel_checks.py` by live measurement.
+Evidence: `customer-ready-closeout-g1g2g3-status-0630.md`.
 
 ## 6. Operating order
 

@@ -1,0 +1,137 @@
+# Customer-Ready Closeout — G1/G2/G3 Live Status Measurement — 0630
+
+Status: support evidence only / operator measurement. Not source truth, not
+success judgment, not quality judgment, not Link Movement authority.
+
+Goal of record: `customer-ready-closeout-goal-0630.md` (G1 route-default,
+G2 release pruning finalization, G3 FINAL architecture cleanup).
+
+This doc records a LIVE re-measurement of all three tracks against current main,
+because the prior route-track plan (`customer-ready-fanin-route-link-track-0629.md`)
+was written on a different line (commit 4e335bf, 0629) and main has advanced
+since (`ca79c12`).
+
+## Measurement base
+
+```text
+branch = main
+HEAD = ca79c12 (local; origin/main = b9d193d, ahead 2 unpushed goal docs)
+worktree = clean before this doc
+```
+
+## G1 route-default policy — engine behavior MEASURED GREEN
+
+The 0629 route-track doc carried two engine bugs as "수리 중":
+
+```text
+#1 fluent fan-in concern adoption rejected
+#3 reroute redo carry crash (walker_kernel.py:525)
+```
+
+LIVE measurement on current main contradicts those still being open:
+
+- `link/route_policies/basic_qa_repair.yaml` is intact: implementation_gap ->
+  dev (replay [qa]), design_gap -> design (replay [work,qa], human_gate_required),
+  verification_gap intentionally non-reroute.
+- `support/operator/walker_kernel.py` line ~525 is now a structured
+  `_build_fan_in_wait_all_hold(...)` path with `cascade_depth` tracking, not a
+  bare crash. The 0629 line:525 crash reference is STALE.
+- `building-operator-driver0` profile PASSES, including case
+  `live_qa_reroute_to_work_n2`: a real dynamic fan-in graph where a code-attack-qa
+  brick emits ONE `implementation_gap` transition_concern_evidence targeting the
+  upstream work brick, default-transition ADOPTS it, and the dynamic walker
+  records a SECOND work attempt before closure. Recorded brick instance sequence:
+  `brick-qa-reroute-work -> brick-qa-reroute-code-attack-qa -> brick-qa-reroute-work
+  -> brick-qa-reroute-closure`.
+- Same profile also proves fan-in receipt closure (`live_dynamic_fan_in_n3`):
+  the fan-in closure consumer receipt carries all three upstream QA step-output
+  addresses.
+
+Interpretation (narrowly_proven): the ENGINE mechanism for "user draws a fan-in
+graph, a QA concern is emitted, Link adopts it as a reroute, the walker replays
+work" is live and green on main. The two bugs that blocked it are no longer
+reproducing.
+
+NOT proven / remaining G1 work (this is now POLICY + DOCS, not engine repair):
+
+```text
+- No-link DEFAULT story: forward is still the materialized default
+  (assembly.py EdgeSpec.movement="forward"); route/HOLD requires either a
+  declared route policy (yaml) or surface reroute()/hold() marks. The decision
+  "should an undeclared QA fan-in auto-treat concerns as route/HOLD candidates"
+  must be stated as declared policy + docs/skills, not inferred.
+- Docs/skills must teach: user does not write Link rows; support materializes
+  forward by default; reroute/HOLD needs concern evidence + declared/adopted
+  policy. This is the remaining customer-facing G1 deliverable.
+- L2 (replay_steps actually walking in deeper fan-in cascade) beyond the n2
+  single-reroute case remains the conservative not_proven item from the 0629 doc.
+```
+
+## G2 customer release pruning — export MEASURED CLEAN
+
+Fresh `release_export.sh` run on current checkout:
+
+```text
+copied files: 380
+excluded roots: project/, brick_protocol.egg-info/
+excluded path matches: 4301
+top-level: AGENTS.md README.md agent/ brick/ link/ pyproject.toml support/
+operator-literal grep outside README: clean (no /Users/smith, no insightwavesmith)
+```
+
+NOT proven / remaining G2 work:
+
+```text
+- customer COMPREHENSION review of the exported tree (docs coherence end-to-end)
+  is not proven; only literal/structure cleanliness is proven.
+- fresh-export install/build/verify on a clean machine is P7-adjacent and not
+  re-run here.
+- release export parity (byte-for-byte across runs) not asserted.
+```
+
+## G3 FINAL architecture cleanup — current target re-measured
+
+LOC on current main (live):
+
+```text
+support/checkers/lib/kernel_checks.py   11452  <- now the LARGEST godmodule
+support/checkers/lib/case_runners.py     8503
+support/checkers/check_bounded_agent_proposed_routing_loop0.py  6923
+support/recording/spine_projection.py    2902
+support/operator/onboard.py              2849
+```
+
+Correction to the 0628 plan: the FINAL-architecture leaf series so far targeted
+`case_runners.py` (8 leaves landed). On current main `kernel_checks.py` (11452)
+is the bigger godmodule and is the higher-value next decomposition target. The
+0628 plan's LOC coordinates are stale; live measurement governs.
+
+NOT proven / remaining G3 work:
+
+```text
+- next leaf extraction (kernel_checks.py or case_runners.py) under
+  conservation-ledger + byte-identical + mutation-RED + net-negative LOC.
+- agreed stop condition for "final architecture cleanup" is not yet declared;
+  remaining debt must be named at stop.
+```
+
+## Verification of this measurement turn
+
+```text
+building-operator-driver0 profile: PASS (rc=0)
+release_export.sh: ran, export clean
+git diff --check: (run at commit time)
+REAL HOME check_profile.py --all: (run at commit time)
+```
+
+## Disposition (COO)
+
+```text
+G1 = engine route/reroute behavior PROVEN green on main; remaining = no-link
+     default POLICY + customer docs/skills (not engine repair). 0629 "수리 중"
+     bug flags are STALE.
+G2 = export literal/structure CLEAN; remaining = comprehension + fresh-machine.
+G3 = next target re-pointed to kernel_checks.py; no leaf landed this turn.
+```
+
+This is forward measurement, not closeout. The goal stays ACTIVE.

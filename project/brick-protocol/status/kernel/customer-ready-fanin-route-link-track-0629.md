@@ -11,6 +11,10 @@ Status: support evidence only / operator plan. Smith가 코드 직접 재확인 
 - **design_gap = 이미 human_gate(HOLD-for-human) 정책** (자동 budget 아님, 사람 승인). AGENTS.md human-gate MUST-HALT와 정렬. → "디자인 틀림은 사람으로" 직관이 이미 코드.
 - **budget = per-node(`_node_reroute_budgets`) + cascade 재진입은 `(step_ref, cascade_depth)` 튜플로 구별 추적** → 같은 노드도 깊이 다르면 다른 점유, per-node budget이 막음. 무한루프 막힘이 코드 구조로 뒷받침.
 
+## 0630 LIVE 재측정 정정 (main ca79c12)
+- **#1 fluent fan-in 거부 · #3 reroute redo carry 크래시 = 더 이상 재현 안 됨 (main 기준).** `building-operator-driver0` 프로파일의 `live_qa_reroute_to_work_n2`가 통과: 실 fan-in 그래프에서 code-attack-qa가 implementation_gap concern 발화 → default-transition 채택 → walker가 work 2회차 기록 후 closure. walker_kernel.py:525는 이제 구조화된 `_build_fan_in_wait_all_hold`(cascade_depth 추적)라 0629의 line:525 크래시 참조는 STALE.
+- 따라서 G1 잔여는 **엔진 수리 아님 → no-link DEFAULT 정책 + 고객 docs/skills**다. 증거: `customer-ready-closeout-g1g2g3-status-0630.md`.
+
 ## 상태 4단
 - **CONFIRMED (코드/yaml 직접 확인):** forward 생략 · 단일 reroute · related_boundary_refs 주소 resolve · ambiguous→HOLD · garbage→HOLD(unresolvable_reroute_address) · self-reroute strip · verification_gap→non-reroute · concern_kind→route_scope 매핑(yaml) · per-node budget · design_gap→human_gate · replay_steps 선언.
 - **수리 중:** #1 fluent fan-in 거부 (커밋 4e335bf Lane2 착수) · #3 reroute redo carry 크래시 (walker_kernel.py:525). [지금 fix-building 검증 중]
