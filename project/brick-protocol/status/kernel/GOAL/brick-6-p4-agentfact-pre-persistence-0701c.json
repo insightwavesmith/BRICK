@@ -1,0 +1,252 @@
+{
+  "task_statement": "P4c repair/replay after sensitive source-path unblocker 45d8aa4. Close P4 AgentFact pre-persistence implementation through official build route: chat-session submit intake rejects AgentFact-forbidden top-level authority keys before submission.json persistence; nested ordinary status/result evidence remains legal; poisoned submission cannot create write-exclusive wedge. Use P4a/P4b evidence as support evidence only and produce a committable sandbox output now that support/operator/run_chat_session.py is no longer misclassified as a sensitive payload path.",
+  "declared_by": "coo",
+  "building_id": "brick-6-p4-agentfact-pre-persistence-0701c",
+  "selected_shape_ref": "shape:manual-repair-replay-hard-fanin-p4-agentfact-pre-persistence",
+  "selection_rule": "manual repair/replay graph because prior P4a/P4b reached implementation but P4a paused on evidence-template/log gaps and P4b exposed a sensitive source-path false positive now fixed by 45d8aa4; this graph targets replayable implementation plus sufficiency separation.",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "brick-6-p4-agentfact-pre-persistence-0701c-work",
+      "step_ref": "brick-6-p4-agentfact-pre-persistence-0701c-work",
+      "step_template_ref": "building-step-template:work",
+      "node_reroute_budget": 1,
+      "work_statement": "P4b repair/replay work. Start from live HEAD 45d8aa4 plus prior evidence root `/Users/smith/.brick/project/brick-protocol/buildings/brick-6-p4-agentfact-pre-persistence-0701a` as support evidence only. Recreate the P4 implementation narrowly: in support/operator/run_chat_session.py, validate returned payload through existing AgentFact construction before submission.json is written; preserve recursive secret/session validation but DO NOT recursively ban top-level verdict words inside nested evidence. Extend focused checker coverage in support/checkers/lib/kernel_checks.py and lifecycle checker if needed: top-level returned.status/result/success/movement/target/verdict rejects before any submission.json write; nested returned.observed_evidence[].status and returned.evidence.result accepted; poisoned submission wedge prevented. Run py_compile changed files, focused building_automation profile, direct probe if useful, git diff --check, and check_profile.py --all. Return exact changed_files, command rc outcomes, and not_proven. If --all fails only outside P4, classify the out-of-scope profile; do not hide it.\n\nSTRICT SCOPE: phase:P4 repair/replay only. Use paused 0701a evidence as support evidence, not source truth. Do not broaden into P5-P8, P3 return-shape carry, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume isolation beyond the poisoned chat-session submission wedge named by P4. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701c-work-to-code-qa",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/run_chat_session.py",
+          "support/checkers/lib/kernel_checks.py",
+          "support/checkers/check_building_lifecycle_path_shape.py",
+          "support/checkers/profiles/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p4-agentfact-pre-persistence-0701c-code-qa",
+      "step_ref": "brick-6-p4-agentfact-pre-persistence-0701c-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Code attack QA for P4b. Independently verify top-level authority keys reject before submission.json exists, nested ordinary status/result is accepted, focused building_automation profile passes, py_compile and git diff --check pass. Inspect changed files for narrow P4 scope only. If implementation gap remains, return local transition_concern_evidence targeting work. Do not treat absent building-root raw checker logs as a code implementation gap unless they block the P4 done condition.\n\nSTRICT SCOPE: phase:P4 repair/replay only. Use paused 0701a evidence as support evidence, not source truth. Do not broaden into P5-P8, P3 return-shape carry, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume isolation beyond the poisoned chat-session submission wedge named by P4. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701c-code-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/run_chat_session.py",
+          "support/checkers/lib/kernel_checks.py",
+          "support/checkers/check_building_lifecycle_path_shape.py",
+          "support/checkers/profiles/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p4-agentfact-pre-persistence-0701c-axis-qa",
+      "step_ref": "brick-6-p4-agentfact-pre-persistence-0701c-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Axis QA for P4b. Verify Agent owns closed AgentFact top-level law, support owns pre-persistence validation only, Link owns Movement/HOLD/reroute, and support does not create success/quality/Movement verdicts. Run check_profile.py --all if feasible and report rc. If boundary gap remains, return local concern targeting work.\n\nSTRICT SCOPE: phase:P4 repair/replay only. Use paused 0701a evidence as support evidence, not source truth. Do not broaden into P5-P8, P3 return-shape carry, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume isolation beyond the poisoned chat-session submission wedge named by P4. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default",
+      "completion_edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701c-axis-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/run_chat_session.py",
+          "support/checkers/lib/kernel_checks.py",
+          "support/checkers/check_building_lifecycle_path_shape.py",
+          "support/checkers/profiles/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p4-agentfact-pre-persistence-0701c-evidence-qa",
+      "step_ref": "brick-6-p4-agentfact-pre-persistence-0701c-evidence-qa",
+      "step_template_ref": "building-step-template:evidence-integrity",
+      "node_reroute_budget": 1,
+      "work_statement": "Evidence QA for P4b. Verify prior P4a concern was about evidence/log/template refs, not failed implementation. Check whether P4b has enough evidence for the phase Done Condition: top-level forbidden payload cannot persist, nested ordinary evidence legal, replay wedge probe green, changed files/diff known, focused checker/profile and check_profile.py --all outcome recorded. If raw/agent-return.jsonl or claim_trace refs are absent, classify whether they are phase blockers or template/projection gaps; do not silently convert them into success. Do not source-mutate.\n\nSTRICT SCOPE: phase:P4 repair/replay only. Use paused 0701a evidence as support evidence, not source truth. Do not broaden into P5-P8, P3 return-shape carry, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume isolation beyond the poisoned chat-session submission wedge named by P4. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:claude-local",
+      "selected_model_ref": "model:claude:inherit",
+      "completion_edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701c-evidence-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/run_chat_session.py",
+          "support/checkers/lib/kernel_checks.py",
+          "support/checkers/check_building_lifecycle_path_shape.py",
+          "support/checkers/profiles/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p4-agentfact-pre-persistence-0701c-closure",
+      "step_ref": "brick-6-p4-agentfact-pre-persistence-0701c-closure",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Final P4b closure. Fan in work plus all QA bodies. Return observed_evidence / narrowly_proven / not_proven / remaining_delta / parent_goal_delta_status / next_target_candidates. P4 done condition is: top-level forbidden payload cannot persist; nested ordinary evidence remains legal; replay wedge probe green. If those are proven and checker evidence is recorded, return transition_concern_evidence=null. Missing raw/agent-return.jsonl, claim_trace, or persisted full logs are NOT automatically Link-facing concerns unless they block the P4 done condition; classify them in not_proven/deferred_smith_review_queue. If actual P4 implementation/boundary/evidence gap remains, return Link-facing concern targeting brick:brick-6-p4-agentfact-pre-persistence-0701c-work.\n\nSTRICT SCOPE: phase:P4 repair/replay only. Use paused 0701a evidence as support evidence, not source truth. Do not broaden into P5-P8, P3 return-shape carry, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume isolation beyond the poisoned chat-session submission wedge named by P4. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701c-closure-to-boundary",
+      "closure_transition_target_policy": {
+        "implementation_gap": {
+          "action": "target",
+          "target_ref": "brick-6-p4-agentfact-pre-persistence-0701c-work"
+        },
+        "boundary_mismatch": {
+          "action": "target",
+          "target_ref": "brick-6-p4-agentfact-pre-persistence-0701c-work"
+        },
+        "insufficient_input": {
+          "action": "target",
+          "target_ref": "brick-6-p4-agentfact-pre-persistence-0701c-work"
+        },
+        "verification_gap": {
+          "action": "hold"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701c-work-to-code-qa",
+      "source": "brick-6-p4-agentfact-pre-persistence-0701c-work",
+      "target": "brick-6-p4-agentfact-pre-persistence-0701c-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701c-work-to-axis-qa",
+      "source": "brick-6-p4-agentfact-pre-persistence-0701c-work",
+      "target": "brick-6-p4-agentfact-pre-persistence-0701c-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701c-work-to-evidence-qa",
+      "source": "brick-6-p4-agentfact-pre-persistence-0701c-work",
+      "target": "brick-6-p4-agentfact-pre-persistence-0701c-evidence-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701c-code-qa-to-closure",
+      "source": "brick-6-p4-agentfact-pre-persistence-0701c-code-qa",
+      "target": "brick-6-p4-agentfact-pre-persistence-0701c-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701c-axis-qa-to-closure",
+      "source": "brick-6-p4-agentfact-pre-persistence-0701c-axis-qa",
+      "target": "brick-6-p4-agentfact-pre-persistence-0701c-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701c-evidence-qa-to-closure",
+      "source": "brick-6-p4-agentfact-pre-persistence-0701c-evidence-qa",
+      "target": "brick-6-p4-agentfact-pre-persistence-0701c-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701c-closure-to-boundary",
+      "source": "brick-6-p4-agentfact-pre-persistence-0701c-closure",
+      "target": "building-boundary:brick-6-p4-agentfact-pre-persistence-0701c-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:brick-6-p4-agentfact-pre-persistence-0701c-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p4-agentfact-pre-persistence-0701c-work-to-code-qa",
+        "edge:brick-6-p4-agentfact-pre-persistence-0701c-work-to-axis-qa",
+        "edge:brick-6-p4-agentfact-pre-persistence-0701c-work-to-evidence-qa"
+      ]
+    },
+    {
+      "group_id": "group:brick-6-p4-agentfact-pre-persistence-0701c-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p4-agentfact-pre-persistence-0701c-code-qa-to-closure",
+        "edge:brick-6-p4-agentfact-pre-persistence-0701c-axis-qa-to-closure",
+        "edge:brick-6-p4-agentfact-pre-persistence-0701c-evidence-qa-to-closure"
+      ],
+      "fan_in_target_ref": "brick-6-p4-agentfact-pre-persistence-0701c-closure",
+      "fan_in_policy": "wait_all_before_closure"
+    }
+  ],
+  "source_evidence_refs": [
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-repair-p4-agentfact-pre-persistence-closure-0630.md",
+    "/Users/smith/.brick/project/brick-protocol/buildings/brick-6-p4-agentfact-pre-persistence-0701a/work/step-outputs/brick-6-p4-agentfact-pre-persistence-0701a-closure-attempt-2/step-output.json",
+    "/tmp/brick_p4_agentfact_0701b.err",
+    "45d8aa4 BRICK building output: brick-6-p4-sensitive-source-path-unblock-0701a"
+  ],
+  "proof_limits": [
+    "official build evidence is support evidence only",
+    "P4b closure does not prove P5-P8 or whole goal",
+    "checker green is support evidence only"
+  ],
+  "not_proven": [
+    "fresh-machine customer proof",
+    "real provider repeated reliability",
+    "whole customer-ready closeout",
+    "semantic completeness of all future chat-session payload schemas"
+  ]
+}

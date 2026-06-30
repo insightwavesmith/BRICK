@@ -1,0 +1,400 @@
+{
+  "task_statement": "P4 of BRICK 6-surface audit repair: close AgentFact pre-persistence gap. Chat-session submission intake must reject AgentFact-forbidden top-level authority keys (movement/status/success/target/verdict/result/etc.) before submission.json is written; nested ordinary evidence keys must remain legal; a poisoned submission must not create a write-exclusive resume wedge. Preserve AgentFact shape as received_work + returned and do not let support invent success/quality/Movement verdicts.",
+  "declared_by": "coo",
+  "building_id": "brick-6-p4-agentfact-pre-persistence-0701a",
+  "selected_shape_ref": "shape:manual-multi-adapter-design-hard-fanin-p4-agentfact-pre-persistence",
+  "selection_rule": "manual graph because P4 crosses AgentFact contract, chat-session support intake, and checker wedge prevention; no preset is assumed adequate.",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "brick-6-p4-agentfact-pre-persistence-0701a-intake-split",
+      "step_ref": "brick-6-p4-agentfact-pre-persistence-0701a-intake-split",
+      "step_template_ref": "building-step-template:design",
+      "node_reroute_budget": 1,
+      "work_statement": "Prepare the P4 design split. Read only the P4 phase doc plus cited audit refs and current AgentFact/chat-session/checker surfaces needed for P4. Return invariant map and dispatch notes for independent design lanes. Do not edit files.\n\nSTRICT SCOPE: phase:P4 only. Do not broaden into P5-P8, P3 return-shape carry, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume isolation beyond the poisoned chat-session submission wedge named by P4. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-intake-split-to-design-codex"
+    },
+    {
+      "node_id": "brick-6-p4-agentfact-pre-persistence-0701a-design-codex",
+      "step_ref": "brick-6-p4-agentfact-pre-persistence-0701a-design-codex",
+      "step_template_ref": "building-step-template:design",
+      "node_reroute_budget": 1,
+      "work_statement": "Codex design lane for P4. Derive repair design from phase doc and live code. Must cover: (1) AgentFact TOP_LEVEL_VERDICT_KEYS / ALWAYS_SECRET_KEYS are rejected at chat-session submission pre-persistence; (2) validator is top-level-only for verdict keys, recursive only for secret/session text; (3) nested ordinary status/result/target data remains legal when required return fields are present; (4) poisoned submission.json does not get written and cannot wedge resume; (5) focused checker/profile and check_profile.py --all plan. Return design only.\n\nSTRICT SCOPE: phase:P4 only. Do not broaden into P5-P8, P3 return-shape carry, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume isolation beyond the poisoned chat-session submission wedge named by P4. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-design-codex-to-design-synthesis"
+    },
+    {
+      "node_id": "brick-6-p4-agentfact-pre-persistence-0701a-design-claude",
+      "step_ref": "brick-6-p4-agentfact-pre-persistence-0701a-design-claude",
+      "step_template_ref": "building-step-template:design",
+      "node_reroute_budget": 1,
+      "work_statement": "Claude design lane for P4. Independently attack/derive the P4 design from the same phase/audit refs. Focus on Brick/Agent/Link attribution: Agent owns closed AgentFact returned top-level key law; support intake validates before persistence; Link/HOLD is not Movement authority; support does not create verdicts. Return design only and mark not_proven rather than smoothing gaps.\n\nSTRICT SCOPE: phase:P4 only. Do not broaden into P5-P8, P3 return-shape carry, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume isolation beyond the poisoned chat-session submission wedge named by P4. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:claude-local",
+      "selected_model_ref": "model:claude:inherit",
+      "completion_edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-design-claude-to-design-synthesis"
+    },
+    {
+      "node_id": "brick-6-p4-agentfact-pre-persistence-0701a-design-synthesis",
+      "step_ref": "brick-6-p4-agentfact-pre-persistence-0701a-design-synthesis",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Synthesize Codex and Claude design lanes into one implementation plan. This is closure-synthesis of design evidence, not success or quality judgment. Ensure the work lane is bounded to P4 and checker-first. If design evidence conflicts or is insufficient, return Link-facing transition_concern_evidence targeting the appropriate upstream design/root Brick; otherwise return null transition_concern_evidence.\n\nSTRICT SCOPE: phase:P4 only. Do not broaden into P5-P8, P3 return-shape carry, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume isolation beyond the poisoned chat-session submission wedge named by P4. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-design-synthesis-to-design-qa",
+      "closure_transition_target_policy": {
+        "design_gap": {
+          "action": "target",
+          "target_ref": "brick-6-p4-agentfact-pre-persistence-0701a-intake-split"
+        },
+        "implementation_gap": {
+          "action": "target",
+          "target_ref": "brick-6-p4-agentfact-pre-persistence-0701a-intake-split"
+        },
+        "verification_gap": {
+          "action": "hold"
+        }
+      }
+    },
+    {
+      "node_id": "brick-6-p4-agentfact-pre-persistence-0701a-design-qa",
+      "step_ref": "brick-6-p4-agentfact-pre-persistence-0701a-design-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Gemini-local design QA. Attack the synthesized design before implementation. Verify AgentFact top-level-only semantics are preserved, nested ordinary keys remain legal, support intake is only validation/persistence support, and no Link Movement or verdict authority moves into support. Do not source-mutate. Return local observations and null/non-reroute concern if no real design gap.\n\nSTRICT SCOPE: phase:P4 only. Do not broaden into P5-P8, P3 return-shape carry, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume isolation beyond the poisoned chat-session submission wedge named by P4. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default",
+      "completion_edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-design-qa-to-work",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "agent/return_fact.py",
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/objects/**",
+          "agent/prompts/**",
+          "agent/skills/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p4-agentfact-pre-persistence-0701a-work",
+      "step_ref": "brick-6-p4-agentfact-pre-persistence-0701a-work",
+      "step_template_ref": "building-step-template:work",
+      "node_reroute_budget": 1,
+      "work_statement": "Implement P4 from synthesized/QA-reviewed design. Start checker-first. Required outcomes: chat-session submission pre-persistence rejects top-level AgentFact forbidden authority keys before submission.json is written; nested ordinary keys such as returned.observed_evidence[0].status or returned.evidence.result remain legal; poisoned submission cannot create a write-exclusive resume wedge; AgentFact remains received_work + returned; support creates no success/quality/Movement verdict. Likely surfaces: support/operator/run_chat_session.py, support/operator/run.py if needed, support/operator/primitives.py only if needed, agent/return_fact.py only to reuse/export exact top-level validator if needed, support/checkers/lib/kernel_checks.py and relevant profile admission. Run focused chat-session checker/profile, py_compile changed Python, git diff --check, and check_profile.py --all if feasible. If any implementation gap remains, return transition_concern_evidence targeting this work node.\n\nSTRICT SCOPE: phase:P4 only. Do not broaden into P5-P8, P3 return-shape carry, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume isolation beyond the poisoned chat-session submission wedge named by P4. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-work-to-code-qa",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "agent/return_fact.py",
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/objects/**",
+          "agent/prompts/**",
+          "agent/skills/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p4-agentfact-pre-persistence-0701a-code-qa",
+      "step_ref": "brick-6-p4-agentfact-pre-persistence-0701a-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Codex code attack QA. Inspect the P4 diff and run focused checks. Attack: top-level status/success/result/movement/target/verdict must reject before submission.json exists; nested ordinary status/result remains accepted; resume wedge is not possible from poisoned submission; no unrelated P5-P8 scope changed. QA source mutation is forbidden except probe_write fixtures. If implementation_gap remains, return local non-binding transition_concern_evidence targeting the work node with current-building reason refs.\n\nSTRICT SCOPE: phase:P4 only. Do not broaden into P5-P8, P3 return-shape carry, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume isolation beyond the poisoned chat-session submission wedge named by P4. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-code-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "agent/return_fact.py",
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/objects/**",
+          "agent/prompts/**",
+          "agent/skills/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p4-agentfact-pre-persistence-0701a-axis-qa",
+      "step_ref": "brick-6-p4-agentfact-pre-persistence-0701a-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Gemini-local axis QA. Verify Brick/Agent/Link attribution: Agent owns closed AgentFact top-level key law; support owns pre-persistence validation and disk admission only; Link owns Movement/HOLD/reroute and no support verdict is introduced. QA source mutation is forbidden except probe_write fixtures. If a boundary gap remains, return local non-binding concern evidence targeting the work node with current-building refs.\n\nSTRICT SCOPE: phase:P4 only. Do not broaden into P5-P8, P3 return-shape carry, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume isolation beyond the poisoned chat-session submission wedge named by P4. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default",
+      "completion_edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-axis-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "agent/return_fact.py",
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/objects/**",
+          "agent/prompts/**",
+          "agent/skills/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p4-agentfact-pre-persistence-0701a-evidence-qa",
+      "step_ref": "brick-6-p4-agentfact-pre-persistence-0701a-evidence-qa",
+      "step_template_ref": "building-step-template:evidence-integrity",
+      "node_reroute_budget": 1,
+      "work_statement": "Claude evidence-integrity QA. Verify evidence chain: phase/audit refs used; changed files match declared P4 scope; checker-first negative probes cover top-level reject, nested legal, and no submission.json wedge; focused checker/profile and check_profile.py --all evidence is present or explicitly not_proven; QA concerns are carried into closure and not swallowed. QA source mutation is forbidden except probe_write fixtures. If evidence is missing, report missing_evidence/not_proven.\n\nSTRICT SCOPE: phase:P4 only. Do not broaden into P5-P8, P3 return-shape carry, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume isolation beyond the poisoned chat-session submission wedge named by P4. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:claude-local",
+      "selected_model_ref": "model:claude:inherit",
+      "completion_edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-evidence-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "agent/return_fact.py",
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/objects/**",
+          "agent/prompts/**",
+          "agent/skills/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p4-agentfact-pre-persistence-0701a-closure",
+      "step_ref": "brick-6-p4-agentfact-pre-persistence-0701a-closure",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Final P4 closure. Fan in work plus all QA bodies. Report observed_evidence / narrowly_proven / not_proven / remaining_delta / parent_goal_delta_status / next_target_candidates. Specifically classify P4 done condition: top-level forbidden payload cannot persist; nested ordinary evidence remains legal; poisoned submission wedge probe is green; focused checks and check_profile.py --all evidence present. If any implementation/boundary/evidence gap remains, return Link-facing transition_concern_evidence targeting brick:brick-6-p4-agentfact-pre-persistence-0701a-work. Do not claim whole goal/customer-ready complete.\n\nSTRICT SCOPE: phase:P4 only. Do not broaden into P5-P8, P3 return-shape carry, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume isolation beyond the poisoned chat-session submission wedge named by P4. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-closure-to-boundary",
+      "closure_transition_target_policy": {
+        "implementation_gap": {
+          "action": "target",
+          "target_ref": "brick-6-p4-agentfact-pre-persistence-0701a-work"
+        },
+        "boundary_mismatch": {
+          "action": "target",
+          "target_ref": "brick-6-p4-agentfact-pre-persistence-0701a-work"
+        },
+        "design_gap": {
+          "action": "target",
+          "target_ref": "brick-6-p4-agentfact-pre-persistence-0701a-design-synthesis"
+        },
+        "verification_gap": {
+          "action": "hold"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-intake-split-to-design-codex",
+      "source": "brick-6-p4-agentfact-pre-persistence-0701a-intake-split",
+      "target": "brick-6-p4-agentfact-pre-persistence-0701a-design-codex",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-intake-split-to-design-claude",
+      "source": "brick-6-p4-agentfact-pre-persistence-0701a-intake-split",
+      "target": "brick-6-p4-agentfact-pre-persistence-0701a-design-claude",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-design-codex-to-design-synthesis",
+      "source": "brick-6-p4-agentfact-pre-persistence-0701a-design-codex",
+      "target": "brick-6-p4-agentfact-pre-persistence-0701a-design-synthesis",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-design-claude-to-design-synthesis",
+      "source": "brick-6-p4-agentfact-pre-persistence-0701a-design-claude",
+      "target": "brick-6-p4-agentfact-pre-persistence-0701a-design-synthesis",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-design-synthesis-to-design-qa",
+      "source": "brick-6-p4-agentfact-pre-persistence-0701a-design-synthesis",
+      "target": "brick-6-p4-agentfact-pre-persistence-0701a-design-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-design-qa-to-work",
+      "source": "brick-6-p4-agentfact-pre-persistence-0701a-design-qa",
+      "target": "brick-6-p4-agentfact-pre-persistence-0701a-work",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-work-to-code-qa",
+      "source": "brick-6-p4-agentfact-pre-persistence-0701a-work",
+      "target": "brick-6-p4-agentfact-pre-persistence-0701a-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-work-to-axis-qa",
+      "source": "brick-6-p4-agentfact-pre-persistence-0701a-work",
+      "target": "brick-6-p4-agentfact-pre-persistence-0701a-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-work-to-evidence-qa",
+      "source": "brick-6-p4-agentfact-pre-persistence-0701a-work",
+      "target": "brick-6-p4-agentfact-pre-persistence-0701a-evidence-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-code-qa-to-closure",
+      "source": "brick-6-p4-agentfact-pre-persistence-0701a-code-qa",
+      "target": "brick-6-p4-agentfact-pre-persistence-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-axis-qa-to-closure",
+      "source": "brick-6-p4-agentfact-pre-persistence-0701a-axis-qa",
+      "target": "brick-6-p4-agentfact-pre-persistence-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-evidence-qa-to-closure",
+      "source": "brick-6-p4-agentfact-pre-persistence-0701a-evidence-qa",
+      "target": "brick-6-p4-agentfact-pre-persistence-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p4-agentfact-pre-persistence-0701a-closure-to-boundary",
+      "source": "brick-6-p4-agentfact-pre-persistence-0701a-closure",
+      "target": "building-boundary:brick-6-p4-agentfact-pre-persistence-0701a-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:brick-6-p4-agentfact-pre-persistence-0701a-design-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p4-agentfact-pre-persistence-0701a-intake-split-to-design-codex",
+        "edge:brick-6-p4-agentfact-pre-persistence-0701a-intake-split-to-design-claude"
+      ]
+    },
+    {
+      "group_id": "group:brick-6-p4-agentfact-pre-persistence-0701a-design-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p4-agentfact-pre-persistence-0701a-design-codex-to-design-synthesis",
+        "edge:brick-6-p4-agentfact-pre-persistence-0701a-design-claude-to-design-synthesis"
+      ],
+      "fan_in_target_ref": "brick-6-p4-agentfact-pre-persistence-0701a-design-synthesis",
+      "fan_in_policy": "wait_all_before_closure"
+    },
+    {
+      "group_id": "group:brick-6-p4-agentfact-pre-persistence-0701a-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p4-agentfact-pre-persistence-0701a-work-to-code-qa",
+        "edge:brick-6-p4-agentfact-pre-persistence-0701a-work-to-axis-qa",
+        "edge:brick-6-p4-agentfact-pre-persistence-0701a-work-to-evidence-qa"
+      ]
+    },
+    {
+      "group_id": "group:brick-6-p4-agentfact-pre-persistence-0701a-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p4-agentfact-pre-persistence-0701a-code-qa-to-closure",
+        "edge:brick-6-p4-agentfact-pre-persistence-0701a-axis-qa-to-closure",
+        "edge:brick-6-p4-agentfact-pre-persistence-0701a-evidence-qa-to-closure"
+      ],
+      "fan_in_target_ref": "brick-6-p4-agentfact-pre-persistence-0701a-closure",
+      "fan_in_policy": "wait_all_before_closure"
+    }
+  ],
+  "source_evidence_refs": [
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-repair-p4-agentfact-pre-persistence-closure-0630.md",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-final-synthesis-0630.md#C2",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-s2-agent-axis-0630.md#S2-F1",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-s5-checker-system-0630.md#S5-F2",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-final-coverage-matrix-0630.md#ADD-7-ADD-8"
+  ],
+  "proof_limits": [
+    "official build evidence is support evidence only",
+    "P4 closure does not prove P5-P8 or customer-ready whole goal",
+    "multi-adapter preflight/version evidence does not prove provider semantic quality or credential validity",
+    "checker green is support evidence only"
+  ],
+  "not_proven": [
+    "fresh-machine customer proof",
+    "real provider repeated reliability",
+    "whole customer-ready closeout",
+    "semantic completeness of all future chat-session payload schemas"
+  ]
+}
