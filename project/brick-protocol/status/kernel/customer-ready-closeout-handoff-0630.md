@@ -261,3 +261,21 @@ issue to re-fire, or (b) an engine fan-in/worktree visibility bug = separate
 Brick/Link track. onboard_smoke is still a valid leaf target once the dispatch
 visibility question is settled.
 ```
+
+## Update — onboard_smoke re-fire after 0d (0630)
+
+```text
+Re-fired `g3-onboard-smoke-leaf-0630` with prompt corrected to include `from typing import Any`.
+Latest frontier: agent_incomplete (NOT complete), no sandbox commit.
+Work node returned made_changes=False with note:
+  - "No verification commands could be run after the environment stopped creating processes."
+  - "No file edits were recorded as applied."
+
+Interpretation:
+- This latest failure is not a successful route/HOLD closure; it is provider/work execution incomplete.
+- Do not re-fire blindly. First determine whether this is provider process health, work prompt/tool failure,
+  or a real sandbox/adapter issue.
+- Codex gpt-5.5 xhigh diagnosis process for the earlier work-invisible-to-QA symptom is still running
+  (pid observed live at this checkpoint). Main thread should recover its bounded result before deciding
+  whether to retry onboard_smoke or route an engine/support bug.
+```
