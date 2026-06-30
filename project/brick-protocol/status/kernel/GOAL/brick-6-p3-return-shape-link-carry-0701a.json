@@ -1,0 +1,387 @@
+{
+  "task_statement": "P3 of BRICK 6-surface audit repair: restore Brick return.yaml full return-shape truth for fan-in source Bricks and move downstream concern/carry filtering to Link carry / closure policy. The old observed_evidence,not_proven fan-in source shrink path must be RED; template-full shapes plus filtered carry must be GREEN. This Building also checks that the graph is not Codex-only: Codex and Claude design lanes fan into synthesis, and Codex/Gemini/Claude verification lanes fan into closure through the official build route.",
+  "declared_by": "coo",
+  "building_id": "brick-6-p3-return-shape-link-carry-0701a",
+  "selected_shape_ref": "shape:manual-multi-adapter-design-hard-fanin-p3-return-shape-link-carry",
+  "selection_rule": "manual graph because P3 is a Brick return-contract plus Link carry/filter boundary repair; preset-only route is not assumed adequate. Uses official brick build declared graph with multi-adapter design/QA where preflight is ok. Chain preset is intentionally blank because the P3 graph uses a non-preset multi-adapter design fan-out/fan-in shape; preset step-template mismatch would be a false declaration. The work/QA lanes must still prove template-full return shape and Link carry filtering.",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "brick-6-p3-return-shape-link-carry-0701a-intake-split",
+      "step_ref": "brick-6-p3-return-shape-link-carry-0701a-intake-split",
+      "step_template_ref": "building-step-template:design",
+      "node_reroute_budget": 1,
+      "work_statement": "Prepare the P3 design split. Read only the P3 phase doc plus cited audit refs and current template/composition/checker surfaces needed for P3. Return the invariant map and dispatch notes for two independent design lanes. Do not edit files. Do not author required_return_shape in graph packets; template return.yaml remains Brick source for return shape.\n\nSTRICT SCOPE: phase:P3 only. Do not broaden into P4-P8, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-intake-split-to-design-codex"
+    },
+    {
+      "node_id": "brick-6-p3-return-shape-link-carry-0701a-design-codex",
+      "step_ref": "brick-6-p3-return-shape-link-carry-0701a-design-codex",
+      "step_template_ref": "building-step-template:design",
+      "node_reroute_budget": 1,
+      "work_statement": "Codex design lane for P3. Derive the repair design from the phase doc and live code. Must cover: (1) fan-in source Brick required_return_shape comes from brick/templates/bricks/<kind>/return.yaml full shape; (2) operator/customer graph packets cannot author required_return_shape or carries_forward_fields as template authority; (3) transition_concern_evidence suppression is Link carry/closure filtering, not Brick shape shrink; (4) checker-first negative probes for old observed_evidence,not_proven shrink path; (5) focused profile and check_profile.py --all plan. Return design only.\n\nSTRICT SCOPE: phase:P3 only. Do not broaden into P4-P8, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-design-codex-to-design-synthesis"
+    },
+    {
+      "node_id": "brick-6-p3-return-shape-link-carry-0701a-design-claude",
+      "step_ref": "brick-6-p3-return-shape-link-carry-0701a-design-claude",
+      "step_template_ref": "building-step-template:design",
+      "node_reroute_budget": 1,
+      "work_statement": "Claude design lane for P3. Independently attack/derive the P3 design from the same phase and audit refs. Focus on Brick/Agent/Link attribution and whether the repair belongs in Brick templates/materialization, Link carry/closure policy, or support checker/composition seams. Return design only and mark not_proven rather than smoothing gaps.\n\nSTRICT SCOPE: phase:P3 only. Do not broaden into P4-P8, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:claude-local",
+      "selected_model_ref": "model:claude:inherit",
+      "completion_edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-design-claude-to-design-synthesis"
+    },
+    {
+      "node_id": "brick-6-p3-return-shape-link-carry-0701a-design-synthesis",
+      "step_ref": "brick-6-p3-return-shape-link-carry-0701a-design-synthesis",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Synthesize the Codex and Claude design lanes into one implementation plan. This is closure-synthesis of design evidence, not success or quality judgment. Ensure the work lane is bounded to P3 and includes checker-first negative probes. If design evidence conflicts or is insufficient, return Link-facing transition_concern_evidence targeting the appropriate upstream design/root Brick; otherwise return null transition_concern_evidence.\n\nSTRICT SCOPE: phase:P3 only. Do not broaden into P4-P8, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-design-synthesis-to-design-qa",
+      "closure_transition_target_policy": {
+        "design_gap": {
+          "action": "target",
+          "target_ref": "brick-6-p3-return-shape-link-carry-0701a-intake-split"
+        },
+        "implementation_gap": {
+          "action": "target",
+          "target_ref": "brick-6-p3-return-shape-link-carry-0701a-intake-split"
+        },
+        "verification_gap": {
+          "action": "hold"
+        }
+      }
+    },
+    {
+      "node_id": "brick-6-p3-return-shape-link-carry-0701a-design-qa",
+      "step_ref": "brick-6-p3-return-shape-link-carry-0701a-design-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Gemini-local design QA. Attack the synthesized design before implementation. Verify Brick return-shape truth stays Brick-owned, Link carry/filtering stays Link/closure-owned, support/checkers remain support evidence, and no graph/manual packet becomes template authority. Do not source-mutate. If a real design/boundary gap remains, return local observation and, if the template permits, non-binding concern evidence with current-building refs only.\n\nSTRICT SCOPE: phase:P3 only. Do not broaden into P4-P8, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default",
+      "completion_edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-design-qa-to-work",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "brick/**",
+          "link/**",
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "agent/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p3-return-shape-link-carry-0701a-work",
+      "step_ref": "brick-6-p3-return-shape-link-carry-0701a-work",
+      "step_template_ref": "building-step-template:work",
+      "node_reroute_budget": 1,
+      "work_statement": "Implement P3 from the synthesized/QA-reviewed design. Start checker-first: create or update negative probes so the old fan-in source required_return_shape shrink path (observed_evidence, not_proven or manual transition_concern_evidence removal) is RED, and template-full return.yaml shape plus Link carry/closure filtering is GREEN. Likely surfaces include brick return parsing/materialization, support/operator composition/assembly/driver graph admission, walker carry/closure filtering, and support/checkers/profile coverage. Do not reduce template return.yaml truth. Do not add a new Movement literal, runtime, source truth, success judge, quality judge, or hidden target selector. Run focused checker/profile, py_compile changed Python, git diff --check, and check_profile.py --all if feasible. If any implementation gap remains, return transition_concern_evidence targeting this work node.\n\nSTRICT SCOPE: phase:P3 only. Do not broaden into P4-P8, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-work-to-code-qa",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "brick/**",
+          "link/**",
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "agent/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p3-return-shape-link-carry-0701a-code-qa",
+      "step_ref": "brick-6-p3-return-shape-link-carry-0701a-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Codex code attack QA. Inspect the P3 diff and run focused checks. Attack: old shrink path must fail; full template shape must materialize on fan-in source Bricks; customer/operator graph packets cannot author required_return_shape/carries_forward_fields; no checker preserves the old shrink behavior; no unrelated P4-P8 scope changed. QA source mutation is forbidden except probe_write fixtures. If implementation_gap remains, return local non-binding transition_concern_evidence targeting the work node with current-building reason refs.\n\nSTRICT SCOPE: phase:P3 only. Do not broaden into P4-P8, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-code-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "brick/**",
+          "link/**",
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "agent/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p3-return-shape-link-carry-0701a-axis-qa",
+      "step_ref": "brick-6-p3-return-shape-link-carry-0701a-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Gemini-local axis QA. Verify Brick/Agent/Link attribution: Brick owns return.yaml full return shapes; Agent owns closed returned facts only; Link owns carry/filter/Movement; support only materializes/walks/records/checks. Check that transition_concern_evidence is not converted into Agent authority or support Movement authority. QA source mutation is forbidden except probe_write fixtures. If a boundary gap remains, return local non-binding concern evidence targeting the work node with current-building refs.\n\nSTRICT SCOPE: phase:P3 only. Do not broaden into P4-P8, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default",
+      "completion_edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-axis-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "brick/**",
+          "link/**",
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "agent/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p3-return-shape-link-carry-0701a-evidence-qa",
+      "step_ref": "brick-6-p3-return-shape-link-carry-0701a-evidence-qa",
+      "step_template_ref": "building-step-template:evidence-integrity",
+      "node_reroute_budget": 1,
+      "work_statement": "Claude evidence-integrity QA. Verify the evidence chain: phase doc and audit refs were used; changed files match declared P3 scope; focused checker/profile and check_profile.py --all evidence is present or explicitly not_proven; QA concerns are carried into closure and not swallowed; no local-inbox/Slack/model output is treated as source truth. QA source mutation is forbidden except probe_write fixtures. If evidence is missing, report missing_evidence/not_proven.\n\nSTRICT SCOPE: phase:P3 only. Do not broaden into P4-P8, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:claude-local",
+      "selected_model_ref": "model:claude:inherit",
+      "completion_edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-evidence-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "brick/**",
+          "link/**",
+          "support/operator/**",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "agent/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p3-return-shape-link-carry-0701a-closure",
+      "step_ref": "brick-6-p3-return-shape-link-carry-0701a-closure",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Final P3 closure. Fan in work plus all QA bodies. Report observed_evidence / narrowly_proven / not_proven / remaining_delta / parent_goal_delta_status / next_target_candidates. Specifically classify whether P3 done condition is closed: old observed_evidence,not_proven shrink path RED; full template return.yaml shape plus filtered Link carry GREEN; customer/operator graph packet required_return_shape/carry authority rejected or materialized safely; focused checks and check_profile.py --all evidence present. If any implementation/boundary/evidence gap remains, return Link-facing transition_concern_evidence targeting brick:brick-6-p3-return-shape-link-carry-0701a-work. Do not claim whole goal/customer-ready complete.\n\nSTRICT SCOPE: phase:P3 only. Do not broaden into P4-P8, release/dashboard/provider/pytest honesty, raw scrub, or post-HOLD resume. Do not push. Do not use ai-cli MCP, ai-cli-backed helpers, or native subagents. Do not store or print secrets/session bodies. Keep public/operator language build()/brick build only. Movement vocabulary is forward/reroute only; HOLD is lifecycle. QA lanes may inspect and run probe_write fixtures only; they must not source-mutate customer files. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-closure-to-boundary",
+      "closure_transition_target_policy": {
+        "implementation_gap": {
+          "action": "target",
+          "target_ref": "brick-6-p3-return-shape-link-carry-0701a-work"
+        },
+        "boundary_mismatch": {
+          "action": "target",
+          "target_ref": "brick-6-p3-return-shape-link-carry-0701a-work"
+        },
+        "design_gap": {
+          "action": "target",
+          "target_ref": "brick-6-p3-return-shape-link-carry-0701a-design-synthesis"
+        },
+        "verification_gap": {
+          "action": "hold"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-intake-split-to-design-codex",
+      "source": "brick-6-p3-return-shape-link-carry-0701a-intake-split",
+      "target": "brick-6-p3-return-shape-link-carry-0701a-design-codex",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-intake-split-to-design-claude",
+      "source": "brick-6-p3-return-shape-link-carry-0701a-intake-split",
+      "target": "brick-6-p3-return-shape-link-carry-0701a-design-claude",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-design-codex-to-design-synthesis",
+      "source": "brick-6-p3-return-shape-link-carry-0701a-design-codex",
+      "target": "brick-6-p3-return-shape-link-carry-0701a-design-synthesis",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-design-claude-to-design-synthesis",
+      "source": "brick-6-p3-return-shape-link-carry-0701a-design-claude",
+      "target": "brick-6-p3-return-shape-link-carry-0701a-design-synthesis",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-design-synthesis-to-design-qa",
+      "source": "brick-6-p3-return-shape-link-carry-0701a-design-synthesis",
+      "target": "brick-6-p3-return-shape-link-carry-0701a-design-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-design-qa-to-work",
+      "source": "brick-6-p3-return-shape-link-carry-0701a-design-qa",
+      "target": "brick-6-p3-return-shape-link-carry-0701a-work",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-work-to-code-qa",
+      "source": "brick-6-p3-return-shape-link-carry-0701a-work",
+      "target": "brick-6-p3-return-shape-link-carry-0701a-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-work-to-axis-qa",
+      "source": "brick-6-p3-return-shape-link-carry-0701a-work",
+      "target": "brick-6-p3-return-shape-link-carry-0701a-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-work-to-evidence-qa",
+      "source": "brick-6-p3-return-shape-link-carry-0701a-work",
+      "target": "brick-6-p3-return-shape-link-carry-0701a-evidence-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-code-qa-to-closure",
+      "source": "brick-6-p3-return-shape-link-carry-0701a-code-qa",
+      "target": "brick-6-p3-return-shape-link-carry-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-axis-qa-to-closure",
+      "source": "brick-6-p3-return-shape-link-carry-0701a-axis-qa",
+      "target": "brick-6-p3-return-shape-link-carry-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-evidence-qa-to-closure",
+      "source": "brick-6-p3-return-shape-link-carry-0701a-evidence-qa",
+      "target": "brick-6-p3-return-shape-link-carry-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p3-return-shape-link-carry-0701a-closure-to-boundary",
+      "source": "brick-6-p3-return-shape-link-carry-0701a-closure",
+      "target": "building-boundary:brick-6-p3-return-shape-link-carry-0701a-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:brick-6-p3-return-shape-link-carry-0701a-design-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p3-return-shape-link-carry-0701a-intake-split-to-design-codex",
+        "edge:brick-6-p3-return-shape-link-carry-0701a-intake-split-to-design-claude"
+      ]
+    },
+    {
+      "group_id": "group:brick-6-p3-return-shape-link-carry-0701a-design-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p3-return-shape-link-carry-0701a-design-codex-to-design-synthesis",
+        "edge:brick-6-p3-return-shape-link-carry-0701a-design-claude-to-design-synthesis"
+      ],
+      "fan_in_target_ref": "brick-6-p3-return-shape-link-carry-0701a-design-synthesis",
+      "fan_in_policy": "wait_all_before_closure"
+    },
+    {
+      "group_id": "group:brick-6-p3-return-shape-link-carry-0701a-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p3-return-shape-link-carry-0701a-work-to-code-qa",
+        "edge:brick-6-p3-return-shape-link-carry-0701a-work-to-axis-qa",
+        "edge:brick-6-p3-return-shape-link-carry-0701a-work-to-evidence-qa"
+      ]
+    },
+    {
+      "group_id": "group:brick-6-p3-return-shape-link-carry-0701a-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p3-return-shape-link-carry-0701a-code-qa-to-closure",
+        "edge:brick-6-p3-return-shape-link-carry-0701a-axis-qa-to-closure",
+        "edge:brick-6-p3-return-shape-link-carry-0701a-evidence-qa-to-closure"
+      ],
+      "fan_in_target_ref": "brick-6-p3-return-shape-link-carry-0701a-closure",
+      "fan_in_policy": "wait_all_before_closure"
+    }
+  ],
+  "source_evidence_refs": [
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-repair-p3-brick-return-shape-link-carry-0630.md",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-final-synthesis-0630.md#C1",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-s1-brick-axis-0630.md#S1-F1",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-s1-brick-axis-0630.md#S1-F2",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-s5-checker-system-0630.md#S5-F1",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-final-coverage-matrix-0630.md"
+  ],
+  "proof_limits": [
+    "official build evidence is support evidence only",
+    "P3 closure does not prove P4-P8 or customer-ready whole goal",
+    "multi-adapter preflight proves CLI presence/version only, not provider semantic quality or credential validity",
+    "checker green is support evidence only",
+    "manual graph does not prove preset materializer shape by itself; work/QA must check preset/easy graph surfaces explicitly"
+  ],
+  "not_proven": [
+    "fresh-machine customer proof",
+    "real provider repeated reliability",
+    "whole customer-ready closeout",
+    "semantic completeness of all future graph authoring patterns"
+  ]
+}
