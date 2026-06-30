@@ -237,3 +237,27 @@ PYTHONPATH=support/import_identity:. python3 support/checkers/check_profile.py -
 ## Push note
 
 At handoff, main is ahead of origin. Do not push unless Smith explicitly says OK.
+
+## Update — onboard_smoke leaf attempt (0630, in progress)
+
+```text
+G3 next leaf attempted via main-agent fire: g3-onboard-smoke-leaf-0630
+Result: frontier_kind=link_paused (NOT complete), no sandbox commit, twice.
+Route worked (QA -> closure -> Link pause), so this is route-default behaving.
+
+Attempt 1: closure implementation_gap = sibling missing `from typing import Any`
+  (my fire prompt's import list omitted typing.Any). Fixed prompt, re-fired.
+Attempt 2: closure implementation_gap = QA lane reports onboard_smoke_check.py
+  "missing in current checkout" + "git status no changed paths", yet WORK node
+  returned made_changes=True with the 3 expected files.
+  => suspected work-write-invisible-to-QA in the graph worktree sandbox.
+  Delegated read-only root-cause to Codex gpt-5.5 xhigh (diagnosis pid run).
+
+Token-cost note: investigation delegated to Codex per 0d; main thread did only
+bounded field-extraction checks.
+
+NEXT: read Codex diagnosis; decide whether this is (a) a fire-prompt/work-quality
+issue to re-fire, or (b) an engine fan-in/worktree visibility bug = separate
+Brick/Link track. onboard_smoke is still a valid leaf target once the dispatch
+visibility question is settled.
+```
