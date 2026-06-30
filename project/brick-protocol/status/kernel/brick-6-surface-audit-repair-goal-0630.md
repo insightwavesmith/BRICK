@@ -39,6 +39,56 @@ Support review evidence:
 6. If evidence conflicts, do not patch around it. Ask the Brick/Agent/Link questions named in the relevant phase document and HOLD if a required row is missing.
 7. Every phase return must separate `observed_evidence`, `narrowly_proven`, `not_proven`, and `next Movement candidate`.
 
+## Standard Phase Building Graph (dual-design fan-out, Smith-confirmed 0701)
+
+This is the DEFAULT operating shape for high-risk phase Buildings. It is a
+declared-graph thinking template for `build()` / `brick build`, not a preset and
+not a new engine. It persists here so that even after context compaction the COO
+can reload the intended shape from this document.
+
+```text
+0. task-source / phase contract
+   - COO drafts task.md from the phase doc + adopted audit refs. No implementation here.
+1. design-fanout (independent siblings, byte-distinct evidence)
+   1a. Codex design  -> code surface, checker-first feasibility, write_scope, file/test boundaries
+   1b. Claude design -> architecture, Brick/Agent/Link boundaries, product/customer comprehension,
+                        failure scenarios, anti-bandaid risk
+2. design-fanin-synthesis
+   - merge both designs: conflicts / common ground / gaps / phase questions / not_proven. No dev yet.
+3. design-QA (planning review)
+   - only asks "is this design safe to send to build()?": Brick evidence sufficient?
+     Agent lane/write_scope correct? Link Movement/target not stolen by support?
+     do checkers actually cover the requirement? no new raw/secret/provider/dashboard/release risk?
+4. COO planning gate (operator judgment, doc-edit only)
+   - COO reads synthesis + design-QA, edits phase doc / task contract, leaves open items as
+     phase questions (no bandaid), then releases to development or HOLDs.
+5. development / work
+   - performer lane implements (usually Codex worker); Claude stays on design/QA/axis-attack, not impl.
+6. verification fan-out (hard fan-in QA cohort)
+   6a. code-attack-QA  6b. axis-attack-QA  6c. evidence-integrity
+   6d. optional product/customer-comprehension QA
+7. closure-synthesis
+   - collect ALL QA bodies first; only closure emits Link-facing transition_concern_evidence.
+8. COO forward / reroute judgment on current evidence.
+```
+
+Graph rules that must hold:
+
+- Claude/Codex designs are support evidence only; agreement between them is not source truth,
+  success, quality, or Movement authority. The contract closes on phase doc + task.md +
+  declared Building graph + evidence root.
+- Tiering: apply dual-design fan-out to high-risk phases (P1, P2, P3, P5, P7, P8). Low-risk /
+  doc / cleanup phases (P0, simple status, simple notes) may use COO direct doc + single review.
+- Fan-out siblings hold independent byte-distinct evidence; a copied sibling body is a cross-vouch leak.
+- QA lanes do not choose Movement. In hard fan-in, QA lanes do not emit Link-facing
+  transition_concern_evidence; closure-synthesis alone does.
+- If development fails, default is full work + QA replay, not partial QA reuse, until a later
+  freshness / Work Packet Building admits reuse.
+- No ai-cli / ai-cli-backed helper / subagent route for diagnosis; dual-design runs as declared
+  Building lanes through the official route only.
+- Do not interrupt an in-flight official build to swap in this shape; apply it to the NEXT
+  phase / reroute / retry graph.
+
 ## Symbolic Phase Documents
 
 - `phase:P0` -> `project/brick-protocol/status/kernel/brick-6-surface-audit-repair-p0-audit-adoption-baseline-0630.md` (Audit adoption and baseline)
