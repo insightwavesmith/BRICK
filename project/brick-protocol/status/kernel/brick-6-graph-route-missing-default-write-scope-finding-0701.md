@@ -4,6 +4,59 @@ Status: operator-discovered finding, support/evidence-integrity only. Not
 source truth, success judgment, quality judgment, or Movement authority.
 Routed as a P8 (ship-safety / evidence-integrity) candidate item.
 
+## Adversarial re-verification (0701, same day, Smith-requested)
+
+Smith asked "이거 그럴리가 없는데" (this shouldn't be possible) and requested a
+workflow-based sequential re-check rather than accepting the single
+Explore-agent conclusion below at face value. A 4-agent workflow ran: (1) an
+independent from-scratch call-chain re-trace, (2) an exhaustive repo-wide
+search for every call site of `assemble()` / `derived_worktree_write_scope`
+/ `_validated_write_scope` to rule out a missed reachability path, (3) a
+**live empirical reproduction** -- actually running `brick build --graph`
+against a minimal real graph_packet with one `building-step-template:work`
+node carrying no `write_scope`, and (4) an adversarial judge instructed to
+try to refute the claim using all three bodies of evidence.
+
+**Result: CONFIRMED at high confidence by all four agents, with a live
+empirical reproduction, not just static code reading.**
+
+Live reproduction evidence (graph_packet committed at `3b2ceaf`, evidence
+root `/Users/smith/.brick/project/brick-protocol/buildings/brick-6-write-scope-repro-0701z`):
+- `brick build --graph` exited 0, `frontier_kind=complete`, `adapter_error_records=0`,
+  zero HOLD/pause disposition events (independently confirmed from the raw
+  `evidence/spine/events/0024-Frontier.json` file on disk, not only the
+  Agent's self-report).
+- The work node's own step-output: `made_changes=false`, `changed_files=[]`,
+  and verbatim `no_changes_reason`: "Write was DENIED by
+  capability/tool-policy/adapter grant before any filesystem write attempt
+  because this node has no declared write_scope and
+  native_grant.write_effective is false. Exact denial instruction returned
+  to this Agent: \"Do not edit, create, delete, or write files.\""
+- Filesystem directly checked (not just the Agent's claim): the test file
+  the work node was instructed to write does not exist anywhere in the repo
+  or under `~/.brick`.
+- Root mechanism, one layer more precise than originally found:
+  `support/connection/adapter_grant_policy.py` derives
+  `write_effective = bool(request.write_scope)` -- a simple truthiness
+  check. And `brick/spec.py:398-406`
+  (`validate_brick_row_write_need_for_scope`): `if raw_write_scope is None:
+  return` -- the strict admission gate (`require_write_need_marker=True`,
+  active on the `--graph` path per `walker_kernel.py:849-858`)
+  short-circuits with no error when write_scope is absent entirely; its
+  `ValueError` only fires for a *different* case (write_scope present but
+  the write-need marker missing), which does not apply here.
+- The denial IS communicated clearly to the Agent itself (explicit
+  `write_effective: false` and a "do not write" instruction) -- so the
+  Agent is not confused. The gap is entirely at the Building/operator
+  level: nothing in `frontier_kind`, `customer_visible_frontier_message`,
+  or the closure surfaces this silently-denied capability as worth
+  stopping for. A Building can report `complete` while a node it declared
+  as write-needed never got to write anything, and no operator-facing
+  signal distinguishes that from "the node genuinely needed no writes."
+
+This section supersedes any residual uncertainty in the original finding
+below; treat the finding as confirmed, not merely proposed.
+
 ## How this was found
 
 While declaring `brick-6-graph-topology-fan-barrier-checker-0701a`, Claude
