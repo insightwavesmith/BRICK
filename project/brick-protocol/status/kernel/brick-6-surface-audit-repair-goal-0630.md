@@ -269,6 +269,12 @@ return to protocol-live order.
   main ahead of origin.)
 - Customer comprehension and real-provider/fresh-machine readiness are externally
   validated or explicitly left `not_proven` / `waived`.
+- (0701 addition) Global Operating Rules 8 and 9 — and any future rule added
+  with a REQUIRED marker — are resolved or explicitly deferred with
+  Smith/COO disposition, using the same per-phase common template as P0-P9.
+  These rules are engine-level findings scoped "before/within P8" in their
+  own text, not phase items, so without this bullet a phase-only completion
+  sweep (checking only P0-P9) could silently skip them.
 
 ## Not Proven At Goal Start
 
