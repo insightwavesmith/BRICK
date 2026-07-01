@@ -86,3 +86,19 @@ Risk: this ladder is load-bearing for every Building across all 8 agent objects;
 **Phase 2:** interactive single-prompt registration for TTY sessions with no ready adapter (section 3, step 2's prompt branch) — closes "terminal run -> install -> LLM registration" for humans running it live; non-interactive/CI callers untouched.
 
 **Phase 3:** `model_ref`/`reasoning_tier` selection UX (Phase 0-2 just default from the Agent Object's static `preferred_model_ref`) — full "model/tier selection happens too" requirement, lowest urgency since it didn't cause today's bug.
+
+## 8. Three-way reconciliation (0701, Codex + Claude independent design refinement, Gemini axis-attack-qa critical review, official Building `brick-onboarding-redesign-3way-design-0701a`)
+
+Codex and Claude independently confirmed the core diagnosis and Phase 0-3 shape above. Four concrete refinements survived reconciliation and are now part of the design, not optional nice-to-haves:
+
+1. **Model/adapter coupling (Codex + Claude, both independently)**: adapter fallback in the resolution ladder (section 5) must never leave a model reference paired with an incompatible adapter — e.g. falling back from `adapter:gemini-local` to `adapter:codex-local` must also switch `model_ref` from `model:gemini:default` to a Codex-compatible model, not silently carry the old model reference forward. The ladder change in section 5 must update `selected_adapter_ref` and `selected_model_ref` together, atomically, at every rung.
+
+2. **Verdict-free smoke path required for TRUE zero-provider installs (Claude, confirmed necessary by Gemini)**: verdict-bearing node kinds (design/closure/review/inspect) cannot use `adapter:local` at all (confirmed elsewhere this session — this is a hard system constraint, not a bug). This means a genuinely fresh install with ZERO registered providers cannot legally run the existing SMOKE TEST step as designed (`_example_step`'s Building shape includes verdict-bearing nodes). **Phase 0 must add a verdict-free smoke preset** — a Building shape using only non-verdict-bearing kinds (e.g. `work`) — specifically for the "nothing is registered yet" case, so the very first `brick init` on a machine with no CLI credentials at all still produces a real, legal, completed smoke-test artifact instead of failing to route at all.
+
+3. **Checkers must never read the live user registry directly (Gemini, sharp catch)**: the proposed new checker (section 6, "assert every `adapter_ref` in `providers.yaml` also appears in some Agent Object's `adapter_refs` allow-list") must NOT literally open `~/.brick/providers.yaml` — that file is per-user, absent in CI, and reading it directly would make `check_profile.py --all`'s result depend on which machine/user ran it, breaking reproducibility. **Checkers must use fixtures / an injected registry path**, never the real per-user file. Runtime code (the resolution ladder itself, `brick init`, `brick provider add`) is the only code allowed to touch the real file.
+
+4. **Explicit kill switch (reconciled ladder design)**: add `enabled: false` as a top-level field in `providers.yaml`, or a `BRICK_PROVIDER_LADDER=0` environment variable, either of which forces the ladder back to legacy (static Agent Object preference only) resolution while PRESERVING the user's registered data (not deleting it) — a real rollback path if the new ladder misbehaves in production, not just "delete the file."
+
+Also reconciled: section 6's migration language is corrected to be more precise — "absent `providers.yaml` preserves legacy behavior" applies outside the explicit onboarding/fresh-install route; the fresh zero-provider path itself needs the verdict-free smoke preset (point 2 above) rather than silently degenerating, since silently materializing an unregistered adapter is exactly today's bug.
+
+No open disagreements required Smith/COO escalation — Codex, Claude, and Gemini converged cleanly on all four points above.
