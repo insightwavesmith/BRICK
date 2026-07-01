@@ -83,6 +83,7 @@ path_allowlist:
       - support/checkers/profiles/coo_operating_chain.yaml
       - support/checkers/profiles/core.yaml
       - support/checkers/profiles/gate_registry_single_source.yaml
+      - support/checkers/profiles/graph_topology_fan_barrier.yaml
       - support/checkers/profiles/link_routing_behavioral.yaml
       - support/checkers/profiles/mcp_dispatch_wire.yaml
       - support/checkers/profiles/native_dispatch_brick_backstop.yaml

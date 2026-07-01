@@ -1,0 +1,15 @@
+schema: checker-profile/v1
+profile_id: graph-topology-fan-barrier
+description: Focused support checker for declared graph fan-in/fan-out barrier topology.
+kernel_checks:
+  - graph_topology_fan_barrier
+proof_limits:
+  - support evidence only
+  - not source truth
+  - not success judgment
+  - not quality judgment
+  - not Movement authority
+not_proven:
+  - complete graph topology correctness
+  - provider behavior
+  - future Building correctness

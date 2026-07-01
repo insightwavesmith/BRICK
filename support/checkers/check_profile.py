@@ -132,6 +132,7 @@ from support.checkers.lib.kernel_checks import (
     run_codex_connect_stall_classification,
     run_design_ai_text_seams,
     run_gemini_local_only_adapter,
+    run_graph_topology_fan_barrier,
     run_onboard_smoke,
     run_install_script_lint,
     run_release_export_exclusion,
@@ -441,6 +442,7 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "support.checkers.check_building_lifecycle_path_shape",
     ),
     "building_map_graph": run_building_map_graph,
+    "graph_topology_fan_barrier": run_graph_topology_fan_barrier,
     # PROJECT-0 S1: every project/<id>/ vessel must declare its charter
     # (README.md) + machine declaration (project.json, closed keys,
     # non-empty direction). Runs IN-PROCESS with anti-tautology probes

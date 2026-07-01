@@ -3034,6 +3034,7 @@ from support.checkers.lib.codex_connect_stall_classification_check import (
     run_codex_connect_stall_classification,
 )
 from support.checkers.lib.gemini_local_only_adapter_check import run_gemini_local_only_adapter
+from support.checkers.lib.graph_topology_fan_barrier import run_graph_topology_fan_barrier
 
 
 # FINAL architecture leaf (0630): the install_script_lint + release_export_exclusion
