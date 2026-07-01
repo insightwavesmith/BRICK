@@ -1,0 +1,515 @@
+{
+  "task_statement": "P7d2 of BRICK 6-surface audit repair: correct the P7d Easy Building declaration ergonomics graph shape and re-close the achievable S6-F4 slice. P7d (0701d) proved the docs/checker-pin content is sound but was not adopted for three reasons recorded in project/brick-protocol/status/kernel/brick-6-p7-easy-building-ergonomics-operator-hold-0701d.md: (1) stale sandbox output parent vs current main -- resolved automatically here because this is a fresh run from current HEAD; (2) a graph-shape bug where two lane-QA nodes fanned out directly into three final-QA nodes with no barrier between the lane-QA fan-in and the final-QA fan-out -- fixed by inserting a single lane-qa-fanin-confirm barrier node before the final-QA fan-out, per the fan-in/fan-out-must-not-be-the-same-event rule recorded in agent/skills/building-coordination/SKILL.md; (3) closure returned a verification_gap concern whose unmet items were 'a fresh external brick build --graph <packet> proof' and 'whole check_profile.py --all green' -- both are broader goal-level proofs, not defects in this slice's own docs/checker-pin content, and 'full Easy-Building dynamic design ergonomics' was already explicitly scoped as a later slice in the P7c task contract. This Building narrows S6-F4 closure to: docs/route wording correctness, CLI raw exception-leak safety, bare `brick` default behavior, and checker negative pins against --large / onboard-as-route / raw exception leakage -- with a structurally correct barrier->fan-out graph shape. It explicitly defers full external graph-packet dynamic-design ergonomics proof as not_proven, matching prior P7b/P7c task scoping, rather than re-declaring an unenforced closure_transition_target_policy hold for verification_gap.",
+  "declared_by": "coo",
+  "building_id": "brick-6-p7-easy-building-ergonomics-0701e",
+  "selected_shape_ref": "shape:manual-p7-easy-building-big-work-ergonomics-fanin",
+  "selection_rule": "manual graph because S6-F4 requires the big-work route shape itself: task intake -> design fan-out -> design synthesis/plan confirm -> parallel work lanes -> lane QA fan-in -> lane-qa-fanin-confirm barrier -> final QA fan-out -> closure. A linear preset would not preserve the phase contract. P7d2 corrects the P7d (0701d) shape where lane QA fanned directly into three final-QA fan-in targets with no barrier between the fan-in and the next fan-out.",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "brick-6-p7-easy-building-ergonomics-0701e-task-intake",
+      "step_ref": "brick-6-p7-easy-building-ergonomics-0701e-task-intake",
+      "step_template_ref": "building-step-template:design",
+      "node_reroute_budget": 1,
+      "work_statement": "Task-intake/design intake for P7d. Read the objective, P7/S6 source audit docs, P7c closure, and current public route docs. Return the exact customer-facing task fields and graph-declaration ergonomics gap for S6-F4. No source edits.\n\nSTRICT SCOPE (P7d2 correction): phase:P7 product-route / Easy Building declaration ergonomics slice ONLY. This Building closes the achievable part of S6-F4: public route/docs wording, CLI safe-error taxonomy, bare `brick` default behavior, and checker negative pins (no --large revival, no onboard-as-route exposure, no raw exception leak). It does NOT need to independently re-prove a fresh external brick build --graph <packet> dynamic-design pipeline end to end -- that remains an explicitly deferred later slice per prior P7b/P7c task scoping, not a P7d2 closure requirement. Do NOT add or revive --large, _p3_easy_large, --dev-lanes, lane_return, a new engine, support-owned route choice, scheduler/queue/retry runtime, or a preset-only shortcut. Keep public/operator language build()/brick build only; fire(), assemble(), run_building_plan, launch_assembled_building, full internal Building Plan stay internal/advanced. Always separate observed_evidence / narrowly_proven / not_proven / next Movement candidate. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-task-intake-to-design-codex"
+    },
+    {
+      "node_id": "brick-6-p7-easy-building-ergonomics-0701e-design-codex",
+      "step_ref": "brick-6-p7-easy-building-ergonomics-0701e-design-codex",
+      "step_template_ref": "building-step-template:design",
+      "node_reroute_budget": 1,
+      "work_statement": "Codex design lane for P7d. Design the product surface that teaches and pins natural-language big-work declaration over official brick build. Specify docs/CLI/checker changes, sample graph-packet boundaries, and proof commands. No source edits.\n\nSTRICT SCOPE (P7d2 correction): phase:P7 product-route / Easy Building declaration ergonomics slice ONLY. This Building closes the achievable part of S6-F4: public route/docs wording, CLI safe-error taxonomy, bare `brick` default behavior, and checker negative pins (no --large revival, no onboard-as-route exposure, no raw exception leak). It does NOT need to independently re-prove a fresh external brick build --graph <packet> dynamic-design pipeline end to end -- that remains an explicitly deferred later slice per prior P7b/P7c task scoping, not a P7d2 closure requirement. Do NOT add or revive --large, _p3_easy_large, --dev-lanes, lane_return, a new engine, support-owned route choice, scheduler/queue/retry runtime, or a preset-only shortcut. Keep public/operator language build()/brick build only; fire(), assemble(), run_building_plan, launch_assembled_building, full internal Building Plan stay internal/advanced. Always separate observed_evidence / narrowly_proven / not_proven / next Movement candidate. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "brick-6-p7-easy-building-ergonomics-0701e-design-claude",
+      "step_ref": "brick-6-p7-easy-building-ergonomics-0701e-design-claude",
+      "step_template_ref": "building-step-template:design",
+      "node_reroute_budget": 1,
+      "work_statement": "Second independent design lane for P7d, mirroring the intended Codex+Claude design fan-out at the graph level. Attack the Codex route-shape assumption, especially preset-only shortcuts, support-owned authority, and hidden large-mode risk. If this adapter cannot run, return that as observed evidence/not_proven rather than patching around it. No source edits.\n\nSTRICT SCOPE (P7d2 correction): phase:P7 product-route / Easy Building declaration ergonomics slice ONLY. This Building closes the achievable part of S6-F4: public route/docs wording, CLI safe-error taxonomy, bare `brick` default behavior, and checker negative pins (no --large revival, no onboard-as-route exposure, no raw exception leak). It does NOT need to independently re-prove a fresh external brick build --graph <packet> dynamic-design pipeline end to end -- that remains an explicitly deferred later slice per prior P7b/P7c task scoping, not a P7d2 closure requirement. Do NOT add or revive --large, _p3_easy_large, --dev-lanes, lane_return, a new engine, support-owned route choice, scheduler/queue/retry runtime, or a preset-only shortcut. Keep public/operator language build()/brick build only; fire(), assemble(), run_building_plan, launch_assembled_building, full internal Building Plan stay internal/advanced. Always separate observed_evidence / narrowly_proven / not_proven / next Movement candidate. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:claude-local",
+      "selected_model_ref": "model:claude:inherit"
+    },
+    {
+      "node_id": "brick-6-p7-easy-building-ergonomics-0701e-design-synthesis",
+      "step_ref": "brick-6-p7-easy-building-ergonomics-0701e-design-synthesis",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Design synthesis / closure plan-confirm for P7d. Fan in task-intake plus both design lanes. Produce the final implementation plan split into parallel docs/product lane and checker/CLI pin lane. Preserve disagreements as not_proven or transition concerns. No source edits.\n\nSTRICT SCOPE (P7d2 correction): phase:P7 product-route / Easy Building declaration ergonomics slice ONLY. This Building closes the achievable part of S6-F4: public route/docs wording, CLI safe-error taxonomy, bare `brick` default behavior, and checker negative pins (no --large revival, no onboard-as-route exposure, no raw exception leak). It does NOT need to independently re-prove a fresh external brick build --graph <packet> dynamic-design pipeline end to end -- that remains an explicitly deferred later slice per prior P7b/P7c task scoping, not a P7d2 closure requirement. Do NOT add or revive --large, _p3_easy_large, --dev-lanes, lane_return, a new engine, support-owned route choice, scheduler/queue/retry runtime, or a preset-only shortcut. Keep public/operator language build()/brick build only; fire(), assemble(), run_building_plan, launch_assembled_building, full internal Building Plan stay internal/advanced. Always separate observed_evidence / narrowly_proven / not_proven / next Movement candidate. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-design-synthesis-to-work-docs"
+    },
+    {
+      "node_id": "brick-6-p7-easy-building-ergonomics-0701e-work-docs",
+      "step_ref": "brick-6-p7-easy-building-ergonomics-0701e-work-docs",
+      "step_template_ref": "building-step-template:work",
+      "node_reroute_budget": 1,
+      "work_statement": "Docs/product lane. Implement only documentation/status text needed to make the big-work Easy Building route understandable: make X -> task intake -> design fan-out/review -> plan confirm -> parallel dev lanes -> lane QA -> final QA -> closure -> brick build/brick build --graph. Clarify public route vs internal/advanced helpers. Do not add a new CLI mode. Return changed files and exact evidence.\n\nSTRICT SCOPE (P7d2 correction): phase:P7 product-route / Easy Building declaration ergonomics slice ONLY. This Building closes the achievable part of S6-F4: public route/docs wording, CLI safe-error taxonomy, bare `brick` default behavior, and checker negative pins (no --large revival, no onboard-as-route exposure, no raw exception leak). It does NOT need to independently re-prove a fresh external brick build --graph <packet> dynamic-design pipeline end to end -- that remains an explicitly deferred later slice per prior P7b/P7c task scoping, not a P7d2 closure requirement. Do NOT add or revive --large, _p3_easy_large, --dev-lanes, lane_return, a new engine, support-owned route choice, scheduler/queue/retry runtime, or a preset-only shortcut. Keep public/operator language build()/brick build only; fire(), assemble(), run_building_plan, launch_assembled_building, full internal Building Plan stay internal/advanced. Always separate observed_evidence / narrowly_proven / not_proven / next Movement candidate. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "README.md",
+          "support/docs/references/quickstart.md",
+          "support/docs/references/setup.md",
+          "support/docs/references/launch-guide.md",
+          "support/docs/references/architecture-map.md",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/connection/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p7-easy-building-ergonomics-0701e-work-checker",
+      "step_ref": "brick-6-p7-easy-building-ergonomics-0701e-work-checker",
+      "step_template_ref": "building-step-template:work",
+      "node_reroute_budget": 1,
+      "work_statement": "Checker/CLI pin lane. Add or verify product-surface pins so the Easy Building route cannot silently regress into --large, _p3_easy_large, --dev-lanes, lane_return, support-owned route selection, or docs presenting run_building_plan/fire/assemble as the ordinary customer route. Add readiness_blocker_observation / protocol_compliance_observation only if they remain support evidence and do not become authority. Return changed files and exact command evidence.\n\nSTRICT SCOPE (P7d2 correction): phase:P7 product-route / Easy Building declaration ergonomics slice ONLY. This Building closes the achievable part of S6-F4: public route/docs wording, CLI safe-error taxonomy, bare `brick` default behavior, and checker negative pins (no --large revival, no onboard-as-route exposure, no raw exception leak). It does NOT need to independently re-prove a fresh external brick build --graph <packet> dynamic-design pipeline end to end -- that remains an explicitly deferred later slice per prior P7b/P7c task scoping, not a P7d2 closure requirement. Do NOT add or revive --large, _p3_easy_large, --dev-lanes, lane_return, a new engine, support-owned route choice, scheduler/queue/retry runtime, or a preset-only shortcut. Keep public/operator language build()/brick build only; fire(), assemble(), run_building_plan, launch_assembled_building, full internal Building Plan stay internal/advanced. Always separate observed_evidence / narrowly_proven / not_proven / next Movement candidate. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/cli.py",
+          "support/checkers/profiles/brick_cli_entrypoint.yaml",
+          "support/checkers/lib/kernel_checks.py",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/connection/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p7-easy-building-ergonomics-0701e-docs-lane-qa",
+      "step_ref": "brick-6-p7-easy-building-ergonomics-0701e-docs-lane-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Lane QA for docs/product work. Verify the docs teach the big-work graph declaration route without making preset-only, --large, fire(), assemble(), or run_building_plan the customer route. Probe_write only; do not mutate customer source truth.\n\nSTRICT SCOPE (P7d2 correction): phase:P7 product-route / Easy Building declaration ergonomics slice ONLY. This Building closes the achievable part of S6-F4: public route/docs wording, CLI safe-error taxonomy, bare `brick` default behavior, and checker negative pins (no --large revival, no onboard-as-route exposure, no raw exception leak). It does NOT need to independently re-prove a fresh external brick build --graph <packet> dynamic-design pipeline end to end -- that remains an explicitly deferred later slice per prior P7b/P7c task scoping, not a P7d2 closure requirement. Do NOT add or revive --large, _p3_easy_large, --dev-lanes, lane_return, a new engine, support-owned route choice, scheduler/queue/retry runtime, or a preset-only shortcut. Keep public/operator language build()/brick build only; fire(), assemble(), run_building_plan, launch_assembled_building, full internal Building Plan stay internal/advanced. Always separate observed_evidence / narrowly_proven / not_proven / next Movement candidate. Checker/profile green is support evidence only.\n\nLANE-ATTRIBUTION RULE (P7d2 correction): both work lanes run inside the same sandbox worktree, so a plain git-diff/changed_files snapshot can show the sibling lane's edits too. Do NOT raise boundary_mismatch just because a file 'feels like' it belongs to the other lane. Only raise boundary_mismatch if a file was written OUTSIDE this lane's own declared write_scope allowed_paths, or if a symbol/behavior contract owned by a different axis was edited without authorization.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "README.md",
+          "support/docs/references/quickstart.md",
+          "support/docs/references/setup.md",
+          "support/docs/references/launch-guide.md",
+          "support/docs/references/architecture-map.md",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/connection/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      },
+      "completion_edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-docs-lane-qa-to-lane-qa-fanin-confirm"
+    },
+    {
+      "node_id": "brick-6-p7-easy-building-ergonomics-0701e-checker-lane-qa",
+      "step_ref": "brick-6-p7-easy-building-ergonomics-0701e-checker-lane-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Lane QA for checker/CLI work. Verify negative pins actually RED-fire for --large/new-engine/internal-route regressions and that any product observations remain support evidence only. Probe_write only; do not mutate customer source truth.\n\nSTRICT SCOPE (P7d2 correction): phase:P7 product-route / Easy Building declaration ergonomics slice ONLY. This Building closes the achievable part of S6-F4: public route/docs wording, CLI safe-error taxonomy, bare `brick` default behavior, and checker negative pins (no --large revival, no onboard-as-route exposure, no raw exception leak). It does NOT need to independently re-prove a fresh external brick build --graph <packet> dynamic-design pipeline end to end -- that remains an explicitly deferred later slice per prior P7b/P7c task scoping, not a P7d2 closure requirement. Do NOT add or revive --large, _p3_easy_large, --dev-lanes, lane_return, a new engine, support-owned route choice, scheduler/queue/retry runtime, or a preset-only shortcut. Keep public/operator language build()/brick build only; fire(), assemble(), run_building_plan, launch_assembled_building, full internal Building Plan stay internal/advanced. Always separate observed_evidence / narrowly_proven / not_proven / next Movement candidate. Checker/profile green is support evidence only.\n\nLANE-ATTRIBUTION RULE (P7d2 correction): both work lanes run inside the same sandbox worktree, so a plain git-diff/changed_files snapshot can show the sibling lane's edits too. Do NOT raise boundary_mismatch just because a file 'feels like' it belongs to the other lane. Only raise boundary_mismatch if a file was written OUTSIDE this lane's own declared write_scope allowed_paths, or if a symbol/behavior contract owned by a different axis was edited without authorization.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/cli.py",
+          "support/checkers/profiles/brick_cli_entrypoint.yaml",
+          "support/checkers/lib/kernel_checks.py",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/connection/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      },
+      "completion_edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-checker-lane-qa-to-lane-qa-fanin-confirm"
+    },
+    {
+      "node_id": "brick-6-p7-easy-building-ergonomics-0701e-lane-qa-fanin-confirm",
+      "step_ref": "brick-6-p7-easy-building-ergonomics-0701e-lane-qa-fanin-confirm",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Lane-QA fan-in confirm barrier for P7d2. Fan in docs-lane-qa and checker-lane-qa. Synthesize both lane QA bodies into one confirmed status before launching the final-QA fan-out cohort (final-code-qa, final-axis-qa, final-evidence-qa). This barrier exists specifically so fan-in and fan-out are never the same event, per agent/skills/building-coordination/SKILL.md. Preserve any lane QA transition_concern_evidence as observed_evidence for the barrier's own return; do not silently drop it, and do not adopt Movement here -- this node only confirms readiness to fan out to final QA.\n\nSTRICT SCOPE (P7d2 correction): phase:P7 product-route / Easy Building declaration ergonomics slice ONLY. This Building closes the achievable part of S6-F4: public route/docs wording, CLI safe-error taxonomy, bare `brick` default behavior, and checker negative pins (no --large revival, no onboard-as-route exposure, no raw exception leak). It does NOT need to independently re-prove a fresh external brick build --graph <packet> dynamic-design pipeline end to end -- that remains an explicitly deferred later slice per prior P7b/P7c task scoping, not a P7d2 closure requirement. Do NOT add or revive --large, _p3_easy_large, --dev-lanes, lane_return, a new engine, support-owned route choice, scheduler/queue/retry runtime, or a preset-only shortcut. Keep public/operator language build()/brick build only; fire(), assemble(), run_building_plan, launch_assembled_building, full internal Building Plan stay internal/advanced. Always separate observed_evidence / narrowly_proven / not_proven / next Movement candidate. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-lane-qa-fanin-confirm-to-final-code-qa"
+    },
+    {
+      "node_id": "brick-6-p7-easy-building-ergonomics-0701e-final-code-qa",
+      "step_ref": "brick-6-p7-easy-building-ergonomics-0701e-final-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Final code/product QA. Fan in both lane QA bodies. Verify combined docs+checker surface covers S6-F4 and does not regress P7c root/error/public-route fixes. Run focused brick_cli_entrypoint profile, py_compile changed Python if any, git diff --check, and bounded probes. Probe_write only.\n\nSTRICT SCOPE (P7d2 correction): phase:P7 product-route / Easy Building declaration ergonomics slice ONLY. This Building closes the achievable part of S6-F4: public route/docs wording, CLI safe-error taxonomy, bare `brick` default behavior, and checker negative pins (no --large revival, no onboard-as-route exposure, no raw exception leak). It does NOT need to independently re-prove a fresh external brick build --graph <packet> dynamic-design pipeline end to end -- that remains an explicitly deferred later slice per prior P7b/P7c task scoping, not a P7d2 closure requirement. Do NOT add or revive --large, _p3_easy_large, --dev-lanes, lane_return, a new engine, support-owned route choice, scheduler/queue/retry runtime, or a preset-only shortcut. Keep public/operator language build()/brick build only; fire(), assemble(), run_building_plan, launch_assembled_building, full internal Building Plan stay internal/advanced. Always separate observed_evidence / narrowly_proven / not_proven / next Movement candidate. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "README.md",
+          "support/docs/references/quickstart.md",
+          "support/docs/references/setup.md",
+          "support/docs/references/launch-guide.md",
+          "support/docs/references/architecture-map.md",
+          "support/operator/cli.py",
+          "support/checkers/profiles/brick_cli_entrypoint.yaml",
+          "support/checkers/lib/kernel_checks.py",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/connection/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p7-easy-building-ergonomics-0701e-final-axis-qa",
+      "step_ref": "brick-6-p7-easy-building-ergonomics-0701e-final-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Final axis QA. Fan in both lane QA bodies. Verify Brick owns work/graph declaration, Agent owns returned evidence, Link owns Movement, and product/docs/checkers remain support evidence. Reject any support-owned target selector, success/quality judgment, or hidden Movement authority. Probe_write only.\n\nSTRICT SCOPE (P7d2 correction): phase:P7 product-route / Easy Building declaration ergonomics slice ONLY. This Building closes the achievable part of S6-F4: public route/docs wording, CLI safe-error taxonomy, bare `brick` default behavior, and checker negative pins (no --large revival, no onboard-as-route exposure, no raw exception leak). It does NOT need to independently re-prove a fresh external brick build --graph <packet> dynamic-design pipeline end to end -- that remains an explicitly deferred later slice per prior P7b/P7c task scoping, not a P7d2 closure requirement. Do NOT add or revive --large, _p3_easy_large, --dev-lanes, lane_return, a new engine, support-owned route choice, scheduler/queue/retry runtime, or a preset-only shortcut. Keep public/operator language build()/brick build only; fire(), assemble(), run_building_plan, launch_assembled_building, full internal Building Plan stay internal/advanced. Always separate observed_evidence / narrowly_proven / not_proven / next Movement candidate. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "README.md",
+          "support/docs/references/quickstart.md",
+          "support/docs/references/setup.md",
+          "support/docs/references/launch-guide.md",
+          "support/docs/references/architecture-map.md",
+          "support/operator/cli.py",
+          "support/checkers/profiles/brick_cli_entrypoint.yaml",
+          "support/checkers/lib/kernel_checks.py",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/connection/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p7-easy-building-ergonomics-0701e-final-evidence-qa",
+      "step_ref": "brick-6-p7-easy-building-ergonomics-0701e-final-evidence-qa",
+      "step_template_ref": "building-step-template:evidence-integrity",
+      "node_reroute_budget": 1,
+      "work_statement": "Final evidence-integrity QA. Fan in both lane QA bodies. Verify source audit refs were used, changed files match P7d scope, commands/evidence roots are recorded, P8/P9/fresh-machine/provider/customer-comprehension remain not_proven, and no whole-goal completion is claimed. Probe_write only.\n\nSTRICT SCOPE (P7d2 correction): phase:P7 product-route / Easy Building declaration ergonomics slice ONLY. This Building closes the achievable part of S6-F4: public route/docs wording, CLI safe-error taxonomy, bare `brick` default behavior, and checker negative pins (no --large revival, no onboard-as-route exposure, no raw exception leak). It does NOT need to independently re-prove a fresh external brick build --graph <packet> dynamic-design pipeline end to end -- that remains an explicitly deferred later slice per prior P7b/P7c task scoping, not a P7d2 closure requirement. Do NOT add or revive --large, _p3_easy_large, --dev-lanes, lane_return, a new engine, support-owned route choice, scheduler/queue/retry runtime, or a preset-only shortcut. Keep public/operator language build()/brick build only; fire(), assemble(), run_building_plan, launch_assembled_building, full internal Building Plan stay internal/advanced. Always separate observed_evidence / narrowly_proven / not_proven / next Movement candidate. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "README.md",
+          "support/docs/references/quickstart.md",
+          "support/docs/references/setup.md",
+          "support/docs/references/launch-guide.md",
+          "support/docs/references/architecture-map.md",
+          "support/operator/cli.py",
+          "support/checkers/profiles/brick_cli_entrypoint.yaml",
+          "support/checkers/lib/kernel_checks.py",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/connection/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p7-easy-building-ergonomics-0701e-closure",
+      "step_ref": "brick-6-p7-easy-building-ergonomics-0701e-closure",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "P7d closure. Fan in final code QA, final axis QA, and evidence-integrity QA. Report observed_evidence / narrowly_proven / not_proven / remaining_delta / parent_goal_delta_status / next Movement candidate. Close only the S6-F4 Easy Building declaration ergonomics slice if current evidence proves it. If implementation/boundary/evidence gap remains, return Link-facing transition_concern_evidence and HOLD rather than smoothing it. Do not claim P8/P9/customer-ready complete.\n\nSTRICT SCOPE (P7d2 correction): phase:P7 product-route / Easy Building declaration ergonomics slice ONLY. This Building closes the achievable part of S6-F4: public route/docs wording, CLI safe-error taxonomy, bare `brick` default behavior, and checker negative pins (no --large revival, no onboard-as-route exposure, no raw exception leak). It does NOT need to independently re-prove a fresh external brick build --graph <packet> dynamic-design pipeline end to end -- that remains an explicitly deferred later slice per prior P7b/P7c task scoping, not a P7d2 closure requirement. Do NOT add or revive --large, _p3_easy_large, --dev-lanes, lane_return, a new engine, support-owned route choice, scheduler/queue/retry runtime, or a preset-only shortcut. Keep public/operator language build()/brick build only; fire(), assemble(), run_building_plan, launch_assembled_building, full internal Building Plan stay internal/advanced. Always separate observed_evidence / narrowly_proven / not_proven / next Movement candidate. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "closure_transition_target_policy": {
+        "implementation_gap": {
+          "action": "hold"
+        },
+        "boundary_mismatch": {
+          "action": "hold"
+        },
+        "verification_gap": {
+          "action": "hold"
+        },
+        "insufficient_input": {
+          "action": "hold"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-task-intake-to-design-codex",
+      "source": "brick-6-p7-easy-building-ergonomics-0701e-task-intake",
+      "target": "brick-6-p7-easy-building-ergonomics-0701e-design-codex",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-task-intake-to-design-claude",
+      "source": "brick-6-p7-easy-building-ergonomics-0701e-task-intake",
+      "target": "brick-6-p7-easy-building-ergonomics-0701e-design-claude",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-design-codex-to-design-synthesis",
+      "source": "brick-6-p7-easy-building-ergonomics-0701e-design-codex",
+      "target": "brick-6-p7-easy-building-ergonomics-0701e-design-synthesis",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-design-claude-to-design-synthesis",
+      "source": "brick-6-p7-easy-building-ergonomics-0701e-design-claude",
+      "target": "brick-6-p7-easy-building-ergonomics-0701e-design-synthesis",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-design-synthesis-to-work-docs",
+      "source": "brick-6-p7-easy-building-ergonomics-0701e-design-synthesis",
+      "target": "brick-6-p7-easy-building-ergonomics-0701e-work-docs",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-design-synthesis-to-work-checker",
+      "source": "brick-6-p7-easy-building-ergonomics-0701e-design-synthesis",
+      "target": "brick-6-p7-easy-building-ergonomics-0701e-work-checker",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-work-docs-to-docs-lane-qa",
+      "source": "brick-6-p7-easy-building-ergonomics-0701e-work-docs",
+      "target": "brick-6-p7-easy-building-ergonomics-0701e-docs-lane-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-work-checker-to-checker-lane-qa",
+      "source": "brick-6-p7-easy-building-ergonomics-0701e-work-checker",
+      "target": "brick-6-p7-easy-building-ergonomics-0701e-checker-lane-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-final-code-qa-to-closure",
+      "source": "brick-6-p7-easy-building-ergonomics-0701e-final-code-qa",
+      "target": "brick-6-p7-easy-building-ergonomics-0701e-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-final-axis-qa-to-closure",
+      "source": "brick-6-p7-easy-building-ergonomics-0701e-final-axis-qa",
+      "target": "brick-6-p7-easy-building-ergonomics-0701e-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-final-evidence-qa-to-closure",
+      "source": "brick-6-p7-easy-building-ergonomics-0701e-final-evidence-qa",
+      "target": "brick-6-p7-easy-building-ergonomics-0701e-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-closure-to-boundary",
+      "source": "brick-6-p7-easy-building-ergonomics-0701e-closure",
+      "target": "building-boundary:brick-6-p7-easy-building-ergonomics-0701e-closed",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-docs-lane-qa-to-lane-qa-fanin-confirm",
+      "source": "brick-6-p7-easy-building-ergonomics-0701e-docs-lane-qa",
+      "target": "brick-6-p7-easy-building-ergonomics-0701e-lane-qa-fanin-confirm",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-checker-lane-qa-to-lane-qa-fanin-confirm",
+      "source": "brick-6-p7-easy-building-ergonomics-0701e-checker-lane-qa",
+      "target": "brick-6-p7-easy-building-ergonomics-0701e-lane-qa-fanin-confirm",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-lane-qa-fanin-confirm-to-final-code-qa",
+      "source": "brick-6-p7-easy-building-ergonomics-0701e-lane-qa-fanin-confirm",
+      "target": "brick-6-p7-easy-building-ergonomics-0701e-final-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-lane-qa-fanin-confirm-to-final-axis-qa",
+      "source": "brick-6-p7-easy-building-ergonomics-0701e-lane-qa-fanin-confirm",
+      "target": "brick-6-p7-easy-building-ergonomics-0701e-final-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701e-lane-qa-fanin-confirm-to-final-evidence-qa",
+      "source": "brick-6-p7-easy-building-ergonomics-0701e-lane-qa-fanin-confirm",
+      "target": "brick-6-p7-easy-building-ergonomics-0701e-final-evidence-qa",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:brick-6-p7-easy-building-ergonomics-0701e-design-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p7-easy-building-ergonomics-0701e-task-intake-to-design-codex",
+        "edge:brick-6-p7-easy-building-ergonomics-0701e-task-intake-to-design-claude"
+      ]
+    },
+    {
+      "group_id": "group:brick-6-p7-easy-building-ergonomics-0701e-design-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p7-easy-building-ergonomics-0701e-design-codex-to-design-synthesis",
+        "edge:brick-6-p7-easy-building-ergonomics-0701e-design-claude-to-design-synthesis"
+      ],
+      "fan_in_target_ref": "brick-6-p7-easy-building-ergonomics-0701e-design-synthesis",
+      "fan_in_policy": "wait_all_before_closure"
+    },
+    {
+      "group_id": "group:brick-6-p7-easy-building-ergonomics-0701e-parallel-work-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p7-easy-building-ergonomics-0701e-design-synthesis-to-work-docs",
+        "edge:brick-6-p7-easy-building-ergonomics-0701e-design-synthesis-to-work-checker"
+      ]
+    },
+    {
+      "group_id": "group:brick-6-p7-easy-building-ergonomics-0701e-closure-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p7-easy-building-ergonomics-0701e-final-code-qa-to-closure",
+        "edge:brick-6-p7-easy-building-ergonomics-0701e-final-axis-qa-to-closure",
+        "edge:brick-6-p7-easy-building-ergonomics-0701e-final-evidence-qa-to-closure"
+      ],
+      "fan_in_target_ref": "brick-6-p7-easy-building-ergonomics-0701e-closure",
+      "fan_in_policy": "wait_all_before_closure"
+    },
+    {
+      "group_id": "group:brick-6-p7-easy-building-ergonomics-0701e-lane-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p7-easy-building-ergonomics-0701e-docs-lane-qa-to-lane-qa-fanin-confirm",
+        "edge:brick-6-p7-easy-building-ergonomics-0701e-checker-lane-qa-to-lane-qa-fanin-confirm"
+      ],
+      "fan_in_target_ref": "brick-6-p7-easy-building-ergonomics-0701e-lane-qa-fanin-confirm",
+      "fan_in_policy": "wait_all_before_closure"
+    },
+    {
+      "group_id": "group:brick-6-p7-easy-building-ergonomics-0701e-final-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p7-easy-building-ergonomics-0701e-lane-qa-fanin-confirm-to-final-code-qa",
+        "edge:brick-6-p7-easy-building-ergonomics-0701e-lane-qa-fanin-confirm-to-final-axis-qa",
+        "edge:brick-6-p7-easy-building-ergonomics-0701e-lane-qa-fanin-confirm-to-final-evidence-qa"
+      ]
+    }
+  ],
+  "source_evidence_refs": [
+    "/Users/smith/.codex/attachments/79c4c01d-3db0-4a59-b13c-cf85beeba608/pasted-text-1.txt",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-s6-product-surface-0630.md#S6-F4",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-repair-p6-product-route-p3-easy-surface-0630.md#Easy-Building-big-work-shape",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-final-synthesis-0630.md#C6",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-final-coverage-matrix-0630.md#P3-Easy-Building",
+    "project/brick-protocol/status/kernel/brick-6-p7-status-build-root-alignment-closure-0701c.md",
+    "project/brick-protocol/status/kernel/brick-6-p7-easy-building-ergonomics-operator-hold-0701d.md",
+    "agent/skills/building-coordination/SKILL.md#fan-barrier-discipline"
+  ],
+  "proof_limits": [
+    "official brick build graph evidence is support evidence only",
+    "P7d2 closes only the docs/route-wording + checker-pin part of S6-F4 Easy Building declaration ergonomics, if proven",
+    "P7d2 does not prove P8 ship safety, P9 dynamic customer replay, fresh-machine install/run, real-provider reliability, customer comprehension, source truth, success judgment, quality judgment, or Movement authority",
+    "Claude design lane is graph-level design fan-out evidence only; provider quality and future reliability remain not_proven"
+  ],
+  "not_proven": [
+    "full external brick build --graph <packet> dynamic-design ergonomics pipeline proof (explicitly deferred to a later slice, matching P7b/P7c task scoping)",
+    "whole-repo check_profile.py --all green independent of this slice's own changed files",
+    "P8 ship safety/release/dashboard/provider/CI hardening",
+    "P9 current-main dynamic proof/customer replay",
+    "fresh-machine customer proof",
+    "real provider repeated reliability",
+    "customer comprehension",
+    "whole customer-ready closeout"
+  ]
+}
