@@ -1,0 +1,196 @@
+{
+  "task_statement": "Task #9 of BRICK 6-surface audit repair goal, Global Operating Rule 9: DESIGN-ONLY decision Building (no work/implementation step -- Smith explicitly asked to run design first, review, then decide the follow-on implementation Building separately). There are currently TWO plan-materialization producers: support/operator/composition_compose.py::compose_building() (old, actually reachable from the live brick build --graph CLI route today) and support/operator/assembly.py::assemble() (intended future canonical producer per support/checkers/check_assembly_equivalence.py's own docstring: 'Guard structural equivalence for future assembly.py lowering'). This is a standing violation of Global Operating Rule 3's no-second-engine principle, tolerated only because the equivalence guard proves the two are not yet interchangeable.\n\nTHE DECISION THIS BUILDING MUST PRODUCE (not implement): (a) verify whether assemble() supports every graph_packet feature the live --graph CLI route currently exercises -- fan_in/fan_out groups, sibling_independence, closure_transition_target_policy, the graph_topology_fan_barrier checker landed 0701, the write_scope default-on-omission fix landed 0701, and any other feature compose_building() has received since the equivalence checker's docstring was written; (b) recommend ONE of two outcomes: EITHER completing the migration (CLI route switches to assemble(), compose_building retired) OR explicitly declaring compose_building permanently canonical and retiring the 'future lowering' framing on check_assembly_equivalence.py's docstring -- either resolution is acceptable per Rule 9, indefinite duplication is not; (c) if migration is recommended, produce a concrete scoped implementation plan (NOT the implementation itself) naming exact files/seams/risk; if permanent-canonical is recommended, name exactly what must change (docstring, checker framing, any dead-code retirement).\n\nOUT OF SCOPE for this Building: any actual source mutation to composition_compose.py, assembly.py, brick/spec.py, or the CLI route itself. This Building produces a recommendation document only. The COO (Smith + Claude) will read the synthesized design plus a parallel independent research workflow's findings and declare the actual implementation Building separately.",
+  "declared_by": "coo",
+  "building_id": "brick-6-dual-producer-reconciliation-design-0701a",
+  "selected_shape_ref": "shape:manual-multi-adapter-design-only-dual-producer-reconciliation",
+  "selection_rule": "Design-only Building (Smith: run design first, no work step yet) -- dual-design fan-out per the goal's Standard Phase Building Graph, stopping at design-QA/closure with no implementation lane.",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "brick-6-dual-producer-reconciliation-design-0701a-intake-split",
+      "step_ref": "brick-6-dual-producer-reconciliation-design-0701a-intake-split",
+      "step_template_ref": "building-step-template:design",
+      "node_reroute_budget": 1,
+      "work_statement": "Prepare the design split. Read Global Operating Rule 9 in brick-6-surface-audit-repair-goal-0630.md, the write_scope finding doc (brick-6-graph-route-missing-default-write-scope-finding-0701.md), and check_assembly_equivalence.py's module docstring in full. Return an invariant map and dispatch notes for the two independent design lanes. Do not edit files. Do not implement anything.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-dual-producer-reconciliation-design-0701a-intake-split-to-design-codex"
+    },
+    {
+      "node_id": "brick-6-dual-producer-reconciliation-design-0701a-design-codex",
+      "step_ref": "brick-6-dual-producer-reconciliation-design-0701a-design-codex",
+      "step_template_ref": "building-step-template:design",
+      "node_reroute_budget": 1,
+      "work_statement": "Codex design lane: CODE-SURFACE feature-parity investigation. Read support/operator/assembly.py::assemble() and support/operator/composition_compose.py::compose_building() in full, side by side. Produce an exact feature checklist: for each of fan_in groups, fan_out groups, sibling_independence, closure_transition_target_policy, the graph_topology_fan_barrier checker (landed 0701, commit 2405a9d), and the write_scope default-on-omission fix (landed 0701, commit 6c3c73e) -- does assemble() support it, does compose_building() support it, and if only one does, exact file:line evidence. Also check for any feature compose_building() lacks that assemble() has (assembly.py's write_scope default was the original finding; check for others). Estimate migration cost if the CLI route switched to assemble() (call sites to change, risk surface). Return design/investigation only, no source edits.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-dual-producer-reconciliation-design-0701a-design-codex-to-design-synthesis"
+    },
+    {
+      "node_id": "brick-6-dual-producer-reconciliation-design-0701a-design-claude",
+      "step_ref": "brick-6-dual-producer-reconciliation-design-0701a-design-claude",
+      "step_template_ref": "building-step-template:design",
+      "node_reroute_budget": 1,
+      "work_statement": "Claude design lane: ARCHITECTURE and risk framing, independent of the Codex code-surface lane. Address: is this genuinely a Rule-3 (no-second-engine) violation or an acceptable transitional state; what is the risk/cost of completing the assemble() migration (customer route stability, blast radius) versus the risk/cost of declaring compose_building permanently canonical (indefinite duplication, is this actually sustainable); does either outcome change Brick/Agent/Link axis meaning (it must not); what would 'explicitly declaring compose_building permanently canonical' concretely require in check_assembly_equivalence.py's docstring and framing. Recommend ONE of the two outcomes with reasoning, and mark genuinely undecidable points as not_proven rather than smoothing them. Return design only, no source edits.",
+      "selected_adapter_ref": "adapter:claude-local",
+      "selected_model_ref": "model:claude:inherit",
+      "completion_edge_ref": "edge:brick-6-dual-producer-reconciliation-design-0701a-design-claude-to-design-synthesis"
+    },
+    {
+      "node_id": "brick-6-dual-producer-reconciliation-design-0701a-design-synthesis",
+      "step_ref": "brick-6-dual-producer-reconciliation-design-0701a-design-synthesis",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Synthesize the Codex code-surface lane and the Claude architecture/risk lane into ONE recommendation document: confirmed feature-parity table (with citations), the recommended outcome (migrate vs permanent-canonical) with reasoning, and if migrate is recommended a concrete scoped implementation plan (files/seams/risk, not the implementation itself). This is closure-synthesis of design evidence only, not success/quality judgment, not an implementation. If the two lanes disagree or evidence is insufficient to recommend either outcome, return Link-facing transition_concern_evidence targeting the intake-split node rather than forcing a recommendation.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-dual-producer-reconciliation-design-0701a-design-synthesis-to-design-qa",
+      "closure_transition_target_policy": {
+        "design_gap": {
+          "action": "target",
+          "target_ref": "brick-6-dual-producer-reconciliation-design-0701a-intake-split"
+        },
+        "verification_gap": {
+          "action": "hold"
+        }
+      }
+    },
+    {
+      "node_id": "brick-6-dual-producer-reconciliation-design-0701a-design-qa",
+      "step_ref": "brick-6-dual-producer-reconciliation-design-0701a-design-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Gemini-local design QA. Attack the synthesized recommendation before it reaches the COO. Verify: is the feature-parity table actually backed by file:line citations (not asserted); does the recommendation change Brick/Agent/Link axis meaning (it must not); is 'either resolution acceptable' honestly represented rather than the QA lane injecting its own preference; are unresolved points honestly in not_proven rather than smoothed. Do not source-mutate. Return local observations and null/non-reroute concern if the recommendation is well-supported, or targeted concern evidence if not.",
+      "selected_adapter_ref": "adapter:gemini-local",
+      "selected_model_ref": "model:gemini:default",
+      "completion_edge_ref": "edge:brick-6-dual-producer-reconciliation-design-0701a-design-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/operator/composition_compose.py",
+          "support/operator/assembly.py",
+          "brick/spec.py",
+          "support/connection/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-dual-producer-reconciliation-design-0701a-closure",
+      "step_ref": "brick-6-dual-producer-reconciliation-design-0701a-closure",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Final closure of this DESIGN-ONLY Building. Report the synthesized recommendation, the design-QA verdict, observed_evidence / narrowly_proven / not_proven / next Movement candidate. This Building's scope ends here -- do NOT attempt implementation, do NOT claim task #9 itself is closed (only the design/recommendation phase is). If design-QA raised an unresolved concern, HOLD rather than smoothing it.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "closure_transition_target_policy": {
+        "design_gap": {
+          "action": "target",
+          "target_ref": "brick-6-dual-producer-reconciliation-design-0701a-design-synthesis"
+        },
+        "boundary_mismatch": {
+          "action": "hold"
+        },
+        "verification_gap": {
+          "action": "hold"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:brick-6-dual-producer-reconciliation-design-0701a-intake-split-to-design-codex",
+      "source": "brick-6-dual-producer-reconciliation-design-0701a-intake-split",
+      "target": "brick-6-dual-producer-reconciliation-design-0701a-design-codex",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-dual-producer-reconciliation-design-0701a-intake-split-to-design-claude",
+      "source": "brick-6-dual-producer-reconciliation-design-0701a-intake-split",
+      "target": "brick-6-dual-producer-reconciliation-design-0701a-design-claude",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-dual-producer-reconciliation-design-0701a-design-codex-to-design-synthesis",
+      "source": "brick-6-dual-producer-reconciliation-design-0701a-design-codex",
+      "target": "brick-6-dual-producer-reconciliation-design-0701a-design-synthesis",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-dual-producer-reconciliation-design-0701a-design-claude-to-design-synthesis",
+      "source": "brick-6-dual-producer-reconciliation-design-0701a-design-claude",
+      "target": "brick-6-dual-producer-reconciliation-design-0701a-design-synthesis",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-dual-producer-reconciliation-design-0701a-design-synthesis-to-design-qa",
+      "source": "brick-6-dual-producer-reconciliation-design-0701a-design-synthesis",
+      "target": "brick-6-dual-producer-reconciliation-design-0701a-design-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-dual-producer-reconciliation-design-0701a-design-qa-to-closure",
+      "source": "brick-6-dual-producer-reconciliation-design-0701a-design-qa",
+      "target": "brick-6-dual-producer-reconciliation-design-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-dual-producer-reconciliation-design-0701a-closure-to-boundary",
+      "source": "brick-6-dual-producer-reconciliation-design-0701a-closure",
+      "target": "building-boundary:brick-6-dual-producer-reconciliation-design-0701a-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:brick-6-dual-producer-reconciliation-design-0701a-design-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-dual-producer-reconciliation-design-0701a-intake-split-to-design-codex",
+        "edge:brick-6-dual-producer-reconciliation-design-0701a-intake-split-to-design-claude"
+      ]
+    },
+    {
+      "group_id": "group:brick-6-dual-producer-reconciliation-design-0701a-design-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-dual-producer-reconciliation-design-0701a-design-codex-to-design-synthesis",
+        "edge:brick-6-dual-producer-reconciliation-design-0701a-design-claude-to-design-synthesis"
+      ],
+      "fan_in_target_ref": "brick-6-dual-producer-reconciliation-design-0701a-design-synthesis",
+      "fan_in_policy": "wait_all_before_closure"
+    }
+  ],
+  "source_evidence_refs": [
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-repair-goal-0630.md",
+    "project/brick-protocol/status/kernel/brick-6-graph-route-missing-default-write-scope-finding-0701.md",
+    "project/brick-protocol/status/kernel/brick-6-graph-write-scope-default-closure-0701.md",
+    "support/operator/assembly.py",
+    "support/operator/composition_compose.py",
+    "support/checkers/check_assembly_equivalence.py"
+  ],
+  "proof_limits": [
+    "official brick build graph evidence is support evidence only",
+    "this Building is design/recommendation only, it does not implement or close task #9 itself",
+    "not source truth, success judgment, quality judgment, or Movement authority"
+  ],
+  "not_proven": [
+    "the actual implementation of whichever outcome is recommended (separate follow-on Building)",
+    "P8 ship safety, P9 dynamic customer replay, fresh-machine install, real-provider reliability, customer comprehension"
+  ]
+}
