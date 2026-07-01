@@ -1,0 +1,196 @@
+{
+  "task_statement": "BRICK 6-surface audit repair, engine fix (task #8, write_scope-default half only -- confirmed by Smith plus a 4-agent adversarial re-verification workflow with a LIVE reproduction, see brick-6-graph-route-missing-default-write-scope-finding-0701.md).\n\nTHE DEFECT: brick build --graph (cli.py -> driver.py -> composition_compose.py::compose_building() -> run.py -> walker_kernel.py -- confirmed the ONLY official customer/operator route, not a side path) carries a graph node's write_scope VERBATIM if present, but applies NO DEFAULT and raises NO ERROR when a write-needed Brick node (requires_brick_write_scope: yes / capability_class != read) omits write_scope entirely. Effective write then silently resolves to false (support/connection/adapter_grant_policy.py derives write_effective = bool(request.write_scope)) with zero error and zero HOLD -- the Building reports frontier_kind=complete as if nothing were wrong, while the node silently could not write anything. Live-reproduced: a real brick build --graph run with a write-needed node lacking write_scope completed frontier_complete with zero files written, verified directly on disk.\n\nA DIFFERENT code path, support/operator/assembly.py::assemble() (used ONLY by the onboard.py wizard flow, NEVER reachable from brick build --graph -- confirmed by exhaustive repo-wide callsite search), already does this correctly: when write_scope is None for a write-needed node, it calls _validated_write_scope() (assembly.py ~line 1326) which falls back to brick/spec.py::derived_worktree_write_scope() (~line 150), returning {\"allowed_paths\": [\".\"], \"forbidden_paths\": [\".git/**\"]}. This default applies UNIFORMLY regardless of Brick role (work vs QA/probe_write) -- it is NOT role-dependent, and it does not require per-task path precision to be safe. A graph author who wants a NARROWER, task-specific scope may still supply an explicit write_scope on the node, which overrides the default; the default only fills the gap when the node is silent about it.\n\nTHE FIX (this Building's sole scope): port the same default-on-omission behavior into the graph_packet materialization path -- most likely in support/operator/composition_compose.py::compose_building(), where write_scope is currently only transported verbatim (~line 982-984: raw_write_scope = brick.get(\"write_scope\"); if raw_write_scope is not None: row[\"write_scope\"] = ... -- needs an else-branch applying the same derived_worktree_write_scope() default whenever the Brick template declares requires_brick_write_scope truthy and the node supplied none), or wherever the design lanes determine is the single most correct seam. Reuse brick/spec.py::derived_worktree_write_scope() directly -- do not reimplement or duplicate the default logic in a second place.\n\nOUT OF SCOPE for this Building (tracked separately as a follow-on): wiring the graph_topology_fan_barrier checker (already landed, see brick-6-graph-topology-fan-barrier-checker-closure-0701.md) into actual brick build --graph admission-time rejection. That is a related but distinct fix (checker invocation wiring, not write_scope value resolution) and must not be mixed into this Building's scope.\n\nChecker-first: add a negative probe reproducing the exact live-reproduction scenario already recorded in the finding doc (a write-needed Brick node with no write_scope, run through brick build --graph, currently silently proceeds with write_effective=false and zero files written) -- must RED before the fix (prove the gap exists), GREEN after (prove the default now applies and the node CAN write within the default scope). Also add a probe proving an explicit narrower write_scope on a node still overrides the default (regression guard against always forcing the broad default onto every node).",
+  "declared_by": "coo",
+  "building_id": "brick-6-graph-write-scope-default-0701a",
+  "selected_shape_ref": "shape:design-needed",
+  "selection_rule": "Low-risk, purely additive checker task (goal doc tiering: low-risk/doc/cleanup phases may use a simpler shape than the mandatory dual-design fan-out reserved for named high-risk phases). Single design, single work, three-way final QA fan-out, closure.",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "brick-6-graph-write-scope-default-0701a-design",
+      "step_ref": "brick-6-graph-write-scope-default-0701a-design",
+      "step_template_ref": "building-step-template:design",
+      "node_reroute_budget": 1,
+      "work_statement": "Design the write_scope default-on-omission fix per the task statement. Read support/operator/assembly.py's _validated_write_scope/derived_worktree_write_scope pattern, support/operator/composition_compose.py::compose_building(), and brick-6-graph-route-missing-default-write-scope-finding-0701.md in full. Propose the exact seam (composition_compose.py vs elsewhere), confirm it is reachable from brick build --graph (not a second non-canonical path), and confirm reuse (not duplication) of derived_worktree_write_scope(). No source edits.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-graph-write-scope-default-0701a-design-to-work"
+    },
+    {
+      "node_id": "brick-6-graph-write-scope-default-0701a-work",
+      "step_ref": "brick-6-graph-write-scope-default-0701a-work",
+      "step_template_ref": "building-step-template:work",
+      "node_reroute_budget": 1,
+      "work_statement": "Implement the write_scope default-on-omission fix in composition_compose.py::compose_building() (or the seam confirmed by design): when a Brick template declares requires_brick_write_scope truthy and the graph_packet node supplies no write_scope, apply brick/spec.py::derived_worktree_write_scope() as the default -- uniformly, not role-dependent. An explicit node-level write_scope must still override the default. Add the checker-first negative probe (RED before fix, GREEN after) plus the override-still-wins regression probe. Run py_compile and check_profile.py --all. Return changed_files and exact evidence.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/composition_compose.py",
+          "support/operator/plan_rendering.py",
+          "brick/spec.py",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/templates/**",
+          "link/**",
+          "agent/**",
+          "support/operator/walker_kernel.py",
+          "support/operator/walker_fan_in.py",
+          "support/connection/**"
+        ]
+      },
+      "completion_edge_ref": "edge:brick-6-graph-write-scope-default-0701a-work-to-code-qa"
+    },
+    {
+      "node_id": "brick-6-graph-write-scope-default-0701a-code-qa",
+      "step_ref": "brick-6-graph-write-scope-default-0701a-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Attack the checker implementation: confirm the negative fixture genuinely RED-fires with the new checker (not vacuously), confirm the positive fixture (P7d2/P7d3 barrier shape) is still accepted, confirm py_compile and check_profile.py --all pass. Probe_write only, no source mutation.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "brick-6-graph-write-scope-default-0701a-axis-qa",
+      "step_ref": "brick-6-graph-write-scope-default-0701a-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Confirm this checker stays support/checker mechanics only -- it may REJECT a bad graph_packet, but must not choose Movement, targets, success, or quality; it must not become a second engine or a second admission path duplicating plan_graph.py. Probe_write only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "brick-6-graph-write-scope-default-0701a-evidence-qa",
+      "step_ref": "brick-6-graph-write-scope-default-0701a-evidence-qa",
+      "step_template_ref": "building-step-template:evidence-integrity",
+      "node_reroute_budget": 1,
+      "work_statement": "Confirm evidence integrity: negative/positive fixtures are real and byte-distinct from prior QA bodies, proof_limits/not_proven present, no overclaiming of coverage beyond the fan-in/fan-out-barrier shape checked. Probe_write only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "brick-6-graph-write-scope-default-0701a-closure",
+      "step_ref": "brick-6-graph-write-scope-default-0701a-closure",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Fan in code-qa, axis-qa, evidence-qa. Report observed_evidence / narrowly_proven / not_proven / next Movement candidate. Close only if the negative fixture RED-fires and the positive fixture stays accepted with current evidence; otherwise return Link-facing transition_concern_evidence and HOLD rather than smoothing it.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "closure_transition_target_policy": {
+        "implementation_gap": {
+          "action": "hold"
+        },
+        "boundary_mismatch": {
+          "action": "hold"
+        },
+        "verification_gap": {
+          "action": "hold"
+        },
+        "insufficient_input": {
+          "action": "hold"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:brick-6-graph-write-scope-default-0701a-design-to-work",
+      "source": "brick-6-graph-write-scope-default-0701a-design",
+      "target": "brick-6-graph-write-scope-default-0701a-work",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-graph-write-scope-default-0701a-work-to-code-qa",
+      "source": "brick-6-graph-write-scope-default-0701a-work",
+      "target": "brick-6-graph-write-scope-default-0701a-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-graph-write-scope-default-0701a-work-to-axis-qa",
+      "source": "brick-6-graph-write-scope-default-0701a-work",
+      "target": "brick-6-graph-write-scope-default-0701a-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-graph-write-scope-default-0701a-work-to-evidence-qa",
+      "source": "brick-6-graph-write-scope-default-0701a-work",
+      "target": "brick-6-graph-write-scope-default-0701a-evidence-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-graph-write-scope-default-0701a-code-qa-to-closure",
+      "source": "brick-6-graph-write-scope-default-0701a-code-qa",
+      "target": "brick-6-graph-write-scope-default-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-graph-write-scope-default-0701a-axis-qa-to-closure",
+      "source": "brick-6-graph-write-scope-default-0701a-axis-qa",
+      "target": "brick-6-graph-write-scope-default-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-graph-write-scope-default-0701a-evidence-qa-to-closure",
+      "source": "brick-6-graph-write-scope-default-0701a-evidence-qa",
+      "target": "brick-6-graph-write-scope-default-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-graph-write-scope-default-0701a-closure-to-boundary",
+      "source": "brick-6-graph-write-scope-default-0701a-closure",
+      "target": "building-boundary:brick-6-graph-write-scope-default-0701a-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:brick-6-graph-write-scope-default-0701a-final-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-graph-write-scope-default-0701a-work-to-code-qa",
+        "edge:brick-6-graph-write-scope-default-0701a-work-to-axis-qa",
+        "edge:brick-6-graph-write-scope-default-0701a-work-to-evidence-qa"
+      ]
+    },
+    {
+      "group_id": "group:brick-6-graph-write-scope-default-0701a-closure-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-graph-write-scope-default-0701a-code-qa-to-closure",
+        "edge:brick-6-graph-write-scope-default-0701a-axis-qa-to-closure",
+        "edge:brick-6-graph-write-scope-default-0701a-evidence-qa-to-closure"
+      ],
+      "fan_in_target_ref": "brick-6-graph-write-scope-default-0701a-closure",
+      "fan_in_policy": "wait_all_before_closure"
+    }
+  ],
+  "source_evidence_refs": [
+    "project/brick-protocol/status/kernel/brick-6-graph-route-missing-default-write-scope-finding-0701.md",
+    "project/brick-protocol/status/kernel/brick-6-graph-topology-fan-barrier-checker-closure-0701.md",
+    "support/operator/assembly.py",
+    "brick/spec.py"
+  ],
+  "proof_limits": [
+    "official brick build graph evidence is support evidence only",
+    "this Building closes only the write_scope-default half of task #8, not the barrier-checker admission-wiring half",
+    "not source truth, success judgment, quality judgment, or Movement authority"
+  ],
+  "not_proven": [
+    "graph_topology_fan_barrier admission-time wiring (separate follow-on)",
+    "whether the whole-worktree-minus-.git default is the ideal default for every future Brick kind, only that it is not worse than the current silent zero-write",
+    "P8 ship safety, P9 dynamic customer replay, fresh-machine install, real-provider reliability, customer comprehension"
+  ]
+}
