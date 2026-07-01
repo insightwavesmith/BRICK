@@ -1,0 +1,192 @@
+{
+  "task_statement": "BRICK 6-surface audit repair, Global Operating Rule 8 (goal doc commit e571947): graph_packet admission MUST reject a fan_in group whose fan_in_target_ref node is also the direct source of a fan_out group with no intervening single-target barrier node between them (fan-in and fan-out must never be the same event, per agent/skills/building-coordination/SKILL.md). P7a/P7b/P7d all burned a full real-provider Building cycle discovering this exact shape defect only at closure time, after design+work+QA had already run for real. This checker turns that expensive runtime discovery into a cheap pre-flight rejection.\n\nImplement a new checker (support/checkers/lib/ + a check_*.py or a kernel_check registered in check_profile.py, matching existing checker conventions) that statically inspects a graph_packet plan (nodes/edges/groups, matching support/operator/plan_graph.py shapes) and rejects at admission time (before any real brick build --graph dispatch) any fan_in group whose fan_in_target_ref is the direct source of an immediately-following fan_out group with zero intervening nodes.\n\nNegative fixture (must RED before the checker exists / on old behavior, GREEN once the checker rejects it): reconstruct the P7d (0701d) shape where docs-lane-qa and checker-lane-qa fan directly into three final-QA nodes (final-code-qa, final-axis-qa, final-evidence-qa) with no barrier. Positive fixture (must stay accepted): the P7d2/P7d3 (0701e/0701f) shape with the lane-qa-fanin-confirm barrier node between the lane-QA fan-in and the final-QA fan-out. Use the actual committed graph JSON files at project/brick-protocol/status/kernel/GOAL/brick-6-p7-easy-building-ergonomics-0701d.json (negative) and -0701f.json (positive) as real fixture material if useful.\n\nRegister the new check in check_profile.py per existing conventions (profile YAML + kernel dispatch). Do not create a second engine, a second admission path, or duplicate existing plan_graph.py validation -- extend/call from the existing graph-plan validation seam (support/operator/plan_graph.py and/or composition_graph_validate.py) where the fan_in/fan_out groups are already parsed, rather than re-parsing the graph packet from scratch.",
+  "declared_by": "coo",
+  "building_id": "brick-6-graph-topology-fan-barrier-checker-0701a",
+  "selected_shape_ref": "shape:design-needed",
+  "selection_rule": "Low-risk, purely additive checker task (goal doc tiering: low-risk/doc/cleanup phases may use a simpler shape than the mandatory dual-design fan-out reserved for named high-risk phases). Single design, single work, three-way final QA fan-out, closure.",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "brick-6-graph-topology-fan-barrier-checker-0701a-design",
+      "step_ref": "brick-6-graph-topology-fan-barrier-checker-0701a-design",
+      "step_template_ref": "building-step-template:design",
+      "node_reroute_budget": 1,
+      "work_statement": "Design the fan-in/fan-out-barrier admission checker per the task statement. Read agent/skills/building-coordination/SKILL.md, support/operator/plan_graph.py, support/operator/composition_graph_validate.py, and the two fixture graph JSON files named in the task statement. Propose exact function name, file location, registration point in check_profile.py, and the negative/positive probe shape. No source edits.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-graph-topology-fan-barrier-checker-0701a-design-to-work"
+    },
+    {
+      "node_id": "brick-6-graph-topology-fan-barrier-checker-0701a-work",
+      "step_ref": "brick-6-graph-topology-fan-barrier-checker-0701a-work",
+      "step_template_ref": "building-step-template:work",
+      "node_reroute_budget": 1,
+      "work_statement": "Implement the checker per the accepted design. Checker-first: add the negative fixture first, prove it currently passes/is not caught (the bug exists), implement the rejection, prove the negative fixture now RED-fires as expected and the positive fixture stays accepted. Register in check_profile.py. Run py_compile, the new focused profile, and check_profile.py --all. Return changed_files and exact command output.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/operator/**",
+          "support/connection/**"
+        ]
+      },
+      "completion_edge_ref": "edge:brick-6-graph-topology-fan-barrier-checker-0701a-work-to-code-qa"
+    },
+    {
+      "node_id": "brick-6-graph-topology-fan-barrier-checker-0701a-code-qa",
+      "step_ref": "brick-6-graph-topology-fan-barrier-checker-0701a-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Attack the checker implementation: confirm the negative fixture genuinely RED-fires with the new checker (not vacuously), confirm the positive fixture (P7d2/P7d3 barrier shape) is still accepted, confirm py_compile and check_profile.py --all pass. Probe_write only, no source mutation.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "brick-6-graph-topology-fan-barrier-checker-0701a-axis-qa",
+      "step_ref": "brick-6-graph-topology-fan-barrier-checker-0701a-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Confirm this checker stays support/checker mechanics only -- it may REJECT a bad graph_packet, but must not choose Movement, targets, success, or quality; it must not become a second engine or a second admission path duplicating plan_graph.py. Probe_write only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "brick-6-graph-topology-fan-barrier-checker-0701a-evidence-qa",
+      "step_ref": "brick-6-graph-topology-fan-barrier-checker-0701a-evidence-qa",
+      "step_template_ref": "building-step-template:evidence-integrity",
+      "node_reroute_budget": 1,
+      "work_statement": "Confirm evidence integrity: negative/positive fixtures are real and byte-distinct from prior QA bodies, proof_limits/not_proven present, no overclaiming of coverage beyond the fan-in/fan-out-barrier shape checked. Probe_write only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "brick-6-graph-topology-fan-barrier-checker-0701a-closure",
+      "step_ref": "brick-6-graph-topology-fan-barrier-checker-0701a-closure",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Fan in code-qa, axis-qa, evidence-qa. Report observed_evidence / narrowly_proven / not_proven / next Movement candidate. Close only if the negative fixture RED-fires and the positive fixture stays accepted with current evidence; otherwise return Link-facing transition_concern_evidence and HOLD rather than smoothing it.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "closure_transition_target_policy": {
+        "implementation_gap": {
+          "action": "hold"
+        },
+        "boundary_mismatch": {
+          "action": "hold"
+        },
+        "verification_gap": {
+          "action": "hold"
+        },
+        "insufficient_input": {
+          "action": "hold"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:brick-6-graph-topology-fan-barrier-checker-0701a-design-to-work",
+      "source": "brick-6-graph-topology-fan-barrier-checker-0701a-design",
+      "target": "brick-6-graph-topology-fan-barrier-checker-0701a-work",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-graph-topology-fan-barrier-checker-0701a-work-to-code-qa",
+      "source": "brick-6-graph-topology-fan-barrier-checker-0701a-work",
+      "target": "brick-6-graph-topology-fan-barrier-checker-0701a-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-graph-topology-fan-barrier-checker-0701a-work-to-axis-qa",
+      "source": "brick-6-graph-topology-fan-barrier-checker-0701a-work",
+      "target": "brick-6-graph-topology-fan-barrier-checker-0701a-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-graph-topology-fan-barrier-checker-0701a-work-to-evidence-qa",
+      "source": "brick-6-graph-topology-fan-barrier-checker-0701a-work",
+      "target": "brick-6-graph-topology-fan-barrier-checker-0701a-evidence-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-graph-topology-fan-barrier-checker-0701a-code-qa-to-closure",
+      "source": "brick-6-graph-topology-fan-barrier-checker-0701a-code-qa",
+      "target": "brick-6-graph-topology-fan-barrier-checker-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-graph-topology-fan-barrier-checker-0701a-axis-qa-to-closure",
+      "source": "brick-6-graph-topology-fan-barrier-checker-0701a-axis-qa",
+      "target": "brick-6-graph-topology-fan-barrier-checker-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-graph-topology-fan-barrier-checker-0701a-evidence-qa-to-closure",
+      "source": "brick-6-graph-topology-fan-barrier-checker-0701a-evidence-qa",
+      "target": "brick-6-graph-topology-fan-barrier-checker-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-graph-topology-fan-barrier-checker-0701a-closure-to-boundary",
+      "source": "brick-6-graph-topology-fan-barrier-checker-0701a-closure",
+      "target": "building-boundary:brick-6-graph-topology-fan-barrier-checker-0701a-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:brick-6-graph-topology-fan-barrier-checker-0701a-final-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-graph-topology-fan-barrier-checker-0701a-work-to-code-qa",
+        "edge:brick-6-graph-topology-fan-barrier-checker-0701a-work-to-axis-qa",
+        "edge:brick-6-graph-topology-fan-barrier-checker-0701a-work-to-evidence-qa"
+      ]
+    },
+    {
+      "group_id": "group:brick-6-graph-topology-fan-barrier-checker-0701a-closure-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-graph-topology-fan-barrier-checker-0701a-code-qa-to-closure",
+        "edge:brick-6-graph-topology-fan-barrier-checker-0701a-axis-qa-to-closure",
+        "edge:brick-6-graph-topology-fan-barrier-checker-0701a-evidence-qa-to-closure"
+      ],
+      "fan_in_target_ref": "brick-6-graph-topology-fan-barrier-checker-0701a-closure",
+      "fan_in_policy": "wait_all_before_closure"
+    }
+  ],
+  "source_evidence_refs": [
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-repair-goal-0630.md",
+    "agent/skills/building-coordination/SKILL.md",
+    "project/brick-protocol/status/kernel/brick-6-p7-easy-building-ergonomics-operator-hold-0701d.md",
+    "project/brick-protocol/status/kernel/GOAL/brick-6-p7-easy-building-ergonomics-0701d.json",
+    "project/brick-protocol/status/kernel/GOAL/brick-6-p7-easy-building-ergonomics-0701f.json"
+  ],
+  "proof_limits": [
+    "official brick build graph evidence is support evidence only",
+    "this Building closes only Global Operating Rule 8 (fan-in/fan-out barrier admission), not whole P8/P9 readiness",
+    "not source truth, success judgment, quality judgment, or Movement authority"
+  ],
+  "not_proven": [
+    "whether this checker catches every possible malformed graph topology, only the specific fan-in-immediately-fan-out shape",
+    "P8 ship safety, P9 dynamic customer replay, fresh-machine install, real-provider reliability, customer comprehension"
+  ]
+}
