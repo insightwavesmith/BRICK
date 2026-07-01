@@ -1,0 +1,75 @@
+{
+    "task_statement": "DIAGNOSTIC PROBE (throwaway, will not be adopted): reproduce empirically what happens when a write-needed Brick node (building-step-template:work) attempts a file write with NO write_scope field declared at all. Per support/connection/agent_resources.py, effective write = write_scope AND read-write-scoped tool policy AND observed-write-adapter; write_need is derived from whether write_scope is non-empty. This probe asks the work node to attempt one small write and report exactly whether it succeeded, failed, or was denied by capability, so we get live ground truth instead of inferring from code reading. Single node, no design, no QA fan-out, no write_scope declared on the work node intentionally.",
+    "declared_by": "coo",
+    "building_id": "brick-6-write-scope-repro-0701z",
+    "selected_shape_ref": "shape:manual-small-unblocker",
+    "selection_rule": "Disposable diagnostic probe: smallest possible valid graph (single work node, no declared write_scope, direct to closure) to observe real runtime write-capability behavior. Not adopted, not merged to main.",
+    "selected_adapter_ref": "adapter:codex-local",
+    "selected_model_ref": "model:codex:default",
+    "chain_preset_ref": "",
+    "nodes": [
+        {
+            "node_id": "brick-6-write-scope-repro-0701z-work",
+            "step_ref": "brick-6-write-scope-repro-0701z-work",
+            "step_template_ref": "building-step-template:work",
+            "node_reroute_budget": 1,
+            "work_statement": "DIAGNOSTIC PROBE ONLY. Attempt to write the exact text 'ok' to the file path project/brick-protocol/status/kernel/.write-scope-repro-test.txt (relative to repo root). Then report exactly what happened: state explicitly whether the write SUCCEEDED, FAILED with an error, or was DENIED by capability/tool-policy/adapter grant, and quote the exact error or denial message if any was returned. Do not attempt any other file writes. Do not attempt workarounds if the write is denied -- just report the denial verbatim. This node intentionally has no write_scope declared.",
+            "selected_adapter_ref": "adapter:codex-local",
+            "selected_model_ref": "model:codex:default",
+            "completion_edge_ref": "edge:brick-6-write-scope-repro-0701z-work-to-closure"
+        },
+        {
+            "node_id": "brick-6-write-scope-repro-0701z-closure",
+            "step_ref": "brick-6-write-scope-repro-0701z-closure",
+            "step_template_ref": "building-step-template:closure",
+            "node_reroute_budget": 1,
+            "work_statement": "DIAGNOSTIC PROBE ONLY. Report the work node's exact outcome (write succeeded / failed / denied by capability) verbatim, with no smoothing or interpretation. Close regardless of outcome; this is diagnostic observation, not a real implementation task. Do not claim any repair or feature is complete.",
+            "selected_adapter_ref": "adapter:codex-local",
+            "selected_model_ref": "model:codex:default",
+            "completion_edge_ref": "edge:brick-6-write-scope-repro-0701z-closure-to-boundary",
+            "closure_transition_target_policy": {
+                "implementation_gap": {
+                    "action": "hold"
+                },
+                "boundary_mismatch": {
+                    "action": "hold"
+                },
+                "verification_gap": {
+                    "action": "hold"
+                },
+                "insufficient_input": {
+                    "action": "hold"
+                }
+            }
+        }
+    ],
+    "edges": [
+        {
+            "edge_ref": "edge:brick-6-write-scope-repro-0701z-work-to-closure",
+            "source": "brick-6-write-scope-repro-0701z-work",
+            "target": "brick-6-write-scope-repro-0701z-closure",
+            "movement": "forward"
+        },
+        {
+            "edge_ref": "edge:brick-6-write-scope-repro-0701z-closure-to-boundary",
+            "source": "brick-6-write-scope-repro-0701z-closure",
+            "target": "building-boundary:brick-6-write-scope-repro-0701z-closed",
+            "movement": "forward"
+        }
+    ],
+    "groups": [],
+    "source_evidence_refs": [
+        "support/connection/agent_resources.py",
+        "support/connection/adapter_grant_policy.py"
+    ],
+    "proof_limits": [
+        "disposable diagnostic probe only, not a real Building",
+        "observes exactly one write-needed node with no declared write_scope",
+        "not source truth, success judgment, quality judgment, or Movement authority",
+        "will not be adopted or merged into main product behavior"
+    ],
+    "not_proven": [
+        "whether this behavior is correct/desired -- this probe only observes what currently happens",
+        "any other write_scope shape (partial scope, forbidden_paths edge cases, multi-node interaction)"
+    ]
+}
