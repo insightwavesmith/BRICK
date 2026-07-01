@@ -22,14 +22,14 @@ Today a fresh-install run of `brick init` (support/operator/cli.py:764-776, `_cm
 
 Extend `brick init` with a new PROVIDER phase, inserted between PRESENT (doctor) and PLUGIN, non-interactive-safe but interactive-aware:
 
-1. **PRESENT (unchanged)**: `run_doctor()` runs `preflight_provider()` per host, prints readiness.
-2. **PROVIDER (new)**: `run_provider_register_step()`. If `--host` was passed and preflight reports `ready`: auto-register that adapter, write the record, mark it preferred (first one wins), no prompt. If interactive TTY with no ready adapter: one flat prompt — "Register a provider now? [codex/claude/gemini/skip]" — not a nested wizard; only a `ready` preflight result gets persisted. If non-interactive and nothing ready: skip with a one-line advisory ("no provider registered — run `brick provider add <host>` later"); never fall through to an unauthenticated adapter for the smoke test.
-3. **PLUGIN / SLACK (unchanged)**.
+1. **PRESENT (expanded, Smith 0701)**: `run_doctor()` currently only runs `preflight_provider()` per host. Expand it to also assert basic ENVIRONMENT readiness before any provider talk: Python version (`>=3.11` per `pyproject.toml`), and — the exact gap live-reproduced this session — `pipx` presence (today's install hit "pipx 가 없어요" mid-install with no upfront warning; install.sh currently only discovers this at step 5, after clone+deps already ran). Doctor should surface all of this in one place, upfront, before the user is multiple steps in.
+2. **PROVIDER (new)**: `run_provider_register_step()`. If `--host` was passed and preflight reports `ready`: auto-register that adapter, write the record, mark it preferred (first one wins), no prompt. If interactive TTY with no ready adapter: one flat prompt — "Register a provider now? [codex/claude/gemini/skip]" — not a nested wizard; only a `ready` preflight result gets persisted. If non-interactive and nothing ready: skip with a one-line advisory ("no provider registered — run `brick provider add <host>` later"); never fall through to an unauthenticated adapter for the smoke test. **Optional sub-item (Smith 0701)**: fold Slack channel registration into this same step as an explicitly-optional item (adjacent to, not replacing, the existing `run_slack_provision_step()`/`report.env` mechanism) — "register your LLM provider(s), and optionally a Slack channel" as one coherent registration moment, rather than Slack being a separate, easy-to-miss CLI-flag-only path.
+3. **PLUGIN (unchanged)**.
 4. **SMOKE TEST (renamed from ONBOARD+EXAMPLE)**: `_example_step()` resolves its adapter from the registration record's preferred entry, not a hardcoded `allow_real_provider` flag. No registration → explicit, announced `adapter:local` run, not a silent per-object default.
 5. **VERIFY (unchanged)**.
 6. **New standalone command**: `brick provider add <host>` — the same registration sub-step from step 2, callable any time to add a second/third provider without rerunning all six phases (mirrors Hermes' `hermes model`/`hermes auth add` reuse pattern, as a thin wrapper around `run_provider_register_step()`).
 
-This satisfies the operator's stated vision directly: terminal run -> install -> LLM registration -> one Building smoke test -> more (via `brick provider add`).
+This satisfies the operator's stated vision directly: terminal run -> install -> environment check -> LLM registration (+ optional Slack) -> one Building smoke test -> more (via `brick provider add`).
 
 ## 4. Proposed persistence
 
@@ -52,6 +52,8 @@ providers:
 ```
 
 Field notes: `preferred_adapter_ref` is set once, on first successful registration (`status: ready`), never silently reassigned later — mirrors Hermes' `mark_provider_active_if_unset` but as one flat pointer, not a nested active-provider system. `providers` is an ordered list (registration order = ladder tie-break order). `last_preflight` caches the most recent `preflight_provider()` result, refreshable by `brick doctor` — explicitly a cache, not a live guarantee, so the smoke-test step still re-runs preflight before use. `model_ref`/`reasoning_tier` are the two separately-settable fields answering "model/tier selection happens too," deliberately named to match the `model:codex:default`-style refs already used in `agent/objects/*.yaml` so no new ref vocabulary is invented.
+
+**Ships unregistered (Smith 0701, explicit requirement)**: `~/.brick/providers.yaml` lives under the per-user home directory, never under the repo (`project/` or repo root) — it is not git-tracked by construction, so a fresh `git clone` genuinely starts with zero registered providers; nothing works until a real registration happens. This must hold as an explicit invariant, not an accident of file placement: no template/example `providers.yaml` with a placeholder or real provider pre-filled should ever be committed to the repo, and no install/setup step should write a "default" entry on the caller's behalf without an actual successful `preflight_provider()` ready result backing it.
 
 ## 5. Proposed adapter-resolution change
 
