@@ -66,6 +66,7 @@ path_exists:
   - support/operator/write_observation.py
   - support/checkers/check_profile.py
   - support/checkers/lib/case_runners.py
+  - support/connection/adapter_constants.py
   - support/connection/agent_resources.py
   - support/connection/coo_sync.py
   - support/connection/mcp_projection.py
@@ -129,6 +130,15 @@ text_contains:
       - native_grant
       - exfiltration_not_enforced
       - web exfiltration is NOT enforced by this policy
+  - path: support/connection/adapter_constants.py
+    texts:
+      - ADAPTER_BOUNDARY_PROOF_LIMITS
+      - adapter_boundary_matrix
+      - boundary_strength
+      - credential_path_class
+      - write_boundary
+      - "adapter identity is not write authority"
+      - "write_effective still requires Brick write_scope NEED"
   - path: agent/objects/pm-lead.yaml
     texts:
       - tool-policy:web-capable
@@ -444,6 +454,8 @@ adapter_capability_rehome_case:
     case_kind: native_grant_semantic_codex_gemini_parity
   - label: retired-gemini-api-no-write-or-probe
     case_kind: retired_gemini_api_no_write_or_probe
+  - label: boundary-matrix-support-only
+    case_kind: boundary_matrix_support_only
   - label: checker-sweep-blocks-live-provider-cli
     case_kind: checker_sweep_blocks_live_provider_cli
   - label: native-grant-policy-only-fails-closed

@@ -68,6 +68,7 @@ ROOT_FILES = {
     "README.md",
     "AGENTS.md",
     "pyproject.toml",
+    "uv.lock",
 }
 
 PACKAGE_MARKERS = {
@@ -272,13 +273,14 @@ ONBOARD_INSTALL_SCRIPT0_TARGETS = {
     "support/onboarding/install.sh",
 }
 
-# RELEASE-EXPORT-0: the operator-run clean public release export verb. This is
-# an inert onboarding support artifact: it copies the checkout to a clean output
-# tree, excludes local project evidence and build artifacts, initializes a fresh
-# git repository there, and prints push/tag follow-up commands without doing
-# network publication. Owns no crossing, judges nothing.
+# RELEASE-EXPORT-0: the operator-run clean public release export verb plus the
+# local release gate that dry-runs it after compileall + check_profile.py --all.
+# These are inert onboarding support artifacts: they may prepare local evidence
+# and print follow-up commands, but do not change repository settings, publish,
+# choose Movement, or judge success/quality.
 ONBOARD_RELEASE_EXPORT0_TARGETS = {
     "support/onboarding/release_export.sh",
+    "support/onboarding/release_gate.sh",
 }
 
 # ONBOARDING-RECORDING-HOOKS (0610): TRACKED machine-neutral templates for the
@@ -737,6 +739,8 @@ PROJECT_ROOT_DECLARATION_FILES = {
 }
 
 ALLOWED_DIRS = {
+    ".github",
+    ".github/workflows",
     "support",
     "support/docs",
     "support/docs/spec",
@@ -1464,12 +1468,9 @@ def ignored_repo_path(path: str) -> bool:
     if path == ".brick-engine-worktree":
         return True
     # ONBOARDING (0610): machine/build-artifact class produced by the
-    # documented installer (support/onboarding/install.sh -> uv sync): the
-    # local virtualenv and the uv lockfile are per-machine artifacts
-    # (gitignored), same class as the .claude/.codex machine config dirs.
+    # documented installer (support/onboarding/install.sh -> uv sync). The
+    # local virtualenv remains gitignored machine state.
     if path == ".venv" or path.startswith(".venv/"):
-        return True
-    if path == "uv.lock":
         return True
     if path == ".ruff_cache" or path.startswith(".ruff_cache/"):
         return True
@@ -1842,6 +1843,9 @@ def allowed_path(path: str) -> bool:
         return True
 
     if clean in ONBOARD_RELEASE_EXPORT0_TARGETS:
+        return True
+
+    if clean == ".github/workflows/release-gate.yaml":
         return True
 
     if clean in ONBOARD_RECORDING_HOOK_TEMPLATE_TARGETS:

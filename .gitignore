@@ -9,7 +9,6 @@ dist/
 build/
 *.egg-info/
 .venv/
-uv.lock
 node_modules/
 .vercel/
 .claude/

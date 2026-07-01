@@ -36,6 +36,7 @@ from support.connection.adapter_constants import (
     MODEL_REF_CLAUDE_INHERIT,
     MODEL_REF_CODEX_DEFAULT,
     MODEL_REF_GEMINI_DEFAULT,
+    adapter_boundary_matrix,
 )
 from support.connection.agent_adapter import adapter_is_write_capable
 from support.connection.adapter_subprocess import preflight_provider
@@ -201,6 +202,30 @@ def _readiness_evidence(row: dict[str, Any]) -> dict[str, Any]:
     if "credential_validity" in row:
         evidence["credential_validity"] = str(row.get("credential_validity") or "not_proven")
     return evidence
+
+
+def _adapter_boundary_packet() -> dict[str, Any]:
+    """Return customer-reportable adapter boundary evidence."""
+
+    return {
+        "schema": "support-adapter-boundary-matrix/v1",
+        "rows": [dict(row) for row in adapter_boundary_matrix()],
+        "proof_limits": [
+            "support CLI report only",
+            "adapter identity is not write authority",
+            "write_effective still derives from Brick write_scope plus Agent policy plus observed-write support",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ],
+        "not_proven": [
+            "credential validity",
+            "provider availability",
+            "provider process integrity",
+            "future Building correctness",
+        ],
+    }
 
 
 def _first_ready_real_provider_choice() -> dict[str, Any]:
@@ -595,6 +620,20 @@ def _render_doctor(packet: dict[str, Any]) -> str:
     lines.append("symptom_table:")
     for symptom, prescription in packet.get("symptom_table", []):
         lines.append(f"- {symptom} -> {prescription}")
+    boundary = packet.get("adapter_boundary_matrix")
+    if isinstance(boundary, dict):
+        lines.append("adapter_boundary_matrix:")
+        for row in boundary.get("rows", []):
+            lines.append(
+                "- "
+                + str(row.get("adapter_ref", ""))
+                + ": boundary_strength="
+                + str(row.get("boundary_strength", ""))
+                + "; credential_path_class="
+                + str(row.get("credential_path_class", ""))
+                + "; observed_write_adapter="
+                + ("yes" if row.get("observed_write_adapter") else "no")
+            )
     lines.append("proof_limits: diagnosis record only; no source truth, success, quality, or Movement authority")
     return "\n".join(lines)
 
@@ -618,6 +657,7 @@ def _status_packet(args: argparse.Namespace) -> dict[str, Any]:
         "default_builds_root_exists": builds_root.exists(),
         "proof_limits": list(PROOF_LIMITS),
         "not_proven": list(NOT_PROVEN),
+        "adapter_boundary_matrix": _adapter_boundary_packet(),
         **_support_observation_packet(),
     }
 
@@ -636,6 +676,8 @@ def _render_status(packet: dict[str, Any]) -> str:
             f"default_builds_root: {packet['default_builds_root']}",
             f"default_build_root_basis: {packet['default_build_root_basis']}",
             f"default_builds_root_exists: {packet['default_builds_root_exists']}",
+            "adapter_boundary_matrix_rows: "
+            + str(len(packet.get("adapter_boundary_matrix", {}).get("rows", []))),
             "proof_limits: " + "; ".join(packet["proof_limits"]),
             "not_proven: " + "; ".join(packet["not_proven"]),
         ]
@@ -644,6 +686,7 @@ def _render_status(packet: dict[str, Any]) -> str:
 
 def _cmd_doctor(args: argparse.Namespace) -> int:
     packet = onboard.run_doctor()
+    packet["adapter_boundary_matrix"] = _adapter_boundary_packet()
     if args.json:
         print(_json_dump(packet))
     else:

@@ -7,6 +7,38 @@ packet behind the operator's own access wall.
 It is not source truth, success judgment, quality judgment, Movement authority,
 a scheduler, a queue, a retry loop, a login system, or credential storage.
 
+## Required External Access Wall
+
+Deployment requires an external access wall before any viewer can reach the
+dashboard. Use the platform boundary: Cloud Run IAP, an authenticating reverse
+proxy, VPN allowlist, firewall allowlist, mTLS, SSO gateway, or an equivalent
+operator-controlled access layer.
+
+The dashboard app intentionally does not implement viewer accounts, sessions,
+or in-app viewer authorization. `INGEST_SECRET` protects `POST /ingest` only;
+it is not viewer authentication. Static GET paths, `/dashboard-data.json`,
+`/events`, and `/healthz` must remain reachable only through the external
+access wall.
+
+Do not deploy the dashboard directly to the open internet. For local container
+tests, bind to `127.0.0.1` unless an external wall is already in front of it.
+
+## Container Base Image Policy
+
+The Dockerfile uses the active Node major slim image for both build and runtime
+stages (`node:22-slim`). Keep the build and runtime base image on the same Node
+major unless a separate compatibility check admits a split.
+
+For routine operation, rebuild on every dashboard release and after upstream
+Node or Debian slim security updates. Review the base image at least monthly
+and before any production deployment after a high or critical advisory.
+
+For environments that require immutable supply-chain inputs, replace the moving
+major tag with an approved digest pin such as
+`node:22-slim@sha256:<approved-digest>` in the deployment branch or build
+system. Refresh the digest through the same review cycle; do not pin once and
+leave it stale.
+
 ## Bake The Seed
 
 Bake the static seed before building the dashboard image:

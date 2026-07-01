@@ -1,4 +1,4 @@
-"""Onboarding install-script + release-export exclusion structural/safety lints.
+"""Onboarding install-script + release-gate/export structural/safety lints.
 
 FINAL architecture leaf (0630): the install_script_lint + release_export_exclusion
 cluster moved VERBATIM out of kernel_checks.py into this flat checker-lib sibling
@@ -23,9 +23,31 @@ from support.checkers.lib.yaml_subset import (
 
 _INSTALL_SCRIPT_REL = "support/onboarding/install.sh"
 _RELEASE_EXPORT_REL = "support/onboarding/release_export.sh"
+_RELEASE_GATE_REL = "support/onboarding/release_gate.sh"
 _RELEASE_EXPORT_REQUIRED_EXCLUSIONS = (
     "project",
     "brick_protocol.egg-info",
+)
+_RELEASE_EXPORT_REQUIRED_DENY_PATTERNS = (
+    ".env",
+    ".env.*",
+    "credentials.env",
+    "report.env",
+    ".claude",
+    ".claude/**",
+    ".codex",
+    ".codex/**",
+    ".gemini",
+    ".gemini/**",
+    ".mcp.json",
+    ".ssh",
+    ".ssh/**",
+    "secrets",
+    "secrets/**",
+    "tokens",
+    "tokens/**",
+    "sessions",
+    "sessions/**",
 )
 
 # Secret-shaped patterns the one-line installer must NEVER carry inline. The
@@ -148,14 +170,58 @@ def _release_export_exclusions(text: str) -> set[str]:
     return set(re.findall(r"""["']([^"']+)["']""", match.group("body")))
 
 
+def _release_export_deny_patterns(text: str) -> set[str]:
+    match = re.search(r"DENY_PATH_PATTERNS\s*=\s*\((?P<body>.*?)\)", text, re.DOTALL)
+    if not match:
+        return set()
+    return set(re.findall(r"""["']([^"']+)["']""", match.group("body")))
+
+
 def _release_export_exclusion_violations(text: str) -> list[str]:
     exclusions = _release_export_exclusions(text)
+    deny_patterns = _release_export_deny_patterns(text)
     violations: list[str] = []
     if not exclusions:
         violations.append("missing literal EXCLUDE_PATHS tuple")
     for required in _RELEASE_EXPORT_REQUIRED_EXCLUSIONS:
         if required not in exclusions:
             violations.append(f"missing required exclusion: {required}/")
+    if not deny_patterns:
+        violations.append("missing literal DENY_PATH_PATTERNS tuple")
+    for required in _RELEASE_EXPORT_REQUIRED_DENY_PATTERNS:
+        if required not in deny_patterns:
+            violations.append(f"missing required deny path pattern: {required}")
+    if "--include-untracked" not in text:
+        violations.append("missing explicit --include-untracked opt-in flag")
+    if "--allow-dirty" not in text:
+        violations.append("missing explicit --allow-dirty override flag")
+    if '"ls-files", "-z", "--cached"' not in text:
+        violations.append("release input must default to tracked files via git ls-files --cached")
+    if 'ls_files_cmd.extend(["--others", "--exclude-standard"])' not in text:
+        violations.append("untracked files must only be added behind include_untracked")
+    if '"status", "--porcelain", "--untracked-files=all"' not in text:
+        violations.append("missing dirty-checkout status probe")
+    if "if dirty_entries and not allow_dirty:" not in text:
+        violations.append("dirty checkout must fail closed unless --allow-dirty is set")
+    if "denied_path_pattern(raw_rel)" not in text:
+        violations.append("export inputs must pass the denylist before copy")
+    if "secret/local/provider/session path denylist matched export input" not in text:
+        violations.append("denylist failure must name secret/local/provider/session path class")
+    if "target.relative_to(source)" not in text:
+        violations.append("symlink target must be resolved and contained inside checkout")
+    if "refusing symlink with target outside checkout" not in text:
+        violations.append("symlink escape refusal must be explicit")
+    for report_line in (
+        "input mode:",
+        "dirty checkout override:",
+        "dirty entries observed:",
+        "excluded paths matched:",
+        "denylist roots/patterns:",
+        "denylist matches: 0",
+        "skipped missing inputs:",
+    ):
+        if report_line not in text:
+            violations.append(f"missing exclusion/export report line: {report_line}")
     if "git remote add origin git@github.com:{OWNER}/BRICK.git" not in text:
         violations.append("missing placeholder remote follow-up command")
     if "git tag v0.1.0" not in text:
@@ -166,14 +232,54 @@ def _release_export_exclusion_violations(text: str) -> list[str]:
 
 
 def _release_export_exclusion_fire_probe(text: str) -> int:
-    mutated = text.replace('    "project",\n', "", 1)
-    violations = _release_export_exclusion_violations(mutated)
+    fired = 0
+
+    without_project = text.replace('    "project",\n', "", 1)
+    violations = _release_export_exclusion_violations(without_project)
     if not any("missing required exclusion: project/" in violation for violation in violations):
         raise ProfileError(
             "release_export_exclusion FIRE probe did NOT fire when project/ "
             "was removed from the export exclusion list"
         )
-    return 1
+    fired += 1
+
+    without_dirty_guard = text.replace("if dirty_entries and not allow_dirty:", "if False:", 1)
+    violations = _release_export_exclusion_violations(without_dirty_guard)
+    if not any("dirty checkout must fail closed" in violation for violation in violations):
+        raise ProfileError(
+            "release_export_exclusion FIRE probe did NOT fire when the dirty "
+            "checkout fail-closed guard was removed"
+        )
+    fired += 1
+
+    without_secret_path = text.replace('    ".env",\n', "", 1)
+    violations = _release_export_exclusion_violations(without_secret_path)
+    if not any("missing required deny path pattern: .env" in violation for violation in violations):
+        raise ProfileError(
+            "release_export_exclusion FIRE probe did NOT fire when the .env "
+            "secret-path deny pattern was removed"
+        )
+    fired += 1
+
+    without_deny_call = text.replace("denied_path_pattern(raw_rel)", "None", 1)
+    violations = _release_export_exclusion_violations(without_deny_call)
+    if not any("export inputs must pass the denylist" in violation for violation in violations):
+        raise ProfileError(
+            "release_export_exclusion FIRE probe did NOT fire when the denylist "
+            "copy-time check was removed"
+        )
+    fired += 1
+
+    without_symlink_target_check = text.replace("target.relative_to(source)", "target", 1)
+    violations = _release_export_exclusion_violations(without_symlink_target_check)
+    if not any("symlink target must be resolved" in violation for violation in violations):
+        raise ProfileError(
+            "release_export_exclusion FIRE probe did NOT fire when the symlink "
+            "target containment check was removed"
+        )
+    fired += 1
+
+    return fired
 
 
 def run_release_export_exclusion(repo: Path) -> KernelResult:
@@ -205,9 +311,105 @@ def run_release_export_exclusion(repo: Path) -> KernelResult:
         output=(
             "release export exclusion pin passed: support/onboarding/release_export.sh "
             "carries literal exclusions for project/ and brick_protocol.egg-info/, "
-            "prints manual remote/tag/push follow-up commands with {OWNER}, and "
-            "the temp mutation removing project/ fired RED. PROOF LIMIT: this is "
+            "defaults to tracked-only input with explicit --include-untracked, "
+            "fails closed on dirty checkout unless --allow-dirty is recorded, "
+            "carries a secret/local/provider/session path denylist, resolves "
+            "symlink targets inside the checkout, prints an exclusion/export "
+            "report plus manual remote/tag/push follow-up commands with {OWNER}, "
+            "and FIRE probes for exclusion, dirty guard, denylist, and symlink "
+            "containment fired RED. PROOF LIMIT: this is "
             "support evidence only; it does not run publication, choose Movement, "
             "or judge release quality."
+        ),
+    )
+
+
+def run_release_gate_contract(repo: Path) -> KernelResult:
+    """Pin the local release gate's support-only command contract.
+
+    The gate may sequence already-admitted support checks and a release-export
+    dry-run. It must not publish, tag, push, mutate GitHub settings, choose
+    Movement, or judge quality/success.
+    """
+
+    script_path = repo / _RELEASE_GATE_REL
+    workflow_path = repo / ".github/workflows/release-gate.yaml"
+    if not script_path.is_file():
+        raise ProfileError(
+            f"release_gate_contract: release gate missing: {_RELEASE_GATE_REL}"
+        )
+    if not workflow_path.is_file():
+        raise ProfileError(
+            "release_gate_contract: workflow missing: "
+            ".github/workflows/release-gate.yaml"
+        )
+
+    text = script_path.read_text(encoding="utf-8")
+    workflow = workflow_path.read_text(encoding="utf-8")
+    violations: list[str] = []
+
+    required_script_texts = (
+        "set -eu",
+        "uv run python3 -m compileall -q brick agent link support",
+        "uv run python3 support/checkers/check_profile.py --all",
+        "sh support/onboarding/release_export.sh --output",
+        "mktemp -d",
+        "trap cleanup EXIT HUP INT TERM",
+        "does not prove source truth, success, quality, Movement authority, "
+        "branch protection, or real publication",
+    )
+    for required in required_script_texts:
+        if required not in text:
+            violations.append(f"release gate missing required text: {required!r}")
+
+    forbidden_script_texts = (
+        "git push",
+        "git tag",
+        "gh api",
+        "gh repo edit",
+        "branch protection",
+        "success judgment",
+        "quality judgment",
+    )
+    for forbidden in forbidden_script_texts:
+        if forbidden in text and forbidden not in (
+            "branch protection",
+            "success judgment",
+            "quality judgment",
+        ):
+            violations.append(
+                "release gate contains forbidden publish/settings verb: "
+                f"{forbidden!r}"
+            )
+
+    required_workflow_texts = (
+        "uv sync --locked",
+        "sh support/onboarding/release_gate.sh",
+        "permissions:",
+        "contents: read",
+    )
+    for required in required_workflow_texts:
+        if required not in workflow:
+            violations.append(f"workflow missing required text: {required!r}")
+    for forbidden in ("git push", "gh api", "gh repo edit"):
+        if forbidden in workflow:
+            violations.append(f"workflow contains forbidden publish/settings verb: {forbidden!r}")
+
+    if violations:
+        raise ProfileError(
+            "release_gate_contract rejected local release gate:\n"
+            + "\n".join(f"- {violation}" for violation in violations)
+        )
+
+    return KernelResult(
+        check_id="release_gate_contract",
+        inspected=2,
+        output=(
+            "release gate contract passed: support/onboarding/release_gate.sh "
+            "runs compileall, check_profile.py --all, and a release-export dry-run; "
+            "the GitHub workflow invokes that local gate after uv sync --locked "
+            "with read-only contents permission. PROOF LIMIT: support evidence "
+            "only; this does not prove branch protection, publication, source "
+            "truth, success, quality, or Movement authority."
         ),
     )

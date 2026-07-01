@@ -15,6 +15,7 @@ import ast
 import base64
 import contextlib
 import hashlib
+import hmac
 import importlib
 import io
 import json
@@ -3052,6 +3053,7 @@ from support.checkers.lib.install_release_export_lint_check import (
     _release_export_exclusion_violations,
     _release_export_exclusion_fire_probe,
     run_release_export_exclusion,
+    run_release_gate_contract,
 )
 
 
@@ -6552,7 +6554,14 @@ def _dashboard_productization_server_violations(text: str) -> list[str]:
         "production dev fallback reject": "IS_PRODUCTION && (!NORMALIZED_INGEST_SECRET || NORMALIZED_INGEST_SECRET === 'dev-secret')",
         "fail-closed helper": "function ingestRefusesInProduction()",
         "POST fail-closed guard": "if (ingestRefusesInProduction())",
-        "header comparison": "req.headers['x-ingest-secret'] !== INGEST_SECRET",
+        "HMAC verifier": "function verifyIngestSignature(req, body)",
+        "HMAC construction": "createHmac('sha256', INGEST_SECRET)",
+        "timestamp skew window": "INGEST_TIMESTAMP_SKEW_SECONDS",
+        "event replay cache": "seenEventIds.has(eventId)",
+        "event replay record": "function rememberEventId(eventId)",
+        "signed event id body match": "msg.event_id !== signatureCheck.eventId",
+        "sequence rollback guard": "function rejectSequenceRollback(ref, msg)",
+        "per-participant sequence table": "participantSequences.set(ref, sequence)",
     }
     violations = [
         f"server/index.mjs missing {label}: {snippet!r}"
@@ -6561,15 +6570,17 @@ def _dashboard_productization_server_violations(text: str) -> list[str]:
     ]
     post_marker = "if (url === '/ingest' && req.method === 'POST')"
     fail_guard = "if (ingestRefusesInProduction())"
-    header_guard = "if (req.headers['x-ingest-secret'] !== INGEST_SECRET)"
+    signature_guard = "const signatureCheck = verifyIngestSignature(req, body)"
     try:
         post_idx = text.index(post_marker)
         fail_idx = text.index(fail_guard, post_idx)
-        header_idx = text.index(header_guard, post_idx)
+        signature_idx = text.index(signature_guard, post_idx)
     except ValueError:
         return violations
-    if not (post_idx < fail_idx < header_idx):
-        violations.append("server/index.mjs POST /ingest fail-closed guard must run before header comparison")
+    if not (post_idx < fail_idx < signature_idx):
+        violations.append("server/index.mjs POST /ingest fail-closed guard must run before signature verification")
+    if "req.headers['x-ingest-secret'] !== INGEST_SECRET" in text:
+        violations.append("server/index.mjs must not authenticate ingest with raw x-ingest-secret equality")
     if "process.env.INGEST_SECRET || 'dev-secret'" in text:
         violations.append("server/index.mjs must not default directly from process.env.INGEST_SECRET to dev-secret")
     return violations
@@ -6599,6 +6610,38 @@ def _dashboard_productization_assert_mutated_server_rejects(text: str) -> int:
             lambda source: source.replace(
                 "if (ingestRefusesInProduction())",
                 "if (false)",
+                1,
+            ),
+        ),
+        (
+            "signature verifier removed",
+            lambda source: source.replace(
+                "function verifyIngestSignature(req, body)",
+                "function verifyIngestSignature_removed(req, body)",
+                1,
+            ),
+        ),
+        (
+            "replay cache disabled",
+            lambda source: source.replace(
+                "seenEventIds.has(eventId)",
+                "false",
+                1,
+            ),
+        ),
+        (
+            "signed event id body match removed",
+            lambda source: source.replace(
+                "msg.event_id !== signatureCheck.eventId",
+                "false",
+                1,
+            ),
+        ),
+        (
+            "sequence rollback guard removed",
+            lambda source: source.replace(
+                "function rejectSequenceRollback(ref, msg)",
+                "function rejectSequenceRollback_removed(ref, msg)",
                 1,
             ),
         ),
@@ -6879,15 +6922,50 @@ def _dashboard_productization_assert_authorization_header(
 
 
 def _dashboard_productization_assert_absent_passport_headers(headers: Mapping[str, str]) -> None:
-    expected = {
-        "content-type": "application/json; charset=utf-8",
-        "x-ingest-secret": "probe-secret",
+    required = {
+        "content-type",
+        "x-ingest-secret",
+        "x-ingest-timestamp",
+        "x-ingest-event-id",
+        "x-ingest-signature",
     }
-    if headers != expected:
+    missing = required - set(headers)
+    if missing:
         raise ProfileError(
-            "dashboard IAP passport absent-env headers drifted from legacy header set: "
-            f"{sorted(headers)}"
+            "dashboard IAP passport absent-env headers missed signed ingest header(s): "
+            f"{sorted(missing)}"
         )
+    if headers.get("content-type") != "application/json; charset=utf-8":
+        raise ProfileError("dashboard IAP passport absent-env content-type drifted")
+    if headers.get("x-ingest-secret") != "probe-secret":
+        raise ProfileError("dashboard IAP passport absent-env ingest secret header drifted")
+    if not headers.get("x-ingest-signature", "").startswith("sha256="):
+        raise ProfileError("dashboard IAP passport absent-env signature must use sha256= prefix")
+
+
+def _dashboard_productization_assert_signed_ingest_request(request: urllib.request.Request) -> None:
+    from support.operator import report_sinks
+
+    headers = _dashboard_productization_request_headers(request)
+    body = request.data
+    if not isinstance(body, bytes):
+        raise ProfileError("dashboard signed ingest probe captured non-bytes body")
+    packet = json.loads(body.decode("utf-8"))
+    for key in ("event_id", "event_timestamp", "sequence"):
+        if key not in packet:
+            raise ProfileError(f"dashboard signed ingest probe body missing {key}")
+    if headers.get("x-ingest-event-id") != packet["event_id"]:
+        raise ProfileError("dashboard signed ingest probe event id header/body mismatch")
+    if headers.get("x-ingest-timestamp") != str(packet["event_timestamp"]):
+        raise ProfileError("dashboard signed ingest probe timestamp header/body mismatch")
+    expected = report_sinks._dashboard_projection_signature(
+        secret="probe-secret",
+        body=body,
+        event_id=headers["x-ingest-event-id"],
+        timestamp=headers["x-ingest-timestamp"],
+    )
+    if not hmac.compare_digest(headers.get("x-ingest-signature", ""), expected):
+        raise ProfileError("dashboard signed ingest probe HMAC did not match captured body")
 
 
 def _dashboard_productization_throwaway_sa_env(report_sinks: Any, root: Path) -> tuple[Mapping[str, str], str, str]:
@@ -6935,6 +7013,7 @@ def _dashboard_productization_assert_iap_passport_probe() -> int:
 
         request = _dashboard_productization_captured_dashboard_request(report_sinks, env)
         headers = _dashboard_productization_request_headers(request)
+        _dashboard_productization_assert_signed_ingest_request(request)
         _dashboard_productization_assert_authorization_header(
             headers,
             expected_kid=key_id,
@@ -6947,6 +7026,7 @@ def _dashboard_productization_assert_iap_passport_probe() -> int:
             report_sinks.DASHBOARD_INGEST_SECRET_ENV: "probe-secret",
         }
         absent_request = _dashboard_productization_captured_dashboard_request(report_sinks, absent_env)
+        _dashboard_productization_assert_signed_ingest_request(absent_request)
         _dashboard_productization_assert_absent_passport_headers(
             _dashboard_productization_request_headers(absent_request)
         )
@@ -9051,6 +9131,40 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
 
     status_probe_args = parser.parse_args(["status", "--json"])
     status_probe = cli._status_packet(status_probe_args)
+    boundary_matrix = status_probe.get("adapter_boundary_matrix")
+    if not isinstance(boundary_matrix, Mapping):
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: status packet omitted adapter_boundary_matrix"
+        )
+    boundary_rows = boundary_matrix.get("rows")
+    if not isinstance(boundary_rows, list) or len(boundary_rows) != len(cli.ALLOWED_ADAPTER_REFS):
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: adapter_boundary_matrix did not report "
+            f"one row per admitted adapter: {boundary_matrix!r}"
+        )
+    boundary_text = json.dumps(boundary_matrix, sort_keys=True)
+    for required_fragment in (
+        "boundary_strength",
+        "credential_path_class",
+        "write_boundary",
+        "adapter identity is not write authority",
+        "not Movement authority",
+    ):
+        if required_fragment not in boundary_text:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: adapter_boundary_matrix lost "
+                f"{required_fragment!r}: {boundary_matrix!r}"
+            )
+    rendered_status = cli._render_status(status_probe)
+    if "adapter_boundary_matrix_rows:" not in rendered_status:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: status render omitted adapter boundary row count"
+        )
+    doctor_render = cli._render_doctor({"rows": [], "symptom_table": [], "adapter_boundary_matrix": boundary_matrix})
+    if "adapter_boundary_matrix:" not in doctor_render:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: doctor render omitted adapter boundary matrix"
+        )
     for observation_key in (
         "readiness_blocker_observation",
         "protocol_compliance_observation",

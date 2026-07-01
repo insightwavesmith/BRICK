@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import base64
+import hashlib
+import hmac
 import json
 import os
 import subprocess
@@ -816,8 +818,32 @@ def _post_dashboard_projection(
     secret).
     """
 
-    body = json.dumps(projection, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
-    headers = _dashboard_projection_headers(secret=secret, audience=url, env=env)
+    timestamp = int(time.time())
+    sequence = time.time_ns()
+    event_id = _dashboard_projection_event_id(
+        projection=projection,
+        packet_ref=packet_ref,
+        sequence=sequence,
+    )
+    projection_with_transport = {
+        **projection,
+        "event_id": event_id,
+        "event_timestamp": timestamp,
+        "sequence": sequence,
+    }
+    body = json.dumps(
+        projection_with_transport,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+    headers = _dashboard_projection_headers(
+        secret=secret,
+        audience=url,
+        env=env,
+        body=body,
+        event_id=event_id,
+        timestamp=timestamp,
+    )
     request = urllib.request.Request(
         url,
         data=body,
@@ -879,14 +905,53 @@ def _dashboard_projection_headers(
     secret: str,
     audience: str,
     env: Mapping[str, str],
+    body: bytes,
+    event_id: str,
+    timestamp: int,
 ) -> Mapping[str, str]:
+    timestamp_text = str(timestamp)
     headers = {
         "Content-Type": "application/json; charset=utf-8",
         "x-ingest-secret": secret,
+        "x-ingest-timestamp": timestamp_text,
+        "x-ingest-event-id": event_id,
+        "x-ingest-signature": _dashboard_projection_signature(
+            secret=secret,
+            body=body,
+            event_id=event_id,
+            timestamp=timestamp_text,
+        ),
     }
     if env.get(DASHBOARD_SA_KEY_PATH_ENV):
         headers["Authorization"] = _dashboard_iap_authorization_header(audience, env)
     return headers
+
+
+def _dashboard_projection_event_id(
+    *,
+    projection: Mapping[str, Any],
+    packet_ref: str,
+    sequence: int,
+) -> str:
+    seed = json.dumps(
+        {"packet_ref": packet_ref, "projection": projection, "sequence": sequence},
+        separators=(",", ":"),
+        sort_keys=True,
+        ensure_ascii=False,
+    ).encode("utf-8")
+    return hashlib.sha256(seed).hexdigest()
+
+
+def _dashboard_projection_signature(
+    *,
+    secret: str,
+    body: bytes,
+    event_id: str,
+    timestamp: str,
+) -> str:
+    signing_input = f"{timestamp}.{event_id}.".encode("utf-8") + body
+    digest = hmac.new(secret.encode("utf-8"), signing_input, hashlib.sha256).hexdigest()
+    return f"sha256={digest}"
 
 
 def _dashboard_iap_authorization_header(audience: str, env: Mapping[str, str]) -> str:

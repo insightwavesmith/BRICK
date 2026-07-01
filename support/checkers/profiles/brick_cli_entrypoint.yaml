@@ -49,6 +49,11 @@ text_contains:
       - 'default_evidence_root'
       - 'default_build_root_basis'
       - 'materialized_step_adapters'
+      - 'adapter_boundary_matrix'
+      - 'adapter_boundary_matrix_rows:'
+      - 'boundary_strength'
+      - 'credential_path_class'
+      - 'adapter identity is not write authority'
       - 'init_parser.add_argument("--host", default="codex"'
       - 'onboard.run_doctor()'
       - 'check_profile.main(verify_argv)'
@@ -87,6 +92,7 @@ text_contains:
       - 'lane_return helper must stay absent/fail-closed'
       - 'support-only observation lost proof limit'
       - 'bare brick --json did not default to status'
+      - 'status packet omitted adapter_boundary_matrix'
 text_absent:
   - path: pyproject.toml
     texts:

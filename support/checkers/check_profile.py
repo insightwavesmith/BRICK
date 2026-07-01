@@ -135,6 +135,7 @@ from support.checkers.lib.kernel_checks import (
     run_graph_topology_fan_barrier,
     run_onboard_smoke,
     run_install_script_lint,
+    run_release_gate_contract,
     run_release_export_exclusion,
     run_product_no_smith_residue,
     run_reporter_notification_projection,
@@ -708,6 +709,7 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
     # metadata must not ship, and publication stays as printed follow-up
     # commands. Includes a temp mutation that removes project/ and must RED.
     "release_export_exclusion": run_release_export_exclusion,
+    "release_gate_contract": run_release_gate_contract,
     # ONBOARDING-LEGACY-SCRUB-0612. Scans shipped newcomer-facing surfaces
     # (README.md, support/docs/spec, agent/prompts) for Smith local residue:
     # no Smith user-home literal and no hardcoded Smith GitHub org outside

@@ -672,7 +672,7 @@ modules:
     imports_axis: []
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
-    pinned_by: pure-relocation sibling of kernel_checks (install_script_lint + release_export_exclusion onboarding shell-verb structural/safety lints; homes no crossing mechanics, imports no axis at module level)
+    pinned_by: pure-relocation sibling of kernel_checks (install_script_lint + release_export_exclusion + release_gate_contract onboarding shell-verb structural/safety lints; homes no crossing mechanics, imports no axis at module level)
 
   - module: support/checkers/lib/design_ai_text_seams_check.py
     layer: checkers/lib

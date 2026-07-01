@@ -113,6 +113,7 @@ from support.checkers.lib.adapter_capability_checks import (
     _check_adapter_capability_native_grant_roundtrip,
     _check_adapter_capability_native_grant_semantic_codex_gemini_parity,
     _check_adapter_capability_retired_gemini_api_no_write_or_probe,
+    _check_adapter_capability_boundary_matrix_support_only,
     _check_adapter_capability_checker_sweep_blocks_live_provider_cli,
     _check_adapter_capability_native_grant_policy_only_fails_closed,
     _check_adapter_capability_native_grant_write_home_pin,
@@ -5129,6 +5130,8 @@ def run_adapter_capability_rehome_case(repo: Path, profile: Mapping[str, Any]) -
             _check_adapter_capability_native_grant_semantic_codex_gemini_parity(label)
         elif case_kind == "retired_gemini_api_no_write_or_probe":
             _check_adapter_capability_retired_gemini_api_no_write_or_probe(label)
+        elif case_kind == "boundary_matrix_support_only":
+            _check_adapter_capability_boundary_matrix_support_only(label)
         elif case_kind == "checker_sweep_blocks_live_provider_cli":
             _check_adapter_capability_checker_sweep_blocks_live_provider_cli(label)
         elif case_kind == "native_grant_policy_only_fails_closed":

@@ -33,6 +33,28 @@ find support/checkers/profiles -maxdepth 1 -name '*.yaml' | wc -l
 
 This is support evidence only, not phase PASS, Building closure, source truth, success, quality, Movement authority, or provider proof. On any rejection it prints `profile runner rejected evidence: ...` to stderr and returns exit code 1.
 
+## Run the local release gate
+
+Before cutting a release export, run the local support gate:
+
+```bash
+sh support/onboarding/release_gate.sh
+```
+
+It runs `compileall` over `brick`, `agent`, `link`, and `support`, then
+`check_profile.py --all`, then `support/onboarding/release_export.sh` into a
+temporary dry-run directory. The GitHub workflow invokes this same script after
+`uv sync --locked`.
+
+This gate does not tag, push, publish, change GitHub branch protection, prove
+source truth, judge success/quality, or choose Movement. Branch protection
+required-check wiring remains a Smith/operator repository-settings action.
+
+The installer can bootstrap `uv` with `curl -LsSf https://astral.sh/uv/install.sh
+| sh` when `uv` is missing. That path is a live HTTPS trust decision and is not
+digest-pinned by this repository. For stricter environments, preinstall `uv` by
+a locally reviewed package-management route and then run `uv sync --locked`.
+
 Run a single profile by name (the `.yaml` suffix is optional, and `-`/`_` are interchangeable in the name):
 
 ```bash

@@ -5,6 +5,7 @@
 // 참가자별로 보관(다인용). 빌딩 델타는 그 참가자 packet 의 buildings 만 교체(집계는 클라가 재계산).
 // 원본은 repo ledger / Building evidence. 이 서버는 받아서 비추는 projection일 뿐.
 import http from 'node:http'
+import { createHmac, timingSafeEqual } from 'node:crypto'
 import { stat, readFile } from 'node:fs/promises'
 import { createReadStream } from 'node:fs'
 import path from 'node:path'
@@ -19,6 +20,11 @@ const DIST = process.env.DIST_DIR || path.resolve(path.dirname(fileURLToPath(imp
 
 const participants = {} // ref -> { ref, label, packet }
 const clients = new Set()
+const seenEventIds = new Set()
+const seenEventOrder = []
+const participantSequences = new Map()
+const INGEST_TIMESTAMP_SKEW_SECONDS = 5 * 60
+const INGEST_REPLAY_CACHE_LIMIT = 4096
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
@@ -38,6 +44,62 @@ function broadcast(event, jsonStr) {
 
 function ingestRefusesInProduction() {
   return IS_PRODUCTION && (!NORMALIZED_INGEST_SECRET || NORMALIZED_INGEST_SECRET === 'dev-secret')
+}
+
+function rememberEventId(eventId) {
+  seenEventIds.add(eventId)
+  seenEventOrder.push(eventId)
+  while (seenEventOrder.length > INGEST_REPLAY_CACHE_LIMIT) {
+    seenEventIds.delete(seenEventOrder.shift())
+  }
+}
+
+function headerValue(req, name) {
+  const value = req.headers[name]
+  return Array.isArray(value) ? value[0] : value
+}
+
+function safeEqualText(a, b) {
+  const left = Buffer.from(a || '', 'utf8')
+  const right = Buffer.from(b || '', 'utf8')
+  return left.length === right.length && timingSafeEqual(left, right)
+}
+
+function expectedIngestSignature({ body, eventId, timestamp }) {
+  const base = `${timestamp}.${eventId}.`
+  return 'sha256=' + createHmac('sha256', INGEST_SECRET).update(base).update(body, 'utf8').digest('hex')
+}
+
+function verifyIngestSignature(req, body) {
+  if (headerValue(req, 'x-ingest-secret') !== INGEST_SECRET) return { ok: false, status: 401, reason: 'unauthorized' }
+  const timestamp = headerValue(req, 'x-ingest-timestamp')
+  const eventId = headerValue(req, 'x-ingest-event-id')
+  const signature = headerValue(req, 'x-ingest-signature')
+  if (!timestamp || !eventId || !signature) return { ok: false, status: 401, reason: 'missing ingest signature' }
+  if (seenEventIds.has(eventId)) return { ok: false, status: 409, reason: 'replayed ingest event' }
+  const timestampNumber = Number(timestamp)
+  if (!Number.isInteger(timestampNumber)) return { ok: false, status: 401, reason: 'bad ingest timestamp' }
+  const now = Math.floor(Date.now() / 1000)
+  if (Math.abs(now - timestampNumber) > INGEST_TIMESTAMP_SKEW_SECONDS) {
+    return { ok: false, status: 401, reason: 'stale ingest timestamp' }
+  }
+  const expected = expectedIngestSignature({ body, eventId, timestamp })
+  if (!safeEqualText(signature, expected)) return { ok: false, status: 401, reason: 'bad ingest signature' }
+  return { ok: true, eventId }
+}
+
+function messageSequence(msg) {
+  const sequence = msg && msg.sequence
+  return Number.isInteger(sequence) && sequence > 0 ? sequence : null
+}
+
+function rejectSequenceRollback(ref, msg) {
+  const sequence = messageSequence(msg)
+  if (sequence === null) return 'missing ingest sequence'
+  const previous = participantSequences.get(ref) || 0
+  if (sequence <= previous) return 'ingest sequence rollback'
+  participantSequences.set(ref, sequence)
+  return ''
 }
 
 // 빌딩 델타 1건을 packet 에 병합 (집계는 안 건드림 — 클라가 재계산)
@@ -109,24 +171,35 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(503).end('ingest disabled: set INGEST_SECRET')
       return
     }
-    if (req.headers['x-ingest-secret'] !== INGEST_SECRET) { res.writeHead(401).end('unauthorized'); return }
     try {
       const body = await readBody(req)
+      const signatureCheck = verifyIngestSignature(req, body)
+      if (!signatureCheck.ok) { res.writeHead(signatureCheck.status).end(signatureCheck.reason); return }
       const msg = JSON.parse(body)
+      if (!msg || msg.event_id !== signatureCheck.eventId) { res.writeHead(401).end('ingest event id mismatch'); return }
       let kind = 'data'
       // 발행(엔진 report_sinks) 계약: 델타 = delta_kind:"building", 시드 = bare 전체 패킷.
       // (kind:"delta"/"seed" 래퍼도 계속 인식 — 수신은 둘 다 받는다.)
       if (msg && msg.delta_kind === 'building') msg.kind = 'delta'
       if (msg && msg.kind === 'delta') {
         const ref = msg.participant_ref || 'default'
+        const sequenceError = rejectSequenceRollback(ref, msg)
+        if (sequenceError) { res.writeHead(409).end(sequenceError); return }
+        rememberEventId(signatureCheck.eventId)
         if (participants[ref]) participants[ref].packet = applyDelta(participants[ref].packet, msg)
         broadcast('delta', body); kind = 'delta'
       } else if (msg && msg.kind === 'seed') {
         const ref = msg.participant_ref || 'default'
+        const sequenceError = rejectSequenceRollback(ref, msg)
+        if (sequenceError) { res.writeHead(409).end(sequenceError); return }
+        rememberEventId(signatureCheck.eventId)
         participants[ref] = { ref, label: msg.participant_label || '나', packet: msg.packet }
         broadcast('seed', body); kind = 'seed'
       } else {
         // bare packet (정적/legacy) → 단일 기본 참가자
+        const sequenceError = rejectSequenceRollback('default', msg)
+        if (sequenceError) { res.writeHead(409).end(sequenceError); return }
+        rememberEventId(signatureCheck.eventId)
         participants.default = { ref: 'default', label: (msg && msg.participant_label) || '나', packet: msg }
         broadcast('data', body); kind = 'data'
       }

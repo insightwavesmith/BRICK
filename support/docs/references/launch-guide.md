@@ -102,6 +102,20 @@ Public route vocabulary:
   `--dev-lanes`, `lane_return`, a new engine, scheduler/queue/retry runtime, or
   support-owned route choice.
 
+### Release gate before publication
+
+The release gate is a support/onboarding check, not a Building route:
+
+```bash
+sh support/onboarding/release_gate.sh
+```
+
+It runs compileall, all checker profiles, and a release-export dry-run. The
+GitHub Actions workflow calls the same local script after `uv sync --locked`.
+It does not publish, tag, push, set branch protection, choose Movement, or judge
+success/quality. GitHub branch protection remains a pending Smith/operator
+repository-settings action.
+
 ### 1) 표준 작업: `brick build --task`
 
 처음 실행은 provider와 repository write를 증명하려 하지 말고 support evidence

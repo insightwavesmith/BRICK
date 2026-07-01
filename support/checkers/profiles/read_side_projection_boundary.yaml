@@ -14,10 +14,12 @@ kernel_checks:
   - claude_projection_native
   - install_script_lint
   - release_export_exclusion
+  - release_gate_contract
   - product_no_smith_residue
 path_exists:
   - support/onboarding/install.sh
   - support/onboarding/release_export.sh
+  - support/onboarding/release_gate.sh
   - brick/building_plans/fixture-retired-adapter-plan-0.yaml
   - support/checkers/profiles/read_side_projection_boundary.yaml
   - AGENTS.md
@@ -248,6 +250,13 @@ text_contains:
       - function ingestRefusesInProduction()
       - NORMALIZED_INGEST_SECRET === 'dev-secret'
       - if (ingestRefusesInProduction())
+      - function verifyIngestSignature(req, body)
+      - x-ingest-signature
+      - x-ingest-timestamp
+      - x-ingest-event-id
+      - seenEventIds.has(eventId)
+      - msg.event_id !== signatureCheck.eventId
+      - function rejectSequenceRollback(ref, msg)
   - path: support/dashboard/DEPLOY.md
     texts:
       - Cloud Run Plus IAP

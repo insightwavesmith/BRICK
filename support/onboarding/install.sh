@@ -31,6 +31,10 @@
 #   - This script is HTTPS-only and carries NO secret / token. It relies on the
 #     teammate's OWN `gh auth login` (or git credential) as the access grant to
 #     the private repo. There is nothing embedded here that grants access.
+#   - The uv bootstrap path is still a live HTTPS `curl | sh` trust decision:
+#     it relies on astral.sh transport/content at install time and is not pinned
+#     to a script digest in this repository. Use a preinstalled `uv` binary or a
+#     locally reviewed installer when that trust boundary is unacceptable.
 #   - The clone target is ${BRICK_HOME:-$HOME/BRICK}. No /Users path is
 #     hardcoded, so it works for any teammate on any machine.
 #   - ALL logic lives inside main(), invoked on the LAST line as `main "$@"`.
@@ -88,7 +92,9 @@ main() {
 
     # --- step 2: ensure uv -------------------------------------------------
     if ! command -v uv >/dev/null 2>&1; then
-        printf '%s\n' "2) uv 가 없어서 설치할게요 (astral.sh 공식 스크립트)..."
+        printf '%s\n' \
+            "2) uv 가 없어서 설치할게요 (astral.sh 공식 스크립트)..." \
+            "   신뢰 한계: 이 경로는 HTTPS curl|sh 이며 이 repo 안에서 digest pin을 검증하지 않습니다."
         curl -LsSf https://astral.sh/uv/install.sh | sh
         # The uv installer puts uv under ~/.local/bin (or ~/.cargo/bin); add the
         # common locations to PATH for the rest of THIS run so the next steps

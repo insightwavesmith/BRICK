@@ -852,6 +852,57 @@ def _check_adapter_capability_native_grant_unknown_capability(label: str) -> Non
     )
 
 
+def _check_adapter_capability_boundary_matrix_support_only(label: str) -> None:
+    from brick_protocol.support.connection import adapter_constants
+    from brick_protocol.support.connection.agent_adapter import agent_request_effective_write
+
+    rows = adapter_constants.adapter_boundary_matrix()
+    refs = {str(row.get("adapter_ref") or "") for row in rows}
+    if refs != set(adapter_constants.ALLOWED_ADAPTER_REFS):
+        raise ProfileError(
+            f"adapter_capability_rehome_case rejected {label}: boundary matrix "
+            f"refs {sorted(refs)!r} did not match admitted refs "
+            f"{sorted(adapter_constants.ALLOWED_ADAPTER_REFS)!r}"
+        )
+    for row in rows:
+        adapter_ref = str(row.get("adapter_ref") or "")
+        row_text = json.dumps(row, sort_keys=True)
+        for required_key in (
+            "boundary_strength",
+            "credential_path_class",
+            "write_boundary",
+            "known_limits",
+            "proof_limits",
+            "not_proven",
+        ):
+            if required_key not in row:
+                raise ProfileError(
+                    f"adapter_capability_rehome_case rejected {label}: "
+                    f"{adapter_ref} boundary row omitted {required_key}"
+                )
+        for authority_limit in (
+            "adapter identity is not write authority",
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ):
+            if authority_limit not in row_text:
+                raise ProfileError(
+                    f"adapter_capability_rehome_case rejected {label}: "
+                    f"{adapter_ref} boundary row lost proof limit {authority_limit!r}"
+                )
+        no_scope_request = _adapter_capability_request(
+            adapter_ref=adapter_ref,
+            write_scope=None,
+        )
+        if agent_request_effective_write(no_scope_request):
+            raise ProfileError(
+                f"adapter_capability_rehome_case rejected {label}: boundary matrix "
+                f"adapter identity opened write without Brick write_scope: {adapter_ref}"
+            )
+
+
 def _check_adapter_capability_write_capable_leader_read_only_brick_projection(
     label: str,
 ) -> None:
