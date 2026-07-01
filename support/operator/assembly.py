@@ -563,7 +563,10 @@ def build(items: Sequence[Any]) -> GraphSpec:
     #   * AUTO-ID: mint a stable alias for repeated kinds (whole-graph scope).
     registry = _load_shape_registry(REPO_ROOT)
     coerced_nodes = [
-        Fan(tuple(_auto_fan_branch_returns(branch, registry) for branch in node.branches))
+        Fan(
+            tuple(_auto_fan_branch_returns(branch, registry) for branch in node.branches),
+            node.sibling_independence,
+        )
         if isinstance(node, Fan)
         else node
         for node in coerced_nodes
@@ -1199,14 +1202,13 @@ def _lower_node(
     if spec.node_write_scope is not None and not template_write_need:
         raise ValueError("node_write_scope requires a step template with write_need")
     if spec.write and template_write_need:
+        graph_scope = _validated_write_scope(write_scope)
         if spec.node_write_scope is not None:
             node_scope = _validated_write_scope(spec.node_write_scope)
-            if write_scope is not None:
-                graph_scope = _validated_write_scope(write_scope)
-                _validate_node_write_scope_subset(node_scope, graph_scope)
+            _validate_node_write_scope_subset(node_scope, graph_scope)
             node["write_scope"] = node_scope
         else:
-            node["write_scope"] = _validated_write_scope(write_scope)
+            node["write_scope"] = graph_scope
         node["requires_brick_write_scope"] = True
     return node
 
@@ -1468,9 +1470,14 @@ def _write_path_covered_by(path: str, allowed: str) -> bool:
 
 def _normalized_write_path(path: str) -> str:
     text = str(path).strip().replace("\\", "/")
+    if text.startswith("/"):
+        raise ValueError("write_scope paths must be repo-relative")
     while text.startswith("./"):
         text = text[2:]
-    return text.rstrip("/") or "."
+    parts = tuple(part for part in text.rstrip("/").split("/") if part and part != ".")
+    if any(part == ".." for part in parts):
+        raise ValueError("write_scope paths must not escape the repo root")
+    return "/".join(parts) or "."
 
 
 def _gate_value(value: Gate | str) -> str:

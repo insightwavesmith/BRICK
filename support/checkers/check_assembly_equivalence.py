@@ -1166,6 +1166,42 @@ def _sibling_independence_dsl_fire(repo: Path) -> tuple[str, ...]:
             f"{observed[0].get('sibling_independence')!r}"
         )
 
+    build_composed = assemble(
+        build(
+            [
+                ["development", "sibling independence build source"],
+                fan(
+                    [
+                        ["code-attack-qa", "sibling independence build code lens"],
+                        ["axis-attack-qa", "sibling independence build axis lens"],
+                    ],
+                    sibling_independence=["code-attack-qa"],
+                ),
+                ["closure", "sibling independence build closure"],
+            ]
+        ),
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task="sibling independence build/fan probe",
+        building_id="heart-phase0-sibling-independence-build",
+        adapter="codex-local",
+        gates=(Gate.STRICT_EVIDENCE,),
+        repo_root=repo,
+        write_scope=_write_scope(),
+    )
+    _build_nodes, _build_edges, build_groups = build_composed.as_compose_args()
+    build_observed = [group for group in build_groups if group.get("group_role") == "fan_in"]
+    if len(build_observed) != 1:
+        raise AssemblyEquivalenceError(
+            f"build()/fan() sibling_independence probe expected one fan_in group, observed {len(build_observed)}"
+        )
+    build_expected_ref = "heart-phase0-sibling-independence-build-code-attack-qa"
+    if build_observed[0].get("sibling_independence") != [build_expected_ref]:
+        raise AssemblyEquivalenceError(
+            "build()/fan() sibling_independence did not survive easy-tier Fan rewrites: "
+            f"{build_observed[0].get('sibling_independence')!r}"
+        )
+
     def empty_ref_probe() -> None:
         fan_in([code, axis], close, sibling_independence=[" "])
 
@@ -1174,6 +1210,7 @@ def _sibling_independence_dsl_fire(repo: Path) -> tuple[str, ...]:
 
     return (
         "construction green observed: fan_in sibling_independence lowered to a fan_in source node ref.",
+        "construction green observed: build()/fan() sibling_independence survived easy-tier Fan rewrites.",
         _assert_raises("empty sibling_independence ref", ValueError, empty_ref_probe),
         _assert_raises("non-source sibling_independence ref", ValueError, non_source_ref_probe),
     )
@@ -1264,12 +1301,40 @@ def _node_write_scope_fire(repo: Path) -> tuple[str, ...]:
             write_scope=graph_scope,
         )
 
+    def default_scope_widening_probe() -> None:
+        assemble(
+            chain(
+                [
+                    brick(
+                        "work",
+                        "node scope must not widen omitted graph scope",
+                        write=True,
+                        node_write_scope={
+                            "allowed_paths": [".."],
+                            "forbidden_paths": [".git/**"],
+                        },
+                    )
+                ]
+            ),
+            declared_by=DECLARED_BY,
+            authority=Authority.COO,
+            task="node write scope default graph widening probe",
+            building_id="heart-phase0-node-write-scope-default-widening",
+            adapter="codex-local",
+            repo_root=repo,
+        )
+
     return (
         "construction green observed: node_write_scope narrowed a write-needed Brick row.",
         _assert_raises("node_write_scope on write=False brick", ValueError, read_only_probe),
         _assert_raises("node_write_scope on template without write_need", ValueError, no_template_need_probe),
         _assert_raises("malformed node_write_scope", ValueError, malformed_probe),
         _assert_raises("node_write_scope wider than graph write_scope", ValueError, widening_probe),
+        _assert_raises(
+            "node_write_scope wider than omitted graph write_scope default",
+            ValueError,
+            default_scope_widening_probe,
+        ),
     )
 
 
