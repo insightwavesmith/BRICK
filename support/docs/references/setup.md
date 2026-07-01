@@ -70,11 +70,15 @@ The profile name resolves against `support/checkers/profiles/`. Current profile 
 
 Two more flags exist:
 
-```bash
-# Run the parser/rule self-test (no profiles touched):
-PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --self-test
+Run the parser/rule self-test without touching profiles:
 
-# Inspect a repo other than the current directory:
+```bash
+PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --self-test
+```
+
+Inspect a repo other than the current directory:
+
+```bash
 PYTHONPATH=support/import_identity python3 support/checkers/check_profile.py --all --repo /path/to/repo
 ```
 

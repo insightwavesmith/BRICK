@@ -4,24 +4,37 @@ Brick Protocol is a three-axis work protocol for human-agent work: Brick = the w
 
 ## 시작하기 (2분)
 
+아래 명령의 `{OWNER}`를 (중괄호까지 함께) 네 GitHub 계정(org/user)으로
+바꾸세요 — 중괄호를 남겨두면 그대로 실패합니다. BRICK은 포크해서 쓰는
+구조라 계정이 사람마다 다릅니다 (현재 동작 예: insightwavesmith/BRICK).
+기본 위치는 `$HOME/BRICK`입니다. 다른 위치에 받았다면 설치 전에
+`BRICK_HOME=/path/to/clone`을 지정하세요.
+
+받기 + 설치:
+
 ```bash
-# 1) 받기 + 설치 -- 내 gh 로그인 사용 (호스팅된 설치 URL은 없어요)
-# ⚠️ 먼저 아래 {OWNER}를 네 GitHub 계정(org/user)으로 바꾸세요 — 안 바꾸고 그대로
-#    복붙하면 바로 이 첫 줄에서 실패해요. (BRICK은 포크해서 쓰는 구조라 계정이
-#    사람마다 달라요. 현재 동작 예: insightwavesmith/BRICK)
-#    기본 위치는 $HOME/BRICK; 다른 곳에 받았다면 BRICK_HOME=/path/to/clone 지정
 gh repo clone {OWNER}/BRICK ~/BRICK && sh ~/BRICK/support/onboarding/install.sh
-# 2) 온보딩 위자드 (codex | claude | gemini | local)
-cd ~/BRICK && uv run python3 -m brick_protocol.support.operator.onboard codex
-# 3) 공식 고객 실행 표면은 하나입니다: brick build.
-#    표준 작업은 preset_task 경로(`--task`/`--preset`)로 말하고,
-#    caller/COO가 이미 선언한 그래프는 graph_packet 경로(`--graph`)로 넘깁니다.
-cd ~/BRICK && brick build --task "첫 실행을 support evidence only로 기록해 주세요." --preset building-chain-preset:design-contract-only --adapter adapter:local --timeout 20
-#    실제 저장소를 바꾸는 작업은 auth 뒤에 --real-provider 를 붙이거나,
-#    명시적인 observed-write adapter를 고른 다음 실행하세요.
-#    run_building_intake, assemble, launch_assembled_building, goal-approve 는
-#    support/operator helper 또는 고급/내부 경로이지 별도 고객 실행 루트가 아닙니다.
 ```
+
+온보딩 위자드는 `codex | claude | gemini | local` 중 하나를 받습니다.
+
+```bash
+cd ~/BRICK && uv run python3 -m brick_protocol.support.operator.onboard codex
+```
+
+공식 고객 실행 표면은 하나입니다: `brick build`. 표준 작업은
+`--task`/`--preset`으로 말하고, caller/COO가 이미 선언한 그래프는
+`--graph`로 넘깁니다.
+
+```bash
+cd ~/BRICK && brick build --task "첫 실행을 support evidence only로 기록해 주세요." --preset building-chain-preset:design-contract-only --adapter adapter:local --timeout 20
+```
+
+실제 저장소를 바꾸는 작업은 auth 뒤에 `--real-provider`를 붙이거나,
+명시적인 observed-write adapter를 고른 다음 실행하세요.
+`run_building_intake`, `assemble`, `launch_assembled_building`, `goal-approve`는
+support/operator helper 또는 고급/내부 경로이지 별도 고객 실행 루트가
+아닙니다.
 
 AI/운영자가 그대로 확인할 줄:
 
