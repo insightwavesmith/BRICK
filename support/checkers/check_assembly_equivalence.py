@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Guard structural equivalence for future assembly.py lowering.
+"""Guard structural equivalence for assembly.py authoring DSL lowering.
 
-This checker is support evidence only. It compares compose_building outputs
+This checker is support evidence only. compose_building() is the permanent
+canonical plan materializer; assemble() lowers to it internally as an authoring
+DSL, not a rival or future-replacement engine. The checker compares outputs
 through a canonical structural projection over hand-built graph fixtures. It
-does not choose Movement, judge source truth, judge success or quality, or
-claim semantic correctness of a Building.
+does not choose Movement, judge source truth, judge success or quality, or claim
+semantic correctness of a Building.
 """
 
 from __future__ import annotations
@@ -2008,8 +2010,8 @@ def run(repo: Path) -> list[str]:
 def parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Support-evidence checker for structural equivalence of future assembly.py "
-            "lowering against hand-built compose_building fixtures."
+            "Support-evidence checker for assembly.py authoring DSL lowering into "
+            "the permanent canonical compose_building() plan materializer."
         )
     )
     parser.add_argument("--repo", default=None)

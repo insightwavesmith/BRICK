@@ -1,6 +1,6 @@
 schema: checker-profile/v1
 profile_id: assembly-equivalence
-description: Phase 0 structural equivalence guard for future assembly.py lowering.
+description: Structural equivalence guard for assembly.py authoring DSL lowering into permanent canonical compose_building() materialization.
 kernel_checks:
   - assembly_equivalence
 path_exists:
