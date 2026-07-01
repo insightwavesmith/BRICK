@@ -77,6 +77,18 @@ roll the Building. Do not paper over the gap by hand-patching or by forcing the
 task into the fixed pipeline. Do not create a new skill; extend these. This skill
 chain keeps being updated until the customer-ready goal is complete.
 
+Fan barrier discipline (load-bearing): do not declare fan-in and fan-out as the
+same event. A fan-in boundary means "all required branch bodies have arrived and
+are being synthesized/confirmed"; a fan-out boundary means "this confirmed
+boundary now launches multiple next Bricks." If a graph needs fan-in followed by
+another fan-out, insert an explicit barrier Brick such as `lane-qa-fanin-confirm`,
+`design-synthesis`, or `plan-confirm`, then fan out from that barrier. Avoid
+complete-bipartite shortcuts like `qa-a -> final-code/final-axis/final-evidence`
+AND `qa-b -> final-code/final-axis/final-evidence`; that makes the final QA nodes
+look like separate fan-in targets rather than one clear parallel QA cohort. If two
+fan-outs share the same source event, collapse them into one fan-out cohort unless
+a declared barrier explains the semantic split.
+
 P3 zero-ritual launch policy: once the task source and graph shape are declared,
 the preferred graph execution is compact drawing (`build` / `fan`) followed by
 operator-facing `build()` submission. Do not tell the operator to call `fire(graph)`; `fire()` is internal/debug wording. If a packet artifact is
@@ -249,37 +261,43 @@ Use this coordination order:
 9. Use fan-in-first for multiple verification lanes: collect all declared QA bodies
    before closure-synthesis unless a later declared freshness / Work Packet
    Building proves partial QA reuse.
-10. For confirmed chain presets, use the Builder materializer handoff
+10. Do not make fan-in and fan-out the same event. When one cohort must be
+   collected and then another cohort launched, declare an explicit barrier Brick
+   first (for example `lane-qa-fanin-confirm`), then declare the next fan-out from
+   that barrier. Do not model this as each upstream QA lane pointing to every
+   final QA lane; that hides the fan-in boundary and can serialize or confuse the
+   final QA cohort.
+11. For confirmed chain presets, use the Builder materializer handoff
    (`task_source_ref + chain_preset_ref -> declared rows` for single-lane,
    row-shaped presets — which still materialize to a `plan_shape: graph` plan —
    or declared nodes / edges / groups for graph routes) before Runner.
    For manual paths, keep explicit declared nodes / edges / groups.
-11. Declare `active_plan_ref` or fully declared intent only after task-source,
+12. Declare `active_plan_ref` or fully declared intent only after task-source,
    preset/no-preset, shape, route-family, and graph-case evidence exist.
-12. After those declarations, name the Brick work contract and Building Plan
+13. After those declarations, name the Brick work contract and Building Plan
    boundary before resource changes.
-13. Name the Agent Object refs that will receive work; do not inline prompt,
+14. Name the Agent Object refs that will receive work; do not inline prompt,
    skill, hook, tool-policy, adapter, or discipline bodies in the plan.
-14. Name the Link Movement and target for each step. One Link row has one
+15. Name the Link Movement and target for each step. One Link row has one
    Movement and one target.
-15. For every Brick, name the required return shape. A returned output can be a
+16. For every Brick, name the required return shape. A returned output can be a
    handoff, report, classification, synthesis, delete manifest, closure note,
    QA observation, code diff, documentation patch, or another required return
    shape.
-16. For every Brick, name the Agent Object that performs and returns that output.
+17. For every Brick, name the Agent Object that performs and returns that output.
    No output type is hard-coded to COO, CTO, DEV, QA, or any other role; the
    performer is the Agent row for that Brick.
-17. For implementation work, keep Design, Development, and Verification as
+18. For implementation work, keep Design, Development, and Verification as
    Building work.
-18. If the Building declares multiple verification lanes, collect all declared QA bodies
+19. If the Building declares multiple verification lanes, collect all declared QA bodies
    before closure-synthesis or integration.
-19. If repair is needed, record `reroute_replay_candidate`, create a reroute
+20. If repair is needed, record `reroute_replay_candidate`, create a reroute
    Link transition to the right Brick
    boundary and preserve handoff refs for replay verification. For this dogfood
    policy, reroute to work replays work plus all declared QA lanes plus
    closure-synthesis; partial QA reuse remains not_proven until a later
    freshness / Work Packet Building admits it.
-20. Inspect the Building evidence root: capture, raw, claim_trace, and
+21. Inspect the Building evidence root: capture, raw, claim_trace, and
    building-map projection.
 ```
 
