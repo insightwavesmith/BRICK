@@ -15,7 +15,8 @@
       "node_reroute_budget": 1,
       "work_statement": "Task-intake/design intake for P7d. Read the objective, P7/S6 source audit docs, P7c closure, and current public route docs. Return the exact customer-facing task fields and graph-declaration ergonomics gap for S6-F4. No source edits.\n\nSTRICT SCOPE: phase:P7d product-route / Easy Building declaration ergonomics ONLY. Close S6-F4 by making the natural-language big-work route easy to understand and checker-pinned: make X -> task intake -> design fan-out -> design QA/axis QA -> closure plan-confirm -> parallel dev lanes -> lane QA -> fan-in -> final code/axis/evidence QA -> closure -> official brick build / brick build --graph. Do NOT add or revive --large, _p3_easy_large, --dev-lanes, lane_return, a new engine, support-owned route choice, scheduler/queue/retry runtime, or a preset-only shortcut. If a preset is mentioned, it is only a reusable route explanation when it preserves the phase contract; the official route remains declared graph_packet / preset_task over brick build. Keep public/operator language build()/brick build only. fire(), assemble(), run_building_plan, launch_assembled_building, and full internal Building Plan are internal/advanced/debug/support terms, not the ordinary customer route. Always separate observed_evidence / narrowly_proven / not_proven / next Movement candidate. Checker/profile green is support evidence only.",
       "selected_adapter_ref": "adapter:codex-local",
-      "selected_model_ref": "model:codex:default"
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701d-task-intake-to-design-codex"
     },
     {
       "node_id": "brick-6-p7-easy-building-ergonomics-0701d-design-codex",
@@ -42,7 +43,8 @@
       "node_reroute_budget": 1,
       "work_statement": "Design synthesis / closure plan-confirm for P7d. Fan in task-intake plus both design lanes. Produce the final implementation plan split into parallel docs/product lane and checker/CLI pin lane. Preserve disagreements as not_proven or transition concerns. No source edits.\n\nSTRICT SCOPE: phase:P7d product-route / Easy Building declaration ergonomics ONLY. Close S6-F4 by making the natural-language big-work route easy to understand and checker-pinned: make X -> task intake -> design fan-out -> design QA/axis QA -> closure plan-confirm -> parallel dev lanes -> lane QA -> fan-in -> final code/axis/evidence QA -> closure -> official brick build / brick build --graph. Do NOT add or revive --large, _p3_easy_large, --dev-lanes, lane_return, a new engine, support-owned route choice, scheduler/queue/retry runtime, or a preset-only shortcut. If a preset is mentioned, it is only a reusable route explanation when it preserves the phase contract; the official route remains declared graph_packet / preset_task over brick build. Keep public/operator language build()/brick build only. fire(), assemble(), run_building_plan, launch_assembled_building, and full internal Building Plan are internal/advanced/debug/support terms, not the ordinary customer route. Always separate observed_evidence / narrowly_proven / not_proven / next Movement candidate. Checker/profile green is support evidence only.",
       "selected_adapter_ref": "adapter:codex-local",
-      "selected_model_ref": "model:codex:default"
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701d-design-synthesis-to-work-docs"
     },
     {
       "node_id": "brick-6-p7-easy-building-ergonomics-0701d-work-docs",
@@ -139,7 +141,8 @@
           "support/connection/**",
           "/Users/smith/.brick/project/brick-protocol/buildings/**"
         ]
-      }
+      },
+      "completion_edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701d-docs-lane-qa-to-final-code-qa"
     },
     {
       "node_id": "brick-6-p7-easy-building-ergonomics-0701d-checker-lane-qa",
@@ -170,7 +173,8 @@
           "support/connection/**",
           "/Users/smith/.brick/project/brick-protocol/buildings/**"
         ]
-      }
+      },
+      "completion_edge_ref": "edge:brick-6-p7-easy-building-ergonomics-0701d-checker-lane-qa-to-final-code-qa"
     },
     {
       "node_id": "brick-6-p7-easy-building-ergonomics-0701d-final-code-qa",
