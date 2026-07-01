@@ -356,3 +356,17 @@ deployment cycle, during the architecture cleanup pass). Do not execute
 before then. Blocked on: extending the DSL to support `sibling_independence`
 (currently inexpressible -- `GroupSpec` has only `role`/`members` fields)
 before `--graph` can be fully removed rather than merely de-emphasized.
+
+**Third item in this same follow-on bucket (0701, Smith decision)**: full
+documentation consolidation, not just code/checker cleanup. Evidence this is
+a real, comparably-sized problem (not just a code issue): (a) this session
+alone created 20+ new `project/brick-protocol/status/kernel/*.md` files
+(finding/closure/synthesis/disposition docs); (b) the COO's own memory
+index needed emergency compaction today (29KB -> 17.5KB); (c) BRICK already
+went through one prior large consolidation pass (see
+`productization-team-dogfood-handoff-0606.md`: checkers 47->13, docs
+890->286) -- growth-then-consolidate appears to be BRICK's actual operating
+cycle, not a one-time event. Smith: "반영하자. 이번에 끝장보자. 리팩토링까지"
+(do it properly this time, including the refactor) -- this follow-on pass
+should be thorough (code decomposition + checker-diet + doc consolidation
+together), not a partial pass, when it starts after P9 closes.
