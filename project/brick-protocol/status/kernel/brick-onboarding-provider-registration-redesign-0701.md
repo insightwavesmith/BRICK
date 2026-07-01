@@ -102,3 +102,42 @@ Codex and Claude independently confirmed the core diagnosis and Phase 0-3 shape 
 Also reconciled: section 6's migration language is corrected to be more precise — "absent `providers.yaml` preserves legacy behavior" applies outside the explicit onboarding/fresh-install route; the fresh zero-provider path itself needs the verdict-free smoke preset (point 2 above) rather than silently degenerating, since silently materializing an unregistered adapter is exactly today's bug.
 
 No open disagreements required Smith/COO escalation — Codex, Claude, and Gemini converged cleanly on all four points above.
+
+## 9. Scope widened (Smith 0701: "슬랙 등록 환경체크 등 전부 포함해서 지금 너 사고가 좁다")
+
+Sections 1-8 above were written LLM-provider-centric, with Slack folded in as a side-note. A full inventory of BRICK's first-run configuration surface (fresh Explore pass, 0701) shows the SAME root pattern — silent, unprovisioned, discovered only reactively when something downstream fails — repeats across at least one surface WORSE than Gemini: the dashboard sink.
+
+**Full inventory of registerable/checkable things**, current state:
+
+| Surface | Setup code today | Real readiness check? | Discovery today |
+|---|---|---|---|
+| LLM providers (codex/claude/gemini) | `preflight_provider()`, adapter_subprocess.py:85-259 | Partial (`--version` probe + auth heuristic, not a real call) | Proactive (doctor + init) |
+| Slack sink | `run_slack_provision_step()`, onboard.py:1115-1206 | Shallow — only checks the two env keys are PRESENT in `~/.brick/report.env`; live Slack API validity is never tested until a real report send, which then just records `not_attempted_missing_environment` silently | Reactive |
+| **Dashboard sink** | **None exists** | **None** — `BRICK_DASHBOARD_INGEST_URL`/`_SECRET`/`_SA_KEY_PATH` are environment-only, no onboarding step provisions or checks them at all | **Fully reactive — worse than Slack, not even an optional onboarding step today** |
+| MCP registration (brick-protocol server) | `run_mcp_register_step()`, onboard.py:858-957 | Write-and-hope (idempotent write, no live MCP handshake probe) | Reactive (fails silently, discovered when user's own claude/codex session can't see BRICK's MCP tools) |
+| Recording hooks | `run_recording_setup()`, onboard.py:768-823 | Write-and-hope | Reactive |
+| Python >=3.11 | install.sh:78-90 | Checked | Proactive |
+| `pipx` | install.sh:151-156 | Checked, but only at step 5 (after clone+deps already ran) — the exact gap live-reproduced this session | Late-proactive (too late in the sequence) |
+| `uv` | install.sh:94-110 | Auto-installs if missing | Proactive |
+| `git`, network, disk space, `uv` actually on PATH after install | Silently assumed everywhere | None | Fully reactive (fails deep in some other step with a generic error) |
+
+**Restructured flow** (replaces section 3's framing — same PRESENT/PROVIDER/PLUGIN/SMOKE/VERIFY skeleton, but PROVIDER becomes REGISTER and covers all three registerable families, not just LLM adapters):
+
+1. **PRESENT (environment, expanded further)**: Python, pipx, `uv`-on-PATH-after-install, `git` presence, disk space sanity, network reachability to GitHub — ALL surfaced together, upfront, before any provider/sink talk. This is the "does this machine even have a chance" gate.
+2. **REGISTER (renamed from PROVIDER, widened scope)**: one coherent step covering THREE registerable families, each optional except LLM (at least one LLM provider is required for anything beyond the verdict-free smoke path):
+   - LLM provider(s) — as designed in sections 2-8, required for full functionality.
+   - Slack sink — optional, but upgraded to a REAL readiness check (an actual test-message send attempt during registration, not just "the two env keys exist") so a broken Slack token is caught at registration time, not silently at first real report.
+   - Dashboard sink — optional, and genuinely NEW: BRICK currently has zero onboarding provisioning for this. Add a `run_dashboard_provision_step()` (mirroring `run_slack_provision_step()`'s shape) that writes `BRICK_DASHBOARD_INGEST_URL`/`_SECRET` to `~/.brick/report.env` and does a real reachability check (e.g. a signed HEAD/health-check request) at registration time.
+3. **PLUGIN (unchanged)**: MCP registration + recording hooks + skills placement.
+4. **SMOKE TEST (unchanged from section 3/8)**.
+5. **VERIFY (unchanged)**.
+6. **Standalone commands, one per family**: `brick provider add <host>`, `brick sink add slack`, `brick sink add dashboard` — all thin wrappers around the same underlying REGISTER sub-steps, so any of the three can be added/fixed independently after initial install without a full re-init.
+
+**Persistence, widened**: keep `~/.brick/providers.yaml` for LLM adapters exactly as designed in section 4 (schema is provider-specific: adapter_ref/model_ref/reasoning_tier, doesn't generalize cleanly to sinks). Add a SIBLING file `~/.brick/sinks.yaml` for Slack/Dashboard, following the identical design philosophy (per-user, never git-tracked, ships unregistered, incremental persistence, real readiness check cached with a timestamp, kill-switch field) but with sink-appropriate fields (`sink_ref`, `credentials_present`, `last_reachability_check`, not adapter/model refs). Two files, not one artificially unified schema — same pattern, different shape, because LLM adapters and report sinks are genuinely different kinds of things in BRICK's own model (Agent-axis capability vs. support-side evidence delivery) and forcing one schema would blur that boundary the same way this whole redesign exists to STOP blurring provider-availability facts.
+
+**Phased rollout, widened** (replaces section 7's LLM-only phase list):
+
+- **Phase 0**: environment checks (full list above, not just Python+pipx) in PRESENT; LLM provider registration + ladder fix (as designed) — REQUIRED, this is what fixes today's bug; verdict-free smoke path for zero-provider installs. Slack/Dashboard registration in this phase is OPTIONAL and can literally be "write the env vars if flags were passed, same as today" — the REAL Slack/Dashboard readiness-check upgrade is Phase 1, not required to ship the core fix.
+- **Phase 1**: `brick provider add <host>` AND `brick sink add slack`/`brick sink add dashboard` as standalone commands; Slack gets its real test-message readiness check; Dashboard gets its first-ever provisioning step + reachability check (closing the worse-than-Gemini gap named above).
+- **Phase 2**: interactive single-prompt flow extends across all three families in one coherent "let's set up BRICK" moment for TTY sessions, not just LLM.
+- **Phase 3**: model/tier selection UX for LLM (as designed) PLUS equivalent refinement for sinks where it makes sense (e.g. Slack channel picker instead of pasting a raw channel ID, if a Slack API list-channels call is worth adding — lowest priority, explicitly deferred, not scoped further here).
