@@ -213,8 +213,8 @@ Return the operating-chain fields in this order:
 
 For P3 customer-ready work, this return feeds the existing `brick-task-author`
 chain directly: confirmed task source -> compact graph candidate (`build` /
-`fan`) -> operator-facing `build()` submission, or graph packet handoff when a
-file artifact is required. Do not create a new skill for this chain; connect to
+`fan`) -> operator-facing `build()` submission. Raw graph packet CLI handoff is
+retired. Do not create a new skill for this chain; connect to
 `brick-task-author` and `building-coordination`.
 
 `task.md 확정` means the task source is confirmed as Brick-owned input evidence

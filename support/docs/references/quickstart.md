@@ -8,11 +8,11 @@ surface:
 
 ```text
 brick build --task "첫 Building을 support evidence only로 기록해 주세요." --preset building-chain-preset:design-contract-only
-brick build --graph declared-graph-packet.json
 ```
 
-The first command is the `preset_task` input path. The second command is the
-`graph_packet` input path.
+The command is the `preset_task` input path. Graph-shaped work uses the
+`assemble()` / `build()` / `fan()` DSL path; raw `graph_packet` CLI input is
+retired.
 
 `run_building_intake`, `assemble`, `launch_assembled_building`, and
 `goal-approve` are support/operator helpers or advanced/internal paths. They
@@ -34,14 +34,14 @@ make X
   -> lane QA
   -> final QA
   -> closure
-  -> brick build --graph <declared-graph-packet.json>
+  -> assemble() / build() / fan()
 ```
 
 If a declared preset exactly preserves the needed shape, use `brick build
 --task ... --preset ...`. If the work needs that bigger road, the caller/COO
-declares a `graph_packet` and passes it through `brick build --graph`. Support
-validates and walks the declared Brick / Agent / Link rows; it does not choose
-route targets, invent Movement, judge success, or judge quality. `--large`,
+declares a DSL graph. Support validates and walks the declared Brick / Agent /
+Link rows; it does not choose route targets, invent Movement, judge success, or
+judge quality. `--large`,
 `--dev-lanes`, `_p3_easy_large`, and `lane_return` are not public route
 features.
 
@@ -55,8 +55,8 @@ success judgment, not a quality judgment, and not Movement authority.
 | --- | --- | --- |
 | What reads first? | Start at repo-root `README.md`, then this `support/docs/references/quickstart.md`, then `support/docs/references/setup.md` when you need prerequisite and checker details. After `brick init`, read the generated `FIRST_USE.md` under the chosen output root. | `README.md` links this quickstart and setup guide. `support/operator/first_use.py` renders `FIRST_USE.md` after the local example. Whether a customer understands the sequence without help is not proven. |
 | Active checkout or frozen/history repo? | Use this product checkout or its release export for active work. The frozen HISTORY repository is for archived evidence only; do not start new customer work there. In this checkout, `brick status` reports the resolved `repo_root`, current `cwd`, entrypoint file, and the default evidence root used by `brick build` when `--output-root` is omitted. Release exports omit `project/`; the first onboard/run creates local project evidence as needed. | `README.md` documents release export and HISTORY separation. `support/operator/cli.py` implements `brick status`. Byte-for-byte release parity and fresh-machine behavior remain not proven until measured. |
-| Official Building launch route? | Common customer path: install, run the onboarding wizard, then speak the task through `brick build --task`. Use `--preset` for the declared chain preset. When caller/COO already has a declared graph packet, use `brick build --graph <packet.json>`. | This page and `launch-guide.md` document one public execution surface: `brick build`. Its input modes are `preset_task` (`--task`/`--preset`) and `graph_packet` (`--graph`). Support walks declared rows; it does not choose Movement. Provider reliability, customer comprehension, success, quality, source truth, and Movement authority are not proven by these docs. |
-| How does bigger work stay easy? | Treat "make X" as task intake. Use a preset only when it preserves the declared route. For design-first or multi-lane work, caller/COO declares a graph packet shaped as design fan-out/review -> plan confirm -> parallel dev lanes -> lane QA -> final QA -> closure, then runs `brick build --graph`. | This is route documentation, not a new CLI mode. It does not revive `--large`, `_p3_easy_large`, `--dev-lanes`, `lane_return`, a scheduler/queue/retry runtime, or support-owned route selection. |
+| Official Building launch route? | Common customer path: install, run the onboarding wizard, then speak the task through `brick build --task`. Use `--preset` for the declared chain preset. For graph-shaped work, use `assemble()` / `build()` / `fan()`. | This page and `launch-guide.md` document one public CLI execution surface: `brick build --task`/`--preset`, plus the official DSL graph authoring path. Support walks declared rows; it does not choose Movement. Provider reliability, customer comprehension, success, quality, source truth, and Movement authority are not proven by these docs. |
+| How does bigger work stay easy? | Treat "make X" as task intake. Use a preset only when it preserves the declared route. For design-first or multi-lane work, caller/COO declares a DSL graph shaped as design fan-out/review -> plan confirm -> parallel dev lanes -> lane QA -> final QA -> closure. | This is route documentation, not a new CLI mode. It does not revive `--large`, `_p3_easy_large`, `--dev-lanes`, `lane_return`, a scheduler/queue/retry runtime, or support-owned route selection. |
 | How do I read frontier output? | `brick build` exit 0 means the CLI returned support evidence. Customer-visible Building closure is `frontier_kind=complete`. Any other `frontier_kind` is `not_ready`; inspect the printed `evidence_root` before rerunning or escalating. | `support/operator/cli.py` renders `customer_visible_frontier_state=frontier_complete` only for `complete`; non-complete frontiers render `not_ready` and preserve `evidence_root`. This is evidence handling, not a phase PASS or quality judgment. |
 | Slack expectation? | Slack is optional. The first local path does not require Slack and should not expect a direct Slack check. Operator notification uses `~/.brick/report.env` only after provisioning/source, and real Slack delivery remains gated by declared delivery flags and environment credentials. | `launch-guide.md` notes `source ~/.brick/report.env` for bell/dashboard notifications. Reporter/Slack delivery is support projection only and must not expose credentials or become a scheduler/queue/retry runtime. |
 | Where does evidence land? | Ref-less defaults land under `$BRICK_HOME/project/brick-protocol/buildings/<building_id>/`, or `~/.brick/project/brick-protocol/buildings/<building_id>/` when `BRICK_HOME` is unset. Runs that declare `project_ref: "project:brick-protocol"` land in the repo-local vessel `project/brick-protocol/buildings/<building_id>/`. Customer CLI builds use the declared output root and report `evidence_root`; `FIRST_USE.md` repeats that root for the local example. | The root contains `capture/`, `raw/`, `evidence/`, and `work/`. These are support evidence and projections, not source truth or judgments. |
@@ -172,25 +172,20 @@ work if you want the CLI to observe Claude, Codex, and Gemini readiness in
 declared support order and select the first ready observed-write adapter. An
 explicit observed-write `--adapter` still wins.
 
-## Declared graph packets: `brick build --graph`
+## Declared graphs: DSL
 
-When a caller/COO-declared graph packet already exists, keep the same customer
-surface and pass the packet:
-
-```bash
-brick build --graph /path/to/declared-graph-packet.json
-```
-
-The graph packet path is the `graph_packet` input mode. It is for already
-declared graph packets; it is not permission for support to invent route
-targets or Movement.
+When caller/COO needs a declared graph, use `assemble()` / `build()` / `fan()`.
+Raw `graph_packet` JSON through `brick build --graph` is retired from the
+customer CLI. DSL graph materialization is still not permission for support to
+invent route targets or Movement.
 
 ## Direct plan runner (advanced/internal only)
 
 You can also run a full plan file directly through `run_building_plan`. This is
 an internal/operator support path for automation and debugging, not a first-run
 instruction and not a separate customer execution route; the customer route
-remains `brick build --task` or `brick build --graph`. The repository already
+remains `brick build --task` for preset tasks and the DSL graph path for larger
+declared graphs. The repository already
 ships a verified, runnable first plan at
 `brick/building_plans/onboarding-example-0.yaml`; point the runner at it rather
 than hand-writing one (a hand-written copy would drift from the real, tested
@@ -286,8 +281,8 @@ For an internal/operator direct plan run, copy the bundled plan OUTSIDE the
 repository (the repo tree admits no scratch files) and change its top-level
 adapter field (the bundled plan declares the adapter only at the top level),
 then point `run_building_plan` at your copy. Customer execution should still
-use `brick build --task ... --real-provider` or `brick build --graph
-<packet.json>`. Codex is one explicit adapter example:
+use `brick build --task ... --real-provider` or the DSL graph path. Codex is
+one explicit adapter example:
 
 ```yaml
 selected_adapter_ref: adapter:codex-local
@@ -359,8 +354,7 @@ Machine flows (scripts, checkers, pipelines) that already manage a task file
 can still use the support/operator helper with a repo-relative
 `task_source_ref` instead of inline text. This is an automation helper path,
 not the official customer first-run route; customer runs should speak the task
-with `brick build --task` or pass a declared graph packet with `brick build
---graph`:
+with `brick build --task` or use the DSL graph path:
 
 ```bash
 uv run python3 -c '

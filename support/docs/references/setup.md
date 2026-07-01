@@ -8,9 +8,9 @@ The customer-facing CLI entry point is `brick build`. Use
 way to construct and launch design-first or multi-lane work is the
 `assemble()` / `build()` / `fan()` Python DSL (`support/operator/assembly.py`)
 plus `run_building_plan()`; `brick build --graph <packet.json>` (hand-authored
-`graph_packet` JSON) is a low-level escape hatch, headed for retirement per
-Global Operating Rule 10, kept only until `sibling_independence` and per-node
-`write_scope` narrowing are expressible in the DSL. This guide covers
+`graph_packet` JSON) is retired from the public customer CLI per Global
+Operating Rule 10 now that `sibling_independence`, per-node `write_scope`
+narrowing, and mid-graph human/COO gates are expressible in the DSL. This guide covers
 prerequisites, the checker gate, and the advanced `run_building_plan`
 signature in detail.
 
@@ -91,8 +91,8 @@ A Building plan declares the whole road up front: each step carries exactly thre
 The human flow needs NO file at all: pass your task as text through
 `brick build --task`. Choose the declared preset with `--preset`; the CLI
 records `build_input_mode: preset_task` and writes the Building evidence root.
-When caller/COO already has a declared graph packet, use `brick build --graph
-<packet.json>`; that records `build_input_mode: graph_packet`.
+When caller/COO needs a graph-shaped Building, use the `assemble()` /
+`build()` / `fan()` DSL path; raw `graph_packet` CLI input is retired.
 
 `brick build` exit 0 means the CLI returned support evidence. Customer-visible
 Building closure is `frontier_kind=complete`. Any other `frontier_kind` renders
@@ -107,8 +107,8 @@ To inspect the lower-level runner directly as an advanced/internal operator
 path, use the bundled, verified-runnable first plan that ships in the repository at
 `brick/building_plans/onboarding-example-0.yaml` (it is GRAPH-shaped, which the
 runner requires) and run it through the advanced `run_building_plan` surface.
-This is not the customer first-run route; use `brick build --task` or `brick
-build --graph` for customer execution:
+This is not the customer first-run route; use `brick build --task` for preset
+task execution and the DSL graph path for graph-shaped work:
 
 ```bash
 PYTHONPATH=support/import_identity python3 -c 'from brick_protocol.support.operator.run import run_building_plan; result = run_building_plan("brick/building_plans/onboarding-example-0.yaml"); print(result.building_id); print(result.lifecycle_write.root); print("\n".join(str(path) for path in result.written_files))'

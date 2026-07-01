@@ -90,10 +90,11 @@ fan-outs share the same source event, collapse them into one fan-out cohort unle
 a declared barrier explains the semantic split.
 
 P3 zero-ritual launch policy: once the task source and graph shape are declared,
-the preferred graph execution is compact drawing (`build` / `fan`) followed by
-operator-facing `build()` submission. Do not tell the operator to call `fire(graph)`; `fire()` is internal/debug wording. If a packet artifact is
-needed, `brick build --graph <packet>` remains the file-handoff form of the same
-route. Do not invent a second runner or a new skill chain.
+the graph execution is compact drawing (`build` / `fan`) followed by
+operator-facing `build()` submission. Do not tell the operator to call
+`fire(graph)`; `fire()` is internal/debug wording. Raw packet handoff through
+`brick build --graph <packet>` is retired from the customer CLI surface. Do not
+invent a second runner or a new skill chain.
 
 Compact write-hand policy (measured 0630): a graph node that must modify files
 needs two declarations, not one. The work Brick must declare write need

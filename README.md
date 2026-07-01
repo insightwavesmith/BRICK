@@ -23,8 +23,10 @@ cd ~/BRICK && uv run python3 -m brick_protocol.support.operator.onboard codex
 ```
 
 공식 고객 실행 표면은 하나입니다: `brick build`. 표준 작업은
-`--task`/`--preset`으로 말하고, caller/COO가 이미 선언한 그래프는
-`--graph`로 넘깁니다.
+`--task`/`--preset`으로 말합니다. design-first 또는 multi-lane 그래프는
+`assemble()` / `build()` / `fan()` DSL로 선언하고 실행합니다. 손으로 작성한
+raw `graph_packet` JSON을 CLI에 넘기던 `--graph`/`--graph-packet` 입력은
+retired입니다.
 
 ```bash
 cd ~/BRICK && brick build --task "첫 실행을 support evidence only로 기록해 주세요." --preset building-chain-preset:design-contract-only --adapter adapter:local --timeout 20
@@ -48,7 +50,7 @@ expected: provider 준비 상태 표와 첫 예제 Building support evidence가 
 failure signal: local_cli_missing, provider login 진단, FileExistsError, 또는 adapter-error frontier 안내.
 
 command: cd ~/BRICK && brick build --task "첫 실행을 support evidence only로 기록해 주세요." --preset building-chain-preset:design-contract-only --adapter adapter:local --timeout 20
-expected: build_input_mode=preset_task, building_id, evidence_root, frontier_kind가 출력된다. provider 준비 전 local/support-only 확인은 frontier_kind=agent_incomplete/not_ready일 수 있으며, customer-visible closure는 frontier_kind=complete일 때뿐이다. brick build exit 0은 CLI가 support evidence를 반환했다는 뜻이지 phase PASS가 아니다. complete가 아닌 frontier는 not_ready로 보고 evidence_root를 inspect한다. graph_packet은 `brick build --graph <packet.json>`로 같은 표면을 통과한다.
+expected: build_input_mode=preset_task, building_id, evidence_root, frontier_kind가 출력된다. provider 준비 전 local/support-only 확인은 frontier_kind=agent_incomplete/not_ready일 수 있으며, customer-visible closure는 frontier_kind=complete일 때뿐이다. brick build exit 0은 CLI가 support evidence를 반환했다는 뜻이지 phase PASS가 아니다. complete가 아닌 frontier는 not_ready로 보고 evidence_root를 inspect한다. raw graph_packet CLI 입력은 retired이고, 그래프형 작업은 DSL로 선언한다.
 failure signal: FileExistsError이면 building_id를 새로 정한다; ModuleNotFoundError이면 루트에서 uv run python3 -c 로 호출했는지 확인한다; frontier가 complete가 아니라는 안내.
 
 command: cd ~/BRICK && PYTHONPATH=support/import_identity uv run python3 support/checkers/check_profile.py --all
@@ -74,10 +76,10 @@ Preset task runs use `brick build --task ... --preset ...`. For design-first or
 multi-lane work, the official way to construct and launch a Building is the
 `assemble()` / `build()` / `fan()` Python DSL (`support/operator/assembly.py`)
 plus `run_building_plan()`. Hand-authored `graph_packet` JSON via
-`brick build --graph <packet.json>` is a low-level escape hatch, headed for
-retirement (Global Operating Rule 10) — kept for now only because
-`sibling_independence` and per-node `write_scope` narrowing are not yet
-expressible in the DSL. `run_building_intake`, `launch_assembled_building`, and
+`brick build --graph <packet.json>` is retired from the public customer CLI
+surface now that sibling independence, per-node `write_scope`, and mid-graph
+human/COO gates are expressible in the DSL. `run_building_intake`,
+`launch_assembled_building`, and
 `goal-approve` remain helper or advanced/internal paths, not separate customer
 execution routes.
 
@@ -85,9 +87,8 @@ For bigger work, the easy route is still the same public surface. Say the work
 as `brick build --task` when a declared preset fits. When the work needs
 design, review, split implementation, lane QA, final QA, and closure, the
 caller/COO declares that road with the `assemble()`/`build()`/`fan()` DSL and
-runs it with `run_building_plan()` (or, only for the two DSL-gap cases above,
-a hand-declared graph packet via `brick build --graph <packet.json>`). There is
-no separate `--large` mode and no support-owned route chooser.
+runs it with `run_building_plan()`. There is no separate `--large` mode, no
+raw `--graph` packet input, and no support-owned route chooser.
 
 Use the first-run example with `building-chain-preset:design-contract-only` and
 `--adapter adapter:local --timeout 20` only as a support-evidence check: it may

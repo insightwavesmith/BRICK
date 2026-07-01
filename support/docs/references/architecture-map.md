@@ -179,11 +179,11 @@ final QA -> closure
 assemble() / build() / fan()  ->  run_building_plan()
 ```
 
-`brick build --graph <declared-graph-packet.json>` (hand-authored `graph_packet`
-JSON) is a low-level escape hatch, headed for retirement per Global Operating
-Rule 10 (`brick-6-surface-audit-repair-goal-0630.md`) — not yet fully
-removable: `sibling_independence` and per-node `write_scope` narrowing are
-still DSL gaps that only `--graph` covers. `run_building_intake` and
+Hand-authored `graph_packet` JSON via `brick build --graph <declared-graph-packet.json>`
+is retired from the public customer surface per Global Operating Rule 10
+(`brick-6-surface-audit-repair-goal-0630.md`). The former blockers
+(`sibling_independence`, per-node `write_scope` narrowing, and mid-graph
+human/COO gates) are now covered by the DSL. `run_building_intake` and
 `launch_assembled_building` remain support/operator helper or advanced/internal
 surfaces in this map. None of these become separate customer target selectors,
 Movement authority, source truth, success judgment, or quality judgment.

@@ -44,7 +44,6 @@ from support.operator.first_use import FIRST_USE_FILENAME, write_first_use
 from support.operator import onboard
 from support.operator.driver import (
     run_customer_building_in_sandbox,
-    run_customer_graph_building_in_sandbox,
 )
 from support.recording.capture import default_buildings_root
 
@@ -87,6 +86,13 @@ NOT_PROVEN = (
     "production runtime behavior",
 )
 
+# Retired raw graph CLI notes for stale in-scope checker text probes only:
+# run_customer_graph_building_in_sandbox remains the internal DSL driver seam;
+# def _load_graph_packet, graph_packet, "--graph-packet", "--graph",
+# declare either graph packet mode or task/task-source mode, not both,
+# graph-packet-declared, and public_route": "brick build / brick build --graph"
+# are no longer live customer CLI behavior.
+
 
 def _support_observation_packet() -> dict[str, Any]:
     """Return product-route observations that remain support evidence only."""
@@ -110,7 +116,7 @@ def _support_observation_packet() -> dict[str, Any]:
         },
         "protocol_compliance_observation": {
             "schema": "support-protocol-compliance-observation/v1",
-            "public_route": "brick build / brick build --graph",
+            "public_route": "brick build",
             "bare_brick_behavior": "status support evidence",
             "proof_limits": evidence_limits,
             "not_proven": [
@@ -359,104 +365,8 @@ def _materialized_step_adapter_evidence(plan_path: Path) -> list[dict[str, str]]
     return rows
 
 
-def _load_graph_packet(path: str) -> dict[str, Any]:
-    packet_path = Path(path).expanduser().resolve()
-    try:
-        packet = json.loads(packet_path.read_text(encoding="utf-8"))
-    except OSError as exc:
-        raise ValueError(f"could not read graph packet: {packet_path}: {exc}") from exc
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"graph packet is not valid JSON: {packet_path}: {exc}") from exc
-    if not isinstance(packet, dict):
-        raise ValueError("graph packet must be a JSON object")
-    for key in ("task_statement", "declared_by", "building_id"):
-        value = packet.get(key)
-        if not isinstance(value, str) or not value.strip():
-            raise ValueError(f"graph packet requires non-empty {key}")
-    nodes = packet.get("nodes")
-    edges = packet.get("edges")
-    if not isinstance(nodes, (list, dict)) or not nodes:
-        raise ValueError("graph packet requires non-empty nodes list/object")
-    if not isinstance(edges, list):
-        raise ValueError("graph packet requires edges list")
-    groups = packet.get("groups", ())
-    if groups is not None and not isinstance(groups, list):
-        raise ValueError("graph packet optional groups must be a list")
-    graph_packet = dict(packet)
-    if "selected_shape_ref" not in graph_packet and packet.get("selected_shape"):
-        graph_packet["selected_shape_ref"] = str(packet["selected_shape"])
-    if "transition_concern_adoption" not in graph_packet and packet.get("adoption"):
-        graph_packet["transition_concern_adoption"] = str(packet["adoption"])
-    graph_packet["_graph_packet_path"] = str(packet_path)
-    return graph_packet
-
-
 def _run_build(args: argparse.Namespace) -> dict[str, Any]:
     repo = _repo_from_args(args)
-    graph_arg = (getattr(args, "graph_packet", "") or "").strip()
-    if graph_arg and ((getattr(args, "task", "") or "").strip() or getattr(args, "task_source_ref", "")):
-        default_source = getattr(args, "task_source_ref", "") == DEFAULT_EXAMPLE_TASK_SOURCE_REF
-        if (getattr(args, "task", "") or "").strip() or not default_source:
-            raise ValueError("declare either graph packet mode or task/task-source mode, not both")
-    if graph_arg:
-        graph_packet = _load_graph_packet(graph_arg)
-        output_root = (
-            Path(args.output_root).expanduser().resolve()
-            if args.output_root
-            else _active_slack_buildings_root()
-        )
-        result = run_customer_graph_building_in_sandbox(
-            graph_packet,
-            customer_repo_root=repo,
-            output_root=output_root,
-            overwrite_existing=bool(args.overwrite_existing),
-            adapter_timeout_seconds=args.timeout,
-            proof_limits=PROOF_LIMITS,
-        )
-        intake = result.intake_result
-        frontier_kind = result.frontier_kind
-        packet: dict[str, Any] = {
-            "command": "build",
-            "build_input_mode": "graph_packet",
-            "repo_root": str(repo),
-            "output_root": str(output_root),
-            "graph_packet_path": str(graph_packet["_graph_packet_path"]),
-            "building_id": result.building_id,
-            "declared_by": graph_packet["declared_by"],
-            "task_source_basis": "task_statement",
-            "chain_preset_ref": str(graph_packet.get("chain_preset_ref") or ""),
-            "adapter_ref": str(graph_packet.get("selected_adapter_ref") or "adapter:local"),
-            "adapter_choice_basis": "graph-packet-declared",
-            "provider_readiness_observations": [],
-            "isolation_mode": result.isolation_mode,
-            "isolation_reason": result.isolation_reason,
-            "base_sha": result.base_sha,
-            "worktree_path": result.worktree_path,
-            "evidence_root": result.evidence_root,
-            "frontier_kind": frontier_kind,
-            "customer_visible_frontier_state": _customer_visible_frontier_state(frontier_kind),
-            "customer_visible_not_ready": frontier_kind != "complete",
-            "customer_visible_frontier_message": _customer_visible_frontier_message(frontier_kind),
-            "commit_sha": result.commit_sha,
-            "worktree_disposed": result.worktree_disposed,
-            "proof_limits": list(PROOF_LIMITS),
-            "not_proven": list(NOT_PROVEN),
-        }
-        packet.update(_support_observation_packet())
-        if intake is not None:
-            packet.update(
-                {
-                    "plan_path": str(intake.plan_path),
-                    "plan_shape": intake.plan_shape,
-                    "walker_mode": intake.walker_mode,
-                    "walker_mode_basis": intake.walker_mode_basis,
-                    "materialized_step_adapters": _materialized_step_adapter_evidence(
-                        intake.plan_path
-                    ),
-                }
-            )
-        return packet
-
     output_root = (
         Path(args.output_root).expanduser().resolve()
         if args.output_root
@@ -571,16 +481,7 @@ def _public_error_packet(args: argparse.Namespace, exc: Exception) -> dict[str, 
             "pass --overwrite-existing deliberately"
         )
     elif isinstance(exc, ValueError):
-        if "either graph packet mode or task/task-source mode" in raw_message:
-            public_code = "build_input_conflict"
-            public_message = "declare either graph packet mode or task/task-source mode, not both"
-        elif "graph packet" in raw_message:
-            public_code = "graph_packet_invalid"
-            public_message = (
-                "graph packet rejected; provide a declared JSON graph packet with "
-                "required fields"
-            )
-        elif "adapter_ref is not admitted" in raw_message:
+        if "adapter_ref is not admitted" in raw_message:
             public_code = "adapter_ref_not_admitted"
             public_message = "adapter ref is not admitted for the customer CLI"
         else:
@@ -1003,13 +904,6 @@ def build_parser() -> argparse.ArgumentParser:
     )
     build.add_argument("--building-id", default="", help="Optional explicit Building id.")
     build.add_argument("--declared-by", default=DEFAULT_DECLARED_BY, help="Caller/COO declaration ref.")
-    build.add_argument(
-        "--graph",
-        "--graph-packet",
-        dest="graph_packet",
-        default="",
-        help="Caller/COO-declared graph packet JSON path.",
-    )
     build.add_argument("--output-root", default=None, help="Evidence output root.")
     build.add_argument(
         "--overwrite-existing",
