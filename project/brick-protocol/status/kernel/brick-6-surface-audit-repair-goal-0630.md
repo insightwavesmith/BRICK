@@ -52,6 +52,27 @@ Support review evidence:
    checker-first discipline already required for every other invariant in
    this goal. Scope this as part of P8 (or a dedicated small Building before
    P8 if P7 closes first); do not let it slip.
+9. (0701 addition) There are currently TWO plan-materialization producers:
+   `support/operator/composition_compose.py::compose_building()` (old,
+   actually reachable from the live `brick build --graph` CLI route today)
+   and `support/operator/assembly.py::assemble()` (intended future
+   canonical producer per `support/checkers/check_assembly_equivalence.py`'s
+   own docstring: "Guard structural equivalence for future assembly.py
+   lowering"). This is a standing violation of rule 3's no-second-engine
+   principle, tolerated only because the equivalence guard proves the two
+   are not yet interchangeable. Smith: address this before/within P8, not
+   as a side effect of any narrower engine fix (e.g. not folded into the
+   0701 write_scope-default fix). Before attempting the cutover: (a) verify
+   `assemble()` supports every graph_packet feature the live `--graph` CLI
+   route currently exercises (fan_in/fan_out groups, `sibling_independence`,
+   `closure_transition_target_policy`, the graph-topology fan-barrier
+   checker from rule 8, etc. -- `composition_compose.py` kept receiving
+   real feature work through 0701, so parity is not proven); (b) decide
+   whether the outcome is completing the migration (CLI route switches to
+   `assemble()`, `compose_building` retired) or explicitly declaring
+   `compose_building` permanently canonical and retiring the "future
+   lowering" framing on the equivalence checker -- either resolution is
+   acceptable, indefinite duplication is not.
 
 ## Standard Phase Building Graph (dual-design fan-out, Smith-confirmed 0701)
 
