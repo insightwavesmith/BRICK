@@ -1,0 +1,291 @@
+{
+  "task_statement": "P7c of BRICK 6-surface audit repair (product route / Easy Building surface) - bounded follow-up: resolve or explicitly classify the P7b status/build evidence-root drift, preserve the P7b public route/doc/error-surface improvements, and rerun the P7 slice proof through the official brick build graph route. Do not broaden into full Easy-Building dynamic ergonomics, P8 ship safety, or P9 customer replay.",
+  "declared_by": "coo",
+  "building_id": "brick-6-p7-status-build-root-alignment-0701c",
+  "selected_shape_ref": "shape:manual-product-route-surface-p7-status-build-root-fanin",
+  "selection_rule": "manual graph because P7c is a focused reroute follow-up from P7b closure concern transition-concern:brick-6-p7-product-route-surface-0701b-status-build-root-drift. Use design -> work -> fan([code-qa, axis-qa, evidence-qa]) -> closure; do not repeat P7a linear pseudo-graph.",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "brick-6-p7-status-build-root-alignment-0701c-design",
+      "step_ref": "brick-6-p7-status-build-root-alignment-0701c-design",
+      "step_template_ref": "building-step-template:design",
+      "node_reroute_budget": 1,
+      "work_statement": "Design the P7c bounded follow-up from P7b closure evidence. Read only the P7b pause doc, P7b graph/support evidence needed for the root-drift concern, and the P7 phase/source audit refs. Produce exact repair scope and checker-first proof plan for status/build evidence-root alignment. Return design only; no source edits.\n\nSTRICT SCOPE: phase:P7c product-route surface follow-up ONLY. Primary gap: status/no-args CLI and build output must agree on how the default evidence/build root is explained to customers, or the difference must be explicitly classified as support/internal vs customer-facing with product-safe wording. Preserve P7b slice outcomes: public route names brick init/status/doctor/build/build --graph; no onboard-module seam as customer route; quickstart separates compact graph packet from internal full Building Plan/run_building_plan; CLI plain error line uses product-safe taxonomy, not raw str(exc)/traceback; bare brick default is status. Add or verify negative pins for onboard-module-as-route drift, raw str(exc)/traceback operator leak, and --large/new-engine revival. Do NOT revive --large, do NOT add a new engine, do NOT build full Easy-Building dynamic design ergonomics (S6-F4 remains later/not_proven), do NOT broaden into P8 ship safety or P9 dynamic proof, and do NOT push. Use official build()/brick build language only. Movement vocabulary is forward/reroute; HOLD/pause is lifecycle. QA lanes may use probe_write fixtures only and must not mutate customer source truth. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p7-status-build-root-alignment-0701c-design-to-work"
+    },
+    {
+      "node_id": "brick-6-p7-status-build-root-alignment-0701c-work",
+      "step_ref": "brick-6-p7-status-build-root-alignment-0701c-work",
+      "step_template_ref": "building-step-template:work",
+      "node_reroute_budget": 1,
+      "work_statement": "Implement the P7c bounded follow-up. Required outcomes: (1) reconcile or product-safely classify default evidence/build root wording across bare `brick`/`brick status` and `brick build`; (2) preserve existing P7 public route/doc/error-surface improvements; (3) add or verify regression pins for onboard-module route drift, raw operator error leakage, and --large/new-engine revival; (4) run focused brick_cli_entrypoint profile, py_compile for changed Python, git diff --check, and check_profile.py --all, or return exact failure evidence without closing; (5) record full Easy-Building dynamic ergonomics, P8 ship safety, P9 dynamic/customer proof, customer comprehension, and real-provider/fresh-machine claims as not_proven unless separately proven.\n\nSTRICT SCOPE: phase:P7c product-route surface follow-up ONLY. Primary gap: status/no-args CLI and build output must agree on how the default evidence/build root is explained to customers, or the difference must be explicitly classified as support/internal vs customer-facing with product-safe wording. Preserve P7b slice outcomes: public route names brick init/status/doctor/build/build --graph; no onboard-module seam as customer route; quickstart separates compact graph packet from internal full Building Plan/run_building_plan; CLI plain error line uses product-safe taxonomy, not raw str(exc)/traceback; bare brick default is status. Add or verify negative pins for onboard-module-as-route drift, raw str(exc)/traceback operator leak, and --large/new-engine revival. Do NOT revive --large, do NOT add a new engine, do NOT build full Easy-Building dynamic design ergonomics (S6-F4 remains later/not_proven), do NOT broaden into P8 ship safety or P9 dynamic proof, and do NOT push. Use official build()/brick build language only. Movement vocabulary is forward/reroute; HOLD/pause is lifecycle. QA lanes may use probe_write fixtures only and must not mutate customer source truth. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "README.md",
+          "support/docs/references/quickstart.md",
+          "support/docs/references/setup.md",
+          "support/docs/references/launch-guide.md",
+          "support/operator/cli.py",
+          "support/checkers/profiles/brick_cli_entrypoint.yaml",
+          "support/checkers/lib/kernel_checks.py",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/connection/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      },
+      "completion_edge_ref": "edge:brick-6-p7-status-build-root-alignment-0701c-work-to-code-qa"
+    },
+    {
+      "node_id": "brick-6-p7-status-build-root-alignment-0701c-code-qa",
+      "step_ref": "brick-6-p7-status-build-root-alignment-0701c-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Code attack QA for P7c. Verify status/build root wording is aligned or explicitly classified, P7b public route/error-surface behavior is preserved, negative pins RED-fire under probe_write when drift/leak is reintroduced, and no --large/new engine or broad P8/P9 work entered the diff. Return QA observations; local concern only until closure.\n\nSTRICT SCOPE: phase:P7c product-route surface follow-up ONLY. Primary gap: status/no-args CLI and build output must agree on how the default evidence/build root is explained to customers, or the difference must be explicitly classified as support/internal vs customer-facing with product-safe wording. Preserve P7b slice outcomes: public route names brick init/status/doctor/build/build --graph; no onboard-module seam as customer route; quickstart separates compact graph packet from internal full Building Plan/run_building_plan; CLI plain error line uses product-safe taxonomy, not raw str(exc)/traceback; bare brick default is status. Add or verify negative pins for onboard-module-as-route drift, raw str(exc)/traceback operator leak, and --large/new-engine revival. Do NOT revive --large, do NOT add a new engine, do NOT build full Easy-Building dynamic design ergonomics (S6-F4 remains later/not_proven), do NOT broaden into P8 ship safety or P9 dynamic proof, and do NOT push. Use official build()/brick build language only. Movement vocabulary is forward/reroute; HOLD/pause is lifecycle. QA lanes may use probe_write fixtures only and must not mutate customer source truth. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p7-status-build-root-alignment-0701c-code-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "README.md",
+          "support/docs/references/quickstart.md",
+          "support/docs/references/setup.md",
+          "support/docs/references/launch-guide.md",
+          "support/operator/cli.py",
+          "support/checkers/profiles/brick_cli_entrypoint.yaml",
+          "support/checkers/lib/kernel_checks.py",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/connection/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p7-status-build-root-alignment-0701c-axis-qa",
+      "step_ref": "brick-6-p7-status-build-root-alignment-0701c-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Axis QA for P7c. Verify Brick owns the product doc/CLI work contract, Agent returns remain support evidence, Link Movement is not inferred from CLI/checker green, and any root difference is classified as support/internal vs customer-facing without turning support paths into source truth or Movement authority. Return QA observations; local concern only until closure.\n\nSTRICT SCOPE: phase:P7c product-route surface follow-up ONLY. Primary gap: status/no-args CLI and build output must agree on how the default evidence/build root is explained to customers, or the difference must be explicitly classified as support/internal vs customer-facing with product-safe wording. Preserve P7b slice outcomes: public route names brick init/status/doctor/build/build --graph; no onboard-module seam as customer route; quickstart separates compact graph packet from internal full Building Plan/run_building_plan; CLI plain error line uses product-safe taxonomy, not raw str(exc)/traceback; bare brick default is status. Add or verify negative pins for onboard-module-as-route drift, raw str(exc)/traceback operator leak, and --large/new-engine revival. Do NOT revive --large, do NOT add a new engine, do NOT build full Easy-Building dynamic design ergonomics (S6-F4 remains later/not_proven), do NOT broaden into P8 ship safety or P9 dynamic proof, and do NOT push. Use official build()/brick build language only. Movement vocabulary is forward/reroute; HOLD/pause is lifecycle. QA lanes may use probe_write fixtures only and must not mutate customer source truth. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p7-status-build-root-alignment-0701c-axis-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "README.md",
+          "support/docs/references/quickstart.md",
+          "support/docs/references/setup.md",
+          "support/docs/references/launch-guide.md",
+          "support/operator/cli.py",
+          "support/checkers/profiles/brick_cli_entrypoint.yaml",
+          "support/checkers/lib/kernel_checks.py",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/connection/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p7-status-build-root-alignment-0701c-evidence-qa",
+      "step_ref": "brick-6-p7-status-build-root-alignment-0701c-evidence-qa",
+      "step_template_ref": "building-step-template:evidence-integrity",
+      "node_reroute_budget": 1,
+      "work_statement": "Evidence integrity QA for P7c. Verify the P7b closure concern is carried, proof commands and rc outcomes are recorded, changed files/diff match P7c scope, all remaining not_proven items stay visible, and no claim says P7/P8/P9/customer-ready are complete from this slice alone. Return QA observations; local concern only until closure.\n\nSTRICT SCOPE: phase:P7c product-route surface follow-up ONLY. Primary gap: status/no-args CLI and build output must agree on how the default evidence/build root is explained to customers, or the difference must be explicitly classified as support/internal vs customer-facing with product-safe wording. Preserve P7b slice outcomes: public route names brick init/status/doctor/build/build --graph; no onboard-module seam as customer route; quickstart separates compact graph packet from internal full Building Plan/run_building_plan; CLI plain error line uses product-safe taxonomy, not raw str(exc)/traceback; bare brick default is status. Add or verify negative pins for onboard-module-as-route drift, raw str(exc)/traceback operator leak, and --large/new-engine revival. Do NOT revive --large, do NOT add a new engine, do NOT build full Easy-Building dynamic design ergonomics (S6-F4 remains later/not_proven), do NOT broaden into P8 ship safety or P9 dynamic proof, and do NOT push. Use official build()/brick build language only. Movement vocabulary is forward/reroute; HOLD/pause is lifecycle. QA lanes may use probe_write fixtures only and must not mutate customer source truth. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-p7-status-build-root-alignment-0701c-evidence-qa-to-closure",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "README.md",
+          "support/docs/references/quickstart.md",
+          "support/docs/references/setup.md",
+          "support/docs/references/launch-guide.md",
+          "support/operator/cli.py",
+          "support/checkers/profiles/brick_cli_entrypoint.yaml",
+          "support/checkers/lib/kernel_checks.py",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/**",
+          "link/**",
+          "agent/**",
+          "support/connection/**",
+          "/Users/smith/.brick/project/brick-protocol/buildings/**"
+        ]
+      }
+    },
+    {
+      "node_id": "brick-6-p7-status-build-root-alignment-0701c-closure",
+      "step_ref": "brick-6-p7-status-build-root-alignment-0701c-closure",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Closure for P7c. Fan in work plus all three QA bodies. Report observed_evidence / narrowly_proven / not_proven / remaining_delta / parent_goal_delta_status / next Movement candidate. THIS slice closes only if status/build root drift is resolved or explicitly product-safely classified, P7b improvements are preserved, negative pins cover the regressions, and focused + all-profile verification is recorded or any failure is explicitly not_proven. If an implementation/boundary/evidence gap remains, return Link-facing transition_concern_evidence targeting work. Do not claim whole P7, P8, P9, or customer-ready complete.\n\nSTRICT SCOPE: phase:P7c product-route surface follow-up ONLY. Primary gap: status/no-args CLI and build output must agree on how the default evidence/build root is explained to customers, or the difference must be explicitly classified as support/internal vs customer-facing with product-safe wording. Preserve P7b slice outcomes: public route names brick init/status/doctor/build/build --graph; no onboard-module seam as customer route; quickstart separates compact graph packet from internal full Building Plan/run_building_plan; CLI plain error line uses product-safe taxonomy, not raw str(exc)/traceback; bare brick default is status. Add or verify negative pins for onboard-module-as-route drift, raw str(exc)/traceback operator leak, and --large/new-engine revival. Do NOT revive --large, do NOT add a new engine, do NOT build full Easy-Building dynamic design ergonomics (S6-F4 remains later/not_proven), do NOT broaden into P8 ship safety or P9 dynamic proof, and do NOT push. Use official build()/brick build language only. Movement vocabulary is forward/reroute; HOLD/pause is lifecycle. QA lanes may use probe_write fixtures only and must not mutate customer source truth. Checker/profile green is support evidence only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "closure_transition_target_policy": {
+        "implementation_gap": {
+          "action": "target",
+          "target_ref": "brick-6-p7-status-build-root-alignment-0701c-work"
+        },
+        "boundary_mismatch": {
+          "action": "target",
+          "target_ref": "brick-6-p7-status-build-root-alignment-0701c-work"
+        },
+        "verification_gap": {
+          "action": "hold"
+        },
+        "insufficient_input": {
+          "action": "target",
+          "target_ref": "brick-6-p7-status-build-root-alignment-0701c-work"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:brick-6-p7-status-build-root-alignment-0701c-design-to-work",
+      "source": "brick-6-p7-status-build-root-alignment-0701c-design",
+      "target": "brick-6-p7-status-build-root-alignment-0701c-work",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-status-build-root-alignment-0701c-work-to-code-qa",
+      "source": "brick-6-p7-status-build-root-alignment-0701c-work",
+      "target": "brick-6-p7-status-build-root-alignment-0701c-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-status-build-root-alignment-0701c-work-to-axis-qa",
+      "source": "brick-6-p7-status-build-root-alignment-0701c-work",
+      "target": "brick-6-p7-status-build-root-alignment-0701c-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-status-build-root-alignment-0701c-work-to-evidence-qa",
+      "source": "brick-6-p7-status-build-root-alignment-0701c-work",
+      "target": "brick-6-p7-status-build-root-alignment-0701c-evidence-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-status-build-root-alignment-0701c-code-qa-to-closure",
+      "source": "brick-6-p7-status-build-root-alignment-0701c-code-qa",
+      "target": "brick-6-p7-status-build-root-alignment-0701c-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-status-build-root-alignment-0701c-axis-qa-to-closure",
+      "source": "brick-6-p7-status-build-root-alignment-0701c-axis-qa",
+      "target": "brick-6-p7-status-build-root-alignment-0701c-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-status-build-root-alignment-0701c-evidence-qa-to-closure",
+      "source": "brick-6-p7-status-build-root-alignment-0701c-evidence-qa",
+      "target": "brick-6-p7-status-build-root-alignment-0701c-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-p7-status-build-root-alignment-0701c-closure-to-boundary",
+      "source": "brick-6-p7-status-build-root-alignment-0701c-closure",
+      "target": "building-boundary:brick-6-p7-status-build-root-alignment-0701c-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:brick-6-p7-status-build-root-alignment-0701c-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p7-status-build-root-alignment-0701c-work-to-code-qa",
+        "edge:brick-6-p7-status-build-root-alignment-0701c-work-to-axis-qa",
+        "edge:brick-6-p7-status-build-root-alignment-0701c-work-to-evidence-qa"
+      ]
+    },
+    {
+      "group_id": "group:brick-6-p7-status-build-root-alignment-0701c-qa-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-p7-status-build-root-alignment-0701c-code-qa-to-closure",
+        "edge:brick-6-p7-status-build-root-alignment-0701c-axis-qa-to-closure",
+        "edge:brick-6-p7-status-build-root-alignment-0701c-evidence-qa-to-closure"
+      ],
+      "fan_in_target_ref": "brick-6-p7-status-build-root-alignment-0701c-closure",
+      "fan_in_policy": "wait_all_before_closure"
+    }
+  ],
+  "source_evidence_refs": [
+    "project/brick-protocol/status/kernel/brick-6-p7-product-route-surface-paused-0701b.md",
+    "project/brick-protocol/status/kernel/GOAL/brick-6-p7-product-route-surface-0701b.json",
+    "/Users/smith/.brick/project/brick-protocol/buildings/brick-6-p7-product-route-surface-0701b",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-repair-p6-product-route-p3-easy-surface-0630.md",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-s6-product-surface-0630.md#S6-F2-S6-F4",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-final-synthesis-0630.md#C5-C6-C13-C14",
+    "project/brick-protocol/status/kernel/brick-6-surface-audit-final-coverage-matrix-0630.md#ADD-12-ADD-18"
+  ],
+  "proof_limits": [
+    "official brick build graph evidence is support evidence only",
+    "P7c closes only the status/build evidence-root alignment follow-up if proven",
+    "P7c does not prove full Easy-Building dynamic ergonomics, P8 ship safety, P9 dynamic proof, or customer-ready whole goal",
+    "checker/profile green is support evidence only",
+    "P7b partial improvements are support evidence until adopted through current evidence"
+  ],
+  "not_proven": [
+    "full P3 Easy-Building dynamic design ergonomics (S6-F4)",
+    "P8 ship safety/release/dashboard/provider/CI hardening",
+    "P9 current-main dynamic proof/customer replay",
+    "fresh-machine customer proof",
+    "real provider repeated reliability",
+    "customer comprehension",
+    "whole customer-ready closeout"
+  ]
+}
