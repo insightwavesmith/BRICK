@@ -45,6 +45,7 @@ def run_onboard_smoke(repo: Path) -> KernelResult:
     if "gemini" not in tuple(getattr(onboard, "SUPPORTED_HOSTS", ())):
         raise ProfileError("onboard_smoke: SUPPORTED_HOSTS must include gemini")
     doctor_packet = onboard.run_doctor(command_runner=command_runner)
+    _assert_doctor_environment_rows(doctor_packet)
     doctor_targets = {
         str(row.get("target") or "")
         for row in doctor_packet.get("rows", [])
@@ -180,8 +181,9 @@ def run_onboard_smoke(repo: Path) -> KernelResult:
         check_id="onboard_smoke",
         inspected=inspected,
         output=(
-            "onboard smoke passed: gemini host appears in doctor/readiness evidence "
-            "with API-key presence and credential_validity=not_proven; "
+            "onboard smoke passed: doctor reports environment readiness rows "
+            "(python, pipx, git, uv, disk, github network) and gemini host "
+            "readiness evidence with API-key presence and credential_validity=not_proven; "
             "run_onboard drives the bundled adapter:local "
             "example end-to-end to a TEMP output_root, returns the structured "
             "{preflight, connect_hint, example_result, handoff_message_ko, ok} "
@@ -213,3 +215,42 @@ def _onboard_smoke_assert_shape(label: str, result: Any) -> None:
         raise ProfileError(
             f"onboard_smoke: {label} preflight must carry a non-empty message_ko"
         )
+
+
+def _assert_doctor_environment_rows(doctor_packet: Mapping[str, Any]) -> None:
+    rows = doctor_packet.get("rows")
+    if not isinstance(rows, list):
+        raise ProfileError("onboard_smoke: doctor rows must be a list")
+    by_target = {
+        str(row.get("target") or ""): row
+        for row in rows
+        if isinstance(row, Mapping)
+    }
+    required_targets = {
+        "python",
+        "pipx",
+        "git",
+        "uv",
+        "disk",
+        "github.com",
+    }
+    missing = sorted(required_targets - set(by_target))
+    if missing:
+        raise ProfileError(
+            "onboard_smoke: doctor missing environment readiness row(s): "
+            + ", ".join(missing)
+        )
+    for target in sorted(required_targets):
+        row = by_target[target]
+        if not isinstance(row.get("ok"), bool):
+            raise ProfileError(
+                f"onboard_smoke: doctor row {target!r} must expose boolean ok"
+            )
+        if not str(row.get("message_ko") or "").strip():
+            raise ProfileError(
+                f"onboard_smoke: doctor row {target!r} must expose message_ko"
+            )
+    if "version" not in by_target["python"]:
+        raise ProfileError("onboard_smoke: python doctor row must expose version")
+    if "free_bytes" not in by_target["disk"]:
+        raise ProfileError("onboard_smoke: disk doctor row must expose free_bytes")

@@ -518,6 +518,10 @@ KERNEL_DISPATCH: Mapping[str, Callable[[Path], KernelResult]] = {
         "mcp_dispatch_wire",
         "support.checkers.check_mcp_dispatch_wire",
     ),
+    "provider_registry_ladder": _repo_main(
+        "provider_registry_ladder",
+        "support.checkers.check_provider_registry_ladder",
+    ),
     # F1 RETURN-FIELD MERGE-SET PARITY (return-LANDING binds to brick contract).
     # AST-parses (no import) support/connection/adapter_grant_policy.py and
     # support/connection/agent_adapter.py: every field in the structured-return

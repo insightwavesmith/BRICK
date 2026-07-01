@@ -61,7 +61,7 @@ main() {
             printf '%s\n' \
                 "Brick Protocol 설치 스크립트" \
                 "" \
-                "하는 일: python3 확인 -> uv 준비 -> 내 gh/git 로그인으로 저장소 받기 -> uv sync -> 다음 안내" \
+                "하는 일: pipx 확인 -> python3 확인 -> uv 준비 -> 내 gh/git 로그인으로 저장소 받기 -> uv sync -> 다음 안내" \
                 "" \
                 "설치 위치는 BRICK_HOME 환경변수로 바꿀 수 있어요 (기본값: \$HOME/BRICK)." \
                 "새 org/user 포크라면 BRICK_REPO={OWNER}/BRICK 로 받을 저장소를 바꿀 수 있어요." \
@@ -73,6 +73,16 @@ main() {
     esac
 
     target="${BRICK_HOME:-$HOME/BRICK}"
+
+    # --- upfront: pipx present before clone/dependency work ----------------
+    if ! command -v pipx >/dev/null 2>&1; then
+        printf '%s\n' \
+            "pipx 가 없어요. 'brick' 한 단어 진입점을 PATH에 놓기 위해 pipx가 필요해요." \
+            "  - macOS: brew install pipx && pipx ensurepath" \
+            "  - 그 다음 터미널을 새로 열고 이 설치 스크립트를 다시 실행해 주세요." >&2
+        return 1
+    fi
+    printf '%s\n' "0) pipx 확인 완료 ✅"
 
     # --- step 1: python3 present and >= 3.11 -------------------------------
     if ! command -v python3 >/dev/null 2>&1; then
@@ -148,13 +158,6 @@ main() {
     printf '%s\n' "4) 의존성 설치 완료 ✅"
 
     # --- step 5: install the customer entrypoint through pipx ----------------
-    if ! command -v pipx >/dev/null 2>&1; then
-        printf '%s\n' \
-            "pipx 가 없어요. 'brick' 한 단어 진입점을 PATH에 놓기 위해 pipx가 필요해요." \
-            "  - macOS: brew install pipx && pipx ensurepath" \
-            "  - 그 다음 터미널을 새로 열고 이 설치 스크립트를 다시 실행해 주세요." >&2
-        return 1
-    fi
     printf '%s\n' "5) brick 진입점을 pipx로 설치할게요 (editable checkout)..."
     pipx install --force --editable "$target"
     pipx_bin_dir="$(pipx environment --value PIPX_BIN_DIR 2>/dev/null || true)"

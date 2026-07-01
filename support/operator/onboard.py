@@ -61,6 +61,9 @@ from brick_protocol.support.operator.driver import run_building_intake
 from brick_protocol.support.operator.frontier_observation import (
     observe_building_frontier,
 )
+from brick_protocol.support.operator.provider_registry import (
+    register_ready_provider,
+)
 from brick_protocol.link.transition import DISPOSITION_ACTIONS
 
 
@@ -284,6 +287,42 @@ def _connect_step(host: str, repo_root: Path) -> dict[str, Any]:
             "(설정 파일은 자동으로 바꾸지 않아요.)"
         ),
     }
+
+
+def run_provider_register_step(
+    host: str,
+    *,
+    command_runner: Any | None = None,
+) -> dict[str, Any]:
+    """Register the requested LLM provider only after ready preflight evidence."""
+
+    normalized_host = _normalize_host(host)
+    preflight = _preflight_step(normalized_host, command_runner=command_runner)
+    readiness = _preflight_readiness(preflight)
+    adapter_ref = str(preflight.get("adapter_ref") or "")
+    if adapter_ref == ADAPTER_LOCAL:
+        return {
+            "ok": True,
+            "action": "skipped_local",
+            "adapter_ref": adapter_ref,
+            "preflight_readiness": readiness,
+            "message_ko": "local host는 provider 등록이 필요 없어요.",
+        }
+    if readiness != "ready" or not adapter_ref:
+        return {
+            "ok": True,
+            "action": "skipped_not_ready",
+            "adapter_ref": adapter_ref,
+            "preflight_readiness": readiness,
+            "message_ko": (
+                "등록할 준비된 provider가 없어요. 나중에 provider 로그인을 마친 뒤 "
+                "`brick init --host <host>`를 다시 실행하세요."
+            ),
+        }
+    result = register_ready_provider(adapter_ref, preflight)
+    result["preflight_readiness"] = readiness
+    result["message_ko"] = "준비된 provider를 ~/.brick/providers.yaml에 등록했어요."
+    return result
 
 
 def _choose_example_adapter(
@@ -1242,7 +1281,13 @@ def run_install_wizard(
     # 1 PRESENT
     steps["present"] = run_doctor(command_runner=command_runner)
 
-    # 2 PLUGIN: MCP register + skills place + recording hooks
+    # 2 REGISTER: LLM provider registration, if the requested host is ready.
+    steps["provider_register"] = run_provider_register_step(
+        host,
+        command_runner=command_runner,
+    )
+
+    # 3 PLUGIN: MCP register + skills place + recording hooks
     if register_mcp:
         steps["mcp_register"] = run_mcp_register_step(repo_root=repo)
     if place_skills:
@@ -1250,13 +1295,13 @@ def run_install_wizard(
     if wire_recording:
         steps["recording"] = run_recording_setup(repo_root=repo)
 
-    # 3 SLACK
+    # 4 SLACK
     steps["slack"] = run_slack_provision_step(
         slack_bot_token=slack_bot_token,
         slack_channel_id=slack_channel_id,
     )
 
-    # 4+5 ONBOARD + EXAMPLE (preflight + connect + example build + handoff)
+    # 5 SMOKE (preflight + connect + example build + handoff)
     steps["onboard"] = run_onboard(
         host,
         repo_root=repo,
@@ -1386,8 +1431,102 @@ def _doctor_gh_row() -> dict[str, Any]:
     }
 
 
+def _doctor_python_row() -> dict[str, Any]:
+    version = ".".join(str(part) for part in sys.version_info[:3])
+    ok = sys.version_info[:2] >= (3, 11)
+    if ok:
+        message = f"Python {version} 확인 ✅"
+    else:
+        message = f"Python {version} 은 너무 낮아요 → Python 3.11 이상 필요"
+    return {
+        "target": "python",
+        "ok": ok,
+        "version": version,
+        "minimum_version": "3.11",
+        "message_ko": message,
+    }
+
+
+def _doctor_command_row(command: str, *, target: str | None = None) -> dict[str, Any]:
+    import shutil  # noqa: PLC0415
+
+    observed_target = target or command
+    resolved = shutil.which(command)
+    if resolved:
+        return {
+            "target": observed_target,
+            "ok": True,
+            "path": resolved,
+            "message_ko": f"{command} 확인 ✅",
+        }
+    return {
+        "target": observed_target,
+        "ok": False,
+        "path": None,
+        "message_ko": f"{command} 가 PATH에서 보이지 않아요 → 먼저 설치해 주세요",
+    }
+
+
+def _doctor_disk_row(*, path: Path | None = None) -> dict[str, Any]:
+    import shutil  # noqa: PLC0415
+
+    target_path = path or _REPO_ROOT
+    minimum_free_bytes = 500 * 1024 * 1024
+    try:
+        usage = shutil.disk_usage(target_path)
+        free_bytes = int(usage.free)
+        ok = free_bytes >= minimum_free_bytes
+        free_mb = free_bytes // (1024 * 1024)
+        if ok:
+            message = f"디스크 여유 공간 {free_mb}MB 확인 ✅"
+        else:
+            message = f"디스크 여유 공간이 {free_mb}MB 입니다 → 500MB 이상 권장"
+        return {
+            "target": "disk",
+            "ok": ok,
+            "path": str(target_path),
+            "free_bytes": free_bytes,
+            "minimum_free_bytes": minimum_free_bytes,
+            "message_ko": message,
+        }
+    except Exception as exc:  # noqa: BLE001 -- doctor never raises
+        return {
+            "target": "disk",
+            "ok": False,
+            "path": str(target_path),
+            "free_bytes": None,
+            "minimum_free_bytes": minimum_free_bytes,
+            "message_ko": f"디스크 여유 공간을 확인하지 못했어요 ({type(exc).__name__}).",
+        }
+
+
+def _doctor_github_network_row() -> dict[str, Any]:
+    import socket  # noqa: PLC0415
+
+    host = "github.com"
+    try:
+        with socket.create_connection((host, 443), timeout=3):
+            pass
+        return {
+            "target": host,
+            "ok": True,
+            "port": 443,
+            "message_ko": "github.com 네트워크 연결 확인 ✅",
+        }
+    except Exception as exc:  # noqa: BLE001 -- doctor never raises
+        return {
+            "target": host,
+            "ok": False,
+            "port": 443,
+            "message_ko": (
+                "github.com 에 연결하지 못했어요 → 네트워크/VPN/프록시를 확인해 주세요 "
+                f"({type(exc).__name__})"
+            ),
+        }
+
+
 def run_doctor(*, command_runner: Any | None = None) -> dict[str, Any]:
-    """Run every provider preflight + the gh probe. NEVER raises.
+    """Run environment checks, provider preflights, and the gh probe. NEVER raises.
 
     Returns {rows, symptom_table, all_ok}. ``all_ok`` summarizes the rows, but
     the CLI entry ALWAYS exits 0: doctor is a diagnosis record, not a gate. It
@@ -1397,6 +1536,12 @@ def run_doctor(*, command_runner: Any | None = None) -> dict[str, Any]:
 
     rows: list[dict[str, Any]] = []
     try:
+        rows.append(_doctor_python_row())
+        rows.append(_doctor_command_row("pipx"))
+        rows.append(_doctor_command_row("git"))
+        rows.append(_doctor_command_row("uv"))
+        rows.append(_doctor_disk_row())
+        rows.append(_doctor_github_network_row())
         rows.append(_doctor_gh_row())
         for host in SUPPORTED_HOSTS:
             status = _preflight_step(host, command_runner=command_runner)

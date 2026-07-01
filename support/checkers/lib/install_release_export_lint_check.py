@@ -81,7 +81,9 @@ def run_install_script_lint(repo: Path) -> KernelResult:
       (e) it contains NO ``/Users/`` literal (no hardcoded user-home path);
       (f) it contains NO obvious inline secret pattern (the script relies on the
           teammate's own gh/git login, never an embedded token);
-      (g) it references the onboard wizard entry as the next step.
+      (g) it references the onboard wizard entry as the next step;
+      (h) it checks for ``pipx`` before Python, clone, or dependency-install
+          work, so a missing entrypoint installer fails upfront.
 
     LIMIT (stated in the output and honestly here): this is a STRUCTURE/SAFETY
     lint. It does NOT prove the script actually installs on a real fresh machine
@@ -139,6 +141,23 @@ def run_install_script_lint(repo: Path) -> KernelResult:
             "(brick_protocol.support.operator.onboard)"
         )
 
+    pipx_check_index = text.find("command -v pipx")
+    if pipx_check_index == -1:
+        violations.append("missing upfront pipx presence check")
+    else:
+        ordering_needles = {
+            "python3 presence check": "command -v python3",
+            "repository clone": '\n        gh repo clone "$REPO_SLUG" "$target"',
+            "dependency install": '\n    ( cd "$target" && uv sync )',
+            "pipx install action": '\n    pipx install --force --editable "$target"',
+        }
+        for label, needle in ordering_needles.items():
+            needle_index = text.find(needle)
+            if needle_index != -1 and pipx_check_index > needle_index:
+                violations.append(
+                    f"pipx presence check must run before {label} ({needle!r})"
+                )
+
     if violations:
         raise ProfileError(
             "install_script_lint: "
@@ -154,7 +173,8 @@ def run_install_script_lint(repo: Path) -> KernelResult:
             f"{_INSTALL_SCRIPT_REL} sets 'set -eu', wraps all logic in main() "
             "invoked as 'main \"$@\"' on the last non-empty line (anti-truncation), "
             "carries no http:// (HTTPS only), no /Users/ literal, no inline "
-            "secret pattern, and references the onboard wizard entry. "
+            "secret pattern, references the onboard wizard entry, and checks pipx "
+            "upfront before Python/clone/dependency work. "
             "PROOF LIMIT: this is a STRUCTURE/SAFETY lint only -- it does NOT "
             "prove the script actually installs on a real fresh machine (network "
             "clone, uv sync, provider auth); that is manual / Phase-4 infra, not "

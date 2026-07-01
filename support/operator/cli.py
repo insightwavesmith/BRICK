@@ -667,7 +667,7 @@ def _cmd_init(args: argparse.Namespace) -> int:
         repo_root=repo,
         host=getattr(args, "host", "codex") or "codex",
         output_root=args.output_root,
-        allow_real_provider=False,
+        allow_real_provider=True,
         run_example=not args.skip_build,
         wire_recording=not getattr(args, "skip_recording", False),
         register_mcp=not getattr(args, "skip_plugin", False),
@@ -786,7 +786,7 @@ def _cmd_init(args: argparse.Namespace) -> int:
 def _render_wizard_steps(wizard: dict[str, Any]) -> str:
     lines = ["install steps (ordered, idempotent):"]
     steps = wizard.get("steps", {})
-    for key in ("mcp_register", "skills_place", "recording", "slack"):
+    for key in ("provider_register", "mcp_register", "skills_place", "recording", "slack"):
         step = steps.get(key)
         if not isinstance(step, dict):
             continue

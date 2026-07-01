@@ -213,6 +213,13 @@ ONBOARD_WIZARD0_TARGETS = {
     "support/operator/onboard.py",
 }
 
+# PROVIDER-REGISTRY-LADDER-0: per-user provider registry persistence plus the
+# support adapter-resolution ladder read seam. Runtime code may read the live
+# registry; checker coverage must use injected/temp fixtures only.
+PROVIDER_REGISTRY_LADDER0_TARGETS = {
+    "support/operator/provider_registry.py",
+}
+
 # BRICK-CLI-ENTRYPOINT-0: the customer-facing `brick` console-script support
 # wrapper. It bootstraps repo/import-identity paths, then delegates to existing
 # doctor/build/verify/status seams. Support operator mechanics only: owns no
@@ -385,6 +392,7 @@ ELEGANT_REFACTOR_BUILDING_OPERATION_TARGETS = {
     "support/operator/frontier_observation.py",
     "support/operator/coo_operating_chain.py",
     "support/operator/plan_rendering.py",
+    *PROVIDER_REGISTRY_LADDER0_TARGETS,
     # MODULE-SEP composition god-module split: composition.py (was 4489 lines)
     # was decomposed into these single-concern sibling collaborators (pure
     # relocation; callers import the real homes directly — the facade is gone).
