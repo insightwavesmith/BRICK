@@ -197,7 +197,7 @@ text_contains:
       - Delegate broad scans to a single diagnostic Building
   - path: agent/skills/building-sizing-method/SKILL.md
     texts:
-      - P3 운영자-facing 기본은 **`build()`만**이다
+      - 공식 launch interface는 **`assemble()`/`build()`/`fan()`
       - 큰 일 P3 기본형
       - this is big; design first, split it, and run the lanes in parallel.
       - design QA / axis inspection
@@ -208,14 +208,14 @@ text_contains:
       - brick build / support.operator.cli build
       - brick build --graph <packet>
       - support.operator.cli build --graph <packet>
-      - graph packet / materialization / official-route 내부 sugar
+      - 이 공식 DSL의 부분이고 `compose_building()`은 그 아래 엔진이다
       - Builder/materializer
       - declared Building Plan
       - support/operator/run.py walker
       - active vessel evidence root
       - reporter / Slack / frontier
-      - 같은 공식 build surface로 들어가는 두 입력 모드
-      - 별도 공식 route처럼 말하지 마라
+      - 같은 공식 build surface(엔진은 여전히
+      - 공식 route처럼 일반 안내하지 마라
   - path: brick/templates/skills/brick-task-author/SKILL.md
     texts:
       - 공식 경로는 하나

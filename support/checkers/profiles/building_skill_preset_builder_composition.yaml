@@ -68,7 +68,7 @@ text_contains:
     texts:
       - 'brick build --graph <packet>'
       - 'support.operator.cli build --graph <packet>'
-      - 'graph packet / materialization / official-route 내부 sugar'
+      - '이 공식 DSL의 부분이고 `compose_building()`은 그 아래 엔진이다'
       - '공식 route'
 text_absent:
   - path: brick/templates/skills/brick-task-author/SKILL.md
