@@ -1137,6 +1137,142 @@ def _graph_write_scope_default_fire(repo: Path) -> tuple[str, ...]:
     )
 
 
+def _sibling_independence_dsl_fire(repo: Path) -> tuple[str, ...]:
+    code = brick("code-attack-qa", "sibling independence code lens", returns=CODE_ATTACK_RETURN_SHAPE)
+    axis = brick("axis-attack-qa", "sibling independence axis lens", returns=AXIS_ATTACK_RETURN_SHAPE)
+    close = brick("closure", "sibling independence closure")
+    composed = assemble(
+        converge(
+            fan_in([code, axis], close, sibling_independence=["code-attack-qa"]),
+            terminal=close,
+        ),
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task="sibling independence DSL probe",
+        building_id="heart-phase0-sibling-independence-dsl",
+        adapter="codex-local",
+        gates=(Gate.STRICT_EVIDENCE,),
+        repo_root=repo,
+        write_scope=_write_scope(),
+    )
+    _nodes, _edges, groups = composed.as_compose_args()
+    observed = [group for group in groups if group.get("group_role") == "fan_in"]
+    if len(observed) != 1:
+        raise AssemblyEquivalenceError(f"sibling_independence probe expected one fan_in group, observed {len(observed)}")
+    expected_ref = "heart-phase0-sibling-independence-dsl-code-attack-qa"
+    if observed[0].get("sibling_independence") != [expected_ref]:
+        raise AssemblyEquivalenceError(
+            "sibling_independence did not lower to the fan_in source node ref: "
+            f"{observed[0].get('sibling_independence')!r}"
+        )
+
+    def empty_ref_probe() -> None:
+        fan_in([code, axis], close, sibling_independence=[" "])
+
+    def non_source_ref_probe() -> None:
+        fan_in([code, axis], close, sibling_independence=["closure"])
+
+    return (
+        "construction green observed: fan_in sibling_independence lowered to a fan_in source node ref.",
+        _assert_raises("empty sibling_independence ref", ValueError, empty_ref_probe),
+        _assert_raises("non-source sibling_independence ref", ValueError, non_source_ref_probe),
+    )
+
+
+def _node_write_scope_fire(repo: Path) -> tuple[str, ...]:
+    graph_scope = {
+        "allowed_paths": ["support/checkers/**", "support/operator/**"],
+        "forbidden_paths": [".git/**", "support/operator/secret-*"],
+    }
+    node_scope = {
+        "allowed_paths": ["support/checkers/check_assembly_equivalence.py"],
+        "forbidden_paths": [".git/**", "support/operator/secret-*"],
+    }
+    composed = assemble(
+        chain(
+            [
+                brick(
+                    "work",
+                    "node write scope narrowing work",
+                    write=True,
+                    node_write_scope=node_scope,
+                )
+            ]
+        ),
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task="node write scope DSL probe",
+        building_id="heart-phase0-node-write-scope-dsl",
+        adapter="codex-local",
+        repo_root=repo,
+        write_scope=graph_scope,
+    )
+    work_row = _brick_row(_step_for_kind(composed.composed_plan, "work"))
+    if work_row.get("write_scope") != node_scope:
+        raise AssemblyEquivalenceError(f"node_write_scope did not stamp the Brick row: {work_row.get('write_scope')!r}")
+    if work_row.get("requires_brick_write_scope") is not True:
+        raise AssemblyEquivalenceError("node_write_scope did not preserve requires_brick_write_scope=True")
+
+    def read_only_probe() -> None:
+        brick("work", "node scope requires write true", node_write_scope=node_scope)
+
+    def no_template_need_probe() -> None:
+        assemble(
+            chain([brick("development", "development has no write need", write=True, node_write_scope=node_scope)]),
+            declared_by=DECLARED_BY,
+            authority=Authority.COO,
+            task="node write scope no template need probe",
+            building_id="heart-phase0-node-write-scope-no-template-need",
+            adapter="codex-local",
+            repo_root=repo,
+            write_scope=graph_scope,
+        )
+
+    def malformed_probe() -> None:
+        assemble(
+            chain([brick("work", "malformed node scope", write=True, node_write_scope={"allowed_paths": []})]),
+            declared_by=DECLARED_BY,
+            authority=Authority.COO,
+            task="node write scope malformed probe",
+            building_id="heart-phase0-node-write-scope-malformed",
+            adapter="codex-local",
+            repo_root=repo,
+            write_scope=graph_scope,
+        )
+
+    def widening_probe() -> None:
+        assemble(
+            chain(
+                [
+                    brick(
+                        "work",
+                        "node scope must not widen graph scope",
+                        write=True,
+                        node_write_scope={
+                            "allowed_paths": ["brick/spec.py"],
+                            "forbidden_paths": [".git/**", "support/operator/secret-*"],
+                        },
+                    )
+                ]
+            ),
+            declared_by=DECLARED_BY,
+            authority=Authority.COO,
+            task="node write scope widening probe",
+            building_id="heart-phase0-node-write-scope-widening",
+            adapter="codex-local",
+            repo_root=repo,
+            write_scope=graph_scope,
+        )
+
+    return (
+        "construction green observed: node_write_scope narrowed a write-needed Brick row.",
+        _assert_raises("node_write_scope on write=False brick", ValueError, read_only_probe),
+        _assert_raises("node_write_scope on template without write_need", ValueError, no_template_need_probe),
+        _assert_raises("malformed node_write_scope", ValueError, malformed_probe),
+        _assert_raises("node_write_scope wider than graph write_scope", ValueError, widening_probe),
+    )
+
+
 def _role_derivation_fire(repo: Path) -> tuple[str, ...]:
     work_default = assemble(
         chain([brick("work", "omitted agent resolves from kind", write=True)]),
@@ -2001,6 +2137,8 @@ def run(repo: Path) -> list[str]:
         outputs.append(f"discrimination RED observed: {mutation.name} changed P(plan).")
 
     outputs.extend(_build_fan_equivalence_fire(repo))
+    outputs.extend(_sibling_independence_dsl_fire(repo))
+    outputs.extend(_node_write_scope_fire(repo))
     outputs.extend(_graph_write_scope_default_fire(repo))
     outputs.append(_tiny_work_qa_return_shape_red(repo))
     outputs.append(PROOF_LIMIT)

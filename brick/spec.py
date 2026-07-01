@@ -564,6 +564,7 @@ class BrickSpec:
     # see AgentSpec.casting. The node's own casting overrides the lane's.
     casting: Mapping[str, str] = ()  # type: ignore[assignment]
     source_facts: tuple[str, ...] = ()
+    node_write_scope: Mapping[str, Any] | None = None
 
 
 def brick(
@@ -575,6 +576,7 @@ def brick(
     returns: str | None = None,
     agent: AgentSpec | None = None,
     source_facts: Sequence[str] | None = None,
+    node_write_scope: Mapping[str, Any] | None = None,
     **kwargs: Any,
 ) -> BrickSpec:
     # Partition trailing kwargs into casting dials (adapter/model/effort/... ,
@@ -593,6 +595,8 @@ def brick(
     clean_kind = _bare_token("kind", kind)
     clean_work = _non_empty_text("work", work)
     clean_alias = _optional_bare_token("alias", alias)
+    if node_write_scope is not None and not write:
+        raise ValueError("node_write_scope requires write=True")
     return BrickSpec(
         kind=clean_kind,
         work=clean_work,
@@ -602,6 +606,7 @@ def brick(
         agent=agent,
         casting=_build_casting_bag("brick()", casting_kwargs),
         source_facts=tuple(str(item).strip() for item in (source_facts or ()) if str(item).strip()),
+        node_write_scope=node_write_scope,
     )
 
 

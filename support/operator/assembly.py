@@ -130,6 +130,7 @@ class EdgeSpec:
 class GroupSpec:
     role: str
     members: tuple[EdgeSpec, ...]
+    sibling_independence: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -234,6 +235,7 @@ def fan_in(
     converge_on: BrickSpec,
     *,
     route: Sequence[RerouteMark | HoldMark] = (),
+    sibling_independence: Sequence[str] = (),
 ) -> GraphSpec:
     source_tuple = tuple(sources)
     if not source_tuple:
@@ -245,6 +247,11 @@ def fan_in(
     for source in source_tuple:
         if not _optional_text(source.returns):
             raise TypeError("fan_in() sources must declare returns=")
+    sibling_refs = _sibling_independence_refs(
+        "fan_in() sibling_independence",
+        sibling_independence,
+        sources=source_tuple,
+    )
 
     marks = tuple(route)
     for mark in marks:
@@ -258,7 +265,7 @@ def fan_in(
     return GraphSpec(
         nodes=_unique_nodes((*source_tuple, converge_on)),
         edges=edges,
-        groups=(GroupSpec("fan_in", edges),),
+        groups=(GroupSpec("fan_in", edges, sibling_refs),),
         terminal=converge_on,
         fan_in_targets=(converge_on,),
         fan_in_routes=(FanInRoute(converge_on, marks),),
@@ -347,6 +354,7 @@ class Fan:
     branch and the following item is the fan-in convergence. Not a GraphSpec."""
 
     branches: tuple[BrickSpec, ...]
+    sibling_independence: tuple[str, ...] = ()
 
 
 def back(count: int) -> _BackTarget:
@@ -405,7 +413,7 @@ def _node_route_marks(item: Any) -> tuple[Any, ...]:
     return tuple(raw)
 
 
-def fan(branches: Sequence[Any]) -> Fan:
+def fan(branches: Sequence[Any], *, sibling_independence: Sequence[str] = ()) -> Fan:
     """A nested fan block: the preceding build() item fans out to each branch and
     the following item is the fan-in convergence. Branches lower like build items."""
 
@@ -415,7 +423,12 @@ def fan(branches: Sequence[Any]) -> Fan:
     coerced = tuple(_coerce_node(branch) for branch in branches)
     if not coerced:
         raise TypeError("fan() requires at least one branch")
-    return Fan(coerced)
+    sibling_refs = _sibling_independence_refs(
+        "fan() sibling_independence",
+        sibling_independence,
+        sources=coerced,
+    )
+    return Fan(coerced, sibling_refs)
 
 
 def _with_fields(spec: BrickSpec, *, alias: str | None = None, returns: str | None = None) -> BrickSpec:
@@ -438,6 +451,7 @@ def _with_fields(spec: BrickSpec, *, alias: str | None = None, returns: str | No
         agent=spec.agent,
         casting=spec.casting,
         source_facts=spec.source_facts,
+        node_write_scope=spec.node_write_scope,
     )
 
 
@@ -501,7 +515,12 @@ def _auto_id_repeated_kinds(coerced_nodes: Sequence[BrickSpec | Fan]) -> list[Br
     rewritten: list[BrickSpec | Fan] = []
     for node in coerced_nodes:
         if isinstance(node, Fan):
-            rewritten.append(Fan(tuple(minted.get(id(branch), branch) for branch in node.branches)))
+            rewritten.append(
+                Fan(
+                    tuple(minted.get(id(branch), branch) for branch in node.branches),
+                    node.sibling_independence,
+                )
+            )
         else:
             rewritten.append(minted.get(id(node), node))
     return rewritten
@@ -581,7 +600,14 @@ def build(items: Sequence[Any]) -> GraphSpec:
             )
             if source is not None:
                 parts.append(fan_out(source, node.branches))
-            parts.append(fan_in(node.branches, convergence, route=route_marks))
+            parts.append(
+                fan_in(
+                    node.branches,
+                    convergence,
+                    route=route_marks,
+                    sibling_independence=node.sibling_independence,
+                )
+            )
             fan_in_terminal = convergence
             # Consume ONLY the fan; the convergence is visited next as a plain node
             # so its outgoing forward edge (to any node following it) is emitted.
@@ -656,6 +682,52 @@ def _lower_surface_route(
         else:
             raise TypeError("route= entries must be reroute()/hold() marks")
     return tuple(lowered)
+
+
+def _sibling_independence_refs(
+    label: str,
+    values: Sequence[str],
+    *,
+    sources: Sequence[BrickSpec],
+) -> tuple[str, ...]:
+    if isinstance(values, (str, bytes)) or not isinstance(values, Sequence):
+        raise TypeError(f"{label} must be a sequence of fan-in source refs")
+    refs: list[str] = []
+    source_labels: set[str] = set()
+    kind_counts = Counter(source.kind for source in sources)
+    for source in sources:
+        if source.alias:
+            source_labels.add(source.alias)
+        elif kind_counts[source.kind] == 1:
+            source_labels.add(source.kind)
+    for index, value in enumerate(values):
+        text = _non_empty_text(f"{label}[{index}]", value)
+        if text not in source_labels:
+            raise ValueError(f"{label}[{index}] must resolve to a fan-in source ref")
+        refs.append(text)
+    return tuple(refs)
+
+
+def _resolved_sibling_independence_refs(
+    refs: Sequence[str],
+    *,
+    sources: Sequence[BrickSpec],
+    node_id_by_handle: Mapping[BrickSpec, str],
+) -> tuple[str, ...]:
+    kind_counts = Counter(source.kind for source in sources)
+    source_by_ref: dict[str, BrickSpec] = {}
+    for source in sources:
+        if source.alias:
+            source_by_ref[source.alias] = source
+        elif kind_counts[source.kind] == 1:
+            source_by_ref[source.kind] = source
+    resolved: list[str] = []
+    for ref in refs:
+        source = source_by_ref.get(ref)
+        if source is None:
+            raise ValueError(f"sibling_independence ref does not resolve to a fan-in source: {ref}")
+        resolved.append(node_id_by_handle[source])
+    return tuple(resolved)
 
 
 def reroute(on: Concern, to: BrickSpec | _BackTarget, *, budget: int) -> RerouteMark | _SurfaceReroute:
@@ -1002,7 +1074,12 @@ def _lower_graph(
         mutable_nodes_by_handle=mutable_nodes_by_handle,
     )
 
-    lowered_groups = _lower_groups(graph.groups, edge_refs=edge_refs, building_slug=building_slug)
+    lowered_groups = _lower_groups(
+        graph.groups,
+        edge_refs=edge_refs,
+        building_slug=building_slug,
+        node_id_by_handle=node_id_by_handle,
+    )
 
     for fan_in_route in graph.fan_in_routes:
         converge_node = mutable_nodes_by_handle.get(fan_in_route.converge_on)
@@ -1118,8 +1195,18 @@ def _lower_node(
             node[field_name] = value
     if spec.source_facts:
         node["source_facts"] = list(spec.source_facts)
-    if spec.write and isinstance(step_template, Mapping) and bool(step_template.get("write_need")):
-        node["write_scope"] = _validated_write_scope(write_scope)
+    template_write_need = isinstance(step_template, Mapping) and bool(step_template.get("write_need"))
+    if spec.node_write_scope is not None and not template_write_need:
+        raise ValueError("node_write_scope requires a step template with write_need")
+    if spec.write and template_write_need:
+        if spec.node_write_scope is not None:
+            node_scope = _validated_write_scope(spec.node_write_scope)
+            if write_scope is not None:
+                graph_scope = _validated_write_scope(write_scope)
+                _validate_node_write_scope_subset(node_scope, graph_scope)
+            node["write_scope"] = node_scope
+        else:
+            node["write_scope"] = _validated_write_scope(write_scope)
         node["requires_brick_write_scope"] = True
     return node
 
@@ -1180,20 +1267,28 @@ def _lower_groups(
     *,
     edge_refs: Mapping[EdgeSpec, str],
     building_slug: str,
+    node_id_by_handle: Mapping[BrickSpec, str],
 ) -> list[Mapping[str, Any]]:
     role_counts: Counter[str] = Counter()
     lowered: list[Mapping[str, Any]] = []
     for group in groups:
         role_counts[group.role] += 1
         member_refs = [edge_refs[member] for member in group.members]
-        lowered.append(
-            {
-                "group_id": f"group-{building_slug}-{group.role.replace('_', '-')}-{role_counts[group.role]}",
-                "group_role": group.role,
-                "member_ref_kind": "link_edge",
-                "member_refs": member_refs,
-            }
-        )
+        group_row = {
+            "group_id": f"group-{building_slug}-{group.role.replace('_', '-')}-{role_counts[group.role]}",
+            "group_role": group.role,
+            "member_ref_kind": "link_edge",
+            "member_refs": member_refs,
+        }
+        if group.sibling_independence:
+            group_row["sibling_independence"] = list(
+                _resolved_sibling_independence_refs(
+                    group.sibling_independence,
+                    sources=tuple(member.source for member in group.members),
+                    node_id_by_handle=node_id_by_handle,
+                )
+            )
+        lowered.append(group_row)
     return lowered
 
 
@@ -1340,6 +1435,42 @@ def _validated_write_scope(value: Mapping[str, Any] | None) -> Mapping[str, Any]
         "allowed_paths": [str(path).strip() for path in allowed if str(path).strip()],
         "forbidden_paths": [str(path).strip() for path in forbidden if str(path).strip()],
     }
+
+
+def _validate_node_write_scope_subset(
+    node_scope: Mapping[str, Any],
+    graph_scope: Mapping[str, Any],
+) -> None:
+    graph_allowed = tuple(str(path).strip() for path in graph_scope.get("allowed_paths", ()) if str(path).strip())
+    graph_forbidden = tuple(str(path).strip() for path in graph_scope.get("forbidden_paths", ()) if str(path).strip())
+    node_allowed = tuple(str(path).strip() for path in node_scope.get("allowed_paths", ()) if str(path).strip())
+    node_forbidden = tuple(str(path).strip() for path in node_scope.get("forbidden_paths", ()) if str(path).strip())
+    for path in node_allowed:
+        if not any(_write_path_covered_by(path, allowed) for allowed in graph_allowed):
+            raise ValueError("node_write_scope.allowed_paths must be a proven subset of assemble() write_scope")
+    for path in graph_forbidden:
+        if path not in node_forbidden:
+            raise ValueError("node_write_scope.forbidden_paths must preserve assemble() write_scope forbidden_paths")
+
+
+def _write_path_covered_by(path: str, allowed: str) -> bool:
+    clean_path = _normalized_write_path(path)
+    clean_allowed = _normalized_write_path(allowed)
+    if clean_allowed in {".", "**", "./**"}:
+        return True
+    if clean_path == clean_allowed:
+        return True
+    if clean_allowed.endswith("/**"):
+        prefix = clean_allowed[:-3].rstrip("/")
+        return clean_path == prefix or clean_path.startswith(prefix + "/")
+    return False
+
+
+def _normalized_write_path(path: str) -> str:
+    text = str(path).strip().replace("\\", "/")
+    while text.startswith("./"):
+        text = text[2:]
+    return text.rstrip("/") or "."
 
 
 def _gate_value(value: Gate | str) -> str:
