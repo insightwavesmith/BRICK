@@ -24,6 +24,9 @@ from brick_protocol.support.connection.adapter_constants import (
     MODEL_REF_GEMINI_DEFAULT,
     MODEL_REF_SAKANA_FUGU,
 )
+from brick_protocol.support.connection.adapter_model_casting import (
+    _validate_model_ref_for_adapter,
+)
 
 
 PROVIDERS_FILENAME = "providers.yaml"
@@ -147,12 +150,17 @@ def model_ref_for_adapter(
     registry: Mapping[str, Any] | None,
     adapter_ref: str,
 ) -> str:
+    default_ref = DEFAULT_MODEL_REF_BY_ADAPTER.get(adapter_ref, "model:default")
     row = provider_entry(registry, adapter_ref)
     if isinstance(row, Mapping):
         model_ref = str(row.get("model_ref") or "").strip()
         if model_ref:
+            try:
+                _validate_model_ref_for_adapter(adapter_ref, model_ref)
+            except ValueError:
+                return default_ref
             return model_ref
-    return DEFAULT_MODEL_REF_BY_ADAPTER.get(adapter_ref, "model:default")
+    return default_ref
 
 
 def _utc_iso() -> str:

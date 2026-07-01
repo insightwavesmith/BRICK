@@ -16,6 +16,9 @@ text_contains:
       - 'os.environ["BRICK_HOME"] = tmp'
       - 'absent providers.yaml preserves legacy lane preference'
       - 'unregistered static preference falls back with model update'
+      - 'provider fallback preserves reasoning-effort dial shape'
+      - 'malformed registry model_ref falls back to adapter default'
+      - 'must be byte-identical for all Agent Objects'
       - 'BRICK_PROVIDER_LADDER=0 forces legacy behavior'
   - path: support/operator/provider_registry.py
     texts:
@@ -24,6 +27,7 @@ text_contains:
       - 'registry_path.chmod(0o600)'
       - 'register_ready_provider'
       - 'last_preflight'
+      - '_validate_model_ref_for_adapter'
 text_absent:
   - path: support/checkers/check_provider_registry_ladder.py
     texts:

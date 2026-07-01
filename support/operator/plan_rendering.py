@@ -512,7 +512,7 @@ def _resolve_casting_field(
         _validate_step_adapter_ref(repo, agent_object_ref, selected, label=label)
         return selected, source, agent_object
 
-    # MODEL dial (deferrable, coupled to the adapter via inherits_source_of).
+    # Deferrable dials coupled to the adapter via inherits_source_of.
     if raw_step_value is not None:
         return _clean_text(f"{label}.{selected_key}", raw_step_value), None, agent_object
     inherited = resolved.get(descriptor.inherits_source_of or "")
@@ -521,7 +521,10 @@ def _resolve_casting_field(
         preferred = agent_object.get(descriptor.field_name)
         if preferred is not None:
             return _clean_text(f"{agent_object_ref}.{descriptor.field_name}", preferred), None, agent_object
-    if inherited_source == _STEP_ADAPTER_SOURCE_PROVIDER_REGISTRY_FALLBACK:
+    if (
+        descriptor.field_name == "preferred_model_ref"
+        and inherited_source == _STEP_ADAPTER_SOURCE_PROVIDER_REGISTRY_FALLBACK
+    ):
         inherited_value = inherited[0] if inherited is not None else None
         if inherited_value:
             return model_ref_for_adapter(load_provider_registry(), inherited_value), None, agent_object
