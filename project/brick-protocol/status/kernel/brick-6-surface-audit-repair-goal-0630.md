@@ -103,9 +103,16 @@ Support review evidence:
     references to `sibling_independence` anywhere in assembly.py. Until the
     DSL is extended to support it, `--graph` must remain available as a
     low-level escape hatch for that one case -- not fully removable yet.
-    **Scope of "discard" not yet finalized with Smith**: recommend-DSL-only
-    (docs/skills point to `assemble()`, `--graph` stays wired but
-    de-emphasized) vs literal CLI flag removal from `cli.py`/`driver.py`.
+    **Scope of "discard" (Smith 0701, deferred): NOT decided now.** Whether
+    this ends up recommend-DSL-only (docs/skills point to `assemble()`,
+    `--graph` stays wired but de-emphasized) or literal CLI flag removal
+    from `cli.py`/`driver.py` is a decision for LATER -- after one real
+    deployment cycle, bundled into the broader architecture cleanup pass
+    together with the god-module/checker-cleanup follow-on goal (see
+    "Follow-On Goal" section near the end of this document). Do not attempt
+    this execution now; this rule records the DIRECTION decision only
+    (assemble() is official, `--graph` is headed for retirement), not an
+    authorization to execute the removal in this goal cycle.
 
     **Operational note**: a Building already in flight when this decision
     landed (`brick-6-dual-producer-impl-0701a`) has a work lane (Lane B)
@@ -338,3 +345,14 @@ scope. Smith's explicit disposition: keep this separate from P0-P9, do not
 fold it in, and start it only after this goal's P9 closes -- it sits at the
 tail end of this goal's lifecycle, as the natural next goal, not a phase
 inside this one.
+
+**Second item in this same follow-on bucket (0701, Smith decision, see rule
+10 above)**: execute the `--graph` CLI-flag retirement / full cutover to the
+`assemble()` DSL as the sole official launch interface. Direction is
+decided (rule 10); execution scope (recommend-only vs literal code removal)
+and timing are explicitly deferred by Smith: "우선 두자... 이거 배포 한번하고
+아키텍처 정리 할 때 정리하자" (park it for now; clean this up after one
+deployment cycle, during the architecture cleanup pass). Do not execute
+before then. Blocked on: extending the DSL to support `sibling_independence`
+(currently inexpressible -- `GroupSpec` has only `role`/`members` fields)
+before `--graph` can be fully removed rather than merely de-emphasized.
