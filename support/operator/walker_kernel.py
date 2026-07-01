@@ -26,6 +26,7 @@ import dataclasses
 import json
 import os
 import shutil
+import time
 from collections.abc import Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -80,6 +81,7 @@ from brick_protocol.support.recording.declaration_packets import (
     _write_declaration_work_evidence,
 )
 from brick_protocol.support.recording.capture import (
+    graph_ready_json_object,
     graph_ready_timestamp,
     project_ref_for_building_root,
 )
@@ -218,6 +220,7 @@ class NodeProcessingOutcome:
     fan_in_hold_record: Mapping[str, Any] | None = None
     step_result_event: Mapping[str, Any] | None = None
     step_output_recorded: bool = True
+    adapter_dispatch_timing: Mapping[str, Any] | None = None
 
 
 _STEP_OUTPUT_HANDOFF_PROOF_LIMITS = (
@@ -227,6 +230,145 @@ _STEP_OUTPUT_HANDOFF_PROOF_LIMITS = (
     "not quality judgment",
     "not Movement authority",
 )
+
+
+_ADAPTER_USAGE_RAW_STREAM = "raw/adapter-usage.jsonl"
+
+
+def _adapter_dispatch_timing_record(
+    *,
+    building_id: str,
+    step_ref: str,
+    step_result: BuildingRunSupportResult,
+    attempt_index: int,
+    adapter_dispatch_timing: Mapping[str, Any],
+    record_index: int,
+) -> Mapping[str, Any]:
+    adapter_result = step_result.adapter_result
+    request = adapter_result.request
+    raw_ref = f"raw:adapter-dispatch-timing:{step_ref}:attempt-{attempt_index}"
+    recorded_at = _optional_text_value(
+        adapter_dispatch_timing.get("dispatch_ended_at")
+    ) or graph_ready_timestamp()
+    return graph_ready_json_object(
+        {
+            "adapter_usage_ref": f"adapter-dispatch-timing:{step_ref}:attempt-{attempt_index}",
+            "building_id": building_id,
+            "step_ref": step_ref,
+            "attempt_index": attempt_index,
+            "adapter_ref": request.adapter_ref,
+            "selected_model_ref": request.selected_model_ref,
+            "usage_present": False,
+            "usage": {
+                "input_tokens": None,
+                "output_tokens": None,
+                "cache_read_input_tokens": None,
+            },
+            "reasoning_output_tokens": None,
+            "raw_ref": raw_ref,
+            "support_record_role": "adapter-dispatch-timing",
+            "adapter_dispatch_timing": dict(adapter_dispatch_timing),
+            "proof_limits": [
+                "adapter dispatch timing support evidence only",
+                "not Agent returned payload",
+                "not AgentFact",
+                "not Link field",
+                "not source truth",
+                "not success judgment",
+                "not quality judgment",
+                "not Movement authority",
+            ],
+            "not_proven": [
+                "provider internal execution phases",
+                "network latency attribution",
+                "semantic quality of returned work",
+            ],
+        },
+        building_id=building_id,
+        local_id=f"{_ADAPTER_USAGE_RAW_STREAM}#{record_index}",
+        recorded_at=recorded_at,
+        event_type="bp.raw.adapter_usage",
+        subject=step_ref,
+    )
+
+
+def _jsonl_nonempty_line_count(path: Path) -> int:
+    try:
+        data = path.read_bytes()
+    except FileNotFoundError:
+        return 0
+    return sum(1 for line in data.splitlines() if line.strip())
+
+
+def _append_jsonl_record(path: Path, record: Mapping[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    encoded = json.dumps(record, ensure_ascii=False, sort_keys=True).encode("utf-8")
+    needs_separator = path.exists() and path.stat().st_size > 0
+    with path.open("a+b") as handle:
+        if needs_separator:
+            handle.seek(0, os.SEEK_END)
+            handle.seek(handle.tell() - 1)
+            if handle.read(1) != b"\n":
+                handle.write(b"\n")
+        handle.write(encoded + b"\n")
+
+
+def _enrich_step_output_with_adapter_dispatch_timing(
+    *,
+    building_root: Path,
+    step_ref: str,
+    attempt_index: int,
+    adapter_dispatch_timing: Mapping[str, Any],
+    raw_ref: str,
+) -> None:
+    output_path = building_root / _step_output_manifest_ref(step_ref, attempt_index)
+    try:
+        packet = json.loads(output_path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return
+    if not isinstance(packet, dict):
+        return
+    packet["adapter_dispatch_timing"] = dict(adapter_dispatch_timing)
+    evidence_refs = packet.get("evidence_refs")
+    if isinstance(evidence_refs, dict):
+        evidence_refs["adapter_dispatch_timing_raw_ref"] = raw_ref
+    else:
+        packet["evidence_refs"] = {"adapter_dispatch_timing_raw_ref": raw_ref}
+    output_path.write_text(
+        json.dumps(packet, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+
+def _record_adapter_dispatch_timing_evidence(
+    *,
+    building_root: Path,
+    building_id: str,
+    step_ref: str,
+    step_result: BuildingRunSupportResult,
+    attempt_index: int,
+    adapter_dispatch_timing: Mapping[str, Any] | None,
+) -> None:
+    if not adapter_dispatch_timing:
+        return
+    raw_path = building_root / _ADAPTER_USAGE_RAW_STREAM
+    record = _adapter_dispatch_timing_record(
+        building_id=building_id,
+        step_ref=step_ref,
+        step_result=step_result,
+        attempt_index=attempt_index,
+        adapter_dispatch_timing=adapter_dispatch_timing,
+        record_index=_jsonl_nonempty_line_count(raw_path) + 1,
+    )
+    _append_jsonl_record(raw_path, record)
+    raw_ref = _optional_text_value(record.get("raw_ref")) or ""
+    _enrich_step_output_with_adapter_dispatch_timing(
+        building_root=building_root,
+        step_ref=step_ref,
+        attempt_index=attempt_index,
+        adapter_dispatch_timing=adapter_dispatch_timing,
+        raw_ref=raw_ref,
+    )
 
 
 _FAN_IN_SOURCE_ADVISORY_STEP_TEMPLATE_REFS = frozenset(
@@ -567,6 +709,7 @@ def process_one_node(
             report_slack_sender=report_slack_sender,
             overwrite_existing=overwrite_existing,
         )
+    adapter_dispatch_timing: Mapping[str, Any] | None = None
     try:
         if is_replay:
             # gap-6: preserve the ORIGINAL recorded_at through the replay path
@@ -579,6 +722,8 @@ def process_one_node(
                 proof_limits=checked_proof_limits,
             )
         else:
+            dispatch_started_at = graph_ready_timestamp()
+            dispatch_started_perf = time.perf_counter()
             step_result = run_step(
                 step_fixture,
                 local_callables=local_callables,
@@ -587,6 +732,17 @@ def process_one_node(
                 adapter_timeout_seconds=adapter_timeout_seconds,
                 proof_limits=checked_proof_limits,
             )
+            dispatch_ended_at = graph_ready_timestamp()
+            adapter_dispatch_timing = {
+                "dispatch_started_at": dispatch_started_at,
+                "dispatch_ended_at": dispatch_ended_at,
+                "duration_ms": round(
+                    max(0.0, time.perf_counter() - dispatch_started_perf) * 1000,
+                    3,
+                ),
+                "timing_source": "support/operator/walker_kernel.py:process_one_node",
+                "timing_scope": "adapter_dispatch",
+            }
     except Exception as exc:  # noqa: BLE001 - distinguish adapter frontier below
         if getattr(exc, "parked", None) is not None:
             if defer_frontier_writes:
@@ -767,6 +923,14 @@ def process_one_node(
             task_source_ref=task_source_ref,
             overwrite_existing=overwrite_existing,
         )
+        _record_adapter_dispatch_timing_evidence(
+            building_root=building_root,
+            building_id=building_id,
+            step_ref=step_ref,
+            step_result=step_result,
+            attempt_index=attempt_index,
+            adapter_dispatch_timing=adapter_dispatch_timing,
+        )
         report_events = pre_step_report_events + tuple(
             _emit_brick_grain_completion_step_events(
                 report_event_policy,
@@ -799,6 +963,7 @@ def process_one_node(
             "cascade_depth": cascade_depth,
         },
         step_output_recorded=record_step_output_immediately,
+        adapter_dispatch_timing=adapter_dispatch_timing,
     )
 
 
@@ -1140,6 +1305,14 @@ def _run_dynamic_graph_walker(
             proof_limits=checked_proof_limits,
             task_source_ref=task_source_ref,
             overwrite_existing=overwrite_existing,
+        )
+        _record_adapter_dispatch_timing_evidence(
+            building_root=building_root,
+            building_id=building_id,
+            step_ref=step_ref,
+            step_result=step_result,
+            attempt_index=attempt_index,
+            adapter_dispatch_timing=outcome.adapter_dispatch_timing,
         )
         report_events = outcome.report_events + tuple(
             _emit_brick_grain_completion_step_events(

@@ -4733,8 +4733,8 @@ def check(repo: Path) -> list[str]:
         # RE-VERIFY WINS: a sibling must never appear in BOTH lists.
         if set(xv_replay) & set(xv_skipped):
             violations.append(
-                f"knot3-cohort-d ({label}): sibling appears in BOTH replay and skipped "
-                f"(replay={xv_replay}, skipped={xv_skipped})"
+                f"knot3-cohort-d ({label}): sibling appeared in BOTH replay and skip "
+                f"lists; replay={xv_replay}, skipped={xv_skipped}"
             )
         # The final per-sibling disposition for b must be re_verified, and there
         # must be no 'skipped' disposition for b anywhere (truthful records).
@@ -4753,6 +4753,95 @@ def check(repo: Path) -> list[str]:
                 f"knot3-cohort-d ({label}): no re_verified record for the cross-vouched "
                 f"sibling (dispositions={sorted(d for d in b_dispositions if d)})"
             )
+
+    # KNOT-3 COHORT FIRE (e) REPLAY-SCOPE TRIGGER: the reroute may honestly land
+    # on the work node that produced the concern, while the declared replay_scope
+    # walks through the lane QA node that is the actual fan-in source. The cohort
+    # reverify trigger must inspect that replay_scope chain, not only the landing.
+    replay_scope_edges = [
+        {
+            "edge_ref": "rs-e1",
+            "edge_role": "fan_in",
+            "source_step_ref": "rs-docs-lane-qa",
+            "target_step_ref": "rs-join",
+        },
+        {
+            "edge_ref": "rs-e2",
+            "edge_role": "fan_in",
+            "source_step_ref": "rs-checker-lane-qa",
+            "target_step_ref": "rs-join",
+        },
+    ]
+    replay_scope_step_ref_by_brick = {
+        "brick-rs-work-docs": "rs-work-docs",
+        "brick-rs-docs-lane-qa": "rs-docs-lane-qa",
+        "brick-rs-checker-lane-qa": "rs-checker-lane-qa",
+        "brick-rs-join": "rs-join",
+    }
+    replay_scope_gc = {
+        "declared_edges": replay_scope_edges,
+        "groups": [
+            {
+                "group_role": "fan_in",
+                "member_refs": ["rs-e1", "rs-e2"],
+                "sibling_independence": [],
+            }
+        ],
+    }
+    rs_replay, rs_skipped, rs_records = _fan_in_cohort_replay_plan(
+        target_step_ref="rs-work-docs",
+        graph_context=replay_scope_gc,
+        step_ref_by_brick=replay_scope_step_ref_by_brick,
+        already_scoped_step_refs=["rs-work-docs", "rs-docs-lane-qa"],
+    )
+    if "rs-checker-lane-qa" not in rs_replay:
+        violations.append(
+            "knot3-cohort-e: reroute landing one hop above a fan-in source did "
+            "not re-verify the unvouched sibling in the replay_scope cohort; "
+            f"replay={rs_replay}, skipped={rs_skipped}, records={rs_records}"
+        )
+    if "rs-docs-lane-qa" in rs_replay:
+        violations.append(
+            "knot3-cohort-e: replay_scope trigger re-appended the already scoped "
+            f"fan-in source; replay={rs_replay}"
+        )
+    if not any(
+        isinstance(record, Mapping)
+        and record.get("cohort_trigger_step_ref") == "rs-docs-lane-qa"
+        and record.get("reroute_landing_step_ref") == "rs-work-docs"
+        for record in rs_records
+    ):
+        violations.append(
+            "knot3-cohort-e: cohort records do not distinguish the reroute landing "
+            "from the replay_scope fan-in trigger"
+        )
+
+    replay_scope_vouched_gc = {
+        "declared_edges": replay_scope_edges,
+        "groups": [
+            {
+                "group_role": "fan_in",
+                "member_refs": ["rs-e1", "rs-e2"],
+                "sibling_independence": ["rs-checker-lane-qa"],
+            }
+        ],
+    }
+    rs_vouch_replay, rs_vouch_skipped, rs_vouch_records = _fan_in_cohort_replay_plan(
+        target_step_ref="rs-work-docs",
+        graph_context=replay_scope_vouched_gc,
+        step_ref_by_brick=replay_scope_step_ref_by_brick,
+        already_scoped_step_refs=["rs-work-docs", "rs-docs-lane-qa"],
+    )
+    if "rs-checker-lane-qa" in rs_vouch_replay:
+        violations.append(
+            "knot3-cohort-e-vouch: sibling_independence vouch did not skip the "
+            f"replay_scope-triggered sibling; replay={rs_vouch_replay}"
+        )
+    if "rs-checker-lane-qa" not in rs_vouch_skipped:
+        violations.append(
+            "knot3-cohort-e-vouch: vouched sibling was not carried as skipped; "
+            f"skipped={rs_vouch_skipped}, records={rs_vouch_records}"
+        )
 
     # KNOT-3 COHORT FIRE (e) ALREADY-LIVE COHORT / BODY-CARRY RESUME (NOT the
     # silent-skip guard): a reroute that lands on a fan-in SOURCE runs the cohort

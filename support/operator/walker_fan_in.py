@@ -274,14 +274,15 @@ def _fan_in_cohort_replay_plan(
     step_ref_by_brick: Mapping[str, str],
     already_scoped_step_refs: Iterable[str],
 ) -> tuple[list[str], list[str], list[Mapping[str, Any]]]:
-    """Cohort re-verification for a reroute landing on a fan-in SOURCE node.
+    """Cohort re-verification for a reroute landing or replayed fan-in source.
 
-    Knot ③ (stale-pass): when a reroute LANDS on a node X that is a fan-in
-    SOURCE, the prior PASSes of X's SIBLING fan-in sources may now be STALE (a
-    fix in one lane can invalidate another). Brick models movement topology only
-    (no node-to-node data-dependency graph), so the machine CANNOT know which
-    siblings went stale. SAFE answer: re-verify the WHOLE fan-in COHORT (every
-    source sharing X's fan-in target) as FORWARD REPLAY. A sibling is SKIPPED
+    Knot ③ (stale-pass): when a reroute LANDS on a node X, X or a declared
+    replay-scope node may be a fan-in SOURCE. The prior PASSes of that source's
+    SIBLING fan-in sources may now be STALE (a fix in one lane can invalidate
+    another). Brick models movement topology only (no node-to-node
+    data-dependency graph), so the machine CANNOT know which siblings went
+    stale. SAFE answer: re-verify the WHOLE fan-in COHORT (every source sharing
+    the trigger source's fan-in target) as FORWARD REPLAY. A sibling is SKIPPED
     only if a HUMAN declared ``sibling_independence`` for it on the fan-in group;
     support READS that vouch and never decides independence. Absent vouch =>
     re-verify ALL (conservative).
@@ -298,25 +299,36 @@ def _fan_in_cohort_replay_plan(
       - ``cohort_records``: one auditable observation per sibling recording
         whether it was re-verified or SKIPPED, and for each skip the
         ``sibling_independence`` vouch ref(s).
-    X (the landing target) is excluded; anything already in
+    The trigger source is excluded; anything already in
     ``already_scoped_step_refs`` (the target + its declared replay scope) is not
-    re-appended.
+    re-appended. Records distinguish the reroute landing from the actual
+    ``cohort_trigger_step_ref`` because the trigger can be downstream in the
+    replay scope.
     """
 
     sources_by_target = _graph_fan_in_sources_by_target_step_ref(graph_context)
     if not sources_by_target:
         return [], [], []
-    # Find every fan-in target for which X (target_step_ref) is a source.
-    cohort_targets = [
-        fan_in_target
-        for fan_in_target, sources in sources_by_target.items()
-        if target_step_ref in sources
-    ]
-    if not cohort_targets:
-        return [], [], []
     vouch_by_target = _graph_fan_in_sibling_independence_by_target_step_ref(graph_context)
     brick_ref_by_step = {step: brick for brick, step in step_ref_by_brick.items()}
     already_scoped = {ref for ref in already_scoped_step_refs if ref}
+    trigger_step_refs: list[str] = []
+    for ref in (target_step_ref, *already_scoped_step_refs):
+        if ref and ref not in trigger_step_refs:
+            trigger_step_refs.append(ref)
+    # Find every fan-in target for which the landing or a declared replay-scope
+    # node is a source. The landing remains the Link reroute target; the trigger
+    # identifies the fan-in source whose sibling cohort is being evaluated.
+    cohort_target_triggers: list[tuple[str, str]] = []
+    for trigger_step_ref in trigger_step_refs:
+        for fan_in_target, sources in sources_by_target.items():
+            if trigger_step_ref in sources and (
+                fan_in_target,
+                trigger_step_ref,
+            ) not in cohort_target_triggers:
+                cohort_target_triggers.append((fan_in_target, trigger_step_ref))
+    if not cohort_target_triggers:
+        return [], [], []
 
     # The vouch is PER fan-in target. A sibling source may belong to SEVERAL of
     # X's shared fan-in targets, and the human may have vouched independence on
@@ -331,13 +343,13 @@ def _fan_in_cohort_replay_plan(
     # final disposition. In the single-target case this is exactly one record per
     # sibling with the same shape the prior implementation emitted.
     sibling_order: list[str] = []
-    skip_targets: dict[str, list[tuple[str, str]]] = {}  # sibling -> [(target, vouch_ref)]
-    reverify_targets: dict[str, list[str]] = {}  # sibling -> [targets with NO vouch]
-    for fan_in_target in cohort_targets:
+    skip_targets: dict[str, list[tuple[str, str, str]]] = {}  # sibling -> [(target, trigger, vouch_ref)]
+    reverify_targets: dict[str, list[tuple[str, str]]] = {}  # sibling -> [(target, trigger) with NO vouch]
+    for fan_in_target, trigger_step_ref in cohort_target_triggers:
         siblings = [
             source
             for source in sources_by_target[fan_in_target]
-            if source != target_step_ref
+            if source != trigger_step_ref
         ]
         # Resolve the human vouch for THIS target into the set of sibling
         # step_refs to skip. The vouch may name a sibling by step_ref OR by brick
@@ -360,9 +372,11 @@ def _fan_in_cohort_replay_plan(
                 skip_targets[sibling] = []
                 reverify_targets[sibling] = []
             if sibling in skip_step_refs:
-                skip_targets[sibling].append((fan_in_target, skip_step_refs[sibling]))
+                skip_targets[sibling].append(
+                    (fan_in_target, trigger_step_ref, skip_step_refs[sibling])
+                )
             else:
-                reverify_targets[sibling].append(fan_in_target)
+                reverify_targets[sibling].append((fan_in_target, trigger_step_ref))
 
     replay_refs: list[str] = []
     skipped_refs: list[str] = []
@@ -375,13 +389,15 @@ def _fan_in_cohort_replay_plan(
             # Vouched-skip on EVERY shared target -> skip. Record the fan-in
             # target whose vouch governs the skip (the first one) and its vouch
             # ref. (Single-target case: this is the lone target + lone vouch.)
-            governing_target, vouch_ref = skip_for[0]
+            governing_target, governing_trigger, vouch_ref = skip_for[0]
             if sibling not in skipped_refs:
                 skipped_refs.append(sibling)
             record: dict[str, Any] = {
                 "kind": "fan_in_cohort_sibling_disposition",
                 "fan_in_target_step_ref": governing_target,
                 "reroute_target_step_ref": target_step_ref,
+                "reroute_landing_step_ref": target_step_ref,
+                "cohort_trigger_step_ref": governing_trigger,
                 "sibling_source_step_ref": sibling,
                 "sibling_source_brick_ref": sibling_brick,
                 "disposition": "skipped",
@@ -393,13 +409,15 @@ def _fan_in_cohort_replay_plan(
             # NOT vouched on at least one shared target -> re-verify (wins). Record
             # against the first re-verify target. (Single-target case: this is the
             # lone target, sibling_independence_vouch_ref None, identical shape.)
-            governing_target = reverify_for[0]
+            governing_target, governing_trigger = reverify_for[0]
             if sibling not in already_scoped and sibling not in replay_refs:
                 replay_refs.append(sibling)
             record = {
                 "kind": "fan_in_cohort_sibling_disposition",
                 "fan_in_target_step_ref": governing_target,
                 "reroute_target_step_ref": target_step_ref,
+                "reroute_landing_step_ref": target_step_ref,
+                "cohort_trigger_step_ref": governing_trigger,
                 "sibling_source_step_ref": sibling,
                 "sibling_source_brick_ref": sibling_brick,
                 "disposition": "re_verified",
@@ -416,9 +434,10 @@ def _fan_in_cohort_replay_plan(
                 record["reverify_overrides_sibling_independence_vouch"] = [
                     {
                         "fan_in_target_step_ref": overridden_target,
+                        "cohort_trigger_step_ref": overridden_trigger,
                         "sibling_independence_vouch_ref": overridden_vouch,
                     }
-                    for overridden_target, overridden_vouch in skip_for
+                    for overridden_target, overridden_trigger, overridden_vouch in skip_for
                 ]
         records.append(record)
     return replay_refs, skipped_refs, records

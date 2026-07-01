@@ -46,6 +46,7 @@ _ADAPTER_REL = Path("support/connection/adapter_local_cli.py")
 _STEP_OUTPUTS_REL = Path("support/recording/step_outputs.py")
 _METER_REL = Path("support/recording/adapter_usage_meter.py")
 _RUN_REL = Path("support/operator/run.py")
+_WALKER_KERNEL_REL = Path("support/operator/walker_kernel.py")
 
 # A realistic codex ``exec --json`` JSONL stdout: one assistant-message event plus
 # a terminal turn.completed carrying a usage block. Used to pin that, when the
@@ -558,6 +559,48 @@ def _assert_meter_write_guarded_by_usage_present(repo: Path) -> str:
     return (
         f"{_RUN_REL}: the per-step meter write is guarded by an early return when "
         "adapter_usage is absent/empty (only usage-present steps write a row)"
+    )
+
+
+def _assert_dynamic_walker_dispatch_timing_persisted(repo: Path) -> str:
+    """Fan-out latency evidence must come from live node dispatch, not drain time.
+
+    The dynamic walker defers fan-out step-output writes, so recorded_at can only
+    describe the later drain/write moment. This static probe pins the support-only
+    repair: the walker captures a live dispatch timing side-channel and persists
+    it to both raw/adapter-usage.jsonl and the step-output projection after the
+    deferred write closes. The timing must stay outside AgentFact.returned.
+    """
+
+    path = repo / _WALKER_KERNEL_REL
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise AdapterUsageMeterError(f"could not read {_WALKER_KERNEL_REL}: {exc}") from exc
+    required = (
+        "adapter_dispatch_timing",
+        "_adapter_dispatch_timing_record",
+        "_record_adapter_dispatch_timing_evidence",
+        "time.perf_counter",
+        "raw/adapter-usage.jsonl",
+        "adapter-dispatch-timing",
+        "_step_output_manifest_ref",
+    )
+    missing = [marker for marker in required if marker not in text]
+    if missing:
+        raise AdapterUsageMeterError(
+            f"{_WALKER_KERNEL_REL}: dynamic fan-out dispatch timing is not persisted; "
+            f"missing marker(s) {missing!r}. Deferred fan-out step-output recorded_at "
+            "would still reflect drain/write time rather than the live adapter call."
+        )
+    if '"adapter_dispatch_timing"' not in text:
+        raise AdapterUsageMeterError(
+            f"{_WALKER_KERNEL_REL}: step-output enrichment does not carry an "
+            "adapter_dispatch_timing object"
+        )
+    return (
+        f"{_WALKER_KERNEL_REL}: dynamic walker records live adapter dispatch timing "
+        "as support evidence in raw/adapter-usage.jsonl and step-output projection"
     )
 
 
@@ -1079,6 +1122,7 @@ def check(repo: Path) -> list[str]:
         _assert_no_usage_in_codex_returned(repo),
         test_invoke_local_cli_uses_helper_not_raw_stdout(repo),
         _assert_step_output_carries_no_usage(repo),
+        _assert_dynamic_walker_dispatch_timing_persisted(repo),
         _assert_jsonl_never_becomes_text(),
         test_behavioral_probe_usage_only_stdout(),
         _assert_meter_write_guarded_by_usage_present(repo),
