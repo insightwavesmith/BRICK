@@ -151,9 +151,11 @@ closed Building boundary
   evidence under project/<id>/buildings/<building_id>/
 ```
 
-For bigger Easy Building work, the customer-visible route is still `brick
-build`. A clear task may enter as `preset_task`; design-first or multi-lane
-work enters as a caller/COO-declared `graph_packet`:
+For bigger Easy Building work, the official authoring/launch interface is the
+`assemble()` / `build()` / `fan()` Python DSL (`support/operator/assembly.py`)
+plus `run_building_plan()`. A clear task may enter as `preset_task`; design-first
+or multi-lane work is constructed with the DSL, which auto-derives node/edge/
+group wiring:
 
 ```text
 make X
@@ -174,14 +176,17 @@ parallel dev lanes -> lane QA
 final QA -> closure
         |
         v
-brick build --graph <declared-graph-packet.json>
+assemble() / build() / fan()  ->  run_building_plan()
 ```
 
-`assemble()`, `run_building_intake`, `run_building_plan`, and
-`launch_assembled_building` are support/operator helper or advanced/internal
-surfaces in this map. They do not become separate customer routes, target
-selectors, Movement authority, source truth, success judgment, or quality
-judgment.
+`brick build --graph <declared-graph-packet.json>` (hand-authored `graph_packet`
+JSON) is a low-level escape hatch, headed for retirement per Global Operating
+Rule 10 (`brick-6-surface-audit-repair-goal-0630.md`) — not yet fully
+removable: `sibling_independence` and per-node `write_scope` narrowing are
+still DSL gaps that only `--graph` covers. `run_building_intake` and
+`launch_assembled_building` remain support/operator helper or advanced/internal
+surfaces in this map. None of these become separate customer target selectors,
+Movement authority, source truth, success judgment, or quality judgment.
 
 ## Flow (b): read side
 

@@ -11,25 +11,29 @@
 
 ## 정문 (단 하나의 고객 실행 표면)
 
-고객이 빌딩을 시작하는 공식 표면은 **`brick build` 하나**입니다. fresh clone에서
+고객이 빌딩을 시작하는 CLI 진입점은 **`brick build` 하나**입니다. fresh clone에서
 bare `brick` entrypoint가 아직 보장되지 않거나 PATH 충돌이 의심되면, 저장소 루트에서
 `uv run python3 -m brick_protocol.support.operator.cli build ...` 로 같은 공식 build
-표면을 호출합니다. 입력 모드는 둘입니다:
+표면을 호출합니다:
 
 ```bash
 brick build --task "..." --preset building-chain-preset:fast-fix
-brick build --graph /path/to/declared-graph-packet.json
 # fresh clone / entrypoint not guaranteed:
 uv run python3 -m brick_protocol.support.operator.cli build --task "..." --preset building-chain-preset:fast-fix
 ```
 
-첫 번째는 `preset_task` 경로입니다. 할 일을 말로 주고(`--task`), 필요하면
-선언된 프리셋을 고릅니다(`--preset`). 두 번째는 `graph_packet` 경로입니다.
-caller/COO가 이미 선언한 그래프 packet을 같은 `brick build` 표면에 넘깁니다.
+이건 `preset_task` 경로입니다. 할 일을 말로 주고(`--task`), 필요하면 선언된
+프리셋을 고릅니다(`--preset`). design-first/multi-lane 작업을 조립·실행하는
+공식 인터페이스는 `assemble()` / `build()` / `fan()` Python DSL
+(`support/operator/assembly.py`) + `run_building_plan()`입니다. 손으로 작성한
+`graph_packet` JSON을 넘기는 `brick build --graph <packet.json>`은 Global
+Operating Rule 10에 따라 폐기 방향인 low-level escape hatch입니다 — 아직
+완전히 제거하지 못하는 이유는 `sibling_independence`와 노드별 `write_scope`
+narrowing이 DSL에는 아직 없는 두 가지 갭이기 때문입니다.
 
-`run_building_intake`, `assemble`, `launch_assembled_building`, and
-`goal-approve` are support/operator helpers or advanced/internal paths. They
-are not separate customer execution routes.
+`run_building_intake`, `launch_assembled_building`, and `goal-approve` are
+support/operator helpers or advanced/internal paths. They are not separate
+customer execution routes.
 
 빌딩을 설계하는 AI는 **메인 에이전트 자신**입니다. 고객이 쓰는 그 메인 AI가
 곧 설계 지능이에요. **별도의 "디자인 AI"는 없습니다.**

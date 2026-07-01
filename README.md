@@ -53,42 +53,28 @@ verdict-bearing 노드에서 provider-backed adapter가 필요할 수 있어, pr
 이 checker 초록불도 support evidence일 뿐이고, phase PASS나 Building closure를
 혼자 증명하지 않습니다.
 
-운영자 세션 표준은 status inbox 감시를 같이 켜는 것입니다. export 직후에는
-`project/`가 없고, 첫 onboard/run 이 로컬 vessel을 만들 수 있어요.
-
-```bash
-cd ~/BRICK
-while true; do
-  if [ -d project/brick-protocol/status/inbox ]; then
-    find project/brick-protocol/status/inbox -maxdepth 1 -type f -name '*.json' -print | tail -20
-  else
-    printf '%s\n' 'status inbox not created yet'
-  fi
-  sleep 5
-done
-```
-
-예상 출력은 알림 packet이 없으면 빈 줄 또는 `status inbox not created yet`,
-알림이 생기면 `project/brick-protocol/status/inbox/*.json` 경로입니다. 실패
-신호는 `No such file or directory`를 숨기지 않은 watch, 또는 repo 루트가 아닌
-곳에서 실행한 경우입니다.
-
 Start here: [quickstart](support/docs/references/quickstart.md) · [setup](support/docs/references/setup.md) · [three-axis overview](support/docs/references/three-axis-overview.md)
 
 You do not author task files for the common path: SPEAK your task as text
 through `brick build --task`. That is the official public first-run surface.
-Preset task runs use `brick build --task ... --preset ...`; caller/COO-declared
-graph packets use `brick build --graph <packet.json>`. The support helpers
-`run_building_intake`, `assemble`, `launch_assembled_building`, and
+Preset task runs use `brick build --task ... --preset ...`. For design-first or
+multi-lane work, the official way to construct and launch a Building is the
+`assemble()` / `build()` / `fan()` Python DSL (`support/operator/assembly.py`)
+plus `run_building_plan()`. Hand-authored `graph_packet` JSON via
+`brick build --graph <packet.json>` is a low-level escape hatch, headed for
+retirement (Global Operating Rule 10) — kept for now only because
+`sibling_independence` and per-node `write_scope` narrowing are not yet
+expressible in the DSL. `run_building_intake`, `launch_assembled_building`, and
 `goal-approve` remain helper or advanced/internal paths, not separate customer
 execution routes.
 
 For bigger work, the easy route is still the same public surface. Say the work
 as `brick build --task` when a declared preset fits. When the work needs
 design, review, split implementation, lane QA, final QA, and closure, the
-caller/COO first declares that road as a graph packet, then runs it with
-`brick build --graph <packet.json>`. There is no separate `--large` mode and no
-support-owned route chooser.
+caller/COO declares that road with the `assemble()`/`build()`/`fan()` DSL and
+runs it with `run_building_plan()` (or, only for the two DSL-gap cases above,
+a hand-declared graph packet via `brick build --graph <packet.json>`). There is
+no separate `--large` mode and no support-owned route chooser.
 
 Use the first-run example with `building-chain-preset:design-contract-only` and
 `--adapter adapter:local --timeout 20` only as a support-evidence check: it may
@@ -111,255 +97,12 @@ Movement authority.
 
 Axes: Brick / Agent / Link only.
 
-## Release Export
+## More
 
-릴리스용 공개 repo는 이 checkout에서 `project/` 동네와
-`brick_protocol.egg-info/` 빌드 산출물을 빼고 새로 만듭니다. export는 새
-output dir 안에서만 initial commit을 만들고, remote/push/tag는 출력만 합니다.
-
-```bash
-sh support/onboarding/release_export.sh --output /tmp/BRICK-v0.1.0
-```
-
-```text
-expected: "release export ready", "excluded roots: project/, brick_protocol.egg-info/", "initial commit:".
-failure signal: output dir가 비어 있지 않음, source checkout 밖 output이 아님, git/python3 없음, 또는 commit 생성 실패.
-```
-
-export tree에는 `project/`가 없습니다. 첫 onboard/run 이 로컬 vessel과 status
-inbox를 만듭니다.
-
-## Release Gate
-
-릴리스 전에 로컬 게이트를 먼저 실행합니다. 이 게이트는 Python compileall,
-`check_profile.py --all`, release export dry-run을 순서대로 실행하고 첫 실패에서
-멈춥니다.
-
-```bash
-sh support/onboarding/release_gate.sh
-```
-
-```text
-expected: compileall, checker gate, release export dry-run이 모두 끝나고 "release gate passed"가 출력된다.
-failure signal: compile error, profile rejection, release export rejection, 또는 uv sync/lock 불일치.
-```
-
-GitHub Actions workflow도 같은 로컬 게이트를 호출합니다. GitHub branch protection
-설정은 이 repo 파일로 바뀌지 않습니다. branch protection required-check 연결은
-Smith/operator가 GitHub repository settings에서 별도로 켜야 하는 pending action입니다.
-게이트와 workflow는 support evidence only이며 source truth, 성공/품질 판단,
-Movement authority, 실제 release publication을 증명하지 않습니다.
-
-## Deploy
-
-대시보드는 support projection입니다. source truth, 성공/품질 판단, Movement
-권한, scheduler/queue/retry/runtime이 아닙니다.
-
-### Vercel Static Photo
-
-정적 사진 모드입니다. `/ingest`와 SSE 없이 bake된 `dashboard-data.json`만
-보여줍니다.
-
-```bash
-PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity \
-  python3 support/operator/dashboard_export.py --bake-public
-cd support/dashboard
-npm ci
-npm run build
-# Vercel: root=support/dashboard, build=npm run build, output=dist
-```
-
-```text
-expected: "baked ... dashboard-data.json | buildings N | source_truth False" 뒤 Vercel build가 dist/를 만든다.
-failure signal: dashboard-data.json 없음, source_truth가 False가 아님, npm build 실패, 또는 Vercel root/output 설정 불일치.
-```
-
-### Docker Realtime
-
-실시간 모드는 Dockerfile을 쓰고 operator-controlled host 또는 Cloud Run/IAP 뒤에
-둡니다. production ingest에는 `INGEST_SECRET`가 필요하고 `PORT`는 선택입니다.
-
-```bash
-PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=support/import_identity \
-  python3 support/operator/dashboard_export.py --bake-public
-docker build -t brick-dashboard:local support/dashboard
-docker run --rm \
-  -e NODE_ENV=production \
-  -e INGEST_SECRET="${INGEST_SECRET_VALUE}" \
-  -p 127.0.0.1:8080:8080 \
-  brick-dashboard:local
-```
-
-```text
-expected: server logs "[surface-server] :8080 (ingest configured)" and /healthz returns ok.
-failure signal: production에서 INGEST_SECRET 없음, port 충돌, 또는 reverse proxy/IAP 인증 설정 누락.
-```
-
-자세한 Cloud Run + IAP, Docker host, bare Node 경로는
-[`support/dashboard/DEPLOY.md`](support/dashboard/DEPLOY.md)를 보세요.
-
-## Repository Role
-
-This repository is a clean-room protocol repository.
-
-It starts from the closed Brick / Agent / Link specification package and the
-physical blueprint, not from the legacy Brick Engine implementation tree.
-
-The current governed work is completion audit for the governed TSK / dogfood
-roadmap. The next possible work is:
-
-```text
-Smith Movement on whether to mark the active goal complete
-```
-
-DASH-0 creates dashboard projection guidance and read-only viewer boundary
-guidance for the external starter-kit project and records project-local
-Building evidence for both. It does not create a dashboard application, sync,
-runtime/provider/scheduler/storage surfaces, central storage, adoption proof,
-dashboard-need proof, projection-correctness proof, or new protocol contracts.
-
-## Source Boundary
-
-Brick Protocol defines:
-
-```text
-rules
-contracts
-structure
-boundaries
-```
-
-Brick Engine remains:
-
-```text
-legacy runtime evidence
-reference implementation material
-measurement source
-contamination sample
-```
-
-Brick Engine is not the source of truth for this repository.
-
-## Current Physical Surfaces
-
-FSR-0 reorganizes the working tree around five protocol surfaces:
-
-```text
-brick/    Brick axis physical surface
-agent/    Agent axis physical surface
-link/     Link axis physical surface
-support/  support machine location only
-project/  project-local evidence destination only
-```
-
-The import identity is retained under support:
-
-```text
-support/import_identity/brick_protocol/
-  Python import identity marker only
-```
-
-Root-level `brick_protocol/` is no longer an active repository root. The Python
-namespace remains `brick_protocol`; only the address marker moved under
-`support/`.
-
-`architecture-review-site/` is no longer an active repository root. Root-level
-public docs site / Vercel projection surfaces are removed from the active repo
-shape and must not be recreated without a later explicit admission.
-
-Support is not an axis, module family, source truth, success judgment,
-Movement authority, runtime, storage, or wiki. Project evidence under
-`project/brick-protocol/building-evidence/` is an evidence destination only,
-not source truth.
-
-The v0.1 internal candidate freeze preserves BAL semantics and the public
-`brick_protocol.*` import API. FSR-0 changes physical locations only; it does
-not mutate the `v0.1-internal-candidate-20260518` tag.
-
-## Active Records
-
-Current control surfaces:
-
-```text
-AGENTS.md
-project/brick-protocol/PROGRESS.md
-support/docs/spec/
-support/docs/reviews/
-support/docs/projection/
-support/checkers/
-```
-
-Current Building automation chain:
-
-```text
-BUILDING-METHOD-0
--> COO-IDENTITY-SKILL-0
--> AGENT-RESOURCE-TOOLKIT-0
--> COO-SYNC-0
--> MCP-PROJECTION-0
--> BUILDING-GRAPH-NEED-0
-```
-
-COO-SYNC-0 writes only local COO projection files for Codex and Claude from the
-Agent-axis resource source. Projection files are not source truth and do not
-replace `agent/`.
-
-MCP-PROJECTION-0 exposes the admitted Agent resource renderer through a
-read-only support call door for local apps. MCP is projection only; it is not a
-fourth axis, runtime, provider owner, storage/wiki surface, source truth, or
-Movement authority.
-
-BUILDING-GRAPH-NEED-0 closes why graph projection is required for three-axis
-problem analysis before graph/multi-lane runner implementation.
-
-Historical dev log (FSR-0 / TSK-0..4 / TEAM-0..1 / DASH-0 phase records,
-review dispositions, and superseded spec history from 0518-0531) lives in the
-HISTORY repository (`brick-protocol`, the repo this product repo was split
-from at REPO-SPLIT 0611), under its top-level `archive/` productization
-museum. This product repo ships NO archive/ tree at all (CLEAN-YARD v3,
-0611): the engine repo starts at project zero, and a check that needs
-building evidence generates it with the real engine at check time and
-removes it. Archived records are historical support evidence only -- not
-source truth, not success judgment, not Movement authority. The live,
-checker-pinned records stay under `support/docs/` and
-`project/brick-protocol/status/kernel/`.
-
-## Historical Support Note
-
-```text
-Historical disposition wording: pass
-Target: Smith disposition on whether to mark the historical governed TSK /
-dogfood roadmap goal complete.
-
-TSK-0 recorded the starter-kit / dogfood phase sequence after MIA-0. TSK-1
-defined the future external project boundary only. TSK-2 created only the
-admitted starter-kit wrapper guidance/templates. TSK-3 records the first real
-starter-kit Building, `FIRST_USE.md`, project-local Building evidence, local
-verification, Opus review, Gemini 3.5 review, Codex disposition, and accepted
-wording repairs as support evidence. TSK-4 records repeated self-dogfood work
-products, two project-local Building evidence packets, local verification, Opus
-review, Gemini 3.5 review, Codex disposition, and accepted no-patch disposition
-as support evidence. TEAM-0 now records local-trial and privacy-boundary
-guidance, evidence, local verification, Opus review, Gemini 3.5 review, Codex
-disposition, and accepted no-patch disposition as support evidence. It does not
-create TEAM-1, runtime, provider adapters, sync, dashboard, storage/wiki,
-source truth, success judgment, quality judgment, team adoption proof, dashboard
-need proof, mandatory raw transcript sharing, or Movement authority.
-TEAM-1 now records claim-trace export and multi-local projection guidance and
-evidence, and does not create DASH-0, runtime, provider adapters, sync,
-dashboard, storage/wiki, central storage, source truth, success judgment,
-quality judgment, team adoption proof, dashboard need proof, projection
-correctness proof, mandatory raw transcript sharing, or Movement authority.
-Opus and Gemini 3.5 returned PASS with no BLOCKER or MINOR findings; Codex
-recorded no-patch support notes for future DASH-0/table-shape risks.
-DASH-0 now records dashboard projection and read-only viewer boundary guidance
-and evidence, and does not create a dashboard application, runtime, provider
-adapters, sync, storage/wiki, central storage, source truth, success judgment,
-quality judgment, team adoption proof, dashboard need proof, projection
-correctness proof, mandatory raw transcript sharing, or Movement authority.
-Opus and Gemini 3.5 returned PASS with no BLOCKER or MINOR findings; Codex
-accepted the completion-audit-surface memo and recorded this completion audit.
-
-Reviews and checkers are not source truth and not Movement authority. Smith
-remains closure authority and commit/push authority.
-```
+- Release export, release gate, and dashboard deploy (Vercel static / Docker
+  realtime): [release-and-deploy.md](support/docs/references/release-and-deploy.md)
+- Operator session status-inbox watch loop: [operator-status-inbox.md](support/docs/references/operator-status-inbox.md)
+- Repository role, source boundary, physical-surface history, and the
+  historical governed-goal disposition note: [repository-history-and-structure.md](support/docs/references/repository-history-and-structure.md)
+- Full architecture / module map: [architecture-map.md](support/docs/references/architecture-map.md)
+- Rules and contributor boundaries: [rules-and-boundaries.md](support/docs/references/rules-and-boundaries.md)

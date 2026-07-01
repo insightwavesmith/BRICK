@@ -3,10 +3,15 @@
 This guide gets a newcomer from a fresh checkout to a green checker gate and a first Building run. Brick Protocol is a three-axis work protocol for human-agent work: Brick is the work, Agent is the performer, and Link is the transfer/carry/movement between work boundaries. The repository is a clean-room protocol repository, not a runtime engine. The support runner walks a declared Building plan and records support evidence; that evidence is not source truth, not a success judgment, not a quality judgment, and not Movement authority.
 
 For the guided first-run route, see `quickstart.md` in this same directory.
-The official customer-facing Building route is one surface: `brick build`.
-Use `brick build --task ... --preset ...` for the `preset_task` path and
-`brick build --graph <packet.json>` for a declared `graph_packet`. This guide
-covers prerequisites, the checker gate, and the advanced `run_building_plan`
+The customer-facing CLI entry point is `brick build`. Use
+`brick build --task ... --preset ...` for the `preset_task` path. The official
+way to construct and launch design-first or multi-lane work is the
+`assemble()` / `build()` / `fan()` Python DSL (`support/operator/assembly.py`)
+plus `run_building_plan()`; `brick build --graph <packet.json>` (hand-authored
+`graph_packet` JSON) is a low-level escape hatch, headed for retirement per
+Global Operating Rule 10, kept only until `sibling_independence` and per-node
+`write_scope` narrowing are expressible in the DSL. This guide covers
+prerequisites, the checker gate, and the advanced `run_building_plan`
 signature in detail.
 
 ## Prerequisites
