@@ -136,6 +136,36 @@ Support review evidence:
     Until the DSL is extended to support both, `--graph` must remain
     available as a low-level escape hatch for these two cases -- not fully
     removable yet.
+    **Engine authoring landmine (0701, confirmed via forensic workflow while
+    building the P9 proof-run graph; applies to BOTH `assemble()` and
+    `--graph` equally, since `compose_building()` is the same engine under
+    both -- not a reason to prefer either route, just a real trap for any
+    graph author):** `execution_order` is PURE NODE DECLARATION ORDER, not a
+    topological sort (`composition_compose.py:675`, a plain list
+    comprehension over `node_records` in caller-declared order). The dynamic
+    walker's root-seeding (`walker_fan_in.py:60-73`
+    `_graph_root_step_refs`) queues EVERY node with zero incoming edges as an
+    immediately-executable root, in its declaration-order position -- there
+    is no "this is a reroute-target-only node, wait for a concern" gate
+    anywhere in the consumption path. A `reroute(..., to=X, budget=N)` target
+    `X` is validated only for "is a declared node" and "is not this fan-in's
+    own convergence node" (`assembly.py:921-948` `lower_route`) -- NOT for
+    having any other real edge. Consequence: a node meant to be reached ONLY
+    via a conditional reroute, with no other declared edge, becomes a
+    same-priority root and gets walked immediately, unconditionally,
+    regardless of where it appears in the intended conditional flow. Both of
+    this codebase's own proven `reroute()` fixtures
+    (`support/checkers/check_assembly_equivalence.py`'s `engine-feature-hard`
+    and `two-fan-in-graph`) avoid this by always rerouting BACK to a node
+    that already has other real edges (the original fan-out source) --
+    never a bespoke zero-edge orphan. **Rule of thumb for any future graph
+    author: a reroute target must always be a node with a real edge on its
+    intended normal path; never invent a reroute-only node.** This caused a
+    burned Building cycle (`brick-6-p9-dynamic-proof-run-0701a`, not
+    adopted, superseded by `-0701b`) before being caught. Worth folding into
+    `agent/skills/brick-task-author/SKILL.md` during the documentation
+    consolidation follow-on item below.
+
     **Scope of "discard" (Smith 0701, deferred): NOT decided now.** Whether
     this ends up recommend-DSL-only (docs/skills point to `assemble()`,
     `--graph` stays wired but de-emphasized) or literal CLI flag removal
