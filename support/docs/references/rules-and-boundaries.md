@@ -45,7 +45,6 @@ support/docs/spec/full-spec
 support/docs/spec/physical-blueprint
 support/docs/reviews
 support/docs/references
-support/docs/templates
 support/docs/projection
 ```
 
@@ -58,10 +57,10 @@ edit is needed. The checker admits, by pattern, any `.md` file directly under
 > Note: `support/docs/spec` and `support/docs/projection` are admitted as
 > directories in `ALLOWED_DIRS`, but the by-pattern `.md` admission in
 > `allowed_path()` matches files under `support/docs/spec/`, `.../reviews/`,
-> `.../references/`, and `.../projection/`. `support/docs/templates/` is admitted
-> as a directory; individual template files are admitted by an explicit list
-> (`SUPPORT_DOC_TEMPLATE_FILES`), not by a free `.md` pattern. If you add a new
-> file under `templates/`, expect to add it to that list.
+> `.../references/`, and `.../projection/`. `support/docs/templates/` was
+> retired (#24, 0610); its only file (`work_contract_template.md`) moved to
+> `archive/docs-templates/`. `SUPPORT_DOC_TEMPLATE_FILES` is now an empty set
+> with no live admission class.
 
 ### A new top-level path needs seed admission
 

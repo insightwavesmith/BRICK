@@ -41,9 +41,10 @@ result, model review, graph import, or local CLI smoke is support evidence only;
 it is not source truth, not success judgment, not quality judgment, and not
 Movement authority.
 
-When verification finds a repairable issue, name the Brick boundary to reroute
-to, the Link transition needed, and the evidence refs that must be carried
-forward. Carry MOVEMENT-BINARY-0 as the current COO judgment language:
+When verification finds a repairable issue, surface the candidate Brick
+boundary and Link transition for COO/Link review, along with the evidence refs
+that must be carried forward. Carry MOVEMENT-BINARY-0 as the current COO
+judgment language:
 
 ```text
 forward = continue on the current declared road

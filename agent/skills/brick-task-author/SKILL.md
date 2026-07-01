@@ -23,14 +23,18 @@ brick build / support.operator.cli build
 ```
 
 프리셋 모드와 그래프 모드는 **같은 공식 build surface로 들어가는 두 입력 모드**다.
+공식 authoring/launch interface는 `assemble()` / `build()` / `fan()` Python DSL
+(`support/operator/assembly.py`) plus `run_building_plan()`이다.
 그래프 모드는 graph packet JSON을 `brick build --graph <packet>` 또는
-`support.operator.cli build --graph <packet>`에 넘긴다.
+`support.operator.cli build --graph <packet>`에 넘기는 저수준 escape hatch다. Rule 10에
+따라 retirement 방향이지만, `sibling_independence`와 per-node `write_scope` narrowing은
+아직 DSL gap이라 `--graph`를 완전히 제거할 수 없다.
 P3 이후 zero-ritual 운영자 경로는 `task_intake` 확인 뒤 **`build()` 하나로** compact graph를
 넣는 것이다. 운영자-facing 언어는 `build()`다. `fan()`은 `build()` 안의 병렬 블록 재료일
-뿐이고, `fire()`/`assemble()`/`launch_assembled_building`은 내부 구현·debug 용어다.
+뿐이고, `fire()`/`launch_assembled_building`은 내부 구현·debug/advanced 용어다.
 프롬프트/발주문에서 운영자에게 `fire(graph)`를 하라고 쓰지 마라. 파일 handoff/감사
-목적이면 `brick build --graph <packet>`가 같은 공식 route의 저수준 입력이지만, 기본
-운영 프롬프트는 `build()`만 말한다. helper를 별도 공식 route처럼 말하지 마라.
+목적이면 `brick build --graph <packet>`가 저수준 escape hatch지만, 기본 운영 프롬프트는
+`build()`만 말한다. helper를 별도 공식 route처럼 말하지 마라.
 
 ## 한눈 결정나무
 
@@ -121,7 +125,7 @@ quality/success judge가 아니다.
  금지선: 실루트 수정 / 핀 완화 / 스케줄러·신규의존성 / project/ 손대기>
 ```
 
-부검은 `status/kernel/evidence-postmortem-task-template-0612.md` 사용([TARGETS]=대상 루트 + 대조군 1동, 사건은 장부에 있는 것만).
+부검은 `project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md` 사용([TARGETS]=대상 루트 + 대조군 1동, 사건은 장부에 있는 것만).
 
 ## 그래프 모양은 building-sizing-method 스킬
 
@@ -316,7 +320,7 @@ judgment, 또는 Link Movement 선택이 아니다.
 
 스톨은 **단독 귀속 금지** — 반드시 3축 복합 점검: Agent(반환위반·provider) × Link(처분경로) ×
 support(기록 구조 — 출생증명서·벨 순서·transcript·잔재). "왜 멈췄는지 증명 못 하는 구조" 자체가
-결함의 본체일 수 있다. 정본: status/kernel/stall-attribution-amendment-0613.md
+결함의 본체일 수 있다. 정본: project/brick-protocol/status/kernel/stall-attribution-amendment-0613.md
 
 ## 3.5 보고
 
