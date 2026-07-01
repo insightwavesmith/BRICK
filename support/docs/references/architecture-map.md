@@ -151,6 +151,38 @@ closed Building boundary
   evidence under project/<id>/buildings/<building_id>/
 ```
 
+For bigger Easy Building work, the customer-visible route is still `brick
+build`. A clear task may enter as `preset_task`; design-first or multi-lane
+work enters as a caller/COO-declared `graph_packet`:
+
+```text
+make X
+        |
+        v
+task intake
+        |
+        v
+design fan-out / review
+        |
+        v
+plan confirm
+        |
+        v
+parallel dev lanes -> lane QA
+        |
+        v
+final QA -> closure
+        |
+        v
+brick build --graph <declared-graph-packet.json>
+```
+
+`assemble()`, `run_building_intake`, `run_building_plan`, and
+`launch_assembled_building` are support/operator helper or advanced/internal
+surfaces in this map. They do not become separate customer routes, target
+selectors, Movement authority, source truth, success judgment, or quality
+judgment.
+
 ## Flow (b): read side
 
 ```text

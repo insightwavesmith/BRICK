@@ -40,6 +40,10 @@ text_contains:
       - 'customer_visible_frontier_state'
       - 'customer_visible_not_ready'
       - 'frontier_message:'
+      - 'readiness_blocker_observation'
+      - 'protocol_compliance_observation'
+      - 'public_route": "brick build / brick build --graph"'
+      - 'bare_brick_behavior": "status support evidence"'
       - 'def _public_error_packet'
       - 'public_error_code'
       - 'default_evidence_root'
@@ -79,6 +83,10 @@ text_contains:
       - 'status revived legacy ~/.brick/builds'
       - 'plain CLI error leaked raw operator detail'
       - 'internal/onboard route became public'
+      - '--dev-lanes became a public official build mode'
+      - 'lane_return helper must stay absent/fail-closed'
+      - 'support-only observation lost proof limit'
+      - 'bare brick --json did not default to status'
 text_absent:
   - path: pyproject.toml
     texts:

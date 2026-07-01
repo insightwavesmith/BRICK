@@ -9018,12 +9018,55 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
             "brick_cli_entrypoint_smoke: --large became a public official build mode"
         )
 
+    dev_lanes_stderr = io.StringIO()
+    try:
+        with contextlib.redirect_stderr(dev_lanes_stderr):
+            parser.parse_args(["build", "--dev-lanes", "--task", "lane fixture task"])
+    except SystemExit:
+        pass
+    else:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: --dev-lanes became a public official build mode"
+        )
+
     large_packet_builder = getattr(cli, "_p3_easy_large_graph_packet", None)
     if large_packet_builder is not None:
         raise ProfileError(
             "brick_cli_entrypoint_smoke: hidden _p3_easy_large_graph_packet helper "
             "must stay absent/fail-closed; official input modes are preset_task and graph_packet"
         )
+
+    lane_return_builder = getattr(cli, "lane_return", None)
+    if lane_return_builder is not None:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: lane_return helper must stay absent/fail-closed; "
+            "customer output is support evidence from brick build"
+        )
+
+    status_probe_args = parser.parse_args(["status", "--json"])
+    status_probe = cli._status_packet(status_probe_args)
+    for observation_key in (
+        "readiness_blocker_observation",
+        "protocol_compliance_observation",
+    ):
+        observation = status_probe.get(observation_key)
+        if not isinstance(observation, Mapping):
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: status packet omitted support-only "
+                f"{observation_key}"
+            )
+        observation_text = json.dumps(observation, sort_keys=True)
+        for authority_fragment in (
+            "not source truth",
+            "not success judgment",
+            "not quality judgment",
+            "not Movement authority",
+        ):
+            if authority_fragment not in observation_text:
+                raise ProfileError(
+                    "brick_cli_entrypoint_smoke: support-only observation lost proof limit "
+                    f"{authority_fragment!r}: {observation!r}"
+                )
 
     conflict_args = parser.parse_args(
         ["build", "--graph", str(graph_path), "--task", "also task"]
@@ -9061,7 +9104,24 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
             f"error taxonomy: {plain_error!r}"
         )
 
-    return 14
+    bare_json_stdout = io.StringIO()
+    with contextlib.redirect_stdout(bare_json_stdout):
+        bare_json_exit = cli.main(["--json"])
+    if bare_json_exit != 0:
+        raise ProfileError("brick_cli_entrypoint_smoke: bare brick --json did not default to status")
+    try:
+        bare_json_packet = json.loads(bare_json_stdout.getvalue())
+    except json.JSONDecodeError as exc:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: bare brick --json did not emit JSON status evidence"
+        ) from exc
+    if bare_json_packet.get("command") != "status":
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: bare brick --json did not emit status packet: "
+            f"{bare_json_packet!r}"
+        )
+
+    return 15
 
 
 def _brick_cli_work_brick_rows(plan: Mapping[str, Any]) -> list[Mapping[str, Any]]:

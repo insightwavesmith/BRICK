@@ -17,6 +17,31 @@ are not separate customer execution routes. Files dropped at the repository
 root (or anywhere unadmitted) are rejected by the admission checker — keep any
 scratch files of your own outside the repository.
 
+## Easy Building for bigger work
+
+The product route for bigger work is a declared road over the same public
+surface, not a new mode. The customer/operator still starts from a spoken task:
+
+```text
+make X
+  -> task intake
+  -> design fan-out / review
+  -> plan confirm
+  -> parallel dev lanes
+  -> lane QA
+  -> final QA
+  -> closure
+  -> brick build --graph <declared-graph-packet.json>
+```
+
+If a declared preset exactly preserves the needed shape, use `brick build
+--task ... --preset ...`. If the work needs that bigger road, the caller/COO
+declares a `graph_packet` and passes it through `brick build --graph`. Support
+validates and walks the declared Brick / Agent / Link rows; it does not choose
+route targets, invent Movement, judge success, or judge quality. `--large`,
+`--dev-lanes`, `_p3_easy_large`, and `lane_return` are not public route
+features.
+
 ## Customer-entry readiness matrix
 
 This is the minimum cold-start map for a fresh customer or customer-like
@@ -28,6 +53,7 @@ success judgment, not a quality judgment, and not Movement authority.
 | What reads first? | Start at repo-root `README.md`, then this `support/docs/references/quickstart.md`, then `support/docs/references/setup.md` when you need prerequisite and checker details. After `brick init`, read the generated `FIRST_USE.md` under the chosen output root. | `README.md` links this quickstart and setup guide. `support/operator/first_use.py` renders `FIRST_USE.md` after the local example. Whether a customer understands the sequence without help is not proven. |
 | Active checkout or frozen/history repo? | Use this product checkout or its release export for active work. The frozen HISTORY repository is for archived evidence only; do not start new customer work there. In this checkout, `brick status` reports the resolved `repo_root`, current `cwd`, entrypoint file, and the default evidence root used by `brick build` when `--output-root` is omitted. Release exports omit `project/`; the first onboard/run creates local project evidence as needed. | `README.md` documents release export and HISTORY separation. `support/operator/cli.py` implements `brick status`. Byte-for-byte release parity and fresh-machine behavior remain not proven until measured. |
 | Official Building launch route? | Common customer path: install, run the onboarding wizard, then speak the task through `brick build --task`. Use `--preset` for the declared chain preset. When caller/COO already has a declared graph packet, use `brick build --graph <packet.json>`. | This page and `launch-guide.md` document one public execution surface: `brick build`. Its input modes are `preset_task` (`--task`/`--preset`) and `graph_packet` (`--graph`). Support walks declared rows; it does not choose Movement. Provider reliability, customer comprehension, success, quality, source truth, and Movement authority are not proven by these docs. |
+| How does bigger work stay easy? | Treat "make X" as task intake. Use a preset only when it preserves the declared route. For design-first or multi-lane work, caller/COO declares a graph packet shaped as design fan-out/review -> plan confirm -> parallel dev lanes -> lane QA -> final QA -> closure, then runs `brick build --graph`. | This is route documentation, not a new CLI mode. It does not revive `--large`, `_p3_easy_large`, `--dev-lanes`, `lane_return`, a scheduler/queue/retry runtime, or support-owned route selection. |
 | How do I read frontier output? | `brick build` exit 0 means the CLI returned support evidence. Customer-visible Building closure is `frontier_kind=complete`. Any other `frontier_kind` is `not_ready`; inspect the printed `evidence_root` before rerunning or escalating. | `support/operator/cli.py` renders `customer_visible_frontier_state=frontier_complete` only for `complete`; non-complete frontiers render `not_ready` and preserve `evidence_root`. This is evidence handling, not a phase PASS or quality judgment. |
 | Slack expectation? | Slack is optional. The first local path does not require Slack and should not expect a direct Slack check. Operator notification uses `~/.brick/report.env` only after provisioning/source, and real Slack delivery remains gated by declared delivery flags and environment credentials. | `launch-guide.md` notes `source ~/.brick/report.env` for bell/dashboard notifications. Reporter/Slack delivery is support projection only and must not expose credentials or become a scheduler/queue/retry runtime. |
 | Where does evidence land? | Ref-less defaults land under `$BRICK_HOME/project/brick-protocol/buildings/<building_id>/`, or `~/.brick/project/brick-protocol/buildings/<building_id>/` when `BRICK_HOME` is unset. Runs that declare `project_ref: "project:brick-protocol"` land in the repo-local vessel `project/brick-protocol/buildings/<building_id>/`. Customer CLI builds use the declared output root and report `evidence_root`; `FIRST_USE.md` repeats that root for the local example. | The root contains `capture/`, `raw/`, `evidence/`, and `work/`. These are support evidence and projections, not source truth or judgments. |

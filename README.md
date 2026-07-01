@@ -83,6 +83,13 @@ graph packets use `brick build --graph <packet.json>`. The support helpers
 `goal-approve` remain helper or advanced/internal paths, not separate customer
 execution routes.
 
+For bigger work, the easy route is still the same public surface. Say the work
+as `brick build --task` when a declared preset fits. When the work needs
+design, review, split implementation, lane QA, final QA, and closure, the
+caller/COO first declares that road as a graph packet, then runs it with
+`brick build --graph <packet.json>`. There is no separate `--large` mode and no
+support-owned route chooser.
+
 Use the first-run example with `building-chain-preset:design-contract-only` and
 `--adapter adapter:local --timeout 20` only as a support-evidence check: it may
 return `agent_incomplete`/`not_ready` until provider-backed verdict lanes are

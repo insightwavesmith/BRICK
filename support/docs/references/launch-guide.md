@@ -68,6 +68,40 @@ support evidence일 뿐 phase PASS가 아닙니다.
 comprehension, success, quality, source truth, Movement authority는 이 문서나
 CLI 출력으로 증명되지 않습니다.
 
+### 큰 작업: Easy Building route
+
+큰 작업도 별도 CLI 모드가 아닙니다. 고객/운영자는 먼저 일을 말로 잡고, 필요한
+경우 caller/COO가 선언된 graph packet으로 길을 얼린 뒤 같은 정문으로 실행합니다:
+
+```text
+make X
+  -> task intake
+  -> design fan-out / review
+  -> plan confirm
+  -> parallel dev lanes
+  -> lane QA
+  -> final QA
+  -> closure
+  -> brick build --graph <declared-graph-packet.json>
+```
+
+프리셋이 이 계약을 그대로 보존할 때만 `brick build --task ... --preset ...` 를
+씁니다. 설계 분기, 병렬 구현, lane QA, 최종 QA가 필요한 일은 caller/COO가
+`graph_packet`을 선언하고 `brick build --graph` 로 넘깁니다. support는 그
+packet을 검증하고 걷지만, route target, Movement, 성공, 품질을 고르지 않습니다.
+
+Public route vocabulary:
+
+- Customer/operator: `brick build --task`, `brick build --graph`, and
+  `uv run python3 -m brick_protocol.support.operator.cli build ...` when the
+  entrypoint is not installed yet.
+- Advanced/internal helpers: `assemble()`, `run_building_intake`,
+  `run_building_plan`, `launch_assembled_building`, `goal-approve`, and any
+  full internal Building Plan runner call.
+- Not admitted as public route features: `--large`, `_p3_easy_large`,
+  `--dev-lanes`, `lane_return`, a new engine, scheduler/queue/retry runtime, or
+  support-owned route choice.
+
 ### 1) 표준 작업: `brick build --task`
 
 처음 실행은 provider와 repository write를 증명하려 하지 말고 support evidence
@@ -107,6 +141,9 @@ brick build --graph /path/to/declared-graph-packet.json
 
 이 경로는 이미 선언된 graph packet용입니다. support는 packet을 검증하고
 걷습니다. support가 route target, Movement, 성공, 품질을 발명하지 않습니다.
+packet이 잘못됐을 때 plain CLI는 `graph_packet_invalid` 같은 product-safe
+taxonomy로 거절해야 하며, operator-facing 첫 줄에 raw path, raw exception class,
+traceback을 노출하지 않습니다.
 
 ### Advanced/internal operator helper: assembly
 

@@ -87,6 +87,39 @@ NOT_PROVEN = (
 )
 
 
+def _support_observation_packet() -> dict[str, Any]:
+    """Return product-route observations that remain support evidence only."""
+
+    evidence_limits = [
+        "support CLI observation only",
+        "not source truth",
+        "not success judgment",
+        "not quality judgment",
+        "not Movement authority",
+    ]
+    return {
+        "readiness_blocker_observation": {
+            "schema": "support-readiness-blocker-observation/v1",
+            "observed_blockers": [],
+            "proof_limits": evidence_limits,
+            "not_proven": [
+                "real-provider credential readiness",
+                "future Building correctness",
+            ],
+        },
+        "protocol_compliance_observation": {
+            "schema": "support-protocol-compliance-observation/v1",
+            "public_route": "brick build / brick build --graph",
+            "bare_brick_behavior": "status support evidence",
+            "proof_limits": evidence_limits,
+            "not_proven": [
+                "external dynamic-design pipeline end-to-end proof",
+                "future route-surface drift",
+            ],
+        },
+    }
+
+
 def _json_dump(packet: Any) -> str:
     return json.dumps(packet, ensure_ascii=False, indent=2, sort_keys=True)
 
@@ -384,6 +417,7 @@ def _run_build(args: argparse.Namespace) -> dict[str, Any]:
             "proof_limits": list(PROOF_LIMITS),
             "not_proven": list(NOT_PROVEN),
         }
+        packet.update(_support_observation_packet())
         if intake is not None:
             packet.update(
                 {
@@ -441,6 +475,7 @@ def _run_build(args: argparse.Namespace) -> dict[str, Any]:
         "proof_limits": list(PROOF_LIMITS),
         "not_proven": list(NOT_PROVEN),
     }
+    packet.update(_support_observation_packet())
     if intake is not None:
         packet.update(
             {
@@ -583,6 +618,7 @@ def _status_packet(args: argparse.Namespace) -> dict[str, Any]:
         "default_builds_root_exists": builds_root.exists(),
         "proof_limits": list(PROOF_LIMITS),
         "not_proven": list(NOT_PROVEN),
+        **_support_observation_packet(),
     }
 
 
@@ -968,6 +1004,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     args_list = list(sys.argv[1:] if argv is None else argv)
     if not args_list:
         args_list = ["status"]
+    elif args_list[0].startswith("-") and args_list[0] not in ("-h", "--help"):
+        args_list = ["status", *args_list]
     parser = build_parser()
     args = parser.parse_args(args_list)
     if not hasattr(args, "func"):
