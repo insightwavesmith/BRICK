@@ -21,18 +21,19 @@ from memory. Full workflow output is the source for this summary.
 | Global Operating Rules 8/9/10 resolved or deferred | **satisfied_with_explicit_disposition** | Rule 9 and 10 fully resolved with named synthesis docs and commits. Rule 8 (the only REQUIRED-marked rule) is PARTIAL by design: detector half closed (task #5's checker), admission-gate half explicitly named open and deferred to the Follow-On bucket's fourth item — disclosed, not hidden. |
 | Customer comprehension / real-provider readiness left not_proven or waived | **satisfied_with_explicit_disposition** | Consistently recorded as not_proven across 16 kernel docs; no file anywhere falsely claims validation. |
 
-## Repo State Snapshot (recorded here per the audit's own recommendation)
+## Repo State Snapshot (updated post-push)
 
 - `git status --short`: clean, no uncommitted changes.
-- `git status --branch --short`: `## main...origin/main [다음 앞에: 90]`.
-- `git rev-parse HEAD`: `8742a20727112ce52acfd91df8e68d57599bd070`.
+- `git status --branch --short`: `## main...origin/main`.
+- `git rev-parse HEAD`: `d9e2898` (this document's own adoption commit).
 - `git branch --show-current`: `main`.
 - Upstream: `origin/main` (configured, resolves).
-- Delta: **90 commits ahead of `origin/main`, 0 commits behind.**
-- Disposition: **parked, not pushed**, per this session's standing rule
-  ("never push to origin without explicit Smith authorization"). This is the
-  expected, correct state for an in-progress local repair goal, not a defect
-  -- pushing is a separate, explicit decision for Smith to make.
+- Delta: **0 commits ahead, 0 commits behind `origin/main`.**
+- Disposition: **pushed.** Smith explicitly authorized the push ("푸시하자");
+  `git push origin main` landed as `5ed1d30..d9e2898 main -> main`. Prior to
+  this the state was 91 commits ahead / 0 behind, parked per the standing
+  no-push-without-authorization rule; that authorization has now been given
+  and exercised.
 
 ## Overall recommendation (from the audit's synthesis agent)
 
