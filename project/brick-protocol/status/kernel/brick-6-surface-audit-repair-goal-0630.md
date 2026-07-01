@@ -74,6 +74,47 @@ Support review evidence:
    lowering" framing on the equivalence checker -- either resolution is
    acceptable, indefinite duplication is not.
 
+   **Resolution (0701, Building design + 35-agent independent workflow, both
+   converged): `compose_building()` stays the ENGINE, permanently canonical
+   -- see `brick-6-dual-producer-reconciliation-synthesis-0701.md`. This is
+   settled and does not change with rule 10 below.**
+
+10. (0701 addition, Smith decision) This is a SEPARATE axis from rule 9: not
+    "which engine" (settled, rule 9) but "which AUTHORING/LAUNCH interface is
+    official." Smith's call: the `assemble()`/`build()`/`fan()` Python DSL
+    (`support/operator/assembly.py`) + `run_building_plan()` becomes the
+    official way to construct and launch a Building; hand-authored
+    `graph_packet` JSON via the `brick build --graph <file>` CLI flag is
+    discarded. Reasoning: today's repeated operational friction (museum-cwd
+    launch mistakes, forgotten `--overwrite-existing`, verbose ~150-line
+    hand-JSON with 7+ manual wiring conventions to get right, at least two
+    confirmed silent-omission gaps -- `write_scope` pre-0701/task-#8 and
+    `source_facts` still open -- that only exist because raw JSON has no
+    validation for them) traces overwhelmingly to hand-authoring raw JSON,
+    not to the engine underneath. The DSL auto-derives node/edge/group
+    wiring and was empirically verified byte-identical to hand-JSON for
+    every case it currently supports (same `plan_shape`, same
+    `execution_order`, same `edge_ref`s).
+
+    **Known blocker before `--graph` can be FULLY discarded**:
+    `sibling_independence` (the mechanism that closed the P7d3 fan-in
+    cohort blind spot) is NOT yet expressible via the DSL --
+    `GroupSpec` (assembly.py) has only `role`/`members` fields, zero
+    references to `sibling_independence` anywhere in assembly.py. Until the
+    DSL is extended to support it, `--graph` must remain available as a
+    low-level escape hatch for that one case -- not fully removable yet.
+    **Scope of "discard" not yet finalized with Smith**: recommend-DSL-only
+    (docs/skills point to `assemble()`, `--graph` stays wired but
+    de-emphasized) vs literal CLI flag removal from `cli.py`/`driver.py`.
+
+    **Operational note**: a Building already in flight when this decision
+    landed (`brick-6-dual-producer-impl-0701a`) has a work lane (Lane B)
+    whose task instructions still encode the OLD framing ("`--graph` is the
+    customer route, `assemble()` is operator-only"). That lane's output
+    must NOT be adopted as-is -- reject/redo it with the corrected framing
+    above; Lanes A and C are unaffected by this rule and may still be
+    adopted normally.
+
 ## Standard Phase Building Graph (dual-design fan-out, Smith-confirmed 0701)
 
 This is the DEFAULT operating shape for high-risk phase Buildings. It is a
