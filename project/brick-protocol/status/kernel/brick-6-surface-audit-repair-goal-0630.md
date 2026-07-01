@@ -284,3 +284,16 @@ return to protocol-live order.
 - Dashboard/network exploit behavior.
 - Complete dynamic resume/fan-out/fan-in behavior beyond current evidence.
 - Real-provider dynamic proof (stub proof does not establish it).
+
+## Follow-On Goal (explicitly NOT part of this goal, Smith 0701)
+
+God-module decomposition (`kernel_checks.py` 10201 LOC, `case_runners.py`
+8507 LOC, `check_bounded_agent_proposed_routing_loop0.py` 7087 LOC,
+never-inspected) and checker/profile cleanup (checker-diet completion, CI
+gate, non-reentrant fixture isolation) is real, confirmed-still-needed work
+-- see `godmodule-checker-cleanup-synthesis-0701.md` (17-agent workflow,
+0701, 8 sources cross-checked against fresh measurements) for the full
+scope. Smith's explicit disposition: keep this separate from P0-P9, do not
+fold it in, and start it only after this goal's P9 closes -- it sits at the
+tail end of this goal's lifecycle, as the natural next goal, not a phase
+inside this one.
