@@ -24,7 +24,7 @@ def _casting_node_carry_base_graph_plan() -> dict[str, Any]:
         "building_id": "casting-node-carry-probe",
         "plan_ref": "building-plan:casting-node-carry-probe",
         "declared_by": "coo",
-        "selected_adapter_ref": "adapter:local",
+        "selected_adapter_ref": "adapter:codex-local",
         "selected_model_ref": "model:default",
         "steps": [
             {
@@ -40,7 +40,7 @@ def _casting_node_carry_base_graph_plan() -> dict[str, Any]:
                     {
                         "axis": "Agent",
                         "row_ref": "ar1",
-                        "agent_object_ref": "agent-object:worker",
+                        "agent_object_ref": "agent-object:dev",
                     },
                     {
                         "axis": "Link",

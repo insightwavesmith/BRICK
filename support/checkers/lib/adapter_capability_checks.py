@@ -1006,6 +1006,10 @@ def _check_adapter_capability_silent_write_grant_rejected_at_run_admission(
         selected_adapter_ref="adapter:codex-local",
         write_scope=_adapter_capability_write_scope(),
     )
+    # The graph composer now stamps the template-owned write NEED on write-needed
+    # rows. This case is the strict admission backstop for a malformed/smuggled
+    # row, so remove the marker after composition to exercise that boundary.
+    plan["brick_steps"][0]["rows"][0].pop("requires_brick_write_scope", None)
 
     def _sentinel_command_runner(_args: Any, _cwd: Any, _timeout: Any) -> Any:
         raise AssertionError(
@@ -1153,6 +1157,7 @@ def _check_adapter_capability_legacy_write_need_marker_not_recognized(
     )
     plan = dict(_validation_plan_for_declared_plan(graph_plan))
     brick_row = dict(plan["steps"][0]["rows"][0])
+    brick_row.pop("requires_brick_write_scope", None)
     brick_row["write_need"] = True
     plan["steps"][0]["rows"][0] = brick_row
     validate_declared_building_plan(
@@ -1374,4 +1379,3 @@ def _check_adapter_capability_explicit_write_need_marker_single_step_proceeds(
             "single-step packet never reached the provider sentinel "
             "(over-restriction or a pre-provider failure)"
         )
-

@@ -112,6 +112,7 @@ def _child_plan(
         "steps": [
             {
                 "step_ref": f"{prefix}-step",
+                "step_template_ref": "",
                 "selected_adapter_ref": "adapter:local",
                 "rows": [
                     {

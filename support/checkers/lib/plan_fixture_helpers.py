@@ -112,12 +112,18 @@ def _graph_test_plan_from_linear(linear_plan: Mapping[str, Any]) -> Mapping[str,
         if brick_ref:
             endpoint_refs.add(brick_ref)
 
-    for index, (step_ref, raw_step, brick_row, _agent_row, link_row) in enumerate(prepared_steps):
+    for index, (step_ref, raw_step, brick_row, agent_row, link_row) in enumerate(prepared_steps):
         node: dict[str, Any] = {
             "node_id": step_ref,
             "step_ref": step_ref,
-            "step_template_ref": raw_step.get("step_template_ref", "building-step-template:work"),
         }
+        if "step_template_ref" in raw_step:
+            node["step_template_ref"] = raw_step.get("step_template_ref") or ""
+        else:
+            node["step_template_ref"] = "building-step-template:work"
+        agent_object_ref = str(agent_row.get("agent_object_ref") or "").strip()
+        if agent_object_ref:
+            node["agent_object_ref"] = agent_object_ref
         for key in ("selected_adapter_ref", "selected_model_ref"):
             if key in raw_step:
                 node[key] = raw_step[key]

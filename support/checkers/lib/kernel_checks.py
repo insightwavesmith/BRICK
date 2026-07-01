@@ -3627,10 +3627,13 @@ def _assert_reporter_brick_grain_threading(
     reporter: Any,
     report_sinks: Any,
 ) -> tuple[str, str, int]:
+    from brick_protocol.support.connection.agent_adapter import LocalCliCompleted
     from brick_protocol.support.operator.run import run_building_plan
     from brick_protocol.brick.work import parse_required_return_shape
+    from support.checkers.lib.case_runners import _preset_completion_command_runner
 
     inspected = 0
+    command_runner = _preset_completion_command_runner(LocalCliCompleted)
 
     sent_payloads: list[Mapping[str, Any]] = []
 
@@ -3749,6 +3752,7 @@ def _assert_reporter_brick_grain_threading(
                 output_root=output_root,
                 overwrite_existing=True,
                 local_callables={"callable:local:agent-invoke0-smoke": _brain},
+                command_runner=command_runner,
                 adapter_cwd=repo,
                 adapter_timeout_seconds=10,
                 report_env=fake_env,
@@ -3889,12 +3893,12 @@ def _assert_reporter_brick_grain_threading(
         received_reply_text = str(received_payloads[0].get("text") or "")
         brick_reply_text = str(returned_payloads[0].get("text") or "")
         gate_reply_text = str(gate_payloads[0].get("text") or "")
-        for fragment in ("①", "작업", "시작했어요.", "담당: 워커", "("):
+        for fragment in ("①", "작업", "시작했어요.", "담당: Codex Local", "("):
             if fragment not in received_reply_text:
                 raise ProfileError(
                     f"brick_received Slack reply missing fragment {fragment!r}:\n{received_reply_text}"
                 )
-        for fragment in ("①", "작업", "단계 끝났어요", "담당: 워커", "("):
+        for fragment in ("①", "작업", "단계 끝났어요", "담당: Codex Local", "("):
             if fragment not in brick_reply_text:
                 raise ProfileError(
                     f"brick grain Slack reply missing fragment {fragment!r}:\n{brick_reply_text}"
@@ -4314,8 +4318,6 @@ def _reporter_auto_wire_plan(
             "step_ref": step_ref,
             "step_template_ref": f"building-step-template:{kind}",
         }
-        if kind == "work":
-            step["selected_adapter_ref"] = "adapter:local"
         step["rows"] = [
             {
                 "axis": "Brick",
@@ -4329,7 +4331,10 @@ def _reporter_auto_wire_plan(
             {
                 "axis": "Agent",
                 "row_ref": f"agent-row:{step_ref}",
-                "agent_object_ref": "agent-object:dev",
+                "agent_object_ref": {
+                    "design": "agent-object:design-lead",
+                    "work": "agent-object:dev",
+                }.get(kind, "agent-object:dev"),
             },
             {
                 "axis": "Link",
@@ -4349,7 +4354,7 @@ def _reporter_auto_wire_plan(
         "owner_axis": "Brick",
         "building_id": building_id,
         "plan_shape": "linear",
-        "selected_adapter_ref": "adapter:local",
+        "selected_adapter_ref": "adapter:codex-local",
         "task_source_ref": "task-source:inline-statement",
         "task_statement": f"# {building_id}\n\nExercise reporter auto-wire notification projection.",
         "steps": steps,

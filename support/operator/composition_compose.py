@@ -18,6 +18,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from brick_protocol.brick.spec import derived_worktree_write_scope
 from brick_protocol.link.gate import HUMAN_DISPOSITION_GATE_REFS
 from brick_protocol.link.movement import MOVEMENT_LITERALS
 from brick_protocol.support.operator.building_operation_common import (
@@ -210,7 +211,9 @@ def compose_building(
             seen_brick_refs.add(brick_ref)
 
         if step_template is None:
-            if step_template_ref in RETIRED_STEP_TEMPLATE_REFS:
+            if not step_template_ref:
+                agent_object_ref = _composition_optional_text(raw_node.get("agent_object_ref")) or ""
+            elif step_template_ref in RETIRED_STEP_TEMPLATE_REFS:
                 # WAVE-B rename (0610): the retired step-template name rejects
                 # LOUDLY on the graph path too, naming the canonical
                 # replacement (parity with the linear + chain-preset paths);
@@ -223,6 +226,7 @@ def compose_building(
                         f"use {RETIRED_STEP_TEMPLATE_REFS[step_template_ref]}",
                     )
                 )
+                agent_object_ref = _composition_optional_text(raw_node.get("agent_object_ref")) or ""
             else:
                 problems.append(
                     CompositionProblem(
@@ -233,7 +237,7 @@ def compose_building(
                         f"{_unknown_kind_hint(step_template_ref, registry)}",
                     )
                 )
-            agent_object_ref = _composition_optional_text(raw_node.get("agent_object_ref")) or ""
+                agent_object_ref = _composition_optional_text(raw_node.get("agent_object_ref")) or ""
         else:
             _validate_composition_brick_spec_ref(raw_node, step_template, node_id, problems)
             # The template's agent_object_ref is the NEED<->CAPABILITY match
@@ -980,20 +984,28 @@ def _composition_brick_row(
     if source_facts is not None:
         row["source_facts"] = list(_text_sequence(f"nodes[{index}].source_facts", source_facts))
     raw_write_scope = brick.get("write_scope")
+    template_write_need = bool(
+        step_template.get("write_need")
+        if isinstance(step_template, Mapping)
+        else False
+    )
     if raw_write_scope is not None:
         row["write_scope"] = dict(_mapping_value(f"nodes[{index}].write_scope", raw_write_scope))
+    elif template_write_need:
+        row["write_scope"] = derived_worktree_write_scope()
     # Carry the EXPLICIT write NEED marker (requires_brick_write_scope) from the
-    # node declaration onto the plan Brick row VERBATIM. Without this carry the
-    # graph materializer's stamp would be silently dropped here and strict run
-    # admission (require_write_need_marker) would reject every freshly composed
-    # write-needed graph plan. Value validation (bool / yes / no, fail-closed on
-    # anything else) stays owned by brick.spec.declared_brick_write_need;
-    # this is transport only. The legacy ``write_need`` spelling is RETIRED
-    # (L legacy cut, 0610): it is REJECTED LOUDLY here instead of being carried
-    # or silently dropped (composition keeps no node-key whitelist, so without
-    # this rejection a legacy node marker would vanish without a trace).
+    # node declaration onto the plan Brick row VERBATIM; when the Brick template
+    # itself declares a write NEED, stamp that template-owned need if the node did
+    # not restate it. Value validation (bool / yes / no, fail-closed on anything
+    # else) stays owned by brick.spec.declared_brick_write_need; this is transport
+    # only. The legacy ``write_need`` spelling is RETIRED (L legacy cut, 0610): it
+    # is REJECTED LOUDLY here instead of being carried or silently dropped
+    # (composition keeps no node-key whitelist, so without this rejection a legacy
+    # node marker would vanish without a trace).
     if "requires_brick_write_scope" in brick:
         row["requires_brick_write_scope"] = brick.get("requires_brick_write_scope")
+    elif template_write_need:
+        row["requires_brick_write_scope"] = True
     elif "write_need" in brick:
         problems.append(
             CompositionProblem(

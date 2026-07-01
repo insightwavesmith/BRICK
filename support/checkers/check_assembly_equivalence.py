@@ -1074,6 +1074,67 @@ def _write_scope_derivation_fire(repo: Path) -> tuple[str, ...]:
     )
 
 
+def _graph_write_scope_default_fire(repo: Path) -> tuple[str, ...]:
+    explicit_scope = {
+        "allowed_paths": ["support/checkers/**"],
+        "forbidden_paths": [".git/**"],
+    }
+    default_plan = compose_building(
+        nodes=(
+            _node("graph-default-work", "work"),
+        ),
+        edges=(
+            _edge(
+                "edge:graph-default-work-boundary",
+                "graph-default-work",
+                "building-boundary:closed",
+            ),
+        ),
+        declared_by=DECLARED_BY,
+        building_id="heart-phase0-graph-default-write-scope",
+        repo_root=repo,
+    )
+    default_row = _brick_row(default_plan["brick_steps"][0])
+    default_scope = default_row.get("write_scope")
+    if not isinstance(default_scope, Mapping):
+        raise AssemblyEquivalenceError("graph compose omitted write_scope did not derive a scope for write-needed work")
+    if default_scope.get("allowed_paths") != ["."]:
+        raise AssemblyEquivalenceError(f"graph compose derived write_scope.allowed_paths changed: {default_scope!r}")
+    if default_scope.get("forbidden_paths") != [".git/**"]:
+        raise AssemblyEquivalenceError(f"graph compose derived write_scope.forbidden_paths changed: {default_scope!r}")
+    if default_row.get("requires_brick_write_scope") is not True:
+        raise AssemblyEquivalenceError("graph compose derived write_scope did not stamp requires_brick_write_scope=True")
+
+    override_plan = compose_building(
+        nodes=(
+            _node(
+                "graph-override-work",
+                "work",
+                write_scope=explicit_scope,
+                requires_brick_write_scope=True,
+            ),
+        ),
+        edges=(
+            _edge(
+                "edge:graph-override-work-boundary",
+                "graph-override-work",
+                "building-boundary:closed",
+            ),
+        ),
+        declared_by=DECLARED_BY,
+        building_id="heart-phase0-graph-override-write-scope",
+        repo_root=repo,
+    )
+    override_scope = _brick_row(override_plan["brick_steps"][0]).get("write_scope")
+    if override_scope != explicit_scope:
+        raise AssemblyEquivalenceError(f"graph compose explicit write_scope did not override default: {override_scope!r}")
+
+    return (
+        "composition RED/GREEN observed: graph write-needed omitted write_scope derives worktree default.",
+        "composition green observed: graph explicit node write_scope overrides derived default.",
+    )
+
+
 def _role_derivation_fire(repo: Path) -> tuple[str, ...]:
     work_default = assemble(
         chain([brick("work", "omitted agent resolves from kind", write=True)]),
@@ -1938,6 +1999,7 @@ def run(repo: Path) -> list[str]:
         outputs.append(f"discrimination RED observed: {mutation.name} changed P(plan).")
 
     outputs.extend(_build_fan_equivalence_fire(repo))
+    outputs.extend(_graph_write_scope_default_fire(repo))
     outputs.append(_tiny_work_qa_return_shape_red(repo))
     outputs.append(PROOF_LIMIT)
     return outputs

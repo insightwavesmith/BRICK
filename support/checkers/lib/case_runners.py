@@ -7016,6 +7016,7 @@ def _linear_step(
         }
     return {
         "step_ref": step_ref,
+        "step_template_ref": "",
         "selected_adapter_ref": "adapter:local",
         "rows": [
             _brick_row(step_ref, brick_ref, source_facts=source_facts),
@@ -7881,13 +7882,14 @@ def run_intake_evidence_projection_case(repo: Path, profile: Mapping[str, Any]) 
                     "enabled": False,
                 },
             }
-            run_building_intake(
-                intent,
-                repo_root=repo,
-                command_runner=command_runner,
-                adapter_cwd=repo,
-                adapter_timeout_seconds=10,
-            )
+            with _fixture_gemini_api_key():
+                run_building_intake(
+                    intent,
+                    repo_root=repo,
+                    command_runner=command_runner,
+                    adapter_cwd=repo,
+                    adapter_timeout_seconds=10,
+                )
             building_root = vessel_dir / "buildings" / building_id
             frontier = observe_building_frontier(building_root, repo_root=repo)
             if frontier.get("frontier_kind") != "complete":
