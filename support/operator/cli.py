@@ -99,7 +99,13 @@ def _repo_from_args(args: argparse.Namespace) -> Path:
 
 
 def _default_builds_root() -> Path:
-    return Path.home() / ".brick" / "builds"
+    """Return the customer-visible default evidence root used by ``brick build``.
+
+    The function name is kept for older support projections, but the value is
+    the active ref-less Building evidence root from the capture seam.
+    """
+
+    return _active_slack_buildings_root()
 
 
 def _active_slack_buildings_root() -> Path:
@@ -490,6 +496,52 @@ def _render_build(packet: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _public_error_packet(args: argparse.Namespace, exc: Exception) -> dict[str, Any]:
+    """Classify CLI errors without echoing raw exception bodies to customers."""
+
+    raw_message = str(exc)
+    error_kind = type(exc).__name__
+    command = str(getattr(args, "command", "") or "")
+    public_code = "operator_error"
+    public_message = "command rejected; inspect support evidence and retry with corrected input"
+    if isinstance(exc, FileExistsError):
+        public_code = "building_root_exists"
+        public_message = (
+            "Building evidence root already exists; choose a new building id or "
+            "pass --overwrite-existing deliberately"
+        )
+    elif isinstance(exc, ValueError):
+        if "either graph packet mode or task/task-source mode" in raw_message:
+            public_code = "build_input_conflict"
+            public_message = "declare either graph packet mode or task/task-source mode, not both"
+        elif "graph packet" in raw_message:
+            public_code = "graph_packet_invalid"
+            public_message = (
+                "graph packet rejected; provide a declared JSON graph packet with "
+                "required fields"
+            )
+        elif "adapter_ref is not admitted" in raw_message:
+            public_code = "adapter_ref_not_admitted"
+            public_message = "adapter ref is not admitted for the customer CLI"
+        else:
+            public_code = "input_rejected"
+            public_message = "input rejected by the support CLI boundary"
+    elif isinstance(exc, ModuleNotFoundError):
+        public_code = "import_identity_not_ready"
+        public_message = (
+            "import identity is not ready; run from the repo root or use the "
+            "documented uv command"
+        )
+    return {
+        "command": command,
+        "error_kind": error_kind,
+        "public_error_code": public_code,
+        "public_error_message": public_message,
+        "proof_limits": list(PROOF_LIMITS),
+        "not_proven": list(NOT_PROVEN),
+    }
+
+
 def _render_doctor(packet: dict[str, Any]) -> str:
     lines = ["Brick doctor support evidence", "rows:"]
     for row in packet.get("rows", []):
@@ -521,8 +573,13 @@ def _status_packet(args: argparse.Namespace) -> dict[str, Any]:
         "cwd": str(Path.cwd().resolve()),
         "entrypoint_file": str(Path(__file__).resolve()),
         "python_executable": sys.executable,
-        "brick_home": str(Path.home() / ".brick"),
+        "brick_home": str(builds_root.parents[2]),
+        "brick_home_basis": "BRICK_HOME or ~/.brick through the capture seam",
         "default_builds_root": str(builds_root),
+        "default_evidence_root": str(builds_root),
+        "default_build_root_basis": (
+            "same ref-less Building evidence root used by brick build when --output-root is omitted"
+        ),
         "default_builds_root_exists": builds_root.exists(),
         "proof_limits": list(PROOF_LIMITS),
         "not_proven": list(NOT_PROVEN),
@@ -538,7 +595,10 @@ def _render_status(packet: dict[str, Any]) -> str:
             f"entrypoint_file: {packet['entrypoint_file']}",
             f"python_executable: {packet['python_executable']}",
             f"brick_home: {packet['brick_home']}",
+            f"brick_home_basis: {packet['brick_home_basis']}",
+            f"default_evidence_root: {packet['default_evidence_root']}",
             f"default_builds_root: {packet['default_builds_root']}",
+            f"default_build_root_basis: {packet['default_build_root_basis']}",
             f"default_builds_root_exists: {packet['default_builds_root_exists']}",
             "proof_limits: " + "; ".join(packet["proof_limits"]),
             "not_proven: " + "; ".join(packet["not_proven"]),
@@ -916,17 +976,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         return int(args.func(args))
     except Exception as exc:  # noqa: BLE001 -- CLI should report, not traceback
-        packet = {
-            "command": getattr(args, "command", ""),
-            "error_kind": type(exc).__name__,
-            "error_message": str(exc),
-            "proof_limits": list(PROOF_LIMITS),
-            "not_proven": list(NOT_PROVEN),
-        }
+        packet = _public_error_packet(args, exc)
         if getattr(args, "json", False):
             print(_json_dump(packet), file=sys.stderr)
         else:
-            print(f"brick command rejected evidence: {type(exc).__name__}: {exc}", file=sys.stderr)
+            print(
+                "brick command rejected evidence: "
+                f"{packet['public_error_code']}: {packet['public_error_message']}",
+                file=sys.stderr,
+            )
             print("proof_limits: " + "; ".join(PROOF_LIMITS), file=sys.stderr)
         return 1
 

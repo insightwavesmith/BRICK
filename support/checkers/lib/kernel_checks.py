@@ -8406,7 +8406,9 @@ _MCP_STDIO_SMOKE_TIMEOUT_SECONDS = 30
 _BRICK_CLI_ENTRYPOINT_TIMEOUT_SECONDS = 30
 
 
-def _assert_brick_cli_probe(label: str, completed: subprocess.CompletedProcess[str]) -> None:
+def _assert_brick_cli_probe(
+    label: str, completed: subprocess.CompletedProcess[str]
+) -> dict[str, Any]:
     stdout = completed.stdout or ""
     stderr = completed.stderr or ""
     if "Traceback" in stderr or "ModuleNotFoundError" in stderr:
@@ -8430,12 +8432,62 @@ def _assert_brick_cli_probe(label: str, completed: subprocess.CompletedProcess[s
         raise ProfileError(
             f"brick_cli_entrypoint_smoke: {label} emitted unexpected packet: {packet!r}"
         )
+    return packet
 
 
 def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
     from brick_protocol.support.operator.composition_intent import materialize_building_intent
 
     parser = cli.build_parser()
+    subparser_actions = [
+        action for action in parser._actions if isinstance(action, argparse._SubParsersAction)
+    ]
+    if len(subparser_actions) != 1:
+        raise ProfileError("brick_cli_entrypoint_smoke: CLI parser lost its public subparser action")
+    public_commands = set(subparser_actions[0].choices)
+    for forbidden_route in ("onboard", "onboard-module", "run_building_plan", "new-engine"):
+        if forbidden_route in public_commands:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: internal/onboard route became public "
+                f"CLI command {forbidden_route!r}"
+            )
+
+    with tempfile.TemporaryDirectory(prefix="bp-cli-status-home-") as home_tmp:
+        old_home = os.environ.get("HOME")
+        old_brick_home = os.environ.get("BRICK_HOME")
+        try:
+            os.environ["HOME"] = home_tmp
+            os.environ.pop("BRICK_HOME", None)
+            status_args = parser.parse_args(["status", "--json"])
+            status_packet = cli._status_packet(status_args)
+        finally:
+            if old_home is None:
+                os.environ.pop("HOME", None)
+            else:
+                os.environ["HOME"] = old_home
+            if old_brick_home is None:
+                os.environ.pop("BRICK_HOME", None)
+            else:
+                os.environ["BRICK_HOME"] = old_brick_home
+        expected_status_root = str(
+            Path(home_tmp) / ".brick" / "project" / "brick-protocol" / "buildings"
+        )
+        legacy_status_root = str(Path(home_tmp) / ".brick" / "builds")
+        if status_packet.get("default_evidence_root") != expected_status_root:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: status default_evidence_root must match "
+                f"brick build default {expected_status_root}, got {status_packet!r}"
+            )
+        if status_packet.get("default_builds_root") != expected_status_root:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: status default_builds_root must stay "
+                "classified as the same active build evidence root"
+            )
+        if status_packet.get("default_builds_root") == legacy_status_root:
+            raise ProfileError(
+                "brick_cli_entrypoint_smoke: status revived legacy ~/.brick/builds"
+            )
+
     graph_args = parser.parse_args(["build", "--graph-packet", "graph.json"])
     if getattr(graph_args, "graph_packet", "") != "graph.json":
         raise ProfileError("brick_cli_entrypoint_smoke: --graph-packet did not bind graph_packet")
@@ -8986,7 +9038,30 @@ def _assert_brick_cli_customer_task_intent(cli: Any, repo: Path) -> int:
     else:
         raise ProfileError("brick_cli_entrypoint_smoke: graph/task conflict was accepted")
 
-    return 10
+    plain_stderr = io.StringIO()
+    with contextlib.redirect_stderr(plain_stderr):
+        exit_code = cli.main(["build", "--graph", "/path/that/must/not/exist.json"])
+    plain_error = plain_stderr.getvalue()
+    if exit_code == 0:
+        raise ProfileError("brick_cli_entrypoint_smoke: invalid graph path exited 0")
+    forbidden_fragments = (
+        "/path/that/must/not/exist.json",
+        "No such file or directory",
+        "Traceback",
+        "FileNotFoundError",
+    )
+    if any(fragment in plain_error for fragment in forbidden_fragments):
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: plain CLI error leaked raw operator detail: "
+            f"{plain_error!r}"
+        )
+    if "graph_packet_invalid" not in plain_error:
+        raise ProfileError(
+            "brick_cli_entrypoint_smoke: invalid graph path lacked product-safe "
+            f"error taxonomy: {plain_error!r}"
+        )
+
+    return 14
 
 
 def _brick_cli_work_brick_rows(plan: Mapping[str, Any]) -> list[Mapping[str, Any]]:
