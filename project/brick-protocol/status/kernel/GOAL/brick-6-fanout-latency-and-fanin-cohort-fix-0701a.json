@@ -1,0 +1,196 @@
+{
+  "task_statement": "BRICK 6-surface audit repair, combined engine fix (tasks #6 + #7, both dynamic-walker evidence-integrity findings from 0701, deliberately built as ONE Building because both touch support/operator/walker_kernel.py and running them as two parallel fan-out lanes in a shared sandbox would risk clobbering each other's edits to the same file -- see brick-6-fanout-node-latency-not-recorded-finding-0701.md and brick-6-fan-in-cohort-reverify-one-hop-blindspot-finding-0701.md).\n\nFIX A (task #6, fan-out node latency not independently recorded): support/operator/walker_kernel.py:1086-1119 (_dispatch_ready_batch) dispatches fan-out items via a real ThreadPoolExecutor (genuine concurrency), but calls _process_item with record_step_output_immediately=False, deferring recording to a sequential post-batch drain (_drain_pending_outcomes_before_terminal, ~1192-1202) that timestamps step-output.json / raw/adapter-usage.jsonl at drain time, not at each item's own actual completion time. Two fan-out lanes with very different real wall-clock durations can land within under a second of each other in recorded evidence. FIX: record real per-node call duration (latency_ms or started_at/ended_at) in the adapter dispatch path (_process_item / AgentAdapterRequest response handling) and thread it through to the persisted raw/adapter-usage.jsonl and step-output.json, so fan-out concurrency and per-lane cost are independently auditable from evidence alone, not only inferable from source code. SEPARATELY: the same finding also observed that changed_files as currently reported by a fan-out work lane is not lane-scoped when lanes share one sandbox worktree (each lane's changed_files reads a shared git status/diff, so siblings see each other's files) -- design should decide EITHER to lane-scope changed_files reporting (diff against git state at that lane's own dispatch time, or restrict to paths inside the node's declared write_scope.allowed_paths) OR to explicitly document current whole-sandbox-snapshot behavior as a known limitation if lane-scoping proves too large for this Building's budget; do not silently drop this half of the finding either way.\n\nFIX B (task #7, fan-in cohort re-verify has a one-hop blind spot): support/operator/walker_fan_in.py:270-316 (_fan_in_cohort_replay_plan) is the conservative safety net that re-verifies an entire fan-in cohort after a reroute lands on a node that is ITSELF a declared fan_in source (absent a sibling_independence vouch). The trigger check only matches when the reroute's landing node (target_step_ref, from the adopted concern's related_boundary_refs) is directly listed as a fan_in group's member_refs source. But QA/closure Agents correctly name the actual producer of a defect (often a work node one hop UPSTREAM of the real fan_in source, e.g. work-docs when the real fan_in source is docs-lane-qa), not the fan_in source node itself -- so cohort_targets comes back empty and the safety net never activates, even though a sibling lane's prior pass is now stale. FIX: extend _fan_in_cohort_replay_plan's trigger condition (or its caller in walker_kernel.py:2036-2075) to walk the reroute's own declared replay_scope (the forward-replay chain from the landing node) and check EACH step in that chain for fan_in-source membership, not only the landing node itself -- if any node in the replay chain is a fan_in source, the existing cohort-reverify-or-vouch logic must apply against THAT node, not be skipped.\n\nBoth fixes are evidence-integrity / dynamic-walker hardening, routed as P8 (ship-safety) candidate items per their finding docs, explicitly scoped to happen BEFORE P8 starts (Global Operating Rules 8/9 already established this same before-P8 sequencing for the sibling tasks #5/#8/#9 in this goal).\n\nChecker-first for BOTH fixes: (A) add a negative probe reproducing the current implausibly-close-timestamp gap for two fan-out lanes with distinct real durations (must currently show near-zero recorded gap despite the ThreadPoolExecutor doing real concurrent work) -- RED before, GREEN after (recorded latency_ms/started_at/ended_at now differs meaningfully per lane). (B) add a negative probe reproducing the exact one-hop blind spot (a reroute landing one hop above a declared fan_in source, with a stale sibling and no sibling_independence vouch) -- must currently be provable as a false-negative (cohort-reverify skipped, uncaught) before the fix, RED after the fix confirms the cohort trigger now catches it via the replay_scope walk.\n\nOUT OF SCOPE for this Building: task #9 (dual plan-materialization producer reconciliation, compose_building vs assemble) and P8/P9 phase work generally -- do not touch support/operator/composition_compose.py, support/operator/assembly.py, or brick/spec.py in this Building.",
+  "declared_by": "coo",
+  "building_id": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a",
+  "selected_shape_ref": "shape:design-needed",
+  "selection_rule": "Two related but structurally distinct dynamic-walker defects (deferred-recording timing vs cohort-trigger topology), combined into one work node deliberately to avoid two fan-out lanes editing walker_kernel.py concurrently in a shared sandbox. Single design, single work, three-way final QA fan-out, closure -- same shape that closed task #8 cleanly.",
+  "selected_adapter_ref": "adapter:codex-local",
+  "selected_model_ref": "model:codex:default",
+  "chain_preset_ref": "",
+  "nodes": [
+    {
+      "node_id": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-design",
+      "step_ref": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-design",
+      "step_template_ref": "building-step-template:design",
+      "node_reroute_budget": 1,
+      "work_statement": "Design both fixes per the task statement. Read brick-6-fanout-node-latency-not-recorded-finding-0701.md and brick-6-fan-in-cohort-reverify-one-hop-blindspot-finding-0701.md in full, plus support/operator/walker_kernel.py (_dispatch_ready_batch ~1086-1119, _drain_pending_outcomes_before_terminal ~1192-1202, the cohort re-verify call site ~2036-2075) and support/operator/walker_fan_in.py (_fan_in_cohort_replay_plan ~270-316). For FIX A: propose exactly where latency/duration capture belongs (adapter dispatch vs step-output recording) and decide the changed_files lane-scope question (fix it or explicitly document the limitation). For FIX B: propose the exact replay_scope walk and where it belongs (inside _fan_in_cohort_replay_plan vs its caller). Confirm neither fix changes Movement vocabulary (forward/reroute only), HOLD/success/quality judgment, or reroute budget semantics -- this is evidence-recording and trigger-condition scope only. No source edits.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "completion_edge_ref": "edge:brick-6-fanout-latency-and-fanin-cohort-fix-0701a-design-to-work"
+    },
+    {
+      "node_id": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-work",
+      "step_ref": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-work",
+      "step_template_ref": "building-step-template:work",
+      "node_reroute_budget": 1,
+      "work_statement": "Implement both FIX A and FIX B per the task statement and design's proposed seams. FIX A: thread real per-node latency/duration through the fan-out dispatch path into raw/adapter-usage.jsonl and step-output.json; resolve the changed_files lane-scope question per design's decision. FIX B: extend the fan-in cohort-reverify trigger to walk the reroute's replay_scope chain, not only the landing node. Add BOTH checker-first negative probes (RED before each fix, GREEN after) as specified in the task statement. Run py_compile and check_profile.py --all. Return changed_files and exact evidence for both fixes separately.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "requires_brick_write_scope": true,
+      "write_scope": {
+        "allowed_paths": [
+          "support/operator/walker_kernel.py",
+          "support/operator/walker_fan_in.py",
+          "support/operator/dynamic_walker.py",
+          "support/checkers/**",
+          "project/brick-protocol/status/kernel/**"
+        ],
+        "forbidden_paths": [
+          ".git/**",
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/.npmrc",
+          "brick/templates/**",
+          "link/**",
+          "agent/**",
+          "support/operator/composition_compose.py",
+          "support/operator/assembly.py",
+          "brick/spec.py",
+          "support/connection/**"
+        ]
+      },
+      "completion_edge_ref": "edge:brick-6-fanout-latency-and-fanin-cohort-fix-0701a-work-to-code-qa"
+    },
+    {
+      "node_id": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-code-qa",
+      "step_ref": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-code-qa",
+      "step_template_ref": "building-step-template:code-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Attack both fixes: confirm both negative fixtures genuinely RED-fire pre-fix (not vacuously) and GREEN post-fix, confirm py_compile and check_profile.py --all pass, confirm no unrelated walker_kernel.py/walker_fan_in.py behavior (Movement vocabulary, reroute budget, HOLD semantics) changed as a side effect. Probe_write only, no source mutation.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-axis-qa",
+      "step_ref": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-axis-qa",
+      "step_template_ref": "building-step-template:axis-attack-qa",
+      "node_reroute_budget": 1,
+      "work_statement": "Confirm both fixes stay support/evidence-recording mechanics only -- latency recording must not become a quality/performance judgment, and the cohort-reverify trigger extension must not choose Movement, targets, success, or quality; it must not become a second engine or duplicate plan_graph.py's fan-in declaration logic. Probe_write only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-evidence-qa",
+      "step_ref": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-evidence-qa",
+      "step_template_ref": "building-step-template:evidence-integrity",
+      "node_reroute_budget": 1,
+      "work_statement": "Confirm evidence integrity for both fixes: negative/positive fixtures are real and byte-distinct from prior QA bodies, proof_limits/not_proven present, no overclaiming of coverage beyond the two specific defect shapes fixed (latency-recording granularity, one-hop cohort trigger). Probe_write only.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default"
+    },
+    {
+      "node_id": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-closure",
+      "step_ref": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-closure",
+      "step_template_ref": "building-step-template:closure",
+      "node_reroute_budget": 1,
+      "work_statement": "Fan in code-qa, axis-qa, evidence-qa. Report observed_evidence / narrowly_proven / not_proven / next Movement candidate for BOTH fixes separately. Close only if both negative fixtures RED-fire pre-fix and GREEN post-fix with current evidence; otherwise return Link-facing transition_concern_evidence and HOLD rather than smoothing it.",
+      "selected_adapter_ref": "adapter:codex-local",
+      "selected_model_ref": "model:codex:default",
+      "closure_transition_target_policy": {
+        "implementation_gap": {
+          "action": "hold"
+        },
+        "boundary_mismatch": {
+          "action": "hold"
+        },
+        "verification_gap": {
+          "action": "hold"
+        },
+        "insufficient_input": {
+          "action": "hold"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edge_ref": "edge:brick-6-fanout-latency-and-fanin-cohort-fix-0701a-design-to-work",
+      "source": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-design",
+      "target": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-work",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-fanout-latency-and-fanin-cohort-fix-0701a-work-to-code-qa",
+      "source": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-work",
+      "target": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-code-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-fanout-latency-and-fanin-cohort-fix-0701a-work-to-axis-qa",
+      "source": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-work",
+      "target": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-axis-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-fanout-latency-and-fanin-cohort-fix-0701a-work-to-evidence-qa",
+      "source": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-work",
+      "target": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-evidence-qa",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-fanout-latency-and-fanin-cohort-fix-0701a-code-qa-to-closure",
+      "source": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-code-qa",
+      "target": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-fanout-latency-and-fanin-cohort-fix-0701a-axis-qa-to-closure",
+      "source": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-axis-qa",
+      "target": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-fanout-latency-and-fanin-cohort-fix-0701a-evidence-qa-to-closure",
+      "source": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-evidence-qa",
+      "target": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-closure",
+      "movement": "forward"
+    },
+    {
+      "edge_ref": "edge:brick-6-fanout-latency-and-fanin-cohort-fix-0701a-closure-to-boundary",
+      "source": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-closure",
+      "target": "building-boundary:brick-6-fanout-latency-and-fanin-cohort-fix-0701a-closed",
+      "movement": "forward"
+    }
+  ],
+  "groups": [
+    {
+      "group_id": "group:brick-6-fanout-latency-and-fanin-cohort-fix-0701a-final-qa-fanout",
+      "group_role": "fan_out",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-fanout-latency-and-fanin-cohort-fix-0701a-work-to-code-qa",
+        "edge:brick-6-fanout-latency-and-fanin-cohort-fix-0701a-work-to-axis-qa",
+        "edge:brick-6-fanout-latency-and-fanin-cohort-fix-0701a-work-to-evidence-qa"
+      ]
+    },
+    {
+      "group_id": "group:brick-6-fanout-latency-and-fanin-cohort-fix-0701a-closure-fanin",
+      "group_role": "fan_in",
+      "member_ref_kind": "link_edge",
+      "member_refs": [
+        "edge:brick-6-fanout-latency-and-fanin-cohort-fix-0701a-code-qa-to-closure",
+        "edge:brick-6-fanout-latency-and-fanin-cohort-fix-0701a-axis-qa-to-closure",
+        "edge:brick-6-fanout-latency-and-fanin-cohort-fix-0701a-evidence-qa-to-closure"
+      ],
+      "fan_in_target_ref": "brick-6-fanout-latency-and-fanin-cohort-fix-0701a-closure",
+      "fan_in_policy": "wait_all_before_closure"
+    }
+  ],
+  "source_evidence_refs": [
+    "project/brick-protocol/status/kernel/brick-6-fanout-node-latency-not-recorded-finding-0701.md",
+    "project/brick-protocol/status/kernel/brick-6-fan-in-cohort-reverify-one-hop-blindspot-finding-0701.md",
+    "support/operator/walker_kernel.py",
+    "support/operator/walker_fan_in.py"
+  ],
+  "proof_limits": [
+    "official brick build graph evidence is support evidence only",
+    "this Building closes tasks #6 and #7 only, not task #9 or P8/P9 phase work",
+    "not source truth, success judgment, quality judgment, or Movement authority"
+  ],
+  "not_proven": [
+    "task #9 dual-producer reconciliation (separate follow-on)",
+    "P8 ship safety, P9 dynamic customer replay, fresh-machine install, real-provider reliability, customer comprehension"
+  ]
+}
