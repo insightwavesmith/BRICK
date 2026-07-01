@@ -1730,17 +1730,41 @@ def _structure_diagram_text(repo: Path, root: Path, building_map: Mapping[str, A
                 terminal_sources.add(source_ref)
 
         groups = _mapping_list(plan.get("groups"))
-        fan_diagram = _fan_structure_diagram(
-            groups,
-            edges,
-            order=order,
-            labels=labels,
-            adjacency=adjacency,
-            reverse=reverse,
-            terminal_sources=terminal_sources,
+        fan_out_count = sum(
+            1 for group in groups if str(group.get("group_role") or "").strip() == "fan_out"
         )
-        if fan_diagram:
-            return fan_diagram
+        fan_in_count = sum(
+            1 for group in groups if str(group.get("group_role") or "").strip() == "fan_in"
+        )
+        # A single declared fan_out/fan_in pair renders as one pretty diamond.
+        # Multi-stage graphs (more than one fan stage) must NOT collapse to the
+        # first diamond -- that silently truncates the graph and mislabels a
+        # mid-graph node as the closure. Fall through to the layered renderer.
+        if (fan_out_count + fan_in_count) <= 2:
+            fan_diagram = _fan_structure_diagram(
+                groups,
+                edges,
+                order=order,
+                labels=labels,
+                adjacency=adjacency,
+                reverse=reverse,
+                terminal_sources=terminal_sources,
+            )
+            if fan_diagram:
+                return fan_diagram
+        has_fan = any(len(targets) > 1 for targets in adjacency.values()) or any(
+            len(sources) > 1 for sources in reverse.values()
+        )
+        if has_fan:
+            layered = _layered_structure_diagram(
+                order,
+                labels,
+                adjacency=adjacency,
+                reverse=reverse,
+                terminal_sources=terminal_sources,
+            )
+            if layered:
+                return layered
         if all(len(targets) <= 1 for targets in adjacency.values()) and all(
             len(sources) <= 1 for sources in reverse.values()
         ):
@@ -1835,6 +1859,79 @@ def _linear_structure_diagram(
     if terminal:
         parts.append("(완료)")
     return " ──▶ ".join(parts)
+
+
+def _layered_structure_diagram(
+    order: list[str],
+    labels: Mapping[str, str],
+    *,
+    adjacency: Mapping[str, list[str]],
+    reverse: Mapping[str, list[str]],
+    terminal_sources: set[str],
+) -> str:
+    """Render a multi-stage graph as ordered stages.
+
+    Single-node stages render inline; fan stages (more than one node reached at
+    the same depth) render as bracketed parallel branches. This keeps the whole
+    declared graph visible instead of collapsing to the first fan pair.
+    """
+
+    known = {ref for ref in order if labels.get(ref)}
+    if not known:
+        return ""
+    # Depth = longest path from any root, so fan-in nodes sit AFTER all of their
+    # fan-out siblings even when branch lengths differ.
+    depth: dict[str, int] = {}
+
+    def _resolve_depth(ref: str, stack: frozenset[str]) -> int:
+        if ref in depth:
+            return depth[ref]
+        if ref in stack:
+            # Defensive cycle guard; declared graphs should be acyclic.
+            return 0
+        sources = [src for src in (reverse.get(ref) or []) if src in known]
+        value = 0 if not sources else 1 + max(
+            _resolve_depth(src, stack | {ref}) for src in sources
+        )
+        depth[ref] = value
+        return value
+
+    for ref in order:
+        if ref in known:
+            _resolve_depth(ref, frozenset())
+
+    stages: dict[int, list[str]] = {}
+    order_index = {ref: index for index, ref in enumerate(order)}
+    for ref in sorted(known, key=lambda r: (depth[r], order_index.get(r, len(order_index)))):
+        stages.setdefault(depth[ref], []).append(ref)
+
+    ordered_stages = [stages[stage_depth] for stage_depth in sorted(stages)]
+    if not ordered_stages:
+        return ""
+    terminal = any(
+        ref in terminal_sources for members in ordered_stages for ref in members
+    )
+
+    lines: list[str] = []
+    for index, members in enumerate(ordered_stages):
+        if index:
+            lines.append("  │")
+        if len(members) == 1:
+            lines.append(labels[members[0]])
+        else:
+            branch_labels = [labels[ref] for ref in members]
+            for position, label in enumerate(branch_labels):
+                if position == 0:
+                    corner = "├─"
+                elif position == len(branch_labels) - 1:
+                    corner = "└─"
+                else:
+                    corner = "├─"
+                lines.append(f"  {corner} {label}")
+    if terminal:
+        lines.append("  │")
+        lines.append("(완료)")
+    return "\n".join(lines)
 
 
 def _linear_path_from(
