@@ -114,13 +114,28 @@ Support review evidence:
     every case it currently supports (same `plan_shape`, same
     `execution_order`, same `edge_ref`s).
 
-    **Known blocker before `--graph` can be FULLY discarded**:
-    `sibling_independence` (the mechanism that closed the P7d3 fan-in
+    **Known blockers before `--graph` can be FULLY discarded** (two now
+    confirmed, both found live while constructing the P9 proof-run graph,
+    0701):
+    1. `sibling_independence` (the mechanism that closed the P7d3 fan-in
     cohort blind spot) is NOT yet expressible via the DSL --
     `GroupSpec` (assembly.py) has only `role`/`members` fields, zero
-    references to `sibling_independence` anywhere in assembly.py. Until the
-    DSL is extended to support it, `--graph` must remain available as a
-    low-level escape hatch for that one case -- not fully removable yet.
+    references to `sibling_independence` anywhere in assembly.py.
+    2. **Per-node `write_scope` narrowing is not expressible via `brick()`
+    at all** -- `write_scope` is in `brick/spec.py`'s
+    `_FORBIDDEN_BRICK_KWARGS`, confirmed live: `brick("work", ..., write_scope=...)`
+    raises `TypeError: brick() derives these fields; do not declare them:
+    write_scope`. `write_scope` is always derived (task #8's worktree-minus-
+    `.git` default, unconditionally) with no DSL-level override to a
+    narrower explicit path. A `graph_packet` via `--graph` CAN declare an
+    explicit narrower `write_scope` per node (this is how every P0-P8
+    Building this session that needed a narrow write lane did it before
+    task #8's default even existed). Until the DSL gains an explicit
+    per-node write_scope kwarg, `--graph` remains the only way to declare a
+    narrower-than-worktree write lane.
+    Until the DSL is extended to support both, `--graph` must remain
+    available as a low-level escape hatch for these two cases -- not fully
+    removable yet.
     **Scope of "discard" (Smith 0701, deferred): NOT decided now.** Whether
     this ends up recommend-DSL-only (docs/skills point to `assemble()`,
     `--graph` stays wired but de-emphasized) or literal CLI flag removal
