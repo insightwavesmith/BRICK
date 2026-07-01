@@ -1459,6 +1459,42 @@ def _node_gates_fire(repo: Path) -> tuple[str, ...]:
         expected_owner="caller-or-coo",
     )
 
+    strict_and_coo_composed = assemble(
+        chain(
+            [
+                brick(
+                    "code-attack-qa",
+                    "graph strict plus node coo source",
+                    returns=CODE_ATTACK_RETURN_SHAPE,
+                    gates=("coo-review",),
+                ),
+                brick("closure", "graph strict plus node coo closure"),
+            ]
+        ),
+        gates=(Gate.STRICT_EVIDENCE,),
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task="node coo gate must preserve graph strict sequence probe",
+        building_id="heart-phase0-node-coo-preserves-strict",
+        adapter="codex-local",
+        repo_root=repo,
+    )
+    strict_and_coo_policy = _gate_sequence_policy_for_edge(
+        strict_and_coo_composed.composed_plan,
+        source_kind="code-attack-qa",
+        target_kind="closure",
+    )
+    strict_and_coo_refs = tuple(
+        str(item.get("gate_ref", "")).strip()
+        for item in strict_and_coo_policy
+        if isinstance(item, Mapping)
+    )
+    if strict_and_coo_refs != (DEFAULT_GATE, STRICT_GATE, COO_GATE):
+        raise AssemblyEquivalenceError(
+            "node coo gate merge did not preserve every declared gate in gate_sequence_policy: "
+            f"{strict_and_coo_refs!r}"
+        )
+
     def no_outgoing_probe() -> None:
         assemble(
             build([brick("closure", "terminal node gate has no completion edge", gates=("coo-review",))]),
@@ -1508,6 +1544,7 @@ def _node_gates_fire(repo: Path) -> tuple[str, ...]:
     return (
         "construction green observed: brick(..., gates=('coo-review',)) stamped design->work gate_sequence_policy equivalent to engine-feature-hard.",
         "construction green observed: brick(..., gates=(Gate.HUMAN_REVIEW,)) stamped a default-transition-first human hold sequence.",
+        "construction green observed: graph strict-evidence plus node coo-review preserved strict in gate_sequence_policy.",
         _assert_raises("node gates on terminal node", ValueError, no_outgoing_probe),
         _assert_raises("node gates on fan-out node", ValueError, ambiguous_outgoing_probe),
         _assert_raises("unknown node gate token", ValueError, unknown_gate_probe),

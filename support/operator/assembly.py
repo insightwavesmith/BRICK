@@ -45,6 +45,7 @@ from brick_protocol.support.operator.building_operation_common import (
 from brick_protocol.link.spec import (
     ADOPTION_LITERALS,
     GATE_CONCEPT_TOKENS,
+    GATE_REGISTRY,
     translate_gate_concept,
 )
 from brick_protocol.support.operator.composition_common import (
@@ -1167,12 +1168,14 @@ def _merge_node_gate_sequence_policy(
     else:
         raise ValueError("gate_sequence_policy must be an ordered array")
 
+    existing_refs = [
+        str(entry.get("gate_ref", "")).strip()
+        for entry in existing_entries
+        if str(entry.get("gate_ref", "")).strip()
+    ]
     sequence_refs = _ordered_node_gate_refs(
-        [
-            str(entry.get("gate_ref", "")).strip()
-            for entry in existing_entries
-            if str(entry.get("gate_ref", "")).strip()
-        ],
+        merged_gate_refs,
+        existing_refs,
         requested_refs,
     )
     entry_by_ref = {str(entry.get("gate_ref", "")).strip(): dict(entry) for entry in existing_entries}
@@ -1207,12 +1210,19 @@ def _merge_gate_refs(raw_refs: Any, requested_refs: Sequence[str]) -> list[str]:
     return refs
 
 
-def _ordered_node_gate_refs(existing_refs: Sequence[str], requested_refs: Sequence[str]) -> list[str]:
+def _ordered_node_gate_refs(
+    merged_gate_refs: Sequence[str],
+    existing_refs: Sequence[str],
+    requested_refs: Sequence[str],
+) -> list[str]:
     ordered: list[str] = [DEFAULT_LINK_GATE_REF]
-    for gate_ref in (translate_gate_concept("coo-review"), translate_gate_concept("human-review")):
-        if gate_ref in existing_refs or gate_ref in requested_refs:
+    for gate_ref in merged_gate_refs:
+        if gate_ref and gate_ref not in ordered:
             ordered.append(gate_ref)
     for gate_ref in existing_refs:
+        if gate_ref not in ordered:
+            ordered.append(gate_ref)
+    for gate_ref in requested_refs:
         if gate_ref not in ordered:
             ordered.append(gate_ref)
     return ordered
@@ -1253,6 +1263,23 @@ def _node_gate_sequence_entry(
         owner = "caller-or-coo"
         reason_ref = "observation:human-gate-disposition-missing"
     else:
+        registry_row = next((row for row in GATE_REGISTRY if row.ref == gate_ref), None)
+        if registry_row is not None and registry_row.disposition == "plain":
+            gate_name = gate_ref.split(":", 1)[-1].replace("_", "-")
+            return {
+                "gate_ref": gate_ref,
+                "on_missing_required_facts": {
+                    "action": "reroute",
+                    "reason_refs": [f"observation:{gate_name}-gate-missing-required-facts"],
+                    "required_target_budget": True,
+                    "target_basis": "source_brick",
+                },
+                "on_sufficient": (
+                    {"action": "next", "next_gate_ref": next_gate_ref}
+                    if next_gate_ref
+                    else {"action": "forward"}
+                ),
+            }
         if existing is None:
             raise ValueError(f"gate_sequence_policy cannot synthesize unsupported gate_ref: {gate_ref}")
         return dict(existing)

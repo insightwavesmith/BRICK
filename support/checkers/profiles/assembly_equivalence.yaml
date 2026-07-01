@@ -16,6 +16,7 @@ proof_limits:
   - assembly.py is present; assembly.py LHS equivalence is actively checked (P(assemble) == P(hand-built))
   - build()/fan() front-end equivalence is actively checked (build/fan lowered nodes/edges/groups are BYTE-IDENTICAL to the hand-built chain/fan_out/fan_in/converge tier)
   - brick(..., gates=...) node-level review gates are checked for default-transition-first edge-scoped gate_sequence_policy lowering plus ambiguous-edge and unknown-token rejection
+  - graph-level strict-evidence plus node-level coo-review on the same QA edge is checked to preserve every declared gate ref in gate_sequence_policy
 not_proven:
   - closure policy semantic validity
   - future provider behavior
