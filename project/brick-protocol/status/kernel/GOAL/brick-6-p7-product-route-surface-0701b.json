@@ -51,7 +51,8 @@
           "support/connection/**",
           "/Users/smith/.brick/project/brick-protocol/buildings/**"
         ]
-      }
+      },
+      "completion_edge_ref": "edge:brick-6-p7-product-route-surface-0701b-work-to-code-qa"
     },
     {
       "node_id": "brick-6-p7-product-route-surface-0701b-code-qa",
