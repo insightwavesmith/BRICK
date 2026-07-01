@@ -560,6 +560,7 @@ class BrickSpec:
     write: bool = False
     returns: str | None = None
     agent: AgentSpec | None = None
+    gates: tuple[Any, ...] = ()
     # Generic per-node casting carry (E2/§6 M15), keyed by ``selected_<base>``;
     # see AgentSpec.casting. The node's own casting overrides the lane's.
     casting: Mapping[str, str] = ()  # type: ignore[assignment]
@@ -575,6 +576,7 @@ def brick(
     write: bool = False,
     returns: str | None = None,
     agent: AgentSpec | None = None,
+    gates: Sequence[Any] = (),
     source_facts: Sequence[str] | None = None,
     node_write_scope: Mapping[str, Any] | None = None,
     **kwargs: Any,
@@ -597,6 +599,8 @@ def brick(
     clean_alias = _optional_bare_token("alias", alias)
     if node_write_scope is not None and not write:
         raise ValueError("node_write_scope requires write=True")
+    if isinstance(gates, (str, bytes)) or not isinstance(gates, Sequence):
+        raise TypeError("brick() gates must be a sequence")
     return BrickSpec(
         kind=clean_kind,
         work=clean_work,
@@ -604,6 +608,7 @@ def brick(
         write=bool(write),
         returns=_optional_text(returns),
         agent=agent,
+        gates=tuple(gates),
         casting=_build_casting_bag("brick()", casting_kwargs),
         source_facts=tuple(str(item).strip() for item in (source_facts or ()) if str(item).strip()),
         node_write_scope=node_write_scope,

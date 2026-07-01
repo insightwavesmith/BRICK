@@ -56,6 +56,8 @@ from brick_protocol.support.operator.primitives import CASTING_FIELDS
 
 DEFAULT_GATE = "link-gate:default-transition"
 STRICT_GATE = "link-gate:strict"
+COO_GATE = "link-gate:coo"
+HUMAN_GATE = "link-gate:human"
 GOAL_PROPOSAL_FILENAME = "proposed-building-graph.json"
 DECLARED_BY = "coo-heart-phase0-checker"
 SELECTED_ADAPTER = "adapter:codex-local"
@@ -1338,6 +1340,180 @@ def _node_write_scope_fire(repo: Path) -> tuple[str, ...]:
     )
 
 
+def _gate_sequence_policy_for_edge(
+    plan: Mapping[str, Any],
+    *,
+    source_kind: str,
+    target_kind: str,
+) -> tuple[Mapping[str, Any], ...]:
+    labels, _endpoint_to_label, _node_kinds = _canonical_labels(plan)
+    for edge in plan.get("link_edges", ()):
+        if not isinstance(edge, Mapping):
+            continue
+        source_label = labels.get(str(edge.get("source_step_ref", "")).strip())
+        target_label = labels.get(str(edge.get("target_step_ref", "")).strip())
+        if source_label != source_kind or target_label != target_kind:
+            continue
+        policy = _link_row(edge).get("gate_sequence_policy")
+        if not isinstance(policy, Sequence) or isinstance(policy, (str, bytes)):
+            raise AssemblyEquivalenceError(
+                f"{source_kind}->{target_kind} did not carry a gate_sequence_policy"
+            )
+        return tuple(item for item in policy if isinstance(item, Mapping))
+    raise AssemblyEquivalenceError(f"{source_kind}->{target_kind} edge was not present")
+
+
+def _assert_gate_sequence_policy_equivalent_to_engine_preset(
+    policy: Sequence[Mapping[str, Any]],
+    *,
+    expected_gate_ref: str,
+    expected_owner: str,
+) -> None:
+    expected_reason = (
+        "observation:coo-gate-missing-required-facts"
+        if expected_gate_ref == COO_GATE
+        else "observation:human-gate-disposition-missing"
+    )
+    expected = (
+        {
+            "gate_ref": DEFAULT_GATE,
+            "on_missing_required_facts": {
+                "action": "reroute",
+                "reason_refs": ["observation:default-transition-missing-required-facts"],
+                "required_target_budget": True,
+                "target_basis": "source_brick",
+            },
+            "on_sufficient": {
+                "action": "next",
+                "next_gate_ref": expected_gate_ref,
+            },
+        },
+        {
+            "gate_ref": expected_gate_ref,
+            "on_missing_required_facts": {
+                "action": "HOLD",
+                "pending_target_basis": "target_brick",
+                "reason_refs": [expected_reason],
+                "required_disposition_owner": expected_owner,
+            },
+            "on_sufficient": {"action": "forward"},
+        },
+    )
+    if tuple(policy) != expected:
+        raise AssemblyEquivalenceError(
+            "node gates policy did not match the engine-feature-hard gate_sequence_policy shape: "
+            f"{tuple(policy)!r}"
+        )
+
+
+def _node_gates_fire(repo: Path) -> tuple[str, ...]:
+    composed = assemble(
+        build(
+            [
+                brick("design", "node-level COO gate design", gates=("coo-review",)),
+                brick("work", "node-level COO gate work", write=True),
+                brick("closure", "node-level COO gate closure"),
+            ]
+        ),
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task="node gate sequence DSL probe",
+        building_id="heart-phase0-node-gates-dsl",
+        adapter="codex-local",
+        repo_root=repo,
+    )
+    policy = _gate_sequence_policy_for_edge(
+        composed.composed_plan,
+        source_kind="design",
+        target_kind="work",
+    )
+    _assert_gate_sequence_policy_equivalent_to_engine_preset(
+        policy,
+        expected_gate_ref=COO_GATE,
+        expected_owner="coo",
+    )
+
+    human_composed = assemble(
+        build(
+            [
+                brick("design", "node-level human gate design", gates=(Gate.HUMAN_REVIEW,)),
+                brick("work", "node-level human gate work", write=True),
+                brick("closure", "node-level human gate closure"),
+            ]
+        ),
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task="node human gate sequence DSL probe",
+        building_id="heart-phase0-node-human-gates-dsl",
+        adapter="codex-local",
+        repo_root=repo,
+    )
+    human_policy = _gate_sequence_policy_for_edge(
+        human_composed.composed_plan,
+        source_kind="design",
+        target_kind="work",
+    )
+    _assert_gate_sequence_policy_equivalent_to_engine_preset(
+        human_policy,
+        expected_gate_ref=HUMAN_GATE,
+        expected_owner="caller-or-coo",
+    )
+
+    def no_outgoing_probe() -> None:
+        assemble(
+            build([brick("closure", "terminal node gate has no completion edge", gates=("coo-review",))]),
+            declared_by=DECLARED_BY,
+            authority=Authority.COO,
+            task="node gate zero outgoing probe",
+            building_id="heart-phase0-node-gates-zero-outgoing",
+            adapter="codex-local",
+            repo_root=repo,
+        )
+
+    def ambiguous_outgoing_probe() -> None:
+        design = brick("design", "fan-out node gate is ambiguous", gates=("coo-review",))
+        code = brick("code-attack-qa", "ambiguous code lens", returns=CODE_ATTACK_RETURN_SHAPE)
+        axis = brick("axis-attack-qa", "ambiguous axis lens", returns=AXIS_ATTACK_RETURN_SHAPE)
+        close = brick("closure", "ambiguous close")
+        assemble(
+            converge(
+                fan_out(design, [code, axis]),
+                fan_in([code, axis], close),
+                terminal=close,
+            ),
+            declared_by=DECLARED_BY,
+            authority=Authority.COO,
+            task="node gate multi outgoing probe",
+            building_id="heart-phase0-node-gates-multi-outgoing",
+            adapter="codex-local",
+            repo_root=repo,
+        )
+
+    def unknown_gate_probe() -> None:
+        assemble(
+            build(
+                [
+                    brick("design", "unknown node gate", gates=("unknown-review",)),
+                    brick("work", "unknown node gate work", write=True),
+                ]
+            ),
+            declared_by=DECLARED_BY,
+            authority=Authority.COO,
+            task="node gate unknown token probe",
+            building_id="heart-phase0-node-gates-unknown",
+            adapter="codex-local",
+            repo_root=repo,
+        )
+
+    return (
+        "construction green observed: brick(..., gates=('coo-review',)) stamped design->work gate_sequence_policy equivalent to engine-feature-hard.",
+        "construction green observed: brick(..., gates=(Gate.HUMAN_REVIEW,)) stamped a default-transition-first human hold sequence.",
+        _assert_raises("node gates on terminal node", ValueError, no_outgoing_probe),
+        _assert_raises("node gates on fan-out node", ValueError, ambiguous_outgoing_probe),
+        _assert_raises("unknown node gate token", ValueError, unknown_gate_probe),
+    )
+
+
 def _role_derivation_fire(repo: Path) -> tuple[str, ...]:
     work_default = assemble(
         chain([brick("work", "omitted agent resolves from kind", write=True)]),
@@ -2204,6 +2380,7 @@ def run(repo: Path) -> list[str]:
     outputs.extend(_build_fan_equivalence_fire(repo))
     outputs.extend(_sibling_independence_dsl_fire(repo))
     outputs.extend(_node_write_scope_fire(repo))
+    outputs.extend(_node_gates_fire(repo))
     outputs.extend(_graph_write_scope_default_fire(repo))
     outputs.append(_tiny_work_qa_return_shape_red(repo))
     outputs.append(PROOF_LIMIT)

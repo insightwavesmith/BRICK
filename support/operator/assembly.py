@@ -449,6 +449,7 @@ def _with_fields(spec: BrickSpec, *, alias: str | None = None, returns: str | No
         write=spec.write,
         returns=spec.returns if spec.returns else returns,
         agent=spec.agent,
+        gates=spec.gates,
         casting=spec.casting,
         source_facts=spec.source_facts,
         node_write_scope=spec.node_write_scope,
@@ -1103,7 +1104,172 @@ def _lower_graph(
         registry=registry,
         declared_by_origin=declared_by,
     )
+    lowered_edges = _stamp_node_gate_sequence_policies(
+        lowered_edges,
+        nodes,
+        mutable_nodes_by_handle=mutable_nodes_by_handle,
+        edge_refs=edge_refs,
+    )
     return lowered_nodes, lowered_edges, lowered_groups
+
+
+def _stamp_node_gate_sequence_policies(
+    edges: Sequence[Mapping[str, Any]],
+    nodes: Sequence[BrickSpec],
+    *,
+    mutable_nodes_by_handle: Mapping[BrickSpec, dict[str, Any]],
+    edge_refs: Mapping[EdgeSpec, str],
+) -> list[Mapping[str, Any]]:
+    outgoing_by_handle: dict[BrickSpec, list[str]] = defaultdict(list)
+    for edge_spec, edge_ref in edge_refs.items():
+        outgoing_by_handle[edge_spec.source].append(edge_ref)
+    edge_by_ref = {str(edge.get("edge_ref", "")).strip(): dict(edge) for edge in edges}
+
+    for spec in nodes:
+        if not spec.gates:
+            continue
+        refs = outgoing_by_handle.get(spec, [])
+        if len(refs) != 1:
+            label = spec.alias or spec.kind
+            raise ValueError(
+                f"brick gates for {label!r} require exactly one outgoing completion edge; "
+                f"observed {len(refs)}. Declare the gate_sequence_policy explicitly to disambiguate."
+            )
+        edge_ref = refs[0]
+        edge = edge_by_ref.get(edge_ref)
+        if edge is None:
+            raise ValueError(f"brick gates for {spec.alias or spec.kind!r} did not resolve an outgoing edge")
+        source_node = mutable_nodes_by_handle.get(spec)
+        if source_node is not None and source_node.get("node_reroute_budget") is None:
+            source_node["node_reroute_budget"] = 1
+        edge_by_ref[edge_ref] = _merge_node_gate_sequence_policy(edge, spec.gates)
+
+    return [edge_by_ref.get(str(edge.get("edge_ref", "")).strip(), dict(edge)) for edge in edges]
+
+
+def _merge_node_gate_sequence_policy(
+    edge: Mapping[str, Any],
+    gate_tokens: Sequence[Gate | str],
+) -> Mapping[str, Any]:
+    requested_refs = [_node_gate_ref(token) for token in gate_tokens]
+    if not requested_refs:
+        return edge
+    merged_gate_refs = _merge_gate_refs(edge.get("declared_gate_refs"), requested_refs)
+    existing_policy = edge.get("gate_sequence_policy")
+    if isinstance(existing_policy, Sequence) and not isinstance(existing_policy, (str, bytes)):
+        existing_entries = [
+            dict(item)
+            for item in existing_policy
+            if isinstance(item, Mapping) and str(item.get("gate_ref", "")).strip()
+        ]
+    elif existing_policy is None:
+        existing_entries = []
+    else:
+        raise ValueError("gate_sequence_policy must be an ordered array")
+
+    sequence_refs = _ordered_node_gate_refs(
+        [
+            str(entry.get("gate_ref", "")).strip()
+            for entry in existing_entries
+            if str(entry.get("gate_ref", "")).strip()
+        ],
+        requested_refs,
+    )
+    entry_by_ref = {str(entry.get("gate_ref", "")).strip(): dict(entry) for entry in existing_entries}
+    entries: list[Mapping[str, Any]] = []
+    for index, gate_ref in enumerate(sequence_refs):
+        next_gate_ref = sequence_refs[index + 1] if index + 1 < len(sequence_refs) else None
+        entries.append(
+            _node_gate_sequence_entry(
+                gate_ref,
+                next_gate_ref=next_gate_ref,
+                existing=entry_by_ref.get(gate_ref),
+            )
+        )
+
+    patched = dict(edge)
+    patched["declared_gate_refs"] = merged_gate_refs
+    patched["gate_sequence_policy"] = entries
+    return patched
+
+
+def _merge_gate_refs(raw_refs: Any, requested_refs: Sequence[str]) -> list[str]:
+    refs = [
+        str(ref).strip()
+        for ref in (raw_refs if isinstance(raw_refs, Sequence) and not isinstance(raw_refs, (str, bytes)) else ())
+        if str(ref).strip()
+    ]
+    if DEFAULT_LINK_GATE_REF not in refs:
+        refs.insert(0, DEFAULT_LINK_GATE_REF)
+    for gate_ref in requested_refs:
+        if gate_ref not in refs:
+            refs.append(gate_ref)
+    return refs
+
+
+def _ordered_node_gate_refs(existing_refs: Sequence[str], requested_refs: Sequence[str]) -> list[str]:
+    ordered: list[str] = [DEFAULT_LINK_GATE_REF]
+    for gate_ref in (translate_gate_concept("coo-review"), translate_gate_concept("human-review")):
+        if gate_ref in existing_refs or gate_ref in requested_refs:
+            ordered.append(gate_ref)
+    for gate_ref in existing_refs:
+        if gate_ref not in ordered:
+            ordered.append(gate_ref)
+    return ordered
+
+
+def _node_gate_ref(token: Gate | str) -> str:
+    value = _gate_value(token)
+    if value not in {"coo-review", "human-review"}:
+        raise ValueError("brick() gates accepts only human-review or coo-review for node completion edges")
+    return translate_gate_concept(value)
+
+
+def _node_gate_sequence_entry(
+    gate_ref: str,
+    *,
+    next_gate_ref: str | None,
+    existing: Mapping[str, Any] | None,
+) -> Mapping[str, Any]:
+    if gate_ref == DEFAULT_LINK_GATE_REF:
+        return {
+            "gate_ref": DEFAULT_LINK_GATE_REF,
+            "on_missing_required_facts": {
+                "action": "reroute",
+                "reason_refs": ["observation:default-transition-missing-required-facts"],
+                "required_target_budget": True,
+                "target_basis": "source_brick",
+            },
+            "on_sufficient": (
+                {"action": "next", "next_gate_ref": next_gate_ref}
+                if next_gate_ref
+                else {"action": "forward"}
+            ),
+        }
+    if gate_ref == translate_gate_concept("coo-review"):
+        owner = "coo"
+        reason_ref = "observation:coo-gate-missing-required-facts"
+    elif gate_ref == translate_gate_concept("human-review"):
+        owner = "caller-or-coo"
+        reason_ref = "observation:human-gate-disposition-missing"
+    else:
+        if existing is None:
+            raise ValueError(f"gate_sequence_policy cannot synthesize unsupported gate_ref: {gate_ref}")
+        return dict(existing)
+    return {
+        "gate_ref": gate_ref,
+        "on_missing_required_facts": {
+            "action": "HOLD",
+            "pending_target_basis": "target_brick",
+            "reason_refs": [reason_ref],
+            "required_disposition_owner": owner,
+        },
+        "on_sufficient": (
+            {"action": "next", "next_gate_ref": next_gate_ref}
+            if next_gate_ref
+            else {"action": "forward"}
+        ),
+    }
 
 
 def _auto_declare_chained_carry(
