@@ -1,3 +1,17 @@
+## Phase 0 완료 (0702)
+
+구현+push 완료(`aaf2975`→`dab4acb`): `provider_registry.py`(신규 모듈, providers.yaml
+스키마+킬스위치 2종), `plan_rendering.py` 라우팅 사다리 rung 2/3 삽입,
+`provider_registry_ladder` 전용 체커(fixture-only, 실사용자 파일 안 읽음).
+1차 구현에서 QA가 실결함 발견(model_ref가 selected_reasoning_effort_ref로
+새어들어감)+수정 완료. **COO 직접 재시험(Building 자기보고 아님)**: codex
+등록+ready 상태에서 inspector/qa-lead가 정확히 codex-local로 fallback(원래
+버그 재현 시나리오 그대로 고쳐짐 확인), providers.yaml 부재시 inspector/qa-lead
+그대로 gemini-local(회귀 없음, 설계 그대로) — 둘 다 실행결과로 직접 확인.
+환경체크(pipx 순서수정+doctor 확장), 무등록 스모크 경로도 같은 Building에서
+구현. Phase 1-3(provider add 명령/대화형/모델선택/Slack·Dashboard real check)은
+Follow-On으로 남음.
+
 # BRICK Onboarding + Provider-Registration Redesign
 
 ## 1. Problem statement
