@@ -38,6 +38,20 @@ Support review evidence:
 5. Public operator/customer language is `build()` / `brick build`; internal/debug helper names are not customer route instructions.
 6. If evidence conflicts, do not patch around it. Ask the Brick/Agent/Link questions named in the relevant phase document and HOLD if a required row is missing.
 7. Every phase return must separate `observed_evidence`, `narrowly_proven`, `not_proven`, and `next Movement candidate`.
+8. (0701 addition, REQUIRED) Graph packet admission MUST be checker-first, not
+   discover-at-runtime. Before any `graph_packet` is accepted for a real
+   `brick build --graph` run, a graph-topology checker must reject a packet
+   where a `fan_in` group's `fan_in_target_ref` node is also the direct
+   `source` of a `fan_out` group with no intervening single-target barrier
+   node between them (fan-in and fan-out must never be the same event, per
+   `agent/skills/building-coordination/SKILL.md`). This is not optional
+   polish: P7a/P7b/P7d all burned a full real-provider Building cycle
+   discovering this exact same shape defect only at closure time, after
+   design+work+QA had already run. A schema/admission-time checker turns an
+   expensive runtime discovery into a cheap pre-flight rejection, the same
+   checker-first discipline already required for every other invariant in
+   this goal. Scope this as part of P8 (or a dedicated small Building before
+   P8 if P7 closes first); do not let it slip.
 
 ## Standard Phase Building Graph (dual-design fan-out, Smith-confirmed 0701)
 
