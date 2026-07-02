@@ -24,22 +24,16 @@ brick build / support.operator.cli build
 
 프리셋 모드와 DSL 그래프 모드는 **공식 build surface로 들어가는 두 authoring form**이다.
 공식 authoring/launch interface는 `assemble()` / `build()` / `fan()` Python DSL
-(`support/operator/assembly.py`) plus `run_building_plan()`이다.
-graph packet JSON을 `brick build --graph <packet>` 또는
-`support.operator.cli build --graph <packet>`에 넘기던 저수준 CLI escape hatch는 Rule 10에
-따라 retired다. `sibling_independence`, per-node `write_scope` narrowing, mid-graph
-human/coo gates는 이제 DSL gap이 아니다.
-Profile compatibility note: the former example spellings `brick build --graph <packet.json>`
-and `support.operator.cli build --graph <packet.json>` are mentioned here only as
-retired text, not as active instructions. The old phrases "같은 공식 route의 저수준 입력" and
-"같은 공식 build surface로 들어가는 두 입력 모드" are likewise retained only as
-historical checker text, not current operating guidance.
+(`support/operator/assembly.py`) plus `run_building_plan()`이다. graph packet JSON을
+`brick build --graph <packet>` 또는 `support.operator.cli build --graph <packet>`에 넘기던
+저수준 CLI escape hatch는 retired다. `sibling_independence`, per-node `write_scope`
+narrowing, mid-graph human/coo gates는 이제 DSL gap이 아니다.
+Profile compatibility note: `brick build --graph <packet.json>` /
+`support.operator.cli build --graph <packet.json>`, "같은 공식 route의 저수준 입력", "같은 공식 build surface로 들어가는 두 입력 모드" are retained once as historical checker text.
 P3 이후 zero-ritual 운영자 경로는 `task_intake` 확인 뒤 **`build()` 하나로** compact graph를
-넣는 것이다. 운영자-facing 언어는 `build()`다. `fan()`은 `build()` 안의 병렬 블록 재료일
-뿐이고, `fire()`/`launch_assembled_building`은 내부 구현·debug/advanced 용어다.
-프롬프트/발주문에서 운영자에게 `fire(graph)`를 하라고 쓰지 마라. 파일 handoff/감사
-목적이면 DSL 출력/plan evidence를 남겨라. 기본 운영 프롬프트는 `build()`만 말한다.
-helper를 별도 공식 route처럼 말하지 마라.
+넣는 것이다. 운영자-facing 언어는 `build()`다. `fan()`은 병렬 블록 재료이고
+`fire()`/`launch_assembled_building`은 내부 구현·debug/advanced 용어다. helper를 별도 공식
+route처럼 말하지 마라. 별도 공식 route처럼 말하지 마라.
 
 ## 한눈 결정나무
 
@@ -59,13 +53,10 @@ helper를 별도 공식 route처럼 말하지 마라.
         └─ 골까지 무인(Smith 기본)    → DSL graph를 PHASE 2-B 공식 route로 제출
 ```
 
-발주 공개 surface = **공식 빌딩 build surface 하나**다. 프리셋은 task/preset 입력으로
-materialize되고, 그래프는 DSL graph 입력으로 materialize되며,
-둘 다 Builder/materializer → declared Building Plan → `support/operator/run.py` walker →
-active vessel evidence root → reporter/Slack/frontier로 간다.
-`driver_public_intake_seal` 체커는 raw 뒷문(`run_composed_graph_intake`)을 driver.py 공개표면에서
-막는다. `assemble`과 launch helper들은 graph/materialization helper이지 별도 실행 route가 아니다.
-3번째로 사고하지 마라.
+발주 공개 surface = **공식 빌딩 build surface 하나**다. 프리셋은 task/preset 입력으로,
+그래프는 DSL graph 입력으로 materialize되며, 둘 다 Builder/materializer → declared Building
+Plan → `support/operator/run.py` walker → active vessel evidence root → reporter/Slack/frontier로
+간다. `assemble`과 launch helper들은 graph/materialization helper이지 별도 실행 route가 아니다.
 
 ## 큰 일 P3 규칙
 
@@ -88,9 +79,8 @@ task intake
 → Codex closure
 ```
 
-이것은 design-first fan-out 또는 DSL graph로 설명해도 된다. 그래도 Link가
-Movement authority를 소유하고, support/model/checker/Slack은 source truth나
-quality/success judge가 아니다.
+design-first fan-out 또는 DSL graph로 설명한다. 그래도 Link가 Movement authority를 소유하고,
+support/model/checker/Slack은 source truth나 quality/success judge가 아니다.
 
 ---
 
@@ -104,7 +94,9 @@ quality/success judge가 아니다.
 | 빌딩 `task=` | 비어있지 않은 텍스트 ≤64KB면 됨. **안의 heading 하나도 엔진 검증 안 함** — sha256 후 `work/task.md`로 그대로 쓰여 에이전트 프롬프트가 됨. |
 | 그 외 | 모든 섹션은 에이전트 행동용(admission용 아님). write hand는 두 잠금: 노드 `write=True` + launch `write_scope`. `write_scope`만 넘기면 scope가 찍히지 않아 read-only가 정상이다. adapter/model/gates는 assemble()/fire 인자(task.md 안 아님). |
 
-**스톨의 진짜 레버(실측 0615):** 엔진은 task.md로 인한 스톨 0(불투명 텍스트). 60분 vs 2분은 **에이전트의 읽기범위 바운디드냐**다 — "fix the adapter"(무바운드)=트리 전체 훑어 60분 / "이 영역만, 딴 데 훑지 마"=2분. **레버 = 바운디드 스코프 한 줄(모듈·영역 단위면 충분).** file:line 좌표 박기는 목표 아니라 **fallback**(설계 노드 못 믿을 때만). §AUTO엔 그 읽기목록 산출이 **design 노드의 일**이다.
+**스톨 레버(실측 0615):** 엔진은 task.md를 불투명 텍스트로 보며, 지연 차이는 에이전트
+읽기범위가 bounded인지에서 난다. 레버 = 모듈·영역 단위 바운디드 스코프 한 줄. file:line은
+fallback이며, §AUTO 읽기목록 산출은 design 노드의 일이다.
 
 **task.md 주입 없음(0702 실측):** `task=`/`goal=`은 `work/task.md` **증거물**로만 쓰이고, 어떤 경로도 레인 프롬프트에 주입하지 않는다. 레인이 반드시 봐야 할 계약(반환 스키마·경계·금지선)은 각 노드 `work_statement`에 직접 박아라. 프리셋 materializer 요약도 `## First-Line Contract`/`## Objective`/`## Desired Outcome` 헤딩만 스캔한다.
 
@@ -132,14 +124,12 @@ quality/success judge가 아니다.
  금지선: 실루트 수정 / 핀 완화 / 스케줄러·신규의존성 / project/ 손대기>
 ```
 
-부검은 `project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md` 사용([TARGETS]=대상 루트 + 대조군 1동, 사건은 장부에 있는 것만).
+부검은 `project/brick-protocol/status/kernel/evidence-postmortem-task-template-0612.md`를 쓴다.
 
 ## 그래프 모양은 building-sizing-method 스킬
 
-그림→코드 번역(`build() IS pipeline`, `fan() IS parallel`, KIND→에이전트 바인딩, QA깊이
-그라데이션, 과대-사이징 금지)은 **building-sizing-method** 스킬로 분리됐다. 새 모양을 짜야 하면
-그 스킬을 먼저 돌려 `GraphSpec`을 얻고, 여기 PHASE 2로 와서 발사한다. 운영자의 일 = **모양 판단
-하나**(몇 단계·누가 병렬·어디 수렴)뿐.
+그림→코드 번역은 **building-sizing-method** 스킬이 맡는다. 새 모양이면 먼저 `GraphSpec`을
+얻고, 여기 PHASE 2로 와서 발사한다. 운영자의 일 = 모양 판단 하나.
 
 ---
 
@@ -169,9 +159,9 @@ task_intake → task.md 후보 확인 → graph = assembly.build([... fan([...])
 
 ## G1 no-link / route-default 정책 (0630 closeout)
 
-사용자·COO 표면에서는 **Link row를 직접 쓰지 않는 것**이 맞다. 그러나 이것은
-"모든 edge가 자동 route"라는 뜻이 아니다. 현재 compact `build()`/`fan()`은 인접 edge를
-materialize할 때 기본 `movement="forward"`를 만든다. 즉:
+사용자·COO 표면에서는 **Link row를 직접 쓰지 않는 것**이 맞다. 이것은 "모든 edge가 자동
+route"라는 뜻이 아니다. compact `build()`/`fan()`은 인접 edge를 materialize할 때 기본
+`movement="forward"`를 만든다.
 
 ```text
 사용자 표면: Link row 안 씀
@@ -180,8 +170,8 @@ support materializer: Link row를 만든다
 reroute/HOLD: concern evidence + 선언/채택된 route policy가 있을 때만
 ```
 
-따라서 QA/closure가 blocker를 낼 수 있는 fan-in 그래프를 짤 때는 decorative all-forward
-그래프로 끝냈다고 route-default를 증명했다고 말하지 마라. 필요한 모양은:
+QA/closure가 blocker를 낼 수 있는 fan-in 그래프에서 decorative all-forward 그래프로 끝냈다고
+route-default를 증명했다고 말하지 마라. 필요한 모양은:
 
 ```text
 work/design → fan(QA lanes) → closure-synthesis
@@ -190,9 +180,8 @@ Link/COO가 declared policy(route-policy:qa-basic-repair 등)나 convergence rou
 forward / reroute / HOLD 중 하나를 채택
 ```
 
-hard fan-in QA에서는 QA lane이 직접 Movement를 고르지 않는다. QA는 자기 관찰을 반환하고,
-closure가 concern evidence를 종합한다. ambiguous / conflicting / unresolvable / budget-exhausted는
-forward가 아니라 HOLD 후보로 보고한다.
+hard fan-in QA에서 QA lane은 Movement를 고르지 않는다. QA는 관찰을 반환하고 closure가 concern
+evidence를 종합한다. ambiguous / conflicting / unresolvable / budget-exhausted는 HOLD 후보다.
 
 쓰기 작업이면 compact graph와 발사 인자가 둘 다 필요하다(0630 smoke 실측):
 
@@ -212,19 +201,16 @@ build(
 )
 ```
 
-write_scope가 필요한 구현 Building이면 현재 one-call `support.operator.build()`가 숨기는
-발사 인자와 실제 write hand가 맞는지 먼저 확인한다. write hand를 직접 맞춰야 하는 디버그/감사
-상황이면 DSL/plan evidence를 확인하되, 운영 프롬프트의 기본 언어는 여전히 `build()`다.
+write_scope가 필요한 구현 Building이면 one-call `support.operator.build()`가 숨기는 발사 인자와
+write hand를 먼저 확인한다. 디버그/감사에서도 기본 운영 언어는 `build()`다.
 
 `write_scope`만 넘기고 work 노드에 `write=True`가 없으면 assembly가 scope를 찍지 않으므로
 Agent는 read-only grant를 받는다. 그 경우 `frontier=complete`라도 `made_changes=false`가
 나올 수 있으며, 이것은 발사자 그래프 선언 문제다.
 
-`fire()`는 수동 worktree/dict/path/adapter_cwd/json ritual을 삼키는 내부 sugar일 뿐,
-운영자-facing 발주 언어가 아니다. 별도 runtime, direct launch runner, phase runner,
-work-return proof, QA-return proof, closeout proof, 또는 Movement route도 아니다. 사람이
-승인해야 하는 파일 handoff나 디버그가 필요할 때도 raw packet CLI 입력으로 낮추지 않는다.
-기본 프롬프트와 골 운영 문구는 `build()`만 말한다.
+`fire()`는 내부 sugar일 뿐 운영자-facing 발주 언어가 아니다. 별도 runtime, direct launch runner, phase runner,
+proof, 또는 Movement route도 아니다. 기본 프롬프트와 골 운영 문구는 `build()`만
+말한다.
 
 ```json
 {
@@ -247,17 +233,17 @@ work-return proof, QA-return proof, closeout proof, 또는 Movement route도 아
 }
 ```
 
-build 결과 packet은 `build_input_mode`, `building_id`, `evidence_root`, `frontier_kind`,
-`worktree_path` 같은 support evidence를 보여준다. 이것은 source truth, success/quality
-judgment, 또는 Link Movement 선택이 아니다.
+build 결과 packet의 `build_input_mode`, `building_id`, `evidence_root`, `frontier_kind`,
+`worktree_path`는 support evidence다. source truth, success/quality judgment, Link Movement
+선택이 아니다.
 
 ## 발사 전 DSL 구조 규칙 (0702 엔진 실측 — 재발사 루프 방지)
 
-발사 실패의 대부분이 이 두 가족이다. 그리기 전에 확인하고, 에러가 나면 아래 표에서 메시지로 찾아라.
+발사 실패 대부분은 아래 두 가족이다. 그리기 전 확인하고 에러는 표에서 찾는다.
 
 **fan() 위치 3법칙** (`support/operator/assembly.py` build() 하강부 실측):
-1. fan 블록 **바로 뒤는 반드시 단일 수렴 노드**다. fan 뒤에 fan을 붙이면
-   `a fan() block needs a following convergence node`. 두 팬 사이에 수렴 브릭(review/closure 등) 1개를 넣어라.
+1. fan 블록 **바로 뒤는 반드시 단일 수렴 노드**다. fan 뒤 fan은
+   `a fan() block needs a following convergence node`; 중간에 review/closure 등 수렴 브릭 1개.
 2. build() 리스트는 **fan으로 끝날 수 없다**: `build() cannot end with a fan() block`.
 3. fan이 첫 항목인 것은 **허용**된다(가지=병렬 루트, 다음 항목=수렴). `route=` 마크는 수렴 노드에만 —
    가지에 달면 `route= is a fan-in opt; declare it on the convergence node, not a fan branch`.
@@ -282,29 +268,9 @@ judgment, 또는 Link Movement 선택이 아니다.
 | `ModuleNotFoundError: No module named 'support'` | `PYTHONPATH=support/import_identity:.` — repo 루트(`:.`) 누락이 원인, cd만으론 부족 |
 | `route= must be a list of reroute()/hold() marks` 등 route 계열 | route=는 fan 수렴 노드에만, reroute()/hold() 마크 리스트로 |
 | `require exactly one outgoing completion edge` 등 gates 계열 | per-node gates 단 노드는 outgoing edge 1개(분기점에 달지 마라), human-review/coo-review만 |
-| write_scope 경로 상세 거부 (절대경로/`..`/.git·.env·.pem·secret·token 세그먼트/bare dir) | 상대 glob만, 금지 세그먼트 회피, 디렉토리는 `dir/**` 꼴 |
+| write_scope 경로 상세 거부 | 상대 glob만, 금지 세그먼트 회피, 디렉토리는 `dir/**` 꼴 |
 | `brick kind ... repeats; declare alias=` | 같은 kind를 직접 brick()으로 반복 선언 시 alias= 부여 (build() sugar는 자동 mint) |
 | `declared_by must be bare text ... colon is not admitted` | declared_by는 `coo-smith` 꼴(콜론 금지) — 콜론 ref는 author_ref에 |
-
-올바른 이중 fan + write_scope 승계 예시:
-
-```python
-graph([
-    brick("design", "범위를 좁혀라"),
-    fan([
-        brick("work", "영역 A만 변경", write=True),
-        brick("work", "영역 B만 변경", write=True),
-    ]),
-    brick("review", "두 레인 반환 대조"),      # ← fan 뒤 수렴 노드 (필수)
-    fan([
-        brick("code-attack-qa", "구현 공격"),
-        brick("axis-attack-qa", "축 위반 공격"),
-    ]),
-    brick("closure", "종합·판정"),             # ← 마지막 = 수렴 노드 (필수)
-])
-# 발사 write_scope={"allowed_paths": ["support/operator/**"], "forbidden_paths": [".git/**"]}
-# 노드 스코프를 좁히면: allowed ⊂ 위 glob + forbidden에 ".git/**" 그대로 포함
-```
 
 ## 발사 직전 체크리스트 (5행 — 본문에 흩어진 함정을 한 화면으로)
 
@@ -318,9 +284,9 @@ graph([
 
 ## 알아둘 것
 
-- **assemble의 top-level `adapter=`는 roled 노드에 무효.** design/closure/review/QA는 Agent Object와 per-node override가 이긴다. 현재 dogfood 기본(날짜 조건부 로직 아님)은 work+closure+code QA=codex-local, **inspect/axis/evidence QA=claude-local sonnet·xhigh**(0702 Smith 채택 — agent/objects/inspector.yaml 선언), review QA(qa-lead)=gemini-local이다. 노드를 role 디폴트에서 옮기려면 **per-node** `brick("design","...", adapter="codex-local")` override만이 레버.
+- **assemble의 top-level `adapter=`는 roled 노드에 무효.** design/closure/review/QA는 Agent Object와 per-node override가 이긴다. dogfood 기본은 work+closure+code QA=codex-local, inspect/axis/evidence QA=claude-local sonnet·xhigh, review QA=gemini-local이다. 옮기려면 per-node override.
 - **Claude adapter는 active다(0702 실사용).** inspector 레인 기본이자 per-node `adapter="claude-local"` override로 어디든 투입 가능. 3-way 풀: **codex=구현/closure/code QA · claude=조사/축·증거 QA · gemini=review QA**.
-- **캐스팅 다이얼 어휘(실측, agent/spec.py EFFORT_LEVELS/EFFORT_SCOPE):** `effort=`는 {none, minimal, low, medium, high, xhigh} (bare `"xhigh"` 또는 `"effort:xhigh"` ref형). 적용 어댑터는 codex-local/codex-fugu-local/claude-local뿐 — gemini는 다이얼 자체가 없어 선언하면 out-of-scope. `model=`은 SHAPE 검증(`model:<provider>:<name>` 꼴), 예: `model:claude:sonnet`, `model:claude:opus`.
+- **캐스팅 다이얼 어휘:** `effort=`는 {none, minimal, low, medium, high, xhigh}; 적용 어댑터는 codex-local/codex-fugu-local/claude-local뿐. `model=`은 `model:<provider>:<name>` 꼴.
 - **verdict 노드는 `adapter:local` 금지.** design/closure/review/inspect는 verdict-bearing → `adapter:local` 거부. local 스텁 무인발사는 **work 노드로만** 가능. verdict 노드는 진짜 CLI(codex/gemini/claude) 필요.
 - **부하 주의.** raw graph packet CLI 입력은 retired다. 검증은 가능하면 DSL/materialization 체크로, 진짜 실행이 필요하면 `adapter:local` 또는 단일 `codex-local`/`gemini-local` 노드 1개로.
 - **QA 주의.** QA는 inspect/probe evidence를 만들 수 있지만 source-truth mutation 권한이 아니다. QA source mutation이 관찰되면 HOLD로 보고한다.
@@ -337,7 +303,7 @@ graph([
 
 # 발사 후 — 게이트는 내가 한다 (codex green 안 믿음)
 
-- 워크트리에서 `REAL HOME에서 `PYTHONPATH=support/import_identity:. python3 support/checkers/check_profile.py --all > /tmp/<id>-all.txt 2>&1` 실행 후 rc/pass count/failure-marker count만 보고 + 포커스 체커 green + **변이 RED 직접 확인**.
+- 워크트리에서 `PYTHONPATH=support/import_identity:. python3 support/checkers/check_profile.py --all > /tmp/<id>-all.txt 2>&1` 실행 후 rc/pass count/failure-marker count만 보고 + 포커스 체커 green + **변이 RED 직접 확인**.
 - build 결과는 support evidence다. closure가 엉키면(temp-HOME concern 연쇄→resume divergence) **추격 금지** — 코드만 독립검증되면 declared follow-up Building으로 처리한다.
 - 미완/홀드 빌딩은 untracked로 `--all`을 RED로 만듦 → merge·게이트 전 `mv project/.../buildings/<미완id> /tmp/`로 치움(비파괴).
 - 라이브 repo를 다른 세션/빌딩과 공유 중이면 게이트 지문이 시점마다 흔들린다(0702 실측: 병행 아카이브로 같은 프로파일 실패 6→1→0). 공유 중 측정은 detached 워크트리에서 하거나, 내 변경만 stash로 걷어낸 baseline과 실패 지문 diff로 무죄/유죄를 가려라.
@@ -386,9 +352,8 @@ graph([
 
 ## 3.4 스톨 사건 귀속 주의 (Smith 0613 정본)
 
-스톨은 **단독 귀속 금지** — 반드시 3축 복합 점검: Agent(반환위반·provider) × Link(처분경로) ×
-support(기록 구조 — 출생증명서·벨 순서·transcript·잔재). "왜 멈췄는지 증명 못 하는 구조" 자체가
-결함의 본체일 수 있다. 정본: project/brick-protocol/status/kernel/stall-attribution-amendment-0613.md
+스톨은 **단독 귀속 금지** — Agent(반환위반·provider) × Link(처분경로) × support(기록 구조)를
+함께 점검한다. 정본: project/brick-protocol/status/kernel/stall-attribution-amendment-0613.md
 
 ## 3.5 보고
 
