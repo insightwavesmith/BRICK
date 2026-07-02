@@ -112,6 +112,20 @@ def _materializer_reroute_budget_cascade(
     return declared_budgets, budget_provenance, default_budget
 
 
+def _materializer_apply_constitutional_default_reroute_budget(
+    node: dict[str, Any],
+    *,
+    default_budget: int | None,
+) -> None:
+    """Stamp the Smith-declared fallback budget on one node when no value exists."""
+    if default_budget is None:
+        return
+    if node.get("node_reroute_budget") is not None or node.get("reroute_budget") is not None:
+        return
+    node["node_reroute_budget"] = default_budget
+    node["node_reroute_budget_provenance"] = ROUTE_POLICY_PROVENANCE_CONSTITUTIONAL_DEFAULT
+
+
 def _materializer_closure_policy(
     raw: Any,
     *,

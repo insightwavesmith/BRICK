@@ -51,7 +51,13 @@ from brick_protocol.support.operator.assembly import (
 )
 from brick_protocol.support.connection.agent_resources import resolve_agent_object
 from brick_protocol.support.operator.composition_problem import CompositionError
+from brick_protocol.support.operator.composition_common import (
+    ROUTE_POLICY_PROVENANCE_CONSTITUTIONAL_DEFAULT,
+)
 from brick_protocol.support.operator.composition_compose import compose_building
+from brick_protocol.support.operator.composition_route_policy import (
+    _materializer_constitutional_default_reroute_budget,
+)
 from brick_protocol.support.operator.plan_rendering import _resolve_agent_for_need
 from brick_protocol.support.operator.primitives import CASTING_FIELDS
 
@@ -1174,6 +1180,131 @@ def _graph_write_scope_default_fire(repo: Path) -> tuple[str, ...]:
     return (
         "composition RED/GREEN observed: graph write-needed omitted write_scope derives worktree default.",
         "composition green observed: graph explicit node write_scope overrides derived default.",
+    )
+
+
+def _route_default_provenance(plan: Mapping[str, Any], node_id: str) -> str:
+    provenance = plan.get("route_policy_provenance")
+    if not isinstance(provenance, Mapping):
+        raise AssemblyEquivalenceError("route_policy_provenance was not recorded on the plan")
+    by_node = provenance.get("by_node")
+    if not isinstance(by_node, Mapping):
+        raise AssemblyEquivalenceError("route_policy_provenance.by_node was not recorded")
+    node_entry = by_node.get(node_id)
+    if not isinstance(node_entry, Mapping):
+        raise AssemblyEquivalenceError(f"route_policy_provenance.by_node[{node_id!r}] was missing")
+    value = str(node_entry.get("node_reroute_budget") or "").strip()
+    if not value:
+        raise AssemblyEquivalenceError(f"route_policy_provenance.by_node[{node_id!r}].node_reroute_budget was empty")
+    return value
+
+
+def _node_by_id(nodes: Sequence[Mapping[str, Any]], node_id: str) -> Mapping[str, Any]:
+    for node in nodes:
+        if str(node.get("node_id", "")).strip() == node_id:
+            return node
+    raise AssemblyEquivalenceError(f"node {node_id!r} was not lowered")
+
+
+def _route_default_fire(repo: Path) -> tuple[str, ...]:
+    default_budget = _materializer_constitutional_default_reroute_budget(repo)
+    compact = assemble(
+        build(
+            [
+                ["work", "compact default route-budget work", {"write": True}],
+                ["closure", "compact default route-budget closure"],
+            ]
+        ),
+        declared_by="smith",
+        authority=Authority.COO,
+        task="compact no-declaration route default probe",
+        building_id="heart-phase0-route-default-compact",
+        adapter="codex-local",
+        repo_root=repo,
+        write_scope=_write_scope(),
+    )
+    compact_nodes, _compact_edges, _compact_groups = compact.as_compose_args()
+    coo_fields = (
+        compact.declared_by,
+        _node_by_id(compact_nodes, "heart-phase0-route-default-compact-work").get("node_reroute_budget"),
+        _route_default_provenance(compact.composed_plan, "heart-phase0-route-default-compact-work"),
+    )
+    if any(value in (None, "") for value in coo_fields):
+        raise AssemblyEquivalenceError(f"COO route-default probe carried an empty field: {coo_fields!r}")
+    if coo_fields[0] != "coo-smith":
+        raise AssemblyEquivalenceError(f"COO route-default probe did not stamp coo-smith: {coo_fields[0]!r}")
+    if coo_fields[1] != default_budget:
+        raise AssemblyEquivalenceError(f"compact DSL default budget changed: {coo_fields[1]!r}")
+    if coo_fields[2] != ROUTE_POLICY_PROVENANCE_CONSTITUTIONAL_DEFAULT:
+        raise AssemblyEquivalenceError(f"compact DSL default provenance changed: {coo_fields[2]!r}")
+
+    source = brick("code-attack-qa", "explicit reroute source", returns=CODE_ATTACK_RETURN_SHAPE)
+    axis = brick("axis-attack-qa", "explicit reroute axis source", returns=AXIS_ATTACK_RETURN_SHAPE)
+    close = brick("closure", "explicit reroute closure")
+    explicit = assemble(
+        converge(
+            fan_in(
+                [source, axis],
+                close,
+                route=[reroute(Concern.IMPLEMENTATION_GAP, to=source, budget=1)],
+            ),
+            terminal=close,
+        ),
+        declared_by=DECLARED_BY,
+        authority=Authority.COO,
+        task="explicit reroute budget precedence probe",
+        building_id="heart-phase0-route-default-explicit",
+        adapter="codex-local",
+        repo_root=repo,
+        write_scope=_write_scope(),
+    )
+    explicit_nodes, _explicit_edges, _explicit_groups = explicit.as_compose_args()
+    explicit_source = _node_by_id(explicit_nodes, "heart-phase0-route-default-explicit-code-attack-qa")
+    if explicit_source.get("node_reroute_budget") != 1:
+        raise AssemblyEquivalenceError(
+            f"explicit reroute budget was overwritten by the default: {explicit_source!r}"
+        )
+    explicit_provenance = _route_default_provenance(
+        explicit.composed_plan,
+        "heart-phase0-route-default-explicit-code-attack-qa",
+    )
+    if explicit_provenance != "per-building":
+        raise AssemblyEquivalenceError(f"explicit reroute budget provenance changed: {explicit_provenance!r}")
+
+    import brick_protocol.support.operator.assembly as assembly_module  # noqa: PLC0415
+
+    real_apply_default = assembly_module._materializer_apply_constitutional_default_reroute_budget
+
+    def mutant_apply_default(node: dict[str, Any], *, default_budget: int | None) -> None:
+        if default_budget is None or node.get("node_reroute_budget") is not None:
+            return
+        node["node_reroute_budget"] = default_budget
+        node["node_reroute_budget_provenance"] = "support"
+
+    assembly_module._materializer_apply_constitutional_default_reroute_budget = mutant_apply_default
+    try:
+        try:
+            assemble(
+                chain([brick("closure", "mutated route default provenance closure")]),
+                declared_by=DECLARED_BY,
+                authority=Authority.COO,
+                task="mutated route default provenance probe",
+                building_id="heart-phase0-route-default-mutant",
+                adapter="codex-local",
+                repo_root=repo,
+            )
+        except (CompositionError, ValueError):
+            mutation_red = "route-default mutation-RED observed: support-stamped provenance was rejected."
+        else:
+            raise AssemblyEquivalenceError("route-default mutation-RED did not reject support provenance")
+    finally:
+        assembly_module._materializer_apply_constitutional_default_reroute_budget = real_apply_default
+
+    return (
+        "route-default green: no-declaration compact DSL stamped Smith constitutional default end-to-end.",
+        "route-default green: COO probe carried declared_by, node_reroute_budget, and provenance as non-null fields.",
+        "route-default green: explicit DSL reroute budget preserved per-building precedence.",
+        mutation_red,
     )
 
 
@@ -2573,6 +2704,7 @@ def run(repo: Path) -> list[str]:
     outputs.extend(_node_gates_fire(repo))
     outputs.extend(_write_scope_derivation_fire(repo))
     outputs.extend(_graph_write_scope_default_fire(repo))
+    outputs.extend(_route_default_fire(repo))
     outputs.extend(_proposal_approval_fire(repo))
     outputs.append(_tiny_work_qa_return_shape_red(repo))
     outputs.append(PROOF_LIMIT)

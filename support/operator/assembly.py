@@ -56,6 +56,10 @@ from brick_protocol.support.operator.composition_gate_translation import (
     _materializer_human_gate_hold_policy,
 )
 from brick_protocol.support.operator.composition_intent import inline_task_source_carry
+from brick_protocol.support.operator.composition_route_policy import (
+    _materializer_apply_constitutional_default_reroute_budget,
+    _materializer_constitutional_default_reroute_budget,
+)
 from brick_protocol.support.operator.plan_rendering import (
     _LOCAL_ADAPTER_REF,
     _is_verdict_bearing_node,
@@ -1040,6 +1044,7 @@ def _lower_graph(
     nodes = _unique_nodes((*graph.nodes, graph.terminal) if graph.terminal else graph.nodes)
     node_id_by_handle = _node_ids(nodes, building_slug)
     fan_in_sources = _fan_in_source_handles(graph.groups)
+    default_reroute_budget = _materializer_constitutional_default_reroute_budget(repo)
 
     lowered_nodes: list[dict[str, Any]] = []
     mutable_nodes_by_handle: dict[BrickSpec, dict[str, Any]] = {}
@@ -1095,6 +1100,12 @@ def _lower_graph(
             fan_in_route.marks,
             nodes_by_handle=mutable_nodes_by_handle,
             node_id_by_handle=node_id_by_handle,
+        )
+
+    for node in lowered_nodes:
+        _materializer_apply_constitutional_default_reroute_budget(
+            node,
+            default_budget=default_reroute_budget,
         )
 
     nodes_by_id = {str(node["node_id"]): node for node in lowered_nodes}
