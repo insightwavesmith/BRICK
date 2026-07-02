@@ -71,10 +71,30 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
 3. **GP3은 P8 프로브 뒤** — 10k줄 이동 중 프로브를 돌리면 갭 추출 신호가 오염된다.
 4. Smith 게이트 잔여 2건: P8 프로브 진입 결정 / coo·dev 오브젝트 처분(엔진 바인딩 이의 제기됨).
 
-## 현재 위치 (0702)
+## 0702 저녁 갱신 (COO 실측 — push 735d1dd3 기준)
 
-GP0 ✅(admission-gate만 잔여) · **GP1 ✅ 종료(9fc9ebc)** →
-GP2: 발사 인체공학 4종(+기본예산 배선) → 온보딩 Phase2-3 → §4-6/§4-7 → P7/P8 → GP3.
+**랜딩 완료(저녁분)**
+- AGENTS.md 984→517 리사이즈 + 법급 문구 COO 복원(헌법 포인터·packet 비권위 조항) — `8f19cacc`/`b690da91`
+- gemini 등록 완결: preflight ready 분류 + 실키 라이브 등록 실증(providers.yaml) — `42d37a47`
+- 인체공학 부분: llm= 별칭 기반 + returns 계약 스탬핑 + 체커 핀 — `3760741` (부분 랜딩 선언)
+- **compact DSL 기본예산(5) 스탬프** — `735d1dd3` (v2 재시공; 1차는 pin만 넣고 엔진 무변경
+  complete 자기보고 → COO 프로브 3필드 null로 **가짜 랜딩 반려**, 앵커 default-route-0702a-rejected)
+
+**진행 중 빌딩 2**
+- route-complete-0702a: e2e 재진입 픽스처 + reroute-defaults.yaml 부재 행동 + 정책 필드 판정
+- postmortem-default-route-0702b: 가짜 랜딩 3축 원인 판정 (1차 부검은 returns 절단+예산 홀드로 접힘)
+
+**신규 발견 엔진 구멍 3 (전부 태스크 등록)**
+1. 가짜 complete 무저지 — "구현 deliverable diff 실물 없으면 완주 불가" 기계 게이트 부재 (부검 v2가 처방 후보 산출 예정)
+2. claude-local 레인 returns 600자 절단 — 렌즈/조사 빌딩 전문 유실 (인체공학 #8 잔여와 한 가족)
+3. resume 예산 주입 브리지 부재 — walker_resume.py:196 가드가 raise budget_increment 행을 소비하지 않아 무예산 compose 그래프는 홀드 후 재개 불가
+4. (소음) admission 체커가 vessel 발사 표준의 중첩 레이아웃(buildings/<이름>/<노드>/) 미인지 — 라이브 --all rc=1 소음, push 무영향
+
+## 현재 위치 (0702 저녁)
+
+GP0 ✅(admission-gate + 중첩 레이아웃 잔여) · **GP1 ✅ 종료** · GP2 진행 중:
+진행 빌딩 2(route-complete·부검 v2) → resume 브리지 → D1 결과 요약 패킷 + returns 절단 수리(#8 잔여)
+→ 온보딩 Phase2-3 → §4-6/§4-7 → P7/P8(Smith 게이트) → GP3.
 
 ## 미래 후보 (선언 원칙 보존 확장)
 
