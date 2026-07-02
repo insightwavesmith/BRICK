@@ -1920,14 +1920,7 @@ def _layered_structure_diagram(
             lines.append(labels[members[0]])
         else:
             branch_labels = [labels[ref] for ref in members]
-            for position, label in enumerate(branch_labels):
-                if position == 0:
-                    corner = "├─"
-                elif position == len(branch_labels) - 1:
-                    corner = "└─"
-                else:
-                    corner = "├─"
-                lines.append(f"  {corner} {label}")
+            lines.extend(_branch_structure_lines(branch_labels, prefix="  "))
     if terminal:
         lines.append("  │")
         lines.append("(완료)")
@@ -2021,10 +2014,7 @@ def _fan_structure_diagram(
     suffix = _linear_structure_diagram(suffix_refs, labels, suffix_terminal)
     branch_labels = [labels[ref] for ref in branch_refs]
     if len(branch_labels) > 3 or any(len(label) > 16 for label in branch_labels):
-        branch_lines = [
-            f"{'└' if index == len(branch_labels) - 1 else '├'}─ {label}"
-            for index, label in enumerate(branch_labels)
-        ]
+        branch_lines = _branch_structure_lines(branch_labels)
         return "\n".join([prefix, *branch_lines, "▼", suffix])
 
     widths = [max(len(label), 3) for label in branch_labels]
@@ -2033,6 +2023,19 @@ def _fan_structure_diagram(
     middle = " ".join(label.center(width) for label, width in zip(branch_labels, widths))
     bottom = "└" + "┼".join("─" * width for width in widths) + "┘"
     return "\n".join([prefix, top, arrows, middle, bottom, "▼", suffix])
+
+
+def _branch_structure_lines(
+    branch_labels: Iterable[str],
+    *,
+    prefix: str = "",
+) -> list[str]:
+    labels = [label for label in branch_labels if label]
+    lines: list[str] = []
+    for index, label in enumerate(labels):
+        corner = "└─" if index == len(labels) - 1 else "├─"
+        lines.append(f"{prefix}{corner} {label}")
+    return lines
 
 
 def _linear_prefix_to(

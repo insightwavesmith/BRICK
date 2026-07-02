@@ -4407,6 +4407,148 @@ def _assert_no_scheduler_constructs(repo: Path) -> int:
     return inspected
 
 
+def _assert_reporter_dashboard_project_ref_guard(report_sinks: Any) -> str:
+    calls: list[tuple[str, str | None]] = []
+    original = report_sinks.send_dashboard_building_delta
+
+    def fake_delta_sender(
+        building_id: str,
+        *,
+        project_ref: str | None = None,
+        **_: Any,
+    ) -> Any:
+        calls.append((building_id, project_ref))
+        return report_sinks.ReportSinkObservation(
+            sink_ref=report_sinks.DASHBOARD_SINK_REF,
+            delivered=True,
+            packet_ref=building_id,
+            written_path="",
+            proof_limits=("dashboard project_ref probe support evidence only",),
+            not_proven=("real dashboard delivery",),
+            delivery_status_class="http_2xx",
+            provider_response_status_class="http_2xx",
+        )
+
+    base_packet = {
+        **_minimal_reporter_packet(),
+        "report_id": "reporter-dashboard-project-ref-probe",
+        "building_id": "probe-building",
+        "external_delivery_allowed": True,
+        "sink_refs": [report_sinks.DASHBOARD_SINK_REF],
+    }
+    try:
+        report_sinks.send_dashboard_building_delta = fake_delta_sender
+        with tempfile.TemporaryDirectory(prefix="bp-dashboard-project-ref-probe-") as tmp:
+            missing_observations = report_sinks.deliver_report_packet(
+                base_packet,
+                repo_root=Path(tmp),
+                allow_real_dashboard_delivery=True,
+            )
+        if calls:
+            raise ProfileError(
+                "dashboard project_ref guard mutation-RED failed: missing project_ref "
+                "still called send_dashboard_building_delta"
+            )
+        if len(missing_observations) != 1:
+            raise ProfileError("dashboard project_ref guard did not return one observation")
+        missing = missing_observations[0]
+        if missing.delivered is not False:
+            raise ProfileError("dashboard project_ref guard marked missing-project-ref delivered")
+        if missing.delivery_status_class != "not_attempted_missing_project_ref":
+            raise ProfileError(
+                "dashboard project_ref guard returned wrong status class: "
+                f"{missing.delivery_status_class!r}"
+            )
+
+        with tempfile.TemporaryDirectory(prefix="bp-dashboard-project-ref-probe-") as tmp:
+            present_observations = report_sinks.deliver_report_packet(
+                {**base_packet, "project_ref": "project:brick-protocol"},
+                repo_root=Path(tmp),
+                allow_real_dashboard_delivery=True,
+            )
+        if calls != [("probe-building", "project:brick-protocol")]:
+            raise ProfileError(
+                "dashboard project_ref guard did not pass packet project_ref into delta delivery"
+            )
+        if len(present_observations) != 1 or present_observations[0].delivered is not True:
+            raise ProfileError("dashboard project_ref positive probe did not return delivered observation")
+    finally:
+        report_sinks.send_dashboard_building_delta = original
+    return "dashboard project_ref guard observed: missing project_ref records non-delivery; present project_ref reaches delta sender; mutation-RED would call the sender on missing project_ref."
+
+
+def _assert_reporter_structure_diagram_branch_rendering(reporter: Any) -> str:
+    order = ["plan", "design-a", "design-b", "join", "work-a", "work-b", "done"]
+    labels = {
+        "plan": "[계획·PM]",
+        "design-a": "[긴 설계 형제 A·Design]",
+        "design-b": "[긴 설계 형제 B·Design]",
+        "join": "[취합·PM]",
+        "work-a": "[구현 형제 A·Dev]",
+        "work-b": "[구현 형제 B·Dev]",
+        "done": "[검수·QA]",
+    }
+    adjacency = {
+        "plan": ["design-a", "design-b"],
+        "design-a": ["join"],
+        "design-b": ["join"],
+        "join": ["work-a", "work-b"],
+        "work-a": ["done"],
+        "work-b": ["done"],
+    }
+    reverse = {
+        "design-a": ["plan"],
+        "design-b": ["plan"],
+        "join": ["design-a", "design-b"],
+        "work-a": ["join"],
+        "work-b": ["join"],
+        "done": ["work-a", "work-b"],
+    }
+    expected = "\n".join(
+        [
+            "[계획·PM]",
+            "  │",
+            "  ├─ [긴 설계 형제 A·Design]",
+            "  └─ [긴 설계 형제 B·Design]",
+            "  │",
+            "[취합·PM]",
+            "  │",
+            "  ├─ [구현 형제 A·Dev]",
+            "  └─ [구현 형제 B·Dev]",
+            "  │",
+            "[검수·QA]",
+            "  │",
+            "(완료)",
+        ]
+    )
+    rendered = reporter._layered_structure_diagram(  # noqa: SLF001
+        order,
+        labels,
+        adjacency=adjacency,
+        reverse=reverse,
+        terminal_sources={"done"},
+    )
+    if rendered != expected:
+        raise ProfileError(
+            "layered fan structure diagram changed unexpectedly:\n"
+            f"expected:\n{expected}\nactual:\n{rendered}"
+        )
+    branch_lines = reporter._branch_structure_lines(  # noqa: SLF001
+        ("[긴 설계 형제 A·Design]", "[긴 설계 형제 B·Design]"),
+        prefix="  ",
+    )
+    mutated = "\n".join(
+        line.replace("  └─", "    └─", 1) for line in branch_lines
+    )
+    if "\n".join(branch_lines) == mutated:
+        raise ProfileError("structure diagram mutation-RED fixture did not alter branch indentation")
+    if mutated in rendered:
+        raise ProfileError(
+            "structure diagram mutation-RED failed: accumulated branch indentation was accepted"
+        )
+    return "structure diagram branch rendering observed: layered fan siblings keep exact two-space branch prefix and mutation-RED indentation is absent."
+
+
 def run_reporter_notification_projection(repo: Path) -> KernelResult:
     _ensure_import_identity(repo)
     reporter = importlib.import_module("brick_protocol.support.operator.reporter")
@@ -4426,6 +4568,8 @@ def run_reporter_notification_projection(repo: Path) -> KernelResult:
         brick_grain_count,
     ) = _assert_reporter_brick_grain_threading(repo, reporter, report_sinks)
     no_scheduler_count = _assert_no_scheduler_constructs(repo)
+    dashboard_project_ref_text = _assert_reporter_dashboard_project_ref_guard(report_sinks)
+    structure_diagram_text = _assert_reporter_structure_diagram_branch_rendering(reporter)
 
     observations = tuple(reporter.reporter_negative_probe_observations())
     if not observations:
@@ -4624,7 +4768,7 @@ def run_reporter_notification_projection(repo: Path) -> KernelResult:
             + auto_wire_count
             + brick_grain_count
             + no_scheduler_count
-            + 6
+            + 8
         ),
         output=(
             "reporter notification projection passed: "
@@ -4647,6 +4791,8 @@ def run_reporter_notification_projection(repo: Path) -> KernelResult:
             f"Verbose-mode temp Slack text: {verbose_mode_text!r}. "
             f"Brick-grain Slack text: {brick_grain_text!r}. "
             f"Disposition Slack text: {disposition_text!r}. "
+            f"{dashboard_project_ref_text} "
+            f"{structure_diagram_text} "
             f"Temp local inbox packet bytes: {len(auto_wire_inbox_text.encode('utf-8'))}."
         ),
     )

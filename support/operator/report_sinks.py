@@ -384,8 +384,15 @@ def deliver_report_packet(
                     continue
                 # PROJECT-0 S4-B: an OPTIONAL packet project_ref narrows the
                 # delta to one vessel (building_id uniqueness is per-vessel);
-                # without it an id living in 2+ vessels fails closed downstream.
+                # without it a real external building delta is ambiguous, so the
+                # sink records non-delivery before projection instead of falling
+                # through to a bare building_id lookup.
                 packet_project_ref = str(packet.get("project_ref") or "").strip() or None
+                if packet_project_ref is None:
+                    _append_observation(
+                        _dashboard_missing_project_ref_observation(packet)
+                    )
+                    continue
                 _append_observation(
                     send_dashboard_building_delta(
                         building_id,
@@ -1299,6 +1306,24 @@ def _external_guard_observation(
         proof_limits=EXTERNAL_GUARD_PROOF_LIMITS,
         not_proven=EXTERNAL_GUARD_NOT_PROVEN,
         delivery_status_class="not_attempted_non_real_vessel",
+        provider_response_status_class="not_attempted",
+    )
+
+
+def _dashboard_missing_project_ref_observation(
+    packet: Mapping[str, Any]
+) -> ReportSinkObservation:
+    return ReportSinkObservation(
+        sink_ref=DASHBOARD_SINK_REF,
+        delivered=False,
+        packet_ref=_required_text(packet.get("report_id"), "report_id"),
+        written_path="",
+        proof_limits=DASHBOARD_DELTA_REAL_DELIVERY_PROOF_LIMITS,
+        not_proven=_merge_texts(
+            DASHBOARD_SINK_NOT_PROVEN,
+            ("dashboard building delta delivery not attempted: missing project_ref",),
+        ),
+        delivery_status_class="not_attempted_missing_project_ref",
         provider_response_status_class="not_attempted",
     )
 
