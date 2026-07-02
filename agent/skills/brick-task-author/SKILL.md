@@ -303,7 +303,7 @@ graph([
 
 1. `cd <활성 체크아웃>` 절대경로 명시 — 셸 cwd 리셋 트랩. 발사 명령 앞에 항상.
 2. `set -a; source ~/.brick/report.env; set +a` — 벨+대시보드. resume 전에도 동일.
-3. `output_root`는 생략(기본) 또는 `REPO/project/brick-protocol/buildings` — goal-runs 경로는 슬랙 알림 끊김.
+3. `output_root` — one-call `build()`는 `~/.brick/goal-runs/`에 하드코딩한다(0702 실측, `_build_output_root`) = 슬랙 벨 끊김. 벨이 필요하면 `run_goal_approve_entry(output_root=REPO/project/brick-protocol/buildings/...)`로 발사하거나 goal-runs 산출을 발사자가 직접 회수.
 4. 쓰기 노드 = 노드 `write=True` + 발사 `write_scope` **둘 다** (하나만이면 read-only smoke). glob은 `support/operator/**` 꼴 (★`support/` 금지 = fnmatch 함정).
 5. `adapter_timeout_seconds` 상향 — one-call build() 기본 120초는 정독/구현 레인에 짧다. resume엔 `adapter_cwd=<워크트리>` 절대 누락 금지.
 
