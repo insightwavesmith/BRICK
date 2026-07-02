@@ -6,9 +6,11 @@ description: BRICK 빌딩 사이징 — 일의 크기/모양을 그래프 모양
 # 빌딩 사이징 방법 (워크플로 사이징의 거울)
 
 > 이 스킬은 **모양만** 만든다(노드 KIND·팬·QA깊이·감독 다이얼). 만든 compact graph / graph packet shape나
-> `GraphSpec` 재료를 **brick-task-author**에 넘긴다. P3 운영자-facing 기본은 **`build()`만**이다.
-> `fan()`은 `build()` 안의 병렬 재료이고, `fire()`는 내부 구현/debug 용어다. 파일 handoff가
-> 필요할 때만 `brick build --graph <packet>` 입력으로 보낸다. 이 스킬은 발사하지 않는다.
+> `GraphSpec` 재료를 **brick-task-author**에 넘긴다. 공식 launch interface는 **`assemble()`/`build()`/`fan()`
+> DSL**이다(Rule 10). `fan()`은 `build()` 안의 병렬 재료이고, `fire()`는 내부 구현/debug 용어다.
+> 손-작성 `graph_packet` JSON(`brick build --graph <packet>`) CLI 입력은 retired다. DSL이
+> 이제 `sibling_independence`, 노드별 explicit `write_scope` 좁히기, mid-graph human/coo gates를
+> 표현한다. 이 스킬은 발사하지 않는다.
 
 ## 한 줄 핵심 — 워크플로는 에이전트를 사이징, 빌딩은 KIND를 사이징
 
@@ -65,7 +67,7 @@ task intake
 → Codex closure
 ```
 
-이 모양은 design-first fan-out 또는 manual graph mode로 표현한다. 그래도 Link가
+이 모양은 design-first fan-out 또는 DSL graph로 표현한다. 그래도 Link가
 Movement authority를 소유하고, support/model/checker/Slack은 source truth나
 quality/success judge가 아니다.
 
@@ -104,12 +106,40 @@ brick build / support.operator.cli build
 → reporter / Slack / frontier
 ```
 
-프리셋 모드와 그래프 모드는 같은 공식 build surface로 들어가는 두 입력 모드다.
-`build()`, `fan()`, `compose_building()`, `assemble()`, `launch_assembled_building`은
-graph packet / materialization / official-route 내부 sugar다. 실행 안내는 helper나 `fire()`가 아니라
-운영자-facing `build()`로 보내라. 파일 handoff/debug일 때만 `brick build --graph <packet>` /
-`support.operator.cli build --graph <packet>`를 말한다.
-별도 공식 route처럼 말하지 마라.
+공식 authoring/launch interface는 `assemble()`/`build()`/`fan()` Python DSL이다(Smith 0701 결정,
+Rule 10). 프리셋 모드와 DSL 그래프 모드는 이 DSL을 통해 같은 공식 build surface(엔진은 여전히
+`compose_building()`, Rule 9)로 들어간다 — 같은 공식 build surface로 들어가는 두 입력 모드다.
+P3 운영자-facing 기본은 **`build()`만**이다. `build()`, `fan()`, `assemble()`,
+`launch_assembled_building`은 이 공식 DSL의 부분이고 `compose_building()`은 그 아래 엔진이다.
+실행 안내는 helper나 `fire()`가 아니라 운영자-facing `build()`/`assemble()`로 보내라. 손-작성
+`graph_packet` JSON(`brick build --graph <packet>` / `support.operator.cli build --graph <packet>`)은
+public CLI 입력에서 retired다. 공식 route처럼 일반 안내하지 마라.
+Profile compatibility note: the old phrase "graph packet / materialization / official-route 내부 sugar" is retained here only as historical checker text, not current operating guidance.
+
+## 난이도→다이얼 환산 (4축 카드 — 0702)
+
+"난이도"는 스칼라가 아니라 4개 축이고, 축마다 다이얼이 정확히 하나 대응한다.
+사이징 전에 4문항에 답하고, 각 답을 **해당 다이얼에만** 반영한다. 축 하나의 문제를
+다른 축의 다이얼로 푸는 것이 오버/언더사이징의 본체다.
+
+| 축 (질문) | 다이얼 | 규칙 |
+|---|---|---|
+| ① 분량 — 한 컨텍스트가 정독 가능한 양인가? | 팬 폭 (재료 분할) | 밀도 높은 코드 레인당 ~1,000줄 기준. ceil(분량/1k)=레인 수. 같은 두뇌, 다른 구간. |
+| ② 판단 분산 — 유능한 둘이 같은 입력에서 다른 답을 낼 확률이 유의미한가? | LLM 다양화/렌즈 수 (두뇌 중복) | 반증 가능한 사실 추출=1두뇌+반증 실행 1렌즈. 반증 불가한 판단(설계 선택)=2~3 교차 LLM. 같은 재료, 다른 두뇌. |
+| ③ 오답 파급 — 틀리면 뭐가 부서지나? | 게이트/사람검토 | read-only 조사=무인+산출물 사람검토. 소스변경=QA fan. 계약·권위·보안=human-review HOLD. |
+| ④ 결합도 — 조각이 서로의 결과를 필요로 하나? | 세로 vs 팬 | 의존 없으면 fan. 경계를 미리 박아 의존을 제거할 수 있으면 제거하고 fan. |
+
+**법칙: 사실은 쪼개고, 판단은 겹친다.** 분량 문제(①)를 교차 LLM(②의 다이얼)로 풀면
+같은 구간을 여러 번 읽는 낭비. 판단 문제(②)를 재료 분할(①의 다이얼)로 풀면 부분만 보고
+판단해 품질이 떨어진다. "llm별로 쪼개기"와 "조사 레인 늘리기"는 다른 축이다.
+
+**팬 폭의 진짜 상한 = fan-in 수렴 노드의 소화력.** 모든 레인 반환이 수렴 노드 컨텍스트에
+들어가야 한다. 레인 반환 스키마를 고정(항목·표 형식 강제)하고 팬이 넓을수록 반환을 압축해라.
+토큰이 남아도 수렴이 익사하면 오버사이징이다.
+
+적용 예 (7,176줄 체커 파일 조사): ① 7,176줄 → 7레인 ② 정독=반증 가능한 사실 추출이라
+단일 LLM+반증 review 1렌즈, 클러스터 경계 판정(합성)만 상위 모델 ③ read-only라 무인+맵
+사람검토 ④ 스팬을 발사 전에 박아 레인 간 의존 0 → fan.
 
 ## 과대-사이징 금지 규칙 (단순+완전 신조)
 
@@ -150,15 +180,16 @@ graph = build([
 
 ## 재사용하라, 다시 짓지 마라
 
-`brick/templates/presets/*.md`(26개 프리셋)은 **미리-사이징된 참조 모양**이고, 그 안의
+`brick/templates/presets/*.md`(28개 프리셋)은 **미리-사이징된 참조 모양**이고, 그 안의
 `selection_hint` 줄이 **"언제 이렇게 사이징하나" 코퍼스**다. 이 사이징 방법은 프리셋 고르기의
 생성형 보완이다 — 맞는 프리셋이 있으면 brick-task-author의 PRESET 입력 모드로, 없으면 이 스킬로
-GRAPH 모양을 사이징한 뒤 brick-task-author가 공식 build surface로 넘긴다.
+GRAPH 모양을 사이징한 뒤 brick-task-author가 공식 DSL build surface로 넘긴다.
 
 ## 산출물
 
 이 스킬의 산출물 = **graph packet shape**(또는 그 shape를 설명하는 `GraphSpec`,
 `build([...])`/`fan([...])` helper 호출).
-brick-task-author가 그 모양을 graph packet으로 받아 `brick build --graph <packet>` 공식 route에
-제출하고, Builder/materializer → declared Building Plan →
+brick-task-author가 그 모양을 `assemble()`/`build()`/`fan()` 공식 DSL 호출로 받아 제출하고,
+Builder/materializer → declared Building Plan →
 `support/operator/run.py` walker → active vessel evidence root → reporter/Slack/frontier로 보낸다.
+(손-작성 `graph_packet` JSON CLI 경로는 retired다.)

@@ -276,6 +276,8 @@ judgment, 또는 Link Movement 선택이 아니다.
 | `allowed_paths must be a proven subset` | 노드 allowed를 그래프 allowed glob 안쪽으로 좁힘 |
 | `must preserve assemble() write_scope forbidden_paths` | 그래프 forbidden 전체를 노드 forbidden에 복사-포함 |
 | `write_scope.forbidden_paths must be an array` | `forbidden_paths: []`라도 키를 명시 |
+| `brick() got unexpected keyword argument(s): label` | 직접 `brick()` 호출은 `alias=` — `label`/`effort` 별칭은 build() 노드 리터럴 `[kind, work, opts]` 전용 |
+| `ModuleNotFoundError: No module named 'support'` | `PYTHONPATH=support/import_identity:.` — repo 루트(`:.`) 누락이 원인, cd만으론 부족 |
 
 올바른 이중 fan + write_scope 승계 예시:
 
@@ -296,6 +298,14 @@ graph([
 # 발사 write_scope={"allowed_paths": ["support/operator/**"], "forbidden_paths": [".git/**"]}
 # 노드 스코프를 좁히면: allowed ⊂ 위 glob + forbidden에 ".git/**" 그대로 포함
 ```
+
+## 발사 직전 체크리스트 (5행 — 본문에 흩어진 함정을 한 화면으로)
+
+1. `cd <활성 체크아웃>` 절대경로 명시 — 셸 cwd 리셋 트랩. 발사 명령 앞에 항상.
+2. `set -a; source ~/.brick/report.env; set +a` — 벨+대시보드. resume 전에도 동일.
+3. `output_root`는 생략(기본) 또는 `REPO/project/brick-protocol/buildings` — goal-runs 경로는 슬랙 알림 끊김.
+4. 쓰기 노드 = 노드 `write=True` + 발사 `write_scope` **둘 다** (하나만이면 read-only smoke). glob은 `support/operator/**` 꼴 (★`support/` 금지 = fnmatch 함정).
+5. `adapter_timeout_seconds` 상향 — one-call build() 기본 120초는 정독/구현 레인에 짧다. resume엔 `adapter_cwd=<워크트리>` 절대 누락 금지.
 
 ## 알아둘 것
 
