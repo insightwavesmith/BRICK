@@ -40,6 +40,6 @@ coordination-order 블록(21스텝, text_contains ~10+), `task_intake/SKILL.md` 
 
 ## 5. 문서 코퍼스 (150개 23,141줄)
 
-- **헌법 정의처 확정**: Global Operating Rules 1-10 = `brick-6-surface-audit-repair-goal-0630.md`(469줄 골 문서 내부). 3축 헌법+Success 4항목 = `customer-ready-goal-phases-0629.md`. → 한 화면 standalone 헌법 문서로 추출 후보.
+- **헌법 정의처 확정**: Global Operating Rules 1-10 = `archive/0702-doc-archive/brick-6-surface-audit-repair-goal-0630.md`(469줄 골 문서 내부). 3축 헌법+Success 4항목 = `customer-ready-goal-phases-0629.md`. → 한 화면 standalone 헌법 문서로 추출 후보.
 - 분류: active-canonical/stale ~44 / **아카이브 후보 ~108** (superseded ~20 + closed-record ~75 + stale무참조 ~8).
 - 주의: GOAL/*.md는 symlink(대상만 이동+재연결), discipline-audit-0618.md는 leaked text 의심(일괄이동 제외), 이동 후 --all 필수(문서 path pin 존재).

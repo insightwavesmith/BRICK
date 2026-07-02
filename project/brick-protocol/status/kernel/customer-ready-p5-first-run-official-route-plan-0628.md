@@ -23,8 +23,8 @@ worked in the operator session.
 Existing support records show focused P5 repairs:
 
 ```text
-customer-ready-p5-cli-onboard-first-run-0627.md
-customer-ready-p5-gemini-readiness-honesty-0627.md
+archive/0702-doc-archive/customer-ready-p5-cli-onboard-first-run-0627.md
+archive/0702-doc-archive/customer-ready-p5-gemini-readiness-honesty-0627.md
 support/operator/cli.py
 support/operator/onboard.py
 support/connection/adapter_subprocess.py
@@ -47,7 +47,7 @@ Remaining gaps / current prep evidence:
 ```text
 P5 #6 fresh-machine prep has a fresh-HOME read-side-projection-boundary
 profile measurement for the former empty-HOME intake_evidence_projection_case
-hazard (operator transcript note: customer-ready-p5-b4-fresh-home-measurement-0630.md); do not carry that hazard as an active unmeasured blocker.
+hazard (operator transcript note: archive/0702-doc-archive/customer-ready-p5-b4-fresh-home-measurement-0630.md); do not carry that hazard as an active unmeasured blocker.
 actual origin/main fresh clone -> install -> init/doctor/auth/onboard ->
 brick build/fire -> evidence/frontier inspection is still not proven.
 README/quickstart/launch-guide currently still point to Python internals or

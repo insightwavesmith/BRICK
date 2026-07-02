@@ -35,8 +35,8 @@ support/operator/walker_kernel.py
 support/operator/walker_frontier_driver.py
 support/checkers/check_bounded_agent_proposed_routing_loop0.py
 support/checkers/profiles/bounded_agent_proposed_routing_loop.yaml
-project/brick-protocol/status/kernel/customer-ready-p4-resume-fanout-repair-0627.md
-project/brick-protocol/status/kernel/research-0626/resume-surface-design-0626.md
+project/brick-protocol/status/kernel/archive/0702-doc-archive/customer-ready-p4-resume-fanout-repair-0627.md
+project/brick-protocol/status/kernel/archive/0702-doc-archive/research-0626/resume-surface-design-0626.md
 ```
 
 Current live code:

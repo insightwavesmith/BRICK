@@ -252,8 +252,8 @@ Engine route/reroute behavior MEASURED GREEN: `building-operator-driver0`
 replay -> closure). The 0629 "#1/#3 수리 중" bug flags are STALE.
 No-link DEFAULT policy was then synced into the building-running skill chain;
 remaining G1 = deep L2 cascade replay + customer comprehension, NOT engine repair.
-Evidence: `customer-ready-closeout-g1g2g3-status-0630.md` and
-`customer-ready-g1-no-link-policy-docs-skill-sync-0630.md`.
+Evidence: `archive/0702-doc-archive/customer-ready-closeout-g1g2g3-status-0630.md` and
+`archive/0702-doc-archive/customer-ready-g1-no-link-policy-docs-skill-sync-0630.md`.
 
 ## 4. Track G2 — customer release pruning finalization
 
@@ -288,12 +288,12 @@ Already observed:
 - `release_export.sh` excludes `project/` and `brick_protocol.egg-info/`.
 - Smith-local literal cleanup and guard expansion have landed.
 - Additional literal scrub landed at `b9d193d` with proof
-  `customer-ready-release-pruning-export-literal-scrub-proof-0630.md`.
-- Fresh export CLI smoke (`customer-ready-g2-fresh-export-cli-smoke-0630.md`)
+  `archive/0702-doc-archive/customer-ready-release-pruning-export-literal-scrub-proof-0630.md`.
+- Fresh export CLI smoke (`archive/0702-doc-archive/customer-ready-g2-fresh-export-cli-smoke-0630.md`)
   proves `uv sync`, import, CLI help, and `brick verify` on the exported tree;
   it also narrows first-build docs so provider-free `adapter:local` verdict
   lanes are honestly described as possible `agent_incomplete`/`not_ready`.
-- Release export payload parity proof (`customer-ready-g2-release-export-parity-proof-0630.md`)
+- Release export payload parity proof (`archive/0702-doc-archive/customer-ready-g2-release-export-parity-proof-0630.md`)
   now proves two fresh exports from the same checkout produce identical
   git-tracked payload file lists and SHA-256 manifests, while excluding `.git/`
   metadata parity from the claim.
@@ -393,7 +393,7 @@ more pure leaves remain (provider_preflight / onboard_smoke are audited
 near-leaves with one shared `_ensure_import_identity` ref; mcp_stdio_smoke /
 connect_config_launch are further candidates), and the agreed STOP CONDITION for
 FINAL architecture cleanup is not yet declared.
-Evidence: `customer-ready-closeout-g1g2g3-status-0630.md`.
+Evidence: `archive/0702-doc-archive/customer-ready-closeout-g1g2g3-status-0630.md`.
 
 ## 6. Operating order
 

@@ -21,7 +21,7 @@ reaches `frontier=complete`; evidence is operator-readable; ZERO undocumented ma
 steps; NO hidden machine-local dependency (no `~/.brick` pre-state assumed).
 Providerless `adapter:local` examples are support evidence only and do not satisfy P7 PASS.
 
-P5-B4 fresh-machine prep evidence (operator transcript note: `customer-ready-p5-b4-fresh-home-measurement-0630.md`):
+P5-B4 fresh-machine prep evidence (operator transcript note: `archive/0702-doc-archive/customer-ready-p5-b4-fresh-home-measurement-0630.md`):
 the former empty-HOME `intake_evidence_projection_case` hazard has a fresh-HOME
 `read-side-projection-boundary` profile measurement and should not be carried as an
 unmeasured active blocker. This remains support evidence only. It does not prove a true

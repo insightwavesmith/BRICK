@@ -46,8 +46,8 @@ profile count: 28 live profiles
 Existing research:
 
 ```text
-project/brick-protocol/status/kernel/research-0626/godmodule-decision-merged-0626.md
-project/brick-protocol/status/kernel/research-0626/godmodule-decomposition-decision-table-0626.md
+project/brick-protocol/status/kernel/archive/0702-doc-archive/research-0626/godmodule-decision-merged-0626.md
+project/brick-protocol/status/kernel/archive/0702-doc-archive/research-0626/godmodule-decomposition-decision-table-0626.md
 project/brick-protocol/status/kernel/checker-profile-diet-*.md
 ```
 
