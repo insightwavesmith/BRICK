@@ -43,7 +43,7 @@ Brick/Agent/Link로 일을 선언·수행 → 아티팩트+증거 반환. 최종
 | 항목 | 상태 |
 |---|---|
 | 온보딩 Phase 0~1 (provider registry/add, sink add, Slack·Dashboard) | ✅ 랜딩 (소넷세션, `dab4acb`/`60863f8`) |
-| **발사 인체공학 3종** — 결과 요약 패킷 / `llm=` 별칭 / `returns=` 계약 주입 | `returns=`✅랜딩 · `llm=`✅랜딩 `9eb30ad9`(v9 확정 4조각, 0703 새벽 — D5/D6 동시사용·심화는 후속 소형, 현재 동시사용은 llm= 우선 silent-override) · 결과 요약 패킷 대기 |
+| **발사 인체공학 3종** — 결과 요약 패킷 / `llm=` 별칭 / `returns=` 계약 주입 | `returns=`✅랜딩 · `llm=`✅랜딩 `9eb30ad9`(v9 확정 4조각, 0703 새벽 — D5/D6 동시사용·심화는 후속 소형, 현재 동시사용은 llm= 우선 silent-override) · **결과 요약 패킷 ✅랜딩 `6afb1c0d`**(`summarize_building_result()` — 오늘 밤 첫 frontier=complete 완주, 갭 2건 v3 진행) — **인체공학 3종 완결** |
 | 온보딩 잔여 Phase 2~3 (대화형 등록/모델선택) | 대기 |
 | 갓모듈 소형 안전묶음 §4-5(registry phantom)/§4-8(게이트 6스텝)/§4-9(프로브 안전화) | ✅ 랜딩 (소넷세션 작업 B/C/D) |
 | §4-6 anti-toothless 가드 구현 (서베이로 리스크 소멸 — 걸릴 프로파일 1개) | 대기 (소형) |
