@@ -75,7 +75,7 @@ modules:
     imports_axis: []
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: check-profile-god-0
-    pinned_by: core profile self-test + checker_strict_validation profile
+    pinned_by: core profile self-test + structure_template_integrity profile
 
   - module: support/checkers/check_package_path_admission.py
     layer: checkers
@@ -540,7 +540,7 @@ modules:
     imports_axis: []
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
-    pinned_by: imported by check_profile facade; covered by checker_strict_validation + core profile self-test
+    pinned_by: imported by check_profile facade; covered by structure_template_integrity + core profile self-test
 
   - module: support/checkers/lib/rule_runners.py
     layer: checkers/lib
@@ -552,7 +552,7 @@ modules:
       - link/movement.py
     forbidden_ownership: [movement_author, target_selector, success_judge, quality_judge, route_invent]
     decomposition_target: ""
-    pinned_by: building_plan_boundary / route_policy_boundary / fail_fixture_rejects rules (checker_strict_validation profile)
+    pinned_by: building_plan_boundary / route_policy_boundary / fail_fixture_rejects rules (structure_template_integrity profile)
 
   - module: support/checkers/lib/case_runners.py
     layer: checkers/lib

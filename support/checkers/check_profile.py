@@ -31,7 +31,7 @@ from typing import Any
 # detail-design §D-4 Opt B). This module stays the THIN FACADE: profile
 # load + validate, RULE_RUNNERS, run_kernel_check dispatch, the self-test,
 # and the CLI. The public names are re-exported below so external importers
-# and the checker_strict_validation pins are unchanged.
+# and the structure_template_integrity pins are unchanged.
 #
 # P3a-FIX-1: the lifted `from support.checkers.lib.*` imports below run at
 # module-load time, BEFORE the per-run repo-root sys.path bootstrap further

@@ -29,6 +29,7 @@ from __future__ import annotations
 import argparse
 import ast
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -1025,48 +1026,50 @@ def probe_mutation_red(repo: Path) -> str:
     target = "text_stdout = codex_assistant_text_from_json_stdout(completed.stdout)"
     replacement = "text_stdout = completed.stdout"
     with tempfile.TemporaryDirectory(prefix="bp-adapter-usage-meter-") as tmpdir:
-        backup_path = Path(tmpdir) / "adapter_local_cli.py.bak"
-        subprocess.run(("cp", str(adapter_path), str(backup_path)), check=True, cwd=repo)
-        try:
-            source = adapter_path.read_text(encoding="utf-8")
-            if target not in source:
-                raise AdapterUsageMeterError(
-                    f"{_ADAPTER_REL}: mutation target helper call is missing; "
-                    "cannot run mutation-RED probe"
-                )
-            adapter_path.write_text(source.replace(target, replacement, 1), encoding="utf-8")
-            env = os.environ.copy()
-            import_root = str(repo / "support/import_identity")
-            env["PYTHONPATH"] = (
-                import_root
-                if not env.get("PYTHONPATH")
-                else f"{import_root}{os.pathsep}{env['PYTHONPATH']}"
+        temp_repo = Path(tmpdir) / "repo"
+        copied_adapter_path = temp_repo / _ADAPTER_REL
+        copied_adapter_path.parent.mkdir(parents=True)
+        shutil.copy2(adapter_path, copied_adapter_path)
+        source = copied_adapter_path.read_text(encoding="utf-8")
+        if target not in source:
+            raise AdapterUsageMeterError(
+                f"{_ADAPTER_REL}: mutation target helper call is missing; "
+                "cannot run mutation-RED probe"
             )
-            completed = subprocess.run(
-                (
-                    sys.executable,
-                    str(repo / "support/checkers/check_adapter_usage_meter.py"),
-                    "--repo",
-                    str(repo),
-                ),
-                cwd=repo,
-                env=env,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                check=False,
+        copied_adapter_path.write_text(
+            source.replace(target, replacement, 1),
+            encoding="utf-8",
+        )
+        env = os.environ.copy()
+        import_root = str(repo / "support/import_identity")
+        env["PYTHONPATH"] = (
+            import_root
+            if not env.get("PYTHONPATH")
+            else f"{import_root}{os.pathsep}{env['PYTHONPATH']}"
+        )
+        completed = subprocess.run(
+            (
+                sys.executable,
+                str(repo / "support/checkers/check_adapter_usage_meter.py"),
+                "--repo",
+                str(temp_repo),
+            ),
+            cwd=repo,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=False,
+        )
+        if completed.returncode != 1:
+            raise AdapterUsageMeterError(
+                "mutation RED failed: raw completed.stdout fallback produced "
+                f"checker exit {completed.returncode}, expected 1"
             )
-            if completed.returncode != 1:
-                raise AdapterUsageMeterError(
-                    "mutation RED failed: raw completed.stdout fallback produced "
-                    f"checker exit {completed.returncode}, expected 1"
-                )
-        finally:
-            subprocess.run(("cp", str(backup_path), str(adapter_path)), check=True, cwd=repo)
     return (
         "mutation RED observed: replacing the json_active helper fallback with "
-        "bare completed.stdout makes check_adapter_usage_meter.py exit 1, then "
-        "adapter_local_cli.py is restored with cp"
+        "bare completed.stdout in a temp adapter_local_cli.py copy makes "
+        "check_adapter_usage_meter.py exit 1"
     )
 
 
@@ -1159,8 +1162,8 @@ def parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
         "--probe-mutation-red",
         action="store_true",
         help=(
-            "temporarily mutate agent_adapter.py to the raw stdout fallback, assert "
-            "this checker exits RED, and restore with cp"
+            "temporarily mutate a temp adapter_local_cli.py copy to the raw stdout "
+            "fallback and assert this checker exits RED"
         ),
     )
     return parser.parse_args(argv)
