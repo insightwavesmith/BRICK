@@ -146,8 +146,9 @@ agent_resource_boundary:
     hooks_execution_opened: false
   - role: qa
     lane: reviewer
-    preferred_adapter_ref: adapter:codex-local
-    preferred_model_ref: model:codex:default
+    preferred_adapter_ref: adapter:claude-local
+    preferred_model_ref: model:claude:sonnet
+    preferred_reasoning_effort_ref: effort:xhigh
     required_hook_refs:
       - hook:reviewer-no-mutation
       - hook:unsafe-mutation-guard

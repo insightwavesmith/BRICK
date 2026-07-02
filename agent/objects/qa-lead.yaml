@@ -35,6 +35,7 @@
     "adapter:claude-local",
     "adapter:gemini-local"
   ],
-  "preferred_adapter_ref": "adapter:gemini-local",
-  "preferred_model_ref": "model:gemini:default"
+  "preferred_adapter_ref": "adapter:codex-local",
+  "preferred_model_ref": "model:codex:default",
+  "preferred_reasoning_effort_ref": "effort:xhigh"
 }
