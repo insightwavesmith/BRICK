@@ -8,7 +8,9 @@ decides no Movement, and judges no success or quality.
 from __future__ import annotations
 
 import importlib
+import os
 from collections.abc import Mapping
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +30,7 @@ _PROVIDER_PREFLIGHT_REQUIRED_KEYS = (
     "message_ko",
 )
 _PROVIDER_PREFLIGHT_AUTHED_LITERALS = ("yes", "no", "unknown")
+_GEMINI_API_KEY_ENV_VARS = ("GEMINI_API_KEY", "GOOGLE_API_KEY")
 
 
 def _provider_preflight_assert_shape(label: str, status: Any) -> None:
@@ -52,6 +55,53 @@ def _provider_preflight_assert_shape(label: str, status: Any) -> None:
     message = status["message_ko"]
     if not isinstance(message, str) or not message.strip():
         raise ProfileError(f"provider_preflight: {label} 'message_ko' must be non-empty text")
+
+
+@contextmanager
+def _fixture_gemini_api_key_present() -> Any:
+    old_values = {name: os.environ.get(name) for name in _GEMINI_API_KEY_ENV_VARS}
+    os.environ["GEMINI_API_KEY"] = "provider-preflight-checker-fixture-key"
+    os.environ.pop("GOOGLE_API_KEY", None)
+    try:
+        yield
+    finally:
+        for name, value in old_values.items():
+            if value is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = value
+
+
+def _assert_gemini_api_key_ready(status: Mapping[str, Any]) -> None:
+    if status.get("api_key_env_present") is not True:
+        raise ProfileError(
+            "provider_preflight: adapter:gemini-local API-key fixture must report "
+            "api_key_env_present=True"
+        )
+    if status.get("credential_validity") != "not_proven":
+        raise ProfileError(
+            "provider_preflight: adapter:gemini-local must mark credential_validity=not_proven"
+        )
+    if status.get("authed") != "yes" or status.get("ok") is not True:
+        raise ProfileError(
+            "provider_preflight: adapter:gemini-local API-key-present path must classify "
+            'as ready with authed="yes" and ok=True while credential_validity stays not_proven'
+        )
+
+
+def _assert_gemini_ready_mutation_red(status: Mapping[str, Any]) -> str:
+    mutated = dict(status)
+    mutated["authed"] = "unknown"
+    try:
+        _assert_gemini_api_key_ready(mutated)
+    except ProfileError:
+        return (
+            "mutation-RED observed: api_key_env_present=True with authed!='yes' is rejected"
+        )
+    raise ProfileError(
+        "provider_preflight: mutation-RED failed; api_key_env_present=True with "
+        "authed!='yes' was accepted"
+    )
 
 
 def run_provider_preflight(repo: Path) -> KernelResult:
@@ -103,20 +153,17 @@ def run_provider_preflight(repo: Path) -> KernelResult:
     # Gemini local API-key paths are never live-called by preflight; they must expose
     # key-presence evidence separately from credential validity so doctor/onboard
     # cannot turn a present-but-invalid key into an auth proof.
-    gemini_status = adapter_subprocess.preflight_provider(
-        adapter_constants.ADAPTER_GEMINI_LOCAL, command_runner=command_runner
-    )
+    with _fixture_gemini_api_key_present():
+        gemini_status = adapter_subprocess.preflight_provider(
+            adapter_constants.ADAPTER_GEMINI_LOCAL, command_runner=command_runner
+        )
     _provider_preflight_assert_shape(adapter_constants.ADAPTER_GEMINI_LOCAL, gemini_status)
-    if "api_key_env_present" not in gemini_status or not isinstance(
-        gemini_status.get("api_key_env_present"), bool
-    ):
+    if not isinstance(gemini_status.get("api_key_env_present"), bool):
         raise ProfileError(
             "provider_preflight: adapter:gemini-local must expose boolean api_key_env_present"
         )
-    if gemini_status.get("credential_validity") != "not_proven":
-        raise ProfileError(
-            "provider_preflight: adapter:gemini-local must mark credential_validity=not_proven"
-        )
+    _assert_gemini_api_key_ready(gemini_status)
+    gemini_mutation_line = _assert_gemini_ready_mutation_red(gemini_status)
     inspected += 1
 
     # (b) Deliberately bogus + retired refs must return ok False WITHOUT raising.
@@ -147,8 +194,9 @@ def run_provider_preflight(repo: Path) -> KernelResult:
         output=(
             "provider preflight passed: preflight_provider returns a well-shaped "
             "status dict for active + in-process adapters, reports adapter:local "
-            "ready, keeps Gemini API-key presence separate from credential validity, "
+            "ready, classifies Gemini API-key presence as ready while keeping "
+            "credential validity separate, "
             "and returns ok False (never raises) for bogus/retired refs "
-            f"({inspected} ref(s) inspected)."
+            f"({inspected} ref(s) inspected); {gemini_mutation_line}."
         ),
     )
