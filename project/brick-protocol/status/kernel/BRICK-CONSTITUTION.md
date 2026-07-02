@@ -1,8 +1,11 @@
-# BRICK 헌법 (초안 0702 — Smith 비준 대기)
+# BRICK 헌법 (0702 Smith 비준)
 
-한 화면 상설법. 절차·역사·페이즈는 여기 없다 — 법만. 개정은 날짜와 함께 이 파일에서.
-출처(비준 시 그쪽 법 조문은 역사 기록이 됨): Global Operating Rules =
+한 화면 상설법이자 **법의 단일 출처**. 원칙(비준 조건): **변화하지 않는 규칙만 담는다** —
+상태·절차·임시규칙은 스킬과 상태문서 몫이다. 개정은 날짜와 함께 이 파일에서만.
+원 출처(법 조문은 이제 역사 기록): Global Operating Rules =
 `brick-6-surface-audit-repair-goal-0630.md`, 3축·판정 = `customer-ready-goal-phases-0629.md`.
+비준 확인(Smith 0702): compose_building=엔진 / assemble·build·fan=운영자 포장 구도 맞음,
+--graph 제거 맞음.
 
 ## 3축
 
@@ -23,8 +26,7 @@
 7. 모든 페이즈/빌딩 반환은 `observed_evidence` / `narrowly_proven` / `not_proven` /
    `next Movement candidate`를 분리한다.
 8. 그래프 admission은 **checker-first**다 (fan-in 노드가 동시에 fan-out 소스 금지 등 —
-   런타임 발견은 실패다). 현행: 검출기(`graph_topology_fan_barrier`) 완성, 라이브
-   admission 배선은 Follow-On 미결 (0701 처분).
+   런타임 발견은 실패다). 배선 진행 상태는 법이 아니므로 여기 없다 — 상태문서(GP) 참조.
 9. `compose_building()`이 엔진이며 **영구 정본**이다 (0701 확정 — 2차 생산자 금지의 적용례).
 10. 공식 authoring/launch interface는 `assemble()`/`build()`/`fan()` DSL이다.
     손-작성 `graph_packet` JSON CLI(`--graph`)는 **retired 완결** (0702 — sibling_independence·
