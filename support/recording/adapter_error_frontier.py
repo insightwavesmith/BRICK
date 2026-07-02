@@ -98,6 +98,7 @@ from brick_protocol.support.recording.declaration_packets import (
 from brick_protocol.support.recording.lifecycle_emit import (
     _accumulated_capture_event,
     _accumulated_raw_manifest,
+    _dynamic_reroute_raw_refs,
     _lifecycle_packet_from_mapping,
 )
 from brick_protocol.support.recording.raw_claim_trace import (
@@ -1066,6 +1067,7 @@ def _adapter_error_frontier_lifecycle_packet(
         completed_step_results,
         failed_preparation,
         observation,
+        plan,
         graph_context,
     )
     evidence_manifest = _adapter_error_frontier_evidence_manifest(
@@ -1152,6 +1154,7 @@ def _chat_session_park_frontier_lifecycle_packet(
         completed_step_results,
         failed_preparation,
         observation,
+        plan,
         graph_context,
     )
     evidence_manifest = _chat_session_park_frontier_evidence_manifest(
@@ -1346,10 +1349,16 @@ def _adapter_error_frontier_raw_manifest(
     completed_step_results: tuple[BuildingRunSupportResult, ...],
     failed_preparation: AgentRunPreparationRecord,
     observation: AdapterErrorObservation,
+    plan: Mapping[str, Any],
     graph_context: Mapping[str, Any] | None,
 ) -> dict[str, Any]:
     complete_manifest = (
-        _accumulated_raw_manifest(building_id, completed_step_results, graph_context)
+        _accumulated_raw_manifest(
+            building_id,
+            completed_step_results,
+            graph_context,
+            plan=plan,
+        )
         if completed_step_results
         else {"building_id": building_id, "raw_refs": [], "entries": []}
     )
@@ -1397,6 +1406,7 @@ def _adapter_error_frontier_raw_manifest(
         axis_owner="Link",
         raw_refs=[
             *(_raw_ref("link", index) for index in range(1, len(completed_step_results) + 1)),
+            *_dynamic_reroute_raw_refs(plan),
             _raw_ref("link-frontier", failed_index),
             *_graph_link_raw_refs(graph_context),
         ],
@@ -1413,10 +1423,16 @@ def _chat_session_park_frontier_raw_manifest(
     completed_step_results: tuple[BuildingRunSupportResult, ...],
     failed_preparation: AgentRunPreparationRecord,
     observation: ChatSessionParkObservation,
+    plan: Mapping[str, Any],
     graph_context: Mapping[str, Any] | None,
 ) -> dict[str, Any]:
     complete_manifest = (
-        _accumulated_raw_manifest(building_id, completed_step_results, graph_context)
+        _accumulated_raw_manifest(
+            building_id,
+            completed_step_results,
+            graph_context,
+            plan=plan,
+        )
         if completed_step_results
         else {"building_id": building_id, "raw_refs": [], "entries": []}
     )
@@ -1464,6 +1480,7 @@ def _chat_session_park_frontier_raw_manifest(
         axis_owner="Link",
         raw_refs=[
             *(_raw_ref("link", index) for index in range(1, len(completed_step_results) + 1)),
+            *_dynamic_reroute_raw_refs(plan),
             _raw_ref("link-frontier", failed_index),
             *_graph_link_raw_refs(graph_context),
         ],

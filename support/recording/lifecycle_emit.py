@@ -49,6 +49,7 @@ from brick_protocol.support.recording.capture import (
     CaptureEvent,
 )
 from brick_protocol.support.recording.claims_common import (
+    _dynamic_reroute_records,
     _manifest_not_proven,
     _step_output_manifest_refs,
 )
@@ -86,6 +87,7 @@ def _accumulated_lifecycle_packet(
         building_id,
         step_results,
         graph_context,
+        plan=plan,
     )
     building_work = {
         "work_statement": first_work.work_statement,
@@ -173,8 +175,11 @@ def _accumulated_raw_manifest(
     building_id: str,
     step_results: tuple[BuildingRunSupportResult, ...],
     graph_context: Mapping[str, Any] | None = None,
+    *,
+    plan: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     graph_raw_refs = _graph_link_raw_refs(graph_context)
+    dynamic_reroute_raw_refs = _dynamic_reroute_raw_refs(plan)
     return {
         "building_id": building_id,
         "raw_refs": [
@@ -182,6 +187,7 @@ def _accumulated_raw_manifest(
             for index in range(1, len(step_results) + 1)
             for ref in (_raw_ref("brick", index), _raw_ref("agent", index), _raw_ref("link", index))
         ]
+        + dynamic_reroute_raw_refs
         + graph_raw_refs,
         "entries": [
             {
@@ -210,10 +216,23 @@ def _accumulated_raw_manifest(
                 "axis_owner": "Link",
                 "record_role": "primary",
                 "raw_refs": [_raw_ref("link", index) for index in range(1, len(step_results) + 1)]
+                + dynamic_reroute_raw_refs
                 + graph_raw_refs,
             },
         ],
     }
+
+
+def _dynamic_reroute_raw_refs(plan: Mapping[str, Any] | None) -> list[str]:
+    if not isinstance(plan, Mapping):
+        return []
+    evidence = plan.get("dynamic_walker_evidence")
+    if not isinstance(evidence, Mapping):
+        return []
+    return [
+        _raw_ref("link-reroute", ordinal)
+        for ordinal, _record in enumerate(_dynamic_reroute_records(evidence), start=1)
+    ]
 
 
 def agent_run_lifecycle_mapping(

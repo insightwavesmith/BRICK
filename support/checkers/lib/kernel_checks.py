@@ -4658,9 +4658,73 @@ def run_adapter_error_frontier_manifest_consistency(repo: Path) -> KernelResult:
     from support.checkers import check_building_lifecycle_path_shape as lifecycle_shape
     from support.operator import run as run_module
     from support.recording.raw_claim_trace import reconcile_claim_trace_raw_manifest_from_raw
+    from support.recording.lifecycle_emit import _accumulated_raw_manifest
 
     del repo
     with tempfile.TemporaryDirectory(prefix="bp-adapter-error-frontier-manifest-") as tmp:
+        dynamic_plan = {
+            "dynamic_walker_evidence": {
+                "reroute_adoption_records": [
+                    {
+                        "source_step_ref": "adopted-reroute-manifest-source",
+                        "target_brick": "brick-adopted-reroute-manifest-target",
+                        "reroute_ref": "reroute:adopted-reroute-manifest:1",
+                    }
+                ]
+            }
+        }
+        dynamic_manifest = _accumulated_raw_manifest(
+            "adopted-reroute-manifest-case",
+            (),
+            None,
+            plan=dynamic_plan,
+        )
+        dynamic_link_entries = [
+            entry
+            for entry in dynamic_manifest.get("entries", [])
+            if isinstance(entry, Mapping) and entry.get("path") == "raw/link.jsonl"
+        ]
+        if "raw:link-reroute:01" not in dynamic_manifest.get("raw_refs", []):
+            raise ProfileError(
+                "adapter_error_frontier_manifest_consistency dynamic-reroute manifest "
+                "pin failed: top-level raw_refs lacks raw:link-reroute:01"
+            )
+        if not dynamic_link_entries or "raw:link-reroute:01" not in dynamic_link_entries[0].get("raw_refs", []):
+            raise ProfileError(
+                "adapter_error_frontier_manifest_consistency dynamic-reroute manifest "
+                "pin failed: raw/link.jsonl entry lacks raw:link-reroute:01"
+            )
+
+        dynamic_red_root = Path(tmp) / "adopted-reroute-manifest-red-case"
+        _adapter_error_manifest_write_dynamic_reroute_fixture(
+            dynamic_red_root,
+            include_manifest_reroute=False,
+        )
+        dynamic_red_violations: list[str] = []
+        lifecycle_shape.validate_minimal_content(dynamic_red_root, dynamic_red_violations)
+        if not any(
+            "raw_ref does not resolve through raw manifest: raw:link-reroute:01" in item
+            for item in dynamic_red_violations
+        ):
+            raise ProfileError(
+                "adapter_error_frontier_manifest_consistency dynamic-reroute FIRE "
+                "did not observe unresolved raw:link-reroute:01 before manifest repair"
+            )
+
+        dynamic_green_root = Path(tmp) / "adopted-reroute-manifest-green-case"
+        _adapter_error_manifest_write_dynamic_reroute_fixture(
+            dynamic_green_root,
+            include_manifest_reroute=True,
+        )
+        dynamic_green_violations: list[str] = []
+        lifecycle_shape.validate_minimal_content(dynamic_green_root, dynamic_green_violations)
+        if dynamic_green_violations:
+            raise ProfileError(
+                "adapter_error_frontier_manifest_consistency dynamic-reroute fixture "
+                "did not resolve every claim_trace raw_ref:\n"
+                + "\n".join(f"- {violation}" for violation in dynamic_green_violations)
+            )
+
         root = Path(tmp) / "adapter-error-frontier-manifest-case"
         _adapter_error_manifest_write_broken_fixture(root)
 
@@ -4733,12 +4797,14 @@ def run_adapter_error_frontier_manifest_consistency(repo: Path) -> KernelResult:
 
     return KernelResult(
         check_id="adapter_error_frontier_manifest_consistency",
-        inspected=len(written) + 3,
+        inspected=len(written) + 6,
         output=(
             "adapter-error frontier manifest consistency passed: synthetic "
             "adapter-error->closure fixture fired RED before reconciliation and "
             "the same lifecycle raw_ref resolver accepted both the reconciled root "
-            "and the final-writer preserve root."
+            "and the final-writer preserve root; adopted-reroute fixture fired RED "
+            "without raw:link-reroute:01 in raw-manifest and GREEN with every "
+            "claim_trace raw_ref resolved."
         ),
     )
 
@@ -6069,6 +6135,102 @@ def _adapter_error_manifest_write_broken_fixture(root: Path) -> None:
             raw_ref,
             {"frontier_kind": "agent_incomplete"} if rel == "frontier_trace.json" else {"link_ref": fact_ref},
         )
+
+
+def _adapter_error_manifest_write_dynamic_reroute_fixture(
+    root: Path,
+    *,
+    include_manifest_reroute: bool,
+) -> None:
+    case_id = root.name
+    link_raw_refs = ["raw:link:01"]
+    manifest_link_refs = ["raw:link:01"]
+    manifest_top_refs = ["raw:brick:01", "raw:agent:01", "raw:link:01"]
+    if include_manifest_reroute:
+        manifest_link_refs.append("raw:link-reroute:01")
+        manifest_top_refs.append("raw:link-reroute:01")
+    _adapter_error_manifest_write_jsonl(
+        root / "raw" / "brick-work.jsonl",
+        [{"raw_ref": "raw:brick:01", "raw_refs": ["raw:brick:01"], "step_ref": f"{case_id}-work"}],
+    )
+    _adapter_error_manifest_write_jsonl(
+        root / "raw" / "agent-return.jsonl",
+        [{"raw_ref": "raw:agent:01", "raw_refs": ["raw:agent:01"], "step_ref": f"{case_id}-work"}],
+    )
+    _adapter_error_manifest_write_jsonl(
+        root / "raw" / "link.jsonl",
+        [
+            {
+                "movement": "forward",
+                "raw_ref": "raw:link:01",
+                "raw_refs": link_raw_refs,
+                "step_ref": f"{case_id}-work",
+            },
+            {
+                "movement": "reroute",
+                "movement_source": "recorded dynamic_walker_evidence reroute adoption record",
+                "raw_ref": "raw:link-reroute:01",
+                "raw_refs": ["raw:link-reroute:01"],
+                "reroute_ref": f"reroute:{case_id}:1",
+                "step_ref": f"{case_id}-work",
+                "target": f"brick-{case_id}-repair",
+            },
+        ],
+    )
+    _adapter_error_manifest_write_json(
+        root / "raw" / "raw-manifest.json",
+        {
+            "building_id": case_id,
+            "raw_refs": manifest_top_refs,
+            "entries": [
+                _adapter_error_manifest_entry("raw/brick-work.jsonl", "Brick", ["raw:brick:01"]),
+                _adapter_error_manifest_entry("raw/agent-return.jsonl", "Agent", ["raw:agent:01"]),
+                _adapter_error_manifest_entry("raw/link.jsonl", "Link", manifest_link_refs),
+            ],
+        },
+    )
+    _adapter_error_manifest_write_json(
+        root / "evidence" / "evidence-manifest.json",
+        {"building_id": case_id, "proof_limits": ["support evidence only"]},
+    )
+    _adapter_error_manifest_write_claim(
+        root / "evidence" / "claim_trace" / "brick" / "work_contract.json",
+        "Brick",
+        "brick-work:01",
+        "raw:brick:01",
+        {"work_statement": "fixture work"},
+    )
+    _adapter_error_manifest_write_claim(
+        root / "evidence" / "claim_trace" / "agent" / "returned_claims.json",
+        "Agent",
+        "agent-fact:01",
+        "raw:agent:01",
+        {"received_work": "brick-work:01", "returned_payload_ref": "fixture:return"},
+    )
+    for rel, fact_ref, raw_ref in (
+        ("transfer_trace.json", "link-transfer:01", "raw:link:01"),
+        ("carry_trace.json", "link-carry:01", "raw:link:01"),
+        ("sufficiency_trace.json", "link-sufficiency:01", "raw:link:01"),
+        ("movement_trace.json", "link-movement:01", "raw:link:01"),
+    ):
+        _adapter_error_manifest_write_claim(
+            root / "evidence" / "claim_trace" / "link" / rel,
+            "Link",
+            fact_ref,
+            raw_ref,
+            {"link_ref": fact_ref},
+        )
+    _adapter_error_manifest_write_claim(
+        root / "evidence" / "claim_trace" / "link" / "movement_trace.json",
+        "Link",
+        "link-movement-reroute:01",
+        "raw:link-reroute:01",
+        {
+            "movement": "reroute",
+            "movement_source": "recorded dynamic_walker_evidence reroute adoption record",
+            "target_boundary_ref": f"brick:brick-{case_id}-repair",
+        },
+    )
 
 
 def _adapter_error_manifest_link_frontier_record(case_id: str) -> dict[str, Any]:
