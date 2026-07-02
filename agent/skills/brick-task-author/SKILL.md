@@ -256,6 +256,22 @@ build 결과 packet의 `build_input_mode`, `building_id`, `evidence_root`, `fron
 2. 노드별 스코프를 좁힐 때: 노드 allowed는 그래프 allowed glob에 커버되는 부분집합이어야 하고,
    그래프 forbidden_paths는 **전부 문자 그대로** 노드 forbidden_paths에 포함해야 한다.
 
+**write_scope는 COO의 사전 조사만으로 정밀하게 못 맞출 수 있다** (0702 실측: returns
+전문 보존 빌딩 — COO가 grep 하나로 배선처를 좁혀 write_scope를 확정했는데, 실제 배선은
+그 밖의 폴더 하나에 더 있었다. work가 attempt-3 자기 보고서에 "필요한데 write_scope
+밖"이라 실토할 때까지 3라운드를 허비하고 결국 허용된 좁은 구역 안에서 약한 우회로
+귀결됐다 — Link의 write_scope 강제 자체는 설계대로 작동했다, 문제는 애초에 그은 경계선
+이 방 하나를 빼먹은 것). 현재 엔진은 `candidate_file_changes`/`reading_scope_map`
+(design 반환 필드, 있음)을 work의 실제 write_scope로 **역산하지 않는다** —
+node_write_scope는 assemble()/build() 호출 시점에 COO가 고정하고, design이 나중에
+뭘 알아내도 그 경계는 안 바뀐다(엔진 개선 후보, 미착수). **오늘부터 관행 교정**: 대상
+파일 배선을 COO 자신이 완전히 확신 못 하면, write_scope는 **의심되는 하위시스템
+전체**로 넓게 잡고(예: 폴더 하나가 아니라 그 폴더가 속한 상위 트리), task 본문에
+"design의 candidate_file_changes/reading_scope_map이 실제 작업 경계다 — work는 그
+밖을 스스로 자제하라"를 명시 지침으로 박아라. code-attack-qa 공격 항목에 "design이
+지목 안 한 파일까지 손댔는지"를 추가해 사후 검사로 대체한다(하드 벽 대신 소프트
+규율+검사).
+
 **에러 → 처방 표:**
 
 | 에러 (부분 문자열) | 처방 |
