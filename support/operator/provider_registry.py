@@ -40,6 +40,41 @@ DEFAULT_MODEL_REF_BY_ADAPTER = {
     ADAPTER_GEMINI_LOCAL: MODEL_REF_GEMINI_DEFAULT,
 }
 
+LLM_ALIAS_DECLARATIONS = {
+    "claude": {
+        "adapter_ref": ADAPTER_CLAUDE_LOCAL,
+        "model_ref": MODEL_REF_CLAUDE_INHERIT,
+    },
+    "codex": {
+        "adapter_ref": ADAPTER_CODEX_LOCAL,
+        "model_ref": MODEL_REF_CODEX_DEFAULT,
+    },
+    "fugu": {
+        "adapter_ref": ADAPTER_CODEX_FUGU_LOCAL,
+        "model_ref": MODEL_REF_SAKANA_FUGU,
+    },
+    "gemini": {
+        "adapter_ref": ADAPTER_GEMINI_LOCAL,
+        "model_ref": MODEL_REF_GEMINI_DEFAULT,
+    },
+}
+
+
+def _bare_llm_alias_token(value: str) -> bool:
+    parts = value.split("-")
+    return bool(parts) and all(part.isalnum() and part.lower() == part for part in parts)
+
+
+def llm_alias_declaration(alias: str) -> Mapping[str, str]:
+    token = str(alias or "").strip()
+    if not token or not _bare_llm_alias_token(token):
+        raise ValueError("llm alias must be a bare token")
+    declaration = LLM_ALIAS_DECLARATIONS.get(token)
+    if declaration is None:
+        allowed = ", ".join(sorted(LLM_ALIAS_DECLARATIONS))
+        raise ValueError(f"llm alias must be one of: {allowed}")
+    return declaration
+
 
 def brick_home() -> Path:
     raw = (os.environ.get("BRICK_HOME") or "").strip()

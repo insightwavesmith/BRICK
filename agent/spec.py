@@ -574,6 +574,31 @@ def _build_casting_bag(label: str, kwargs: Mapping[str, Any]) -> dict[str, str]:
     return bag
 
 
+def _expand_llm_alias(
+    label: str,
+    llm: str | None,
+    casting_kwargs: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Expand a provider-neutral llm alias into the normal casting kwargs.
+
+    The declaration table lives in support/operator/provider_registry.py; this
+    Agent-axis helper keeps the Brick verb consuming one casting authoring API.
+    """
+
+    if _optional_text(llm) is None:
+        return dict(casting_kwargs)
+    from brick_protocol.support.operator.provider_registry import (  # noqa: PLC0415
+        llm_alias_declaration,
+    )
+
+    declaration = llm_alias_declaration(str(llm))
+    return {
+        **casting_kwargs,
+        "adapter": declaration["adapter_ref"],
+        "model": declaration["model_ref"],
+    }
+
+
 _ADMITTED_CASTING_PREFIXES: frozenset[str] = frozenset(
     f"{_casting_ref_prefix(descriptor)}:" for descriptor in CASTING_FIELDS
 ) | frozenset({"agent-object:"})
